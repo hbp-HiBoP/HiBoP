@@ -1,0 +1,9 @@
+{
+    "defaultProjectName": "New project",
+    "defaultProjectLocation": "D:/HBPProjects",
+    "defaultPatientDatabaseLocation": "",
+    "defaultLocalizerDatabaseLocation": "",
+    "plotNameAutomaticCorrectionType": 1,
+    "trialMatrixSmoothingType": 1,
+    "baseLineType": 3
+}
