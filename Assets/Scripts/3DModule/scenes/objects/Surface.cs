@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 
 // unity
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace HBP.VISU3D.DLL
 {

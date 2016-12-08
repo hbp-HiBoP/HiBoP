@@ -87,7 +87,7 @@ namespace Tools.Unity.Graph
 
         public void Display(d.Curve[] curves,Vector2 xWindow,Vector2 yWindow,bool interactable)
         {
-            m_displayGestion.Display(curves, xWindow,yWindow,interactable);
+            m_displayGestion.Display(curves, xWindow, yWindow, interactable);
             m_informationsGestion.Curves = curves;
         }
 

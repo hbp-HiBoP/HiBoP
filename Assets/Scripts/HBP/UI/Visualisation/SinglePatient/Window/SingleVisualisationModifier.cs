@@ -78,7 +78,6 @@ namespace HBP.UI
         }
         protected void SelectColumn()
         {
-            Debug.Log("SelectColumn");
             List<Toggle> ActiveToggles = new List<Toggle>(tabGestion.ToggleGroup.ActiveToggles());
             if (ActiveToggles.Count > 0)
             {

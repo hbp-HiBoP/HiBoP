@@ -16,6 +16,7 @@ using System.Threading;
 
 // unity
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.Rendering;

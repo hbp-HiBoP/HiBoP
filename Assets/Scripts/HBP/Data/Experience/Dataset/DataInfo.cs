@@ -60,7 +60,7 @@ namespace HBP.Data.Experience.Dataset
         private string protocolID;
         public Protocol.Protocol Protocol
         {
-            get { return ApplicationState.ProjectLoaded.Protocols.First(p => p.ID == protocolID); }
+            get { return ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == protocolID); }
             set { protocolID = value.ID; }
         }
 

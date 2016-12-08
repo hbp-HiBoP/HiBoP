@@ -35,9 +35,16 @@ namespace HBP.UI
         #endregion
 
         #region public Methods
+        public override void Set(Column objectToSet, Rect rect)
+        {
+            Object = objectToSet;
+        }
+        #endregion
+
+        #region Private Methods
         protected override void SetObject(Column column)
         {
-            if(column == null || column.Dataset == null || column.Dataset.Name == null)
+            if (column == null || column.Dataset == null || column.Dataset.Name == null)
             {
                 m_experience.text = "";
             }

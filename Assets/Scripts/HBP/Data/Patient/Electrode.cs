@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace HBP.Data.Patient
 {
@@ -12,60 +13,38 @@ namespace HBP.Data.Patient
     /// </summary>
 	public class Electrode
 	{
-		#region Parameters
-		string m_name;
-        /// <summary>
-        /// Name of the electrode.
-        /// </summary>
-		public string Name{get{return m_name;}set{m_name=value;}}
+        #region Parameters
+        const string HEADER = "ptsfile";
 
-        List<Plot> m_plots;
-        /// <summary>
-        /// Plots of the electrode.
-        /// </summary>
-		public List<Plot> Plots{get{return m_plots; }set{ m_plots = value;}}
+        string name;
+		public string Name
+        {
+            get {return name;}
+            set {name=value;}
+        }
 
-        /// <summary>
-        /// Header of the pts file.
-        /// </summary>
-		static string m_headerString = "ptsfile";
+        List<Plot> plots;
+		public ReadOnlyCollection<Plot> Plots
+        {
+            get { return new ReadOnlyCollection<Plot>(plots); }
+        }
         #endregion
 
         #region Constructor
-        /// <summary>
-        /// Create new Electrode.
-        /// </summary>
-        /// <param name="name">Name of the electrode.</param>
-        /// <param name="plots">Plots of the electrode.</param>
         public Electrode(string name, List<Plot> plots)
         {
             Name = name;
-            Plots = plots;
+            this.plots = plots;
         }
-        /// <summary>
-        /// Create new Electrode.
-        /// </summary>
-        /// <param name="name">Name of the electrode.</param>
-        /// <param name="plots">Plots of the electrode.</param>
         public Electrode(string name, Plot[] plots) : this(name,new List<Plot>(plots))
         {
         }
-
-        /// <summary>
-        /// Create new Electrode.
-        /// </summary>
-        /// <param name="name"></param>
 		public Electrode(string name) : this(name,new List<Plot>())
 		{
 		}
 		#endregion
 
 		#region Public Static Methods
-        /// <summary>
-        /// Read the implantation file.
-        /// </summary>
-        /// <param name="path">Path of the file to read.</param>
-        /// <returns></returns>
 		public static Electrode[] readImplantationFile(string path)
 		{
             FileInfo l_implantation = new FileInfo(path);
@@ -80,11 +59,9 @@ namespace HBP.Data.Patient
                     // Split the string into different Lines
                     //string[] l_lines = l_fileString.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                     string[] l_lines = l_fileString.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    //Debug.Log(l_lines.Length);
-                    //Debug.Log(l_lines[0]);
                     // Analyse the header
                     int l_numberOfPlots; int.TryParse(l_lines[2], out l_numberOfPlots);
-                    if (l_lines[0] != m_headerString)
+                    if (l_lines[0] != HEADER)
                     {
                         Debug.LogError("Error : It's not a ptsfile");
                         return new Electrode[0];
@@ -100,6 +77,7 @@ namespace HBP.Data.Patient
                     {
                         // Work on line
                         List<string> l_linesList = new List<string>(l_lines);
+                        
                         l_linesList.RemoveRange(0, 3);
                         l_lines = l_linesList.ToArray();
 
@@ -117,7 +95,7 @@ namespace HBP.Data.Patient
                             {
                                 l_electrodesName.Add(l_electrodeName);
                                 Electrode l_electrode = new Electrode(l_electrodeName);
-                                l_electrode.Plots.Add(l_plot);
+                                l_electrode.plots.Add(l_plot);
                                 l_electrodes.Add(l_electrode);
                             }
                             else
@@ -126,7 +104,7 @@ namespace HBP.Data.Patient
                                 {
                                     if (l_electrode.Name == l_electrodeName)
                                     {
-                                        l_electrode.Plots.Add(l_plot);
+                                        l_electrode.plots.Add(l_plot);
                                     }
                                 }
                             }
@@ -146,7 +124,6 @@ namespace HBP.Data.Patient
             }
 
 		}
-
         public static PlotID[] Read(Patient[] patients,bool MNI)
         {
             List<PlotID> l_plotID = new List<PlotID>();
@@ -168,66 +145,50 @@ namespace HBP.Data.Patient
             }
             return l_plotID.ToArray();
         }
-
         public static string[] readImplantation(string path)
         {
-            FileInfo l_implantation = new FileInfo(path);
-            if (l_implantation.Exists && l_implantation.Extension == Settings.FileExtension.Implantation)
+            List<string> result = new List<string>();
+            FileInfo implantationFile = new FileInfo(path);
+            if (implantationFile.Exists)
             {
-                try
+                if(implantationFile.Extension == Settings.FileExtension.Implantation)
                 {
                     // Read The File
-                    StreamReader l_file = new StreamReader(path);
-                    string l_fileString = l_file.ReadToEnd();
+                    string fileData = new StreamReader(path).ReadToEnd();
 
                     // Split the string into different Lines
-                    //string[] l_lines = l_fileString.Split(new string[] { "\r\n|\r|\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    string[] l_lines = l_fileString.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] lines = fileData.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
 
                     // Analyse the header
-                    int l_numberOfPlots; int.TryParse(l_lines[2], out l_numberOfPlots);
-                    if (l_lines[0] != m_headerString)
+                    int l_numberOfPlots; int.TryParse(lines[2], out l_numberOfPlots);
+                    if (lines[0] != HEADER)
                     {
                         Debug.LogError("Error : It's not a ptsfile");
-                        return new string[0];
                     }
-                    else if (l_lines.Length != l_numberOfPlots + 3)
+                    else if (lines.Length != l_numberOfPlots + 3)
                     {
                         Debug.LogError("Error : Can't read the file");
-                        return new string[0];
                     }
-
-                    // If is OK we can work on the file
                     else
                     {
-                        // Work on line
-                        List<string> l_linesList = new List<string>(l_lines);
-                        l_linesList.RemoveRange(0, 3);
-                        l_lines = l_linesList.ToArray();
-
-                        // Read EachLine
                         List<string> l_plotName = new List<string>();
-                        foreach (string l_line in l_lines)
+                        for (int line = 3; line < lines.Length; line++)
                         {
-                            // Chercher par ici !
-                            l_plotName.Add(ReadLine(l_line).Name);
+                            result.Add(ReadLine(lines[line]).Name);
                         }
-                        return l_plotName.ToArray();
                     }
                 }
-                catch (Exception e)
+                else
                 {
-                    Debug.Log(e.Message);
-                    return new string[0];
+                    Debug.LogError("The file isn't a implantation file.");
                 }
             }
             else
             {
-                return new string[0];
+                Debug.LogError("The file doesn't exist.");
             }
-
+            return result.ToArray();
         }
-
         public static string[][] readImplantation(string[] path)
         {
             int imax = path.Length;
@@ -241,11 +202,6 @@ namespace HBP.Data.Patient
         #endregion
 
         #region Private Static Methods
-        /// <summary>
-        /// Read a line of a pts line and return a plot.
-        /// </summary>
-        /// <param name="line">Line to read.</param>
-        /// <returns>Plot of this line.</returns>
         static Plot ReadLine(string line)
 		{
             string sep = "\t";
@@ -274,12 +230,6 @@ namespace HBP.Data.Patient
 			float.TryParse(l_elements[3],out l_z);
 			return new Plot(l_name,new Vector3(l_x,l_y,l_z),1.0f);
 		}
-
-        /// <summary>
-        /// Find electrode name.
-        /// </summary>
-        /// <param name="plotName">Plot name of the electrode to find.</param>
-        /// <returns></returns>
 		static string FindElectrodeName(string plotName)
 		{
 			List<string> l_char = new List<string>();

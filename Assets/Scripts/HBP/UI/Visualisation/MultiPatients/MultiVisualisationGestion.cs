@@ -30,33 +30,13 @@ namespace HBP.UI
             displayButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Display").GetComponent<Button>();
             list = transform.FindChild("Content").FindChild("MultiPatientsVisualisations").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<MultiVisualisationList>();
             (list as MultiVisualisationList).ActionEvent.AddListener((visu, type) => OpenModifier(visu,true));
-            (list as MultiVisualisationList).SelectEvent.AddListener(() => SetLoad());
+            (list as MultiVisualisationList).SelectEvent.AddListener(() => SetDisplay());
             AddItem(ApplicationState.ProjectLoaded.MultiPatientsVisualisations.ToArray());
         }
-        void SetLoad()
+        void SetDisplay()
         {
-            bool l_Isok = true;
-            MultiPatientsVisualisation[] selected = list.GetObjectsSelected();
-            if (selected.Length != 0)
-            {
-                MultiPatientsVisualisation visu = selected[0];
-                if (visu.Patients.Count != 0 && visu.Columns.Count != 0)
-                {
-                    foreach (Column column in visu.Columns)
-                    {
-                        if (!column.IsCompatible(visu.Patients.ToArray()))
-                        {
-                            l_Isok = false;
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    l_Isok = false;
-                }
-            }
-            displayButton.interactable = l_Isok;
+            MultiPatientsVisualisation[] visualisationsSelected = list.GetObjectsSelected();
+            displayButton.interactable = (visualisationsSelected.Length == 1 && visualisationsSelected[0].isVisualisable());
         }
         #endregion
     }

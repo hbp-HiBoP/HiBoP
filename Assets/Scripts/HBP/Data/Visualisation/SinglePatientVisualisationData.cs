@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 
 namespace HBP.Data.Visualisation
@@ -18,9 +19,10 @@ namespace HBP.Data.Visualisation
         #endregion
 
         #region Constructors
-        public SinglePatientVisualisationData(Patient.Patient patient, List<ColumnData> columns)  : base(columns)
+        public SinglePatientVisualisationData(Patient.Patient patient, List<ColumnData> columns) : base(columns)
         {
             Patient = patient;
+            plotsID = Data.Patient.Electrode.Read(new Patient.Patient[]{patient},false);
         }
         public SinglePatientVisualisationData() : this(new Data.Patient.Patient(),new List<ColumnData>())
         {

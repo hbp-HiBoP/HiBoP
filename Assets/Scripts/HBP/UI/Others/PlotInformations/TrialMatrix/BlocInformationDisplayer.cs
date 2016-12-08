@@ -48,7 +48,7 @@ namespace HBP.UI.TrialMatrix
 
         void UpdateDisplay()
         {
-            lineDisplayer.text = line.ToString();
+            lineDisplayer.text = (line+1).ToString();
             valueDisplayer.text = value.ToString();
             latencyDisplayer.text = latency.ToString();
         }

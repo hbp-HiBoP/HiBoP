@@ -1,60 +1,63 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 namespace HBP.UI.TrialMatrix
 {
-    public class Value : MonoBehaviour
+    public class ValuesLegend : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        RawImage m_legend;
-
-        [SerializeField]
-        RectTransform m_rect;
+        RawImage colorMapRawImage;
+        RectTransform valuesRect;
+        LimitsWindow limitsWindow;
+        Vector2 limits;
+        public OnUpdateLimitsEvent onUpdateLimits { get { return limitsWindow.onUpdateLimits; } }
         #endregion
 
         #region Public Methods
-        public void Set(Texture2D image, float[] values)
+        public void Set(Texture2D colorMap, Vector2 limits, int nbValue)
         {
-            SetImage(image);
-            SetValues(values);
+            this.limits = limits;
+            SetColorMap(colorMap);
+            SetValues(GenerateValues(limits.x, limits.y, nbValue));
         }
-
-        public void Set(Texture2D image, float min, float max, int nbValue)
+        public void OpenLimitsWindow()
         {
-            Set(image, GenerateValues(min, max, nbValue));
+            limitsWindow.Open(limits);
         }
         #endregion
 
         #region Private Methods
-        void SetImage(Texture2D image)
+        void Awake()
         {
-            m_legend.texture = image;
+            colorMapRawImage = transform.FindChild("ColorLegend").GetComponent<RawImage>();
+            valuesRect = transform.FindChild("ValuesRect").GetComponent<RectTransform>();
+            limitsWindow = transform.FindChild("LimitsWindow").GetComponent<LimitsWindow>();
         }
-
+        void SetColorMap(Texture2D colorMap)
+        {
+            colorMapRawImage.texture = colorMap;
+        }
         void SetValues(float[] values)
         {
             ClearValues();
-            // Add value foreach value in values
             for (int i = 0; i < values.Length; i++)
             {
                 AddValue(values[i], i, values.Length);
             }
         }
-
         void ClearValues()
         {
-            foreach(Transform child in m_rect)
+            foreach(Transform child in valuesRect)
             {
                 Destroy(child.gameObject);
             }
         }
-
         void AddValue(float value, int position, int max)
         {
             // Instantiate and add components needed
             GameObject l_gameObject = new GameObject();
-            l_gameObject.transform.SetParent(m_rect);
+            l_gameObject.transform.SetParent(valuesRect);
             RectTransform l_rect = l_gameObject.AddComponent<RectTransform>();
             Text l_text = l_gameObject.AddComponent<Text>();
             int l_max = max - 1;
@@ -93,7 +96,6 @@ namespace HBP.UI.TrialMatrix
             l_rect.anchoredPosition = new Vector2(0, 0);
             l_rect.sizeDelta = new Vector2(0, 30);
         }
-
         float[] GenerateValues(float min, float max, int nbValue)
         {
             float l_size = max - min;

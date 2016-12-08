@@ -11,6 +11,13 @@ namespace HBP.Data.Visualisation
         {
             get { return new ReadOnlyCollection<ColumnData>(columns); }
         }
+
+
+        protected Patient.PlotID[] plotsID;
+        public ReadOnlyCollection<Patient.PlotID> PlotsID
+        {
+            get { return new ReadOnlyCollection<Patient.PlotID>(plotsID); }
+        }
         #endregion
 
         #region Constructors

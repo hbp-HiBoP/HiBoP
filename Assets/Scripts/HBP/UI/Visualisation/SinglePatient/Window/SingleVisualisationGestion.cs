@@ -29,37 +29,13 @@ namespace HBP.UI
             displayButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Display").GetComponent<Button>();
             list = transform.FindChild("Content").FindChild("SinglePatientVisualisations").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<SingleVisualisationList>();
             (list as SingleVisualisationList).ActionEvent.AddListener((visu, type) => OpenModifier(visu,true));
-            (list as SingleVisualisationList).SelectEvent.AddListener(() => SetLoad());
+            (list as SingleVisualisationList).SelectEvent.AddListener(() => SetDisplay());
             AddItem(ApplicationState.ProjectLoaded.SinglePatientVisualisations.ToArray());
         }
-        void SetLoad()
+        void SetDisplay()
         {
-            bool isOk = true;
-            SinglePatientVisualisation[] selected = list.GetObjectsSelected();
-            if (selected.Length != 0)
-            {
-                SinglePatientVisualisation visu = selected[0];
-                if (visu.Patient != null && visu.Columns.Count != 0)
-                {
-                    foreach (Column column in visu.Columns)
-                    {
-                        if (!column.IsCompatible(visu.Patient))
-                        {
-                            isOk = false;
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    isOk = false;
-                }
-            }
-            else
-            {
-                isOk = false;
-            }
-            displayButton.interactable = isOk;
+            SinglePatientVisualisation[] visualisationsSelected = list.GetObjectsSelected();
+            displayButton.interactable = (visualisationsSelected.Length == 1 && visualisationsSelected[0].isVisualisable());
         }
         #endregion
     }

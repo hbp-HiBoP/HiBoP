@@ -16,7 +16,7 @@ namespace Tools.Unity.Graph
         public Point Point2 { get { return m_point2; } private set { m_point2 = value; } }
         float m_standardDeviation2;
 
-        int m_width = 2;
+        int m_width = 8;
         Vector2 m_ratio;
         float m_pivot;
         Texture2D m_texture;

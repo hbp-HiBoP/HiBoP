@@ -91,6 +91,7 @@ namespace HBP.Data.Visualisation
         {
             columns = new List<Column>();
         }
+        public abstract bool isVisualisable();
         public abstract DataInfo[] GetDataInfo(Column column);
         public abstract void SaveXML(string path);
         public abstract void SaveJSon(string path);

@@ -13,12 +13,12 @@ namespace HBP.UI.TrialMatrix
         [SerializeField]
         GameObject pref_Bloc;
 
-        Image m_illustration;
-        Text m_label;
-        RectTransform m_rect;
+        Image illustration;
+        Text label;
+        RectTransform rect;
 
-        List<Bloc> m_blocs = new List<Bloc>();
-        public Bloc[] Blocs { get { return m_blocs.ToArray(); } }
+        List<Bloc> blocs = new List<Bloc>();
+        public Bloc[] Blocs { get { return blocs.ToArray(); } }
         #endregion
 
         #region Public Methods
@@ -35,7 +35,7 @@ namespace HBP.UI.TrialMatrix
             {
                 AddBloc(bloc, colorMap,limits);
             }
-            
+
             if(blocs.Length < max)
             {
                 int blocEmptyToAdd = max - blocs.Length;
@@ -48,7 +48,7 @@ namespace HBP.UI.TrialMatrix
 
         public void SelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc,bool additive)
         {
-            foreach(Bloc l_bloc in m_blocs)
+            foreach(Bloc l_bloc in blocs)
             {
                 if(l_bloc.Data.PBloc == bloc)
                 {
@@ -61,9 +61,9 @@ namespace HBP.UI.TrialMatrix
         #region Private Methods
         void Awake()
         {
-            m_rect = transform.GetChild(1).GetComponent<RectTransform>();
-            m_label = transform.GetChild(0).GetChild(1).GetChild(0).GetComponent<Text>();
-            m_illustration = transform.GetChild(0).GetChild(0).GetComponent<Image>();
+            rect = transform.FindChild("Blocs").GetComponent<RectTransform>();
+            label = transform.FindChild("Title").FindChild("Label").GetComponent<Text>();
+            illustration = transform.FindChild("Title").FindChild("Image").GetComponent<Image>();
         }
 
         void SetIllustration(d.Bloc bloc)
@@ -77,30 +77,30 @@ namespace HBP.UI.TrialMatrix
                     byte[] l_bytes = File.ReadAllBytes(l_illustrationPath);
                     Texture2D l_texture = new Texture2D(0, 0);
                     l_texture.LoadImage(l_bytes);
-                    m_illustration.sprite = Sprite.Create(l_texture, new Rect(0, 0, l_texture.width, l_texture.height), new Vector2(0.5f, 0.5f));
-                    m_illustration.gameObject.SetActive(true);
+                    illustration.sprite = Sprite.Create(l_texture, new Rect(0, 0, l_texture.width, l_texture.height), new Vector2(0.5f, 0.5f));
+                    illustration.gameObject.SetActive(true);
                 }
                 else
                 {
-                    m_label.gameObject.SetActive(true);
-                    m_illustration.gameObject.SetActive(false);
-                    m_label.text = bloc.PBloc.DisplayInformations.Name;
+                    label.gameObject.SetActive(true);
+                    illustration.gameObject.SetActive(false);
+                    label.text = bloc.PBloc.DisplayInformations.Name;
                 }
             }
             else
             {
-                m_label.gameObject.SetActive(true);
-                m_illustration.gameObject.SetActive(false);
-                m_label.text = bloc.PBloc.DisplayInformations.Name;
+                label.gameObject.SetActive(true);
+                illustration.gameObject.SetActive(false);
+                label.text = bloc.PBloc.DisplayInformations.Name;
             }
         }
 
         void AddBloc(d.Bloc bloc,Texture2D colorMap,Vector2 limits)
         {
-            Bloc instantiateBloc =(Instantiate(pref_Bloc) as GameObject).GetComponent<Bloc>();
+            Bloc instantiateBloc = (Instantiate(pref_Bloc) as GameObject).GetComponent<Bloc>();
             instantiateBloc.Set(bloc, colorMap, limits);
-            instantiateBloc.transform.SetParent(m_rect);
-            m_blocs.Add(instantiateBloc);
+            instantiateBloc.transform.SetParent(rect);
+            blocs.Add(instantiateBloc);
         }
 
         void AddEmpty()
@@ -110,7 +110,7 @@ namespace HBP.UI.TrialMatrix
             Image l_image = l_empty.AddComponent<Image>();
             l_image.color = Color.black;
             l_empty.name = "Empty bloc";
-            l_empty.transform.SetParent(m_rect);
+            l_empty.transform.SetParent(rect);
         }
         #endregion
     }

@@ -36,7 +36,6 @@ namespace HBP.UI
         }
         public virtual void Save()
         {
-            UnityEngine.Debug.Log("Save");
             Item.Copy(ItemTemp);
             SaveEvent.Invoke();
             base.Close();

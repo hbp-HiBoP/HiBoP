@@ -112,13 +112,9 @@ namespace Tools.Unity.Graph
 
         protected virtual void AddPoint(int i)
         {
-            GameObject l_gameObject = Instantiate(m_Point) as GameObject;
-            Point l_point = l_gameObject.GetComponent<Point>();
-            l_point.transform.SetParent(pointsRect);
             Vector2 position = DataCurve.Points[i] - Origin;
-            position = new Vector2(position.x * Ratio.x, position.y * Ratio.y);
-            l_point.transform.localPosition = position;
-            Point l_pointToAdd = l_point.GetComponent<Point>();
+            position = new Vector2(position.x * Ratio.x, position.y * Ratio.y) + (Vector2)pointsRect.position;
+            Point l_pointToAdd = (Instantiate(m_Point, position, Quaternion.identity, pointsRect) as GameObject).GetComponent<Point>();
             l_pointToAdd.Set(DataCurve.Points[i], DataCurve.Color, DataCurve.Style, DataCurve.Width);
             m_points[i] = l_pointToAdd;
         }

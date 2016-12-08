@@ -41,6 +41,7 @@ namespace HBP.UI.Graph
 
             // Set Graph.
             m_graph.Set("EEG","Time(ms)", "Activity(mV)", Color.black, Color.white);
+
             m_graph.Display(curves,m_abcissaWindow, m_ordinateWindow, true);
         }
         #endregion

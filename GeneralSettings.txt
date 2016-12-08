@@ -5,5 +5,5 @@
     "defaultLocalizerDatabaseLocation": "",
     "plotNameAutomaticCorrectionType": 1,
     "trialMatrixSmoothingType": 1,
-    "baseLineType": 3
+    "baseLineType": 0
 }

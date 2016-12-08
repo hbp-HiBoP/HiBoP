@@ -894,19 +894,15 @@ namespace HBP.VISU3D
                 return;
 
 
-            Debug.Log("sendAdditionnalPlotInfoRequest MP ! ");
             // IEEG
             Column3DViewIEEG currIEEGCol = (Column3DViewIEEG)m_CM.currentColumn();
-            Debug.Log(currIEEGCol.name + " " + m_CM.currentColumn().idSelectedPlot);
 
             if (currIEEGCol.idSelectedPlot == -1)
                 return;
 
-            Debug.Log("elements MP ! ");
 
             string[] elements = m_CM.PlotsList[currIEEGCol.idSelectedPlot].GetComponent<Plot>().fullName.Split('_');
 
-            Debug.Log("elements MP ! " + elements.Length + " "+ m_CM.PlotsList[currIEEGCol.idSelectedPlot].GetComponent<Plot>().fullName);
             if (elements.Length < 3)
                 return;
 
@@ -926,7 +922,6 @@ namespace HBP.VISU3D
                 return;
             }
 
-            Debug.Log("masksColumnsData");
 
             List<List<bool>> masksColumnsData = new List<List<bool>>(m_CM.nbIEEGCol());
             for (int ii = 0; ii < m_CM.nbIEEGCol(); ++ii)
@@ -944,9 +939,6 @@ namespace HBP.VISU3D
                     masksColumnsData[ii].Add(keep);
                 }
             }
-
-            Debug.Log("plotRequest");
-
             plotRequest request = new plotRequest();            
             request.spScene = false;
             request.idPlot = currIEEGCol.idSelectedPlot;

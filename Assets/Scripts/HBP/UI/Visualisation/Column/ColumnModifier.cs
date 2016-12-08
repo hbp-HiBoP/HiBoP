@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
@@ -75,7 +76,6 @@ namespace HBP.UI
         #region OnChangeEvent()
         public void OnChangeDataset()
         {
-            Debug.Log("OnChangeDataset");
             if (m_datasets.Count > m_datasetCB.value)
             {
                 Column.Dataset = m_datasets[m_datasetCB.value];
@@ -89,7 +89,6 @@ namespace HBP.UI
         }
         public void OnChangeDataComboBox()
         {
-            Debug.Log("OnChangeDataComboBox");
             if (m_dataLabel.Count > m_dataCB.value)
             {
                 Column.DataLabel = m_dataLabel[m_dataCB.value];
@@ -103,7 +102,6 @@ namespace HBP.UI
         }
         public void OnChangeProtocol()
         {
-            Debug.Log("OnChangeProtocol");
             if (m_protocols.Count > m_protocolCB.value)
             {
                 Column.Protocol = m_protocols[m_protocolCB.value];
@@ -117,7 +115,6 @@ namespace HBP.UI
         }
         public void OnChangeBloc()
         {
-            Debug.Log("OnChangeBloc");
             if (m_blocs.Count > m_blocCB.value)
             {
                 Column.Bloc = m_blocs[m_blocCB.value];

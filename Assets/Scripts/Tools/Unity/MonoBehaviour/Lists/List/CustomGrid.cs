@@ -137,7 +137,7 @@ namespace Tools.Unity.Lists
         protected void Set(Transform item,T obj)
         {
             ListItemWithActions<T> l_item = item.GetComponent<ListItemWithActions<T>>();
-            l_item.Set(obj,transform.GetComponentInParent<Rect>());
+            l_item.Set(obj,transform.GetComponentInParent<RectTransform>().rect);
         }
         protected T Get(Transform item)
         {

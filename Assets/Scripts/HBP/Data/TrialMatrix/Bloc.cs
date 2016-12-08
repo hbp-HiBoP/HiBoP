@@ -47,5 +47,17 @@
         {
         }
         #endregion
+
+        #region Public Methods
+        public Line[] GetLines(int[] lines)
+        {
+            Line[] result = new Line[lines.Length];
+            for (int i = 0; i < lines.Length; i++)
+            {
+                result[i] = m_lines[lines[i]];
+            }
+            return result;
+        }
+        #endregion
     }
 }

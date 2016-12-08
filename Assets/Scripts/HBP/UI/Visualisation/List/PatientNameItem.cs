@@ -1,4 +1,5 @@
-﻿using d = HBP.Data.Patient;
+﻿using UnityEngine;
+using d = HBP.Data.Patient;
 
 namespace HBP.UI
 {
@@ -7,6 +8,11 @@ namespace HBP.UI
         protected override void SetObject(d.Patient objectToSet)
         {
             GetComponentInChildren<UnityEngine.UI.Text>().text = objectToSet.Name;
+        }
+
+        public override void Set(d.Patient objectToSet, Rect rect)
+        {
+            Object = objectToSet;
         }
     }
 }

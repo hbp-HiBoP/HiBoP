@@ -13,21 +13,19 @@ namespace HBP.UI
     public class VisualisationLoader : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        HBPLinker m_Module3DLinker;
-        [SerializeField]
-        Graph.GraphsGestion m_graphsGestion;
+        VISU3D.HBP_3DModule_Command command;
+
         [SerializeField]
         GameObject progressWindowPrefab;
         ProgressWindow progressWindow;
+
         [SerializeField]
         GameObject popUpPrefab;
 
-        float m_findFilesP = 0.025f;
-        float m_readFilesP = 0.8f;
-        float m_epochDataP = 0.025f;
-        float m_standardizeColumnP = 0.15f;
-        
+        const float FIND_FILES_TO_READ = 0.025f;
+        const float READ_FILES = 0.8f;
+        const float EPOCH_DATA = 0.025f;
+        const float STANDARDIZE_COLUMNS = 0.15f;    
         enum LoadErrorTypeEnum { None, CanNotFindFilesToRead, CanNotReadData, CanNotEpochingData, CanNotStandardizeColumns };
         #endregion
 
@@ -45,7 +43,7 @@ namespace HBP.UI
         #region Coroutine
         IEnumerator c_Load(SinglePatientVisualisation visualisation)
         {
-            LoadErrorTypeEnum l_loadingState = LoadErrorTypeEnum.None;
+            LoadErrorTypeEnum loadingError = LoadErrorTypeEnum.None;
             string additionalInformations = string.Empty;
 
             // Start.
@@ -58,7 +56,7 @@ namespace HBP.UI
 
             // Finding files to read.
             Dictionary<Column, DataInfo> l_columnToExperienceData = new Dictionary<Column, DataInfo>();
-            float l_ratio = m_findFilesP / (visualisation.Columns.Count);
+            float l_ratio = FIND_FILES_TO_READ / (visualisation.Columns.Count);
             for (int i = 0; i < visualisation.Columns.Count; i++)
             {
                 try
@@ -68,7 +66,7 @@ namespace HBP.UI
                 catch
                 {
                     additionalInformations = i.ToString();
-                    l_loadingState = LoadErrorTypeEnum.CanNotFindFilesToRead;
+                    loadingError = LoadErrorTypeEnum.CanNotFindFilesToRead;
                     break;
                 }
                 yield return Ninja.JumpToUnity;
@@ -76,12 +74,12 @@ namespace HBP.UI
                 yield return Ninja.JumpBack;
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations);
+            HandleError(loadingError, additionalInformations);
             yield return Ninja.JumpBack;
 
             // Reading files.
             DataInfo[] l_filesToRead = new List<DataInfo>(l_columnToExperienceData.Values).Distinct().ToArray();
-            l_ratio = m_readFilesP / (l_filesToRead.Length);
+            l_ratio = READ_FILES / (l_filesToRead.Length);
             long l_sizePerSecond = 18000000;
             Dictionary<DataInfo, Data.Experience.Dataset.Data> l_experienceDataToExperienceDataData = new Dictionary<DataInfo, Data.Experience.Dataset.Data>();
             for (int i = 0; i < l_filesToRead.Length; i++)
@@ -94,7 +92,7 @@ namespace HBP.UI
                 // Update progressBar
                 yield return Ninja.JumpToUnity;
                 progressWindow.Set("Reading " + l_name);
-                progressWindow.ChangePercentageInSeconds(m_findFilesP + (i) * l_ratio, m_findFilesP + (i + 1) * l_ratio, l_readingTime);
+                progressWindow.ChangePercentageInSeconds(FIND_FILES_TO_READ + (i) * l_ratio, FIND_FILES_TO_READ + (i + 1) * l_ratio, l_readingTime);
                 yield return Ninja.JumpBack;
 
                 // Read Data.
@@ -106,7 +104,7 @@ namespace HBP.UI
                 }
                 catch
                 {
-                    l_loadingState = LoadErrorTypeEnum.CanNotReadData;
+                    loadingError = LoadErrorTypeEnum.CanNotReadData;
                     additionalInformations = l_name;
                     break;
                 }
@@ -124,7 +122,7 @@ namespace HBP.UI
                 }
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations);
+            HandleError(loadingError, additionalInformations);
             yield return Ninja.JumpBack;
 
             // Create a dictionary to find data for each column.
@@ -136,11 +134,11 @@ namespace HBP.UI
 
             // Epoching data.
             List<ColumnData> l_columns = new List<ColumnData>();
-            l_ratio = m_epochDataP / (visualisation.Columns.Count);
+            l_ratio = EPOCH_DATA / (visualisation.Columns.Count);
             for (int i = 0; i < visualisation.Columns.Count; i++)
             {
                 yield return Ninja.JumpToUnity;
-                progressWindow.Set(m_findFilesP + m_readFilesP + i * l_ratio, "Epoching column n°" + i);
+                progressWindow.Set(FIND_FILES_TO_READ + READ_FILES + i * l_ratio, "Epoching column n°" + i);
                 yield return Ninja.JumpBack;
 
                 Data.Experience.Dataset.Data l_expData = l_columnToExperienceDataData[visualisation.Columns[i]];
@@ -150,16 +148,16 @@ namespace HBP.UI
                 }
                 catch
                 {
-                    l_loadingState = LoadErrorTypeEnum.CanNotEpochingData;
+                    loadingError = LoadErrorTypeEnum.CanNotEpochingData;
                     additionalInformations = i.ToString();
                     break;
                 }
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations);
+            HandleError(loadingError, additionalInformations);
 
             // Stadardize columns.
-            progressWindow.Set(m_findFilesP + m_readFilesP + m_epochDataP, "Standardizing columns");
+            progressWindow.Set(FIND_FILES_TO_READ + READ_FILES + EPOCH_DATA, "Standardizing columns");
             yield return Ninja.JumpBack;
 
             SinglePatientVisualisationData l_visuData = new SinglePatientVisualisationData(visualisation.Patient, l_columns);
@@ -169,22 +167,22 @@ namespace HBP.UI
             }
             catch
             {
-                l_loadingState = LoadErrorTypeEnum.CanNotStandardizeColumns;
+                loadingError = LoadErrorTypeEnum.CanNotStandardizeColumns;
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations);
+            HandleError(loadingError, additionalInformations);
       
             VisualisationLoaded.SP_Visualisation = visualisation;
             VisualisationLoaded.SP_VisualisationData = l_visuData;
+            VisualisationLoaded.SP_Columns = new bool[l_visuData.Columns.Count];
 
             // Set scene.
             progressWindow.Set(1, "Finish");
             yield return Ninja.JumpBack;
             yield return Ninja.JumpToUnity;
-            m_Module3DLinker.Command3DModule.setSceneData(l_visuData);
-            m_graphsGestion.SetMask(l_visuData.Columns.Count, true);
-            m_Module3DLinker.Command3DModule.setScenesVisibility(true, false);
-            m_Module3DLinker.Command3DModule.setModuleFocusState(true);
+            command.setSceneData(l_visuData);
+            command.setScenesVisibility(true, false);
+            command.setModuleFocusState(true);
             progressWindow.Close();
         }
         IEnumerator c_Load(MultiPatientsVisualisation visualisation)
@@ -203,7 +201,7 @@ namespace HBP.UI
             List<DataInfo> l_expDataToRead = new List<DataInfo>();
             List<Data.Experience.Dataset.Data> l_expDataData = new List<Data.Experience.Dataset.Data>();
             Dictionary<int, int[]> l_columnToData = new Dictionary<int, int[]>();
-            float l_ratio = m_findFilesP / (visualisation.Columns.Count);
+            float l_ratio = FIND_FILES_TO_READ / (visualisation.Columns.Count);
             for (int i = 0; i < visualisation.Columns.Count; i++)
             {
                 yield return Ninja.JumpToUnity;
@@ -240,7 +238,7 @@ namespace HBP.UI
             yield return Ninja.JumpBack;
 
             // Reading files.
-            l_ratio = m_readFilesP / (l_expDataToRead.Count);
+            l_ratio = READ_FILES / (l_expDataToRead.Count);
             long l_sizePerSecond = 18000000;
             for (int i = 0; i < l_expDataToRead.Count; i++)
             {
@@ -252,7 +250,7 @@ namespace HBP.UI
                 // Update progressBar
                 yield return Ninja.JumpToUnity;
                 progressWindow.Set("Reading " + l_name);
-                progressWindow.ChangePercentageInSeconds(m_findFilesP + (i) * l_ratio, m_findFilesP + (i + 1) * l_ratio, l_readingTime);
+                progressWindow.ChangePercentageInSeconds(FIND_FILES_TO_READ + (i) * l_ratio, FIND_FILES_TO_READ + (i + 1) * l_ratio, l_readingTime);
                 yield return Ninja.JumpBack;
 
                 // Read Data.
@@ -287,11 +285,11 @@ namespace HBP.UI
 
             // Epoching data.
             List<ColumnData> l_columns = new List<ColumnData>();
-            l_ratio = m_epochDataP / (visualisation.Columns.Count);
+            l_ratio = EPOCH_DATA / (visualisation.Columns.Count);
             for (int i = 0; i < visualisation.Columns.Count; i++)
             {
                 yield return Ninja.JumpToUnity;
-                progressWindow.Set(m_findFilesP + m_readFilesP + i * l_ratio, "Epoching column n°" + i);
+                progressWindow.Set(FIND_FILES_TO_READ + READ_FILES + i * l_ratio, "Epoching column n°" + i);
                 yield return Ninja.JumpBack;
 
                 List<Data.Experience.Dataset.Data> l_expData = new List<Data.Experience.Dataset.Data>();
@@ -314,7 +312,7 @@ namespace HBP.UI
             HandleError(l_loadingState, additionalInformations);
 
             // Stadardize columns.
-            progressWindow.Set(m_findFilesP + m_readFilesP + m_epochDataP, "Standardizing columns");
+            progressWindow.Set(FIND_FILES_TO_READ + READ_FILES + EPOCH_DATA, "Standardizing columns");
             yield return Ninja.JumpBack;
 
             MultiPatientsVisualisationData l_visuData = new MultiPatientsVisualisationData(visualisation.Patients.ToList(), l_columns);
@@ -330,15 +328,15 @@ namespace HBP.UI
             HandleError(l_loadingState, additionalInformations);
             VisualisationLoaded.MP_Visualisation = visualisation;
             VisualisationLoaded.MP_VisualisationData = l_visuData;
+            VisualisationLoaded.MP_Columns = new bool[l_visuData.Columns.Count];
 
             // Set scene.
             progressWindow.Set(1, "Finish");
             yield return Ninja.JumpBack;
             yield return Ninja.JumpToUnity;
-            m_Module3DLinker.Command3DModule.setSceneData(l_visuData);
-            m_graphsGestion.SetMask(l_visuData.Columns.Count, false);
-            m_Module3DLinker.Command3DModule.setScenesVisibility(false, true);
-            m_Module3DLinker.Command3DModule.setModuleFocusState(true);
+            command.setSceneData(l_visuData);
+            command.setScenesVisibility(false, true);
+            command.setModuleFocusState(true);
             progressWindow.Close();
         }
         #endregion
@@ -346,15 +344,16 @@ namespace HBP.UI
         #region Private Methods
         void Awake()
         {
-            m_Module3DLinker.Command3DModule.LoadSpSceneFromMP.AddListener((i) => LoadSPSceneFromMP(i));
+            command = FindObjectOfType<VISU3D.HBP_3DModule_Command>();
+            command.LoadSpSceneFromMP.AddListener((i) => LoadSPSceneFromMP(i));
         }        
         void LoadSPSceneFromMP(int idPatient)
         {
             SinglePatientVisualisationData spVisuData = SinglePatientVisualisationData.LoadFromMultiPatients(VisualisationLoaded.MP_VisualisationData, idPatient);
             SinglePatientVisualisation spVisu = SinglePatientVisualisation.LoadFromMultiPatients(VisualisationLoaded.MP_Visualisation, idPatient);
-
             VisualisationLoaded.SP_VisualisationData = spVisuData;
-            VisualisationLoaded.SP_Visualisation = spVisu;           
+            VisualisationLoaded.SP_Visualisation = spVisu;
+            VisualisationLoaded.SP_Columns = VisualisationLoaded.MP_Columns;
         }
         void HandleError(LoadErrorTypeEnum error, string additionalInformations)
         {

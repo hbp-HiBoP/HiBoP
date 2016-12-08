@@ -18,6 +18,7 @@ namespace HBP.Data.Visualisation
         public MultiPatientsVisualisationData(List<Patient.Patient> patients, List<ColumnData> columns)  : base(columns)
         {
             this.patients = patients;
+            plotsID = Patient.Electrode.Read(patients.ToArray(), true);
         }
         public MultiPatientsVisualisationData() : this(new List<Patient.Patient>(), new List<ColumnData>())
         {

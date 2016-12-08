@@ -54,7 +54,6 @@ namespace Tools.Unity.Graph
             XWindow = xWindow;
             YWindow = yWindow;
             UpdateAxes();
-
             List<d.Curve> l_curvesToDisplay = new List<d.Curve>(curves);
             List<d.Curve> l_curvesToAdd = new List<d.Curve>();
             List<d.Curve> l_curvesToRemove = new List<d.Curve>();
@@ -76,7 +75,6 @@ namespace Tools.Unity.Graph
                     l_curvesToAdd.Add(curve);
                 }
             }
-
             // Remove curves
             foreach (d.Curve curve in l_curvesToRemove)
             {
@@ -148,7 +146,7 @@ namespace Tools.Unity.Graph
         void AddCurve(d.Curve curve)
         {
             GameObject l_curve;
-            if (curve is d.CurveWithStandardDeviation)
+            if (curve is d.CurveWithShape)
             {
                 l_curve = Instantiate(m_curveWithStandardDeviation);
             }
@@ -162,10 +160,10 @@ namespace Tools.Unity.Graph
             l_rect.offsetMin = Vector2.zero;
             l_rect.offsetMax = Vector2.zero;
             Vector2 origin = new Vector2(XWindow.x, YWindow.x);
+
             l_curveDisplayer.Set(curve, origin, m_ratio);
             m_curvesDisplayed.Add(curve);
             m_curveDisplayers.Add(l_curveDisplayer);
-
         }
 
         void RemoveCurve(d.Curve curve)

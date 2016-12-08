@@ -49,5 +49,10 @@ namespace Tools.CSharp
             }
 
         }
+
+        public static float SEM(float[] array)
+        {
+            return StandardDeviation(array) / Mathf.Sqrt(array.Length);
+        }
     }
 }

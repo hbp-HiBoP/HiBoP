@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Profiling;
 using System.Collections.Generic;
 
 namespace HBP.UI.TrialMatrix
@@ -34,10 +35,12 @@ namespace HBP.UI.TrialMatrix
                 {
                     GameObject l_gameObject = Instantiate(m_trialMatrixPrefab);
                     l_gameObject.transform.SetParent(l_line.transform);
-                    l_gameObject.transform.name = (l_gameObject.transform.GetSiblingIndex() + 1).ToString();
+                    l_gameObject.transform.name = "Trial matrix n°"+(l_gameObject.transform.GetSiblingIndex() + 1).ToString();
                     TrialMatrix trial = l_gameObject.GetComponent<TrialMatrix>();
                     m_trials.Add(trial);
+                    Profiler.BeginSample("SetTrial");
                     trial.Set(trialMatrix[c][p]);
+                    Profiler.EndSample();
                     RectTransform l_rect = transform as RectTransform;
                 }
             }

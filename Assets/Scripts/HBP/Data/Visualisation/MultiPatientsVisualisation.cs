@@ -68,6 +68,29 @@ namespace HBP.Data.Visualisation
         {
             patientsID = new List<string>();
         }
+        public override bool isVisualisable()
+        {
+            // Initialize
+            bool result = true;
+
+            // Test
+            if (Patients.Count != 0 && Columns.Count != 0)
+            {
+                foreach (Column column in Columns)
+                {
+                    if (!column.IsCompatible(Patients.ToArray()))
+                    {
+                        result = false;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                result = false;
+            }
+            return result;
+        }
         public override DataInfo[] GetDataInfo(Column column)
         {
             List<DataInfo> result = new List<DataInfo>();

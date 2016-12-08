@@ -10,41 +10,44 @@ namespace HBP.UI.TrialMatrix
     public class Bloc : MonoBehaviour
     {
         #region Properties
+
         [SerializeField]
         GameObject pref_selectionDisplay;
 
-        d.Bloc m_bloc;
-        public d.Bloc Data { get { return m_bloc; } }
+        d.Bloc data;
+        public d.Bloc Data { get { return data; } }
 
-        List<int> m_selectedLines = new List<int>();
-        public int[] SelectedLines { get { return m_selectedLines.ToArray(); } }
+        List<int> selectedLines = new List<int>();
+        public int[] SelectedLines
+        {
+            get { return selectedLines.ToArray(); }
+        }
+        const float LINE_RATIO = 0.0025f;
+        int beginDragLine;
+        bool onDrag;
 
-        int m_beginDragLine;
-        bool m_onDrag;
-
-        Texture2D m_colorMap;
+        Texture2D colorMap;
         RectTransform rectTransform;
-        BlocInformationDisplayer m_blocDisplayer;
+        BlocInformationDisplayer blocInformationsDisplayer;
+        LayoutElement layoutElement;
         #endregion
 
         #region Public Methods
         public void Set(d.Bloc bloc,Texture2D colorMap,Vector2 limits)
         {
-            m_blocDisplayer = transform.GetChild(2).GetComponent<BlocInformationDisplayer>();
-            m_bloc = bloc;
-            m_blocDisplayer.Set(bloc);
-            m_colorMap = colorMap;
+            data = bloc;
+            this.colorMap = colorMap;
             gameObject.name = bloc.PBloc.DisplayInformations.Name + " | " + "Bloc n°" + bloc.PBloc.DisplayInformations.Column;
+            blocInformationsDisplayer.Set(bloc);
+            SetSize();
             SetTexture(bloc, colorMap, limits);
             GenerateMainEventIndicator(bloc);
             GenerateSecondaryIndicator(bloc);
         }
-
         public void UpdateLimits(Vector2 limits)
         {
-            SetTexture(Data, m_colorMap, limits);
+            SetTexture(Data, colorMap, limits);
         }
-
         public void SelectLines(int[] lines,bool additive)
         {
                 ClearLinesSelected();
@@ -52,20 +55,20 @@ namespace HBP.UI.TrialMatrix
                 {
                     foreach (int i in lines)
                     {
-                        if (!m_selectedLines.Contains(i))
+                        if (!selectedLines.Contains(i))
                         {
-                            m_selectedLines.Add(i);
+                            selectedLines.Add(i);
                         }
                     }
                 }
                 else
                 {
-                    m_selectedLines = new List<int>(lines);
+                    selectedLines = new List<int>(lines);
                 }
                 List<int> l_notSelectedLines = new List<int>();
                 for (int i = 0; i < Data.Lines.Length; i++)
                 {
-                    if (!m_selectedLines.Contains(i)) l_notSelectedLines.Add(i);
+                    if (!selectedLines.Contains(i)) l_notSelectedLines.Add(i);
                 }
 
                 List<List<int>> GroupOfLines = new List<List<int>>();
@@ -89,27 +92,25 @@ namespace HBP.UI.TrialMatrix
                     AddCache(g.ToArray());
                 }
         }
-
         public void OnPointerDown()
         {
-            m_beginDragLine = LineClicked();
+            beginDragLine = LineClicked();
         }
-
         public void OnPointerClick(BaseEventData p)
         {
             PointerEventData pointer = (PointerEventData) p;
             if (pointer.button.ToString() == "Left")
             {
-                if (!m_onDrag)
+                if (!onDrag)
                 {
-                    int[] linesClicked = new int[1] { m_beginDragLine };
+                    int[] linesClicked = new int[1] { beginDragLine };
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
-                        SendMessageSelectLines(linesClicked, m_bloc.PBloc, true);
+                        SendMessageSelectLines(linesClicked, data.PBloc, true);
                     }
                     else
                     {
-                        SendMessageSelectLines(linesClicked, m_bloc.PBloc, false);
+                        SendMessageSelectLines(linesClicked, data.PBloc, false);
                     }
                 }
             }
@@ -121,19 +122,17 @@ namespace HBP.UI.TrialMatrix
                 {
                     array[i] = i;
                 }
-                SendMessageSelectLines(array, m_bloc.PBloc, false);
+                SendMessageSelectLines(array, data.PBloc, false);
             }
         }
-
         public void OnBeginDrag()
         {
-            m_onDrag = true;
+            onDrag = true;
         }
-
         public void OnEndDrag()
         {
-            int l_endDragLine = Mathf.Clamp(LineClicked(),0,m_bloc.Lines.Length-1);
-            int l_beginDragLine = Mathf.Clamp(m_beginDragLine, 0, m_bloc.Lines.Length-1); ;
+            int l_endDragLine = Mathf.Clamp(LineClicked(),0,data.Lines.Length-1);
+            int l_beginDragLine = Mathf.Clamp(beginDragLine, 0, data.Lines.Length-1); ;
             List<int> linesSelected = new List<int>();
             if(l_beginDragLine > l_endDragLine)
             {
@@ -151,16 +150,15 @@ namespace HBP.UI.TrialMatrix
             }
             if(Input.GetKey(KeyCode.LeftShift))
             {
-                SendMessageSelectLines(linesSelected.ToArray(), m_bloc.PBloc, true);
+                SendMessageSelectLines(linesSelected.ToArray(), data.PBloc, true);
 
             }
             else
             {
-                SendMessageSelectLines(linesSelected.ToArray(), m_bloc.PBloc, false);
+                SendMessageSelectLines(linesSelected.ToArray(), data.PBloc, false);
             }
-            m_onDrag = false;
+            onDrag = false;
         }
-
         public void OnScroll()
         {
             float l_input = Input.GetAxis("Mouse ScrollWheel") * 10;
@@ -182,11 +180,11 @@ namespace HBP.UI.TrialMatrix
                 }
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
-                    SendMessageSelectLines(l_linesToSelect.ToArray(), m_bloc.PBloc, true);
+                    SendMessageSelectLines(l_linesToSelect.ToArray(), data.PBloc, true);
                 }
                 else
                 {
-                    SendMessageSelectLines(l_linesToSelect.ToArray(), m_bloc.PBloc, false);
+                    SendMessageSelectLines(l_linesToSelect.ToArray(), data.PBloc, false);
                 }
             }
         }
@@ -196,15 +194,16 @@ namespace HBP.UI.TrialMatrix
         void Awake()
         {
             rectTransform = GetComponent<RectTransform>();
+            blocInformationsDisplayer = transform.GetChild(2).GetComponent<BlocInformationDisplayer>();
+            layoutElement = GetComponent<LayoutElement>();
         }
-
         void AddCache(int[] lines)
         {
             RectTransform rectTransform = GetComponent<RectTransform>();
             GameObject displayer = Instantiate(pref_selectionDisplay as GameObject);
             RectTransform displayerRect = displayer.GetComponent<RectTransform>();
             displayerRect.SetParent(transform.GetChild(1));
-            int nbLines = m_bloc.Lines.Length;
+            int nbLines = data.Lines.Length;
             float top = (float)(lines[lines.Length - 1] + 1) / nbLines;
             float bot = (float)lines[0] / nbLines;
             displayerRect.anchorMin = new Vector2(0, bot);
@@ -212,92 +211,100 @@ namespace HBP.UI.TrialMatrix
             displayerRect.offsetMin = new Vector2(0, 0);
             displayerRect.offsetMax = new Vector2(0, 0);
         }
-
         void SendMessageSelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc,bool additive)
         {
             Graph.GraphsGestion graphGestion = FindObjectOfType<Graph.GraphsGestion>();
             if(graphGestion)
             {
-                graphGestion.HandleSelectLines(lines, bloc, additive);
+                graphGestion.OnSelectLines(lines, bloc, additive);
             }
         }
-
         void SetTexture(d.Bloc bloc,Texture2D colorMap,Vector2 limits)
         {
-            Texture2D texture = GenerateTexture(bloc.Lines, limits, colorMap);
-            if (ApplicationState.GeneralSettings.TrialMatrixSmoothingType == HBP.Data.Settings.GeneralSettings.TrialMatrixSmoothingEnum.Line)
+            float[,] lines = ExtractDataFromLines(bloc.Lines);
+            switch (ApplicationState.GeneralSettings.TrialMatrixSmoothingType)
             {
-                texture = SmoothTexture(texture, 5);
+                case HBP.Data.Settings.GeneralSettings.TrialMatrixSmoothingEnum.None: break;
+                case HBP.Data.Settings.GeneralSettings.TrialMatrixSmoothingEnum.Line: lines = SmoothLines(lines,5); break;
             }
+
+            Texture2D texture = GenerateTexture(lines, limits, colorMap);
+
             texture.mipMapBias = -5;
             texture.wrapMode = TextureWrapMode.Clamp;
             GetComponent<RawImage>().texture = texture;
         }
-
-        Texture2D GenerateTexture(d.Line[] lines,Vector2 limits,Texture2D colorMap)
+        Texture2D GenerateTexture(float[,] lines,Vector2 limits,Texture2D colorMap)
         {
             // Caculate texture size.
-            int width = lines[0].DataWithCorrection.Length;
-            int height = lines.Length;
-            Texture2D l_texture = new Texture2D(width, height,TextureFormat.RGBA32,false);
+            int width = lines.GetLength(0);
+            int height = lines.GetLength(1);
+            Texture2D l_texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            Color[] colors = new Color[width * height];
 
-            // Set pixels of the texture.
-            for (int l = 0; l < height; l++)
+            // Set pixels
+            for (int y = 0; y < height; y++)
             {
-                for (int c = 0; c < width; c++)
+                for (int x = 0; x < width; x++)
                 {
-                    float value = lines[l].DataWithCorrection[c];
-                    if(float.IsNaN(value))
+                    float value = lines[x, y];
+                    if (float.IsNaN(value))
                     {
-                        l_texture.SetPixel(c, l, Color.black);
+                        colors[y*width + x] = Color.black;
                     }
                     else
                     {
-                        l_texture.SetPixel(c, l, GetColor(value, limits, colorMap));
+                        colors[y * width + x] = GetColor(value, limits, colorMap);
                     }
                 }
             }
 
             // Set texture.
+            l_texture.SetPixels(colors);
             l_texture.filterMode = FilterMode.Point;
             l_texture.anisoLevel = 0;
             l_texture.Apply();
             return l_texture;
         }
-
-        Texture2D SmoothTexture(Texture2D texture)
+        float[,] SmoothLines(float[,] lines, int pass)
         {
-            Texture2D result = new Texture2D(2 * texture.width - 1, texture.height);
-            for (int x = 0; x < texture.width; x++)
+            float[,] result = new float[(lines.GetLength(0)-1)*pass + 1,lines.GetLength(1)];
+            int width = lines.GetLength(0);
+            int height = lines.GetLength(1);
+            for (int y = 0; y < height; y++)
             {
-                for (int y = 0; y < texture.height; y++)
+                for (int x = 0; x < width; x++)
                 {
-                    Color color1 = texture.GetPixel(x, y);
-                    if (x < (texture.width - 1))
+                    if (x == width - 1)
                     {
-                        Color color2 = texture.GetPixel(x + 1, y);
-                        Color newColor = Color.Lerp(color1, color2, 0.5f);
-                        result.SetPixel(2 * x + 1, y, newColor);
+                        result[x * pass, y] = lines[x, y];
                     }
-                    result.SetPixel(2 * x, y, color1);
+                    else
+                    {
+                        for (int t = 0; t < pass; t++)
+                        {
+                            float value = Mathf.Lerp(lines[x, y], lines[x + 1, y], (float)t / pass);
+                            result[(x * pass) + t, y] = value;
+                        }
+                    }
                 }
             }
-            result.Apply();
-            result.anisoLevel = 0;
-            result.filterMode = FilterMode.Point;
             return result;
         }
-
-        Texture2D SmoothTexture(Texture2D texture, int pass)
+        float[,] ExtractDataFromLines(d.Line[] lines)
         {
-            Texture2D result = texture;
-            for (int i = 0; i < pass; i++)
+            float[,] result = new float[lines[0].DataWithCorrection.Length,lines.Length];
+            int width = result.GetLength(0);
+            int height = result.GetLength(1);
+            for (int x = 0; x < width; x++)
             {
-                result = SmoothTexture(result);
+                for (int y = 0; y < height; y++)
+                {
+                    result[x, y] = lines[y].DataWithCorrection[x];
+                }
             }
             return result;
         }
-
         Color GetColor(float value,Vector2 limits,Texture2D colorMap)
         {
             float ratio = (value - limits.x) / (limits.y - limits.x);
@@ -305,8 +312,7 @@ namespace HBP.UI.TrialMatrix
             int y = Mathf.RoundToInt(ratio * (colorMap.height - 1));
             return colorMap.GetPixel(0,y);
         }
-
-        void GenerateMainEventIndicator(Data.TrialMatrix.Bloc bloc)
+        void GenerateMainEventIndicator(d.Bloc bloc)
         {
             GameObject mainEvent = new GameObject();
             mainEvent.name = "Main event";
@@ -314,7 +320,7 @@ namespace HBP.UI.TrialMatrix
             RectTransform rect = mainEvent.GetComponent<RectTransform>();
             rect.SetParent(transform.GetChild(0));
             float X = (float)bloc.Lines[0].Main.Position / bloc.Lines[0].DataWithCorrection.Length;
-            float Xstep = 1.0f / bloc.Lines[0].DataWithCorrection.Length;
+            float Xstep = 0.5f / bloc.Lines[0].DataWithCorrection.Length;
             rect.pivot = new Vector2(0, 0);
             rect.anchorMin = new Vector2(X, 0f);
             rect.anchorMax = new Vector2(X+ Xstep, 1f);
@@ -322,7 +328,6 @@ namespace HBP.UI.TrialMatrix
             rect.offsetMax = new Vector2(0, 0);
             image.color = Color.black;
         }
-
         void GenerateSecondaryIndicator(d.Bloc bloc)
         {
             for (int l = 0; l < bloc.Lines.Length; l++)
@@ -338,7 +343,7 @@ namespace HBP.UI.TrialMatrix
                         RectTransform rect = mainEvent.GetComponent<RectTransform>();
                         rect.SetParent(transform.GetChild(0));
                         float X = (float)position / bloc.Lines[l].DataWithCorrection.Length;
-                        float Xstep = 1.0f / bloc.Lines[l].DataWithCorrection.Length;
+                        float Xstep = 0.5f / bloc.Lines[l].DataWithCorrection.Length;
                         float Y = (float)l / bloc.Lines.Length;
                         float Ystep = 1.0f / bloc.Lines.Length;
                         rect.pivot = new Vector2(0, 0);
@@ -351,7 +356,6 @@ namespace HBP.UI.TrialMatrix
                 }
             }
         }
-
         int LineClicked()
         {
             Vector2 mousePosition = Input.mousePosition - rectTransform.position;
@@ -359,12 +363,25 @@ namespace HBP.UI.TrialMatrix
             mousePosition = new Vector2(Mathf.Clamp01(mousePosition.x), Mathf.Clamp01(mousePosition.y));
             return Mathf.FloorToInt(mousePosition.y * Data.Lines.Length);
         }
-
         void ClearLinesSelected()
         {
             foreach(Transform child in transform.GetChild(1))
             {
                 Destroy(child.gameObject);
+            }
+        }
+        void SetSize()
+        {
+            float preferredHeight = data.Lines.Length * LINE_RATIO * rectTransform.rect.width;
+
+            layoutElement.preferredHeight = preferredHeight;
+        }
+
+        void OnRectTransformDimensionsChange()
+        {
+            if (rectTransform.hasChanged)
+            {
+                SetSize();
             }
         }
         #endregion

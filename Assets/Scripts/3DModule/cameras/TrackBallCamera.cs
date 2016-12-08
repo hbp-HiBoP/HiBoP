@@ -139,15 +139,11 @@ namespace HBP.VISU3D.Cam
         /// </summary>
         protected void OnPreRender()
         {
-            Profiler.BeginSample("TEST-OnPreRender");
-
             if (m_idLineCamera == 0)
             {
                 if(!m_isMinimized)
                     m_associatedScene.updateColumnRender(m_idColCamera);
             }
-
-            Profiler.EndSample();
         }
 
         /// <summary>

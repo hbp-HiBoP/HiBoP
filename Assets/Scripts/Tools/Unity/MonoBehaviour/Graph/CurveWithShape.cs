@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Tools.Unity.Graph
 {
-    public class CurveWithStandardDeviation : Curve
+    public class CurveWithShape : Curve
     {
         #region Properties
         [SerializeField]
@@ -62,8 +62,8 @@ namespace Tools.Unity.Graph
             l_object.transform.SetParent(shapesRect);
             Shape l_shape = l_object.GetComponent<Shape>();
             m_shapes[i] = l_shape;
-            Data.CurveWithStandardDeviation l_curve = (Data.CurveWithStandardDeviation)DataCurve;
-            l_shape.Set(m_points[i], m_points[i + 1], l_curve.StandardDeviations[i], l_curve.StandardDeviations[i + 1], Ratio, l_curve.Color);
+            Data.CurveWithShape l_curve = (Data.CurveWithShape)DataCurve;
+            l_shape.Set(m_points[i], m_points[i + 1], l_curve.Shapes[i], l_curve.Shapes[i + 1], Ratio, l_curve.Color);
         }
 
         protected void UpdateShape(int i)

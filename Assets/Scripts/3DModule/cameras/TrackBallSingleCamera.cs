@@ -12,6 +12,7 @@ using System.Collections.Generic;
 
 // unity
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace HBP.VISU3D.Cam
 {

@@ -38,7 +38,6 @@ namespace HBP.Data.TrialMatrix
             //Read Header and Pos
             Localizer.EEG l_EEG = new Localizer.EEG(dataInfo.EEG);
             Localizer.POS l_POS = new Localizer.POS(dataInfo.POS);
-
             //Read Data
             float[] l_data = ReadData(l_EEG, dataInfo.Measure, plot.Name);
 

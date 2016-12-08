@@ -2,7 +2,7 @@
 
 namespace HBP.UI.TrialMatrix
 {
-    public class TimeBlocs : MonoBehaviour
+    public class TimeLegend : MonoBehaviour
     {
         #region Properties
         [SerializeField]

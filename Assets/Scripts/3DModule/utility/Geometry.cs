@@ -210,7 +210,6 @@ namespace HBP.VISU3D
             mesh.triangles = triangles;
 
             mesh.RecalculateBounds();
-            mesh.Optimize();
 
             return mesh;
         }
@@ -321,7 +320,6 @@ namespace HBP.VISU3D
 
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
-            mesh.Optimize();
 
             return mesh;
         }
@@ -578,7 +576,6 @@ namespace HBP.VISU3D
             mesh.triangles = triangles;
 
             mesh.RecalculateBounds();
-            mesh.Optimize();
 
             return mesh;
         }
