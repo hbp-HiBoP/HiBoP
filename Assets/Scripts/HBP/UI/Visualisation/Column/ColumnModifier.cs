@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 using HBP.Data.Visualisation;
-using d = HBP.Data.Patient;
 
 namespace HBP.UI
 {
@@ -24,8 +23,8 @@ namespace HBP.UI
         Dropdown m_blocCB;
         #endregion
         #region Data
-        d.Patient[] m_patients;
-        d.Patient[] Patients
+        Data.Patient[] m_patients;
+        Data.Patient[] Patients
         {
             get { return m_patients; }
             set { m_patients = value; }
@@ -58,7 +57,7 @@ namespace HBP.UI
 
         #region Public Methods
         #region General
-        public void SetTab(Column column,d.Patient[] patients,bool sp)
+        public void SetTab(Column column,Data.Patient[] patients,bool sp)
         {
             Profiler.BeginSample("SetTab");
             Profiler.BeginSample("SetTab : Patient");
@@ -138,7 +137,7 @@ namespace HBP.UI
             foreach (Dataset dataset in l_dataset)
             {
                 bool l_containsAllPatient = true;
-                foreach (d.Patient patient in Patients)
+                foreach (Data.Patient patient in Patients)
                 {
                     bool l_datasetContainsPatient = false;
                     foreach (DataInfo i_dataInfo in dataset.Data)
@@ -258,7 +257,7 @@ namespace HBP.UI
                 }
 
                 bool l_dataLabelContainsAllPatients = true;
-                foreach (d.Patient patient in Patients)
+                foreach (Data.Patient patient in Patients)
                 {
                     bool l_containsThisPatient = false;
                     foreach (DataInfo i_dataInfo in l_dataInfoForThisLabel)
@@ -371,7 +370,7 @@ namespace HBP.UI
                 }
 
                 bool l_protocolContainsAllPatients = true;
-                foreach (d.Patient patient in Patients)
+                foreach (Data.Patient patient in Patients)
                 {
                     bool l_containsThisPatient = false;
                     foreach (DataInfo i_dataInfo in l_dataInfoWithThisProtocol)

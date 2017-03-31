@@ -1,9 +1,15 @@
 {
-    "defaultProjectName": "New project",
-    "defaultProjectLocation": "D:/HBPProjects",
-    "defaultPatientDatabaseLocation": "",
-    "defaultLocalizerDatabaseLocation": "",
-    "plotNameAutomaticCorrectionType": 1,
-    "trialMatrixSmoothingType": 1,
-    "baseLineType": 0
+  "DefaultProjectName": "New project",
+  "DefaultProjectLocation": "D:/HBPProjects",
+  "DefaultPatientDatabaseLocation": "Y:/BrainVisaDB/Epilepsy",
+  "DefaultLocalizerDatabaseLocation": "Z:/BrainTV/JPL/LOCA_DATABASE",
+  "PlotNameAutomaticCorrectionType": 1,
+  "TrialMatrixSettings": {
+    "Smoothing": 1,
+    "Baseline": 3,
+    "BlocFormat": 1,
+    "ConstantLineHeight": 3,
+    "LineHeightByWidth": 0.005,
+    "HeightByWidth": 0.5625
+  }
 }

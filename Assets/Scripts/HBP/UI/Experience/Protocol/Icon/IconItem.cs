@@ -41,22 +41,22 @@ namespace HBP.UI.Experience.Protocol
         {
             m_object = icon;
             m_labelInputField.text = icon.Name;
-            m_pathInputField.text = icon.Image;
-            m_minInputField.text = icon.Window.x.ToString();
-            m_maxInputField.text = icon.Window.y.ToString();
+            m_pathInputField.text = icon.IllustrationPath;
+            m_minInputField.text = icon.Window.Start.ToString();
+            m_maxInputField.text = icon.Window.End.ToString();
         }
 
         public override void Save()
         {
             Object.Name = m_labelInputField.text;
-            Object.Image = m_pathInputField.text;
-            Object.Window = new Vector2(float.Parse(m_minInputField.text), float.Parse(m_maxInputField.text));
+            Object.IllustrationPath = m_pathInputField.text;
+            Object.Window = new Tools.CSharp.Window(float.Parse(m_minInputField.text), float.Parse(m_maxInputField.text));
         }
 
         public void OpenIllustrationPath()
         {
-            string l_resultStandalone = VISU3D.DLL.QtGUI.getOpenFileName(new string[] { "png", "jpg" }, "Please select the illustration of the Icon", m_pathInputField.text);
-            l_resultStandalone.StandardizeToPath();
+            string l_resultStandalone = VISU3D.DLL.QtGUI.get_existing_file_name(new string[] { "png", "jpg" }, "Please select the illustration of the Icon", m_pathInputField.text);
+            StringExtension.StandardizeToPath(ref l_resultStandalone);
             if (l_resultStandalone != string.Empty)
             {
                 m_pathInputField.text = l_resultStandalone;

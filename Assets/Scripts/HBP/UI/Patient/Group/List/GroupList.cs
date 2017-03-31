@@ -1,4 +1,4 @@
-﻿using HBP.Data.Patient;
+﻿using HBP.Data;
 using System.Linq;
 
 namespace HBP.UI.Patient

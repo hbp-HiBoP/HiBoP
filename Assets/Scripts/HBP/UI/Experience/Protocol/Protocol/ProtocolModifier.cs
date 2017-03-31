@@ -37,7 +37,7 @@ namespace HBP.UI.Experience.Protocol
         {
             if(!ItemTemp.Blocs.Contains(blocModifier.Item))
             {
-                ItemTemp.Add(blocModifier.Item);
+                ItemTemp.Blocs.Add(blocModifier.Item);
             }
             blocGrid.Display(ItemTemp.Blocs.ToArray());
         }

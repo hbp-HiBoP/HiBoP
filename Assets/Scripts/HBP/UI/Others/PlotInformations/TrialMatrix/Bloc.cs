@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using HBP.Data.Settings;
 using System.Collections.Generic;
 using d = HBP.Data.TrialMatrix;
 
@@ -37,7 +38,7 @@ namespace HBP.UI.TrialMatrix
         {
             data = bloc;
             this.colorMap = colorMap;
-            gameObject.name = bloc.PBloc.DisplayInformations.Name + " | " + "Bloc n°" + bloc.PBloc.DisplayInformations.Column;
+            gameObject.name = bloc.PBloc.DisplayInformations.Name + " | " + "Bloc n°" + bloc.PBloc.DisplayInformations.Position.Column;
             blocInformationsDisplayer.Set(bloc);
             SetSize();
             SetTexture(bloc, colorMap, limits);
@@ -222,10 +223,10 @@ namespace HBP.UI.TrialMatrix
         void SetTexture(d.Bloc bloc,Texture2D colorMap,Vector2 limits)
         {
             float[,] lines = ExtractDataFromLines(bloc.Lines);
-            switch (ApplicationState.GeneralSettings.TrialMatrixSmoothingType)
+            switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Smoothing)
             {
-                case HBP.Data.Settings.GeneralSettings.TrialMatrixSmoothingEnum.None: break;
-                case HBP.Data.Settings.GeneralSettings.TrialMatrixSmoothingEnum.Line: lines = SmoothLines(lines,5); break;
+                case TrialMatrixSettings.SmoothingType.None: break;
+                case TrialMatrixSettings.SmoothingType.Line: lines = SmoothLines(lines,5); break;
             }
 
             Texture2D texture = GenerateTexture(lines, limits, colorMap);
@@ -372,9 +373,18 @@ namespace HBP.UI.TrialMatrix
         }
         void SetSize()
         {
-            float preferredHeight = data.Lines.Length * LINE_RATIO * rectTransform.rect.width;
-
-            layoutElement.preferredHeight = preferredHeight;
+            switch(ApplicationState.GeneralSettings.TrialMatrixSettings.BlocFormat)
+            {
+                case TrialMatrixSettings.BlocFormatType.ConstantLine:
+                    layoutElement.preferredHeight = ApplicationState.GeneralSettings.TrialMatrixSettings.ConstantLineHeight * data.Lines.Length;
+                    break;
+                case TrialMatrixSettings.BlocFormatType.LineRatio:
+                    layoutElement.preferredHeight = ApplicationState.GeneralSettings.TrialMatrixSettings.LineHeightByWidth * rectTransform.rect.width * data.Lines.Length;
+                    break;
+                case TrialMatrixSettings.BlocFormatType.BlocRatio:
+                    layoutElement.preferredHeight = ApplicationState.GeneralSettings.TrialMatrixSettings.HeightByWidth * rectTransform.rect.width;  
+                    break;
+            }
         }
 
         void OnRectTransformDimensionsChange()

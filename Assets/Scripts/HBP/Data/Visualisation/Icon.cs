@@ -2,84 +2,77 @@
 
 namespace HBP.Data.Visualisation
 {
-    /// <summary>
-    /// Icon.
-    /// </summary>
+    /**
+    * \class Icon
+    * \author Adrien Gannerie
+    * \version 1.0
+    * \date 10 janvier 2017
+    * \brief Icon of the Iconic scenario.
+    * 
+    * \details Icon of the Iconic Scenario which contains:
+    *   - \a Label.
+    *   - \a Illustration path.
+    *   - \a Start position.
+    *   - \a End position.
+    */
     public class Icon
     {
         /// <summary>
         /// Label.
         /// </summary>
-        private string m_label;
+        private string label;
         public string Label
         {
-            get { return m_label; }
-            set { m_label = value; }
+            get { return label; }
+            set { label = value; }
         }
 
         /// <summary>
         /// Illustration path.
         /// </summary>
-        private string m_path;
-        public string Path
+        private string illustrationPath;
+        public string IllustrationPath
         {
-            get { return m_path; }
-            set { m_path = value; }
+            get { return illustrationPath; }
+            set { illustrationPath = value; }
         }
 
         /// <summary>
-        /// Position limit min.
+        /// Start position.
         /// </summary>
-        private int m_min;
-        public int Min
+        private int startPosition;
+        public int StartPosition
         {
-            get { return m_min; }
-            set { m_min = value; }
+            get { return startPosition; }
+            set { startPosition = value; }
         }
 
         /// <summary>
-        /// Position limit max.
+        /// End position.
         /// </summary>
-        private int m_max;
-        public int Max
+        private int endPosition;
+        public int EndPosition
         {
-            get { return m_max; }
-            set { m_max = value; }
+            get { return endPosition; }
+            set { endPosition = value; }
         }
 
         /// <summary>
-        /// Constructor.
+        /// Create a new icon instance.
         /// </summary>
         /// <param name="icon">Icon.</param>
         /// <param name="frequency">Frequency of the data.</param>
         /// <param name="timeLine">Time line of the bloc.</param>
-
         public Icon(Experience.Protocol.Icon icon, float frequency,TimeLine timeLine)
         {
             Label = icon.Name;
-            Path = icon.Image;
-            float l_min = icon.Window.x * 0.001f * frequency + timeLine.MainEvent.Position;
-            float l_max = icon.Window.y * 0.001f * frequency + timeLine.MainEvent.Position;
-            Max = Mathf.FloorToInt((icon.Window.y) * 0.001f * frequency) + timeLine.MainEvent.Position;
-            Min = Mathf.FloorToInt((icon.Window.x) * 0.001f * frequency) + timeLine.MainEvent.Position;
-            float l_step = timeLine.Step;
-            float l_minRealTime = timeLine.Min.Value + l_step * l_min;
-            float l_maxRealTime = timeLine.Min.Value + l_step * l_max;
-            //Debug.Log(l_minRealTime);
-            //Debug.Log(l_maxRealTime);
-            if(Min < 0)
-            {
-                Min = 0;
-            }
-            if(Max > timeLine.Size-1)
-            {
-                Max = timeLine.Size - 1;
-            }
-            //Debug.Log(Label + " " + Min + " / " + Max + "   ||   " + l_min + " / " + l_max);
+            IllustrationPath = icon.IllustrationPath;
+            StartPosition = Mathf.Clamp(Mathf.FloorToInt((icon.Window.Start) * 0.001f * frequency) + timeLine.MainEvent.Position,0, timeLine.Lenght - 1);
+            EndPosition = Mathf.Clamp(Mathf.FloorToInt((icon.Window.End) * 0.001f * frequency) + timeLine.MainEvent.Position,0,timeLine.Lenght-1);
         }
 
         /// <summary>
-        /// Constructor
+        /// Create a new icon instance with default value;
         /// </summary>
         public Icon() : this(new Experience.Protocol.Icon(),0.0f,new TimeLine())
         {

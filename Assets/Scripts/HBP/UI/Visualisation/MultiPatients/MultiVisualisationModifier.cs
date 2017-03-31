@@ -2,34 +2,37 @@
 using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
-using d = HBP.Data.Patient;
 using HBP.UI.Patient;
 using HBP.Data.Visualisation;
+using HBP.Data;
 
 namespace HBP.UI
 {
     public class MultiVisualisationModifier : ItemModifier<MultiPatientsVisualisation>
     {
         #region Properties
+        [SerializeField]
+        GameObject groupSelectionPrefab;
+        GroupSelection groupSelection;
+
         InputField nameInputField;
         TabGestion tabGestion;
         ColumnModifier columnModifier;
         PatientList visualisationPatientsList;
         PatientList projectPatientsList;
-        GroupSelection groupSelection;
         Button addPatientButton, removePatientButton, addGroupButton, saveButton, saveAsButton;
         #endregion
 
         #region Public Methods
         public void AddColumn()
         {
-            ItemTemp.AddColumn(new Column());
+            ItemTemp.Columns.Add(new Column());
             tabGestion.AddTab();
         }
         public void RemoveColumn()
         {
             Toggle l_Toggle = new List<Toggle>(tabGestion.ToggleGroup.ActiveToggles())[0];
-            ItemTemp.RemoveColumn(l_Toggle.transform.GetSiblingIndex() - 1);
+            ItemTemp.Columns.RemoveAt(l_Toggle.transform.GetSiblingIndex() - 1);
             tabGestion.RemoveTab();
         }
         public void SaveAs()
@@ -38,28 +41,44 @@ namespace HBP.UI
         }
         public void AddPatients()
         {
-            d.Patient[] patientsToAdd = projectPatientsList.GetObjectsSelected();
+            Data.Patient[] patientsToAdd = projectPatientsList.GetObjectsSelected();
             ItemTemp.AddPatient(patientsToAdd);
             projectPatientsList.DeactivateObject(patientsToAdd);
             visualisationPatientsList.Add(patientsToAdd);
             SelectColumn();
         }
-        public void AddGroup()
+        public void AddGroups(Group[] groups)
         {
-            List<d.Patient> patientsToAdd = new List<d.Patient>();
-            d.Group[] groups = groupSelection.GetGroupSelected();
-            foreach (d.Group group in groups)
+            List<Data.Patient> patientsToAdd = new List<Data.Patient>();
+            foreach (Group group in groups)
             {
-                patientsToAdd.AddRange(group.Patients.ToArray());
+                foreach(Data.Patient patient in group.Patients)
+                {
+                    if(!visualisationPatientsList.Objects.Contains(patient))
+                    {
+                        patientsToAdd.Add(patient);
+                    }
+                }
             }
             ItemTemp.AddPatient(patientsToAdd.ToArray());
             projectPatientsList.DeactivateObject(patientsToAdd.ToArray());
             visualisationPatientsList.Add(patientsToAdd.ToArray());
             SelectColumn();
         }
+        public void OpenGroupSelection()
+        {
+            SetInteractable(false);
+            Transform groupsSelectionTransform = Instantiate(groupSelectionPrefab, GameObject.Find("Windows").transform).GetComponent<Transform>();
+            groupsSelectionTransform.localPosition = Vector3.zero;
+            GroupSelection groupSelection = groupsSelectionTransform.GetComponent<GroupSelection>();
+            Debug.Log(groupSelection);
+            groupSelection.Open();
+            groupSelection.AddGroupsEvent.AddListener((groups) => AddGroups(groups));
+            groupSelection.CloseEvent.AddListener(() => OnCloseGroupSelection());
+        }
         public void RemovePatients()
         {
-            d.Patient[] patientsToRemove = visualisationPatientsList.GetObjectsSelected();
+            Data.Patient[] patientsToRemove = visualisationPatientsList.GetObjectsSelected();
             ItemTemp.RemovePatient(patientsToRemove);
             projectPatientsList.ActiveObject(patientsToRemove);
             visualisationPatientsList.Remove(patientsToRemove);
@@ -84,7 +103,7 @@ namespace HBP.UI
             // Columns.
             if (ItemTemp.Columns.Count == 0)
             {
-                ItemTemp.AddColumn(new Column());
+                ItemTemp.Columns.Add(new Column());
             }
             for (int i = 0; i < ItemTemp.Columns.Count; i++)
             {
@@ -125,6 +144,11 @@ namespace HBP.UI
             nameInputField.interactable = interactable;
             saveButton.interactable = interactable;
             saveAsButton.interactable = interactable;
+        }
+        protected void OnCloseGroupSelection()
+        {
+            SetInteractable(true);
+            groupSelection = null;
         }
         #endregion
     }

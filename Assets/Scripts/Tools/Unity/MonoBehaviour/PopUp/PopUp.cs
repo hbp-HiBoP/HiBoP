@@ -17,6 +17,9 @@ namespace Tools.Unity
         #region Public Methods
         public void Show(string message, string title)
         {
+            RectTransform rect = (transform as RectTransform);
+            rect.offsetMin = new Vector2(0, 0);
+            rect.offsetMax = new Vector2(0, 0);
             gameObject.SetActive(true);
             m_title.text = title;
             m_message.text = message;

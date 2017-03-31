@@ -16,17 +16,10 @@ namespace Tools.CSharp
                 yield return s.Substring(i, Math.Min(partLength, s.Length - i));
         }
 
-        public static void StandardizeToPath(this string path)
+        public static void StandardizeToPath(ref string path)
         {
-            char[] l_path = path.ToCharArray();
-            for (int i = 0; i < l_path.Length; i++)
-            {
-                if (l_path[i] == '/' || l_path[i] == '\\')
-                {
-                    l_path[i] = System.IO.Path.DirectorySeparatorChar;
-                }
-            }
-            path = new string(l_path);
+            path = path.Replace('/', System.IO.Path.DirectorySeparatorChar);
+            path = path.Replace('\\', System.IO.Path.DirectorySeparatorChar);
         }
     }
 

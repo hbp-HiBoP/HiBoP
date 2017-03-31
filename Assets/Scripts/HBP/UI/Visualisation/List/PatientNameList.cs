@@ -1,8 +1,6 @@
-﻿using d = HBP.Data.Patient;
-
-namespace HBP.UI
+﻿namespace HBP.UI
 {
-    public class PatientNameList : Tools.Unity.Lists.CustomList<d.Patient>
+    public class PatientNameList : Tools.Unity.Lists.CustomList<Data.Patient>
     {
     }
 }

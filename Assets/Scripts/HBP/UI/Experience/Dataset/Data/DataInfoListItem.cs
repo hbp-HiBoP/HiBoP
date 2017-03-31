@@ -111,7 +111,7 @@ namespace HBP.UI.Experience.Dataset
             m_ProvDropdown.value = protocolValue;
             m_object.Protocol = ApplicationState.ProjectLoaded.Protocols[protocolValue];
 
-            p.Patient[] l_patients = ApplicationState.ProjectLoaded.Patients.ToArray();
+            Data.Patient[] l_patients = ApplicationState.ProjectLoaded.Patients.ToArray();
             List<Dropdown.OptionData> l_patientOptions = new List<Dropdown.OptionData>(l_patients.Length);
             int patientValue = 0;
             for (int i = 0; i < l_patients.Length; i++)
@@ -148,7 +148,7 @@ namespace HBP.UI.Experience.Dataset
         {
             string l_filePath = m_PosInputField.text;
             string l_path;
-            if (l_filePath != string.Empty && new System.IO.FileInfo(l_filePath).Exists && new System.IO.FileInfo(l_filePath).Extension == FileExtension.POS)
+            if (l_filePath != string.Empty && new System.IO.FileInfo(l_filePath).Exists && new System.IO.FileInfo(l_filePath).Extension == Data.Localizer.POS.EXTENSION)
             {
                 l_path = l_filePath;
             }
@@ -164,8 +164,8 @@ namespace HBP.UI.Experience.Dataset
                 }
             }
 
-            string l_resultStandalone = VISU3D.DLL.QtGUI.getOpenFileName(new string[] { "pos" }, "Please select the POS file.", l_path);
-            l_resultStandalone.StandardizeToPath();
+            string l_resultStandalone = VISU3D.DLL.QtGUI.get_existing_file_name(new string[] { "pos" }, "Please select the POS file.", l_path);
+            StringExtension.StandardizeToPath(ref l_resultStandalone);
             if (l_resultStandalone != string.Empty)
             {
                 m_PosInputField.text = l_resultStandalone;
@@ -180,7 +180,7 @@ namespace HBP.UI.Experience.Dataset
         {
             string l_filePath = m_EEGInputField.text;
             string l_path;
-            if (l_filePath != string.Empty && new System.IO.FileInfo(l_filePath).Exists && new System.IO.FileInfo(l_filePath).Extension == FileExtension.EEG)
+            if (l_filePath != string.Empty && new System.IO.FileInfo(l_filePath).Exists && new System.IO.FileInfo(l_filePath).Extension == Elan.EEG.EXTENSION)
             {
                 l_path = l_filePath;
             }
@@ -189,8 +189,8 @@ namespace HBP.UI.Experience.Dataset
                 l_path = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
             }
 
-            string l_resultStandalone = VISU3D.DLL.QtGUI.getOpenFileName(new string[] { "eeg" }, "Please select the EEG file.", l_path);
-            l_resultStandalone.StandardizeToPath();
+            string l_resultStandalone = VISU3D.DLL.QtGUI.get_existing_file_name(new string[] { "eeg" }, "Please select the EEG file.", l_path);
+            StringExtension.StandardizeToPath(ref l_resultStandalone);
             if (l_resultStandalone != string.Empty)
             {
                 m_EEGInputField.text = l_resultStandalone;

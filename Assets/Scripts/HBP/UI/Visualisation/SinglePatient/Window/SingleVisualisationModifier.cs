@@ -1,8 +1,6 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
-using d = HBP.Data.Patient;
 using HBP.Data.Visualisation;
 
 namespace HBP.UI
@@ -16,19 +14,19 @@ namespace HBP.UI
         Button saveButton, saveAsButton;
 
         Dropdown patientDropdown;
-        d.Patient[] patientsSorted = new d.Patient[0];
+        Data.Patient[] patientsSorted = new Data.Patient[0];
         #endregion
 
         #region Public Methods
         public void AddColumn()
         {
-            ItemTemp.AddColumn(new Column());
+            ItemTemp.Columns.Add(new Column());
             tabGestion.AddTab();
         }
         public void RemoveColumn()
         {
             Toggle l_Toggle = new List<Toggle>(tabGestion.ToggleGroup.ActiveToggles())[0];
-            ItemTemp.RemoveColumn(l_Toggle.transform.GetSiblingIndex() - 1);
+            ItemTemp.Columns.RemoveAt(l_Toggle.transform.GetSiblingIndex() - 1);
             tabGestion.RemoveTab();
         }
         public void SaveAs()
@@ -51,7 +49,7 @@ namespace HBP.UI
             // Columns.
             if (ItemTemp.Columns.Count == 0)
             {
-                ItemTemp.AddColumn(new Column());
+                ItemTemp.Columns.Add(new Column());
             }
             for (int i = 0; i < ItemTemp.Columns.Count; i++)
             {
@@ -65,7 +63,7 @@ namespace HBP.UI
             List<Dropdown.OptionData> patientOptions = new List<Dropdown.OptionData>(patientsSorted.Length);
             for (int i = 0; i < patientsSorted.Length; i++)
             {
-                d.Patient patient = patientsSorted[i];
+                Data.Patient patient = patientsSorted[i];
                 patientOptions.Add(new Dropdown.OptionData(patient.Name, null));
                 if (objectToDisplay.Patient == patient) patientIndex = i;
             }
@@ -73,8 +71,6 @@ namespace HBP.UI
             patientDropdown.value = patientIndex;
             OnChangePatient(patientsSorted[patientIndex]);
             patientDropdown.onValueChanged.AddListener((value) => OnChangePatient(patientsSorted[value]));
-
-
         }
         protected void SelectColumn()
         {
@@ -82,7 +78,7 @@ namespace HBP.UI
             if (ActiveToggles.Count > 0)
             {
                 Column l_column = ItemTemp.Columns[ActiveToggles[0].transform.GetSiblingIndex() - 1];
-                columnModifier.SetTab(l_column, new d.Patient[] { (ItemTemp as SinglePatientVisualisation).Patient }, true);
+                columnModifier.SetTab(l_column, new Data.Patient[] { (ItemTemp as SinglePatientVisualisation).Patient }, true);
             }
         }
         protected override void SetWindow()
@@ -101,7 +97,7 @@ namespace HBP.UI
             saveButton.interactable = interactable;
             saveAsButton.interactable = interactable;
         }
-        protected void OnChangePatient(d.Patient patient)
+        protected void OnChangePatient(Data.Patient patient)
         {
             (ItemTemp as SinglePatientVisualisation).Patient = patient;
             SelectColumn();

@@ -5,7 +5,8 @@ namespace HBP.Data.Localizer
 {
 	public class POS
 	{
-		#region Attributs
+        #region Attributs
+        public const string EXTENSION = ".pos";
 		Dictionary<int,List<int>> m_eventDictionary;
 		public Dictionary<int,List<int>> EventDictionary {get{return m_eventDictionary;}}
 		#endregion

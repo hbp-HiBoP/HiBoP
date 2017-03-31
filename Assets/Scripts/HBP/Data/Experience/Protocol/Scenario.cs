@@ -1,64 +1,49 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace HBP.Data.Experience.Protocol
 {
-    /// <summary>
-    /// Class which define a iconic scenario.
-    ///     - Icons.
-    /// </summary>
-    [Serializable]
+    /**
+    * \class Scenario
+    * \author Adrien Gannerie
+    * \version 1.0
+    * \date 09 janvier 2017
+    * \brief Iconic scenario.
+    * 
+    * \details Class which define a iconic scenario and contains :
+    *     - Icons.
+    */
     public class Scenario : ICloneable
     {
         #region Properties
-        [SerializeField]
-        List<Icon> icons;
-        public ReadOnlyCollection<Icon> Icons
-        {
-            get { return new ReadOnlyCollection<Icon>(icons); }
-        }
+        /// <summary>
+        /// Icons of the inconic Scenario.
+        /// </summary>
+        public List<Icon> Icons { get; set; }
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Create a new scenario instance.
+        /// </summary>
+        /// <param name="icons">Icons of the iconic scenario.</param>
         public Scenario(List<Icon> icons)
         {
-            this.icons = icons;
+            Icons = icons;
         }
+        /// <summary>
+        /// Create a new scenario instance.
+        /// </summary>
         public Scenario() : this(new List<Icon>())
         {
         }
         #endregion
 
-        #region Public methods
-        public void Set(Icon[] icons)
-        {
-            this.icons = new List<Icon>(icons);
-        }
-        public void Add(Icon icon)
-        {
-            if(!icons.Contains(icon)) icons.Add(icon);
-        }
-        public void Add(Icon[] icons)
-        {
-            foreach (Icon icon in icons) Add(icon);
-        }
-        public void Remove(Icon icon)
-        {
-            icons.Remove(icon);
-        }
-        public void Remove(Icon[] icons)
-        {
-            foreach (Icon icon in icons) Remove(icon);
-        }
-        public void Clear()
-        {
-            icons = new List<Icon>();
-        }
-        #endregion
-
         #region Operator
+        /// <summary>
+        /// Clone this instance to a new instance.
+        /// </summary>
+        /// <returns>Instance clone.</returns>
         public object Clone()
         {
             List<Icon> l_list = new List<Icon>(Icons.Count);
@@ -68,6 +53,11 @@ namespace HBP.Data.Experience.Protocol
             }
             return new Scenario(l_list);
         }
+        /// <summary>
+        /// Operator Equals.
+        /// </summary>
+        /// <param name="obj">Object to test.</param>
+        /// <returns>\a True if equals and \a false otherwise.</returns>
         public override bool Equals(object obj)
         {
             Scenario p = obj as Scenario;
@@ -80,10 +70,20 @@ namespace HBP.Data.Experience.Protocol
                 return System.Linq.Enumerable.SequenceEqual(Icons,p.Icons);
             }
         }
+        /// <summary>
+        /// Get hash code.
+        /// </summary>
+        /// <returns>HashCode.</returns>
         public override int GetHashCode()
         {
             return base.GetHashCode();
         }
+        /// <summary>
+        /// Operator equals.
+        /// </summary>
+        /// <param name="a">Scenario to compare.</param>
+        /// <param name="b">Scenario to compare.</param>
+        /// <returns>\a True if equals and \a false otherwise.</returns>
         public static bool operator ==(Scenario a, Scenario b)
         {
             if (ReferenceEquals(a, b))
@@ -98,6 +98,12 @@ namespace HBP.Data.Experience.Protocol
 
             return a.Equals(b);
         }
+        /// <summary>
+        /// Operator not equals.
+        /// </summary>
+        /// <param name="a">Scenario to compare.</param>
+        /// <param name="b">Scenario to compare.</param>
+        /// <returns>\a True if not equals and \a false otherwise.</returns>
         public static bool operator !=(Scenario a, Scenario b)
         {
             return !(a == b);

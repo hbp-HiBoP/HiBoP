@@ -1,10 +1,7 @@
-﻿using System;
+﻿using System.IO;
 using System.Linq;
-using System.IO;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using HBP.Data.Patient;
-using UnityEngine;
 using HBP.Data.Settings;
 using HBP.Data.Visualisation;
 using HBP.Data.Experience.Dataset;
@@ -12,57 +9,84 @@ using HBP.Data.Experience.Protocol;
 
 namespace HBP.Data.General
 {
-    /// <summary>
-    /// Class which define a project, it's contains :
-    ///     - Settings.
-    ///     - Patients.
-    ///     - Groups.
-    ///     - Regions of interest.
-    ///     - Protocols.
-    ///     - Datasets.
-    ///     - Visualisations.
-    /// </summary>
+    /**
+    * \class Project
+    * \author Adrien Gannerie
+    * \version 1.0
+    * \date 12 janvier 2017
+    * \brief Class which define a HiBoP project.
+    * 
+    * \details Class which define a HiBoP project, it's contains :
+    *     - Settings.
+    *     - Patients.
+    *     - Groups.
+    *     - Regions of interest.(To Add)
+    *     - Protocols.
+    *     - Datasets.
+    *     - Visualisations.
+    */
     public class Project
     {
         #region Properties
         ProjectSettings settings;
+        /// <summary>
+        /// Settings of the project.
+        /// </summary>
         public ProjectSettings Settings
         {
             get { return settings; }
             set { settings = value; }
         }
 
-        List<Patient.Patient> patients;
-        public ReadOnlyCollection<Patient.Patient> Patients
+        List<Patient> patients;
+        /// <summary>
+        /// Patients of the project.
+        /// </summary>
+        public ReadOnlyCollection<Patient> Patients
         {
-            get { return new ReadOnlyCollection<Patient.Patient>(patients); }
+            get { return new ReadOnlyCollection<Patient>(patients); }
         }
 
         List<Group> groups;
+        /// <summary>
+        /// Patient groups of the project.
+        /// </summary>
         public ReadOnlyCollection<Group> Groups
         {
             get { return new ReadOnlyCollection<Group>(groups); }
         }
 
         List<Protocol> protocols;
+        /// <summary>
+        /// Protocols of the project.
+        /// </summary>
         public ReadOnlyCollection<Protocol> Protocols
         {
             get { return new ReadOnlyCollection<Protocol>(protocols); }
         }
 
         List<Dataset> datasets;
+        /// <summary>
+        /// Datasets of the project.
+        /// </summary>
         public ReadOnlyCollection<Dataset> Datasets
         {
             get { return new ReadOnlyCollection<Dataset>(datasets); }
         }
 
         List<SinglePatientVisualisation> singlePatientVisualisations;
+        /// <summary>
+        /// Singe patient brain visualisations of the project.
+        /// </summary>
         public ReadOnlyCollection<SinglePatientVisualisation> SinglePatientVisualisations
         {
             get { return new ReadOnlyCollection<SinglePatientVisualisation>(singlePatientVisualisations); }
         }
 
         List<MultiPatientsVisualisation> multiPatientsVisualisations;
+        /// <summary>
+        /// Multi patients brain visualisations of the project.
+        /// </summary>
         public ReadOnlyCollection<MultiPatientsVisualisation> MultiPatientsVisualisations
         {
             get { return new ReadOnlyCollection<MultiPatientsVisualisation>(multiPatientsVisualisations); }
@@ -70,7 +94,17 @@ namespace HBP.Data.General
         #endregion
 
         #region Constructors
-        public Project(ProjectSettings settings, Patient.Patient[] patients, Group[] groups, Protocol[] protocols, Dataset[] datasets, SinglePatientVisualisation[] singleVisualisations, MultiPatientsVisualisation[] multiVisualisations)
+        /// <summary>
+        /// Create a new project instance.
+        /// </summary>
+        /// <param name="settings">Settings of the project.</param>
+        /// <param name="patients">Patients of the project.</param>
+        /// <param name="groups">Groups of the project.</param>
+        /// <param name="protocols">Protocols of the project.</param>
+        /// <param name="datasets">Datasets of the project.</param>
+        /// <param name="singleVisualisations">Single patient visualisations of the project.</param>
+        /// <param name="multiVisualisations">Multi patients visualisations of the project.</param>
+        public Project(ProjectSettings settings, Patient[] patients, Group[] groups, Protocol[] protocols, Dataset[] datasets, SinglePatientVisualisation[] singleVisualisations, MultiPatientsVisualisation[] multiVisualisations)
         {
             Settings = settings;
             SetPatients(patients);
@@ -80,12 +114,23 @@ namespace HBP.Data.General
             SetSinglePatientVisualisations(singleVisualisations);
             SetMultiPatientsVisualisations(multiVisualisations);
         }
-        public Project(ProjectSettings settings) : this(settings, new Patient.Patient[0], new Group[0], new Protocol[0], new Dataset[0] , new SinglePatientVisualisation[0], new MultiPatientsVisualisation[0])
+        /// <summary>
+        /// Create a new project with only the settings.
+        /// </summary>
+        /// <param name="settings">Settings of the project.</param>
+        public Project(ProjectSettings settings) : this(settings, new Patient[0], new Group[0], new Protocol[0], new Dataset[0] , new SinglePatientVisualisation[0], new MultiPatientsVisualisation[0])
         {
         }
+        /// <summary>
+        /// Create a empty project with a name.
+        /// </summary>
+        /// <param name="name">Name of the project.</param>
         public Project(string name) : this(new ProjectSettings(name))
         {
         }
+        /// <summary>
+        /// Create a empty project with default values.
+        /// </summary>
         public Project() : this(new ProjectSettings())
         {
         }
@@ -93,31 +138,35 @@ namespace HBP.Data.General
 
         #region Public Methods
         // Patients.
-        public void SetPatients(Patient.Patient[] patients)
+        /// <summary>
+        /// Set the patients of the project.
+        /// </summary>
+        /// <param name="patients"></param>
+        public void SetPatients(Patient[] patients)
         {
-            this.patients = new List<Patient.Patient>();
+            this.patients = new List<Patient>();
             AddPatient(patients);
         }
-        public void AddPatient(Patient.Patient patient)
+        public void AddPatient(Patient patient)
         {
             patients.Add(patient);
         }
-        public void AddPatient(Patient.Patient[] patients)
+        public void AddPatient(Patient[] patients)
         {
-            foreach (Patient.Patient patient in patients)
+            foreach (Patient patient in patients)
             {
                 AddPatient(patient);
             }
         }
-        public void RemovePatient(Patient.Patient patient)
+        public void RemovePatient(Patient patient)
         {
             foreach(Group group in groups)
             {
-                group.Remove(patient);
+                group.RemovePatient(patient);
             }
             foreach (Dataset dataset in datasets)
             {
-                dataset.Remove((from info in dataset.Data where info.Patient == patient select info).ToArray());
+                dataset.Data.Remove(from info in dataset.Data where info.Patient == patient select info);
             }
             RemoveSinglePatientVisualisation((from singlePatientVisualisation in singlePatientVisualisations where singlePatientVisualisation.Patient == patient select singlePatientVisualisation).ToArray());
             foreach(MultiPatientsVisualisation multiPatientsVisualisation in multiPatientsVisualisations)
@@ -126,9 +175,9 @@ namespace HBP.Data.General
             }
             patients.Remove(patient);
         }
-        public void RemovePatient(Patient.Patient[] patients)
+        public void RemovePatient(Patient[] patients)
         {
-            foreach (Patient.Patient patient in patients)
+            foreach (Patient patient in patients)
             {
                 RemovePatient(patient);
             }
@@ -184,15 +233,15 @@ namespace HBP.Data.General
         {
             foreach (Dataset dataset in datasets)
             {
-                dataset.Remove((from info in dataset.Data where info.Protocol == protocol select info).ToArray());
+                dataset.Data.Remove(from info in dataset.Data where info.Protocol == protocol select info);
             }
             foreach (SinglePatientVisualisation singlePatientVisualisation in singlePatientVisualisations)
             {                
-                singlePatientVisualisation.RemoveColumn((from column in singlePatientVisualisation.Columns where column.Protocol == protocol select column).ToArray());
+                singlePatientVisualisation.Columns.Remove((from column in singlePatientVisualisation.Columns where column.Protocol == protocol select column).ToArray());
             }
             foreach (MultiPatientsVisualisation multiPatientsVisualisation in multiPatientsVisualisations)
             {
-                multiPatientsVisualisation.RemoveColumn((from column in multiPatientsVisualisation.Columns where column.Protocol == protocol select column).ToArray());
+                multiPatientsVisualisation.Columns.Remove((from column in multiPatientsVisualisation.Columns where column.Protocol == protocol select column).ToArray());
             }
             protocols.Remove(protocol);
         }
@@ -213,6 +262,7 @@ namespace HBP.Data.General
         public void AddDataset(Dataset dataset)
         {
             datasets.Add(dataset);
+            dataset.UpdateDataStates();
         }
         public void AddDataset(Dataset[] datasets)
         {
@@ -225,11 +275,11 @@ namespace HBP.Data.General
         {
             foreach (SinglePatientVisualisation singlePatientVisualisation in singlePatientVisualisations)
             {
-                singlePatientVisualisation.RemoveColumn((from column in singlePatientVisualisation.Columns where column.Dataset == dataset select column).ToArray());
+                singlePatientVisualisation.Columns.Remove((from column in singlePatientVisualisation.Columns where column.Dataset == dataset select column).ToArray());
             }
             foreach (MultiPatientsVisualisation multiPatientsVisualisation in multiPatientsVisualisations)
             {
-                multiPatientsVisualisation.RemoveColumn((from column in multiPatientsVisualisation.Columns where column.Dataset == dataset select column).ToArray());
+                multiPatientsVisualisation.Columns.Remove((from column in multiPatientsVisualisation.Columns where column.Dataset == dataset select column).ToArray());
             }
             datasets.Remove(dataset);
         }
@@ -340,10 +390,10 @@ namespace HBP.Data.General
                 DirectoryInfo[] l_directories = l_directory.GetDirectories("*", SearchOption.TopDirectoryOnly);
                 foreach (DirectoryInfo directory in l_directories)
                 {
-                    FileInfo[] l_files = directory.GetFiles("*" + FileExtension.Settings, SearchOption.TopDirectoryOnly);
+                    FileInfo[] l_files = directory.GetFiles("*" + ProjectSettings.EXTENSION, SearchOption.TopDirectoryOnly);
                     foreach (FileInfo file in l_files)
                     {
-                        ProjectSettings l_setting = ProjectSettings.LoadJson(file.FullName);
+                        ProjectSettings l_setting = Tools.Unity.ClassLoaderSaver.LoadFromJson<ProjectSettings>(file.FullName);
                         if (l_setting.ID == ID)
                         {
                             return directory.FullName;

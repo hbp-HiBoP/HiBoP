@@ -24,7 +24,6 @@ namespace Tools.Unity
         }
 
         #endregion
-
         #region Events
         void OnRectTransformDimensionsChange()
         {
@@ -52,7 +51,6 @@ namespace Tools.Unity
             Set();
         }
         #endregion
-
         #region Methods
         void Set()
         {

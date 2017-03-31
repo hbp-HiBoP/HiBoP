@@ -1,44 +1,23 @@
-﻿using p = HBP.Data.Patient;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine.UI;
 using Tools.Unity;
+using System;
+using System.Collections.Generic;
+using HBP.Data.Anatomy;
+
 
 namespace HBP.UI.Patient
 {
-    public class PatientModifier : ItemModifier<p.Patient>
+    public class PatientModifier : ItemModifier<Data.Patient>
     {
         #region Properties
         InputField nameInputField, placeInputField, dateInputField;
-        FileSelector leftMeshFileSelector, rightMeshFileSelector, preIRMFileSelector, postIRMFileSelector, patientBasedImplantantationFileSelector, MNIBasedImplantationFileSelector, preToScannerBasedTransformationFileSelector;
-        Button saveButton, addConnectivityButton, removeConnectivityButton;
-        ConnectivityList connectivityList;
-        Toggle selectAllConnectivityToggle;
-        #endregion
-
-        #region Public methods
-        public void AddConnectivity()
-        {
-            ItemTemp.Brain.Connectivities.Add(new p.Connectivity());
-            connectivityList.Display(ItemTemp.Brain.Connectivities.ToArray());
-        }
-        public void RemoveConnectivity()
-        {
-            p.Connectivity[] l_connectivityToRemove = connectivityList.GetObjectsSelected();
-            foreach(p.Connectivity i_connectivity in l_connectivityToRemove)
-            {
-                ItemTemp.Brain.Connectivities.Remove(i_connectivity);
-            }
-            connectivityList.Display(ItemTemp.Brain.Connectivities.ToArray());
-        }
-        public override void Save()
-        {
-            connectivityList.SaveAll();
-            base.Save();
-        }
+        FileSelector leftMeshFileSelector, rightMeshFileSelector, preIRMFileSelector, postIRMFileSelector, patientBasedImplantantationFileSelector, MNIReferenceFrameImplantationFileSelector, preToScannerBasedTransformationFileSelector,connectivityFileSelector;
+        Dropdown epilepsyTypeDropdown;
+        Button saveButton;
         #endregion
 
         #region Protected Methods
-        protected override void SetFields(p.Patient objectToDisplay)
+        protected override void SetFields(Data.Patient objectToDisplay)
         {
             // General.
             nameInputField.text = objectToDisplay.Name;
@@ -54,54 +33,63 @@ namespace HBP.UI.Patient
             dateInputField.onValueChanged.AddListener((value) => ItemTemp.Date = int.Parse(value));
 
             // Brain.
-            leftMeshFileSelector.File = objectToDisplay.Brain.LeftMesh;
+            leftMeshFileSelector.File = objectToDisplay.Brain.LeftCerebralHemisphereMesh;
             leftMeshFileSelector.onValueChanged.RemoveAllListeners();
-            leftMeshFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.LeftMesh = value);
+            leftMeshFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.LeftCerebralHemisphereMesh = value);
 
-            rightMeshFileSelector.File = objectToDisplay.Brain.RightMesh;
+            rightMeshFileSelector.File = objectToDisplay.Brain.RightCerebralHemisphereMesh;
             rightMeshFileSelector.onValueChanged.RemoveAllListeners();
-            rightMeshFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.RightMesh = value);
+            rightMeshFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.RightCerebralHemisphereMesh = value);
 
-            preIRMFileSelector.File = objectToDisplay.Brain.PreIRM;
+            preIRMFileSelector.File = objectToDisplay.Brain.PreOperationMRI;
             preIRMFileSelector.onValueChanged.RemoveAllListeners();
-            preIRMFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PreIRM = value);
+            preIRMFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PreOperationMRI = value);
 
-            postIRMFileSelector.File = objectToDisplay.Brain.PostIRM;
+            postIRMFileSelector.File = objectToDisplay.Brain.PostOperationMRI;
             postIRMFileSelector.onValueChanged.RemoveAllListeners();
-            postIRMFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PostIRM = value);
+            postIRMFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PostOperationMRI = value);
 
-            patientBasedImplantantationFileSelector.File = objectToDisplay.Brain.PatientBasedImplantation;
+            patientBasedImplantantationFileSelector.File = objectToDisplay.Brain.PatientReferenceFrameImplantation;
             patientBasedImplantantationFileSelector.onValueChanged.RemoveAllListeners();
-            patientBasedImplantantationFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PatientBasedImplantation = value);
+            patientBasedImplantantationFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PatientReferenceFrameImplantation = value);
 
-            MNIBasedImplantationFileSelector.File = objectToDisplay.Brain.MNIBasedImplantation;
-            MNIBasedImplantationFileSelector.onValueChanged.RemoveAllListeners();
-            MNIBasedImplantationFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.MNIBasedImplantation = value);
+            MNIReferenceFrameImplantationFileSelector.File = objectToDisplay.Brain.MNIReferenceFrameImplantation;
+            MNIReferenceFrameImplantationFileSelector.onValueChanged.RemoveAllListeners();
+            MNIReferenceFrameImplantationFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.MNIReferenceFrameImplantation = value);
 
-            preToScannerBasedTransformationFileSelector.File = objectToDisplay.Brain.PreToScannerBasedTransformation;
+            preToScannerBasedTransformationFileSelector.File = objectToDisplay.Brain.PreOperationReferenceFrameToScannerReferenceFrameTransformation;
             preToScannerBasedTransformationFileSelector.onValueChanged.RemoveAllListeners();
-            preToScannerBasedTransformationFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PreToScannerBasedTransformation = value);
+            preToScannerBasedTransformationFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PreOperationReferenceFrameToScannerReferenceFrameTransformation = value);
 
-            // List.
-            connectivityList.Display(objectToDisplay.Brain.Connectivities.ToArray());
+            connectivityFileSelector.File = objectToDisplay.Brain.PlotsConnectivity;
+            connectivityFileSelector.onValueChanged.RemoveAllListeners();
+            connectivityFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PlotsConnectivity = value);
+
+            List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
+            foreach (int value in Enum.GetValues(typeof(Epilepsy.EpilepsyType)))
+            {
+                options.Add(new Dropdown.OptionData(Epilepsy.GetFullEpilepsyName((Epilepsy.EpilepsyType) value)));
+            }
+            epilepsyTypeDropdown.options = options;
+            epilepsyTypeDropdown.value = (int) ItemTemp.Brain.Epilepsy.Type;
+            epilepsyTypeDropdown.onValueChanged.RemoveAllListeners();
+            epilepsyTypeDropdown.onValueChanged.AddListener((value) => ItemTemp.Brain.Epilepsy.Type = (Epilepsy.EpilepsyType) value);
         }
         protected override void SetWindow()
         {
             nameInputField = transform.FindChild("Content").FindChild("General").FindChild("Name").GetComponentInChildren<InputField>();
             placeInputField = transform.FindChild("Content").FindChild("General").FindChild("Place").GetComponentInChildren<InputField>();
             dateInputField = transform.FindChild("Content").FindChild("General").FindChild("Date").GetComponentInChildren<InputField>();
-            leftMeshFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("LeftMesh").GetComponentInChildren<FileSelector>();
-            rightMeshFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("RightMesh").GetComponentInChildren<FileSelector>();
-            preIRMFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("PreIRM").GetComponentInChildren<FileSelector>();
-            postIRMFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("PostIRM").GetComponentInChildren<FileSelector>();
-            patientBasedImplantantationFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("PatientBasedImplantation").GetComponentInChildren<FileSelector>();
-            MNIBasedImplantationFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("MNIBasedImplantation").GetComponentInChildren<FileSelector>();
+            leftMeshFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("LeftCerebralHemisphereMesh").GetComponentInChildren<FileSelector>();
+            rightMeshFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("RightCerebralHemisphereMesh").GetComponentInChildren<FileSelector>();
+            preIRMFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("PreOperationMRI").GetComponentInChildren<FileSelector>();
+            postIRMFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("PostOperationMRI").GetComponentInChildren<FileSelector>();
+            patientBasedImplantantationFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("PatientReferenceFrameImplantation").GetComponentInChildren<FileSelector>();
+            MNIReferenceFrameImplantationFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("MNIReferenceFrameImplantation").GetComponentInChildren<FileSelector>();
             preToScannerBasedTransformationFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("PreToScannerBasedTransformationFileSelector").GetComponentInChildren<FileSelector>();
-            connectivityList = transform.FindChild("Content").FindChild("Connectivity").FindChild("List").FindChild("Viewport").Find("Content").GetComponent<ConnectivityList>();
-            selectAllConnectivityToggle = transform.FindChild("Content").FindChild("Connectivity").FindChild("SelectAll").GetComponent<Toggle>();
+            connectivityFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("Connectivity").GetComponentInChildren<FileSelector>();
+            epilepsyTypeDropdown = transform.FindChild("Content").FindChild("Brain").FindChild("EpilepsyType").GetComponentInChildren<Dropdown>();
             saveButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Save").GetComponent<Button>();
-            addConnectivityButton = transform.FindChild("Content").FindChild("Connectivity").FindChild("Buttons").FindChild("Add").GetComponent<Button>();
-            removeConnectivityButton = transform.FindChild("Content").FindChild("Connectivity").FindChild("Buttons").FindChild("Remove").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {
@@ -116,16 +104,12 @@ namespace HBP.UI.Patient
             preIRMFileSelector.interactable = interactable;
             postIRMFileSelector.interactable = interactable;
             patientBasedImplantantationFileSelector.interactable = interactable;
-            MNIBasedImplantationFileSelector.interactable = interactable;
+            MNIReferenceFrameImplantationFileSelector.interactable = interactable;
             preToScannerBasedTransformationFileSelector.interactable = interactable;
-
+            connectivityFileSelector.interactable = interactable;
+            epilepsyTypeDropdown.interactable = interactable;
             // Buttons.
             saveButton.interactable = interactable;
-            addConnectivityButton.interactable = interactable;
-            removeConnectivityButton.interactable = interactable;
-
-            // Toggle.
-            selectAllConnectivityToggle.interactable = interactable;
         }
         #endregion
     }

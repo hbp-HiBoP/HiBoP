@@ -1,40 +1,54 @@
 ﻿namespace HBP.Data.Visualisation
 {
-    /// <summary>
-    /// TimeLine limit.
-    /// </summary>
+    /**
+    * \class Limit
+    * \author Adrien Gannerie
+    * \version 1.0
+    * \date 11 janvier 2017
+    * \brief Limit of the timeLine.
+    * 
+    * \details Limit is a class which represent the limits of a timeline and contains:
+    *   - \a Value.
+    *   - \a Rounded Value.
+    *   - \a Unite.
+    *   - \a Position.
+    */
     public class Limit
     {
         #region Properties
+        float value;
         /// <summary>
         /// Real value of the (min/max) real point.
         /// </summary>
-        float m_value;
-        public float Value { get { return m_value; } private set { m_value = value; } }
+        public float Value { get { return value; } private set { this.value = value; } }
 
+        float rounderValue;
         /// <summary>
         /// The rounded value to display at the limit of the timeline.
         /// </summary>
-        float m_roundedValue;
-        public float RoundedValue { get { return m_roundedValue; } private set { m_roundedValue = value; } }
+        public float RoundedValue { get { return rounderValue; } private set { rounderValue = value; } }
 
+        string unite;
         /// <summary>
         /// Unite of the limit.
         /// </summary>
-        string m_unite;
-        public string Unite { get { return m_unite; } private set { m_unite = value; } }
+        public string Unite { get { return unite; } private set { unite = value; } }
 
-        int m_position;
-        public int Position { get { return m_position; } set { m_position = value; } }
+        int position;
+        /// <summary>
+        /// Position (index) compared to the timeline . 
+        /// </summary>
+        public int Position { get { return position; } set { position = value; } }
         #endregion
 
         #region Constructor
         /// <summary>
-        /// Constructor.
+        /// Create a new limit instance.
         /// </summary>
-        /// <param name="value">The value of the limit.</param>
-        /// <param name="unite">The unite of the limit.</param>
-        /// <param name="position">The position of the limit.</param>
+        /// <param name="roundedValue">Rounded limit value to display in the UI.</param>
+        /// <param name="value">Real limit value.</param>
+        /// <param name="unite">Unite of the limit value.</param>
+        /// <param name="position">Position of the value compared to the timeline.</param>
         public Limit(float roundedValue,float value, string unite,int position)
         {
             Value = value;

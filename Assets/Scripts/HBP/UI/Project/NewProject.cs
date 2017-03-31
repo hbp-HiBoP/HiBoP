@@ -5,10 +5,10 @@ using Tools.Unity;
 
 namespace HBP.UI
 {
-	/// <summary>
-	/// Manage the New Project window.
-	/// </summary>
-	public class NewProject : Window
+    /// <summary>
+    /// Manage the New Project window.
+    /// </summary>
+    public class NewProject : Window
 	{
         #region Properties
 		InputField nameInputField;
@@ -31,10 +31,10 @@ namespace HBP.UI
         #region Private Methods
         protected override void SetWindow()
 		{
-            nameInputField = transform.FindChild("Content").FindChild("Name").GetComponentInChildren<InputField>();
-            projectFolderSelector = transform.FindChild("Content").FindChild("Location").FindChild("Global").GetComponentInChildren<FolderSelector>();
-            patientsDatabaseFolderSelector = transform.FindChild("Content").FindChild("Location").FindChild("Patients").GetComponentInChildren<FolderSelector>();
-            localizerDatabaseFolderSelector = transform.FindChild("Content").FindChild("Location").FindChild("Localizer").GetComponentInChildren<FolderSelector>();
+            nameInputField = transform.FindChild("Content").FindChild("General").FindChild("Name").GetComponentInChildren<InputField>();
+            projectFolderSelector = transform.FindChild("Content").FindChild("General").FindChild("Location").GetComponentInChildren<FolderSelector>();
+            patientsDatabaseFolderSelector = transform.FindChild("Content").FindChild("Database").FindChild("Patients").GetComponentInChildren<FolderSelector>();
+            localizerDatabaseFolderSelector = transform.FindChild("Content").FindChild("Database").FindChild("Localizer").GetComponentInChildren<FolderSelector>();
 
             nameInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
             projectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;

@@ -4,21 +4,22 @@ using UnityEngine.EventSystems;
 
 namespace HBP.UI
 {
+    [ExecuteInEditMode]
     public class Zone3DGestion : MonoBehaviour
     {
         #region Properties
-        HBP_3DModule_Command command;
+        HiBoP_3DModule_API command;
         Camera backGroundCamera;
         #endregion
 
         #region Events
         public void OnPointerEnter()
         {
-            command.setModuleFocusState(false);
+            command.set_module_focus(false);
         }
         public void OnPointerExit()
         {
-            command.setModuleFocusState(true);
+            command.set_module_focus(true);
         }
         void OnRectTransformDimensionsChange()
         {
@@ -40,13 +41,13 @@ namespace HBP.UI
         #region Private Methods
         void Awake()
         {
-            command = FindObjectOfType<HBP_3DModule_Command>();
-            command.UpdateColumnMinimizeStateEvent.AddListener((sp, columns) => OnColumnsChange(sp, columns.ToArray()));
+            command = FindObjectOfType<HiBoP_3DModule_API>();
+            command.UpdateColumnMinimizedState.AddListener((sp, columns) => OnColumnsChange(sp, columns.ToArray()));
             AddEvents();
         }
         void Update3DPanel()
         {
-            if (!backGroundCamera) backGroundCamera = GameObject.Find("background camera").GetComponent<Camera>();
+            if (!backGroundCamera) backGroundCamera = GameObject.Find("Background camera").GetComponent<Camera>();
             backGroundCamera.pixelRect = (transform as RectTransform).rect;
         }
         void AddEvents()

@@ -24,13 +24,13 @@ namespace HBP.UI.Experience.Dataset
 		public void Create()
 		{
             d.DataInfo newDataInfo = new d.DataInfo();
-			ItemTemp.Add(newDataInfo);
+			ItemTemp.Data.Add(newDataInfo);
             dataInfoList.Add(newDataInfo);
 		}
 		public void Remove()
 		{
             d.DataInfo[] dataInfoToRemove = dataInfoList.GetObjectsSelected();
-            ItemTemp.Remove(dataInfoToRemove);
+            ItemTemp.Data.Remove(dataInfoToRemove);
             dataInfoList.Remove(dataInfoToRemove);
 		}
         #endregion
@@ -45,10 +45,10 @@ namespace HBP.UI.Experience.Dataset
         protected override void SetWindow()
         {
             nameInputField = transform.FindChild("Content").FindChild("Name").FindChild("InputField").GetComponent<InputField>();
-            dataInfoList = transform.FindChild("Content").FindChild("Data").FindChild("List").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<DataInfoList>();
+            dataInfoList = transform.FindChild("Content").FindChild("Data").FindChild("List").FindChild("List").FindChild("List").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<DataInfoList>();
             saveButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Save").GetComponent<Button>();
-            createButton = transform.FindChild("Content").FindChild("Data").FindChild("List").FindChild("List").FindChild("Buttons").FindChild("Add").GetComponent<Button>();
-            removeButton = transform.FindChild("Content").FindChild("Data").FindChild("List").FindChild("List").FindChild("Buttons").FindChild("Remove").GetComponent<Button>();
+            createButton = transform.FindChild("Content").FindChild("Data").FindChild("List").FindChild("Buttons").FindChild("Add").GetComponent<Button>();
+            removeButton = transform.FindChild("Content").FindChild("Data").FindChild("List").FindChild("Buttons").FindChild("Remove").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {

@@ -68,11 +68,11 @@ namespace HBP.UI.Experience.Protocol
         {
             gameObject.name = bloc.DisplayInformations.Name;
             m_label.text = bloc.DisplayInformations.Name;
-            if (bloc.DisplayInformations.Column == 1)
+            if (bloc.DisplayInformations.Position.Column == 1)
             {
                 m_image.color = m_headerColor;
                 Texture2D l_texture = new Texture2D(0, 0);
-                if (l_texture.LoadPNG(bloc.DisplayInformations.Image))
+                if (l_texture.LoadPNG(bloc.DisplayInformations.IllustrationPath))
                 {
                     m_illustration.sprite = Sprite.Create(l_texture, new Rect(0, 0, l_texture.width, l_texture.height), new Vector2(0.5f, 0.5f));
                     m_illustration.enabled = true;

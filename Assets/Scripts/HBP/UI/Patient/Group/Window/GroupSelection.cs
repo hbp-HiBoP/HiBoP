@@ -1,31 +1,31 @@
-﻿using UnityEngine;
-using System.Linq;
-using System.Collections;
-using HBP.Data.Patient;
+﻿using System.Linq;
+using HBP.Data;
+using UnityEngine.Events;
 
 namespace HBP.UI.Patient
 {
     public class GroupSelection : Window
     {
-        [SerializeField]
-        GroupList m_groupList;
+        #region Properties
+        GroupList groupList;
+        public AddGroupsEvent AddGroupsEvent = new AddGroupsEvent();
+        #endregion
 
         #region Public Methods
-        public Group[] GetGroupSelected()
+        public void AddGroupsSelected()
         {
-            return m_groupList.GetObjectsSelected();
+            AddGroupsEvent.Invoke(groupList.GetObjectsSelected());
         }
         #endregion
 
         #region Private Methods
         protected override void SetWindow()
         {
-            m_groupList.Display(ApplicationState.ProjectLoaded.Groups.ToArray());
-
-            // TODO : Voir si il faut ajouter un nouveau panel pour voir ce qu'il y a dans un group.
-            //m_groupList.ActionEvent.RemoveAllListeners();
-            //m_groupList.ActionEvent.AddListener((group, i) => OpenGroupModifier(group));
+            groupList = transform.FindChild("Content").FindChild("Groups").FindChild("Scroll View").FindChild("Viewport").FindChild("Content").GetComponent<GroupList>();
+            groupList.Display(ApplicationState.ProjectLoaded.Groups.ToArray());
         }
         #endregion
     }
+
+    public class AddGroupsEvent : UnityEvent<Group[]> { };
 }

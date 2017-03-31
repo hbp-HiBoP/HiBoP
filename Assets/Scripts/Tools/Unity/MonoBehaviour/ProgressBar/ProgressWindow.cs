@@ -69,7 +69,6 @@ namespace Tools.Unity
                 yield return new WaitForSeconds(0.05f);
             }
         }
-
         IEnumerator ShowLoading()
         {
             m_loadingEffect.rectTransform.localPosition = new Vector2(m_informations.rectTransform.rect.width / 2.0f +2, 0);
@@ -85,7 +84,6 @@ namespace Tools.Unity
             m_loading = false;
             yield return null;
         }
-
         void ClearLoadingEffect()
         {
             StopAllCoroutines();

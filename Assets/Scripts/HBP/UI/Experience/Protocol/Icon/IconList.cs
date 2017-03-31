@@ -52,11 +52,11 @@ namespace HBP.UI.Experience.Protocol
         {
             if (m_sortByPath)
             {
-                m_objects.OrderByDescending(x => x.Image);
+                m_objects.OrderByDescending(x => x.IllustrationPath);
             }
             else
             {
-                m_objects.OrderBy(x => x.Image);
+                m_objects.OrderBy(x => x.IllustrationPath);
             }
             m_sortByPath = !m_sortByPath;
             ApplySort();
@@ -65,15 +65,15 @@ namespace HBP.UI.Experience.Protocol
         /// <summary>
         /// Sort the Icons by min window.
         /// </summary>
-        public void SortByMin()
+        public void SortByStart()
         {
             if (m_SortByMin)
             {
-                m_objects.OrderByDescending(x => x.Window.x);
+                m_objects.OrderByDescending(x => x.Window.Start);
             }
             else
             {
-                m_objects.OrderBy(x => x.Window.x);
+                m_objects.OrderBy(x => x.Window.Start);
             }
             m_SortByMin = !m_SortByMin;
             ApplySort();
@@ -82,15 +82,15 @@ namespace HBP.UI.Experience.Protocol
         /// <summary>
         /// Sort the Icons by max window.
         /// </summary>
-        public void SortByMax()
+        public void SortByEnd()
         {
             if (m_SortByMax)
             {
-                m_objects.OrderByDescending(x => x.Window.y);
+                m_objects.OrderByDescending(x => x.Window.End);
             }
             else
             {
-                m_objects.OrderBy(x => x.Window.y);
+                m_objects.OrderBy(x => x.Window.End);
             }
             m_SortByMax = !m_SortByMax;
             ApplySort();

@@ -1,382 +1,273 @@
 ﻿using UnityEngine;
 using Tools.Unity;
 using CielaSpike;
-using dia = System.Diagnostics;
-using System.Collections;
 using System.Linq;
+using System.Diagnostics;
+using System.Collections;
 using System.Collections.Generic;
-using HBP.Data.Experience.Dataset;
+using HBP.VISU3D;
 using HBP.Data.Visualisation;
+using HBP.Data.Experience.Dataset;
 
 namespace HBP.UI
 {
     public class VisualisationLoader : MonoBehaviour
     {
         #region Properties
-        VISU3D.HBP_3DModule_Command command;
+        HiBoP_3DModule_API command;
 
         [SerializeField]
-        GameObject progressWindowPrefab;
-        ProgressWindow progressWindow;
+        GameObject loadingCirclePrefab;
+        LoadingCircle loadingCircle;
 
         [SerializeField]
         GameObject popUpPrefab;
 
+        // Loading time ratio.
         const float FIND_FILES_TO_READ = 0.025f;
         const float READ_FILES = 0.8f;
         const float EPOCH_DATA = 0.025f;
-        const float STANDARDIZE_COLUMNS = 0.15f;    
-        enum LoadErrorTypeEnum { None, CanNotFindFilesToRead, CanNotReadData, CanNotEpochingData, CanNotStandardizeColumns };
-        #endregion
+        const float STANDARDIZE_COLUMNS = 0.15f;
 
+        // Loading error type.
+        enum LoadingErrorEnum { None, CanNotFindFilesToRead, CanNotReadData, CanNotEpochingData, CanNotStandardizeColumns };
+        #endregion
         #region Public Methods
-        public void Load(SinglePatientVisualisation visualisation)
+        public void Load(Visualisation visualisation)
         {
-            this.StartCoroutineAsync(c_Load(visualisation));
-        }
-        public void Load(MultiPatientsVisualisation visualisation)
-        {
-            this.StartCoroutineAsync(c_Load(visualisation));
+            this.StartCoroutineAsync(c_Load(visualisation, visualisation.GetType() == typeof(MultiPatientsVisualisation)));
         }
         #endregion
-
-        #region Coroutine
-        IEnumerator c_Load(SinglePatientVisualisation visualisation)
-        {
-            LoadErrorTypeEnum loadingError = LoadErrorTypeEnum.None;
-            string additionalInformations = string.Empty;
-
-            // Start.
-            yield return Ninja.JumpToUnity;
-            GameObject progressWindowObj = GameObject.Instantiate(progressWindowPrefab, GameObject.Find("Windows").transform) as GameObject;
-            progressWindowObj.transform.localPosition = new Vector3(0, 0, 0);
-            progressWindow = progressWindowObj.GetComponent<ProgressWindow>();
-            progressWindow.Set(0, "Finding files");
-            yield return Ninja.JumpBack;
-
-            // Finding files to read.
-            Dictionary<Column, DataInfo> l_columnToExperienceData = new Dictionary<Column, DataInfo>();
-            float l_ratio = FIND_FILES_TO_READ / (visualisation.Columns.Count);
-            for (int i = 0; i < visualisation.Columns.Count; i++)
-            {
-                try
-                {
-                    l_columnToExperienceData.Add(visualisation.Columns[i], visualisation.GetDataInfo(visualisation.Columns[i])[0]);
-                }
-                catch
-                {
-                    additionalInformations = i.ToString();
-                    loadingError = LoadErrorTypeEnum.CanNotFindFilesToRead;
-                    break;
-                }
-                yield return Ninja.JumpToUnity;
-                progressWindow.Set(i * l_ratio);
-                yield return Ninja.JumpBack;
-            }
-            yield return Ninja.JumpToUnity;
-            HandleError(loadingError, additionalInformations);
-            yield return Ninja.JumpBack;
-
-            // Reading files.
-            DataInfo[] l_filesToRead = new List<DataInfo>(l_columnToExperienceData.Values).Distinct().ToArray();
-            l_ratio = READ_FILES / (l_filesToRead.Length);
-            long l_sizePerSecond = 18000000;
-            Dictionary<DataInfo, Data.Experience.Dataset.Data> l_experienceDataToExperienceDataData = new Dictionary<DataInfo, Data.Experience.Dataset.Data>();
-            for (int i = 0; i < l_filesToRead.Length; i++)
-            {
-                // Find file to read informations.
-                System.IO.FileInfo l_file = new System.IO.FileInfo(l_filesToRead[i].EEG);
-                float l_readingTime = (float)l_file.Length / l_sizePerSecond;
-                string l_name = new System.IO.FileInfo(l_filesToRead[i].EEG).Name;
-
-                // Update progressBar
-                yield return Ninja.JumpToUnity;
-                progressWindow.Set("Reading " + l_name);
-                progressWindow.ChangePercentageInSeconds(FIND_FILES_TO_READ + (i) * l_ratio, FIND_FILES_TO_READ + (i + 1) * l_ratio, l_readingTime);
-                yield return Ninja.JumpBack;
-
-                // Read Data.
-                dia.Stopwatch l_timer = new dia.Stopwatch();
-                l_timer.Start();
-                try
-                {
-                    l_experienceDataToExperienceDataData.Add(l_filesToRead[i], new Data.Experience.Dataset.Data(l_filesToRead[i], false));
-                }
-                catch
-                {
-                    loadingError = LoadErrorTypeEnum.CanNotReadData;
-                    additionalInformations = l_name;
-                    break;
-                }
-                l_timer.Stop();
-
-                // Calculate real reading speed.
-                float l_realReadingTime = l_timer.ElapsedMilliseconds / 1000.0f;
-                if (i == 0)
-                {
-                    l_sizePerSecond = (long)(l_file.Length / l_realReadingTime);
-                }
-                else
-                {
-                    l_sizePerSecond = (l_sizePerSecond + (long)(l_file.Length / l_realReadingTime)) / 2;
-                }
-            }
-            yield return Ninja.JumpToUnity;
-            HandleError(loadingError, additionalInformations);
-            yield return Ninja.JumpBack;
-
-            // Create a dictionary to find data for each column.
-            Dictionary<Column, Data.Experience.Dataset.Data> l_columnToExperienceDataData = new Dictionary<Column, Data.Experience.Dataset.Data>();
-            foreach(Column col in l_columnToExperienceData.Keys)
-            {
-                l_columnToExperienceDataData.Add(col, l_experienceDataToExperienceDataData[l_columnToExperienceData[col]]);
-            }
-
-            // Epoching data.
-            List<ColumnData> l_columns = new List<ColumnData>();
-            l_ratio = EPOCH_DATA / (visualisation.Columns.Count);
-            for (int i = 0; i < visualisation.Columns.Count; i++)
-            {
-                yield return Ninja.JumpToUnity;
-                progressWindow.Set(FIND_FILES_TO_READ + READ_FILES + i * l_ratio, "Epoching column n°" + i);
-                yield return Ninja.JumpBack;
-
-                Data.Experience.Dataset.Data l_expData = l_columnToExperienceDataData[visualisation.Columns[i]];
-                try
-                {
-                    l_columns.Add(new ColumnData(l_expData, visualisation.Columns[i]));
-                }
-                catch
-                {
-                    loadingError = LoadErrorTypeEnum.CanNotEpochingData;
-                    additionalInformations = i.ToString();
-                    break;
-                }
-            }
-            yield return Ninja.JumpToUnity;
-            HandleError(loadingError, additionalInformations);
-
-            // Stadardize columns.
-            progressWindow.Set(FIND_FILES_TO_READ + READ_FILES + EPOCH_DATA, "Standardizing columns");
-            yield return Ninja.JumpBack;
-
-            SinglePatientVisualisationData l_visuData = new SinglePatientVisualisationData(visualisation.Patient, l_columns);
-            try
-            {
-                l_visuData.StandardizeColumns();
-            }
-            catch
-            {
-                loadingError = LoadErrorTypeEnum.CanNotStandardizeColumns;
-            }
-            yield return Ninja.JumpToUnity;
-            HandleError(loadingError, additionalInformations);
-      
-            VisualisationLoaded.SP_Visualisation = visualisation;
-            VisualisationLoaded.SP_VisualisationData = l_visuData;
-            VisualisationLoaded.SP_Columns = new bool[l_visuData.Columns.Count];
-
-            // Set scene.
-            progressWindow.Set(1, "Finish");
-            yield return Ninja.JumpBack;
-            yield return Ninja.JumpToUnity;
-            command.setSceneData(l_visuData);
-            command.setScenesVisibility(true, false);
-            command.setModuleFocusState(true);
-            progressWindow.Close();
-        }
-        IEnumerator c_Load(MultiPatientsVisualisation visualisation)
-        {
-            LoadErrorTypeEnum l_loadingState = LoadErrorTypeEnum.None;
-            string additionalInformations = string.Empty;
-
-            // Start.
-            yield return Ninja.JumpToUnity;
-            GameObject progressWindowObj = GameObject.Instantiate(progressWindowPrefab, GameObject.Find("Windows").transform) as GameObject;
-            progressWindowObj.transform.localPosition = new Vector3(0, 0, 0);
-            progressWindow = progressWindowObj.GetComponent<ProgressWindow>(); progressWindow.Set(0, "Finding files");
-            yield return Ninja.JumpBack;
-
-            // Finding files to read.
-            List<DataInfo> l_expDataToRead = new List<DataInfo>();
-            List<Data.Experience.Dataset.Data> l_expDataData = new List<Data.Experience.Dataset.Data>();
-            Dictionary<int, int[]> l_columnToData = new Dictionary<int, int[]>();
-            float l_ratio = FIND_FILES_TO_READ / (visualisation.Columns.Count);
-            for (int i = 0; i < visualisation.Columns.Count; i++)
-            {
-                yield return Ninja.JumpToUnity;
-                progressWindow.Set(i * l_ratio);
-                yield return Ninja.JumpBack;
-
-                try
-                {
-                    DataInfo[] l_expData = visualisation.GetDataInfo(visualisation.Columns[i]);
-                    List<int> expDataInColumn = new List<int>();
-                    for (int n = 0; n < l_expData.Length; n++)
-                    {
-                        if (!l_expDataToRead.Contains(l_expData[n]))
-                        {
-                            l_expDataToRead.Add(l_expData[n]);
-                            expDataInColumn.Add(l_expDataToRead.Count - 1);
-                        }
-                        else
-                        {
-                            expDataInColumn.Add(l_expDataToRead.FindIndex((x) => x == l_expData[n]));
-                        }
-                    }
-                    l_columnToData.Add(i, expDataInColumn.ToArray());
-                }
-                catch
-                {
-                    additionalInformations = i.ToString();
-                    l_loadingState = LoadErrorTypeEnum.CanNotFindFilesToRead;
-                    break;
-                }
-            }
-            yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations);
-            yield return Ninja.JumpBack;
-
-            // Reading files.
-            l_ratio = READ_FILES / (l_expDataToRead.Count);
-            long l_sizePerSecond = 18000000;
-            for (int i = 0; i < l_expDataToRead.Count; i++)
-            {
-                // Find file to read informations.
-                System.IO.FileInfo l_file = new System.IO.FileInfo(l_expDataToRead[i].EEG);
-                float l_readingTime = (float)l_file.Length / l_sizePerSecond;
-                string l_name = new System.IO.FileInfo(l_expDataToRead[i].EEG).Name;
-
-                // Update progressBar
-                yield return Ninja.JumpToUnity;
-                progressWindow.Set("Reading " + l_name);
-                progressWindow.ChangePercentageInSeconds(FIND_FILES_TO_READ + (i) * l_ratio, FIND_FILES_TO_READ + (i + 1) * l_ratio, l_readingTime);
-                yield return Ninja.JumpBack;
-
-                // Read Data.
-                dia.Stopwatch l_timer = new dia.Stopwatch();
-                l_timer.Start();
-                try
-                {
-                    l_expDataData.Add(new Data.Experience.Dataset.Data(l_expDataToRead[i], true));
-                }
-                catch
-                {
-                    l_loadingState = LoadErrorTypeEnum.CanNotReadData;
-                    additionalInformations = l_name;
-                    break;
-                }
-                 l_timer.Stop();
-
-                // Calculate real reading speed.
-                float l_realReadingTime = l_timer.ElapsedMilliseconds / 1000.0f;
-                if (i == 0)
-                {
-                    l_sizePerSecond = (long)(l_file.Length / l_realReadingTime);
-                }
-                else
-                {
-                    l_sizePerSecond = (l_sizePerSecond + (long)(l_file.Length / l_realReadingTime)) / 2;
-                }
-            }
-            yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations);
-            yield return Ninja.JumpBack;
-
-            // Epoching data.
-            List<ColumnData> l_columns = new List<ColumnData>();
-            l_ratio = EPOCH_DATA / (visualisation.Columns.Count);
-            for (int i = 0; i < visualisation.Columns.Count; i++)
-            {
-                yield return Ninja.JumpToUnity;
-                progressWindow.Set(FIND_FILES_TO_READ + READ_FILES + i * l_ratio, "Epoching column n°" + i);
-                yield return Ninja.JumpBack;
-
-                List<Data.Experience.Dataset.Data> l_expData = new List<Data.Experience.Dataset.Data>();
-                foreach (int index in l_columnToData[i])
-                {
-                    l_expData.Add(l_expDataData[index]);
-                }
-                try
-                {
-                    l_columns.Add(new ColumnData(visualisation.Patients.ToArray(), l_expData.ToArray(), visualisation.Columns[i]));
-                }
-                catch
-                {
-                    l_loadingState = LoadErrorTypeEnum.CanNotEpochingData;
-                    additionalInformations = i.ToString();
-                    break;
-                }
-            }
-            yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations);
-
-            // Stadardize columns.
-            progressWindow.Set(FIND_FILES_TO_READ + READ_FILES + EPOCH_DATA, "Standardizing columns");
-            yield return Ninja.JumpBack;
-
-            MultiPatientsVisualisationData l_visuData = new MultiPatientsVisualisationData(visualisation.Patients.ToList(), l_columns);
-            try
-            {
-                l_visuData.StandardizeColumns();
-            }
-            catch
-            {
-                l_loadingState = LoadErrorTypeEnum.CanNotStandardizeColumns;
-            }
-            yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations);
-            VisualisationLoaded.MP_Visualisation = visualisation;
-            VisualisationLoaded.MP_VisualisationData = l_visuData;
-            VisualisationLoaded.MP_Columns = new bool[l_visuData.Columns.Count];
-
-            // Set scene.
-            progressWindow.Set(1, "Finish");
-            yield return Ninja.JumpBack;
-            yield return Ninja.JumpToUnity;
-            command.setSceneData(l_visuData);
-            command.setScenesVisibility(false, true);
-            command.setModuleFocusState(true);
-            progressWindow.Close();
-        }
-        #endregion
-
         #region Private Methods
         void Awake()
         {
-            command = FindObjectOfType<VISU3D.HBP_3DModule_Command>();
-            command.LoadSpSceneFromMP.AddListener((i) => LoadSPSceneFromMP(i));
-        }        
+            command = FindObjectOfType<HiBoP_3DModule_API>();
+            command.LoadSPSceneFromMP.AddListener((i) => LoadSPSceneFromMP(i));
+        }
+        IEnumerator c_Load(Visualisation visualisation, bool MNI)
+        {
+            UnityEngine.Debug.Log("c_Load");
+
+            // Initialize.
+            LoadingErrorEnum loadingError = LoadingErrorEnum.None;
+            string additionalInformations = string.Empty;
+
+            // Open progress window.
+            yield return Ninja.JumpToUnity;
+            loadingCircle = (Instantiate(loadingCirclePrefab, Vector3.zero, Quaternion.identity, GameObject.Find("Windows").transform) as GameObject).GetComponent<LoadingCircle>();
+            loadingCircle.transform.localPosition = new Vector3(0, 0, 0);
+            loadingCircle.Set(0, "Finding files");
+            yield return Ninja.JumpBack;
+
+            // Find files to read.
+            List<DataInfo> experienceDataToRead = new List<DataInfo>();
+            Dictionary<int, int[]> dataByColumn = new Dictionary<int, int[]>();
+            float progressStep = FIND_FILES_TO_READ / (visualisation.Columns.Count);
+            for (int c = 0; c < visualisation.Columns.Count; c++)
+            {
+                yield return Ninja.JumpToUnity;
+                loadingCircle.Progress = (c * progressStep);
+                yield return Ninja.JumpBack;
+
+                try
+                {
+                    DataInfo[] dataInfoForThisColumn = visualisation.GetDataInfo(visualisation.Columns[c]);
+                    List<int> dataIndexForThisColumn = new List<int>();
+                    for (int d = 0; d < dataInfoForThisColumn.Length; d++)
+                    {
+                        if (!experienceDataToRead.Contains(dataInfoForThisColumn[d]))
+                        {
+                            experienceDataToRead.Add(dataInfoForThisColumn[d]);
+                            dataIndexForThisColumn.Add(experienceDataToRead.Count - 1);
+                        }
+                        else
+                        {
+                            dataIndexForThisColumn.Add(experienceDataToRead.FindIndex((x) => x == dataInfoForThisColumn[d]));
+                        }
+                    }
+                    dataByColumn.Add(c, dataIndexForThisColumn.ToArray());
+                }
+                catch
+                {
+                    additionalInformations = c.ToString();
+                    loadingError = LoadingErrorEnum.CanNotFindFilesToRead;
+                    break;
+                }
+            }
+            yield return Ninja.JumpToUnity;
+            HandleError(loadingError, additionalInformations);
+            yield return Ninja.JumpBack;
+
+            // Read files.
+            Data.Experience.Dataset.Data[] data = new Data.Experience.Dataset.Data[experienceDataToRead.Count];
+            progressStep = READ_FILES / (experienceDataToRead.Count);
+            long readingSpeed = 18000000;
+            for (int i = 0; i < experienceDataToRead.Count; i++)
+            {
+                // Find file to read informations.
+                System.IO.FileInfo fileToRead = new System.IO.FileInfo(experienceDataToRead[i].EEG);
+                float assumedReadingTime = (float)fileToRead.Length / readingSpeed;
+
+                // Update progressBar
+                yield return Ninja.JumpToUnity;
+                loadingCircle.Text = "Reading " + fileToRead.Name;
+                loadingCircle.ChangePercentage(FIND_FILES_TO_READ + (i) * progressStep, FIND_FILES_TO_READ + (i + 1) * progressStep, assumedReadingTime);
+                yield return Ninja.JumpBack;
+
+                // Read Data.
+                Stopwatch timer = new Stopwatch();
+                try
+                {
+                    timer.Start();
+                    data[i] = new Data.Experience.Dataset.Data(experienceDataToRead[i], MNI);
+                    timer.Stop();
+                }
+                catch
+                {
+                    loadingError = LoadingErrorEnum.CanNotReadData;
+                    additionalInformations = fileToRead.Name;
+                    break;
+                }
+
+                // Calculate real reading speed.
+                float actualReadingTime = timer.ElapsedMilliseconds / 1000.0f;
+                if (i == 0)
+                {
+                    readingSpeed = (long)(fileToRead.Length / actualReadingTime);
+                }
+                else
+                {
+                    readingSpeed = (readingSpeed + (long)(fileToRead.Length / actualReadingTime)) / 2;
+                }
+            }
+            yield return Ninja.JumpToUnity;
+            HandleError(loadingError, additionalInformations);
+            yield return Ninja.JumpBack;
+
+            // Create ColumnData.
+            ColumnData[] columnsData = new ColumnData[visualisation.Columns.Count];
+            progressStep = EPOCH_DATA / (visualisation.Columns.Count);
+            for (int c = 0; c < visualisation.Columns.Count; c++)
+            {
+                // Update progressBar.
+                yield return Ninja.JumpToUnity;
+                loadingCircle.Set(FIND_FILES_TO_READ + READ_FILES + c * progressStep, "Epoching column n°" + c);
+                yield return Ninja.JumpBack;
+
+                // Epoch data.
+                Data.Experience.Dataset.Data[] dataForThisColumn = new Data.Experience.Dataset.Data[dataByColumn[c].Length];
+                dataForThisColumn = data.Where((d, index) => dataByColumn[c].Contains(index)).ToArray();
+                Data.Patient[] patients = new Data.Patient[0];
+                if (MNI)
+                {
+                    MultiPatientsVisualisation MPvisu = visualisation as MultiPatientsVisualisation;
+                    patients = MPvisu.Patients.ToArray();
+                }
+                else
+                {
+                    SinglePatientVisualisation SPvisu = visualisation as SinglePatientVisualisation;
+                    patients = new Data.Patient[] { SPvisu.Patient };
+                }
+                try
+                {
+                    columnsData[c] = new ColumnData(patients, dataForThisColumn, visualisation.Columns[c]);
+                }
+                catch
+                {
+                    loadingError = LoadingErrorEnum.CanNotEpochingData;
+                    additionalInformations = c.ToString();
+                    break;
+                }
+            }
+            yield return Ninja.JumpToUnity;
+            HandleError(loadingError, additionalInformations);
+
+            // Stadardize columns.
+            loadingCircle.Set(FIND_FILES_TO_READ + READ_FILES + EPOCH_DATA, "Standardizing columns");
+            yield return Ninja.JumpBack;
+
+            if (MNI)
+            {
+                MultiPatientsVisualisation MPvisu = visualisation as MultiPatientsVisualisation;
+                MultiPatientsVisualisationData visualisationData = new MultiPatientsVisualisationData(MPvisu.Patients.ToArray(), columnsData);
+                try
+                {
+                    visualisationData.StandardizeColumns();
+                }
+                catch
+                {
+                    loadingError = LoadingErrorEnum.CanNotStandardizeColumns;
+                }
+                yield return Ninja.JumpToUnity;
+                HandleError(loadingError, additionalInformations);
+                VisualisationLoaded.MP_Visualisation = MPvisu;
+                VisualisationLoaded.MP_VisualisationData = visualisationData;
+                VisualisationLoaded.MP_Columns = new bool[visualisationData.Columns.Count];
+
+                // Set scene.
+                loadingCircle.Set(1, "Finish");
+                yield return Ninja.JumpBack;
+                yield return Ninja.JumpToUnity;
+                command.set_scene_data(visualisationData);
+            }
+            else
+            {
+                SinglePatientVisualisation SPvisu = visualisation as SinglePatientVisualisation;
+                SinglePatientVisualisationData visualisationData = new SinglePatientVisualisationData(SPvisu.Patient, columnsData);
+                try
+                {
+                    visualisationData.StandardizeColumns();
+                }
+                catch
+                {
+                    loadingError = LoadingErrorEnum.CanNotStandardizeColumns;
+                }
+                yield return Ninja.JumpToUnity;
+                HandleError(loadingError, additionalInformations);
+
+                VisualisationLoaded.SP_Visualisation = SPvisu;
+                VisualisationLoaded.SP_VisualisationData = visualisationData;
+                VisualisationLoaded.SP_Columns = new bool[visualisationData.Columns.Count];
+
+                // Set scene.
+                loadingCircle.Set(1, "Finish");
+                yield return Ninja.JumpBack;
+                yield return Ninja.JumpToUnity;
+                command.set_scene_data(visualisationData);
+            }
+            command.set_scenes_visibility(!MNI, MNI);
+            command.set_module_focus(true);
+            loadingCircle.Close();
+        }
         void LoadSPSceneFromMP(int idPatient)
         {
+            UnityEngine.Debug.Log("LoadSPSceneFromMP");
             SinglePatientVisualisationData spVisuData = SinglePatientVisualisationData.LoadFromMultiPatients(VisualisationLoaded.MP_VisualisationData, idPatient);
             SinglePatientVisualisation spVisu = SinglePatientVisualisation.LoadFromMultiPatients(VisualisationLoaded.MP_Visualisation, idPatient);
             VisualisationLoaded.SP_VisualisationData = spVisuData;
             VisualisationLoaded.SP_Visualisation = spVisu;
             VisualisationLoaded.SP_Columns = VisualisationLoaded.MP_Columns;
         }
-        void HandleError(LoadErrorTypeEnum error, string additionalInformations)
+        void HandleError(LoadingErrorEnum error, string additionalInformations)
         {
-            if (error != LoadErrorTypeEnum.None)
+            if (error != LoadingErrorEnum.None)
             {
-                progressWindow.Close();
+                loadingCircle.Close();
                 StopAllCoroutines();
-                GameObject popUpobj = GameObject.Instantiate(popUpPrefab, GameObject.Find("UI").transform) as GameObject;
-                popUpobj.transform.localPosition = new Vector3(0, 0, 0);
-                popUpobj.GetComponent<PopUp>().Show(GetErrorMessage(error, additionalInformations));
+                (Instantiate(popUpPrefab, Vector3.zero, Quaternion.identity, GameObject.Find("Windows").transform) as GameObject).GetComponent<PopUp>().Show(GetErrorMessage(error, additionalInformations));
             }
         }
-        string GetErrorMessage(LoadErrorTypeEnum error, string additionalInformations)
+        string GetErrorMessage(LoadingErrorEnum error, string additionalInformations)
         {
             string l_errorMessage = string.Empty;
             string l_firstPart = "The visualisation could not be loaded.\n";
             switch (error)
             {
-                case LoadErrorTypeEnum.None: l_errorMessage = "None error detected."; return l_errorMessage;
-                case LoadErrorTypeEnum.CanNotFindFilesToRead: l_errorMessage = " Can not find the files of the column <color=red>n°  "+additionalInformations+"</color>."; break;
-                case LoadErrorTypeEnum.CanNotReadData: l_errorMessage = " Can not read \" <color=red>"+additionalInformations+"</color>.\""; break;
-                case LoadErrorTypeEnum.CanNotEpochingData: l_errorMessage =  " Can not epoching data of the column \"<color=red>n°"+additionalInformations+"</color>.\""; break;
-                case LoadErrorTypeEnum.CanNotStandardizeColumns: l_errorMessage = " Can not standardize columns."; break;
+                case LoadingErrorEnum.None: l_errorMessage = "None error detected."; return l_errorMessage;
+                case LoadingErrorEnum.CanNotFindFilesToRead: l_errorMessage = " Can not find the files of the column <color=red>n°  "+additionalInformations+"</color>."; break;
+                case LoadingErrorEnum.CanNotReadData: l_errorMessage = " Can not read \" <color=red>"+additionalInformations+"</color>.\""; break;
+                case LoadingErrorEnum.CanNotEpochingData: l_errorMessage =  " Can not epoching data of the column \"<color=red>n°"+additionalInformations+"</color>.\""; break;
+                case LoadingErrorEnum.CanNotStandardizeColumns: l_errorMessage = " Can not standardize columns."; break;
             }
             l_errorMessage = l_firstPart + l_errorMessage;
             return l_errorMessage;
@@ -384,4 +275,3 @@ namespace HBP.UI
         #endregion
     }
 }
-

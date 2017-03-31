@@ -29,8 +29,8 @@ namespace HBP.UI
         #region Private Methods
         protected override void SetWindow()
         {
-            loadButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Load").GetComponent<Button>();
-            projectList = transform.FindChild("Content").FindChild("Projects").FindChild("List").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<ProjectList>();
+            loadButton = transform.FindChild("Content").FindChild("GeneralButtons").FindChild("Load").GetComponent<Button>();
+            projectList = transform.FindChild("Content").FindChild("Projects").FindChild("ProjectList").FindChild("List").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<ProjectList>();
             projectList.SelectEvent.AddListener(() => loadButton.interactable = true);
             projectList.ActionEvent.AddListener((info, i) => Load(info));
 

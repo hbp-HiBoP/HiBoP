@@ -1,16 +1,13 @@
-﻿using UnityEngine;
-using System.Linq;
+﻿using System.Linq;
 using System.Collections;
-using System.Collections.Generic;
 using CielaSpike;
 using Tools.Unity;
 using Tools.Unity.Lists;
 using Tools.CSharp;
-using d = HBP.Data.Patient;
 
 namespace HBP.UI.Patient
 {
-    public class PatientGestion : ItemGestion<d.Patient>
+    public class PatientGestion : ItemGestion<Data.Patient>
     {
         #region Properties
         FolderSelector databaseFolderSelector;
@@ -28,7 +25,7 @@ namespace HBP.UI.Patient
         // Patient.
         public void Add()
         {
-            d.Patient[] patientsToAdd = databaseList.GetObjectsSelected().DeepClone();
+            Data.Patient[] patientsToAdd = databaseList.GetObjectsSelected().DeepClone();
             AddItem(patientsToAdd);
             databaseList.DeactivateObject(patientsToAdd);
         }
@@ -46,11 +43,11 @@ namespace HBP.UI.Patient
             databaseList.Clear();
             yield return Ninja.JumpBack;
 
-            string[] patients = d.Patient.PatientsInDirectory(databaseFolderSelector.Folder);
+            string[] patients = Data.Patient.GetPatientsDirectories(databaseFolderSelector.Folder);
             for (int i = 0; i < patients.Length; i++)
             {
                 yield return Ninja.JumpBack;
-                d.Patient patient = new d.Patient(patients[i]);
+                Data.Patient patient = new Data.Patient(patients[i]);
                 yield return Ninja.JumpToUnity;
                 databaseList.Add(patient, !Items.Contains(patient));
             }
@@ -60,7 +57,7 @@ namespace HBP.UI.Patient
             // Project list.
             list = transform.FindChild("Content").FindChild("Lists").FindChild("Project").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<PatientList>();
             AddItem(ApplicationState.ProjectLoaded.Patients.ToArray());
-            (list as SelectableListWithItemAction<d.Patient>).ActionEvent.AddListener((patient, i) => OpenModifier(patient, true));
+            (list as SelectableListWithItemAction<Data.Patient>).ActionEvent.AddListener((patient, i) => OpenModifier(patient, true));
 
             // Database list.            
             databaseFolderSelector = transform.FindChild("Content").FindChild("Lists").FindChild("Database").FindChild("FolderSelector").GetComponent<FolderSelector>();

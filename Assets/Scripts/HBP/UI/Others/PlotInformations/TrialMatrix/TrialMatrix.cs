@@ -47,24 +47,24 @@ namespace HBP.UI.TrialMatrix
             title.text = trialMatrix.Title;
 
             //Organize array
-            d.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.PBloc.DisplayInformations.Row).ThenBy(t => t.PBloc.DisplayInformations.Column).ToArray();
+            d.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.PBloc.DisplayInformations.Position.Row).ThenBy(t => t.PBloc.DisplayInformations.Position.Column).ToArray();
 
             // Set Legends
             SetLegends(trialMatrix.ValuesLimits, trialMatrix.TimeLimitsByColumn);
 
             //Separate blocs by line
-            d.Bloc[][] l_lines = new d.Bloc[l_blocs[l_blocs.Length - 1].PBloc.DisplayInformations.Row][];
+            d.Bloc[][] l_lines = new d.Bloc[l_blocs[l_blocs.Length - 1].PBloc.DisplayInformations.Position.Row][];
             int l_blocsByRow = 0;
             for (int i = 0; i < l_lines.Length; i++)
             {
-                l_lines[i] = System.Array.FindAll(l_blocs, x => x.PBloc.DisplayInformations.Row == i + 1);
+                l_lines[i] = System.Array.FindAll(l_blocs, x => x.PBloc.DisplayInformations.Position.Row == i + 1);
                 if (l_blocsByRow < l_lines.Length) l_blocsByRow = l_lines.Length;
             }
 
             int maxBlocByRow = 0;
             foreach (d.Bloc[] line in l_lines)
             {
-                int max = line[line.Length - 1].PBloc.DisplayInformations.Column;
+                int max = line[line.Length - 1].PBloc.DisplayInformations.Position.Column;
                 if (max > maxBlocByRow)
                 {
                     maxBlocByRow = max;

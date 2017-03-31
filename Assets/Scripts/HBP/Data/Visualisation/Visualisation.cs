@@ -1,110 +1,113 @@
-﻿using UnityEngine;
-using System;
-using System.Linq;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using HBP.Data.Experience.Dataset;
+using System.Runtime.Serialization;
 
 namespace HBP.Data.Visualisation
 {
-    [Serializable]
+    /**
+    * \class Visualisation
+    * \author Adrien Gannerie
+    * \version 1.0
+    * \date 12 janvier 2017
+    * \brief Visualisation is a class which define a brain visualisation.
+    * 
+    * \details Visualisation is a ckass which define a brain visualiation and contains:
+    *   - \a Name of the visualisation.
+    *   - \a Unique ID.
+    *   - \a Columns of the visualisation.   
+    */
+    [DataContract]
     public abstract class Visualisation : ICloneable , ICopiable
     {
         #region Properties
-        [SerializeField]
-        protected string id;
-        public string ID
-        {
-            get { return id; }
-            private set { id = value; }
-        }
-
-        [SerializeField]
-        protected string name;
-        public string Name
-        {
-            get { return name; }
-            set { name = value; }
-        }
-
-        [SerializeField]
-        protected List<Column> columns;
-        public ReadOnlyCollection<Column> Columns
-        {
-            get { return new ReadOnlyCollection<Column>(columns); }
-        }
+        [DataMember(Order = 1)]     
+        /// <summary>
+        /// Unique ID.
+        /// </summary>
+        public string ID { get; private set; }
+        [DataMember(Order = 2)]
+        /// <summary>
+        /// Name of the visualisation.
+        /// </summary>
+        public string Name { get; set; }
+        [DataMember(Order = 4)]
+        /// <summary>
+        /// Columns of the visualisation.
+        /// </summary>
+        public List<Column> Columns { get; set; }
         #endregion
 
         #region Constructor
+        /// <summary>
+        /// Create a new visualisation instance.
+        /// </summary>
+        /// <param name="name">Name of the visualisation.</param>
+        /// <param name="columns">Columns of the visualisation.</param>
+        /// <param name="id">Unique ID.</param>
         protected Visualisation(string name, List<Column> columns, string id)
         {
             ID = id;
             Name = name;
-            this.columns = columns;
+            Columns = columns;
         }
+        /// <summary>
+        /// Create a new visualisation instance.
+        /// </summary>
+        /// <param name="name">Name of the visualisation.</param>
+        /// <param name="columns">Columns of the visualisation.</param>
         protected Visualisation(string name, List<Column> columns) : this(name,columns,Guid.NewGuid().ToString())
         {
         }
+        /// <summary>
+        /// Create a new visualisation instance with default value.
+        /// </summary>
         protected Visualisation() : this("New visualisation",new List<Column>())
         {
         }
         #endregion
 
         #region Public Methods
-        public void AddColumn(Column column)
+        /// <summary>
+        /// Swap two columns by index.
+        /// </summary>
+        /// <param name="index1">Index of the first column to swap.</param>
+        /// <param name="index2">Index of the second column to swap.</param>
+        public void SwapColumns(int index1,int index2)
         {
-            columns.Add(column);
+            Column tmp = Columns[index1];
+            Columns[index1] = Columns[index2];
+            Columns[index2] = tmp;
         }
-        public void AddColumn(Column[] columns)
-        {
-            foreach(Column column in columns)
-            {
-                AddColumn(column);
-            }
-        }
-        public void RemoveColumn(Column column)
-        {
-            columns.Remove(column);
-        }
-        public void RemoveColumn(Column[] columns)
-        {
-            foreach (Column column in columns)
-            {
-                RemoveColumn(column);
-            }
-        }
-        public void RemoveColumn(int column)
-        {
-            columns.RemoveAt(column);
-        }
-        public void SwapColumns(int column1,int column2)
-        {
-            Column tmp = columns[column1];
-            columns[column1] = columns[column2];
-            columns[column2] = tmp;
-        }
-        public void SetColumns(Column[] columns)
-        {
-            this.columns = new List<Column>(columns);
-        }
-        public void ClearColumns()
-        {
-            columns = new List<Column>();
-        }
+        /// <summary>
+        /// Test if the visualisation is usable.
+        /// </summary>
+        /// <returns>\a True if is usable and \a False otherwise.</returns>
         public abstract bool isVisualisable();
+        /// <summary>
+        /// Get the DataInfo of the column.
+        /// </summary>
+        /// <param name="column">Column</param>
+        /// <returns>DataInfo of the column.</returns>
         public abstract DataInfo[] GetDataInfo(Column column);
-        public abstract void SaveXML(string path);
-        public abstract void SaveJSon(string path);
+        /// <summary>
+        /// Copy a Visualisation instance in this visualisation.
+        /// </summary>
+        /// <param name="copy">Instance to copy.</param>
         public virtual void Copy(object copy)
         {
             Visualisation visualisation = copy as Visualisation;
             Name = visualisation.Name;
-            SetColumns(visualisation.Columns.ToArray());
+            Columns = visualisation.Columns;
             ID = visualisation.ID;
         }
         #endregion
 
         #region Operators
+        /// <summary>
+        /// Clone this instance.
+        /// </summary>
+        /// <returns>Clone of this instance.</returns>
         public abstract object Clone();
         #endregion
     }

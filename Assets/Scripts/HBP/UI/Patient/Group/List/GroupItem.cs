@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Patient;
+using HBP.Data;
 
 namespace HBP.UI.Patient
 {

@@ -1,16 +1,15 @@
 ﻿using UnityEngine;
-using d = HBP.Data.Patient;
 
 namespace HBP.UI
 {
-    public class PatientNameItem : Tools.Unity.Lists.ListItem<d.Patient>
+    public class PatientNameItem : Tools.Unity.Lists.ListItem<Data.Patient>
     {
-        protected override void SetObject(d.Patient objectToSet)
+        protected override void SetObject(Data.Patient objectToSet)
         {
             GetComponentInChildren<UnityEngine.UI.Text>().text = objectToSet.Name;
         }
 
-        public override void Set(d.Patient objectToSet, Rect rect)
+        public override void Set(Data.Patient objectToSet, Rect rect)
         {
             Object = objectToSet;
         }

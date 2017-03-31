@@ -1,26 +1,35 @@
-﻿using UnityEngine;
-using System;
-using System.IO;
-using System.Linq;
-using System.Xml.Serialization;
+﻿using System.Linq;
 using System.Collections.Generic;
 using HBP.Data.Experience.Dataset;
-
+using System.Runtime.Serialization;
 
 namespace HBP.Data.Visualisation
 {
-    [Serializable]
+    /**
+    * \class SinglePatientVisualisation
+    * \author Adrien Gannerie
+    * \version 1.0
+    * \date 11 janvier 2017
+    * \brief Class which define a visualisation with the single patient.
+    * 
+    * \details Single patient visualisation is a class which contains the informations of a single patient visualisation and herite from the Visualisation class.
+    */
+    [DataContract]
     public class SinglePatientVisualisation : Visualisation
     {
         #region Properties
-        [SerializeField]
+        public const string Extension = ".singleVisualisation";
+        [DataMember(Name = "Patient",Order = 3)]
         private string patientID = string.Empty;
-        public Patient.Patient Patient
+        /// <summary>
+        /// Patient of the single patient visualisation.
+        /// </summary>
+        public Patient Patient
         {
             get
             {
-                Patient.Patient tmp = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == patientID);
-                if (tmp == null) tmp = new Patient.Patient();
+                Patient tmp = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == patientID);
+                if (tmp == null) tmp = new Patient();
                 return tmp;
             }
             set { patientID = value.ID; }
@@ -28,21 +37,41 @@ namespace HBP.Data.Visualisation
         #endregion
 
         #region Constructors
-        public SinglePatientVisualisation(string name,List<Column> columns, Patient.Patient patient, string id) : base(name,columns,id)
+        /// <summary>
+        /// Create a new single patient visualisation instance.
+        /// </summary>
+        /// <param name="name">Name of single patient visualisation.</param>
+        /// <param name="columns">Columns of single patient visualisation.</param>
+        /// <param name="patient">Patient of the single patient visualisation.</param>
+        /// <param name="id">Unique ID of the single patient visualisation.</param>
+        public SinglePatientVisualisation(string name,List<Column> columns, Patient patient, string id) : base(name,columns,id)
         {
             Patient = patient;
         }
-        public SinglePatientVisualisation(string name,List<Column> columns,Patient.Patient patient) : base (name,columns)
+        /// <summary>
+        /// Create a new single patient visualisation instance.
+        /// </summary>
+        /// <param name="name">Name of single patient visualisation.</param>
+        /// <param name="columns">Columns of single patient visualisation.</param>
+        /// <param name="patient">Patient of the single patient visualisation.</param>
+        public SinglePatientVisualisation(string name,List<Column> columns,Patient patient) : base (name,columns)
         {
             Patient = patient;
         }
+        /// <summary>
+        /// Create a new single patient visualisation instance with default value.
+        /// </summary>
         public SinglePatientVisualisation() : base()
         {
-            Patient = new Patient.Patient();
+            Patient = new Patient();
         }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Test if a visualisation is usable.
+        /// </summary>
+        /// <returns>\a True if the visualisation is usable and \a False otherwise.</returns>
         public override bool isVisualisable()
         {
             // Initialize
@@ -66,91 +95,49 @@ namespace HBP.Data.Visualisation
             }
             return result;
         }
+        /// <summary>
+        /// Get the DataInfo used by the column.
+        /// </summary>
+        /// <param name="column">Column to get the dataInfo.</param>
+        /// <returns>DataInfo used by the column.</returns>
         public override DataInfo[] GetDataInfo(Column column)
         {
-            List<DataInfo> result = new List<DataInfo>();
-            foreach (DataInfo dataInfo in column.Dataset.Data)
-            {
-                if (column.DataLabel == dataInfo.Name  && Patient == dataInfo.Patient && column.Protocol == dataInfo.Protocol && dataInfo.Protocol.Blocs.Contains(column.Bloc))
-                {
-                    result.Add(dataInfo);
-                }
-            }
-            return result.ToArray();
+            DataInfo[] dataInfo = (from data in column.Dataset.Data where (column.DataLabel == data.Name && Patient == data.Patient && column.Protocol == data.Protocol && data.Protocol.Blocs.Contains(column.Bloc)) select data).ToArray();
+            return dataInfo;
         }
+        /// <summary>
+        /// Get the implantation of the patients in the Visualisation.
+        /// </summary>
+        /// <returns>Plots label of the implantion sort by patients order.</returns>
         public string GetImplantation()
         {
-            return Patient.Brain.PatientBasedImplantation;
+            return Patient.Brain.PatientReferenceFrameImplantation;
         }
-        public override void SaveXML(string path)
-        {
-            XmlSerializer serializer = new XmlSerializer(typeof(SinglePatientVisualisation));
-            TextWriter textWriter = new StreamWriter(GenerateSavePath(path));
-            serializer.Serialize(textWriter, this);
-            textWriter.Close();
-        }
-        public override void SaveJSon(string path)
-        {
-            string l_json = JsonUtility.ToJson(this, true);
-            using (StreamWriter outPutFile = new StreamWriter(GenerateSavePath(path)))
-            {
-                outPutFile.Write(l_json);
-            }
-        }
-        public static SinglePatientVisualisation LoadXML(string path)
-        {
-            SinglePatientVisualisation result = new SinglePatientVisualisation();
-            if (File.Exists(path) && Path.GetExtension(path) == Settings.FileExtension.SingleVisualisation)
-            {
-                XmlSerializer serializer = new XmlSerializer(typeof(SinglePatientVisualisation));
-                TextReader textReader = new StreamReader(path);
-                result = serializer.Deserialize(textReader) as SinglePatientVisualisation;
-                textReader.Close();
-            }
-            return result;
-        }
-        public static SinglePatientVisualisation LoadJSon(string path)
-        {
-            SinglePatientVisualisation result = new SinglePatientVisualisation();
-            try
-            {
-                using (StreamReader inPutFile = new StreamReader(path))
-                {
-                    result = JsonUtility.FromJson<SinglePatientVisualisation>(inPutFile.ReadToEnd());
-                }
-            }
-            catch
-            {
-                Debug.LogWarning("Can't read the single patient visualisation file.");
-            }
-            return result;
-        }
+        /// <summary>
+        /// Load a single patient visualisation from a multi-patients visualisation.
+        /// </summary>
+        /// <param name="multiPatientsVisualisation">Multi patients visualisation.</param>
+        /// <param name="patient">Patient of the single patient visualisation.</param>
+        /// <returns>Single patient visualisation loaded from the multi-patients visualisation.</returns>
         public static SinglePatientVisualisation LoadFromMultiPatients(MultiPatientsVisualisation multiPatientsVisualisation,int patient)
         {
-            return new SinglePatientVisualisation(multiPatientsVisualisation.Name, multiPatientsVisualisation.Columns.ToList(), multiPatientsVisualisation.Patients[patient]);
-        }
-        #endregion
-
-        #region Private Methods
-        string GenerateSavePath(string path)
-        {
-            string l_path = path + Path.DirectorySeparatorChar + Name;
-            string l_finalPath = l_path + Settings.FileExtension.SingleVisualisation;
-            int count = 1;
-            while (File.Exists(l_finalPath))
-            {
-                string tempFileName = string.Format("{0}({1})", l_path, count++);
-                l_finalPath = Path.Combine(path, tempFileName + Settings.FileExtension.SingleVisualisation);
-            }
-            return l_finalPath;
+            return new SinglePatientVisualisation(multiPatientsVisualisation.Name, multiPatientsVisualisation.Columns, multiPatientsVisualisation.Patients[patient]);
         }
         #endregion
 
         #region Operators
+        /// <summary>
+        /// Clone this single patient visualisation instance.
+        /// </summary>
+        /// <returns>Single patient visualisation clone.</returns>
         public override object Clone()
         {
             return new SinglePatientVisualisation(Name, new List<Column>(Columns), Patient);
         }
+        /// <summary>
+        /// Copy a single patient viusalisation instance to this instance.
+        /// </summary>
+        /// <param name="copy">Single patient visualisation instance to copy.</param>
         public override void Copy(object copy)
         {
             base.Copy(copy);

@@ -1,12 +1,11 @@
-﻿using d = HBP.Data.Patient;
-using System.Linq;
+﻿using System.Linq;
 
 namespace HBP.UI.Patient
 {
 	/// <summary>
 	/// Manage patient list.
 	/// </summary>
-	public class PatientList : Tools.Unity.Lists.SelectableListWithItemAction<d.Patient>
+	public class PatientList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Patient>
 	{
         #region Properties
         bool m_sortByName, m_sortByPlace, m_sortByDate, m_sortByPaths;
@@ -56,11 +55,11 @@ namespace HBP.UI.Patient
         {
             if (m_sortByPaths)
             {
-                m_objects = m_objects.OrderByDescending(x => x.Brain.NotEmptyPaths).ToList();
+                m_objects = m_objects.OrderByDescending(x => x.Brain.NumberOfFieldsFilled).ToList();
             }
             else
             {
-                m_objects = m_objects.OrderBy(x => x.Brain.NotEmptyPaths).ToList();
+                m_objects = m_objects.OrderBy(x => x.Brain.NumberOfFieldsFilled).ToList();
             }
             m_sortByPaths = !m_sortByPaths;
             ApplySort();

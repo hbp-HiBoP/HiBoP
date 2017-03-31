@@ -102,8 +102,8 @@ namespace HBP.Data.Localizer
 			}
 
             // Calcul the size of a bloc and initialize bloc list
-            int l_max = Mathf.FloorToInt((bloc.DisplayInformations.Window.y)* 0.001f * frequency);
-            int l_min = Mathf.CeilToInt((bloc.DisplayInformations.Window.x) * 0.001f * frequency);
+            int l_max = Mathf.FloorToInt((bloc.DisplayInformations.Window.End)* 0.001f * frequency);
+            int l_min = Mathf.CeilToInt((bloc.DisplayInformations.Window.Start) * 0.001f * frequency);
             int l_size = l_max - l_min;
             int l_mainEventPosition = - l_min;
             List<Bloc> l_bloc = new List<Bloc>();

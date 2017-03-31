@@ -19,6 +19,7 @@ namespace HBP.UI
         }
         public void Display()
         {
+            Debug.Log("Display");
             FindObjectOfType<VisualisationLoader>().Load(list.GetObjectsSelected()[0]);
             base.Close();
         }

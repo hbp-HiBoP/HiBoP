@@ -68,7 +68,7 @@ namespace HBP.UI.TrialMatrix
 
         void SetIllustration(d.Bloc bloc)
         {
-            string l_illustrationPath = bloc.PBloc.DisplayInformations.Image;
+            string l_illustrationPath = bloc.PBloc.DisplayInformations.IllustrationPath;
             if(l_illustrationPath != string.Empty)
             {
                 FileInfo l_file = new FileInfo(l_illustrationPath);

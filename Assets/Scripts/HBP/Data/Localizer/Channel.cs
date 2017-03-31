@@ -1,41 +1,82 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
-namespace HBP.Data.Localizer
+namespace Elan
 {
-	[StructLayout(LayoutKind.Sequential)]
-	public struct Channel
-	{
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)]
-		public string Label;
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)]
-		public string Type;
-		[MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)]
-		public string Unite;
+    public class Channel
+    {
+        #region Properties
+        int channel;
+        public string Label
+        {
+            get { return Marshal.PtrToStringAnsi(GetLabel(channel, _handle)); }
+            set { SetLabel(value, channel, _handle); }
+        }
+        public string Type
+        {
+            get { return GetType(channel, _handle); }
+            set { SetType(value, channel, _handle); }
+        }
+        public string Unit
+        {
+            get { return GetUnit(channel, _handle); }
+            set { SetUnit(value, channel, _handle); }
+        }
+        public int CoordinatesNumber
+        {
+            get { return GetCoordinateNumber(channel, _handle); }
+            set { SetCoordinateNumber(value, channel, _handle); }
+        }
+        public Coordinate[] Coordinates
+        {
+            get
+            {
+                Coordinate[] coordinates = new Coordinate[CoordinatesNumber];
+                GetCoordinate(coordinates, channel, _handle);
+                return coordinates;
+            }
+            set
+            {
+                CoordinatesNumber = value.Length;
+                SetCoordinate(value, channel, _handle);
+            }
+        }
+        HandleRef _handle;
+        #endregion
 
-		public override bool Equals(object obj)
-		{
-			if(!(obj is Channel)) return false;
-			else
-			{
-				Channel l_channel = (Channel) obj;
-				if(l_channel.Label == Label && l_channel.Type == Type && l_channel.Unite == Unite) return true;
-				else return false;
-			}
-		}
+        #region Constructor
+        public Channel(HandleRef _handle, int channel)
+        {
+            this._handle = _handle;
+            this.channel = channel;
+        }
+        #endregion
 
-		public override int GetHashCode()
-		{
-			return Label.GetHashCode()^Type.GetHashCode()^Unite.GetHashCode() ;
-		}
+        #region DLLImport
+        [DllImport("elan", EntryPoint = "Channel_GetLabel", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern IntPtr GetLabel(int channel, HandleRef cppStruct);
+        [DllImport("elan", EntryPoint = "Channel_SetLabel", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern void SetLabel(string dataType, int channel, HandleRef cppStruct);
 
-		public static bool operator ==(Channel c1, Channel c2) 
-		{
-			return c1.Equals(c2);
-		}
-		
-		public static bool operator !=(Channel c1, Channel c2) 
-		{
-			return !c1.Equals(c2);
-		}
-	}
+        [DllImport("elan", EntryPoint = "Channel_GetType", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern string GetType(int channel, HandleRef cppStruct);
+        [DllImport("elan", EntryPoint = "Channel_SetType", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern void SetType(string type, int channel, HandleRef cppStruct);
+
+        [DllImport("elan", EntryPoint = "Channel_GetUnit", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern string GetUnit(int channel, HandleRef cppStruct);
+        [DllImport("elan", EntryPoint = "Channel_SetUnit", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern void SetUnit(string unit, int channel, HandleRef cppStruct);
+
+        [DllImport("elan", EntryPoint = "Channel_GetCoordinateNumber", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern int GetCoordinateNumber(int channel, HandleRef cppStruct);
+        [DllImport("elan", EntryPoint = "Channel_SetCoordinateNumber", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern void SetCoordinateNumber(int coordinateNumber, int channel, HandleRef cppStruct);
+
+        [DllImport("elan", EntryPoint = "Channel_GetCoordinate", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern void GetCoordinate([Out] Coordinate[] coordinates, int channel, HandleRef cppStruct);
+        [DllImport("elan", EntryPoint = "Channel_SetCoordinate", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern void SetCoordinate([In] Coordinate[] coordinates, int channel, HandleRef cppStruct);
+        #endregion
+    }
 }

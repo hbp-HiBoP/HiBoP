@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using HBP.VISU3D;
 using HBP.UI.TrialMatrix;
-using HBP.Data.Patient;
+using HBP.Data.Anatomy;
 using HBP.Data.Visualisation;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
@@ -103,10 +103,10 @@ namespace HBP.UI.Graph
         }
         void AddListerners()
         {
-            HBP_3DModule_Command command;
-            command = FindObjectOfType<HBP_3DModule_Command>();
-            command.PlotInfoRequestEvent.AddListener((plotResquest) => OnDisplayPlots(plotResquest));
-            command.UpdateColumnMinimizeStateEvent.AddListener((sp, columns) => OnMinimizeColumns());
+            HiBoP_3DModule_API command;
+            command = FindObjectOfType<HiBoP_3DModule_API>();
+            command.SiteInfoRequest.AddListener((plotResquest) => OnDisplayPlots(plotResquest));
+            command.UpdateColumnMinimizedState.AddListener((sp, columns) => OnMinimizeColumns());
         }
         #endregion
 
@@ -123,7 +123,7 @@ namespace HBP.UI.Graph
                 DisplayCurves();
             }  
         }
-        void OnDisplayPlots(plotRequest plotRequest)
+        void OnDisplayPlots(SiteRequest plotRequest)
         {
             // Declare plots.
             List<PlotID> l_plotsToDisplay = new List<PlotID>();
@@ -132,24 +132,30 @@ namespace HBP.UI.Graph
             // Read plots.
             if (plotRequest.spScene)
             {
-                if(plotRequest.idPlot > 0 && plotRequest.idPlot < VisualisationLoaded.SP_VisualisationData.PlotsID.Count)
+                if(VisualisationLoaded.SP_VisualisationData != null)
                 {
-                    l_plotsToDisplay.Add(VisualisationLoaded.SP_VisualisationData.PlotsID[plotRequest.idPlot]);
-                }
-                if(plotRequest.idPlot2 > 0 && plotRequest.idPlot2 < VisualisationLoaded.SP_VisualisationData.PlotsID.Count)
-                {
-                    l_plotsToDisplay.Add(VisualisationLoaded.SP_VisualisationData.PlotsID[plotRequest.idPlot2]);
+                    if (plotRequest.idSite1 > 0 && plotRequest.idSite1 < VisualisationLoaded.SP_VisualisationData.PlotsID.Count)
+                    {
+                        l_plotsToDisplay.Add(VisualisationLoaded.SP_VisualisationData.PlotsID[plotRequest.idSite1]);
+                    }
+                    if (plotRequest.idSite2 > 0 && plotRequest.idSite2 < VisualisationLoaded.SP_VisualisationData.PlotsID.Count)
+                    {
+                        l_plotsToDisplay.Add(VisualisationLoaded.SP_VisualisationData.PlotsID[plotRequest.idSite2]);
+                    }
                 }
             }
             else
             {
-                if (plotRequest.idPlot > 0 && plotRequest.idPlot < VisualisationLoaded.MP_VisualisationData.PlotsID.Count)
+                if(VisualisationLoaded.MP_VisualisationData != null)
                 {
-                    l_plotsToDisplay.Add(VisualisationLoaded.MP_VisualisationData.PlotsID[plotRequest.idPlot]);
-                }
-                if (plotRequest.idPlot2 > 0 && plotRequest.idPlot2 < VisualisationLoaded.MP_VisualisationData.PlotsID.Count)
-                {
-                    l_plotsToDisplay.Add(VisualisationLoaded.MP_VisualisationData.PlotsID[plotRequest.idPlot2]);
+                    if (plotRequest.idSite1 > 0 && plotRequest.idSite1 < VisualisationLoaded.MP_VisualisationData.PlotsID.Count)
+                    {
+                        l_plotsToDisplay.Add(VisualisationLoaded.MP_VisualisationData.PlotsID[plotRequest.idSite1]);
+                    }
+                    if (plotRequest.idSite2 > 0 && plotRequest.idSite2 < VisualisationLoaded.MP_VisualisationData.PlotsID.Count)
+                    {
+                        l_plotsToDisplay.Add(VisualisationLoaded.MP_VisualisationData.PlotsID[plotRequest.idSite2]);
+                    }
                 }
             }
             ComparePlots(l_plotsToDisplay.ToArray(), l_plotsUsed, plotRequest.spScene);
@@ -185,7 +191,7 @@ namespace HBP.UI.Graph
             bool isSamePatients = true;
             if (plots.Length > 0)
             {
-                Data.Patient.Patient patient = plots[0].Patient;
+                Data.Patient patient = plots[0].Patient;
                 foreach (PlotID plot in plots)
                 {
                     if (patient != plot.Patient)
@@ -339,10 +345,10 @@ namespace HBP.UI.Graph
                             }
 
                             // Generate points.
-                            int pMin = timeLine.Min.Position;
-                            int pMax = timeLine.Max.Position;
-                            float min = timeLine.Min.Value;
-                            float max = timeLine.Max.Value;
+                            int pMin = timeLine.Start.Position;
+                            int pMax = timeLine.End.Position;
+                            float min = timeLine.Start.Value;
+                            float max = timeLine.End.Value;
                             Vector2[] points = new Vector2[pMax + 1 - pMin];
                             for (int i = pMin; i <= pMax; i++)
                             {
@@ -357,10 +363,10 @@ namespace HBP.UI.Graph
                         {
                             data = bloc.Data.Lines[bloc.SelectedLines[0]].Data;
                             // Generate points.
-                            int pMin = timeLine.Min.Position;
-                            int pMax = timeLine.Max.Position;
-                            float min = timeLine.Min.Value;
-                            float max = timeLine.Max.Value;
+                            int pMin = timeLine.Start.Position;
+                            int pMax = timeLine.End.Position;
+                            float min = timeLine.Start.Value;
+                            float max = timeLine.End.Value;
                             Vector2[] points = new Vector2[pMax + 1 - pMin];
                             for (int i = pMin; i <= pMax; i++)
                             {
@@ -396,10 +402,10 @@ namespace HBP.UI.Graph
                             }
                             l_ROIColumnData[i] = l_sum / l_nbPlots;
                         }
-                        int pMin = timeLine.Min.Position;
-                        int pMax = timeLine.Max.Position;
-                        float min = timeLine.Min.Value;
-                        float max = timeLine.Max.Value;
+                        int pMin = timeLine.Start.Position;
+                        int pMax = timeLine.End.Position;
+                        float min = timeLine.Start.Value;
+                        float max = timeLine.End.Value;
                         Vector2[] l_points = new Vector2[pMax - pMin];
                         for (int p = pMin; p < pMax; p++)
                         {

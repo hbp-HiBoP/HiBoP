@@ -1,56 +1,71 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Runtime.Serialization;
 
 namespace HBP.Data.Experience.Protocol
 {
-    /// <summary>
-    /// Class which define a event in a bloc.
-    ///     -Label of the event.
-    ///     -Codes of the event.
-    /// </summary>
-    [Serializable]
+    /**
+    * \class Event
+    * \author Adrien Gannerie
+    * \version 1.0
+    * \date 09 janvier 2017
+    * \brief Protoocol Event.
+    * 
+    * \details Class which define a event in a protocol which contains :
+    *     - \a Label.
+    *     - \a Codes ( Put '_' between codes in the UI).
+    */
+    [DataContract]
 	public class Event : ICloneable
 	{
-		#region Properties
-		private const char SEPARATOR = '_';
+        #region Properties
+        /** Code separator. */
+        private const char SEPARATOR = '_';
 
-        [SerializeField]
-		private string name;
-		public string Name
+        /** Name of the code. */
+        [DataMember]
+		public string Name { get; set; }
+
+        /** Codes of the event. */
+        [DataMember]
+		public List<int> Codes { get; set; }
+
+        /** Codes of the event in a string with code separate with '_'. */
+        [IgnoreDataMember]
+        public string CodesString
         {
-            get { return name; }
-            set { name=value; }
-        }
-		
-        [SerializeField]
-		private List<int> codes;
-		public ReadOnlyCollection<int> Codes
-        {
-            get { return new ReadOnlyCollection<int>(codes); }
-        }
-		public string CodesString
-        {
-            get { return GenerateStringFromCodes(codes.ToArray()); }
-            set {codes = GenerateCodesFromString(value).ToList(); }
+            get { return GetStringFromCodes(Codes.ToArray()); }
+            set {Codes = GetCodesFromString(value).ToList(); }
         }
         #endregion
 
         #region Constructors
+        /// <summary>
+        /// Create a new instance of a event.
+        /// </summary>
+        /// <param name="label">Label of the event.</param>
+        /// <param name="codes">Codes of the event.</param>
         public Event(string label, int[] codes)
         {
             Name = label;
-            this.codes = codes.ToList();
+            Codes = codes.ToList();
         }
+        /// <summary>
+        /// Create a new instance with a empty label and no codes.
+        /// </summary>
         public Event() : this(string.Empty,new int[0])
 		{
 		}
         #endregion
 
         #region Private Methods
-        private string GenerateStringFromCodes(int[] codes)
+        /// <summary>
+        /// Get string from code array.
+        /// </summary>
+        /// <param name="codes">Codes to translate.</param>
+        /// <returns>Codes string translated.</returns>
+        private string GetStringFromCodes(int[] codes)
 		{
             string result = string.Empty;
 			for(int i=0 ;i < codes.Length;i++)
@@ -63,7 +78,12 @@ namespace HBP.Data.Experience.Protocol
 			}
 			return result;
 		}		
-		private int[] GenerateCodesFromString(string codesString)
+        /// <summary>
+        /// Get code array from string.
+        /// </summary>
+        /// <param name="codesString">String to translate.</param>
+        /// <returns>Codes array.</returns>
+		private int[] GetCodesFromString(string codesString)
 		{
 			string[] codes = codesString.Split(new char[] { SEPARATOR },StringSplitOptions.RemoveEmptyEntries);
 			List<int> result = new List<int>();
@@ -80,9 +100,13 @@ namespace HBP.Data.Experience.Protocol
         #endregion
 
         #region Operators
+        /// <summary>
+        /// Clone a Event instance.
+        /// </summary>
+        /// <returns>Event cloned.</returns>
         public object Clone()
         {
-            return new Event(Name.Clone() as string, codes.ToArray().Clone() as int[]);
+            return new Event(Name.Clone() as string, Codes.ToArray().Clone() as int[]);
         }
         #endregion
     }

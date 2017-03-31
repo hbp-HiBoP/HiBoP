@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using CielaSpike;
 using Tools.Unity;
-using d = HBP.Data.Patient;
 using HBP.Data.General;
 using HBP.Data.Settings;
 using HBP.Data.Experience.Dataset;
@@ -18,7 +17,7 @@ namespace HBP.UI
         #region Properties
         [SerializeField]
         GameObject progressWindowPrefab;
-        ProgressWindow progressWindow;
+        LoadingCircle loadingCircle;
 
         [SerializeField]
         GameObject popUpPrefab;
@@ -56,232 +55,239 @@ namespace HBP.UI
         IEnumerator c_Load(ProjectInfo info)
         {
             yield return Ninja.JumpBack;
-            // Calculate number of step.
-            LoadErrorTypeEnum l_loadingState = LoadErrorTypeEnum.None;
+
+            // Initialize loadingState 
+            LoadErrorTypeEnum loadingError = LoadErrorTypeEnum.None;
             string additionalInformations = "";
-            int l_maxStep = info.Patients + info.Groups + info.Protocols + info.Datasets + info.Visualisations + 1;
-            int l_actualStep = 0;
+
+            // Calculate number of step.
+            int ratioDataset = 3;
+            int steps = 1 + info.Patients + info.Groups + info.Protocols + ratioDataset * info.Patients * info.Datasets + info.Visualisations;
+            float settingsStep = (float)1 / steps;
+            float patientStep = (float) info.Patients / steps;
+            float groupStep = (float) info.Groups / steps;
+            float protocolStep = (float) info.Protocols / steps;
+            float datasetStep = (float) ratioDataset * info.Datasets * info.Patients / steps;
+            float visualisationStep = (float) info.Visualisations / steps;
+            float all = settingsStep + patientStep + groupStep + protocolStep + datasetStep + visualisationStep;
+            float actualStep = 0;
+
             // Test if the directory exist.
             if(!Directory.Exists(info.Path))
             {
-                l_loadingState = LoadErrorTypeEnum.DirectoryDoNoExist;
+                loadingError = LoadErrorTypeEnum.DirectoryDoNoExist;
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState,additionalInformations);
+            HandleError(loadingError,additionalInformations);
             yield return Ninja.JumpBack;
 
             // Test if the directory is a project.
-            DirectoryInfo l_projectDirectory = new DirectoryInfo(info.Path);
+            DirectoryInfo projectDirectory = new DirectoryInfo(info.Path);
             if(!Project.IsProject(info.Path))
             {
-                l_loadingState = LoadErrorTypeEnum.IsNotAProject;
+                loadingError = LoadErrorTypeEnum.IsNotAProject;
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState,additionalInformations);
+            HandleError(loadingError,additionalInformations);
 
-            //Load Settings
-            GameObject progressWindowObj = GameObject.Instantiate(progressWindowPrefab, GameObject.Find("Windows").transform) as GameObject;
-            progressWindowObj.transform.localPosition = new Vector3(0, 0, 0);
-            progressWindow = progressWindowObj.GetComponent<ProgressWindow>();
-            progressWindow.Set(0, "Loading settings");
-            yield return Ninja.JumpBack;
-
-            //Setting project
-            Project l_project = new Project();
+            //Settings project
+            Project projectToLoad = new Project();
             oldProject = ApplicationState.ProjectLoaded;
             oldProjectLocation = ApplicationState.ProjectLoadedLocation;
-            ApplicationState.ProjectLoaded = l_project;
-            ApplicationState.ProjectLoadedLocation = l_projectDirectory.Parent.FullName;
+            ApplicationState.ProjectLoaded = projectToLoad;
+            ApplicationState.ProjectLoadedLocation = projectDirectory.Parent.FullName;
+
+            //Load Settings
+            GameObject progressWindowObj = Instantiate(progressWindowPrefab, GameObject.Find("Windows").transform) as GameObject;
+            progressWindowObj.transform.localPosition = new Vector3(0, 0, 0);
+            loadingCircle = progressWindowObj.GetComponent<LoadingCircle>();
+            loadingCircle.Set(actualStep, "Loading settings");
+            yield return Ninja.JumpBack;
 
             try
             {
-                FileInfo fileInfo = l_projectDirectory.GetFiles("*" + FileExtension.Settings, SearchOption.TopDirectoryOnly)[0];
-                l_project.Settings = ProjectSettings.LoadJson(fileInfo.FullName);
-                l_actualStep++;
+                FileInfo fileInfo = projectDirectory.GetFiles("*" + ProjectSettings.EXTENSION, SearchOption.TopDirectoryOnly)[0];
+                projectToLoad.Settings = ClassLoaderSaver.LoadFromJson<ProjectSettings>(fileInfo.FullName);
+                actualStep += settingsStep;
             }
             catch
             {
-                l_loadingState = LoadErrorTypeEnum.CanNotReadSettings;
+                loadingError = LoadErrorTypeEnum.CanNotReadSettings;
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState,additionalInformations);
-
-            //Load Patients
-            progressWindow.Set((float)l_actualStep / l_maxStep, "Loading patients");
+            HandleError(loadingError,additionalInformations);
             yield return Ninja.JumpBack;
 
-            // Read patients files.
-            List<d.Patient> Patients = new List<d.Patient>();
-            DirectoryInfo patientsDirectory = l_projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
-            FileInfo[] l_patientFiles = patientsDirectory.GetFiles("*" + FileExtension.Patient, SearchOption.TopDirectoryOnly);
-            foreach (FileInfo patientFile in l_patientFiles)
+            // Load patients.
+            List<Data.Patient> patients = new List<Data.Patient>();
+            DirectoryInfo patientDirectory = projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Data.Patient.Extension, SearchOption.TopDirectoryOnly);
+            foreach (FileInfo patientFile in patientFiles)
             {
+                yield return Ninja.JumpToUnity;
+                loadingCircle.Set(actualStep, "Loading patients : " + patientFile.Name.Remove(patientFile.Name.Length - patientFile.Extension.Length));
+                yield return Ninja.JumpBack;
                 try
                 {
-                    Patients.Add(d.Patient.LoadJSon(patientFile.FullName));
+                    Data.Patient patient = ClassLoaderSaver.LoadFromJson<Data.Patient>(patientFile.FullName);
+                    patients.Add(patient);
                 }
                 catch
                 {
-                    l_loadingState = LoadErrorTypeEnum.CanNotReadPatient;
                     additionalInformations = patientFile.Name;
+                    loadingError = LoadErrorTypeEnum.CanNotReadPatient;
                     break;
                 }
-                l_actualStep++;
-                yield return Ninja.JumpToUnity;
-                progressWindow.Set((float)l_actualStep / l_maxStep);
-                yield return Ninja.JumpBack;
+                actualStep += patientStep / info.Patients;
             }
-            l_project.SetPatients(Patients.ToArray());
+            projectToLoad.SetPatients(patients.ToArray());
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState,additionalInformations);
-
-            //Load Groups
-            progressWindow.Set("Loading groups");
+            HandleError(loadingError,additionalInformations);
             yield return Ninja.JumpBack;
 
-            List<d.Group> Groups = new List<d.Group>();
-            DirectoryInfo groupsDirectory = l_projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
-            FileInfo[] l_groupFiles = groupsDirectory.GetFiles("*" + FileExtension.Group, SearchOption.TopDirectoryOnly);
-            foreach (FileInfo groupFile in l_groupFiles)
+            // Load groups.
+            List<Data.Group> groups = new List<Data.Group>();
+            DirectoryInfo grousDirectory = projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] groupFiles = grousDirectory.GetFiles("*" + Data.Group.Extension  , SearchOption.TopDirectoryOnly);
+            foreach (FileInfo groupFile in groupFiles)
             {
+                yield return Ninja.JumpToUnity;
+                loadingCircle.Set(actualStep, "Loading groups : " + groupFile.Name);
+                yield return Ninja.JumpBack;
                 try
                 {
-                    Groups.Add(d.Group.LoadJSon(groupFile.FullName));
+                    Data.Group group = ClassLoaderSaver.LoadFromJson<Data.Group>(groupFile.FullName);
+                    groups.Add(group);
                 }
                 catch
                 {
                     additionalInformations = groupFile.Name;
-                    l_loadingState = LoadErrorTypeEnum.CanNotReadGroup;
+                    loadingError = LoadErrorTypeEnum.CanNotReadGroup;
                     break;
                 }
-                l_actualStep++;
-                yield return Ninja.JumpToUnity;
-                progressWindow.Set((float)l_actualStep / l_maxStep);
-                yield return Ninja.JumpBack;
+                actualStep += groupStep / info.Groups;
             }
-            l_project.SetGroups(Groups.ToArray());
+            projectToLoad.SetGroups(groups.ToArray());
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState,additionalInformations);
-
-            //Load Protocols
-            progressWindow.Set("Loading protocols");
+            HandleError(loadingError,additionalInformations);
             yield return Ninja.JumpBack;
 
-            List<Protocol> Protocols = new List<Protocol>();
-            DirectoryInfo protocolsDirectory = l_projectDirectory.GetDirectories("Protocols", SearchOption.TopDirectoryOnly)[0];
-            FileInfo[] l_protocolsFiles = protocolsDirectory.GetFiles("*" + FileExtension.Protocol, SearchOption.TopDirectoryOnly);
-            foreach (FileInfo protocolFile in l_protocolsFiles)
+            //Load Protocols
+            List<Protocol> protocols = new List<Protocol>();
+            DirectoryInfo protocolDirectory = projectDirectory.GetDirectories("Protocols", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] protocolFiles = protocolDirectory.GetFiles("*" + Protocol.Extension, SearchOption.TopDirectoryOnly);
+            foreach (FileInfo protocolFile in protocolFiles)
             {
+                yield return Ninja.JumpToUnity;
+                loadingCircle.Set(actualStep, "Loading protocols : " + protocolFile.Name.Remove(protocolFile.Name.Length - protocolFile.Extension.Length));
+                yield return Ninja.JumpBack;
                 try
                 {
-                    Protocols.Add(Protocol.LoadJSon(protocolFile.FullName));
+                    Protocol protocol = ClassLoaderSaver.LoadFromJson<Protocol>(protocolFile.FullName);
+                    protocols.Add(protocol);
                 }
                 catch
                 {
                     additionalInformations = protocolFile.Name;
-                    l_loadingState = LoadErrorTypeEnum.CanNotReadProtocol;
+                    loadingError = LoadErrorTypeEnum.CanNotReadProtocol;
                     break;
                 }
-                l_actualStep++;
-                yield return Ninja.JumpToUnity;
-                progressWindow.Set((float)l_actualStep / l_maxStep);
-                yield return Ninja.JumpBack;
+                actualStep += protocolStep / info.Protocols;
             }
-            l_project.SetProtocols(Protocols.ToArray());
+            projectToLoad.SetProtocols(protocols.ToArray());
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState,additionalInformations);
+            HandleError(loadingError,additionalInformations);
+            yield return Ninja.JumpBack;
 
             //Load Datasets
-            progressWindow.Set("Loading datasets");
-            yield return Ninja.JumpBack;
-
-            List<Dataset> Datasets = new List<Dataset>();
-            DirectoryInfo datasetsDirectory = l_projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
-            FileInfo[] l_datasetsFiles = datasetsDirectory.GetFiles("*" + FileExtension.Dataset, SearchOption.TopDirectoryOnly);
-            foreach (FileInfo datasetInfo in l_datasetsFiles)
+            List<Dataset> datasets = new List<Dataset>();
+            DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.Extension, SearchOption.TopDirectoryOnly);
+            foreach (FileInfo datasetFile in datasetFiles)
             {
+                yield return Ninja.JumpToUnity;
+                loadingCircle.Set(actualStep, "Loading datasets : " + datasetFile.Name.Remove(datasetFile.Name.Length - datasetFile.Extension.Length));
+                loadingCircle.ChangePercentage(actualStep, actualStep + datasetStep / info.Datasets, info.Patients / 13.0f);
+                yield return Ninja.JumpBack;
                 try
                 {
-                    Datasets.Add(Dataset.LoadJSon(datasetInfo.FullName));
-                }   
+                    Dataset dataset = ClassLoaderSaver.LoadFromJson<Dataset>(datasetFile.FullName);
+                    datasets.Add(dataset);
+                }
                 catch
                 {
-                    additionalInformations = datasetInfo.Name;
-                    l_loadingState = LoadErrorTypeEnum.CanNotReadDataset;
+                    additionalInformations = datasetFile.Name;
+                    loadingError = LoadErrorTypeEnum.CanNotReadDataset;
                     break;
                 }
-                l_actualStep++;
-                yield return Ninja.JumpToUnity;
-                progressWindow.Set((float)l_actualStep / l_maxStep);
-                yield return Ninja.JumpBack;
+                actualStep += datasetStep / info.Datasets;
             }
-            l_project.SetDatasets(Datasets.ToArray());
+            projectToLoad.SetDatasets(datasets.ToArray());
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState,additionalInformations);
-
-            //Load Visualisations
-            progressWindow.Set("Loading visualisations");
+            HandleError(loadingError,additionalInformations);
             yield return Ninja.JumpBack;
 
-            DirectoryInfo visualisationsDirectory = l_projectDirectory.GetDirectories("Visualisations", SearchOption.TopDirectoryOnly)[0];
+            //Load Visualisations
+            DirectoryInfo visualisationsDirectory = projectDirectory.GetDirectories("Visualisations", SearchOption.TopDirectoryOnly)[0];
             DirectoryInfo SPvisualisationsDirectory = visualisationsDirectory.GetDirectories("SinglePatient", SearchOption.TopDirectoryOnly)[0];
             DirectoryInfo MPvisualisationsDirectory = visualisationsDirectory.GetDirectories("MultiPatients", SearchOption.TopDirectoryOnly)[0];
 
-            List<SinglePatientVisualisation> SingleVisualisations = new List<SinglePatientVisualisation>();
-            FileInfo[] l_singleVisualisationFiles = SPvisualisationsDirectory.GetFiles("*" + FileExtension.SingleVisualisation, SearchOption.TopDirectoryOnly);
-            foreach (FileInfo singlePatientInfo in l_singleVisualisationFiles)
+            List<SinglePatientVisualisation> singlePatientVisualisations = new List<SinglePatientVisualisation>();
+            FileInfo[] singlePatientVisualisationFiles = SPvisualisationsDirectory.GetFiles("*" + SinglePatientVisualisation.Extension, SearchOption.TopDirectoryOnly);
+            foreach (FileInfo singlePatientVisualisationFile in singlePatientVisualisationFiles)
             {
+                yield return Ninja.JumpToUnity;
+                loadingCircle.Set(actualStep, "Loading single patient visualisations : " + singlePatientVisualisationFile.Name.Remove(singlePatientVisualisationFile.Name.Length - singlePatientVisualisationFile.Extension.Length));
+                yield return Ninja.JumpBack;
                 try
                 {
-                    SingleVisualisations.Add(SinglePatientVisualisation.LoadJSon(singlePatientInfo.FullName));
+                    SinglePatientVisualisation singlePatientVisualisation = ClassLoaderSaver.LoadFromJson<SinglePatientVisualisation>(singlePatientVisualisationFile.FullName);
+                    singlePatientVisualisations.Add(singlePatientVisualisation);
                 }
                 catch
                 {
-                    additionalInformations = singlePatientInfo.Name;
-                    l_loadingState = LoadErrorTypeEnum.CanNotReadSingleVisualisation;
+                    additionalInformations = singlePatientVisualisationFile.Name;
+                    loadingError = LoadErrorTypeEnum.CanNotReadSingleVisualisation;
                     break;
                 }
-                l_actualStep++;
-                yield return Ninja.JumpToUnity;
-                progressWindow.Set((float)l_actualStep / l_maxStep);
-                yield return Ninja.JumpBack;
+                actualStep += visualisationStep / info.Visualisations;
+
             }
-            l_project.SetSinglePatientVisualisations(SingleVisualisations.ToArray());
+            projectToLoad.SetSinglePatientVisualisations(singlePatientVisualisations.ToArray());
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState,additionalInformations);
+            HandleError(loadingError,additionalInformations);
             yield return Ninja.JumpBack;
 
-            List<MultiPatientsVisualisation> MultiVisualisations = new List<MultiPatientsVisualisation>();
-            FileInfo[] l_multiVisualisationsFiles = MPvisualisationsDirectory.GetFiles("*" + FileExtension.MultiVisualisation, SearchOption.TopDirectoryOnly);
-            foreach (FileInfo multiPatientsInfo in l_multiVisualisationsFiles)
+            List<MultiPatientsVisualisation> multiPatientsVisualisations = new List<MultiPatientsVisualisation>();
+            FileInfo[] multiPatientVisualisationFiles = MPvisualisationsDirectory.GetFiles("*" + MultiPatientsVisualisation.Extension, SearchOption.TopDirectoryOnly);
+            foreach (FileInfo multiPatientVisualisationFile in multiPatientVisualisationFiles)
             {
+                yield return Ninja.JumpToUnity;
+                loadingCircle.Set(actualStep, "Loading multi-patients visualisations : " + multiPatientVisualisationFile.Name.Remove(multiPatientVisualisationFile.Name.Length - multiPatientVisualisationFile.Extension.Length));
+                yield return Ninja.JumpBack;
                 try
                 {
-                    MultiVisualisations.Add(MultiPatientsVisualisation.LoadJSon(multiPatientsInfo.FullName));
+                    MultiPatientsVisualisation multiPatientVisualisation = ClassLoaderSaver.LoadFromJson<MultiPatientsVisualisation>(multiPatientVisualisationFile.FullName);
+                    multiPatientsVisualisations.Add(multiPatientVisualisation);
                 }
                 catch
                 {
-                    additionalInformations = multiPatientsInfo.Name;
-                    l_loadingState = LoadErrorTypeEnum.CanNotReadMultiVisualisation;
+                    additionalInformations = multiPatientVisualisationFile.Name;
+                    loadingError = LoadErrorTypeEnum.CanNotReadMultiVisualisation;
                     break;
                 }
-                l_actualStep++;
-                yield return Ninja.JumpToUnity;
-                progressWindow.Set((float)l_actualStep / l_maxStep);
-                yield return Ninja.JumpBack;
+                actualStep += visualisationStep / info.Visualisations;
+
             }
-            l_project.SetMultiPatientsVisualisations(MultiVisualisations.ToArray());
+            projectToLoad.SetMultiPatientsVisualisations(multiPatientsVisualisations.ToArray());
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState,additionalInformations);
+            HandleError(loadingError,additionalInformations);
             yield return Ninja.JumpBack;
 
-            ApplicationState.ProjectLoadedLocation = l_projectDirectory.Parent.FullName;
-            ApplicationState.ProjectLoaded = l_project;
-
             yield return Ninja.JumpToUnity;
-            progressWindow.Set("Project loaded succesfully");
+            loadingCircle.Set(1,"Project loaded succesfully");
             yield return new WaitForSeconds(0.5f);
-            progressWindow.Close();
+            loadingCircle.Close();
             GameObject.FindGameObjectWithTag("Gestion").GetComponent<MenuButtonState>().SetInteractableButtons();
         }
         IEnumerator c_Save(string path)
@@ -306,32 +312,32 @@ namespace HBP.UI
             // Create folders
             GameObject progressWindowObj = GameObject.Instantiate(progressWindowPrefab, GameObject.Find("Windows").transform) as GameObject;
             progressWindowObj.transform.localPosition = new Vector3(0, 0, 0);
-            progressWindow = progressWindowObj.GetComponent<ProgressWindow>();
-            progressWindow.Set((float)l_actualStep / l_maxStep, "Creating new directories");
+            loadingCircle = progressWindowObj.GetComponent<LoadingCircle>();
+            loadingCircle.Set((float)l_actualStep / l_maxStep, "Creating new directories");
             yield return Ninja.JumpBack;
 
             string l_projectPath = path + Path.DirectorySeparatorChar + project.Settings.Name;
             string l_projectTempPath = l_projectPath + "-temp";
-            DirectoryInfo l_ProjectFolder = new DirectoryInfo("f");
-            DirectoryInfo l_PatientsFolder = l_ProjectFolder;
-            DirectoryInfo l_GroupsFolder = l_ProjectFolder;
-            DirectoryInfo l_ProtocolsFolder = l_ProjectFolder;
-            DirectoryInfo l_ExperiencesFolder = l_ProjectFolder;
-            DirectoryInfo l_ROIFolder = l_ProjectFolder;
-            DirectoryInfo l_Visualisation = l_ProjectFolder;
-            DirectoryInfo l_SingleVisualisation = l_ProjectFolder;
-            DirectoryInfo l_MultiVisualisation = l_ProjectFolder;
+            DirectoryInfo projectDirectory = new DirectoryInfo("f");
+            DirectoryInfo patientDirectory = projectDirectory;
+            DirectoryInfo groupDirectory = projectDirectory;
+            DirectoryInfo protocolDirectory = projectDirectory;
+            DirectoryInfo datasetDirectory = projectDirectory;
+            DirectoryInfo RegionOfInterestDirectory = projectDirectory;
+            DirectoryInfo visualisationDirectory = projectDirectory;
+            DirectoryInfo singlePatientVisualisationDirectory = projectDirectory;
+            DirectoryInfo multiPatientsVisualisationDirectory = projectDirectory;
             try
             {
-                l_ProjectFolder = Directory.CreateDirectory(l_projectTempPath);
-                l_PatientsFolder = Directory.CreateDirectory(l_ProjectFolder.FullName + Path.DirectorySeparatorChar + "Patients");
-                l_GroupsFolder = Directory.CreateDirectory(l_ProjectFolder.FullName + Path.DirectorySeparatorChar + "Groups");
-                l_ProtocolsFolder = Directory.CreateDirectory(l_ProjectFolder.FullName + Path.DirectorySeparatorChar + "Protocols");
-                l_ExperiencesFolder = Directory.CreateDirectory(l_ProjectFolder.FullName + Path.DirectorySeparatorChar + "Datasets");
-                l_ROIFolder = Directory.CreateDirectory(l_ProjectFolder.FullName + Path.DirectorySeparatorChar + "ROI");
-                l_Visualisation = Directory.CreateDirectory(l_ProjectFolder.FullName + Path.DirectorySeparatorChar + "Visualisations");
-                l_SingleVisualisation = Directory.CreateDirectory(l_Visualisation.FullName + Path.DirectorySeparatorChar + "SinglePatient");
-                l_MultiVisualisation = Directory.CreateDirectory(l_Visualisation.FullName + Path.DirectorySeparatorChar + "MultiPatients");
+                projectDirectory = Directory.CreateDirectory(l_projectTempPath);
+                patientDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Patients");
+                groupDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Groups");
+                protocolDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Protocols");
+                datasetDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Datasets");
+                RegionOfInterestDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "ROI");
+                visualisationDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Visualisations");
+                singlePatientVisualisationDirectory = Directory.CreateDirectory(visualisationDirectory.FullName + Path.DirectorySeparatorChar + "SinglePatient");
+                multiPatientsVisualisationDirectory = Directory.CreateDirectory(visualisationDirectory.FullName + Path.DirectorySeparatorChar + "MultiPatients");
             }
             catch
             {
@@ -339,15 +345,15 @@ namespace HBP.UI
             }
             l_actualStep++;
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations, l_ProjectFolder);
+            HandleError(l_loadingState, additionalInformations, projectDirectory);
 
             // Save settings
-            progressWindow.Set((float)l_actualStep / l_maxStep, "Saving settings");
+            loadingCircle.Set((float)l_actualStep / l_maxStep, "Saving settings");
             yield return Ninja.JumpBack;
 
             try
             {
-                project.Settings.SaveJSon(l_ProjectFolder.FullName);
+                ClassLoaderSaver.SaveToJSon(project.Settings, projectDirectory.FullName + Path.DirectorySeparatorChar + project.Settings.Name + ProjectSettings.EXTENSION);
             }
             catch
             {
@@ -355,16 +361,16 @@ namespace HBP.UI
             }
             l_actualStep++;
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations, l_ProjectFolder);
+            HandleError(l_loadingState, additionalInformations, projectDirectory);
 
             // Save patients
-            progressWindow.Set((float)l_actualStep / l_maxStep, "Saving patients");
+            loadingCircle.Set((float)l_actualStep / l_maxStep, "Saving patients");
             yield return Ninja.JumpBack;
-            foreach (d.Patient patientToSave in project.Patients)
+            foreach (Data.Patient patientToSave in project.Patients)
             {
                 try
                 {
-                    patientToSave.SaveJSon(l_PatientsFolder.FullName);
+                    ClassLoaderSaver.SaveToJSon(patientToSave, patientDirectory.FullName + Path.DirectorySeparatorChar + patientToSave.ID + Data.Patient.Extension);
                 }
                 catch
                 {
@@ -374,20 +380,20 @@ namespace HBP.UI
                 }
                 l_actualStep++;
                 yield return Ninja.JumpToUnity;
-                progressWindow.Set((float)l_actualStep / l_maxStep);
+                loadingCircle.Progress = ((float)l_actualStep / l_maxStep);
                 yield return Ninja.JumpBack;
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations, l_ProjectFolder);
+            HandleError(l_loadingState, additionalInformations, projectDirectory);
 
             // Save groups
-            progressWindow.Set((float)l_actualStep / l_maxStep, "Saving groups");
+            loadingCircle.Set((float)l_actualStep / l_maxStep, "Saving groups");
             yield return Ninja.JumpBack;
-            foreach (d.Group groupToSave in project.Groups)
+            foreach (Data.Group groupToSave in project.Groups)
             {
                 try
                 {
-                    groupToSave.SaveJSon(l_GroupsFolder.FullName);
+                    ClassLoaderSaver.SaveToJSon(groupToSave, groupDirectory.FullName + Path.DirectorySeparatorChar + groupToSave.Name + Data.Group.Extension);
                 }
                 catch
                 {
@@ -397,20 +403,20 @@ namespace HBP.UI
                 }
                 l_actualStep++;
                 yield return Ninja.JumpToUnity;
-                progressWindow.Set((float)l_actualStep / l_maxStep);
+                loadingCircle.Progress = ((float)l_actualStep / l_maxStep);
                 yield return Ninja.JumpBack;
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations, l_ProjectFolder);
+            HandleError(l_loadingState, additionalInformations, projectDirectory);
 
             // Save protocols
-            progressWindow.Set((float)l_actualStep / l_maxStep, "Saving protocols");
+            loadingCircle.Set((float)l_actualStep / l_maxStep, "Saving protocols");
             yield return Ninja.JumpBack;
             foreach (Protocol protocolToSave in project.Protocols)
             {
-                protocolToSave.SaveJSon(l_ProtocolsFolder.FullName);
                 try
                 {
+                    ClassLoaderSaver.SaveToJSon(protocolToSave, protocolDirectory.FullName + Path.DirectorySeparatorChar + protocolToSave.Name + Protocol.Extension);
                 }
                 catch
                 {
@@ -420,43 +426,43 @@ namespace HBP.UI
                 }
                 l_actualStep++;
                 yield return Ninja.JumpToUnity;
-                progressWindow.Set((float)l_actualStep / l_maxStep);
+                loadingCircle.Progress = ((float)l_actualStep / l_maxStep);
                 yield return Ninja.JumpBack;
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations, l_ProjectFolder);
+            HandleError(l_loadingState, additionalInformations, projectDirectory);
 
-            //Save experiences
-            progressWindow.Set((float)l_actualStep / l_maxStep, "Saving datasets");
+            //Save datasets
+            loadingCircle.Set((float)l_actualStep / l_maxStep, "Saving datasets");
             yield return Ninja.JumpBack;
-            foreach (Dataset experienceToSave in project.Datasets)
+            foreach (Dataset datasetToSave in project.Datasets)
             {
                 try
                 {
-                    experienceToSave.SaveJSon(l_ExperiencesFolder.FullName);
+                    ClassLoaderSaver.SaveToJSon(datasetToSave, datasetDirectory.FullName + Path.DirectorySeparatorChar + datasetToSave.Name + Dataset.Extension);
                 }
                 catch
                 {
-                    additionalInformations = experienceToSave.Name;
+                    additionalInformations = datasetToSave.Name;
                     l_loadingState = SaveErrorTypeEnum.CanNotSaveDataset;
                     break;
                 }
                 l_actualStep++;
                 yield return Ninja.JumpToUnity;
-                progressWindow.Set((float)l_actualStep / l_maxStep);
+                loadingCircle.Progress = ((float)l_actualStep / l_maxStep);
                 yield return Ninja.JumpBack;
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations, l_ProjectFolder);
+            HandleError(l_loadingState, additionalInformations, projectDirectory);
 
             //Save singleVisualisations
-            progressWindow.Set((float)l_actualStep / l_maxStep, "Saving single patient visualisations");
+            loadingCircle.Set((float)l_actualStep / l_maxStep, "Saving single patient visualisations");
             yield return Ninja.JumpBack;
             foreach (SinglePatientVisualisation visualisation in project.SinglePatientVisualisations)
             {
                 try
                 {
-                    visualisation.SaveJSon(l_SingleVisualisation.FullName);
+                    ClassLoaderSaver.SaveToJSon(visualisation, singlePatientVisualisationDirectory.FullName + Path.DirectorySeparatorChar + visualisation.Name + SinglePatientVisualisation.Extension);
                 }
                 catch
                 {
@@ -466,20 +472,20 @@ namespace HBP.UI
                 }
                 l_actualStep++;
                 yield return Ninja.JumpToUnity;
-                progressWindow.Set((float)l_actualStep / l_maxStep);
+                loadingCircle.Progress = ((float)l_actualStep / l_maxStep);
                 yield return Ninja.JumpBack;
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations, l_ProjectFolder);
+            HandleError(l_loadingState, additionalInformations, projectDirectory);
 
             //Save  multiVisualisations
-            progressWindow.Set((float)l_actualStep / l_maxStep, "Saving multi-patients visualisations");
+            loadingCircle.Set((float)l_actualStep / l_maxStep, "Saving multi-patients visualisations");
             yield return Ninja.JumpBack;
             foreach (MultiPatientsVisualisation visualisation in project.MultiPatientsVisualisations)
             {
                 try
                 {
-                    visualisation.SaveJSon(l_MultiVisualisation.FullName);
+                    ClassLoaderSaver.SaveToJSon(visualisation, multiPatientsVisualisationDirectory.FullName + Path.DirectorySeparatorChar + visualisation.Name + MultiPatientsVisualisation.Extension);
                 }
                 catch
                 {
@@ -489,14 +495,14 @@ namespace HBP.UI
                 }
                 l_actualStep++;
                 yield return Ninja.JumpToUnity;
-                progressWindow.Set((float)l_actualStep / l_maxStep);
+                loadingCircle.Progress = ((float)l_actualStep / l_maxStep);
                 yield return Ninja.JumpBack;
             }
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations, l_ProjectFolder);
+            HandleError(l_loadingState, additionalInformations, projectDirectory);
 
             // Deleting old directories.
-            progressWindow.Set((float)l_actualStep / l_maxStep, "Deleting old directories");
+            loadingCircle.Set((float)l_actualStep / l_maxStep, "Deleting old directories");
             yield return Ninja.JumpBack;
 
             if (l_folderToDelete != string.Empty)
@@ -512,12 +518,12 @@ namespace HBP.UI
             }
             l_actualStep++;
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations, l_ProjectFolder);
+            HandleError(l_loadingState, additionalInformations, projectDirectory);
 
             //Rename directory
             try
             {
-                l_ProjectFolder.MoveTo(l_projectPath);
+                projectDirectory.MoveTo(l_projectPath);
             }
             catch
             {
@@ -526,11 +532,11 @@ namespace HBP.UI
 
             l_actualStep++;
             yield return Ninja.JumpToUnity;
-            HandleError(l_loadingState, additionalInformations, l_ProjectFolder);
+            HandleError(l_loadingState, additionalInformations, projectDirectory);
 
-            progressWindow.Set(1, "Project saved succesfully");
+            loadingCircle.Set(1, "Project saved succesfully");
             yield return new WaitForSeconds(0.5f);
-            progressWindow.Close();
+            loadingCircle.Close();
             yield return Ninja.JumpBack;
         }
         IEnumerator c_SaveAndReload(string path)
@@ -592,10 +598,9 @@ namespace HBP.UI
             {
                 ApplicationState.ProjectLoaded = oldProject;
                 ApplicationState.ProjectLoadedLocation = oldProjectLocation;
-                progressWindow.Close();
+                loadingCircle.Close();
                 StopAllCoroutines();
-                GameObject popUpobj = GameObject.Instantiate(popUpPrefab, GameObject.Find("UI").transform) as GameObject;
-                popUpobj.transform.localPosition = new Vector3(0, 0, 0);
+                GameObject popUpobj = GameObject.Instantiate(popUpPrefab, GetComponentInParent<VisualisationLoader>().transform) as GameObject;
                 popUpobj.GetComponent<PopUp>().Show(GetErrorMessage(error, additionalInformations));
             }
         }
@@ -607,10 +612,9 @@ namespace HBP.UI
                 {
                     directory.Delete(true);
                 }
-                progressWindow.Close();
+                loadingCircle.Close();
                 StopAllCoroutines();
-                GameObject popUpobj = GameObject.Instantiate(popUpPrefab, GameObject.Find("UI").transform) as GameObject;
-                popUpobj.transform.localPosition = new Vector3(0, 0, 0);
+                GameObject popUpobj = Instantiate(popUpPrefab, GetComponentInParent<VisualisationLoader>().transform) as GameObject;
                 popUpobj.GetComponent<PopUp>().Show(GetErrorMessage(error, additionalInformations));
             }
         }

@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
-using d = HBP.Data.Patient;
+using HBP.Data;
 
 namespace HBP.UI.Patient
 {
 	/// <summary>
 	/// Display/Modify group.
 	/// </summary>
-	public class GroupModifier : ItemModifier<d.Group> 
+	public class GroupModifier : ItemModifier<Group> 
 	{
         #region Properties
         [SerializeField]
@@ -22,19 +22,19 @@ namespace HBP.UI.Patient
 		#region Public Methods
 		public void AddPatients()
 		{
-            d.Patient[] patients = projectPatientsList.GetObjectsSelected();
-            ItemTemp.Add(patients);
+            Data.Patient[] patients = projectPatientsList.GetObjectsSelected();
+            ItemTemp.AddPatient(patients);
             projectPatientsList.DeactivateObject(patients);
             groupPatientsList.Add(patients);
         }
         public void RemovePatients()
 		{
-            d.Patient[] patients = groupPatientsList.GetObjectsSelected();
-            ItemTemp.Remove(patients);
+            Data.Patient[] patients = groupPatientsList.GetObjectsSelected();
+            ItemTemp.RemovePatient(patients);
             groupPatientsList.Remove(patients);
             projectPatientsList.ActiveObject(patients);
         }
-        public void OpenPatientModifier(d.Patient patientToModify)
+        public void OpenPatientModifier(Data.Patient patientToModify)
         {
             RectTransform obj = Instantiate(patientModifierPrefab).GetComponent<RectTransform>();
             obj.SetParent(GameObject.Find("Windows").transform);
@@ -51,7 +51,7 @@ namespace HBP.UI.Patient
         {
             SetInteractable(true);
         }
-        protected override void SetFields(d.Group objectToDisplay)
+        protected override void SetFields(Group objectToDisplay)
         {
             nameInputField.text = ItemTemp.Name;
             projectPatientsList.Display(ApplicationState.ProjectLoaded.Patients.ToArray(), ItemTemp.Patients.ToArray());

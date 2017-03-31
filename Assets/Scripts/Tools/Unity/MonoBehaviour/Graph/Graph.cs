@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using UnityEngine.Profiling;
 using System.Collections.Generic;
 using d = Tools.Unity.Graph.Data;
 
@@ -87,7 +88,9 @@ namespace Tools.Unity.Graph
 
         public void Display(d.Curve[] curves,Vector2 xWindow,Vector2 yWindow,bool interactable)
         {
+            Profiler.BeginSample("Display Graph");
             m_displayGestion.Display(curves, xWindow, yWindow, interactable);
+            Profiler.EndSample();
             m_informationsGestion.Curves = curves;
         }
 

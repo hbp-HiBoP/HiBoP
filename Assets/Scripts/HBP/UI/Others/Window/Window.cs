@@ -3,6 +3,7 @@ using UnityEngine.Events;
 
 namespace HBP.UI
 {
+    [RequireComponent(typeof(Theme.WindowThemeGestion))]
     public abstract class Window : MonoBehaviour
     {
         #region Properties

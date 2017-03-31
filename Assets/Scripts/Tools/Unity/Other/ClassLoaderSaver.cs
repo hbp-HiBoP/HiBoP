@@ -1,0 +1,96 @@
+﻿using UnityEngine;
+using System;
+using System.IO;
+using System.Xml.Serialization;
+using Newtonsoft.Json;
+
+namespace Tools.Unity
+{
+    public static class ClassLoaderSaver
+    {
+        public static T LoadFromXML<T>(string path) where T : new()
+        {
+            T result = new T();
+            try
+            {
+                using (StreamReader streamReader = new StreamReader(path))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(T));
+                    result = (T)serializer.Deserialize(streamReader.BaseStream);
+                    streamReader.Close();
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarningFormat(e.Message);
+            }
+            return result;
+        }
+        public static T LoadFromJson<T>(string path) where T : new()
+        {
+            T result = new T();
+            try
+            {
+                using (StreamReader streamReader = new StreamReader(path))
+                {
+                    result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd());
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarningFormat(e.Message);
+            }
+            return result;
+        }
+        public static bool SaveToXML<T>(T instance, string path,bool overwrite = false) where T : new()
+        {
+            try
+            {
+                if(!overwrite) GenerateUniqueSavePath(ref path);
+                using (StreamWriter streamWriter = new StreamWriter(path))
+                {
+                    XmlSerializer serializer = new XmlSerializer(typeof(T));
+                    serializer.Serialize(streamWriter, instance);
+                    streamWriter.Close();
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarningFormat(e.Message);
+                return false;
+            }
+        }
+        public static bool SaveToJSon<T>(T instance, string path, bool overwrite = false) where T : new()
+        {
+            try
+            {
+                if(!overwrite) GenerateUniqueSavePath(ref path);
+                using (StreamWriter streamWriter = new StreamWriter(path))
+                {
+
+                    string json = JsonConvert.SerializeObject(instance,Formatting.Indented);
+                    streamWriter.Write(json);
+                    streamWriter.Close();
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarningFormat(e.Message);
+                return false;
+            }
+        }
+        static void GenerateUniqueSavePath(ref string path)
+        {
+            string extension = Path.GetExtension(path);
+            string pathWithoutExtension = Path.GetFullPath(path).Remove(Path.GetFullPath(path).Length - extension.Length);
+            int count = 0;
+            while (File.Exists(path))
+            {
+                string temp = string.Format("{0}({1})", pathWithoutExtension, ++count);
+                path = temp + extension;
+            }
+        }
+    }
+}

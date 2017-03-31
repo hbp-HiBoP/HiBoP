@@ -1,17 +1,21 @@
 ﻿using UnityEngine;
+using Tools.Unity;
 using HBP.Data.Settings;
 
-public class GestionSettings : MonoBehaviour
+namespace HBP.UI.Settings
 {
-    void Awake()
+    public class GestionSettings : MonoBehaviour
     {
-        ApplicationState.GeneralSettings = GeneralSettings.LoadJson();
-        ApplicationState.GeneralSettings.SaveJSon();
-        ApplicationState.Skin = new HBP.UI.Skin.Skin();
-    }
+        void Awake()
+        {
+            ApplicationState.Theme = new Theme.Theme();
+            ApplicationState.GeneralSettings = ClassLoaderSaver.LoadFromJson<GeneralSettings>(GeneralSettings.PATH);
+            ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH, true);
+        }
 
-    public void Exit()
-    {
-        Application.Quit();
+        public void Exit()
+        {
+            Application.Quit();
+        }
     }
 }

@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using System.Linq;
+﻿using UnityEngine.UI;
 using d = HBP.Data.Experience.Protocol;
 using Tools.Unity;
 
@@ -37,25 +35,25 @@ namespace HBP.UI.Experience.Protocol
         public void AddSecondaryEvent()
 		{
             d.Event newEvent = new d.Event();
-            ItemTemp.AddSecondaryEvent(newEvent);
+            ItemTemp.SecondaryEvents.Add(newEvent);
             eventList.Add(newEvent);
         }
         public void RemoveSecondaryEvent()
 		{
             d.Event[] eventsToRemove = eventList.GetObjectsSelected();
-            ItemTemp.RemoveSecondaryEvent(eventsToRemove);
+            foreach(d.Event e in eventsToRemove) ItemTemp.SecondaryEvents.Remove(e);
             eventList.Remove(eventsToRemove);
         }
         public void AddIcon()
         {
             d.Icon newIcon = new d.Icon();
-            ItemTemp.Scenario.Add(newIcon);
+            ItemTemp.Scenario.Icons.Add(newIcon);
             iconList.Add(newIcon);
         }
         public void RemoveIcon()
         {
             d.Icon[] iconsToRemove = iconList.GetObjectsSelected();
-            ItemTemp.Scenario.Remove(iconsToRemove);
+            foreach(d.Icon i in iconsToRemove) ItemTemp.Scenario.Icons.Remove(i);
             iconList.Remove(iconsToRemove);
         }
         #endregion
@@ -66,23 +64,23 @@ namespace HBP.UI.Experience.Protocol
             nameInputField.text = objectToDisplay.DisplayInformations.Name;
             nameInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Name = value);
 
-            imageFileSelector.File = objectToDisplay.DisplayInformations.Image;
-            imageFileSelector.onValueChanged.AddListener((value) => ItemTemp.DisplayInformations.Image = value);
+            imageFileSelector.File = objectToDisplay.DisplayInformations.IllustrationPath;
+            imageFileSelector.onValueChanged.AddListener((value) => ItemTemp.DisplayInformations.IllustrationPath = value);
 
             sortInputField.text = objectToDisplay.DisplayInformations.Sort;
             sortInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Sort = value);
 
-            windowMinInputField.text = objectToDisplay.DisplayInformations.Window.x.ToString();
-            windowMinInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Window = new Vector2(float.Parse(value), ItemTemp.DisplayInformations.Window.y));
+            windowMinInputField.text = objectToDisplay.DisplayInformations.Window.Start.ToString();
+            windowMinInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Window = new Tools.CSharp.Window(float.Parse(value), ItemTemp.DisplayInformations.Window.End));
 
-            windowMaxInputField.text = objectToDisplay.DisplayInformations.Window.y.ToString();
-            windowMaxInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Window = new Vector2(ItemTemp.DisplayInformations.Window.x, float.Parse(value)));
+            windowMaxInputField.text = objectToDisplay.DisplayInformations.Window.End.ToString();
+            windowMaxInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Window = new Tools.CSharp.Window(ItemTemp.DisplayInformations.Window.Start, float.Parse(value)));
 
-            baseLineMinInputField.text = objectToDisplay.DisplayInformations.BaseLine.x.ToString();
-            baseLineMinInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.BaseLine = new Vector2(float.Parse(value),ItemTemp.DisplayInformations.BaseLine.y));
+            baseLineMinInputField.text = objectToDisplay.DisplayInformations.BaseLine.Start.ToString();
+            baseLineMinInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.BaseLine = new Tools.CSharp.Window(float.Parse(value),ItemTemp.DisplayInformations.BaseLine.End));
 
-            baseLineMaxInputField.text = objectToDisplay.DisplayInformations.BaseLine.y.ToString();
-            baseLineMaxInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.BaseLine = new Vector2(ItemTemp.DisplayInformations.BaseLine.x, float.Parse(value)));
+            baseLineMaxInputField.text = objectToDisplay.DisplayInformations.BaseLine.End.ToString();
+            baseLineMaxInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.BaseLine = new Tools.CSharp.Window(ItemTemp.DisplayInformations.BaseLine.Start, float.Parse(value)));
 
             mainEventLabelInputField.text = objectToDisplay.MainEvent.Name;
             mainEventLabelInputField.onEndEdit.AddListener((value) => ItemTemp.MainEvent.Name = value);

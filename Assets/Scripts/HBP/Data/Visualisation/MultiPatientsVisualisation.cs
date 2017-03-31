@@ -1,73 +1,125 @@
-﻿using UnityEngine;
-using System;
-using System.IO;
-using System.Linq;
-using System.Xml.Serialization;
+﻿using System.Linq;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Collections.ObjectModel;
 using HBP.Data.Experience.Dataset;
 
-
 namespace HBP.Data.Visualisation
 {
-    [Serializable]
+    /**
+    * \class MultiPatientsVisualisation
+    * \author Adrien Gannerie
+    * \version 1.0
+    * \date 11 janvier 2017
+    * \brief Multi-patients visualisation.
+    * 
+    * \details Multi-patients visualisation is a class which herite from the Visualisation class and it's used for visualise some columns with some patients on the MNI brain.
+    */
+    [DataContract]
     public class MultiPatientsVisualisation : Visualisation
     {
         #region Properties
-        [SerializeField]
+        public const string Extension = ".multiVisualisation";
+        [DataMember(Name = "Patients",Order = 3)]
         private List<string> patientsID;
-        public ReadOnlyCollection<Patient.Patient> Patients
+        /// <summary>
+        /// Patients used in the Visualisation.
+        /// </summary>
+        public ReadOnlyCollection<Patient> Patients
         {
-            get { return new ReadOnlyCollection<Patient.Patient>((from patient in ApplicationState.ProjectLoaded.Patients where patientsID.Contains(patient.ID) select patient).ToList()); }
+            get { return new ReadOnlyCollection<Patient>((from patient in ApplicationState.ProjectLoaded.Patients where patientsID.Contains(patient.ID) select patient).ToList()); }
         }
         #endregion
 
         #region Constructors
-        public MultiPatientsVisualisation(string name,List<Column> columns, List<Patient.Patient> patients, string id) : base(name,columns,id)
+        /// <summary>
+        /// Create a new multi-patients visualisation.
+        /// </summary>
+        /// <param name="name">Name of the visualisation.</param>
+        /// <param name="columns">Columns used in the visualisation.</param>
+        /// <param name="patients">Patients used in the vusualisation.</param>
+        /// <param name="id">Unique ID.</param>
+        public MultiPatientsVisualisation(string name,List<Column> columns, List<Patient> patients, string id) : base(name,columns,id)
         {
             SetPatients(patients.ToArray());
         }
-        public MultiPatientsVisualisation(string name,List<Column> columns, List<Patient.Patient> patients) : base (name,columns)
+        /// <summary>
+        /// Create a new multi-patients visualisation.
+        /// </summary>
+        /// <param name="name">Name of the visualisation.</param>
+        /// <param name="columns">Columns used in the visualisation.</param>
+        /// <param name="patients">Patients used in the visualisation.</param>
+        public MultiPatientsVisualisation(string name,List<Column> columns, List<Patient> patients) : base (name,columns)
         {
             SetPatients(patients.ToArray());
         }
+        /// <summary>
+        /// Create a new multi-patients visualisation with no patients inside.
+        /// </summary>
         public MultiPatientsVisualisation() : base()
         {
-            ClearPatients();
+            RemoveAllPatients();
         }
         #endregion
 
         #region Public Methods
-        public void AddPatient(Patient.Patient patient)
+        /// <summary>
+        /// Add a patient to the visualisation.
+        /// </summary>
+        /// <param name="patient">Patient to add.</param>
+        public void AddPatient(Patient patient)
         {
             patientsID.Add(patient.ID);
         }
-        public void AddPatient(Patient.Patient[] patients)
+        /// <summary>
+        /// Add patients to the visualisation.
+        /// </summary>
+        /// <param name="patients">Patients to add.</param>
+        public void AddPatient(Patient[] patients)
         {
-            foreach(Patient.Patient patient in patients)
+            foreach(Patient patient in patients)
             {
                 AddPatient(patient);
             }
         }
-        public void RemovePatient(Patient.Patient patient)
+        /// <summary>
+        /// Remove a patient to the visualisation.
+        /// </summary>
+        /// <param name="patient">Patient to remove.</param>
+        public void RemovePatient(Patient patient)
         {
             patientsID.Remove(patient.ID);
         }
-        public void RemovePatient(Patient.Patient[] patients)
+        /// <summary>
+        /// Remove patients to the visualisation.
+        /// </summary>
+        /// <param name="patients">Patients to remove.</param>
+        public void RemovePatient(Patient[] patients)
         {
-            foreach (Patient.Patient patient in patients)
+            foreach (Patient patient in patients)
             {
                 RemovePatient(patient);
             }
         }
-        public void SetPatients(Patient.Patient[] patients)
+        /// <summary>
+        /// Set patients in the visualisations.
+        /// </summary>
+        /// <param name="patients">Patients to set in the visualisation.</param>
+        public void SetPatients(Patient[] patients)
         {
             patientsID = (from patient in patients select patient.ID).ToList();
         }
-        public void ClearPatients()
+        /// <summary>
+        /// Remove all patients in the visualisation.
+        /// </summary>
+        public void RemoveAllPatients()
         {
             patientsID = new List<string>();
         }
+        /// <summary>
+        /// Test if the Visualisation is usable.
+        /// </summary>
+        /// <returns>\a True if the visualisation is usable and \a False otherwise.</returns>
         public override bool isVisualisable()
         {
             // Initialize
@@ -91,99 +143,50 @@ namespace HBP.Data.Visualisation
             }
             return result;
         }
+        /// <summary>
+        /// Get the DataInfo used by the column.
+        /// </summary>
+        /// <param name="column">Column to get the dataInfo.</param>
+        /// <returns>DataInfo used by the column.</returns>
         public override DataInfo[] GetDataInfo(Column column)
         {
-            List<DataInfo> result = new List<DataInfo>();
-            foreach (DataInfo dataInfo in column.Dataset.Data)
-            {
-                if (column.DataLabel == dataInfo.Name  && Patients.Contains(dataInfo.Patient) && column.Protocol == dataInfo.Protocol && dataInfo.Protocol.Blocs.Contains(column.Bloc))
-                {
-                    result.Add(dataInfo);
-                }
-            }
-            return result.ToArray();
+            DataInfo[] dataInfo = (from data in column.Dataset.Data where (column.DataLabel == data.Name && Patients.Contains(data.Patient) && column.Protocol == data.Protocol && data.Protocol.Blocs.Contains(column.Bloc)) select data).ToArray();
+            return dataInfo;
         }
-        public DataInfo GetDataInfo(Patient.Patient patient, Column column)
+        /// <summary>
+        /// Get the DataInfo used by the column for a specific Patient.
+        /// </summary>
+        /// <param name="patient">Patient concerned.</param>
+        /// <param name="column">Column concerned.</param>
+        /// <returns>DataInfo used by the column for the specific Patient.</returns>
+        public DataInfo GetDataInfo(Patient patient, Column column)
         {
-            DataInfo l_dataInfo = new DataInfo();
-            foreach (DataInfo dataInfo in column.Dataset.Data)
-            {
-                if (dataInfo.Name == column.DataLabel && dataInfo.Patient == patient && dataInfo.Protocol.Blocs.Contains(column.Bloc))
-                {
-                    l_dataInfo = dataInfo;
-                }
-            }
-            return l_dataInfo;
+            DataInfo[] dataInfo = (from data in column.Dataset.Data where (column.DataLabel == data.Name && data.Patient == patient && column.Protocol == data.Protocol && data.Protocol.Blocs.Contains(column.Bloc)) select data).ToArray();
+            return dataInfo[0];
         }
+        /// <summary>
+        /// Get the implantation of the patients in the Visualisation.
+        /// </summary>
+        /// <returns>Plots label of the implantion sort by patients order.</returns>
         public string[] GetImplantation()
         {
-            return (from patient in Patients select patient.Brain.MNIBasedImplantation).ToArray();
-        }
-        public override void SaveXML(string path)
-        {
-            XmlSerializer serializer = new XmlSerializer(typeof(MultiPatientsVisualisation));
-            TextWriter textWriter = new StreamWriter(GenerateSavePath(path));
-            serializer.Serialize(textWriter, this);
-            textWriter.Close();
-        }
-        public override void SaveJSon(string path)
-        {
-            string l_json = JsonUtility.ToJson(this, true);
-            using (StreamWriter outPutFile = new StreamWriter(GenerateSavePath(path)))
-            {
-                outPutFile.Write(l_json);
-            }
-        }
-        public static MultiPatientsVisualisation LoadXML(string path)
-        {
-            MultiPatientsVisualisation result = new MultiPatientsVisualisation();
-            if (File.Exists(path) && Path.GetExtension(path) == Settings.FileExtension.MultiVisualisation)
-            {
-                XmlSerializer serializer = new XmlSerializer(typeof(MultiPatientsVisualisation));
-                TextReader textReader = new StreamReader(path);
-                result = serializer.Deserialize(textReader) as MultiPatientsVisualisation;
-                textReader.Close();
-            }
-            return result;
-        }
-        public static MultiPatientsVisualisation LoadJSon(string path)
-        {
-            MultiPatientsVisualisation result = new MultiPatientsVisualisation();
-            try
-            {
-                using (StreamReader inPutFile = new StreamReader(path))
-                {
-                    result = JsonUtility.FromJson<MultiPatientsVisualisation>(inPutFile.ReadToEnd());
-                }
-            }
-            catch
-            {
-                Debug.LogWarning("Can't read the multi patients visualisation file.");
-            }
-            return result;
-        }
-        #endregion
-
-        #region Private Methods
-        string GenerateSavePath(string path)
-        {
-            string l_path = path + Path.DirectorySeparatorChar + Name;
-            string l_finalPath = l_path + Settings.FileExtension.MultiVisualisation;
-            int count = 1;
-            while (File.Exists(l_finalPath))
-            {
-                string tempFileName = string.Format("{0}({1})", l_path, count++);
-                l_finalPath = Path.Combine(path, tempFileName + Settings.FileExtension.MultiVisualisation);
-            }
-            return l_finalPath;
+            return (from patient in Patients select patient.Brain.MNIReferenceFrameImplantation).ToArray();
         }
         #endregion
 
         #region Operators
+        /// <summary>
+        /// Clone this multi-patients visualisation instance.
+        /// </summary>
+        /// <returns>Multi-patients visualisation clone.</returns>
         public override object Clone()
         {
-            return new MultiPatientsVisualisation(Name, new List<Column>(Columns), new List<Patient.Patient>(Patients), ID);
+            return new MultiPatientsVisualisation(Name, new List<Column>(Columns), new List<Patient>(Patients), ID);
         }
+        /// <summary>
+        /// Copy a multi-patients viusalisation instance to this instance.
+        /// </summary>
+        /// <param name="copy">Multi-patients visualisation instance to copy.</param>
         public override void Copy(object copy)
         {
             base.Copy(copy);
