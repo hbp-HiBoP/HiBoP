@@ -43,6 +43,11 @@ namespace HBP.VISU3D.DLL
                 filePath = Application.dataPath + "/../../HiBoP_Tools.app/Contents/MacOS/HiBoP_Tools";
                 //UnityEngine.Debug.LogError("mac -> " + filePath);
             }
+            else if(Application.platform == RuntimePlatform.LinuxPlayer)
+            {
+                filePath = Application.dataPath + "/../HiBoP_Tools";
+                UnityEngine.Debug.LogError(filePath);
+            }
 
             Process proc = new Process
             {
