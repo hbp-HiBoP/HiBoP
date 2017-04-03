@@ -291,8 +291,8 @@ namespace HBP.VISU3D
                     m_CM.LWhite.flip_triangles();
                     m_CM.LWhite.compute_normals();
 
-                    string[] split = leftWhitePath.Split('/');
-                    string parcelPath = leftWhitePath.Substring(0, leftWhitePath.LastIndexOf('/')) + "/surface_analysis/" + split[split.Length - 1].Replace(".gii", "") + "_parcels_marsAtlas.gii";
+                    string[] split = leftWhitePath.Split('\\');
+                    string parcelPath = leftWhitePath.Substring(0, leftWhitePath.LastIndexOf('\\')) + "\\surface_analysis\\" + split[split.Length - 1].Replace(".gii", "") + "_parcels_marsAtlas.gii";
                     leftParcelsLoaded = m_CM.LWhite.seach_mars_parcel_file_and_update_colors(GlobalGOPreloaded.MarsAtlasIndex, parcelPath);
                 }                
             }
@@ -312,8 +312,8 @@ namespace HBP.VISU3D
                     m_CM.RWhite.flip_triangles();
                     m_CM.RWhite.compute_normals();
 
-                    string[] split = rightWhitePath.Split('/');
-                    string parcelPath = rightWhitePath.Substring(0, rightWhitePath.LastIndexOf('/')) + "/surface_analysis/" + split[split.Length - 1].Replace(".gii", "") + "_parcels_marsAtlas.gii";
+                    string[] split = rightWhitePath.Split('\\');
+                    string parcelPath = rightWhitePath.Substring(0, rightWhitePath.LastIndexOf('\\')) + "\\surface_analysis\\" + split[split.Length - 1].Replace(".gii", "") + "_parcels_marsAtlas.gii";
                     rightParcelsLoaded = m_CM.RWhite.seach_mars_parcel_file_and_update_colors(GlobalGOPreloaded.MarsAtlasIndex, parcelPath);
                 }
             }
@@ -476,6 +476,7 @@ namespace HBP.VISU3D
             m_CM.DLLLoadedPatientsElectrodes.extract_raw_site_list(m_CM.DLLLoadedRawPlotsList);
 
 
+            ///////////////////////// TO DOOOOO : FixMe /////////////////////////////////////
             // reset latencies
             m_CM.latenciesFiles = new List<Latencies>();
             CCEPLabels = new List<string>();
@@ -484,8 +485,7 @@ namespace HBP.VISU3D
                 Latencies latencies = null;
 
                 
-                if(m_patient.Brain.PlotsConnectivity == "dummyPath")
-                //if (m_patient.Brain.Connectivities[ii].Path == "dummyPath")
+                if(m_patient.Brain.PlotsConnectivity == "dummyPath" || m_patient.Brain.PlotsConnectivity == string.Empty)
                 {
                     // generate dummy latencies
                     latencies = m_CM.DLLLoadedRawPlotsList.generate_dummy_latencies();
@@ -496,15 +496,21 @@ namespace HBP.VISU3D
                     latencies = m_CM.DLLLoadedRawPlotsList.update_latencies_with_file(m_patient.Brain.PlotsConnectivity);// Connectivities[ii].Path);
                 }
 
+                if(latencies != null)
+                {
+                    latencies.name = m_patient.Brain.PlotsConnectivity; //Connectivities[ii].Label;
+                    m_CM.latenciesFiles.Add(latencies);
+                    CCEPLabels.Add(latencies.name);
+                }
+
                 //latencies = m_CM.DLLLoadedRawPlotsList.updateLatenciesWithFile("C:/Users/Florian/Desktop/amplitudes_latencies/amplitudes_latencies/SIEJO_amplitudes_latencies.txt");
-                latencies.name = m_patient.Brain.PlotsConnectivity; //Connectivities[ii].Label;
-                m_CM.latenciesFiles.Add(latencies);
-                CCEPLabels.Add(latencies.name);
+
             }
 
             m_CM.latencyFilesDefined = true; //(m_patient.Brain.Connectivities.Count > 0);
             m_updateLatencies.Invoke(CCEPLabels);
 
+            //////////////////////////////////////////////////////////////////////////////////////////////
 
             //####### UDPATE MODE
             modes.updateMode(Mode.FunctionsId.resetElectrodesFile);
