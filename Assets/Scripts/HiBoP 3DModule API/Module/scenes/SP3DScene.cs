@@ -200,8 +200,8 @@ namespace HBP.VISU3D
             namePatients.Add(m_patient.Place + "_" + m_patient.Date + "_" + m_patient.Name);
 
             List<string> meshesFiles = new List<string>();
-            meshesFiles.Add(m_patient.Brain.LeftCerebralHemisphereMesh);
-            meshesFiles.Add(m_patient.Brain.RightCerebralHemisphereMesh);
+            meshesFiles.Add(m_patient.Brain.LeftCerebralHemisphereMesh.Replace("/", "\\"));
+            meshesFiles.Add(m_patient.Brain.RightCerebralHemisphereMesh.Replace("/", "\\"));
 
             // reset columns
             m_CM.reset(planesList.Count);
