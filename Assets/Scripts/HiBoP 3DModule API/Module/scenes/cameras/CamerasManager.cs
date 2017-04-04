@@ -172,7 +172,7 @@ namespace HBP.VISU3D.Cam
                     {
                         if (m_spCameras[ii][jj].activeInHierarchy)
                         {
-                            m_spCameras[ii][jj].GetComponent<TrackBallSingleCamera>().automatic_camera_rotation();
+                            m_spCameras[ii][jj].GetComponent<TrackBallSingleCamera>().start_automatic_rotation();
                         }
                     }
                 }
@@ -183,7 +183,7 @@ namespace HBP.VISU3D.Cam
                     {
                         if (m_mpCameras[ii][jj].activeInHierarchy)
                         {
-                            m_mpCameras[ii][jj].GetComponent<TrackBallMultiCamera>().automatic_camera_rotation();
+                            m_mpCameras[ii][jj].GetComponent<TrackBallMultiCamera>().start_automatic_rotation();
                         }
                     }
                 }
