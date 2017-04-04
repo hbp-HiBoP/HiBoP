@@ -160,7 +160,7 @@ namespace HBP.VISU3D.Cam
         }
 
         /// <summary>
-        /// Apply a coroutine rotation in all the cameras
+        /// Apply a rotation in all the cameras
         /// </summary>
         /// <param name="spScene"></param>
         public void rotate_all_cameras(bool spScene)
@@ -184,6 +184,36 @@ namespace HBP.VISU3D.Cam
                         if (m_mpCameras[ii][jj].activeInHierarchy)
                         {
                             m_mpCameras[ii][jj].GetComponent<TrackBallMultiCamera>().start_automatic_rotation();
+                        }
+                    }
+                }
+        }
+
+        /// <summary>
+        /// Sets the cameras rotation speed
+        /// </summary>
+        /// <param name="spScene"></param>
+        public void set_all_cameras_rotation_speed(bool spScene, float speed)
+        {
+            if (spScene)
+                for (int ii = 0; ii < m_spCameras.Count; ++ii)
+                {
+                    for (int jj = 0; jj < m_spCameras[ii].Count; jj++)
+                    {
+                        if (m_spCameras[ii][jj].activeInHierarchy)
+                        {
+                            m_spCameras[ii][jj].GetComponent<TrackBallSingleCamera>().set_camera_rotation_speed(speed);
+                        }
+                    }
+                }
+            else
+                for (int ii = 0; ii < m_mpCameras.Count; ++ii)
+                {
+                    for (int jj = 0; jj < m_mpCameras[ii].Count; jj++)
+                    {
+                        if (m_mpCameras[ii][jj].activeInHierarchy)
+                        {
+                            m_mpCameras[ii][jj].GetComponent<TrackBallMultiCamera>().set_camera_rotation_speed(speed);
                         }
                     }
                 }

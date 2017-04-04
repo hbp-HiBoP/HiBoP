@@ -133,6 +133,12 @@ namespace HBP.VISU3D
                 m_cameraIsRotating = !m_cameraIsRotating;
             });
 
+            // auto rotate speed
+            Slider rotateSpeedSlider = contentPanelT.Find("Auto rotate speed slider").GetComponent<Slider>(); //FIXME: May need to be changed to number field or equivalent
+            rotateSpeedSlider.onValueChanged.AddListener(delegate
+            {
+                m_camerasManager.set_all_cameras_rotation_speed(m_scene.singlePatient, rotateSpeedSlider.value);
+            });
 
             //Image histogramImage = contentPanelT.Find("Histogram IRM parent").Find("Histogram panel").GetComponent<Image>();
             // IRM cal min
@@ -194,6 +200,7 @@ namespace HBP.VISU3D
                 contentPanelT.Find("Actions parent").Find("expand image").gameObject.SetActive(m_isActionsMinimized);
                 contentPanelT.Find("Actions parent").Find("minimize image").gameObject.SetActive(!m_isActionsMinimized);
                 contentPanelT.Find("Auto rotate button").gameObject.SetActive(!m_isActionsMinimized);
+                contentPanelT.Find("Auto rotate speed slider").gameObject.SetActive(!m_isActionsMinimized);
             });
         }
 
