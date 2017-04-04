@@ -79,6 +79,7 @@ namespace HBP.VISU3D.Cam
         protected int m_idColCamera = 0;            /**< id camera column */
 
         protected float m_rotationCirclesRay = 300f;/**< rotations circles ray */
+        protected float m_cameraRotationSpeed = 50.0f; /**< rotations speed */
 
         protected Vector3 m_target;                 /**< current target of the camera */
         protected Vector3 m_originalTarget;         /**< initial target of the camera */
@@ -168,6 +169,7 @@ namespace HBP.VISU3D.Cam
                 send_mouse_events();
           
             StartCoroutine("drawGL");
+            automatic_camera_rotation();
         }
 
 
@@ -331,11 +333,30 @@ namespace HBP.VISU3D.Cam
         }
 
         /// <summary>
-        /// state the rotation of the camera
+        /// starts the rotation of the camera
+        /// </summary>
+        public void start_automatic_rotation()
+        {
+            m_cameraIsRotating = true;
+        }
+
+        /// <summary>
+        /// makes the camera rotate
         /// </summary>
         public void automatic_camera_rotation()
         {
-            StartCoroutine("rotate_360");
+            if (m_cameraIsRotating)
+            {
+                horizontal_rotation(false, m_cameraRotationSpeed*Time.deltaTime);
+            }
+        }
+
+        /// <summary>
+        /// sets the speed of the camera rotation
+        /// </summary>
+        public void set_camera_rotation_speed(float speed)
+        {
+            m_cameraRotationSpeed = speed;
         }
 
         /// <summary>
