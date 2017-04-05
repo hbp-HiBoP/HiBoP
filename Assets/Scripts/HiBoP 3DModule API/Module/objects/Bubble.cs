@@ -84,5 +84,14 @@ namespace HBP.VISU3D
 
             transform.localScale = new Vector3(m_radius, m_radius, m_radius);
         }
+
+        /// <summary>
+        /// Get bubble information as string
+        /// </summary>
+        public string get_bubble_info()
+        {
+            string bubbleInfo = m_radius.ToString() + " " + transform.position.x + " " + transform.position.y + " " + transform.position.z;
+            return bubbleInfo;
+        }
     }
 }

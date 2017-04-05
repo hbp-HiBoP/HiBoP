@@ -109,6 +109,8 @@ namespace HBP.VISU3D
 
             newROICol.GetComponent<ColumnROI>().SaveROIEvent.AddListener(() =>
             {
+                save_all_ROI();
+                /*
                 string pathFile = save_ROI();
                 if (pathFile.Length == 0)
                 {
@@ -118,6 +120,7 @@ namespace HBP.VISU3D
 
                 m_scene.display_sceen_message("ROI successfully saved.", 2f, 200, 80);
                 ROISavedEvent.Invoke(pathFile);
+                */
             });
 
             newROICol.GetComponent<ColumnROI>().LoadROIEvent.AddListener(() =>
@@ -252,6 +255,27 @@ namespace HBP.VISU3D
             File.WriteAllText(parts[0] + ".sites", m_scene.get_sites_in_ROI(), Encoding.UTF8);
 
             return ROIPath;
+        }
+
+        public void save_all_ROI()
+        {
+            for (int ii = 0; ii < m_columnROI.Count; ii++)
+            {
+                ColumnROI columnROI = m_columnROI[ii].GetComponent<ColumnROI>();
+                for (int jj = 0; jj < columnROI.m_ROIList.Count; jj++)
+                {
+                    ROIElement roiElement = columnROI.m_ROIList[jj].GetComponent<ROIElement>();
+                    ROI roi = roiElement.associated_ROI();
+                    string roiFileName = "column" + ii + "_roi" + jj + "_" + roi.m_ROIname + ".roi";
+                    string roiFileContent = roi.m_ROIname + "\n";
+                    for (int kk = 0; kk < roi.bubbles_nb(); kk++)
+                    {
+                        Bubble bubble = roi.bubble(kk);
+                        roiFileContent = roiFileContent + bubble.get_bubble_info() + "\n";
+                    }
+                    //TODO : sites
+                }
+            }
         }
 
         /// <summary>
