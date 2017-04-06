@@ -51,6 +51,7 @@ namespace HBP.VISU3D
         public Events.ROISynchroEvent ROISynchroEvent = new Events.ROISynchroEvent(); /**< event for synchronizing the ROI of this columns with all others columns */
         public NoParamEvent SaveROIEvent = new NoParamEvent(); /**< event for saving the ROI and the plots states of the current column */
         public NoParamEvent LoadROIEvent = new NoParamEvent(); /**< event for loading the ROI and the plots states and add it in the current column */
+        public NoParamEvent SaveAllROIEvent = new NoParamEvent(); /**< event for saving every ROI and plots states of the current visualisation */
 
         public void init(int columnId, GameObject menu, MP3DScene mpScene, Transform parentMenu)
         {
@@ -89,6 +90,11 @@ namespace HBP.VISU3D
             m_menu.transform.Find("panel").Find("load ROI parent").Find("load ROI button").GetComponent<Button>().onClick.AddListener(() =>
             {
                 LoadROIEvent.Invoke();
+            });
+
+            m_menu.transform.Find("panel").Find("save all ROI parent").Find("save all ROI button").GetComponent<Button>().onClick.AddListener(() =>
+            {
+                SaveAllROIEvent.Invoke();
             });
 
 

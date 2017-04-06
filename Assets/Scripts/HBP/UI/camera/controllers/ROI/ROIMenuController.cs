@@ -109,8 +109,6 @@ namespace HBP.VISU3D
 
             newROICol.GetComponent<ColumnROI>().SaveROIEvent.AddListener(() =>
             {
-                save_all_ROI("D:\\HBPProjects\\ROI\\");
-                /*
                 string pathFile = save_ROI();
                 if (pathFile.Length == 0)
                 {
@@ -120,18 +118,22 @@ namespace HBP.VISU3D
 
                 m_scene.display_sceen_message("ROI successfully saved.", 2f, 200, 80);
                 ROISavedEvent.Invoke(pathFile);
-                */
             });
 
             newROICol.GetComponent<ColumnROI>().LoadROIEvent.AddListener(() =>
             {
-                load_all_ROI("D:\\HBPProjects\\ROI\\");
-                /*
                 if (load_ROI())
                     m_scene.display_sceen_message("ROI successfully loaded.", 2f, 200, 80);
                 else
                     m_scene.display_sceen_message("ERROR during ROI loading !", 2f, 200, 80);
-                    */
+            });
+
+            newROICol.GetComponent<ColumnROI>().SaveAllROIEvent.AddListener(() =>
+            {
+                string projectsDirectory = ApplicationState.ProjectLoadedLocation;
+                string projectName = ApplicationState.ProjectLoaded.Settings.Name;
+                string currentVisualisation = VisualisationLoaded.MP_Visualisation.Name;
+                save_all_ROI(projectsDirectory + Path.DirectorySeparatorChar + projectName + Path.DirectorySeparatorChar + "ROI" + Path.DirectorySeparatorChar + currentVisualisation + Path.DirectorySeparatorChar);
             });
         }
 
@@ -387,8 +389,29 @@ namespace HBP.VISU3D
         /// Save every column ROI and sites states (only .roi, no .sites)
         /// </summary>
         /// <returns></returns>
-        public void save_all_ROI(string directory)
+        public void save_all_ROI(string directory) //TODO : check for completion instead of backup folder (or along)
         {
+            string oldROIFilesDirectory = directory + "ROI_old";
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            else
+            {
+                if (Directory.Exists(oldROIFilesDirectory))
+                {
+                    // Delete back-up directory
+                    Directory.Delete(oldROIFilesDirectory, true);
+                }
+                Directory.CreateDirectory(oldROIFilesDirectory);
+                DirectoryInfo dirInfo = new DirectoryInfo(directory);
+                FileInfo[] oldROIFiles = dirInfo.GetFiles("*.roi");
+                foreach (FileInfo file in oldROIFiles)
+                {
+                    file.MoveTo(oldROIFilesDirectory + Path.DirectorySeparatorChar + file.Name);
+                }
+            }
+
             for (int ii = 0; ii < m_columnROI.Count; ii++)
             {
                 ColumnROI columnROI = m_columnROI[ii].GetComponent<ColumnROI>();
