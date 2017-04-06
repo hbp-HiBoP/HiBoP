@@ -109,8 +109,6 @@ namespace HBP.VISU3D
 
             newROICol.GetComponent<ColumnROI>().SaveROIEvent.AddListener(() =>
             {
-                save_all_ROI();
-                /*
                 string pathFile = save_ROI();
                 if (pathFile.Length == 0)
                 {
@@ -120,7 +118,6 @@ namespace HBP.VISU3D
 
                 m_scene.display_sceen_message("ROI successfully saved.", 2f, 200, 80);
                 ROISavedEvent.Invoke(pathFile);
-                */
             });
 
             newROICol.GetComponent<ColumnROI>().LoadROIEvent.AddListener(() =>
@@ -251,13 +248,17 @@ namespace HBP.VISU3D
                 return "";
 
             File.WriteAllText(ROIPath, m_scene.get_current_column_ROI_and_sites_state_str(), Encoding.UTF8);
-            string[] parts = ROIPath.Split('.');
+            string[] parts = ROIPath.Split('.'); //FIXME
             File.WriteAllText(parts[0] + ".sites", m_scene.get_sites_in_ROI(), Encoding.UTF8);
 
             return ROIPath;
         }
 
-        public void save_all_ROI()
+        /// <summary>
+        /// Save every column ROI and sites states (only .roi, no .sites)
+        /// </summary>
+        /// <returns></returns>
+        public void save_all_ROI(string directory)
         {
             for (int ii = 0; ii < m_columnROI.Count; ii++)
             {
@@ -267,13 +268,14 @@ namespace HBP.VISU3D
                     ROIElement roiElement = columnROI.m_ROIList[jj].GetComponent<ROIElement>();
                     ROI roi = roiElement.associated_ROI();
                     string roiFileName = "column" + ii + "_roi" + jj + "_" + roi.m_ROIname + ".roi";
-                    string roiFileContent = roi.m_ROIname + "\n";
+                    string roiFileContent = "ROI :\n" + roi.m_ROIname + "\n";
                     for (int kk = 0; kk < roi.bubbles_nb(); kk++)
                     {
                         Bubble bubble = roi.bubble(kk);
-                        roiFileContent = roiFileContent + bubble.get_bubble_info() + "\n";
+                        roiFileContent = roiFileContent + kk + " " + bubble.get_bubble_info() + "\n";
                     }
-                    //TODO : sites
+                    roiFileContent += m_scene.get_specific_column_sites_state_str(jj);
+                    File.WriteAllText(directory + roiFileName, roiFileContent, Encoding.UTF8);
                 }
             }
         }

@@ -973,6 +973,16 @@ namespace HBP.VISU3D
         }
 
         /// <summary>
+        /// Return the string information of the sites states of a specific column
+        /// </summary>
+        /// <returns></returns>
+        public string get_specific_column_sites_state_str(int index)
+        {
+            Column3DView column = m_CM.col(index);
+            return column.site_state_str();
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
