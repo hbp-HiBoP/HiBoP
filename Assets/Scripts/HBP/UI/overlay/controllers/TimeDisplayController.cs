@@ -131,7 +131,7 @@ namespace HBP.VISU3D
         {
             for (int ii = 0; ii < columnsTimeDisplay.Count; ++ii)
             {
-                if (m_camerasManager.columns_nb(m_isSPScene) < ii)
+                if (m_camerasManager.GetNumberOfColumns(m_isSPScene) < ii)
                     break;
 
                 TrackBallCamera currentCamera = m_camerasManager.get_camera(m_isSPScene, ii, 0);

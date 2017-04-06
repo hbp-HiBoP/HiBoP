@@ -71,10 +71,10 @@ namespace HBP.VISU3D
         /// <param name="mode"></param>
         public void update_UI_with_mode(Mode mode)
         {
-            m_sceneMenuController.update_UI_with_mode(mode);
-            m_iEEGMenuController.update_UI_with_mode(mode);
-            m_FMRIMenuController.update_UI_with_mode(mode);
-            m_siteMenuController.update_UI_with_mode(mode);
+            m_sceneMenuController.UpdateByMode(mode);
+            m_iEEGMenuController.UpdateByMode(mode);
+            m_FMRIMenuController.UpdateByMode(mode);
+            m_siteMenuController.UpdateByMode(mode);
         }
 
         /// <summary>

@@ -17,7 +17,7 @@ namespace HBP.VISU3D
 {
     interface UICameraOverlay
     {
-        void update_UI_with_mode(Mode mode);
+        void UpdateByMode(Mode mode);
     }
 
     /// <summary>
@@ -27,14 +27,8 @@ namespace HBP.VISU3D
     {
         #region members
 
-        private Canvas m_canvas = null; /**< screen space camera canvas */
-        public Canvas Canvas
-        {
-            get { return m_canvas; }
-        }
-
         private ScenesRatioController m_scenesRatioController = null;
-        private TopMenuController m_topPanelMenuController = null;
+        private ToolsMenu m_topPanelMenuController = null;
         private ButtonsLeftMenuController m_buttonsLeftMenuController = null;
         private SPLeftMenuController m_SPLeftMenuController = null;
         private MPLeftMenuController m_MPLeftMenuController = null;
@@ -52,7 +46,7 @@ namespace HBP.VISU3D
             // retrieve controllers
             m_globalMenuController = transform.Find("global menu").gameObject.GetComponent<GlobalMenuController>();
             m_scenesRatioController = transform.Find("scenes ratio").gameObject.GetComponent<ScenesRatioController>();
-            m_topPanelMenuController = transform.Find("top panel menu").gameObject.GetComponent<TopMenuController>();
+            m_topPanelMenuController = transform.Find("top panel menu").gameObject.GetComponent<ToolsMenu>();
             m_buttonsLeftMenuController = transform.Find("buttons left menu").gameObject.GetComponent<ButtonsLeftMenuController>();
             m_SPLeftMenuController = transform.Find("sp left menues").gameObject.GetComponent<SPLeftMenuController>();
             m_MPLeftMenuController = transform.Find("mp left menues").gameObject.GetComponent<MPLeftMenuController>();            
@@ -67,16 +61,13 @@ namespace HBP.VISU3D
         /// Init all controllers
         /// </summary>
         /// <param name="scenesManager"></param>
-        public void init(ScenesManager scenesManager, Canvas camera)
+        public void init(ScenesManager scenesManager)
         {
-            // retrieve canvas
-            m_canvas = camera;
-
             // init controllers
             m_globalMenuController.init(scenesManager);
             m_SPLeftMenuController.init(scenesManager);
             m_MPLeftMenuController.init(scenesManager);
-            m_topPanelMenuController.init(scenesManager);
+            m_topPanelMenuController.Init(scenesManager);
             m_scenesRatioController.init(scenesManager);
             m_buttonsLeftMenuController.init(scenesManager);            
         }
@@ -92,9 +83,9 @@ namespace HBP.VISU3D
             else
                 m_MPLeftMenuController.update_UI_with_mode(mode);
 
-            m_topPanelMenuController.update_UI_with_mode(mode);
+            m_topPanelMenuController.UpdateByMode(mode);
             m_buttonsLeftMenuController.update_UI_with_mode(mode);
-            m_scenesRatioController.update_UI_with_mode(mode);            
+            m_scenesRatioController.UpdateByMode(mode);            
         }
 
         /// <summary>
@@ -109,16 +100,16 @@ namespace HBP.VISU3D
             else
                 m_MPLeftMenuController.set_iEEG_columns_nb(columnsData.Count);
 
-            m_topPanelMenuController.define_columns_names(spScene, columnsData);
+            m_topPanelMenuController.GenerateColumnsNames(spScene, columnsData);
         }
 
         /// <summary>
         /// Update the focused scene and column for all concerned UI
         /// </summary>
         /// <param name="scene"></param>
-        public void update_focused_scene_and_column(string nameScene, bool spScene, int columnId = -1)
+        public void UpdateFocusedSceneAndColumn(string nameScene, bool spScene, int columnId = -1)
         {
-            m_topPanelMenuController.update_current_scene_and_column(nameScene, spScene, columnId);
+            m_topPanelMenuController.UpdateCurrentSceneInformations(nameScene, spScene, columnId);
             m_buttonsLeftMenuController.define_current_scene(spScene);
 
             if (spScene)
@@ -141,7 +132,7 @@ namespace HBP.VISU3D
             else
                 m_MPLeftMenuController.add_fMRI_column();
 
-            m_topPanelMenuController.add_column_name(spScene, label);
+            m_topPanelMenuController.AddColumnName(spScene, label);
         }
 
 
@@ -156,7 +147,7 @@ namespace HBP.VISU3D
             else
                 m_MPLeftMenuController.remove_last_fMRI_column();
 
-            m_topPanelMenuController.remove_last_column_name(spScene);
+            m_topPanelMenuController.RemoveLastColumnName(spScene);
         }
 
         #endregion functions

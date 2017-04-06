@@ -96,7 +96,7 @@ namespace HBP.VISU3D
                 m_spIsActive = isVisibleFromSPScene && currentSPActivity && isEnoughtRoomSPScene;
 
             for (int ii = 0; ii < m_spColormapOverlayList.Count; ++ii)
-                if (m_camerasManager.columns_nb(true) > ii)
+                if (m_camerasManager.GetNumberOfColumns(true) > ii)
                     m_spColormapOverlayList[ii].SetActive(m_spIsActive && !m_camerasManager.get_camera(true, ii, 0).is_minimized());
 
             // mp
@@ -104,7 +104,7 @@ namespace HBP.VISU3D
                 m_mpIsActive = isVisibleFromMPScene && currentMPActivity && isEnoughtRoomMPScene;
 
             for (int ii = 0; ii < m_mpColormapOverlayList.Count; ++ii)
-                if (m_camerasManager.columns_nb(false) > ii)
+                if (m_camerasManager.GetNumberOfColumns(false) > ii)
                     m_mpColormapOverlayList[ii].SetActive(m_mpIsActive && !m_camerasManager.get_camera(false, ii, 0).is_minimized());
         }
 
@@ -116,7 +116,7 @@ namespace HBP.VISU3D
         {
             for (int ii = 0; ii < m_spColormapOverlayList.Count; ++ii)
             {
-                if (m_camerasManager.columns_nb(true) < ii)
+                if (m_camerasManager.GetNumberOfColumns(true) < ii)
                     break;
 
                 RectTransform rectTransfoCamera = m_camerasManager.camera_rectangle(true, ii, 0);
@@ -137,7 +137,7 @@ namespace HBP.VISU3D
 
             for (int ii = 0; ii < m_mpColormapOverlayList.Count; ++ii)
             {
-                if (m_camerasManager.columns_nb(false) < ii)
+                if (m_camerasManager.GetNumberOfColumns(false) < ii)
                     break;
 
                 RectTransform rectTransfoCamera = m_camerasManager.camera_rectangle(false, ii, 0);

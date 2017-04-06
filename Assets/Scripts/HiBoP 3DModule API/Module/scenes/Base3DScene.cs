@@ -778,7 +778,7 @@ namespace HBP.VISU3D
         /// Set the mesh part to be displayed in the scene
         /// </summary>
         /// <param name="meshPartToDisplay"></param>
-        public void update_mesh_part_to_display(SceneStatesInfo.MeshPart meshPartToDisplay)
+        public void UpdateMeshPartToDisplay(SceneStatesInfo.MeshPart meshPartToDisplay)
         {
             //####### CHECK ACESS
             if (!modes.functionAccess(Mode.FunctionsId.setDisplayedMesh))
@@ -805,7 +805,7 @@ namespace HBP.VISU3D
         /// Set the mesh type to be displayed in the scene
         /// </summary>
         /// <param name="meshTypeToDisplay"></param>
-        public void update_mesh_type_to_display(SceneStatesInfo.MeshType meshTypeToDisplay)
+        public void UpdateMeshTypeToDisplay(SceneStatesInfo.MeshType meshTypeToDisplay)
         {
             //####### CHECK ACESS
             if (!modes.functionAccess(Mode.FunctionsId.setDisplayedMesh))
@@ -1400,11 +1400,11 @@ namespace HBP.VISU3D
         /// <summary>
         /// 
         /// </summary>
-        public void switch_mars_atlas_color()
+        public void SwitchMarsAtlasColor()
         {
             {                
-                data_.marsAtlasMode = !data_.marsAtlasMode;
-                go_.brainSurfaceMeshes[0].GetComponent<Renderer>().sharedMaterial.SetInt("_MarsAtlas", data_.marsAtlasMode ? 1 : 0);
+                data_.MarsAtlasModeEnabled = !data_.MarsAtlasModeEnabled;
+                go_.brainSurfaceMeshes[0].GetComponent<Renderer>().sharedMaterial.SetInt("_MarsAtlas", data_.MarsAtlasModeEnabled ? 1 : 0);
             }
         }
 
@@ -1768,7 +1768,7 @@ namespace HBP.VISU3D
         /// Return the number of FMRI colums
         /// </summary>
         /// <returns></returns>
-        public int FMRI_columns_nb()
+        public int GetNumberOffMRIColumns()
         {
             return m_CM.FMRI_columns_nb();
         }

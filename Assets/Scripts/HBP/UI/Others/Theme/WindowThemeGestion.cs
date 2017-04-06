@@ -80,6 +80,14 @@ namespace HBP.UI.Theme
                 SetButton(button, theme.Color.OtherButton);
                 SetText(button.GetComponentInChildren<Text>(), theme.Color.ContentOtherButtonLabel, theme.Font.WindowContentOtherButton);
             }
+
+            // Content Buttons.
+            IEnumerable<Button> menuButtons = from element in themeElements where element.Type == ThemeElement.ElementType.MenuButton select element.GetComponent<Button>();
+            foreach (Button button in menuButtons)
+            {
+                SetButton(button, theme.Color.MenuButton);
+                SetText(button.GetComponentInChildren<Text>(), theme.Color.ContentOtherButtonLabel, theme.Font.WindowContentOtherButton);
+            }
         }
         void SetTexts(ThemeElement[] themeElements, Theme theme)
         {
@@ -99,7 +107,10 @@ namespace HBP.UI.Theme
         {
             // Set Toggles.
             IEnumerable<Toggle> windowToggles = from element in themeElements where element.Type == ThemeElement.ElementType.WindowToggle select element.GetComponent<Toggle>();
-            foreach (Toggle windowToggle in windowToggles) SetToggle(windowToggle, theme.Color.Toggle);
+            foreach (Toggle windowToggle in windowToggles) SetToggle(windowToggle, theme.Color.WindowToggle);
+
+            IEnumerable<Toggle> menuToggles = from element in themeElements where element.Type == ThemeElement.ElementType.MenuToggle select element.GetComponent<Toggle>();
+            foreach (Toggle menuToggle in menuToggles) SetToggle(menuToggle, theme.Color.MenuToggle);
         }
         void SetScrollbars(ThemeElement[] themeElements, Theme theme)
         {
@@ -110,8 +121,11 @@ namespace HBP.UI.Theme
         void SetDropdowns(ThemeElement[] themeElements, Theme theme)
         {
             // Set Dropdowns.
-            IEnumerable<Dropdown> dropdowns = from element in themeElements where element.Type == ThemeElement.ElementType.WindowDropdown select element.GetComponent<Dropdown>();
-            foreach (Dropdown dropdown in dropdowns) SetDropdown(dropdown, theme.Color.Dropdrown);
+            IEnumerable<Dropdown> windowDropdowns = from element in themeElements where element.Type == ThemeElement.ElementType.WindowDropdown select element.GetComponent<Dropdown>();
+            foreach (Dropdown dropdown in windowDropdowns) SetDropdown(dropdown, theme.Color.WindowDropdown);
+
+            IEnumerable<Dropdown> menuDropdowns = from element in themeElements where element.Type == ThemeElement.ElementType.MenuDropdown select element.GetComponent<Dropdown>();
+            foreach (Dropdown dropdown in menuDropdowns) SetDropdown(dropdown, theme.Color.MenuDropdown);
         }
 
         void SetButton(Button button, ColorBlock colorBlock)

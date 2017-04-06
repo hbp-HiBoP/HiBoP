@@ -208,10 +208,6 @@ namespace Tools.Unity.Window
 		private void showWindowInFirst()
 		{
 			transform.SetAsLastSibling();
-			if(transform.parent != null)
-			{
-				transform.parent.SetAsLastSibling();
-			}
 		}
 
 		private void setInteractble(bool isInteractable)

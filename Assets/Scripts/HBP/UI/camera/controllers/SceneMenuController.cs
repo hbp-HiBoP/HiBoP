@@ -122,7 +122,7 @@ namespace HBP.VISU3D
                 if (m_cameraIsRotating)
                 {
                     rotateButton.transform.Find("Text").GetComponent<Text>().text = "Start rotating";
-                    m_camerasManager.stop_rotation_of_all_cameras(m_scene.singlePatient);
+                    m_camerasManager.StopRotationOfAllCameras(m_scene.singlePatient);
                 }
                 else
                 {
@@ -306,12 +306,12 @@ namespace HBP.VISU3D
         /// Update the UI visibility with the current mode
         /// </summary>
         /// <param name="mode"></param>
-        public void update_UI_with_mode(Mode mode)
+        public void UpdateByMode(Mode mode)
         {
             bool menuDisplayed = m_displayMenu;
 
             // define mode ui specifities
-            switch (mode.m_idMode)
+            switch (mode.IDMode)
             {
                 case Mode.ModesId.NoPathDefined:
                     menuDisplayed = false;

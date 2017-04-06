@@ -300,7 +300,7 @@ namespace HBP.VISU3D
         /// Update the UI visibility with the current mode
         /// </summary>
         /// <param name="mode"></param>
-        public void update_UI_with_mode(Mode mode)
+        public void UpdateByMode(Mode mode)
         {
             if (m_currentMenu == null)
                 return;
@@ -308,7 +308,7 @@ namespace HBP.VISU3D
             bool menuDisplayed = m_currentMenu.m_isDisplayed;
 
             // define mode ui specifities
-            switch (mode.m_idMode)
+            switch (mode.IDMode)
             {
                 case Mode.ModesId.NoPathDefined:
                     menuDisplayed = false;

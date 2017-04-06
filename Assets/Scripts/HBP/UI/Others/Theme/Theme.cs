@@ -36,12 +36,15 @@ namespace HBP.UI.Theme
         public ColorBlock GeneralButton { get; set; }
         public ColorBlock OtherButton { get; set; }
         public ColorBlock FolderSelectorButton { get; set; }
+        public ColorBlock MenuButton { get; set; }
 
         // Color Toggle.
-        public ColorBlock Toggle { get; set; }
+        public ColorBlock WindowToggle { get; set; }
+        public ColorBlock MenuToggle { get; set; }
 
         // Color Dropdown.
-        public ColorBlock Dropdrown { get; set; }
+        public ColorBlock WindowDropdown { get; set; }
+        public ColorBlock MenuDropdown { get; set; }
 
         // Color text.
         public Color ContentNormalLabel { get; set; }
@@ -86,19 +89,40 @@ namespace HBP.UI.Theme
             otherButton.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
             OtherButton = otherButton;
 
-            ColorBlock toggle = ColorBlock.defaultColorBlock;
-            toggle.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-            toggle.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
-            toggle.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
-            toggle.disabledColor = new Color(65, 65, 65, 255) / 255.0f;
-            Toggle = toggle;
+            ColorBlock menuButton = ColorBlock.defaultColorBlock;
+            menuButton.normalColor = new Color(65, 65, 65, 0) / 255.0f;
+            menuButton.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+            menuButton.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+            menuButton.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+            MenuButton = menuButton;
 
-            ColorBlock dropdown = ColorBlock.defaultColorBlock;
-            dropdown.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-            dropdown.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-            dropdown.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-            dropdown.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
-            Dropdrown = dropdown;
+            ColorBlock windowToggle = ColorBlock.defaultColorBlock;
+            windowToggle.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+            windowToggle.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
+            windowToggle.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+            windowToggle.disabledColor = new Color(65, 65, 65, 255) / 255.0f;
+            WindowToggle = windowToggle;
+
+            ColorBlock menuToggle = ColorBlock.defaultColorBlock;
+            menuToggle.normalColor = new Color(65, 65, 65, 0) / 255.0f;
+            menuToggle.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+            menuToggle.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+            menuToggle.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+            MenuToggle = menuToggle;
+
+            ColorBlock windowDropdown = ColorBlock.defaultColorBlock;
+            windowDropdown.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+            windowDropdown.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+            windowDropdown.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+            windowDropdown.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+            WindowDropdown = windowDropdown;
+
+            ColorBlock menuDropdown = ColorBlock.defaultColorBlock;
+            menuDropdown.normalColor = new Color(65, 65, 65, 0) / 255.0f;
+            menuDropdown.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+            menuDropdown.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+            menuDropdown.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+            MenuDropdown = menuDropdown;
 
             ColorBlock folderSelectorButton = ColorBlock.defaultColorBlock;
             folderSelectorButton.normalColor = new Color(255, 255, 255, 255) / 255.0f;

@@ -122,7 +122,7 @@ namespace HBP.VISU3D
             
             if (m_currentMode != null)
             {
-                switch (m_currentMode.m_idMode)
+                switch (m_currentMode.IDMode)
                 {
                     case Mode.ModesId.NoPathDefined:
                         m_sceneButton.interactable = false;

@@ -57,7 +57,7 @@ namespace HBP.VISU3D
             });
         }
 
-        public void update_UI_with_mode(Mode mode)
+        public void UpdateByMode(Mode mode)
         {
             // inused
         }

@@ -42,6 +42,7 @@ namespace HBP.UI
         void Awake()
         {
             command = FindObjectOfType<HiBoP_3DModule_API>();
+            UnityEngine.Debug.Log(command);
             command.LoadSPSceneFromMP.AddListener((i) => LoadSPSceneFromMP(i));
         }
         IEnumerator c_Load(Visualisation visualisation, bool MNI)

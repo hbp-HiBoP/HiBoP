@@ -200,7 +200,7 @@ namespace HBP.VISU3D
         
         private bool m_needsUpdate = true; /**< is the mode has to update it's specifications ? */
         public bool m_sceneSp;  /**< is the mode associated to a single patient scene ? */
-        public ModesId m_idMode; /**< id of the mode */
+        public ModesId IDMode { get; set; } /**< id of the mode */
         public SceneStatesInfo m_sceneStates = null; /**< scene states info */
 
         public List<bool> uiOverlayMask = null; /**< ui overlay mask for this mod */
@@ -257,7 +257,7 @@ namespace HBP.VISU3D
             // sp
             if(m_sceneSp)
             {
-                if (m_idMode == ModesId.NoPathDefined || m_idMode == ModesId.MinPathDefined || m_idMode == ModesId.AllPathDefined || m_idMode == ModesId.AmplitudesComputed || m_idMode == ModesId.TriErasing || m_idMode == ModesId.AmpNeedUpdate)
+                if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.TriErasing || IDMode == ModesId.AmpNeedUpdate)
                 {
                     if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
                     {
@@ -271,7 +271,7 @@ namespace HBP.VISU3D
             }
             else
             {
-                if (m_idMode == ModesId.NoPathDefined || m_idMode == ModesId.MinPathDefined || m_idMode == ModesId.AllPathDefined || m_idMode == ModesId.AmplitudesComputed || m_idMode == ModesId.TriErasing || m_idMode == ModesId.AmpNeedUpdate)
+                if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.TriErasing || IDMode == ModesId.AmpNeedUpdate)
                 {
                     if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
                     {
@@ -294,7 +294,7 @@ namespace HBP.VISU3D
             // sp
             if(m_sceneSp)
             {
-                if (m_idMode == ModesId.NoPathDefined || m_idMode == ModesId.MinPathDefined || m_idMode == ModesId.AllPathDefined || m_idMode == ModesId.AmplitudesComputed || m_idMode == ModesId.TriErasing || m_idMode == ModesId.AmpNeedUpdate)
+                if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.TriErasing || IDMode == ModesId.AmpNeedUpdate)
                 {
                     if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
                     {
@@ -308,7 +308,7 @@ namespace HBP.VISU3D
             }
             else
             {
-                if (m_idMode == ModesId.NoPathDefined || m_idMode == ModesId.MinPathDefined || m_idMode == ModesId.AllPathDefined || m_idMode == ModesId.AmplitudesComputed || m_idMode == ModesId.TriErasing || m_idMode == ModesId.AmpNeedUpdate)
+                if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.TriErasing || IDMode == ModesId.AmpNeedUpdate)
                 {
                     if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
                     {
@@ -331,7 +331,7 @@ namespace HBP.VISU3D
             // sp
             if(m_sceneSp)
             {
-                if (m_idMode == ModesId.NoPathDefined || m_idMode == ModesId.MinPathDefined || m_idMode == ModesId.AllPathDefined || m_idMode == ModesId.AmplitudesComputed || m_idMode == ModesId.TriErasing || m_idMode == ModesId.AmpNeedUpdate)
+                if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.TriErasing || IDMode == ModesId.AmpNeedUpdate)
                 {
                     if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
                     {
@@ -345,7 +345,7 @@ namespace HBP.VISU3D
             }
             else
             {
-                if (m_idMode == ModesId.NoPathDefined || m_idMode == ModesId.MinPathDefined || m_idMode == ModesId.AllPathDefined || m_idMode == ModesId.AmplitudesComputed || m_idMode == ModesId.TriErasing || m_idMode == ModesId.AmpNeedUpdate)
+                if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.TriErasing || IDMode == ModesId.AmpNeedUpdate)
                 {
                     if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
                     {
@@ -368,7 +368,7 @@ namespace HBP.VISU3D
             // sp
             if(m_sceneSp)
             {
-                if (m_idMode == ModesId.NoPathDefined || m_idMode == ModesId.MinPathDefined || m_idMode == ModesId.AllPathDefined || m_idMode == ModesId.AmplitudesComputed || m_idMode == ModesId.AmpNeedUpdate)
+                if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.AmpNeedUpdate)
                 {
                     if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
                     {
@@ -382,7 +382,7 @@ namespace HBP.VISU3D
             }
             else
             {
-                if (m_idMode == ModesId.NoPathDefined || m_idMode == ModesId.MinPathDefined || m_idMode == ModesId.AllPathDefined || m_idMode == ModesId.AmplitudesComputed || m_idMode == ModesId.AmpNeedUpdate)
+                if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.AmpNeedUpdate)
                 {
                     if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
                     {
@@ -405,14 +405,14 @@ namespace HBP.VISU3D
             // sp
             if(m_sceneSp)
             {
-                if (m_idMode == ModesId.AllPathDefined || (m_idMode == Mode.ModesId.AmpNeedUpdate))
+                if (IDMode == ModesId.AllPathDefined || (IDMode == Mode.ModesId.AmpNeedUpdate))
                 {
                     return ModesId.ComputingAmplitudes;
                 }
             }
             else
             {
-                if ((m_idMode == ModesId.AllPathDefined) /** || (m_idMode == Mode.ModesId.ROICreation) */ || (m_idMode == Mode.ModesId.AmpNeedUpdate) || (m_idMode == Mode.ModesId.AmplitudesComputed))
+                if ((IDMode == ModesId.AllPathDefined) /** || (m_idMode == Mode.ModesId.ROICreation) */ || (IDMode == Mode.ModesId.AmpNeedUpdate) || (IDMode == Mode.ModesId.AmplitudesComputed))
                 {
                     return ModesId.ComputingAmplitudes;
                 }
@@ -427,14 +427,14 @@ namespace HBP.VISU3D
             // sp
             if (m_sceneSp)
             {
-                if (m_idMode == ModesId.ComputingAmplitudes)
+                if (IDMode == ModesId.ComputingAmplitudes)
                 {
                     return ModesId.AmplitudesComputed;
                 }
             }
             else
             {
-                if (m_idMode == ModesId.ComputingAmplitudes)
+                if (IDMode == ModesId.ComputingAmplitudes)
                 {
                     //if (m_sceneStates.ROICreationMode)
                     //    return ModesId.ROICreation;
@@ -452,22 +452,22 @@ namespace HBP.VISU3D
             // sp
             if(m_sceneSp)
             {
-                if (m_idMode == Mode.ModesId.NoPathDefined || m_idMode == Mode.ModesId.MinPathDefined || m_idMode == Mode.ModesId.AllPathDefined)
+                if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.MinPathDefined || IDMode == Mode.ModesId.AllPathDefined)
                 {
-                    return m_idMode;
+                    return IDMode;
                 }
-                if ((m_idMode == Mode.ModesId.AmplitudesComputed) || (m_idMode == Mode.ModesId.AmpNeedUpdate))
+                if ((IDMode == Mode.ModesId.AmplitudesComputed) || (IDMode == Mode.ModesId.AmpNeedUpdate))
                 {
                     return Mode.ModesId.AllPathDefined;
                 }
             }
             else
             {
-                if (m_idMode == Mode.ModesId.NoPathDefined || m_idMode == Mode.ModesId.MinPathDefined || m_idMode == Mode.ModesId.AllPathDefined)
+                if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.MinPathDefined || IDMode == Mode.ModesId.AllPathDefined)
                 {
-                    return m_idMode;
+                    return IDMode;
                 }
-                if ((m_idMode == Mode.ModesId.AmplitudesComputed) || (m_idMode == Mode.ModesId.AmpNeedUpdate))
+                if ((IDMode == Mode.ModesId.AmplitudesComputed) || (IDMode == Mode.ModesId.AmpNeedUpdate))
                 {
                     return Mode.ModesId.AllPathDefined;
                 }
@@ -488,22 +488,22 @@ namespace HBP.VISU3D
             // sp
             if(m_sceneSp)
             {
-                if (m_idMode == Mode.ModesId.NoPathDefined || m_idMode == Mode.ModesId.MinPathDefined || m_idMode == Mode.ModesId.AllPathDefined)
+                if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.MinPathDefined || IDMode == Mode.ModesId.AllPathDefined)
                 {
-                    return m_idMode;
+                    return IDMode;
                 }
-                if ((m_idMode == Mode.ModesId.AmplitudesComputed) || (m_idMode == Mode.ModesId.AmpNeedUpdate))
+                if ((IDMode == Mode.ModesId.AmplitudesComputed) || (IDMode == Mode.ModesId.AmpNeedUpdate))
                 {
                     return Mode.ModesId.AllPathDefined;
                 }
             }
             else
             {
-                if (m_idMode == Mode.ModesId.NoPathDefined || m_idMode == Mode.ModesId.MinPathDefined || m_idMode == Mode.ModesId.AllPathDefined)
+                if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.MinPathDefined || IDMode == Mode.ModesId.AllPathDefined)
                 {
-                    return m_idMode;
+                    return IDMode;
                 }
-                if ((m_idMode == Mode.ModesId.AmplitudesComputed) || (m_idMode == Mode.ModesId.AmpNeedUpdate))
+                if ((IDMode == Mode.ModesId.AmplitudesComputed) || (IDMode == Mode.ModesId.AmpNeedUpdate))
                 {
                     return Mode.ModesId.AllPathDefined;
                 }
@@ -522,22 +522,22 @@ namespace HBP.VISU3D
             // sp
             if(m_sceneSp)
             {
-                if (m_idMode == Mode.ModesId.NoPathDefined || m_idMode == Mode.ModesId.MinPathDefined || m_idMode == Mode.ModesId.AllPathDefined)
+                if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.MinPathDefined || IDMode == Mode.ModesId.AllPathDefined)
                 {
-                    return m_idMode;
+                    return IDMode;
                 }
-                if ((m_idMode == Mode.ModesId.AmplitudesComputed) || (m_idMode == Mode.ModesId.AmpNeedUpdate))
+                if ((IDMode == Mode.ModesId.AmplitudesComputed) || (IDMode == Mode.ModesId.AmpNeedUpdate))
                 {
                     return Mode.ModesId.AllPathDefined;
                 }
             }
             else
             {
-                if (m_idMode == Mode.ModesId.NoPathDefined || m_idMode == Mode.ModesId.MinPathDefined || m_idMode == Mode.ModesId.AllPathDefined)
+                if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.MinPathDefined || IDMode == Mode.ModesId.AllPathDefined)
                 {
-                    return m_idMode;
+                    return IDMode;
                 }
-                if ((m_idMode == Mode.ModesId.AmplitudesComputed) || (m_idMode == Mode.ModesId.AmpNeedUpdate))
+                if ((IDMode == Mode.ModesId.AmplitudesComputed) || (IDMode == Mode.ModesId.AmpNeedUpdate))
                 {
                     return Mode.ModesId.AllPathDefined;
                 }
@@ -555,11 +555,11 @@ namespace HBP.VISU3D
         public Mode.ModesId mu_setDisplayedMesh()
         {
             // mp
-            if ((m_idMode == Mode.ModesId.MinPathDefined) || (m_idMode == Mode.ModesId.AllPathDefined))
+            if ((IDMode == Mode.ModesId.MinPathDefined) || (IDMode == Mode.ModesId.AllPathDefined))
             {
-                return m_idMode;
+                return IDMode;
             }
-            if ((m_idMode == Mode.ModesId.AmplitudesComputed) || (m_idMode == Mode.ModesId.AmpNeedUpdate))
+            if ((IDMode == Mode.ModesId.AmplitudesComputed) || (IDMode == Mode.ModesId.AmpNeedUpdate))
             {
                 return Mode.ModesId.AllPathDefined;
             }
@@ -610,14 +610,14 @@ namespace HBP.VISU3D
             // sp
             if(m_sceneSp)
             {
-                if ((m_idMode == Mode.ModesId.AmplitudesComputed) || (m_idMode == Mode.ModesId.AmpNeedUpdate))
+                if ((IDMode == Mode.ModesId.AmplitudesComputed) || (IDMode == Mode.ModesId.AmpNeedUpdate))
                 {
                     return Mode.ModesId.AllPathDefined;
                 }
             }
             else
             {
-                if ((m_idMode == Mode.ModesId.AmplitudesComputed) || (m_idMode == Mode.ModesId.AmpNeedUpdate))
+                if ((IDMode == Mode.ModesId.AmplitudesComputed) || (IDMode == Mode.ModesId.AmpNeedUpdate))
                 {
                     return Mode.ModesId.AllPathDefined;
                 }
@@ -633,7 +633,7 @@ namespace HBP.VISU3D
             //    return Mode.ModesId.AllMpPathDefined;
             //}
 
-            return m_idMode;
+            return IDMode;
         }
 
         public Mode.ModesId mu_updateMaskPlot()
@@ -641,14 +641,14 @@ namespace HBP.VISU3D
             // sp
             if(m_sceneSp)
             {
-                if (m_idMode == Mode.ModesId.AmplitudesComputed)
+                if (IDMode == Mode.ModesId.AmplitudesComputed)
                 {
                     return Mode.ModesId.AmpNeedUpdate;
                 }
             }
             else
             {
-                if (m_idMode == Mode.ModesId.AmplitudesComputed)
+                if (IDMode == Mode.ModesId.AmplitudesComputed)
                 {
                     return Mode.ModesId.AmpNeedUpdate;
                 }
@@ -665,23 +665,23 @@ namespace HBP.VISU3D
             //    return Mode.ModesId.MpAmpNeedUpdate;
             //}
 
-            return m_idMode;
+            return IDMode;
         }
 
         public ModesId mu_addIRMFColumn()
         {
-            if (m_idMode == Mode.ModesId.NoPathDefined || m_idMode == Mode.ModesId.ComputingAmplitudes)
+            if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.ComputingAmplitudes)
                 return Mode.ModesId.Error;
 
-            return m_idMode;
+            return IDMode;
         }
 
         public ModesId mu_removeLastIRMFColumn()
         {
-            if (m_idMode == Mode.ModesId.NoPathDefined || m_idMode == Mode.ModesId.ComputingAmplitudes)
+            if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.ComputingAmplitudes)
                 return Mode.ModesId.Error;
 
-            return m_idMode;
+            return IDMode;
         }
 
 

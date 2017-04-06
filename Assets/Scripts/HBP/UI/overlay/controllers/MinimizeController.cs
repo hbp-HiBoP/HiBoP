@@ -106,7 +106,7 @@ namespace HBP.VISU3D
             int spMinimizedColumnsNb = 0;
             for (int ii = 0; ii < m_spMinimizeOverlayList.Count; ++ii)
             {
-                if (m_camerasManager.columns_nb(true) < ii)
+                if (m_camerasManager.GetNumberOfColumns(true) < ii)
                     break;
 
                 RectTransform rectTransfoCamera = m_camerasManager.camera_rectangle(true, ii, 0);
@@ -121,7 +121,7 @@ namespace HBP.VISU3D
 
                 size = m_spMinimizeOverlayList[ii].transform.Find("vertical panel").GetComponent<RectTransform>().sizeDelta;
 
-                int nbLines = m_camerasManager.views_nb(true);
+                int nbLines = m_camerasManager.GetNumberOfViews(true);
                 size.x = nbLines * rectCamera.height + (nbLines-1)*2 - 60;
                 size.y = 20;
                 m_spMinimizeOverlayList[ii].transform.Find("vertical panel").GetComponent<RectTransform>().sizeDelta = size;
@@ -158,7 +158,7 @@ namespace HBP.VISU3D
             int mpMinimizedColumnsNb = 0;
             for (int ii = 0; ii < m_mpMinimizeOverlayList.Count; ++ii)
             {
-                if (m_camerasManager.columns_nb(false) < ii)
+                if (m_camerasManager.GetNumberOfColumns(false) < ii)
                     break;
 
                 RectTransform rectTransfoCamera = m_camerasManager.camera_rectangle(false, ii, 0);
@@ -173,7 +173,7 @@ namespace HBP.VISU3D
 
                 size = m_mpMinimizeOverlayList[ii].transform.Find("vertical panel").GetComponent<RectTransform>().sizeDelta;
 
-                int nbLines = m_camerasManager.views_nb(false);
+                int nbLines = m_camerasManager.GetNumberOfViews(false);
                 size.x = nbLines * rectCamera.height + (nbLines - 1) * 2 - 60;
                 size.y = 20;
                 m_mpMinimizeOverlayList[ii].transform.Find("vertical panel").GetComponent<RectTransform>().sizeDelta = size;
@@ -322,7 +322,7 @@ namespace HBP.VISU3D
                     {
                         m_spMinimizeStateList[id] = !m_spMinimizeStateList[id];
 
-                        for (int jj = 0; jj < m_camerasManager.GetComponent<CamerasManager>().views_nb(true); ++jj)
+                        for (int jj = 0; jj < m_camerasManager.GetComponent<CamerasManager>().GetNumberOfViews(true); ++jj)
                             m_camerasManager.GetComponent<CamerasManager>().get_camera(true, id, jj).set_minimized_state(m_spMinimizeStateList[id]);
 
                         setçoverlay_state(m_spMinimizeOverlayList[id], m_spMinimizeStateList[id]);
@@ -336,7 +336,7 @@ namespace HBP.VISU3D
                         {
                             m_spMinimizeStateList[jj] = (jj != id);
                            
-                            for (int kk = 0; kk < m_camerasManager.GetComponent<CamerasManager>().views_nb(true); ++kk)
+                            for (int kk = 0; kk < m_camerasManager.GetComponent<CamerasManager>().GetNumberOfViews(true); ++kk)
                                 m_camerasManager.GetComponent<CamerasManager>().get_camera(true, jj, kk).set_minimized_state(m_spMinimizeStateList[jj]);
 
                             setçoverlay_state(m_spMinimizeOverlayList[jj], m_spMinimizeStateList[jj]);
@@ -360,7 +360,7 @@ namespace HBP.VISU3D
 
             for (int ii = 0; ii < m_spMinimizeStateList.Count; ++ii)
             {
-                for (int jj = 0; jj < m_camerasManager.GetComponent<CamerasManager>().views_nb(true); ++jj)
+                for (int jj = 0; jj < m_camerasManager.GetComponent<CamerasManager>().GetNumberOfViews(true); ++jj)
                 {
                     m_camerasManager.GetComponent<CamerasManager>().get_camera(true, ii, jj).set_minimized_state(m_spMinimizeStateList[ii]);
                 }
@@ -394,7 +394,7 @@ namespace HBP.VISU3D
                     {
                         m_mpMinimizeStateList[id] = !m_mpMinimizeStateList[id];
 
-                        for (int jj = 0; jj < m_camerasManager.GetComponent<CamerasManager>().views_nb(false); ++jj)
+                        for (int jj = 0; jj < m_camerasManager.GetComponent<CamerasManager>().GetNumberOfViews(false); ++jj)
                             m_camerasManager.GetComponent<CamerasManager>().get_camera(false, id, jj).set_minimized_state(m_mpMinimizeStateList[id]);
 
                         setçoverlay_state(m_mpMinimizeOverlayList[id], m_mpMinimizeStateList[id]);
@@ -409,7 +409,7 @@ namespace HBP.VISU3D
                         {
                             m_mpMinimizeStateList[jj] = (jj != id);
                             
-                            for (int kk = 0; kk < m_camerasManager.GetComponent<CamerasManager>().views_nb(false); ++kk)
+                            for (int kk = 0; kk < m_camerasManager.GetComponent<CamerasManager>().GetNumberOfViews(false); ++kk)
                                 m_camerasManager.GetComponent<CamerasManager>().get_camera(false, jj, kk).set_minimized_state(m_mpMinimizeStateList[jj]);
 
                             setçoverlay_state(m_mpMinimizeOverlayList[jj], m_mpMinimizeStateList[jj]); 
@@ -433,7 +433,7 @@ namespace HBP.VISU3D
 
             for (int ii = 0; ii < m_mpMinimizeStateList.Count; ++ii)
             {
-                for (int jj = 0; jj < m_camerasManager.GetComponent<CamerasManager>().views_nb(false); ++jj)
+                for (int jj = 0; jj < m_camerasManager.GetComponent<CamerasManager>().GetNumberOfViews(false); ++jj)
                 {
                     m_camerasManager.GetComponent<CamerasManager>().get_camera(false, ii, jj).set_minimized_state(m_mpMinimizeStateList[ii]);
                 }

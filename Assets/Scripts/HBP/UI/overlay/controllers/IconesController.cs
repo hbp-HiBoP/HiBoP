@@ -106,8 +106,8 @@ namespace HBP.VISU3D
             bool activity = currentActivity && isVisibleFromScene && isEnoughtRoom;
             
             if (currentMode != null)
-                if (currentMode.m_idMode == Mode.ModesId.NoPathDefined || currentMode.m_idMode == Mode.ModesId.MinPathDefined  ||
-                    currentMode.m_idMode == Mode.ModesId.AllPathDefined || currentMode.m_idMode == Mode.ModesId.Error)
+                if (currentMode.IDMode == Mode.ModesId.NoPathDefined || currentMode.IDMode == Mode.ModesId.MinPathDefined  ||
+                    currentMode.IDMode == Mode.ModesId.AllPathDefined || currentMode.IDMode == Mode.ModesId.Error)
                 {
                     activity = false;
                 }
@@ -124,7 +124,7 @@ namespace HBP.VISU3D
         {
             for (int ii = 0; ii < columnsIconeDisplay.Count; ++ii)
             {
-                if (m_camerasManager.columns_nb(m_isSPScene) < ii)
+                if (m_camerasManager.GetNumberOfColumns(m_isSPScene) < ii)
                     break;
 
                 TrackBallCamera currentCamera = m_camerasManager.get_camera(m_isSPScene, ii, 0);

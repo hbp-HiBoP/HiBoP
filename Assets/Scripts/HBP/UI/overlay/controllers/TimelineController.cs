@@ -177,7 +177,7 @@ namespace HBP.VISU3D
             bool activity = currentActivity && isVisibleFromScene && isEnoughtRoom;
 
             if(currentMode != null)
-                if (currentMode.m_idMode == Mode.ModesId.NoPathDefined || currentMode.m_idMode == Mode.ModesId.Error)
+                if (currentMode.IDMode == Mode.ModesId.NoPathDefined || currentMode.IDMode == Mode.ModesId.Error)
                 {
                     activity = false;
                 }
@@ -486,19 +486,19 @@ namespace HBP.VISU3D
             textComputeButton = "Update iEEG";
             computeButton.gameObject.SetActive(true);
 
-            if (mode.m_idMode == Mode.ModesId.AmplitudesComputed) 
+            if (mode.IDMode == Mode.ModesId.AmplitudesComputed) 
             {
                 m_timelineIsEnabled = true;
                 timelinePanel.gameObject.SetActive(true);                
             }
-            else if (mode.m_idMode == Mode.ModesId.ComputingAmplitudes)
+            else if (mode.IDMode == Mode.ModesId.ComputingAmplitudes)
             {
                 m_timelineIsEnabled = false;
                 computeButton.gameObject.GetComponent<Button>().interactable = false;
                 textComputeButton = "Computing...";
                 timelinePanel.gameObject.SetActive(false);
             }
-            else if (mode.m_idMode == Mode.ModesId.AmpNeedUpdate)
+            else if (mode.IDMode == Mode.ModesId.AmpNeedUpdate)
             {
                 m_timelineIsEnabled = true;                                
                 timelinePanel.gameObject.SetActive(true);

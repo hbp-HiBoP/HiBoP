@@ -126,7 +126,7 @@ namespace HBP.VISU3D
             // 6) focus on the scene
             m_UIManager.update_focused_scene_and_column(data.Patient.Place + "_" + data.Patient.Name + "_" + data.Patient.Date, true, 0);
 
-            m_scenesManager.display_message_in_scene(true, "Individual scene loaded: " + data.Patient.Place + "_" + data.Patient.Name + "_" + data.Patient.Date, 2f, 400, 80);
+            m_scenesManager.DisplayMessageInScene(true, "Individual scene loaded: " + data.Patient.Place + "_" + data.Patient.Name + "_" + data.Patient.Date, 2f, 400, 80);
 
             return true;
         }
@@ -173,7 +173,7 @@ namespace HBP.VISU3D
             // 7) focus on the scene
             m_UIManager.update_focused_scene_and_column(patient.Place + "_" + patient.Name + "_" + patient.Date, true, 0);
             
-            m_scenesManager.display_message_in_scene(true, "Individual scene loaded: " + patient.Place + "_" + patient.Name + "_" + patient.Date, 2f, 400, 80);
+            m_scenesManager.DisplayMessageInScene(true, "Individual scene loaded: " + patient.Place + "_" + patient.Name + "_" + patient.Date, 2f, 400, 80);
 
             return true;
         }
@@ -218,7 +218,7 @@ namespace HBP.VISU3D
             // 5) Focus on the scene
             m_UIManager.update_focused_scene_and_column("MNI", false, 0);
 
-            m_scenesManager.display_message_in_scene(false, "MNI scene loaded. ", 2f, 150, 80);
+            m_scenesManager.DisplayMessageInScene(false, "MNI scene loaded. ", 2f, 150, 80);
 
             return true;
         }
@@ -228,7 +228,7 @@ namespace HBP.VISU3D
         /// </summary>
         /// <param name="spScene"></param>
         /// <returns></returns>
-        public bool add_fMRI_column(bool spScene)
+        public bool AddfMRIColumn(bool spScene)
         {
             string fMRIPath;
             if (!m_scenesManager.load_fMRI_dialog(spScene, out fMRIPath))
@@ -246,7 +246,7 @@ namespace HBP.VISU3D
         /// Remove the last fmRI column
         /// </summary>
         /// <param name="spScene"></param>
-        public void remove_last_fMRI_column(bool spScene)
+        public void RemoveLastfMRIColumn(bool spScene)
         {
             if (m_scenesManager.fMRI_columns_nb(spScene) == 0)
                 return;

@@ -44,7 +44,7 @@ namespace HBP.VISU3D
         public bool whiteMeshesAvailables = false;    /**< white meshes are availables */
         public bool whiteInflatedMeshesAvailables = false; /**< white inflated meshes are availables */
         // parameters
-        public bool marsAtlasMode = false;
+        public bool MarsAtlasModeEnabled = false;
         public bool marsAtlasParcelsLoaed = false;
         public bool holesEnabled = false; /**< cuts holes are enabled */
         public int defaultNbOfCutsPerPlane = 500; /**< default number of cuts for the planes */

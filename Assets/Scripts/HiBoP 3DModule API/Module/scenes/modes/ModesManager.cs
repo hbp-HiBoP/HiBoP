@@ -118,7 +118,7 @@ namespace HBP.VISU3D
         /// <returns></returns>
         public Mode.ModesId currentIdMode()
         {
-            return current.m_idMode;
+            return current.IDMode;
         }
 
         /// <summary>

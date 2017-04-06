@@ -68,7 +68,7 @@ namespace HBP.VISU3D
         public void init(ScenesManager scenesManager)
         {
             m_UIOverlayManager.init(scenesManager, transform.Find("canvas").Find("overlay").GetComponent<Canvas>());
-            m_UICameraManager.init(scenesManager, transform.Find("canvas").Find("camera").GetComponent<Canvas>());
+            m_UICameraManager.init(scenesManager);
 
             scenesManager.SPScene.DefineSelectedColumn.AddListener((idColumn) =>
             {
@@ -88,7 +88,7 @@ namespace HBP.VISU3D
         public void update_focused_scene_and_column(string nameScene, bool spScene, int idColumn)
         {
             m_UIOverlayManager.update_focused_scene_and_column(spScene, idColumn);
-            m_UICameraManager.update_focused_scene_and_column(nameScene, spScene, idColumn);
+            m_UICameraManager.UpdateFocusedSceneAndColumn(nameScene, spScene, idColumn);
         }
 
         /// <summary>

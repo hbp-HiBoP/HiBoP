@@ -100,7 +100,7 @@ namespace HBP.VISU3D
             bool activity = currentActivity && isVisibleFromScene && isEnoughtRoom;
 
             if(currentMode != null)
-                if (currentMode.m_idMode == Mode.ModesId.NoPathDefined || currentMode.m_idMode == Mode.ModesId.Error)
+                if (currentMode.IDMode == Mode.ModesId.NoPathDefined || currentMode.IDMode == Mode.ModesId.Error)
                 {
                     activity = false;
                 }

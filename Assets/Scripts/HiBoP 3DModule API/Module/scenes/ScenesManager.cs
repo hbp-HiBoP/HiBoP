@@ -115,12 +115,12 @@ namespace HBP.VISU3D
 
             m_SPScene.UpdateCameraTarget.AddListener((target) =>
             {
-                m_camerasManager.update_cameras_target(true, target);
+                m_camerasManager.UpdateCamerasTarget(true, target);
             });
 
             m_MPScene.UpdateCameraTarget.AddListener((target) =>
             {
-                m_camerasManager.update_cameras_target(false, target);
+                m_camerasManager.UpdateCamerasTarget(false, target);
             });
 
 
@@ -167,7 +167,7 @@ namespace HBP.VISU3D
         /// <param name="duration"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
-        public void display_message_in_scene(bool spScene, string message, float duration, int width, int height)
+        public void DisplayMessageInScene(bool spScene, string message, float duration, int width, int height)
         {
             if(spScene)
                 m_SPScene.display_sceen_message(message, duration, width, height);
@@ -307,7 +307,7 @@ namespace HBP.VISU3D
 
         public int fMRI_columns_nb(bool spScene)
         {
-            return spScene ? m_SPScene.FMRI_columns_nb() : m_MPScene.FMRI_columns_nb();
+            return spScene ? m_SPScene.GetNumberOffMRIColumns() : m_MPScene.GetNumberOffMRIColumns();
         }
 
 

@@ -21,8 +21,7 @@ namespace HBP.VISU3D.Cam
     /// </summary>
     public class CamerasManager : MonoBehaviour
     {
-        #region members
-
+        #region Properties
         // cameras    
         private List<List<GameObject>> m_spCameras = new List<List<GameObject>>(); /**< SP cameras list */
         private List<List<GameObject>> m_mpCameras = new List<List<GameObject>>(); /**< MP cameras list */
@@ -38,10 +37,13 @@ namespace HBP.VISU3D.Cam
 
         // other
         private bool m_focusModule = true;
-        private int m_maxConditionsColumn = 10;  /**< maximum number columns cameras*/
-        private int m_maxViewsLine = 5;          /**< maximum number lines cameras */
 
-        #endregion members
+        private int m_MaximumNumberOfColumns = 10;  /**< maximum number columns cameras*/
+        public int MaximumNumberOfColumns { get { return m_MaximumNumberOfColumns; } }
+
+        private int m_MaximumNumberOfViews = 5;          /**< maximum number lines cameras */
+        public int MaximumNumberOfViews { get { return m_MaximumNumberOfViews; } }
+        #endregion
 
         #region mono_behaviour
 
@@ -79,11 +81,11 @@ namespace HBP.VISU3D.Cam
 
             // define single patient camera
             GameObject singlePatientCamera = Instantiate(GlobalGOPreloaded.SPCamera);
-            init_camera(singlePatientCamera, true, 0, 0);
+            InitializeCamera(singlePatientCamera, true, 0, 0);
 
             // define first multi patients camera
             GameObject multiPatientsCamera = Instantiate(GlobalGOPreloaded.MPCamera);
-            init_camera(multiPatientsCamera, false, 0, 0);
+            InitializeCamera(multiPatientsCamera, false, 0, 0);
 
             // init cameras lists
             // single
@@ -108,13 +110,8 @@ namespace HBP.VISU3D.Cam
 
         #endregion mono_behaviour
 
-        #region others
-
-        public int max_views_line() { return m_maxViewsLine; }
-
-        public int max_conditions_col() { return m_maxConditionsColumn; }
-
-        private void init_camera(GameObject camera, bool spScene, int idColumn, int idLine)
+        #region Public Methods
+        private void InitializeCamera(GameObject camera, bool spScene, int idColumn, int idLine)
         {
             camera.tag = spScene ? "SingleCamera" : "MultiCamera";
             camera.name = (spScene ? "singlePatient_camera_tb_c" : "multiPatients_camera_tb_c") + idColumn + "_v" + idLine;
@@ -122,8 +119,7 @@ namespace HBP.VISU3D.Cam
             camera.SetActive(true);
             camera.GetComponent<TrackBallCamera>().init(spScene ? m_singlePatientPanel.transform.position : m_multiPatientsPanel.transform.position);
         }
-
-        public void update_cameras_target(bool spScene, Vector3 target)
+        public void UpdateCamerasTarget(bool spScene, Vector3 target)
         {
             List<List<GameObject>> cameras = spScene ? m_spCameras : m_mpCameras;
 
@@ -131,9 +127,7 @@ namespace HBP.VISU3D.Cam
                 for (int jj = 0; jj < cameras[ii].Count; ++jj)
                     cameras[ii][jj].GetComponent<TrackBallCamera>().init(target);
         }
-
-
-        public void stop_rotation_of_all_cameras(bool spScene)
+        public void StopRotationOfAllCameras(bool spScene)
         {
             if(spScene)
                 for (int ii = 0; ii < m_spCameras.Count; ++ii)
@@ -264,7 +258,7 @@ namespace HBP.VISU3D.Cam
             return result;
         }
 
-        public int columns_nb(bool spScene)
+        public int GetNumberOfColumns(bool spScene)
         {
             if (spScene)
                 return m_spCameras[0].Count;
@@ -272,7 +266,7 @@ namespace HBP.VISU3D.Cam
             return m_mpCameras[0].Count;
         }
 
-        public int views_nb(bool spScene)
+        public int GetNumberOfViews(bool spScene)
         {
             if (spScene)
                 return m_spLinesViewsPanels.Count;
@@ -393,7 +387,7 @@ namespace HBP.VISU3D.Cam
             }
         }
 
-        public void add_view_line_cameras(bool singlePatientScene)
+        public void AddViewLineCamera(bool singlePatientScene)
         {
             if (singlePatientScene)
                 add_view_line_cameras(m_spCameras, m_spLinesViewsPanels, m_spCamerasParent.transform, "singlePatient_camera_tb_c");
@@ -401,7 +395,7 @@ namespace HBP.VISU3D.Cam
                 add_view_line_cameras(m_mpCameras, m_mpLinesViewsPanels, m_mpCamerasParent.transform, "multiPatients_camera_tb_c");
         }
 
-        public void remove_view_line_cameras(bool singlePatientScene)
+        public void RemoveViewLineCamera(bool singlePatientScene)
         {
             if (singlePatientScene)
             {
@@ -477,7 +471,7 @@ namespace HBP.VISU3D.Cam
         private void add_view_line_cameras(List<List<GameObject>> sceneCameras, List<GameObject> sceneLinesViewsPanels, Transform cameraParent, string sceneCameraBaseName)
         {
             int currentViewsNumber = sceneCameras.Count;
-            if (currentViewsNumber < m_maxViewsLine)
+            if (currentViewsNumber < m_MaximumNumberOfViews)
             {
                 // add new camera line
                 List<GameObject> newLine = new List<GameObject>();
@@ -536,7 +530,7 @@ namespace HBP.VISU3D.Cam
         private void add_columns_cameras(List<List<GameObject>> sceneCameras, List<GameObject> sceneLinesViewsPanels, Transform cameraParent, string sceneCameraBaseName, bool spScene, bool IRMFColumn)
         {
             int currentConditionNumber = sceneCameras[0].Count;
-            if (currentConditionNumber < m_maxConditionsColumn)
+            if (currentConditionNumber < m_MaximumNumberOfColumns)
             {
                 // add new camera column
                 for (int ii = 0; ii < sceneCameras.Count; ++ii)
@@ -632,7 +626,7 @@ namespace HBP.VISU3D.Cam
                 int diff = m_mpCameras.Count - m_spCameras.Count;
                 for(int ii = 0; ii < diff; ++ii)
                 {
-                    add_view_line_cameras(true);
+                    AddViewLineCamera(true);
                 }
             }
             else if (m_spCameras.Count > m_mpCameras.Count)
@@ -640,11 +634,11 @@ namespace HBP.VISU3D.Cam
                 int diff = m_spCameras.Count - m_mpCameras.Count;
                 for (int ii = 0; ii < diff; ++ii)
                 {
-                    remove_view_line_cameras(true);
+                    RemoveViewLineCamera(true);
                 }
             }
 
-            if(columns_nb(true) == columns_nb(false))
+            if(GetNumberOfColumns(true) == GetNumberOfColumns(false))
             {
                 for (int ii = 0; ii < m_spCameras.Count; ++ii)
                 {
