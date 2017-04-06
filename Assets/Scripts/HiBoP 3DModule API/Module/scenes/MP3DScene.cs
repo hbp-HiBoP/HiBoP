@@ -979,6 +979,7 @@ namespace HBP.VISU3D
         public string get_specific_column_sites_state_str(int index)
         {
             Column3DView column = m_CM.col(index);
+            Debug.Log(index);
             return column.site_state_str();
         }
 
