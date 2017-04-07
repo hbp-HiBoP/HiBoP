@@ -256,8 +256,8 @@ namespace HBP.VISU3D
                 return "";
 
             File.WriteAllText(ROIPath, m_scene.get_current_column_ROI_and_sites_state_str(), Encoding.UTF8);
-            string[] parts = ROIPath.Split('.'); //FIXME
-            File.WriteAllText(parts[0] + ".sites", m_scene.get_sites_in_ROI(), Encoding.UTF8);
+            string sitesPath = Path.GetDirectoryName(ROIPath) + "/" + Path.GetFileNameWithoutExtension(ROIPath) + ".sites";
+            File.WriteAllText(sitesPath, m_scene.get_sites_in_ROI(), Encoding.UTF8);
 
             return ROIPath;
         }
