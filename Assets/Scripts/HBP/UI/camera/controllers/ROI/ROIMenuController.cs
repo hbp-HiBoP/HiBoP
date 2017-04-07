@@ -157,7 +157,7 @@ namespace HBP.VISU3D
         /// </summary>
         /// <param name="mode"></param>
         public void set_UI_activity(Mode mode)
-        {            
+        {
             if (m_currentROICol == null)
                 return;
 
@@ -209,7 +209,7 @@ namespace HBP.VISU3D
 
             m_currentROICol = m_columnROI[columnId].GetComponent<ColumnROI>();
 
-            update_UI();            
+            update_UI();
         }
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace HBP.VISU3D
         /// <returns></returns>
         public string save_ROI()
         {
-            string[] filters = new string[] { "roi"};
+            string[] filters = new string[] { "roi" };
             string ROIPath = VISU3D.DLL.QtGUI.get_saved_file_name(filters, "Save column ROI and plots state...", "./" + m_scene.CM.current_column().ROI.m_ROIname + ".roi");
 
             if (ROIPath.Length == 0) // no path selected
@@ -313,10 +313,10 @@ namespace HBP.VISU3D
                 if (lines[ii].Length == 0)
                     break;
 
-                if(readROI)
+                if (readROI)
                 {
                     string[] lineElems = lines[ii].Split(' ');
-                    if(lineElems.Length != 5)
+                    if (lineElems.Length != 5)
                     {
                         Debug.LogError("-ERROR : ROIMenuController::load_ROI -> data incorrect at line " + ii);
                         return false;
@@ -326,14 +326,14 @@ namespace HBP.VISU3D
                     positions.Add(new Vector3(float.Parse(lineElems[2], CultureInfo.InvariantCulture.NumberFormat),
                                 float.Parse(lineElems[3], CultureInfo.InvariantCulture.NumberFormat),
                                 float.Parse(lineElems[4], CultureInfo.InvariantCulture.NumberFormat)));
-                    
+
                 }
                 else if (readStates)
                 {
                     string[] lineElems = lines[ii].Split(' ');
-                    if(lineElems[0] == "n")
+                    if (lineElems[0] == "n")
                     {
-                        if(lineElems.Length != 2)
+                        if (lineElems.Length != 2)
                         {
                             Debug.LogError("-ERROR : ROIMenuController::load_ROI -> data incorrect at line " + ii);
                             return false;
@@ -343,7 +343,7 @@ namespace HBP.VISU3D
                         currP++;
                         continue;
                     }
-                    else if(lineElems[0] == "e")
+                    else if (lineElems[0] == "e")
                     {
                         if (lineElems.Length != 2)
                         {
@@ -384,7 +384,7 @@ namespace HBP.VISU3D
             m_scene.data_.iEEGOutdated = true;
             return true;
         }
-        
+
         /// <summary>
         /// Save every column ROI and sites states (only .roi, no .sites)
         /// </summary>
@@ -442,11 +442,26 @@ namespace HBP.VISU3D
         /// <returns></returns>
         public void load_all_ROI(string directory)
         {
+            if (!Directory.Exists(directory))
+            {
+                Debug.Log("Could not find ROI for this visualisation");
+                return;
+            }
             DirectoryInfo dirInfo = new DirectoryInfo(directory);
             FileInfo[] roiFiles = dirInfo.GetFiles("*.roi");
-            foreach(FileInfo file in roiFiles)
+            int[] firstROIToDelete = new int[m_columnROI.Count];
+            foreach (FileInfo file in roiFiles)
             {
-                load_specific_path_ROI(file.ToString());
+                load_specific_path_ROI(file.ToString(), ref firstROIToDelete);
+            }
+
+            // Delete ROI 0 for each column that has a ROI loaded
+            for (int ii = 0; ii < m_columnROI.Count; ii++)
+            {
+                if (firstROIToDelete[ii] == 1)
+                {
+                    m_columnROI[ii].GetComponent<ColumnROI>().m_ROIList[0].GetComponent<ROIElement>().m_closeROIEvent.Invoke(0);
+                }
             }
         }
 
@@ -454,7 +469,7 @@ namespace HBP.VISU3D
         /// Load a ROI giving its path
         /// </summary>
         /// <returns></returns>
-        public bool load_specific_path_ROI(string path)
+        public bool load_specific_path_ROI(string path, ref int[] firstROIToDelete)
         {
             string ROIPath = path;
 
@@ -478,6 +493,11 @@ namespace HBP.VISU3D
                 {
                     ii++;
                     columnID = int.Parse(lines[ii]);
+                    if (columnID > m_columnROI.Count - 1)
+                    {
+                        return false;
+                    }
+                    firstROIToDelete[columnID] = 1;
                     continue;
                 }
 
