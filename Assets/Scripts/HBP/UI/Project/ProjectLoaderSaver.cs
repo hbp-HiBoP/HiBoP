@@ -28,7 +28,7 @@ namespace HBP.UI
         enum LoadErrorTypeEnum { None, DirectoryDoNoExist, IsNotAProject, CanNotReadSettings, CanNotReadPatient, CanNotReadGroup, CanNotReadProtocol,
             CanNotReadDataset, CanNotReadSingleVisualisation, CanNotReadMultiVisualisation };
         enum SaveErrorTypeEnum { None, DirectoryDoNoExist, CanNotDeleteOldDirectories, CanNotCreateNewDirectories, CanNotSaveSettings, CanNotSavePatient,
-            CanNotSaveGroup, CanNotSaveProtocol, CanNotSaveDataset, CanNotSaveSinglePatientVisualisation, CanNotSaveMultiPatientsVisualisation, CanNotMoveDirectory
+            CanNotSaveGroup, CanNotSaveProtocol, CanNotSaveDataset, CanNotSaveSinglePatientVisualisation, CanNotSaveMultiPatientsVisualisation, CanNotMoveDirectory, CanNotMoveROIDirectory
         };
         #endregion
 
@@ -520,9 +520,10 @@ namespace HBP.UI
             }
             catch
             {
-                l_loadingState = SaveErrorTypeEnum.CanNotDeleteOldDirectories;
+                l_loadingState = SaveErrorTypeEnum.CanNotMoveROIDirectory;
             }
             yield return Ninja.JumpToUnity;
+            HandleError(l_loadingState, additionalInformations, projectDirectory);
 
             // Deleting old directories.
             loadingCircle.Set((float)l_actualStep / l_maxStep, "Deleting old directories");
