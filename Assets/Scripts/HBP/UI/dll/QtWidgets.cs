@@ -102,7 +102,7 @@ namespace HBP.VISU3D.DLL
             }
             if (filtersArray.Length == 0)
                 arguments += "*.txt)";
-            arguments += "\" " + defaultDir;
+            arguments += "\" " + defaultDir; //FIXME : find a way to replace \\ by simple \ in defaultDir, because when it's read by Qt, \\ count as a real \\ and not a \
 
             List<string> paths = launch_fileDialog_window(arguments);
             if (paths.Count > 0)

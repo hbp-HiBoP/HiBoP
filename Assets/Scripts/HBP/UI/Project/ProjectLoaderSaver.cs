@@ -500,7 +500,7 @@ namespace HBP.UI
             }
             yield return Ninja.JumpToUnity;
             HandleError(l_loadingState, additionalInformations, projectDirectory);
-
+            /*
             // Copy ROI
             yield return Ninja.JumpBack;
             try
@@ -524,7 +524,7 @@ namespace HBP.UI
             }
             yield return Ninja.JumpToUnity;
             HandleError(l_loadingState, additionalInformations, projectDirectory);
-
+            */
             // Deleting old directories.
             loadingCircle.Set((float)l_actualStep / l_maxStep, "Deleting old directories");
             yield return Ninja.JumpBack;
