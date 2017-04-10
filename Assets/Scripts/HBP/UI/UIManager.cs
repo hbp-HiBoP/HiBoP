@@ -1,16 +1,12 @@
-﻿
-/**
+﻿/**
  * \file    UIManager.cs
  * \author  Lance Florian
  * \date    29/04/2016
  * \brief   Define UIManager
  */
 
-// system
-using System.Collections.Generic;
-
-// unity
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace HBP.VISU3D
 {
@@ -19,8 +15,7 @@ namespace HBP.VISU3D
     /// </summary>
     public class UIManager : MonoBehaviour
     {
-        #region members          
-        
+        #region Properties            
         private Camera m_backgroundCamera = null; /**< camera used with the canvas */
         public Camera BackgroundCamera
         {
@@ -38,8 +33,7 @@ namespace HBP.VISU3D
         {
             get { return m_UICameraManager; }
         }
-
-        #endregion members
+        #endregion
 
         #region mono_behaviour
 

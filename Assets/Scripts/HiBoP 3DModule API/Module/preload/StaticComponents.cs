@@ -59,7 +59,6 @@ namespace HBP.VISU3D
             MPScene = ScenesManager.transform.Find("MP").GetComponent<MP3DScene>();
 
             Transform UI = transform.Find("UI");
-            //Qt = UI.GetComponent<QtWidgets>();
             UIManager = UI.GetComponent<UIManager>();
             BackgroundCamera = UI.Find("Background camera").GetComponent<Camera>();
             CanvasOverlay = UI.Find("canvas").Find("overlay");

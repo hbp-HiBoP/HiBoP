@@ -1,0 +1,218 @@
+Change List:
+
+3.3.13:
+    - Fix preference menu contents clipped in Unity 5.6.0.
+    - Library updates.
+3.3.12:
+    - Fix possible null exception introduced in 3.3.11 when adding a new
+      element to a list of custom IPropertyBackingField compatible objects.
+3.3.11:
+    - Add more helpful console output if a System.Object implementing
+      IPropertyBackingFieldCompatible does not return the expected type from
+      its Clone() method.
+    - Fix assorted warning and error messages in console in Unity 5.6.0 beta.
+    - Fix reference to UnityEditor introduced in previous version that would
+      prevent building.
+    - Library updates.
+3.3.10:
+    - Library updates.
+3.3.9:
+    - Fix compiler warnings in Unity 5.5.0.
+    - Library updates.
+3.3.8:
+    - Library updates.
+3.3.7:
+    - Fixed changes in library code that prevented building to WinRT platforms.
+3.3.6:
+    - Library updates.
+3.3.5:
+    - Library updates.
+3.3.4:
+    - Fixed bugs causing properties preceded by a decorator drawer (e.g.,
+      Header) to be drawn incorrectly.
+    - Library updates.
+3.3.3:
+    - Fixed bug that could cause property setters to not be invoked when play
+      mode is exited if selection did not change.
+    - Fixed NullReferenceException for properties on a generic class where the
+      property is defined in an ancestor of the concrete object's base type.
+    - Fixed IndexOutOfRangeException for enum properties whose underlying
+      values do not start with 0 and who are marked with FlagsAttribute.
+    - Fixed possible IndexOutOfRangeException when adding new elements to an
+      array or list backing field.
+    - Fixed harmless console error messages in Unity 5.4.0 beta.
+    - Library updates.
+3.3.2:
+    - Added utility methods for lists that act as serialized backing fields for
+      hash set properties.
+    - Fixed bug that could cause Animation window to throw
+      NullReferenceException when animating some properties on an object after
+      selecting an object that uses PropertyBackingFieldDrawer.
+3.3.1:
+    - Library updates.
+3.3.0:
+    - Unity 4.7 is new minimum version.
+    - Library updates.
+3.2.2:
+    - Library updates.
+3.2.1:
+    - Fixed regression introduced in 3.2.0 that made BackingFieldUtility
+      incompatible with WinRT limitations.
+3.2.0:
+    - Fixed compiler errors in Unity 4.7.0.
+    - Overhauled property caching system that makes massive performance
+      improvements for multi selection of objects with many decorated fields
+      when not editing any fields.
+    - IdentifiableBackingFieldCompatibleObjectWrapper now requires
+      specification of key type.
+    - BackingFieldUtility methods added support for int-keyed dictionaries and
+      UnityEngine.Object-keyed dictionaries with
+      IdentifiableBackingFieldCompatibleObjectWrapper backing field types.
+    - Fixed AmbiguousMatchException when trying to find a property on a
+      concrete subclass of a generic class and there are multiple methods with
+      the same name.
+    - Library updates.
+3.1.1:
+    - Fixed harmless exceptions when editing properties that open another
+      editor (e.g., AnimationCurve, Color).
+    - Fixed bug causing exception with enum properties whose underlying type
+      cannot be cast to int (e.g., byte).
+    - Fixed bug causing exception with enum properties with non-consecutive
+      underlying values.
+    - Library updates.
+3.1.0:
+    - Simplified product folder organization for Unity 5.3.0 and higher.
+    - Library updates.
+3.0.13:
+    - Display status icon in inspector for fields that are disabled due to a
+      lack of a getter.
+    - Add methods to BackingFieldUtility class for serializing interface
+      Objects used as backing fields for interface properties.
+    - Library updates.
+3.0.12:
+    - Add error message to console to notify if a type implements
+      IPropertyBackingFieldCompatible but is not also serializable.
+    - Library updates.
+3.0.11:
+    - Library updates.
+3.0.10:
+    - Added BackingFieldUtility and
+      IdentifiableBackingFieldCompatibleObjectWrapper classes to assist with
+      the serialization of lists that use dictionary-based API points.
+    - Library updates.
+3.0.9:
+    - Added IPropertyBackingFieldCompatible<T> interface for structs, mostly to
+      add compile-time reminders to implement IEquatable<T>.
+    - Minor performance improvements.
+3.0.8:
+    - Reduced allocations to improve performance especially in cases where a
+      large number of properties are modified in a single step (e.g., opening a
+      scene where thousands of objects are dirtied).
+3.0.7:
+    - Fixed bug causing error message when setting a LayerMask property.
+    - Fixed bug causing custom property drawer for backing field type to be
+      used on a property backing field when the override attribute type
+      specified a PropertyAttribute associated with a custom drawer for that
+      type.
+3.0.6:
+    - Fixed bug causing fieldInfo property to return null for property drawers
+      specified as an override.
+3.0.5:
+    - Fixed exception when there are multiple Get methods on the provider type.
+      Only methods that take no parameters may be used.
+    - Plug-in now supports WinRT and Windows Phone platforms.
+    - Library updates.
+3.0.4:
+    - Library updates.
+3.0.3:
+    - Display status icon in inspector for fields that are disabled due to a
+      lack of a setter.
+    - Made compatible with changes to UndoPropertyModification in Unity 5.1.
+    - Fixed an exception when using a setter for an array of structs.
+3.0.2:
+    - Added EulerAnglesAttribute and EulerAnglesDrawer for Quaternion fields.
+3.0.1:
+    - Fixed exception with properties that are arrays or lists of enums.
+    - Library updates.
+3.0.0:
+    - Added new PropertyBackingFieldAttribute constructors that take no
+      parameters or fewer parameters, assuming the backing field starts with
+      either "m_" or "_".
+    - Old PropertyBackingFieldAttribute constructors are now obsolete.
+    - Moved all files into Plugins directory to reduce compile times and allow
+      compatibility with languages other than C#.
+2.0.11:
+    - Unity 4.6 is new minimum version.
+    - Library updates.
+    - Changed version numbering scheme.
+2.10:
+    - Unify project layout and asset IDs across asset store products.
+2.09:
+    - Removed errant script from examples folder.
+2.08:
+    - Fixed bug where changes to nested structs were not flushed to asset.
+2.07:
+    - Fixed bug getting private getters/setters on generic base classes.
+    - Fixed bug with generic getters/setters on concrete classes.
+    - Fixed bug in ArrayPropertySetterExampleEditor.
+2.06:
+    - Fix ExitGUIException thrown when object picker opens for serialized field
+      with no custom drawer specified.
+2.05:
+    - Added tags to assets to improve asset store searchability.
+2.04:
+    - Library updates.
+2.03:
+    - Decorator drawers now only double-up on generic properties (i.e. custom
+      classes and structs).
+    - Decorator drawers no longer cause default array editors to collapse.
+2.02:
+    - Properties with no drawer override now correctly display label overrides.
+    - Fixed exception when adding new array elements using default array
+      drawer.
+    - Added support for array setters with multiple method signatures. The
+      inspector will invoke the one whose parameter matches the return type of
+      the get method.
+    - Added support for properties and get/set methods on classes that are a
+      concrete implementation of a generic class.
+    - Decorator drawers on a backing field now overdraw instead of displaying
+      in succession.
+2.01:
+    - Free up memory when selection has changed.
+2.0:
+    - Unity 4.5 is new minimum version.
+    - Added IPropertyBackingFieldCompatible interface and
+      PropertyBackingFieldCompatibleObject base class, which are used to
+      support custom serializable structs and classes.
+    - You can now use setter logic that only triggers on value changes! Note
+      that custom serializable classes will always supply a clone.
+    - Full support for undo/redo and reverting to prefab for all property types
+      in any play mode state!
+    - PropertyBackingFieldDrawer.DisplayArrayPropertyField() and
+      PropertyBackingFieldDrawer.DisplayReorderableListPropertyField() were
+      removed and are no longer necessary!
+    - No naming assumptions are made for IList backing fields and their
+      respective properties anymore!
+    - Properties and their respective backing fields need not match type, as
+      long as the backing field type is assignable from the property type.
+    - Fixed bug that could cause some enum properties to not be set properly.
+    - Fixed bug calculating property drawer height when property was followed
+      by another whose name was prefixed with the preceding property's name.
+    - Changed some access modifiers and method signatures of utility methods
+      which should generally not be needed anyway.
+1.05:
+    - Added PropertyBackingFieldDrawer.DisplayArrayPropertyField() and
+      PropertyBackingFieldDrawer.DisplayReorderableListPropertyField() utility
+      methods for use in custom editors to invoke array property setters when
+      array size drops to 0.
+1.04:
+    - Fixed bug that could cause array setters on prefabs to infinitely invoke.
+    - Some accomodations for multi-select.
+    - Library updates.
+1.03:
+    - Fixed bug that prevented detection of nonpublic setters.
+1.02:
+    - Backing fields for properties with no setter now display as disabled
+      fields in the inspector, rather than throwing an exception.
+1.01:
+    - Property Backing Fields was released to the world!

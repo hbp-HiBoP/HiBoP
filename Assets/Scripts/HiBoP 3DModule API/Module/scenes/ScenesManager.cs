@@ -131,7 +131,7 @@ namespace HBP.VISU3D
 
         #region functions
 
-        public void set_module_focus(bool state)
+        public void SetModuleFocusState(bool state)
         {
             m_camerasManager.set_module_focus(state);            
         }

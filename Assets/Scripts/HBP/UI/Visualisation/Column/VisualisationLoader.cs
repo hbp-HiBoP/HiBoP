@@ -209,7 +209,7 @@ namespace HBP.UI
                 loadingCircle.Set(1, "Finish");
                 yield return Ninja.JumpBack;
                 yield return Ninja.JumpToUnity;
-                command.set_scene_data(visualisationData);
+                command.LoadData(visualisationData);
             }
             else
             {
@@ -234,10 +234,10 @@ namespace HBP.UI
                 loadingCircle.Set(1, "Finish");
                 yield return Ninja.JumpBack;
                 yield return Ninja.JumpToUnity;
-                command.set_scene_data(visualisationData);
+                command.LoadData(visualisationData);
             }
-            command.set_scenes_visibility(!MNI, MNI);
-            command.set_module_focus(true);
+            command.SetScenesVisibility(!MNI, MNI);
+            command.SetModuleFocus(true);
             loadingCircle.Close();
         }
         void LoadSPSceneFromMP(int idPatient)

@@ -1,16 +1,11 @@
-﻿
-
-/**
+﻿/**
  * \file    UICameraManager.cs
  * \author  Lance Florian
  * \date    2015
  * \brief   Define UICameraManager class
  */
 
-// system
 using System.Collections.Generic;
-
-// unity
 using UnityEngine;
 
 namespace HBP.VISU3D
@@ -46,7 +41,7 @@ namespace HBP.VISU3D
             // retrieve controllers
             m_globalMenuController = transform.Find("global menu").gameObject.GetComponent<GlobalMenuController>();
             m_scenesRatioController = transform.Find("scenes ratio").gameObject.GetComponent<ScenesRatioController>();
-            m_topPanelMenuController = transform.Find("top panel menu").gameObject.GetComponent<ToolsMenu>();
+            m_topPanelMenuController = GameObject.Find("Tools Menu").GetComponent<ToolsMenu>();
             m_buttonsLeftMenuController = transform.Find("buttons left menu").gameObject.GetComponent<ButtonsLeftMenuController>();
             m_SPLeftMenuController = transform.Find("sp left menues").gameObject.GetComponent<SPLeftMenuController>();
             m_MPLeftMenuController = transform.Find("mp left menues").gameObject.GetComponent<MPLeftMenuController>();            

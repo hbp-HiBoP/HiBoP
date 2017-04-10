@@ -15,11 +15,11 @@ namespace HBP.UI
         #region Events
         public void OnPointerEnter()
         {
-            command.set_module_focus(false);
+            command.SetModuleFocus(false);
         }
         public void OnPointerExit()
         {
-            command.set_module_focus(true);
+            command.SetModuleFocus(true);
         }
         void OnRectTransformDimensionsChange()
         {

@@ -1,24 +1,16 @@
-﻿
-/**
+﻿/**
  * \file    HiBoP_3DModule_API.cs
- * \author  Lance Florian
- * \date    01/2016
+ * \author  Lance Florian and Adrien Gannerie
+ * \date    01/2016 - 04/2017
  * \brief   Define the HiBoP_3DModule_API class
  */
 
-// system
-using System.Collections.Generic;
 using System.Diagnostics;
-
-// unity
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-
-using UnityEngine.UI;
-
 #if UNITY_EDITOR
 using UnityEditor;
-    using UnityEditor.Callbacks;
 #endif
 
 namespace HBP.VISU3D
@@ -37,22 +29,22 @@ namespace HBP.VISU3D
     /// </summary>
     public class HiBoP_3DModule_API : MonoBehaviour
     {
-        #region members
-
+        #region Properties
         private HiBoP_3DModule_Main m_HBP3D = null; /**< main class of the 3D module */
 
         [Header("Module camera")]
-        public Camera m_backgroundCamera = null;
+        [SerializeField]
+        Camera m_backgroundCamera = null;
+        public Camera BackgroundCamera { get { return m_backgroundCamera; } }
 
         [Header("API events")]
         public Events.UpdateColumnMinimizeStateEvent UpdateColumnMinimizedState = new Events.UpdateColumnMinimizeStateEvent();
         public Events.InfoPlotRequest SiteInfoRequest = new Events.InfoPlotRequest();        
         public Events.LoadSPSceneFromMP LoadSPSceneFromMP = new Events.LoadSPSceneFromMP();
         public Events.ROISavedEvent ROISavedEvent = new Events.ROISavedEvent();
+        #endregion 
 
-        #endregion members
-
-        #region mono_behaviour
+        #region Private Methods
 
         /// <summary>
         /// This function is always called before any Start functions and also just after a prefab is instantiated. (If a GameObject is inactive during start up Awake is not called until it is made active.)
@@ -60,7 +52,7 @@ namespace HBP.VISU3D
         void Awake()
         {
             // retrieve
-            m_HBP3D = transform.Find("Module").gameObject.GetComponent<HiBoP_3DModule_Main>();
+            m_HBP3D = GetComponent<HiBoP_3DModule_Main>();
 
             // command listeners            
             MinimizeController minimizeController = m_HBP3D.UIManager.UIOverlayManager.MinimizeController;
@@ -79,10 +71,9 @@ namespace HBP.VISU3D
             {
                 SiteInfoRequest.Invoke(siteRequest);
             });
-
             m_HBP3D.ScenesManager.MPScene.LoadSPSceneFromMP.AddListener((idPatient) =>
             {
-                //LoadSPSceneFromMP.Invoke(idPatient);
+                LoadSPSceneFromMP.Invoke(idPatient);
             });
             m_HBP3D.UIManager.UICameraManager.transform.Find("mp left menues").Find("ROI").GetComponent<ROIMenuController>().ROISavedEvent.AddListener((pathROI) =>
             {
@@ -90,33 +81,21 @@ namespace HBP.VISU3D
                 UnityEngine.Debug.Log("pathROI : " + pathROI);
             });
         }
-
         void OnDestroy()
         {
             StaticComponents.DLLDebugManager.clean();
         }
+        #endregion
 
-        #endregion mono_behaviour
-
-        #region others
-
+        #region Public Methods
         // ################################################### API public functions
-
         /// <summary>
         /// Set the focus state of the module
         /// </summary>
         /// <param name="state"></param>
-        public void set_module_focus(bool state)
+        public void SetModuleFocus(bool state)
         {
-            m_HBP3D.ScenesManager.set_module_focus(state);
-        }
-
-        /// <summary>
-        /// Retrieve the background camera
-        /// </summary>
-        public Camera background_camera()
-        {
-            return m_backgroundCamera;
+            m_HBP3D.ScenesManager.SetModuleFocusState(state);
         }
 
         /// <summary>
@@ -124,7 +103,7 @@ namespace HBP.VISU3D
         /// </summary>
         /// <param name="showSPScene"> if true display single patient scene</param>
         /// <param name="showMPScene"> if true display multi patients scene</param>
-        public void set_scenes_visibility(bool showSPScene = true, bool showMPScene = true)
+        public void SetScenesVisibility(bool showSPScene = true, bool showMPScene = true)
         {
             m_HBP3D.ScenesManager.setScenesVisibility(showSPScene, showMPScene);
         }
@@ -134,7 +113,7 @@ namespace HBP.VISU3D
         /// </summary>
         /// <param name="visuDataSP"></param>
         /// <returns>false if a loading error occurs, else true </returns>
-        public bool set_scene_data(Data.Visualisation.SinglePatientVisualisationData visuDataSP)
+        public bool LoadData(Data.Visualisation.SinglePatientVisualisationData visuDataSP)
         {
             bool result = m_HBP3D.set_SP_data(visuDataSP);
             return result;
@@ -145,7 +124,7 @@ namespace HBP.VISU3D
         /// </summary>
         /// <param name="visuDataMP"></param>
         /// <returns>false if a loading error occurs, else true </returns>
-        public bool set_scene_data(Data.Visualisation.MultiPatientsVisualisationData visuDataMP)
+        public bool LoadData(Data.Visualisation.MultiPatientsVisualisationData visuDataMP)
         {
             if (MNIObjects.LoadingMutex.WaitOne(10000))
                 return m_HBP3D.set_MP_data(visuDataMP);
@@ -154,16 +133,14 @@ namespace HBP.VISU3D
 
             return false;
         }
-
-
-        #endregion others
+        #endregion
     }
 
 #if UNITY_EDITOR
     public class EditorMenuActions
     {
-        [MenuItem("Before building/Copy data to build dir")]
-        static void copy_data_directory()
+        [MenuItem("Before building/Copy data to build directory")]
+        static void CoptyDataToBuildDirectory()
         {
             string buildDataPath = VISU3D.DLL.QtGUI.get_existing_directory_name("Select Build directory where data will be copied");
             if (buildDataPath.Length > 0)
@@ -173,9 +150,8 @@ namespace HBP.VISU3D
             }            
         }
 
-        // debug
         [MenuItem("Debug test/Load patient from debug launcher")]
-        static void load_patient_from_debug_launcher()
+        static void LoadPatientFromDebugLauncher()
         {
             if (!EditorApplication.isPlaying)
             {
@@ -186,8 +162,8 @@ namespace HBP.VISU3D
             GameObject.Find("HiBoP 3DModule API").transform.Find("Module").gameObject.GetComponent<HiBoP_PatientLoader_Debug>().load_debug_config_file(Application.dataPath + "/../tools/config_debug_load.txt");
         }        
 
-        [MenuItem("Debug test/Focus SP scene")]
-        static void focus_sp_scene()
+        [MenuItem("Debug test/Focus on single patient scene")]
+        static void FocusOnSinglePatientScene()
         {
             if (!EditorApplication.isPlaying)
             {
@@ -195,11 +171,11 @@ namespace HBP.VISU3D
                 return;
             }
 
-            GameObject.Find("HiBoP 3DModule API").GetComponent<HiBoP_3DModule_API>().set_scenes_visibility(true, false);
+            GameObject.Find("HiBoP 3DModule API").GetComponent<HiBoP_3DModule_API>().SetScenesVisibility(true, false);
         }
 
-        [MenuItem("Debug test/Focus MP scene")]
-        static void focus_mp_scene()
+        [MenuItem("Debug test/Focus on multi-patients scene")]
+        static void FocusOnMultiPatientsScene()
         {
             if (!EditorApplication.isPlaying)
             {
@@ -207,11 +183,11 @@ namespace HBP.VISU3D
                 return;
             }
 
-            GameObject.Find("HiBoP 3DModule API").GetComponent<HiBoP_3DModule_API>().set_scenes_visibility(false, true);
+            GameObject.Find("HiBoP 3DModule API").GetComponent<HiBoP_3DModule_API>().SetScenesVisibility(false, true);
         }
 
-        [MenuItem("Debug test/Focus both scenes")]
-        static void focus_both_scenes()
+        [MenuItem("Debug test/Focus on both scenes")]
+        static void FocusOnBothScenes()
         {
             if (!EditorApplication.isPlaying)
             {
@@ -219,11 +195,11 @@ namespace HBP.VISU3D
                 return;
             }
 
-            GameObject.Find("HiBoP 3DModule API").GetComponent<HiBoP_3DModule_API>().set_scenes_visibility(true, true);
+            GameObject.Find("HiBoP 3DModule API").GetComponent<HiBoP_3DModule_API>().SetScenesVisibility(true, true);
         }
 
         [MenuItem("Debug test/Launch hibop debug launcher editor")]
-        static void load_debug_launcher_editor()
+        static void OpenDebugLauncherEditor()
         {
             Process process = new Process();
             process.StartInfo.RedirectStandardOutput = true;
@@ -235,9 +211,8 @@ namespace HBP.VISU3D
         }
 
         [MenuItem("Debug test/File dialog")]
-        static void load_debug_file_dialog_editor()
+        static void OpenDebugFileDialogEditor()
         {
-            //UnityEngine.Debug.Log("error code: " + DLL.QtGUI.get_action_to_do_from_error_dialog_test("rererezfzfzefzff", true));
             {
                 Process proc = new Process
                 {
@@ -250,10 +225,8 @@ namespace HBP.VISU3D
                         CreateNoWindow = true
                     }
                 };
-
                 proc.Start();
             }
-
             {
                 Process proc = new Process
                 {
@@ -266,12 +239,9 @@ namespace HBP.VISU3D
                         CreateNoWindow = true
                     }
                 };
-
                 proc.Start();
             }
         }
-
     }
 #endif
-
 }

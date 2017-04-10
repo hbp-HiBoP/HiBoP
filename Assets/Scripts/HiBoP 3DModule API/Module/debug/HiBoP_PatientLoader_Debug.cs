@@ -234,12 +234,12 @@ namespace HBP.VISU3D
             if (spScene)
             {
                 load_debug_SP_scene(names[0], patientsPaths[0], true);
-                m_command.set_scenes_visibility(true, false);
+                m_command.SetScenesVisibility(true, false);
             }
             else
             {
                 load_debug_MP_scene(names, patientsPaths);
-                m_command.set_scenes_visibility(false, true);
+                m_command.SetScenesVisibility(false, true);
             }
         }
 
@@ -433,7 +433,7 @@ namespace HBP.VISU3D
             }
 
             // load multi patients scene
-            m_command.set_scene_data(new HBP.Data.Visualisation.SinglePatientVisualisationData(patient, columnsDataSP.ToArray()));
+            m_command.LoadData(new HBP.Data.Visualisation.SinglePatientVisualisationData(patient, columnsDataSP.ToArray()));
         }
 
         /// <summary>
@@ -476,7 +476,7 @@ namespace HBP.VISU3D
             }
 
             // load multi patients scene
-            m_command.set_scene_data(new HBP.Data.Visualisation.MultiPatientsVisualisationData(patients.ToArray(), columsnDataMP.ToArray()));
+            m_command.LoadData(new HBP.Data.Visualisation.MultiPatientsVisualisationData(patients.ToArray(), columsnDataMP.ToArray()));
 
         } 
     }    

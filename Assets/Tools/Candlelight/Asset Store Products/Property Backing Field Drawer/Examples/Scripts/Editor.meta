@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 84755098f50e24e28a8d7a79bba414a1
+labels:
+- Editor
+- Extensions
+- Inspector
+- Gui
+- Serialization
+- Properties
+- Undo
+- Property
+folderAsset: yes
+DefaultImporter:
+  userData: 

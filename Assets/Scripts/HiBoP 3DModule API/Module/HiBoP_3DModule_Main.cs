@@ -1,16 +1,13 @@
 ﻿/**
  * \file    HiBoP_3DModule_Main.cs
- * \author  Lance Florian
- * \date    04/05/2016
+ * \author  Lance Florian - Adrien Gannerie 
+ * \date    04/05/2016 - 04/2017
  * \brief   Define the HiBoP_3DModule_Main class
  */
 
-// system
 using System;
 using System.Linq;
 using System.Collections.Generic;
-
-// unity
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,25 +18,22 @@ namespace HBP.VISU3D
     /// </summary>
     public class HiBoP_3DModule_Main : MonoBehaviour
     {
-        #region members
-
+        #region Properties
         private UIManager m_UIManager = null; /**< UI manager */
         public UIManager UIManager{get { return m_UIManager; }}
 
         private ScenesManager m_scenesManager; /**< scenes manager */
         public ScenesManager ScenesManager { get { return m_scenesManager; } }
+        #endregion 
 
-        #endregion members
-
-        #region mono_behaviour
-
+        #region Private Methods
         /// <summary>
         /// This function is always called before any Start functions and also just after a prefab is instantiated. (If a GameObject is inactive during start up Awake is not called until it is made active.)
         /// </summary>
         void Awake()
         {
             // retrieve managers
-            m_UIManager = transform.Find("UI").GetComponent<UIManager>();
+            m_UIManager = GameObject.Find("Visualisation UI").GetComponent<UIManager>();
             m_scenesManager = transform.Find("Scenes").GetComponent<ScenesManager>();
 
             // graphics settings
