@@ -500,21 +500,24 @@ namespace HBP.UI
             }
             yield return Ninja.JumpToUnity;
             HandleError(l_loadingState, additionalInformations, projectDirectory);
-            /*
+            
             // Copy ROI
             yield return Ninja.JumpBack;
             try
             {
-                string[] roiDirectories = Directory.GetDirectories(l_projectPath + Path.DirectorySeparatorChar + "ROI");
-                foreach (string directory in roiDirectories)
+                if (Directory.Exists(l_projectPath + Path.DirectorySeparatorChar + "ROI"))
                 {
-                    string newDirectory = l_projectTempPath + Path.DirectorySeparatorChar + directory.Substring(l_projectPath.Length);
-                    Directory.CreateDirectory(newDirectory);
-                    DirectoryInfo dirInfo = new DirectoryInfo(directory);
-                    FileInfo[] oldROIFiles = dirInfo.GetFiles("*.roi");
-                    foreach (FileInfo file in oldROIFiles)
+                    string[] roiDirectories = Directory.GetDirectories(l_projectPath + Path.DirectorySeparatorChar + "ROI");
+                    foreach (string directory in roiDirectories)
                     {
-                        file.MoveTo(newDirectory + Path.DirectorySeparatorChar + file.Name);
+                        string newDirectory = l_projectTempPath + Path.DirectorySeparatorChar + directory.Substring(l_projectPath.Length);
+                        Directory.CreateDirectory(newDirectory);
+                        DirectoryInfo dirInfo = new DirectoryInfo(directory);
+                        FileInfo[] oldROIFiles = dirInfo.GetFiles("*.roi");
+                        foreach (FileInfo file in oldROIFiles)
+                        {
+                            file.MoveTo(newDirectory + Path.DirectorySeparatorChar + file.Name);
+                        }
                     }
                 }
             }
@@ -524,7 +527,7 @@ namespace HBP.UI
             }
             yield return Ninja.JumpToUnity;
             HandleError(l_loadingState, additionalInformations, projectDirectory);
-            */
+            
             // Deleting old directories.
             loadingCircle.Set((float)l_actualStep / l_maxStep, "Deleting old directories");
             yield return Ninja.JumpBack;
