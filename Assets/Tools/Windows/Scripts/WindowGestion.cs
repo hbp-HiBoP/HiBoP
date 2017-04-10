@@ -221,10 +221,6 @@ namespace Tools.Unity.Window
 			{
 				transform.SetAsLastSibling();
 			}
-			else
-			{
-				transform.SetAsFirstSibling();
-			}
 		}
 		#endregion
 	}

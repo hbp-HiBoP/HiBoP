@@ -13,7 +13,7 @@ namespace Tools.Unity.Graph
         public void SetLegends(CurveData[] curves)
         {
             Clear();
-            foreach(CurveData curve in curves) AddLegend(curve);
+            if(curves != null) foreach(CurveData curve in curves) AddLegend(curve);
         }
         #endregion
 

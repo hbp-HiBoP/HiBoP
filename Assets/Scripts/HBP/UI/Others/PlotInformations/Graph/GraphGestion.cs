@@ -25,16 +25,31 @@ namespace HBP.UI.Graph
                 limits.AbscissaMax = float.MinValue;
                 foreach (CurveData curve in curves)
                 {
-                    foreach (Vector2 point in curve.Points)
+                    if(curve.GetType() == typeof(ShapedCurveData))
                     {
-                        if (limits.AbscissaMin > point.x) limits.AbscissaMin = point.x;
-                        if (limits.AbscissaMax < point.x) limits.AbscissaMax = point.x;
-                        if (limits.OrdinateMin > point.y) limits.OrdinateMin = point.y;
-                        if (limits.OrdinateMax < point.y) limits.OrdinateMax = point.y;
+                        ShapedCurveData shapedCurve = curve as ShapedCurveData;
+                        for (int i = 0; i < shapedCurve.Points.Length ; i++)
+                        {
+                            if (limits.AbscissaMin > shapedCurve.Points[i].x) limits.AbscissaMin = shapedCurve.Points[i].x;
+                            if (limits.AbscissaMax < shapedCurve.Points[i].x) limits.AbscissaMax = shapedCurve.Points[i].x;
+                            if (limits.OrdinateMin > shapedCurve.Points[i].y - shapedCurve.Shapes[i]) limits.OrdinateMin = shapedCurve.Points[i].y - shapedCurve.Shapes[i];
+                            if (limits.OrdinateMax < shapedCurve.Points[i].y + shapedCurve.Shapes[i]) limits.OrdinateMax = shapedCurve.Points[i].y + shapedCurve.Shapes[i];
+                        }
                     }
+                    else
+                    {
+                        foreach (Vector2 point in curve.Points)
+                        {
+                            if (limits.AbscissaMin > point.x) limits.AbscissaMin = point.x;
+                            if (limits.AbscissaMax < point.x) limits.AbscissaMax = point.x;
+                            if (limits.OrdinateMin > point.y) limits.OrdinateMin = point.y;
+                            if (limits.OrdinateMax < point.y) limits.OrdinateMax = point.y;
+                        }
+                    }
+
                 }
             }
-            GraphData graphData = new GraphData("EEG", "Time(ms)", "Activity(mV)", Color.black, Color.white, curves, new Limits());
+            GraphData graphData = new GraphData("EEG", "Time(ms)", "Activity(mV)", Color.black, Color.white, curves, limits);
             m_graph.Plot(graphData);
         }
         #endregion
@@ -43,8 +58,8 @@ namespace HBP.UI.Graph
         void Awake()
         {
             m_graph = GetComponent<Tools.Unity.Graph.Graph>();
-            //m_graph.SetWindowEvent.RemoveAllListeners();
-            //m_graph.SetWindowEvent.AddListener(() => m_setManually = true);
+            m_graph.OnSetLimitsManually.RemoveAllListeners();
+            m_graph.OnSetLimitsManually.AddListener(() => m_setManually = true);
         }
         #endregion
     }

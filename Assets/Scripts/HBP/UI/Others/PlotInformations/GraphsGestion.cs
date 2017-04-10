@@ -96,7 +96,7 @@ namespace HBP.UI.Graph
         void Awake()
         {
             trialMatrixList = transform.FindChild("TrialZone").FindChild("TrialMatrix").FindChild("Viewport").FindChild("Content").GetComponent<TrialMatrixList>();
-            graphGestion = transform.FindChild("Graph").GetComponent<GraphGestion>();
+            graphGestion = transform.FindChild("pref_Graph").GetComponent<GraphGestion>();
             zoneResizer = transform.parent.GetComponent<ZoneResizer>();
             AddListerners();
             Type = TypeEnum.None;

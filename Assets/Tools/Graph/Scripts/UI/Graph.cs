@@ -1,90 +1,97 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 namespace Tools.Unity.Graph
 {
     public class Graph : MonoBehaviour
     {
         #region Properties
-        PlotGestion plotGestion;
-        InformationsGestion informationsGestion;
+        PlotGestion m_PlotGestion;
+        InformationsGestion m_InformationsGestion;
 
-        string title;
+        string m_Title;
         public string Title
         {
-            get { return title; }
+            get { return m_Title; }
             set
             {
-                title = value;
-                informationsGestion.SetTitle(title);
+                m_Title = value;
+                m_InformationsGestion.SetTitle(m_Title);
             }
         }
 
-        string abscissa;
+        string m_Abscissa;
         public string Abscissa
         {
-            get { return abscissa; }
+            get { return m_Abscissa; }
             set
             {
-                abscissa = value;
-                informationsGestion.SetAbscissaLabel(value);
+                m_Abscissa = value;
+                m_InformationsGestion.SetAbscissaLabel(value);
             }
         }
 
-        string ordinate;
+        string m_Ordinate;
         public string Ordinate
         {
-            get { return ordinate; }
+            get { return m_Ordinate; }
             set
             {
-                ordinate = value;
-                informationsGestion.SetOrdinateLabel(ordinate);
+                m_Ordinate = value;
+                m_InformationsGestion.SetOrdinateLabel(m_Ordinate);
             }
         }
 
-        Color fontColor;
+        Color m_FontColor;
         public Color FontColor
         {
-            get { return fontColor; }
+            get { return m_FontColor; }
             set
             {
-                fontColor = value;
-                informationsGestion.SetColor(fontColor);
-                plotGestion.OriginAxeColor = fontColor;
+                m_FontColor = value;
+                m_InformationsGestion.SetColor(m_FontColor);
+                m_PlotGestion.OriginAxeColor = m_FontColor;
             }
         }
 
-        Color backgroundColor;
+        Color m_BackgroundColor;
         public Color BackgroundColor
         {
-            get { return backgroundColor; }
+            get { return m_BackgroundColor; }
             set
             {
-                backgroundColor = value;
-                plotGestion.GetComponent<Image>().color = value;
+                m_BackgroundColor = value;
+                m_PlotGestion.GetComponent<Image>().color = value;
             }
         }
 
-        Limits limits;
+        Limits m_Limits;
         public Limits Limits
         {
-            get { return limits; }
+            get { return m_Limits; }
             private set
             {
-                limits = value;
-                informationsGestion.SetLimits(value);
+                m_Limits = value;
+                m_InformationsGestion.SetLimits(value);
             }
         }
 
-        CurveData[] curves;
+        CurveData[] m_Curves;
         public CurveData[] Curves
         {
-            get { return curves; }
+            get { return m_Curves; }
             private set
             {
-                curves = value;
-                informationsGestion.SetLegends(curves);
+                m_Curves = value;
+                m_InformationsGestion.SetLegends(m_Curves);
             }
+        }
+
+        UnityEvent m_OnSetLimitsManually = new UnityEvent();
+        public UnityEvent OnSetLimitsManually
+        {
+            get { return m_OnSetLimitsManually; }
         }
         #endregion
 
@@ -111,16 +118,20 @@ namespace Tools.Unity.Graph
         #region Private Methods
         void Awake()
         {
-            plotGestion = GetComponentInChildren<PlotGestion>();
-            informationsGestion = GetComponentInChildren<InformationsGestion>();
-            plotGestion.OnChangeLimits.RemoveAllListeners();
-            plotGestion.OnChangeLimits.AddListener((limits) => Plot(Curves, limits, true));
+            m_PlotGestion = GetComponentInChildren<PlotGestion>();
+            m_InformationsGestion = GetComponentInChildren<InformationsGestion>();
+            m_PlotGestion.OnChangeLimits.RemoveAllListeners();
+            m_PlotGestion.OnChangeLimits.AddListener((limits) =>
+            {
+                Plot(Curves, limits, true);
+                m_OnSetLimitsManually.Invoke();
+            });
         }
         void Plot (CurveData[] curves, Limits limits, bool onlyUpdate = false)
         {
             Curves = curves;
             Limits = limits;
-            plotGestion.Plot(curves, limits, onlyUpdate);
+            m_PlotGestion.Plot(curves, limits, onlyUpdate);
         }
         #endregion
     }
