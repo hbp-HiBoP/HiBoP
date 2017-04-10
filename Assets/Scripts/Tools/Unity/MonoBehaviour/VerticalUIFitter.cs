@@ -1,99 +1,83 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
-namespace Tools.Unity
+[RequireComponent(typeof(RectTransform)), ExecuteInEditMode]
+public class VerticalUIFitter : MonoBehaviour, ILayoutSelfController
 {
-    [RequireComponent(typeof(RectTransform)), ExecuteInEditMode]
-    public class VerticalUIFitter : MonoBehaviour
+    #region Properties
+    DrivenRectTransformTracker tracker;
+    RectTransform rectTransform;
+    RectTransform parentRectTransform;
+
+    public enum RotationEnum { Left, Right };
+    RotationEnum m_rotation;
+    public RotationEnum Rotation
     {
-        #region Properties
-        RectTransform rect;
-        RectTransform container;
-
-        public enum RotationEnum { Left, Right };
-        RotationEnum m_rotation;
-        public RotationEnum Rotation
+        get
         {
-            get
-            {
-                return m_rotation;
-            }
-            set
-            {
-                m_rotation = value; Set();
-            }
+            return m_rotation;
         }
-
-        #endregion
-        #region Events
-        void OnRectTransformDimensionsChange()
+        set
         {
             if (isActiveAndEnabled)
             {
-                Fit();
+                switch (value)
+                {
+                    case RotationEnum.Left:
+                        rectTransform.localRotation = Quaternion.AngleAxis(90, Vector3.forward);
+                        rectTransform.anchorMin = Vector2.zero;
+                        rectTransform.anchorMax = Vector2.zero;
+                        break;
+                    case RotationEnum.Right:
+                        rectTransform.localRotation = Quaternion.AngleAxis(-90, Vector3.forward);
+                        rectTransform.anchorMin = Vector2.one;
+                        rectTransform.anchorMax = Vector2.one;
+                        break;
+                }
             }
+            m_rotation = value;
         }
-
-        void Awake()
-        {
-            Set();
-        }
-
-        void Update()
-        {
-            if (!Application.isPlaying)
-            {
-                Fit();
-            }
-        }
-
-        void OnTransformParentChanged()
-        {
-            Set();
-        }
-        #endregion
-        #region Methods
-        void Set()
-        {
-            rect = GetComponent<RectTransform>();
-            container = transform.parent.GetComponent<RectTransform>();
-            rect.localPosition = new Vector3(0, 0, 0);
-            rect.sizeDelta = new Vector2(0, 0);
-            rect.anchorMin = new Vector2(0, 0);
-            rect.anchorMax = new Vector2(1, 1);
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            if (Rotation == RotationEnum.Left)
-            {
-                rect.localRotation = Quaternion.AngleAxis(90, Vector3.forward);
-            }
-            else
-            {
-                rect.localRotation = Quaternion.AngleAxis(-90, Vector3.forward);
-            }
-            Fit();
-        }
-
-        void Fit()
-        {
-            float fit = (container.rect.height - container.rect.width);
-            rect.sizeDelta = fit * new Vector2(1, -1);
-            if (container.anchorMax.x == container.anchorMin.x && container.anchorMin.y == container.anchorMax.y)
-            {
-                rect.localPosition = new Vector3(0, container.rect.height / 2);
-                rect.localPosition = new Vector3(container.rect.width / 2, 0);
-            }
-            if (container.anchorMax.x == container.anchorMin.x)
-            {
-                rect.localPosition = new Vector3(container.rect.width / 2, 0);
-            }
-            else if (container.anchorMax.y == container.anchorMin.y)
-            {
-                rect.localPosition = new Vector3(0, container.rect.height / 2);
-            }
-            else
-            {
-                rect.localPosition = new Vector3(0, 0, 0);
-            }
-        }
-        #endregion
     }
+    #endregion
+
+    #region Public Methods
+    public void SetLayoutHorizontal()
+    {
+        rectTransform.sizeDelta = new Vector2(parentRectTransform.rect.height,rectTransform.sizeDelta.y);
+    }
+    public void SetLayoutVertical()
+    {
+        rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, parentRectTransform.rect.width);
+        rectTransform.anchoredPosition = Vector2.zero;
+    }
+
+    #endregion
+
+    #region Events
+    void OnEnable()
+    {
+        rectTransform = GetComponent<RectTransform>();
+        tracker.Add(this, rectTransform, DrivenTransformProperties.All);
+        rectTransform.pivot = new Vector2(0, 1);
+    }
+    void OnDisable()
+    {
+        tracker.Clear();
+    }
+    void OnTransformParentChanged()
+    {
+        parentRectTransform = transform.parent.GetComponent<RectTransform>();
+    }
+    #endregion
+
+    #region Private Methods
+    void Update()
+    {
+        if(parentRectTransform.hasChanged)
+        {
+            SetLayoutHorizontal();
+            SetLayoutVertical();
+        }
+    }
+    #endregion
 }
