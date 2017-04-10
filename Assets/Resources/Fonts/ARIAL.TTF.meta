@@ -12,7 +12,11 @@ TrueTypeFontImporter:
   fontName: Arial
   fontNames:
   - Arial
-  fallbackFontReferences: []
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 13ece72295964bb4598b6961b6cc7a69, type: 3}
+  - {fileID: 12800000, guid: 3c7131235a2fd5345a6d5e282cee7a83, type: 3}
+  - {fileID: 12800000, guid: 47e99e53639076f4e8a1bc4fa6ddcd00, type: 3}
+  - {fileID: 12800000, guid: d0cbb669941603c40b3cbd518abc7876, type: 3}
   customCharacters: 
   fontRenderingMode: 0
   ascentCalculationMode: 1

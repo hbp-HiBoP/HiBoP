@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: fd1fb7d8fc8834392af3f93811a8f4e6
+labels:
+- Editor
+- Extensions
+- Inspector
+- Serialization
+- Properties
+- Undo
+- Property
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 

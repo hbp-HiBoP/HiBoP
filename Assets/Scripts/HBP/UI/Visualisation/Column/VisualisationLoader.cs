@@ -5,6 +5,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using HBP.VISU3D;
 using HBP.Data.Visualisation;
 using HBP.Data.Experience.Dataset;
@@ -209,6 +210,13 @@ namespace HBP.UI
                 yield return Ninja.JumpBack;
                 yield return Ninja.JumpToUnity;
                 command.set_scene_data(visualisationData);
+
+                // ROI
+                HBP.VISU3D.ROIMenuController roiMenuController = GameObject.FindObjectOfType<ROIMenuController>();
+                string projectsDirectory = ApplicationState.ProjectLoadedLocation;
+                string projectName = ApplicationState.ProjectLoaded.Settings.Name;
+                string currentVisualisation = visualisation.Name;
+                roiMenuController.load_all_ROI(projectsDirectory + Path.DirectorySeparatorChar + projectName + Path.DirectorySeparatorChar + "ROI" + Path.DirectorySeparatorChar + currentVisualisation + Path.DirectorySeparatorChar);
             }
             else
             {

@@ -1,8 +1,5 @@
 ﻿using UnityEngine;
-using System.Linq;
 using Tools.Unity.Graph;
-using System.Collections.Generic;
-using d = Tools.Unity.Graph.Data;
 
 namespace HBP.UI.Graph
 {
@@ -11,38 +8,49 @@ namespace HBP.UI.Graph
     {
         #region Properties
         Tools.Unity.Graph.Graph m_graph;
-        Vector2 m_abcissaWindow;
-        Vector2 m_ordinateWindow; 
         bool m_setManually = false;
         public bool SetManually { set { m_setManually = value; } get { return m_setManually; } }
         #endregion
 
         #region Public Methods
-        public void Set(d.Curve[] curves)
+        public void Set(CurveData[] curves)
         {
             // Save Limits.
-            m_abcissaWindow = m_graph.AbcissaWindow;
-            m_ordinateWindow = m_graph.OrdinateWindow;
+            Limits limits = m_graph.Limits;
             if(!m_setManually)
             {
-                m_abcissaWindow = new Vector2(float.MaxValue, float.MinValue);
-                m_ordinateWindow = new Vector2(float.MaxValue, float.MinValue);
-                foreach (d.Curve curve in curves)
+                limits.OrdinateMin = float.MaxValue;
+                limits.OrdinateMax = float.MinValue;
+                limits.AbscissaMin = float.MaxValue;
+                limits.AbscissaMax = float.MinValue;
+                foreach (CurveData curve in curves)
                 {
-                    foreach (Vector2 point in curve.Points)
+                    if(curve.GetType() == typeof(ShapedCurveData))
                     {
-                        if (m_abcissaWindow.x > point.x) m_abcissaWindow.x = point.x;
-                        if (m_abcissaWindow.y < point.x) m_abcissaWindow.y = point.x;
-                        if (m_ordinateWindow.x > point.y) m_ordinateWindow.x = point.y;
-                        if (m_ordinateWindow.y < point.y) m_ordinateWindow.y = point.y;
+                        ShapedCurveData shapedCurve = curve as ShapedCurveData;
+                        for (int i = 0; i < shapedCurve.Points.Length ; i++)
+                        {
+                            if (limits.AbscissaMin > shapedCurve.Points[i].x) limits.AbscissaMin = shapedCurve.Points[i].x;
+                            if (limits.AbscissaMax < shapedCurve.Points[i].x) limits.AbscissaMax = shapedCurve.Points[i].x;
+                            if (limits.OrdinateMin > shapedCurve.Points[i].y - shapedCurve.Shapes[i]) limits.OrdinateMin = shapedCurve.Points[i].y - shapedCurve.Shapes[i];
+                            if (limits.OrdinateMax < shapedCurve.Points[i].y + shapedCurve.Shapes[i]) limits.OrdinateMax = shapedCurve.Points[i].y + shapedCurve.Shapes[i];
+                        }
                     }
+                    else
+                    {
+                        foreach (Vector2 point in curve.Points)
+                        {
+                            if (limits.AbscissaMin > point.x) limits.AbscissaMin = point.x;
+                            if (limits.AbscissaMax < point.x) limits.AbscissaMax = point.x;
+                            if (limits.OrdinateMin > point.y) limits.OrdinateMin = point.y;
+                            if (limits.OrdinateMax < point.y) limits.OrdinateMax = point.y;
+                        }
+                    }
+
                 }
             }
-
-            // Set Graph.
-            m_graph.Set("EEG","Time(ms)", "Activity(mV)", Color.black, Color.white);
-
-            m_graph.Display(curves,m_abcissaWindow, m_ordinateWindow, true);
+            GraphData graphData = new GraphData("EEG", "Time(ms)", "Activity(mV)", Color.black, Color.white, curves, limits);
+            m_graph.Plot(graphData);
         }
         #endregion
 
@@ -50,8 +58,8 @@ namespace HBP.UI.Graph
         void Awake()
         {
             m_graph = GetComponent<Tools.Unity.Graph.Graph>();
-            m_graph.SetWindowEvent.RemoveAllListeners();
-            m_graph.SetWindowEvent.AddListener(() => m_setManually = true);
+            m_graph.OnSetLimitsManually.RemoveAllListeners();
+            m_graph.OnSetLimitsManually.AddListener(() => m_setManually = true);
         }
         #endregion
     }

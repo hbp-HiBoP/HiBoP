@@ -17,7 +17,7 @@ namespace HBP.UI.Experience.Dataset
 	/// </summary>
 	public class DataInfoListItem : Tools.Unity.Lists.ListItemWithSave<d.DataInfo>
     {
-		#region Attributs
+		#region Properties
 		/// <summary>
 		/// The label inputField.
 		/// </summary>
@@ -34,25 +34,13 @@ namespace HBP.UI.Experience.Dataset
 		/// The EEG inputField.
 		/// </summary>
 		[SerializeField]
-		InputField m_EEGInputField;
-
-        /// <summary>
-        /// The EEG path button.
-        /// </summary>
-        [SerializeField]
-        Button m_EEGPathButton;
+		FileSelector m_EEGFileSelector;
 
         /// <summary>
         /// The Pos inputField.
         /// </summary>
         [SerializeField]
-		InputField m_PosInputField;
-
-        /// <summary>
-        /// The Pos path button.
-        /// </summary>
-        [SerializeField]
-        Button m_POSPathButton;
+		FileSelector m_PosFileSelector;
 
         /// <summary>
         /// The protocol visualisation dropdown.
@@ -93,8 +81,26 @@ namespace HBP.UI.Experience.Dataset
             IsSettingFields = true;
             m_labelInputField.text = dataInfo.Name;
             m_measureLabelInputField.text = dataInfo.Measure;
-            m_EEGInputField.text = dataInfo.EEG;
-            m_PosInputField.text = dataInfo.POS;
+            m_EEGFileSelector.onValueChanged.RemoveAllListeners();
+            m_EEGFileSelector.onValueChanged.AddListener((eeg) =>
+            {
+                if (!IsSettingFields)
+                {
+                    dataInfo.EEG = eeg;
+                    UpdateState();
+                }
+            });
+            m_PosFileSelector.onValueChanged.RemoveAllListeners();
+            m_PosFileSelector.onValueChanged.AddListener((pos) =>
+            {
+                if (!IsSettingFields)
+                {
+                    dataInfo.POS = pos;
+                    UpdateState();
+                }
+            });
+            m_EEGFileSelector.File = dataInfo.EEG;
+            m_PosFileSelector.File = dataInfo.POS;
 
             Data.Experience.Protocol.Protocol[] l_protocols = ApplicationState.ProjectLoaded.Protocols.ToArray();
             List<Dropdown.OptionData> l_protocolOptions = new List<Dropdown.OptionData>(l_protocols.Length);
@@ -134,68 +140,10 @@ namespace HBP.UI.Experience.Dataset
         {
             Object.Name = m_labelInputField.text;
             Object.Measure = m_measureLabelInputField.text;
-            Object.EEG = m_EEGInputField.text;
-            Object.POS = m_PosInputField.text;
+            Object.EEG = m_EEGFileSelector.File;
+            Object.POS = m_PosFileSelector.File;
             Object.Patient = ApplicationState.ProjectLoaded.Patients.ToArray()[m_PatientDropdown.value];
             Object.Protocol = ApplicationState.ProjectLoaded.Protocols.ToArray()[m_ProvDropdown.value];
-        }
-
-
-        /// <summary>
-        /// Open the POS file dialog.
-        /// </summary>
-        public void OpenPOSPath()
-        {
-            string l_filePath = m_PosInputField.text;
-            string l_path;
-            if (l_filePath != string.Empty && new System.IO.FileInfo(l_filePath).Exists && new System.IO.FileInfo(l_filePath).Extension == Data.Localizer.POS.EXTENSION)
-            {
-                l_path = l_filePath;
-            }
-            else
-            {
-                if (m_EEGInputField.text != string.Empty)
-                {
-                    l_path = m_EEGInputField.text;
-                }
-                else
-                {
-                    l_path = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
-                }
-            }
-
-            string l_resultStandalone = VISU3D.DLL.QtGUI.get_existing_file_name(new string[] { "pos" }, "Please select the POS file.", l_path);
-            StringExtension.StandardizeToPath(ref l_resultStandalone);
-            if (l_resultStandalone != string.Empty)
-            {
-                m_PosInputField.text = l_resultStandalone;
-                OnEndEditPOSPath();
-            }
-        }
-
-        /// <summary>
-        /// Open the EEGF file dialog.
-        /// </summary>
-        public void OpenEEGPath()
-        {
-            string l_filePath = m_EEGInputField.text;
-            string l_path;
-            if (l_filePath != string.Empty && new System.IO.FileInfo(l_filePath).Exists && new System.IO.FileInfo(l_filePath).Extension == Elan.EEG.EXTENSION)
-            {
-                l_path = l_filePath;
-            }
-            else
-            {
-                l_path = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
-            }
-
-            string l_resultStandalone = VISU3D.DLL.QtGUI.get_existing_file_name(new string[] { "eeg" }, "Please select the EEG file.", l_path);
-            StringExtension.StandardizeToPath(ref l_resultStandalone);
-            if (l_resultStandalone != string.Empty)
-            {
-                m_EEGInputField.text = l_resultStandalone;
-                OnEndEditEEGPath();
-            }
         }
 
         public void OnEndEditLabel()
@@ -212,24 +160,6 @@ namespace HBP.UI.Experience.Dataset
             if (!IsSettingFields)
             {
                 m_object.Measure = m_measureLabelInputField.text;
-                UpdateState();
-            }
-        }
-
-        public void OnEndEditEEGPath()
-        {
-            if (!IsSettingFields)
-            {
-                m_object.EEG = m_EEGInputField.text;
-                UpdateState();
-            }
-        }
-
-        public void OnEndEditPOSPath()
-        {
-            if (!IsSettingFields)
-            {
-                m_object.POS = m_PosInputField.text;
                 UpdateState();
             }
         }

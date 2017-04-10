@@ -82,7 +82,7 @@ namespace HBP.VISU3D
 
             m_HBP3D.ScenesManager.MPScene.LoadSPSceneFromMP.AddListener((idPatient) =>
             {
-                //LoadSPSceneFromMP.Invoke(idPatient);
+                LoadSPSceneFromMP.Invoke(idPatient);
             });
             m_HBP3D.UIManager.UICameraManager.transform.Find("mp left menues").Find("ROI").GetComponent<ROIMenuController>().ROISavedEvent.AddListener((pathROI) =>
             {

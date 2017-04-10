@@ -7,7 +7,7 @@ using HBP.Data.Anatomy;
 using HBP.Data.Visualisation;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
-using Tools.Unity.Graph.Data;
+using Tools.Unity.Graph;
 
 namespace HBP.UI.Graph
 {
@@ -24,8 +24,8 @@ namespace HBP.UI.Graph
         // Curves
         GraphGestion graphGestion;
         Color[] colors = new Color[7] { Color.blue, Color.red, Color.green, Color.cyan, Color.grey, Color.magenta, Color.yellow };
-        Curve[][] curves = new Curve[0][];
-        Curve[] ROIcurves = new Curve[0];
+        CurveData[][] curves = new CurveData[0][];
+        CurveData[] ROIcurves = new CurveData[0];
 
         // Plots
         PlotID[] plots;
@@ -96,7 +96,7 @@ namespace HBP.UI.Graph
         void Awake()
         {
             trialMatrixList = transform.FindChild("TrialZone").FindChild("TrialMatrix").FindChild("Viewport").FindChild("Content").GetComponent<TrialMatrixList>();
-            graphGestion = transform.FindChild("Graph").GetComponent<GraphGestion>();
+            graphGestion = transform.FindChild("pref_Graph").GetComponent<GraphGestion>();
             zoneResizer = transform.parent.GetComponent<ZoneResizer>();
             AddListerners();
             Type = TypeEnum.None;
@@ -276,8 +276,8 @@ namespace HBP.UI.Graph
         {
             UnityEngine.Profiling.Profiler.BeginSample("GenerateCurve()");
             // Curves
-            Curve[][] curves = new Curve[maskColumns.Length][];
-            Curve[] ROIcurves = new Curve[maskColumns.Length];
+            CurveData[][] curves = new CurveData[maskColumns.Length][];
+            CurveData[] ROIcurves = new CurveData[maskColumns.Length];
 
             // PlotCurves
             for (int c = 0; c < maskColumns.Length; c++)
@@ -305,7 +305,7 @@ namespace HBP.UI.Graph
                     }
 
                     // Initialize Curves.
-                    List<Curve> curvesInThisColumn = new List<Curve>();
+                    List<CurveData> curvesInThisColumn = new List<CurveData>();
 
                     for (int p = 0; p < plots.Length; p++)
                     {
@@ -357,7 +357,7 @@ namespace HBP.UI.Graph
                             }
 
                             //Create curve
-                            curvesInThisColumn.Add(new CurveWithShape("C" + (c + 1) + " " + plots[p].Name, 2, secondariesColor[p], points, standardDeviations, Tools.Unity.Graph.Point.Style.Round, true));
+                            curvesInThisColumn.Add(new ShapedCurveData("C" + (c + 1) + " " + plots[p].Name, points, standardDeviations, secondariesColor[p], 2));
                         }
                         else if (bloc.SelectedLines.Length == 1)
                         {
@@ -375,7 +375,7 @@ namespace HBP.UI.Graph
                             }
 
                             //Create curve
-                            curvesInThisColumn.Add(new Curve("C" + (c + 1) + " " + plots[p].Name, 2, secondariesColor[p], points, Tools.Unity.Graph.Point.Style.Round, true));
+                            curvesInThisColumn.Add(new CurveData("C" + (c + 1) + " " + plots[p].Name, points, secondariesColor[p], 2));
                         }
                         else
                         {
@@ -412,7 +412,7 @@ namespace HBP.UI.Graph
                             float absciss = min + ((max - min) * (p - pMin) / (pMax - 1 - pMin));
                             l_points[p] = new Vector2(absciss, l_ROIColumnData[p]);
                         }
-                        ROIcurves[c] = new Curve("C" + (c + 1) + " ROI", 4, mainColor, l_points, Tools.Unity.Graph.Point.Style.Round, true);
+                        ROIcurves[c] = new CurveData("C" + (c + 1) + " ROI", l_points, mainColor, 4);
                     }
                 }         
             }
@@ -423,7 +423,7 @@ namespace HBP.UI.Graph
         void DisplayCurves()
         {
             UnityEngine.Profiling.Profiler.BeginSample("DisplayCurves()");
-            List<Curve> curves = new List<Curve>();
+            List<CurveData> curves = new List<CurveData>();
             for (int c = 0; c < maskColumns.Length; c++)
             {
                 if(!maskColumns[c])

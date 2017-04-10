@@ -77,7 +77,7 @@ namespace HBP.VISU3D.DLL
         /// <returns> return an empty path if no directory has been choosen or if an error occurs </returns>
         public static string get_existing_directory_name(string message = "Select a directory", string defaultDir = "")
         {
-            string arguments = "FileDialog get_existing_directory_name +\"" + message + "\"";
+            string arguments = "FileDialog get_existing_directory_name +\"" + message + "\"  \"\" \"" + defaultDir + "\"";
             List<string> paths = launch_fileDialog_window(arguments);
             if (paths.Count > 0)
                 return paths[0];
@@ -102,7 +102,7 @@ namespace HBP.VISU3D.DLL
             }
             if (filtersArray.Length == 0)
                 arguments += "*.txt)";
-            arguments += "\" " + defaultDir;
+            arguments += "\" " + defaultDir; //FIXME : find a way to replace \\ by simple \ in defaultDir, because when it's read by Qt, \\ count as a real \\ and not a \
 
             List<string> paths = launch_fileDialog_window(arguments);
             if (paths.Count > 0)

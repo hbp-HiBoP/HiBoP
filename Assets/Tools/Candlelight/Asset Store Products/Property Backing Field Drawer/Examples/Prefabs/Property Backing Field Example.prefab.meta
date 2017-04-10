@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: a82ee4caed37d4eaab5feb1ef0b0bb06
+labels:
+- Editor
+- Extensions
+- Inspector
+- Serialization
+- Properties
+- Undo
+- Property
+NativeFormatImporter:
+  userData: 
