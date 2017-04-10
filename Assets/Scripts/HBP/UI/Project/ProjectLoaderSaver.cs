@@ -28,7 +28,8 @@ namespace HBP.UI
         enum LoadErrorTypeEnum { None, DirectoryDoNoExist, IsNotAProject, CanNotReadSettings, CanNotReadPatient, CanNotReadGroup, CanNotReadProtocol,
             CanNotReadDataset, CanNotReadSingleVisualisation, CanNotReadMultiVisualisation };
         enum SaveErrorTypeEnum { None, DirectoryDoNoExist, CanNotDeleteOldDirectories, CanNotCreateNewDirectories, CanNotSaveSettings, CanNotSavePatient,
-            CanNotSaveGroup, CanNotSaveProtocol, CanNotSaveDataset, CanNotSaveSinglePatientVisualisation, CanNotSaveMultiPatientsVisualisation, CanNotMoveDirectory, CanNotMoveROIDirectory
+            CanNotSaveGroup, CanNotSaveProtocol, CanNotSaveDataset, CanNotSaveSinglePatientVisualisation, CanNotSaveMultiPatientsVisualisation, CanNotMoveDirectory,
+            CanNotMoveROIDirectory, CanNotMoveLocaImagesDirectory
         };
         #endregion
 
@@ -527,7 +528,24 @@ namespace HBP.UI
             }
             yield return Ninja.JumpToUnity;
             HandleError(l_loadingState, additionalInformations, projectDirectory);
-            
+
+            // Copy Loca_images
+            yield return Ninja.JumpBack;
+            try
+            {
+                string l_locaImagesDirectory = l_projectPath + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Loca_images";
+                if (Directory.Exists(l_locaImagesDirectory))
+                {
+                    Directory.Move(l_locaImagesDirectory, l_projectTempPath + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Loca_images");
+                }
+            }
+            catch
+            {
+                l_loadingState = SaveErrorTypeEnum.CanNotMoveLocaImagesDirectory;
+            }
+            yield return Ninja.JumpToUnity;
+            HandleError(l_loadingState, additionalInformations, projectDirectory);
+
             // Deleting old directories.
             loadingCircle.Set((float)l_actualStep / l_maxStep, "Deleting old directories");
             yield return Ninja.JumpBack;
@@ -615,6 +633,8 @@ namespace HBP.UI
                 case SaveErrorTypeEnum.CanNotSaveMultiPatientsVisualisation: l_errorMessage = "Could not save the multi patients visualisation <color=red>" + additionalInformations + "</color>."; break;
                 case SaveErrorTypeEnum.CanNotDeleteOldDirectories: l_errorMessage = "Could not delete the old directory."; break;
                 case SaveErrorTypeEnum.CanNotMoveDirectory: l_errorMessage = "Could not move the directory"; break;
+                case SaveErrorTypeEnum.CanNotMoveROIDirectory: l_errorMessage = "Could not copy the ROI directory"; break;
+                case SaveErrorTypeEnum.CanNotMoveLocaImagesDirectory: l_errorMessage = "Could not copy the Loca_images directory"; break;
             }
             l_errorMessage = l_firstPart + l_errorMessage;
             return l_errorMessage;
