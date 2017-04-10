@@ -588,6 +588,7 @@ namespace HBP.VISU3D
             m_columnROI[columnID].GetComponent<ColumnROI>().add_ROI(positions, rays, nameROI);
 
             m_scene.data_.iEEGOutdated = true;
+            set_UI_visibility(false);
             return true;
         }
 
