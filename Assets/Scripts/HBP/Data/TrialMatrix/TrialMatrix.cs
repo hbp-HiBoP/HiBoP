@@ -74,6 +74,8 @@ namespace HBP.Data.TrialMatrix
                 blocs[i] = new Bloc(dataInfo.Protocol.Blocs[i], POSFile, dataReaded, samplingFrequency);
             }
 
+            blocs = (from bloc in blocs where bloc.Lines.Length > 0 select bloc).ToArray();
+
             // Standardize bloc by BaseLine.
             StandardizeLinesByBaseLine(ref blocs);
 

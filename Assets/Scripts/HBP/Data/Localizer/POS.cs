@@ -85,7 +85,7 @@ namespace HBP.Data.Localizer
             List<TrialMatrix.Event> l_result = new List<TrialMatrix.Event>();
             foreach (int codeEvent in CodeEvents)
             {
-                if(EventDictionary.ContainsKey(codeEvent))
+                if (EventDictionary.ContainsKey(codeEvent))
                 {
                     List<int> l_list = EventDictionary[codeEvent];
                     l_list.Sort();
