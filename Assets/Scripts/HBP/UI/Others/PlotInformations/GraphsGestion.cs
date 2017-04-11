@@ -81,10 +81,10 @@ namespace HBP.UI.Graph
                         zoneResizer.Ratio = 1.0f;
                         break;
                     case TypeEnum.Single:
-                        if(type == TypeEnum.None) zoneResizer.Ratio = 0.5f;
+                        if(type == TypeEnum.None || zoneResizer.Ratio == 1.0f) zoneResizer.Ratio = 0.5f;
                         break;
                     case TypeEnum.Multi:
-                        if (type == TypeEnum.None) zoneResizer.Ratio = 0.5f;
+                        if (type == TypeEnum.None || zoneResizer.Ratio == 1.0f) zoneResizer.Ratio = 0.5f;
                         break;
                 }
                 type = value;
@@ -121,7 +121,7 @@ namespace HBP.UI.Graph
                 }
                 GenerateCurves();
                 DisplayCurves();
-            }  
+            }
         }
         void OnDisplayPlots(SiteRequest plotRequest)
         {
@@ -180,7 +180,6 @@ namespace HBP.UI.Graph
             lineSelectable = IsSamePatient(plotsToCompare);
             if (sp) Type = TypeEnum.Single;
             else Type = TypeEnum.Multi;
-
             GenerateTrialMatrix();
             DisplayTrialMatrix();
             GenerateCurves();
