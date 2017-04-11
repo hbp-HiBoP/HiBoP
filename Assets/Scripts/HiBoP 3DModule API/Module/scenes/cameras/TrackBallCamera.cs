@@ -91,6 +91,10 @@ namespace HBP.VISU3D.Cam
 
         protected List<Vector3[]> m_planesCutsCirclesVertices = new List<Vector3[]>(); /**< circles for drawing planes cuts in postrender */
 
+        // new interaction
+        protected bool m_mouseLock;                 /**< locks the event between mouse_down and mouse_up */
+        protected bool m_cameraDragRotationFocus;   /**< did the user clicked on the scene of this camera ? */
+
         // post render
         public Material m_planeMat = null;    /**< material used for drawing the planes cuts*/
         protected bool m_displayCutsCircles = false;
@@ -165,13 +169,14 @@ namespace HBP.VISU3D.Cam
                 GetComponent<Camera>().backgroundColor = m_normalColor;
             }
 
-            if (!m_isMinimized && m_cameraFocus && m_moduleFocus)                
-                send_mouse_events();
-          
-            StartCoroutine("drawGL");
+            mouse_handler();
+
             automatic_camera_rotation();
+
+            StartCoroutine("drawGL");
         }
 
+        
 
         /// <summary>
         /// Called multiple times per frame in response to GUI events. The Layout and Repaint events are processed first, followed by a Layout and keyboard/mouse event for each input event.
@@ -235,6 +240,100 @@ namespace HBP.VISU3D.Cam
         }
 
         #endregion monoBehaviour
+
+        private void mouse_handler()
+        {
+            if (!m_isMinimized && m_cameraFocus && m_moduleFocus)
+                send_mouse_events();
+
+            if (!m_mouseLock) mouse_down();
+            mouse_drag();
+            mouse_up();
+        }
+
+        /// <summary>
+        /// Check and send the mouse events to the mouse manager and apply cameras rotations and straffes
+        /// </summary>
+        protected void send_mouse_events()
+        {
+            Ray ray = GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
+
+            // mouse movement
+            m_inputsSceneManager.send_mouse_movement_to_scenes(ray, m_spCamera, Input.mousePosition, m_idColCamera);
+
+            // left click
+            if (Input.GetMouseButtonUp(0))
+            {
+                m_inputsSceneManager.send_click_ray_to_scenes(ray, m_spCamera, m_idColCamera);
+            }
+        }
+
+        private void mouse_down() // TODO: make the cursor invisible and locked (when it's patched on unity)
+        {
+            if (Input.GetMouseButton(1) || Input.GetMouseButton(2))
+            {
+                m_cameraDragRotationFocus = is_focus();
+                m_mouseLock = true;
+            }
+        }
+
+        private void mouse_drag()
+        {
+            if (!m_cameraDragRotationFocus) return;
+
+            if (Input.GetMouseButton(1))
+            {
+                float nx = 0;
+                float ny = 0;
+                nx = Input.GetAxis("Mouse X");
+                ny = Input.GetAxis("Mouse Y");
+
+                // check horizontal right click mouse drag movement
+                if (nx != 0)
+                    if (nx < 0)
+                        horizontal_rotation(true, -nx * m_speed);
+                    else
+                        horizontal_rotation(false, nx * m_speed);
+
+                // check vertical right click mouse drag movement
+                if (ny != 0)
+                    if (ny < 0)
+                        vertical_rotation(true, ny * m_speed);
+                    else
+                        vertical_rotation(false, -ny * m_speed);
+            }
+            else if (Input.GetMouseButton(2))
+            {
+                float nx = 0;
+                float ny = 0;
+                nx = Input.GetAxis("Mouse X");
+                ny = Input.GetAxis("Mouse Y");
+
+                // check horizontal right click mouse drag movement
+                if (nx != 0)
+                    if (nx < 0)
+                        horizontal_strafe(true, nx * m_speed);
+                    else
+                        horizontal_strafe(false, -nx * m_speed);
+
+
+                // check vertical right click mouse drag movement
+                if (ny != 0)
+                    if (ny < 0)
+                        vertical_strafe(true, -ny * m_speed);
+                    else
+                        vertical_strafe(false, ny * m_speed);
+            }
+        }
+
+        private void mouse_up()
+        {
+            if (!Input.GetMouseButton(1) && !Input.GetMouseButton(2))
+            {
+                m_cameraDragRotationFocus = false;
+                m_mouseLock = false;
+            }
+        }
 
         #region others
 
@@ -507,70 +606,6 @@ namespace HBP.VISU3D.Cam
         public bool is_focus()
         {
             return (GetComponent<Camera>().pixelRect.Contains(Input.mousePosition));
-        }
-
-        /// <summary>
-        /// Check and send the mouse events to the mouse manager and apply cameras rotations and straffes
-        /// </summary>
-        protected void send_mouse_events()
-        {
-            Ray ray = GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
-
-            // mouse movement
-            m_inputsSceneManager.send_mouse_movement_to_scenes(ray, m_spCamera, Input.mousePosition, m_idColCamera);
-
-            // left click
-            if (Input.GetMouseButtonUp(0))
-            {
-                m_inputsSceneManager.send_click_ray_to_scenes(ray, m_spCamera, m_idColCamera);
-            }
-
-
-            // right click
-            if (Input.GetMouseButton(1))
-            {
-                float nx = 0;
-                float ny = 0;
-                nx = Input.GetAxis("Mouse X");
-                ny = Input.GetAxis("Mouse Y");
-
-                // check horizontal right click mouse drag movement
-                if (nx != 0)
-                    if (nx < 0)
-                        horizontal_rotation(true, -nx * m_speed);
-                    else 
-                        horizontal_rotation(false, nx * m_speed);
-                
-                // check vertical right click mouse drag movement
-                if (ny != 0)
-                    if (ny < 0)
-                        vertical_rotation(true,  ny * m_speed);
-                    else
-                        vertical_rotation(false,-ny * m_speed);
-            }
-
-            if (Input.GetMouseButton(2))
-            {
-                float nx = 0;
-                float ny = 0;
-                nx = Input.GetAxis("Mouse X");
-                ny = Input.GetAxis("Mouse Y");
-
-                // check horizontal right click mouse drag movement
-                if (nx != 0)
-                    if (nx < 0)
-                        horizontal_strafe(true,  nx * m_speed);
-                    else
-                        horizontal_strafe(false,-nx * m_speed);
-
-
-                // check vertical right click mouse drag movement
-                if (ny != 0)
-                    if (ny < 0)
-                        vertical_strafe(true, -ny * m_speed);
-                    else
-                        vertical_strafe(false, ny * m_speed);
-            }
         }
 
         /// <summary>
