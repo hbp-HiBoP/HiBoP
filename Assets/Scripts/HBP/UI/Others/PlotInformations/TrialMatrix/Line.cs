@@ -82,22 +82,16 @@ namespace HBP.UI.TrialMatrix
                 }
                 else
                 {
-                    if (label != null) //FIXME : temporary solution
-                    {
-                        label.gameObject.SetActive(true);
-                        illustration.gameObject.SetActive(false);
-                        label.text = bloc.PBloc.DisplayInformations.Name;
-                    }
-                }
-            }
-            else
-            {
-                if (label != null) //FIXME : temporary solution
-                {
                     label.gameObject.SetActive(true);
                     illustration.gameObject.SetActive(false);
                     label.text = bloc.PBloc.DisplayInformations.Name;
                 }
+            }
+            else
+            {
+                label.gameObject.SetActive(true);
+                illustration.gameObject.SetActive(false);
+                label.text = bloc.PBloc.DisplayInformations.Name;
             }
         }
 
