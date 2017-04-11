@@ -185,7 +185,7 @@ namespace HBP.VISU3D.Cam
         {
             m_cameraFocus = is_focus();
 
-            if (m_isMinimized || !m_cameraFocus || !m_moduleFocus)
+            if (m_isMinimized || !is_selected() || !m_moduleFocus)
                 return;
 
             Event currEvent = Event.current;

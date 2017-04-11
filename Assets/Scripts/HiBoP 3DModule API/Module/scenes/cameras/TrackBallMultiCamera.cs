@@ -105,6 +105,11 @@ namespace HBP.VISU3D.Cam
 
         public void LateUpdate()
         {
+            if (!is_selected())
+            {
+                return;
+            }
+
             // get current camera
             TrackBallMultiCamera l_mainCamera = gameObject.GetComponent<TrackBallMultiCamera>();
             foreach (Transform child in m_MPCameraParent)
