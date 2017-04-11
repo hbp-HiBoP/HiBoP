@@ -79,7 +79,7 @@ namespace HBP.VISU3D.Cam
         protected int m_idColCamera = 0;            /**< id camera column */
 
         protected float m_rotationCirclesRay = 300f;/**< rotations circles ray */
-        protected float m_cameraRotationSpeed = 50.0f; /**< rotations speed */
+        protected float m_cameraAutoRotationSpeed = 50.0f; /**< auto rotation speed */
 
         protected Vector3 m_target;                 /**< current target of the camera */
         protected Vector3 m_originalTarget;         /**< initial target of the camera */
@@ -155,7 +155,7 @@ namespace HBP.VISU3D.Cam
         protected void Update()
         {
             // update current color
-            int id = m_associatedScene.retrieve_current_selected_column_id();
+            int id = m_associatedScene.retrieve_current_selected_column_id(); // TODO: check if visu selected
             if (id == m_idColCamera)
             {
                 GetComponent<Camera>().backgroundColor = m_selectedColumnColor;
@@ -347,7 +347,7 @@ namespace HBP.VISU3D.Cam
         {
             if (m_cameraIsRotating)
             {
-                horizontal_rotation(false, m_cameraRotationSpeed*Time.deltaTime);
+                horizontal_rotation(false, m_cameraAutoRotationSpeed*Time.deltaTime);
             }
         }
 
@@ -356,7 +356,7 @@ namespace HBP.VISU3D.Cam
         /// </summary>
         public void set_camera_rotation_speed(float speed)
         {
-            m_cameraRotationSpeed = speed;
+            m_cameraAutoRotationSpeed = speed;
         }
 
         /// <summary>
