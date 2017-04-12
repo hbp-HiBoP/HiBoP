@@ -99,15 +99,17 @@ namespace HBP.VISU3D.Cam
                         move_backward(m_zoomSpeed);
                     else
                         move_forward(m_zoomSpeed);
+                    m_camerasNeedUpdate = true;
                 }
             }
         }
 
         public void LateUpdate()
         {
-            // if mouse not in the screen, abort
-            if (!is_focus())
+            if (!m_camerasNeedUpdate)
+            {
                 return;
+            }
 
             // force others camera alignment
             foreach (Transform child in m_MPCameraParent)
@@ -122,9 +124,9 @@ namespace HBP.VISU3D.Cam
                     }
                 }
             }
+
+            m_camerasNeedUpdate = false;
         }
-
-
 
         #endregion mono_behaviour
     }

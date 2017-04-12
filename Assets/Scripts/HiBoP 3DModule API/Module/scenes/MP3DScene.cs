@@ -280,7 +280,6 @@ namespace HBP.VISU3D
             // update scenes cameras
             UpdateCameraTarget.Invoke(m_MNI.BothHemi.bounding_box().center());
 
-
             //####### UDPATE MODE
             modes.updateMode(Mode.FunctionsId.resetNIIBrainVolumeFile);
             //##################
