@@ -94,12 +94,13 @@ namespace HBP.VISU3D.Cam
                     move_backward(m_zoomSpeed);
                 else
                     move_forward(m_zoomSpeed);
+                m_camerasNeedUpdate = true;
             }
         }
 
         public void LateUpdate()
         {
-            if (!m_cameraMovementsFocus)
+            if (!m_camerasNeedUpdate)
             {
                 return;
             }
@@ -117,6 +118,8 @@ namespace HBP.VISU3D.Cam
                     }
                 }
             }
+
+            m_camerasNeedUpdate = false;
 
             UnityEngine.Profiling.Profiler.EndSample();
         }

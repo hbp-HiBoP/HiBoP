@@ -55,6 +55,8 @@ namespace HBP.VISU3D.Cam
         public float m_startDistance = 250.0f;  /**< start distance from the target */
         public float m_speed = 50.0f;           /**< camera speed rotation and strafe  */
         public float m_zoomSpeed = 3.5f;        /**< camera speed zoom */
+        public float m_rotationSpeed = 30.0f;   /**< camera speed rotation key */
+        public float m_strafeSpeed = -30.0f;    /**< camera speed strafe key */
         public float m_minDistance = 50.0f;     /**< minimal distance from the target */
         public float m_maxDistance = 750.0f;    /**< maximal distance from the target */
 
@@ -94,6 +96,7 @@ namespace HBP.VISU3D.Cam
         // new interaction
         protected bool m_mouseLock;                 /**< locks the event between mouse_down and mouse_up */
         protected bool m_cameraMovementsFocus;   /**< did the user clicked on the scene of this camera or is the camera selected ? */
+        protected bool m_camerasNeedUpdate;        /**< does the cameras of the row need an update ? */
 
         // post render
         public Material m_planeMat = null;    /**< material used for drawing the planes cuts*/
@@ -185,54 +188,16 @@ namespace HBP.VISU3D.Cam
         {
             m_cameraFocus = is_focus();
 
-            if (m_isMinimized || !is_selected() || !m_moduleFocus)
+            if (m_isMinimized || !m_cameraFocus || !m_moduleFocus)
                 return;
-
-            //TODO : on Update method with time.deltaTime
+            
             Event currEvent = Event.current;
             if (Input.anyKey)
             {
-                if (Input.GetKey(KeyCode.R))
-                    reset_target();
-
-                // check keybord zooms
-                if (Input.GetKey(KeyCode.A))
-                    move_forward(m_zoomSpeed);                    
-
-                if (Input.GetKey(KeyCode.E))
-                    move_backward(m_zoomSpeed);
-
-                if (Input.GetKey(KeyCode.Z))
-                    vertical_rotation(true, 0.2f);
-
-                if (Input.GetKey(KeyCode.S))
-                    vertical_rotation(false, 0.2f);
-
-                if (Input.GetKey(KeyCode.Q))
-                    horizontal_rotation(true, 0.2f);
-
-                if (Input.GetKey(KeyCode.D))
-                    horizontal_rotation(false, 0.2f);
-
-                if (Input.GetKey(KeyCode.LeftArrow))
-                    horizontal_strafe(true, -0.5f);
-
-                if (Input.GetKey(KeyCode.RightArrow))
-                    horizontal_strafe(false, -0.5f);
-
-                if (Input.GetKey(KeyCode.UpArrow))
-                    vertical_strafe(true, -0.5f);
-
-                if (Input.GetKey(KeyCode.DownArrow))
-                    vertical_strafe(false, -0.5f);
-
                 if (currEvent.type == EventType.KeyDown)
                 {
                     m_inputsSceneManager.send_keyboard_action_to_scenes(m_spCamera, currEvent.keyCode);
-                }                
-
-                if (Input.GetKey(KeyCode.Space))
-                    m_associatedScene.display_sites_names(GetComponent<Camera>());
+                }
             }
             else if(currEvent.type == EventType.ScrollWheel)
             {
@@ -314,6 +279,8 @@ namespace HBP.VISU3D.Cam
                         vertical_rotation(true, ny * m_speed);
                     else
                         vertical_rotation(false, -ny * m_speed);
+
+                m_camerasNeedUpdate = true;
             }
             else if (Input.GetMouseButton(2))
             {
@@ -336,6 +303,8 @@ namespace HBP.VISU3D.Cam
                         vertical_strafe(true, -ny * m_speed);
                     else
                         vertical_strafe(false, ny * m_speed);
+
+                m_camerasNeedUpdate = true;
             }
         }
 
@@ -354,18 +323,61 @@ namespace HBP.VISU3D.Cam
 
         private void KeyHandler()
         {
-            KeyDown();
-            KeyUp();
-        }
+            if (Input.anyKey)
+            {
+                if (Input.GetMouseButton(0) || Input.GetMouseButton(1) || Input.GetMouseButton(2)) return;
 
-        private void KeyDown()
-        {
+                m_cameraMovementsFocus = is_focus();
+                m_displayRotationCircles = is_focus();
 
-        }
+                if (m_isMinimized || !m_cameraFocus || !m_moduleFocus) return;
 
-        private void KeyUp()
-        {
+                m_mouseLock = true;
 
+                if (Input.GetKey(KeyCode.R))
+                    reset_target();
+                
+                if (Input.GetKey(KeyCode.A))
+                    move_forward(m_zoomSpeed * 30.0f * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.E))
+                    move_backward(m_zoomSpeed * 30.0f * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.Z))
+                    vertical_rotation(true, m_rotationSpeed * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.S))
+                    vertical_rotation(false, m_rotationSpeed * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.Q))
+                    horizontal_rotation(true, m_rotationSpeed * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.D))
+                    horizontal_rotation(false, m_rotationSpeed * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.LeftArrow))
+                    horizontal_strafe(true, m_strafeSpeed * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.RightArrow))
+                    horizontal_strafe(false, m_strafeSpeed * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.UpArrow))
+                    vertical_strafe(true, m_strafeSpeed * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.DownArrow))
+                    vertical_strafe(false, m_strafeSpeed * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.Space))
+                    m_associatedScene.display_sites_names(GetComponent<Camera>());
+
+                m_camerasNeedUpdate = true;
+            }
+            else
+            {
+                m_cameraMovementsFocus = false;
+                m_displayRotationCircles = false;
+                m_mouseLock = false;
+            }
         }
 
         #endregion handlers
