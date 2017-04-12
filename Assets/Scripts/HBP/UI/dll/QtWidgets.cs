@@ -104,7 +104,10 @@ namespace HBP.VISU3D.DLL
             if (filtersArray.Length == 0)
                 arguments += "*.txt)";
 
-            defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
+            if (defaultDir != "")
+            {
+                defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
+            }
             arguments += "\" " + defaultDir;
 
             List<string> paths = launch_fileDialog_window(arguments);
@@ -132,7 +135,10 @@ namespace HBP.VISU3D.DLL
             if (filtersArray.Length == 0)
                 arguments += "*.txt)";
 
-            defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
+            if (defaultDir != "")
+            {
+                defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
+            }
             arguments += "\" " + defaultDir;
 
             return  launch_fileDialog_window(arguments).ToArray();
@@ -156,7 +162,10 @@ namespace HBP.VISU3D.DLL
             if(filtersArray.Length == 0)
                 arguments += "*.txt)";
 
-            defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
+            if (defaultDir != "")
+            {
+                defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
+            }
             arguments += "\" " + defaultDir;
 
             List<string> paths = launch_fileDialog_window(arguments);
