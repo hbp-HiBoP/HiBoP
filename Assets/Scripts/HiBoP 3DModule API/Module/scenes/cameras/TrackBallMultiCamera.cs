@@ -105,20 +105,9 @@ namespace HBP.VISU3D.Cam
 
         public void LateUpdate()
         {
-            if (!is_selected())
+            if (!m_cameraMovementsFocus)
             {
                 return;
-            }
-
-            // get current camera
-            TrackBallMultiCamera l_mainCamera = gameObject.GetComponent<TrackBallMultiCamera>();
-            foreach (Transform child in m_MPCameraParent)
-            {
-                if (child.gameObject.GetComponent<TrackBallMultiCamera>().m_cameraMovementsFocus)
-                {
-                    l_mainCamera = child.gameObject.GetComponent<TrackBallMultiCamera>();
-                    break;
-                }
             }
 
             // force others camera alignment
@@ -128,9 +117,9 @@ namespace HBP.VISU3D.Cam
                 {
                     if (child.gameObject.GetComponent<TrackBallMultiCamera>().m_idLineCamera == m_idLineCamera)
                     {
-                        child.transform.position = l_mainCamera.transform.position;
-                        child.transform.rotation = l_mainCamera.transform.rotation;
-                        child.GetComponent<TrackBallMultiCamera>().m_target = l_mainCamera.m_target;
+                        child.transform.position = transform.position;
+                        child.transform.rotation = transform.rotation;
+                        child.GetComponent<TrackBallMultiCamera>().m_target = m_target;
                     }
                 }
             }

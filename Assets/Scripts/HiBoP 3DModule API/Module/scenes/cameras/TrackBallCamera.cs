@@ -153,7 +153,6 @@ namespace HBP.VISU3D.Cam
         protected void OnPostRender()
         {
             drawGL();
-            //m_displayRotationCircles = false;
         }
 
         protected void Update()
@@ -169,7 +168,8 @@ namespace HBP.VISU3D.Cam
                 GetComponent<Camera>().backgroundColor = m_normalColor;
             }
 
-            mouse_handler();
+            MouseHandler();
+            KeyHandler();
 
             automatic_camera_rotation();
 
@@ -242,14 +242,19 @@ namespace HBP.VISU3D.Cam
 
         #endregion monoBehaviour
 
-        private void mouse_handler()
+        #region handlers
+
+        /// <summary>
+        /// Called in Update : handles the interactions with the mouse
+        /// </summary>
+        private void MouseHandler()
         {
-            if (!m_isMinimized && m_cameraFocus && m_moduleFocus)
+            if (!m_isMinimized && m_cameraFocus && m_moduleFocus && !m_mouseLock)
                 send_mouse_events();
 
-            if (!m_mouseLock) mouse_down();
-            mouse_drag();
-            mouse_up();
+            if (!m_mouseLock) MouseDown();
+            MouseDrag();
+            MouseUp();
         }
 
         /// <summary>
@@ -269,7 +274,10 @@ namespace HBP.VISU3D.Cam
             }
         }
 
-        private void mouse_down() // TODO: make the cursor invisible and locked (when it's patched on unity)
+        /// <summary>
+        /// Called when right or middle click are pressed
+        /// </summary>
+        private void MouseDown() // TODO: make the cursor invisible and locked (when it's patched on unity)
         {
             if (Input.GetMouseButton(1) || Input.GetMouseButton(2))
             {
@@ -279,7 +287,10 @@ namespace HBP.VISU3D.Cam
             }
         }
 
-        private void mouse_drag()
+        /// <summary>
+        /// Called when moving the mouse after having right or middle clicked (drag)
+        /// </summary>
+        private void MouseDrag()
         {
             if (!m_cameraMovementsFocus) return;
 
@@ -328,7 +339,10 @@ namespace HBP.VISU3D.Cam
             }
         }
 
-        private void mouse_up()
+        /// <summary>
+        /// Called when right and middle click buttons are released
+        /// </summary>
+        private void MouseUp()
         {
             if (!Input.GetMouseButton(1) && !Input.GetMouseButton(2) && m_mouseLock)
             {
@@ -337,6 +351,24 @@ namespace HBP.VISU3D.Cam
                 m_displayRotationCircles = false;
             }
         }
+
+        private void KeyHandler()
+        {
+            KeyDown();
+            KeyUp();
+        }
+
+        private void KeyDown()
+        {
+
+        }
+
+        private void KeyUp()
+        {
+
+        }
+
+        #endregion handlers
 
         #region others
 
