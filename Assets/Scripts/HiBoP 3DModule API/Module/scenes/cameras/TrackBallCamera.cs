@@ -93,7 +93,7 @@ namespace HBP.VISU3D.Cam
 
         // new interaction
         protected bool m_mouseLock;                 /**< locks the event between mouse_down and mouse_up */
-        protected bool m_cameraDragRotationFocus;   /**< did the user clicked on the scene of this camera ? */
+        protected bool m_cameraMovementsFocus;   /**< did the user clicked on the scene of this camera or is the camera selected ? */
 
         // post render
         public Material m_planeMat = null;    /**< material used for drawing the planes cuts*/
@@ -153,7 +153,7 @@ namespace HBP.VISU3D.Cam
         protected void OnPostRender()
         {
             drawGL();
-            m_displayRotationCircles = false;
+            //m_displayRotationCircles = false;
         }
 
         protected void Update()
@@ -188,6 +188,7 @@ namespace HBP.VISU3D.Cam
             if (m_isMinimized || !is_selected() || !m_moduleFocus)
                 return;
 
+            //TODO : on Update method with time.deltaTime
             Event currEvent = Event.current;
             if (Input.anyKey)
             {
@@ -272,14 +273,15 @@ namespace HBP.VISU3D.Cam
         {
             if (Input.GetMouseButton(1) || Input.GetMouseButton(2))
             {
-                m_cameraDragRotationFocus = is_focus();
+                m_cameraMovementsFocus = is_focus();
                 m_mouseLock = true;
+                m_displayRotationCircles = true;
             }
         }
 
         private void mouse_drag()
         {
-            if (!m_cameraDragRotationFocus) return;
+            if (!m_cameraMovementsFocus) return;
 
             if (Input.GetMouseButton(1))
             {
@@ -328,10 +330,11 @@ namespace HBP.VISU3D.Cam
 
         private void mouse_up()
         {
-            if (!Input.GetMouseButton(1) && !Input.GetMouseButton(2))
+            if (!Input.GetMouseButton(1) && !Input.GetMouseButton(2) && m_mouseLock)
             {
-                m_cameraDragRotationFocus = false;
+                m_cameraMovementsFocus = false;
                 m_mouseLock = false;
+                m_displayRotationCircles = false;
             }
         }
 
@@ -339,10 +342,10 @@ namespace HBP.VISU3D.Cam
 
         public void drawGL()
         {
-            if (!m_cameraFocus || m_isMinimized)
+            if (m_isMinimized)
                 return;
 
-            if(m_displayCutsCircles)
+            if(m_displayCutsCircles && m_cameraFocus)
             {
                 m_displayPlanesTimer = TimeExecution.get_world_time() - m_displayPlanesTimeStart;
                 if (m_displayPlanesTimeRemaining > m_displayPlanesTimer)
@@ -373,7 +376,7 @@ namespace HBP.VISU3D.Cam
                     m_displayCutsCircles = false;
             }
 
-            if (m_displayRotationCircles)
+            if (m_displayRotationCircles && m_cameraMovementsFocus)
             {
                 //GL.PushMatrix();
                 m_xCircleMat.SetPass(0);

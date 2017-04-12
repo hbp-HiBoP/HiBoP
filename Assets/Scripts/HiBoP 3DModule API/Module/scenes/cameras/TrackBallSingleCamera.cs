@@ -108,7 +108,7 @@ namespace HBP.VISU3D.Cam
             TrackBallSingleCamera l_mainCamera = gameObject.GetComponent<TrackBallSingleCamera>();
             foreach (Transform child in m_SPCameraParent)
             {
-                if (child.gameObject.GetComponent<TrackBallSingleCamera>().m_cameraDragRotationFocus)
+                if (child.gameObject.GetComponent<TrackBallSingleCamera>().m_cameraMovementsFocus)
                 {
                     l_mainCamera = child.gameObject.GetComponent<TrackBallSingleCamera>();
                     break;
