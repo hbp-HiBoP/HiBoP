@@ -120,18 +120,16 @@ namespace HBP.VISU3D.Cam
             camera.name = (spScene ? "singlePatient_camera_tb_c" : "multiPatients_camera_tb_c") + idColumn + "_v" + idLine;
             camera.transform.SetParent(spScene ? m_spCamerasParent.transform : m_mpCamerasParent.transform);
             camera.SetActive(true);
-            camera.GetComponent<TrackBallCamera>().init(spScene ? m_singlePatientPanel.transform.position : m_multiPatientsPanel.transform.position);
+            camera.GetComponent<TrackBallCamera>().init(spScene ? m_singlePatientPanel.transform.position : m_multiPatientsPanel.transform.position); // no influence
         }
 
         public void update_cameras_target(bool spScene, Vector3 target)
         {
             List<List<GameObject>> cameras = spScene ? m_spCameras : m_mpCameras;
-
             for (int ii = 0; ii < cameras.Count; ++ii)
                 for (int jj = 0; jj < cameras[ii].Count; ++jj)
                     cameras[ii][jj].GetComponent<TrackBallCamera>().init(target);
         }
-
 
         public void stop_rotation_of_all_cameras(bool spScene)
         {
@@ -520,6 +518,8 @@ namespace HBP.VISU3D.Cam
                     camera.set_line_ID(currentViewsNumber);
                     camera.set_column_ID(ii);
                     camera.set_camera_focus(m_focusModule);
+                    camera.set_original_target(sceneCameras[0][0].GetComponent<TrackBallCamera>().m_originalTarget);
+                    camera.set_original_rotation(sceneCameras[0][0].GetComponent<TrackBallCamera>().m_originalRotationEuler);
 
                     newLine[ii].GetComponent<Camera>().depth = ii;
                     newLine[ii].name = sceneCameraBaseName + ii + "_v" + currentViewsNumber;
@@ -581,6 +581,8 @@ namespace HBP.VISU3D.Cam
                     camera.set_column_ID(currentConditionNumber);
                     camera.set_camera_focus(m_focusModule);
                     camera.set_fMRI_camera(IRMFColumn);
+                    camera.set_original_target(sceneCameras[0][0].GetComponent<TrackBallCamera>().m_originalTarget);
+                    camera.set_original_rotation(sceneCameras[0][0].GetComponent<TrackBallCamera>().m_originalRotationEuler);
 
                     if (spScene)
                         camera.set_column_layer("C" + currentConditionNumber + "_SP");

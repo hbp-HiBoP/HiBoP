@@ -84,8 +84,8 @@ namespace HBP.VISU3D.Cam
         protected float m_cameraAutoRotationSpeed = 50.0f; /**< auto rotation speed */
 
         protected Vector3 m_target;                 /**< current target of the camera */
-        protected Vector3 m_originalTarget;         /**< initial target of the camera */
-        protected Vector3 m_originalRotationEuler;       /**< initial rotation of the camera */
+        public Vector3 m_originalTarget;         /**< initial target of the camera */
+        public Vector3 m_originalRotationEuler;       /**< initial rotation of the camera */
 
         protected Vector3[] m_xRotationCircleVertices = null; /**< vertices of x rotation circle */
         protected Vector3[] m_yRotationCircleVertices = null; /**< vertices of y rotation circle */
@@ -468,6 +468,17 @@ namespace HBP.VISU3D.Cam
             m_target = position;
             m_originalTarget = m_target;            
             transform.position = m_target - transform.forward * m_startDistance;
+        }
+
+        public void set_original_target(Vector3 target)
+        {
+            m_target = target;
+            m_originalTarget = target;
+        }
+
+        public void set_original_rotation(Vector3 rotationEuler)
+        {
+            m_originalRotationEuler = rotationEuler;
         }
 
         /// <summary>
