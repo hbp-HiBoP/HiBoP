@@ -65,6 +65,7 @@ namespace HBP.UI.Graph
 
         // Type
         ZoneResizer zoneResizer;
+        ZoneResizer ownZoneResizer;
         enum TypeEnum { None, Single, Multi };
         TypeEnum type = TypeEnum.None;
         TypeEnum Type
@@ -98,6 +99,7 @@ namespace HBP.UI.Graph
             trialMatrixList = transform.FindChild("TrialZone").FindChild("TrialMatrix").FindChild("Viewport").FindChild("Content").GetComponent<TrialMatrixList>();
             graphGestion = transform.FindChild("pref_Graph").GetComponent<GraphGestion>();
             zoneResizer = transform.parent.GetComponent<ZoneResizer>();
+            ownZoneResizer = transform.GetComponent<ZoneResizer>();
             AddListerners();
             Type = TypeEnum.None;
         }
@@ -180,6 +182,7 @@ namespace HBP.UI.Graph
             lineSelectable = IsSamePatient(plotsToCompare);
             if (sp) Type = TypeEnum.Single;
             else Type = TypeEnum.Multi;
+            ResizeOwnZoneResizer();
             GenerateTrialMatrix();
             DisplayTrialMatrix();
             GenerateCurves();
@@ -436,6 +439,15 @@ namespace HBP.UI.Graph
             }
             graphGestion.Set(curves.ToArray());
             UnityEngine.Profiling.Profiler.EndSample();
+        }
+
+        // Resize
+        void ResizeOwnZoneResizer()
+        {
+            if (ownZoneResizer.Ratio == 1.0f || ownZoneResizer.Ratio == 0.0f)
+            {
+                ownZoneResizer.Ratio = 0.5f;
+            }
         }
         #endregion
     }
