@@ -94,6 +94,7 @@ namespace HBP.VISU3D.Cam
         protected List<Vector3[]> m_planesCutsCirclesVertices = new List<Vector3[]>(); /**< circles for drawing planes cuts in postrender */
 
         // new interaction
+        protected bool m_cameraClicked;            /**< is the camera selected ? */
         protected bool m_mouseLock;                 /**< locks the event between mouse_down and mouse_up */
         protected bool m_cameraMovementsFocus;   /**< did the user clicked on the scene of this camera or is the camera selected ? */
         protected bool m_camerasNeedUpdate;        /**< does the cameras of the row need an update ? */
@@ -173,13 +174,11 @@ namespace HBP.VISU3D.Cam
 
             MouseHandler();
             KeyHandler();
-
             automatic_camera_rotation();
 
             StartCoroutine("drawGL");
-        }
+       }
 
-        
 
         /// <summary>
         /// Called multiple times per frame in response to GUI events. The Layout and Repaint events are processed first, followed by a Layout and keyboard/mouse event for each input event.
@@ -187,6 +186,10 @@ namespace HBP.VISU3D.Cam
         protected void OnGUI()
         {
             m_cameraFocus = is_focus();
+            if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2))
+            {
+                m_cameraClicked = is_focus();
+            }
 
             if (m_isMinimized || !m_cameraFocus || !m_moduleFocus)
                 return;
@@ -327,10 +330,10 @@ namespace HBP.VISU3D.Cam
             {
                 if (Input.GetMouseButton(0) || Input.GetMouseButton(1) || Input.GetMouseButton(2)) return;
 
-                m_cameraMovementsFocus = is_focus();
-                m_displayRotationCircles = is_focus();
+                m_cameraMovementsFocus = m_cameraClicked;
+                m_displayRotationCircles = m_cameraClicked;
 
-                if (m_isMinimized || !m_cameraFocus || !m_moduleFocus) return;
+                if (m_isMinimized || !m_moduleFocus || !m_cameraClicked) return;
 
                 m_mouseLock = true;
 
