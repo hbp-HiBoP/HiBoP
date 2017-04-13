@@ -587,6 +587,9 @@ namespace HBP.VISU3D
                     return;
 
                 int idBubble = m_CM.is_FMRI_column(idC) ? m_CM.FMRI_col(idC - m_CM.IEEG_columns_nb()).ROI.idSelectedBubble : m_CM.IEEG_col(idC).ROI.idSelectedBubble;
+                if (idBubble == -1)
+                    return;
+
                 ChangeSizeBubbleEvent.Invoke(idC, idBubble, (coeff < 0 ? 0.9f : 1.1f));
                 m_CM.update_all_columns_sites_rendering(data_);
             }
@@ -601,6 +604,14 @@ namespace HBP.VISU3D
             return data_.ROICreationMode;
         }
 
+        public bool is_ROI_bubble_selected()
+        {
+            int idC = m_CM.idSelectedColumn;
+            int idBubble = -1;
+            if (data_.ROICreationMode)
+                idBubble = m_CM.is_FMRI_column(idC) ? m_CM.FMRI_col(idC - m_CM.IEEG_columns_nb()).ROI.idSelectedBubble : m_CM.IEEG_col(idC).ROI.idSelectedBubble;
+            return idBubble != -1;
+        }
         /// <summary>
         /// Keyboard events management, call Base3DScene parent function
         /// </summary>
@@ -654,9 +665,11 @@ namespace HBP.VISU3D
 
             // raycasts with current column plots/ROI and scene meshes
             RaycastHit[] hits = Physics.RaycastAll(ray.origin, ray.direction, Mathf.Infinity, layerMask);
-            if (hits.Length == 0)
+            if (hits.Length == 0) // no hits
             {
-                return; // no hits
+                if (data_.ROICreationMode)
+                    SelectBubbleEvent.Invoke(m_CM.idSelectedColumn, -1); // deselect selected ROI bubble
+                return;
             }
 
             // check plots hits
@@ -748,7 +761,7 @@ namespace HBP.VISU3D
                         return;
                     }
                     else if (meshHit) // mesh collision -> create newROI
-                    {   
+                    {
                         CreateBubbleEvent.Invoke(hits[idClosestNonPlot].point, m_CM.idSelectedColumn);
 
                         m_CM.update_all_columns_sites_rendering(data_);

@@ -265,9 +265,15 @@ namespace HBP.VISU3D
         /// <param name="idBubble"></param>
         public void select_bubble(int idBubble)
         {
-            m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(false);
+            if (idBubble == m_idSelectedBubble)
+                return;
+
+            if (m_idSelectedBubble != -1)
+                m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(false);
             m_idSelectedBubble = idBubble;
-            m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(true);
+            if (idBubble != -1)
+                m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(true);
+
             m_ROI.GetComponent<ROI>().select_bubble(m_idSelectedBubble);
         }
 

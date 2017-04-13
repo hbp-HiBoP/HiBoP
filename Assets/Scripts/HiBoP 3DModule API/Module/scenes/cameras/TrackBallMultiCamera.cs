@@ -93,7 +93,7 @@ namespace HBP.VISU3D.Cam
             Vector2 scrollDelta = Input.mouseScrollDelta;
             if (scrollDelta.y != 0)
             {
-                if (!m_associatedMPScene.is_ROI_mode_enabled())
+                if (!m_associatedMPScene.is_ROI_bubble_selected())
                 {
                     if (scrollDelta.y < 0)
                         move_backward(m_zoomSpeed);
