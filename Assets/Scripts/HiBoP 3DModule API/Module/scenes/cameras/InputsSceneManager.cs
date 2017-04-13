@@ -121,7 +121,11 @@ namespace HBP.VISU3D.Cam
             else
                 m_scenesManager.MPScene.keyboard_action(key);
         }
-
+        
+        public bool GetCurrentFocusedScene()
+        {
+            return m_UIManager.CurrentFocusedScene;
+        }
         #endregion others
     }
 

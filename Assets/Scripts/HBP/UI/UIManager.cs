@@ -38,6 +38,11 @@ namespace HBP.VISU3D
         {
             get { return m_UICameraManager; }
         }
+        private bool m_currentFocusedScene;
+        public bool CurrentFocusedScene
+        {
+            get { return m_currentFocusedScene; }
+        }
 
         #endregion members
 
@@ -89,6 +94,7 @@ namespace HBP.VISU3D
         {
             m_UIOverlayManager.update_focused_scene_and_column(spScene, idColumn);
             m_UICameraManager.update_focused_scene_and_column(nameScene, spScene, idColumn);
+            m_currentFocusedScene = spScene;
         }
 
         /// <summary>

@@ -162,8 +162,9 @@ namespace HBP.VISU3D.Cam
         protected void Update()
         {
             // update current color
-            int id = m_associatedScene.retrieve_current_selected_column_id(); // TODO: check if visu selected
-            if (id == m_idColCamera)
+            int id = m_associatedScene.retrieve_current_selected_column_id();
+            bool focusedScene = m_inputsSceneManager.GetCurrentFocusedScene();
+            if (id == m_idColCamera && focusedScene == m_spCamera)
             {
                 GetComponent<Camera>().backgroundColor = m_selectedColumnColor;
             }
