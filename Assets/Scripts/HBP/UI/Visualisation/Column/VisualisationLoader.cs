@@ -204,7 +204,7 @@ namespace HBP.UI
                 VisualisationLoaded.MP_Visualisation = MPvisu;
                 VisualisationLoaded.MP_VisualisationData = visualisationData;
                 VisualisationLoaded.MP_Columns = new bool[visualisationData.Columns.Count];
-
+                
                 // Set scene.
                 loadingCircle.Set(1, "Finish");
                 yield return Ninja.JumpBack;
