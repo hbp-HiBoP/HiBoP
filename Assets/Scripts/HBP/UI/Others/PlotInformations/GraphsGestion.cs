@@ -355,7 +355,7 @@ namespace HBP.UI.Graph
                             for (int i = pMin; i <= pMax && i < data.Length; i++)
                             {
                                 float absciss = min + ((max - min) * (i - pMin) / (pMax - pMin));
-                                points[i] = new Vector2(absciss, data[i]);
+                                points[i-pMin] = new Vector2(absciss, data[i]);
                             }
 
                             //Create curve
@@ -370,10 +370,10 @@ namespace HBP.UI.Graph
                             float min = timeLine.Start.Value;
                             float max = timeLine.End.Value;
                             Vector2[] points = new Vector2[pMax + 1 - pMin];
-                            for (int i = pMin; i <= pMax; i++)
+                            for (int i = pMin; i <= pMax && i < data.Length; i++)
                             {
                                 float absciss = min + ((max - min) * (i - pMin) / (pMax - pMin));
-                                points[i] = new Vector2(absciss, data[i]);
+                                points[i-pMin] = new Vector2(absciss, data[i]);
                             }
 
                             //Create curve
