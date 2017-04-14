@@ -166,7 +166,19 @@ namespace HBP.VISU3D.Cam
             bool focusedScene = m_inputsSceneManager.GetCurrentFocusedScene(); // TODO: maybe change this
             if (id == m_idColCamera && focusedScene == m_spCamera)
             {
-                GetComponent<Camera>().backgroundColor = m_selectedColumnColor;
+                if (m_cameraClicked)
+                {
+                    float l_r, l_g, l_b;
+                    l_r = Mathf.Clamp(m_selectedColumnColor.r * 0.8f, 0.0f, 1.0f);
+                    l_g = Mathf.Clamp(m_selectedColumnColor.g * 0.8f, 0.0f, 1.0f);
+                    l_b = Mathf.Clamp(m_selectedColumnColor.b * 0.8f, 0.0f, 1.0f);
+                    Color l_selectedAndClickedCameraColor = new Color(l_r, l_g, l_b);
+                    GetComponent<Camera>().backgroundColor = l_selectedAndClickedCameraColor;
+                }
+                else
+                {
+                    GetComponent<Camera>().backgroundColor = m_selectedColumnColor;
+                }
             }
             else
             {
