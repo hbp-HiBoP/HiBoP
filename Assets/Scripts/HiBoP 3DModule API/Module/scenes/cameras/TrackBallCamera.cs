@@ -55,6 +55,8 @@ namespace HBP.VISU3D.Cam
         public float m_startDistance = 250.0f;  /**< start distance from the target */
         public float m_speed = 50.0f;           /**< camera speed rotation and strafe  */
         public float m_zoomSpeed = 3.5f;        /**< camera speed zoom */
+        public float m_rotationSpeed = 30.0f;   /**< camera speed rotation key */
+        public float m_strafeSpeed = -30.0f;    /**< camera speed strafe key */
         public float m_minDistance = 50.0f;     /**< minimal distance from the target */
         public float m_maxDistance = 750.0f;    /**< maximal distance from the target */
 
@@ -79,17 +81,24 @@ namespace HBP.VISU3D.Cam
         protected int m_idColCamera = 0;            /**< id camera column */
 
         protected float m_rotationCirclesRay = 300f;/**< rotations circles ray */
-        protected float m_cameraRotationSpeed = 50.0f; /**< rotations speed */
+        protected float m_cameraAutoRotationSpeed = 50.0f; /**< auto rotation speed */
 
         protected Vector3 m_target;                 /**< current target of the camera */
-        protected Vector3 m_originalTarget;         /**< initial target of the camera */
-        protected Vector3 m_originalRotationEuler;       /**< initial rotation of the camera */
+        public Vector3 m_originalTarget;         /**< initial target of the camera */
+        public Vector3 m_originalRotationEuler;       /**< initial rotation of the camera */
 
         protected Vector3[] m_xRotationCircleVertices = null; /**< vertices of x rotation circle */
         protected Vector3[] m_yRotationCircleVertices = null; /**< vertices of y rotation circle */
         protected Vector3[] m_zRotationCircleVertices = null; /**< vertices of z rotation circle */
 
         protected List<Vector3[]> m_planesCutsCirclesVertices = new List<Vector3[]>(); /**< circles for drawing planes cuts in postrender */
+
+        // new interaction
+        protected bool m_cameraClicked;            /**< is the camera selected ? */
+        protected bool m_mouseLock;                 /**< locks the event between mouse_down and mouse_up */
+        protected bool m_cameraMovementsFocus;   /**< did the user clicked on the scene of this camera or is the camera selected ? */
+        protected bool m_camerasNeedUpdate;        /**< does the cameras of the row need an update ? */
+        protected bool m_orbitCamera = true;    /**< does the user want to use the orbit camera ? */
 
         // post render
         public Material m_planeMat = null;    /**< material used for drawing the planes cuts*/
@@ -138,7 +147,7 @@ namespace HBP.VISU3D.Cam
 
             if (m_idLineCamera == 0)
             {
-                if(!m_isMinimized)
+                if (!m_isMinimized)
                     m_associatedScene.update_column_rendering(m_idColCamera);
             }
 
@@ -149,28 +158,40 @@ namespace HBP.VISU3D.Cam
         protected void OnPostRender()
         {
             drawGL();
-            m_displayRotationCircles = false;
         }
 
         protected void Update()
         {
             // update current color
             int id = m_associatedScene.retrieve_current_selected_column_id();
-            if (id == m_idColCamera)
+            bool focusedScene = m_inputsSceneManager.GetCurrentFocusedScene(); // TODO: maybe change this
+            if (id == m_idColCamera && focusedScene == m_spCamera)
             {
-                GetComponent<Camera>().backgroundColor = m_selectedColumnColor;
+                if (m_cameraClicked)
+                {
+                    float l_r, l_g, l_b;
+                    l_r = Mathf.Clamp(m_selectedColumnColor.r * 0.8f, 0.0f, 1.0f);
+                    l_g = Mathf.Clamp(m_selectedColumnColor.g * 0.8f, 0.0f, 1.0f);
+                    l_b = Mathf.Clamp(m_selectedColumnColor.b * 0.8f, 0.0f, 1.0f);
+                    Color l_selectedAndClickedCameraColor = new Color(l_r, l_g, l_b);
+                    GetComponent<Camera>().backgroundColor = l_selectedAndClickedCameraColor;
+                }
+                else
+                {
+                    GetComponent<Camera>().backgroundColor = m_selectedColumnColor;
+                }
             }
             else
             {
                 GetComponent<Camera>().backgroundColor = m_normalColor;
             }
 
-            if (!m_isMinimized && m_cameraFocus && m_moduleFocus)                
-                send_mouse_events();
-          
-            StartCoroutine("drawGL");
+            MouseHandler();
+            KeyHandler();
             automatic_camera_rotation();
-        }
+
+            StartCoroutine("drawGL");
+       }
 
 
         /// <summary>
@@ -179,54 +200,26 @@ namespace HBP.VISU3D.Cam
         protected void OnGUI()
         {
             m_cameraFocus = is_focus();
+            if (Input.GetMouseButtonUp(0))
+            {
+                m_cameraClicked = is_focus();
+            }
+            if (Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2))
+            {
+                if (m_associatedScene.retrieve_current_selected_column_id() == m_idColCamera)
+                    m_cameraClicked = is_focus();
+            }
 
             if (m_isMinimized || !m_cameraFocus || !m_moduleFocus)
                 return;
-
+            
             Event currEvent = Event.current;
             if (Input.anyKey)
             {
-                if (Input.GetKey(KeyCode.R))
-                    reset_target();
-
-                // check keybord zooms
-                if (Input.GetKey(KeyCode.A))
-                    move_forward(m_zoomSpeed);                    
-
-                if (Input.GetKey(KeyCode.E))
-                    move_backward(m_zoomSpeed);
-
-                if (Input.GetKey(KeyCode.Z))
-                    vertical_rotation(true, 0.2f);
-
-                if (Input.GetKey(KeyCode.S))
-                    vertical_rotation(false, 0.2f);
-
-                if (Input.GetKey(KeyCode.Q))
-                    horizontal_rotation(true, 0.2f);
-
-                if (Input.GetKey(KeyCode.D))
-                    horizontal_rotation(false, 0.2f);
-
-                if (Input.GetKey(KeyCode.LeftArrow))
-                    horizontal_strafe(true, -0.5f);
-
-                if (Input.GetKey(KeyCode.RightArrow))
-                    horizontal_strafe(false, -0.5f);
-
-                if (Input.GetKey(KeyCode.UpArrow))
-                    vertical_strafe(true, -0.5f);
-
-                if (Input.GetKey(KeyCode.DownArrow))
-                    vertical_strafe(false, -0.5f);
-
                 if (currEvent.type == EventType.KeyDown)
                 {
                     m_inputsSceneManager.send_keyboard_action_to_scenes(m_spCamera, currEvent.keyCode);
-                }                
-
-                if (Input.GetKey(KeyCode.Space))
-                    m_associatedScene.display_sites_names(GetComponent<Camera>());
+                }
             }
             else if(currEvent.type == EventType.ScrollWheel)
             {
@@ -236,14 +229,250 @@ namespace HBP.VISU3D.Cam
 
         #endregion monoBehaviour
 
+        #region handlers
+
+        /// <summary>
+        /// Called in Update : handles the interactions with the mouse
+        /// </summary>
+        private void MouseHandler()
+        {
+            if (!m_isMinimized && m_cameraFocus && m_moduleFocus && !m_mouseLock)
+                send_mouse_events();
+
+            if (!m_mouseLock) MouseDown();
+            MouseDrag();
+            MouseUp();
+        }
+
+        /// <summary>
+        /// Check and send the mouse events to the mouse manager and apply cameras rotations and straffes
+        /// </summary>
+        protected void send_mouse_events()
+        {
+            Ray ray = GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
+
+            // mouse movement
+            m_inputsSceneManager.send_mouse_movement_to_scenes(ray, m_spCamera, Input.mousePosition, m_idColCamera);
+
+            // left click
+            if (Input.GetMouseButtonUp(0))
+            {
+                m_inputsSceneManager.send_click_ray_to_scenes(ray, m_spCamera, m_idColCamera);
+            }
+        }
+
+        /// <summary>
+        /// Called when right or middle click are pressed
+        /// </summary>
+        private void MouseDown() // TODO: make the cursor invisible and locked (when it's patched on unity)
+        {
+            if (Input.GetMouseButton(1) || Input.GetMouseButton(2))
+            {
+                m_cameraMovementsFocus = is_focus();
+                m_mouseLock = true;
+                m_displayRotationCircles = true;
+            }
+        }
+
+        /// <summary>
+        /// Called when moving the mouse after having right or middle clicked (drag)
+        /// </summary>
+        private void MouseDrag()
+        {
+            if (!m_cameraMovementsFocus) return;
+
+            if (Input.GetMouseButton(1))
+            {
+                float nx = 0;
+                float ny = 0;
+                nx = Input.GetAxis("Mouse X");
+                ny = Input.GetAxis("Mouse Y");
+
+                // check horizontal right click mouse drag movement
+                if (nx != 0)
+                {
+                    if (m_orbitCamera)
+                    {
+                        if (nx < 0)
+                            HorizontalOrbitRotation(-nx * m_speed);
+                        else
+                            HorizontalOrbitRotation(-nx * m_speed);
+                    }
+                    else
+                    {
+                        if (nx < 0)
+                            horizontal_rotation(true, -nx * m_speed);
+                        else
+                            horizontal_rotation(false, nx * m_speed);
+                    }
+                }
+
+
+                // check vertical right click mouse drag movement
+                if (ny != 0)
+                {
+                    if (m_orbitCamera)
+                    {
+                        if (ny < 0)
+                            VerticalOrbitRotation(ny * m_speed);
+                        else
+                            VerticalOrbitRotation(ny * m_speed);
+                    }
+                    else
+                    {
+                        if (ny < 0)
+                            vertical_rotation(true, -ny * m_speed);
+                        else
+                            vertical_rotation(false, ny * m_speed);
+                    }
+                }
+
+                m_camerasNeedUpdate = true;
+            }
+            else if (Input.GetMouseButton(2))
+            {
+                float nx = 0;
+                float ny = 0;
+                nx = Input.GetAxis("Mouse X");
+                ny = Input.GetAxis("Mouse Y");
+
+                // check horizontal right click mouse drag movement
+                if (nx != 0)
+                    if (nx < 0)
+                        horizontal_strafe(true, nx * m_speed);
+                    else
+                        horizontal_strafe(false, -nx * m_speed);
+
+
+                // check vertical right click mouse drag movement
+                if (ny != 0)
+                    if (ny < 0)
+                        vertical_strafe(true, -ny * m_speed);
+                    else
+                        vertical_strafe(false, ny * m_speed);
+
+                m_camerasNeedUpdate = true;
+            }
+        }
+
+        /// <summary>
+        /// Called when right and middle click buttons are released
+        /// </summary>
+        private void MouseUp()
+        {
+            if (!Input.GetMouseButton(1) && !Input.GetMouseButton(2) && m_mouseLock)
+            {
+                m_cameraMovementsFocus = false;
+                m_mouseLock = false;
+                m_displayRotationCircles = false;
+            }
+        }
+
+        private void KeyHandler()
+        {
+            if (Input.anyKey)
+            {
+                if (Input.GetMouseButton(0) || Input.GetMouseButton(1) || Input.GetMouseButton(2)) return;
+
+                m_cameraMovementsFocus = m_cameraClicked;
+                m_displayRotationCircles = m_cameraClicked;
+
+                if (m_isMinimized || !m_moduleFocus || !m_cameraClicked) return;
+
+                m_mouseLock = true;
+
+                if (Input.GetKey(KeyCode.R))
+                    reset_target();
+                
+                if (Input.GetKey(KeyCode.A))
+                    move_forward(m_zoomSpeed * 30.0f * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.E))
+                    move_backward(m_zoomSpeed * 30.0f * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.Z))
+                {
+                    if (m_orbitCamera)
+                    {
+                        VerticalOrbitRotation(m_rotationSpeed * Time.deltaTime);
+                    }
+                    else
+                    {
+                        vertical_rotation(true, m_rotationSpeed * Time.deltaTime);
+                    }
+                }
+
+                if (Input.GetKey(KeyCode.S))
+                {
+                    if (m_orbitCamera)
+                    {
+                        VerticalOrbitRotation(-m_rotationSpeed * Time.deltaTime);
+                    }
+                    else
+                    {
+                        vertical_rotation(false, m_rotationSpeed * Time.deltaTime);
+                    }
+                }
+
+                if (Input.GetKey(KeyCode.Q))
+                {
+                    if (m_orbitCamera)
+                    {
+                        HorizontalOrbitRotation(m_rotationSpeed * Time.deltaTime);
+                    }
+                    else
+                    {
+                        horizontal_rotation(true, m_rotationSpeed * Time.deltaTime);
+                    }
+                }
+
+                if (Input.GetKey(KeyCode.D))
+                {
+                    if (m_orbitCamera)
+                    {
+                        HorizontalOrbitRotation(-m_rotationSpeed * Time.deltaTime);
+                    }
+                    else
+                    {
+                        horizontal_rotation(false, m_rotationSpeed * Time.deltaTime);
+                    }
+                }
+
+                if (Input.GetKey(KeyCode.LeftArrow))
+                    horizontal_strafe(true, m_strafeSpeed * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.RightArrow))
+                    horizontal_strafe(false, m_strafeSpeed * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.UpArrow))
+                    vertical_strafe(true, m_strafeSpeed * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.DownArrow))
+                    vertical_strafe(false, m_strafeSpeed * Time.deltaTime);
+
+                if (Input.GetKey(KeyCode.Space))
+                    m_associatedScene.display_sites_names(GetComponent<Camera>());
+
+                m_camerasNeedUpdate = true;
+            }
+            else
+            {
+                m_cameraMovementsFocus = false;
+                m_displayRotationCircles = false;
+                m_mouseLock = false;
+            }
+        }
+
+        #endregion handlers
+
         #region others
 
         public void drawGL()
         {
-            if (!m_cameraFocus || m_isMinimized)
+            if (m_isMinimized)
                 return;
 
-            if(m_displayCutsCircles)
+            if(m_displayCutsCircles && m_cameraFocus)
             {
                 m_displayPlanesTimer = TimeExecution.get_world_time() - m_displayPlanesTimeStart;
                 if (m_displayPlanesTimeRemaining > m_displayPlanesTimer)
@@ -274,7 +503,7 @@ namespace HBP.VISU3D.Cam
                     m_displayCutsCircles = false;
             }
 
-            if (m_displayRotationCircles)
+            if (m_displayRotationCircles && m_cameraMovementsFocus)
             {
                 //GL.PushMatrix();
                 m_xCircleMat.SetPass(0);
@@ -324,6 +553,45 @@ namespace HBP.VISU3D.Cam
             transform.position = m_target - transform.forward * m_startDistance;
         }
 
+        public void set_original_target(Vector3 target)
+        {
+            m_target = target;
+            m_originalTarget = target;
+        }
+
+        public void set_original_rotation(Vector3 rotationEuler)
+        {
+            m_originalRotationEuler = rotationEuler;
+        }
+
+        public void StandardView()
+        {
+            reset_target();
+            vertical_rotation(true, m_originalRotationEuler.y - 90);
+            if (m_idLineCamera == 1)
+            {
+                horizontal_rotation(true, 90);
+            }
+            else if (m_idLineCamera == 2)
+            {
+                horizontal_rotation(true, 90);
+                vertical_rotation(true, 90);
+            }
+            else if (m_idLineCamera == 3)
+            {
+                horizontal_rotation(true, 180);
+            }
+            else if (m_idLineCamera == 4)
+            {
+                horizontal_rotation(false, 90);
+            }
+            else if (m_idLineCamera == 5)
+            {
+                horizontal_rotation(true, 90);
+                vertical_rotation(false, 90);
+            }
+        }
+
         /// <summary>
         /// stop the rotation of the camera
         /// </summary>
@@ -347,7 +615,7 @@ namespace HBP.VISU3D.Cam
         {
             if (m_cameraIsRotating)
             {
-                horizontal_rotation(false, m_cameraRotationSpeed*Time.deltaTime);
+                horizontal_rotation(false, m_cameraAutoRotationSpeed*Time.deltaTime);
             }
         }
 
@@ -356,7 +624,7 @@ namespace HBP.VISU3D.Cam
         /// </summary>
         public void set_camera_rotation_speed(float speed)
         {
-            m_cameraRotationSpeed = speed;
+            m_cameraAutoRotationSpeed = speed;
         }
 
         /// <summary>
@@ -510,70 +778,6 @@ namespace HBP.VISU3D.Cam
         }
 
         /// <summary>
-        /// Check and send the mouse events to the mouse manager and apply cameras rotations and straffes
-        /// </summary>
-        protected void send_mouse_events()
-        {
-            Ray ray = GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
-
-            // mouse movement
-            m_inputsSceneManager.send_mouse_movement_to_scenes(ray, m_spCamera, Input.mousePosition, m_idColCamera);
-
-            // left click
-            if (Input.GetMouseButtonUp(0))
-            {
-                m_inputsSceneManager.send_click_ray_to_scenes(ray, m_spCamera, m_idColCamera);
-            }
-
-
-            // right click
-            if (Input.GetMouseButton(1))
-            {
-                float nx = 0;
-                float ny = 0;
-                nx = Input.GetAxis("Mouse X");
-                ny = Input.GetAxis("Mouse Y");
-
-                // check horizontal right click mouse drag movement
-                if (nx != 0)
-                    if (nx < 0)
-                        horizontal_rotation(true, -nx * m_speed);
-                    else 
-                        horizontal_rotation(false, nx * m_speed);
-                
-                // check vertical right click mouse drag movement
-                if (ny != 0)
-                    if (ny < 0)
-                        vertical_rotation(true,  ny * m_speed);
-                    else
-                        vertical_rotation(false,-ny * m_speed);
-            }
-
-            if (Input.GetMouseButton(2))
-            {
-                float nx = 0;
-                float ny = 0;
-                nx = Input.GetAxis("Mouse X");
-                ny = Input.GetAxis("Mouse Y");
-
-                // check horizontal right click mouse drag movement
-                if (nx != 0)
-                    if (nx < 0)
-                        horizontal_strafe(true,  nx * m_speed);
-                    else
-                        horizontal_strafe(false,-nx * m_speed);
-
-
-                // check vertical right click mouse drag movement
-                if (ny != 0)
-                    if (ny < 0)
-                        vertical_strafe(true, -ny * m_speed);
-                    else
-                        vertical_strafe(false, ny * m_speed);
-            }
-        }
-
-        /// <summary>
         /// Update the selected column with the associated scene
         /// </summary>
         /// <param name="idColumn"></param>
@@ -654,9 +858,25 @@ namespace HBP.VISU3D.Cam
                 rotation = Quaternion.AngleAxis(amount, transform.right); 
 
             transform.position = rotation * vecTargetPos_EyePos + m_target;
-            transform.LookAt(m_target, Vector3.Cross(m_target - transform.position, transform.right));            
+            transform.LookAt(m_target, Vector3.Cross(m_target - transform.position, transform.right));
         }
 
+        protected void HorizontalOrbitRotation(float amount)
+        {
+            if (Vector3.Dot(transform.up, Vector3.forward) > 0)
+            {
+                transform.RotateAround(m_target, Vector3.forward, -amount);
+            }
+            else
+            {
+                transform.RotateAround(m_target, Vector3.back, -amount);
+            }
+        }
+
+        protected void VerticalOrbitRotation(float amount)
+        {
+            transform.RotateAround(m_target, transform.right, -amount);
+        }
 
         /// <summary>
         /// Move forward the position in the direction of the target

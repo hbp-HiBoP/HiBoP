@@ -65,6 +65,7 @@ namespace HBP.UI.Graph
 
         // Type
         ZoneResizer zoneResizer;
+        ZoneResizer ownZoneResizer;
         enum TypeEnum { None, Single, Multi };
         TypeEnum type = TypeEnum.None;
         TypeEnum Type
@@ -98,6 +99,7 @@ namespace HBP.UI.Graph
             trialMatrixList = transform.FindChild("TrialZone").FindChild("TrialMatrix").FindChild("Viewport").FindChild("Content").GetComponent<TrialMatrixList>();
             graphGestion = transform.FindChild("pref_Graph").GetComponent<GraphGestion>();
             zoneResizer = transform.parent.GetComponent<ZoneResizer>();
+            ownZoneResizer = transform.GetComponent<ZoneResizer>();
             AddListerners();
             Type = TypeEnum.None;
         }
@@ -180,6 +182,7 @@ namespace HBP.UI.Graph
             lineSelectable = IsSamePatient(plotsToCompare);
             if (sp) Type = TypeEnum.Single;
             else Type = TypeEnum.Multi;
+            ResizeOwnZoneResizer();
             GenerateTrialMatrix();
             DisplayTrialMatrix();
             GenerateCurves();
@@ -349,10 +352,10 @@ namespace HBP.UI.Graph
                             float min = timeLine.Start.Value;
                             float max = timeLine.End.Value;
                             Vector2[] points = new Vector2[pMax + 1 - pMin];
-                            for (int i = pMin; i <= pMax; i++)
+                            for (int i = pMin; i <= pMax && i < data.Length; i++)
                             {
                                 float absciss = min + ((max - min) * (i - pMin) / (pMax - pMin));
-                                points[i] = new Vector2(absciss, data[i]);
+                                points[i-pMin] = new Vector2(absciss, data[i]);
                             }
 
                             //Create curve
@@ -367,10 +370,10 @@ namespace HBP.UI.Graph
                             float min = timeLine.Start.Value;
                             float max = timeLine.End.Value;
                             Vector2[] points = new Vector2[pMax + 1 - pMin];
-                            for (int i = pMin; i <= pMax; i++)
+                            for (int i = pMin; i <= pMax && i < data.Length; i++)
                             {
                                 float absciss = min + ((max - min) * (i - pMin) / (pMax - pMin));
-                                points[i] = new Vector2(absciss, data[i]);
+                                points[i-pMin] = new Vector2(absciss, data[i]);
                             }
 
                             //Create curve
@@ -409,7 +412,7 @@ namespace HBP.UI.Graph
                         for (int p = pMin; p < pMax; p++)
                         {
                             float absciss = min + ((max - min) * (p - pMin) / (pMax - 1 - pMin));
-                            l_points[p] = new Vector2(absciss, l_ROIColumnData[p]);
+                            l_points[p-pMin] = new Vector2(absciss, l_ROIColumnData[p]);
                         }
                         ROIcurves[c] = new CurveData("C" + (c + 1) + " ROI", l_points, mainColor, 4);
                     }
@@ -436,6 +439,15 @@ namespace HBP.UI.Graph
             }
             graphGestion.Set(curves.ToArray());
             UnityEngine.Profiling.Profiler.EndSample();
+        }
+
+        // Resize
+        void ResizeOwnZoneResizer()
+        {
+            if (ownZoneResizer.Ratio == 1.0f || ownZoneResizer.Ratio == 0.0f)
+            {
+                ownZoneResizer.Ratio = 0.5f;
+            }
         }
         #endregion
     }
