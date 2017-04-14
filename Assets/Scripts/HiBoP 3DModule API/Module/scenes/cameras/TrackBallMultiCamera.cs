@@ -116,7 +116,7 @@ namespace HBP.VISU3D.Cam
             {
                 if (child.gameObject.CompareTag("MultiCamera"))
                 {
-                    if (child.gameObject.GetComponent<TrackBallMultiCamera>().m_idLineCamera == m_idLineCamera)
+                    if (child.gameObject.GetComponent<TrackBallMultiCamera>().m_idLineCamera == m_idLineCamera || Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))
                     {
                         child.transform.position = transform.position;
                         child.transform.rotation = transform.rotation;

@@ -146,7 +146,7 @@ namespace HBP.VISU3D.Cam
 
             if (m_idLineCamera == 0)
             {
-                if(!m_isMinimized)
+                if (!m_isMinimized)
                     m_associatedScene.update_column_rendering(m_idColCamera);
             }
 
@@ -761,6 +761,11 @@ namespace HBP.VISU3D.Cam
 
             transform.position = rotation * vecTargetPos_EyePos + m_target;
             transform.LookAt(m_target, transform.up);
+        }
+
+        protected void HorizontalOrbitRotation(bool left, float amount)
+        {
+            transform.RotateAround(m_target, Vector3.up, (left?-1:1)*amount);
         }
 
         /// <summary>
