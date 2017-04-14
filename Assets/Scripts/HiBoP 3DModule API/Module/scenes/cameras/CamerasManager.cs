@@ -104,6 +104,10 @@ namespace HBP.VISU3D.Cam
         void Update()
         {
             update_cameras_viewPort();
+            if (Input.GetKey(KeyCode.H)) // change for a button when merging
+            {
+                SetAllCamerasStandardViews();
+            }
         }
 
         #endregion mono_behaviour
@@ -215,6 +219,30 @@ namespace HBP.VISU3D.Cam
                         }
                     }
                 }
+        }
+
+        public void SetAllCamerasStandardViews()
+        {
+            for (int ii = 0; ii < m_spCameras.Count; ++ii)
+            {
+                for (int jj = 0; jj < m_spCameras[ii].Count; jj++)
+                {
+                    if (m_spCameras[ii][jj].activeInHierarchy)
+                    {
+                        m_spCameras[ii][jj].GetComponent<TrackBallSingleCamera>().StandardView();
+                    }
+                }
+            }
+            for (int ii = 0; ii < m_mpCameras.Count; ++ii)
+            {
+                for (int jj = 0; jj < m_mpCameras[ii].Count; jj++)
+                {
+                    if (m_mpCameras[ii][jj].activeInHierarchy)
+                    {
+                        m_mpCameras[ii][jj].GetComponent<TrackBallSingleCamera>().StandardView();
+                    }
+                }
+            }
         }
 
         public void set_module_focus(bool state)

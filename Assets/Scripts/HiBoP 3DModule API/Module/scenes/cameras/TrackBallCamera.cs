@@ -485,6 +485,34 @@ namespace HBP.VISU3D.Cam
             m_originalRotationEuler = rotationEuler;
         }
 
+        public void StandardView()
+        {
+            reset_target();
+            vertical_rotation(true, m_originalRotationEuler.y - 90);
+            if (m_idLineCamera == 1)
+            {
+                horizontal_rotation(true, 90);
+            }
+            else if (m_idLineCamera == 2)
+            {
+                horizontal_rotation(true, 90);
+                vertical_rotation(true, 90);
+            }
+            else if (m_idLineCamera == 3)
+            {
+                horizontal_rotation(true, 180);
+            }
+            else if (m_idLineCamera == 4)
+            {
+                horizontal_rotation(false, 90);
+            }
+            else if (m_idLineCamera == 5)
+            {
+                horizontal_rotation(true, 90);
+                vertical_rotation(false, 90);
+            }
+        }
+
         /// <summary>
         /// stop the rotation of the camera
         /// </summary>
