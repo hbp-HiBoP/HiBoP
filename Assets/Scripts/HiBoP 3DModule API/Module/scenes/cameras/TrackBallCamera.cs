@@ -98,6 +98,7 @@ namespace HBP.VISU3D.Cam
         protected bool m_mouseLock;                 /**< locks the event between mouse_down and mouse_up */
         protected bool m_cameraMovementsFocus;   /**< did the user clicked on the scene of this camera or is the camera selected ? */
         protected bool m_camerasNeedUpdate;        /**< does the cameras of the row need an update ? */
+        protected bool m_orbitCamera = true;    /**< does the user want to use the orbit camera ? */
 
         // post render
         public Material m_planeMat = null;    /**< material used for drawing the planes cuts*/
@@ -199,7 +200,7 @@ namespace HBP.VISU3D.Cam
         protected void OnGUI()
         {
             m_cameraFocus = is_focus();
-            if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2))
+            if (Input.GetMouseButtonUp(0) || Input.GetMouseButtonUp(1) || Input.GetMouseButtonUp(2))
             {
                 m_cameraClicked = is_focus();
             }
@@ -284,17 +285,42 @@ namespace HBP.VISU3D.Cam
 
                 // check horizontal right click mouse drag movement
                 if (nx != 0)
-                    if (nx < 0)
-                        horizontal_rotation(true, -nx * m_speed);
+                {
+                    if (m_orbitCamera)
+                    {
+                        if (nx < 0)
+                            HorizontalOrbitRotation(-nx * m_speed);
+                        else
+                            HorizontalOrbitRotation(-nx * m_speed);
+                    }
                     else
-                        horizontal_rotation(false, nx * m_speed);
+                    {
+                        if (nx < 0)
+                            horizontal_rotation(true, -nx * m_speed);
+                        else
+                            horizontal_rotation(false, nx * m_speed);
+                    }
+                }
+
 
                 // check vertical right click mouse drag movement
                 if (ny != 0)
-                    if (ny < 0)
-                        vertical_rotation(true, ny * m_speed);
+                {
+                    if (m_orbitCamera)
+                    {
+                        if (ny < 0)
+                            VerticalOrbitRotation(ny * m_speed);
+                        else
+                            VerticalOrbitRotation(ny * m_speed);
+                    }
                     else
-                        vertical_rotation(false, -ny * m_speed);
+                    {
+                        if (ny < 0)
+                            vertical_rotation(true, -ny * m_speed);
+                        else
+                            vertical_rotation(false, ny * m_speed);
+                    }
+                }
 
                 m_camerasNeedUpdate = true;
             }
@@ -775,11 +801,6 @@ namespace HBP.VISU3D.Cam
             transform.LookAt(m_target, transform.up);
         }
 
-        protected void HorizontalOrbitRotation(bool left, float amount)
-        {
-            transform.RotateAround(m_target, Vector3.up, (left?-1:1)*amount);
-        }
-
         /// <summary>
         /// Turn vertically around the camera target
         /// </summary>
@@ -796,9 +817,25 @@ namespace HBP.VISU3D.Cam
                 rotation = Quaternion.AngleAxis(amount, transform.right); 
 
             transform.position = rotation * vecTargetPos_EyePos + m_target;
-            transform.LookAt(m_target, Vector3.Cross(m_target - transform.position, transform.right));            
+            transform.LookAt(m_target, Vector3.Cross(m_target - transform.position, transform.right));
         }
 
+        protected void HorizontalOrbitRotation(float amount)
+        {
+            if (Vector3.Dot(transform.up, Vector3.forward) > 0)
+            {
+                transform.RotateAround(m_target, Vector3.forward, -amount);
+            }
+            else
+            {
+                transform.RotateAround(m_target, Vector3.back, -amount);
+            }
+        }
+
+        protected void VerticalOrbitRotation(float amount)
+        {
+            transform.RotateAround(m_target, transform.right, -amount);
+        }
 
         /// <summary>
         /// Move forward the position in the direction of the target

@@ -239,7 +239,7 @@ namespace HBP.VISU3D.Cam
                 {
                     if (m_mpCameras[ii][jj].activeInHierarchy)
                     {
-                        m_mpCameras[ii][jj].GetComponent<TrackBallSingleCamera>().StandardView();
+                        m_mpCameras[ii][jj].GetComponent<TrackBallMultiCamera>().StandardView();
                     }
                 }
             }
