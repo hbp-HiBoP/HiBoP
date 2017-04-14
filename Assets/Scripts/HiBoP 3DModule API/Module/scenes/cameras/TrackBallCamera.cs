@@ -391,16 +391,52 @@ namespace HBP.VISU3D.Cam
                     move_backward(m_zoomSpeed * 30.0f * Time.deltaTime);
 
                 if (Input.GetKey(KeyCode.Z))
-                    vertical_rotation(true, m_rotationSpeed * Time.deltaTime);
+                {
+                    if (m_orbitCamera)
+                    {
+                        VerticalOrbitRotation(m_rotationSpeed * Time.deltaTime);
+                    }
+                    else
+                    {
+                        vertical_rotation(true, m_rotationSpeed * Time.deltaTime);
+                    }
+                }
 
                 if (Input.GetKey(KeyCode.S))
-                    vertical_rotation(false, m_rotationSpeed * Time.deltaTime);
+                {
+                    if (m_orbitCamera)
+                    {
+                        VerticalOrbitRotation(-m_rotationSpeed * Time.deltaTime);
+                    }
+                    else
+                    {
+                        vertical_rotation(false, m_rotationSpeed * Time.deltaTime);
+                    }
+                }
 
                 if (Input.GetKey(KeyCode.Q))
-                    horizontal_rotation(true, m_rotationSpeed * Time.deltaTime);
+                {
+                    if (m_orbitCamera)
+                    {
+                        HorizontalOrbitRotation(m_rotationSpeed * Time.deltaTime);
+                    }
+                    else
+                    {
+                        horizontal_rotation(true, m_rotationSpeed * Time.deltaTime);
+                    }
+                }
 
                 if (Input.GetKey(KeyCode.D))
-                    horizontal_rotation(false, m_rotationSpeed * Time.deltaTime);
+                {
+                    if (m_orbitCamera)
+                    {
+                        HorizontalOrbitRotation(-m_rotationSpeed * Time.deltaTime);
+                    }
+                    else
+                    {
+                        horizontal_rotation(false, m_rotationSpeed * Time.deltaTime);
+                    }
+                }
 
                 if (Input.GetKey(KeyCode.LeftArrow))
                     horizontal_strafe(true, m_strafeSpeed * Time.deltaTime);
