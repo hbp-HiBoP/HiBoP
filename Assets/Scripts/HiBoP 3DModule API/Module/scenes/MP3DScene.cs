@@ -668,7 +668,7 @@ namespace HBP.VISU3D
             if (hits.Length == 0) // no hits
             {
                 if (data_.ROICreationMode)
-                    SelectBubbleEvent.Invoke(m_CM.idSelectedColumn, -1); // deselect selected ROI bubble
+                    SelectBubbleEvent.Invoke(m_CM.idSelectedColumn, -1); // unselect selected ROI bubble
                 return;
             }
 
