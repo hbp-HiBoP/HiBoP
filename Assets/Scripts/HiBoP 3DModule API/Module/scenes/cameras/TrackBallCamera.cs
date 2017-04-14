@@ -200,9 +200,14 @@ namespace HBP.VISU3D.Cam
         protected void OnGUI()
         {
             m_cameraFocus = is_focus();
-            if (Input.GetMouseButtonUp(0) || Input.GetMouseButtonUp(1) || Input.GetMouseButtonUp(2))
+            if (Input.GetMouseButtonUp(0))
             {
                 m_cameraClicked = is_focus();
+            }
+            if (Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2))
+            {
+                if (m_associatedScene.retrieve_current_selected_column_id() == m_idColCamera)
+                    m_cameraClicked = is_focus();
             }
 
             if (m_isMinimized || !m_cameraFocus || !m_moduleFocus)
