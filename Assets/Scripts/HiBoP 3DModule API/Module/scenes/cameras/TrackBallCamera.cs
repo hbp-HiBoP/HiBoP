@@ -321,9 +321,9 @@ namespace HBP.VISU3D.Cam
                     else
                     {
                         if (ny < 0)
-                            vertical_rotation(true, -ny * m_speed);
+                            vertical_rotation(false, -ny * m_speed);
                         else
-                            vertical_rotation(false, ny * m_speed);
+                            vertical_rotation(true, ny * m_speed);
                     }
                 }
 
