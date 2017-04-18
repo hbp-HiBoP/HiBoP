@@ -98,7 +98,7 @@ namespace HBP.VISU3D.Cam
         protected bool m_mouseLock;                 /**< locks the event between mouse_down and mouse_up */
         protected bool m_cameraMovementsFocus;   /**< did the user clicked on the scene of this camera or is the camera selected ? */
         protected bool m_camerasNeedUpdate;        /**< does the cameras of the row need an update ? */
-        protected bool m_orbitCamera = true;    /**< does the user want to use the orbit camera ? */
+        protected bool m_orbitCamera = false;    /**< does the user want to use the orbit camera ? */
 
         // post render
         public Material m_planeMat = null;    /**< material used for drawing the planes cuts*/
