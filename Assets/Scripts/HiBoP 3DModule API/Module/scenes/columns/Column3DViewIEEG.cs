@@ -426,7 +426,7 @@ namespace HBP.VISU3D
                     }
                     else // no mask and no amplitude computed : all plots have the same size and color
                     {
-                        Sites[ii].transform.localScale = normalScale;
+                        Sites[ii].transform.localScale = normalScale * gainBubbles;
                         siteType = Sites[ii].marked ? SiteType.Marked : SiteType.Normal;
                     }
 
