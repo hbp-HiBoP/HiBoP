@@ -369,7 +369,7 @@ namespace HBP.Data.General
         public static string[] GetProject(string path)
         {
             List<string> l_listPathProject = new List<string>();
-            if (path != string.Empty && Directory.Exists(path))
+            if (path != string.Empty && Directory.Exists(path) && path[path.Length-1] != ':') // temporary solution, may need more work to apply everywhere
             {
                 string[] l_directories = Directory.GetDirectories(path);
                 foreach (string l_directoryPath in l_directories)
