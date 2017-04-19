@@ -55,7 +55,7 @@ namespace HBP.UI.Experience.Protocol
 
         public void OpenIllustrationPath()
         {
-            string l_resultStandalone = VISU3D.DLL.QtGUI.get_existing_file_name(new string[] { "png", "jpg" }, "Please select the illustration of the Icon", m_pathInputField.text);
+            string l_resultStandalone = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "png", "jpg" }, "Please select the illustration of the Icon", m_pathInputField.text);
             StringExtension.StandardizeToPath(ref l_resultStandalone);
             if (l_resultStandalone != string.Empty)
             {

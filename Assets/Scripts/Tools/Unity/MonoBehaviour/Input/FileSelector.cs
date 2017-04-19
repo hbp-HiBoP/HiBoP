@@ -20,7 +20,7 @@ namespace Tools.Unity
         #region Public Methods
         public void Open()
         {
-                string l_result = HBP.VISU3D.DLL.QtGUI.get_existing_file_name(new string[] { Extension }, Message, m_inputfield.text);
+                string l_result = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { Extension }, Message, m_inputfield.text);
                 if (l_result != string.Empty)
                 {
                     Debug.Log(l_result);

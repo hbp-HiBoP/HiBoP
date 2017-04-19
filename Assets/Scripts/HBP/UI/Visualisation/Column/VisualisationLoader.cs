@@ -5,11 +5,11 @@ using System.Linq;
 using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
-using HBP.VISU3D;
-using HBP.Data.Visualisation;
+using HBP.Module3D;
+using data = HBP.Data.Visualisation;
 using HBP.Data.Experience.Dataset;
 
-namespace HBP.UI
+namespace HBP.UI.Visualisation
 {
     public class VisualisationLoader : MonoBehaviour
     {
@@ -33,9 +33,9 @@ namespace HBP.UI
         enum LoadingErrorEnum { None, CanNotFindFilesToRead, CanNotReadData, CanNotEpochingData, CanNotStandardizeColumns };
         #endregion
         #region Public Methods
-        public void Load(Visualisation visualisation)
+        public void Load(data.Visualisation visualisation)
         {
-            this.StartCoroutineAsync(c_Load(visualisation, visualisation.GetType() == typeof(MultiPatientsVisualisation)));
+            this.StartCoroutineAsync(c_Load(visualisation, visualisation.GetType() == typeof(data.MultiPatientsVisualisation)));
         }
         #endregion
         #region Private Methods
@@ -45,7 +45,7 @@ namespace HBP.UI
             UnityEngine.Debug.Log(command);
             command.LoadSPSceneFromMP.AddListener((i) => LoadSPSceneFromMP(i));
         }
-        IEnumerator c_Load(Visualisation visualisation, bool MNI)
+        IEnumerator c_Load(data.Visualisation visualisation, bool MNI)
         {
             UnityEngine.Debug.Log("c_Load");
 
@@ -146,7 +146,7 @@ namespace HBP.UI
             yield return Ninja.JumpBack;
 
             // Create ColumnData.
-            ColumnData[] columnsData = new ColumnData[visualisation.Columns.Count];
+            data.ColumnData[] columnsData = new data.ColumnData[visualisation.Columns.Count];
             progressStep = EPOCH_DATA / (visualisation.Columns.Count);
             for (int c = 0; c < visualisation.Columns.Count; c++)
             {
@@ -161,17 +161,17 @@ namespace HBP.UI
                 Data.Patient[] patients = new Data.Patient[0];
                 if (MNI)
                 {
-                    MultiPatientsVisualisation MPvisu = visualisation as MultiPatientsVisualisation;
+                    data.MultiPatientsVisualisation MPvisu = visualisation as data.MultiPatientsVisualisation;
                     patients = MPvisu.Patients.ToArray();
                 }
                 else
                 {
-                    SinglePatientVisualisation SPvisu = visualisation as SinglePatientVisualisation;
+                    data.SinglePatientVisualisation SPvisu = visualisation as data.SinglePatientVisualisation;
                     patients = new Data.Patient[] { SPvisu.Patient };
                 }
                 try
                 {
-                    columnsData[c] = new ColumnData(patients, dataForThisColumn, visualisation.Columns[c]);
+                    columnsData[c] = new data.ColumnData(patients, dataForThisColumn, visualisation.Columns[c]);
                 }
                 catch
                 {
@@ -189,8 +189,8 @@ namespace HBP.UI
 
             if (MNI)
             {
-                MultiPatientsVisualisation MPvisu = visualisation as MultiPatientsVisualisation;
-                MultiPatientsVisualisationData visualisationData = new MultiPatientsVisualisationData(MPvisu.Patients.ToArray(), columnsData);
+                data.MultiPatientsVisualisation MPvisu = visualisation as data.MultiPatientsVisualisation;
+                data.MultiPatientsVisualisationData visualisationData = new data.MultiPatientsVisualisationData(MPvisu.Patients.ToArray(), columnsData);
                 try
                 {
                     visualisationData.StandardizeColumns();
@@ -213,8 +213,8 @@ namespace HBP.UI
             }
             else
             {
-                SinglePatientVisualisation SPvisu = visualisation as SinglePatientVisualisation;
-                SinglePatientVisualisationData visualisationData = new SinglePatientVisualisationData(SPvisu.Patient, columnsData);
+                data.SinglePatientVisualisation SPvisu = visualisation as data.SinglePatientVisualisation;
+                data.SinglePatientVisualisationData visualisationData = new data.SinglePatientVisualisationData(SPvisu.Patient, columnsData);
                 try
                 {
                     visualisationData.StandardizeColumns();
@@ -243,8 +243,8 @@ namespace HBP.UI
         void LoadSPSceneFromMP(int idPatient)
         {
             UnityEngine.Debug.Log("LoadSPSceneFromMP");
-            SinglePatientVisualisationData spVisuData = SinglePatientVisualisationData.LoadFromMultiPatients(VisualisationLoaded.MP_VisualisationData, idPatient);
-            SinglePatientVisualisation spVisu = SinglePatientVisualisation.LoadFromMultiPatients(VisualisationLoaded.MP_Visualisation, idPatient);
+            data.SinglePatientVisualisationData spVisuData = data.SinglePatientVisualisationData.LoadFromMultiPatients(VisualisationLoaded.MP_VisualisationData, idPatient);
+            data.SinglePatientVisualisation spVisu = data.SinglePatientVisualisation.LoadFromMultiPatients(VisualisationLoaded.MP_Visualisation, idPatient);
             VisualisationLoaded.SP_VisualisationData = spVisuData;
             VisualisationLoaded.SP_Visualisation = spVisu;
             VisualisationLoaded.SP_Columns = VisualisationLoaded.MP_Columns;

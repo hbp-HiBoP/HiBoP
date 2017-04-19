@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using HBP.Data.Visualisation;
 
-namespace HBP.UI
+namespace HBP.UI.Visualisation
 {
     public class ColumnItem : Tools.Unity.Lists.ListItem<Column>
     {

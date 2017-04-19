@@ -1,26 +1,29 @@
 ﻿using UnityEngine;
 
-public class PatientMenu : MonoBehaviour
+namespace HBP.UI.Patient
 {
-    [SerializeField]
-    GameObject patientGestionPrefab;
-
-    [SerializeField]
-    GameObject groupGestionPrefab;
-
-    public void OpenPatientGestion()
+    public class PatientMenu : MonoBehaviour
     {
-        RectTransform obj = Instantiate(patientGestionPrefab).GetComponent<RectTransform>();
-        obj.SetParent(GameObject.Find("Windows").transform);
-        obj.localPosition = new Vector3(0, 0, 0);
-        obj.GetComponent<HBP.UI.Patient.PatientGestion>().Open();
-    }
+        [SerializeField]
+        GameObject patientGestionPrefab;
 
-    public void OpenGroupGestion()
-    {
-        RectTransform obj = Instantiate(groupGestionPrefab).GetComponent<RectTransform>();
-        obj.SetParent(GameObject.Find("Windows").transform);
-        obj.localPosition = new Vector3(0, 0, 0);
-        obj.GetComponent<HBP.UI.Patient.GroupGestion>().Open();
+        [SerializeField]
+        GameObject groupGestionPrefab;
+
+        public void OpenPatientGestion()
+        {
+            RectTransform obj = Instantiate(patientGestionPrefab).GetComponent<RectTransform>();
+            obj.SetParent(GameObject.Find("Windows").transform);
+            obj.localPosition = new Vector3(0, 0, 0);
+            obj.GetComponent<PatientGestion>().Open();
+        }
+
+        public void OpenGroupGestion()
+        {
+            RectTransform obj = Instantiate(groupGestionPrefab).GetComponent<RectTransform>();
+            obj.SetParent(GameObject.Find("Windows").transform);
+            obj.localPosition = new Vector3(0, 0, 0);
+            obj.GetComponent<GroupGestion>().Open();
+        }
     }
 }

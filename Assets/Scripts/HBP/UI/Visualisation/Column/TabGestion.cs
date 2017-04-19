@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 using System.Collections.Generic;
 
-namespace HBP.UI
+namespace HBP.UI.Visualisation
 {
     public class SwapColumnsEvent : UnityEvent<int, int> {}
 

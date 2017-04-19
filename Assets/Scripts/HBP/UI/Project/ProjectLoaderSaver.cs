@@ -600,7 +600,7 @@ namespace HBP.UI
                 ApplicationState.ProjectLoadedLocation = oldProjectLocation;
                 loadingCircle.Close();
                 StopAllCoroutines();
-                GameObject popUpobj = GameObject.Instantiate(popUpPrefab, GetComponentInParent<VisualisationLoader>().transform) as GameObject;
+                GameObject popUpobj = GameObject.Instantiate(popUpPrefab, GetComponentInParent<Visualisation.VisualisationLoader>().transform) as GameObject;
                 popUpobj.GetComponent<PopUp>().Show(GetErrorMessage(error, additionalInformations));
             }
         }
@@ -614,7 +614,7 @@ namespace HBP.UI
                 }
                 loadingCircle.Close();
                 StopAllCoroutines();
-                GameObject popUpobj = Instantiate(popUpPrefab, GetComponentInParent<VisualisationLoader>().transform) as GameObject;
+                GameObject popUpobj = Instantiate(popUpPrefab, GetComponentInParent<Visualisation.VisualisationLoader>().transform) as GameObject;
                 popUpobj.GetComponent<PopUp>().Show(GetErrorMessage(error, additionalInformations));
             }
         }

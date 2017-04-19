@@ -6,7 +6,7 @@ using HBP.UI.Patient;
 using HBP.Data.Visualisation;
 using HBP.Data;
 
-namespace HBP.UI
+namespace HBP.UI.Visualisation
 {
     public class MultiVisualisationModifier : ItemModifier<MultiPatientsVisualisation>
     {

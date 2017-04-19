@@ -3,7 +3,7 @@ using Tools.Unity;
 using HBP.Data.Settings;
 using System;
 
-namespace HBP.UI
+namespace HBP.UI.Settings
 {
     public class Preferences : Window
     {

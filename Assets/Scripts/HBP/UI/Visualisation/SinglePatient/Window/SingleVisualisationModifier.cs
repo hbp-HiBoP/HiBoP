@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using HBP.Data.Visualisation;
 
-namespace HBP.UI
+namespace HBP.UI.Visualisation
 {
     public class SingleVisualisationModifier : ItemModifier<SinglePatientVisualisation>
     {

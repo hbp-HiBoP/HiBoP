@@ -164,7 +164,7 @@ namespace HBP.UI.Experience.Dataset
                 }
             }
 
-            string l_resultStandalone = VISU3D.DLL.QtGUI.get_existing_file_name(new string[] { "pos" }, "Please select the POS file.", l_path);
+            string l_resultStandalone = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "pos" }, "Please select the POS file.", l_path);
             StringExtension.StandardizeToPath(ref l_resultStandalone);
             if (l_resultStandalone != string.Empty)
             {
@@ -189,7 +189,7 @@ namespace HBP.UI.Experience.Dataset
                 l_path = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
             }
 
-            string l_resultStandalone = VISU3D.DLL.QtGUI.get_existing_file_name(new string[] { "eeg" }, "Please select the EEG file.", l_path);
+            string l_resultStandalone = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "eeg" }, "Please select the EEG file.", l_path);
             StringExtension.StandardizeToPath(ref l_resultStandalone);
             if (l_resultStandalone != string.Empty)
             {

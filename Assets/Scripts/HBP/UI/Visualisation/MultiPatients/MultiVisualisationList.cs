@@ -1,7 +1,7 @@
 ﻿using HBP.Data.Visualisation;
 using System.Linq;
 
-namespace HBP.UI
+namespace HBP.UI.Visualisation
 {
     public class MultiVisualisationList : Tools.Unity.Lists.OneSelectableListWithItemActions<MultiPatientsVisualisation>
     {

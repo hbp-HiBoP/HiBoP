@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
-using HBP.VISU3D;
+using HBP.Module3D;
 using HBP.UI.TrialMatrix;
 using HBP.Data.Anatomy;
 using HBP.Data.Visualisation;

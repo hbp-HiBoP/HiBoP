@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using System.Linq;
 using HBP.Data.Visualisation;
 
-namespace HBP.UI
+namespace HBP.UI.Visualisation
 {
     public class MultiVisualisationGestion : ItemGestion<MultiPatientsVisualisation>
     {

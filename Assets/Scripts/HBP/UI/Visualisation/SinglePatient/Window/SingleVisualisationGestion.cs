@@ -2,7 +2,7 @@
 using System.Linq;
 using HBP.Data.Visualisation;
 
-namespace HBP.UI
+namespace HBP.UI.Visualisation
 {
     public class SingleVisualisationGestion : ItemGestion<SinglePatientVisualisation>
     {

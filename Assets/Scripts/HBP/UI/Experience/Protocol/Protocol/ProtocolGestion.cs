@@ -14,7 +14,7 @@ namespace HBP.UI.Experience.Protocol
         }
         public void Import()
         {
-            string l_resultStandalone = VISU3D.DLL.QtGUI.get_existing_file_name(new string[] { "prov" }, "Please select the protocols file to import");
+            string l_resultStandalone = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "prov" }, "Please select the protocols file to import");
             StringExtension.StandardizeToPath(ref l_resultStandalone);
             if (l_resultStandalone != string.Empty)
             {

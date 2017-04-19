@@ -1,68 +1,71 @@
 ﻿using UnityEngine;
 
-public class MenuButtonState : MonoBehaviour
+namespace HBP.UI
 {
-    #region Properties
-    [SerializeField]
-    ButtonGestion[] m_buttons;
-    #endregion
-
-    #region Public Methods
-    public void SetInteractableButtons()
+    public class MenuButtonState : MonoBehaviour
     {
-        foreach(ButtonGestion b in m_buttons)
-        {
-            SetInteractableButton(b);
-        }
-    }
-    #endregion
+        #region Properties
+        [SerializeField]
+        ButtonGestion[] m_buttons;
+        #endregion
 
-    #region Private Methods
-    void Start()
-    {
-        SetInteractableButtons();
-    }
+        #region Public Methods
+        public void SetInteractableButtons()
+        {
+            foreach (ButtonGestion b in m_buttons)
+            {
+                SetInteractableButton(b);
+            }
+        }
+        #endregion
 
-    void SetInteractableButton(ButtonGestion buttonGestion)
-    {
-        bool l_interactable = true;
-        if(buttonGestion.NeedProject)
+        #region Private Methods
+        void Start()
         {
-            if(ApplicationState.ProjectLoaded == null)
-            {
-                l_interactable = false;
-            }
+            SetInteractableButtons();
         }
-        if(buttonGestion.NeedPatients)
+
+        void SetInteractableButton(ButtonGestion buttonGestion)
         {
-            if(ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Patients.Count == 0)
+            bool l_interactable = true;
+            if (buttonGestion.NeedProject)
             {
-                l_interactable = false;
+                if (ApplicationState.ProjectLoaded == null)
+                {
+                    l_interactable = false;
+                }
             }
-        }
-        if(buttonGestion.NeedGroups)
-        {
-            if(ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Groups.Count == 0)
+            if (buttonGestion.NeedPatients)
             {
-                l_interactable = false;
+                if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Patients.Count == 0)
+                {
+                    l_interactable = false;
+                }
             }
-        }
-        if(buttonGestion.NeedProtocols)
-        {
-            if(ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Protocols.Count == 0)
+            if (buttonGestion.NeedGroups)
             {
-                l_interactable = false;
+                if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Groups.Count == 0)
+                {
+                    l_interactable = false;
+                }
             }
-        }
-        if (buttonGestion.NeedDataset)
-        {
-            if(ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Datasets.Count == 0)
+            if (buttonGestion.NeedProtocols)
             {
-                l_interactable = false;
+                if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Protocols.Count == 0)
+                {
+                    l_interactable = false;
+                }
             }
+            if (buttonGestion.NeedDataset)
+            {
+                if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Datasets.Count == 0)
+                {
+                    l_interactable = false;
+                }
+            }
+            buttonGestion.interactable = l_interactable;
+            //Debug.Log("Name: " + buttonGestion.name + " Interactable: " + l_interactable);
         }
-        buttonGestion.interactable = l_interactable;
-        //Debug.Log("Name: " + buttonGestion.name + " Interactable: " + l_interactable);
+        #endregion
     }
-    #endregion
 }

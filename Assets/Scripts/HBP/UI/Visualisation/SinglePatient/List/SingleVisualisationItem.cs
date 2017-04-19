@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using System.Linq;
 using HBP.Data.Visualisation;
 
-namespace HBP.UI
+namespace HBP.UI.Visualisation
 {
     public class SingleVisualisationItem : Tools.Unity.Lists.ListItemWithActions<SinglePatientVisualisation>
     {

@@ -7,7 +7,7 @@ using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 using HBP.Data.Visualisation;
 
-namespace HBP.UI
+namespace HBP.UI.Visualisation
 {
     public class ColumnModifier : MonoBehaviour
     {
