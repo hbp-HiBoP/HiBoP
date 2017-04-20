@@ -82,8 +82,8 @@ namespace HBP.VISU3D
             });
             baseButtons.Find("braincolor3 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SPScene.update_brain_surface_color(0);
-                scenesManager.MPScene.update_brain_surface_color(0);
+                scenesManager.SPScene.update_brain_surface_color(17);
+                scenesManager.MPScene.update_brain_surface_color(17);
             });
             baseButtons.Find("braincolor4 button").GetComponent<Button>().onClick.AddListener(() =>
             {

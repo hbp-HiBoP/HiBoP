@@ -94,16 +94,16 @@ namespace HBP.VISU3D.Cam
                     move_backward(m_zoomSpeed);
                 else
                     move_forward(m_zoomSpeed);
+                m_camerasNeedUpdate = true;
             }
         }
 
         public void LateUpdate()
         {
-            // if mouse not in the screen, abort
-            if (!m_cameraFocus)
+            if (!m_camerasNeedUpdate)
+            {
                 return;
-
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-LATE-Update-SP");
+            }
 
             // force others camera alignment
             foreach (Transform child in m_SPCameraParent)
@@ -118,6 +118,8 @@ namespace HBP.VISU3D.Cam
                     }
                 }
             }
+
+            m_camerasNeedUpdate = false;
 
             UnityEngine.Profiling.Profiler.EndSample();
         }

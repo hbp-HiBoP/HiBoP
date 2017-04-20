@@ -297,7 +297,7 @@ namespace HBP.UI
             Project project = ApplicationState.ProjectLoaded;
             SaveErrorTypeEnum l_loadingState = SaveErrorTypeEnum.None;
             string additionalInformations = "";
-            int l_maxStep = project.Patients.Count + project.Groups.Count + project.Protocols.Count + project.Datasets.Count + project.SinglePatientVisualisations.Count + project.MultiPatientsVisualisations.Count + 4;
+            int l_maxStep = project.Patients.Count + project.Groups.Count + project.Protocols.Count + project.Datasets.Count + project.SinglePatientVisualisations.Count + project.MultiPatientsVisualisations.Count + 6;
             int l_actualStep = 0;
 
             if (!Directory.Exists(path))
@@ -501,8 +501,9 @@ namespace HBP.UI
             }
             yield return Ninja.JumpToUnity;
             HandleError(l_loadingState, additionalInformations, projectDirectory);
-            
+
             // Copy ROI
+            loadingCircle.Set((float)l_actualStep / l_maxStep, "Saving ROI");
             yield return Ninja.JumpBack;
             try
             {
@@ -521,6 +522,7 @@ namespace HBP.UI
                         }
                     }
                 }
+                l_actualStep++;
             }
             catch
             {
@@ -530,6 +532,7 @@ namespace HBP.UI
             HandleError(l_loadingState, additionalInformations, projectDirectory);
 
             // Copy Loca_images
+            loadingCircle.Set((float)l_actualStep / l_maxStep, "Copying Loca_images");
             yield return Ninja.JumpBack;
             try
             {
@@ -538,6 +541,7 @@ namespace HBP.UI
                 {
                     Directory.Move(l_locaImagesDirectory, l_projectTempPath + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Loca_images");
                 }
+                l_actualStep++;
             }
             catch
             {

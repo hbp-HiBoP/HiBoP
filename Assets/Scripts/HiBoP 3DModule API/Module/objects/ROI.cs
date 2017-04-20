@@ -164,10 +164,10 @@ namespace HBP.VISU3D
 
         public void select_bubble(int idBubble)
         {
+            unselect_bubble();
+
             if (idBubble < 0 || idBubble >= m_bubbles.Count)
                 return;
-
-            unselect_bubble();
 
             m_bubbles[idBubble].GetComponent<Bubble>().select();            
             idSelectedBubble = idBubble;

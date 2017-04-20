@@ -14,6 +14,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.IO;
 
 // unity
 using UnityEngine;
@@ -102,7 +103,12 @@ namespace HBP.VISU3D.DLL
             }
             if (filtersArray.Length == 0)
                 arguments += "*.txt)";
-            arguments += "\" " + defaultDir; //FIXME : find a way to replace \\ by simple \ in defaultDir, because when it's read by Qt, \\ count as a real \\ and not a \
+
+            if (defaultDir != "")
+            {
+                defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
+            }
+            arguments += "\" " + defaultDir;
 
             List<string> paths = launch_fileDialog_window(arguments);
             if (paths.Count > 0)
@@ -128,6 +134,11 @@ namespace HBP.VISU3D.DLL
             }
             if (filtersArray.Length == 0)
                 arguments += "*.txt)";
+
+            if (defaultDir != "")
+            {
+                defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
+            }
             arguments += "\" " + defaultDir;
 
             return  launch_fileDialog_window(arguments).ToArray();
@@ -150,6 +161,11 @@ namespace HBP.VISU3D.DLL
             }
             if(filtersArray.Length == 0)
                 arguments += "*.txt)";
+
+            if (defaultDir != "")
+            {
+                defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
+            }
             arguments += "\" " + defaultDir;
 
             List<string> paths = launch_fileDialog_window(arguments);

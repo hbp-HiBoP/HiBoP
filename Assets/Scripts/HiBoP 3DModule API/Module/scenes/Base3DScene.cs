@@ -717,7 +717,7 @@ namespace HBP.VISU3D
                         {
                             for (int jj = 0; jj < m_CM.col(ii).Sites.Count; ++jj)
                             {
-                                if (m_CM.col(ii).Sites[jj].fullName.Contains(nameFilter))
+                                if (m_CM.col(ii).Sites[jj].fullName.ToLower().Contains(nameFilter.ToLower()))
                                     colIdPlots[ii].Add(jj);
                             }
                         }
@@ -726,7 +726,7 @@ namespace HBP.VISU3D
                         {                            
                             for (int jj = 0; jj < m_CM.col(ii).Sites.Count; ++jj)
                             {
-                                if (GlobalGOPreloaded.MarsAtlasIndex.full_name(m_CM.col(ii).Sites[jj].labelMarsAtlas).Contains(nameFilter))
+                                if (GlobalGOPreloaded.MarsAtlasIndex.full_name(m_CM.col(ii).Sites[jj].labelMarsAtlas).ToLower().Contains(nameFilter.ToLower()))
                                     colIdPlots[ii].Add(jj);      
                             }
                         }
@@ -735,7 +735,7 @@ namespace HBP.VISU3D
                         {
                             for (int jj = 0; jj < m_CM.col(ii).Sites.Count; ++jj)
                             {
-                                if (GlobalGOPreloaded.MarsAtlasIndex.broadman_area(m_CM.col(ii).Sites[jj].labelMarsAtlas).Contains(nameFilter))
+                                if (GlobalGOPreloaded.MarsAtlasIndex.broadman_area(m_CM.col(ii).Sites[jj].labelMarsAtlas).ToLower().Contains(nameFilter.ToLower()))
                                     colIdPlots[ii].Add(jj);
                             }
                         }
