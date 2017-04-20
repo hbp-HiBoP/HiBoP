@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace HBP.Data.Localizer
 {
@@ -14,40 +15,25 @@ namespace HBP.Data.Localizer
 		#region Constructor
 		public POS(string filePath)
 		{
-			// instantiate the dictionary
-			m_eventDictionary = new Dictionary<int,List<int>>();
+			m_eventDictionary = new Dictionary<int,List<int>>(); // Instantiate dictionary.
+            string[] lines = File.ReadAllLines(filePath); // Read file.
 
-			// Read the file
-			string[] l_lines = File.ReadAllLines(filePath);
-
-			// initialize some values for the optimisation
-			int nSample;
-			int nEvent;
-
-			// Read the lines to complete the dictionary
-			foreach(string l_line in l_lines)
+            // Read lines to complete the dictionary
+            int sampleIndex, eventCode;
+            foreach (string line in lines)
 			{
-				// Splite the line
-				string[] l_line_splitted = l_line.Split('	');
-				if(l_line_splitted.Length == 3)
-				{
-					nSample = int.Parse(l_line_splitted[0]);
-					nEvent  = int.Parse(l_line_splitted[1]);
-
-					// Test if the dictionary contains the key
-					if(EventDictionary.ContainsKey(nEvent))
-					{
-						// Add the value at the key
-						m_eventDictionary[nEvent].Add(nSample);
-					}
-					else
-					{
-						// add a new key in the dictionary
-						List<int> l_value = new List<int>();
-						l_value.Add(nSample);
-						m_eventDictionary.Add(nEvent,l_value);
-					}
-				}
+                string[] lineElements = line.Split(new char[] { ' ', '\t' },System.StringSplitOptions.RemoveEmptyEntries); // Split the line.
+                if (lineElements.Length == 3 && int.TryParse(lineElements[0], out sampleIndex) && int.TryParse(lineElements[1], out eventCode)) // Test if the line is compatible.
+                {
+                    if(m_eventDictionary.ContainsKey(eventCode))
+                    {
+                        m_eventDictionary[eventCode].Add(sampleIndex); // Add new sample index to existing event code.
+                    }
+                    else
+                    {
+                        m_eventDictionary.Add(eventCode, new List<int>(sampleIndex)); // Add new event code with its first sample index.
+                    }
+                }
 			}
 		}
 		#endregion
@@ -77,11 +63,6 @@ namespace HBP.Data.Localizer
 
         public TrialMatrix.Event[] ConvertEventCodeToSampleIndexAndCode(int[] CodeEvents)
         {
-            //foreach(int i in CodeEvents)
-            //{
-            //    UnityEngine.Debug.Log(i);
-            //}
-
             List<TrialMatrix.Event> l_result = new List<TrialMatrix.Event>();
             foreach (int codeEvent in CodeEvents)
             {
@@ -92,7 +73,6 @@ namespace HBP.Data.Localizer
                     int[] l_positions = l_list.ToArray();
                     foreach (int position in l_positions)
                     {
-                        //UnityEngine.Debug.Log("Position :" + position + "  Code event : " + codeEvent);
                         l_result.Add(new TrialMatrix.Event(position, codeEvent));
                     }
                 }
