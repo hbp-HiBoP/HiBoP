@@ -43,7 +43,7 @@ namespace HBP.UI.Patient
             databaseList.Clear();
             yield return Ninja.JumpBack;
 
-            string[] patients = Data.Patient.GetPatientsDirectories(databaseFolderSelector.Folder);
+            string[] patients = Data.Patient.GetPatientsDirectories(databaseFolderSelector.Path);
             for (int i = 0; i < patients.Length; i++)
             {
                 yield return Ninja.JumpBack;
@@ -62,7 +62,7 @@ namespace HBP.UI.Patient
             // Database list.            
             databaseFolderSelector = transform.FindChild("Content").FindChild("Lists").FindChild("Database").FindChild("FolderSelector").GetComponent<FolderSelector>();
             databaseFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayDataBasePatients()));
-            databaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
+            databaseFolderSelector.Path = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
             databaseList = transform.FindChild("Content").FindChild("Lists").FindChild("Database").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<PatientList>();
             databaseList.ActionEvent.AddListener((patient, i) => OpenModifier(patient, false));
         }

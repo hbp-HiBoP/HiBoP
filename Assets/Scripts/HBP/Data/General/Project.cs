@@ -368,19 +368,17 @@ namespace HBP.Data.General
         }
         public static string[] GetProject(string path)
         {
-            List<string> l_listPathProject = new List<string>();
-            if (path != string.Empty && Directory.Exists(path) && path[path.Length-1] != ':') // temporary solution, may need more work to apply everywhere
+            string[] projects = new string[0];
+            if (!string.IsNullOrEmpty(path))
             {
-                string[] l_directories = Directory.GetDirectories(path);
-                foreach (string l_directoryPath in l_directories)
+                if (path.Last() != Path.DirectorySeparatorChar && path.Last() != Path.AltDirectorySeparatorChar) path += Path.DirectorySeparatorChar;
+                DirectoryInfo directory = new DirectoryInfo(path);
+                if (directory.Exists)
                 {
-                    if (IsProject(l_directoryPath))
-                    {
-                        l_listPathProject.Add(l_directoryPath);
-                    }
+                    projects = (from dir in directory.GetDirectories() where (dir.Attributes == FileAttributes.Directory && IsProject(dir.FullName)) select dir.FullName).ToArray();
                 }
             }
-            return l_listPathProject.ToArray();
+            return projects;
         }
         public string GetProject(string path, string ID)
         {

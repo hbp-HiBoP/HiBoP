@@ -1,21 +1,16 @@
 ﻿using UnityEngine;
-using CielaSpike;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
-using p = HBP.Data.Patient;
 using d = HBP.Data.Experience.Dataset;
-using HBP.Data.Settings;
-using Tools.CSharp;
 using Tools.Unity;
 
 namespace HBP.UI.Experience.Dataset
 {
-	/// <summary>
-	/// The Script which manage the dataInfo list panel.
-	/// </summary>
-	public class DataInfoListItem : Tools.Unity.Lists.ListItemWithSave<d.DataInfo>
+    /// <summary>
+    /// The Script which manage the dataInfo list panel.
+    /// </summary>
+    public class DataInfoListItem : Tools.Unity.Lists.ListItemWithSave<d.DataInfo>
     {
 		#region Properties
 		/// <summary>
@@ -81,7 +76,9 @@ namespace HBP.UI.Experience.Dataset
             IsSettingFields = true;
             m_labelInputField.text = dataInfo.Name;
             m_measureLabelInputField.text = dataInfo.Measure;
-            m_EEGFileSelector.onValueChanged.RemoveAllListeners();
+
+            m_EEGFileSelector.Path = dataInfo.EEG;
+            m_PosFileSelector.Path = dataInfo.POS;
             m_EEGFileSelector.onValueChanged.AddListener((eeg) =>
             {
                 if (!IsSettingFields)
@@ -90,7 +87,6 @@ namespace HBP.UI.Experience.Dataset
                     UpdateState();
                 }
             });
-            m_PosFileSelector.onValueChanged.RemoveAllListeners();
             m_PosFileSelector.onValueChanged.AddListener((pos) =>
             {
                 if (!IsSettingFields)
@@ -99,8 +95,6 @@ namespace HBP.UI.Experience.Dataset
                     UpdateState();
                 }
             });
-            m_EEGFileSelector.File = dataInfo.EEG;
-            m_PosFileSelector.File = dataInfo.POS;
 
             Data.Experience.Protocol.Protocol[] l_protocols = ApplicationState.ProjectLoaded.Protocols.ToArray();
             List<Dropdown.OptionData> l_protocolOptions = new List<Dropdown.OptionData>(l_protocols.Length);
@@ -140,8 +134,8 @@ namespace HBP.UI.Experience.Dataset
         {
             Object.Name = m_labelInputField.text;
             Object.Measure = m_measureLabelInputField.text;
-            Object.EEG = m_EEGFileSelector.File;
-            Object.POS = m_PosFileSelector.File;
+            Object.EEG = m_EEGFileSelector.Path;
+            Object.POS = m_PosFileSelector.Path;
             Object.Patient = ApplicationState.ProjectLoaded.Patients.ToArray()[m_PatientDropdown.value];
             Object.Protocol = ApplicationState.ProjectLoaded.Protocols.ToArray()[m_ProvDropdown.value];
         }

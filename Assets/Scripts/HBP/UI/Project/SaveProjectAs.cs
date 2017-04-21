@@ -15,7 +15,7 @@ namespace HBP.UI
         {
             Data.Settings.ProjectSettings l_ps = new Data.Settings.ProjectSettings(nameInputField.text, ApplicationState.ProjectLoaded.Settings.PatientDatabase, ApplicationState.ProjectLoaded.Settings.LocalizerDatabase);
             ApplicationState.ProjectLoaded.Settings = l_ps;
-            FindObjectOfType<ProjectLoaderSaver>().Save(locationFolderSelector.Folder);
+            FindObjectOfType<ProjectLoaderSaver>().Save(locationFolderSelector.Path);
             base.Close();
         }
         #endregion
@@ -26,7 +26,7 @@ namespace HBP.UI
             nameInputField = transform.Find("Content").FindChild("Name").FindChild("InputField").GetComponent<InputField>();
             locationFolderSelector = transform.Find("Content").FindChild("Location").FindChild("FolderSelector").GetComponent<FolderSelector>();
             nameInputField.text = ApplicationState.ProjectLoaded.Settings.Name;
-            locationFolderSelector.Folder = ApplicationState.ProjectLoadedLocation;
+            locationFolderSelector.Path = ApplicationState.ProjectLoadedLocation;
         }
         #endregion
     }

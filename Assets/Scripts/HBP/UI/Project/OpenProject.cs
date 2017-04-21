@@ -36,7 +36,7 @@ namespace HBP.UI
 
             locationFolderSelector = transform.FindChild("Content").FindChild("Projects").FindChild("FolderSelector").GetComponent<FolderSelector>();
             locationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(DisplayProjects(value)));
-            locationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
+            locationFolderSelector.Path = ApplicationState.GeneralSettings.DefaultProjectLocation;
         }
         IEnumerator DisplayProjects(string path)
         {
