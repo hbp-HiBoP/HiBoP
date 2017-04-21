@@ -16,8 +16,8 @@ namespace HBP.UI
         public void Save()
         {
             ApplicationState.ProjectLoaded.Settings.Name = nameInputField.text;
-            ApplicationState.ProjectLoaded.Settings.PatientDatabase = patientsDatabaseFolderSelector.Folder;
-            ApplicationState.ProjectLoaded.Settings.LocalizerDatabase = localizerDatabaseFolderSelector.Folder;
+            ApplicationState.ProjectLoaded.Settings.PatientDatabase = patientsDatabaseFolderSelector.Path;
+            ApplicationState.ProjectLoaded.Settings.LocalizerDatabase = localizerDatabaseFolderSelector.Path;
             base.Close();
         }
         #endregion
@@ -30,8 +30,8 @@ namespace HBP.UI
             localizerDatabaseFolderSelector = transform.FindChild("Content").FindChild("Location").FindChild("SEEG").FindChild("FolderSelector").GetComponent<FolderSelector>();
 
             nameInputField.text = ApplicationState.ProjectLoaded.Settings.Name;
-            patientsDatabaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
-            localizerDatabaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
+            patientsDatabaseFolderSelector.Path = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
+            localizerDatabaseFolderSelector.Path = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
         }
         #endregion
     }

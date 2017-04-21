@@ -25,9 +25,9 @@ namespace HBP.UI
         public void Save()
         {
             ApplicationState.GeneralSettings.DefaultProjectName = defaultNameProjectInputField.text;
-            ApplicationState.GeneralSettings.DefaultProjectLocation = defaultLocationProjectFolderSelector.Folder;
-            ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation = defaultPatientDatabaseLocationFolderSelector.Folder;
-            ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation = defaultLocalizerDatabaseLocationFolderSelector.Folder;
+            ApplicationState.GeneralSettings.DefaultProjectLocation = defaultLocationProjectFolderSelector.Path;
+            ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation = defaultPatientDatabaseLocationFolderSelector.Path;
+            ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation = defaultLocalizerDatabaseLocationFolderSelector.Path;
             ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType = (GeneralSettings.PlotNameCorrectionTypeEnum) plotNameAutoCorrectionOption.value;
             TrialMatrixSettings trialMatrixSettings = ApplicationState.GeneralSettings.TrialMatrixSettings;
             trialMatrixSettings.Smoothing = (TrialMatrixSettings.SmoothingType) trialMatrixSmoothingOption.value;
@@ -59,9 +59,9 @@ namespace HBP.UI
             BlocRatioInputField = transform.FindChild("Content").FindChild("Trial Matrix").FindChild("BlocRatio").GetComponentInChildren<InputField>(true);
 
             defaultNameProjectInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
-            defaultLocationProjectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
-            defaultPatientDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
-            defaultLocalizerDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
+            defaultLocationProjectFolderSelector.Path = ApplicationState.GeneralSettings.DefaultProjectLocation;
+            defaultPatientDatabaseLocationFolderSelector.Path = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
+            defaultLocalizerDatabaseLocationFolderSelector.Path = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
 
             string[] l_typesBaseLine = Enum.GetNames(typeof(TrialMatrixSettings.BaselineType));
             trialBaseLineOption.ClearOptions();

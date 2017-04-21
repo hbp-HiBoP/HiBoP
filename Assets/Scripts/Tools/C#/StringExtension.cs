@@ -18,9 +18,8 @@ namespace Tools.CSharp
 
         public static void StandardizeToPath(ref string path)
         {
-            // TEST
-            //path = path.Replace('/', System.IO.Path.DirectorySeparatorChar);
-            path = path.Replace('\\', '/');
+            path = path.Replace(System.IO.Path.DirectorySeparatorChar, '/');
+            path = path.Replace(System.IO.Path.AltDirectorySeparatorChar, '/');
         }
     }
 

@@ -88,8 +88,8 @@ namespace HBP.UI.Theme
 
             ColorBlock toggle = ColorBlock.defaultColorBlock;
             toggle.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-            toggle.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
-            toggle.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+            toggle.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+            toggle.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
             toggle.disabledColor = new Color(65, 65, 65, 255) / 255.0f;
             Toggle = toggle;
 

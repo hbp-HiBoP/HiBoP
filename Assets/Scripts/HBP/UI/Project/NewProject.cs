@@ -20,9 +20,9 @@ namespace HBP.UI
         #region Public Methods
         public void CreateNewProject()
 		{
-            Data.Settings.ProjectSettings l_settings = new Data.Settings.ProjectSettings(nameInputField.text, patientsDatabaseFolderSelector.Folder, localizerDatabaseFolderSelector.Folder);
+            Data.Settings.ProjectSettings l_settings = new Data.Settings.ProjectSettings(nameInputField.text, patientsDatabaseFolderSelector.Path, localizerDatabaseFolderSelector.Path);
             ApplicationState.ProjectLoaded = new Project(l_settings);
-            ApplicationState.ProjectLoadedLocation = projectFolderSelector.Folder;
+            ApplicationState.ProjectLoadedLocation = projectFolderSelector.Path;
             FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
             Close();
         }
@@ -37,9 +37,9 @@ namespace HBP.UI
             localizerDatabaseFolderSelector = transform.FindChild("Content").FindChild("Database").FindChild("Localizer").GetComponentInChildren<FolderSelector>();
 
             nameInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
-            projectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
-            patientsDatabaseFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
-            localizerDatabaseFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
+            projectFolderSelector.Path = ApplicationState.GeneralSettings.DefaultProjectLocation;
+            patientsDatabaseFolderSelector.Path = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
+            localizerDatabaseFolderSelector.Path = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
         }
         #endregion
 	}

@@ -1,46 +1,15 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using Tools.CSharp;
-
-namespace Tools.Unity
+﻿namespace Tools.Unity
 {
-    public class FileSelector : MonoBehaviour
+    public class FileSelector : PathSelector
     {
         #region Properties
-        InputField m_inputfield;
-        Button m_button;
-
-        public InputField.OnChangeEvent onValueChanged { get { return m_inputfield.onValueChanged; } }
-        public bool interactable { set { m_inputfield.interactable = value;  m_button.interactable = value; } }
-        public string File { get { return m_inputfield.text; } set { m_inputfield.text = value; } }
-        public string Message;
         public string Extension;
         #endregion
 
-        #region Public Methods
-        public void Open()
-        {
-            Debug.Log(Extension);
-            Debug.Log(m_inputfield.text);
-            string filePath = m_inputfield.text;
-            StringExtension.StandardizeToPath(ref filePath);
-            Debug.Log("FilePath : " + filePath);
-            string l_result = HBP.VISU3D.DLL.QtGUI.get_existing_file_name(new string[] { Extension }, Message, filePath);
-            if (l_result != string.Empty)
-            {
-                Debug.Log(l_result);
-                StringExtension.StandardizeToPath(ref l_result);
-                Debug.Log(l_result);
-                m_inputfield.text = l_result;
-            }
-        }
-        #endregion
-
         #region Private Methods
-        void Awake()
+        protected override string OpenDialog()
         {
-            m_inputfield = GetComponent<InputField>();
-            m_button = GetComponentInChildren<Button>();
+            return HBP.VISU3D.DLL.QtGUI.get_existing_file_name(new string[] { Extension }, Message, Path);
         }
         #endregion
     }
