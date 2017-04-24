@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using HBP.Data.Experience.Dataset;
 using System.Runtime.Serialization;
+using System;
 
 namespace HBP.Data.Visualisation
 {
@@ -33,6 +34,32 @@ namespace HBP.Data.Visualisation
                 return tmp;
             }
             set { patientID = value.ID; }
+        }
+        public override bool IsVisualisable
+        {
+            get
+            {
+                // Initialize
+                bool result = true;
+
+                // Test
+                if (Patient != null && Columns.Count > 0)
+                {
+                    foreach (Column column in Columns)
+                    {
+                        if (!column.IsCompatible(Patient))
+                        {
+                            result = false;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    result = false;
+                }
+                return result;
+            }
         }
         #endregion
 
@@ -68,33 +95,6 @@ namespace HBP.Data.Visualisation
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Test if a visualisation is usable.
-        /// </summary>
-        /// <returns>\a True if the visualisation is usable and \a False otherwise.</returns>
-        public override bool isVisualisable()
-        {
-            // Initialize
-            bool result = true;
-
-            // Test
-            if (Patient != null && Columns.Count != 0)
-            {
-                foreach (Column column in Columns)
-                {
-                    if (!column.IsCompatible(Patient))
-                    {
-                        result = false;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                result = false;
-            }
-            return result;
-        }
         /// <summary>
         /// Get the DataInfo used by the column.
         /// </summary>

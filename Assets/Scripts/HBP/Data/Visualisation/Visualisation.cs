@@ -36,6 +36,7 @@ namespace HBP.Data.Visualisation
         /// Columns of the visualisation.
         /// </summary>
         public List<Column> Columns { get; set; }
+        public abstract bool IsVisualisable { get; }
         #endregion
 
         #region Constructor
@@ -79,11 +80,6 @@ namespace HBP.Data.Visualisation
             Columns[index1] = Columns[index2];
             Columns[index2] = tmp;
         }
-        /// <summary>
-        /// Test if the visualisation is usable.
-        /// </summary>
-        /// <returns>\a True if is usable and \a False otherwise.</returns>
-        public abstract bool isVisualisable();
         /// <summary>
         /// Get the DataInfo of the column.
         /// </summary>

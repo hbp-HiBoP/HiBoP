@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Collections.ObjectModel;
 using HBP.Data.Experience.Dataset;
+using System;
 
 namespace HBP.Data.Visualisation
 {
@@ -28,6 +29,32 @@ namespace HBP.Data.Visualisation
         public ReadOnlyCollection<Patient> Patients
         {
             get { return new ReadOnlyCollection<Patient>((from patient in ApplicationState.ProjectLoaded.Patients where patientsID.Contains(patient.ID) select patient).ToList()); }
+        }
+        public override bool IsVisualisable
+        {
+            get
+            {
+                // Initialize
+                bool result = true;
+
+                // Test
+                if (Patients.Count > 0 && Columns.Count > 0)
+                {
+                    foreach (Column column in Columns)
+                    {
+                        if (!column.IsCompatible(Patients.ToArray()))
+                        {
+                            result = false;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    result = false;
+                }
+                return result;
+            }
         }
         #endregion
 
@@ -115,33 +142,6 @@ namespace HBP.Data.Visualisation
         public void RemoveAllPatients()
         {
             patientsID = new List<string>();
-        }
-        /// <summary>
-        /// Test if the Visualisation is usable.
-        /// </summary>
-        /// <returns>\a True if the visualisation is usable and \a False otherwise.</returns>
-        public override bool isVisualisable()
-        {
-            // Initialize
-            bool result = true;
-
-            // Test
-            if (Patients.Count != 0 && Columns.Count != 0)
-            {
-                foreach (Column column in Columns)
-                {
-                    if (!column.IsCompatible(Patients.ToArray()))
-                    {
-                        result = false;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                result = false;
-            }
-            return result;
         }
         /// <summary>
         /// Get the DataInfo used by the column.

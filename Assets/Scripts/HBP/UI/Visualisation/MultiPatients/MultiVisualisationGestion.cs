@@ -37,7 +37,7 @@ namespace HBP.UI.Visualisation
         void SetDisplay()
         {
             MultiPatientsVisualisation[] visualisationsSelected = list.GetObjectsSelected();
-            displayButton.interactable = (visualisationsSelected.Length == 1 && visualisationsSelected[0].isVisualisable());
+            displayButton.interactable = (visualisationsSelected.Length == 1 && visualisationsSelected[0].IsVisualisable);
         }
         #endregion
     }
