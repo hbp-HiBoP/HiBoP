@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Runtime.Serialization;
 using UnityEngine.Events;
+using System.Collections.Generic;
 
 namespace HBP.Data.Visualisation
 {
@@ -25,50 +26,39 @@ namespace HBP.Data.Visualisation
         [IgnoreDataMember]
         public UnityEvent OnChangeName { get; set; }
 
-        Vector3 m_Center;
-        [DataMember]
-        public Vector3 Center
-        {
-            get
-            {
-                return m_Center;
-            }
-            set
-            {
-                m_Center = value;
-                OnChangeCenter.Invoke();
-            }
-        }
-        [IgnoreDataMember]
-        public UnityEvent OnChangeCenter { get; set; }
-
-        float m_Radius;
-        [DataMember]
-        public float Radius
-        {
-            get
-            {
-                return m_Radius;
-            }
-            set
-            {
-                m_Radius = value;
-                OnChangeRadius.Invoke();
-            }
-        }
-        [IgnoreDataMember]
-        public UnityEvent OnChangeRadius { get; set; }
+        List<ROIBubble> m_ROIBubbles;
+        public UnityEvent OnAddBubble { get; set; }
+        public UnityEvent OnRemoveBubble { get; set; }
         #endregion
 
         #region Public Methods
-        public ROI(string name,Vector3 center,float radius)
+        // Initialize empty ROI
+        public ROI(string name)
         {
-            OnChangeCenter = new UnityEvent();
             OnChangeName = new UnityEvent();
-            OnChangeRadius = new UnityEvent();
+            OnAddBubble = new UnityEvent();
+            OnRemoveBubble = new UnityEvent();
             Name = name;
-            Center = center;
-            Radius = radius;
+        }
+        // Initialize with a first bubble
+        public ROI(string name, Vector3 center)
+        {
+            OnChangeName = new UnityEvent();
+            OnAddBubble = new UnityEvent();
+            OnRemoveBubble = new UnityEvent();
+            Name = name;
+            AddBubble(center);
+        }
+        public void AddBubble(Vector3 center, float radius = 3.0f)
+        {
+            ROIBubble l_bubble = new ROIBubble(center, radius);
+            m_ROIBubbles.Add(l_bubble);
+            OnAddBubble.Invoke();
+        }
+        public void RemoveBubble(int index)
+        {
+            //TODO, maybe with index
+            OnRemoveBubble.Invoke();
         }
         #endregion
     }

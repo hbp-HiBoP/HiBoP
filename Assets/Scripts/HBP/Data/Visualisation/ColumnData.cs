@@ -53,6 +53,8 @@ namespace HBP.Data.Visualisation
         /// float[ ][x] : values of the plot selected.
         /// </summary>
         public float[][] Values { get { return values; } set { values = value; } }
+
+        public ROI[] ROIList { get; set; }
         #endregion
 
         #region Constructor
