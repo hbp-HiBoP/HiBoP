@@ -385,7 +385,7 @@ namespace HBP.Module3D
 
                     for (int jj = 0; jj < columnsIEEG.Count; ++jj)
                     {
-                        mask = mask || columnsIEEG[jj].Sites[ii].columnMask;
+                        mask = mask || columnsIEEG[jj].Sites[ii].Information.IsMasked;
                     }
 
                     maskColumnsOR[ii] = mask;
@@ -395,7 +395,7 @@ namespace HBP.Module3D
                 {
                     for (int jj = 0; jj < SitesList.Count; ++jj)
                     {
-                        ColumnsFMRI[ii].Sites[jj].columnMask = maskColumnsOR[jj];
+                        ColumnsFMRI[ii].Sites[jj].Information.IsMasked = maskColumnsOR[jj];
                     }
                 }
 
@@ -408,7 +408,7 @@ namespace HBP.Module3D
 
                     for (int jj = 0; jj < SitesList.Count; ++jj)
                     {
-                        ColumnsFMRI[ColumnsFMRI.Count - 1].Sites[jj].columnMask = maskColumnsOR[jj];
+                        ColumnsFMRI[ColumnsFMRI.Count - 1].Sites[jj].Information.IsMasked = maskColumnsOR[jj];
                     }
                 }
             }

@@ -125,7 +125,7 @@ namespace HBP.Module3D
             bool noROI = spScene ? false : (m_SelectedROI.bubbles_nb() == 0);
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                RawElectrodes.update_mask(ii, (Sites[ii].columnMask || Sites[ii].blackList || Sites[ii].exclude || (Sites[ii].columnROI && !noROI)));
+                RawElectrodes.update_mask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsInROI && !noROI)));
             }
         }
 
@@ -192,7 +192,7 @@ namespace HBP.Module3D
 
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                Sites[ii].columnMask = columnData.PlotMask[ii];
+                Sites[ii].Information.IsMasked = columnData.PlotMask[ii];
             }
         }
 
@@ -208,7 +208,7 @@ namespace HBP.Module3D
 
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                if (Sites[ii].columnROI || Sites[ii].columnMask)
+                if (Sites[ii].Information.IsInROI || Sites[ii].Information.IsMasked)
                     continue;
 
                 float value = columnData.Values[ii][currentTimeLineID];
@@ -313,16 +313,16 @@ namespace HBP.Module3D
                     //MaterialPropertyBlock props = new MaterialPropertyBlock();
 
                     bool activity = true;
-                    bool highlight = Sites[ii].highlight;
+                    bool highlight = Sites[ii].Information.IsHighlighted;
                     float customAlpha = -1f;
                     renderer = Sites[ii].GetComponent<MeshRenderer>();
 
-                    if (Sites[ii].blackList) // blacklisted plot
+                    if (Sites[ii].Information.IsBlackListed) // blacklisted plot
                     {
                         Sites[ii].transform.localScale = noScale;
                         siteType = SiteType.BlackListed;
                     }
-                    else if (Sites[ii].exclude) // excluded plot
+                    else if (Sites[ii].Information.IsExcluded) // excluded plot
                     {
                         Sites[ii].transform.localScale = normalScale;
                         siteType = SiteType.Excluded;
@@ -349,7 +349,7 @@ namespace HBP.Module3D
                                 // set transparency
                                 customAlpha = latenciesFile.transparencies[idSourceSelected][ii] - 0.25f;
 
-                                if (Sites[ii].highlight)
+                                if (Sites[ii].Information.IsHighlighted)
                                     customAlpha = 1;
 
                                 // set size
@@ -366,7 +366,7 @@ namespace HBP.Module3D
                     else // no mask and no latency file available : all plots have the same size and color
                     {
                         Sites[ii].transform.localScale = normalScale;
-                        siteType = Sites[ii].marked ? SiteType.Marked : SiteType.Normal;
+                        siteType = Sites[ii].Information.IsMarked ? SiteType.Marked : SiteType.Normal;
                     }
 
                     // select plot ring 
@@ -399,27 +399,27 @@ namespace HBP.Module3D
                         activity = Sites[ii].gameObject.activeSelf;
                     }
                     else
-                        activity = Sites[ii].isActive;
+                        activity = Sites[ii].IsActive;
 
       
-                    if (Sites[ii].columnMask || Sites[ii].columnROI) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
+                    if (Sites[ii].Information.IsMasked || Sites[ii].Information.IsInROI) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
                     {
                         if (activity)
                             Sites[ii].gameObject.SetActive(false);
 
-                        Sites[ii].isActive = false;
+                        Sites[ii].IsActive = false;
                         continue;
                     }
 
 
                     UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering -2 ");
 
-                    if (Sites[ii].blackList) // blacklist mask : plot is barely visible with another color, can be clicked
+                    if (Sites[ii].Information.IsBlackListed) // blacklist mask : plot is barely visible with another color, can be clicked
                     {
                         Sites[ii].transform.localScale = normalScale;
                         siteType = SiteType.BlackListed;
                     }
-                    else if (Sites[ii].exclude) // excluded mask : plot is a little visible with another color, can be clicked
+                    else if (Sites[ii].Information.IsExcluded) // excluded mask : plot is a little visible with another color, can be clicked
                     {
                         Sites[ii].transform.localScale = normalScale;
                         siteType = SiteType.Excluded;
@@ -433,18 +433,18 @@ namespace HBP.Module3D
                     else // no mask and no amplitude computed : all plots have the same size and color
                     {
                         Sites[ii].transform.localScale = normalScale;
-                        siteType = Sites[ii].marked ? SiteType.Marked : SiteType.Normal;
+                        siteType = Sites[ii].Information.IsMarked ? SiteType.Marked : SiteType.Normal;
                     }
 
                     UnityEngine.Profiling.Profiler.EndSample();
                     UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering -3 ");
 
-                    Sites[ii].GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.site_shared_material(Sites[ii].highlight, siteType);
+                    Sites[ii].GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.site_shared_material(Sites[ii].Information.IsHighlighted, siteType);
 
                     if (!activity)
                         Sites[ii].gameObject.SetActive(true);
 
-                    Sites[ii].isActive = true;
+                    Sites[ii].IsActive = true;
 
                     UnityEngine.Profiling.Profiler.EndSample();
                 }

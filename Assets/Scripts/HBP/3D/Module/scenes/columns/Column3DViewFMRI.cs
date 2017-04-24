@@ -142,27 +142,27 @@ namespace HBP.Module3D
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
                 bool activity = true;
-                bool highlight = Sites[ii].highlight;
+                bool highlight = Sites[ii].Information.IsHighlighted;
                 renderer = Sites[ii].GetComponent<MeshRenderer>();
 
-                if (Sites[ii].columnMask) // column mask : plot is not visible can't be clicked
+                if (Sites[ii].Information.IsMasked) // column mask : plot is not visible can't be clicked
                 {
                     activity = false;
-                    siteType = Sites[ii].marked ? SiteType.Marked : SiteType.Normal;
+                    siteType = Sites[ii].Information.IsMarked ? SiteType.Marked : SiteType.Normal;
                 }
-                else if (Sites[ii].columnROI) // ROI mask : plot is not visible, can't be clicked
+                else if (Sites[ii].Information.IsInROI) // ROI mask : plot is not visible, can't be clicked
                 {
                     activity = false;
-                    siteType = Sites[ii].marked ? SiteType.Marked : SiteType.Normal;
+                    siteType = Sites[ii].Information.IsMarked ? SiteType.Marked : SiteType.Normal;
                 }
                 else
                 {
-                    if (Sites[ii].blackList) // blacklist mask : plot is barely visible with another color, can be clicked
+                    if (Sites[ii].Information.IsBlackListed) // blacklist mask : plot is barely visible with another color, can be clicked
                     {
                         Sites[ii].transform.localScale = normalScale;
                         siteType = SiteType.BlackListed;
                     }
-                    else if(Sites[ii].exclude)
+                    else if(Sites[ii].Information.IsExcluded)
                     {
                         Sites[ii].transform.localScale = normalScale;
                         siteType = SiteType.Excluded;
@@ -170,7 +170,7 @@ namespace HBP.Module3D
                     else // no mask : all plots have the same size and color
                     {
                         Sites[ii].transform.localScale = normalScale;
-                        siteType = Sites[ii].marked ? SiteType.Marked : SiteType.Normal;
+                        siteType = Sites[ii].Information.IsMarked ? SiteType.Marked : SiteType.Normal;
                     }
 
                     // select site ring 

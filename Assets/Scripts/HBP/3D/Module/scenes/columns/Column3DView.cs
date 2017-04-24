@@ -136,11 +136,11 @@ namespace HBP.Module3D
                         Sites.Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject.GetComponent<Site>());
 
                         int id = Sites.Count - 1;
-                        Sites[id].exclude = false;
-                        Sites[id].columnROI = !spScene;
-                        Sites[id].columnMask = false;
-                        Sites[id].blackList = false;
-                        Sites[id].isActive = spScene;
+                        Sites[id].Information.IsExcluded = false;
+                        Sites[id].Information.IsInROI = !spScene;
+                        Sites[id].Information.IsMasked = false;
+                        Sites[id].Information.IsBlackListed = false;
+                        Sites[id].IsActive = spScene;
                     }
                 }
             }
@@ -295,7 +295,7 @@ namespace HBP.Module3D
             int id = 0;
             for(int ii = 0; ii < plotsGO.Count; ++ii) // patients
             {
-                text += "n " + Sites[id].patientName + "\n";
+                text += "n " + Sites[id].Information.PatientName + "\n";
                 for (int jj = 0; jj < plotsGO[ii].Count; ++jj) // electrodes
                 {
                     text += "e " + jj + "\n";
@@ -303,7 +303,7 @@ namespace HBP.Module3D
                     {
                         string plotGOName = plotsGO[ii][jj][kk].name;
                         string[] split = plotGOName.Split('_');
-                        text += split[split.Length - 1] + " " + (Sites[id].exclude ? 1 : 0) + " " + (Sites[id].blackList ? 1 : 0 ) + " " + (Sites[id].columnMask ? 1 : 0) + " " + (Sites[id].highlight? 1 : 0) + "\n";
+                        text += split[split.Length - 1] + " " + (Sites[id].Information.IsExcluded ? 1 : 0) + " " + (Sites[id].Information.IsBlackListed ? 1 : 0 ) + " " + (Sites[id].Information.IsMasked ? 1 : 0) + " " + (Sites[id].Information.IsHighlighted? 1 : 0) + "\n";
                     }
                 }
             }
@@ -327,8 +327,8 @@ namespace HBP.Module3D
                     sitesInROIPerPlot[ii].Add(new List<bool>(plotsGO[ii][jj].Count));
                     for (int kk = 0; kk < plotsGO[ii][jj].Count; ++kk, ++id)
                     {
-                        bool inROI = !Sites[id].columnROI;
-                        bool blackList = Sites[id].blackList;
+                        bool inROI = !Sites[id].Information.IsInROI;
+                        bool blackList = Sites[id].Information.IsBlackListed;
 
                         bool keep = inROI && !blackList;
 
@@ -352,7 +352,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < plotsGO.Count; ++ii) // patients
             {
                 if (sitesInROIPerPatient[ii])
-                    text += "n " + Sites[id].patientName + "\n";
+                    text += "n " + Sites[id].Information.PatientName + "\n";
 
                 for (int jj = 0; jj < plotsGO[ii].Count; ++jj) // electrodes
                 {
@@ -365,7 +365,7 @@ namespace HBP.Module3D
                         {
                             string plotGOName = plotsGO[ii][jj][kk].name;
                             string[] split = plotGOName.Split('_');
-                            text += split[split.Length - 1] + " " + (Sites[id].exclude ? 1 : 0) + " " + (Sites[id].blackList ? 1 : 0) + " " + (Sites[id].columnMask ? 1 : 0) + " " + (Sites[id].highlight ? 1 : 0) + "\n";
+                            text += split[split.Length - 1] + " " + (Sites[id].Information.IsExcluded ? 1 : 0) + " " + (Sites[id].Information.IsBlackListed ? 1 : 0) + " " + (Sites[id].Information.IsMasked ? 1 : 0) + " " + (Sites[id].Information.IsHighlighted ? 1 : 0) + "\n";
                         }
                     }
                 }

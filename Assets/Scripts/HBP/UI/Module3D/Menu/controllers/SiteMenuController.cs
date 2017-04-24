@@ -228,7 +228,7 @@ namespace HBP.UI.Module3D
                 case SceneType.MultiPatients:
                     contentPanelT.Find("MP only options parent").Find("load sp button").GetComponent<Button>().onClick.AddListener(() =>
                     {
-                        ((MP3DScene)m_scene).load_patient_in_SP_scene(m_idPatientToLoad, m_lastSiteSelected.GetComponent<Site>().idSitePatient);
+                        ((MP3DScene)m_scene).load_patient_in_SP_scene(m_idPatientToLoad, m_lastSiteSelected.GetComponent<Site>().Information.SitePatientID);
                     });
 
                     Button blackList = contentPanelT.Find("MP only options parent").Find("blacklist button").GetComponent<Button>();
@@ -236,13 +236,13 @@ namespace HBP.UI.Module3D
                     {
                         if (blackList.transform.Find("Text").GetComponent<Text>().text == "Blacklist site")
                         {
-                            m_lastSiteSelected.blackList = true;
+                            m_lastSiteSelected.Information.IsBlackListed = true;
                             m_scene.update_sites_masks(true, m_lastSiteSelected.gameObject, 2, 0);
                             blackList.transform.Find("Text").GetComponent<Text>().text = "Unblacklist site";
                         }
                         else
                         {
-                            m_lastSiteSelected.blackList = false;
+                            m_lastSiteSelected.Information.IsBlackListed = false;
                             m_scene.update_sites_masks(true, m_lastSiteSelected.gameObject, 3, 0);
                             blackList.transform.Find("Text").GetComponent<Text>().text = "Blacklist site";
                         }
@@ -322,8 +322,8 @@ namespace HBP.UI.Module3D
             panel.Find("MP only options parent").gameObject.SetActive(m_scene.Type == SceneType.MultiPatients);
             panel.Find("CCEP parent").gameObject.SetActive(m_scene.Type == SceneType.SinglePatient && m_scene.CM.SelectedColumn.Type == Column3DView.ColumnType.IEEG && !m_isCCEPMinimized);
             // text
-            panel.Find("selected site panel").Find("Text").GetComponent<Text>().text = siteNotNull ? m_lastSiteSelected.fullName : "...";
-            panel.Find("selected site panel").Find("mars atlas text").GetComponent<Text>().text = siteNotNull ? (m_lastSiteSelected.labelMarsAtlas == -1 ? "Mars atlas: not found" : GlobalGOPreloaded.MarsAtlasIndex.full_name(m_lastSiteSelected.labelMarsAtlas)) : "...";
+            panel.Find("selected site panel").Find("Text").GetComponent<Text>().text = siteNotNull ? m_lastSiteSelected.Information.FullName : "...";
+            panel.Find("selected site panel").Find("mars atlas text").GetComponent<Text>().text = siteNotNull ? (m_lastSiteSelected.Information.MarsAtlasIndex == -1 ? "Mars atlas: not found" : GlobalGOPreloaded.MarsAtlasIndex.full_name(m_lastSiteSelected.Information.MarsAtlasIndex)) : "...";
 
             // active buttons            
             panel.Find("MP only options parent").Find("blacklist button").GetComponent<Button>().interactable = m_scene.Type == SceneType.MultiPatients && siteNotNull;
@@ -413,7 +413,7 @@ namespace HBP.UI.Module3D
                 case SceneType.MultiPatients:
                     if (m_scene.CM.SelectedColumn.SelectedSite != null)
                         panel.Find("MP only options parent").Find("blacklist button").Find("Text").GetComponent<Text>().text
-                            = m_scene.CM.SelectedColumn.SelectedSite.blackList ? "Unblacklist site" : "Blacklist site";
+                            = m_scene.CM.SelectedColumn.SelectedSite.Information.IsBlackListed ? "Unblacklist site" : "Blacklist site";
                     break;
             }
         }

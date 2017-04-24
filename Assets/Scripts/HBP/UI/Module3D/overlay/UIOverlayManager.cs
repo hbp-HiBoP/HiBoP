@@ -632,8 +632,8 @@ namespace HBP.UI.Module3D
 
                 if (siteInfo.site != null)
                 {
-                    m_bothDisplaySiteInfoTransform.Find("mars atlas name text").GetComponent<Text>().text = "Mars atlas : " + (siteInfo.site.labelMarsAtlas == -1 ? "not found" : GlobalGOPreloaded.MarsAtlasIndex.full_name(siteInfo.site.labelMarsAtlas));
-                    m_bothDisplaySiteInfoTransform.Find("broadman name text").GetComponent<Text>().text = "Broadman : " + (siteInfo.site.labelMarsAtlas == -1 ? "not found" :  GlobalGOPreloaded.MarsAtlasIndex.broadman_area(siteInfo.site.labelMarsAtlas));
+                    m_bothDisplaySiteInfoTransform.Find("mars atlas name text").GetComponent<Text>().text = "Mars atlas : " + (siteInfo.site.Information.MarsAtlasIndex == -1 ? "not found" : GlobalGOPreloaded.MarsAtlasIndex.full_name(siteInfo.site.Information.MarsAtlasIndex));
+                    m_bothDisplaySiteInfoTransform.Find("broadman name text").GetComponent<Text>().text = "Broadman : " + (siteInfo.site.Information.MarsAtlasIndex == -1 ? "not found" :  GlobalGOPreloaded.MarsAtlasIndex.broadman_area(siteInfo.site.Information.MarsAtlasIndex));
                 }
             }
         }

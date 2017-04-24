@@ -13,7 +13,6 @@ using UnityEngine;
 namespace HBP.Module3D
 {
     public enum SiteType { Normal, Positive, Negative, Excluded, Source, NotASource, NoLatencyData, BlackListed, NonePos, NoneNeg, Marked};
-
     /// <summary>
     /// Structure containing informations related to the site shaders (not used for now, shader uniform too slow)
     /// </summary>
@@ -28,7 +27,6 @@ namespace HBP.Module3D
         public Color color;
         public float smoothness;
     }
-
     public struct SiteColors
     {
         // normal
@@ -56,7 +54,6 @@ namespace HBP.Module3D
         public static Color NoneNegHighlighted = new Color(1f, 0, 0, 0);
         public static Color MarkedHighlighted = new Color(0.29f, 0.36f, 0.32f, 0.45f); 
     }
-
     public struct SiteShaderInput
     {
         // normal
@@ -84,28 +81,26 @@ namespace HBP.Module3D
         public static SiteShaderInfo NoLatencyDataHighlighted = new SiteShaderInfo(SiteColors.NoLatencyDataHighlighted, 0f);
         public static SiteShaderInfo MarkedHighlighted = new SiteShaderInfo(SiteColors.MarkedHighlighted, 0f);
     }
-
-    [SerializeField]
-    public struct SiteI
+    public class SiteInformation
     {
-        public bool columnMask;     /**< is the site masked on the column ? */
-        public bool exclude;        /**< is the site excluded ? */
-        public bool blackList;      /**< is the site blacklisted ? */
-        public bool columnROI;      /**< is the site in a ROI ? */
-        public bool highlight;      /**< is the site highlighted ? */
+        public bool IsMasked { get; set; }     /**< is the site masked on the column ? */
+        public bool IsExcluded { get; set; }        /**< is the site excluded ? */
+        public bool IsBlackListed { get; set; }      /**< is the site blacklisted ? */
+        public bool IsInROI { get; set; }      /**< is the site in a ROI ? */
+        public bool IsHighlighted { get; set; }       /**< is the site highlighted ? */
+        public bool IsMarked { get; set; }          /**< is the site marked ? */
 
-        public int idGlobal;        /**< INUSED global plot id (all patients) */
-        public int idPlotPatient;   /**< INUSED plot id of the patient */
+        public int GlobalID { get; set; }        /**< global site id (all patients) */
+        public int SitePatientID { get; set; }    /**< site id of the patient */
 
-        public int idPatient;       /**< INUSED patient id */
-        public int idElectrode;     /**< INUSED electrode id of the patient */
-        public int idSite;          /**< INUSED plot id of the electrode */
+        public int PatientID { get; set; }       /**< patient id */
+        public int ElectrodeID { get; set; }     /**< electrode id of the patient */
+        public int SiteID { get; set; }        /**< site id of the electrode */
 
-        public int labelMarsAtlas;  /**< INUSED  label (corresponding index) mars atlas */
-        public int greyWhiteMatter; /**< INUSED  */
+        public int MarsAtlasIndex { get; set; }   /**< label (corresponding index) mars atlas */
 
-        public string patientName;  /**< patient name */
-        public string name;         /**< plot full name */
+        public string PatientName { get; set; }   /**< patient name */
+        public string FullName { get; set; }      /**< site full name */
     }
 
     /// <summary>
@@ -113,32 +108,27 @@ namespace HBP.Module3D
     /// </summary>
     public class Site : MonoBehaviour
     {
-        public bool firstUse = true;
-        public bool isActive;       /**< activity boolean (mimic gameObject.activeSelf, because it's access is to slow) */
-
-        public bool columnMask;     /**< is the site masked on the column ? */
-        public bool exclude;        /**< is the site excluded ? */
-        public bool blackList;      /**< is the site blacklisted ? */
-        public bool columnROI;      /**< is the site in a ROI ? */
-        public bool highlight;      /**< is the site highlighted ? */
-        public bool marked;         /**< is the site marked ? */
-
-        public int idGlobal;        /**< global site id (all patients) */
-        public int idSitePatient;   /**< site id of the patient */
-
-        public int idPatient;       /**< patient id */
-        public int idElectrode;     /**< electrode id of the patient */
-        public int idSite;          /**< site id of the electrode */
-
-        public int labelMarsAtlas;  /**< label (corresponding index) mars atlas */
-        public int greyWhiteMatter;
-
-        public string patientName;  /**< patient name */
-        public string fullName;     /**< site full name */
-
-        public static SiteShaderInfo instance_shader_info(bool hightlighted, SiteType siteType)
+        #region Properties
+        bool m_IsActive;
+        public bool IsActive
         {
-            SiteShaderInfo site = new SiteShaderInfo();
+            get
+            {
+                return m_IsActive;
+            }
+            set
+            {
+                m_IsActive = value;
+                gameObject.SetActive(value);
+            }
+        }
+        public SiteInformation Information { get; set; }
+        #endregion
+
+        #region Public Methods
+        public static SiteShaderInfo InstanceShaderInfo(bool hightlighted, SiteType siteType)
+        {
+            SiteShaderInfo siteShaderInfo = new SiteShaderInfo();
 
             if (!hightlighted)
             {
@@ -175,7 +165,8 @@ namespace HBP.Module3D
                 }
             }
 
-            return site;
+            return siteShaderInfo;
         }
+        #endregion
     }
 }

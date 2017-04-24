@@ -400,23 +400,20 @@ namespace HBP.Module3D
                             siteGO.layer = LayerMask.NameToLayer("Inactive");
 
                             Site site = siteGO.GetComponent<Site>();
-                            site.idSitePatient = idPlotPatient++;
-                            site.idPatient = ii;
-                            site.idElectrode = jj;
-                            site.idSite = kk;
-                            site.idGlobal = currPlotNb++;
-                            site.blackList = false;
-                            site.highlight = false;
-                            site.patientName = patientName;
-                            site.fullName = names[ii] + "_" + siteGO.name;
-                            site.isActive = true;
+                            site.Information.SitePatientID = idPlotPatient++;
+                            site.Information.PatientID = ii;
+                            site.Information.ElectrodeID = jj;
+                            site.Information.SiteID = kk;
+                            site.Information.GlobalID = currPlotNb++;
+                            site.Information.IsBlackListed = false;
+                            site.Information.IsHighlighted = false;
+                            site.Information.PatientName = patientName;
+                            site.Information.FullName = names[ii] + "_" + siteGO.name;
+                            site.IsActive = true;
 
                             // mars atlas
                             //Debug.Log("sp-> " + ii + " " + jj + " " + kk);
-                            site.labelMarsAtlas = m_CM.DLLLoadedPatientsElectrodes.site_mars_atlas_label(ii, jj, kk);//
-
-                            site.greyWhiteMatter = 0;//
-
+                            site.Information.MarsAtlasIndex = m_CM.DLLLoadedPatientsElectrodes.site_mars_atlas_label(ii, jj, kk);//
                             m_CM.SitesList.Add(siteGO);
                         }
                     }
@@ -550,9 +547,9 @@ namespace HBP.Module3D
                 
                 for (int jj = 0; jj < nbPlotsSpPatient; ++jj)
                 {
-                    blackListMask[ii].Add(m_CM.ColumnsIEEG[ii].Sites[startId + jj].blackList);
-                    excludedMask[ii].Add(m_CM.ColumnsIEEG[ii].Sites[startId + jj].exclude);
-                    hightLightedMask[ii].Add(m_CM.ColumnsIEEG[ii].Sites[startId + jj].highlight);
+                    blackListMask[ii].Add(m_CM.ColumnsIEEG[ii].Sites[startId + jj].Information.IsBlackListed);
+                    excludedMask[ii].Add(m_CM.ColumnsIEEG[ii].Sites[startId + jj].Information.IsExcluded);
+                    hightLightedMask[ii].Add(m_CM.ColumnsIEEG[ii].Sites[startId + jj].Information.IsHighlighted);
                 }
             }
 
@@ -724,7 +721,7 @@ namespace HBP.Module3D
             {
                 int idPatientSelected = 0;
 
-                string namePatientClickedPlot = hits[idClosestPlotHit].collider.gameObject.GetComponent<Site>().patientName;
+                string namePatientClickedPlot = hits[idClosestPlotHit].collider.gameObject.GetComponent<Site>().Information.PatientName;
 
                 for (int ii = 0; ii < m_CM.mpPatients.Count; ++ii)
                 {
@@ -738,7 +735,7 @@ namespace HBP.Module3D
 
                 m_CM.idSelectedPatient = idPatientSelected;
 
-                int idPlotGlobal = hits[idClosestPlotHit].collider.gameObject.GetComponent<Site>().idGlobal;
+                int idPlotGlobal = hits[idClosestPlotHit].collider.gameObject.GetComponent<Site>().Information.GlobalID;
                 m_CM.SelectedColumn.SelectedSiteID = idPlotGlobal;
 
                 m_CM.update_all_columns_sites_rendering(data_);
@@ -853,7 +850,7 @@ namespace HBP.Module3D
             switch (m_CM.SelectedColumn.Type)
             {
                 case Column3DView.ColumnType.FMRI:
-                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hits[idHitToKeep].collider.GetComponent<Site>().fullName));
+                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hits[idHitToKeep].collider.GetComponent<Site>().Information.FullName));
                     break;
                 case Column3DView.ColumnType.IEEG:
                     Column3DViewIEEG currIEEGCol = (Column3DViewIEEG)m_CM.SelectedColumn;
@@ -861,9 +858,9 @@ namespace HBP.Module3D
                     // retrieve current plot amp
                     float amp = 0;
                     if (currIEEGCol.columnData.Values.Length > 0)
-                        amp = currIEEGCol.columnData.Values[site.idGlobal][currIEEGCol.currentTimeLineID];
+                        amp = currIEEGCol.columnData.Values[site.Information.GlobalID][currIEEGCol.currentTimeLineID];
 
-                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_CM.SelectedColumn.Type == Column3DView.ColumnType.FMRI, false, hits[idHitToKeep].collider.GetComponent<Site>().fullName, "" + amp));
+                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_CM.SelectedColumn.Type == Column3DView.ColumnType.FMRI, false, hits[idHitToKeep].collider.GetComponent<Site>().Information.FullName, "" + amp));
                     break;
                 default:
                     break;
@@ -903,7 +900,7 @@ namespace HBP.Module3D
                     if (currIEEGCol.SelectedSiteID == -1)
                         return;
 
-                    string[] elements = m_CM.SitesList[currIEEGCol.SelectedSiteID].GetComponent<Site>().fullName.Split('_');
+                    string[] elements = m_CM.SitesList[currIEEGCol.SelectedSiteID].GetComponent<Site>().Information.FullName.Split('_');
 
                     if (elements.Length < 3)
                         return;
@@ -933,9 +930,9 @@ namespace HBP.Module3D
                         for (int jj = 0; jj < m_CM.ColumnsIEEG[ii].Sites.Count; ++jj)
                         {
                             Site p = m_CM.ColumnsIEEG[ii].Sites[jj];
-                            bool keep = (!p.blackList && !p.exclude && !p.columnMask);
+                            bool keep = (!p.Information.IsBlackListed && !p.Information.IsExcluded && !p.Information.IsMasked);
                             if (isROI)
-                                keep = keep && !p.columnROI;
+                                keep = keep && !p.Information.IsInROI;
 
                             masksColumnsData[ii].Add(keep);
                         }
@@ -944,9 +941,9 @@ namespace HBP.Module3D
                     SiteRequest request = new SiteRequest();
                     request.spScene = false;
                     request.idSite1 = currIEEGCol.SelectedSiteID;
-                    request.idSite2 = (previousPlot == null) ? -1 : previousPlot.idGlobal;
+                    request.idSite2 = (previousPlot == null) ? -1 : previousPlot.Information.GlobalID;
                     request.idPatient = m_data.Patients[id].ID;
-                    request.idPatient2 = (previousPlot == null) ? "" : m_data.Patients[previousPlot.idPatient].ID;
+                    request.idPatient2 = (previousPlot == null) ? "" : m_data.Patients[previousPlot.Information.PatientID].ID;
                     request.maskColumn = masksColumnsData;
                     PlotInfoRequest.Invoke(request);
                     break;
@@ -961,11 +958,11 @@ namespace HBP.Module3D
 
             // update mask ROI
             for (int ii = 0; ii < maskROI.Length; ++ii)
-                maskROI[ii] = m_CM.Columns[idColumn].Sites[ii].columnROI;
+                maskROI[ii] = m_CM.Columns[idColumn].Sites[ii].Information.IsInROI;
 
             m_CM.Columns[idColumn].SelectedROI.update_mask(m_CM.Columns[idColumn].RawElectrodes, maskROI);
             for (int ii = 0; ii < m_CM.Columns[idColumn].Sites.Count; ++ii)
-                m_CM.Columns[idColumn].Sites[ii].columnROI = maskROI[ii];
+                m_CM.Columns[idColumn].Sites[ii].Information.IsInROI = maskROI[ii];
 
             m_CM.update_all_columns_sites_rendering(data_);
         }
@@ -1007,15 +1004,15 @@ namespace HBP.Module3D
         /// <param name="idColumn"></param>
         /// <param name="plots"></param>
         /// <param name="patientsName"></param>
-        public void update_sites_mask(int idColumn, List<List<List<SiteI>>> plots, List<string> patientsName)
+        public void update_sites_mask(int idColumn, List<List<List<SiteInformation>>> plots, List<string> patientsName)
         {
             // reset previous masks
             for (int ii = 0; ii < CM.Columns[idColumn].Sites.Count; ++ii)
             {
-                CM.Columns[idColumn].Sites[ii].exclude = false;
-                CM.Columns[idColumn].Sites[ii].blackList = false;
-                CM.Columns[idColumn].Sites[ii].highlight = false;
-                CM.Columns[idColumn].Sites[ii].columnMask = false;
+                CM.Columns[idColumn].Sites[ii].Information.IsExcluded = false;
+                CM.Columns[idColumn].Sites[ii].Information.IsBlackListed = false;
+                CM.Columns[idColumn].Sites[ii].Information.IsHighlighted = false;
+                CM.Columns[idColumn].Sites[ii].Information.IsMasked = false;
             }
 
             // update masks
@@ -1023,21 +1020,21 @@ namespace HBP.Module3D
             {
                 for (int jj = 0; jj < plots.Count; ++jj) // patient
                 {
-                    if (patientsName[jj] != CM.Columns[idColumn].Sites[ii].patientName)
+                    if (patientsName[jj] != CM.Columns[idColumn].Sites[ii].Information.PatientName)
                         continue;                    
 
                     for (int kk = 0; kk < plots[jj].Count; kk++) // electrode
                     {
                         for(int ll = 0; ll < plots[jj][kk].Count; ll++) // plot
                         {
-                            string namePlot = plots[jj][kk][ll].patientName + "_" + plots[jj][kk][ll].name;
-                            if (namePlot != CM.Columns[idColumn].Sites[ii].fullName)
+                            string namePlot = plots[jj][kk][ll].PatientName + "_" + plots[jj][kk][ll].FullName;
+                            if (namePlot != CM.Columns[idColumn].Sites[ii].Information.FullName)
                                 continue;
 
-                            CM.Columns[idColumn].Sites[ii].exclude = plots[jj][kk][ll].exclude;
-                            CM.Columns[idColumn].Sites[ii].blackList = plots[jj][kk][ll].blackList;
-                            CM.Columns[idColumn].Sites[ii].highlight = plots[jj][kk][ll].highlight;
-                            CM.Columns[idColumn].Sites[ii].columnMask = plots[jj][kk][ll].columnMask;
+                            CM.Columns[idColumn].Sites[ii].Information.IsExcluded = plots[jj][kk][ll].IsExcluded;
+                            CM.Columns[idColumn].Sites[ii].Information.IsBlackListed = plots[jj][kk][ll].IsBlackListed;
+                            CM.Columns[idColumn].Sites[ii].Information.IsHighlighted = plots[jj][kk][ll].IsHighlighted;
+                            CM.Columns[idColumn].Sites[ii].Information.IsMasked = plots[jj][kk][ll].IsMasked;
                         }
                     }
 

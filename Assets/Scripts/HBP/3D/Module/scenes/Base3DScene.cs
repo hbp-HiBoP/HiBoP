@@ -426,7 +426,7 @@ namespace HBP.Module3D
                         {
                             GUI.contentColor =  (kk == 0) ? Color.red : Color.black;
                             Site site = m_CM.SelectedColumn.plotsGO[ii][jj][kk].GetComponent<Site>();
-                            if (site.columnROI || site.exclude || site.blackList)
+                            if (site || site.Information.IsExcluded || site.Information.IsBlackListed)
                                 continue;
 
                             Vector3 pos = m_lastCamera.WorldToScreenPoint(site.transform.position);
@@ -672,14 +672,14 @@ namespace HBP.Module3D
                 {
                     case 0:
                         {// one specific plot
-                            colIdPlots[ii].Add(plotGO.GetComponent<Site>().idGlobal);
+                            colIdPlots[ii].Add(plotGO.GetComponent<Site>().Information.GlobalID);
                         }
                     break;
                     case 1:
                         { // all plots from an electrode
                             Transform parentElectrode = plotGO.transform.parent;
                             for (int jj = 0; jj < parentElectrode.childCount; ++jj)
-                                colIdPlots[ii].Add(parentElectrode.GetChild(jj).gameObject.GetComponent<Site>().idGlobal);
+                                colIdPlots[ii].Add(parentElectrode.GetChild(jj).gameObject.GetComponent<Site>().Information.GlobalID);
                         }
                     break;
                     case 2:
@@ -690,7 +690,7 @@ namespace HBP.Module3D
                                 Transform parentElectrode = parentPatient.GetChild(jj);
                                 for (int kk = 0; kk < parentElectrode.childCount; kk++)
                                 {
-                                    colIdPlots[ii].Add(parentElectrode.GetChild(kk).gameObject.GetComponent<Site>().idGlobal);
+                                    colIdPlots[ii].Add(parentElectrode.GetChild(kk).gameObject.GetComponent<Site>().Information.GlobalID);
                                 }
                             }
                         }
@@ -699,7 +699,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < m_CM.Columns[ii].Sites.Count; ++jj)
                             {                                
-                                if (m_CM.Columns[ii].Sites[jj].highlight)
+                                if (m_CM.Columns[ii].Sites[jj].Information.IsHighlighted)
                                     colIdPlots[ii].Add(jj);
                             }
                         }
@@ -708,7 +708,7 @@ namespace HBP.Module3D
                         {                            
                             for (int jj = 0; jj < m_CM.Columns[ii].Sites.Count; ++jj)
                             {
-                                if (!m_CM.Columns[ii].Sites[jj].highlight)
+                                if (!m_CM.Columns[ii].Sites[jj].Information.IsHighlighted)
                                     colIdPlots[ii].Add(jj);
                             }
                         }
@@ -725,7 +725,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < m_CM.Columns[ii].Sites.Count; ++jj)
                             {
-                                if (!m_CM.Columns[ii].Sites[jj].columnROI)
+                                if (!m_CM.Columns[ii].Sites[jj].Information.IsInROI)
                                     colIdPlots[ii].Add(jj);
                             }
                         }
@@ -734,7 +734,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < m_CM.Columns[ii].Sites.Count; ++jj)
                             {
-                                if (m_CM.Columns[ii].Sites[jj].columnROI)
+                                if (m_CM.Columns[ii].Sites[jj].Information.IsInROI)
                                     colIdPlots[ii].Add(jj);
                             }
                         }
@@ -743,7 +743,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < m_CM.Columns[ii].Sites.Count; ++jj)
                             {
-                                if (m_CM.Columns[ii].Sites[jj].fullName.Contains(nameFilter))
+                                if (m_CM.Columns[ii].Sites[jj].Information.FullName.Contains(nameFilter))
                                     colIdPlots[ii].Add(jj);
                             }
                         }
@@ -752,7 +752,7 @@ namespace HBP.Module3D
                         {                            
                             for (int jj = 0; jj < m_CM.Columns[ii].Sites.Count; ++jj)
                             {
-                                if (GlobalGOPreloaded.MarsAtlasIndex.full_name(m_CM.Columns[ii].Sites[jj].labelMarsAtlas).Contains(nameFilter))
+                                if (GlobalGOPreloaded.MarsAtlasIndex.full_name(m_CM.Columns[ii].Sites[jj].Information.MarsAtlasIndex).Contains(nameFilter))
                                     colIdPlots[ii].Add(jj);      
                             }
                         }
@@ -761,7 +761,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < m_CM.Columns[ii].Sites.Count; ++jj)
                             {
-                                if (GlobalGOPreloaded.MarsAtlasIndex.broadman_area(m_CM.Columns[ii].Sites[jj].labelMarsAtlas).Contains(nameFilter))
+                                if (GlobalGOPreloaded.MarsAtlasIndex.broadman_area(m_CM.Columns[ii].Sites[jj].Information.MarsAtlasIndex).Contains(nameFilter))
                                     colIdPlots[ii].Add(jj);
                             }
                         }
@@ -776,19 +776,19 @@ namespace HBP.Module3D
                 {
                     if (action == 0 || action == 1) // excluded | included
                     {
-                        m_CM.Columns[ii].Sites[colIdPlots[ii][jj]].exclude = (action == 0);
+                        m_CM.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsExcluded = (action == 0);
                     }
                     else if (action == 2 || action == 3)// blacklisted | unblacklisted
                     {
-                        m_CM.Columns[ii].Sites[colIdPlots[ii][jj]].blackList = (action == 2);
+                        m_CM.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsBlackListed = (action == 2);
                     }
                     else if(action == 4 || action == 5) // highlight | unhighlight
                     {
-                        m_CM.Columns[ii].Sites[colIdPlots[ii][jj]].highlight = (action == 4);
+                        m_CM.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsHighlighted = (action == 4);
                     }
                     else // marked | unmarked
                     {
-                        m_CM.Columns[ii].Sites[colIdPlots[ii][jj]].marked = (action == 6);
+                        m_CM.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsMarked = (action == 6);
                     }
                 }
             }

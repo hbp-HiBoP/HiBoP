@@ -275,7 +275,7 @@ namespace HBP.Module3D
             string nameROI = "";
 
             List<string> patientsNames = new List<string>();
-            List<List<List<SiteI>>> electrodes = new List<List<List<SiteI>>>();
+            List<List<List<SiteInformation>>> electrodes = new List<List<List<SiteInformation>>>();
             int currE = 0;
             int currP = -1;
 
@@ -325,7 +325,7 @@ namespace HBP.Module3D
                             return false;
                         }
                         patientsNames.Add(lineElems[1]);
-                        electrodes.Add(new List<List<SiteI>>());
+                        electrodes.Add(new List<List<SiteInformation>>());
                         currP++;
                         continue;
                     }
@@ -337,7 +337,7 @@ namespace HBP.Module3D
                             return false;
                         }
 
-                        electrodes[currP].Add(new List<SiteI>());
+                        electrodes[currP].Add(new List<SiteInformation>());
                         currE = int.Parse(lineElems[1], CultureInfo.InvariantCulture.NumberFormat);
                         continue;
                     }
@@ -349,16 +349,16 @@ namespace HBP.Module3D
                             return false;
                         }
 
-                        SiteI plot = new SiteI();
-                        plot.patientName = patientsNames[patientsNames.Count - 1];
-                        plot.name = lineElems[0];
-                        plot.idElectrode = currE;
-                        plot.exclude = int.Parse(lineElems[1], CultureInfo.InvariantCulture.NumberFormat) == 1;
-                        plot.blackList = int.Parse(lineElems[2], CultureInfo.InvariantCulture.NumberFormat) == 1;
-                        plot.columnMask = int.Parse(lineElems[3], CultureInfo.InvariantCulture.NumberFormat) == 1;
-                        plot.highlight = int.Parse(lineElems[4], CultureInfo.InvariantCulture.NumberFormat) == 1;
+                        SiteInformation plot = new SiteInformation();
+                        plot.PatientName = patientsNames[patientsNames.Count - 1];
+                        plot.FullName = lineElems[0];
+                        plot.ElectrodeID = currE;
+                        plot.IsExcluded = int.Parse(lineElems[1], CultureInfo.InvariantCulture.NumberFormat) == 1;
+                        plot.IsBlackListed = int.Parse(lineElems[2], CultureInfo.InvariantCulture.NumberFormat) == 1;
+                        plot.IsMasked = int.Parse(lineElems[3], CultureInfo.InvariantCulture.NumberFormat) == 1;
+                        plot.IsHighlighted = int.Parse(lineElems[4], CultureInfo.InvariantCulture.NumberFormat) == 1;
 
-                        if (plot.exclude || plot.blackList || plot.columnMask || plot.highlight)
+                        if (plot.IsExcluded || plot.IsBlackListed || plot.IsMasked || plot.IsHighlighted)
                             electrodes[currP][currE].Add(plot);
                     }
                 }
