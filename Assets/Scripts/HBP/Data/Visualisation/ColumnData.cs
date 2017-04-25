@@ -54,7 +54,6 @@ namespace HBP.Data.Visualisation
         /// </summary>
         public float[][] Values { get { return values; } set { values = value; } }
 
-        public ROI[] ROIList { get; set; }
         #endregion
 
         #region Constructor

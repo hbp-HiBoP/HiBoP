@@ -5,20 +5,20 @@ using UnityEngine.Events;
 namespace HBP.Data.Visualisation
 {
     [DataContract]
-    public class ROIBubble
+    public class Sphere : Volume
     {
         #region Properties
-        Vector3 m_Center;
-        [DataMember]
+        [DataMember(Name = "Center")]
+        SerializableVector3 m_Center;
         public Vector3 Center
         {
             get
             {
-                return m_Center;
+                return m_Center.ToVector3();
             }
             set
             {
-                m_Center = value;
+                m_Center = new SerializableVector3(value);
                 OnChangeCenter.Invoke();
             }
         }
@@ -44,12 +44,20 @@ namespace HBP.Data.Visualisation
         #endregion
 
         #region Public Methods
-        public ROIBubble(Vector3 center, float radius)
+        public Sphere(Vector3 center, float radius)
         {
             OnChangeCenter = new UnityEvent();
             OnChangeRadius = new UnityEvent();
-            Center = center;
-            Radius = radius;
+            m_Center = new SerializableVector3(center);
+            m_Radius = radius;
+        }
+        public override bool IsInVolume(Vector3 position)
+        {
+           return Vector3.Distance(Center, position) <= Radius;
+        }
+        public override object Clone()
+        {
+            return new Sphere(Center, Radius);
         }
         #endregion
     }

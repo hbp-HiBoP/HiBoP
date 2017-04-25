@@ -1,5 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Runtime.Serialization;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 
@@ -19,7 +22,7 @@ namespace HBP.Data.Visualisation
     *   - \a Bloc.
     */
     [DataContract]
-    public class Column
+    public class Column: ICloneable
     {
         #region Properties
         [DataMember(Name = "Dataset")]
@@ -60,6 +63,13 @@ namespace HBP.Data.Visualisation
             get { return Protocol.Blocs.ToList().Find(p => p.ID == blocID); }
             set { blocID = value.ID; }
         }
+
+        [DataMember(Name = "RegionOfInterest")]
+        private List<RegionOfInterest> regionOfInterest;
+        /// <summary>
+        /// Region of interest used in the visualisation Column.
+        /// </summary>
+        public ReadOnlyCollection<RegionOfInterest> RegionOfInterest { get { return new ReadOnlyCollection<Data.Visualisation.RegionOfInterest>(regionOfInterest); } private set { regionOfInterest = value.ToList(); } }
         #endregion
 
         #region Constructors
@@ -70,17 +80,18 @@ namespace HBP.Data.Visualisation
         /// <param name="dataLabel">Label of the data to use in the visualisation Column.</param>
         /// <param name="protocol">Protocol to use in the visualisation Column.</param>
         /// <param name="bloc">Bloc of the Protocol to use in the visualisation Column.</param>
-        public Column(Dataset dataset, string dataLabel, Protocol protocol, Bloc bloc)
+        public Column(Dataset dataset, string dataLabel, Protocol protocol, Bloc bloc, IEnumerable<RegionOfInterest> regionOfInterest)
         {
             Dataset = dataset;
             Protocol = protocol;
             Bloc = bloc;
             DataLabel = dataLabel;
+            RegionOfInterest = new ReadOnlyCollection<RegionOfInterest>(regionOfInterest.ToArray());
         }
         /// <summary>
         /// Create a new Column instance with default values.
         /// </summary>
-        public Column():this(new Dataset(), string.Empty,new Protocol(),new Bloc())
+        public Column():this(new Dataset(), string.Empty,new Protocol(),new Bloc(), new Collection<Data.Visualisation.RegionOfInterest>())
         {
         }
         #endregion
@@ -131,7 +142,8 @@ namespace HBP.Data.Visualisation
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            return new Column(Dataset.Clone() as Dataset, DataLabel.Clone() as string, Protocol.Clone() as Protocol, Bloc.Clone() as Bloc);
+            IEnumerable<RegionOfInterest> regionOfInterestCloned = from ROI in regionOfInterest select ROI.Clone() as RegionOfInterest;
+            return new Column(Dataset.Clone() as Dataset, DataLabel.Clone() as string, Protocol.Clone() as Protocol, Bloc.Clone() as Bloc, regionOfInterestCloned);
         }
         #endregion
     }
