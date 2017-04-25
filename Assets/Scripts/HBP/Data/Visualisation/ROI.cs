@@ -26,7 +26,16 @@ namespace HBP.Data.Visualisation
         [IgnoreDataMember]
         public UnityEvent OnChangeName { get; set; }
 
-        List<ROIBubble> m_ROIBubbles;
+        List<ROIBubble> m_Bubbles;
+        [DataMember]
+        public List<ROIBubble> Bubbles
+        {
+            get
+            {
+                return m_Bubbles;
+            }
+        }
+        [IgnoreDataMember]
         public UnityEvent OnAddBubble { get; set; }
         public UnityEvent OnRemoveBubble { get; set; }
         #endregion
@@ -52,12 +61,12 @@ namespace HBP.Data.Visualisation
         public void AddBubble(Vector3 center, float radius = 3.0f)
         {
             ROIBubble l_bubble = new ROIBubble(center, radius);
-            m_ROIBubbles.Add(l_bubble);
+            m_Bubbles.Add(l_bubble);
             OnAddBubble.Invoke();
         }
         public void RemoveBubble(int index)
         {
-            //TODO, maybe with index
+            m_Bubbles.RemoveAt(index);
             OnRemoveBubble.Invoke();
         }
         #endregion
