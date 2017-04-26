@@ -9,7 +9,8 @@
 // system
 using System;
 using System.Collections.Generic;
-
+using System.Collections.ObjectModel;
+using System.Linq;
 // unity
 using UnityEngine;
 using UnityEngine.Events;
@@ -61,7 +62,7 @@ namespace HBP.Module3D
     /// The multi patients scene class, inheritance of Base3DScene.
     /// </summary>
     [AddComponentMenu("Scenes/Multi Patients 3D Scene")]
-    public class MP3DScene : Base3DScene
+    public class MultiPatients3DScene : Base3DScene
     {
         #region members
         public override SceneType Type
@@ -71,7 +72,21 @@ namespace HBP.Module3D
                 return SceneType.MultiPatients;
             }
         }
-        HBP.Data.Visualisation.MultiPatientsVisualisationData m_data = null;
+        Data.Visualisation.MultiPatientsVisualisation m_Visualisation = null;
+        public Data.Visualisation.MultiPatientsVisualisation Visualisation
+        {
+            get
+            {
+                return m_Visualisation;
+            }
+        }
+        public ReadOnlyCollection<Data.Patient> Patients
+        {
+            get
+            {
+                return new ReadOnlyCollection<Data.Patient>(m_Visualisation.Patients);
+            }
+        }
         public override string Name
         {
             get
@@ -111,7 +126,7 @@ namespace HBP.Module3D
 
         #endregion mono_behaviour
 
-        #region functions        
+        #region Public Methods
 
         /// <summary>
         /// Update the meshes cuts
@@ -167,54 +182,54 @@ namespace HBP.Module3D
             }
 
             if (data_.meshTypeToDisplay == SceneStatesInfo.MeshType.Inflated)
-                m_CM.DLLSplittedWhiteMeshesList = new List<DLL.Surface>(data_.meshToDisplay.split_to_surfaces(m_CM.meshSplitNb));
+                m_Column3DViewManager.DLLSplittedWhiteMeshesList = new List<DLL.Surface>(data_.meshToDisplay.split_to_surfaces(m_Column3DViewManager.meshSplitNb));
 
             // get the middle
             data_.meshCenter = data_.meshToDisplay.bounding_box().center();
 
             // cut the mesh
             List<DLL.Surface> cuts;
-            if (data_.meshTypeToDisplay != SceneStatesInfo.MeshType.Inflated && m_CM.planesCutsCopy.Count > 0)
-                cuts = new List<DLL.Surface>(data_.meshToDisplay.cut(m_CM.planesCutsCopy.ToArray(), data_.removeFrontPlaneList.ToArray(), !data_.holesEnabled));
+            if (data_.meshTypeToDisplay != SceneStatesInfo.MeshType.Inflated && m_Column3DViewManager.planesCutsCopy.Count > 0)
+                cuts = new List<DLL.Surface>(data_.meshToDisplay.cut(m_Column3DViewManager.planesCutsCopy.ToArray(), data_.removeFrontPlaneList.ToArray(), !data_.holesEnabled));
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)(data_.meshToDisplay.Clone())};
 
-            if(m_CM.DLLCutsList.Count != cuts.Count)
-                m_CM.DLLCutsList = cuts;
+            if(m_Column3DViewManager.DLLCutsList.Count != cuts.Count)
+                m_Column3DViewManager.DLLCutsList = cuts;
             else
             {
                 // swap DLL pointer
                 for (int ii = 0; ii < cuts.Count; ++ii)
-                    m_CM.DLLCutsList[ii].swap_DLL_handle(cuts[ii]);
+                    m_Column3DViewManager.DLLCutsList[ii].swap_DLL_handle(cuts[ii]);
             }
 
             // split the mesh
-            List<DLL.Surface> splits = new List<DLL.Surface>(m_CM.DLLCutsList[0].split_to_surfaces(m_CM.meshSplitNb));
-            if (m_CM.DLLSplittedMeshesList.Count != splits.Count)
-                m_CM.DLLSplittedMeshesList = splits;
+            List<DLL.Surface> splits = new List<DLL.Surface>(m_Column3DViewManager.DLLCutsList[0].split_to_surfaces(m_Column3DViewManager.meshSplitNb));
+            if (m_Column3DViewManager.DLLSplittedMeshesList.Count != splits.Count)
+                m_Column3DViewManager.DLLSplittedMeshesList = splits;
             else
             {
                 // swap DLL pointer
                 for (int ii = 0; ii < splits.Count; ++ii)
-                    m_CM.DLLSplittedMeshesList[ii].swap_DLL_handle(splits[ii]);
+                    m_Column3DViewManager.DLLSplittedMeshesList[ii].swap_DLL_handle(splits[ii]);
             }
 
             // reset brain texture generator
-            for (int ii = 0; ii < m_CM.DLLSplittedMeshesList.Count; ++ii)
+            for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
             {
-                m_CM.DLLCommonBrainTextureGeneratorList[ii].reset(m_CM.DLLSplittedMeshesList[ii], m_CM.DLLVolume);
-                m_CM.DLLCommonBrainTextureGeneratorList[ii].compute_UVMain_with_volume(m_CM.DLLSplittedMeshesList[ii], m_CM.DLLVolume, m_CM.MRICalMinFactor, m_CM.MRICalMaxFactor);
+                m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].reset(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume);
+                m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].compute_UVMain_with_volume(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume, m_Column3DViewManager.MRICalMinFactor, m_Column3DViewManager.MRICalMaxFactor);
             }
 
             // reset tri eraser
             reset_tri_erasing(false);
 
             // update cut brain mesh object mesh filter
-            for (int ii = 0; ii < m_CM.DLLSplittedMeshesList.Count; ++ii)
-                m_CM.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+            for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
+                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
 
             // update cuts generators
-            for (int ii = 0; ii < m_CM.planesCutsCopy.Count; ++ii)
+            for (int ii = 0; ii < m_Column3DViewManager.planesCutsCopy.Count; ++ii)
             {
                 if (data_.meshTypeToDisplay == SceneStatesInfo.MeshType.Inflated) // if inflated, there is not cuts
                 {
@@ -222,20 +237,20 @@ namespace HBP.Module3D
                     continue;
                 }
 
-                for (int jj = 0; jj < m_CM.ColumnsIEEG.Count; ++jj)
-                    m_CM.DLLMRIGeometryCutGeneratorList[ii].reset(m_CM.DLLVolume, m_CM.planesCutsCopy[ii]);
+                for (int jj = 0; jj < m_Column3DViewManager.ColumnsIEEG.Count; ++jj)
+                    m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].reset(m_Column3DViewManager.DLLVolume, m_Column3DViewManager.planesCutsCopy[ii]);
 
-                m_CM.DLLMRIGeometryCutGeneratorList[ii].update_cut_mesh_UV(CM.DLLCutsList[ii + 1]);
-                m_CM.DLLCutsList[ii + 1].update_mesh_from_dll(go_.brainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].update_cut_mesh_UV(CM.DLLCutsList[ii + 1]);
+                m_Column3DViewManager.DLLCutsList[ii + 1].update_mesh_from_dll(go_.brainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
                 go_.brainCutMeshes[ii].SetActive(true); // enable cuts gameobject
             }
 
             // create null uv2/uv3 arrays
-            m_CM.uvNull = new List<Vector2[]>(m_CM.meshSplitNb);
-            for (int ii = 0; ii < m_CM.meshSplitNb; ++ii)
+            m_Column3DViewManager.uvNull = new List<Vector2[]>(m_Column3DViewManager.meshSplitNb);
+            for (int ii = 0; ii < m_Column3DViewManager.meshSplitNb; ++ii)
             {
-                m_CM.uvNull.Add(new Vector2[go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
-                Extensions.ArrayExtensions.Fill(m_CM.uvNull[ii], new Vector2(0.01f, 1f));
+                m_Column3DViewManager.uvNull.Add(new Vector2[go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
+                Extensions.ArrayExtensions.Fill(m_Column3DViewManager.uvNull[ii], new Vector2(0.01f, 1f));
             }
 
             data_.collidersUpdated = false; // colliders are now longer up to date */
@@ -243,8 +258,8 @@ namespace HBP.Module3D
             data_.generatorUpToDate = false; // generator is not up to date anymore
 
             // update amplitude for all columns
-            for (int ii = 0; ii < m_CM.ColumnsIEEG.Count; ++ii)
-                m_CM.ColumnsIEEG[ii].updateIEEG = true;
+            for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
+                m_Column3DViewManager.ColumnsIEEG[ii].updateIEEG = true;
         }
 
 
@@ -252,10 +267,10 @@ namespace HBP.Module3D
         /// Reset the scene : reload MRI, sites, and regenerate textures
         /// </summary>
         /// <param name="data"></param>
-        public bool reset(Data.Visualisation.MultiPatientsVisualisationData data)
+        public bool Initialize(Data.Visualisation.MultiPatientsVisualisation visualisation)
         {
             m_ModesManager.updateMode(Mode.FunctionsId.resetScene);
-            m_data = data;
+            m_Visualisation = visualisation;
 
             // MNI meshes are preloaded
             data_.volumeCenter = m_MNI.IRM.center();
@@ -268,26 +283,26 @@ namespace HBP.Module3D
             // get the middle
             data_.meshCenter = m_MNI.BothHemi.bounding_box().center();
 
-            List<string> ptsFiles = new List<string>(data.GetImplantation().Length), namePatients = new List<string>(data.GetImplantation().Length);
-            for (int ii = 0; ii < data.GetImplantation().Length; ++ii)
+            List<string> ptsFiles = new List<string>(m_Visualisation.GetImplantation().Length), namePatients = new List<string>(m_Visualisation.GetImplantation().Length);
+            for (int ii = 0; ii < m_Visualisation.GetImplantation().Length; ++ii)
             {
-                ptsFiles.Add(data.GetImplantation()[ii]);
-                namePatients.Add(data.Patients[ii].Place + "_" + data.Patients[ii].Date + "_" + data.Patients[ii].Name);
+                ptsFiles.Add(m_Visualisation.GetImplantation()[ii]);
+                namePatients.Add(m_Visualisation.Patients[ii].Place + "_" + m_Visualisation.Patients[ii].Date + "_" + m_Visualisation.Patients[ii].Name);
             }
 
             // reset columns
-            m_CM.DLLVolume = null; // this object must no be reseted
-            m_CM.reset(planesList.Count);
+            m_Column3DViewManager.DLLVolume = null; // this object must no be reseted
+            m_Column3DViewManager.Initialize(PlanesList.Count);
 
             // retrieve MNI IRM volume
-            m_CM.DLLVolume = m_MNI.IRM;
-            data_.volumeCenter = m_CM.DLLVolume.center();
+            m_Column3DViewManager.DLLVolume = m_MNI.IRM;
+            data_.volumeCenter = m_Column3DViewManager.DLLVolume.center();
             data_.mriLoaded = true;
             UpdatePlanes.Invoke();
 
 
             // send cal values to the UI
-            IRMCalValuesUpdate.Invoke(m_CM.DLLVolume.retrieve_extreme_values());
+            IRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.retrieve_extreme_values());
 
 
             // update scenes cameras
@@ -311,10 +326,12 @@ namespace HBP.Module3D
             {
                 Debug.LogError("-ERROR : MP3DScene : reset failed. ");
                 data_.reset();
-                m_CM.reset(planesList.Count);
+                m_Column3DViewManager.Initialize(PlanesList.Count);
                 reset_scene_GO();                
                 return false;
             }
+
+            SetTimelineData();
 
             return true;
         }
@@ -335,64 +352,64 @@ namespace HBP.Module3D
             //##################
 
             // load list of pts files
-            data_.sitesLoaded = m_CM.DLLLoadedPatientsElectrodes.load_pts_files(pathsElectrodesPtsFile, names, GlobalGOPreloaded.MarsAtlasIndex);
+            data_.sitesLoaded = m_Column3DViewManager.DLLLoadedPatientsElectrodes.load_pts_files(pathsElectrodesPtsFile, names, GlobalGOPreloaded.MarsAtlasIndex);
 
             if (!data_.sitesLoaded)
                 return false;
 
             // destroy previous electrodes gameobject
-            for (int ii = 0; ii < m_CM.SitesList.Count; ++ii)
+            for (int ii = 0; ii < m_Column3DViewManager.SitesList.Count; ++ii)
             {
                 // destroy material
-                Destroy(m_CM.SitesList[ii]);
+                Destroy(m_Column3DViewManager.SitesList[ii]);
             }
-            m_CM.SitesList.Clear();
+            m_Column3DViewManager.SitesList.Clear();
 
             // destroy plots elecs/patients parents
-            for (int ii = 0; ii < m_CM.PlotsPatientParent.Count; ++ii)
+            for (int ii = 0; ii < m_Column3DViewManager.PlotsPatientParent.Count; ++ii)
             {
-                Destroy(m_CM.PlotsPatientParent[ii]);
-                for (int jj = 0; jj < m_CM.PlotsElectrodesParent[ii].Count; ++jj)
+                Destroy(m_Column3DViewManager.PlotsPatientParent[ii]);
+                for (int jj = 0; jj < m_Column3DViewManager.PlotsElectrodesParent[ii].Count; ++jj)
                 {
-                    Destroy(m_CM.PlotsElectrodesParent[ii][jj]);
+                    Destroy(m_Column3DViewManager.PlotsElectrodesParent[ii][jj]);
                 }
 
             }
-            m_CM.PlotsPatientParent.Clear();
-            m_CM.PlotsElectrodesParent.Clear();
+            m_Column3DViewManager.PlotsPatientParent.Clear();
+            m_Column3DViewManager.PlotsElectrodesParent.Clear();
 
             if (data_.sitesLoaded)
             {
                 int currPlotNb = 0;
-                for (int ii = 0; ii < m_CM.DLLLoadedPatientsElectrodes.patients_nb(); ++ii)
+                for (int ii = 0; ii < m_Column3DViewManager.DLLLoadedPatientsElectrodes.patients_nb(); ++ii)
                 {
                     int idPlotPatient = 0;
-                    string patientName = m_CM.DLLLoadedPatientsElectrodes.patient_name(ii);
+                    string patientName = m_Column3DViewManager.DLLLoadedPatientsElectrodes.patient_name(ii);
 
 
                     // create plot patient parent
-                    m_CM.PlotsPatientParent.Add(new GameObject("P" + ii + " - " + patientName));
-                    m_CM.PlotsPatientParent[m_CM.PlotsPatientParent.Count - 1].transform.SetParent(go_.sitesMeshesParent.transform);
-                    m_CM.PlotsElectrodesParent.Add(new List<GameObject>(m_CM.DLLLoadedPatientsElectrodes.electrodes_nb(ii)));
+                    m_Column3DViewManager.PlotsPatientParent.Add(new GameObject("P" + ii + " - " + patientName));
+                    m_Column3DViewManager.PlotsPatientParent[m_Column3DViewManager.PlotsPatientParent.Count - 1].transform.SetParent(go_.sitesMeshesParent.transform);
+                    m_Column3DViewManager.PlotsElectrodesParent.Add(new List<GameObject>(m_Column3DViewManager.DLLLoadedPatientsElectrodes.electrodes_nb(ii)));
 
 
-                    for (int jj = 0; jj < m_CM.DLLLoadedPatientsElectrodes.electrodes_nb(ii); ++jj)
+                    for (int jj = 0; jj < m_Column3DViewManager.DLLLoadedPatientsElectrodes.electrodes_nb(ii); ++jj)
                     {
                         // create plot electrode parent
-                        m_CM.PlotsElectrodesParent[ii].Add(new GameObject(m_CM.DLLLoadedPatientsElectrodes.electrode_name(ii, jj)));
-                        m_CM.PlotsElectrodesParent[ii][m_CM.PlotsElectrodesParent[ii].Count - 1].transform.SetParent(m_CM.PlotsPatientParent[ii].transform);
+                        m_Column3DViewManager.PlotsElectrodesParent[ii].Add(new GameObject(m_Column3DViewManager.DLLLoadedPatientsElectrodes.electrode_name(ii, jj)));
+                        m_Column3DViewManager.PlotsElectrodesParent[ii][m_Column3DViewManager.PlotsElectrodesParent[ii].Count - 1].transform.SetParent(m_Column3DViewManager.PlotsPatientParent[ii].transform);
 
 
-                        for (int kk = 0; kk < m_CM.DLLLoadedPatientsElectrodes.electrode_sites_nb(ii, jj); ++kk)
+                        for (int kk = 0; kk < m_Column3DViewManager.DLLLoadedPatientsElectrodes.electrode_sites_nb(ii, jj); ++kk)
                         {
                             GameObject siteGO = Instantiate(GlobalGOPreloaded.Plot);
-                            siteGO.name = m_CM.DLLLoadedPatientsElectrodes.site_name(ii, jj, kk);
+                            siteGO.name = m_Column3DViewManager.DLLLoadedPatientsElectrodes.site_name(ii, jj, kk);
                             //brainElectrode.name = "????? " + cm_.DLLLoadedPatientsElectrodes.getPlotName(ii, jj, kk);
                                      
-                            Vector3 posInverted = m_CM.DLLLoadedPatientsElectrodes.site_pos(ii, jj, kk);
+                            Vector3 posInverted = m_Column3DViewManager.DLLLoadedPatientsElectrodes.site_pos(ii, jj, kk);
                             posInverted.x = -posInverted.x;
                             siteGO.transform.position = posInverted;
-                            siteGO.transform.SetParent(m_CM.PlotsElectrodesParent[ii][jj].transform);
+                            siteGO.transform.SetParent(m_Column3DViewManager.PlotsElectrodesParent[ii][jj].transform);
 
                             siteGO.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
 
@@ -413,17 +430,17 @@ namespace HBP.Module3D
 
                             // mars atlas
                             //Debug.Log("sp-> " + ii + " " + jj + " " + kk);
-                            site.Information.MarsAtlasIndex = m_CM.DLLLoadedPatientsElectrodes.site_mars_atlas_label(ii, jj, kk);//
-                            m_CM.SitesList.Add(siteGO);
+                            site.Information.MarsAtlasIndex = m_Column3DViewManager.DLLLoadedPatientsElectrodes.site_mars_atlas_label(ii, jj, kk);//
+                            m_Column3DViewManager.SitesList.Add(siteGO);
                         }
                     }
                 }
             }
 
             // reset selected plot
-            for (int ii = 0; ii < m_CM.ColumnsIEEG.Count; ++ii)
+            for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
-                m_CM.ColumnsIEEG[ii].SelectedSiteID = -1;
+                m_Column3DViewManager.ColumnsIEEG[ii].SelectedSiteID = -1;
             }
 
             //####### UDPATE MODE
@@ -439,7 +456,7 @@ namespace HBP.Module3D
         /// <param name="patientList"></param>
         /// <param name="columnDataList"></param>
         /// <param name="ptsPathFileList"></param>
-        public void set_timeline_data(List<Data.Patient> patientList, List<Data.Visualisation.ColumnData> columnDataList, List<string> ptsPathFileList)
+        public void SetTimelineData()
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.setTimelines))
@@ -450,19 +467,19 @@ namespace HBP.Module3D
             //##################
 
             // update columns number
-            m_CM.update_columns_nb(columnDataList.Count, 0, planesList.Count);
+            m_Column3DViewManager.update_columns_nb(Visualisation.Columns.Count, 0, PlanesList.Count);
 
             // update columns names
-            for (int ii = 0; ii < columnDataList.Count; ++ii)
+            for (int ii = 0; ii < Visualisation.Columns.Count; ++ii)
             {
-                m_CM.ColumnsIEEG[ii].Label = columnDataList[ii].Label;
+                m_Column3DViewManager.ColumnsIEEG[ii].Label = Visualisation.Columns[ii].Label;
             }            
 
             // set timelines
-            m_CM.set_MP_timeline_data(patientList, columnDataList, ptsPathFileList);
+            m_Column3DViewManager.SetTimelineData(Visualisation.Patients.ToList(), Visualisation.Columns);
 
             // update plots visibility
-            m_CM.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
 
             // set flag
             data_.timelinesLoaded = true;
@@ -486,34 +503,34 @@ namespace HBP.Module3D
             LoadSPSceneFromMP.Invoke(idPatientSelected);
 
             // retrieve patient plots nb
-            int nbPlotsSpPatient = m_CM.DLLLoadedPatientsElectrodes.patient_sites_nb(idPatientSelected);
+            int nbPlotsSpPatient = m_Column3DViewManager.DLLLoadedPatientsElectrodes.patient_sites_nb(idPatientSelected);
 
             // retrieve timeline size (time t)
-            int size = m_CM.ColumnsIEEG[0].columnData.Values[0].Length;
+            int size = m_Column3DViewManager.ColumnsIEEG[0].columnData.Values[0].Length;
            
             // compute start value id
             int startId = 0;
             for (int ii = 0; ii < idPatientSelected; ++ii)
-                startId += m_CM.DLLLoadedPatientsElectrodes.patient_sites_nb(ii);
+                startId += m_Column3DViewManager.DLLLoadedPatientsElectrodes.patient_sites_nb(ii);
 
             // create new column data
-            List<Data.Visualisation.ColumnData> columnDataList = new List<Data.Visualisation.ColumnData>(m_CM.ColumnsIEEG.Count);
-            for (int ii = 0; ii < m_CM.ColumnsIEEG.Count; ++ii)
+            List<Data.Visualisation.ColumnData> columnDataList = new List<Data.Visualisation.ColumnData>(m_Column3DViewManager.ColumnsIEEG.Count);
+            for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
                 Data.Visualisation.ColumnData columnData = new Data.Visualisation.ColumnData();
-                columnData.Label = m_CM.ColumnsIEEG[ii].Label;
+                columnData.Label = m_Column3DViewManager.ColumnsIEEG[ii].Label;
 
                 // copy iconic scenario reference
-                columnData.IconicScenario = m_CM.ColumnsIEEG[ii].columnData.IconicScenario;
+                columnData.IconicScenario = m_Column3DViewManager.ColumnsIEEG[ii].columnData.IconicScenario;
 
                 // copy timeline reference
-                columnData.TimeLine = m_CM.ColumnsIEEG[ii].columnData.TimeLine;
+                columnData.TimeLine = m_Column3DViewManager.ColumnsIEEG[ii].columnData.TimeLine;
 
                 // fill new mask
                 columnData.PlotMask = new bool[nbPlotsSpPatient];
                 for (int jj = 0; jj < nbPlotsSpPatient; ++jj)
                 {
-                    columnData.PlotMask[jj] = m_CM.ColumnsIEEG[ii].columnData.PlotMask[startId + jj];
+                    columnData.PlotMask[jj] = m_Column3DViewManager.ColumnsIEEG[ii].columnData.PlotMask[startId + jj];
                 }
 
                 // fill new values
@@ -524,7 +541,7 @@ namespace HBP.Module3D
                     float[] valuesT = new float[size];
                     for (int kk = 0; kk < valuesT.Length; ++kk)
                     {
-                        valuesT[kk] = m_CM.ColumnsIEEG[ii].columnData.Values[startId + jj][kk];
+                        valuesT[kk] = m_Column3DViewManager.ColumnsIEEG[ii].columnData.Values[startId + jj][kk];
                     }
 
                     spColumnValues.Add(valuesT);
@@ -536,10 +553,10 @@ namespace HBP.Module3D
 
 
             // fill masks bo be send to sp
-            List<List<bool>> blackListMask = new List<List<bool>>(m_CM.ColumnsIEEG.Count);
-            List<List<bool>> excludedMask = new List<List<bool>>(m_CM.ColumnsIEEG.Count);
-            List<List<bool>> hightLightedMask = new List<List<bool>>(m_CM.ColumnsIEEG.Count);
-            for (int ii = 0; ii < m_CM.ColumnsIEEG.Count; ++ii)
+            List<List<bool>> blackListMask = new List<List<bool>>(m_Column3DViewManager.ColumnsIEEG.Count);
+            List<List<bool>> excludedMask = new List<List<bool>>(m_Column3DViewManager.ColumnsIEEG.Count);
+            List<List<bool>> hightLightedMask = new List<List<bool>>(m_Column3DViewManager.ColumnsIEEG.Count);
+            for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
                 blackListMask.Add(new List<bool>(nbPlotsSpPatient));
                 excludedMask.Add(new List<bool>(nbPlotsSpPatient));
@@ -547,13 +564,13 @@ namespace HBP.Module3D
                 
                 for (int jj = 0; jj < nbPlotsSpPatient; ++jj)
                 {
-                    blackListMask[ii].Add(m_CM.ColumnsIEEG[ii].Sites[startId + jj].Information.IsBlackListed);
-                    excludedMask[ii].Add(m_CM.ColumnsIEEG[ii].Sites[startId + jj].Information.IsExcluded);
-                    hightLightedMask[ii].Add(m_CM.ColumnsIEEG[ii].Sites[startId + jj].Information.IsHighlighted);
+                    blackListMask[ii].Add(m_Column3DViewManager.ColumnsIEEG[ii].Sites[startId + jj].Information.IsBlackListed);
+                    excludedMask[ii].Add(m_Column3DViewManager.ColumnsIEEG[ii].Sites[startId + jj].Information.IsExcluded);
+                    hightLightedMask[ii].Add(m_Column3DViewManager.ColumnsIEEG[ii].Sites[startId + jj].Information.IsHighlighted);
                 }
             }
 
-            bool success = StaticComponents.HBPMain.set_SP_data(m_CM.mpPatients[idPatientSelected], columnDataList, idPlotSelected, blackListMask, excludedMask, hightLightedMask);
+            bool success = StaticComponents.HBPMain.SetSinglePatientSceneData(m_Column3DViewManager.mpPatients[idPatientSelected], columnDataList, idPlotSelected, blackListMask, excludedMask, hightLightedMask);
             if(!success)
             {
                 // TODO : reset SP scene
@@ -590,14 +607,14 @@ namespace HBP.Module3D
 
         private void change_size_ROI(float coeff)
         {
-            int idC = m_CM.SelectedColumnID;
+            int idC = m_Column3DViewManager.SelectedColumnID;
             if (data_.ROICreationMode) // ROI : change ROI size
             {
-                ROI ROI = m_CM.Columns[idC].SelectedROI;
+                ROI ROI = m_Column3DViewManager.Columns[idC].SelectedROI;
                 if (ROI != null)
                 {
                     ChangeSizeBubbleEvent.Invoke(idC, ROI.idSelectedBubble, (coeff < 0 ? 0.9f : 1.1f));
-                    m_CM.update_all_columns_sites_rendering(data_);
+                    m_Column3DViewManager.update_all_columns_sites_rendering(data_);
                 }
             }
         }
@@ -624,14 +641,14 @@ namespace HBP.Module3D
                 case KeyCode.Delete:                
                     if (data_.ROICreationMode)
                     {
-                        int idC = m_CM.SelectedColumnID;
+                        int idC = m_Column3DViewManager.SelectedColumnID;
 
-                        Column3DView col =  m_CM.SelectedColumn;                        
+                        Column3DView col =  m_Column3DViewManager.SelectedColumn;                        
                         int idBubble = col.SelectedROI.idSelectedBubble;
                         if (idBubble != -1)
                             RemoveBubbleEvent.Invoke(idC, idBubble);
 
-                        m_CM.update_all_columns_sites_rendering(data_);
+                        m_Column3DViewManager.update_all_columns_sites_rendering(data_);
                     }
                     break;
                 case KeyCode.KeypadPlus:
@@ -659,7 +676,7 @@ namespace HBP.Module3D
 
             // retrieve layer
             int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(m_CM.SelectedColumn.Layer);
+            layerMask |= 1 << LayerMask.NameToLayer(m_Column3DViewManager.SelectedColumn.Layer);
             layerMask |= 1 << LayerMask.NameToLayer("Meshes_MP");
 
             // raycasts with current column plots/ROI and scene meshes
@@ -723,9 +740,9 @@ namespace HBP.Module3D
 
                 string namePatientClickedPlot = hits[idClosestPlotHit].collider.gameObject.GetComponent<Site>().Information.PatientName;
 
-                for (int ii = 0; ii < m_CM.mpPatients.Count; ++ii)
+                for (int ii = 0; ii < m_Column3DViewManager.mpPatients.Count; ++ii)
                 {
-                    string currentPatient = m_CM.mpPatients[ii].Place + "_" + m_CM.mpPatients[ii].Date + "_" + m_CM.mpPatients[ii].Name;
+                    string currentPatient = m_Column3DViewManager.mpPatients[ii].Place + "_" + m_Column3DViewManager.mpPatients[ii].Date + "_" + m_Column3DViewManager.mpPatients[ii].Name;
                     if (currentPatient == namePatientClickedPlot)
                     {
                         idPatientSelected = ii;
@@ -733,12 +750,12 @@ namespace HBP.Module3D
                     }
                 }
 
-                m_CM.idSelectedPatient = idPatientSelected;
+                m_Column3DViewManager.idSelectedPatient = idPatientSelected;
 
                 int idPlotGlobal = hits[idClosestPlotHit].collider.gameObject.GetComponent<Site>().Information.GlobalID;
-                m_CM.SelectedColumn.SelectedSiteID = idPlotGlobal;
+                m_Column3DViewManager.SelectedColumn.SelectedSiteID = idPlotGlobal;
 
-                m_CM.update_all_columns_sites_rendering(data_);
+                m_Column3DViewManager.update_all_columns_sites_rendering(data_);
                 ClickSite.Invoke(-1); // test
 
                 return;
@@ -749,19 +766,19 @@ namespace HBP.Module3D
                 {
                     if (ROIHit) // ROI collision -> select ROI
                     {
-                        if (m_CM.SelectedColumn.SelectedROI.check_collision(ray))
+                        if (m_Column3DViewManager.SelectedColumn.SelectedROI.check_collision(ray))
                         {
-                            int idClickedBubble = m_CM.SelectedColumn.SelectedROI.collided_closest_bubble_id(ray);
-                            SelectBubbleEvent.Invoke(m_CM.SelectedColumnID, idClickedBubble);
+                            int idClickedBubble = m_Column3DViewManager.SelectedColumn.SelectedROI.collided_closest_bubble_id(ray);
+                            SelectBubbleEvent.Invoke(m_Column3DViewManager.SelectedColumnID, idClickedBubble);
                         }
 
                         return;
                     }
                     else if (meshHit) // mesh collision -> create newROI
                     {   
-                        CreateBubbleEvent.Invoke(hits[idClosestNonPlot].point, m_CM.SelectedColumnID);
+                        CreateBubbleEvent.Invoke(hits[idClosestNonPlot].point, m_Column3DViewManager.SelectedColumnID);
 
-                        m_CM.update_all_columns_sites_rendering(data_);
+                        m_Column3DViewManager.update_all_columns_sites_rendering(data_);
                         return;
                     }
                 }
@@ -777,8 +794,8 @@ namespace HBP.Module3D
                         if (m_triEraser.is_enabled() && m_triEraser.is_click_available())
                         {
                             m_triEraser.erase_triangles(ray.direction, hit.point);
-                            for (int ii = 0; ii < m_CM.DLLSplittedMeshesList.Count; ++ii)
-                                m_CM.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);             
+                            for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
+                                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);             
                         }
 
                         return;
@@ -801,12 +818,12 @@ namespace HBP.Module3D
             if (!data_.mriLoaded)
                 return;
 
-            if (m_CM.SelectedColumnID != idColumn) // not the selected column
+            if (m_Column3DViewManager.SelectedColumnID != idColumn) // not the selected column
                 return;
 
             // retrieve layer
             int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(m_CM.SelectedColumn.Layer);
+            layerMask |= 1 << LayerMask.NameToLayer(m_Column3DViewManager.SelectedColumn.Layer);
             layerMask |= 1 << LayerMask.NameToLayer("Meshes_MP");
 
             // raycasts
@@ -847,20 +864,20 @@ namespace HBP.Module3D
             Site site = hits[idHitToKeep].collider.GetComponent<Site>();
 
             // fMRI
-            switch (m_CM.SelectedColumn.Type)
+            switch (m_Column3DViewManager.SelectedColumn.Type)
             {
                 case Column3DView.ColumnType.FMRI:
                     UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hits[idHitToKeep].collider.GetComponent<Site>().Information.FullName));
                     break;
                 case Column3DView.ColumnType.IEEG:
-                    Column3DViewIEEG currIEEGCol = (Column3DViewIEEG)m_CM.SelectedColumn;
+                    Column3DViewIEEG currIEEGCol = (Column3DViewIEEG)m_Column3DViewManager.SelectedColumn;
 
                     // retrieve current plot amp
                     float amp = 0;
                     if (currIEEGCol.columnData.Values.Length > 0)
                         amp = currIEEGCol.columnData.Values[site.Information.GlobalID][currIEEGCol.currentTimeLineID];
 
-                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_CM.SelectedColumn.Type == Column3DView.ColumnType.FMRI, false, hits[idHitToKeep].collider.GetComponent<Site>().Information.FullName, "" + amp));
+                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.FMRI, false, hits[idHitToKeep].collider.GetComponent<Site>().Information.FullName, "" + amp));
                     break;
                 default:
                     break;
@@ -890,25 +907,25 @@ namespace HBP.Module3D
         public override void send_additionnal_site_info_request(Site previousPlot = null) // TODO deporter dans c manager
         {
 
-            switch (m_CM.SelectedColumn.Type)
+            switch (m_Column3DViewManager.SelectedColumn.Type)
             {
                 case Column3DView.ColumnType.FMRI:
                     return;
                 case Column3DView.ColumnType.IEEG:
-                    Column3DViewIEEG currIEEGCol = (Column3DViewIEEG)m_CM.SelectedColumn;
+                    Column3DViewIEEG currIEEGCol = (Column3DViewIEEG)m_Column3DViewManager.SelectedColumn;
 
                     if (currIEEGCol.SelectedSiteID == -1)
                         return;
 
-                    string[] elements = m_CM.SitesList[currIEEGCol.SelectedSiteID].GetComponent<Site>().Information.FullName.Split('_');
+                    string[] elements = m_Column3DViewManager.SitesList[currIEEGCol.SelectedSiteID].GetComponent<Site>().Information.FullName.Split('_');
 
                     if (elements.Length < 3)
                         return;
 
                     int id = -1;
-                    for (int ii = 0; ii < m_data.Patients.Count; ++ii)
+                    for (int ii = 0; ii < m_Visualisation.Patients.Count; ++ii)
                     {
-                        if (m_data.Patients[ii].Name == elements[2])
+                        if (m_Visualisation.Patients[ii].Name == elements[2])
                         {
                             id = ii;
                             break;
@@ -921,15 +938,15 @@ namespace HBP.Module3D
                         return;
                     }
 
-                    List<List<bool>> masksColumnsData = new List<List<bool>>(m_CM.ColumnsIEEG.Count);
-                    for (int ii = 0; ii < m_CM.ColumnsIEEG.Count; ++ii)
+                    List<List<bool>> masksColumnsData = new List<List<bool>>(m_Column3DViewManager.ColumnsIEEG.Count);
+                    for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
                     {
-                        masksColumnsData.Add(new List<bool>(m_CM.ColumnsIEEG[ii].Sites.Count));
+                        masksColumnsData.Add(new List<bool>(m_Column3DViewManager.ColumnsIEEG[ii].Sites.Count));
 
-                        bool isROI = (m_CM.ColumnsIEEG[ii].SelectedROI.bubbles_nb() > 0);
-                        for (int jj = 0; jj < m_CM.ColumnsIEEG[ii].Sites.Count; ++jj)
+                        bool isROI = (m_Column3DViewManager.ColumnsIEEG[ii].SelectedROI.bubbles_nb() > 0);
+                        for (int jj = 0; jj < m_Column3DViewManager.ColumnsIEEG[ii].Sites.Count; ++jj)
                         {
-                            Site p = m_CM.ColumnsIEEG[ii].Sites[jj];
+                            Site p = m_Column3DViewManager.ColumnsIEEG[ii].Sites[jj];
                             bool keep = (!p.Information.IsBlackListed && !p.Information.IsExcluded && !p.Information.IsMasked);
                             if (isROI)
                                 keep = keep && !p.Information.IsInROI;
@@ -942,8 +959,8 @@ namespace HBP.Module3D
                     request.spScene = false;
                     request.idSite1 = currIEEGCol.SelectedSiteID;
                     request.idSite2 = (previousPlot == null) ? -1 : previousPlot.Information.GlobalID;
-                    request.idPatient = m_data.Patients[id].ID;
-                    request.idPatient2 = (previousPlot == null) ? "" : m_data.Patients[previousPlot.Information.PatientID].ID;
+                    request.idPatient = m_Visualisation.Patients[id].ID;
+                    request.idPatient2 = (previousPlot == null) ? "" : m_Visualisation.Patients[previousPlot.Information.PatientID].ID;
                     request.maskColumn = masksColumnsData;
                     PlotInfoRequest.Invoke(request);
                     break;
@@ -954,17 +971,17 @@ namespace HBP.Module3D
 
         public void update_current_ROI(int idColumn)
         {
-            bool[] maskROI = new bool[m_CM.SitesList.Count];
+            bool[] maskROI = new bool[m_Column3DViewManager.SitesList.Count];
 
             // update mask ROI
             for (int ii = 0; ii < maskROI.Length; ++ii)
-                maskROI[ii] = m_CM.Columns[idColumn].Sites[ii].Information.IsInROI;
+                maskROI[ii] = m_Column3DViewManager.Columns[idColumn].Sites[ii].Information.IsInROI;
 
-            m_CM.Columns[idColumn].SelectedROI.update_mask(m_CM.Columns[idColumn].RawElectrodes, maskROI);
-            for (int ii = 0; ii < m_CM.Columns[idColumn].Sites.Count; ++ii)
-                m_CM.Columns[idColumn].Sites[ii].Information.IsInROI = maskROI[ii];
+            m_Column3DViewManager.Columns[idColumn].SelectedROI.update_mask(m_Column3DViewManager.Columns[idColumn].RawElectrodes, maskROI);
+            for (int ii = 0; ii < m_Column3DViewManager.Columns[idColumn].Sites.Count; ++ii)
+                m_Column3DViewManager.Columns[idColumn].Sites[ii].Information.IsInROI = maskROI[ii];
 
-            m_CM.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
         }
 
         /// <summary>
@@ -974,7 +991,7 @@ namespace HBP.Module3D
         /// <param name="roi"></param>
         public void update_ROI(int idColumn, ROI roi)
         {
-            m_CM.Columns[idColumn].update_ROI(roi);
+            m_Column3DViewManager.Columns[idColumn].update_ROI(roi);
             update_current_ROI(idColumn);
         }
 
@@ -984,7 +1001,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         public string get_current_column_ROI_and_sites_state_str()
         {
-            Column3DView currentCol = m_CM.SelectedColumn;
+            Column3DView currentCol = m_Column3DViewManager.SelectedColumn;
             return "ROI :\n" +  currentCol.SelectedROI.ROIbubbulesInfos() + currentCol.site_state_str();
         }
 
@@ -994,7 +1011,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         public string get_sites_in_ROI()
         {
-            Column3DView currentCol = m_CM.SelectedColumn;
+            Column3DView currentCol = m_Column3DViewManager.SelectedColumn;
             return "Sites in ROI:\n" + currentCol.SelectedROI.ROIbubbulesInfos() + currentCol.only_sites_in_ROI_str();
         }
 

@@ -26,8 +26,8 @@ namespace HBP.Module3D
         static public HiBoP_3DModule_API HBPCommand = null;
         static public HiBoP_3DModule_Main HBPMain = null;
         static public ScenesManager ScenesManager = null;
-        static public SP3DScene SinglePatientScene = null;
-        static public MP3DScene MultiPatientsScene = null;
+        static public SinglePatient3DScene SinglePatientScene = null;
+        static public MultiPatients3DScene MultiPatientsScene = null;
         static public UIManager UIManager = null;
         static public MenuManager UICameraManager = null;
         static public UIOverlayManager UIOverlayManager = null;     
@@ -42,8 +42,8 @@ namespace HBP.Module3D
             HBPCommand = GetComponent<HiBoP_3DModule_API>();
             HBPMain = GetComponent<HiBoP_3DModule_Main>();
             ScenesManager = transform.Find("Scenes").GetComponent<ScenesManager>();
-            SinglePatientScene = ScenesManager.transform.Find("SP").GetComponent<SP3DScene>();
-            MultiPatientsScene = ScenesManager.transform.Find("MP").GetComponent<MP3DScene>();
+            SinglePatientScene = ScenesManager.transform.Find("SP").GetComponent<SinglePatient3DScene>();
+            MultiPatientsScene = ScenesManager.transform.Find("MP").GetComponent<MultiPatients3DScene>();
 
             Transform Visualisation = GameObject.Find("Brain Visualisation").transform;
             UIManager = Visualisation.GetComponent<UIManager>();

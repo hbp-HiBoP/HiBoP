@@ -40,7 +40,7 @@ namespace HBP.Module3D
         public List<GameObject> m_ROIList = new List<GameObject>(); /**< ROI elements of the column menu */
 
         private Transform m_ROIElementsParent = null; /**< parent of the ROI element */
-        private MP3DScene m_mpScene = null;
+        private MultiPatients3DScene m_mpScene = null;
         private Scrollbar m_scrollbar = null; /**< scrollbar of the ROI list */
 
         public GameObject m_colROIListParent = null;
@@ -52,7 +52,7 @@ namespace HBP.Module3D
         public NoParamEvent SaveROIEvent = new NoParamEvent(); /**< event for saving the ROI and the plots states of the current column */
         public NoParamEvent LoadROIEvent = new NoParamEvent(); /**< event for loading the ROI and the plots states and add it in the current column */
 
-        public void init(int columnId, GameObject menu, MP3DScene mpScene, Transform parentMenu)
+        public void init(int columnId, GameObject menu, MultiPatients3DScene mpScene, Transform parentMenu)
         {
             m_idColumn = columnId;
             m_layerMask = "C" + m_idColumn + "_MP";

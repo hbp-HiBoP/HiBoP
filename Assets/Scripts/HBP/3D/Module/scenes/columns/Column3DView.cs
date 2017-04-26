@@ -7,6 +7,7 @@
 
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace HBP.Module3D
 {
@@ -38,6 +39,16 @@ namespace HBP.Module3D
         {
             get { return m_Layer; }
             set { m_Layer = value; }
+        }
+
+        public GameObject ViewPrefab;
+        protected List<View> m_Views;
+        public ReadOnlyCollection<View> Views
+        {
+            get
+            {
+                return new ReadOnlyCollection<View>(m_Views);
+            }
         }
 
         protected int m_SelectedSiteID = -1;
@@ -173,6 +184,10 @@ namespace HBP.Module3D
                 brainCutTextures.Add(Texture2Dutility.generate_cut());
                 guiBrainCutTextures.Add(Texture2Dutility.generate_GUI());
             }
+
+            // view
+            View view = Instantiate(ViewPrefab, transform).GetComponent<View>();
+            m_Views.Add(view);
         }
         /// <summary>
         ///  Clean all allocated data

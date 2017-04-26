@@ -152,8 +152,8 @@ namespace HBP.Module3D
         protected Mode m_CurrentSinglePatientMode = null;
         protected Mode m_CurrentMultiPatientsMode = null;
 
-        protected SP3DScene m_SinglePatientScene = null;
-        protected MP3DScene m_MultiPatientsScene = null;        
+        protected SinglePatient3DScene m_SinglePatientScene = null;
+        protected MultiPatients3DScene m_MultiPatientsScene = null;        
 
         public void Initialize(ScenesManager scenesManager)
         {

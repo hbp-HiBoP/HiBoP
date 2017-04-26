@@ -5,9 +5,10 @@
  * \brief   Define ScenesManager class
  */
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Events;
 using HBP.Module3D.Cam;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace HBP.Module3D
 {
@@ -26,15 +27,21 @@ namespace HBP.Module3D
 
         // ######## public
         // scenes
-        private SP3DScene m_SinglePatientScene = null; /**< single patient scene */
-        public SP3DScene SinglePatientScene
+        private SinglePatient3DScene m_SinglePatientScene = null; /**< single patient scene */
+        public SinglePatient3DScene SinglePatientScene
         {
             get { return m_SinglePatientScene; }
         }
-        private MP3DScene m_MultiPatientsScene = null; /**< multi patients scene */
-        public MP3DScene MultiPatientsScene
+        private MultiPatients3DScene m_MultiPatientsScene = null; /**< multi patients scene */
+        public MultiPatients3DScene MultiPatientsScene
         {
             get { return m_MultiPatientsScene; }
+        }
+
+        private List<Base3DScene> m_Scenes = null;
+        public ReadOnlyCollection<Base3DScene> Scenes
+        {
+            get { return new ReadOnlyCollection<Base3DScene>(m_Scenes); }
         }
 
         private Base3DScene m_SelectedScene = null;
@@ -51,12 +58,15 @@ namespace HBP.Module3D
         public Events.OnChangeSelectedScene OnChangeSelectedScene = new Events.OnChangeSelectedScene();
 
         // managers
-        private CamerasManager m_camerasManager = null;
+        private CamerasManager m_CamerasManager = null;
         public CamerasManager CamerasManager
         {
-            get { return m_camerasManager; }
+            get { return m_CamerasManager; }
         }
 
+        // Scene prefabs
+        public GameObject SinglePatientScenePrefab;
+        public GameObject MultiPatientsScenePrefab;
 
         // canvas
         public GameObject m_canvas = null;
@@ -64,10 +74,10 @@ namespace HBP.Module3D
         // UI elements
         public GameObject m_modulePanel = null;
 
-        public Transform SPPanel {get { return m_camerasManager.SinglePatientPanel; } }
-        public Transform MPPanel { get { return m_camerasManager.MultiPatientsPanel; } }
-        public Transform SPCameras { get { return m_camerasManager.SinglePatientCamerasContainer; } }
-        public Transform MPCameras { get { return m_camerasManager.MultiPatientsCamerasContainer; } }
+        public Transform SPPanel {get { return m_CamerasManager.SinglePatientPanel; } }
+        public Transform MPPanel { get { return m_CamerasManager.MultiPatientsPanel; } }
+        public Transform SPCameras { get { return m_CamerasManager.SinglePatientCamerasContainer; } }
+        public Transform MPCameras { get { return m_CamerasManager.MultiPatientsCamerasContainer; } }
 
         // events
         public Events.SendModeSpecifications SendModeSpecifications = new Events.SendModeSpecifications();
@@ -84,16 +94,16 @@ namespace HBP.Module3D
             
             // retrieve 
             //  managers
-            m_camerasManager = transform.Find("Cameras").GetComponent<CamerasManager>();            
+            m_CamerasManager = transform.Find("Cameras").GetComponent<CamerasManager>();            
             //  scenes
-            m_SinglePatientScene = transform.Find("SP").GetComponent<SP3DScene>();
-            m_MultiPatientsScene = transform.Find("MP").GetComponent<MP3DScene>();
+            m_SinglePatientScene = transform.Find("SP").GetComponent<SinglePatient3DScene>();
+            m_MultiPatientsScene = transform.Find("MP").GetComponent<MultiPatients3DScene>();
 
             // add listeners     
             //  cameras
             m_MultiPatientsScene.ApplySceneCamerasToIndividualScene.AddListener(() =>
             {
-                m_camerasManager.ApplyMultiPatientsCamerasSettingsToSinglePatientCameras();
+                m_CamerasManager.ApplyMultiPatientsCamerasSettingsToSinglePatientCameras();
             });
             //  modes specs
             m_SinglePatientScene.SendModeSpecifications.AddListener((UnityAction<ModeSpecifications>)((specs) =>
@@ -108,12 +118,12 @@ namespace HBP.Module3D
 
             m_SinglePatientScene.UpdateCameraTarget.AddListener((target) =>
             {
-                m_camerasManager.UpdateCamerasTarget(SceneType.SinglePatient, target);
+                m_CamerasManager.UpdateCamerasTarget(SceneType.SinglePatient, target);
             });
 
             m_MultiPatientsScene.UpdateCameraTarget.AddListener((target) =>
             {
-                m_camerasManager.UpdateCamerasTarget(SceneType.MultiPatients, target);
+                m_CamerasManager.UpdateCamerasTarget(SceneType.MultiPatients, target);
             });
 
 
@@ -123,40 +133,75 @@ namespace HBP.Module3D
         #endregion mono_behaviour
 
         #region Public Methods
+        public bool AddSinglePatientScene(Data.Visualisation.SinglePatientVisualisation visualisation, bool postIRM)
+        {
+            // Create new scene
+            GameObject newSinglePatientScene = Instantiate(SinglePatientScenePrefab, transform);
+            SinglePatient3DScene scene = newSinglePatientScene.GetComponent<SinglePatient3DScene>();
+            bool success = scene.Initialize(visualisation, postIRM);
+            if (!success)
+            {
+                Debug.LogError("-ERROR : Could not initialize new single patient scene.");
+                return false;
+            }
+            // Set up the cameras
+
+            // Set up the UI
+
+            // Set Timeline data
+            // Done in Initialize
+            // Set selected site to none
+            // Done in Initialize
+            // Set selected column to the first column
+            scene.update_selected_column(0);
+            // Focus on the scene
+
+            scene.display_sceen_message("Single Patient Scene loaded : " + visualisation.Patient.Place + "_" + visualisation.Patient.Name + "_" + visualisation.Patient.Date, 2.0f, 400, 80);
+
+            m_Scenes.Add(scene);
+            return true;
+        }
+
+        public bool AddMultiPatientsScene(Data.Visualisation.MultiPatientsVisualisation visualisation)
+        {
+            // Create new scene
+            GameObject newMultiPatientsScene = Instantiate(SinglePatientScenePrefab, transform);
+            MultiPatients3DScene scene = newMultiPatientsScene.GetComponent<MultiPatients3DScene>();
+            bool success = scene.Initialize(visualisation);
+            if (!success)
+            {
+                Debug.LogError("-ERROR : Could not initialize new multi patients scene.");
+                return false;
+            }
+            // Set up the cameras
+
+            // Set up the UI
+
+            // Set Timeline data
+            // Done in Initialize
+            // Set selected column to the first column
+            scene.update_selected_column(0);
+            // Focus on the scene
+
+            scene.display_sceen_message("Multi Patients Scene loaded", 2.0f, 400, 80);
+
+            m_Scenes.Add(scene);
+            return true;
+        }
+
+        public void RemoveSinglePatientScene()
+        {
+
+        }
+
+        public void RemoveMultiPatientsScene()
+        {
+
+        }
 
         public void SetModuleFocusState(bool state)
         {
-            m_camerasManager.SetModuleFocus(state);            
-        }
-
-        /// <summary>
-        /// Define the number of columns cameras of the scene
-        /// </summary>
-        /// <param name="spScene"></param>
-        /// <param name="nbColumns"></param>
-        public void define_conditions_columns_cameras(SceneType type, int nbColumns)
-        {
-            m_camerasManager.DefineConditionsColumnsCameras(type, nbColumns);
-        }
-
-        /// <summary>
-        /// Define the current selected column of the scene
-        /// </summary>
-        /// <param name="spScene"></param>
-        /// <param name="idColumn"></param>
-        public void define_selected_column(Base3DScene scene, int idColumn)
-        {
-            switch(scene.Type)
-            {
-                case SceneType.SinglePatient:
-                    m_SinglePatientScene.update_selected_column(idColumn);
-                    break;
-                case SceneType.MultiPatients:
-                    m_MultiPatientsScene.update_selected_column(idColumn);
-                    break;
-                default:
-                    break;
-            }
+            m_CamerasManager.SetModuleFocus(state);            
         }
 
         /// <summary>
@@ -271,7 +316,7 @@ namespace HBP.Module3D
             {
                 loaded = false;
             }
-            m_camerasManager.AddColumnCamera(type, CameraType.fMRI);
+            m_CamerasManager.AddColumnCamera(type, CameraType.fMRI);
             return loaded;
         }
 
@@ -309,7 +354,7 @@ namespace HBP.Module3D
         }
         public void RemoveLastfMRIColumn(SceneType type)
         {
-            m_camerasManager.RemoveLastColumnCamera(type);
+            m_CamerasManager.RemoveLastColumnCamera(type);
             switch (type)
             {
                 case SceneType.SinglePatient:

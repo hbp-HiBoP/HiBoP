@@ -41,9 +41,9 @@ namespace HBP.Module3D
         public SendIntValueEvent m_selectROIEvent = new SendIntValueEvent(); /**< event for selecting a ROI */
 
         // scene
-        MP3DScene m_mpScene = null;
+        MultiPatients3DScene m_mpScene = null;
 
-        public void init(string layerMask, int idROI, GameObject ROIElement, MP3DScene mpScene, Transform parentROIUI, Transform parentROI)
+        public void init(string layerMask, int idROI, GameObject ROIElement, MultiPatients3DScene mpScene, Transform parentROIUI, Transform parentROI)
         {
             m_layerMask = layerMask;
             m_idROI = idROI;

@@ -65,11 +65,11 @@ namespace HBP.Module3D.Cam
                     return;
 
                 m_PlanesCutsCirclesVertices = new List<Vector3[]>();
-                for (int ii = 0; ii < m_AssociatedScene.planesList.Count; ++ii)
+                for (int ii = 0; ii < m_AssociatedScene.PlanesList.Count; ++ii)
                 {
-                    Vector3 point = m_AssociatedScene.planesList[ii].point;
+                    Vector3 point = m_AssociatedScene.PlanesList[ii].point;
                     point.x *= -1;
-                    Vector3 normal = m_AssociatedScene.planesList[ii].normal;
+                    Vector3 normal = m_AssociatedScene.PlanesList[ii].normal;
                     normal.x *= -1;
                     Quaternion q = Quaternion.FromToRotation(new Vector3(0, 0, 1), normal);
                     m_PlanesCutsCirclesVertices.Add(Geometry.create_3D_circle_points(new Vector3(0,0,0), 100, 150));

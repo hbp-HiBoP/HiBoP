@@ -248,35 +248,14 @@ namespace HBP.Module3D.Cam
         /// </summary>
         /// <param name="singlePatientScene"></param>
         /// <param name="numberOfColumns"></param>
-        public void DefineConditionsColumnsCameras(SceneType scene, int numberOfColumns)
+        public void SetUpCameras(Base3DScene scene, int numberOfColumns)
         {
-            int diff = 0;
-            switch(scene)
+            for (int i = 0; i < numberOfColumns; i++)
             {
-                case SceneType.SinglePatient:
-                    diff = m_SinglePatientCameras[0].Count - numberOfColumns;
-                    break;
-                case SceneType.MultiPatients:
-                    diff = m_MultiPatientsCameras[0].Count - numberOfColumns;
-                    break;
-            }
-            if (diff < 0)
-            {
-                diff = -diff;
-                for (int ii = 0; ii < diff; ++ii)
-                {
-                    AddColumnCamera(scene,CameraType.EEG);
-                }
-            }
-            else
-            {
-                for (int ii = 0; ii < diff; ++ii)
-                {
-                    RemoveLastColumnCamera(scene);
-                }
+                AddColumnCamera(scene, CameraType.EEG);
             }
         }
-        public void AddColumnCamera(SceneType scene, CameraType column)
+        public void AddColumnCamera(Base3DScene scene, CameraType column)
         {
             switch(scene)
             {
@@ -288,7 +267,7 @@ namespace HBP.Module3D.Cam
                     break;
             }
         }
-        public void RemoveLastColumnCamera(SceneType scene)
+        public void RemoveLastColumnCamera(Base3DScene scene)
         {
             switch(scene)
             {
@@ -397,7 +376,7 @@ namespace HBP.Module3D.Cam
             List<TrackBallCamera> initListSinglePatientCameras = new List<TrackBallCamera>();
             initListSinglePatientCameras.Add(singlePatientCamera);
             m_SinglePatientCameras.Add(initListSinglePatientCameras);
-            DefineConditionsColumnsCameras(SceneType.SinglePatient, 1);
+            SetUpCameras(SceneType.SinglePatient, 1);
 
             // Multi patients
             GameObject multiPatientLine = Instantiate(GlobalGOPreloaded.Line);
@@ -418,7 +397,7 @@ namespace HBP.Module3D.Cam
             List<TrackBallCamera> initListMultiPatientsCameras = new List<TrackBallCamera>();
             initListMultiPatientsCameras.Add(multiPatientsCamera.GetComponent<TrackBallCamera>());
             m_MultiPatientsCameras.Add(initListMultiPatientsCameras);
-            DefineConditionsColumnsCameras(SceneType.MultiPatients, 1);
+            SetUpCameras(SceneType.MultiPatients, 1);
         }
         private void Update()
         {

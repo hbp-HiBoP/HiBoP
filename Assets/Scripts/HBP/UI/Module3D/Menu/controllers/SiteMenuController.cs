@@ -122,7 +122,7 @@ namespace HBP.UI.Module3D
             switch(m_scene.Type)
             {
                 case SceneType.SinglePatient:
-                    SP3DScene SP3DScene = (SP3DScene)(m_scene);
+                    SinglePatient3DScene SP3DScene = (SinglePatient3DScene)(m_scene);
                     SP3DScene.UpdateLatencies.AddListener((labels) =>
                     {
                         labelCCEP = labels;
@@ -200,7 +200,7 @@ namespace HBP.UI.Module3D
                     defineSourceButton.onClick.AddListener(
                         delegate
                         {
-                            ((SP3DScene)m_scene).set_current_site_as_source();
+                            ((SinglePatient3DScene)m_scene).set_current_site_as_source();
                             latencyDataText.text = "Current site is the source.";
                             defineSourceButton.interactable = false;
                             undefineSourceButton.interactable = true;
@@ -209,7 +209,7 @@ namespace HBP.UI.Module3D
                     undefineSourceButton.onClick.AddListener(
                         delegate
                         {
-                            ((SP3DScene)m_scene).undefine_current_source();
+                            ((SinglePatient3DScene)m_scene).undefine_current_source();
 
                             if (latencyDataText.text == "Current site is the source.")
                             {
@@ -228,7 +228,7 @@ namespace HBP.UI.Module3D
                 case SceneType.MultiPatients:
                     contentPanelT.Find("MP only options parent").Find("load sp button").GetComponent<Button>().onClick.AddListener(() =>
                     {
-                        ((MP3DScene)m_scene).load_patient_in_SP_scene(m_idPatientToLoad, m_lastSiteSelected.GetComponent<Site>().Information.SitePatientID);
+                        ((MultiPatients3DScene)m_scene).load_patient_in_SP_scene(m_idPatientToLoad, m_lastSiteSelected.GetComponent<Site>().Information.SitePatientID);
                     });
 
                     Button blackList = contentPanelT.Find("MP only options parent").Find("blacklist button").GetComponent<Button>();
@@ -446,7 +446,7 @@ namespace HBP.UI.Module3D
                 latencyButton.GetComponent<LatencyButton>().init(jj);
                 latencyButton.GetComponent<LatencyButton>().ChooseLatencyFile.AddListener((id) =>
                 {
-                    ((SP3DScene)m_scene).update_current_latency_file(id);
+                    ((SinglePatient3DScene)m_scene).update_current_latency_file(id);
                     update_menu();
                 });
                 latencyButton.SetActive(true);

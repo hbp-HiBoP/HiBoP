@@ -113,9 +113,9 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visuDataSP"></param>
         /// <returns>false if a loading error occurs, else true </returns>
-        public bool LoadData(Data.Visualisation.SinglePatientVisualisationData visuDataSP)
+        public bool LoadData(Data.Visualisation.SinglePatientVisualisation visualisation)
         {
-            bool result = m_HBP3D.set_SP_data(visuDataSP);
+            bool result = m_HBP3D.SetSinglePatientSceneData(visualisation);
             return result;
         }
 
@@ -124,10 +124,10 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visuDataMP"></param>
         /// <returns>false if a loading error occurs, else true </returns>
-        public bool LoadData(Data.Visualisation.MultiPatientsVisualisationData visuDataMP)
+        public bool LoadData(Data.Visualisation.MultiPatientsVisualisation visualisation)
         {
             if (MNIObjects.LoadingMutex.WaitOne(10000))
-                return m_HBP3D.set_MP_data(visuDataMP);
+                return m_HBP3D.SetMultiPatientsSceneData(visualisation);
 
             UnityEngine.Debug.LogError("MNI loading data not finished. ");
 

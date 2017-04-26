@@ -37,7 +37,7 @@ namespace HBP.Module3D
         #region members
 
         // scene
-        private MP3DScene m_scene = null; /**< MP scene */
+        private MultiPatients3DScene m_scene = null; /**< MP scene */
 
         // canvas
         public Transform m_middlePanelT = null; /**< middle scene panel transform */
@@ -58,7 +58,7 @@ namespace HBP.Module3D
 
         #region functions
 
-        public void init(MP3DScene scene)
+        public void init(MultiPatients3DScene scene)
         {
             m_scene = scene;
 

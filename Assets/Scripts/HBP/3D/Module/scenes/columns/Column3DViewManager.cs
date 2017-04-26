@@ -125,23 +125,24 @@ namespace HBP.Module3D
         public Texture2D brainColorTexture = null;
 
 
-        #endregion members
+        #endregion
 
         #region mono_behaviour
 
         public void Awake()
         {
-            reset(3);
+            Initialize(3);
             update_columns_nb(1, 0, 3);
         }
 
         #endregion mono_behaviour
 
         #region functions
+
         /// <summary>
         /// Reset all data.
         /// </summary>
-        public void reset(int cutPlanesNb)
+        public void Initialize(int cutPlanesNb)
         {
             // init DLL objects
             //      nii loader;
@@ -429,12 +430,11 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="patient"></param>
         /// <param name="columnDataList"></param>
-        public void set_SP_timeline_data(Data.Patient patient, List<Data.Visualisation.ColumnData> columnDataList)
+        public void SetTimelineData(Data.Patient patient, List<Data.Visualisation.Column> columnDataList)
         {
-            spPatient = patient;
             for (int c = 0; c < ColumnsIEEG.Count; c++)
             {
-                ColumnsIEEG[c].set_column_data(columnDataList[c]);
+                ColumnsIEEG[c].SetColumnData(columnDataList[c]);
             }
         }
 
@@ -445,12 +445,11 @@ namespace HBP.Module3D
         /// <param name="patientList"></param>
         /// <param name="columnDataList"></param>
         /// <param name="ptsPathFileList"></param>
-        public void set_MP_timeline_data(List<Data.Patient> patientList, List<Data.Visualisation.ColumnData> columnDataList, List<string> ptsPathFileList)
+        public void SetTimelineData(List<Data.Patient> patientList, List<Data.Visualisation.Column> columnDataList)
         {
-            mpPatients = patientList;
             for (int c = 0; c < ColumnsIEEG.Count; c++)
             {
-                ColumnsIEEG[c].set_column_data(columnDataList[c]);
+                ColumnsIEEG[c].SetColumnData(columnDataList[c]);
             }
         }
 
@@ -614,7 +613,6 @@ namespace HBP.Module3D
         {
             foreach (var column in m_Columns) column.set_visible_sites(visible);
         }
-
 
         void AddIEEGColumn()
         {

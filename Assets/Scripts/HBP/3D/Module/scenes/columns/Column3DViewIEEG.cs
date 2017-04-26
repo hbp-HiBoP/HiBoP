@@ -29,7 +29,7 @@ namespace HBP.Module3D
             }
         }
         // data
-        public Data.Visualisation.ColumnData columnData = null; /**< column data formalized by the unity main UI part */
+        public Data.Visualisation.Column columnData = null; /**< column data formalized by the unity main UI part */
         
         // textures
         public List<Texture2D> brainCutWithIEEGTextures     = null;
@@ -157,7 +157,7 @@ namespace HBP.Module3D
         /// Specify a new columnData to be associated with the columnd3DView
         /// </summary>
         /// <param name="columnData"></param>
-        public void set_column_data(Data.Visualisation.ColumnData newColumnData)
+        public void SetColumnData(Data.Visualisation.Column newColumnData)
         {
             columnData = newColumnData;
 
@@ -165,7 +165,7 @@ namespace HBP.Module3D
             dims = new int[3];
             dims[0] = columnData.TimeLine.Lenght;
             dims[1] = 1;
-            dims[2] = columnData.PlotMask.Length;
+            dims[2] = columnData.SiteMask.Length;
 
             minAmp = float.MaxValue;
             maxAmp = float.MinValue;
@@ -192,7 +192,7 @@ namespace HBP.Module3D
 
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                Sites[ii].Information.IsMasked = columnData.PlotMask[ii];
+                Sites[ii].Information.IsMasked = columnData.SiteMask[ii];
             }
         }
 
