@@ -108,8 +108,8 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            m_iEEGButton.interactable = scene.CM.SelectedColumn.Type == Column3DView.ColumnType.IEEG;
-            m_fMRIButton.interactable = scene.CM.SelectedColumn.Type == Column3DView.ColumnType.FMRI;
+            m_iEEGButton.interactable = scene.Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.IEEG;
+            m_fMRIButton.interactable = scene.Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.FMRI;
 
             OnChangeMode(scene.ModesManager.CurrentMode);
         }

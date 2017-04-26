@@ -235,7 +235,7 @@ namespace HBP.Module3D
         /// </summary>
         void update_MRI_histogram()
         {
-            DLL.Texture.generate_distribution_histogram(m_scene.CM.DLLVolume, 4 * 110, 4 * 110, m_IRMCalMin, m_IRMCalMax).update_texture_2D(m_mriHistogram);
+            DLL.Texture.generate_distribution_histogram(m_scene.Column3DViewManager.DLLVolume, 4 * 110, 4 * 110, m_IRMCalMin, m_IRMCalMax).update_texture_2D(m_mriHistogram);
 
             Transform contentPanelT = transform.Find("panel");
             Image histogramImage = contentPanelT.Find("Histogram IRM parent").Find("Histogram panel").GetComponent<Image>();

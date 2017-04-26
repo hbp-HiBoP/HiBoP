@@ -174,7 +174,7 @@ namespace HBP.Module3D
                     }
 
                     // select site ring 
-                    if (ii == id_selected_site)
+                    if (ii == SelectedSiteID)
                         m_selectRing.set_selected_site(Sites[ii], Sites[ii].transform.localScale);
 
                     renderer.sharedMaterial = SharedMaterials.site_shared_material(highlight, siteType);

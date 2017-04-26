@@ -582,7 +582,7 @@ namespace HBP.UI.Module3D
         /// <param name="spScene"></param>
         public void update_time(bool spScene)
         {
-            Column3DViewManager cm = spScene ? m_scenesManager.SinglePatientScene.CM : m_scenesManager.MultiPatientsScene.CM;
+            Column3DViewManager cm = spScene ? m_scenesManager.SinglePatientScene.Column3DViewManager : m_scenesManager.MultiPatientsScene.Column3DViewManager;
             int time = cm.globalTimeline ? (int)cm.commonTimelineValue : ((Column3DViewIEEG)cm.SelectedColumn).columnTimeLineID;
 
             if (spScene)

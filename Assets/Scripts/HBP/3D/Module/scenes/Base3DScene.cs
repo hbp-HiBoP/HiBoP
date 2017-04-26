@@ -272,7 +272,7 @@ namespace HBP.Module3D
         protected DisplayedObjects3DView go_ = null; /**< displayable objects of the scene */
         protected MNIObjects m_MNI = null;
         protected Column3DViewManager m_Column3DViewManager = null; /**< column data manager */
-        public Column3DViewManager CM { get { return m_Column3DViewManager; } }
+        public Column3DViewManager Column3DViewManager { get { return m_Column3DViewManager; } }
         public UIOverlayManager m_uiOverlayManager; /**< UI overlay manager of the scenes */
 
         protected TriEraser m_triEraser = new TriEraser();
@@ -369,9 +369,9 @@ namespace HBP.Module3D
             if (data_.updateCutMeshGeometry)
             {
                 data_.geometryUpToDate = false;
-                CM.planesCutsCopy = new List<Plane>();
+                Column3DViewManager.planesCutsCopy = new List<Plane>();
                 for (int ii = 0; ii < m_planesList.Count; ++ii)
-                    CM.planesCutsCopy.Add(new Plane(m_planesList[ii].point, m_planesList[ii].normal));
+                    Column3DViewManager.planesCutsCopy.Add(new Plane(m_planesList[ii].point, m_planesList[ii].normal));
 
                 UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
                 compute_meshes_cuts();
@@ -437,9 +437,9 @@ namespace HBP.Module3D
             }
         }
 
-        #endregion mono_behaviour   
+        #endregion   
 
-        #region functions
+        #region Public Methods
 
         public abstract void compute_meshes_cuts();
         public abstract void send_additionnal_site_info_request(Site previousPlot = null);
@@ -525,17 +525,17 @@ namespace HBP.Module3D
 
         public void update_colormap(int id, bool updateColors = true)
         {
-            CM.update_colormap(id);
+            Column3DViewManager.update_colormap(id);
             if (updateColors)
-                CM.reset_colors();
+                Column3DViewManager.reset_colors();
 
             switch(Type)
             {
                 case SceneType.SinglePatient:
-                    SharedMaterials.Brain.SinglePatientBrainMaterial.SetTexture("_ColorTex", CM.brainColorMapTexture);
+                    SharedMaterials.Brain.SinglePatientBrainMaterial.SetTexture("_ColorTex", Column3DViewManager.brainColorMapTexture);
                     break;
                 case SceneType.MultiPatients:
-                    SharedMaterials.Brain.MultiPatientsBrainMaterial.SetTexture("_ColorTex", CM.brainColorMapTexture);
+                    SharedMaterials.Brain.MultiPatientsBrainMaterial.SetTexture("_ColorTex", Column3DViewManager.brainColorMapTexture);
                     break;
             }
             if (data_.geometryUpToDate && !data_.iEEGOutdated)
@@ -544,26 +544,26 @@ namespace HBP.Module3D
 
         public void update_brain_surface_color(int id)
         {
-            CM.m_idBrainColor = id;
-            DLL.Texture tex = DLL.Texture.generate_1D_color_texture(CM.m_idBrainColor);
-            tex.update_texture_2D(CM.brainColorTexture);
+            Column3DViewManager.m_idBrainColor = id;
+            DLL.Texture tex = DLL.Texture.generate_1D_color_texture(Column3DViewManager.m_idBrainColor);
+            tex.update_texture_2D(Column3DViewManager.brainColorTexture);
 
             switch(Type)
             {
                 case SceneType.SinglePatient:
-                    SharedMaterials.Brain.SinglePatientBrainMaterial.SetTexture("_MainTex", CM.brainColorTexture);
+                    SharedMaterials.Brain.SinglePatientBrainMaterial.SetTexture("_MainTex", Column3DViewManager.brainColorTexture);
                     break;
                 case SceneType.MultiPatients:
-                    SharedMaterials.Brain.MultiPatientsBrainMaterial.SetTexture("_MainTex", CM.brainColorTexture);
+                    SharedMaterials.Brain.MultiPatientsBrainMaterial.SetTexture("_MainTex", Column3DViewManager.brainColorTexture);
                     break;
             }
         }
 
         public void update_brain_cut_color(int id, bool updateColors = true)
         {
-            CM.update_brain_cut_color(id);
+            Column3DViewManager.update_brain_cut_color(id);
             if (updateColors)
-                CM.reset_colors();
+                Column3DViewManager.reset_colors();
 
             data_.updateCutMeshGeometry = true;
             data_.iEEGOutdated = true;
@@ -1148,10 +1148,10 @@ namespace HBP.Module3D
 
             for (int ii = 0; ii < columnsIndexes.Length; ++ii)
             {
-                if (CM.Columns[columnsIndexes[ii]].Type == Column3DView.ColumnType.FMRI)
+                if (Column3DViewManager.Columns[columnsIndexes[ii]].Type == Column3DView.ColumnType.FMRI)
                     return;
 
-                Column3DViewIEEG currCol = (Column3DViewIEEG)CM.Columns[columnsIndexes[ii]];
+                Column3DViewIEEG currCol = (Column3DViewIEEG)Column3DViewManager.Columns[columnsIndexes[ii]];
 
                 // brain surface
                 if(surface)
@@ -1198,7 +1198,7 @@ namespace HBP.Module3D
            
             for (int ii = 0; ii < columnsIndexes.Length; ++ii)
             {
-                //Column3DViewFMRI currCol = CM.FMRI_col(columnsIndexes[ii]);
+                //Column3DViewFMRI currCol = Column3DViewManager.FMRI_col(columnsIndexes[ii]);
 
                 // brain cuts
                 if (cuts)
@@ -2037,7 +2037,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
             ClickSite.Invoke(-1); // update menu
         }
-        #endregion functions
+        #endregion
     }
 
     /// <summary>

@@ -135,7 +135,6 @@ namespace HBP.Module3D
         #region Public Methods
         public bool AddSinglePatientScene(Data.Visualisation.SinglePatientVisualisation visualisation, bool postIRM)
         {
-            // Create new scene
             GameObject newSinglePatientScene = Instantiate(SinglePatientScenePrefab, transform);
             SinglePatient3DScene scene = newSinglePatientScene.GetComponent<SinglePatient3DScene>();
             bool success = scene.Initialize(visualisation, postIRM);
@@ -144,27 +143,14 @@ namespace HBP.Module3D
                 Debug.LogError("-ERROR : Could not initialize new single patient scene.");
                 return false;
             }
-            // Set up the cameras
-
-            // Set up the UI
-
-            // Set Timeline data
-            // Done in Initialize
-            // Set selected site to none
-            // Done in Initialize
-            // Set selected column to the first column
-            scene.update_selected_column(0);
-            // Focus on the scene
-
-            scene.display_sceen_message("Single Patient Scene loaded : " + visualisation.Patient.Place + "_" + visualisation.Patient.Name + "_" + visualisation.Patient.Date, 2.0f, 400, 80);
 
             m_Scenes.Add(scene);
+            m_SelectedScene = scene;
             return true;
         }
 
         public bool AddMultiPatientsScene(Data.Visualisation.MultiPatientsVisualisation visualisation)
         {
-            // Create new scene
             GameObject newMultiPatientsScene = Instantiate(SinglePatientScenePrefab, transform);
             MultiPatients3DScene scene = newMultiPatientsScene.GetComponent<MultiPatients3DScene>();
             bool success = scene.Initialize(visualisation);
@@ -173,19 +159,9 @@ namespace HBP.Module3D
                 Debug.LogError("-ERROR : Could not initialize new multi patients scene.");
                 return false;
             }
-            // Set up the cameras
-
-            // Set up the UI
-
-            // Set Timeline data
-            // Done in Initialize
-            // Set selected column to the first column
-            scene.update_selected_column(0);
-            // Focus on the scene
-
-            scene.display_sceen_message("Multi Patients Scene loaded", 2.0f, 400, 80);
 
             m_Scenes.Add(scene);
+            m_SelectedScene = scene;
             return true;
         }
 

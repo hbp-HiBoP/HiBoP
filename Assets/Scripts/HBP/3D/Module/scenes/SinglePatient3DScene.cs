@@ -175,7 +175,7 @@ namespace HBP.Module3D
                 for (int jj = 0; jj < m_Column3DViewManager.ColumnsIEEG.Count; ++jj)
                     m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].reset(m_Column3DViewManager.DLLVolume, m_Column3DViewManager.planesCutsCopy[ii]);                        
 
-                m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].update_cut_mesh_UV(CM.DLLCutsList[ii + 1]);
+                m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].update_cut_mesh_UV(Column3DViewManager.DLLCutsList[ii + 1]);
                 m_Column3DViewManager.DLLCutsList[ii + 1].update_mesh_from_dll(go_.brainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
 
@@ -260,11 +260,12 @@ namespace HBP.Module3D
                 reset_scene_GO();
                 return false;
             }
-
-            m_Column3DViewManager.SetUpCameras(Visualisation.Columns.Count);
+            
             SetTimelineData();
             SelectSite(-1);
+            update_selected_column(0);
 
+            display_sceen_message("Single Patient Scene loaded : " + visualisation.Patient.Place + "_" + visualisation.Patient.Name + "_" + visualisation.Patient.Date, 2.0f, 400, 80);
             return true;
         }
 
@@ -569,7 +570,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < Visualisation.Columns.Count; ++ii)
             {
                 m_Column3DViewManager.ColumnsIEEG[ii].Label = Visualisation.Columns[ii].Label;                
-            }            
+            }
 
             // set timelines
             m_Column3DViewManager.SetTimelineData(Patient, Visualisation.Columns);

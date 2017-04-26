@@ -124,7 +124,9 @@ namespace HBP.Module3D
         public Texture2D brainColorMapTexture = null;
         public Texture2D brainColorTexture = null;
 
-
+        // Column 3D Prefabs
+        public GameObject Column3DViewIEEGPrefab;
+        public GameObject Column3DViewFMRIPrefab;
         #endregion
 
         #region mono_behaviour
@@ -315,20 +317,14 @@ namespace HBP.Module3D
             {
                 for (int ii = 0; ii < -diffIEEGColumns; ++ii)
                 {
-                    // add column
-                    columnsIeegGo.Add(new GameObject("column IEEG " + columnsIeegGo.Count + 1));
-                    columnsIeegGo[columnsIeegGo.Count - 1].AddComponent<Column3DViewIEEG>();
-                    columnsIeegGo[columnsIeegGo.Count - 1].transform.SetParent(this.transform);
+                    AddIEEGColumn();
                 }
             }
             else if (diffIEEGColumns > 0)
             {
                 for (int ii = 0; ii < diffIEEGColumns; ++ii)
                 {
-                    // destroy column
-                    int idColumn = columnsIeegGo.Count - 1;
-                    Destroy(columnsIeegGo[idColumn]);
-                    columnsIeegGo.RemoveAt(idColumn);
+                    RemoveIEEGColumn();
                 }
             }
 
@@ -340,10 +336,7 @@ namespace HBP.Module3D
                 {
                     // add column
                     DLLVolumeFMriList.Add(new DLL.Volume());
-
-                    columnsFmriGo.Add(new GameObject("column FMRI " + columnsFmriGo.Count + 1));
-                    columnsFmriGo[columnsFmriGo.Count - 1].AddComponent<Column3DViewFMRI>();
-                    columnsFmriGo[columnsFmriGo.Count - 1].transform.SetParent(this.transform);
+                    AddFMRIColumn();
                 }
             }
             else if (diffIRMFColumns > 0)
@@ -351,9 +344,8 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < diffIRMFColumns; ++ii)
                 {
                     // destroy column
-                    int idColumn = columnsFmriGo.Count - 1;
-                    Destroy(columnsFmriGo[idColumn]);
-                    columnsFmriGo.RemoveAt(idColumn);
+                    int idColumn = ColumnsFMRI.Count - 1;
+                    RemoveFMRIColumn();
 
                     DLLVolumeFMriList[idColumn].Dispose();
                     DLLVolumeFMriList.RemoveAt(idColumn);
@@ -361,17 +353,15 @@ namespace HBP.Module3D
             }
 
             // init new columns IEEG            
-            if (nbIEEGColumns != columnsIEEG.Count)
+            if (nbIEEGColumns != ColumnsIEEG.Count)
             {
-                columnsIEEG = new List<Column3DViewIEEG>();
                 for (int ii = 0; ii < nbIEEGColumns; ++ii)
                 {
-                    columnsIEEG.Add(columnsIeegGo[ii].GetComponent<Column3DViewIEEG>());
-                    columnsIEEG[ii].init(ii, nbCuts, DLLLoadedPatientsElectrodes, PlotsPatientParent);
-                    columnsIEEG[ii].reset_splits_nb(meshSplitNb);
+                    ColumnsIEEG[ii].Initialize(ii, nbCuts, DLLLoadedPatientsElectrodes, PlotsPatientParent);
+                    ColumnsIEEG[ii].reset_splits_nb(meshSplitNb);
 
                     if (latencyFilesDefined)
-                        columnsIEEG[ii].currentLatencyFile = 0;
+                        ColumnsIEEG[ii].currentLatencyFile = 0;
                 }
             }
 
@@ -384,9 +374,9 @@ namespace HBP.Module3D
                 {
                     bool mask = false;
 
-                    for (int jj = 0; jj < columnsIEEG.Count; ++jj)
+                    for (int jj = 0; jj < ColumnsIEEG.Count; ++jj)
                     {
-                        mask = mask || columnsIEEG[jj].Sites[ii].Information.IsMasked;
+                        mask = mask || ColumnsIEEG[jj].Sites[ii].Information.IsMasked;
                     }
 
                     maskColumnsOR[ii] = mask;
@@ -399,11 +389,9 @@ namespace HBP.Module3D
                         ColumnsFMRI[ii].Sites[jj].Information.IsMasked = maskColumnsOR[jj];
                     }
                 }
-
-                olumnsFMRI = new List<Column3DViewFMRI>();
+                
                 for (int ii = 0; ii < nbIRMFColumns; ++ii)
                 {
-                    ColumnsFMRI.Add(ColumnsFMRI[ii].GetComponent<Column3DViewFMRI>());
                     ColumnsFMRI[ColumnsFMRI.Count - 1].Initialize(ColumnsIEEG.Count + ii, nbCuts, DLLLoadedPatientsElectrodes, PlotsPatientParent);
                     ColumnsFMRI[ColumnsFMRI.Count - 1].reset_splits_nb(meshSplitNb);
 
@@ -616,12 +604,36 @@ namespace HBP.Module3D
 
         void AddIEEGColumn()
         {
-
+            Column3DViewIEEG column = Instantiate(Column3DViewIEEGPrefab, transform).GetComponent<Column3DViewIEEG>();
+            column.gameObject.name = "Column IEEG " + ColumnsIEEG.Count;
+            m_Columns.Add(column);
         }
         void AddFMRIColumn()
         {
-
+            Column3DViewFMRI column = Instantiate(Column3DViewFMRIPrefab, transform).GetComponent<Column3DViewFMRI>();
+            column.gameObject.name = "Column FMRI " + ColumnsFMRI.Count;
+            m_Columns.Add(column);
         }
-        #endregion functions
+        void RemoveIEEGColumn()
+        {
+            if (ColumnsIEEG.Count > 0)
+            {
+                Column3DViewIEEG column = ColumnsIEEG[ColumnsIEEG.Count - 1];
+                int columnID = m_Columns.IndexOf(column);
+                Destroy(m_Columns[columnID]);
+                m_Columns.RemoveAt(columnID);
+            }
+        }
+        void RemoveFMRIColumn()
+        {
+            if (ColumnsIEEG.Count > 0)
+            {
+                Column3DViewFMRI column = ColumnsFMRI[ColumnsFMRI.Count - 1];
+                int columnID = m_Columns.IndexOf(column);
+                Destroy(m_Columns[columnID]);
+                m_Columns.RemoveAt(columnID);
+            }
+        }
+        #endregion
     }
 }

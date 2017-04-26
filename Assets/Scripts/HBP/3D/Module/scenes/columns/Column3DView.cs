@@ -143,7 +143,7 @@ namespace HBP.Module3D
                     for (int kk = 0; kk < nbPlots; ++kk)
                     {
                         plotsGO[ii][jj].Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject);
-                        plotsGO[ii][jj][kk].layer = LayerMask.NameToLayer(layerColumn);
+                        plotsGO[ii][jj][kk].layer = LayerMask.NameToLayer(Layer);
                         Sites.Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject.GetComponent<Site>());
 
                         int id = Sites.Count - 1;
@@ -186,8 +186,7 @@ namespace HBP.Module3D
             }
 
             // view
-            View view = Instantiate(ViewPrefab, transform).GetComponent<View>();
-            m_Views.Add(view);
+            AddView();
         }
         /// <summary>
         ///  Clean all allocated data
@@ -419,6 +418,18 @@ namespace HBP.Module3D
                 dllGuiBrainCutTextures[indexCut].copy_frome_and_rotate(dllBrainCutTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGeneratorList[indexCut]);                
                 dllGuiBrainCutTextures[indexCut].update_texture_2D(guiBrainCutTextures[indexCut]);
             }
+        }
+
+        public void AddView()
+        {
+            View view = Instantiate(ViewPrefab, transform).GetComponent<View>();
+            view.gameObject.name = "View " + m_Views.Count;
+            m_Views.Add(view);
+        }
+        public void RemoveView()
+        {
+            Destroy(m_Views[m_Views.Count - 1].gameObject);
+            m_Views.RemoveAt(m_Views.Count - 1);
         }
         #endregion
     }
