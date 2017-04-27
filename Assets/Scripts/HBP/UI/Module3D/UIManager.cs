@@ -38,18 +38,14 @@ namespace HBP.UI.Module3D
         {
             m_OverlayManager.Initialize(scenesManager);
             m_MenuManager.Initialize(scenesManager);
-
-            scenesManager.SinglePatientScene.DefineSelectedColumn.AddListener((column) =>
+            foreach (Base3DScene scene in scenesManager.Scenes)
             {
-                scenesManager.SelectedScene = scenesManager.SinglePatientScene;
-                UpdateFocusedSceneAndColumn(scenesManager.SinglePatientScene, column);
-
-            });
-            scenesManager.MultiPatientsScene.DefineSelectedColumn.AddListener((column) =>
-            {
-                scenesManager.SelectedScene = scenesManager.MultiPatientsScene;
-                UpdateFocusedSceneAndColumn(scenesManager.MultiPatientsScene, column);
-            });
+                scene.DefineSelectedColumn.AddListener((column) =>
+                {
+                    scenesManager.SelectedScene = scene;
+                    UpdateFocusedSceneAndColumn(scene, column);
+                });
+            }
         }
 
         /// <summary>

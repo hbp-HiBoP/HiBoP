@@ -288,7 +288,7 @@ namespace HBP.Module3D
         public Events.SendModeSpecifications SendModeSpecifications = new Events.SendModeSpecifications(); 
         public Events.DisplaySceneMessage display_screen_message_event = new Events.DisplaySceneMessage();
         public Events.DisplaySceneProgressBar display_scene_progressbar_event = new Events.DisplaySceneProgressBar();
-        public Events.InfoPlotRequest PlotInfoRequest = new Events.InfoPlotRequest();
+        public Events.InfoPlotRequest SiteInfoRequest = new Events.InfoPlotRequest();
         public Events.UpdateCutsInUI UpdateCutsInUI = new Events.UpdateCutsInUI();
         public Events.DefineSelectedColumn DefineSelectedColumn = new Events.DefineSelectedColumn();
         public Events.UpdateTimeInUI UpdateTimeInUI = new Events.UpdateTimeInUI();
@@ -297,12 +297,9 @@ namespace HBP.Module3D
         public Events.UpdateCameraTarget UpdateCameraTarget = new Events.UpdateCameraTarget();
         public Events.ClickPlot ClickSite = new Events.ClickPlot();
         public Events.IRMCalValuesUpdate IRMCalValuesUpdate = new Events.IRMCalValuesUpdate();
-        
+        #endregion
 
-        #endregion members
-
-        #region mono_behaviour
-
+        #region Private Methods
         /// <summary>
         /// This function is always called before any Start functions and also just after a prefab is instantiated. (If a GameObject is inactive during start up Awake is not called until it is made active.)
         /// </summary>
@@ -2037,6 +2034,11 @@ namespace HBP.Module3D
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
             ClickSite.Invoke(-1); // update menu
         }
+        #endregion
+
+        #region Abstract Methods
+        public abstract void click_on_scene(Ray ray);
+        public abstract void disable_site_display_window(int idColumn);
         #endregion
     }
 

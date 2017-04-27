@@ -433,7 +433,7 @@ namespace HBP.Module3D
             }
 
             // load multi patients scene
-            m_command.LoadData(new HBP.Data.Visualisation.SinglePatientVisualisationData(patient, columnsDataSP.ToArray()));
+            //m_command.LoadData(new HBP.Data.Visualisation.SinglePatientVisualisationData(patient, columnsDataSP.ToArray()));
         }
 
         /// <summary>
@@ -476,7 +476,7 @@ namespace HBP.Module3D
             }
 
             // load multi patients scene
-            m_command.LoadData(new HBP.Data.Visualisation.MultiPatientsVisualisationData(patients.ToArray(), columsnDataMP.ToArray()));
+            //m_command.LoadData(new HBP.Data.Visualisation.MultiPatientsVisualisationData(patients.ToArray(), columsnDataMP.ToArray()));
 
         } 
     }    

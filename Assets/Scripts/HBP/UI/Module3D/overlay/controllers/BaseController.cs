@@ -158,8 +158,8 @@ namespace HBP.Module3D
         public void Initialize(ScenesManager scenesManager)
         {
             base.Initialize(scenesManager.CamerasManager);
-            m_SinglePatientScene = scenesManager.SinglePatientScene;
-            m_MultiPatientsScene = scenesManager.MultiPatientsScene;
+            //m_SinglePatientScene = scenesManager.SinglePatientScene;
+            //m_MultiPatientsScene = scenesManager.MultiPatientsScene;
         }
 
         /// <summary>

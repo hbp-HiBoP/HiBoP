@@ -503,7 +503,7 @@ namespace HBP.Module3D
         public void load_patient_in_SP_scene(int idPatientSelected, int idPlotSelected)
         {
             LoadSPSceneFromMP.Invoke(idPatientSelected);
-
+            /*
             // retrieve patient plots nb
             int nbPlotsSpPatient = m_Column3DViewManager.DLLLoadedPatientsElectrodes.patient_sites_nb(idPatientSelected);
 
@@ -582,6 +582,7 @@ namespace HBP.Module3D
 
             // update sp cameras
             ApplySceneCamerasToIndividualScene.Invoke();
+            */
         }
 
         /// <summary>
@@ -666,7 +667,7 @@ namespace HBP.Module3D
         /// Manage the clicks event in the scene
         /// </summary>
         /// <param name="ray"></param>
-        public void click_on_scene(Ray ray)
+        public override void click_on_scene(Ray ray)
         {
             // scene not loaded
             if (!data_.mriLoaded)
@@ -886,7 +887,7 @@ namespace HBP.Module3D
             }
         }
 
-        public void disable_site_display_window(int idColumn)
+        public override void disable_site_display_window(int idColumn)
         {
             UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
         }
@@ -964,7 +965,7 @@ namespace HBP.Module3D
                     request.idPatient = m_Visualisation.Patients[id].ID;
                     request.idPatient2 = (previousPlot == null) ? "" : m_Visualisation.Patients[previousPlot.Information.PatientID].ID;
                     request.maskColumn = masksColumnsData;
-                    PlotInfoRequest.Invoke(request);
+                    SiteInfoRequest.Invoke(request);
                     break;
                 default:
                     break;

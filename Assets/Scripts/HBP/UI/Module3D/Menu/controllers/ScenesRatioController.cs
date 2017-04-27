@@ -43,8 +43,10 @@ namespace HBP.UI.Module3D
             m_sceneRatioTransform.GetComponent<Slider>().onValueChanged.AddListener((value) =>
             {
                 StaticComponents.HBPMain.set_ratio_scene(value);
-                scenesManager.SinglePatientScene.set_current_mode_specifications();
-                scenesManager.MultiPatientsScene.set_current_mode_specifications();
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.set_current_mode_specifications();
+                }
             });
 
             scenesManager.FocusOnScene.AddListener((spScene) =>

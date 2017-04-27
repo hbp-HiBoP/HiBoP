@@ -72,11 +72,11 @@ namespace HBP.UI.Module3D
         public void Initialize(ScenesManager scenesManager)
         {
             // init controllers
-            m_scene = (Base3DScene)scenesManager.MultiPatientsScene;
+            //m_scene = (Base3DScene)scenesManager.MultiPatientsScene;
             m_sceneMenuController.init(m_scene, scenesManager.CamerasManager);
             m_iEEGMenuController.init(m_scene);
             m_FMRIMenuController.init(m_scene);
-            m_ROIMenuController.init(scenesManager.MultiPatientsScene);
+            //m_ROIMenuController.init(scenesManager.MultiPatientsScene);
             m_siteMenuController.init(m_scene);
         }
 

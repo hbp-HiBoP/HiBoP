@@ -50,21 +50,9 @@ namespace HBP.Module3D.Cam
         /// <param name="idColumn"></param>
         public void send_click_ray_to_scenes(Ray ray, Base3DScene scene, int idColumn)
         {
-            switch (scene.Type)
-            {
-                case SceneType.SinglePatient:
-                    if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type)) return;
-                    m_scenesManager.SinglePatientScene.update_selected_column(idColumn);
-                    m_scenesManager.SinglePatientScene.click_on_scene(ray);
-                    break;
-                case SceneType.MultiPatients:
-                    if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type)) return;
-                    m_scenesManager.MultiPatientsScene.update_selected_column(idColumn);
-                    m_scenesManager.MultiPatientsScene.click_on_scene(ray);
-                    break;
-                default:
-                    break;
-            }
+            if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type)) return;
+            scene.update_selected_column(idColumn);
+            scene.click_on_scene(ray);
             m_UIManager.UpdateFocusedSceneAndColumn(scene, idColumn);
         }
 
@@ -75,33 +63,16 @@ namespace HBP.Module3D.Cam
         /// <param name="spScene"></param>
         /// <param name="mousePosition"></param>
         /// <param name="idColumn"></param>
-        public void send_mouse_movement_to_scenes(Ray ray, SceneType type, Vector3 mousePosition, int idColumn)
+        public void send_mouse_movement_to_scenes(Ray ray, Base3DScene scene, Vector3 mousePosition, int idColumn)
         {
-            if (m_UIManager.OverlayManager.check_if_click_on_overlay(type))
+            if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
             {
-                switch (type)
-                {
-                    case SceneType.SinglePatient:
-                        m_scenesManager.SinglePatientScene.disable_plot_display_window(idColumn);
-                        break;
-                    case SceneType.MultiPatients:
-                        m_scenesManager.MultiPatientsScene.disable_site_display_window(idColumn);
-                        break;
-                    default:
-                        break;
-                }
-                return; // click on overlay, don't propagate to the scenes
+                scene.disable_site_display_window(idColumn);
+                return;
             }
-            switch (type)
+            else
             {
-                case SceneType.SinglePatient:
-                    m_scenesManager.SinglePatientScene.move_mouse_on_scene(ray, mousePosition, idColumn);
-                    break;
-                case SceneType.MultiPatients:
-                    m_scenesManager.MultiPatientsScene.move_mouse_on_scene(ray, mousePosition, idColumn);
-                    break;
-                default:
-                    break;
+                scene.move_mouse_on_scene(ray, mousePosition, idColumn);
             }
         }
 
@@ -110,22 +81,11 @@ namespace HBP.Module3D.Cam
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="mouseScrollDelta"></param>
-        public void send_scroll_mouse_to_scenes(SceneType type, Vector2 mouseScrollDelta)
+        public void send_scroll_mouse_to_scenes(Base3DScene scene, Vector2 mouseScrollDelta)
         {
-            if (m_UIManager.OverlayManager.check_if_click_on_overlay(type))
+            if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
                 return; // click on overlay, don't propagate to the scenes
-
-            switch (type)
-            {
-                case SceneType.SinglePatient:
-                    m_scenesManager.SinglePatientScene.mouse_scroll_action(mouseScrollDelta);
-                    break;
-                case SceneType.MultiPatients:
-                    m_scenesManager.MultiPatientsScene.mouse_scroll_action(mouseScrollDelta);
-                    break;
-                default:
-                    break;
-            }
+            scene.mouse_scroll_action(mouseScrollDelta);
         }
 
         /// <summary>
@@ -133,25 +93,14 @@ namespace HBP.Module3D.Cam
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="key"></param>
-        public void send_keyboard_action_to_scenes(SceneType type, KeyCode key)
+        public void send_keyboard_action_to_scenes(Base3DScene scene, KeyCode key)
         {
-            if (m_UIManager.OverlayManager.check_if_click_on_overlay(type))
+            if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
                 return; // click on overlay, don't propagate to the scenes
-
-            switch (type)
-            {
-                case SceneType.SinglePatient:
-                    m_scenesManager.SinglePatientScene.keyboard_action(key);
-                    break;
-                case SceneType.MultiPatients:
-                    m_scenesManager.MultiPatientsScene.keyboard_action(key);
-                    break;
-                default:
-                    break;
-            }
+            scene.keyboard_action(key);
         }
 
-        #endregion others
+        #endregion
     }
 
 }

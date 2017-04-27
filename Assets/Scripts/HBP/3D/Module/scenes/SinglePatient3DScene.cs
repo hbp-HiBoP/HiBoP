@@ -641,7 +641,7 @@ namespace HBP.Module3D
         /// Manage the clicks event in the scene
         /// </summary>
         /// <param name="ray"></param>
-        public void click_on_scene(Ray ray)
+        public override void click_on_scene(Ray ray)
         {
             // scene not loaded
             if (!data_.mriLoaded)
@@ -818,7 +818,7 @@ namespace HBP.Module3D
             
         }
 
-        public void disable_plot_display_window(int idColumn)
+        public override void disable_site_display_window(int idColumn)
         {
             UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
         }
@@ -911,7 +911,7 @@ namespace HBP.Module3D
                         request.idPatient2 = Patient.ID;
                         request.maskColumn = masksColumnsData;
 
-                        PlotInfoRequest.Invoke(request);
+                        SiteInfoRequest.Invoke(request);
                     }
                     break;
                 default:

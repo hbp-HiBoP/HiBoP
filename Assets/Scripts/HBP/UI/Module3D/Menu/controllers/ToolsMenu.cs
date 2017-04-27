@@ -138,13 +138,13 @@ namespace HBP.UI.Module3D
             // fMRI.
             m_AddfMRI.onClick.AddListener(() =>
             {
-                if (StaticComponents.HBPMain.AddfMRIColumn(m_ScenesManager.SelectedScene.Type)) m_ScenesManager.DisplayMessageInScene(m_ScenesManager.SelectedScene.Type, "fMRI successfully loaded. ", 2f, 150, 80);
-                else m_ScenesManager.DisplayMessageInScene(m_ScenesManager.SelectedScene.Type, "Error during fMRI loading. ", 2f, 170, 80);
+                if (StaticComponents.HBPMain.AddfMRIColumnToSelectedScene()) m_ScenesManager.DisplayMessageInScene(m_ScenesManager.SelectedScene, "fMRI successfully loaded. ", 2f, 150, 80);
+                else m_ScenesManager.DisplayMessageInScene(m_ScenesManager.SelectedScene, "Error during fMRI loading. ", 2f, 170, 80);
                 UpdateUI();
             });
             m_RemovefMRI.onClick.AddListener(() =>
             {
-                StaticComponents.HBPMain.RemoveLastfMRIColumn(m_ScenesManager.SelectedScene.Type);
+                StaticComponents.HBPMain.RemoveLastfMRIColumnFromSelectedScene();
                 UpdateUI();
             });
 

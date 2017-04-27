@@ -55,8 +55,10 @@ namespace HBP.Module3D
                 baseButtons.Find("colormap" + id + " button").GetComponent<Button>().onClick.AddListener(() =>
                 {
                     m_colorMapController.update_colormap(id - 1);
-                    scenesManager.SinglePatientScene.update_colormap(id - 1);
-                    scenesManager.MultiPatientsScene.update_colormap(id - 1);                    
+                    foreach (Base3DScene scene in scenesManager.Scenes)
+                    {
+                        scene.update_colormap(id - 1);
+                    }                
                 });
             }
             Button minimizeColorMapButton = m_globalMenuGO.transform.Find("panel").Find("Colormap parent").Find("Colormap button").GetComponent<Button>();
@@ -72,23 +74,31 @@ namespace HBP.Module3D
             baseButtons = m_globalMenuGO.transform.Find("panel").Find("braincolor buttons");
             baseButtons.Find("braincolor1 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SinglePatientScene.update_brain_surface_color(15);
-                scenesManager.MultiPatientsScene.update_brain_surface_color(15);
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.update_brain_surface_color(15);
+                }
             });
             baseButtons.Find("braincolor2 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SinglePatientScene.update_brain_surface_color(16);
-                scenesManager.MultiPatientsScene.update_brain_surface_color(16);
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.update_brain_surface_color(16);
+                }
             });
             baseButtons.Find("braincolor3 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SinglePatientScene.update_brain_surface_color(0);
-                scenesManager.MultiPatientsScene.update_brain_surface_color(0);
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.update_brain_surface_color(0);
+                }
             });
             baseButtons.Find("braincolor4 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SinglePatientScene.update_brain_surface_color(14);
-                scenesManager.MultiPatientsScene.update_brain_surface_color(14);
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.update_brain_surface_color(14);
+                }
             });
 
             Button minimizeBrainColorButton = m_globalMenuGO.transform.Find("panel").Find("Braincolor parent").Find("Braincolor button").GetComponent<Button>();
@@ -104,13 +114,17 @@ namespace HBP.Module3D
             baseButtons = m_globalMenuGO.transform.Find("panel").Find("cutcolor buttons");
             baseButtons.Find("cutcolor1 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SinglePatientScene.update_brain_cut_color(14);
-                scenesManager.MultiPatientsScene.update_brain_cut_color(14);
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.update_brain_cut_color(14);
+                }
             });
             baseButtons.Find("cutcolor2 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SinglePatientScene.update_brain_cut_color(0);
-                scenesManager.MultiPatientsScene.update_brain_cut_color(0);
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.update_brain_cut_color(0);
+                }
             });
 
             Button minimizeCutColorButton = m_globalMenuGO.transform.Find("panel").Find("Cutcolor parent").Find("Cutcolor button").GetComponent<Button>();

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -63,18 +64,6 @@ namespace HBP.Module3D
                 else
                     UpdateColumnMinimizedState.Invoke(false, minimizeController.MPMinimizeStateList);
             });
-            m_HBP3D.ScenesManager.SinglePatientScene.PlotInfoRequest.AddListener((siteRequest) =>
-            {
-                SiteInfoRequest.Invoke(siteRequest);
-            });
-            m_HBP3D.ScenesManager.MultiPatientsScene.PlotInfoRequest.AddListener((siteRequest) =>
-            {
-                SiteInfoRequest.Invoke(siteRequest);
-            });
-            m_HBP3D.ScenesManager.MultiPatientsScene.LoadSPSceneFromMP.AddListener((idPatient) =>
-            {
-                LoadSPSceneFromMP.Invoke(idPatient);
-            });
             m_HBP3D.UIManager.MenuManager.transform.FindChild("Left").FindChild("mp left menu list").FindChild("ROI").GetComponent<ROIMenuController>().ROISavedEvent.AddListener((pathROI) =>
             {
                 ROISavedEvent.Invoke(pathROI);
@@ -105,7 +94,7 @@ namespace HBP.Module3D
         /// <param name="showMPScene"> if true display multi patients scene</param>
         public void SetScenesVisibility(bool showSPScene = true, bool showMPScene = true)
         {
-            m_HBP3D.ScenesManager.setScenesVisibility(showSPScene, showMPScene);
+            m_HBP3D.ScenesManager.SetScenesVisibility(showSPScene, showMPScene);
         }
 
         /// <summary>
@@ -116,6 +105,12 @@ namespace HBP.Module3D
         public bool LoadData(Data.Visualisation.SinglePatientVisualisation visualisation)
         {
             bool result = m_HBP3D.SetSinglePatientSceneData(visualisation);
+            // Add listeners to last added scene
+            SinglePatient3DScene lastAddedScene = m_HBP3D.ScenesManager.Scenes.Last() as SinglePatient3DScene;
+            lastAddedScene.SiteInfoRequest.AddListener((siteRequest) =>
+            {
+                SiteInfoRequest.Invoke(siteRequest);
+            });
             return result;
         }
 
@@ -126,12 +121,27 @@ namespace HBP.Module3D
         /// <returns>false if a loading error occurs, else true </returns>
         public bool LoadData(Data.Visualisation.MultiPatientsVisualisation visualisation)
         {
+            bool result = false;
             if (MNIObjects.LoadingMutex.WaitOne(10000))
-                return m_HBP3D.SetMultiPatientsSceneData(visualisation);
+                result = m_HBP3D.SetMultiPatientsSceneData(visualisation);
 
-            UnityEngine.Debug.LogError("MNI loading data not finished. ");
-
-            return false;
+            if (!result)
+            {
+                UnityEngine.Debug.LogError("MNI loading data not finished. ");
+                return false;
+            }
+            // Add listener to last added scene
+            MultiPatients3DScene lastAddedScene = m_HBP3D.ScenesManager.Scenes.Last() as MultiPatients3DScene;
+            lastAddedScene.SiteInfoRequest.AddListener((siteRequest) =>
+            {
+                SiteInfoRequest.Invoke(siteRequest);
+            });
+            lastAddedScene.LoadSPSceneFromMP.AddListener((idPatient) =>
+            {
+                LoadSPSceneFromMP.Invoke(idPatient);
+            });
+            
+            return true;
         }
         #endregion
     }

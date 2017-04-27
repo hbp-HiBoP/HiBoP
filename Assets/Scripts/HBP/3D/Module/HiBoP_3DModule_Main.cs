@@ -63,12 +63,11 @@ namespace HBP.Module3D
             });
 
         }
+        #endregion
 
-        #endregion mono_behaviour
-
-        #region functions
+        #region Public Methods
         /// <summary>
-        /// Reload the SP scene
+        /// Load a new single patient scene
         /// </summary>
         /// <param name="visualisation"></param>
         /// <returns></returns>
@@ -82,63 +81,12 @@ namespace HBP.Module3D
             }
             return true;
         }
-
         /// <summary>
-        /// Reload the SP scene
-        /// </summary>
-        /// <param name="patient"></param>
-        /// <param name="columnsData"></param>
-        /// <param name="idPlotSelected"></param>
-        /// <param name="blacklistMasks"></param>
-        /// <param name="excludedMasks"></param>
-        /// /// <returns></returns>
-        public bool SetSinglePatientSceneData(HBP.Data.Patient patient, List<HBP.Data.Visualisation.ColumnData> columnsData, int idPlotSelected, List<List<bool>> blacklistMasks,
-            List<List<bool>> excludedMasks, List<List<bool>> hightLightedMasks)
-        {
-            // TODO : adapt with new way to handle visualisations
-            /*
-            // set paths
-            bool success = m_ScenesManager.SinglePatientScene.Initialize(patient, false);
-            if (!success)
-            {
-                Debug.LogError("-ERROR : ScenesManager::setSPData -> aborted. ");
-                return false;
-            }
-
-            // 1) define the number of cameras for the scene  
-            m_ScenesManager.SetUpCameras(SceneType.SinglePatient, columnsData.Count);
-
-            // 2) define the number of UI overlays and UI cameras for the scene
-            m_UIManager.SetiEEGColumns(SceneType.SinglePatient, columnsData);
-
-            // 3) define the iEEG data of the scene -> create the 3D view columns
-            m_ScenesManager.SinglePatientScene.set_timeline_data(patient, columnsData);
-
-            // 4) define the selected plot of all the columns of the scene
-            m_ScenesManager.SinglePatientScene.define_selected_site(idPlotSelected);
-
-            // 5) define the maks of all the columns of the scene
-            m_ScenesManager.SinglePatientScene.set_columns_site_mask(blacklistMasks, excludedMasks, hightLightedMasks);
-
-            // 6) update the current selected column of the scene
-            m_ScenesManager.define_selected_column(ScenesManager.SinglePatientScene, 0);
-
-            // 7) focus on the scene
-            m_UIManager.UpdateFocusedSceneAndColumn(ScenesManager.SinglePatientScene, 0);
-            
-            m_ScenesManager.DisplayMessageInScene(SceneType.SinglePatient, "Individual scene loaded: " + patient.Place + "_" + patient.Name + "_" + patient.Date, 2f, 400, 80);
-            */
-            return true;
-        }
-
-
-        /// <summary>
-        /// Reload the MP scene
+        /// Load a new multi patients scene
         /// </summary>
         /// <param name="data"></param>
         public bool SetMultiPatientsSceneData(Data.Visualisation.MultiPatientsVisualisation visualisation)
         {
-
             bool success = m_ScenesManager.AddMultiPatientsScene(visualisation);
             if (!success)
             {
@@ -147,39 +95,36 @@ namespace HBP.Module3D
             }
             return true;
         }
-
         /// <summary>
         /// Add a fMRI column
         /// </summary>
         /// <param name="spScene"></param>
         /// <returns></returns>
-        public bool AddfMRIColumn(SceneType type)
+        public bool AddfMRIColumnToSelectedScene()
         {
             string fMRIPath;
-            if (!m_ScenesManager.LoadfMRIDialog(type, out fMRIPath))
+            if (!m_ScenesManager.LoadfMRIDialogOfSelectedScene(out fMRIPath))
                 return false;
 
             string[] split = fMRIPath.Split(new Char[] { '/', '\\' });
             string fmriLabel = split[split.Length - 1];
 
-            m_UIManager.AddfMRIColumn(type, fmriLabel);
+            m_UIManager.AddfMRIColumn(m_ScenesManager.SelectedScene.Type, fmriLabel);
 
-            return m_ScenesManager.AddfMRIColumn(type, fmriLabel);
+            return m_ScenesManager.AddfMRIColumnToSelectedScene(fmriLabel);
         }
-
         /// <summary>
         /// Remove the last fmRI column
         /// </summary>
         /// <param name="spScene"></param>
-        public void RemoveLastfMRIColumn(SceneType type)
+        public void RemoveLastfMRIColumnFromSelectedScene()
         {
-            if (m_ScenesManager.GetNumberOffMRIColumns(type) == 0)
+            if (m_ScenesManager.GetNumberOffMRIColumnsOfSelectedScene() == 0)
                 return;
 
-            m_UIManager.RemoveLastfMRIColumn(type);
-            m_ScenesManager.RemoveLastfMRIColumn(type);
+            m_UIManager.RemoveLastfMRIColumn(m_ScenesManager.SelectedScene.Type);
+            m_ScenesManager.RemoveLastfMRIColumnFromSelectedScene();
         }
-
         /// <summary>
         /// Define the ratio between the two scenes
         /// </summary>
@@ -201,9 +146,7 @@ namespace HBP.Module3D
             m_ScenesManager.SPPanel.transform.parent.gameObject.GetComponent<LayoutElement>().flexibleHeight = ratio;
             m_ScenesManager.MPPanel.transform.parent.gameObject.GetComponent<LayoutElement>().flexibleHeight = 1f - ratio;
         }
-
-
-        #endregion functions
+        #endregion
 
     }
 }

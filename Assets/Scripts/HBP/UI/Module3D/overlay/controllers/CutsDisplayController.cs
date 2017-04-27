@@ -215,7 +215,7 @@ namespace HBP.Module3D
             //m_mpMenu.init(scenesManager.CamerasManager.background_camera(), m_imagesParent.Find("mp cut images display panel"), m_overlayParent.Find("MP").Find("image cut display"));
 
             update_UI();
-
+            /*
             scenesManager.SinglePatientScene.UpdateCutsInUI.AddListener((textures, idColumn, nbPlanes) =>
             {                
                 m_spIsActive = true;
@@ -230,6 +230,7 @@ namespace HBP.Module3D
                 m_mpMenu.update_images_to_display(textures, idColumn, nbPlanes);
                 update_UI();
             });
+            */
         }
 
         /// <summary>

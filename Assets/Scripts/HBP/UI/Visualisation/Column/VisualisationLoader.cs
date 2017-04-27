@@ -248,6 +248,7 @@ namespace HBP.UI.Visualisation
             VisualisationLoaded.SP_VisualisationData = spVisuData;
             VisualisationLoaded.SP_Visualisation = spVisu;
             VisualisationLoaded.SP_Columns = VisualisationLoaded.MP_Columns;
+            // TODO : Create single patient visualisation and send it as a new visualisation
         }
         void HandleError(LoadingErrorEnum error, string additionalInformations)
         {

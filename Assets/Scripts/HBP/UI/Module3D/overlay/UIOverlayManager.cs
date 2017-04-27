@@ -95,6 +95,7 @@ namespace HBP.UI.Module3D
             m_bothDisplaySiteInfoTransform = transform.FindChild("others").FindChild("display site info panel");
 
             // init controllers
+            /*
             //  planes 
             m_spPlanesController.Initialize(scenesManager.SinglePatientScene, scenesManager.CamerasManager);
             m_mpPlanesController.Initialize(scenesManager.MultiPatientsScene, scenesManager.CamerasManager);
@@ -107,6 +108,7 @@ namespace HBP.UI.Module3D
             //  icones
             m_spIconesController.init(scenesManager.SinglePatientScene, scenesManager.CamerasManager);
             m_mpIconesController.init(scenesManager.MultiPatientsScene, scenesManager.CamerasManager);
+            */
             //  display image cut            
             m_bothDisplayImageCutController.init(scenesManager);
             //  minimize
@@ -129,6 +131,7 @@ namespace HBP.UI.Module3D
                 m_bothColorMapController.UpdateUI();
             });
 
+            /*
             // listeners
             scenesManager.SinglePatientScene.UpdateTimeInUI.AddListener(() =>
             {
@@ -148,7 +151,7 @@ namespace HBP.UI.Module3D
             {
                 udpate_display_site_infos(false, siteInfo);
             });
-
+            */
             m_scenesManager = scenesManager;
             m_initialized = true;
         }
@@ -580,20 +583,23 @@ namespace HBP.UI.Module3D
         /// Update the timeline current time for the controllers
         /// </summary>
         /// <param name="spScene"></param>
-        public void update_time(bool spScene)
+        public void update_time(Base3DScene scene)
         {
-            Column3DViewManager cm = spScene ? m_scenesManager.SinglePatientScene.Column3DViewManager : m_scenesManager.MultiPatientsScene.Column3DViewManager;
+            Column3DViewManager cm = scene.Column3DViewManager;
             int time = cm.globalTimeline ? (int)cm.commonTimelineValue : ((Column3DViewIEEG)cm.SelectedColumn).columnTimeLineID;
 
-            if (spScene)
-            {                
-                m_spIconesController.set_time(cm.globalTimeline, cm.SelectedColumnID, time);
-                m_spTimeDisplayController.updateTime(cm.SelectedColumnID, time, cm.globalTimeline);
-            }
-            else
+            switch (scene.Type)
             {
-                m_mpIconesController.set_time(cm.globalTimeline, cm.SelectedColumnID, time);
-                m_mpTimeDisplayController.updateTime(cm.SelectedColumnID, time, cm.globalTimeline);
+                case SceneType.SinglePatient:
+                    m_spIconesController.set_time(cm.globalTimeline, cm.SelectedColumnID, time);
+                    m_spTimeDisplayController.updateTime(cm.SelectedColumnID, time, cm.globalTimeline);
+                    break;
+                case SceneType.MultiPatients:
+                    m_mpIconesController.set_time(cm.globalTimeline, cm.SelectedColumnID, time);
+                    m_mpTimeDisplayController.updateTime(cm.SelectedColumnID, time, cm.globalTimeline);
+                    break;
+                default:
+                    break;
             }
         }
 
