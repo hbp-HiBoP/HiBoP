@@ -33,7 +33,7 @@ namespace HBP.Module3D
     [AddComponentMenu("Scenes/Single Patient 3D Scene")]
     public class SinglePatient3DScene : Base3DScene
     {
-        #region members
+        #region Properties
         public override SceneType Type
         {
             get
@@ -45,20 +45,23 @@ namespace HBP.Module3D
         public float m_ambientIntensity = 1;
         public Color m_ambiantLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
-
-        Data.Visualisation.SinglePatientVisualisation m_Visualisation;
-        public Data.Visualisation.SinglePatientVisualisation Visualisation
+        
+        public new Data.Visualisation.SinglePatientVisualisation Visualisation
         {
             get
             {
-                return m_Visualisation;
+                return Visualisation as Data.Visualisation.SinglePatientVisualisation;
+            }
+            set
+            {
+                Visualisation = value;
             }
         }
         public Data.Patient Patient
         {
             get
             {
-                return m_Visualisation.Patient;
+                return Visualisation.Patient;
             }
         }
         public override string Name
@@ -217,7 +220,7 @@ namespace HBP.Module3D
         {
             m_ModesManager.updateMode(Mode.FunctionsId.resetScene);
 
-            m_Visualisation = visualisation;
+            Visualisation = visualisation;
 
             List<string> ptsFiles = new List<string>(), namePatients = new List<string>();
             ptsFiles.Add(Patient.Brain.PatientReferenceFrameImplantation); //.PatientBasedImplantation);

@@ -23,6 +23,8 @@ namespace HBP.Module3D
         /// </summary>
         [System.Serializable]
         public class UpdateColumnMinimizeStateEvent : UnityEvent<bool, List<bool>> { }
+        public class OnAddVisualisation : UnityEvent<Data.Visualisation.Visualisation> { }
+        public class OnRemoveVisualisation : UnityEvent<Data.Visualisation.Visualisation> { }
     }
 
     /// <summary>
@@ -43,6 +45,8 @@ namespace HBP.Module3D
         public Events.InfoPlotRequest SiteInfoRequest = new Events.InfoPlotRequest();        
         public Events.LoadSPSceneFromMP LoadSPSceneFromMP = new Events.LoadSPSceneFromMP();
         public Events.ROISavedEvent ROISavedEvent = new Events.ROISavedEvent();
+        public Events.OnAddVisualisation OnAddVisualisation = new Events.OnAddVisualisation();
+        public Events.OnRemoveVisualisation OnRemoveVisualisation = new Events.OnRemoveVisualisation();
         #endregion 
 
         #region Private Methods
@@ -68,6 +72,14 @@ namespace HBP.Module3D
             {
                 ROISavedEvent.Invoke(pathROI);
                 UnityEngine.Debug.Log("pathROI : " + pathROI);
+            });
+            m_HBP3D.ScenesManager.OnAddScene.AddListener((scene) =>
+            {
+                OnAddVisualisation.Invoke(scene.Visualisation);
+            });
+            m_HBP3D.ScenesManager.OnRemoveScene.AddListener((scene) =>
+            {
+                OnRemoveVisualisation.Invoke(scene.Visualisation);
             });
         }
         void OnDestroy()

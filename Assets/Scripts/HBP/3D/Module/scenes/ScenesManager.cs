@@ -16,7 +16,8 @@ namespace HBP.Module3D
     {
         public class FocusOnScene : UnityEvent<bool> { }
         public class OnChangeSelectedScene : UnityEvent<Base3DScene> { }
-        public class OnRemoveScene : UnityEvent<Data.Visualisation.Visualisation> { }
+        public class OnAddScene : UnityEvent<Base3DScene> { }
+        public class OnRemoveScene : UnityEvent<Base3DScene> { }
     }
 
     /// <summary>
@@ -57,6 +58,7 @@ namespace HBP.Module3D
             get { return m_SelectedScene; }
         }
         public Events.OnChangeSelectedScene OnChangeSelectedScene = new Events.OnChangeSelectedScene();
+        public Events.OnAddScene OnAddScene = new Events.OnAddScene();
         public Events.OnRemoveScene OnRemoveScene = new Events.OnRemoveScene();
 
         // managers
@@ -133,6 +135,7 @@ namespace HBP.Module3D
             // Add the scene to the list
             m_Scenes.Add(scene);
             m_SelectedScene = scene;
+            OnAddScene.Invoke(scene);
             return true;
         }
         /// <summary>
@@ -167,6 +170,7 @@ namespace HBP.Module3D
             // Add the scene to the list
             m_Scenes.Add(scene);
             m_SelectedScene = scene;
+            OnAddScene.Invoke(scene);
             return true;
         }
         /// <summary>
@@ -176,17 +180,7 @@ namespace HBP.Module3D
         public void RemoveScene(Base3DScene scene)
         {
             Destroy(scene.gameObject);
-            switch (scene.Type)
-            {
-                case SceneType.SinglePatient:
-                    OnRemoveScene.Invoke((scene as SinglePatient3DScene).Visualisation);
-                    break;
-                case SceneType.MultiPatients:
-                    OnRemoveScene.Invoke((scene as MultiPatients3DScene).Visualisation);
-                    break;
-                default:
-                    break;
-            }
+            OnRemoveScene.Invoke(scene);
             m_Scenes.Remove(scene);
         }
 
@@ -214,7 +208,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="mpScene"></param>
-        public void SetScenesVisibility(bool spScene, bool mpScene)
+        public void SetScenesVisibility(bool spScene, bool mpScene) // TODO : delete
         {
             if (spScene)
                 FocusOnScene.Invoke(true);

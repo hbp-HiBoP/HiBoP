@@ -72,19 +72,23 @@ namespace HBP.Module3D
                 return SceneType.MultiPatients;
             }
         }
-        Data.Visualisation.MultiPatientsVisualisation m_Visualisation = null;
-        public Data.Visualisation.MultiPatientsVisualisation Visualisation
+
+        public new Data.Visualisation.MultiPatientsVisualisation Visualisation
         {
             get
             {
-                return m_Visualisation;
+                return Visualisation as Data.Visualisation.MultiPatientsVisualisation;
+            }
+            set
+            {
+                Visualisation = value;
             }
         }
         public ReadOnlyCollection<Data.Patient> Patients
         {
             get
             {
-                return new ReadOnlyCollection<Data.Patient>(m_Visualisation.Patients);
+                return new ReadOnlyCollection<Data.Patient>(Visualisation.Patients);
             }
         }
         public override string Name
@@ -270,7 +274,7 @@ namespace HBP.Module3D
         public bool Initialize(Data.Visualisation.MultiPatientsVisualisation visualisation)
         {
             m_ModesManager.updateMode(Mode.FunctionsId.resetScene);
-            m_Visualisation = visualisation;
+            Visualisation = visualisation;
 
             // MNI meshes are preloaded
             data_.volumeCenter = m_MNI.IRM.center();
@@ -283,11 +287,11 @@ namespace HBP.Module3D
             // get the middle
             data_.meshCenter = m_MNI.BothHemi.bounding_box().center();
 
-            List<string> ptsFiles = new List<string>(m_Visualisation.GetImplantation().Length), namePatients = new List<string>(m_Visualisation.GetImplantation().Length);
-            for (int ii = 0; ii < m_Visualisation.GetImplantation().Length; ++ii)
+            List<string> ptsFiles = new List<string>(Visualisation.GetImplantation().Length), namePatients = new List<string>(Visualisation.GetImplantation().Length);
+            for (int ii = 0; ii < Visualisation.GetImplantation().Length; ++ii)
             {
-                ptsFiles.Add(m_Visualisation.GetImplantation()[ii]);
-                namePatients.Add(m_Visualisation.Patients[ii].Place + "_" + m_Visualisation.Patients[ii].Date + "_" + m_Visualisation.Patients[ii].Name);
+                ptsFiles.Add(Visualisation.GetImplantation()[ii]);
+                namePatients.Add(Visualisation.Patients[ii].Place + "_" + Visualisation.Patients[ii].Date + "_" + Visualisation.Patients[ii].Name);
             }
 
             // reset columns
@@ -926,9 +930,9 @@ namespace HBP.Module3D
                         return;
 
                     int id = -1;
-                    for (int ii = 0; ii < m_Visualisation.Patients.Count; ++ii)
+                    for (int ii = 0; ii < Visualisation.Patients.Count; ++ii)
                     {
-                        if (m_Visualisation.Patients[ii].Name == elements[2])
+                        if (Visualisation.Patients[ii].Name == elements[2])
                         {
                             id = ii;
                             break;
@@ -962,8 +966,8 @@ namespace HBP.Module3D
                     request.spScene = false;
                     request.idSite1 = currIEEGCol.SelectedSiteID;
                     request.idSite2 = (previousPlot == null) ? -1 : previousPlot.Information.GlobalID;
-                    request.idPatient = m_Visualisation.Patients[id].ID;
-                    request.idPatient2 = (previousPlot == null) ? "" : m_Visualisation.Patients[previousPlot.Information.PatientID].ID;
+                    request.idPatient = Visualisation.Patients[id].ID;
+                    request.idPatient2 = (previousPlot == null) ? "" : Visualisation.Patients[previousPlot.Information.PatientID].ID;
                     request.maskColumn = masksColumnsData;
                     SiteInfoRequest.Invoke(request);
                     break;

@@ -257,6 +257,18 @@ namespace HBP.Module3D
         // data        
         public abstract string Name { get; }
         public abstract SceneType Type { get; }
+        protected Data.Visualisation.Visualisation m_Visualisation;
+        public virtual Data.Visualisation.Visualisation Visualisation
+        {
+            get
+            {
+                return m_Visualisation;
+            }
+            set
+            {
+                m_Visualisation = value;
+            }
+        }
 
         private bool m_displaySitesNames = false;
         private Camera m_lastCamera = null;
