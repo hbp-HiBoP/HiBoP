@@ -512,15 +512,8 @@ namespace HBP.Module3D
             if (updateColors)
                 Column3DViewManager.reset_colors();
 
-            switch(Type)
-            {
-                case SceneType.SinglePatient:
-                    SharedMaterials.Brain.SinglePatientBrainMaterial.SetTexture("_ColorTex", Column3DViewManager.brainColorMapTexture);
-                    break;
-                case SceneType.MultiPatients:
-                    SharedMaterials.Brain.MultiPatientsBrainMaterial.SetTexture("_ColorTex", Column3DViewManager.brainColorMapTexture);
-                    break;
-            }
+            SharedMaterials.Brain.BrainMaterials[this].SetTexture("_ColorTex", Column3DViewManager.brainColorMapTexture);
+
             if (data_.geometryUpToDate && !data_.iEEGOutdated)
                 ComputeIEEGTextures();
         }
@@ -534,15 +527,7 @@ namespace HBP.Module3D
             DLL.Texture tex = DLL.Texture.generate_1D_color_texture(Column3DViewManager.m_BrainColor);
             tex.update_texture_2D(Column3DViewManager.brainColorTexture);
 
-            switch(Type)
-            {
-                case SceneType.SinglePatient:
-                    SharedMaterials.Brain.SinglePatientBrainMaterial.SetTexture("_MainTex", Column3DViewManager.brainColorTexture);
-                    break;
-                case SceneType.MultiPatients:
-                    SharedMaterials.Brain.MultiPatientsBrainMaterial.SetTexture("_MainTex", Column3DViewManager.brainColorTexture);
-                    break;
-            }
+            SharedMaterials.Brain.BrainMaterials[this].SetTexture("_MainTex", Column3DViewManager.brainColorTexture);
         }
         /// <summary>
         /// 
@@ -597,15 +582,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_Column3DViewManager.meshSplitNb; ++ii)
             {
                 go_.brainSurfaceMeshes.Add(Instantiate(GlobalGOPreloaded.Brain));
-                switch(Type)
-                {
-                    case SceneType.SinglePatient:
-                        go_.brainSurfaceMeshes[ii].GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.SinglePatientBrainMaterial;
-                        break;
-                    case SceneType.MultiPatients:
-                        go_.brainSurfaceMeshes[ii].GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.MultiPatientsBrainMaterial;
-                        break;
-                }
+                go_.brainSurfaceMeshes[ii].GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.BrainMaterials[this];
                 go_.brainSurfaceMeshes[ii].name = "brain_" + ii;
                 go_.brainSurfaceMeshes[ii].transform.parent = go_.brainSurfaceMeshesParent.transform;
                 go_.brainSurfaceMeshes[ii].layer = LayerMask.NameToLayer(data_.MeshesLayerName);
@@ -872,15 +849,7 @@ namespace HBP.Module3D
             data_.numberOfCutsPerPlane.Add(data_.defaultNbOfCutsPerPlane);
 
             GameObject cut = Instantiate(GlobalGOPreloaded.Cut);
-            switch(Type)
-            {
-                case SceneType.SinglePatient:
-                    cut.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.SinglePatientCutMaterial;
-                    break;
-                case SceneType.MultiPatients:
-                    cut.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.MultiPatientsCutMaterial;
-                    break;
-            }
+            cut.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.CutMaterials[this];
             cut.name = "cut_" + (m_planesList.Count - 1);
             cut.transform.parent = go_.brainCutMeshesParent.transform; ;
             cut.AddComponent<MeshCollider>();

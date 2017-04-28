@@ -8,6 +8,7 @@
 // system
 using System;
 using System.Text;
+using System.Collections.Generic;
 
 // unity
 using UnityEngine;
@@ -21,11 +22,40 @@ namespace HBP.Module3D
     {
         public struct Brain
         {
-            public static Material SinglePatientBrainMaterial = null;
-            public static Material SinglePatientCutMaterial = null;
+            public static Dictionary<Base3DScene, Material> BrainMaterials = new Dictionary<Base3DScene, Material>();
+            public static Dictionary<Base3DScene, Material> CutMaterials = new Dictionary<Base3DScene, Material>();
 
-            public static Material MultiPatientsBrainMaterial = null;
-            public static Material MultiPatientsCutMaterial = null;
+            public static void Initialize()
+            {
+                StaticComponents.ScenesManager.OnAddScene.AddListener((scene) =>
+                {
+                    Material brainMaterial, cutMaterial;
+                    switch (scene.Type) // Distinction is useful in the shader in order to show mars atlases in sp
+                    {
+                        case SceneType.SinglePatient:
+                            brainMaterial = Instantiate(Resources.Load("Materials/Brain/SpBrain", typeof(Material))) as Material;
+                            BrainMaterials.Add(scene, brainMaterial);
+                            cutMaterial = Instantiate(Resources.Load("Materials/Brain/SpCut", typeof(Material))) as Material;
+                            CutMaterials.Add(scene, cutMaterial);
+                            break;
+                        case SceneType.MultiPatients:
+                            brainMaterial = Instantiate(Resources.Load("Materials/Brain/MpBrain", typeof(Material))) as Material;
+                            BrainMaterials.Add(scene, brainMaterial);
+                            cutMaterial = Instantiate(Resources.Load("Materials/Brain/MpCut", typeof(Material))) as Material;
+                            CutMaterials.Add(scene, cutMaterial);
+                            break;
+                        default:
+                            break;
+                    }
+                });
+                StaticComponents.ScenesManager.OnRemoveScene.AddListener((scene) =>
+                {
+                    Destroy(BrainMaterials[scene]);
+                    BrainMaterials.Remove(scene);
+                    Destroy(CutMaterials[scene]);
+                    CutMaterials.Remove(scene);
+                });
+            }
         }
 
         public struct ROI
@@ -67,7 +97,7 @@ namespace HBP.Module3D
             ROI.Normal = Instantiate(Resources.Load("Materials/ROI/ROI", typeof(Material))) as Material;
             ROI.Selected = Instantiate(Resources.Load("Materials/ROI/ROISelected", typeof(Material))) as Material;
 
-            // Plot
+            // Site
             Site.BlackListed = Instantiate(Resources.Load("Materials/Sites/Blacklisted", typeof(Material))) as Material;
             Site.Excluded = Instantiate(Resources.Load("Materials/Sites/Excluded", typeof(Material))) as Material;
             Site.Negative = Instantiate(Resources.Load("Materials/Sites/Negative", typeof(Material))) as Material;
@@ -90,11 +120,7 @@ namespace HBP.Module3D
             Ring.Selected = Instantiate(Resources.Load("Materials/Rings/Selected", typeof(Material))) as Material;
 
             // Brain
-            Brain.SinglePatientBrainMaterial = Instantiate(Resources.Load("Materials/Brain/SpBrain", typeof(Material))) as Material;
-            Brain.MultiPatientsBrainMaterial = Instantiate(Resources.Load("Materials/Brain/MpBrain", typeof(Material))) as Material;
-            Brain.SinglePatientCutMaterial = Instantiate(Resources.Load("Materials/Brain/SpCut", typeof(Material))) as Material;
-            Brain.MultiPatientsCutMaterial = Instantiate(Resources.Load("Materials/Brain/SpCut", typeof(Material))) as Material;
-
+            Brain.Initialize();
         }
 
         public static Material site_shared_material(bool hightlighted, SiteType siteType)
