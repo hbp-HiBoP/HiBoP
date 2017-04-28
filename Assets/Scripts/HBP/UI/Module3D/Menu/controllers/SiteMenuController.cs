@@ -113,7 +113,7 @@ namespace HBP.UI.Module3D
             });
             contentPanelT.Find("selected site buttons").Find("unselect button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                m_scene.unselect_site(m_columnId);
+                m_scene.UnselectSite(m_columnId);
 
                 update_menu();
             });
@@ -158,7 +158,7 @@ namespace HBP.UI.Module3D
             // compare site
             contentPanelT.Find("selected site buttons").Find("compare site button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                m_scene.compate_sites();
+                m_scene.CompareSites();
             });
 
             // apply
@@ -187,7 +187,7 @@ namespace HBP.UI.Module3D
                 bool allColumns = contentPanelT.Find("Apply on parent").Find("all columns checkbox").GetComponent<Toggle>().isOn;
                 int action = exclude ? 0 : (include ? 1 : (highlight ? 4 : (unhighlight ? 5 : (marked ? 6 : 7))));
                 int range = selectedSite ? 0 : (electrode ? 1 : (patient ? 2 : (highlighted ? 3 : (unhighlighted ? 4 : (allSites ? 5 : (inROI ? 6 : (noInROI ? 7 : (nameSites ? 8 : (marsNameSites ? 9 : 10)))))))));
-                m_scene.update_sites_masks(allColumns, m_lastSiteSelected.gameObject, action, range, nameFilterStr);
+                m_scene.UpdateSitesMasks(allColumns, m_lastSiteSelected.gameObject, action, range, nameFilterStr);
             });
 
             switch(m_scene.Type)
@@ -200,7 +200,7 @@ namespace HBP.UI.Module3D
                     defineSourceButton.onClick.AddListener(
                         delegate
                         {
-                            ((SinglePatient3DScene)m_scene).set_current_site_as_source();
+                            ((SinglePatient3DScene)m_scene).SetCurrentSiteAsSource();
                             latencyDataText.text = "Current site is the source.";
                             defineSourceButton.interactable = false;
                             undefineSourceButton.interactable = true;
@@ -209,7 +209,7 @@ namespace HBP.UI.Module3D
                     undefineSourceButton.onClick.AddListener(
                         delegate
                         {
-                            ((SinglePatient3DScene)m_scene).undefine_current_source();
+                            ((SinglePatient3DScene)m_scene).UndefineCurrentSource();
 
                             if (latencyDataText.text == "Current site is the source.")
                             {
@@ -228,7 +228,7 @@ namespace HBP.UI.Module3D
                 case SceneType.MultiPatients:
                     contentPanelT.Find("MP only options parent").Find("load sp button").GetComponent<Button>().onClick.AddListener(() =>
                     {
-                        ((MultiPatients3DScene)m_scene).load_patient_in_SP_scene(m_idPatientToLoad, m_lastSiteSelected.GetComponent<Site>().Information.SitePatientID);
+                        ((MultiPatients3DScene)m_scene).LoadPatientInSinglePatientScene(m_idPatientToLoad, m_lastSiteSelected.GetComponent<Site>().Information.SitePatientID);
                     });
 
                     Button blackList = contentPanelT.Find("MP only options parent").Find("blacklist button").GetComponent<Button>();
@@ -237,13 +237,13 @@ namespace HBP.UI.Module3D
                         if (blackList.transform.Find("Text").GetComponent<Text>().text == "Blacklist site")
                         {
                             m_lastSiteSelected.Information.IsBlackListed = true;
-                            m_scene.update_sites_masks(true, m_lastSiteSelected.gameObject, 2, 0);
+                            m_scene.UpdateSitesMasks(true, m_lastSiteSelected.gameObject, 2, 0);
                             blackList.transform.Find("Text").GetComponent<Text>().text = "Unblacklist site";
                         }
                         else
                         {
                             m_lastSiteSelected.Information.IsBlackListed = false;
-                            m_scene.update_sites_masks(true, m_lastSiteSelected.gameObject, 3, 0);
+                            m_scene.UpdateSitesMasks(true, m_lastSiteSelected.gameObject, 3, 0);
                             blackList.transform.Find("Text").GetComponent<Text>().text = "Blacklist site";
                         }
                     });
@@ -446,7 +446,7 @@ namespace HBP.UI.Module3D
                 latencyButton.GetComponent<LatencyButton>().init(jj);
                 latencyButton.GetComponent<LatencyButton>().ChooseLatencyFile.AddListener((id) =>
                 {
-                    ((SinglePatient3DScene)m_scene).update_current_latency_file(id);
+                    ((SinglePatient3DScene)m_scene).UpdateCurrentLatencyFile(id);
                     update_menu();
                 });
                 latencyButton.SetActive(true);
@@ -539,8 +539,8 @@ namespace HBP.UI.Module3D
                     if (m_scene.data_.compareSite)
                     {
                         m_scene.data_.compareSite = false;
-                        m_scene.display_sceen_message("Compare : " + m_lastSiteSelected.name + " from col " + m_lastUpdatedColumn + "\n with " + m_scene.Column3DViewManager.SelectedColumn.SelectedSite.name + " from col " + idColumn, 5f, 250, 80);
-                        m_scene.send_additionnal_site_info_request(m_lastSiteSelected);
+                        m_scene.DisplayScreenMessage("Compare : " + m_lastSiteSelected.name + " from col " + m_lastUpdatedColumn + "\n with " + m_scene.Column3DViewManager.SelectedColumn.SelectedSite.name + " from col " + idColumn, 5f, 250, 80);
+                        m_scene.SendAdditionalSiteInfoRequest(m_lastSiteSelected);
                     }
                     else
                     {
@@ -551,7 +551,7 @@ namespace HBP.UI.Module3D
                                 break;
                             case Column3DView.ColumnType.IEEG:
                                 if (((Column3DViewIEEG)col).sendInfos)
-                                    m_scene.send_additionnal_site_info_request();
+                                    m_scene.SendAdditionalSiteInfoRequest();
                                 break;
                             default:
                                 break;

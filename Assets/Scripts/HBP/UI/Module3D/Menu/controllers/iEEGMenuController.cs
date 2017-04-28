@@ -283,11 +283,11 @@ namespace HBP.UI.Module3D
             Slider maxSpanSlider = contentPanelT.Find("Cal max iEEG slider").GetComponent<Slider>();
 
             // alpha
-            minAlphaSlider.onValueChanged.AddListener((value) =>{ m_.alphaMin = value; m_scene.update_IEEG_min_alpha(value, m_columnId); });            
-            maxAlphaSlider.onValueChanged.AddListener((value) =>{ m_.alphaMax = value; m_scene.update_IEEG_max_alpha(value, m_columnId); });
+            minAlphaSlider.onValueChanged.AddListener((value) =>{ m_.alphaMin = value; m_scene.UpdateIEEGMinAlpha(value, m_columnId); });            
+            maxAlphaSlider.onValueChanged.AddListener((value) =>{ m_.alphaMax = value; m_scene.UpdateIEEGMaxAlpha(value, m_columnId); });
 
             // gain bubble            
-            gainSlider.onValueChanged.AddListener((value) => { m_.gain = value; m_scene.update_gain_bubbles(value, m_columnId); });            
+            gainSlider.onValueChanged.AddListener((value) => { m_.gain = value; m_scene.UpdateBubblesGain(value, m_columnId); });            
 
             // min span            
             minSpanInputF.onEndEdit.AddListener(delegate
@@ -320,7 +320,7 @@ namespace HBP.UI.Module3D
 
                 // update span min
                 minSpanSlider.value = (m_.spanMin - m_.minAmp) / diff;
-                m_scene.update_IEEG_span_min(m_.spanMin, m_columnId);
+                m_scene.UpdateIEEGSpanMin(m_.spanMin, m_columnId);
 
                 update_histogram();
             });
@@ -338,7 +338,7 @@ namespace HBP.UI.Module3D
                 }
                 
                 minSpanInputF.text = "" + m_.spanMin;
-                m_scene.update_IEEG_span_min(m_.spanMin, m_columnId);
+                m_scene.UpdateIEEGSpanMin(m_.spanMin, m_columnId);
 
                 update_histogram();
             });
@@ -393,7 +393,7 @@ namespace HBP.UI.Module3D
 
                 // update middle
                 middleSpanSlider.value = (m_.middle - m_.minAmp) / diff;
-                m_scene.update_IEEG_middle(m_.middle, m_columnId);
+                m_scene.UpdateIEEGMiddle(m_.middle, m_columnId);
 
                 update_histogram();
             });
@@ -416,7 +416,7 @@ namespace HBP.UI.Module3D
                 }
 
                 middleInputF.text = "" + m_.middle;
-                m_scene.update_IEEG_middle(m_.middle, m_columnId);
+                m_scene.UpdateIEEGMiddle(m_.middle, m_columnId);
 
                 update_histogram();
             });
@@ -450,7 +450,7 @@ namespace HBP.UI.Module3D
                 }
 
                 maxSpanSlider.value = (m_.spanMax - m_.minAmp) / diff;
-                m_scene.update_IEEG_span_max(m_.spanMax, m_columnId);
+                m_scene.UpdateIEEGSpanMax(m_.spanMax, m_columnId);
 
                 update_histogram();
             });
@@ -467,7 +467,7 @@ namespace HBP.UI.Module3D
                 }
 
                 maxSpanInputF.text = "" + m_.spanMax;
-                m_scene.update_IEEG_span_max(m_.spanMax, m_columnId);
+                m_scene.UpdateIEEGSpanMax(m_.spanMax, m_columnId);
 
                 update_histogram();
             });
@@ -495,7 +495,7 @@ namespace HBP.UI.Module3D
                     maxDistInputF.text = "" + m_maxDistance;
                 }
 
-                m_scene.update_site_maximum_influence(m_.maxDistance, m_columnId);
+                m_scene.UpdateSiteMaximumInfluence(m_.maxDistance, m_columnId);
             });
 
             // set alpha to all 
@@ -702,8 +702,8 @@ namespace HBP.UI.Module3D
                     m_iEEGMenuList[alphaParams.columnId].GetComponent<iEEGMenu>().update_UI_alpha_values(alphaParams);
 
                     // update scene values
-                    m_scene.update_IEEG_min_alpha(alphaParams.alphaMin, alphaParams.columnId);
-                    m_scene.update_IEEG_max_alpha(alphaParams.alphaMax, alphaParams.columnId);
+                    m_scene.UpdateIEEGMinAlpha(alphaParams.alphaMin, alphaParams.columnId);
+                    m_scene.UpdateIEEGMaxAlpha(alphaParams.alphaMax, alphaParams.columnId);
                 }
             });
 
@@ -722,8 +722,8 @@ namespace HBP.UI.Module3D
                     m_iEEGMenuList[sitesParams.columnId].GetComponent<iEEGMenu>().update_UI_gain_sites_values(sitesParams);
 
                     // update scene values
-                    m_scene.update_gain_bubbles(sitesParams.gain, sitesParams.columnId);
-                    m_scene.update_site_maximum_influence(sitesParams.maxDistance, sitesParams.columnId);
+                    m_scene.UpdateBubblesGain(sitesParams.gain, sitesParams.columnId);
+                    m_scene.UpdateSiteMaximumInfluence(sitesParams.maxDistance, sitesParams.columnId);
                 }
 
             });
@@ -750,9 +750,9 @@ namespace HBP.UI.Module3D
                     menuToUpdate.update_UI_threshold_values(truncatedValues);
 
                     // update scene values
-                    m_scene.update_IEEG_middle(truncatedValues.middle, thresholdParams.columnId);
-                    m_scene.update_IEEG_span_min(truncatedValues.minSpan, thresholdParams.columnId);
-                    m_scene.update_IEEG_span_max(truncatedValues.maxSpan, thresholdParams.columnId);
+                    m_scene.UpdateIEEGMiddle(truncatedValues.middle, thresholdParams.columnId);
+                    m_scene.UpdateIEEGSpanMin(truncatedValues.minSpan, thresholdParams.columnId);
+                    m_scene.UpdateIEEGSpanMax(truncatedValues.maxSpan, thresholdParams.columnId);
                 }
 
                 // check if a warning message must be displayed
@@ -768,7 +768,7 @@ namespace HBP.UI.Module3D
                 }
                 if (displayWarning)
                 {
-                    m_scene.display_sceen_message("Parameters truncated by min/max values for columns : " + warnigsCols, 2f, 300, 100);
+                    m_scene.DisplayScreenMessage("Parameters truncated by min/max values for columns : " + warnigsCols, 2f, 300, 100);
                 }
 
             });

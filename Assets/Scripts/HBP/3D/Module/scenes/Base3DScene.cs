@@ -121,7 +121,6 @@ namespace HBP.Module3D
         public float maxSpan;
     }
 
-
     /// <summary>
     /// IEEG data to be send to the UI
     /// </summary>
@@ -162,89 +161,71 @@ namespace HBP.Module3D
         /// UI event for sending a plot info request to the outside UI (params : plotRequest)
         /// </summary>
         [System.Serializable]
-        public class InfoPlotRequest : UnityEvent<SiteRequest> { }
-
+        public class SiteInfoRequest : UnityEvent<SiteRequest> { }
         /// <summary>
         /// Event for sending info in order to display a message in a scene screen (params : message, duration, width, height)
         /// </summary>
         public class DisplaySceneMessage : UnityEvent<string, float, int, int> { }
-
         /// <summary>
         /// Event for sending info in order to display a loadingbar in a scene screen (params : duration, width, height, value)
         /// </summary>
         public class DisplaySceneProgressBar : UnityEvent<float, int, int, float> { }
-
         /// <summary>
         /// Event of sending the current selected scene and column (params : spScene, id column)
         /// </summary>
         public class UpdateSceneAndColSelection : UnityEvent<bool, int> { }
-
-
         /// <summary>
         /// Event for colormap values associated to a column id (params : minValue, middle, maxValue, id)
         /// </summary>
         public class SendColormapEvent : UnityEvent<float, float, float, int> { }
-
         /// <summary>
         /// Event for sending IEEG data parameters to UI (params : IEEGDataParameters)
         /// </summary>
         public class SendIEEGParameters : UnityEvent<iEEGDataParameters> { }
-
         /// <summary>
         /// Event for sending IRMF data parameters to UI (params : IRMFDataParameters)
         /// </summary>
         public class SendFMRIParameters : UnityEvent<FMriDataParameters> { }
-
         /// <summary>
         /// Event for updating cuts planes 
         /// </summary>
         public class UpdatePlanes : UnityEvent { }
-
         /// <summary>
         /// Event for updating the planes cuts display in the cameras
         /// </summary>
         public class ModifyPlanesCuts : UnityEvent { }
-
         /// <summary>
         /// Event for updating the cuts images in the UI (params : textures, columnId, planeNb)
         /// </summary>
         public class UpdateCutsInUI : UnityEvent<List<Texture2D>, int, int> { }
-
         /// <summary>
         /// Send the new selected id column to the UI (params : idColumn)
         /// </summary>
         public class DefineSelectedColumn : UnityEvent<int> { }
-
         /// <summary>
         /// Event for updating time in the UI
         /// </summary>
         public class UpdateTimeInUI : UnityEvent { }
-
         /// <summary>
         /// 
         /// </summary>
         public class UpdateDisplayedSitesInfo : UnityEvent<SiteInfo> { }
-
         /// <summary>
         /// Ask the UI to udpate the ROI of all the scene columns
         /// </summary>
         public class AskROIUpdate : UnityEvent<int> { }
-
         /// <summary>
         /// Ask the camera manager to update the target for this scene
         /// </summary>
         public class UpdateCameraTarget : UnityEvent<Vector3> { }
-
         /// <summary>
         /// Occurs when a plot is clicked in the scene (params : id of the column, if = -1 use the current selected column id)
         /// </summary>
         public class ClickPlot : UnityEvent<int> { }
-
         /// <summary>
         /// Event for updating the IRM cal values in the UI
         /// </summary>
         public class IRMCalValuesUpdate : UnityEvent<MRICalValues> { }
-
     }
 
     /// <summary>
@@ -253,9 +234,14 @@ namespace HBP.Module3D
     [AddComponentMenu("Scenes/Base 3D Scene")]
     abstract public class Base3DScene : MonoBehaviour
     {
-        #region Properties                 
-        // data        
-        public abstract string Name { get; }
+        #region Properties
+        public string Name
+        {
+            get
+            {
+                return Visualisation.Name;
+            }
+        }
         public abstract SceneType Type { get; }
         protected Data.Visualisation.Visualisation m_Visualisation;
         public virtual Data.Visualisation.Visualisation Visualisation
@@ -300,7 +286,7 @@ namespace HBP.Module3D
         public Events.SendModeSpecifications SendModeSpecifications = new Events.SendModeSpecifications(); 
         public Events.DisplaySceneMessage display_screen_message_event = new Events.DisplaySceneMessage();
         public Events.DisplaySceneProgressBar display_scene_progressbar_event = new Events.DisplaySceneProgressBar();
-        public Events.InfoPlotRequest SiteInfoRequest = new Events.InfoPlotRequest();
+        public Events.SiteInfoRequest SiteInfoRequest = new Events.SiteInfoRequest();
         public Events.UpdateCutsInUI UpdateCutsInUI = new Events.UpdateCutsInUI();
         public Events.DefineSelectedColumn DefineSelectedColumn = new Events.DefineSelectedColumn();
         public Events.UpdateTimeInUI UpdateTimeInUI = new Events.UpdateTimeInUI();
@@ -312,9 +298,6 @@ namespace HBP.Module3D
         #endregion
 
         #region Private Methods
-        /// <summary>
-        /// This function is always called before any Start functions and also just after a prefab is instantiated. (If a GameObject is inactive during start up Awake is not called until it is made active.)
-        /// </summary>
         protected void Awake()
         {         
             int idScript = TimeExecution.get_ID();
@@ -349,20 +332,15 @@ namespace HBP.Module3D
             });
 
             // init GO
-            init_scene_GO();
+            InitializeSceneGameObjects();
 
 
             TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.Base3DScene, gameObject);
         }
-
-
-        /// <summary>
-        /// Update is called once per frame. It is the main workhorse function for frame updates.
-        /// </summary>
         protected void Update()
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update: set_current_mode_specifications");
-            set_current_mode_specifications();
+            SetCurrentModeSpecifications();
             UnityEngine.Profiling.Profiler.EndSample();
 
             if (m_ModesManager.currentIdMode() == Mode.ModesId.NoPathDefined)
@@ -383,14 +361,14 @@ namespace HBP.Module3D
                     Column3DViewManager.planesCutsCopy.Add(new Plane(m_planesList[ii].point, m_planesList[ii].normal));
 
                 UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
-                compute_meshes_cuts();
+                ComputeMeshesCut();
                 UnityEngine.Profiling.Profiler.EndSample();
                 UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_MRI_textures 1");
 
                 // create textures 
-                compute_MRI_textures();
+                ComputeMRITextures();
 
-                compute_FMRI_textures(-1, -1);
+                ComputeFMRITextures(-1, -1);
 
                 data_.geometryUpToDate = true;
                 
@@ -407,24 +385,22 @@ namespace HBP.Module3D
                 currState = data_.currentComputingState;
                 data_.rwl.ReleaseReaderLock();
 
-                display_sceen_message("Computing...", 50f, 250, 40);
-                display_progressbar(currState, 50f, 250, 40);
+                DisplayScreenMessage("Computing...", 50f, 250, 40);
+                DisplayProgressbar(currState, 50f, 250, 40);
 
                 if (m_computeGeneratorsJob.Update())
                 {                    
-                    finalize_generators_computing();
-                    compute_IEEG_textures();                   
+                    FinalizeGeneratorsComputing();
+                    ComputeIEEGTextures();                   
                 }
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
-
         protected void LateUpdate()
         {
             m_displaySitesNames = false;
         }
-
         void OnGUI()
         {
             if (m_displaySitesNames)
@@ -445,27 +421,33 @@ namespace HBP.Module3D
                         }
             }
         }
-
-        #endregion   
+        #endregion
 
         #region Public Methods
-
-        public abstract void compute_meshes_cuts();
-        public abstract void send_additionnal_site_info_request(Site previousPlot = null);
-
-        public void move_mouse_on_scene(Ray ray, Vector3 mousePosition, int idColumn)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ray"></param>
+        /// <param name="mousePosition"></param>
+        /// <param name="idColumn"></param>
+        public void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn)
         {
             // ...
         }
-
-        public void display_sites_names(Camera camera)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="camera"></param>
+        public void DisplaySitesName(Camera camera)
         {
 
             m_displaySitesNames = true;
             m_lastCamera = camera;
         }
-
-        private void finalize_generators_computing()
+        /// <summary>
+        /// 
+        /// </summary>
+        private void FinalizeGeneratorsComputing()
         {            
             // computing ended
             m_computeGeneratorsJob = null;
@@ -498,18 +480,17 @@ namespace HBP.Module3D
             // update plots visibility
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
 
-            display_sceen_message("Computing finished !", 1f, 250, 40);
-            display_progressbar(1f, 1f, 250, 40);
+            DisplayScreenMessage("Computing finished !", 1f, 250, 40);
+            DisplayProgressbar(1f, 1f, 250, 40);
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.post_updateGenerators);
             //##################
         }
-
         /// <summary>
         /// Init gameobjects of the scene
         /// </summary>
-        protected void init_scene_GO()
+        protected void InitializeSceneGameObjects()
         {
             // init parents 
             go_.sitesMeshesParent = transform.Find("base electrodes").gameObject;
@@ -527,12 +508,16 @@ namespace HBP.Module3D
             data_.numberOfCutsPerPlane = new List<int>();
             go_.brainCutMeshes = new List<GameObject>();
 
-            update_brain_surface_color(15);
-            update_colormap(13, false);
-            update_brain_cut_color(14, true);
+            UpdateBrainSurfaceColor(15);
+            UpdateColormap(13, false);
+            UpdateBrainCutColor(14, true);
         }
-
-        public void update_colormap(int id, bool updateColors = true)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="updateColors"></param>
+        public void UpdateColormap(int id, bool updateColors = true)
         {
             Column3DViewManager.update_colormap(id);
             if (updateColors)
@@ -548,10 +533,13 @@ namespace HBP.Module3D
                     break;
             }
             if (data_.geometryUpToDate && !data_.iEEGOutdated)
-                compute_IEEG_textures();
+                ComputeIEEGTextures();
         }
-
-        public void update_brain_surface_color(int id)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        public void UpdateBrainSurfaceColor(int id)
         {
             Column3DViewManager.m_idBrainColor = id;
             DLL.Texture tex = DLL.Texture.generate_1D_color_texture(Column3DViewManager.m_idBrainColor);
@@ -567,8 +555,12 @@ namespace HBP.Module3D
                     break;
             }
         }
-
-        public void update_brain_cut_color(int id, bool updateColors = true)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="updateColors"></param>
+        public void UpdateBrainCutColor(int id, bool updateColors = true)
         {
             Column3DViewManager.update_brain_cut_color(id);
             if (updateColors)
@@ -581,12 +573,10 @@ namespace HBP.Module3D
             m_ModesManager.updateMode(Mode.FunctionsId.updatePlane); // TEMP
             //##################
         }
-
-
         /// <summary>
         /// Reset the gameobjects of the scene
         /// </summary>
-        public void reset_scene_GO()
+        public void ResetSceneGameObjects()
         {
             // destroy meshes
             for (int ii = 0; ii < go_.brainSurfaceMeshes.Count; ++ii)
@@ -598,12 +588,11 @@ namespace HBP.Module3D
                 go_.brainCutMeshes[ii].SetActive(false);
             }
         }
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="nbSplits"></param>
-        public void reset_splits_nb(int nbSplits)
+        public void ResetSplitsNumber(int nbSplits)
         {
             if (m_Column3DViewManager.meshSplitNb == nbSplits)
                 return;
@@ -637,24 +626,22 @@ namespace HBP.Module3D
 
             m_Column3DViewManager.reset_splits_nb(nbSplits);
         }
-
         /// <summary>
         /// Set UI screen space/overlays layers mask settings corresponding to the current mode of the scene
         /// </summary>
-        public void set_current_mode_specifications(bool force = false)
+        public void SetCurrentModeSpecifications(bool force = false)
         {
             m_ModesManager.set_current_mode_specifications(force);
         }
-
         /// <summary>
         /// Update the sites masks
         /// </summary>
         /// <param name="allColumn"></param>
-        /// <param name="plotGO"></param>
+        /// <param name="siteGO"></param>
         /// <param name="action"> 0 : excluded / 1 : included / 2 : blacklisted / 3 : unblacklist / 4 : highlight / 5 : unhighlight / 6 : marked / 7 : unmarked </param>
         /// <param name="range"> 0 : a plot / 1 : all plots from an electrode / 2 : all plots from a patient / 3 : all highlighted / 4 : all unhighlighted 
         /// / 5 : all plots / 6 : in ROI / 7 : not in ROI / 8 : names filter / 9 : mars filter / 10 : broadman filter </param>
-        public void update_sites_masks(bool allColumn, GameObject plotGO, int action = 0, int range = 0, string nameFilter = "")
+        public void UpdateSitesMasks(bool allColumn, GameObject siteGO, int action = 0, int range = 0, string nameFilter = "")
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.updateMaskPlot))
@@ -681,19 +668,19 @@ namespace HBP.Module3D
                 {
                     case 0:
                         {// one specific plot
-                            colIdPlots[ii].Add(plotGO.GetComponent<Site>().Information.GlobalID);
+                            colIdPlots[ii].Add(siteGO.GetComponent<Site>().Information.GlobalID);
                         }
                     break;
                     case 1:
                         { // all plots from an electrode
-                            Transform parentElectrode = plotGO.transform.parent;
+                            Transform parentElectrode = siteGO.transform.parent;
                             for (int jj = 0; jj < parentElectrode.childCount; ++jj)
                                 colIdPlots[ii].Add(parentElectrode.GetChild(jj).gameObject.GetComponent<Site>().Information.GlobalID);
                         }
                     break;
                     case 2:
                         { // all plots from a patient
-                            Transform parentPatient = plotGO.transform.parent.parent;
+                            Transform parentPatient = siteGO.transform.parent.parent;
                             for (int jj = 0; jj < parentPatient.childCount; ++jj)
                             {
                                 Transform parentElectrode = parentPatient.GetChild(jj);
@@ -808,7 +795,6 @@ namespace HBP.Module3D
             m_ModesManager.updateMode(Mode.FunctionsId.updateMaskPlot);
             //##################
         }
-
         /// <summary>
         /// Set the mesh part to be displayed in the scene
         /// </summary>
@@ -835,7 +821,6 @@ namespace HBP.Module3D
             m_ModesManager.updateMode(Mode.FunctionsId.setDisplayedMesh);
             //##################
         }
-
         /// <summary>
         /// Set the mesh type to be displayed in the scene
         /// </summary>
@@ -878,11 +863,10 @@ namespace HBP.Module3D
             m_ModesManager.updateMode(Mode.FunctionsId.setDisplayedMesh);
             //##################
         }
-
         /// <summary>
         /// Add a new cut plane
         /// </summary>
-        public void add_new_cut_plane()
+        public void AddCutPlane()
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.addNewPlane))
@@ -928,11 +912,10 @@ namespace HBP.Module3D
             m_ModesManager.updateMode(Mode.FunctionsId.addNewPlane);
             //##################            
         }
-
         /// <summary>
         /// Remove the last cut plane
         /// </summary>
-        public void remove_last_cut_plane()
+        public void RemoveLastCutPlane() // TODO : specify which cut plane
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.removeLastPlane))
@@ -967,7 +950,6 @@ namespace HBP.Module3D
             m_ModesManager.updateMode(Mode.FunctionsId.removeLastPlane);
             //##################            
         }
-
         /// <summary>
         /// Update a cut plane
         /// </summary>
@@ -977,7 +959,7 @@ namespace HBP.Module3D
         /// <param name="customNormal"></param>
         /// <param name="idPlane"></param>
         /// <param name="position"></param>
-        public void update_cut_plane(int idOrientation, bool flip, bool removeFrontPlane, Vector3 customNormal, int idPlane, float position)
+        public void UpdateCutPlane(int idOrientation, bool flip, bool removeFrontPlane, Vector3 customNormal, int idPlane, float position)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.updatePlane))
@@ -1031,13 +1013,12 @@ namespace HBP.Module3D
             m_ModesManager.updateMode(Mode.FunctionsId.updatePlane);
             //##################
         }
-
         /// <summary>
         /// Reset the volume of the scene
         /// </summary>
         /// <param name="pathNIIBrainVolumeFile"></param>
         /// <returns></returns>
-        public bool reset_NII_brain_volume(string pathNIIBrainVolumeFile)
+        public bool ResetNiftiBrainVolume(string pathNIIBrainVolumeFile)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.resetNIIBrainVolumeFile))
@@ -1080,18 +1061,16 @@ namespace HBP.Module3D
 
             return data_.mriLoaded;
         }
-
         /// <summary>
         /// Reset the rendering settings for this scene, called by each camera before rendering
         /// </summary>
         /// <param name="cameraRotation"></param>
-        abstract public void reset_rendering_settings(Vector3 cameraRotation);
-
+        abstract public void ResetRenderingSettings(Vector3 cameraRotation);
         /// <summary>
         /// Update the selected column of the scene
         /// </summary>
         /// <param name="idColumn"></param>
-        public void update_selected_column(int idColumn)
+        public void UpdateSelectedColumn(int idColumn)
         {
             if (idColumn >= m_Column3DViewManager.Columns.Count)
                 return;
@@ -1101,17 +1080,16 @@ namespace HBP.Module3D
             // force mode to update UI
             m_ModesManager.set_current_mode_specifications(true);
 
-            compute_GUI_textures(-1, m_Column3DViewManager.SelectedColumnID);
-            update_GUI_textures();
+            ComputeGUITextures(-1, m_Column3DViewManager.SelectedColumnID);
+            UpdateGUITextures();
         }
-
         /// <summary>
         /// 
         /// When to call ?  changes in DLLCutColorScheme, MRICalMinFactor, MRICalMaxFactor
         /// </summary>
         /// <param name="indexCut"></param>
         /// <param name="indexColumn"></param>
-        private void compute_MRI_textures(int indexCut = -1, int indexColumn = -1)
+        private void ComputeMRITextures(int indexCut = -1, int indexColumn = -1)
         {
             if (data_.meshTypeToDisplay == SceneStatesInfo.MeshType.Inflated)
                 return;
@@ -1130,21 +1108,20 @@ namespace HBP.Module3D
 
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene compute_MRI_textures 1 compute_GUI_textures");
-            compute_GUI_textures(indexCut, m_Column3DViewManager.SelectedColumnID);
+            ComputeGUITextures(indexCut, m_Column3DViewManager.SelectedColumnID);
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene compute_MRI_textures 2 update_GUI_textures");
-            update_GUI_textures();
+            UpdateGUITextures();
             UnityEngine.Profiling.Profiler.EndSample();
         }
-
         /// <summary>
         /// 
         /// When to call ? changes in IEEGColumn.currentTimeLineID, IEEGColumn.alphaMin, IEEGColumn.alphaMax / DLLCutColorScheme
         /// </summary>
         /// <param name="indexCut"></param>
         /// <param name="indexColumn"></param>
-        private void compute_IEEG_textures(int indexCut = -1, int indexColumn = -1, bool surface = true, bool cuts = true, bool plots = true)
+        private void ComputeIEEGTextures(int indexCut = -1, int indexColumn = -1, bool surface = true, bool cuts = true, bool plots = true)
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-compute_IEEG_textures");
 
@@ -1180,16 +1157,15 @@ namespace HBP.Module3D
             }
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("TEST-compute_IEEG_textures 1 compute_GUI_textures");
-            compute_GUI_textures(indexCut, m_Column3DViewManager.SelectedColumnID);
+            ComputeGUITextures(indexCut, m_Column3DViewManager.SelectedColumnID);
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-compute_IEEG_textures 2 update_GUI_textures");
-            update_GUI_textures();
+            UpdateGUITextures();
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
-
         /// <summary>
         /// When to call ? changes in FMRIColumn.alpha / calMin/ calMax/ DLLCutColorScheme
         /// </summary>
@@ -1197,7 +1173,7 @@ namespace HBP.Module3D
         /// <param name="indexColumn"></param>
         /// <param name="surface"></param>
         /// <param name="cuts"></param>
-        private void compute_FMRI_textures(int indexCut = -1, int indexColumn = -1, bool surface = true, bool cuts = true)
+        private void ComputeFMRITextures(int indexCut = -1, int indexColumn = -1, bool surface = true, bool cuts = true)
         {
             bool allColumns = indexColumn == -1;
             bool allCuts = indexCut == -1;
@@ -1215,19 +1191,16 @@ namespace HBP.Module3D
                         m_Column3DViewManager.color_cuts_textures_with_FMRI(columnsIndexes[ii], cutsIndexes[jj]);
             }
 
-            compute_GUI_textures(indexCut, indexColumn);
+            ComputeGUITextures(indexCut, indexColumn);
 
-            update_GUI_textures();
+            UpdateGUITextures();
         }
-
-
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="indexCut"></param>
         /// <param name="indexColumn"></param>
-        private void compute_GUI_textures(int indexCut = -1, int indexColumn = -1)
+        private void ComputeGUITextures(int indexCut = -1, int indexColumn = -1)
         {
             bool allColumns = indexColumn == -1;
             bool allCuts    = indexCut == -1;
@@ -1258,12 +1231,11 @@ namespace HBP.Module3D
                 }
             }
         }
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="indexCut"></param>
-        private void update_GUI_textures()
+        private void UpdateGUITextures()
         {
             Column3DView currCol = m_Column3DViewManager.Columns[m_Column3DViewManager.SelectedColumnID];
             List<Texture2D> texturesToDisplay = null;
@@ -1283,13 +1255,12 @@ namespace HBP.Module3D
             }
             UpdateCutsInUI.Invoke(texturesToDisplay, m_Column3DViewManager.SelectedColumnID, m_planesList.Count);
         }
-
         /// <summary>
         /// Update the data render corresponding to the column
         /// </summary>
         /// <param name="indexColumn"></param>
         /// <returns></returns>
-        public bool update_column_rendering(int indexColumn)
+        public bool UpdateColumnRendering(int indexColumn)
         {
             if (!data_.geometryUpToDate)
                 return false;
@@ -1348,13 +1319,10 @@ namespace HBP.Module3D
 
             return true;
         }
-
-
-
         /// <summary>
         /// Update the brain and the cuts meshes colliders
         /// </summary>
-        public void update_meshes_colliders()
+        public void UpdateMeshesColliders()
         {
             if (!data_.meshesLoaded || !data_.mriLoaded)
                 return;
@@ -1375,11 +1343,10 @@ namespace HBP.Module3D
 
             data_.collidersUpdated = true;
         }
-
         /// <summary>
         /// Update the textures generator
         /// </summary>
-        public void update_generators()
+        public void UpdateGenerators()
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.pre_updateGenerators))
@@ -1403,14 +1370,13 @@ namespace HBP.Module3D
             m_computeGeneratorsJob.cm_ = m_Column3DViewManager;
             m_computeGeneratorsJob.Start();
         }
-
         /// <summary>
         /// Update the displayed amplitudes on the brain and the cuts with the slider position.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="slider"></param>
         /// <param name="globalTimeline"> if globaltime is true, update all columns with the same slider, else udapte only current selected column </param>
-        public void update_IEEG_time(int id, float value, bool globalTimeline)
+        public void UpdateIEEGTime(int id, float value, bool globalTimeline)
         {
             m_Column3DViewManager.globalTimeline = globalTimeline;
             if (m_Column3DViewManager.globalTimeline)
@@ -1426,27 +1392,24 @@ namespace HBP.Module3D
                 currIEEGCol.currentTimeLineID = currIEEGCol.columnTimeLineID;
             }
 
-            compute_IEEG_textures();
+            ComputeIEEGTextures();
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
             UpdateTimeInUI.Invoke();
         }
-
         /// <summary>
         /// Update displayed amplitudes with the timeline id corresponding to global timeline mode or individual timeline mode
         /// </summary>
         /// <param name="globalTimeline"></param>
-        public void update_IEEG_all_times(bool globalTimeline)
+        public void UpdateAllIEEGTime(bool globalTimeline)
         {
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
                 m_Column3DViewManager.ColumnsIEEG[ii].currentTimeLineID = globalTimeline ? (int)m_Column3DViewManager.commonTimelineValue : m_Column3DViewManager.ColumnsIEEG[ii].columnTimeLineID;
             }
 
-            compute_IEEG_textures();
+            ComputeIEEGTextures();
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
         }
-
-
         /// <summary>
         /// 
         /// </summary>
@@ -1457,22 +1420,20 @@ namespace HBP.Module3D
                 go_.brainSurfaceMeshes[0].GetComponent<Renderer>().sharedMaterial.SetInt("_MarsAtlas", data_.MarsAtlasModeEnabled ? 1 : 0);
             }
         }
-
         /// <summary>
         /// Mouse scroll events managements
         /// </summary>
         /// <param name="scrollDelta"></param>
-        public void mouse_scroll_action(Vector2 scrollDelta)
+        public void MouseScrollAction(Vector2 scrollDelta)
         {
             // nothing for now 
             // (not not delete children classes use it)
         }
-
         /// <summary>
         /// Keyboard events management
         /// </summary>
         /// <param name="keyCode"></param>
-        public void keyboard_action(KeyCode keyCode)
+        public void KeyboardAction(KeyCode keyCode)
         {
             if (!data_.meshesLoaded || !data_.mriLoaded)
                 return;
@@ -1488,24 +1449,35 @@ namespace HBP.Module3D
                     break;
             }
         }
-
-
-        public bool is_tri_erasing_enabled()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public bool IsTriangleErasingModeEnabled()
         {
             return m_triEraser.is_enabled();
         }
-
-        public TriEraser.Mode current_tri_erasing_mode()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public TriEraser.Mode CurrentTriangleErasingMode()
         {
             return m_triEraser.mode();
         }
-
-        public void set_tri_erasing(bool enabled)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="enabled"></param>
+        public void SetTriangleErasing(bool enabled)
         {
             m_triEraser.set_enabled(enabled);
         }
-
-        public void reset_tri_erasing(bool updateGO = true)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="updateGO"></param>
+        public void ResetTriangleErasing(bool updateGO = true)
         {
             // destroy previous GO
             if (go_.invisibleBrainSurfaceMeshes != null)
@@ -1541,22 +1513,20 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
                     m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
         }
-
         /// <summary>
         /// 
         /// </summary>
-        public void cancel_last_tri_erasing()
+        public void CancelLastTriangleErasingAction()
         {
             m_triEraser.cancel_last_action();
             for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
                 m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
         }
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="mode"></param>
-        public void set_tri_erasing_mode(TriEraser.Mode mode)
+        public void SetTriangleErasingMode(TriEraser.Mode mode)
         {
             TriEraser.Mode previousMode = m_triEraser.mode();
             m_triEraser.set_tri_erasing_mode(mode);
@@ -1569,31 +1539,28 @@ namespace HBP.Module3D
                 m_triEraser.set_tri_erasing_mode(previousMode);
             }
         }
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="degrees"></param>
-        public void set_tri_erasing_zone_degrees(float degrees)
+        public void SetTriangleErasingZoneDegrees(float degrees)
         {
             m_triEraser.set_zone_degrees(degrees);
         }
-
         /// <summary>
         /// Return the id of the current select column in the scene
         /// </summary>
         /// <returns></returns>
-        public int retrieve_current_selected_column_id()
+        public int RetrieveCurrentSelectedColumnID()
         {
             return m_Column3DViewManager.SelectedColumnID;
         }
-
         /// <summary>
         /// Update the middle of a IEEG column
         /// </summary>
         /// <param name="value"></param>
         /// <param name="columnId"></param>
-        public void update_IEEG_middle(float value, int columnId)
+        public void UpdateIEEGMiddle(float value, int columnId)
         {
             // update value
             Column3DViewIEEG IEEGCol = (Column3DViewIEEG)m_Column3DViewManager.Columns[columnId];
@@ -1609,13 +1576,12 @@ namespace HBP.Module3D
             m_ModesManager.updateMode(Mode.FunctionsId.updateMiddle);
             //##################
         }
-
         /// <summary>
         /// Update the max distance of a IEEG column
         /// </summary>
         /// <param name="value"></param>
         /// <param name="columnId"></param>
-        public void update_site_maximum_influence(float value, int columnId)
+        public void UpdateSiteMaximumInfluence(float value, int columnId)
         {
             Column3DViewIEEG IEEGCol = (Column3DViewIEEG)m_Column3DViewManager.Columns[columnId];
             if (IEEGCol.maxDistanceElec == value)
@@ -1630,12 +1596,11 @@ namespace HBP.Module3D
             m_ModesManager.updateMode(Mode.FunctionsId.updateMiddle);
             //##################
         }
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="value"></param>
-        public void update_MRI_cal_min(float value)
+        public void UpdateMRICalMin(float value)
         {
             m_Column3DViewManager.MRICalMinFactor = value;
 
@@ -1655,19 +1620,18 @@ namespace HBP.Module3D
                     m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
 
-            compute_MRI_textures();
+            ComputeMRITextures();
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.updateMiddle);
             //##################
         }
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="value"></param>
-        public void update_MRI_cal_max(float value)
+        public void UpdateMRICalMax(float value)
         {
             m_Column3DViewManager.MRICalMaxFactor = value;
 
@@ -1688,80 +1652,73 @@ namespace HBP.Module3D
             }
 
 
-            compute_MRI_textures();
+            ComputeMRITextures();
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.updateMiddle);
             //##################
         }
-
         /// <summary>
         /// Update the cal min value of the input FMRI column
         /// </summary>
         /// <param name="value"></param>
         /// <param name="columnId"> id of the FMRI columns</param>
-        public void update_FMRI_cal_min(float value, int columnId)
+        public void UpdateFMRICalMin(float value, int columnId)
         {
             m_Column3DViewManager.ColumnsFMRI[columnId].calMin = value;
-            compute_FMRI_textures(-1, -1);
+            ComputeFMRITextures(-1, -1);
         }
-
         /// <summary>
         /// Update the cal max value of the input FMRI column
         /// </summary>
         /// <param name="value"></param>
         /// <param name="columnId"> id of the FMRI columns</param>
-        public void update_FMRI_cal_max(float value, int columnId)
+        public void UpdateFMRICalMax(float value, int columnId)
         {
             m_Column3DViewManager.ColumnsFMRI[columnId].calMax = value;
-            compute_FMRI_textures(-1, -1);
+            ComputeFMRITextures(-1, -1);
         }
-
         /// <summary>
         /// Update the alpha value of the input FMRI column
         /// </summary>
         /// <param name="value"></param>
         /// <param name="columnId"> id of the FMRI columns</param>
-        public void update_FMRI_alpha(float value, int columnId)
+        public void UpdateFMRIAlpha(float value, int columnId)
         {
             m_Column3DViewManager.ColumnsFMRI[columnId].alpha = value;
-            compute_FMRI_textures(-1, -1);
+            ComputeFMRITextures(-1, -1);
         }
-
-
         /// <summary>
         /// Update the min alpha of a IEEG column
         /// </summary>
         /// <param name="value"></param>
         /// <param name="columnId"></param>
-        public void update_IEEG_min_alpha(float value, int columnId)
+        public void UpdateIEEGMinAlpha(float value, int columnId)
         {
             m_Column3DViewManager.ColumnsIEEG[columnId].alphaMin = value;
 
             if (data_.geometryUpToDate && !data_.iEEGOutdated)
-                compute_IEEG_textures(-1, -1, true, true, false);
+                ComputeIEEGTextures(-1, -1, true, true, false);
         }
-
         /// <summary>
         /// Update the max alpha of a IEEG  column
         /// </summary>
         /// <param name="value"></param>
         /// <param name="columnId"></param>
-        public void update_IEEG_max_alpha(float value, int columnId)
+        public void UpdateIEEGMaxAlpha(float value, int columnId)
         {
             m_Column3DViewManager.ColumnsIEEG[columnId].alphaMax = value;
 
             if (data_.geometryUpToDate && !data_.iEEGOutdated)
-                compute_IEEG_textures(-1, -1, true, true, false);
+                ComputeIEEGTextures(-1, -1, true, true, false);
         }
-
         /// <summary>
         /// Update the bubbles gain of a IEEG column
         /// </summary>
         /// <param name="value"></param>
         /// <param name="columnId"></param>
-        public void update_gain_bubbles(float value, int columnId)
+        public void UpdateBubblesGain(float value, int columnId)
         {
             Column3DViewIEEG IEEGCol = m_Column3DViewManager.ColumnsIEEG[columnId];
             if (IEEGCol.gainBubbles == value)
@@ -1770,14 +1727,12 @@ namespace HBP.Module3D
 
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
         }
-
-
         /// <summary>
         /// Update the span min of a IEEG column
         /// </summary>
         /// <param name="value"></param>
         /// <param name="columnId"></param>
-        public void update_IEEG_span_min(float value, int columnId)
+        public void UpdateIEEGSpanMin(float value, int columnId)
         {
             Column3DViewIEEG IEEGCol = m_Column3DViewManager.ColumnsIEEG[columnId];
             if (IEEGCol.spanMin == value)
@@ -1789,20 +1744,19 @@ namespace HBP.Module3D
 
             data_.generatorUpToDate = false;
             data_.iEEGOutdated = true;
-            update_GUI_textures();
+            UpdateGUITextures();
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);            
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.updateMiddle);
             //##################
         }
-
         /// <summary>
         /// Update the span max of a IEEG column
         /// </summary>
         /// <param name="value"></param>
         /// <param name="columnId"></param>
-        public void update_IEEG_span_max(float value, int columnId)
+        public void UpdateIEEGSpanMax(float value, int columnId)
         {
             Column3DViewIEEG IEEGCol = m_Column3DViewManager.ColumnsIEEG[columnId];
             if (IEEGCol.spanMax == value)
@@ -1814,14 +1768,13 @@ namespace HBP.Module3D
 
             data_.generatorUpToDate = false;
             data_.iEEGOutdated = true;
-            update_GUI_textures();
+            UpdateGUITextures();
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.updateMiddle);
             //##################
         }
-
         /// <summary>
         /// Return the number of FMRI colums
         /// </summary>
@@ -1830,13 +1783,12 @@ namespace HBP.Module3D
         {
             return m_Column3DViewManager.ColumnsFMRI.Count;
         }
-
         /// <summary>
         /// Load an FMRI column
         /// </summary>
         /// <param name="FMRIPath"></param>
         /// <returns></returns>
-        public bool load_FMRI_file(string FMRIPath)
+        public bool LoadFMRIFile(string FMRIPath)
         {
             if (m_Column3DViewManager.DLLNii.load_nii_file(FMRIPath))
                 return true;
@@ -1844,7 +1796,6 @@ namespace HBP.Module3D
             Debug.LogError("-ERROR : Base3DScene::load_FMRI_file -> load NII file failed. " + FMRIPath);
             return false;
         }
-
         /// <summary>
         /// Add a FMRI column
         /// </summary>
@@ -1893,10 +1844,10 @@ namespace HBP.Module3D
             // update camera
             UpdateCameraTarget.Invoke(Type == SceneType.SinglePatient ?  m_Column3DViewManager.BothHemi.bounding_box().center() : m_MNI.BothHemi.bounding_box().center());
 
-            compute_MRI_textures(-1, -1);
+            ComputeMRITextures(-1, -1);
 
             SendFMRIParameters.Invoke(FMRIParams);
-            compute_FMRI_textures(-1, -1);
+            ComputeFMRITextures(-1, -1);
 
 
             //####### UDPATE MODE
@@ -1905,7 +1856,6 @@ namespace HBP.Module3D
 
             return true;
         }
-
         /// <summary>
         /// Remove the last IRMF column
         /// </summary>
@@ -1925,42 +1875,39 @@ namespace HBP.Module3D
             // update plots visibility
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
 
-            compute_MRI_textures(-1, -1);
-            compute_FMRI_textures(-1, -1);
-            update_GUI_textures();
+            ComputeMRITextures(-1, -1);
+            ComputeFMRITextures(-1, -1);
+            UpdateGUITextures();
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.removeLastIRMFColumn);
             //##################
         }
-
         /// <summary>
         /// Is the latency mode enabled ?
         /// </summary>
         /// <returns></returns>
-        public bool is_latency_mode_enabled()
+        public bool IsLatencyModeEnabled()
         {
             return data_.displayCcepMode;
         }
-
         /// <summary>
         /// Updat visibility of the columns 3D items
         /// </summary>
         /// <param name="displayMeshes"></param>
         /// <param name="displaySites"></param>
         /// <param name="displayROI"></param>
-        public void update_scene_items_visibility(bool displayMeshes, bool displaySites, bool displayROI)
+        public void UpdateSceneItemsVisibility(bool displayMeshes, bool displaySites, bool displayROI)
         {
             //if (!singlePatient)
             //    m_CM.update_ROI_visibility(displayROI && data_.ROICreationMode);
 
             //m_CM.update_sites_visibiliy(displaySites);
         }
-
         /// <summary>
         /// Send IEEG read min/max/middle to the IEEG menu
         /// </summary>
-        public void send_IEEG_parameters_to_menu()
+        public void SendIEEGParametersToMenu()
         {            
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
@@ -1982,11 +1929,10 @@ namespace HBP.Module3D
                 SendIEEGParameters.Invoke(iEEGDataParams);
             }
         }
-
         /// <summary>
         /// 
         /// </summary>
-        public void send_FMRI_parameters_to_menu() // TODO
+        public void SendFMRIParametersToMenu() // TODO
         {
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
@@ -2002,7 +1948,6 @@ namespace HBP.Module3D
                 SendFMRIParameters.Invoke(FMRIDataParams);
             }
         }
-
         /// <summary>
         /// Send an event for displaying a message on the scene screen
         /// </summary>
@@ -2010,11 +1955,10 @@ namespace HBP.Module3D
         /// <param name="duration"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
-        public void display_sceen_message(string message, float duration, int width, int height)
+        public void DisplayScreenMessage(string message, float duration, int width, int height)
         {            
             display_screen_message_event.Invoke(message, duration, width , height);
         }
-
         /// <summary>
         /// Send an event for displaying a progressbar on the scene screen
         /// </summary>
@@ -2022,25 +1966,23 @@ namespace HBP.Module3D
         /// <param name="duration"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
-        public void display_progressbar(float value, float duration, int width, int height)
+        public void DisplayProgressbar(float value, float duration, int width, int height)
         {
             display_scene_progressbar_event.Invoke(duration, width, height, value);
         }
-
         /// <summary>
         /// 
         /// </summary>
-        public void compate_sites()
+        public void CompareSites()
         {
-            display_sceen_message("Select site to compare ", 3f, 200, 40);
+            DisplayScreenMessage("Select site to compare ", 3f, 200, 40);
             data_.compareSite = true;
         }
-
         /// <summary>
         /// Unselect the site of the corresponding column
         /// </summary>
         /// <param name="columnId"></param>
-        public void unselect_site(int columnId)
+        public void UnselectSite(int columnId)
         {
             m_Column3DViewManager.Columns[columnId].SelectedSiteID = -1; // unselect current site
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
@@ -2049,8 +1991,10 @@ namespace HBP.Module3D
         #endregion
 
         #region Abstract Methods
-        public abstract void click_on_scene(Ray ray);
-        public abstract void disable_site_display_window(int idColumn);
+        public abstract void ComputeMeshesCut();
+        public abstract void SendAdditionalSiteInfoRequest(Site previousPlot = null);
+        public abstract void ClickOnScene(Ray ray);
+        public abstract void DisableSiteDisplayWindow(int idColumn);
         #endregion
     }
 

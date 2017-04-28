@@ -209,7 +209,7 @@ namespace HBP.UI.Visualisation
                 loadingCircle.Set(1, "Finish");
                 yield return Ninja.JumpBack;
                 yield return Ninja.JumpToUnity;
-                command.LoadData(visualisationData);
+                command.AddVisualisation(visualisationData);
             }
             else
             {
@@ -234,7 +234,7 @@ namespace HBP.UI.Visualisation
                 loadingCircle.Set(1, "Finish");
                 yield return Ninja.JumpBack;
                 yield return Ninja.JumpToUnity;
-                command.LoadData(visualisationData);
+                command.AddVisualisation(visualisationData);
             }
             command.SetScenesVisibility(!MNI, MNI);
             command.SetModuleFocus(true);

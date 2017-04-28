@@ -107,7 +107,7 @@ namespace HBP.Module3D
 
             if (!string.IsNullOrEmpty(path))
             {
-                bool result = SelectedScene.load_FMRI_file(path);
+                bool result = SelectedScene.LoadFMRIFile(path);
                 if (!result)
                 {
                     Debug.LogError("-ERROR : ScenesManager::addIRMF -> can't load IRMF");
@@ -201,7 +201,10 @@ namespace HBP.Module3D
             OnRemoveScene.Invoke(scene);
             m_Scenes.Remove(scene);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="state"></param>
         public void SetModuleFocusState(bool state)
         {
             m_CamerasManager.SetModuleFocus(state);            
@@ -216,14 +219,14 @@ namespace HBP.Module3D
         /// <param name="height"></param>
         public void DisplayMessageInScene(Base3DScene scene, string message, float duration, int width, int height)
         {
-            scene.display_sceen_message(message, duration, width, height);
+            scene.DisplayScreenMessage(message, duration, width, height);
         }
         /// <summary>
         /// Define the visibility of the scenes
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="mpScene"></param>
-        public void SetScenesVisibility(bool spScene, bool mpScene) // TODO : delete
+        public void SetScenesVisibility(bool spScene, bool mpScene) // TODO : delete or change
         {
             if (spScene)
                 FocusOnScene.Invoke(true);
@@ -301,7 +304,7 @@ namespace HBP.Module3D
         /// Get the number of FMRI column of the selected scene
         /// </summary>
         /// <returns></returns>
-        public int GetNumberOffMRIColumnsOfSelectedScene()
+        public int GetNumberOffMRIColumnsOfSelectedScene() // maybe useless
         {
             return SelectedScene.GetNumberOffMRIColumns();
         }

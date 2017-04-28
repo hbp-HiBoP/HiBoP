@@ -6,7 +6,6 @@
  * \brief   Define MP3DScene class
  */
 
-// system
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -25,32 +24,26 @@ namespace HBP.Module3D
         /// Event for sending a ROI associated to a column id (params : ROI, idColumn)
         /// </summary>
         public class SendColumnROI : UnityEvent<ROI, int> { }
-
         /// <summary>
         /// Event for creating a new bubble to a column id with a position  (params : position, idColumn)
         /// </summary>
         public class CreateBubble : UnityEvent<Vector3, int> { }
-
         /// <summary>
         /// Event for selecting a bubble of a column (params : idColumn, idBubble)
         /// </summary>
         public class SelectBubble : UnityEvent<int, int> { }
-
         /// <summary>
         /// Event for changing the size of a bubble (params : idColumn, idBubble, size)
         /// </summary>
         public class ChangeSizeBubble : UnityEvent<int, int, float> { }
-
         /// <summary>
         /// Event for removing a bubble (params : idColumn, idBubble)
         /// </summary>
         public class RemoveBubble : UnityEvent<int, int> { }
-
         /// <summary>
         /// Ask the UI to update set the same cameras to the individual scene
         /// </summary>
         public class ApplySceneCamerasToIndividualScene : UnityEvent { }
-
         /// <summary>
         /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
         /// </summary>        
@@ -64,7 +57,7 @@ namespace HBP.Module3D
     [AddComponentMenu("Scenes/Multi Patients 3D Scene")]
     public class MultiPatients3DScene : Base3DScene
     {
-        #region members
+        #region Properties
         public override SceneType Type
         {
             get
@@ -91,13 +84,6 @@ namespace HBP.Module3D
                 return new ReadOnlyCollection<Data.Patient>(Visualisation.Patients);
             }
         }
-        public override string Name
-        {
-            get
-            {
-                return "MNI";
-            }
-        }
         public AmbientMode m_ambiantMode = AmbientMode.Flat;
         public float m_ambientIntensity = 1;
         public Color m_ambiantLight = new Color(0.2f, 0.2f, 0.2f, 1);
@@ -110,11 +96,9 @@ namespace HBP.Module3D
         public Events.RemoveBubble RemoveBubbleEvent = new Events.RemoveBubble();
         public Events.ApplySceneCamerasToIndividualScene ApplySceneCamerasToIndividualScene = new Events.ApplySceneCamerasToIndividualScene();
         public Events.LoadSPSceneFromMP LoadSPSceneFromMP = new Events.LoadSPSceneFromMP();
-        
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
-
+        #region Private Methods
         new void Awake()
         {
             int idScript = TimeExecution.get_ID();
@@ -125,17 +109,14 @@ namespace HBP.Module3D
             m_MNI = GetComponent<MNIObjects>();
             
             TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.MP3DScene, gameObject);
-
         }
-
-        #endregion mono_behaviour
+        #endregion
 
         #region Public Methods
-
         /// <summary>
         /// Update the meshes cuts
         /// </summary>
-        public override void compute_meshes_cuts()
+        public override void ComputeMeshesCut()
         {
             // choose the mesh
             data_.meshToDisplay = null;
@@ -226,7 +207,7 @@ namespace HBP.Module3D
             }
 
             // reset tri eraser
-            reset_tri_erasing(false);
+            ResetTriangleErasing(false);
 
             // update cut brain mesh object mesh filter
             for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
@@ -265,8 +246,6 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
                 m_Column3DViewManager.ColumnsIEEG[ii].updateIEEG = true;
         }
-
-
         /// <summary>
         /// Reset the scene : reload MRI, sites, and regenerate textures
         /// </summary>
@@ -318,10 +297,10 @@ namespace HBP.Module3D
             //##################
 
             // reset electrodes
-            bool success = reset_electrodes_files(ptsFiles, namePatients);
+            bool success = ResetElectrodesFiles(ptsFiles, namePatients);
 
             // define meshes splits nb
-            reset_splits_nb(3);
+            ResetSplitsNumber(3);
 
             if (success)
                 data_.updateCutMeshGeometry = true;
@@ -331,23 +310,22 @@ namespace HBP.Module3D
                 Debug.LogError("-ERROR : MP3DScene : reset failed. ");
                 data_.reset();
                 m_Column3DViewManager.Initialize(PlanesList.Count);
-                reset_scene_GO();                
+                ResetSceneGameObjects();                
                 return false;
             }
 
             SetTimelineData();
-            update_selected_column(0);
+            UpdateSelectedColumn(0);
 
-            display_sceen_message("Multi Patients Scene loaded", 2.0f, 400, 80);
+            DisplayScreenMessage("Multi Patients Scene loaded", 2.0f, 400, 80);
             return true;
         }
-
         /// <summary>
         /// Reset all the sites with a new list of pts files
         /// </summary>
         /// <param name="pathsElectrodesPtsFile"></param>
         /// <returns></returns>
-        public bool reset_electrodes_files(List<string> pathsElectrodesPtsFile, List<string> names)
+        public bool ResetElectrodesFiles(List<string> pathsElectrodesPtsFile, List<string> names)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.resetElectrodesFile))
@@ -455,7 +433,6 @@ namespace HBP.Module3D
 
             return true;
         }
-
         /// <summary>
         /// Define the timeline data with a patient list, a list of column data and the pts paths
         /// </summary>
@@ -493,18 +470,17 @@ namespace HBP.Module3D
             AskROIUpdateEvent.Invoke(-1);
 
             // send data to UI
-            send_IEEG_parameters_to_menu();
+            SendIEEGParametersToMenu();
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.setTimelines);
             //##################
         }
-
         /// <summary>
         /// Load a patient in the SP scene
         /// </summary>
         /// <param name="idPatientSelected"></param>
-        public void load_patient_in_SP_scene(int idPatientSelected, int idPlotSelected)
+        public void LoadPatientInSinglePatientScene(int idPatientSelected, int idPlotSelected)
         {
             LoadSPSceneFromMP.Invoke(idPatientSelected);
             /*
@@ -588,12 +564,11 @@ namespace HBP.Module3D
             ApplySceneCamerasToIndividualScene.Invoke();
             */
         }
-
         /// <summary>
         /// Reset the rendering settings for this scene, called by each MP camera before rendering
         /// </summary>
         /// <param name="cameraRotation"></param>
-        public override void reset_rendering_settings(Vector3 cameraRotation)
+        public override void ResetRenderingSettings(Vector3 cameraRotation)
         {
             RenderSettings.ambientMode = m_ambiantMode;
             RenderSettings.ambientIntensity = m_ambientIntensity;
@@ -601,18 +576,20 @@ namespace HBP.Module3D
             RenderSettings.ambientLight = m_ambiantLight;
             go_.sharedDirLight.GetComponent<Transform>().eulerAngles = cameraRotation;
         }
-
         /// <summary>
         /// Mouse scroll events managements, call Base3DScene parent function
         /// </summary>
         /// <param name="scrollDelta"></param>
-        new public void mouse_scroll_action(Vector2 scrollDelta)
+        public new void MouseScrollAction(Vector2 scrollDelta)
         {
-            base.mouse_scroll_action(scrollDelta);
-            change_size_ROI(scrollDelta.y);
+            base.MouseScrollAction(scrollDelta);
+            ChangeRegionOfInterestSize(scrollDelta.y);
         }
-
-        private void change_size_ROI(float coeff)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="coeff"></param>
+        private void ChangeRegionOfInterestSize(float coeff)
         {
             int idC = m_Column3DViewManager.SelectedColumnID;
             if (data_.ROICreationMode) // ROI : change ROI size
@@ -625,23 +602,21 @@ namespace HBP.Module3D
                 }
             }
         }
-
         /// <summary>
         /// Return true if the ROI mode is enabled (allow to switch mouse scroll effect between camera zoom and ROI size changes)
         /// </summary>
         /// <returns></returns>
-        public bool is_ROI_mode_enabled()
+        public bool IsRegionOfInterestModeEnabled()
         {
             return data_.ROICreationMode;
         }
-
         /// <summary>
         /// Keyboard events management, call Base3DScene parent function
         /// </summary>
         /// <param name="keyCode"></param>
-        new public void keyboard_action(KeyCode keyCode)
+        public new void KeyboardAction(KeyCode keyCode)
         {
-            base.keyboard_action(keyCode);
+            base.KeyboardAction(keyCode);
             switch (keyCode)
             {
                 // choose active plane
@@ -659,19 +634,18 @@ namespace HBP.Module3D
                     }
                     break;
                 case KeyCode.KeypadPlus:
-                    change_size_ROI(0.2f);
+                    ChangeRegionOfInterestSize(0.2f);
                     break;
                 case KeyCode.KeypadMinus:
-                    change_size_ROI(-0.2f);
+                    ChangeRegionOfInterestSize(-0.2f);
                     break;
             }
         }
-
         /// <summary>
         /// Manage the clicks event in the scene
         /// </summary>
         /// <param name="ray"></param>
-        public override void click_on_scene(Ray ray)
+        public override void ClickOnScene(Ray ray)
         {
             // scene not loaded
             if (!data_.mriLoaded)
@@ -679,7 +653,7 @@ namespace HBP.Module3D
 
             // update colliders if necessary
             if (!data_.collidersUpdated)
-                update_meshes_colliders();
+                UpdateMeshesColliders();
 
             // retrieve layer
             int layerMask = 0;
@@ -810,16 +784,15 @@ namespace HBP.Module3D
                 }
             }         
         }        
-
         /// <summary>
         /// Manage the mouse movement events in the scene
         /// </summary>
         /// <param name="ray"></param>
         /// <param name="mousePosition"></param>
         /// /// <param name="idColumn"></param>
-        public new void move_mouse_on_scene(Ray ray, Vector3 mousePosition, int idColumn)
+        public new void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn)
         {
-            base.move_mouse_on_scene(ray, mousePosition, idColumn);
+            base.MoveMouseOnScene(ray, mousePosition, idColumn);
 
             // scene not loaded
             if (!data_.mriLoaded)
@@ -890,28 +863,34 @@ namespace HBP.Module3D
                     break;
             }
         }
-
-        public override void disable_site_display_window(int idColumn)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idColumn"></param>
+        public override void DisableSiteDisplayWindow(int idColumn)
         {
             UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
         }
-
-        public void enable_ROI_creation_mode()
+        /// <summary>
+        /// 
+        /// </summary>
+        public void EnableRegionOfInterestCreationMode()
         {
             data_.ROICreationMode = true;
             Column3DViewManager.update_ROI_visibility(true);
         }
-
-        public void disable_ROI_creatino_mode()
+        /// <summary>
+        /// 
+        /// </summary>
+        public void DisableRegionOfInterestCreationMode()
         {
             data_.ROICreationMode = false;
             Column3DViewManager.update_ROI_visibility(false);
         }
-
         /// <summary>
         /// Send additionnal site info to hight level UI
         /// </summary>
-        public override void send_additionnal_site_info_request(Site previousPlot = null) // TODO deporter dans c manager
+        public override void SendAdditionalSiteInfoRequest(Site previousPlot = null) // TODO deporter dans c manager
         {
 
             switch (m_Column3DViewManager.SelectedColumn.Type)
@@ -975,8 +954,11 @@ namespace HBP.Module3D
                     break;
             }
         }
-
-        public void update_current_ROI(int idColumn)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idColumn"></param>
+        public void UpdateCurrentRegionOfInterest(int idColumn)
         {
             bool[] maskROI = new bool[m_Column3DViewManager.SitesList.Count];
 
@@ -990,45 +972,41 @@ namespace HBP.Module3D
 
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
         }
-
         /// <summary>
         /// Update the ROI of a column from the interface
         /// </summary>
         /// <param name="idColumn"></param>
         /// <param name="roi"></param>
-        public void update_ROI(int idColumn, ROI roi)
+        public void UpdateRegionOfInterest(int idColumn, ROI roi)
         {
             m_Column3DViewManager.Columns[idColumn].update_ROI(roi);
-            update_current_ROI(idColumn);
+            UpdateCurrentRegionOfInterest(idColumn);
         }
-
         /// <summary>
         /// Return the string information of the current column ROI and plots states
         /// </summary>
         /// <returns></returns>
-        public string get_current_column_ROI_and_sites_state_str()
+        public string GetCurrentColumnRegionOfInterestAndSitesStatesIntoString()
         {
             Column3DView currentCol = m_Column3DViewManager.SelectedColumn;
             return "ROI :\n" +  currentCol.SelectedROI.ROIbubbulesInfos() + currentCol.site_state_str();
         }
-
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public string get_sites_in_ROI()
+        public string GetSitesInRegionOfInterestIntoString()
         {
             Column3DView currentCol = m_Column3DViewManager.SelectedColumn;
             return "Sites in ROI:\n" + currentCol.SelectedROI.ROIbubbulesInfos() + currentCol.only_sites_in_ROI_str();
         }
-
         /// <summary>
         /// 
         /// </summary>
         /// <param name="idColumn"></param>
         /// <param name="plots"></param>
         /// <param name="patientsName"></param>
-        public void update_sites_mask(int idColumn, List<List<List<SiteInformation>>> plots, List<string> patientsName)
+        public void UpdateSitesMasks(int idColumn, List<List<List<SiteInformation>>> plots, List<string> patientsName)
         {
             // reset previous masks
             for (int ii = 0; ii < Column3DViewManager.Columns[idColumn].Sites.Count; ++ii)
@@ -1065,8 +1043,6 @@ namespace HBP.Module3D
                 }
             }
         }
-
-
-        #endregion functions
+        #endregion
     }
 }

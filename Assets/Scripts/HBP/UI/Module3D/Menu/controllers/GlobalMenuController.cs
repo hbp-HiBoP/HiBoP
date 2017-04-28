@@ -57,7 +57,7 @@ namespace HBP.Module3D
                     m_colorMapController.update_colormap(id - 1);
                     foreach (Base3DScene scene in scenesManager.Scenes)
                     {
-                        scene.update_colormap(id - 1);
+                        scene.UpdateColormap(id - 1);
                     }                
                 });
             }
@@ -76,28 +76,28 @@ namespace HBP.Module3D
             {
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.update_brain_surface_color(15);
+                    scene.UpdateBrainSurfaceColor(15);
                 }
             });
             baseButtons.Find("braincolor2 button").GetComponent<Button>().onClick.AddListener(() =>
             {
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.update_brain_surface_color(16);
+                    scene.UpdateBrainSurfaceColor(16);
                 }
             });
             baseButtons.Find("braincolor3 button").GetComponent<Button>().onClick.AddListener(() =>
             {
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.update_brain_surface_color(0);
+                    scene.UpdateBrainSurfaceColor(0);
                 }
             });
             baseButtons.Find("braincolor4 button").GetComponent<Button>().onClick.AddListener(() =>
             {
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.update_brain_surface_color(14);
+                    scene.UpdateBrainSurfaceColor(14);
                 }
             });
 
@@ -116,14 +116,14 @@ namespace HBP.Module3D
             {
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.update_brain_cut_color(14);
+                    scene.UpdateBrainCutColor(14);
                 }
             });
             baseButtons.Find("cutcolor2 button").GetComponent<Button>().onClick.AddListener(() =>
             {
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.update_brain_cut_color(0);
+                    scene.UpdateBrainCutColor(0);
                 }
             });
 

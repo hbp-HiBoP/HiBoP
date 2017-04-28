@@ -6,7 +6,6 @@
  * \brief   Define SP3DScene class
  */
 
-// system
 using System;
 using System.Collections.Generic;
 
@@ -64,13 +63,6 @@ namespace HBP.Module3D
                 return Visualisation.Patient;
             }
         }
-        public override string Name
-        {
-            get
-            {
-                return Patient.Place + "_" + Patient.Date + "_" + Patient.Name;
-            }
-        }
         // events
         private Events.UpdateLatencies m_updateLatencies = new Events.UpdateLatencies();
         public Events.UpdateLatencies UpdateLatencies { get { return m_updateLatencies; } }
@@ -83,7 +75,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Update the meshes cuts
         /// </summary>
-        public override void compute_meshes_cuts()
+        public override void ComputeMeshesCut()
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 0 cutSurface"); // 40%
 
@@ -162,7 +154,7 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 3 update cut brain mesh object mesh filter"); // 6%
 
-            reset_tri_erasing(false);
+            ResetTriangleErasing(false);
 
             // update brain mesh object mesh filter
             for (int ii = 0; ii < m_Column3DViewManager.meshSplitNb; ++ii)
@@ -211,7 +203,6 @@ namespace HBP.Module3D
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
-
         /// <summary>
         /// Reset the scene : reload meshes, IRM, plots, and regenerate textures
         /// </summary>
@@ -242,15 +233,15 @@ namespace HBP.Module3D
 
 
             // load meshes
-            bool success = reset_brain_surface(meshesFiles, Patient.Brain.PreOperationReferenceFrameToScannerReferenceFrameTransformation);
+            bool success = ResetBrainSurface(meshesFiles, Patient.Brain.PreOperationReferenceFrameToScannerReferenceFrameTransformation);
 
             // load volume
             if (success)
-                success = reset_NII_brain_volume(Patient.Brain.PreOperationMRI);
+                success = ResetNiftiBrainVolume(Patient.Brain.PreOperationMRI);
 
             // load electrodes
             if (success)
-                success = reset_electrodes(ptsFiles, namePatients);
+                success = ResetElectrodes(ptsFiles, namePatients);
 
             if (success)
                 data_.updateCutMeshGeometry = true;
@@ -260,25 +251,24 @@ namespace HBP.Module3D
                 Debug.LogError("-ERROR : SP3DScene : reset failed. ");
                 data_.reset();
                 m_Column3DViewManager.Initialize(PlanesList.Count);
-                reset_scene_GO();
+                ResetSceneGameObjects();
                 return false;
             }
             
             SetTimelineData();
             SelectSite(-1);
-            update_selected_column(0);
+            UpdateSelectedColumn(0);
 
-            display_sceen_message("Single Patient Scene loaded : " + visualisation.Patient.Place + "_" + visualisation.Patient.Name + "_" + visualisation.Patient.Date, 2.0f, 400, 80);
+            DisplayScreenMessage("Single Patient Scene loaded : " + visualisation.Patient.Place + "_" + visualisation.Patient.Name + "_" + visualisation.Patient.Date, 2.0f, 400, 80);
             return true;
         }
-
         /// <summary>
         /// Reset the meshes of the scene with GII files
         /// </summary>
         /// <param name="pathGIIBrainFiles"></param>
         /// <param name="pathTransformFile"></param>
         /// <returns></returns>
-        public bool reset_brain_surface(List<string> pathGIIBrainFiles, string pathTransformFile)
+        public bool ResetBrainSurface(List<string> pathGIIBrainFiles, string pathTransformFile)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.resetGIIBrainSurfaceFile))
@@ -384,7 +374,7 @@ namespace HBP.Module3D
             if (leftWhiteLoaded && rightWhiteLoaded)
                 maxVerticesNb = Math.Max(maxVerticesNb, m_Column3DViewManager.BothWhite.vertices_nb());
             int nbSplits = (maxVerticesNb / 65000) + (int)(((maxVerticesNb % 60000) != 0) ? 3 : 2);
-            reset_splits_nb(nbSplits);
+            ResetSplitsNumber(nbSplits);
             
             // update scenes cameras
             UpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.bounding_box().center());
@@ -398,14 +388,12 @@ namespace HBP.Module3D
 
             return data_.meshesLoaded;
         }
-
-
         /// <summary>
         /// Reset all the sites with a new list of pts files
         /// </summary>
         /// <param name="pathsElectrodesPtsFile"></param>
         /// <returns></returns>
-        public bool reset_electrodes(List<string> pathsElectrodesPtsFile, List<string> namePatients)
+        public bool ResetElectrodes(List<string> pathsElectrodesPtsFile, List<string> namePatients)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.resetElectrodesFile))
@@ -549,8 +537,6 @@ namespace HBP.Module3D
 
             return data_.sitesLoaded;
         }
-
-
         /// <summary>
         /// Define the timeline data with a patient and a list of column data
         /// </summary>
@@ -585,13 +571,12 @@ namespace HBP.Module3D
             data_.timelinesLoaded = true;
 
             // send data to UI
-            send_IEEG_parameters_to_menu();
+            SendIEEGParametersToMenu();
             
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.setTimelines);
             //##################
         }
-
         /// <summary>
         /// Set the current plot to be selected in all the columns
         /// </summary>
@@ -606,13 +591,12 @@ namespace HBP.Module3D
                 ClickSite.Invoke(ii);
             }
         }
-
         /// <summary>
         /// Update the columns masks of the scene
         /// </summary>
         /// <param name="blacklistMasks"></param>
         /// <param name="excludedMasks"></param>
-        public void set_columns_site_mask(List<List<bool>> blacklistMasks, List<List<bool>> excludedMasks, List<List<bool>> hightLightedMasks)
+        public void SetColumnSiteMask(List<List<bool>> blacklistMasks, List<List<bool>> excludedMasks, List<List<bool>> hightLightedMasks)
         {
             for(int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
@@ -626,12 +610,11 @@ namespace HBP.Module3D
 
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);
         }
-
         /// <summary>
         /// Reset the rendering settings for this scene, called by each MP camera before rendering
         /// </summary>
         /// <param name="cameraRotation"></param>
-        public override void reset_rendering_settings(Vector3 cameraRotation)
+        public override void ResetRenderingSettings(Vector3 cameraRotation)
         {
             RenderSettings.ambientMode = m_ambiantMode;
             RenderSettings.ambientIntensity = m_ambientIntensity;
@@ -639,12 +622,11 @@ namespace HBP.Module3D
             RenderSettings.ambientLight = m_ambiantLight;
             go_.sharedDirLight.GetComponent<Transform>().eulerAngles = cameraRotation;
         }
-
         /// <summary>
         /// Manage the clicks event in the scene
         /// </summary>
         /// <param name="ray"></param>
-        public override void click_on_scene(Ray ray)
+        public override void ClickOnScene(Ray ray)
         {
             // scene not loaded
             if (!data_.mriLoaded)
@@ -652,7 +634,7 @@ namespace HBP.Module3D
 
             // update colliders if necessary (SLOW)
             if (!data_.collidersUpdated)
-                update_meshes_colliders();
+                UpdateMeshesColliders();
 
             // retrieve layer
             int layerMask = 0;
@@ -725,16 +707,15 @@ namespace HBP.Module3D
             ClickSite.Invoke(-1);            
             m_Column3DViewManager.update_all_columns_sites_rendering(data_);            
         }
-
         /// <summary>
-        /// anage the mouse movments event in the scene
+        /// Manage the mouse movments event in the scene
         /// </summary>
         /// <param name="ray"></param>
         /// <param name="mousePosition"></param>
         /// /// <param name="idColumn"></param>
-        public new void move_mouse_on_scene(Ray ray, Vector3 mousePosition, int idColumn)
+        public new void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn)
         {
-            base.move_mouse_on_scene(ray, mousePosition, idColumn);
+            base.MoveMouseOnScene(ray, mousePosition, idColumn);
 
             // scene not loaded
             if (!data_.mriLoaded)
@@ -820,19 +801,21 @@ namespace HBP.Module3D
 
             
         }
-
-        public override void disable_site_display_window(int idColumn)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idColumn"></param>
+        public override void DisableSiteDisplayWindow(int idColumn)
         {
             UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
         }
-
         /// <summary>
         /// Update the display mode of the scene
         /// </summary>
         /// <param name="isCeepMode"></param>
-        public void set_CCEP_display_mode(bool isCeepMode)
+        public void SetCCEPDisplayMode(bool isCeepMode)
         {
-            display_sceen_message(isCeepMode ? "CCEP mode enabled" : "iEEG mode enabled", 1.5f, 150, 30);
+            DisplayScreenMessage(isCeepMode ? "CCEP mode enabled" : "iEEG mode enabled", 1.5f, 150, 30);
 
             data_.displayCcepMode = isCeepMode;
             //UpdateCutsInUI.Invoke(m_CM.getBrainCutTextureList(m_CM.idSelectedColumn, true, data_.generatorUpToDate, data_.displayLatenciesMode), m_CM.idSelectedColumn, m_CM.planesList.Count);
@@ -842,11 +825,10 @@ namespace HBP.Module3D
             // force mode to update UI
             m_ModesManager.set_current_mode_specifications(true);
         }
-
         /// <summary>
         /// Define the current plot as the source
         /// </summary>
-        public void set_current_site_as_source()
+        public void SetCurrentSiteAsSource()
         {
             switch (m_Column3DViewManager.SelectedColumn.Type)
             {
@@ -861,11 +843,10 @@ namespace HBP.Module3D
                     break;
             }
         }
-
         /// <summary>
         /// Undefine the current plot as the source
         /// </summary>
-        public void undefine_current_source()
+        public void UndefineCurrentSource()
         {
             switch (m_Column3DViewManager.SelectedColumn.Type)
             {
@@ -880,11 +861,10 @@ namespace HBP.Module3D
                     break;
             }
         }
-
         /// <summary>
         /// Send additionnal plot info to hight level UI
         /// </summary>
-        public override void send_additionnal_site_info_request(Site previousPlot = null) // TODO : deporter dans c manager
+        public override void SendAdditionalSiteInfoRequest(Site previousPlot = null) // TODO : deporter dans c manager
         {
             switch (m_Column3DViewManager.SelectedColumn.Type)
             {
@@ -921,12 +901,11 @@ namespace HBP.Module3D
                     break;
             }
         }
-
         /// <summary>
         /// Update the id of the latency file
         /// </summary>
         /// <param name="id"></param>
-        public void update_current_latency_file(int id)
+        public void UpdateCurrentLatencyFile(int id)
         {
             switch (m_Column3DViewManager.SelectedColumn.Type)
             {
@@ -935,12 +914,12 @@ namespace HBP.Module3D
                 case Column3DView.ColumnType.IEEG:
                     Column3DViewIEEG currCol = (Column3DViewIEEG)m_Column3DViewManager.SelectedColumn;
                     currCol.currentLatencyFile = id;
-                    undefine_current_source();
+                    UndefineCurrentSource();
                     break;
                 default:
                     break;
             }
         }
-        #endregion functions
+        #endregion
     }
 }

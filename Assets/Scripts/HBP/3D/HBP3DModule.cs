@@ -8,6 +8,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -36,11 +37,16 @@ namespace HBP.Module3D
     public class HBP3DModule : MonoBehaviour
     {
         #region Properties
-        private UIManager m_UIManager = null; /**< UI manager */
-        public UIManager UIManager { get { return m_UIManager; } }
-
         private ScenesManager m_ScenesManager; /**< scenes manager */
         public ScenesManager ScenesManager { get { return m_ScenesManager; } }
+
+        public ReadOnlyCollection<Data.Visualisation.Visualisation> Visualisations
+        {
+            get
+            {
+                return new ReadOnlyCollection<Data.Visualisation.Visualisation>((from scene in ScenesManager.Scenes select scene.Visualisation).ToList());
+            }
+        }
 
         [Header("Module camera")]
         [SerializeField]
@@ -49,7 +55,7 @@ namespace HBP.Module3D
 
         [Header("API events")]
         public Events.UpdateColumnMinimizeStateEvent UpdateColumnMinimizedState = new Events.UpdateColumnMinimizeStateEvent();
-        public Events.InfoPlotRequest SiteInfoRequest = new Events.InfoPlotRequest();        
+        public Events.SiteInfoRequest SiteInfoRequest = new Events.SiteInfoRequest();        
         public Events.LoadSPSceneFromMP LoadSPSceneFromMP = new Events.LoadSPSceneFromMP();
         public Events.ROISavedEvent ROISavedEvent = new Events.ROISavedEvent();
         public Events.OnAddVisualisation OnAddVisualisation = new Events.OnAddVisualisation();
@@ -59,20 +65,20 @@ namespace HBP.Module3D
         #region Private Methods
         void Awake()
         {
-            // command listeners            
-            MinimizeController minimizeController =  UIManager.OverlayManager.MinimizeController;
-            minimizeController.m_minimizeStateSwitchEvent.AddListener((spScene) =>
-            {
-                if (spScene)
-                    UpdateColumnMinimizedState.Invoke(true, minimizeController.SPMinimizeStateList);
-                else
-                    UpdateColumnMinimizedState.Invoke(false, minimizeController.MPMinimizeStateList);
-            });
-            UIManager.MenuManager.transform.FindChild("Left").FindChild("mp left menu list").FindChild("ROI").GetComponent<ROIMenuController>().ROISavedEvent.AddListener((pathROI) =>
-            {
-                ROISavedEvent.Invoke(pathROI);
-                UnityEngine.Debug.Log("pathROI : " + pathROI);
-            });
+            // command listeners
+            //MinimizeController minimizeController =  UIManager.OverlayManager.MinimizeController;
+            //minimizeController.m_minimizeStateSwitchEvent.AddListener((spScene) =>
+            //{
+            //    if (spScene)
+            //        UpdateColumnMinimizedState.Invoke(true, minimizeController.SPMinimizeStateList);
+            //    else
+            //        UpdateColumnMinimizedState.Invoke(false, minimizeController.MPMinimizeStateList);
+            //});
+            //UIManager.MenuManager.transform.FindChild("Left").FindChild("mp left menu list").FindChild("ROI").GetComponent<ROIMenuController>().ROISavedEvent.AddListener((pathROI) =>
+            //{
+            //    ROISavedEvent.Invoke(pathROI);
+            //    UnityEngine.Debug.Log("pathROI : " + pathROI);
+            //});
             ScenesManager.OnAddScene.AddListener((scene) =>
             {
                 OnAddVisualisation.Invoke(scene.Visualisation);
@@ -83,7 +89,7 @@ namespace HBP.Module3D
             });
 
             // retrieve managers
-            m_UIManager = GameObject.Find("Brain Visualisation").GetComponent<UIManager>();
+            //m_UIManager = GameObject.Find("Brain Visualisation").GetComponent<UIManager>();
             m_ScenesManager = transform.Find("Scenes").GetComponent<ScenesManager>();
 
             // graphics settings
@@ -93,20 +99,20 @@ namespace HBP.Module3D
         void Start()
         {
             // initialization
-            m_UIManager.Initialize(m_ScenesManager);
+            //m_UIManager.Initialize(m_ScenesManager);
 
             // define listeners
             m_ScenesManager.SendModeSpecifications.AddListener((specs) =>
             {
                 // set UI overlay specs
                 UnityEngine.Profiling.Profiler.BeginSample("TEST-HiBoP_3DModule_Main setSpecificOverlayActive 1");
-                for (int ii = 0; ii < specs.uiOverlayMask.Count; ++ii)
-                    m_UIManager.OverlayManager.set_specific_overlay_active(specs.uiOverlayMask[ii], ii, specs.mode);
+                for (int ii = 0; ii < specs.uiOverlayMask.Count; ++ii) { }
+                    //m_UIManager.OverlayManager.set_specific_overlay_active(specs.uiOverlayMask[ii], ii, specs.mode);
                 UnityEngine.Profiling.Profiler.EndSample();
 
                 // set UI camera specs                
                 UnityEngine.Profiling.Profiler.BeginSample("TEST-HiBoP_3DModule_Main update_UI_with_mode 1");
-                m_UIManager.MenuManager.update_UI_with_mode(specs.mode);
+                //m_UIManager.MenuManager.update_UI_with_mode(specs.mode);
                 UnityEngine.Profiling.Profiler.EndSample();
             });
 
@@ -169,7 +175,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visuDataSP"></param>
         /// <returns>false if a loading error occurs, else true </returns>
-        public bool LoadData(Data.Visualisation.SinglePatientVisualisation visualisation)
+        public bool AddVisualisation(Data.Visualisation.SinglePatientVisualisation visualisation)
         {
             bool result = SetSinglePatientSceneData(visualisation);
             // Add listeners to last added scene
@@ -185,7 +191,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visuDataMP"></param>
         /// <returns>false if a loading error occurs, else true </returns>
-        public bool LoadData(Data.Visualisation.MultiPatientsVisualisation visualisation)
+        public bool AddVisualisation(Data.Visualisation.MultiPatientsVisualisation visualisation)
         {
             bool result = false;
             if (MNIObjects.LoadingMutex.WaitOne(10000))
@@ -210,16 +216,25 @@ namespace HBP.Module3D
             return true;
         }
         /// <summary>
+        /// Remove a visualisation and its associated scene
+        /// </summary>
+        /// <param name="visualisation"></param>
+        public void RemoveVisualisation(Data.Visualisation.Visualisation visualisation)
+        {
+            Base3DScene scene = m_ScenesManager.Scenes.ToList().Find(s => s.Visualisation == visualisation);
+            m_ScenesManager.RemoveScene(scene);
+        }
+        /// <summary>
         /// Define the ratio between the two scenes
         /// </summary>
         /// <param name="ratio"></param>
-        public void set_ratio_scene(float ratio) // FIXME : delete
+        public void SetSceneRatio(float ratio) // FIXME : delete
         {
             bool isSPSceneDisplayed = (ratio > 0.2f);
             bool isMPSceneDisplayed = (ratio < 0.8f);
 
-            m_UIManager.OverlayManager.set_overlay_scene_visibility(isSPSceneDisplayed, SceneType.SinglePatient);
-            m_UIManager.OverlayManager.set_overlay_scene_visibility(isMPSceneDisplayed, SceneType.MultiPatients);
+            //m_UIManager.OverlayManager.set_overlay_scene_visibility(isSPSceneDisplayed, SceneType.SinglePatient);
+            //m_UIManager.OverlayManager.set_overlay_scene_visibility(isMPSceneDisplayed, SceneType.MultiPatients);
 
             m_ScenesManager.SPPanel.transform.parent.gameObject.SetActive(isSPSceneDisplayed);
             m_ScenesManager.MPPanel.transform.parent.gameObject.SetActive(isMPSceneDisplayed);

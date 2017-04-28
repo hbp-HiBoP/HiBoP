@@ -144,7 +144,7 @@ namespace HBP.UI.Module3D
             Slider alphaSlider = contentPanelT.Find("Value alpha parent").Find("Alpha slider").GetComponent<Slider>();
             alphaSlider.onValueChanged.AddListener((value) =>
             {
-                m_scene.update_FMRI_alpha(value, m_columnId);
+                m_scene.UpdateFMRIAlpha(value, m_columnId);
             });
 
             // cal min
@@ -152,7 +152,7 @@ namespace HBP.UI.Module3D
             calMinSlider.onValueChanged.AddListener((value) =>
             {
                 m_calMin = value;
-                m_scene.update_FMRI_cal_min(m_calMin, m_columnId);
+                m_scene.UpdateFMRICalMin(m_calMin, m_columnId);
                 update_histogram();
             });
 
@@ -161,7 +161,7 @@ namespace HBP.UI.Module3D
             calMaxSlider.onValueChanged.AddListener((value) =>
             {
                 m_calMax = value;
-                m_scene.update_FMRI_cal_max(m_calMax, m_columnId);
+                m_scene.UpdateFMRICalMax(m_calMax, m_columnId);
                 update_histogram();
             });
 

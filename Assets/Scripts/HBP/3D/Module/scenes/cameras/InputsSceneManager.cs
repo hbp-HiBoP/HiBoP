@@ -51,8 +51,8 @@ namespace HBP.Module3D.Cam
         public void send_click_ray_to_scenes(Ray ray, Base3DScene scene, int idColumn)
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type)) return;
-            scene.update_selected_column(idColumn);
-            scene.click_on_scene(ray);
+            scene.UpdateSelectedColumn(idColumn);
+            scene.ClickOnScene(ray);
             m_UIManager.UpdateFocusedSceneAndColumn(scene, idColumn);
         }
 
@@ -67,12 +67,12 @@ namespace HBP.Module3D.Cam
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
             {
-                scene.disable_site_display_window(idColumn);
+                scene.DisableSiteDisplayWindow(idColumn);
                 return;
             }
             else
             {
-                scene.move_mouse_on_scene(ray, mousePosition, idColumn);
+                scene.MoveMouseOnScene(ray, mousePosition, idColumn);
             }
         }
 
@@ -85,7 +85,7 @@ namespace HBP.Module3D.Cam
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
                 return; // click on overlay, don't propagate to the scenes
-            scene.mouse_scroll_action(mouseScrollDelta);
+            scene.MouseScrollAction(mouseScrollDelta);
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace HBP.Module3D.Cam
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
                 return; // click on overlay, don't propagate to the scenes
-            scene.keyboard_action(key);
+            scene.KeyboardAction(key);
         }
 
         #endregion

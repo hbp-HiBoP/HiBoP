@@ -119,7 +119,7 @@ namespace HBP.Module3D
             m_globalTimeSlider.onValueChanged.AddListener(
                 delegate
                 {
-                    m_Scene.update_IEEG_time(0, m_globalTimelinePanel.Find("slider panel").Find("value_slider").gameObject.GetComponent<Slider>().value, true);
+                    m_Scene.UpdateIEEGTime(0, m_globalTimelinePanel.Find("slider panel").Find("value_slider").gameObject.GetComponent<Slider>().value, true);
                 });
             m_globalTimelinePanel.Find("global button").gameObject.GetComponent<Button>().onClick.AddListener(
                 delegate
@@ -136,7 +136,7 @@ namespace HBP.Module3D
             m_globalComputeButton.gameObject.GetComponent<Button>().onClick.AddListener(
                 delegate
                 {
-                    m_Scene.update_generators();
+                    m_Scene.UpdateGenerators();
                 });
             m_globalTimelinePanel.Find("increment_button").gameObject.GetComponent<Button>().onClick.AddListener(
                 delegate
@@ -472,7 +472,7 @@ namespace HBP.Module3D
         /// <param name="mode"></param>
         private void setTimelineState(Transform timelinePanel, Transform computeButton, Mode mode)
         {
-            if(m_selectedColumnIsIRMF || m_Scene.is_latency_mode_enabled() || mode == null)
+            if(m_selectedColumnIsIRMF || m_Scene.IsLatencyModeEnabled() || mode == null)
             {
                 m_timelineIsEnabled = false;
                 computeButton.gameObject.SetActive(false);
@@ -543,11 +543,11 @@ namespace HBP.Module3D
                     // set listeners
                     m_timelinePanelList[id].Find("slider panel").Find("value_slider").gameObject.GetComponent<Slider>().onValueChanged.AddListener(delegate
                     {
-                            m_Scene.update_IEEG_time(id, m_timelinePanelList[id].Find("slider panel").Find("value_slider").gameObject.GetComponent<Slider>().value, false);
+                            m_Scene.UpdateIEEGTime(id, m_timelinePanelList[id].Find("slider panel").Find("value_slider").gameObject.GetComponent<Slider>().value, false);
                     });
                     m_computeButtonList[id].gameObject.GetComponent<Button>().onClick.AddListener(delegate
                     {
-                        m_Scene.update_generators();
+                        m_Scene.UpdateGenerators();
                     });
                     m_timelinePanelList[id].Find("global button").gameObject.GetComponent<Button>().onClick.AddListener(delegate
                     {
@@ -646,7 +646,7 @@ namespace HBP.Module3D
                 m_timelineElementsList[m_currentTimelineID].SetActive(true);
             }
 
-            m_Scene.update_IEEG_all_times(m_showGlobal);
+            m_Scene.UpdateAllIEEGTime(m_showGlobal);
         }
 
         /// <summary>

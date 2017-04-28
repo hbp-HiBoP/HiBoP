@@ -42,10 +42,10 @@ namespace HBP.UI.Module3D
             m_sceneRatioTransform.GetComponent<Slider>().interactable = false;
             m_sceneRatioTransform.GetComponent<Slider>().onValueChanged.AddListener((value) =>
             {
-                StaticComponents.HBPCommand.set_ratio_scene(value);
+                StaticComponents.HBPCommand.SetSceneRatio(value);
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.set_current_mode_specifications();
+                    scene.SetCurrentModeSpecifications();
                 }
             });
 

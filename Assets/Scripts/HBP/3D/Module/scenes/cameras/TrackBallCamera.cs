@@ -209,7 +209,7 @@ namespace HBP.Module3D.Cam
 
         protected void OnPreCull()
         {
-            m_AssociatedScene.reset_rendering_settings(GetComponent<Transform>().eulerAngles);
+            m_AssociatedScene.ResetRenderingSettings(GetComponent<Transform>().eulerAngles);
         }
 
         protected void OnPreRender()
@@ -219,7 +219,7 @@ namespace HBP.Module3D.Cam
             if (m_Line == 0)
             {
                 if(!m_IsMinimized)
-                    m_AssociatedScene.update_column_rendering(m_Column);
+                    m_AssociatedScene.UpdateColumnRendering(m_Column);
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -235,7 +235,7 @@ namespace HBP.Module3D.Cam
         protected void Update()
         {
             // update current color
-            int id = m_AssociatedScene.retrieve_current_selected_column_id();
+            int id = m_AssociatedScene.RetrieveCurrentSelectedColumnID();
             if (id == m_Column)
             {
                 GetComponent<Camera>().backgroundColor = m_SelectedColor;
@@ -305,7 +305,7 @@ namespace HBP.Module3D.Cam
                 }                
 
                 if (Input.GetKey(KeyCode.Space))
-                    m_AssociatedScene.display_sites_names(GetComponent<Camera>());
+                    m_AssociatedScene.DisplaySitesName(GetComponent<Camera>());
             }
             else if(currEvent.type == EventType.ScrollWheel)
             {
@@ -518,7 +518,7 @@ namespace HBP.Module3D.Cam
         /// <returns></returns>
         public bool is_selected()
         {
-            return (m_AssociatedScene.retrieve_current_selected_column_id() == m_Column);
+            return (m_AssociatedScene.RetrieveCurrentSelectedColumnID() == m_Column);
         }
 
         /// <summary>
@@ -653,7 +653,7 @@ namespace HBP.Module3D.Cam
         /// <param name="idColumn"></param>
         public void update_selected_column(int idColumn)
         {
-            m_AssociatedScene.update_selected_column(idColumn);
+            m_AssociatedScene.UpdateSelectedColumn(idColumn);
         }
 
 
