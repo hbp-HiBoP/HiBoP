@@ -21,3 +21,28 @@ public enum ColorType // For now, integers matter because of the link with the d
     White = 16,
     SoftGrayscale = 17
 } 
+public enum SiteFilter
+{
+    Specific,
+    Electrode,
+    Patient,
+    Highlighted,
+    Unhighlighted,
+    All,
+    InRegionOfInterest,
+    OutOfRegionOfInterest,
+    Name,
+    MarsAtlas,
+    Broadman
+}
+public enum SiteAction
+{
+    Include,
+    Exclude,
+    Blacklist,
+    Unblacklist,
+    Highlight,
+    Unhighlight,
+    Mark,
+    Unmark
+}

@@ -185,9 +185,9 @@ namespace HBP.UI.Module3D
                                             contentPanelT.Find("Apply on parent").Find("broadman name inputField").GetComponent<InputField>().text);
 
                 bool allColumns = contentPanelT.Find("Apply on parent").Find("all columns checkbox").GetComponent<Toggle>().isOn;
-                int action = exclude ? 0 : (include ? 1 : (highlight ? 4 : (unhighlight ? 5 : (marked ? 6 : 7))));
-                int range = selectedSite ? 0 : (electrode ? 1 : (patient ? 2 : (highlighted ? 3 : (unhighlighted ? 4 : (allSites ? 5 : (inROI ? 6 : (noInROI ? 7 : (nameSites ? 8 : (marsNameSites ? 9 : 10)))))))));
-                m_scene.UpdateSitesMasks(allColumns, m_lastSiteSelected.gameObject, action, range, nameFilterStr);
+                SiteAction action = exclude ? SiteAction.Exclude : (include ? SiteAction.Include : (highlight ? SiteAction.Highlight : (unhighlight ? SiteAction.Unhighlight : (marked ? SiteAction.Mark : SiteAction.Unmark))));
+                SiteFilter filter = selectedSite ? SiteFilter.Specific : (electrode ? SiteFilter.Electrode : (patient ? SiteFilter.Patient : (highlighted ? SiteFilter.Highlighted : (unhighlighted ? SiteFilter.Unhighlighted : (allSites ? SiteFilter.All : (inROI ? SiteFilter.InRegionOfInterest : (noInROI ? SiteFilter.OutOfRegionOfInterest : (nameSites ? SiteFilter.Name : (marsNameSites ? SiteFilter.MarsAtlas : SiteFilter.Broadman)))))))));
+                m_scene.UpdateSitesMasks(allColumns, m_lastSiteSelected.gameObject, action, filter, nameFilterStr);
             });
 
             switch(m_scene.Type)
@@ -237,13 +237,13 @@ namespace HBP.UI.Module3D
                         if (blackList.transform.Find("Text").GetComponent<Text>().text == "Blacklist site")
                         {
                             m_lastSiteSelected.Information.IsBlackListed = true;
-                            m_scene.UpdateSitesMasks(true, m_lastSiteSelected.gameObject, 2, 0);
+                            m_scene.UpdateSitesMasks(true, m_lastSiteSelected.gameObject, SiteAction.Blacklist, 0);
                             blackList.transform.Find("Text").GetComponent<Text>().text = "Unblacklist site";
                         }
                         else
                         {
                             m_lastSiteSelected.Information.IsBlackListed = false;
-                            m_scene.UpdateSitesMasks(true, m_lastSiteSelected.gameObject, 3, 0);
+                            m_scene.UpdateSitesMasks(true, m_lastSiteSelected.gameObject, SiteAction.Unblacklist, 0);
                             blackList.transform.Find("Text").GetComponent<Text>().text = "Blacklist site";
                         }
                     });

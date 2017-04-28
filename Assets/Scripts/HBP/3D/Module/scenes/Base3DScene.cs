@@ -607,7 +607,7 @@ namespace HBP.Module3D
         /// <param name="action"> 0 : excluded / 1 : included / 2 : blacklisted / 3 : unblacklist / 4 : highlight / 5 : unhighlight / 6 : marked / 7 : unmarked </param>
         /// <param name="range"> 0 : a plot / 1 : all plots from an electrode / 2 : all plots from a patient / 3 : all highlighted / 4 : all unhighlighted 
         /// / 5 : all plots / 6 : in ROI / 7 : not in ROI / 8 : names filter / 9 : mars filter / 10 : broadman filter </param>
-        public void UpdateSitesMasks(bool allColumn, GameObject siteGO, int action = 0, int range = 0, string nameFilter = "")
+        public void UpdateSitesMasks(bool allColumn, GameObject siteGO, SiteAction action = SiteAction.Exclude, SiteFilter filter = SiteFilter.Specific, string nameFilter = "")
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.updateMaskPlot))
@@ -630,21 +630,21 @@ namespace HBP.Module3D
                         continue;
                 }
 
-                switch(range)
+                switch(filter)
                 {
-                    case 0:
+                    case SiteFilter.Specific:
                         {// one specific plot
                             colIdPlots[ii].Add(siteGO.GetComponent<Site>().Information.GlobalID);
                         }
                     break;
-                    case 1:
+                    case SiteFilter.Electrode:
                         { // all plots from an electrode
                             Transform parentElectrode = siteGO.transform.parent;
                             for (int jj = 0; jj < parentElectrode.childCount; ++jj)
                                 colIdPlots[ii].Add(parentElectrode.GetChild(jj).gameObject.GetComponent<Site>().Information.GlobalID);
                         }
                     break;
-                    case 2:
+                    case SiteFilter.Patient:
                         { // all plots from a patient
                             Transform parentPatient = siteGO.transform.parent.parent;
                             for (int jj = 0; jj < parentPatient.childCount; ++jj)
@@ -657,7 +657,7 @@ namespace HBP.Module3D
                             }
                         }
                     break;
-                    case 3: // all highlighted plots
+                    case SiteFilter.Highlighted: // all highlighted plots
                         {
                             for (int jj = 0; jj < m_Column3DViewManager.Columns[ii].Sites.Count; ++jj)
                             {                                
@@ -666,7 +666,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case 4: // all unhighlighted plots
+                    case SiteFilter.Unhighlighted: // all unhighlighted plots
                         {                            
                             for (int jj = 0; jj < m_Column3DViewManager.Columns[ii].Sites.Count; ++jj)
                             {
@@ -675,7 +675,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case 5: // all plots
+                    case SiteFilter.All: // all plots
                         {
                             for (int jj = 0; jj < m_Column3DViewManager.Columns[ii].Sites.Count; ++jj)
                             {                                
@@ -683,7 +683,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case 6: // in ROI
+                    case SiteFilter.InRegionOfInterest: // in ROI
                         {
                             for (int jj = 0; jj < m_Column3DViewManager.Columns[ii].Sites.Count; ++jj)
                             {
@@ -692,7 +692,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case 7: // no in ROI
+                    case SiteFilter.OutOfRegionOfInterest: // no in ROI
                         {
                             for (int jj = 0; jj < m_Column3DViewManager.Columns[ii].Sites.Count; ++jj)
                             {
@@ -701,7 +701,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case 8: // names filter
+                    case SiteFilter.Name: // names filter
                         {
                             for (int jj = 0; jj < m_Column3DViewManager.Columns[ii].Sites.Count; ++jj)
                             {
@@ -710,7 +710,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case 9: // mars filter
+                    case SiteFilter.MarsAtlas: // mars filter
                         {                            
                             for (int jj = 0; jj < m_Column3DViewManager.Columns[ii].Sites.Count; ++jj)
                             {
@@ -719,7 +719,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case 10: // broadman filter
+                    case SiteFilter.Broadman: // broadman filter
                         {
                             for (int jj = 0; jj < m_Column3DViewManager.Columns[ii].Sites.Count; ++jj)
                             {
@@ -736,21 +736,34 @@ namespace HBP.Module3D
             {
                 for (int jj = 0; jj < colIdPlots[ii].Count; jj++)
                 {
-                    if (action == 0 || action == 1) // excluded | included
+                    switch (action)
                     {
-                        m_Column3DViewManager.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsExcluded = (action == 0);
-                    }
-                    else if (action == 2 || action == 3)// blacklisted | unblacklisted
-                    {
-                        m_Column3DViewManager.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsBlackListed = (action == 2);
-                    }
-                    else if(action == 4 || action == 5) // highlight | unhighlight
-                    {
-                        m_Column3DViewManager.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsHighlighted = (action == 4);
-                    }
-                    else // marked | unmarked
-                    {
-                        m_Column3DViewManager.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsMarked = (action == 6);
+                        case SiteAction.Include:
+                            m_Column3DViewManager.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsExcluded = false;
+                            break;
+                        case SiteAction.Exclude:
+                            m_Column3DViewManager.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsExcluded = true;
+                            break;
+                        case SiteAction.Blacklist:
+                            m_Column3DViewManager.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsBlackListed = true;
+                            break;
+                        case SiteAction.Unblacklist:
+                            m_Column3DViewManager.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsBlackListed = false;
+                            break;
+                        case SiteAction.Highlight:
+                            m_Column3DViewManager.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsHighlighted = true;
+                            break;
+                        case SiteAction.Unhighlight:
+                            m_Column3DViewManager.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsHighlighted = false;
+                            break;
+                        case SiteAction.Mark:
+                            m_Column3DViewManager.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsMarked = true;
+                            break;
+                        case SiteAction.Unmark:
+                            m_Column3DViewManager.Columns[ii].Sites[colIdPlots[ii][jj]].Information.IsMarked = false;
+                            break;
+                        default:
+                            break;
                     }
                 }
             }
