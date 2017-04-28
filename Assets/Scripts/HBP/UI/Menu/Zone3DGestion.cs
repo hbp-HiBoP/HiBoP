@@ -8,7 +8,7 @@ namespace HBP.UI
     public class Zone3DGestion : MonoBehaviour
     {
         #region Properties
-        HiBoP_3DModule_API command;
+        HBP3DModule command;
         Camera backGroundCamera;
         #endregion
 
@@ -41,7 +41,7 @@ namespace HBP.UI
         #region Private Methods
         void Awake()
         {
-            command = FindObjectOfType<HiBoP_3DModule_API>();
+            command = FindObjectOfType<HBP3DModule>();
             command.UpdateColumnMinimizedState.AddListener((sp, columns) => OnColumnsChange(sp, columns.ToArray()));
             AddEvents();
         }

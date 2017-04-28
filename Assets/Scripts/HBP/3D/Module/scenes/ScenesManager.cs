@@ -9,6 +9,7 @@ using UnityEngine.Events;
 using HBP.Module3D.Cam;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System;
 
 namespace HBP.Module3D
 {
@@ -18,6 +19,8 @@ namespace HBP.Module3D
         public class OnChangeSelectedScene : UnityEvent<Base3DScene> { }
         public class OnAddScene : UnityEvent<Base3DScene> { }
         public class OnRemoveScene : UnityEvent<Base3DScene> { }
+        public class OnAddFMRIColumn : UnityEvent { }
+        public class OnRemoveFMRIColumn : UnityEvent { }
     }
 
     /// <summary>
@@ -26,26 +29,11 @@ namespace HBP.Module3D
     public class ScenesManager : MonoBehaviour
     {
         #region Properties
-
-        // ######## public
-        // scenes
-        //private SinglePatient3DScene m_SinglePatientScene = null; /**< single patient scene */
-        //public SinglePatient3DScene SinglePatientScene
-        //{
-        //    get { return m_SinglePatientScene; }
-        //}
-        //private MultiPatients3DScene m_MultiPatientsScene = null; /**< multi patients scene */
-        //public MultiPatients3DScene MultiPatientsScene
-        //{
-        //    get { return m_MultiPatientsScene; }
-        //}
-
         private List<Base3DScene> m_Scenes = null;
         public ReadOnlyCollection<Base3DScene> Scenes
         {
             get { return new ReadOnlyCollection<Base3DScene>(m_Scenes); }
         }
-
         private Base3DScene m_SelectedScene = null;
         public Base3DScene SelectedScene
         {
@@ -57,9 +45,13 @@ namespace HBP.Module3D
             }
             get { return m_SelectedScene; }
         }
+
+        // Events
         public Events.OnChangeSelectedScene OnChangeSelectedScene = new Events.OnChangeSelectedScene();
         public Events.OnAddScene OnAddScene = new Events.OnAddScene();
         public Events.OnRemoveScene OnRemoveScene = new Events.OnRemoveScene();
+        public Events.OnAddFMRIColumn OnAddFMRIColumn = new Events.OnAddFMRIColumn();
+        public Events.OnRemoveFMRIColumn OnRemoveFMRIColumn = new Events.OnRemoveFMRIColumn();
 
         // managers
         private CamerasManager m_CamerasManager = null;
@@ -78,7 +70,7 @@ namespace HBP.Module3D
         // UI elements
         public GameObject m_modulePanel = null;
 
-        public Transform SPPanel {get { return m_CamerasManager.SinglePatientPanel; } }
+        public Transform SPPanel { get { return m_CamerasManager.SinglePatientPanel; } }
         public Transform MPPanel { get { return m_CamerasManager.MultiPatientsPanel; } }
         public Transform SPCameras { get { return m_CamerasManager.SinglePatientCamerasContainer; } }
         public Transform MPCameras { get { return m_CamerasManager.MultiPatientsCamerasContainer; } }
@@ -86,11 +78,9 @@ namespace HBP.Module3D
         // events
         public Events.SendModeSpecifications SendModeSpecifications = new Events.SendModeSpecifications();
         public Events.FocusOnScene FocusOnScene = new Events.FocusOnScene();
-
         #endregion
 
         #region Private Methods
-
         void Awake()
         {
             int idScript = TimeExecution.get_ID();
@@ -102,7 +92,35 @@ namespace HBP.Module3D
             
             TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.ScenesManager, gameObject);
         }
+        /// <summary>
+        /// Load IRMF dialog
+        /// </summary>
+        /// <param name="spScene"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private bool LoadfMRIDialogOfSelectedScene(out string path)
+        {
+            bool loaded = true;
+            string[] filters = new string[] { "nii", "img" };
+            path = "";
+            path = DLL.QtGUI.GetExistingFileName(filters, "Select an fMRI file");
 
+            if (!string.IsNullOrEmpty(path))
+            {
+                bool result = SelectedScene.load_FMRI_file(path);
+                if (!result)
+                {
+                    Debug.LogError("-ERROR : ScenesManager::addIRMF -> can't load IRMF");
+                    loaded = false;
+                }
+            }
+            else
+            {
+                loaded = false;
+            }
+            //m_CamerasManager.AddColumnCamera(type, CameraType.fMRI); // Maybe TODO : add this to the initialization of the fMRI column
+            return loaded;
+        }
         #endregion
 
         #region Public Methods
@@ -188,7 +206,6 @@ namespace HBP.Module3D
         {
             m_CamerasManager.SetModuleFocus(state);            
         }
-
         /// <summary>
         /// Display a message in the scene
         /// </summary>
@@ -201,8 +218,6 @@ namespace HBP.Module3D
         {
             scene.display_sceen_message(message, duration, width, height);
         }
-
-
         /// <summary>
         /// Define the visibility of the scenes
         /// </summary>
@@ -248,60 +263,44 @@ namespace HBP.Module3D
 
             //m_scenesRatioSlider.value = value;
         }
-
-
-
         /// <summary>
-        /// Load IRMF dialog
+        /// Add a FMRI column to the selected scene
         /// </summary>
-        /// <param name="spScene"></param>
-        /// <param name="path"></param>
         /// <returns></returns>
-        public bool LoadfMRIDialogOfSelectedScene(out string path)
+        public bool AddfMRIColumnToSelectedScene()
         {
-            bool loaded = true;
-            string[] filters = new string[] { "nii", "img" };
-            path = "";
-            path = DLL.QtGUI.GetExistingFileName(filters, "Select an fMRI file");
-    
-            if (!string.IsNullOrEmpty(path))
-            {
-                bool result = SelectedScene.load_FMRI_file(path);
-                if (!result)
-                {
-                    Debug.LogError("-ERROR : ScenesManager::addIRMF -> can't load IRMF");
-                    loaded = false;
-                }
-            }
-            else
-            {
-                loaded = false;
-            }
-            //m_CamerasManager.AddColumnCamera(type, CameraType.fMRI); // Maybe TODO : add this to the initialization of the fMRI column
-            return loaded;
-        }
+            string fMRIPath;
+            if (!LoadfMRIDialogOfSelectedScene(out fMRIPath))
+                return false;
 
-
-        /// <summary>
-        /// Add an IRMF column to a scene
-        /// </summary>
-        /// <param name="spScene"></param>
-        /// <param name="IRMFPath"></param>
-        /// <returns></returns>
-        public bool AddfMRIColumnToSelectedScene(string fmriLabel)
-        {
+            string[] split = fMRIPath.Split(new Char[] { '/', '\\' });
+            string fmriLabel = split[split.Length - 1];
+            
             bool result = SelectedScene.AddfMRIColumn(fmriLabel);
             if (!result)
             {
                 Debug.LogError("-ERROR : ScenesManager::addIRMF -> can't add IRMF column");
                 return false;
             }
+            OnAddFMRIColumn.Invoke();
+
             return true;
         }
+        /// <summary>
+        /// Remove the last FMRI column from the selected scene
+        /// </summary>
         public void RemoveLastfMRIColumnFromSelectedScene()
         {
-            SelectedScene.RemoveLastFMRIColumn();
+            if (GetNumberOffMRIColumnsOfSelectedScene() > 0)
+            {
+                SelectedScene.RemoveLastFMRIColumn();
+                OnRemoveFMRIColumn.Invoke();
+            }
         }
+        /// <summary>
+        /// Get the number of FMRI column of the selected scene
+        /// </summary>
+        /// <returns></returns>
         public int GetNumberOffMRIColumnsOfSelectedScene()
         {
             return SelectedScene.GetNumberOffMRIColumns();

@@ -161,7 +161,7 @@ namespace HBP.Module3D
     {
         public int m_columnsNb = 0; /**< number of columns */
 
-        private HiBoP_3DModule_API m_command = null; /**< command main module */
+        private HBP3DModule m_command = null; /**< command main module */
 
         public List<PatientEditor> m_PatientsListEditor = null;
 
@@ -175,7 +175,7 @@ namespace HBP.Module3D
 
         void Start()
         {
-            m_command = transform.parent.gameObject.GetComponent<HiBoP_3DModule_API>();
+            m_command = transform.parent.gameObject.GetComponent<HBP3DModule>();
 
             // read arguments
             string cmd = System.Environment.CommandLine;

@@ -23,8 +23,7 @@ namespace HBP.Module3D
     /// </summary>
     public class StaticComponents : MonoBehaviour
     {
-        static public HiBoP_3DModule_API HBPCommand = null;
-        static public HiBoP_3DModule_Main HBPMain = null;
+        static public HBP3DModule HBPCommand = null;
         static public ScenesManager ScenesManager = null;
         static public SinglePatient3DScene SinglePatientScene = null;
         static public MultiPatients3DScene MultiPatientsScene = null;
@@ -39,8 +38,7 @@ namespace HBP.Module3D
         {
             DLLDebugManager = GetComponent<DLL.DLLDebugManager>();
 
-            HBPCommand = GetComponent<HiBoP_3DModule_API>();
-            HBPMain = GetComponent<HiBoP_3DModule_Main>();
+            HBPCommand = GetComponent<HBP3DModule>();
             ScenesManager = transform.Find("Scenes").GetComponent<ScenesManager>();
             SinglePatientScene = ScenesManager.transform.Find("SP").GetComponent<SinglePatient3DScene>();
             MultiPatientsScene = ScenesManager.transform.Find("MP").GetComponent<MultiPatients3DScene>();

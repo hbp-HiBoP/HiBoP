@@ -5,10 +5,13 @@
  * \brief   Define the HiBoP_3DModule_API class
  */
 
+using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
+using HBP.UI.Module3D;
 using System.Linq;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -30,10 +33,14 @@ namespace HBP.Module3D
     /// <summary>
     /// Interface class for controling the 3D module. Never uses other GameObject than this one from outside of the module
     /// </summary>
-    public class HiBoP_3DModule_API : MonoBehaviour
+    public class HBP3DModule : MonoBehaviour
     {
         #region Properties
-        private HiBoP_3DModule_Main m_HBP3D = null; /**< main class of the 3D module */
+        private UIManager m_UIManager = null; /**< UI manager */
+        public UIManager UIManager { get { return m_UIManager; } }
+
+        private ScenesManager m_ScenesManager; /**< scenes manager */
+        public ScenesManager ScenesManager { get { return m_ScenesManager; } }
 
         [Header("Module camera")]
         [SerializeField]
@@ -50,17 +57,10 @@ namespace HBP.Module3D
         #endregion 
 
         #region Private Methods
-
-        /// <summary>
-        /// This function is always called before any Start functions and also just after a prefab is instantiated. (If a GameObject is inactive during start up Awake is not called until it is made active.)
-        /// </summary>
         void Awake()
         {
-            // retrieve
-            m_HBP3D = GetComponent<HiBoP_3DModule_Main>();
-
             // command listeners            
-            MinimizeController minimizeController = m_HBP3D.UIManager.OverlayManager.MinimizeController;
+            MinimizeController minimizeController =  UIManager.OverlayManager.MinimizeController;
             minimizeController.m_minimizeStateSwitchEvent.AddListener((spScene) =>
             {
                 if (spScene)
@@ -68,47 +68,102 @@ namespace HBP.Module3D
                 else
                     UpdateColumnMinimizedState.Invoke(false, minimizeController.MPMinimizeStateList);
             });
-            m_HBP3D.UIManager.MenuManager.transform.FindChild("Left").FindChild("mp left menu list").FindChild("ROI").GetComponent<ROIMenuController>().ROISavedEvent.AddListener((pathROI) =>
+            UIManager.MenuManager.transform.FindChild("Left").FindChild("mp left menu list").FindChild("ROI").GetComponent<ROIMenuController>().ROISavedEvent.AddListener((pathROI) =>
             {
                 ROISavedEvent.Invoke(pathROI);
                 UnityEngine.Debug.Log("pathROI : " + pathROI);
             });
-            m_HBP3D.ScenesManager.OnAddScene.AddListener((scene) =>
+            ScenesManager.OnAddScene.AddListener((scene) =>
             {
                 OnAddVisualisation.Invoke(scene.Visualisation);
             });
-            m_HBP3D.ScenesManager.OnRemoveScene.AddListener((scene) =>
+            ScenesManager.OnRemoveScene.AddListener((scene) =>
             {
                 OnRemoveVisualisation.Invoke(scene.Visualisation);
             });
+
+            // retrieve managers
+            m_UIManager = GameObject.Find("Brain Visualisation").GetComponent<UIManager>();
+            m_ScenesManager = transform.Find("Scenes").GetComponent<ScenesManager>();
+
+            // graphics settings
+            QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
+            QualitySettings.antiAliasing = 8;
+        }
+        void Start()
+        {
+            // initialization
+            m_UIManager.Initialize(m_ScenesManager);
+
+            // define listeners
+            m_ScenesManager.SendModeSpecifications.AddListener((specs) =>
+            {
+                // set UI overlay specs
+                UnityEngine.Profiling.Profiler.BeginSample("TEST-HiBoP_3DModule_Main setSpecificOverlayActive 1");
+                for (int ii = 0; ii < specs.uiOverlayMask.Count; ++ii)
+                    m_UIManager.OverlayManager.set_specific_overlay_active(specs.uiOverlayMask[ii], ii, specs.mode);
+                UnityEngine.Profiling.Profiler.EndSample();
+
+                // set UI camera specs                
+                UnityEngine.Profiling.Profiler.BeginSample("TEST-HiBoP_3DModule_Main update_UI_with_mode 1");
+                m_UIManager.MenuManager.update_UI_with_mode(specs.mode);
+                UnityEngine.Profiling.Profiler.EndSample();
+            });
+
         }
         void OnDestroy()
         {
             StaticComponents.DLLDebugManager.clean();
         }
+        /// <summary>
+        /// Load a new single patient scene
+        /// </summary>
+        /// <param name="visualisation"></param>
+        /// <returns></returns>
+        private bool SetSinglePatientSceneData(Data.Visualisation.SinglePatientVisualisation visualisation, bool postIRM = false)
+        {
+            bool success = m_ScenesManager.AddSinglePatientScene(visualisation, postIRM);
+            if (!success)
+            {
+                UnityEngine.Debug.LogError("-ERROR : Failed to add single patient scene");
+                return false;
+            }
+            return true;
+        }
+        /// <summary>
+        /// Load a new multi patients scene
+        /// </summary>
+        /// <param name="data"></param>
+        private bool SetMultiPatientsSceneData(Data.Visualisation.MultiPatientsVisualisation visualisation)
+        {
+            bool success = m_ScenesManager.AddMultiPatientsScene(visualisation);
+            if (!success)
+            {
+                UnityEngine.Debug.LogError("-ERROR : Failed to add multi patients scene");
+                return false;
+            }
+            return true;
+        }
         #endregion
 
         #region Public Methods
-        // ################################################### API public functions
         /// <summary>
         /// Set the focus state of the module
         /// </summary>
         /// <param name="state"></param>
         public void SetModuleFocus(bool state)
         {
-            m_HBP3D.ScenesManager.SetModuleFocusState(state);
+            ScenesManager.SetModuleFocusState(state);
         }
-
         /// <summary>
         /// Set the visibility ratio between the single patient scene and the multi patients scene, if the two parameters are true or false, the two scenes will be displayed.
         /// </summary>
         /// <param name="showSPScene"> if true display single patient scene</param>
         /// <param name="showMPScene"> if true display multi patients scene</param>
-        public void SetScenesVisibility(bool showSPScene = true, bool showMPScene = true)
+        public void SetScenesVisibility(bool showSPScene = true, bool showMPScene = true) // FIXME : maybe delete
         {
-            m_HBP3D.ScenesManager.SetScenesVisibility(showSPScene, showMPScene);
+            ScenesManager.SetScenesVisibility(showSPScene, showMPScene);
         }
-
         /// <summary>
         /// Load a single patient scene, load the UI and the data.
         /// </summary>
@@ -116,16 +171,15 @@ namespace HBP.Module3D
         /// <returns>false if a loading error occurs, else true </returns>
         public bool LoadData(Data.Visualisation.SinglePatientVisualisation visualisation)
         {
-            bool result = m_HBP3D.SetSinglePatientSceneData(visualisation);
+            bool result = SetSinglePatientSceneData(visualisation);
             // Add listeners to last added scene
-            SinglePatient3DScene lastAddedScene = m_HBP3D.ScenesManager.Scenes.Last() as SinglePatient3DScene;
+            SinglePatient3DScene lastAddedScene = ScenesManager.Scenes.Last() as SinglePatient3DScene;
             lastAddedScene.SiteInfoRequest.AddListener((siteRequest) =>
             {
                 SiteInfoRequest.Invoke(siteRequest);
             });
             return result;
         }
-
         /// <summary>
         /// Load a multi patients scene, load the UI and the data.
         /// </summary>
@@ -135,7 +189,7 @@ namespace HBP.Module3D
         {
             bool result = false;
             if (MNIObjects.LoadingMutex.WaitOne(10000))
-                result = m_HBP3D.SetMultiPatientsSceneData(visualisation);
+                result = SetMultiPatientsSceneData(visualisation);
 
             if (!result)
             {
@@ -143,7 +197,7 @@ namespace HBP.Module3D
                 return false;
             }
             // Add listener to last added scene
-            MultiPatients3DScene lastAddedScene = m_HBP3D.ScenesManager.Scenes.Last() as MultiPatients3DScene;
+            MultiPatients3DScene lastAddedScene = ScenesManager.Scenes.Last() as MultiPatients3DScene;
             lastAddedScene.SiteInfoRequest.AddListener((siteRequest) =>
             {
                 SiteInfoRequest.Invoke(siteRequest);
@@ -154,6 +208,27 @@ namespace HBP.Module3D
             });
             
             return true;
+        }
+        /// <summary>
+        /// Define the ratio between the two scenes
+        /// </summary>
+        /// <param name="ratio"></param>
+        public void set_ratio_scene(float ratio) // FIXME : delete
+        {
+            bool isSPSceneDisplayed = (ratio > 0.2f);
+            bool isMPSceneDisplayed = (ratio < 0.8f);
+
+            m_UIManager.OverlayManager.set_overlay_scene_visibility(isSPSceneDisplayed, SceneType.SinglePatient);
+            m_UIManager.OverlayManager.set_overlay_scene_visibility(isMPSceneDisplayed, SceneType.MultiPatients);
+
+            m_ScenesManager.SPPanel.transform.parent.gameObject.SetActive(isSPSceneDisplayed);
+            m_ScenesManager.MPPanel.transform.parent.gameObject.SetActive(isMPSceneDisplayed);
+
+            m_ScenesManager.SPCameras.gameObject.SetActive(isSPSceneDisplayed);
+            m_ScenesManager.MPCameras.gameObject.SetActive(isMPSceneDisplayed);
+
+            m_ScenesManager.SPPanel.transform.parent.gameObject.GetComponent<LayoutElement>().flexibleHeight = ratio;
+            m_ScenesManager.MPPanel.transform.parent.gameObject.GetComponent<LayoutElement>().flexibleHeight = 1f - ratio;
         }
         #endregion
     }
@@ -193,7 +268,7 @@ namespace HBP.Module3D
                 return;
             }
 
-            GameObject.Find("HiBoP 3DModule API").GetComponent<HiBoP_3DModule_API>().SetScenesVisibility(true, false);
+            GameObject.Find("HiBoP 3DModule API").GetComponent<HBP3DModule>().SetScenesVisibility(true, false);
         }
 
         [MenuItem("Debug test/Focus on multi-patients scene")]
@@ -205,7 +280,7 @@ namespace HBP.Module3D
                 return;
             }
 
-            GameObject.Find("HiBoP 3DModule API").GetComponent<HiBoP_3DModule_API>().SetScenesVisibility(false, true);
+            GameObject.Find("HiBoP 3DModule API").GetComponent<HBP3DModule>().SetScenesVisibility(false, true);
         }
 
         [MenuItem("Debug test/Focus on both scenes")]
@@ -217,7 +292,7 @@ namespace HBP.Module3D
                 return;
             }
 
-            GameObject.Find("HiBoP 3DModule API").GetComponent<HiBoP_3DModule_API>().SetScenesVisibility(true, true);
+            GameObject.Find("HiBoP 3DModule API").GetComponent<HBP3DModule>().SetScenesVisibility(true, true);
         }
 
         [MenuItem("Debug test/Launch hibop debug launcher editor")]

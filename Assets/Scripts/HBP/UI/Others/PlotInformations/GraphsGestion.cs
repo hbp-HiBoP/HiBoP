@@ -103,8 +103,8 @@ namespace HBP.UI.Graph
         }
         void AddListerners()
         {
-            HiBoP_3DModule_API command;
-            command = FindObjectOfType<HiBoP_3DModule_API>();
+            HBP3DModule command;
+            command = FindObjectOfType<HBP3DModule>();
             command.SiteInfoRequest.AddListener((plotResquest) => OnDisplayPlots(plotResquest));
             command.UpdateColumnMinimizedState.AddListener((sp, columns) => OnMinimizeColumns());
         }

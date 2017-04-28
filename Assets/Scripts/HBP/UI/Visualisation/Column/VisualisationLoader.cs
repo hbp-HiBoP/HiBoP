@@ -14,7 +14,7 @@ namespace HBP.UI.Visualisation
     public class VisualisationLoader : MonoBehaviour
     {
         #region Properties
-        HiBoP_3DModule_API command;
+        HBP3DModule command;
 
         [SerializeField]
         GameObject loadingCirclePrefab;
@@ -41,7 +41,7 @@ namespace HBP.UI.Visualisation
         #region Private Methods
         void Awake()
         {
-            command = FindObjectOfType<HiBoP_3DModule_API>();
+            command = FindObjectOfType<HBP3DModule>();
             UnityEngine.Debug.Log(command);
             command.LoadSPSceneFromMP.AddListener((i) => LoadSPSceneFromMP(i));
         }
