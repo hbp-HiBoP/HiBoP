@@ -118,9 +118,9 @@ namespace HBP.Module3D
 
 
         // textures
-        public int m_idBrainColor = 15;
-        public int m_idBrainCutColor = 14;
-        public int m_idColormap = 13; // TO move
+        public ColorType m_BrainColor = ColorType.BrainColor;
+        public ColorType m_BrainCutColor = ColorType.Default;
+        public ColorType m_Colormap = ColorType.MatLab; // TO move
         public Texture2D brainColorMapTexture = null;
         public Texture2D brainColorTexture = null;
 
@@ -227,22 +227,22 @@ namespace HBP.Module3D
             }
         }
 
-        public void update_colormap(int idColormap)
+        public void update_colormap(ColorType color)
         {
-            m_idColormap = idColormap;
-            DLL.Texture tex = DLL.Texture.generate_1D_color_texture(m_idColormap);
+            m_Colormap = color;
+            DLL.Texture tex = DLL.Texture.generate_1D_color_texture(m_Colormap);
             tex.update_texture_2D(brainColorMapTexture);
         }
 
-        public void update_brain_cut_color(int idBrainCutColor)
+        public void update_brain_cut_color(ColorType color)
         {
-            m_idBrainCutColor = idBrainCutColor;
+            m_BrainCutColor = color;
         }
 
         public void reset_colors()
         {
             for (int ii = 0; ii < m_Columns.Count; ++ii)
-                Columns[ii].reset_color_schemes(m_idColormap, m_idBrainCutColor);
+                Columns[ii].reset_color_schemes(m_Colormap, m_BrainCutColor);
         }
 
         /// <summary>
@@ -410,7 +410,7 @@ namespace HBP.Module3D
 
 
             for (int ii = 0; ii < m_Columns.Count; ++ii)
-                Columns[ii].reset_color_schemes(m_idColormap, m_idBrainCutColor);
+                Columns[ii].reset_color_schemes(m_Colormap, m_BrainCutColor);
         }
 
         /// <summary>

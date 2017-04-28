@@ -235,7 +235,7 @@ namespace HBP.Module3D
 
             //m_UIManager.OverlayManager.set_overlay_scene_visibility(isSPSceneDisplayed, SceneType.SinglePatient);
             //m_UIManager.OverlayManager.set_overlay_scene_visibility(isMPSceneDisplayed, SceneType.MultiPatients);
-
+            /*
             m_ScenesManager.SPPanel.transform.parent.gameObject.SetActive(isSPSceneDisplayed);
             m_ScenesManager.MPPanel.transform.parent.gameObject.SetActive(isMPSceneDisplayed);
 
@@ -244,6 +244,7 @@ namespace HBP.Module3D
 
             m_ScenesManager.SPPanel.transform.parent.gameObject.GetComponent<LayoutElement>().flexibleHeight = ratio;
             m_ScenesManager.MPPanel.transform.parent.gameObject.GetComponent<LayoutElement>().flexibleHeight = 1f - ratio;
+            */
         }
         #endregion
     }

@@ -713,10 +713,8 @@ namespace HBP.Module3D
         /// <param name="ray"></param>
         /// <param name="mousePosition"></param>
         /// /// <param name="idColumn"></param>
-        public new void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn)
+        public override void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn)
         {
-            base.MoveMouseOnScene(ray, mousePosition, idColumn);
-
             // scene not loaded
             if (!data_.mriLoaded)
                 return;

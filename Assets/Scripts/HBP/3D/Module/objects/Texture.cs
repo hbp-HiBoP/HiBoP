@@ -302,9 +302,9 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="idColor"></param>
             /// <returns></returns>
-            public static Texture generate_1D_color_texture(int idColor)
+            public static Texture generate_1D_color_texture(ColorType color)
             {
-                return new Texture(generate_1D_color_Texture(idColor));
+                return new Texture(generate_1D_color_Texture((int)color));
             }
 
             /// <summary>
@@ -313,9 +313,9 @@ namespace HBP.Module3D
             /// <param name="idColor1"></param>
             /// <param name="idColor2"></param>
             /// <returns></returns>
-            public static Texture generate_2D_color_texture(int idColor1, int idColor2)
+            public static Texture generate_2D_color_texture(ColorType color1, ColorType color2)
             {
-                return new Texture(generate_2D_color_Texture(idColor1, idColor2));
+                return new Texture(generate_2D_color_Texture((int)color1, (int)color2));
             }
 
             #endregion functions

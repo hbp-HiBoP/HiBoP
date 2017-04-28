@@ -425,22 +425,11 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ray"></param>
-        /// <param name="mousePosition"></param>
-        /// <param name="idColumn"></param>
-        public void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn)
-        {
-            // ...
-        }
-        /// <summary>
-        /// 
+        /// Display the site names when pressing SPACE
         /// </summary>
         /// <param name="camera"></param>
-        public void DisplaySitesName(Camera camera)
+        public void DisplaySitesName(Camera camera) // TODO : do this in overlay manager and not here
         {
-
             m_displaySitesNames = true;
             m_lastCamera = camera;
         }
@@ -448,7 +437,7 @@ namespace HBP.Module3D
         /// 
         /// </summary>
         private void FinalizeGeneratorsComputing()
-        {            
+        {
             // computing ended
             m_computeGeneratorsJob = null;
 
@@ -508,18 +497,18 @@ namespace HBP.Module3D
             data_.numberOfCutsPerPlane = new List<int>();
             go_.brainCutMeshes = new List<GameObject>();
 
-            UpdateBrainSurfaceColor(15);
-            UpdateColormap(13, false);
-            UpdateBrainCutColor(14, true);
+            UpdateBrainSurfaceColor(ColorType.BrainColor);
+            UpdateColormap(ColorType.MatLab, false);
+            UpdateBrainCutColor(ColorType.Default, true);
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="id"></param>
         /// <param name="updateColors"></param>
-        public void UpdateColormap(int id, bool updateColors = true)
+        public void UpdateColormap(ColorType color, bool updateColors = true)
         {
-            Column3DViewManager.update_colormap(id);
+            Column3DViewManager.update_colormap(color);
             if (updateColors)
                 Column3DViewManager.reset_colors();
 
@@ -539,10 +528,10 @@ namespace HBP.Module3D
         /// 
         /// </summary>
         /// <param name="id"></param>
-        public void UpdateBrainSurfaceColor(int id)
+        public void UpdateBrainSurfaceColor(ColorType color)
         {
-            Column3DViewManager.m_idBrainColor = id;
-            DLL.Texture tex = DLL.Texture.generate_1D_color_texture(Column3DViewManager.m_idBrainColor);
+            Column3DViewManager.m_BrainColor = color;
+            DLL.Texture tex = DLL.Texture.generate_1D_color_texture(Column3DViewManager.m_BrainColor);
             tex.update_texture_2D(Column3DViewManager.brainColorTexture);
 
             switch(Type)
@@ -560,9 +549,9 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="id"></param>
         /// <param name="updateColors"></param>
-        public void UpdateBrainCutColor(int id, bool updateColors = true)
+        public void UpdateBrainCutColor(ColorType color, bool updateColors = true)
         {
-            Column3DViewManager.update_brain_cut_color(id);
+            Column3DViewManager.update_brain_cut_color(color);
             if (updateColors)
                 Column3DViewManager.reset_colors();
 
@@ -1991,10 +1980,32 @@ namespace HBP.Module3D
         #endregion
 
         #region Abstract Methods
+        /// <summary>
+        /// 
+        /// </summary>
         public abstract void ComputeMeshesCut();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="previousPlot"></param>
         public abstract void SendAdditionalSiteInfoRequest(Site previousPlot = null);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ray"></param>
         public abstract void ClickOnScene(Ray ray);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idColumn"></param>
         public abstract void DisableSiteDisplayWindow(int idColumn);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ray"></param>
+        /// <param name="mousePosition"></param>
+        /// <param name="idColumn"></param>
+        public abstract void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn);
         #endregion
     }
 

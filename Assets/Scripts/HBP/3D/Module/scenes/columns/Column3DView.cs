@@ -387,10 +387,10 @@ namespace HBP.Module3D
 
             return text;
         }
-        public void reset_color_schemes(int idColorMap, int idColorBrainCut)
+        public void reset_color_schemes(ColorType colormap, ColorType colorBrainCut)
         {
-            DLLCutColorScheme = DLL.Texture.generate_2D_color_texture(idColorBrainCut, idColorMap); 
-            DLLCutFMRIColorScheme = DLL.Texture.generate_2D_color_texture(idColorBrainCut, idColorMap);
+            DLLCutColorScheme = DLL.Texture.generate_2D_color_texture(colorBrainCut, colormap); 
+            DLLCutFMRIColorScheme = DLL.Texture.generate_2D_color_texture(colorBrainCut, colormap);
         }
         public void create_MRI_texture(DLL.MRIGeometryCutGenerator geometryGenerator, DLL.Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor)
         {

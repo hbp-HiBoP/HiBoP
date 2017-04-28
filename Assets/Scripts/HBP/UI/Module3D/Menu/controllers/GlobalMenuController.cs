@@ -49,15 +49,16 @@ namespace HBP.Module3D
             });
 
             Transform baseButtons = m_globalMenuGO.transform.Find("panel").Find("colormap buttons");
-            for(int ii = 1; ii < 15; ++ii)
+            for(int ii = 1; ii < 15; ++ii) // FIXME : Add listeners manually with the corresponding color (not a for loop) : better stability
             {
                 int id = ii;
                 baseButtons.Find("colormap" + id + " button").GetComponent<Button>().onClick.AddListener(() =>
                 {
-                    m_colorMapController.update_colormap(id - 1);
+                    ColorType color = (ColorType)(id - 1); // FIXME : remove this fixme when the for loop is no more
+                    m_colorMapController.update_colormap(color);
                     foreach (Base3DScene scene in scenesManager.Scenes)
                     {
-                        scene.UpdateColormap(id - 1);
+                        scene.UpdateColormap(color);
                     }                
                 });
             }
@@ -76,28 +77,28 @@ namespace HBP.Module3D
             {
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.UpdateBrainSurfaceColor(15);
+                    scene.UpdateBrainSurfaceColor(ColorType.BrainColor);
                 }
             });
             baseButtons.Find("braincolor2 button").GetComponent<Button>().onClick.AddListener(() =>
             {
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.UpdateBrainSurfaceColor(16);
+                    scene.UpdateBrainSurfaceColor(ColorType.White);
                 }
             });
             baseButtons.Find("braincolor3 button").GetComponent<Button>().onClick.AddListener(() =>
             {
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.UpdateBrainSurfaceColor(0);
+                    scene.UpdateBrainSurfaceColor(ColorType.Grayscale);
                 }
             });
             baseButtons.Find("braincolor4 button").GetComponent<Button>().onClick.AddListener(() =>
             {
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.UpdateBrainSurfaceColor(14);
+                    scene.UpdateBrainSurfaceColor(ColorType.Default);
                 }
             });
 
@@ -116,14 +117,14 @@ namespace HBP.Module3D
             {
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.UpdateBrainCutColor(14);
+                    scene.UpdateBrainCutColor(ColorType.Default);
                 }
             });
             baseButtons.Find("cutcolor2 button").GetComponent<Button>().onClick.AddListener(() =>
             {
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
-                    scene.UpdateBrainCutColor(0);
+                    scene.UpdateBrainCutColor(ColorType.Grayscale);
                 }
             });
 
@@ -137,7 +138,7 @@ namespace HBP.Module3D
             });
 
             // set default colormap
-            m_colorMapController.update_colormap(13);
+            m_colorMapController.update_colormap(ColorType.MatLab);
         }
 
         public void switch_UI_Visibility()

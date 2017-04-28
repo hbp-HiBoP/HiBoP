@@ -54,12 +54,13 @@ namespace HBP.Module3D
         public Events.OnRemoveFMRIColumn OnRemoveFMRIColumn = new Events.OnRemoveFMRIColumn();
 
         // managers
+        /*
         private CamerasManager m_CamerasManager = null;
         public CamerasManager CamerasManager
         {
             get { return m_CamerasManager; }
         }
-
+        */
         // Scene prefabs
         public GameObject SinglePatientScenePrefab;
         public GameObject MultiPatientsScenePrefab;
@@ -69,12 +70,12 @@ namespace HBP.Module3D
 
         // UI elements
         public GameObject m_modulePanel = null;
-
+        /*
         public Transform SPPanel { get { return m_CamerasManager.SinglePatientPanel; } }
         public Transform MPPanel { get { return m_CamerasManager.MultiPatientsPanel; } }
         public Transform SPCameras { get { return m_CamerasManager.SinglePatientCamerasContainer; } }
         public Transform MPCameras { get { return m_CamerasManager.MultiPatientsCamerasContainer; } }
-
+        */
         // events
         public Events.SendModeSpecifications SendModeSpecifications = new Events.SendModeSpecifications();
         public Events.FocusOnScene FocusOnScene = new Events.FocusOnScene();
@@ -88,7 +89,7 @@ namespace HBP.Module3D
             
             // retrieve 
             //  managers
-            m_CamerasManager = transform.Find("Cameras").GetComponent<CamerasManager>();
+            //m_CamerasManager = transform.Find("Cameras").GetComponent<CamerasManager>();
             
             TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.ScenesManager, gameObject);
         }
@@ -148,7 +149,7 @@ namespace HBP.Module3D
             }));
             scene.UpdateCameraTarget.AddListener((target) =>
             {
-                m_CamerasManager.UpdateCamerasTarget(SceneType.SinglePatient, target);
+                //m_CamerasManager.UpdateCamerasTarget(SceneType.SinglePatient, target);
             });
             // Add the scene to the list
             m_Scenes.Add(scene);
@@ -175,7 +176,7 @@ namespace HBP.Module3D
             // Add the listeners
             scene.ApplySceneCamerasToIndividualScene.AddListener(() =>
             {
-                m_CamerasManager.ApplyMultiPatientsCamerasSettingsToSinglePatientCameras();
+                //m_CamerasManager.ApplyMultiPatientsCamerasSettingsToSinglePatientCameras();
             });
             scene.SendModeSpecifications.AddListener((UnityAction<ModeSpecifications>)((specs) =>
             {
@@ -183,7 +184,7 @@ namespace HBP.Module3D
             }));
             scene.UpdateCameraTarget.AddListener((target) =>
             {
-                m_CamerasManager.UpdateCamerasTarget(SceneType.MultiPatients, target);
+               // m_CamerasManager.UpdateCamerasTarget(SceneType.MultiPatients, target);
             });
             // Add the scene to the list
             m_Scenes.Add(scene);
@@ -207,7 +208,7 @@ namespace HBP.Module3D
         /// <param name="state"></param>
         public void SetModuleFocusState(bool state)
         {
-            m_CamerasManager.SetModuleFocus(state);            
+            //m_CamerasManager.SetModuleFocus(state);            
         }
         /// <summary>
         /// Display a message in the scene
