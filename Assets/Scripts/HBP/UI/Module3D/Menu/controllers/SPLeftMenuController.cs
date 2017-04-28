@@ -60,7 +60,7 @@ namespace HBP.UI.Module3D
         {
             // init controllers
             //m_scene = (Base3DScene)scenesManager.SinglePatientScene;
-            m_sceneMenuController.init(m_scene, scenesManager.CamerasManager);
+            //m_sceneMenuController.init(m_scene, scenesManager.CamerasManager);
             m_iEEGMenuController.init(m_scene);
             m_FMRIMenuController.init(m_scene);
             m_siteMenuController.init(m_scene);            

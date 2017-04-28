@@ -287,7 +287,7 @@ namespace HBP.Module3D
             // update columns
             for (int c = 0; c < m_Columns.Count; c++)
             {
-                m_Columns[c].update_cuts_planes_nb(nbCuts);
+                m_Columns[c].update_cuts_planes_nb(diffCuts);
             }
         }
 

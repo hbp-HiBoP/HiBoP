@@ -104,14 +104,10 @@ namespace HBP.Module3D
         {
             // scene
             Layer = "C" + idColumn + "_";
-            spScene = transform.parent.name == "SP";
-            if (spScene)
+            if (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient)
                 Layer += "SP";
             else
                 Layer += "MP";
-
-            // cuts
-            this.nbCuts = nbCuts;
 
             // select ring
             gameObject.AddComponent<SiteRing>();
@@ -148,10 +144,10 @@ namespace HBP.Module3D
 
                         int id = Sites.Count - 1;
                         Sites[id].Information.IsExcluded = false;
-                        Sites[id].Information.IsInROI = !spScene;
+                        Sites[id].Information.IsInROI = false; // FIXME : initially not in a ROI in MPScene, but also in SPScene if we decide to use ROI in sp
                         Sites[id].Information.IsMasked = false;
                         Sites[id].Information.IsBlackListed = false;
-                        Sites[id].IsActive = spScene;
+                        Sites[id].IsActive = false; // FIXME : see above, opposite
                     }
                 }
             }
@@ -228,9 +224,8 @@ namespace HBP.Module3D
         /// 
         /// </summary>
         /// <param name="nbCuts"></param>
-        public void update_cuts_planes_nb(int newCutsNb)
+        public void update_cuts_planes_nb(int diffCuts)
         {
-            int diffCuts = nbCuts - newCutsNb;
             if (diffCuts < 0)
             {
                 for (int ii = 0; ii < -diffCuts; ++ii)
@@ -266,7 +261,6 @@ namespace HBP.Module3D
                     DLLMRITextureCutGeneratorList.RemoveAt(DLLMRITextureCutGeneratorList.Count - 1);
                 }
             }
-            nbCuts = newCutsNb;
         }
         /// <summary>
         /// Set the sites visibility state

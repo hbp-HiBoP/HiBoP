@@ -78,10 +78,9 @@ namespace HBP.Module3D
         /// Update the cut planes number of the 3D column view
         /// </summary>
         /// <param name="newCutsNb"></param>
-        public new void update_cuts_planes_nb(int newCutsNb)
-        {            
-            int diffCuts = nbCuts - newCutsNb;
-            base.update_cuts_planes_nb(newCutsNb);
+        public new void update_cuts_planes_nb(int diffCuts)
+        {
+            base.update_cuts_planes_nb(diffCuts);
 
             // update number of cuts
             if (diffCuts < 0)

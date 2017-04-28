@@ -122,7 +122,7 @@ namespace HBP.Module3D
         /// </summary>
         public void update_DLL_sites_mask()
         {
-            bool noROI = spScene ? false : (m_SelectedROI.bubbles_nb() == 0);
+            bool noROI = (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.bubbles_nb() == 0);
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
                 RawElectrodes.update_mask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsInROI && !noROI)));
@@ -241,10 +241,9 @@ namespace HBP.Module3D
         /// Update the cut planes number of the 3D column view
         /// </summary>
         /// <param name="newCutsNb"></param>
-        public new void update_cuts_planes_nb(int newCutsNb)
+        public new void update_cuts_planes_nb(int diffCuts)
         {
-            int diffCuts = nbCuts - newCutsNb;
-            base.update_cuts_planes_nb(newCutsNb);            
+            base.update_cuts_planes_nb(diffCuts);            
             if (diffCuts < 0)
             {
                 for (int ii = 0; ii < -diffCuts; ++ii)
