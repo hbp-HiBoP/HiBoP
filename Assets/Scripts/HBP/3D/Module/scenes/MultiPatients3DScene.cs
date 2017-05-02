@@ -841,7 +841,6 @@ namespace HBP.Module3D
 
             Site site = hits[idHitToKeep].collider.GetComponent<Site>();
 
-            // fMRI
             switch (m_Column3DViewManager.SelectedColumn.Type)
             {
                 case Column3DView.ColumnType.FMRI:

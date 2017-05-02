@@ -122,7 +122,7 @@ namespace HBP.Module3D
             base.Clear();
 
             // plots
-            RawElectrodes.Dispose();
+            m_RawElectrodes.Dispose();
 
             // textures 2D
             for (int ii = 0; ii < brainCutWithFMRITextures.Count; ++ii)

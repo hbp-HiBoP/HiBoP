@@ -404,7 +404,7 @@ namespace HBP.Module3D
             //##################
 
             // load list of pts files
-            data_.sitesLoaded = m_Column3DViewManager.DLLLoadedPatientsElectrodes.load_pts_files(pathsElectrodesPtsFile, namePatients, GlobalGOPreloaded.MarsAtlasIndex);
+            data_.sitesLoaded = m_Column3DViewManager.DLLLoadedPatientsElectrodes.load_pts_files(pathsElectrodesPtsFile, namePatients, GlobalGOPreloaded.MarsAtlasIndex); // TODO (maybe) : replace with values from visualisation
 
             // destroy previous electrodes gameobjects
             for (int ii = 0; ii < m_Column3DViewManager.SitesList.Count; ++ii)

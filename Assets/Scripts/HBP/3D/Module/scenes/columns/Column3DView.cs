@@ -64,7 +64,14 @@ namespace HBP.Module3D
         }
         public OnChangeSelectedSite OnChangeSelectedSite = new OnChangeSelectedSite();
 
-        protected DLL.RawSiteList RawElectrodes = null;  /**< raw format of the plots container dll */
+        protected DLL.RawSiteList m_RawElectrodes = null;  /**< raw format of the plots container dll */
+        public DLL.RawSiteList RawElectrodes
+        {
+            get
+            {
+                return m_RawElectrodes;
+            }
+        }
         public List<List<List<GameObject>>> plotsGO = null; /**< plots GO list with order : patient/electrode/plot */
         public List<Site> Sites = null; /**< plots list */
 
@@ -115,8 +122,8 @@ namespace HBP.Module3D
             m_selectRing.set_layer(Layer);
 
             // plots
-            RawElectrodes = new DLL.RawSiteList();
-            plots.extract_raw_site_list(RawElectrodes);
+            m_RawElectrodes = new DLL.RawSiteList();
+            plots.extract_raw_site_list(m_RawElectrodes);
 
             GameObject patientPlotsParent = new GameObject("elecs");
             patientPlotsParent.transform.SetParent(transform);
@@ -424,6 +431,14 @@ namespace HBP.Module3D
         {
             Destroy(m_Views[m_Views.Count - 1].gameObject);
             m_Views.RemoveAt(m_Views.Count - 1);
+        }
+        public void AddRegionOfInterest(Data.Visualisation.RegionOfInterest regionOfInterest)
+        {
+
+        }
+        public void RemoveRegionOfInterest(Data.Visualisation.RegionOfInterest regionOfInterest)
+        {
+
         }
         #endregion
     }
