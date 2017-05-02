@@ -20,7 +20,11 @@ namespace HBP.Data.Anatomy
         /** Electrode name. */
 		public string Name { get; set; }
         /** Electrode plots. */
-        public List<Plot> Plots { get; set; }
+        public List<Site> Sites { get; set; }
+        /// <summary>
+        /// Implantation which contains the electrode.
+        /// </summary>
+        public Implantation Implantation { get; set; }
         #endregion
 
         #region Constructor
@@ -29,22 +33,22 @@ namespace HBP.Data.Anatomy
         /// </summary>
         /// <param name="name">Electrode name.</param>
         /// <param name="plots">Electrode plots.</param>
-        public Electrode(string name, IEnumerable<Plot> plots)
+        public Electrode(string name, IEnumerable<Site> plots)
         {
             Name = name;
-            Plots = new List<Plot>(plots);
+            Sites = new List<Site>(plots);
         }
         /// <summary>
         /// Create a new Electrode instance with no plots.
         /// </summary>
         /// <param name="name">Electrode name.</param>
-		public Electrode(string name) : this(name,new Plot[0])
+		public Electrode(string name) : this(name,new Site[0])
 		{
 		}
         /// <summary>
         /// Create a new Electrode instance with a empty name and no plots.
         /// </summary>
-        public Electrode() : this(string.Empty,new Plot[0])
+        public Electrode() : this(string.Empty,new Site[0])
         {
         }
         #endregion
@@ -55,7 +59,7 @@ namespace HBP.Data.Anatomy
         /// </summary>
         /// <param name="plot">Plot name.</param>
         /// <returns>Electrode name.</returns>
-        public static string FindElectrodeName(Plot plot)
+        public static string FindElectrodeName(Site plot)
         {
             List<string> l_char = new List<string>();
             foreach (char l_elmt in plot.Name)

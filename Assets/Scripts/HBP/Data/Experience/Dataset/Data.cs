@@ -86,6 +86,15 @@ namespace HBP.Data.Experience.Dataset
             Elan.Channel[] channels = elanFile.Channels;
 
             // Read implantation.
+            if(MNI)
+            {
+                info.Patient.Brain.LoadImplantation(Anatomy.Implantation.ReferenceFrameType.MNI,true);
+            }
+            else
+            {
+                info.Patient.Brain.LoadImplantation(Anatomy.Implantation.ReferenceFrameType.Patient, true);
+            }
+
             string[] plots = info.Patient.Brain.GetImplantation(MNI,ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType == Settings.GeneralSettings.PlotNameCorrectionTypeEnum.Active).GetPlotsName();
             bool[] maskPlots = new bool[plots.Length];
             float[][] values = new float[plots.Length][];

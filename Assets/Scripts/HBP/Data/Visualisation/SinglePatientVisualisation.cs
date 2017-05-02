@@ -71,7 +71,7 @@ namespace HBP.Data.Visualisation
         /// <param name="columns">Columns of single patient visualisation.</param>
         /// <param name="patient">Patient of the single patient visualisation.</param>
         /// <param name="id">Unique ID of the single patient visualisation.</param>
-        public SinglePatientVisualisation(string name,List<Column> columns, Patient patient, string id) : base(name,columns,id)
+        public SinglePatientVisualisation(string name,IEnumerable<Column> columns, Patient patient, string id) : base(name,columns,id)
         {
             Patient = patient;
         }
@@ -81,7 +81,7 @@ namespace HBP.Data.Visualisation
         /// <param name="name">Name of single patient visualisation.</param>
         /// <param name="columns">Columns of single patient visualisation.</param>
         /// <param name="patient">Patient of the single patient visualisation.</param>
-        public SinglePatientVisualisation(string name,List<Column> columns,Patient patient) : base (name,columns)
+        public SinglePatientVisualisation(string name,IEnumerable<Column> columns,Patient patient) : base (name,columns)
         {
             Patient = patient;
         }
@@ -132,7 +132,7 @@ namespace HBP.Data.Visualisation
         /// <returns>Single patient visualisation clone.</returns>
         public override object Clone()
         {
-            return new SinglePatientVisualisation(Name, new List<Column>(Columns), Patient);
+            return new SinglePatientVisualisation(Name.Clone() as string, from column in Columns select column.Clone() as Column, Patient);
         }
         /// <summary>
         /// Copy a single patient viusalisation instance to this instance.

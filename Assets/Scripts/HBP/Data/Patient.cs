@@ -53,6 +53,7 @@ namespace HBP.Data
             Place = place;
             Date = date;
             Brain = brain;
+            Brain.Patient = this;
             ID = id;
         }
         /// <summary>
@@ -262,17 +263,6 @@ namespace HBP.Data
                 }
             }
             return patientDirectories.ToArray();
-        }
-        public PlotID[] GetImplantation(bool MNI,bool automaticCorrection)
-        {
-            Implantation implantation = Brain.GetImplantation(MNI, automaticCorrection);
-            string[] plotsName = implantation.GetPlotsName();
-            PlotID[] plotsID = new PlotID[plotsName.Length];
-            for (int p = 0; p < plotsID.Length; p++)
-            {
-                plotsID[p] = new PlotID(plotsName[p], this);
-            }
-            return plotsID;
         }
         #endregion
     }

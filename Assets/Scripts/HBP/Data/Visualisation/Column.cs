@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using HBP.Data.Anatomy;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 
@@ -64,12 +64,26 @@ namespace HBP.Data.Visualisation
             set { blocID = value.ID; }
         }
 
-        [DataMember(Name = "RegionOfInterest")]
-        private List<RegionOfInterest> regionOfInterest;
         /// <summary>
-        /// Region of interest used in the visualisation Column.
+        /// Configuration of the column.
         /// </summary>
-        public ReadOnlyCollection<RegionOfInterest> RegionOfInterest { get { return new ReadOnlyCollection<Data.Visualisation.RegionOfInterest>(regionOfInterest); } private set { regionOfInterest = value.ToList(); } }
+        [DataMember(Name = "Configuration")]
+        public ColumnConfiguration Configuration { get; set; }
+
+        /// <summary>
+        /// TimeLine which define the size,limits,events.
+        /// </summary>
+        public TimeLine TimeLine { get; set; }
+
+        /// <summary>
+        /// Iconic scenario which define the labels,images to display during the timeLine. 
+        /// </summary>
+        public IconicScenario IconicScenario { get; set; }
+
+        /// <summary>
+        /// Values by site.
+        /// </summary>
+        public Dictionary<Site,float[]> ValuesBySite { get; set; }
         #endregion
 
         #region Constructors
@@ -80,23 +94,74 @@ namespace HBP.Data.Visualisation
         /// <param name="dataLabel">Label of the data to use in the visualisation Column.</param>
         /// <param name="protocol">Protocol to use in the visualisation Column.</param>
         /// <param name="bloc">Bloc of the Protocol to use in the visualisation Column.</param>
-        public Column(Dataset dataset, string dataLabel, Protocol protocol, Bloc bloc, IEnumerable<RegionOfInterest> regionOfInterest)
+        public Column(Dataset dataset, string dataLabel, Protocol protocol, Bloc bloc,ColumnConfiguration configuration)
         {
             Dataset = dataset;
             Protocol = protocol;
             Bloc = bloc;
             DataLabel = dataLabel;
-            RegionOfInterest = new ReadOnlyCollection<RegionOfInterest>(regionOfInterest.ToArray());
+            Configuration = configuration;
         }
         /// <summary>
         /// Create a new Column instance with default values.
         /// </summary>
-        public Column():this(new Dataset(), string.Empty,new Protocol(),new Bloc(), new Collection<Data.Visualisation.RegionOfInterest>())
+        public Column():this(new Dataset(), string.Empty,new Protocol(),new Bloc(),new ColumnConfiguration())
         {
         }
         #endregion
 
         #region Public Methods
+        public void Load(Patient patient)
+        {
+            patient.Brain.LoadImplantation(Implantation.ReferenceFrameType.Patient, true); // Read patient implantation.
+            DataInfo dataInfo = Dataset.Data.Find((d) => d.Name == DataLabel && d.Patient == patient && d.Protocol == Protocol && d.Protocol.Blocs.Contains(Bloc)); // Find dataInfo.
+            Elan.ElanFile elanFile = new Elan.ElanFile(dataInfo.EEG, true); // Instantiate new EEG file.
+            bool elanFileReaded = elanFile.ReadChannel(); // Read the elanfile.
+            if(elanFileReaded)
+            {
+                PatientConfiguration patientConfiguration = Configuration.Patients.Find((elmt) => elmt.ID == patient.ID); // Find the patient configuration.
+                if (patientConfiguration == null) patientConfiguration = new PatientConfiguration(patient.ID, new ElectrodeConfiguration[0], new UnityEngine.Color()); // If patient configuration not find create a new patient configuration.
+
+                foreach (Electrode electrode in patient.Brain.Implantation.Electrodes)
+                {
+                    ElectrodeConfiguration electrodeConfiguration = patientConfiguration.Electrodes.Find((elmt) => elmt.ID == electrode.Name); // Find electrode configuration.
+                    foreach (Site site in electrode.Sites)
+                    {
+                        SiteConfiguration siteConfiguration = electrodeConfiguration.Sites.Find((elmt) => elmt.ID == site.Name); // Find site electrode configuration.
+                        Elan.Track track = elanFile.FindTrack(dataInfo.Measure, site.Name);
+                        float[] values = new float[elanFile.EEG.SampleNumber];
+                        if(track.Measure < 0 || track.Channel < 0)
+                        {
+                            siteConfiguration.IsMasked = true;
+                        }
+                        else
+                        {
+                            siteConfiguration.IsMasked = false;
+                            values = elanFile.EEG.GetFloatData(elanFile.FindTrack(dataInfo.Measure, site.Name));
+                        }
+                        ValuesBySite.Add(site, values);
+                    }
+                }
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("Cannot read the elan file.");
+            }
+        }
+        public void Load(IEnumerable<Patient> patients)
+        {
+            foreach (Patient patient in patients)
+            {
+                DataInfo dataInfo = Dataset.Data.Find((d) => d.Name == DataLabel && d.Patient == patient && d.Protocol == Protocol && d.Protocol.Blocs.Contains(Bloc));
+                foreach (Electrode electrode in patient.Brain.MNIImplantation.Electrodes)
+                {
+                    foreach (Site site in electrode.Sites)
+                    {
+                        ValuesBySite.Add(site, new float[0]);
+                    }
+                }
+            }
+        }
         /// <summary>
         /// Test if the visualisation Column is compatible with a Patient.
         /// </summary>
@@ -142,8 +207,7 @@ namespace HBP.Data.Visualisation
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            IEnumerable<RegionOfInterest> regionOfInterestCloned = from ROI in regionOfInterest select ROI.Clone() as RegionOfInterest;
-            return new Column(Dataset.Clone() as Dataset, DataLabel.Clone() as string, Protocol.Clone() as Protocol, Bloc.Clone() as Bloc, regionOfInterestCloned);
+            return new Column(Dataset.Clone() as Dataset, DataLabel.Clone() as string, Protocol.Clone() as Protocol, Bloc.Clone() as Bloc, Configuration.Clone() as ColumnConfiguration);
         }
         #endregion
     }

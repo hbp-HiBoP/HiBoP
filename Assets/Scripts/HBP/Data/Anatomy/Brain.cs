@@ -42,7 +42,7 @@ namespace HBP.Data.Anatomy
         public string PatientReferenceFrameImplantation { get; set; }
         [DataMember]
         /** Path to the \b MNI based implantation (.pts).*/
-        public string MNIReferenceFrameImplantation { get; set; }
+        public string MNIReferenceFrameImplantation { get; set; }   
         [DataMember]
         /** Path to the \b pre operation base to scanner base transformation (.trm).*/
         public string PreOperationReferenceFrameToScannerReferenceFrameTransformation { get; set; }
@@ -52,6 +52,9 @@ namespace HBP.Data.Anatomy
         [DataMember]
         /** Epilepsy type.*/
         public Epilepsy Epilepsy { get; set; }
+
+        /** Patient witch contains the brain. */
+        public Patient Patient { get; set; }
 
         /** Number of fields filled.*/
         public int NumberOfFieldsFilled
@@ -79,6 +82,27 @@ namespace HBP.Data.Anatomy
         public bool CanBeUsedInMultiPatientsVisualisation
         {
             get { return PreOperationMRI != string.Empty && MNIReferenceFrameImplantation != string.Empty;}
+        }
+
+        Implantation m_Implantation;
+        /** Patient reference frame based implantation. */
+        public Implantation Implantation
+        {
+            get
+            {
+                if (m_Implantation == null) UnityEngine.Debug.LogError("Implantation not loaded.");
+                return m_Implantation;
+            }
+        }
+        Implantation m_MNIImplantation;
+        /** MNI reference frame based implantation. */
+        public Implantation MNIImplantation
+        {
+            get
+            {
+                if (m_MNIImplantation == null) UnityEngine.Debug.LogError("Implantation not loaded.");
+                return m_MNIImplantation;
+            }
         }
         #endregion
 
@@ -117,22 +141,51 @@ namespace HBP.Data.Anatomy
 
         #region Public Methods
         /// <summary>
+        /// Load implantation.
+        /// </summary>
+        /// <param name="referenceFrame">Reference frame of the implantation.</param>
+        /// <param name="plotNameCorrection">Plot name correction.</param>
+        public void LoadImplantation(Implantation.ReferenceFrameType referenceFrame, bool plotNameCorrection)
+        {
+            switch (referenceFrame)
+            {
+                case Implantation.ReferenceFrameType.Patient:
+                    m_Implantation = new Implantation(PatientReferenceFrameImplantation, plotNameCorrection);
+                    m_Implantation.Brain = this;
+                    break;
+                case Implantation.ReferenceFrameType.MNI:
+                    m_MNIImplantation = new Implantation(MNIReferenceFrameImplantation, plotNameCorrection);
+                    m_MNIImplantation.Brain = this;
+                    break;
+                default:
+                    break;
+            }
+        }
+        /// <summary>
+        /// Dispose implantation.
+        /// </summary>
+        /// <param name="referenceFrame">Reference frame of the implantation.</param>
+        public void DisposeImplantation(Implantation.ReferenceFrameType referenceFrame)
+        {
+            switch (referenceFrame)
+            {
+                case Implantation.ReferenceFrameType.Patient:
+                    m_Implantation = null;
+                    break;
+                case Implantation.ReferenceFrameType.MNI:
+                    m_MNIImplantation = null;
+                    break;
+                default:
+                    break;
+            }
+        }
+        /// <summary>
         /// Clone The object.
         /// </summary>
         /// <returns>Object cloned.</returns>
         public object Clone()
         {
             return new Brain(Epilepsy.Clone() as Epilepsy,LeftCerebralHemisphereMesh, RightCerebralHemisphereMesh, PreOperationMRI, PostOperationMRI, PatientReferenceFrameImplantation, MNIReferenceFrameImplantation, PreOperationReferenceFrameToScannerReferenceFrameTransformation,PlotsConnectivity);
-        }
-        /// <summary>
-        /// Read implantations
-        /// </summary>
-        /// <param name="MNI">\b True if MNI and \b false if single patient.</param>
-        /// <returns></returns>
-        public Implantation GetImplantation(bool MNI, bool automaticCorrection)
-        {
-            if (MNI) return new Implantation(MNIReferenceFrameImplantation, automaticCorrection);
-            else return new Implantation(PatientReferenceFrameImplantation, automaticCorrection);
         }
         #endregion
     }

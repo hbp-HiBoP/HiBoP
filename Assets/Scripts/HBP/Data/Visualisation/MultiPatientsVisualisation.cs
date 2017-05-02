@@ -66,7 +66,7 @@ namespace HBP.Data.Visualisation
         /// <param name="columns">Columns used in the visualisation.</param>
         /// <param name="patients">Patients used in the vusualisation.</param>
         /// <param name="id">Unique ID.</param>
-        public MultiPatientsVisualisation(string name,List<Column> columns, List<Patient> patients, string id) : base(name,columns,id)
+        public MultiPatientsVisualisation(string name,IEnumerable<Column> columns, IEnumerable<Patient> patients, string id) : base(name,columns,id)
         {
             SetPatients(patients.ToArray());
         }
@@ -76,7 +76,7 @@ namespace HBP.Data.Visualisation
         /// <param name="name">Name of the visualisation.</param>
         /// <param name="columns">Columns used in the visualisation.</param>
         /// <param name="patients">Patients used in the visualisation.</param>
-        public MultiPatientsVisualisation(string name,List<Column> columns, List<Patient> patients) : base (name,columns)
+        public MultiPatientsVisualisation(string name, IEnumerable<Column> columns, IEnumerable<Patient> patients) : base (name,columns)
         {
             SetPatients(patients.ToArray());
         }
@@ -181,7 +181,7 @@ namespace HBP.Data.Visualisation
         /// <returns>Multi-patients visualisation clone.</returns>
         public override object Clone()
         {
-            return new MultiPatientsVisualisation(Name, new List<Column>(Columns), new List<Patient>(Patients), ID);
+            return new MultiPatientsVisualisation(Name, from column in Columns select column.Clone() as Column, from patient in Patients select patient.Clone() as Patient, ID);
         }
         /// <summary>
         /// Copy a multi-patients viusalisation instance to this instance.

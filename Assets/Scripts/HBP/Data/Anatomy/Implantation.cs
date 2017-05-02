@@ -1,4 +1,5 @@
-﻿using System;
+﻿using UnityEngine;
+using System;
 using System.IO;
 using System.Collections.Generic;
 
@@ -7,66 +8,75 @@ namespace HBP.Data.Anatomy
     public class Implantation
     {
         #region Properties
-        /** Header of a implantation file. */
         const string HEADER = "ptsfile";
         public const string EXTENSION = ".pts";
 
+        public enum ReferenceFrameType { Patient, MNI}
+        public ReferenceFrameType ReferenceFrame { get; set; }
+
+        public Brain Brain { get; set; }
         public List<Electrode> Electrodes { get; set; }
         #endregion
 
         #region Constructor
         public Implantation(string path, bool automaticCorrection = true)
         {
-            Electrodes = new List<Electrode>();
-            FileInfo fileInfo = new FileInfo(path);
-            if (fileInfo.Exists && fileInfo.Extension == EXTENSION)
+            if(!string.IsNullOrEmpty(path))
             {
-                // Read The File
-                StreamReader streamReader = new StreamReader(path);
-                string text = streamReader.ReadToEnd();
-                string[] lines = text.Split(new[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-
-                // Analyse the header
-                int plotsNumber; int.TryParse(lines[2], out plotsNumber);
-                if (lines[0] == HEADER && lines.Length == plotsNumber + 3)
+                FileInfo fileInfo = new FileInfo(path);
+                if (fileInfo.Exists && fileInfo.Extension == EXTENSION)
                 {
-                    // Work on line
-                    Plot[] plots = new Plot[plotsNumber];
-                    for (int l = 0; l < plotsNumber; l++)
-                    {
-                        // Chercher par ici !
-                        plots[l] = new Plot(lines[l + 3], automaticCorrection);
-                    }
+                    // Read The File
+                    string[] lines = File.ReadAllLines(fileInfo.FullName);
 
-                    // Separate plots into electrodes.
-                    foreach (Plot plot in plots)
+                    if(lines[0] == HEADER && lines.Length > 3)
                     {
-                        string electrodeName = Electrode.FindElectrodeName(plot);
-                        Electrode electrode = Electrodes.Find(x => x.Name == electrodeName);
-                        if (electrode == null)
+                        // Analyse the header
+                        int numberOfSites; int.TryParse(lines[2], out numberOfSites);
+                        if (lines.Length == numberOfSites + 3)
                         {
-                            electrode = new Electrode(electrodeName);
-                            Electrodes.Add(electrode);
+                            // Work on line
+                            Site[] sites = new Site[numberOfSites];
+                            for (int line = 0; line < numberOfSites; line++)
+                            {
+                                sites[line] = new Site(lines[line + 3], automaticCorrection);
+                            }
+
+                            Electrodes = new List<Electrode>();
+                            // Separate sites into electrodes.
+                            foreach (Site site in sites)
+                            {
+                                string electrodeName = Electrode.FindElectrodeName(site);
+                                Electrode electrode = Electrodes.Find(x => x.Name == electrodeName);
+                                if (electrode == null)
+                                {
+                                    electrode = new Electrode(electrodeName);
+                                    electrode.Implantation = this;
+                                    Electrodes.Add(electrode);
+                                }
+                                electrode.Sites.Add(site);
+                                site.Electrode = electrode;
+                            }
                         }
-                        electrode.Plots.Add(plot);
+                        else
+                        {
+                            Debug.LogError("Can not read the implantation because the specified file is not in the correct format.");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("Can not read the implantation because the specified file is not in the correct format.");
                     }
                 }
-            }
-        }
-        #endregion
-
-        #region Public Methods
-        public string[] GetPlotsName()
-        {
-            List<string> names = new List<string>();
-            foreach(Electrode electrode in Electrodes)
-            {
-                foreach(Plot plot in electrode.Plots)
+                else
                 {
-                    names.Add(plot.Name);
+                    Debug.LogError("Can not read the implantation because the specified file does not exist or does not have the correct extension.");
                 }
             }
-            return names.ToArray();
+            else
+            {
+                Debug.LogError("Can not read the implantation because the specified path is null or empty.");
+            }
         }
         #endregion
     }
