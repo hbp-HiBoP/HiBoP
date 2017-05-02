@@ -21,16 +21,16 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class ScenesRatioController : MonoBehaviour, UICameraOverlay
     {
-        #region members
+        #region Properties
 
         public Transform m_sceneRatioTransform;  /**< scene ratio transform */
 
         private bool m_spSceneHasBeenActivated = false;
         private bool m_mpSceneHasBeenActivated = false;
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -66,7 +66,7 @@ namespace HBP.UI.Module3D
         }
 
 
-        #endregion functions
+        #endregion
     }
 
 }

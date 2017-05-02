@@ -34,7 +34,7 @@ namespace HBP.Module3D
     /// </summary>
     public class ROIMenuController : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         // scene
         private MultiPatients3DScene m_scene = null; /**< MP scene */
@@ -49,14 +49,14 @@ namespace HBP.Module3D
         List<GameObject> m_columnROI = new List<GameObject>();
         ColumnROI m_currentROICol = null;
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
 
-        #endregion mono_behaviour
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         public void init(MultiPatients3DScene scene)
         {
@@ -367,11 +367,11 @@ namespace HBP.Module3D
             m_scene.UpdateSitesMasks(m_currentROICol.m_idColumn, electrodes, patientsNames);
             m_columnROI[m_currentROICol.m_idColumn].GetComponent<ColumnROI>().add_ROI(positions, rays, nameROI);
 
-            m_scene.data_.iEEGOutdated = true;
+            m_scene.SceneInformation.iEEGOutdated = true;
             return true;
         }
 
 
-        #endregion functions
+        #endregion
     }
 }

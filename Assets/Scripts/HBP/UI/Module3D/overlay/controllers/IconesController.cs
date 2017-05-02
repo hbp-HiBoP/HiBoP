@@ -17,7 +17,7 @@ namespace HBP.Module3D
     /// </summary>
     public class IconesController : IndividualSceneOverlayController
     {    
-        #region members
+        #region Properties
         
         private List<int> m_times = new List<int>();
         private List<HBP.Data.Visualisation.IconicScenario> m_iconicScenarioList;
@@ -30,9 +30,9 @@ namespace HBP.Module3D
 
         private int m_currentSize = 95;
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         /// <summary>
         /// This function is called after all frame updates for the last frame of the object’s existence (the object might be destroyed in response to Object.Destroy or at the closure of a scene).
@@ -48,8 +48,9 @@ namespace HBP.Module3D
             }
         }
 
-        #endregion mono_behaviour
+        #endregion
 
+        #region Public Methods
         /// <summary>
         /// Init the controller
         /// </summary>
@@ -338,5 +339,6 @@ namespace HBP.Module3D
 
             UpdateUI();
         }
+        #endregion
     }
 }

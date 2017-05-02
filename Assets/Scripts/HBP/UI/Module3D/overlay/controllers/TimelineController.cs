@@ -27,7 +27,7 @@ namespace HBP.Module3D
     /// </summary>
     public class TimelineController : IndividualSceneOverlayController
     {
-        #region members
+        #region Properties
 
         private Transform m_timelineControllerOverlay;
 
@@ -73,9 +73,9 @@ namespace HBP.Module3D
         private List<List<int>> m_secondaryEventsPositions = new List<List<int>>(); /**< positions of the secondary events */
         private List<List<GameObject>> m_secondaryEventsText = new List<List<GameObject>>(); /**< textres of the secondary events */
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         /// <summary>
         /// This function is called after all frame updates for the last frame of the object’s existence (the object might be destroyed in response to Object.Destroy or at the closure of a scene).
@@ -86,8 +86,9 @@ namespace HBP.Module3D
             Destroy(m_sliderGlobalTexture);
         }
 
-        #endregion mono_behaviour
+        #endregion
 
+        #region Public Methods
         /// <summary>
         /// Init the controller
         /// </summary>
@@ -482,7 +483,7 @@ namespace HBP.Module3D
 
             string textComputeButton = "";
             Color colorComputeButton = Color.white;
-            computeButton.gameObject.GetComponent<Button>().interactable = m_Scene.data_.iEEGOutdated;
+            computeButton.gameObject.GetComponent<Button>().interactable = m_Scene.SceneInformation.iEEGOutdated;
             textComputeButton = "Update iEEG";
             computeButton.gameObject.SetActive(true);
 
@@ -683,7 +684,7 @@ namespace HBP.Module3D
             float startValue = m_globalTimeSlider.value;// m_globalTimeSlider.minValue;
             while (m_globalIsLooping)
             {
-                if(!m_Scene.data_.generatorUpToDate)
+                if(!m_Scene.SceneInformation.generatorUpToDate)
                 {
                     m_globalTimeSlider.value = m_globalTimeSlider.minValue;
                     m_globalIsLooping = false;
@@ -709,7 +710,7 @@ namespace HBP.Module3D
             float startValue = timelineSlider.value;// timelineSlider.minValue;
             while (m_individualIsLooping[id])
             {
-                if (!m_Scene.data_.generatorUpToDate)
+                if (!m_Scene.SceneInformation.generatorUpToDate)
                 {
                     timelineSlider.value = timelineSlider.minValue;
                     m_individualIsLooping[id] = false;
@@ -727,5 +728,6 @@ namespace HBP.Module3D
             }
             loopButton.transform.Find("Text").GetComponent<Text>().text = "Loop";
         }
+        #endregion
     }
 }

@@ -20,7 +20,7 @@ namespace HBP.Module3D
     /// </summary>
     public class Column3DViewIEEG : Column3DView
     {
-        #region members
+        #region Properties
         public override ColumnType Type
         {
             get
@@ -68,9 +68,9 @@ namespace HBP.Module3D
         public int idSourceSelected = -1; /**< id of the selected source */
         public int currentLatencyFile = -1; /**< id of the current latency file */
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
        
 
         /// <summary>
@@ -475,7 +475,7 @@ namespace HBP.Module3D
         }
 
 
-        #endregion functions
+        #endregion
     }
 
 }

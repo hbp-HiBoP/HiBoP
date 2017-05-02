@@ -106,7 +106,7 @@ namespace HBP.Module3D
 
             base.Awake();
 
-            m_MNI = GetComponent<MNIObjects>();
+            m_MNIObjects = GetComponent<MNIObjects>();
             
             TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.MP3DScene, gameObject);
         }
@@ -119,65 +119,65 @@ namespace HBP.Module3D
         public override void ComputeMeshesCut()
         {
             // choose the mesh
-            data_.meshToDisplay = null;
-            switch (data_.meshTypeToDisplay)
+            SceneInformation.meshToDisplay = null;
+            switch (SceneInformation.meshTypeToDisplay)
             {
                 case SceneStatesInfo.MeshType.Hemi:
-                    switch (data_.meshPartToDisplay)
+                    switch (SceneInformation.meshPartToDisplay)
                     {
                         case SceneStatesInfo.MeshPart.Both:
-                            data_.meshToDisplay = m_MNI.BothHemi;
+                            SceneInformation.meshToDisplay = m_MNIObjects.BothHemi;
                             break;
                         case SceneStatesInfo.MeshPart.Left:
-                            data_.meshToDisplay = m_MNI.LeftHemi;
+                            SceneInformation.meshToDisplay = m_MNIObjects.LeftHemi;
                             break;
                         case SceneStatesInfo.MeshPart.Right:
-                            data_.meshToDisplay = m_MNI.RightHemi;
+                            SceneInformation.meshToDisplay = m_MNIObjects.RightHemi;
                             break;
                     }
                     break;
                 case SceneStatesInfo.MeshType.White:
-                    switch (data_.meshPartToDisplay)
+                    switch (SceneInformation.meshPartToDisplay)
                     {
                         case SceneStatesInfo.MeshPart.Both:
-                            data_.meshToDisplay = m_MNI.BothWhite;
+                            SceneInformation.meshToDisplay = m_MNIObjects.BothWhite;
                             break;
                         case SceneStatesInfo.MeshPart.Left:
-                            data_.meshToDisplay = m_MNI.LeftWhite;
+                            SceneInformation.meshToDisplay = m_MNIObjects.LeftWhite;
                             break;
                         case SceneStatesInfo.MeshPart.Right:
-                            data_.meshToDisplay = m_MNI.RightWhite;
+                            SceneInformation.meshToDisplay = m_MNIObjects.RightWhite;
                             break;
                     }
                     break;
                 case SceneStatesInfo.MeshType.Inflated:
-                    switch (data_.meshPartToDisplay)
+                    switch (SceneInformation.meshPartToDisplay)
                     {
                         case SceneStatesInfo.MeshPart.Both:
-                            data_.meshToDisplay = m_MNI.BothWhiteInflated;
+                            SceneInformation.meshToDisplay = m_MNIObjects.BothWhiteInflated;
                             break;
                         case SceneStatesInfo.MeshPart.Left:
-                            data_.meshToDisplay = m_MNI.LeftWhiteInflated;
+                            SceneInformation.meshToDisplay = m_MNIObjects.LeftWhiteInflated;
                             break;
                         case SceneStatesInfo.MeshPart.Right:
-                            data_.meshToDisplay = m_MNI.RightWhiteInflated;
+                            SceneInformation.meshToDisplay = m_MNIObjects.RightWhiteInflated;
                             break;
                     }
                     break;
             }
 
-            if (data_.meshTypeToDisplay == SceneStatesInfo.MeshType.Inflated)
-                m_Column3DViewManager.DLLSplittedWhiteMeshesList = new List<DLL.Surface>(data_.meshToDisplay.split_to_surfaces(m_Column3DViewManager.meshSplitNb));
+            if (SceneInformation.meshTypeToDisplay == SceneStatesInfo.MeshType.Inflated)
+                m_Column3DViewManager.DLLSplittedWhiteMeshesList = new List<DLL.Surface>(SceneInformation.meshToDisplay.split_to_surfaces(m_Column3DViewManager.meshSplitNb));
 
             // get the middle
-            data_.meshCenter = data_.meshToDisplay.bounding_box().center();
+            SceneInformation.meshCenter = SceneInformation.meshToDisplay.bounding_box().center();
 
             // cut the mesh
             List<DLL.Surface> cuts;
-            if (data_.meshTypeToDisplay != SceneStatesInfo.MeshType.Inflated && m_Column3DViewManager.planesCutsCopy.Count > 0)
-                cuts = new List<DLL.Surface>(data_.meshToDisplay.cut(m_Column3DViewManager.planesCutsCopy.ToArray(), data_.removeFrontPlaneList.ToArray(), !data_.holesEnabled));
+            if (SceneInformation.meshTypeToDisplay != SceneStatesInfo.MeshType.Inflated && m_Column3DViewManager.planesCutsCopy.Count > 0)
+                cuts = new List<DLL.Surface>(SceneInformation.meshToDisplay.cut(m_Column3DViewManager.planesCutsCopy.ToArray(), SceneInformation.removeFrontPlaneList.ToArray(), !SceneInformation.holesEnabled));
             else
-                cuts = new List<DLL.Surface>() { (DLL.Surface)(data_.meshToDisplay.Clone())};
+                cuts = new List<DLL.Surface>() { (DLL.Surface)(SceneInformation.meshToDisplay.Clone())};
 
             if(m_Column3DViewManager.DLLCutsList.Count != cuts.Count)
                 m_Column3DViewManager.DLLCutsList = cuts;
@@ -211,14 +211,14 @@ namespace HBP.Module3D
 
             // update cut brain mesh object mesh filter
             for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
-                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
 
             // update cuts generators
             for (int ii = 0; ii < m_Column3DViewManager.planesCutsCopy.Count; ++ii)
             {
-                if (data_.meshTypeToDisplay == SceneStatesInfo.MeshType.Inflated) // if inflated, there is not cuts
+                if (SceneInformation.meshTypeToDisplay == SceneStatesInfo.MeshType.Inflated) // if inflated, there is not cuts
                 {
-                    go_.brainCutMeshes[ii].SetActive(false);
+                    m_DisplayedObjects.brainCutMeshes[ii].SetActive(false);
                     continue;
                 }
 
@@ -226,21 +226,21 @@ namespace HBP.Module3D
                     m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].reset(m_Column3DViewManager.DLLVolume, m_Column3DViewManager.planesCutsCopy[ii]);
 
                 m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].update_cut_mesh_UV(Column3DViewManager.DLLCutsList[ii + 1]);
-                m_Column3DViewManager.DLLCutsList[ii + 1].update_mesh_from_dll(go_.brainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
-                go_.brainCutMeshes[ii].SetActive(true); // enable cuts gameobject
+                m_Column3DViewManager.DLLCutsList[ii + 1].update_mesh_from_dll(m_DisplayedObjects.brainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_DisplayedObjects.brainCutMeshes[ii].SetActive(true); // enable cuts gameobject
             }
 
             // create null uv2/uv3 arrays
             m_Column3DViewManager.uvNull = new List<Vector2[]>(m_Column3DViewManager.meshSplitNb);
             for (int ii = 0; ii < m_Column3DViewManager.meshSplitNb; ++ii)
             {
-                m_Column3DViewManager.uvNull.Add(new Vector2[go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
+                m_Column3DViewManager.uvNull.Add(new Vector2[m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
                 Extensions.ArrayExtensions.Fill(m_Column3DViewManager.uvNull[ii], new Vector2(0.01f, 1f));
             }
 
-            data_.collidersUpdated = false; // colliders are now longer up to date */
-            data_.updateCutMeshGeometry = false;   // planes are now longer requested to be updated 
-            data_.generatorUpToDate = false; // generator is not up to date anymore
+            SceneInformation.collidersUpdated = false; // colliders are now longer up to date */
+            SceneInformation.updateCutMeshGeometry = false;   // planes are now longer requested to be updated 
+            SceneInformation.generatorUpToDate = false; // generator is not up to date anymore
 
             // update amplitude for all columns
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
@@ -256,15 +256,15 @@ namespace HBP.Module3D
             Visualisation = visualisation;
 
             // MNI meshes are preloaded
-            data_.volumeCenter = m_MNI.IRM.center();
-            data_.meshesLoaded = true;
-            data_.hemiMeshesAvailables = true;
-            data_.whiteMeshesAvailables = true;
-            data_.whiteInflatedMeshesAvailables = true;
-            data_.ROICreationMode = false;
+            SceneInformation.volumeCenter = m_MNIObjects.IRM.center();
+            SceneInformation.meshesLoaded = true;
+            SceneInformation.hemiMeshesAvailables = true;
+            SceneInformation.whiteMeshesAvailables = true;
+            SceneInformation.whiteInflatedMeshesAvailables = true;
+            SceneInformation.ROICreationMode = false;
 
             // get the middle
-            data_.meshCenter = m_MNI.BothHemi.bounding_box().center();
+            SceneInformation.meshCenter = m_MNIObjects.BothHemi.bounding_box().center();
 
             List<string> ptsFiles = new List<string>(Visualisation.GetImplantation().Length), namePatients = new List<string>(Visualisation.GetImplantation().Length);
             for (int ii = 0; ii < Visualisation.GetImplantation().Length; ++ii)
@@ -278,9 +278,9 @@ namespace HBP.Module3D
             m_Column3DViewManager.Initialize(PlanesList.Count);
 
             // retrieve MNI IRM volume
-            m_Column3DViewManager.DLLVolume = m_MNI.IRM;
-            data_.volumeCenter = m_Column3DViewManager.DLLVolume.center();
-            data_.mriLoaded = true;
+            m_Column3DViewManager.DLLVolume = m_MNIObjects.IRM;
+            SceneInformation.volumeCenter = m_Column3DViewManager.DLLVolume.center();
+            SceneInformation.mriLoaded = true;
             UpdatePlanes.Invoke();
 
 
@@ -289,7 +289,7 @@ namespace HBP.Module3D
 
 
             // update scenes cameras
-            UpdateCameraTarget.Invoke(m_MNI.BothHemi.bounding_box().center());
+            UpdateCameraTarget.Invoke(m_MNIObjects.BothHemi.bounding_box().center());
 
 
             //####### UDPATE MODE
@@ -303,12 +303,12 @@ namespace HBP.Module3D
             ResetSplitsNumber(3);
 
             if (success)
-                data_.updateCutMeshGeometry = true;
+                SceneInformation.updateCutMeshGeometry = true;
 
             if (!success)
             {
                 Debug.LogError("-ERROR : MP3DScene : reset failed. ");
-                data_.reset();
+                SceneInformation.reset();
                 m_Column3DViewManager.Initialize(PlanesList.Count);
                 ResetSceneGameObjects();                
                 return false;
@@ -336,9 +336,9 @@ namespace HBP.Module3D
             //##################
 
             // load list of pts files
-            data_.sitesLoaded = m_Column3DViewManager.DLLLoadedPatientsElectrodes.load_pts_files(pathsElectrodesPtsFile, names, GlobalGOPreloaded.MarsAtlasIndex);
+            SceneInformation.sitesLoaded = m_Column3DViewManager.DLLLoadedPatientsElectrodes.load_pts_files(pathsElectrodesPtsFile, names, GlobalGOPreloaded.MarsAtlasIndex);
 
-            if (!data_.sitesLoaded)
+            if (!SceneInformation.sitesLoaded)
                 return false;
 
             // destroy previous electrodes gameobject
@@ -362,7 +362,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.PlotsPatientParent.Clear();
             m_Column3DViewManager.PlotsElectrodesParent.Clear();
 
-            if (data_.sitesLoaded)
+            if (SceneInformation.sitesLoaded)
             {
                 int currPlotNb = 0;
                 for (int ii = 0; ii < m_Column3DViewManager.DLLLoadedPatientsElectrodes.patients_nb(); ++ii)
@@ -373,7 +373,7 @@ namespace HBP.Module3D
 
                     // create plot patient parent
                     m_Column3DViewManager.PlotsPatientParent.Add(new GameObject("P" + ii + " - " + patientName));
-                    m_Column3DViewManager.PlotsPatientParent[m_Column3DViewManager.PlotsPatientParent.Count - 1].transform.SetParent(go_.sitesMeshesParent.transform);
+                    m_Column3DViewManager.PlotsPatientParent[m_Column3DViewManager.PlotsPatientParent.Count - 1].transform.SetParent(m_DisplayedObjects.sitesMeshesParent.transform);
                     m_Column3DViewManager.PlotsElectrodesParent.Add(new List<GameObject>(m_Column3DViewManager.DLLLoadedPatientsElectrodes.electrodes_nb(ii)));
 
 
@@ -462,10 +462,10 @@ namespace HBP.Module3D
             m_Column3DViewManager.SetTimelineData(Visualisation.Patients.ToList(), Visualisation.Columns);
 
             // update plots visibility
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             // set flag
-            data_.timelinesLoaded = true;
+            SceneInformation.timelinesLoaded = true;
 
             AskROIUpdateEvent.Invoke(-1);
 
@@ -574,7 +574,7 @@ namespace HBP.Module3D
             RenderSettings.ambientIntensity = m_ambientIntensity;
             RenderSettings.skybox = null;
             RenderSettings.ambientLight = m_ambiantLight;
-            go_.sharedDirLight.GetComponent<Transform>().eulerAngles = cameraRotation;
+            m_DisplayedObjects.sharedDirLight.GetComponent<Transform>().eulerAngles = cameraRotation;
         }
         /// <summary>
         /// Mouse scroll events managements, call Base3DScene parent function
@@ -592,13 +592,13 @@ namespace HBP.Module3D
         private void ChangeRegionOfInterestSize(float coeff)
         {
             int idC = m_Column3DViewManager.SelectedColumnID;
-            if (data_.ROICreationMode) // ROI : change ROI size
+            if (SceneInformation.ROICreationMode) // ROI : change ROI size
             {
                 ROI ROI = m_Column3DViewManager.Columns[idC].SelectedROI;
                 if (ROI != null)
                 {
                     ChangeSizeBubbleEvent.Invoke(idC, ROI.idSelectedBubble, (coeff < 0 ? 0.9f : 1.1f));
-                    m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+                    m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
                 }
             }
         }
@@ -608,7 +608,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         public bool IsRegionOfInterestModeEnabled()
         {
-            return data_.ROICreationMode;
+            return SceneInformation.ROICreationMode;
         }
         /// <summary>
         /// Keyboard events management, call Base3DScene parent function
@@ -621,7 +621,7 @@ namespace HBP.Module3D
             {
                 // choose active plane
                 case KeyCode.Delete:                
-                    if (data_.ROICreationMode)
+                    if (SceneInformation.ROICreationMode)
                     {
                         int idC = m_Column3DViewManager.SelectedColumnID;
 
@@ -630,7 +630,7 @@ namespace HBP.Module3D
                         if (idBubble != -1)
                             RemoveBubbleEvent.Invoke(idC, idBubble);
 
-                        m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+                        m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
                     }
                     break;
                 case KeyCode.KeypadPlus:
@@ -648,11 +648,11 @@ namespace HBP.Module3D
         public override void ClickOnScene(Ray ray)
         {
             // scene not loaded
-            if (!data_.mriLoaded)
+            if (!SceneInformation.mriLoaded)
                 return;
 
             // update colliders if necessary
-            if (!data_.collidersUpdated)
+            if (!SceneInformation.collidersUpdated)
                 UpdateMeshesColliders();
 
             // retrieve layer
@@ -736,14 +736,14 @@ namespace HBP.Module3D
                 int idPlotGlobal = hits[idClosestPlotHit].collider.gameObject.GetComponent<Site>().Information.GlobalID;
                 m_Column3DViewManager.SelectedColumn.SelectedSiteID = idPlotGlobal;
 
-                m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+                m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
                 ClickSite.Invoke(-1); // test
 
                 return;
             }
             else
             {
-                if (data_.ROICreationMode)
+                if (SceneInformation.ROICreationMode)
                 {
                     if (ROIHit) // ROI collision -> select ROI
                     {
@@ -759,7 +759,7 @@ namespace HBP.Module3D
                     {   
                         CreateBubbleEvent.Invoke(hits[idClosestNonPlot].point, m_Column3DViewManager.SelectedColumnID);
 
-                        m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+                        m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
                         return;
                     }
                 }
@@ -772,11 +772,11 @@ namespace HBP.Module3D
                         if (hit.collider.gameObject.name.StartsWith("cut")) // cut hit
                             return;
 
-                        if (m_triEraser.is_enabled() && m_triEraser.is_click_available())
+                        if (m_TriEraser.is_enabled() && m_TriEraser.is_click_available())
                         {
-                            m_triEraser.erase_triangles(ray.direction, hit.point);
+                            m_TriEraser.erase_triangles(ray.direction, hit.point);
                             for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
-                                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);             
+                                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);             
                         }
 
                         return;
@@ -793,7 +793,7 @@ namespace HBP.Module3D
         public override void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn)
         {
             // scene not loaded
-            if (!data_.mriLoaded)
+            if (!SceneInformation.mriLoaded)
                 return;
 
             if (m_Column3DViewManager.SelectedColumnID != idColumn) // not the selected column
@@ -873,7 +873,7 @@ namespace HBP.Module3D
         /// </summary>
         public void EnableRegionOfInterestCreationMode()
         {
-            data_.ROICreationMode = true;
+            SceneInformation.ROICreationMode = true;
             Column3DViewManager.update_ROI_visibility(true);
         }
         /// <summary>
@@ -881,7 +881,7 @@ namespace HBP.Module3D
         /// </summary>
         public void DisableRegionOfInterestCreationMode()
         {
-            data_.ROICreationMode = false;
+            SceneInformation.ROICreationMode = false;
             Column3DViewManager.update_ROI_visibility(false);
         }
         /// <summary>
@@ -967,7 +967,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_Column3DViewManager.Columns[idColumn].Sites.Count; ++ii)
                 m_Column3DViewManager.Columns[idColumn].Sites[ii].Information.IsInROI = maskROI[ii];
 
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
         }
         /// <summary>
         /// Update the ROI of a column from the interface

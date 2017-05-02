@@ -206,7 +206,7 @@ namespace HBP.Module3D
             // set the scrollbar down
             StartCoroutine("scrollbar_down");
 
-            m_mpScene.data_.iEEGOutdated = true;
+            m_mpScene.SceneInformation.iEEGOutdated = true;
         }
 
         IEnumerator scrollbar_down()
@@ -249,7 +249,7 @@ namespace HBP.Module3D
             }
 
             StartCoroutine("update_scrollbar");
-            m_mpScene.data_.iEEGOutdated = true;
+            m_mpScene.SceneInformation.iEEGOutdated = true;
         }
 
 
@@ -284,7 +284,7 @@ namespace HBP.Module3D
             m_ROI.GetComponent<ROI>().change_bubble_size(idBubble, coeff);
             m_bubblesUIList[idBubble].GetComponent<BubbleElement>().update_ray_text(m_ROI.GetComponent<ROI>().bubble(idBubble).m_radius);
 
-            m_mpScene.data_.iEEGOutdated = true;
+            m_mpScene.SceneInformation.iEEGOutdated = true;
         }
 
         /// <summary>

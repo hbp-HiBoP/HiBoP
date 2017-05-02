@@ -181,7 +181,7 @@ namespace HBP.Module3D
     /// </summary>
     public class CutsDisplayController : MonoBehaviour
     {
-        #region members       
+        #region Properties       
 
         private bool m_spIsActive = false; /**< is sp scene active */
         private bool m_mpIsActive = false; /**< is mp scene active */
@@ -192,9 +192,9 @@ namespace HBP.Module3D
         public Transform m_imagesParent;
         public Transform m_overlayParent;
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the contoller
@@ -298,6 +298,6 @@ namespace HBP.Module3D
             m_mpIsActive = !m_spIsActive;
         }
 
-        #endregion functions
+        #endregion
     }
 }

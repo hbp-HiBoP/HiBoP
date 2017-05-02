@@ -21,7 +21,7 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public class BBox : CppDLLImportBase
     {
-        #region functions
+        #region Public Methods
 
         public Vector3 min()
         {
@@ -118,9 +118,9 @@ namespace HBP.Module3D.DLL
         }
 
 
-        #endregion functions
+        #endregion
 
-        #region memory_management
+        #region Memory Management
 
         /// <summary>
         /// BBox default constructor
@@ -155,7 +155,7 @@ namespace HBP.Module3D.DLL
             delete_BBox(_handle);
         }
 
-        #endregion memory_management
+        #endregion
 
         #region DLLImport
 
@@ -201,7 +201,7 @@ namespace HBP.Module3D.DLL
         //delegate void getLinesIntersectionsWithPlane_BBox(HandleRef handleBBox, float[] plane, float[] interPoints);
         //delegate void getCenter_BBox(HandleRef handleBBox, float[] center);
 
-        #endregion DLLImport
+        #endregion
     }
 
     /// <summary>
@@ -209,7 +209,7 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public class Volume : CppDLLImportBase
     {
-        #region functions
+        #region Public Methods
 
         public Vector3 center()
         {
@@ -255,9 +255,9 @@ namespace HBP.Module3D.DLL
         }
 
 
-        #endregion functions
+        #endregion
 
-        #region memory_management
+        #region Memory Management
 
         /// <summary>
         /// Allocate DLL memory
@@ -275,7 +275,7 @@ namespace HBP.Module3D.DLL
             delete_Volume(_handle);
         }
 
-        #endregion memory_management
+        #endregion
 
         #region DLLimport
 
@@ -325,6 +325,6 @@ namespace HBP.Module3D.DLL
         //delegate float sizeOffsetCutPlane_Volume(HandleRef handleVolume, float[] planeCut, int nbCuts);
         //delegate void retrieveExtremeValues_Volume(HandleRef handleVolume, float[] extremeValues);
 
-        #endregion DLLimport
+        #endregion
     }
 }

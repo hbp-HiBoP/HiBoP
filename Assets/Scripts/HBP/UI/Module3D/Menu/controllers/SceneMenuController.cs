@@ -29,7 +29,7 @@ namespace HBP.Module3D
     /// </summary>
     public class SceneMenu : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         // scene
         private Base3DScene m_scene = null; /**< scene */
@@ -53,9 +53,9 @@ namespace HBP.Module3D
         // events
         public Events.CloseSceneWindow CloseSceneWindow = new Events.CloseSceneWindow();
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the menu
@@ -245,7 +245,7 @@ namespace HBP.Module3D
                    new Vector2(0.5f, 0.5f), 400f);
         }
 
-        #endregion functions
+        #endregion
     }
 
     /// <summary>
@@ -253,7 +253,7 @@ namespace HBP.Module3D
     /// </summary>
     public class SceneMenuController : MonoBehaviour, UICameraOverlay
     {
-        #region members
+        #region Properties
 
         private Cam.CamerasManager m_camerasManager = null;
 
@@ -267,9 +267,9 @@ namespace HBP.Module3D
         // parameters
         private bool m_displayMenu = false; /**< menu displayed ? */
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -368,6 +368,6 @@ namespace HBP.Module3D
             m_sceneMenu.SetActive(m_displayMenu);
         }
 
-        #endregion functions
+        #endregion
     }
 }

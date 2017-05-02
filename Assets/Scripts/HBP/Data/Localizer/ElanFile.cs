@@ -291,7 +291,7 @@ namespace Elan
         }
         #endregion
 
-        #region memory_management
+        #region Memory Management
         protected override void createDLLClass()
         {
             _handle = new HandleRef(this, CreateElanStruct());
@@ -300,7 +300,7 @@ namespace Elan
         {
             DeleteElanStruct(_handle, dataArrayAllocated);
         }
-        #endregion memory_management
+        #endregion
 
         #region DLLImport
         // Constructor/Destructor.

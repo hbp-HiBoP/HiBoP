@@ -31,7 +31,7 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class FMRIMenu : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         public bool m_isDisplayed = false;
         public bool m_isROIMenuMinimized = true;
@@ -55,8 +55,8 @@ namespace HBP.UI.Module3D
         public Events.CloseIRMFWindow CloseIRMFWindow = new Events.CloseIRMFWindow();
         public Events.UpdateROIMenuDisplay UpdateROIMenuDisplay = new Events.UpdateROIMenuDisplay();
 
-        #endregion members
-        #region functions
+        #endregion
+        #region Public Methods
 
         /// <summary>
         /// Init the menu
@@ -228,7 +228,7 @@ namespace HBP.UI.Module3D
                    new Vector2(0.5f, 0.5f), 400f);
         }
 
-        #endregion functions
+        #endregion
     }
 
 
@@ -237,7 +237,7 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class FMRIMenuController : MonoBehaviour, UICameraOverlay
     {
-        #region members
+        #region Properties
 
         // scenes
         private Base3DScene m_scene = null; /**< scene */
@@ -252,9 +252,9 @@ namespace HBP.UI.Module3D
         // events
         public Events.UpdateColROIMenuDisplay UpdateColROIMenuDisplay = new Events.UpdateColROIMenuDisplay();
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -403,6 +403,6 @@ namespace HBP.UI.Module3D
         }
 
 
-        #endregion functions
+        #endregion
     }
 }

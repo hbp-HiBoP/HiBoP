@@ -20,7 +20,7 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class MPLeftMenuController : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         private Base3DScene m_scene = null;
 
@@ -32,9 +32,9 @@ namespace HBP.UI.Module3D
 
         public Transform m_menuesListTransorm = null; /**< scene menu list transform */
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         /// <summary>
         /// This function is always called before any Start functions and also just after a prefab is instantiated. (If a GameObject is inactive during start up Awake is not called until it is made active.)
@@ -61,9 +61,9 @@ namespace HBP.UI.Module3D
             });
         }
 
-        #endregion mono_behaviour
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init all controllers
@@ -166,7 +166,7 @@ namespace HBP.UI.Module3D
             m_siteMenuController.remove_last_menu();
         }
 
-        #endregion functions
+        #endregion
 
 
     }

@@ -16,7 +16,7 @@ namespace HBP.Module3D
     /// </summary>
     public class SiteRing : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         private Site m_selectedPlot = null;
         private GameObject m_ring1 = null;
@@ -25,9 +25,9 @@ namespace HBP.Module3D
 
         private float m_speedRotation = 100f;
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         void Awake()
         {
@@ -68,8 +68,9 @@ namespace HBP.Module3D
             }
         }
 
-        #endregion mono_behaviour
+        #endregion
 
+        #region Public Methods
         /// <summary>
         /// Define the current selected site and apply a scale on the GO transforms
         /// </summary>
@@ -115,6 +116,6 @@ namespace HBP.Module3D
             m_ring2.GetComponent<MeshRenderer>().sharedMaterial = material;
             m_ring3.GetComponent<MeshRenderer>().sharedMaterial = material;
         }
-
+        #endregion
     }
 }

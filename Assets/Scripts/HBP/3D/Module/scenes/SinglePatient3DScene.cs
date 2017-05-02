@@ -69,7 +69,7 @@ namespace HBP.Module3D
 
         private List<string> CCEPLabels = null;
 
-        #endregion members
+        #endregion
 
         #region Public Methods
         /// <summary>
@@ -80,34 +80,34 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 0 cutSurface"); // 40%
 
             // choose the mesh
-            data_.meshToDisplay = null;
-            switch (data_.meshTypeToDisplay)
+            SceneInformation.meshToDisplay = null;
+            switch (SceneInformation.meshTypeToDisplay)
             {
                 case SceneStatesInfo.MeshType.Hemi:
-                    switch (data_.meshPartToDisplay)
+                    switch (SceneInformation.meshPartToDisplay)
                     {
                         case SceneStatesInfo.MeshPart.Both:
-                            data_.meshToDisplay = (DLL.Surface)m_Column3DViewManager.BothHemi;
+                            SceneInformation.meshToDisplay = (DLL.Surface)m_Column3DViewManager.BothHemi;
                             break;
                         case SceneStatesInfo.MeshPart.Left:
-                            data_.meshToDisplay = (DLL.Surface)m_Column3DViewManager.LHemi;
+                            SceneInformation.meshToDisplay = (DLL.Surface)m_Column3DViewManager.LHemi;
                             break;
                         case SceneStatesInfo.MeshPart.Right:
-                            data_.meshToDisplay = (DLL.Surface)m_Column3DViewManager.RHemi;
+                            SceneInformation.meshToDisplay = (DLL.Surface)m_Column3DViewManager.RHemi;
                             break;
                     }
                     break;
                 case SceneStatesInfo.MeshType.White:
-                    switch (data_.meshPartToDisplay)
+                    switch (SceneInformation.meshPartToDisplay)
                     {
                         case SceneStatesInfo.MeshPart.Both:
-                            data_.meshToDisplay = (DLL.Surface)m_Column3DViewManager.BothWhite;
+                            SceneInformation.meshToDisplay = (DLL.Surface)m_Column3DViewManager.BothWhite;
                             break;
                         case SceneStatesInfo.MeshPart.Left:
-                            data_.meshToDisplay = (DLL.Surface)m_Column3DViewManager.LWhite;
+                            SceneInformation.meshToDisplay = (DLL.Surface)m_Column3DViewManager.LWhite;
                             break;
                         case SceneStatesInfo.MeshPart.Right:
-                            data_.meshToDisplay = (DLL.Surface)m_Column3DViewManager.RWhite;
+                            SceneInformation.meshToDisplay = (DLL.Surface)m_Column3DViewManager.RWhite;
                             break;
                     }
                     break;
@@ -117,14 +117,14 @@ namespace HBP.Module3D
             }
 
             // get the middle
-            data_.meshCenter = data_.meshToDisplay.bounding_box().center();
+            SceneInformation.meshCenter = SceneInformation.meshToDisplay.bounding_box().center();
 
             // cut the mesh
             List<DLL.Surface> cuts;
             if (PlanesList.Count > 0)
-                cuts = new List<DLL.Surface>(data_.meshToDisplay.cut(m_Column3DViewManager.planesCutsCopy.ToArray(), data_.removeFrontPlaneList.ToArray(), !data_.holesEnabled));
+                cuts = new List<DLL.Surface>(SceneInformation.meshToDisplay.cut(m_Column3DViewManager.planesCutsCopy.ToArray(), SceneInformation.removeFrontPlaneList.ToArray(), !SceneInformation.holesEnabled));
             else
-                cuts = new List<DLL.Surface>() { (DLL.Surface)data_.meshToDisplay.Clone() };
+                cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.meshToDisplay.Clone() };
 
             if (m_Column3DViewManager.DLLCutsList.Count != cuts.Count)
                 m_Column3DViewManager.DLLCutsList = cuts;
@@ -158,7 +158,7 @@ namespace HBP.Module3D
 
             // update brain mesh object mesh filter
             for (int ii = 0; ii < m_Column3DViewManager.meshSplitNb; ++ii)
-                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
 
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 4 update cuts generators"); // 17%
@@ -171,7 +171,7 @@ namespace HBP.Module3D
                     m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].reset(m_Column3DViewManager.DLLVolume, m_Column3DViewManager.planesCutsCopy[ii]);                        
 
                 m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].update_cut_mesh_UV(Column3DViewManager.DLLCutsList[ii + 1]);
-                m_Column3DViewManager.DLLCutsList[ii + 1].update_mesh_from_dll(go_.brainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_Column3DViewManager.DLLCutsList[ii + 1].update_mesh_from_dll(m_DisplayedObjects.brainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -181,7 +181,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.uvNull = new List<Vector2[]>(m_Column3DViewManager.meshSplitNb);
             for (int ii = 0; ii < m_Column3DViewManager.meshSplitNb; ++ii)
             {
-                m_Column3DViewManager.uvNull.Add(new Vector2[go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
+                m_Column3DViewManager.uvNull.Add(new Vector2[m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
                 Extensions.ArrayExtensions.Fill(m_Column3DViewManager.uvNull[ii], new Vector2(0.01f, 1f));
             }
 
@@ -191,11 +191,11 @@ namespace HBP.Module3D
 
             // enable cuts gameobject
             for (int ii = 0; ii < m_Column3DViewManager.planesCutsCopy.Count; ++ii)
-                    go_.brainCutMeshes[ii].SetActive(true); 
+                    m_DisplayedObjects.brainCutMeshes[ii].SetActive(true); 
 
-            data_.collidersUpdated = false; // colliders are now longer up to date
-            data_.updateCutMeshGeometry = false;   // planes are now longer requested to be updated 
-            data_.generatorUpToDate = false; // generator is not up to date anymore
+            SceneInformation.collidersUpdated = false; // colliders are now longer up to date
+            SceneInformation.updateCutMeshGeometry = false;   // planes are now longer requested to be updated 
+            SceneInformation.generatorUpToDate = false; // generator is not up to date anymore
 
             // update amplitude for all columns
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
@@ -244,12 +244,12 @@ namespace HBP.Module3D
                 success = ResetElectrodes(ptsFiles, namePatients);
 
             if (success)
-                data_.updateCutMeshGeometry = true;
+                SceneInformation.updateCutMeshGeometry = true;
 
             if (!success)
             {
                 Debug.LogError("-ERROR : SP3DScene : reset failed. ");
-                data_.reset();
+                SceneInformation.reset();
                 m_Column3DViewManager.Initialize(PlanesList.Count);
                 ResetSceneGameObjects();
                 return false;
@@ -278,19 +278,19 @@ namespace HBP.Module3D
             }
             //##################
 
-            data_.meshesLoaded = false;
+            SceneInformation.meshesLoaded = false;
 
             // checks parameters
             foreach (string elem in pathGIIBrainFiles)
                 if (elem.Length == 0)
                 {
                     Debug.LogError("-ERROR : Base3DScene::resetGIIBrainSurfaceFile -> path gii file is empty. ");
-                    return (data_.meshesLoaded = false);
+                    return (SceneInformation.meshesLoaded = false);
                 }
             if (pathTransformFile.Length == 0)
             {
                 Debug.LogError("-ERROR : Base3DScene::resetGIIBrainSurfaceFile -> path transform file is empty. ");
-                return (data_.meshesLoaded = false);
+                return (SceneInformation.meshesLoaded = false);
             }
 
 
@@ -348,24 +348,24 @@ namespace HBP.Module3D
 
                 // add right
                 m_Column3DViewManager.BothHemi.add(m_Column3DViewManager.RHemi);
-                data_.meshesLoaded = true;
+                SceneInformation.meshesLoaded = true;
 
                 // get the middle
-                data_.meshCenter = m_Column3DViewManager.BothHemi.bounding_box().center();
+                SceneInformation.meshCenter = m_Column3DViewManager.BothHemi.bounding_box().center();
 
                 if(rightWhiteLoaded && leftWhiteLoaded)
                 {
                     m_Column3DViewManager.BothWhite = (DLL.Surface)m_Column3DViewManager.LWhite.Clone();
                     // add right
                     m_Column3DViewManager.BothWhite.add(m_Column3DViewManager.RWhite);
-                    data_.whiteMeshesAvailables = true;
+                    SceneInformation.whiteMeshesAvailables = true;
 
-                    data_.marsAtlasParcelsLoaed = leftParcelsLoaded && rightParcelsLoaded;
+                    SceneInformation.marsAtlasParcelsLoaed = leftParcelsLoaded && rightParcelsLoaded;
                 }
             }
             else
             {
-                data_.meshesLoaded = false;
+                SceneInformation.meshesLoaded = false;
                 Debug.LogError("-ERROR : Base3DScene::resetGIIBrainSurfaceFile -> load GII file failed, left : " + leftMeshLoaded + " right : " + rightMeshLoaded);
                 return false;
             }
@@ -380,13 +380,13 @@ namespace HBP.Module3D
             UpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.bounding_box().center());
            
             // set the transform as the mesh center
-            data_.hemiMeshesAvailables = true;
+            SceneInformation.hemiMeshesAvailables = true;
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.resetGIIBrainSurfaceFile);
             //##################
 
-            return data_.meshesLoaded;
+            return SceneInformation.meshesLoaded;
         }
         /// <summary>
         /// Reset all the sites with a new list of pts files
@@ -404,7 +404,7 @@ namespace HBP.Module3D
             //##################
 
             // load list of pts files
-            data_.sitesLoaded = m_Column3DViewManager.DLLLoadedPatientsElectrodes.load_pts_files(pathsElectrodesPtsFile, namePatients, GlobalGOPreloaded.MarsAtlasIndex); // TODO (maybe) : replace with values from visualisation
+            SceneInformation.sitesLoaded = m_Column3DViewManager.DLLLoadedPatientsElectrodes.load_pts_files(pathsElectrodesPtsFile, namePatients, GlobalGOPreloaded.MarsAtlasIndex); // TODO (maybe) : replace with values from visualisation
 
             // destroy previous electrodes gameobjects
             for (int ii = 0; ii < m_Column3DViewManager.SitesList.Count; ++ii)
@@ -429,7 +429,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.PlotsElectrodesParent.Clear();
 
 
-            if (data_.sitesLoaded)
+            if (SceneInformation.sitesLoaded)
             {
                 int currPlotNb = 0;
                 for (int ii = 0; ii < m_Column3DViewManager.DLLLoadedPatientsElectrodes.patients_nb(); ++ii)
@@ -439,7 +439,7 @@ namespace HBP.Module3D
 
                     // create plot patient parent
                     m_Column3DViewManager.PlotsPatientParent.Add(new GameObject("P" + ii + " - " + patientName));
-                    m_Column3DViewManager.PlotsPatientParent[m_Column3DViewManager.PlotsPatientParent.Count - 1].transform.SetParent(go_.sitesMeshesParent.transform);
+                    m_Column3DViewManager.PlotsPatientParent[m_Column3DViewManager.PlotsPatientParent.Count - 1].transform.SetParent(m_DisplayedObjects.sitesMeshesParent.transform);
                     m_Column3DViewManager.PlotsElectrodesParent.Add(new List<GameObject>(m_Column3DViewManager.DLLLoadedPatientsElectrodes.electrodes_nb(ii)));
 
                     for (int jj = 0; jj < m_Column3DViewManager.DLLLoadedPatientsElectrodes.electrodes_nb(ii); ++jj)
@@ -535,7 +535,7 @@ namespace HBP.Module3D
             m_ModesManager.updateMode(Mode.FunctionsId.resetElectrodesFile);
             //##################
 
-            return data_.sitesLoaded;
+            return SceneInformation.sitesLoaded;
         }
         /// <summary>
         /// Define the timeline data with a patient and a list of column data
@@ -565,10 +565,10 @@ namespace HBP.Module3D
             m_Column3DViewManager.SetTimelineData(Patient, Visualisation.Columns);
 
             // update plots visibility
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             // set flag
-            data_.timelinesLoaded = true;
+            SceneInformation.timelinesLoaded = true;
 
             // send data to UI
             SendIEEGParametersToMenu();
@@ -608,7 +608,7 @@ namespace HBP.Module3D
                 }
             }
 
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
         }
         /// <summary>
         /// Reset the rendering settings for this scene, called by each MP camera before rendering
@@ -620,7 +620,7 @@ namespace HBP.Module3D
             RenderSettings.ambientIntensity = m_ambientIntensity;
             RenderSettings.skybox = null;
             RenderSettings.ambientLight = m_ambiantLight;
-            go_.sharedDirLight.GetComponent<Transform>().eulerAngles = cameraRotation;
+            m_DisplayedObjects.sharedDirLight.GetComponent<Transform>().eulerAngles = cameraRotation;
         }
         /// <summary>
         /// Manage the clicks event in the scene
@@ -629,11 +629,11 @@ namespace HBP.Module3D
         public override void ClickOnScene(Ray ray)
         {
             // scene not loaded
-            if (!data_.mriLoaded)
+            if (!SceneInformation.mriLoaded)
                 return;
 
             // update colliders if necessary (SLOW)
-            if (!data_.collidersUpdated)
+            if (!SceneInformation.collidersUpdated)
                 UpdateMeshesColliders();
 
             // retrieve layer
@@ -652,16 +652,16 @@ namespace HBP.Module3D
                 if (hit.collider.gameObject.name.StartsWith("cut")) // cut hit
                     return;
 
-                if (m_triEraser.is_enabled() && m_triEraser.is_click_available())
+                if (m_TriEraser.is_enabled() && m_TriEraser.is_click_available())
                 {
                     //Debug.DrawRay(ray.origin, hit.point, Color.red, 2f, false);
-                    m_triEraser.erase_triangles(ray.direction, hit.point);
+                    m_TriEraser.erase_triangles(ray.direction, hit.point);
 
                     for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
                     {
                         //if (go_.brainSurfaceMeshes[ii].name == hit.collider.gameObject.name)
                         {
-                            m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                            m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
                             //break;
                         }
                     }
@@ -705,7 +705,7 @@ namespace HBP.Module3D
             }
 
             ClickSite.Invoke(-1);            
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);            
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);            
         }
         /// <summary>
         /// Manage the mouse movments event in the scene
@@ -716,7 +716,7 @@ namespace HBP.Module3D
         public override void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn)
         {
             // scene not loaded
-            if (!data_.mriLoaded)
+            if (!SceneInformation.mriLoaded)
                 return;
 
             // current column is different : we display only for the focused column
@@ -790,7 +790,7 @@ namespace HBP.Module3D
                         }
                     }
 
-                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.FMRI, data_.displayCcepMode,
+                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.FMRI, SceneInformation.displayCcepMode,
                         hit.collider.GetComponent<Site>().Information.FullName, "" + amp, height, latency));
                     break;
                 default:
@@ -815,10 +815,10 @@ namespace HBP.Module3D
         {
             DisplayScreenMessage(isCeepMode ? "CCEP mode enabled" : "iEEG mode enabled", 1.5f, 150, 30);
 
-            data_.displayCcepMode = isCeepMode;
+            SceneInformation.displayCcepMode = isCeepMode;
             //UpdateCutsInUI.Invoke(m_CM.getBrainCutTextureList(m_CM.idSelectedColumn, true, data_.generatorUpToDate, data_.displayLatenciesMode), m_CM.idSelectedColumn, m_CM.planesList.Count);
 
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             // force mode to update UI
             m_ModesManager.set_current_mode_specifications(true);
@@ -835,7 +835,7 @@ namespace HBP.Module3D
                 case Column3DView.ColumnType.IEEG:
                     Column3DViewIEEG currCol = (Column3DViewIEEG)m_Column3DViewManager.SelectedColumn;
                     currCol.idSourceSelected = currCol.SelectedSiteID;
-                    m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+                    m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
                     break;
                 default:
                     break;
@@ -853,7 +853,7 @@ namespace HBP.Module3D
                 case Column3DView.ColumnType.IEEG:
                     Column3DViewIEEG currCol = (Column3DViewIEEG)m_Column3DViewManager.SelectedColumn;
                     currCol.idSourceSelected = -1;
-                    m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+                    m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
                     break;
                 default:
                     break;

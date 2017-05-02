@@ -17,16 +17,16 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public abstract class CppDLLImportBase : IDisposable
     {
-        #region members
+        #region Properties
 
         /// <summary>
         /// pointer to C+ dll class
         /// </summary>
         protected HandleRef _handle;
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// CppDLLImportBase default constructor
@@ -90,6 +90,6 @@ namespace HBP.Module3D.DLL
             return _handle;
         }
 
-        #endregion functions
+        #endregion
     }
 }

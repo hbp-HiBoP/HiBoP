@@ -114,7 +114,7 @@ namespace HBP.UI.Module3D
             // Brain Types.
             m_BrainTypes.onValueChanged.AddListener((value) =>
             {
-                if (value == 0 && m_ScenesManager.SelectedScene.data_.MarsAtlasModeEnabled) m_ScenesManager.SelectedScene.SwitchMarsAtlasColor();
+                if (value == 0 && m_ScenesManager.SelectedScene.SceneInformation.MarsAtlasModeEnabled) m_ScenesManager.SelectedScene.SwitchMarsAtlasColor();
                 m_ScenesManager.SelectedScene.UpdateMeshTypeToDisplay((SceneStatesInfo.MeshType)value);
             });
             // MarsAtlas.
@@ -248,7 +248,7 @@ namespace HBP.UI.Module3D
             bool CanAddfMRI = (camerasManager.MaximumNumberOfColumns != camerasManager.GetNumberOfLines(m_ScenesManager.SelectedScene.Type));
             */
             bool CanRemovefMRI = (m_ScenesManager.SelectedScene.GetNumberOffMRIColumns() > 0);
-            bool CanUseMarsAtlas = m_ScenesManager.SelectedScene.data_.whiteMeshesAvailables && m_ScenesManager.SelectedScene.data_.marsAtlasParcelsLoaed;
+            bool CanUseMarsAtlas = m_ScenesManager.SelectedScene.SceneInformation.whiteMeshesAvailables && m_ScenesManager.SelectedScene.SceneInformation.marsAtlasParcelsLoaed;
             //bool CcepVisible = m_IsSinglePatientScene && !m_ScenesManager.SPScene.is_latency_mode_enabled();
             //bool iEegVisible = (!CcepVisible && m_IsSinglePatientScene);
             //bool isTriErasingEnabled = scene.is_tri_erasing_enabled();

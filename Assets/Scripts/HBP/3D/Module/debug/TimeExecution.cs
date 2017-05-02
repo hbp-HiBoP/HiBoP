@@ -20,7 +20,7 @@ namespace HBP.Module3D
     /// </summary>
     public class TimeExecution : MonoBehaviour
     {
-        #region members          
+        #region Properties          
 
         public enum ScriptsId : int
         {
@@ -36,9 +36,9 @@ namespace HBP.Module3D
 
         static DateTime m_epochStart;
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         void Awake()
         {
@@ -46,9 +46,9 @@ namespace HBP.Module3D
             m_startProgramTime = get_world_time();
         }
 
-        #endregion mono_behaviour   
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         public static double get_world_time()
         {
@@ -76,7 +76,7 @@ namespace HBP.Module3D
             end_awake(id, scriptId, obj.name, obj.GetInstanceID());            
         }
 
-        #endregion functions
+        #endregion
 
     }
 }

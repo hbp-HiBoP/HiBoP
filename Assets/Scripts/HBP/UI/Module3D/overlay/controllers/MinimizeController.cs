@@ -24,7 +24,7 @@ namespace HBP.Module3D
     /// </summary>
     public class MinimizeController : BothScenesOverlayController
     {
-        #region members
+        #region Properties
 
         
 
@@ -55,9 +55,9 @@ namespace HBP.Module3D
         public SendBoolValueEvent m_minimizeStateSwitchEvent = new SendBoolValueEvent(); /**< event indicating thaht a column minimized state has changed (bool : spScene) */
 
 
-        #endregion members
+        #endregion
 
-        #region others
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -458,6 +458,6 @@ namespace HBP.Module3D
 
         
 
-        #endregion others
+        #endregion
     }
 }

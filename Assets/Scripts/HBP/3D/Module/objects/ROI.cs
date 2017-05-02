@@ -22,7 +22,7 @@ namespace HBP.Module3D
     /// </summary>
     public class ROI : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         public string m_ROIname = "default_ROI_name";
         public int m_layer; /**< ROI layer */
@@ -32,18 +32,18 @@ namespace HBP.Module3D
         private DLL.ROI m_dllROI; /**< associated ROI DLL */
         private List<GameObject> m_bubbles = new List<GameObject>(); /**< bubbles of the ROI */
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         void Awake()
         {
             m_dllROI = new DLL.ROI();
         }
 
-        #endregion mono_behaviour
+        #endregion
 
-        #region others
+        #region Others
 
         public void clean()
         {
@@ -244,7 +244,7 @@ namespace HBP.Module3D
             return text;
         }
 
-        #endregion others
+        #endregion
     }
 
     namespace DLL
@@ -254,7 +254,7 @@ namespace HBP.Module3D
         /// </summary>
         public class ROI : IDisposable
         {
-            #region memory_management
+            #region Memory Management
 
             /// <summary>
             /// pointer to C+ dll class
@@ -304,9 +304,9 @@ namespace HBP.Module3D
                 return _handle;
             }
 
-            #endregion memory_management
+            #endregion
 
-            #region functions
+            #region Public Methods
 
             public void add_bubble(float radius, Vector3 center)
             {
@@ -333,7 +333,7 @@ namespace HBP.Module3D
                     mask[ii] = isInside_ROI(_handle, sites.getHandle(), ii) != 1;
             }
 
-            #endregion functions
+            #endregion
 
             #region DLLImport
 
@@ -357,7 +357,7 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "isInside_ROI", CallingConvention = CallingConvention.Cdecl)]
             static private extern int isInside_ROI(HandleRef handleROI, HandleRef handleRawList, int id);
 
-            #endregion DLLImport
+            #endregion
         }
     }
 }

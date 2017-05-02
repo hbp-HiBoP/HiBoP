@@ -146,7 +146,7 @@ namespace HBP.Module3D
         /// </summary>
         public class Texture : CppDLLImportBase, ICloneable
         {
-            #region members
+            #region Properties
 
             private bool m_isPinned = false;
 
@@ -155,9 +155,9 @@ namespace HBP.Module3D
             private Color32[] pixels2 = new Color32[1];
             GCHandle pixelsHandle2;
 
-            #endregion members
+            #endregion
 
-            #region functions
+            #region Public Methods
 
             public Texture(Texture other) : base(clone_Texture(other.getHandle()))
             {
@@ -318,9 +318,9 @@ namespace HBP.Module3D
                 return new Texture(generate_2D_color_Texture((int)color1, (int)color2));
             }
 
-            #endregion functions
+            #endregion
 
-            #region memory_management
+            #region Memory Management
 
             /// <summary>
             /// Texture default constructor
@@ -365,7 +365,7 @@ namespace HBP.Module3D
                 delete_Texture(_handle);
             }
 
-            #endregion memory_management
+            #endregion
 
             #region DLLImport
 
@@ -410,7 +410,7 @@ namespace HBP.Module3D
             static private extern IntPtr generate_2D_color_Texture(int idColor1, int idColor2);
 
 
-            #endregion DLLImport
+            #endregion
         }
     }
 }

@@ -26,7 +26,7 @@ namespace HBP.Module3D
     /// </summary>
     public class ScreenMessageController : BothScenesOverlayController
     {
-        #region members
+        #region Properties
 
         private GameObject m_messageScreenDisplay = null;
         private GameObject m_spScreenMessage = null;
@@ -63,15 +63,15 @@ namespace HBP.Module3D
         private double spProgressBarT;
         private double mpProgressBarT;
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         // ...
 
-        #endregion mono_behaviour
+        #endregion
 
-        #region others
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -307,6 +307,6 @@ namespace HBP.Module3D
             }
         }
 
-        #endregion others
+        #endregion
     }
 }

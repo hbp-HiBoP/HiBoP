@@ -17,7 +17,7 @@ namespace HBP.Module3D
     /// </summary>
     public class GlobalMenuController : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         public bool m_isColormapMinimized = true;
         public bool m_isBrainColorMinimized = true;
@@ -27,9 +27,9 @@ namespace HBP.Module3D
 
         public ColormapController m_colorMapController = null;
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -148,7 +148,7 @@ namespace HBP.Module3D
 
 
 
-        #endregion functions
+        #endregion
     }
 
 }

@@ -40,7 +40,7 @@ namespace HBP.Module3D
         #region Public Methods
         public abstract void UpdatePosition();
         public abstract void UpdateUI();
-        #endregion functions
+        #endregion
 
         public virtual void Initialize(CamerasManager camerasManager)
         {

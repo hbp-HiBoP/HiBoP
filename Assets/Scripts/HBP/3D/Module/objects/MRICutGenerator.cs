@@ -23,7 +23,7 @@ namespace HBP.Module3D
         /// </summary>
         public class MRIGeometryCutGenerator : CppDLLImportBase
         {
-            #region functions 
+            #region Public Methods 
 
             public void reset(DLL.Volume volume, Plane plane)
             {
@@ -48,9 +48,9 @@ namespace HBP.Module3D
                 StaticComponents.DLLDebugManager.check_error();
             }
 
-            #endregion functions
+            #endregion
 
-            #region memory_management
+            #region Memory Management
 
             /// <summary>
             /// Allocate DLL memory
@@ -73,7 +73,7 @@ namespace HBP.Module3D
             /// </summary>
             public MRIGeometryCutGenerator() : base() { }
 
-            #endregion memory_management
+            #endregion
 
             #region DLLImport
 
@@ -90,7 +90,7 @@ namespace HBP.Module3D
             static private extern void update_cut_mesh_UV__MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator, HandleRef handleSurface);
 
 
-            #endregion DLLImport
+            #endregion
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace HBP.Module3D
         /// </summary>
         public class MRITextureCutGenerator : CppDLLImportBase
         {
-            #region functions
+            #region Public Methods
 
             public void reset(MRIGeometryCutGenerator geometryGenerator)
             {
@@ -252,9 +252,9 @@ namespace HBP.Module3D
                 return max_inf__MRITextureCutGenerator(_handle);
             }
 
-            #endregion functions
+            #endregion
 
-            #region memory_management
+            #region Memory Management
 
             /// <summary>
             /// Allocate DLL memory
@@ -277,7 +277,7 @@ namespace HBP.Module3D
             /// </summary>
             public MRITextureCutGenerator() : base() { }
 
-            #endregion memory_management
+            #endregion
 
             #region DLLImport
         
@@ -320,7 +320,7 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "synchronize_with_others_generators__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void synchronize_with_others_generators__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float sharedMaxDensity, float sharedMinInf, float sharedMaxInf);
 
-            #endregion DLLImport
+            #endregion
         }
     }
 }

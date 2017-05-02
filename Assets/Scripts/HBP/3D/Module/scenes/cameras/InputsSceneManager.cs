@@ -21,14 +21,14 @@ namespace HBP.Module3D.Cam
     /// </summary>
     public class InputsSceneManager : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         private ScenesManager m_scenesManager = null;
         private UIManager m_UIManager = null;
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
 
         void Awake()
@@ -37,10 +37,9 @@ namespace HBP.Module3D.Cam
             m_UIManager = StaticComponents.UIManager;
         }
 
-        #endregion mono_behaviour
-
-
-        #region others
+        #endregion
+        
+        #region Others
 
         /// <summary>
         /// Send a click ray to a scene

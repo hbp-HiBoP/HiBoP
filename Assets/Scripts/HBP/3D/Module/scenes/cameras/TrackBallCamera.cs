@@ -183,9 +183,9 @@ namespace HBP.Module3D.Cam
         public double m_DisplayPlanesTimeRemaining;
         protected double m_DisplayPlanesTimeStart = 0;
         protected double m_DisplayPlanesTimer = 0;
-        #endregion 
+        #endregion
 
-        #region monoBehaviour
+        #region Private Methods
 
         protected void Awake()
         {
@@ -313,9 +313,9 @@ namespace HBP.Module3D.Cam
             }
         }
 
-        #endregion monoBehaviour
+        #endregion
 
-        #region others
+        #region Public Methods
 
         public void drawGL()
         {
@@ -330,7 +330,7 @@ namespace HBP.Module3D.Cam
                     m_PlaneMaterial.SetPass(0);
                     
                     {
-                        int ii = m_AssociatedScene.data_.lastIdPlaneModified;
+                        int ii = m_AssociatedScene.SceneInformation.lastIdPlaneModified;
                         for (int jj = 0; jj < m_PlanesCutsCirclesVertices[ii].Length; ++jj)
                         {
                             GL.Begin(GL.LINES);
@@ -790,6 +790,6 @@ namespace HBP.Module3D.Cam
             return m_Target;
         }
 
-        #endregion others
+        #endregion
     }
 }

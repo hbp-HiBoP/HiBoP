@@ -19,13 +19,13 @@ namespace HBP.Module3D.Cam
     /// </summary>
     public class TrackBallSingleCamera : TrackBallCamera
     {
-        #region members
+        #region Properties
 
         private Transform m_SPCameraParent; /**< SP camera parent */
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         protected void Start()
         {
@@ -61,7 +61,7 @@ namespace HBP.Module3D.Cam
             // listeners
             m_AssociatedScene.ModifyPlanesCuts.AddListener(() =>
             {
-                if (!m_AssociatedScene.data_.mriLoaded)
+                if (!m_AssociatedScene.SceneInformation.mriLoaded)
                     return;
 
                 m_PlanesCutsCirclesVertices = new List<Vector3[]>();
@@ -129,7 +129,7 @@ namespace HBP.Module3D.Cam
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        #endregion mono_behaviour
+        #endregion
     }
 
 }

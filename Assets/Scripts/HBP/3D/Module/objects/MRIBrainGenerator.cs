@@ -25,7 +25,7 @@ namespace HBP.Module3D
         /// </summary>
         public class MRIBrainGenerator : CppDLLImportBase, ICloneable
         {
-            #region members
+            #region Properties
 
             Vector2[] m_uvAmplitudesV = new Vector2[0];
             Vector2[] m_uvAlphaV = new Vector2[0];
@@ -33,9 +33,9 @@ namespace HBP.Module3D
             GCHandle m_uvAmplitudesHandle;
             GCHandle m_uvAlphaHandle;
 
-            #endregion members
+            #endregion
 
-            #region functions
+            #region Public Methods
 
             /// <summary>
             /// 
@@ -208,9 +208,9 @@ namespace HBP.Module3D
             }
 
 
-            #endregion functions
+            #endregion
 
-            #region memory_management
+            #region Memory Management
 
             /// <summary>
             /// Allocate DLL memory
@@ -248,7 +248,7 @@ namespace HBP.Module3D
                 return new MRIBrainGenerator(this);
             }
 
-            #endregion memory_management
+            #endregion
 
             #region DLLImport
 
@@ -303,7 +303,7 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "getMaxInf_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern float getMaxInf_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator);
 
-            #endregion DLLImport
+            #endregion
         }
         
     }

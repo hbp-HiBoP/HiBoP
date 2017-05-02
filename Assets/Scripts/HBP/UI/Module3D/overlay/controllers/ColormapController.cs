@@ -26,7 +26,7 @@ namespace HBP.Module3D
     /// </summary>
     public class ColormapController : BothScenesOverlayController
     {
-        #region members
+        #region Properties
 
         public int m_offsetX = 10;
         public int m_offsetY = 50;
@@ -44,9 +44,9 @@ namespace HBP.Module3D
 
         private Sprite m_colorMapSprite = null;
 
-        #endregion members
+        #endregion
 
-        #region others
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -313,6 +313,6 @@ namespace HBP.Module3D
             }
         }
 
-        #endregion others
+        #endregion
     }
 }

@@ -217,7 +217,7 @@ namespace HBP.Module3D
         /// <param name="scene"></param>
         public void init(Base3DScene scene)
         {
-            m_sceneStates = scene.data_;
+            m_sceneStates = scene.SceneInformation;
             m_Type = scene.Type;
         }
         /// <summary>
@@ -661,6 +661,6 @@ namespace HBP.Module3D
         {
             return Mode.ModesId.NoPathDefined;
         }
-        #endregion 
+        #endregion
     }
 }

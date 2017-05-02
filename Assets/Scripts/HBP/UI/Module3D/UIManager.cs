@@ -94,7 +94,7 @@ namespace HBP.UI.Module3D
             m_OverlayManager = transform.GetComponentInChildren<UIOverlayManager>(false);
             m_MenuManager = transform.GetComponentInChildren<MenuManager>(false);
         }
-        #endregion   
+        #endregion
 
 
     }

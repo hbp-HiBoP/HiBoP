@@ -129,7 +129,7 @@ namespace HBP.Module3D
         public GameObject Column3DViewFMRIPrefab;
         #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         public void Awake()
         {
@@ -137,9 +137,9 @@ namespace HBP.Module3D
             update_columns_nb(1, 0, 3);
         }
 
-        #endregion mono_behaviour
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Reset all data.

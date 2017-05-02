@@ -63,7 +63,7 @@ namespace HBP.Module3D
     {
         #region DLLImport
 
-        #endregion DLLImport
+        #endregion
 
         SerializedProperty SPColumnData;
         SerializedProperty MPColumnData;

@@ -24,7 +24,7 @@ namespace HBP.Module3D
         public enum MeshPart : int { Left, Right, Both};
         public enum MeshType : int { Hemi, White, Inflated};
 
-        #region members
+        #region Properties
 
         // mutex
         public ReaderWriterLock rwl = new ReaderWriterLock();
@@ -70,7 +70,7 @@ namespace HBP.Module3D
         public List<int> numberOfCutsPerPlane = new List<int>(); /**< number of cuts per plane list */
         public List<int> removeFrontPlaneList = null; // TO BE REMOVED
 
-        #endregion members
+        #endregion
 
         public void reset()
         {

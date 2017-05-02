@@ -20,7 +20,7 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public class DLLDebugManager : MonoBehaviour
     {               
-        #region members
+        #region Properties
 
         static System.Threading.Thread mainThread; /**< main thread */
         static bool pauseEditor = false; /**< if true, pause the unity editor  */
@@ -30,9 +30,9 @@ namespace HBP.Module3D.DLL
         public bool retrieveDLLOutput = true;   /**< retrieve the output of the DLL */
         public bool writeOutputInLogFile = true; /**< write the log in a file */
 
-        #endregion members;
+        #endregion;
 
-        #region mono_behaviour
+        #region Private Methods
 
         void Awake()
         {
@@ -59,7 +59,7 @@ namespace HBP.Module3D.DLL
             }
         }
 
-        #endregion mono_behaviour
+        #endregion
 
         #region function
 
@@ -157,7 +157,7 @@ namespace HBP.Module3D.DLL
             clean_DLLDebugManagerContainer();
         }
 
-        #endregion function
+        #endregion
 
         #region DLLimport
 
@@ -173,6 +173,6 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "retrieve_error_message_DLLDebugManagerContainer", CallingConvention = CallingConvention.Cdecl)]
         static private extern void retrieve_error_message_DLLDebugManagerContainer(StringBuilder errorMessage, int length);
 
-        #endregion DLLimport
+        #endregion
     }
 }

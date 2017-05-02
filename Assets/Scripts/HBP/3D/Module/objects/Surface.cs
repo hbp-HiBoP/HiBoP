@@ -20,7 +20,7 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public class Surface : CppDLLImportBase, ICloneable
     {
-        #region members
+        #region Properties
 
         private int[] m_triID = new int[0];             /**< raw array of triangles id */
         private Vector3[] m_vertices = new Vector3[0];  /**< raw array of vertices */
@@ -36,8 +36,8 @@ namespace HBP.Module3D.DLL
         GCHandle m_triIdHandle;
         GCHandle m_colorHandle;
 
-        #endregion members
-        #region functions
+        #endregion
+        #region Public Methods
 
         /// <summary>
         /// Initialize the surface by loading an obj mesh file
@@ -383,9 +383,9 @@ namespace HBP.Module3D.DLL
             _handle = buffer;
         }
 
-        #endregion functions
+        #endregion
 
-        #region memory_management
+        #region Memory Management
 
         /// <summary>
         /// Surface default constructor
@@ -444,7 +444,7 @@ namespace HBP.Module3D.DLL
             return new Surface(this);
         }
 
-        #endregion memory_management    
+        #endregion
         #region DLLImport
         #region Surface
 
@@ -518,7 +518,7 @@ namespace HBP.Module3D.DLL
         static private extern float size_offset_cut_plane_Surface(HandleRef handleSurface, float[] planeCut, int nbCuts);
 
 
-        #endregion Surface
+        #endregion
         #region MultiSurface
 
         // memory management
@@ -533,7 +533,7 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "data_MultiSurface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void data_MultiSurface(int numSurface, HandleRef handleMultiSurface, IntPtr verticesArray, IntPtr normalsArray, IntPtr triIndicesArray, IntPtr texturesUVArray);
 
-        #endregion MultiSurface
-        #endregion DLLImport        
+        #endregion
+        #endregion
     }
 }

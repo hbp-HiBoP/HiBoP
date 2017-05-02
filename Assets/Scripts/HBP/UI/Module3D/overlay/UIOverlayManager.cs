@@ -40,10 +40,9 @@ namespace HBP.UI.Module3D
 
         private bool m_initialized = false;
 
-        #endregion members
+        #endregion
 
-
-        #region mono_behaviour
+        #region Private Methods
 
         void Awake()
         {
@@ -80,9 +79,9 @@ namespace HBP.UI.Module3D
             update_UI_position();
         }
 
-        #endregion mono_behaviour
+        #endregion
 
-
+        #region Public Methods
         /// <summary>
         /// Init the overlay manager.
         /// </summary>
@@ -658,5 +657,6 @@ namespace HBP.UI.Module3D
 
             return m_mpTimelineController.getTime(); 
         }
+        #endregion
     }
 }

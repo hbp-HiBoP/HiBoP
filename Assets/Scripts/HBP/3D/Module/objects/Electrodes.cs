@@ -140,7 +140,7 @@ namespace HBP.Module3D
         /// </summary>
         public class MarsAtlasIndex : CppDLLImportBase
         {
-            #region functions
+            #region Public Methods
 
             public bool load_mars_atlas_index_file(string pathFile)
             {
@@ -203,9 +203,9 @@ namespace HBP.Module3D
                 return str.ToString().Replace("?", string.Empty);
             }
 
-            #endregion functions
+            #endregion
 
-            #region memory_management
+            #region Memory Management
 
             /// <summary>
             /// Allocate DLL memory
@@ -223,7 +223,7 @@ namespace HBP.Module3D
                 delete_MarsAtlasIndex(_handle);
             }
 
-            #endregion memory_management
+            #endregion
 
             #region DLLImport
 
@@ -248,7 +248,7 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "BA_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
             static private extern void BA_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder BA, int length);
 
-            #endregion DLLImport
+            #endregion
 
         }
 
@@ -257,7 +257,7 @@ namespace HBP.Module3D
         /// </summary>
         public class RawSiteList : CppDLLImportBase
         {
-            #region functions
+            #region Public Methods
 
             /// <summary>
             /// Save the raw plot list to an obj file
@@ -316,9 +316,9 @@ namespace HBP.Module3D
                 return PatientLatencies;
             }
 
-            #endregion functions
+            #endregion
 
-            #region memory_management
+            #region Memory Management
 
             /// <summary>
             /// Allocate DLL memory
@@ -336,7 +336,7 @@ namespace HBP.Module3D
                 delete_RawSiteList(_handle);
             }
 
-            #endregion memory_management
+            #endregion
 
             #region DLLImport
 
@@ -379,7 +379,7 @@ namespace HBP.Module3D
             //// retrieve data
             //delegate int getNumberPlot_RawPlotList(HandleRef handleRawPlotLst);
 
-            #endregion DLLImport
+            #endregion
         }
 
         /// <summary>
@@ -387,7 +387,7 @@ namespace HBP.Module3D
         /// </summary>
         public class PatientElectrodesList : CppDLLImportBase, ICloneable
         {
-            #region functions
+            #region Public Methods
 
             /// <summary>
             /// Load a list of pts files add fill ElectrodesPatientMultiList with data
@@ -605,9 +605,9 @@ namespace HBP.Module3D
                 return site_mars_atlas_label_PatientElectrodesList(_handle, patientId, electrodeId, siteId);
             }
 
-            #endregion functions        
+            #endregion
 
-            #region memory_management
+            #region Memory Management
 
             /// <summary>
             /// ElectrodesPatientMultiList default constructor
@@ -651,7 +651,7 @@ namespace HBP.Module3D
                 delete_PatientElectrodesList(_handle);
             }
 
-            #endregion memory_management
+            #endregion
 
             #region DLLImport
 
@@ -723,7 +723,7 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "site_mars_atlas_label_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
             static private extern int site_mars_atlas_label_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, int siteId);
 
-            #endregion DLLImport
+            #endregion
         }
     }
 }

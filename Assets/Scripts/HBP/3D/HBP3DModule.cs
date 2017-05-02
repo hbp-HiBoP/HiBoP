@@ -60,7 +60,7 @@ namespace HBP.Module3D
         public Events.ROISavedEvent ROISavedEvent = new Events.ROISavedEvent();
         public Events.OnAddVisualisation OnAddVisualisation = new Events.OnAddVisualisation();
         public Events.OnRemoveVisualisation OnRemoveVisualisation = new Events.OnRemoveVisualisation();
-        #endregion 
+        #endregion
 
         #region Private Methods
         void Awake()

@@ -56,7 +56,7 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class iEEGMenu : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         public bool m_isDisplayed = false;
 
@@ -81,9 +81,9 @@ namespace HBP.UI.Module3D
         public Events.CloseIEEGWindow CloseIEEGWindow = new Events.CloseIEEGWindow();
         public Events.UpdateROIMenuDisplay UpdateROIMenuDisplay  = new Events.UpdateROIMenuDisplay();        
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the menu
@@ -624,13 +624,13 @@ namespace HBP.UI.Module3D
         }
 
 
-        #endregion functions
+        #endregion
     }
 
 
     public class iEEGMenuController : MonoBehaviour, UICameraOverlay
     {
-        #region members
+        #region Properties
 
         // scenes
         private Base3DScene m_scene = null; /**< associated scene */
@@ -644,9 +644,9 @@ namespace HBP.UI.Module3D
         // events
         public Events.UpdateColROIMenuDisplay UpdateColROIMenuDisplay = new Events.UpdateColROIMenuDisplay();
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -812,7 +812,7 @@ namespace HBP.UI.Module3D
 
             if (m_scene.Type == SceneType.SinglePatient)
             {
-                if (m_scene.data_.displayCcepMode)
+                if (m_scene.SceneInformation.displayCcepMode)
                     menuDisplayed = false;
             }
 
@@ -890,7 +890,7 @@ namespace HBP.UI.Module3D
             define_current_column(0);
         }
 
-        #endregion functions
+        #endregion
 
     }
 }

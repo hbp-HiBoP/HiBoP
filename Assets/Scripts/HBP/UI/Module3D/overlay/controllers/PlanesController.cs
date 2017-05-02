@@ -403,6 +403,6 @@ namespace HBP.Module3D
         }
 
 
-        #endregion others
+        #endregion
     }
 }

@@ -232,7 +232,7 @@ namespace HBP.Module3D
     /// Class containing all the DLL data and the displayable Gameobjects of a 3D scene.
     /// </summary>
     [AddComponentMenu("Scenes/Base 3D Scene")]
-    abstract public class Base3DScene : MonoBehaviour
+    public abstract class Base3DScene : MonoBehaviour
     {
         #region Properties
         public string Name
@@ -256,26 +256,31 @@ namespace HBP.Module3D
             }
         }
 
-        private bool m_displaySitesNames = false;
-        private Camera m_lastCamera = null;
+        private bool m_displaySitesNames = false; // DELETEME
+        private Camera m_lastCamera = null; // DELETEME
 
         private List<Plane> m_planesList = new List<Plane>();         /**< cut planes list */
         public List<Plane> PlanesList { get { return m_planesList; } }
-        public SceneStatesInfo data_ = null; /**<  data of the scene */
+
+        public SceneStatesInfo SceneInformation { get; set; } /**<  data of the scene */
+
         protected ModesManager m_ModesManager = null; /**< modes of the scene */
         public ModesManager ModesManager
         {
             get { return m_ModesManager; }
         }
-        protected DisplayedObjects3DView go_ = null; /**< displayable objects of the scene */
-        protected MNIObjects m_MNI = null;
+
+        protected DisplayedObjects3DView m_DisplayedObjects = null; /**< displayable objects of the scene */
+        protected MNIObjects m_MNIObjects = null;
+
         protected Column3DViewManager m_Column3DViewManager = null; /**< column data manager */
         public Column3DViewManager Column3DViewManager { get { return m_Column3DViewManager; } }
-        public UIOverlayManager m_uiOverlayManager; /**< UI overlay manager of the scenes */
 
-        protected TriEraser m_triEraser = new TriEraser();
+        public UIOverlayManager m_uiOverlayManager; /**< UI overlay manager of the scenes */ // DELETEME
+
+        protected TriEraser m_TriEraser = new TriEraser();
         // threads / jobs
-        protected ComputeGeneratorsJob m_computeGeneratorsJob = null; /**< generator computing job */
+        protected ComputeGeneratorsJob m_ComputeGeneratorsJob = null; /**< generator computing job */
 
         // events
         public Events.UpdatePlanes UpdatePlanes = new Events.UpdatePlanes(); 
@@ -303,18 +308,18 @@ namespace HBP.Module3D
             int idScript = TimeExecution.get_ID();
             TimeExecution.start_awake(idScript, TimeExecution.ScriptsId.Base3DScene);
 
-            go_ = new DisplayedObjects3DView();
-            data_ = new SceneStatesInfo();
+            m_DisplayedObjects = new DisplayedObjects3DView();
+            SceneInformation = new SceneStatesInfo();
             m_Column3DViewManager = GetComponent<Column3DViewManager>();
 
             // set meshes layer
             switch(Type)
             {
                 case SceneType.SinglePatient:
-                    data_.MeshesLayerName = "Meshes_SP";
+                    SceneInformation.MeshesLayerName = "Meshes_SP";
                     break;
                 case SceneType.MultiPatients:
-                    data_.MeshesLayerName = "Meshes_MP";
+                    SceneInformation.MeshesLayerName = "Meshes_MP";
                     break;
             }
 
@@ -349,13 +354,13 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update");
 
             // TEMP : useless
-            for (int ii = 0; ii < data_.removeFrontPlaneList.Count; ++ii)
-                data_.removeFrontPlaneList[ii] = 0;
+            for (int ii = 0; ii < SceneInformation.removeFrontPlaneList.Count; ++ii)
+                SceneInformation.removeFrontPlaneList[ii] = 0;
 
             // check if we must perform new cuts of the brain            
-            if (data_.updateCutMeshGeometry)
+            if (SceneInformation.updateCutMeshGeometry)
             {
-                data_.geometryUpToDate = false;
+                SceneInformation.geometryUpToDate = false;
                 Column3DViewManager.planesCutsCopy = new List<Plane>();
                 for (int ii = 0; ii < m_planesList.Count; ++ii)
                     Column3DViewManager.planesCutsCopy.Add(new Plane(m_planesList[ii].point, m_planesList[ii].normal));
@@ -370,7 +375,7 @@ namespace HBP.Module3D
 
                 ComputeFMRITextures(-1, -1);
 
-                data_.geometryUpToDate = true;
+                SceneInformation.geometryUpToDate = true;
                 
 
                 UnityEngine.Profiling.Profiler.EndSample();
@@ -378,17 +383,17 @@ namespace HBP.Module3D
 
 
             // check job state
-            if (m_computeGeneratorsJob != null)
+            if (m_ComputeGeneratorsJob != null)
             {
                 float currState;
-                data_.rwl.AcquireReaderLock(1000);
-                currState = data_.currentComputingState;
-                data_.rwl.ReleaseReaderLock();
+                SceneInformation.rwl.AcquireReaderLock(1000);
+                currState = SceneInformation.currentComputingState;
+                SceneInformation.rwl.ReleaseReaderLock();
 
                 DisplayScreenMessage("Computing...", 50f, 250, 40);
                 DisplayProgressbar(currState, 50f, 250, 40);
 
-                if (m_computeGeneratorsJob.Update())
+                if (m_ComputeGeneratorsJob.Update())
                 {                    
                     FinalizeGeneratorsComputing();
                     ComputeIEEGTextures();                   
@@ -429,7 +434,7 @@ namespace HBP.Module3D
         /// <param name="indexColumn"></param>
         private void ComputeMRITextures(int indexCut = -1, int indexColumn = -1)
         {
-            if (data_.meshTypeToDisplay == SceneStatesInfo.MeshType.Inflated)
+            if (SceneInformation.meshTypeToDisplay == SceneStatesInfo.MeshType.Inflated)
                 return;
 
             bool allColumns = indexColumn == -1;
@@ -479,7 +484,7 @@ namespace HBP.Module3D
 
                 // brain surface
                 if (surface)
-                    if (!m_Column3DViewManager.compute_surface_brain_UV_with_IEEG((data_.meshTypeToDisplay == SceneStatesInfo.MeshType.Inflated), columnsIndexes[ii]))
+                    if (!m_Column3DViewManager.compute_surface_brain_UV_with_IEEG((SceneInformation.meshTypeToDisplay == SceneStatesInfo.MeshType.Inflated), columnsIndexes[ii]))
                         return;
 
                 // brain cuts
@@ -490,7 +495,7 @@ namespace HBP.Module3D
                 if (plots)
                 {
                     currCol.update_sites_size_and_color_arrays_for_IEEG();
-                    currCol.update_sites_rendering(data_, null);
+                    currCol.update_sites_rendering(SceneInformation, null);
                 }
             }
             UnityEngine.Profiling.Profiler.EndSample();
@@ -558,7 +563,7 @@ namespace HBP.Module3D
                             m_Column3DViewManager.create_GUI_FMRI_texture(cutsIndexes[jj], columnsIndexes[ii]);
                             break;
                         case Column3DView.ColumnType.IEEG:
-                            if (!data_.generatorUpToDate)
+                            if (!SceneInformation.generatorUpToDate)
                                 m_Column3DViewManager.create_GUI_MRI_texture(cutsIndexes[jj], columnsIndexes[ii]);
                             else
                                 m_Column3DViewManager.create_GUI_IEEG_texture(cutsIndexes[jj], columnsIndexes[ii]);
@@ -583,7 +588,7 @@ namespace HBP.Module3D
                     texturesToDisplay = ((Column3DViewFMRI)currCol).guiBrainCutWithFMRITextures;
                     break;
                 case Column3DView.ColumnType.IEEG:
-                    if (!data_.generatorUpToDate)
+                    if (!SceneInformation.generatorUpToDate)
                         texturesToDisplay = currCol.guiBrainCutTextures;
                     else
                         texturesToDisplay = ((Column3DViewIEEG)currCol).guiBrainCutWithIEEGTextures;
@@ -599,11 +604,11 @@ namespace HBP.Module3D
         private void FinalizeGeneratorsComputing()
         {
             // computing ended
-            m_computeGeneratorsJob = null;
+            m_ComputeGeneratorsJob = null;
 
             // generators are now up to date
-            data_.generatorUpToDate = true;
-            data_.iEEGOutdated = false;
+            SceneInformation.generatorUpToDate = true;
+            SceneInformation.iEEGOutdated = false;
 
             // send inf values to overlays
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
@@ -627,7 +632,7 @@ namespace HBP.Module3D
             //##################
 
             // update plots visibility
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             DisplayScreenMessage("Computing finished !", 1f, 250, 40);
             DisplayProgressbar(1f, 1f, 250, 40);
@@ -642,20 +647,20 @@ namespace HBP.Module3D
         protected void InitializeSceneGameObjects()
         {
             // init parents 
-            go_.sitesMeshesParent = transform.Find("base electrodes").gameObject;
-            go_.brainSurfaceMeshesParent = transform.Find("meshes").Find("brains").gameObject;
-            go_.brainCutMeshesParent = transform.Find("meshes").Find("cuts").gameObject;
+            m_DisplayedObjects.sitesMeshesParent = transform.Find("base electrodes").gameObject;
+            m_DisplayedObjects.brainSurfaceMeshesParent = transform.Find("meshes").Find("brains").gameObject;
+            m_DisplayedObjects.brainCutMeshesParent = transform.Find("meshes").Find("cuts").gameObject;
 
             // init lights
-            go_.sharedDirLight = transform.parent.Find("directionnal light").gameObject;
+            m_DisplayedObjects.sharedDirLight = transform.parent.Find("directionnal light").gameObject;
 
             // init default planes
             m_planesList = new List<Plane>();
             m_Column3DViewManager.idPlanesOrientationList = new List<int>();
             m_Column3DViewManager.planesOrientationFlipList = new List<bool>();
-            data_.removeFrontPlaneList = new List<int>();
-            data_.numberOfCutsPerPlane = new List<int>();
-            go_.brainCutMeshes = new List<GameObject>();
+            SceneInformation.removeFrontPlaneList = new List<int>();
+            SceneInformation.numberOfCutsPerPlane = new List<int>();
+            m_DisplayedObjects.brainCutMeshes = new List<GameObject>();
 
             UpdateBrainSurfaceColor(ColorType.BrainColor);
             UpdateColormap(ColorType.MatLab, false);
@@ -686,7 +691,7 @@ namespace HBP.Module3D
 
             SharedMaterials.Brain.BrainMaterials[this].SetTexture("_ColorTex", Column3DViewManager.brainColorMapTexture);
 
-            if (data_.geometryUpToDate && !data_.iEEGOutdated)
+            if (SceneInformation.geometryUpToDate && !SceneInformation.iEEGOutdated)
                 ComputeIEEGTextures();
         }
         /// <summary>
@@ -712,8 +717,8 @@ namespace HBP.Module3D
             if (updateColors)
                 Column3DViewManager.reset_colors();
 
-            data_.updateCutMeshGeometry = true;
-            data_.iEEGOutdated = true;
+            SceneInformation.updateCutMeshGeometry = true;
+            SceneInformation.iEEGOutdated = true;
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.updatePlane); // TEMP
@@ -725,13 +730,13 @@ namespace HBP.Module3D
         public void ResetSceneGameObjects()
         {
             // destroy meshes
-            for (int ii = 0; ii < go_.brainSurfaceMeshes.Count; ++ii)
+            for (int ii = 0; ii < m_DisplayedObjects.brainSurfaceMeshes.Count; ++ii)
             {
-                Destroy(go_.brainSurfaceMeshes[ii]);
+                Destroy(m_DisplayedObjects.brainSurfaceMeshes[ii]);
             }
-            for (int ii = 0; ii < go_.brainCutMeshes.Count; ++ii)
+            for (int ii = 0; ii < m_DisplayedObjects.brainCutMeshes.Count; ++ii)
             {
-                go_.brainCutMeshes[ii].SetActive(false);
+                m_DisplayedObjects.brainCutMeshes[ii].SetActive(false);
             }
         }
         /// <summary>
@@ -745,21 +750,21 @@ namespace HBP.Module3D
 
             m_Column3DViewManager.meshSplitNb = nbSplits;
 
-            if(go_.brainSurfaceMeshes.Count > 0)
-                for (int ii = 0; ii < go_.brainSurfaceMeshes.Count; ++ii)
-                    Destroy(go_.brainSurfaceMeshes[ii]);
+            if(m_DisplayedObjects.brainSurfaceMeshes.Count > 0)
+                for (int ii = 0; ii < m_DisplayedObjects.brainSurfaceMeshes.Count; ++ii)
+                    Destroy(m_DisplayedObjects.brainSurfaceMeshes[ii]);
 
             // reset meshes
-            go_.brainSurfaceMeshes = new List<GameObject>(m_Column3DViewManager.meshSplitNb);
+            m_DisplayedObjects.brainSurfaceMeshes = new List<GameObject>(m_Column3DViewManager.meshSplitNb);
             for (int ii = 0; ii < m_Column3DViewManager.meshSplitNb; ++ii)
             {
-                go_.brainSurfaceMeshes.Add(Instantiate(GlobalGOPreloaded.Brain));
-                go_.brainSurfaceMeshes[ii].GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.BrainMaterials[this];
-                go_.brainSurfaceMeshes[ii].name = "brain_" + ii;
-                go_.brainSurfaceMeshes[ii].transform.parent = go_.brainSurfaceMeshesParent.transform;
-                go_.brainSurfaceMeshes[ii].layer = LayerMask.NameToLayer(data_.MeshesLayerName);
-                go_.brainSurfaceMeshes[ii].AddComponent<MeshCollider>();
-                go_.brainSurfaceMeshes[ii].SetActive(true);
+                m_DisplayedObjects.brainSurfaceMeshes.Add(Instantiate(GlobalGOPreloaded.Brain));
+                m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.BrainMaterials[this];
+                m_DisplayedObjects.brainSurfaceMeshes[ii].name = "brain_" + ii;
+                m_DisplayedObjects.brainSurfaceMeshes[ii].transform.parent = m_DisplayedObjects.brainSurfaceMeshesParent.transform;
+                m_DisplayedObjects.brainSurfaceMeshes[ii].layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
+                m_DisplayedObjects.brainSurfaceMeshes[ii].AddComponent<MeshCollider>();
+                m_DisplayedObjects.brainSurfaceMeshes[ii].SetActive(true);
             }
 
             m_Column3DViewManager.reset_splits_nb(nbSplits);
@@ -940,7 +945,7 @@ namespace HBP.Module3D
                 }
             }
 
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.updateMaskPlot);
@@ -960,13 +965,13 @@ namespace HBP.Module3D
             }
             //##################
 
-            if (!data_.geometryUpToDate)
+            if (!SceneInformation.geometryUpToDate)
                 return;
 
-            data_.meshPartToDisplay = meshPartToDisplay;
-            data_.updateCutMeshGeometry = true;
-            data_.iEEGOutdated = true;
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            SceneInformation.meshPartToDisplay = meshPartToDisplay;
+            SceneInformation.updateCutMeshGeometry = true;
+            SceneInformation.iEEGOutdated = true;
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.setDisplayedMesh);
@@ -986,29 +991,29 @@ namespace HBP.Module3D
             }
             //##################
 
-            if (!data_.geometryUpToDate)
+            if (!SceneInformation.geometryUpToDate)
                 return;
 
             switch(meshTypeToDisplay)
             {
                 case SceneStatesInfo.MeshType.Hemi:
-                    if (!data_.hemiMeshesAvailables)
+                    if (!SceneInformation.hemiMeshesAvailables)
                         return;
                     break;
                 case SceneStatesInfo.MeshType.White:
-                    if (!data_.whiteMeshesAvailables)
+                    if (!SceneInformation.whiteMeshesAvailables)
                         return;
                     break;
                 case SceneStatesInfo.MeshType.Inflated:
-                    if (!data_.whiteInflatedMeshesAvailables)
+                    if (!SceneInformation.whiteInflatedMeshesAvailables)
                         return;
                     break;
             }
 
-            data_.meshTypeToDisplay = meshTypeToDisplay;
-            data_.updateCutMeshGeometry = true;
-            data_.iEEGOutdated = true;
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            SceneInformation.meshTypeToDisplay = meshTypeToDisplay;
+            SceneInformation.updateCutMeshGeometry = true;
+            SceneInformation.iEEGOutdated = true;
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.setDisplayedMesh);
@@ -1030,26 +1035,26 @@ namespace HBP.Module3D
             m_planesList.Add(new Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0)));
             m_Column3DViewManager.idPlanesOrientationList.Add(0);
             m_Column3DViewManager.planesOrientationFlipList.Add(false);
-            data_.removeFrontPlaneList.Add(0);
-            data_.numberOfCutsPerPlane.Add(data_.defaultNbOfCutsPerPlane);
+            SceneInformation.removeFrontPlaneList.Add(0);
+            SceneInformation.numberOfCutsPerPlane.Add(SceneInformation.defaultNbOfCutsPerPlane);
 
             GameObject cut = Instantiate(GlobalGOPreloaded.Cut);
             cut.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.CutMaterials[this];
             cut.name = "cut_" + (m_planesList.Count - 1);
-            cut.transform.parent = go_.brainCutMeshesParent.transform; ;
+            cut.transform.parent = m_DisplayedObjects.brainCutMeshesParent.transform; ;
             cut.AddComponent<MeshCollider>();
-            cut.layer = LayerMask.NameToLayer(data_.MeshesLayerName);
-            go_.brainCutMeshes.Add(cut);
-            go_.brainCutMeshes[go_.brainCutMeshes.Count - 1].layer = LayerMask.NameToLayer(data_.MeshesLayerName);
+            cut.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
+            m_DisplayedObjects.brainCutMeshes.Add(cut);
+            m_DisplayedObjects.brainCutMeshes[m_DisplayedObjects.brainCutMeshes.Count - 1].layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
 
             // update columns manager
-            m_Column3DViewManager.update_cuts_nb(go_.brainCutMeshes.Count);
+            m_Column3DViewManager.update_cuts_nb(m_DisplayedObjects.brainCutMeshes.Count);
 
             // update plots visibility
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
-            data_.updateCutMeshGeometry = true;
-            data_.iEEGOutdated = true;
+            SceneInformation.updateCutMeshGeometry = true;
+            SceneInformation.iEEGOutdated = true;
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.addNewPlane);
@@ -1071,23 +1076,23 @@ namespace HBP.Module3D
             m_planesList.RemoveAt(m_planesList.Count - 1);
             m_Column3DViewManager.idPlanesOrientationList.RemoveAt(m_Column3DViewManager.idPlanesOrientationList.Count - 1);
             m_Column3DViewManager.planesOrientationFlipList.RemoveAt(m_Column3DViewManager.planesOrientationFlipList.Count - 1);
-            data_.removeFrontPlaneList.RemoveAt(data_.removeFrontPlaneList.Count - 1);
-            data_.numberOfCutsPerPlane.RemoveAt(data_.numberOfCutsPerPlane.Count - 1);
+            SceneInformation.removeFrontPlaneList.RemoveAt(SceneInformation.removeFrontPlaneList.Count - 1);
+            SceneInformation.numberOfCutsPerPlane.RemoveAt(SceneInformation.numberOfCutsPerPlane.Count - 1);
 
-            Destroy(go_.brainCutMeshes[go_.brainCutMeshes.Count - 1]);
-            go_.brainCutMeshes.RemoveAt(go_.brainCutMeshes.Count - 1);
+            Destroy(m_DisplayedObjects.brainCutMeshes[m_DisplayedObjects.brainCutMeshes.Count - 1]);
+            m_DisplayedObjects.brainCutMeshes.RemoveAt(m_DisplayedObjects.brainCutMeshes.Count - 1);
 
             // update columns manager
-            m_Column3DViewManager.update_cuts_nb(go_.brainCutMeshes.Count);
+            m_Column3DViewManager.update_cuts_nb(m_DisplayedObjects.brainCutMeshes.Count);
 
             // update plots visibility
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             // update cut images display with the new selected column
             //UpdateCutsInUI.Invoke(m_CM.getBrainCutTextureList(m_CM.idSelectedColumn, true, data_.generatorUpToDate, data_.displayLatenciesMode), m_CM.idSelectedColumn, m_CM.planesList.Count);
 
-            data_.updateCutMeshGeometry = true;
-            data_.iEEGOutdated = true;
+            SceneInformation.updateCutMeshGeometry = true;
+            SceneInformation.iEEGOutdated = true;
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.removeLastPlane);
@@ -1113,7 +1118,7 @@ namespace HBP.Module3D
             //##################
 
             Plane newPlane = new Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
-            if (idOrientation == 3 || !data_.mriLoaded) // custom normal
+            if (idOrientation == 3 || !SceneInformation.mriLoaded) // custom normal
             {
                 if (customNormal.x != 0 || customNormal.y != 0 || customNormal.z != 0)
                     newPlane.normal = customNormal;
@@ -1128,26 +1133,26 @@ namespace HBP.Module3D
             m_planesList[idPlane].normal = newPlane.normal;
             m_Column3DViewManager.idPlanesOrientationList[idPlane] = idOrientation;
             m_Column3DViewManager.planesOrientationFlipList[idPlane] = flip;
-            data_.removeFrontPlaneList[idPlane] = removeFrontPlane?1:0;
-            data_.lastIdPlaneModified = idPlane;
+            SceneInformation.removeFrontPlaneList[idPlane] = removeFrontPlane?1:0;
+            SceneInformation.lastIdPlaneModified = idPlane;
 
             // ########### cuts base on the mesh
             float offset;
-            if (data_.meshToDisplay != null)
+            if (SceneInformation.meshToDisplay != null)
             {
-                offset = data_.meshToDisplay.size_offset_cut_plane(m_planesList[idPlane], data_.numberOfCutsPerPlane[idPlane]);
+                offset = SceneInformation.meshToDisplay.size_offset_cut_plane(m_planesList[idPlane], SceneInformation.numberOfCutsPerPlane[idPlane]);
                 offset *= 1.05f; // upsize a little bit the bbox for planes
             }
             else
                 offset = 0.1f;
 
-            m_planesList[idPlane].point = data_.meshCenter + m_planesList[idPlane].normal * (position - 0.5f) * offset * data_.numberOfCutsPerPlane[idPlane];
+            m_planesList[idPlane].point = SceneInformation.meshCenter + m_planesList[idPlane].normal * (position - 0.5f) * offset * SceneInformation.numberOfCutsPerPlane[idPlane];
 
-            data_.updateCutMeshGeometry = true;
-            data_.iEEGOutdated = true;
+            SceneInformation.updateCutMeshGeometry = true;
+            SceneInformation.iEEGOutdated = true;
 
             // update sites visibility
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             // update cameras cuts display
             ModifyPlanesCuts.Invoke();
@@ -1170,13 +1175,13 @@ namespace HBP.Module3D
                 return false;
             }
 
-            data_.mriLoaded = false;
+            SceneInformation.mriLoaded = false;
 
             // checks parameter
             if (pathNIIBrainVolumeFile.Length == 0)
             {
                 Debug.LogError("-ERROR : Base3DScene::resetNIIBrainVolumeFile -> path NII brain volume file is empty. ");
-                return (data_.meshesLoaded = false);
+                return (SceneInformation.meshesLoaded = false);
             }
 
             // load volume
@@ -1184,15 +1189,15 @@ namespace HBP.Module3D
             if (loadingSuccess)
             {
                 m_Column3DViewManager.DLLNii.convert_to_volume(m_Column3DViewManager.DLLVolume);
-                data_.volumeCenter = m_Column3DViewManager.DLLVolume.center();
+                SceneInformation.volumeCenter = m_Column3DViewManager.DLLVolume.center();
             }
             else
             {
                 Debug.LogError("-ERROR : Base3DScene::resetNIIBrainVolumeFile -> load NII file failed. " + pathNIIBrainVolumeFile);
-                return data_.mriLoaded;
+                return SceneInformation.mriLoaded;
             }
 
-            data_.mriLoaded = loadingSuccess;
+            SceneInformation.mriLoaded = loadingSuccess;
             UpdatePlanes.Invoke();
 
             // send cal values to the UI
@@ -1202,7 +1207,7 @@ namespace HBP.Module3D
             m_ModesManager.updateMode(Mode.FunctionsId.resetNIIBrainVolumeFile);
             //##################
 
-            return data_.mriLoaded;
+            return SceneInformation.mriLoaded;
         }
         /// <summary>
         /// Update the selected column of the scene
@@ -1228,7 +1233,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         public bool UpdateColumnRendering(int indexColumn)
         {
-            if (!data_.geometryUpToDate)
+            if (!SceneInformation.geometryUpToDate)
                 return false;
         
             UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender");
@@ -1237,20 +1242,20 @@ namespace HBP.Module3D
             // TODO : un mesh pour chaque column
 
             // update cuts textures
-            if ((data_.meshTypeToDisplay != SceneStatesInfo.MeshType.Inflated))
+            if ((SceneInformation.meshTypeToDisplay != SceneStatesInfo.MeshType.Inflated))
             {
                 for (int ii = 0; ii < PlanesList.Count; ++ii)
                 {
                     switch (currCol.Type)
                     {
                         case Column3DView.ColumnType.FMRI:
-                            go_.brainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = ((Column3DViewFMRI)currCol).brainCutWithFMRITextures[ii];
+                            m_DisplayedObjects.brainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = ((Column3DViewFMRI)currCol).brainCutWithFMRITextures[ii];
                             break;
                         case Column3DView.ColumnType.IEEG:
-                            if (!data_.generatorUpToDate)
-                                go_.brainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = currCol.brainCutTextures[ii];
+                            if (!SceneInformation.generatorUpToDate)
+                                m_DisplayedObjects.brainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = currCol.brainCutTextures[ii];
                             else
-                                go_.brainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = ((Column3DViewIEEG)currCol).brainCutWithIEEGTextures[ii];
+                                m_DisplayedObjects.brainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = ((Column3DViewIEEG)currCol).brainCutWithIEEGTextures[ii];
                             break;
                         default:
                             break;
@@ -1264,19 +1269,19 @@ namespace HBP.Module3D
                 // uv 1 (main)
                 //go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv = m_CM.UVCoordinatesSplits[ii];
 
-                if (currCol.Type == Column3DView.ColumnType.FMRI || !data_.generatorUpToDate || data_.displayCcepMode)
+                if (currCol.Type == Column3DView.ColumnType.FMRI || !SceneInformation.generatorUpToDate || SceneInformation.displayCcepMode)
                 {
                     // uv 2 (alpha) 
-                    go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv2 = m_Column3DViewManager.uvNull[ii];
+                    m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv2 = m_Column3DViewManager.uvNull[ii];
                     // uv 3 (color map)
-                    go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv3 = m_Column3DViewManager.uvNull[ii];
+                    m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv3 = m_Column3DViewManager.uvNull[ii];
                 }
                 else
                 {
                     // uv 2 (alpha) 
-                    go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DViewIEEG)currCol).DLLBrainTextureGeneratorList[ii].get_alpha_UV();
+                    m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DViewIEEG)currCol).DLLBrainTextureGeneratorList[ii].get_alpha_UV();
                     // uv 3 (color map)
-                    go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DViewIEEG)currCol).DLLBrainTextureGeneratorList[ii].get_iEEG_UV();
+                    m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DViewIEEG)currCol).DLLBrainTextureGeneratorList[ii].get_iEEG_UV();
                 }
             }
 
@@ -1290,24 +1295,24 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateMeshesColliders()
         {
-            if (!data_.meshesLoaded || !data_.mriLoaded)
+            if (!SceneInformation.meshesLoaded || !SceneInformation.mriLoaded)
                 return;
 
             // update splits colliders
-            for(int ii = 0; ii < go_.brainSurfaceMeshes.Count; ++ii)
+            for(int ii = 0; ii < m_DisplayedObjects.brainSurfaceMeshes.Count; ++ii)
             {
-                go_.brainSurfaceMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
-                go_.brainSurfaceMeshes[ii].GetComponent<MeshCollider>().sharedMesh = go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh;
+                m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
+                m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh;
             }
 
             // update cuts colliders
-            for (int ii = 0; ii < go_.brainCutMeshes.Count; ++ii)
+            for (int ii = 0; ii < m_DisplayedObjects.brainCutMeshes.Count; ++ii)
             {
-                go_.brainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
-                go_.brainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = go_.brainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
+                m_DisplayedObjects.brainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
+                m_DisplayedObjects.brainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.brainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
             }
 
-            data_.collidersUpdated = true;
+            SceneInformation.collidersUpdated = true;
         }
         /// <summary>
         /// Update the textures generator
@@ -1322,19 +1327,19 @@ namespace HBP.Module3D
             }
             //##################
 
-            if (data_.updateCutMeshGeometry || !data_.geometryUpToDate) // if update cut plane is pending, cancel action
+            if (SceneInformation.updateCutMeshGeometry || !SceneInformation.geometryUpToDate) // if update cut plane is pending, cancel action
                 return;
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.pre_updateGenerators);
             //##################
 
-            data_.generatorUpToDate = false;
+            SceneInformation.generatorUpToDate = false;
 
-            m_computeGeneratorsJob = new ComputeGeneratorsJob();
-            m_computeGeneratorsJob.data_ = data_;
-            m_computeGeneratorsJob.cm_ = m_Column3DViewManager;
-            m_computeGeneratorsJob.Start();
+            m_ComputeGeneratorsJob = new ComputeGeneratorsJob();
+            m_ComputeGeneratorsJob.data_ = SceneInformation;
+            m_ComputeGeneratorsJob.cm_ = m_Column3DViewManager;
+            m_ComputeGeneratorsJob.Start();
         }
         /// <summary>
         /// Update the displayed amplitudes on the brain and the cuts with the slider position.
@@ -1359,7 +1364,7 @@ namespace HBP.Module3D
             }
 
             ComputeIEEGTextures();
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
             UpdateTimeInUI.Invoke();
         }
         /// <summary>
@@ -1374,7 +1379,7 @@ namespace HBP.Module3D
             }
 
             ComputeIEEGTextures();
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
         }
         /// <summary>
         /// 
@@ -1382,8 +1387,8 @@ namespace HBP.Module3D
         public void SwitchMarsAtlasColor()
         {
             {                
-                data_.MarsAtlasModeEnabled = !data_.MarsAtlasModeEnabled;
-                go_.brainSurfaceMeshes[0].GetComponent<Renderer>().sharedMaterial.SetInt("_MarsAtlas", data_.MarsAtlasModeEnabled ? 1 : 0);
+                SceneInformation.MarsAtlasModeEnabled = !SceneInformation.MarsAtlasModeEnabled;
+                m_DisplayedObjects.brainSurfaceMeshes[0].GetComponent<Renderer>().sharedMaterial.SetInt("_MarsAtlas", SceneInformation.MarsAtlasModeEnabled ? 1 : 0);
             }
         }
         /// <summary>
@@ -1401,16 +1406,16 @@ namespace HBP.Module3D
         /// <param name="keyCode"></param>
         public void KeyboardAction(KeyCode keyCode)
         {
-            if (!data_.meshesLoaded || !data_.mriLoaded)
+            if (!SceneInformation.meshesLoaded || !SceneInformation.mriLoaded)
                 return;
 
             switch (keyCode)
             {
                 // enable/disable holes in the cuts
                 case KeyCode.H:
-                    data_.holesEnabled = !data_.holesEnabled;
-                    data_.updateCutMeshGeometry = true;
-                    data_.iEEGOutdated = true;
+                    SceneInformation.holesEnabled = !SceneInformation.holesEnabled;
+                    SceneInformation.updateCutMeshGeometry = true;
+                    SceneInformation.iEEGOutdated = true;
                     m_ModesManager.updateMode(Mode.FunctionsId.updatePlane); // TEMP
                     break;
             }
@@ -1421,7 +1426,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         public bool IsTriangleErasingModeEnabled()
         {
-            return m_triEraser.is_enabled();
+            return m_TriEraser.is_enabled();
         }
         /// <summary>
         /// 
@@ -1429,7 +1434,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         public TriEraser.Mode CurrentTriangleErasingMode()
         {
-            return m_triEraser.mode();
+            return m_TriEraser.mode();
         }
         /// <summary>
         /// 
@@ -1437,7 +1442,7 @@ namespace HBP.Module3D
         /// <param name="enabled"></param>
         public void SetTriangleErasing(bool enabled)
         {
-            m_triEraser.set_enabled(enabled);
+            m_TriEraser.set_enabled(enabled);
         }
         /// <summary>
         /// 
@@ -1446,13 +1451,13 @@ namespace HBP.Module3D
         public void ResetTriangleErasing(bool updateGO = true)
         {
             // destroy previous GO
-            if (go_.invisibleBrainSurfaceMeshes != null)
-                for (int ii = 0; ii < go_.invisibleBrainSurfaceMeshes.Count; ++ii)
-                    Destroy(go_.invisibleBrainSurfaceMeshes[ii]);
+            if (m_DisplayedObjects.invisibleBrainSurfaceMeshes != null)
+                for (int ii = 0; ii < m_DisplayedObjects.invisibleBrainSurfaceMeshes.Count; ++ii)
+                    Destroy(m_DisplayedObjects.invisibleBrainSurfaceMeshes[ii]);
 
             // create new GO
-            go_.invisibleBrainSurfaceMeshes = new List<GameObject>(go_.brainSurfaceMeshes.Count);
-            for (int ii = 0; ii < go_.brainSurfaceMeshes.Count; ++ii)
+            m_DisplayedObjects.invisibleBrainSurfaceMeshes = new List<GameObject>(m_DisplayedObjects.brainSurfaceMeshes.Count);
+            for (int ii = 0; ii < m_DisplayedObjects.brainSurfaceMeshes.Count; ++ii)
             {
                 GameObject invisibleBrainPart = Instantiate(GlobalGOPreloaded.InvisibleBrain);
                 invisibleBrainPart.name = "erased brain part " + ii;
@@ -1469,24 +1474,24 @@ namespace HBP.Module3D
                 invisibleBrainPart.AddComponent<MeshFilter>();
                 invisibleBrainPart.transform.localScale = new Vector3(-1, 1, 1);
                 invisibleBrainPart.transform.localPosition = new Vector3(0, 0, 0);
-                invisibleBrainPart.SetActive(m_triEraser.is_enabled());
-                go_.invisibleBrainSurfaceMeshes.Add(invisibleBrainPart);
+                invisibleBrainPart.SetActive(m_TriEraser.is_enabled());
+                m_DisplayedObjects.invisibleBrainSurfaceMeshes.Add(invisibleBrainPart);
             }
 
-            m_triEraser.reset(go_.invisibleBrainSurfaceMeshes, m_Column3DViewManager.DLLCutsList[0], m_Column3DViewManager.DLLSplittedMeshesList);
+            m_TriEraser.reset(m_DisplayedObjects.invisibleBrainSurfaceMeshes, m_Column3DViewManager.DLLCutsList[0], m_Column3DViewManager.DLLSplittedMeshesList);
 
             if(updateGO)
                 for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
-                    m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                    m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
         }
         /// <summary>
         /// 
         /// </summary>
         public void CancelLastTriangleErasingAction()
         {
-            m_triEraser.cancel_last_action();
+            m_TriEraser.cancel_last_action();
             for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
-                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
         }
         /// <summary>
         /// 
@@ -1494,15 +1499,15 @@ namespace HBP.Module3D
         /// <param name="mode"></param>
         public void SetTriangleErasingMode(TriEraser.Mode mode)
         {
-            TriEraser.Mode previousMode = m_triEraser.mode();
-            m_triEraser.set_tri_erasing_mode(mode);
+            TriEraser.Mode previousMode = m_TriEraser.mode();
+            m_TriEraser.set_tri_erasing_mode(mode);
 
             if (mode == TriEraser.Mode.Expand || mode == TriEraser.Mode.Invert)
             {
-                m_triEraser.erase_triangles(new Vector3(), new Vector3());
+                m_TriEraser.erase_triangles(new Vector3(), new Vector3());
                 for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
-                    m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
-                m_triEraser.set_tri_erasing_mode(previousMode);
+                    m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_TriEraser.set_tri_erasing_mode(previousMode);
             }
         }
         /// <summary>
@@ -1511,7 +1516,7 @@ namespace HBP.Module3D
         /// <param name="degrees"></param>
         public void SetTriangleErasingZoneDegrees(float degrees)
         {
-            m_triEraser.set_zone_degrees(degrees);
+            m_TriEraser.set_zone_degrees(degrees);
         }
         /// <summary>
         /// Return the id of the current select column in the scene
@@ -1534,9 +1539,9 @@ namespace HBP.Module3D
                 return;
             IEEGCol.middle = value;
 
-            data_.generatorUpToDate = false;
-            data_.iEEGOutdated = true;
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            SceneInformation.generatorUpToDate = false;
+            SceneInformation.iEEGOutdated = true;
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.updateMiddle);
@@ -1554,9 +1559,9 @@ namespace HBP.Module3D
                 return;            
             IEEGCol.maxDistanceElec = value;
 
-            data_.generatorUpToDate = false;
-            data_.iEEGOutdated = true;
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            SceneInformation.generatorUpToDate = false;
+            SceneInformation.iEEGOutdated = true;
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.updateMiddle);
@@ -1570,11 +1575,11 @@ namespace HBP.Module3D
         {
             m_Column3DViewManager.MRICalMinFactor = value;
 
-            if (!data_.geometryUpToDate)
+            if (!SceneInformation.geometryUpToDate)
                 return;
 
-            data_.generatorUpToDate = false;
-            data_.iEEGOutdated = true;
+            SceneInformation.generatorUpToDate = false;
+            SceneInformation.iEEGOutdated = true;
 
             { //TEST
               // recompute UV
@@ -1583,11 +1588,11 @@ namespace HBP.Module3D
 
                 // update brain mesh object mesh filter (TODO update only UV)
                 for (int ii = 0; ii < m_Column3DViewManager.meshSplitNb; ++ii)
-                    m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                    m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
 
             ComputeMRITextures();
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.updateMiddle);
@@ -1601,11 +1606,11 @@ namespace HBP.Module3D
         {
             m_Column3DViewManager.MRICalMaxFactor = value;
 
-            if (!data_.geometryUpToDate)
+            if (!SceneInformation.geometryUpToDate)
                 return;
 
-            data_.generatorUpToDate = false;
-            data_.iEEGOutdated = true;
+            SceneInformation.generatorUpToDate = false;
+            SceneInformation.iEEGOutdated = true;
 
             { //TEST
               // recompute UV
@@ -1614,12 +1619,12 @@ namespace HBP.Module3D
 
                 // update brain mesh object mesh filter (TODO update only UV)
                 for (int ii = 0; ii < m_Column3DViewManager.meshSplitNb; ++ii)
-                    m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                    m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
 
 
             ComputeMRITextures();
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.updateMiddle);
@@ -1664,7 +1669,7 @@ namespace HBP.Module3D
         {
             m_Column3DViewManager.ColumnsIEEG[columnId].alphaMin = value;
 
-            if (data_.geometryUpToDate && !data_.iEEGOutdated)
+            if (SceneInformation.geometryUpToDate && !SceneInformation.iEEGOutdated)
                 ComputeIEEGTextures(-1, -1, true, true, false);
         }
         /// <summary>
@@ -1676,7 +1681,7 @@ namespace HBP.Module3D
         {
             m_Column3DViewManager.ColumnsIEEG[columnId].alphaMax = value;
 
-            if (data_.geometryUpToDate && !data_.iEEGOutdated)
+            if (SceneInformation.geometryUpToDate && !SceneInformation.iEEGOutdated)
                 ComputeIEEGTextures(-1, -1, true, true, false);
         }
         /// <summary>
@@ -1691,7 +1696,7 @@ namespace HBP.Module3D
                 return;
             IEEGCol.gainBubbles = value;
 
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
         }
         /// <summary>
         /// Update the span min of a IEEG column
@@ -1705,13 +1710,13 @@ namespace HBP.Module3D
                 return;
             IEEGCol.spanMin = value;
 
-            if (!data_.geometryUpToDate)
+            if (!SceneInformation.geometryUpToDate)
                 return;
 
-            data_.generatorUpToDate = false;
-            data_.iEEGOutdated = true;
+            SceneInformation.generatorUpToDate = false;
+            SceneInformation.iEEGOutdated = true;
             UpdateGUITextures();
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);            
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);            
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.updateMiddle);
@@ -1729,13 +1734,13 @@ namespace HBP.Module3D
                 return;
             IEEGCol.spanMax = value;
 
-            if (!data_.geometryUpToDate)
+            if (!SceneInformation.geometryUpToDate)
                 return;
 
-            data_.generatorUpToDate = false;
-            data_.iEEGOutdated = true;
+            SceneInformation.generatorUpToDate = false;
+            SceneInformation.iEEGOutdated = true;
             UpdateGUITextures();
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             //####### UDPATE MODE
             m_ModesManager.updateMode(Mode.FunctionsId.updateMiddle);
@@ -1785,7 +1790,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.ColumnsFMRI[idCol].Label = IMRFLabel;
 
             // update plots visibility
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             // convert to volume            
             m_Column3DViewManager.DLLNii.convert_to_volume(m_Column3DViewManager.DLLVolumeFMriList[idCol]);
@@ -1808,7 +1813,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.ColumnsFMRI[idCol].calMax = FMRIParams.calValues.computedCalMax;            
 
             // update camera
-            UpdateCameraTarget.Invoke(Type == SceneType.SinglePatient ?  m_Column3DViewManager.BothHemi.bounding_box().center() : m_MNI.BothHemi.bounding_box().center());
+            UpdateCameraTarget.Invoke(Type == SceneType.SinglePatient ?  m_Column3DViewManager.BothHemi.bounding_box().center() : m_MNIObjects.BothHemi.bounding_box().center());
 
             ComputeMRITextures(-1, -1);
 
@@ -1839,7 +1844,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.update_columns_nb(m_Column3DViewManager.ColumnsIEEG.Count, m_Column3DViewManager.ColumnsFMRI.Count - 1, m_planesList.Count);
 
             // update plots visibility
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
 
             ComputeMRITextures(-1, -1);
             ComputeFMRITextures(-1, -1);
@@ -1855,7 +1860,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         public bool IsLatencyModeEnabled()
         {
-            return data_.displayCcepMode;
+            return SceneInformation.displayCcepMode;
         }
         /// <summary>
         /// Updat visibility of the columns 3D items
@@ -1942,7 +1947,7 @@ namespace HBP.Module3D
         public void CompareSites()
         {
             DisplayScreenMessage("Select site to compare ", 3f, 200, 40);
-            data_.compareSite = true;
+            SceneInformation.compareSite = true;
         }
         /// <summary>
         /// Unselect the site of the corresponding column
@@ -1951,7 +1956,7 @@ namespace HBP.Module3D
         public void UnselectSite(int columnId)
         {
             m_Column3DViewManager.Columns[columnId].SelectedSiteID = -1; // unselect current site
-            m_Column3DViewManager.update_all_columns_sites_rendering(data_);
+            m_Column3DViewManager.update_all_columns_sites_rendering(SceneInformation);
             ClickSite.Invoke(-1); // update menu
         }
         #endregion

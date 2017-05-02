@@ -27,13 +27,13 @@
 //    /// </summary>
 //    public class ScriptPrototype : MonoBehaviour
 //    {
-//        #region members          
+//        #region Properties          
 
 //        // ...
 
 //        #endregion members
 
-//        #region mono_behaviour
+//        #region Private Methods
 
 //        /// <summary>
 //        /// This function is always called before any Start functions and also just after a prefab is instantiated. (If a GameObject is inactive during start up Awake is not called until it is made active.)
@@ -61,7 +61,7 @@
 
 //        #endregion mono_behaviour   
 
-//        #region functions
+//        #region Public Methods
 
 //        // ...
 

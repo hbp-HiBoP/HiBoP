@@ -25,14 +25,14 @@ namespace HBP.Module3D
     /// </summary>
     public class LatencyButton : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         public int id = -1;
         private Events.ChooseLatencyFile m_chooseLatencyFile = new Events.ChooseLatencyFile();
         public Events.ChooseLatencyFile ChooseLatencyFile { get { return m_chooseLatencyFile; } }
-        #endregion members
+        #endregion
 
-        #region others
+        #region Public Methods
 
         public void init(int idButton)
         {
@@ -46,6 +46,6 @@ namespace HBP.Module3D
         }
 
 
-        #endregion others
+        #endregion
     }
 }

@@ -20,7 +20,7 @@ namespace HBP.Module3D
     /// </summary>
     public class Column3DViewFMRI : Column3DView
     {
-        #region members
+        #region Properties
         public override ColumnType Type
         {
             get
@@ -39,9 +39,9 @@ namespace HBP.Module3D
         public float calMax = 0.6f;
         public float alpha = 0.5f;
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the IRMF column
@@ -193,6 +193,6 @@ namespace HBP.Module3D
         }
 
 
-        #endregion functions
+        #endregion
     }
 }

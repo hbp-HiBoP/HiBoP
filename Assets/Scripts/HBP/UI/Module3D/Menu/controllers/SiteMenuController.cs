@@ -41,7 +41,7 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class SiteMenu : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         // scenes
         private Base3DScene m_scene = null; /**< SP scene */
@@ -62,9 +62,9 @@ namespace HBP.UI.Module3D
         public Events.SiteInfoRequest SiteInfoRequest = new Events.SiteInfoRequest();
         public Events.CloseSiteWindow CloseSiteWindow = new Events.CloseSiteWindow();
         
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the menu
@@ -338,7 +338,7 @@ namespace HBP.UI.Module3D
             switch(m_scene.Type)
             {
                 case SceneType.SinglePatient:
-                    bool activeCCEP = m_scene.Column3DViewManager.latencyFileAvailable && m_scene.data_.displayCcepMode;
+                    bool activeCCEP = m_scene.Column3DViewManager.latencyFileAvailable && m_scene.SceneInformation.displayCcepMode;
                     Button setSiteAsSourceButton = panel.Find("CCEP parent").Find("site source parent").Find("set site as source button").GetComponent<Button>();
                     Button undefineSourceButton = panel.Find("CCEP parent").Find("undefine source parent").Find("undefine source button").GetComponent<Button>();
                     Text dataLatencyText = panel.Find("CCEP parent").Find("latency data text").GetComponent<Text>();
@@ -465,7 +465,7 @@ namespace HBP.UI.Module3D
         }
 
 
-        #endregion functions
+        #endregion
     }
 
     /// <summary>
@@ -473,7 +473,7 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class SiteMenuController : MonoBehaviour, UICameraOverlay
     {
-        #region members
+        #region Properties
 
         // scenes
         private Base3DScene m_scene = null; /**< scene */
@@ -490,9 +490,9 @@ namespace HBP.UI.Module3D
         private int m_lastUpdatedColumn = -1;
         private Site m_lastSiteSelected = null; /**< last selected site */
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -536,9 +536,9 @@ namespace HBP.UI.Module3D
             {
                 if (m_scene.Column3DViewManager.SelectedColumn.SelectedSite != null)
                 {
-                    if (m_scene.data_.compareSite)
+                    if (m_scene.SceneInformation.compareSite)
                     {
-                        m_scene.data_.compareSite = false;
+                        m_scene.SceneInformation.compareSite = false;
                         m_scene.DisplayScreenMessage("Compare : " + m_lastSiteSelected.name + " from col " + m_lastUpdatedColumn + "\n with " + m_scene.Column3DViewManager.SelectedColumn.SelectedSite.name + " from col " + idColumn, 5f, 250, 80);
                         m_scene.SendAdditionalSiteInfoRequest(m_lastSiteSelected);
                     }
@@ -693,6 +693,6 @@ namespace HBP.UI.Module3D
             update_UI();
         }
 
-        #endregion functions
+        #endregion
     }
 }

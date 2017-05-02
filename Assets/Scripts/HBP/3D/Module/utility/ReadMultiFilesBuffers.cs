@@ -22,7 +22,7 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public class ReadMultiFilesBuffers : CppDLLImportBase
     {
-        #region members
+        #region Properties
 
         public enum FilesTypes : int
         {
@@ -34,9 +34,9 @@ namespace HBP.Module3D.DLL
         private FilesTypes m_currentFilesType;
         //private bool m_filesParsed;
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         void reset()
         {
@@ -87,9 +87,9 @@ namespace HBP.Module3D.DLL
         }
 
 
-        #endregion functions
+        #endregion
 
-        #region memory_management
+        #region Memory Management
 
         /// <summary>
         /// Allocate DLL memory
@@ -107,7 +107,7 @@ namespace HBP.Module3D.DLL
             delete_readMultiFilesBuffers(_handle);
         }
 
-        #endregion memory_management
+        #endregion
 
         #region DLLImport
 
@@ -130,6 +130,6 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "retrieveSurface_readMultiFilesBuffers", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr retrieveSurface_readMultiFilesBuffers(HandleRef handleReadMultiFilesBuffers, int idSurface);
 
-        #endregion DLLImport
+        #endregion
     }
 }
