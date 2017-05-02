@@ -106,11 +106,11 @@ namespace HBP.Module3D
             }
 
             // plots
-            electrodesSizeScale = new List<Vector3>(RawElectrodes.sites_nb());
-            electrodesPositiveColor = new List<bool>(RawElectrodes.sites_nb());
+            electrodesSizeScale = new List<Vector3>(m_RawElectrodes.sites_nb());
+            electrodesPositiveColor = new List<bool>(m_RawElectrodes.sites_nb());
 
             // masks
-            for (int ii = 0; ii < RawElectrodes.sites_nb(); ii++)
+            for (int ii = 0; ii < m_RawElectrodes.sites_nb(); ii++)
             {
                 electrodesSizeScale.Add(new Vector3(1, 1, 1));
                 electrodesPositiveColor.Add(true);
@@ -125,7 +125,7 @@ namespace HBP.Module3D
             bool noROI = (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.bubbles_nb() == 0);
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                RawElectrodes.update_mask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsInROI && !noROI)));
+                m_RawElectrodes.update_mask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsInROI && !noROI)));
             }
         }
 
@@ -283,7 +283,7 @@ namespace HBP.Module3D
             base.Clear();
 
             // plots
-            RawElectrodes.Dispose();
+            m_RawElectrodes.Dispose();
 
             // textures 2D
             for (int ii = 0; ii < brainCutWithIEEGTextures.Count; ++ii)
