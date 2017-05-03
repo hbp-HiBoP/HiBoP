@@ -175,7 +175,7 @@ namespace HBP.Module3D.Cam
             set { m_ZCircleMaterial = value; }
         } /**< matierial used for drawing camera z rotation circles */
 
-        protected InputsSceneManager m_InputsSceneManager = null;  /**< inputs scene manager */
+        protected Interaction.InputManager m_InputsSceneManager = null;  /**< inputs scene manager */
         protected Base3DScene m_AssociatedScene = null;            /**< associated 3D scene */       
 
         protected SceneType m_SceneType;                  /**< is the camera a single patient one ? */

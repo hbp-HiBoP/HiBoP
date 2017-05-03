@@ -14,7 +14,7 @@ using UnityEngine;
 using HBP.UI.Module3D;
 
 
-namespace HBP.Module3D.Cam
+namespace HBP.Interaction
 {
     /// <summary>
     /// A manager class used to retrieve mouse and keyboards inputs events from cameras and apply it to the scenes
@@ -22,26 +22,26 @@ namespace HBP.Module3D.Cam
     public class InputManager : MonoBehaviour
     {
         #region Properties
-        private ScenesManager m_scenesManager = null;
+        private Module3D.ScenesManager m_scenesManager = null;
         private UIManager m_UIManager = null;
         #endregion
 
         #region Private Methods
         void Awake()
         {
-            m_scenesManager = StaticComponents.ScenesManager;
-            m_UIManager = StaticComponents.UIManager;
+            m_scenesManager = Module3D.StaticComponents.ScenesManager;
+            m_UIManager = Module3D.StaticComponents.UIManager;
         }
         #endregion
         
-        #region Private Methods
+        #region Public Methods
         /// <summary>
         /// Send a click ray to a scene
         /// </summary>
         /// <param name="ray"></param>
         /// <param name="spScene"></param>
         /// <param name="idColumn"></param>
-        public void SendClickRayToScenes(Ray ray, Base3DScene scene, int idColumn)
+        public void SendClickRayToScenes(Ray ray, Module3D.Base3DScene scene, int idColumn)
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type)) return;
             scene.UpdateSelectedColumn(idColumn);
@@ -55,7 +55,7 @@ namespace HBP.Module3D.Cam
         /// <param name="spScene"></param>
         /// <param name="mousePosition"></param>
         /// <param name="idColumn"></param>
-        public void SendMouseMovementToScenes(Ray ray, Base3DScene scene, Vector3 mousePosition, int idColumn)
+        public void SendMouseMovementToScenes(Ray ray, Module3D.Base3DScene scene, Vector3 mousePosition, int idColumn)
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
             {
@@ -72,7 +72,7 @@ namespace HBP.Module3D.Cam
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="mouseScrollDelta"></param>
-        public void SendScrollMouseToScenes(Base3DScene scene, Vector2 mouseScrollDelta)
+        public void SendScrollMouseToScenes(Module3D.Base3DScene scene, Vector2 mouseScrollDelta)
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
                 return; // click on overlay, don't propagate to the scenes
@@ -83,7 +83,7 @@ namespace HBP.Module3D.Cam
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="key"></param>
-        public void SendKeyboardActionToScenes(Base3DScene scene, KeyCode key)
+        public void SendKeyboardActionToScenes(Module3D.Base3DScene scene, KeyCode key)
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
                 return; // click on overlay, don't propagate to the scenes

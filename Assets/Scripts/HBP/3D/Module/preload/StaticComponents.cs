@@ -31,7 +31,7 @@ namespace HBP.Module3D
         static public UIManager UIManager = null;
         static public MenuManager UICameraManager = null;
         static public UIOverlayManager UIOverlayManager = null;     
-        static public Cam.InputManager InputsSceneManager = null;
+        static public Interaction.InputManager InputsSceneManager = null;
         static public DLL.DLLDebugManager DLLDebugManager = null;
         static public Transform CanvasOverlay = null;
         #endregion
@@ -49,7 +49,7 @@ namespace HBP.Module3D
             Transform Visualisation = GameObject.Find("Brain Visualisation").transform;
             UIManager = Visualisation.GetComponent<UIManager>();
             CanvasOverlay = Visualisation.FindChild("Overlay");
-            InputsSceneManager = transform.Find("Scenes").GetComponent<Cam.InputsSceneManager>();
+            InputsSceneManager = transform.Find("Scenes").GetComponent<Interaction.InputManager>();
             UICameraManager = Visualisation.FindChild("Mid").GetComponent<MenuManager>();
             UIOverlayManager = CanvasOverlay.GetComponent<UIOverlayManager>();
         }
