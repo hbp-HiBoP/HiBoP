@@ -67,12 +67,9 @@ namespace HBP.Module3D
         public bool siteLatencyData = false; /**< latency data defined for the current selected plot */
         public int idSourceSelected = -1; /**< id of the selected source */
         public int currentLatencyFile = -1; /**< id of the current latency file */
-
         #endregion
 
         #region Public Methods
-       
-
         /// <summary>
         /// Init class of the data column
         /// </summary>
@@ -116,7 +113,6 @@ namespace HBP.Module3D
                 electrodesPositiveColor.Add(true);
             }
         }
-
         /// <summary>
         /// Update the site mask of the dll with all the masks
         /// </summary>
@@ -128,13 +124,11 @@ namespace HBP.Module3D
                 m_RawElectrodes.update_mask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsInROI && !noROI)));
             }
         }
-
         /// <summary>
         /// Return the amplitudes dimension array
         /// </summary>
         /// <returns></returns>
         public int[] dimensions() { return dims; }
-
         /// <summary>
         /// Return the amplitudes array
         /// </summary>
@@ -143,7 +137,6 @@ namespace HBP.Module3D
         {
             return m_iEegValues;
         }
-
         /// <summary>
         /// Return the length of the timeline 
         /// </summary>
@@ -152,7 +145,6 @@ namespace HBP.Module3D
         {
             return dims[0];
         }
-
         /// <summary>
         /// Specify a new columnData to be associated with the columnd3DView
         /// </summary>
@@ -195,7 +187,6 @@ namespace HBP.Module3D
                 Sites[ii].Information.IsMasked = columnData.SiteMask[ii];
             }
         }
-
         /// <summary>
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
         /// </summary>
@@ -235,8 +226,6 @@ namespace HBP.Module3D
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
-
-
         /// <summary>
         /// Update the cut planes number of the 3D column view
         /// </summary>
@@ -274,7 +263,6 @@ namespace HBP.Module3D
                 }
             }
         }
-
         /// <summary>
         ///  Clean all dll data and unity textures
         /// </summary>
@@ -292,7 +280,6 @@ namespace HBP.Module3D
                 Destroy(guiBrainCutWithIEEGTextures[ii]);
             }
         }
-
         /// <summary>
         /// Update the plots rendering (iEEG or CCEP)
         /// </summary>
@@ -464,7 +451,14 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
 
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="indexCut"></param>
+        /// <param name="orientation"></param>
+        /// <param name="flip"></param>
+        /// <param name="cutPlanes"></param>
+        /// <param name="drawLines"></param>
         public void create_GUI_IEEG_texture(int indexCut, string orientation, bool flip, List<Plane> cutPlanes, bool drawLines)
         {
             if (dllBrainCutTextures[indexCut].m_sizeTexture[0] > 0)
@@ -473,9 +467,6 @@ namespace HBP.Module3D
                 dllGuiBrainCutWithIEEGTextures[indexCut].update_texture_2D(guiBrainCutWithIEEGTextures[indexCut]);
             }
         }
-
-
         #endregion
     }
-
 }

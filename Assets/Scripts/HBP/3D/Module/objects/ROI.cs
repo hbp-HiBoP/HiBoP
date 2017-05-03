@@ -23,7 +23,6 @@ namespace HBP.Module3D
     public class ROI : MonoBehaviour
     {
         #region Properties
-
         public string m_ROIname = "default_ROI_name";
         public int m_layer; /**< ROI layer */
 
@@ -31,20 +30,19 @@ namespace HBP.Module3D
 
         private DLL.ROI m_dllROI; /**< associated ROI DLL */
         private List<GameObject> m_bubbles = new List<GameObject>(); /**< bubbles of the ROI */
-
         #endregion
 
         #region Private Methods
-
         void Awake()
         {
             m_dllROI = new DLL.ROI();
         }
-
         #endregion
 
-        #region Others
-
+        #region Public Methods
+        /// <summary>
+        /// 
+        /// </summary>
         public void clean()
         {
             // Destroy the DLL
@@ -56,7 +54,6 @@ namespace HBP.Module3D
                 Destroy(m_bubbles[ii]);
             }
         }
-
         /// <summary>
         /// Set the visibility of all the bubbles
         /// </summary>
@@ -68,7 +65,6 @@ namespace HBP.Module3D
                 m_bubbles[ii].SetActive(visibility);
             }
         }
-
         /// <summary>
         /// Enable of disable the rendering of the ROI
         /// </summary>
@@ -81,12 +77,14 @@ namespace HBP.Module3D
                 m_bubbles[ii].layer = (state ? m_layer : inactiveLayer);
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public int bubbles_nb()
         {
             return m_bubbles.Count;
         }
-
         /// <summary>
         /// Check if a collision occurs with the ROI bubbles
         /// </summary>
@@ -103,7 +101,6 @@ namespace HBP.Module3D
 
             return false;
         }
-
         /// <summary>
         /// Update the DLL ROI mask
         /// </summary>
@@ -113,7 +110,6 @@ namespace HBP.Module3D
         {
             m_dllROI.update_mask(plots, mask);
         }
-
         /// <summary>
         /// If collision with a bubble return the id of the closest, else return -1
         /// </summary>
@@ -152,7 +148,9 @@ namespace HBP.Module3D
 
             return -1;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public void unselect_bubble()
         {
             if (idSelectedBubble == -1 || idSelectedBubble > m_bubbles.Count) // no sphere selected
@@ -161,7 +159,10 @@ namespace HBP.Module3D
             m_bubbles[idSelectedBubble].GetComponent<Bubble>().unselect();
             idSelectedBubble = -1;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idBubble"></param>
         public void select_bubble(int idBubble)
         {
             if (idBubble < 0 || idBubble >= m_bubbles.Count)
@@ -172,7 +173,13 @@ namespace HBP.Module3D
             m_bubbles[idBubble].GetComponent<Bubble>().select();            
             idSelectedBubble = idBubble;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="layer"></param>
+        /// <param name="GObubbleName"></param>
+        /// <param name="position"></param>
+        /// <param name="ray"></param>
         public void add_bubble(string layer, string GObubbleName, Vector3 position, float ray)
         {
             m_layer = LayerMask.NameToLayer(layer);
@@ -189,7 +196,10 @@ namespace HBP.Module3D
             positionBubble.x = -positionBubble.x;
             m_dllROI.add_bubble(ray, positionBubble);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idBubble"></param>
         public void remove_bubble(int idBubble)
         {
             if (idSelectedBubble > idBubble)
@@ -211,7 +221,11 @@ namespace HBP.Module3D
                     select_bubble(m_bubbles.Count - 1);
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idBubble"></param>
+        /// <param name="coeff"></param>
         public void change_bubble_size(int idBubble, float coeff)
         {
             if (idBubble < 0 || idBubble >= m_bubbles.Count)
@@ -222,12 +236,15 @@ namespace HBP.Module3D
             // DLL
             m_dllROI.update_bubble(idBubble, m_bubbles[idBubble].GetComponent<Bubble>().m_radius);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idBubble"></param>
+        /// <returns></returns>
         public Bubble bubble(int idBubble)
         {
             return m_bubbles[idBubble].GetComponent<Bubble>();
         }
-
         /// <summary>
         /// Return a string containing all bubbles infos of the ROI
         /// </summary>
@@ -243,7 +260,6 @@ namespace HBP.Module3D
 
             return text;
         }
-
         #endregion
     }
 
@@ -255,12 +271,10 @@ namespace HBP.Module3D
         public class ROI : IDisposable
         {
             #region Memory Management
-
             /// <summary>
             /// pointer to C+ dll class
             /// </summary>
             private HandleRef _handle;
-
             /// <summary>
             /// ROI_dll constructor
             /// </summary>
@@ -268,7 +282,6 @@ namespace HBP.Module3D
             {
                 _handle = new HandleRef(this, create_ROI());
             }
-
             /// <summary>
             /// delete_ROI Destructor
             /// </summary>
@@ -276,7 +289,6 @@ namespace HBP.Module3D
             {
                 Cleanup();
             }
-
             /// <summary>
             /// Force delete C++ DLL data (remove GC for this object)
             /// </summary>
@@ -285,7 +297,6 @@ namespace HBP.Module3D
                 Cleanup();
                 GC.SuppressFinalize(this);
             }
-
             /// <summary>
             /// Delete C+ DLL data, and set handle to IntPtr.Zero
             /// </summary>
@@ -294,7 +305,6 @@ namespace HBP.Module3D
                 delete_ROI(_handle);
                 _handle = new HandleRef(this, IntPtr.Zero);
             }
-
             /// <summary>
             /// Return pointer to C++ DLL
             /// </summary>
@@ -303,11 +313,14 @@ namespace HBP.Module3D
             {
                 return _handle;
             }
-
             #endregion
 
             #region Public Methods
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="radius"></param>
+            /// <param name="center"></param>
             public void add_bubble(float radius, Vector3 center)
             {
                 float[] centerArray = new float[3];
@@ -316,23 +329,33 @@ namespace HBP.Module3D
                 centerArray[2] = center.z;
                 addSphere_ROI(_handle, radius, centerArray);
             }
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="index"></param>
+            /// <param name="newRadius"></param>
             public void update_bubble(int index, float newRadius)
             {
                 updateSphere_ROI(_handle, index, newRadius);
             }
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="index"></param>
             public void remove_bubble(int index)
             {
                 removeSphere_ROI(_handle, index);
             }
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="sites"></param>
+            /// <param name="mask"></param>
             public void update_mask(RawSiteList sites, bool[] mask)
             {
                 for (int ii = 0; ii < sites.sites_nb(); ++ii)
                     mask[ii] = isInside_ROI(_handle, sites.getHandle(), ii) != 1;
             }
-
             #endregion
 
             #region DLLImport

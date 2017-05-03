@@ -68,7 +68,6 @@ namespace HBP.Module3D
         public Events.UpdateLatencies UpdateLatencies { get { return m_updateLatencies; } }
 
         private List<string> CCEPLabels = null;
-
         #endregion
 
         #region Public Methods

@@ -242,6 +242,10 @@ namespace HBP.Module3D
             SendModeSpecifications.Invoke(m_modeSpecs);
             m_needsUpdate = false;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_resetGIIBrainSurfaceFile()
         {
             switch (m_Type)
@@ -278,6 +282,10 @@ namespace HBP.Module3D
             // default
             return Mode.ModesId.Error;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_resetNIIBrainVolumeFile()
         {
             switch (m_Type)
@@ -313,6 +321,10 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_resetElectrodesFile()
         {
             switch (m_Type)
@@ -348,6 +360,10 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_setTimelines()
         {
             switch (m_Type)
@@ -383,6 +399,10 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_pre_updateGenerators()
         {
             switch (m_Type)
@@ -404,6 +424,10 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_post_updateGenerators()
         {
             switch (m_Type)
@@ -425,6 +449,10 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_addNewPlane()
         {
             switch (m_Type)
@@ -454,6 +482,10 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_removeLastPlane()
         {
             switch (m_Type)
@@ -483,6 +515,10 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_updatePlane()
         {
             switch (m_Type)
@@ -512,6 +548,10 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_setDisplayedMesh()
         {
             switch (m_Type)
@@ -533,6 +573,10 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_updateMiddle()
         {
             switch (m_Type)
@@ -564,6 +608,10 @@ namespace HBP.Module3D
 
             return IDMode;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_updateMaskPlot()
         {
             switch (m_Type)
@@ -585,6 +633,10 @@ namespace HBP.Module3D
             }
             return IDMode;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_addIRMFColumn()
         {
             if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.ComputingAmplitudes)
@@ -592,6 +644,10 @@ namespace HBP.Module3D
 
             return IDMode;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public ModesId mu_removeLastIRMFColumn()
         {
             if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.ComputingAmplitudes)
@@ -599,7 +655,10 @@ namespace HBP.Module3D
 
             return IDMode;
         }
-        // TODO
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public Mode.ModesId mu_enableTriErasingMode()
         {
             // TODO : needs work
@@ -619,6 +678,10 @@ namespace HBP.Module3D
             // default
             return Mode.ModesId.Error;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public Mode.ModesId mu_disableTriErasingMode()
         {
             // TODO : needs work

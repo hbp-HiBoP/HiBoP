@@ -17,18 +17,15 @@ namespace HBP.Module3D
     public class SiteRing : MonoBehaviour
     {
         #region Properties
-
         private Site m_selectedPlot = null;
         private GameObject m_ring1 = null;
         private GameObject m_ring2 = null;
         private GameObject m_ring3 = null;
 
         private float m_speedRotation = 100f;
-
         #endregion
 
         #region Private Methods
-
         void Awake()
         {
             m_ring1 = Instantiate(GlobalGOPreloaded.SelectRing);
@@ -52,7 +49,6 @@ namespace HBP.Module3D
             m_ring3.SetActive(false);
             m_ring3.transform.localEulerAngles = new Vector3(0, 0, 90);
         }
-
         void Update()
         {
             if(m_selectedPlot != null)
@@ -67,7 +63,6 @@ namespace HBP.Module3D
                 set_material(SharedMaterials.Ring.Selected);
             }
         }
-
         #endregion
 
         #region Public Methods
@@ -95,7 +90,6 @@ namespace HBP.Module3D
             m_ring2.transform.localScale = scale;
             m_ring3.transform.localScale = scale;
         }
-
         /// <summary>
         /// Define the layer of the rings GO
         /// </summary>
@@ -105,7 +99,6 @@ namespace HBP.Module3D
             if(m_ring1 != null)
                 m_ring1.layer = m_ring2.layer = m_ring3.layer = LayerMask.NameToLayer(layer);
         }
-
         /// <summary>
         /// Define the material of the rings renderers
         /// </summary>

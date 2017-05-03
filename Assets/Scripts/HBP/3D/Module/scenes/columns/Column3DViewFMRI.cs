@@ -38,11 +38,9 @@ namespace HBP.Module3D
         public float calMin = 0.4f;
         public float calMax = 0.6f;
         public float alpha = 0.5f;
-
         #endregion
 
         #region Public Methods
-
         /// <summary>
         /// Init the IRMF column
         /// </summary>
@@ -72,8 +70,6 @@ namespace HBP.Module3D
                 dllGuiBrainCutWithFMRITextures.Add(new DLL.Texture());
             }
         }
-
-
         /// <summary>
         /// Update the cut planes number of the 3D column view
         /// </summary>
@@ -113,7 +109,6 @@ namespace HBP.Module3D
                 }
             }
         }
-
         /// <summary>
         ///  Clean all dll data and unity textures
         /// </summary>
@@ -131,7 +126,10 @@ namespace HBP.Module3D
                 Destroy(guiBrainCutWithFMRITextures[ii]);
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
         public void update_plots_visiblity(SceneStatesInfo data)
         {
             Vector3 normalScale = new Vector3(1, 1, 1);
@@ -182,7 +180,14 @@ namespace HBP.Module3D
                 Sites[ii].gameObject.SetActive(activity);
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="indexCut"></param>
+        /// <param name="orientation"></param>
+        /// <param name="flip"></param>
+        /// <param name="cutPlanes"></param>
+        /// <param name="drawLines"></param>
         public void create_GUI_FMRI_texture(int indexCut, string orientation, bool flip, List<Plane> cutPlanes, bool drawLines)
         {
             if (dllBrainCutTextures[indexCut].m_sizeTexture[0] > 0)
@@ -191,8 +196,6 @@ namespace HBP.Module3D
                 dllGuiBrainCutWithFMRITextures[indexCut].update_texture_2D(guiBrainCutWithFMRITextures[indexCut], false); // TODO: ;..
             }
         }
-
-
         #endregion
     }
 }

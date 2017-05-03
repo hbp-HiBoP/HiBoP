@@ -22,25 +22,19 @@ namespace HBP.Module3D.Cam
     public class InputsSceneManager : MonoBehaviour
     {
         #region Properties
-
         private ScenesManager m_scenesManager = null;
         private UIManager m_UIManager = null;
-
         #endregion
 
         #region Private Methods
-
-
         void Awake()
         {
             m_scenesManager = StaticComponents.ScenesManager;
             m_UIManager = StaticComponents.UIManager;
         }
-
         #endregion
         
-        #region Others
-
+        #region Private Methods
         /// <summary>
         /// Send a click ray to a scene
         /// </summary>
@@ -54,7 +48,6 @@ namespace HBP.Module3D.Cam
             scene.ClickOnScene(ray);
             m_UIManager.UpdateFocusedSceneAndColumn(scene, idColumn);
         }
-
         /// <summary>
         /// Send a movment ray to a scene
         /// </summary>
@@ -74,7 +67,6 @@ namespace HBP.Module3D.Cam
                 scene.MoveMouseOnScene(ray, mousePosition, idColumn);
             }
         }
-
         /// <summary>
         /// Send a scroll action to a scene
         /// </summary>
@@ -86,7 +78,6 @@ namespace HBP.Module3D.Cam
                 return; // click on overlay, don't propagate to the scenes
             scene.MouseScrollAction(mouseScrollDelta);
         }
-
         /// <summary>
         /// Send a keyboard action to the scenes
         /// </summary>
@@ -98,8 +89,6 @@ namespace HBP.Module3D.Cam
                 return; // click on overlay, don't propagate to the scenes
             scene.KeyboardAction(key);
         }
-
         #endregion
     }
-
 }

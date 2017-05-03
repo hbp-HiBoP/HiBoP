@@ -23,7 +23,6 @@ namespace HBP.Module3D.DLL
     public class Transformation : CppDLLImportBase
     {
         #region Public Methods
-
         /// <summary>
         /// Load a transformation file
         /// </summary>
@@ -38,21 +37,23 @@ namespace HBP.Module3D.DLL
             }
             return fileLoaded;
         }
-        
+        #endregion
+
+        #region Private Methods
+        /// <summary>
+        /// 
+        /// </summary>
         void invert()
         {
             invert_Transformation3(_handle);
         }
-
         #endregion
 
         #region Memory Management
-
         /// <summary>
         /// Surface default constructor
         /// </summary>
         public Transformation() : base() { }
-
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
@@ -60,7 +61,6 @@ namespace HBP.Module3D.DLL
         {
             _handle = new HandleRef(this, create_Transformation3());
         }
-
         /// <summary>
         /// Clean DLL memory
         /// </summary>
@@ -68,7 +68,6 @@ namespace HBP.Module3D.DLL
         {
             delete_Transformation3(_handle);
         }
-
         #endregion
 
         #region DLLImport

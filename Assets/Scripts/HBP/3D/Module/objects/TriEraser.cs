@@ -22,13 +22,21 @@ namespace HBP.Module3D
     /// </summary>
     public class TriEraser
     {
+        #region Properties
         public enum Mode : int
         {
             OneTri, Cylinder, Zone, Invert, Expand
         }; /**< modes id */
 
         private bool m_isEnabled = false;
-        private Mode m_mode = Mode.OneTri;
+        private Mode m_CurrentMode = Mode.OneTri;
+        public Mode CurrentMode
+        {
+            get
+            {
+                return m_CurrentMode;
+            }
+        }
         private float m_degrees = 30f;
 
         int[] m_fullMask;
@@ -38,19 +46,14 @@ namespace HBP.Module3D
         private List<DLL.Surface> m_brainMeshesSplittedDLL = null;
 
         private List<GameObject> m_brainInvisibleMeshesGO = null;
-                
+        #endregion
+
+        #region Public Methods
         /// <summary>
         /// Are the invisible part meshes GO enabled
         /// </summary>
         /// <returns></returns>
         public bool is_enabled() { return m_isEnabled; }
-
-        /// <summary>
-        /// Return the current mode
-        /// </summary>
-        /// <returns></returns>
-        public Mode mode() { return m_mode; }
-
         /// <summary>
         /// Set the activation of the invisible mesh part gameobjects
         /// </summary>
@@ -61,16 +64,14 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_brainInvisibleMeshesGO.Count; ++ii)
                 m_brainInvisibleMeshesGO[ii].SetActive(isEnabled);
         }
-
         /// <summary>
         /// Define the current tri erasing mode
         /// </summary>
         /// <param name="mode"></param>
         public void set_tri_erasing_mode(Mode mode)
         {
-            m_mode = mode;
+            m_CurrentMode = mode;
         }
-
         /// <summary>
         /// Define the number of degrees for the zone pencil
         /// </summary>
@@ -79,16 +80,14 @@ namespace HBP.Module3D
         {
             m_degrees = degrees;
         }
-
         /// <summary>
         /// Check if the current mode of the tri eraser needs clicks on the scene
         /// </summary>
         /// <returns></returns>
         public bool is_click_available()
         {
-            return (m_mode != Mode.Expand) && (m_mode != Mode.Invert);
+            return (m_CurrentMode != Mode.Expand) && (m_CurrentMode != Mode.Invert);
         }
-
         /// <summary>
         /// 
         /// </summary>
@@ -118,7 +117,6 @@ namespace HBP.Module3D
                 m_splittedMasks.Add(mask);                
             }
         }
-
         /// <summary>
         /// Erase triangles and update the invisible part mesh GO
         /// </summary>
@@ -134,7 +132,7 @@ namespace HBP.Module3D
                 m_splittedMasks[ii] = m_brainMeshesSplittedDLL[ii].visibility_mask();
 
             // apply rays and retrieve mask
-            /*DLL.Surface brainInvisibleFullMeshDLL = */m_brainMeshDLL.update_visibility_mask(rayDirection, hitPoint, m_mode, m_degrees);
+            /*DLL.Surface brainInvisibleFullMeshDLL = */m_brainMeshDLL.update_visibility_mask(rayDirection, hitPoint, m_CurrentMode, m_degrees);
             int[] newFullMask = m_brainMeshDLL.visibility_mask();
 
             // split it
@@ -161,7 +159,6 @@ namespace HBP.Module3D
                 brainInvisibleMeshesDLL.update_mesh_from_dll(m_brainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
             }
         }
-
         /// <summary>
         /// Cancel the last action and update the invisible part mesh GO
         /// </summary>
@@ -174,7 +171,6 @@ namespace HBP.Module3D
                 brainInvisibleMeshesDLL.update_mesh_from_dll(m_brainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
             }
         }
-
-
+        #endregion
     }
 }

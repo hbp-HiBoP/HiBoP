@@ -17,11 +17,14 @@ namespace HBP.Module3D
     /// </summary>
     public class Bubble : MonoBehaviour
     {
+        #region Properties
         private float m_minRaySphere = 0.5f;    
         private float m_maxRaySphere = 100f;    
         public float m_radius = 1f;             
-        public bool m_selected = false;         
+        public bool m_selected = false;
+        #endregion
 
+        #region Public Methods
         /// <summary>
         /// Init the bubble
         /// </summary
@@ -39,7 +42,6 @@ namespace HBP.Module3D
             // add mesh
             gameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROIBubble;
         }
-
         /// <summary>
         /// Unselect the bubble and update its material
         /// </summary>
@@ -48,7 +50,6 @@ namespace HBP.Module3D
             GetComponent<Renderer>().sharedMaterial = SharedMaterials.ROI.Normal;
             m_selected = false;
         }
-
         /// <summary>
         /// Select the bubble and update its material
         /// </summary>
@@ -57,7 +58,6 @@ namespace HBP.Module3D
             GetComponent<Renderer>().sharedMaterial = SharedMaterials.ROI.Selected;
             m_selected = true;
         }
-
         /// <summary>
         /// Check if a collision occurs with the input ray
         /// </summary>
@@ -68,7 +68,6 @@ namespace HBP.Module3D
         {
             return GetComponent<SphereCollider>().Raycast(ray, out hitInfo, Mathf.Infinity);
         }
-
         /// <summary>
         /// Multiply the current bubble size with the input coeff
         /// </summary>
@@ -84,5 +83,6 @@ namespace HBP.Module3D
 
             transform.localScale = new Vector3(m_radius, m_radius, m_radius);
         }
+        #endregion
     }
 }

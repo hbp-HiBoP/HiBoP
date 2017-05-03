@@ -18,21 +18,26 @@ namespace HBP.Module3D.DLL
     public class NIFTI : CppDLLImportBase
     {
         #region Public Methods
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pathNiftiFile"></param>
+        /// <returns></returns>
         public bool load_nii_file(string pathNiftiFile)
         {
             return (loadNiiFile_NIFTI(_handle, pathNiftiFile) == 1);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="volume"></param>
         public void convert_to_volume(Volume volume)
         {
             convertToVolume_NIFTI(_handle, volume.getHandle());
         }
-
         #endregion
 
         #region Memory Management
-
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
@@ -40,7 +45,6 @@ namespace HBP.Module3D.DLL
         {
             _handle = new HandleRef(this, create_NIFTI());
         }
-
         /// <summary>
         /// Clean DLL memory
         /// </summary>
@@ -48,7 +52,6 @@ namespace HBP.Module3D.DLL
         {
             delete_NIFTI(_handle);
         }
-
         #endregion
 
         #region DLLImport

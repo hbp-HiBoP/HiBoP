@@ -23,8 +23,8 @@ namespace HBP.Module3D
     /// </summary>
     public class MNIObjects : MonoBehaviour
     {
+        #region Properties
         public static Mutex LoadingMutex = new Mutex();
-
 
         public DLL.Surface LeftHemi = null;
         public DLL.Surface RightHemi = null;
@@ -46,7 +46,9 @@ namespace HBP.Module3D
 #if UNITY_EDITOR_WIN
         private DLL.ReadMultiFilesBuffers readMulti = null;
 #endif
+        #endregion
 
+        #region Private Methods
         void Awake()
         {
             int idScript = TimeExecution.get_ID();
@@ -82,8 +84,14 @@ namespace HBP.Module3D
             Thread thread = new Thread(() => load_data(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID));
             thread.Start();
         }
-
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="baseIRMDir"></param>
+        /// <param name="baseMeshDir"></param>
+        /// <param name="idScript"></param>
+        /// <param name="GOName"></param>
+        /// <param name="instanceID"></param>
         void load_data(string baseIRMDir, string baseMeshDir, int idScript, string GOName, int instanceID)
         {
             LoadingMutex.WaitOne();
@@ -150,5 +158,6 @@ namespace HBP.Module3D
             LoadingMutex.ReleaseMutex();
             TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.MNIObjects, GOName, instanceID);
         }
+        #endregion
     }
 }

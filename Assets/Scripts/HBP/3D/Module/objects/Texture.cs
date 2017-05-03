@@ -147,24 +147,23 @@ namespace HBP.Module3D
         public class Texture : CppDLLImportBase, ICloneable
         {
             #region Properties
-
             private bool m_isPinned = false;
 
             public int[] m_sizeTexture = new int[2]; /**< size of the texure */
 
             private Color32[] pixels2 = new Color32[1];
             GCHandle pixelsHandle2;
-
             #endregion
 
             #region Public Methods
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="other"></param>
             public Texture(Texture other) : base(clone_Texture(other.getHandle()))
             {
                 update_sizes();
             }
-
-
             /// <summary>
             /// 
             /// </summary>
@@ -172,8 +171,6 @@ namespace HBP.Module3D
             {
                 pixelsHandle2.Free();
             }
-
-
             /// <summary>
             /// Init a texture by loading an image.
             /// </summary>
@@ -183,7 +180,6 @@ namespace HBP.Module3D
             {
                 return new Texture(load_Texture(pathTextureFile));
             }
-
             /// <summary>
             /// Copy the input texture, apply a rotation on it and update the current texture
             /// </summary>
@@ -215,8 +211,6 @@ namespace HBP.Module3D
                 copy_from_and_rotate_Texture(_handle, texture.getHandle(), orientation, flip ? 1 : 0, displayCutLines ? 1 : 0, nbPlanes, planes, generator.getHandle());
                 update_sizes();
             }
-
-
             /// <summary>
             /// Save the texture to a PNG file
             /// </summary>
@@ -226,7 +220,6 @@ namespace HBP.Module3D
             {
                 return (save_to_png_Texture(_handle, path) == 1);
             }
-
             /// <summary>
             /// Update the input Texture2D with the DLL Texture
             /// </summary>
@@ -258,8 +251,6 @@ namespace HBP.Module3D
                 texture.SetPixels32(pixels2, 0);
                 texture.Apply();
             }
-
-
             /// <summary>
             /// Generate a texture of the values distribution histogram of the volume
             /// </summary>
@@ -273,7 +264,6 @@ namespace HBP.Module3D
             {
                 return new Texture(generate_distribution_histogram_Texture(volume.getHandle(), height, width, minCoeff, maxCoeff, middle));
             }
-
             /// <summary>
             /// Generate a texture of the values distribution histogram of the input data array
             /// </summary>
@@ -288,7 +278,6 @@ namespace HBP.Module3D
             {
                 return new Texture(generate_distribution_histogram_with_data_Texture(data, data.Length, height, width, minCoeff, maxCoeff, middle));
             }
-
             /// <summary>
             /// Update the size array with the DLL data
             /// </summary>
@@ -296,7 +285,6 @@ namespace HBP.Module3D
             {
                 get_size_Texture(_handle, m_sizeTexture);
             }
-
             /// <summary>
             /// Generate a one dimension texture corresponding to the input id, see DLL for details
             /// </summary>
@@ -306,7 +294,6 @@ namespace HBP.Module3D
             {
                 return new Texture(generate_1D_color_Texture((int)color));
             }
-
             /// <summary>
             ///  Generate a two dimensions texture corresponding to the input IDs, see DLL for details
             /// </summary>
@@ -317,17 +304,13 @@ namespace HBP.Module3D
             {
                 return new Texture(generate_2D_color_Texture((int)color1, (int)color2));
             }
-
             #endregion
 
             #region Memory Management
-
             /// <summary>
             /// Texture default constructor
             /// </summary>
             public Texture() : base() { }
-
-
             /// <summary>
             /// Texture constructor with an already allocated dll texture
             /// </summary>
@@ -336,7 +319,6 @@ namespace HBP.Module3D
             {
                 get_size_Texture( _handle, m_sizeTexture);
             }
-
             /// <summary>
             /// Clone the surface
             /// </summary>
@@ -347,7 +329,6 @@ namespace HBP.Module3D
                 clone.update_sizes();
                 return clone;
             }
-
             /// <summary>
             /// Allocate DLL memory
             /// </summary>
@@ -356,7 +337,6 @@ namespace HBP.Module3D
                 _handle = new HandleRef(this,create_Texture());
                 get_size_Texture(_handle, m_sizeTexture);
             }
-
             /// <summary>
             /// Clean DLL memory
             /// </summary>
@@ -364,7 +344,6 @@ namespace HBP.Module3D
             {
                 delete_Texture(_handle);
             }
-
             #endregion
 
             #region DLLImport

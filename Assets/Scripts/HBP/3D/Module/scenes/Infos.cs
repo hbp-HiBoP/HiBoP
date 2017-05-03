@@ -72,6 +72,7 @@ namespace HBP.Module3D
 
         #endregion
 
+        #region Public Methods
         public void reset()
         {
             // state
@@ -90,13 +91,14 @@ namespace HBP.Module3D
             updateCutMeshGeometry = true;
             generatorUpToDate = false;      
         }
-}
+        #endregion
+    }
 
     /// <summary>
     /// All columns common GO objects displayed in the 3D scene
     /// </summary>
     public class DisplayedObjects3DView
-    {        
+    {
         // Parents objects
         public GameObject brainSurfaceMeshesParent = null;  /**< brain surface meshes parent of the scene */
         public GameObject brainCutMeshesParent = null;      /**< brain cut meshes parent of the scene */
@@ -110,7 +112,5 @@ namespace HBP.Module3D
         public List<GameObject> brainCutMeshes = null;      /**< brain cut meshes of the scene */
 
         public List<GameObject> invisibleBrainSurfaceMeshes = null;
-
-
     }
 }

@@ -22,6 +22,25 @@ namespace HBP.Module3D
     /// </summary>
     public class Latencies
     {
+        #region Properties
+        public string name;
+
+        bool[] stimulationPlots = null;
+        public int[][] latencies = null;
+        public float[][] heights = null;
+
+        public float[][] transparencies = null; // for latency
+        public float[][] sizes = null;          // for height
+        public bool[][] positiveHeight = null;  // for height
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="nbPlots"></param>
+        /// <param name="latencies1D"></param>
+        /// <param name="heights1D"></param>
         public Latencies(int nbPlots, int[] latencies1D, float[] heights1D)
         {
             stimulationPlots = new bool[nbPlots];
@@ -90,17 +109,30 @@ namespace HBP.Module3D
                 }
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idSite"></param>
+        /// <returns></returns>
         public bool is_size_a_source(int idSite)
         {
             return stimulationPlots[idSite];
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idSiteToTest"></param>
+        /// <param name="idSourceSite"></param>
+        /// <returns></returns>
         public bool is_site_responsive_for_source(int idSiteToTest, int idSourceSite)
         {
             return (latencies[idSourceSite][idSiteToTest] != -1 && latencies[idSourceSite][idSiteToTest] != 0);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idSourceSite"></param>
+        /// <returns></returns>
         public List<int> responsive_site_id(int idSourceSite)
         {
             if(!is_size_a_source(idSourceSite))
@@ -120,16 +152,7 @@ namespace HBP.Module3D
             }
             return responsiveSites;
         }
-
-        public string name;
-
-        bool[] stimulationPlots = null;
-        public int[][] latencies = null;
-        public float[][] heights = null;
-
-        public float[][] transparencies = null; // for latency
-        public float[][] sizes = null;          // for height
-        public bool[][] positiveHeight = null;  // for height
+        #endregion
     }
 
 
@@ -141,12 +164,20 @@ namespace HBP.Module3D
         public class MarsAtlasIndex : CppDLLImportBase
         {
             #region Public Methods
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="pathFile"></param>
+            /// <returns></returns>
             public bool load_mars_atlas_index_file(string pathFile)
             {
                 return load_MarsAtlasIndex(_handle, pathFile) == 1;
             }
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="label"></param>
+            /// <returns></returns>
             public string hemisphere(int label)
             {
                 int length = 3;
@@ -155,7 +186,11 @@ namespace HBP.Module3D
                 hemisphere_MarsAtlasIndex(_handle, label, str, length);
                 return str.ToString().Replace("?", string.Empty);
             }
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="label"></param>
+            /// <returns></returns>
             public string lobe(int label)
             {
                 int length = 15;
@@ -164,7 +199,11 @@ namespace HBP.Module3D
                 lobe_MarsAtlasIndex(_handle, label, str, length);
                 return str.ToString().Replace("?", string.Empty);
             }
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="label"></param>
+            /// <returns></returns>
             public string name_FS(int label)
             {
                 int length = 30;
@@ -173,7 +212,11 @@ namespace HBP.Module3D
                 nameFS_MarsAtlasIndex(_handle, label, str, length);
                 return str.ToString().Replace("?", string.Empty);
             }
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="label"></param>
+            /// <returns></returns>
             public string name(int label)
             {
                 int length = 10;
@@ -182,7 +225,11 @@ namespace HBP.Module3D
                 name_MarsAtlasIndex(_handle, label, str, length);
                 return str.ToString().Replace("?", string.Empty);
             }
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="label"></param>
+            /// <returns></returns>
             public string full_name(int label)
             {
                 int length = 50;
@@ -192,8 +239,11 @@ namespace HBP.Module3D
 
                 return str.ToString().Replace("?", string.Empty);
             }
-
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="label"></param>
+            /// <returns></returns>
             public string broadman_area(int label)
             {
                 int length = 100;
@@ -202,11 +252,9 @@ namespace HBP.Module3D
                 BA_MarsAtlasIndex(_handle, label, str, length);
                 return str.ToString().Replace("?", string.Empty);
             }
-
             #endregion
 
             #region Memory Management
-
             /// <summary>
             /// Allocate DLL memory
             /// </summary>
@@ -214,7 +262,6 @@ namespace HBP.Module3D
             {
                 _handle = new HandleRef(this, create_MarsAtlasIndex());
             }
-
             /// <summary>
             /// Clean DLL memory
             /// </summary>
@@ -222,7 +269,6 @@ namespace HBP.Module3D
             {
                 delete_MarsAtlasIndex(_handle);
             }
-
             #endregion
 
             #region DLLImport
@@ -258,7 +304,6 @@ namespace HBP.Module3D
         public class RawSiteList : CppDLLImportBase
         {
             #region Public Methods
-
             /// <summary>
             /// Save the raw plot list to an obj file
             /// </summary>
@@ -270,12 +315,14 @@ namespace HBP.Module3D
                 StaticComponents.DLLDebugManager.check_error();
                 return success;
             }
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <returns></returns>
             public int sites_nb()
             {
                 return sites_nb_RawSiteList(_handle);
             }
-
             /// <summary>
             /// Update the mask of the site corresponding to the input id
             /// </summary>
@@ -285,7 +332,11 @@ namespace HBP.Module3D
             {
                 update_mask_RawSiteList(_handle, idSite, mask ? 1 : 0);
             }
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="latencyFilePath"></param>
+            /// <returns></returns>
             public Latencies update_latencies_with_file(string latencyFilePath)
             {
                 int nbPlots = sites_nb();
@@ -299,7 +350,6 @@ namespace HBP.Module3D
                 Latencies PatientLatencies = new Latencies(nbPlots, latencies, heights);
                 return PatientLatencies;
             }
-
             /// <summary>
             /// Generate dummy latencies for debug purposes
             /// </summary>
@@ -315,11 +365,9 @@ namespace HBP.Module3D
                 Latencies PatientLatencies = new Latencies(nbPlots, latencies, heights);
                 return PatientLatencies;
             }
-
             #endregion
 
             #region Memory Management
-
             /// <summary>
             /// Allocate DLL memory
             /// </summary>
@@ -327,7 +375,6 @@ namespace HBP.Module3D
             {
                 _handle = new HandleRef(this, create_RawSiteList());
             }
-
             /// <summary>
             /// Clean DLL memory
             /// </summary>
@@ -335,7 +382,6 @@ namespace HBP.Module3D
             {
                 delete_RawSiteList(_handle);
             }
-
             #endregion
 
             #region DLLImport
@@ -388,7 +434,6 @@ namespace HBP.Module3D
         public class PatientElectrodesList : CppDLLImportBase, ICloneable
         {
             #region Public Methods
-
             /// <summary>
             /// Load a list of pts files add fill ElectrodesPatientMultiList with data
             /// </summary>
@@ -425,17 +470,22 @@ namespace HBP.Module3D
 
                 return true;
             }
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <returns></returns>
             public int total_sites_nb()
             {
                 return sites_nb_PatientElectrodesList(_handle);
             }
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <returns></returns>
             public int patients_nb()
             {
                 return patients_nb_PatientElectrodesList(_handle);
             }
-
             /// <summary>
             /// Return the number of electrode for the input patient id 
             /// </summary>
@@ -445,7 +495,6 @@ namespace HBP.Module3D
             {
                 return electrodes_nb_PatientElectrodesList(_handle, patientId);
             }
-
             /// <summary>
             /// Return the eletrode number of plots for the input patient id
             /// </summary>
@@ -456,7 +505,6 @@ namespace HBP.Module3D
             { 
                 return electrode_sites_nb_PatientElectrodesList(_handle, patientId, electrodeId);
             }
-
             /// <summary>
             /// Return the patient number of sites.
             /// </summary>
@@ -466,7 +514,6 @@ namespace HBP.Module3D
             {
                 return patient_sites_nb_PatientElectrodesList(_handle, patientId);
             }
-
             /// <summary>
             /// Set the new state for a patient mask 
             /// </summary>
@@ -476,7 +523,6 @@ namespace HBP.Module3D
             {
                 set_mask_patient_PatientElectrodesList(_handle, state ? 1 : 0, patientId);
             }
-
             /// <summary>
             /// Set the new state for an electrode mask 
             /// </summary>
@@ -487,7 +533,6 @@ namespace HBP.Module3D
             {
                 set_mask_electrode_PatientElectrodesList(_handle, state ? 1 : 0, patientId, electrodeId);
             }
-
             /// <summary>
             /// Set the new state for a site mask 
             /// </summary>
@@ -499,7 +544,6 @@ namespace HBP.Module3D
             {                
                 set_mask_site_PatientElectrodesList(_handle, state ? 1 : 0, patientId, electrodeId, siteId);
             }
-
             /// <summary>
             /// Return the site mask value
             /// </summary>
@@ -511,7 +555,6 @@ namespace HBP.Module3D
             {
                 return site_mask_PatientElectrodesList(_handle, patientId, electrodeId, siteId) == 1;
             }
-
             /// <summary>
             /// Return the site position
             /// </summary>
@@ -525,8 +568,6 @@ namespace HBP.Module3D
                 site_pos_PatientElectrodesList(_handle, patientId, electrodeId, siteId, pos);
                 return new Vector3(pos[0], pos[1], pos[2]);
             }
-
-
             /// <summary>
             /// Return the site name (electrode name + plot id )
             /// </summary>
@@ -543,7 +584,6 @@ namespace HBP.Module3D
 
                 return str.ToString().Replace("?", string.Empty);
             }
-
             /// <summary>
             /// Reset the input raw site list with PatientElectrodesList data
             /// </summary>
@@ -552,7 +592,6 @@ namespace HBP.Module3D
             {
                 extract_raw_site_list_PatientElectrodesList(_handle, rawSiteList.getHandle());
             }
-
             /// <summary>
             /// Update the mask of the input rawSiteList
             /// </summary>
@@ -561,7 +600,6 @@ namespace HBP.Module3D
             {
                 update_raw_site_list_mask_PatientElectrodesList(_handle, rawSiteList.getHandle());
             }
-
             /// <summary>
             /// Return the patient name
             /// </summary>
@@ -576,7 +614,6 @@ namespace HBP.Module3D
 
                 return str.ToString().Replace("?", string.Empty);
             }
-
             /// <summary>
             /// Return the electrode name
             /// </summary>
@@ -592,7 +629,6 @@ namespace HBP.Module3D
 
                 return str.ToString().Replace("?", string.Empty);
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -604,28 +640,23 @@ namespace HBP.Module3D
             {
                 return site_mars_atlas_label_PatientElectrodesList(_handle, patientId, electrodeId, siteId);
             }
-
             #endregion
 
             #region Memory Management
-
             /// <summary>
             /// ElectrodesPatientMultiList default constructor
             /// </summary>
             public PatientElectrodesList() : base() { }
-
             /// <summary>
             /// ElectrodesPatientMultiList constructor with an already allocated dll ElectrodesPatientMultiList
             /// </summary>
             /// <param name="electrodesPatientMultiListHandle"></param>
             private PatientElectrodesList(IntPtr electrodesPatientMultiListHandle) : base(electrodesPatientMultiListHandle) { }
-
             /// <summary>
             /// ElectrodesPatientMultiList_dll copy constructor
             /// </summary>
             /// <param name="other"></param>
             public PatientElectrodesList(PatientElectrodesList other) : base(clone_PatientElectrodesList(other.getHandle())) { }
-
             /// <summary>
             /// Clone the surface
             /// </summary>
@@ -634,7 +665,6 @@ namespace HBP.Module3D
             {
                 return new PatientElectrodesList(this);
             }
-
             /// <summary>
             /// Allocate DLL memory
             /// </summary>
@@ -642,7 +672,6 @@ namespace HBP.Module3D
             {
                 _handle = new HandleRef(this, create_PatientElectrodesList());
             }
-
             /// <summary>
             /// Clean DLL memory
             /// </summary>
@@ -650,7 +679,6 @@ namespace HBP.Module3D
             {
                 delete_PatientElectrodesList(_handle);
             }
-
             #endregion
 
             #region DLLImport

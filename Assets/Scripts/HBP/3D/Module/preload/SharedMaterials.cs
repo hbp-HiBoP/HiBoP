@@ -20,6 +20,7 @@ namespace HBP.Module3D
     /// </summary>
     public class SharedMaterials : MonoBehaviour
     {
+        #region Struct
         public struct Brain
         {
             public static Dictionary<Base3DScene, Material> BrainMaterials = new Dictionary<Base3DScene, Material>();
@@ -90,7 +91,9 @@ namespace HBP.Module3D
             public static Material Marked = null;
             public static Material MarkedHighlighted = null;
         }
+        #endregion
 
+        #region Private Methods
         void Awake()
         {
             // ROI
@@ -122,7 +125,9 @@ namespace HBP.Module3D
             // Brain
             Brain.Initialize();
         }
+        #endregion
 
+        #region Public Methods
         public static Material site_shared_material(bool hightlighted, SiteType siteType)
         {
             if (!hightlighted)
@@ -162,8 +167,6 @@ namespace HBP.Module3D
 
             return null;
         }
+        #endregion
     }
 }
-
-
-

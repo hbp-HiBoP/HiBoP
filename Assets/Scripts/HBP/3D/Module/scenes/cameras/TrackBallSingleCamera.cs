@@ -20,13 +20,10 @@ namespace HBP.Module3D.Cam
     public class TrackBallSingleCamera : TrackBallCamera
     {
         #region Properties
-
         private Transform m_SPCameraParent; /**< SP camera parent */
-
         #endregion
 
         #region Private Methods
-
         protected void Start()
         {
             m_Type = SceneType.SinglePatient;
@@ -85,7 +82,6 @@ namespace HBP.Module3D.Cam
                 m_DisplayCutsCircles = true;
             });
         }
-
         new protected void OnGUI()
         {
             base.OnGUI();
@@ -103,7 +99,6 @@ namespace HBP.Module3D.Cam
                     move_forward(m_ZoomSpeed);
             }
         }
-
         public void LateUpdate()
         {
             // if mouse not in the screen, abort
@@ -128,8 +123,6 @@ namespace HBP.Module3D.Cam
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
-
         #endregion
     }
-
 }

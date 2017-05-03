@@ -19,6 +19,7 @@ namespace HBP.Module3D
     /// </summary>
     public class SharedMeshes : MonoBehaviour
     {
+        #region Properties
         static public Mesh ROIBubble = null;
         static public Mesh Site = null;
         static public Mesh HighlightedSite = null;
@@ -27,7 +28,9 @@ namespace HBP.Module3D
         static public Mesh SiteLOD0 = null;
         static public Mesh SiteLOD1 = null;
         static public Mesh SiteLOD2 = null;
+        #endregion
 
+        #region Private Methods
         void Awake()
         {
             ROIBubble = Geometry.create_sphere_mesh(1f, 48, 32);
@@ -40,5 +43,6 @@ namespace HBP.Module3D
             SiteLOD1 = Geometry.create_sphere_mesh(1, 12, 8);
             SiteLOD2 = Geometry.create_sphere_mesh(1, 4, 3);
         }
+        #endregion
     }
 }

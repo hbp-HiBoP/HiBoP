@@ -22,14 +22,11 @@ namespace HBP.Module3D.Cam
     public class TrackBallMultiCamera : TrackBallCamera
     {
         #region Properties
-
         private Transform m_MPCameraParent; /**< MP camera parent */
         private MultiPatients3DScene m_associatedMPScene; /**< MP associated scene */
-
         #endregion
 
         #region Private Methods
-
         protected void Start()
         {
             m_Type = SceneType.MultiPatients;
@@ -88,7 +85,6 @@ namespace HBP.Module3D.Cam
                 m_DisplayCutsCircles = true;
             });
         }
-
         new protected void OnGUI()
         {
             base.OnGUI();
@@ -109,7 +105,6 @@ namespace HBP.Module3D.Cam
                 }
             }
         }
-
         public void LateUpdate()
         {
             // if mouse not in the screen, abort
@@ -130,9 +125,6 @@ namespace HBP.Module3D.Cam
                 }
             }
         }
-
-
-
         #endregion
     }
 }

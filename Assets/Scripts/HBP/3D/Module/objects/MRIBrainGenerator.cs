@@ -26,17 +26,14 @@ namespace HBP.Module3D
         public class MRIBrainGenerator : CppDLLImportBase, ICloneable
         {
             #region Properties
-
             Vector2[] m_uvAmplitudesV = new Vector2[0];
             Vector2[] m_uvAlphaV = new Vector2[0];
 
             GCHandle m_uvAmplitudesHandle;
             GCHandle m_uvAlphaHandle;
-
             #endregion
 
             #region Public Methods
-
             /// <summary>
             /// 
             /// </summary>
@@ -47,7 +44,6 @@ namespace HBP.Module3D
                 reset_BrainSurfaceTextureGenerator(_handle, surface.getHandle(), volume.getHandle());
                 StaticComponents.DLLDebugManager.check_error();
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -57,7 +53,6 @@ namespace HBP.Module3D
                 initOctree_BrainSurfaceTextureGenerator(_handle, rawPlotList.getHandle());
                 StaticComponents.DLLDebugManager.check_error();
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -75,7 +70,6 @@ namespace HBP.Module3D
 
                 return noError;
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -84,7 +78,6 @@ namespace HBP.Module3D
             {
                 return getMaximumDensity_BrainSurfaceTextureGenerator( _handle);
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -93,7 +86,6 @@ namespace HBP.Module3D
             {
                 return getMinInf_BrainSurfaceTextureGenerator(_handle);
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -102,7 +94,6 @@ namespace HBP.Module3D
             {
                 return getMaxInf_BrainSurfaceTextureGenerator(_handle);
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -113,7 +104,6 @@ namespace HBP.Module3D
             {
                 synchronizeWithOthersGenerators_BrainSurfaceTextureGenerator(_handle, sharedMaxDensity, sharedMinInf, sharedMaxInf);
             }
-
             /// <summary>
             /// Compute the influence
             /// </summary>
@@ -134,7 +124,6 @@ namespace HBP.Module3D
 
                 return noError;
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -142,13 +131,17 @@ namespace HBP.Module3D
             {
                 ajustInfluencesToColormap_BrainSurfaceTextureGenerator( _handle);
             }
-
-
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="surface"></param>
+            /// <param name="volume"></param>
+            /// <param name="calMin"></param>
+            /// <param name="calMax"></param>
             public void compute_UVMain_with_volume(DLL.Surface surface, DLL.Volume volume, float calMin, float calMax)
             {
                 compute_UVMain_with_volume_BrainSurfaceTextureGenerator(_handle, volume.getHandle(), surface.getHandle(), calMin, calMax);// calMin, calMax);
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -188,7 +181,6 @@ namespace HBP.Module3D
 
                 return noError;
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -197,7 +189,6 @@ namespace HBP.Module3D
             {
                 return m_uvAmplitudesV;
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -206,12 +197,9 @@ namespace HBP.Module3D
             {
                 return m_uvAlphaV;
             }
-
-
             #endregion
 
             #region Memory Management
-
             /// <summary>
             /// Allocate DLL memory
             /// </summary>
@@ -219,7 +207,6 @@ namespace HBP.Module3D
             {
                 _handle = new HandleRef(this,create_BrainSurfaceTextureGenerator());
             }
-
             /// <summary>
             /// Clean DLL memory
             /// </summary>
@@ -227,18 +214,15 @@ namespace HBP.Module3D
             {
                delete_BrainSurfaceTextureGenerator(_handle);
             }
-
             /// <summary>
             /// BrainTextureGenerator default constructor
             /// </summary>
             public MRIBrainGenerator() : base() { }
-
             /// <summary>
             /// BrainTextureGenerator copy constructor
             /// </summary>
             /// <param name="other"></param>
             public MRIBrainGenerator(MRIBrainGenerator other) : base(clone_BrainSurfaceTextureGenerator(other.getHandle())) { }
-
             /// <summary>
             /// Clone the BrainTextureGenerator
             /// </summary>
@@ -247,7 +231,6 @@ namespace HBP.Module3D
             {
                 return new MRIBrainGenerator(this);
             }
-
             #endregion
 
             #region DLLImport

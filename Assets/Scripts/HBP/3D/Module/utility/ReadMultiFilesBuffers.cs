@@ -23,7 +23,6 @@ namespace HBP.Module3D.DLL
     public class ReadMultiFilesBuffers : CppDLLImportBase
     {
         #region Properties
-
         public enum FilesTypes : int
         {
             MeshesObj, MeshesGII, MeshesTRI, VolNII, None
@@ -33,11 +32,12 @@ namespace HBP.Module3D.DLL
         private int m_nbFilesRead;
         private FilesTypes m_currentFilesType;
         //private bool m_filesParsed;
-
         #endregion
 
         #region Public Methods
-
+        /// <summary>
+        /// 
+        /// </summary>
         void reset()
         {
             // ... DLL reset
@@ -46,7 +46,12 @@ namespace HBP.Module3D.DLL
             //m_filesParsed = false;
             m_currentFilesType = FilesTypes.None;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pathsFiles"></param>
+        /// <param name="filesType"></param>
+        /// <returns></returns>
         public bool read_buffers_files(List<string> pathsFiles, FilesTypes filesType)
         {
             for (int ii = 0; ii < pathsFiles.Count; ++ii)
@@ -58,7 +63,10 @@ namespace HBP.Module3D.DLL
 
             return true;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public bool parse_meshes()
         {
             if (m_currentFilesType == FilesTypes.MeshesObj)
@@ -71,7 +79,10 @@ namespace HBP.Module3D.DLL
 
             return true;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public List<Surface> meshes()
         {
             List<Surface> meshes = new List<Surface>(m_nbFilesRead);
@@ -85,12 +96,9 @@ namespace HBP.Module3D.DLL
 
             return meshes;
         }
-
-
         #endregion
 
         #region Memory Management
-
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
@@ -98,7 +106,6 @@ namespace HBP.Module3D.DLL
         {
             _handle = new HandleRef(this, create_readMultiFilesBuffers());
         }
-
         /// <summary>
         /// Clean DLL memory
         /// </summary>
@@ -106,7 +113,6 @@ namespace HBP.Module3D.DLL
         {
             delete_readMultiFilesBuffers(_handle);
         }
-
         #endregion
 
         #region DLLImport

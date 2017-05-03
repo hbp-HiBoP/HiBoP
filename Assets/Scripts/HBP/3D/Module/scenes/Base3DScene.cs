@@ -19,6 +19,7 @@ using HBP.UI.Module3D;
 
 namespace HBP.Module3D
 {
+    #region Struct
     /// <summary>
     /// Plot request to be send to the outside UI
     /// </summary>
@@ -154,6 +155,7 @@ namespace HBP.Module3D
         public float calMax;
         public MRICalValues calValues;
     }
+    #endregion
 
     namespace Events
     {
@@ -1434,7 +1436,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         public TriEraser.Mode CurrentTriangleErasingMode()
         {
-            return m_TriEraser.mode();
+            return m_TriEraser.CurrentMode;
         }
         /// <summary>
         /// 
@@ -1499,7 +1501,7 @@ namespace HBP.Module3D
         /// <param name="mode"></param>
         public void SetTriangleErasingMode(TriEraser.Mode mode)
         {
-            TriEraser.Mode previousMode = m_TriEraser.mode();
+            TriEraser.Mode previousMode = m_TriEraser.CurrentMode;
             m_TriEraser.set_tri_erasing_mode(mode);
 
             if (mode == TriEraser.Mode.Expand || mode == TriEraser.Mode.Invert)
@@ -2001,26 +2003,29 @@ namespace HBP.Module3D
     /// </summary>
     public class ComputeGeneratorsJob : ThreadedJob
     {
-        public ComputeGeneratorsJob()
-        { }
-
+        #region Properties
         public SceneStatesInfo data_ = null;
         public Column3DViewManager cm_ = null;
+        #endregion
 
+        #region Private Methods
+        /// <summary>
+        /// 
+        /// </summary>
         protected override void ThreadFunction()
         {
             bool useMultiCPU = true;
             bool addValues = false;
             bool ratioDistances = true;
-            
+
             data_.rwl.AcquireWriterLock(1000);
-                data_.currentComputingState = 0f;
+            data_.currentComputingState = 0f;
             data_.rwl.ReleaseWriterLock();
 
             // copy from main generators
             for (int ii = 0; ii < cm_.ColumnsIEEG.Count; ++ii)
-            {                
-                for(int jj = 0; jj < cm_.meshSplitNb; ++jj)
+            {
+                for (int jj = 0; jj < cm_.meshSplitNb; ++jj)
                 {
                     cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj] = (DLL.MRIBrainGenerator)cm_.DLLCommonBrainTextureGeneratorList[jj].Clone();
                 }
@@ -2034,7 +2039,7 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < cm_.ColumnsIEEG.Count; ++ii)
                 {
                     data_.rwl.AcquireWriterLock(1000);
-                        data_.currentComputingState += offsetState;
+                    data_.currentComputingState += offsetState;
                     data_.rwl.ReleaseWriterLock();
 
                     float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
@@ -2047,18 +2052,18 @@ namespace HBP.Module3D
                     cm_.ColumnsIEEG[ii].update_DLL_sites_mask();
 
                     // splits
-                    for(int jj = 0; jj < cm_.meshSplitNb; ++jj)
+                    for (int jj = 0; jj < cm_.meshSplitNb; ++jj)
                     {
                         cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].init_octree(cm_.ColumnsIEEG[ii].RawElectrodes);
 
-                        
-                        if(!cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].compute_distances(cm_.ColumnsIEEG[ii].maxDistanceElec, true))
+
+                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].compute_distances(cm_.ColumnsIEEG[ii].maxDistanceElec, true))
                         {
                             Debug.LogError("Abort computing"); // useless
                             return;
                         }
 
-                        if(!cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].compute_influences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
+                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].compute_influences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
                         {
                             Debug.LogError("Abort computing"); // useless
                             return;
@@ -2079,7 +2084,7 @@ namespace HBP.Module3D
                     }
 
                     data_.rwl.AcquireWriterLock(1000);
-                        data_.currentComputingState += offsetState;
+                    data_.currentComputingState += offsetState;
                     data_.rwl.ReleaseWriterLock();
 
 
@@ -2094,7 +2099,7 @@ namespace HBP.Module3D
                             Debug.LogError("Abort computing");
                             return;
                         }
-     
+
                         currentMaxDensity = cm_.ColumnsIEEG[ii].DLLMRITextureCutGeneratorList[jj].maximum_density();
                         currentMinInfluence = cm_.ColumnsIEEG[ii].DLLMRITextureCutGeneratorList[jj].minimum_influence();
                         currentMaxInfluence = cm_.ColumnsIEEG[ii].DLLMRITextureCutGeneratorList[jj].maximum_influence();
@@ -2108,7 +2113,7 @@ namespace HBP.Module3D
                         if (currentMaxInfluence > cm_.ColumnsIEEG[ii].sharedMaxInf)
                             cm_.ColumnsIEEG[ii].sharedMaxInf = currentMaxInfluence;
                     }
-  
+
                     // synchronize max density
                     for (int jj = 0; jj < cm_.meshSplitNb; ++jj)
                         cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].synchronizeWithOthersGenerators(maxDensity, cm_.ColumnsIEEG[ii].sharedMinInf, cm_.ColumnsIEEG[ii].sharedMaxInf);
@@ -2119,14 +2124,14 @@ namespace HBP.Module3D
                         cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].ajustInfluencesToColormap();
                     for (int jj = 0; jj < cm_.planesCutsCopy.Count; ++jj)
                         cm_.ColumnsIEEG[ii].DLLMRITextureCutGeneratorList[jj].ajust_influences_to_colormap();
-                }                
+                }
             }
             else // if inflated white mesh is displayed, we compute only on the complete white mesh
             {
                 for (int ii = 0; ii < cm_.ColumnsIEEG.Count; ++ii)
                 {
                     data_.rwl.AcquireWriterLock(1000);
-                        data_.currentComputingState += offsetState;
+                    data_.currentComputingState += offsetState;
                     data_.rwl.ReleaseWriterLock();
 
                     float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
@@ -2144,13 +2149,13 @@ namespace HBP.Module3D
                         cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].reset(cm_.DLLSplittedWhiteMeshesList[jj], cm_.DLLVolume); // TODO : ?
                         cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].init_octree(cm_.ColumnsIEEG[ii].RawElectrodes);
 
-                        if(!cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].compute_distances(cm_.ColumnsIEEG[ii].maxDistanceElec, true))
+                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].compute_distances(cm_.ColumnsIEEG[ii].maxDistanceElec, true))
                         {
                             Debug.LogError("Abort computing");
                             return;
                         }
 
-                        if(!cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].compute_influences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
+                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGeneratorList[jj].compute_influences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
                         {
                             Debug.LogError("Abort computing");
                             return;
@@ -2171,7 +2176,7 @@ namespace HBP.Module3D
                     }
 
                     data_.rwl.AcquireWriterLock(1000);
-                        data_.currentComputingState += offsetState;
+                    data_.currentComputingState += offsetState;
                     data_.rwl.ReleaseWriterLock();
 
 
@@ -2184,8 +2189,21 @@ namespace HBP.Module3D
                 }
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         protected override void OnFinished()
-        { }     
+        { }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// 
+        /// </summary>
+        public ComputeGeneratorsJob()
+        { }
+        #endregion
+
+
     }
 }

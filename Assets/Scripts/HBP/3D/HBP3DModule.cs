@@ -166,7 +166,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="showSPScene"> if true display single patient scene</param>
         /// <param name="showMPScene"> if true display multi patients scene</param>
-        public void SetScenesVisibility(bool showSPScene = true, bool showMPScene = true) // FIXME : maybe delete
+        public void SetScenesVisibility(bool showSPScene = true, bool showMPScene = true) // DELETEME maybe
         {
             ScenesManager.SetScenesVisibility(showSPScene, showMPScene);
         }
@@ -228,7 +228,7 @@ namespace HBP.Module3D
         /// Define the ratio between the two scenes
         /// </summary>
         /// <param name="ratio"></param>
-        public void SetSceneRatio(float ratio) // FIXME : delete
+        public void SetSceneRatio(float ratio) // DELETEME
         {
             bool isSPSceneDisplayed = (ratio > 0.2f);
             bool isMPSceneDisplayed = (ratio < 0.8f);

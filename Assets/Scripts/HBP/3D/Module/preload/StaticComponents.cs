@@ -23,6 +23,7 @@ namespace HBP.Module3D
     /// </summary>
     public class StaticComponents : MonoBehaviour
     {
+        #region Properties
         static public HBP3DModule HBPCommand = null;
         static public ScenesManager ScenesManager = null;
         static public SinglePatient3DScene SinglePatientScene = null;
@@ -33,7 +34,9 @@ namespace HBP.Module3D
         static public Cam.InputsSceneManager InputsSceneManager = null;
         static public DLL.DLLDebugManager DLLDebugManager = null;
         static public Transform CanvasOverlay = null;
+        #endregion
 
+        #region Private Methods
         void Awake()
         {
             DLLDebugManager = GetComponent<DLL.DLLDebugManager>();
@@ -50,5 +53,6 @@ namespace HBP.Module3D
             UICameraManager = Visualisation.FindChild("Mid").GetComponent<MenuManager>();
             UIOverlayManager = CanvasOverlay.GetComponent<UIOverlayManager>();
         }
+        #endregion
     }
 }

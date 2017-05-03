@@ -325,6 +325,10 @@ namespace HBP.Module3D
             
             return text;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public string only_sites_in_ROI_str()
         {
             List<bool> sitesInROIPerPatient = new List<bool>(plotsGO.Count);
@@ -388,11 +392,24 @@ namespace HBP.Module3D
 
             return text;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="colormap"></param>
+        /// <param name="colorBrainCut"></param>
         public void reset_color_schemes(ColorType colormap, ColorType colorBrainCut)
         {
             DLLCutColorScheme = DLL.Texture.generate_2D_color_texture(colorBrainCut, colormap); 
             DLLCutFMRIColorScheme = DLL.Texture.generate_2D_color_texture(colorBrainCut, colormap);
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="geometryGenerator"></param>
+        /// <param name="volume"></param>
+        /// <param name="indexCut"></param>
+        /// <param name="MRICalMinFactor"></param>
+        /// <param name="MRICalMaxFactor"></param>
         public void create_MRI_texture(DLL.MRIGeometryCutGenerator geometryGenerator, DLL.Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor)
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture reset 0  ");
@@ -412,6 +429,14 @@ namespace HBP.Module3D
             dllBrainCutTextures[indexCut].update_texture_2D(brainCutTextures[indexCut]); // update mesh cut 2D texture
             UnityEngine.Profiling.Profiler.EndSample();
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="indexCut"></param>
+        /// <param name="orientation"></param>
+        /// <param name="flip"></param>
+        /// <param name="cutPlanes"></param>
+        /// <param name="drawLines"></param>
         public void create_GUI_MRI_texture(int indexCut, string orientation, bool flip, List<Plane> cutPlanes, bool drawLines)
         {
             if (dllBrainCutTextures[indexCut].m_sizeTexture[0] > 0)
@@ -420,22 +445,35 @@ namespace HBP.Module3D
                 dllGuiBrainCutTextures[indexCut].update_texture_2D(guiBrainCutTextures[indexCut]);
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public void AddView()
         {
             View view = Instantiate(ViewPrefab, transform).GetComponent<View>();
             view.gameObject.name = "View " + m_Views.Count;
             m_Views.Add(view);
         }
+        /// <summary>
+        /// 
+        /// </summary>
         public void RemoveView()
         {
             Destroy(m_Views[m_Views.Count - 1].gameObject);
             m_Views.RemoveAt(m_Views.Count - 1);
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionOfInterest"></param>
         public void AddRegionOfInterest(Data.Visualisation.RegionOfInterest regionOfInterest)
         {
 
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionOfInterest"></param>
         public void RemoveRegionOfInterest(Data.Visualisation.RegionOfInterest regionOfInterest)
         {
 

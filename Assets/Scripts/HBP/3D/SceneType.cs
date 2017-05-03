@@ -1,6 +1,6 @@
 ﻿public enum SceneType { SinglePatient, MultiPatients };
 public enum CameraType { EEG, fMRI };
-public enum ColorType // For now, integers matter because of the link with the dll. FIXME
+public enum ColorType // For now, integers matter because of the link with the dll. FIXME or don't
 {
     Grayscale = 0,
     Hot = 1,

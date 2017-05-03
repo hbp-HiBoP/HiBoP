@@ -21,7 +21,6 @@ namespace HBP.Module3D.DLL
     public class Surface : CppDLLImportBase, ICloneable
     {
         #region Properties
-
         private int[] m_triID = new int[0];             /**< raw array of triangles id */
         private Vector3[] m_vertices = new Vector3[0];  /**< raw array of vertices */
         private Vector3[] m_normals = new Vector3[0];   /**< raw array of normals for each vertex */
@@ -35,10 +34,9 @@ namespace HBP.Module3D.DLL
         GCHandle m_uvHandle;
         GCHandle m_triIdHandle;
         GCHandle m_colorHandle;
-
         #endregion
-        #region Public Methods
 
+        #region Public Methods
         /// <summary>
         /// Initialize the surface by loading an obj mesh file
         /// </summary>
@@ -53,7 +51,6 @@ namespace HBP.Module3D.DLL
             }
             return fileLoaded;
         }
-
         /// <summary>
         /// Initialize the surface by loading a GIFTI mesh file and applying the optional transform file
         /// </summary>
@@ -73,7 +70,6 @@ namespace HBP.Module3D.DLL
             }
             return fileLoaded;
         }
-
         /// <summary>
         /// Initialize the surface by loading a TRI mesh file and applying the optional transform file
         /// </summary>
@@ -93,7 +89,6 @@ namespace HBP.Module3D.DLL
             }
             return fileLoaded;
         }
-
         /// <summary>
         /// Define the mars atlas parcels gii file to be used for coloring the vertices
         /// </summary>
@@ -103,7 +98,6 @@ namespace HBP.Module3D.DLL
         {
             return seach_mars_parcel_file_and_update_colors_Surface(_handle, index.getHandle(), pathMarsParcel) == 1;
         }
-
         /// <summary>
         /// Save surface to an obj (wawefront) file
         /// </summary>
@@ -119,12 +113,13 @@ namespace HBP.Module3D.DLL
             }
             return fileSaved;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public void compute_normals()
         {
             compute_normals_Surface(_handle);
         }
-
         /// <summary>
         /// Flip the side of all the triangles
         /// </summary>
@@ -132,7 +127,6 @@ namespace HBP.Module3D.DLL
         {
             flip_Surface(_handle);
         }
-
         /// <summary>
         /// Split the surface in n sub surfaces (the split is based on the triangles, not the vertices, be careful with the 65K vertices limit for GO)
         /// </summary>
@@ -150,17 +144,22 @@ namespace HBP.Module3D.DLL
             delete_MultiSurface(pSubSurfaces);
             return splits;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public int vertices_nb()
         {
             return vertices_nb_Surface(_handle);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public BBox bounding_box()
         {           
             return new BBox(bounding_box_Surface(_handle));
         }
-
         /// <summary>
         /// Update the visibility triangle mask of the mesh with the input array and return a new mesh made with invisible triangles
         /// </summary>
@@ -172,7 +171,6 @@ namespace HBP.Module3D.DLL
             update_visiblity_mask_Surface(_handle, invisiblePartMesh.getHandle(), visibilityMask);
             return invisiblePartMesh;
         }
-
         /// <summary>
         /// Update the visibility triangle mask of the mesh depending the input TriErased action
         /// </summary>
@@ -195,14 +193,16 @@ namespace HBP.Module3D.DLL
             update_visiblity_mask_with_ray(_handle, invisiblePartMesh.getHandle(), rayDirectionArray, hitPointArray, (int) mode, degrees);
             return invisiblePartMesh;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public int[] visibility_mask()
         {
             int[] visibilityMask = new int[triangles_nb()];
             retrieve_visibility_mask(_handle, visibilityMask);
             return visibilityMask;
         }
-
         /// <summary>
         /// Cut the mesh with the input cut planes and return it:  Surface[0]: cut mesh result,  Surface[1]: plane cut mesh for the first plane, Surface[2]: plane cut mesh for the second plane...
         /// </summary>
@@ -244,7 +244,6 @@ namespace HBP.Module3D.DLL
             delete_MultiSurface(pCutMultiSurface);
             return cuts;
         }
-
         /// <summary>
         /// Merge the mesh with the input one
         /// </summary>
@@ -253,7 +252,6 @@ namespace HBP.Module3D.DLL
         {
             merge_Surface(_handle, surfaceToAdd.getHandle());
         }
-
         /// <summary>
         /// Return the computer offset for the input cut plane and the wanted number of cuts
         /// </summary>
@@ -264,7 +262,15 @@ namespace HBP.Module3D.DLL
         {            
             return size_offset_cut_plane_Surface(_handle, cutPlane.convertToArray(), nbCuts);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mesh"></param>
+        /// <param name="all"></param>
+        /// <param name="vertices"></param>
+        /// <param name="normals"></param>
+        /// <param name="uv"></param>
+        /// <param name="triangles"></param>
         public void update_mesh_from_dll(Mesh mesh, bool all = true, bool vertices = true, bool normals = true, bool uv = true, bool triangles = true)
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-updateMeshMashall 1");
@@ -346,22 +352,29 @@ namespace HBP.Module3D.DLL
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
-       
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public int triangles_nb()
         {
             m_sizes = new int[6];
             sizes_Surface(_handle, m_sizes);
             return m_sizes[5];
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public int visible_triangles_nb()
         {
             m_sizes = new int[6];
             sizes_Surface(_handle, m_sizes);
             return m_sizes[1];
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public void display_sizes()
         {
             m_sizes = new int[6];
@@ -375,30 +388,29 @@ namespace HBP.Module3D.DLL
             int nbAllIntTriIndices = m_sizes[5] * 3;
             Debug.Log("debug surface : " + nbFloatVertices + " " + nbFloatNormals + " " + nbVisibleIntTriIndices + " " + nbFloatUV + " " + nbFLoatColors + " " + nbAllIntTriIndices);            
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="surface"></param>
         public void swap_DLL_handle(Surface surface)
         {
             HandleRef buffer = surface.getHandle();
             surface._handle = _handle;
             _handle = buffer;
         }
-
         #endregion
 
         #region Memory Management
-
         /// <summary>
         /// Surface default constructor
         /// </summary>
         public Surface() : base()
         { }
-
         /// <summary>
         /// Surface constructor with an already  allocated dll surface
         /// </summary>
         /// <param name="surfaceHandle"></param>
         public Surface(IntPtr surfaceHandle) : base(surfaceHandle) { }
-
         /// <summary>
         /// Surface copy constructor
         /// </summary>
@@ -418,7 +430,6 @@ namespace HBP.Module3D.DLL
             other.m_uv.CopyTo(m_uv, 0);
 
         }
-
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
@@ -426,7 +437,6 @@ namespace HBP.Module3D.DLL
         {
             _handle = new HandleRef(this,create_Surface());
         }
-
         /// <summary>
         /// Clean DLL memory
         /// </summary>
@@ -434,7 +444,6 @@ namespace HBP.Module3D.DLL
         {
             delete_Surface(_handle);
         }
-
         /// <summary>
         /// Clone the surface
         /// </summary>
@@ -443,8 +452,8 @@ namespace HBP.Module3D.DLL
         {
             return new Surface(this);
         }
-
         #endregion
+
         #region DLLImport
         #region Surface
 

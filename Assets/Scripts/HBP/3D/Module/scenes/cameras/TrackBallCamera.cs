@@ -186,7 +186,6 @@ namespace HBP.Module3D.Cam
         #endregion
 
         #region Private Methods
-
         protected void Awake()
         {
             m_OriginalRotationEuler = transform.localEulerAngles;
@@ -206,12 +205,10 @@ namespace HBP.Module3D.Cam
                 m_YRotationCircleVertices[ii] = Quaternion.AngleAxis(90, Vector3.left) * m_YRotationCircleVertices[ii];
             }
         }
-
         protected void OnPreCull()
         {
             m_AssociatedScene.ResetRenderingSettings(GetComponent<Transform>().eulerAngles);
         }
-
         protected void OnPreRender()
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-OnPreRender");
@@ -224,14 +221,11 @@ namespace HBP.Module3D.Cam
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
-
-
         protected void OnPostRender()
         {
             drawGL();
             m_displayRotationCircles = false;
         }
-
         protected void Update()
         {
             // update current color
@@ -250,11 +244,6 @@ namespace HBP.Module3D.Cam
           
             StartCoroutine("drawGL");
         }
-
-
-        /// <summary>
-        /// Called multiple times per frame in response to GUI events. The Layout and Repaint events are processed first, followed by a Layout and keyboard/mouse event for each input event.
-        /// </summary>
         protected void OnGUI()
         {
             m_IsFocusedOnCamera = is_focus();
@@ -312,11 +301,178 @@ namespace HBP.Module3D.Cam
                 m_InputsSceneManager.send_scroll_mouse_to_scenes(m_AssociatedScene, Input.mouseScrollDelta);
             }
         }
+        /// <summary>
+        /// Check and send the mouse events to the mouse manager and apply cameras rotations and straffes
+        /// </summary>
+        protected void send_mouse_events()
+        {
+            Ray ray = GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
 
+            // mouse movement
+            m_InputsSceneManager.send_mouse_movement_to_scenes(ray, m_AssociatedScene, Input.mousePosition, m_Column);
+
+            // left click
+            if (Input.GetMouseButtonUp(0))
+            {
+                m_InputsSceneManager.send_click_ray_to_scenes(ray, m_AssociatedScene, m_Column);
+            }
+
+
+            // right click
+            if (Input.GetMouseButton(1))
+            {
+                float nx = 0;
+                float ny = 0;
+                nx = Input.GetAxis("Mouse X");
+                ny = Input.GetAxis("Mouse Y");
+
+                // check horizontal right click mouse drag movement
+                if (nx != 0)
+                    if (nx < 0)
+                        horizontal_rotation(true, -nx * m_Speed);
+                    else
+                        horizontal_rotation(false, nx * m_Speed);
+
+                // check vertical right click mouse drag movement
+                if (ny != 0)
+                    if (ny < 0)
+                        vertical_rotation(true, ny * m_Speed);
+                    else
+                        vertical_rotation(false, -ny * m_Speed);
+            }
+
+            if (Input.GetMouseButton(2))
+            {
+                float nx = 0;
+                float ny = 0;
+                nx = Input.GetAxis("Mouse X");
+                ny = Input.GetAxis("Mouse Y");
+
+                // check horizontal right click mouse drag movement
+                if (nx != 0)
+                    if (nx < 0)
+                        horizontal_strafe(true, nx * m_Speed);
+                    else
+                        horizontal_strafe(false, -nx * m_Speed);
+
+
+                // check vertical right click mouse drag movement
+                if (ny != 0)
+                    if (ny < 0)
+                        vertical_strafe(true, -ny * m_Speed);
+                    else
+                        vertical_strafe(false, ny * m_Speed);
+            }
+        }
+        /// <summary>
+        /// Strafe hozizontally the camera position and target with the same vector.
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="amount"></param>
+        protected void horizontal_strafe(bool left, float amount)
+        {
+            m_displayRotationCircles = true;
+            Vector3 strafe;
+            if (left)
+                strafe = -transform.right * amount;
+            else
+                strafe = transform.right * amount;
+
+            transform.position = transform.position + strafe;
+            m_Target = m_Target + strafe;
+        }
+        /// <summary>
+        /// Strafe vertically the camera position and target with the same vector.
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="amount"></param>
+        protected void vertical_strafe(bool up, float amount)
+        {
+            m_displayRotationCircles = true;
+            Vector3 strafe;
+            if (up)
+                strafe = transform.up * amount;
+            else
+                strafe = -transform.up * amount;
+
+            transform.position = transform.position + strafe;
+            m_Target = m_Target + strafe;
+        }
+        /// <summary>
+        /// Turn horizontally around the camera target
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="amount"></param>
+        protected void horizontal_rotation(bool left, float amount)
+        {
+            m_displayRotationCircles = true;
+            Vector3 vecTargetPos_EyePos = transform.position - m_Target;
+            Quaternion rotation;
+            if (left)
+                rotation = Quaternion.AngleAxis(-amount, transform.up);
+            else
+                rotation = Quaternion.AngleAxis(amount, transform.up);
+
+            transform.position = rotation * vecTargetPos_EyePos + m_Target;
+            transform.LookAt(m_Target, transform.up);
+        }
+        /// <summary>
+        /// Turn vertically around the camera target
+        /// </summary>
+        /// <param name="up"></param>
+        /// <param name="amount"></param>
+        protected void vertical_rotation(bool up, float amount)
+        {
+            m_displayRotationCircles = true;
+            Vector3 vecTargetPos_EyePos = transform.position - m_Target;
+            Quaternion rotation;
+            if (up)
+                rotation = Quaternion.AngleAxis(-amount, transform.right);
+            else
+                rotation = Quaternion.AngleAxis(amount, transform.right);
+
+            transform.position = rotation * vecTargetPos_EyePos + m_Target;
+            transform.LookAt(m_Target, Vector3.Cross(m_Target - transform.position, transform.right));
+        }
+        /// <summary>
+        /// Move forward the position in the direction of the target
+        /// </summary>
+        /// <param name="amount"></param>
+        protected void move_forward(float amount)
+        {
+            float length = Vector3.Distance(transform.position, m_Target);
+            if (length - amount > m_MinDistance)
+            {
+                transform.position += transform.forward * amount;
+            }
+        }
+        /// <summary>
+        /// Move backward  the position in the direction of the target
+        /// </summary>
+        /// <param name="amount"></param>
+        protected void move_backward(float amount)
+        {
+            float length = Vector3.Distance(transform.position, m_Target);
+            if (length + amount < m_MaxDistance)
+            {
+                transform.position -= transform.forward * amount;
+            }
+        }
+        /// <summary>
+        /// Reset the original target of the camera
+        /// </summary>
+        protected void reset_target()
+        {
+            transform.localEulerAngles = m_OriginalRotationEuler;
+            m_Target = m_OriginalTarget;
+            transform.position = m_Target - transform.forward * m_StartDistance;
+        }
         #endregion
 
         #region Public Methods
-
+        /// <summary>
+        /// 
+        /// </summary>
         public void drawGL()
         {
             if (!m_IsFocusedOnCamera || m_IsMinimized)
@@ -390,7 +546,6 @@ namespace HBP.Module3D.Cam
                 }                
             }
         }
-
         /// <summary>
         ///  init the camera
         /// </summary>
@@ -402,7 +557,6 @@ namespace HBP.Module3D.Cam
             m_OriginalTarget = m_Target;            
             transform.position = m_Target - transform.forward * m_StartDistance;
         }
-
         /// <summary>
         /// stop the rotation of the camera
         /// </summary>
@@ -410,7 +564,6 @@ namespace HBP.Module3D.Cam
         {            
             m_CameraIsRotating = false;
         }
-
         /// <summary>
         /// state the rotation of the camera
         /// </summary>
@@ -418,7 +571,6 @@ namespace HBP.Module3D.Cam
         {
             StartCoroutine("rotate_360");
         }
-
         /// <summary>
         /// Corountine for rotating the camera
         /// </summary>
@@ -465,8 +617,6 @@ namespace HBP.Module3D.Cam
                 }
             }
         }
-
-
         /// <summary>
         /// Set the focus state of the module
         /// </summary>
@@ -475,7 +625,6 @@ namespace HBP.Module3D.Cam
         {
             m_IsFocusedOn3DModule = state;
         }
-
         /// <summary>
         /// Update the culling of the camera for fMRI
         /// </summary>
@@ -493,25 +642,21 @@ namespace HBP.Module3D.Cam
             }
             GetComponent<Camera>().cullingMask = cullingMask;
         }
-
         /// <summary>
         /// Define the line id of the camera
         /// </summary>
         /// <param name="newLineId"></param>
         public void SetLine(int newLineId) { m_Line = newLineId; }
-
         /// <summary>
         /// Define the column id of the camera
         /// </summary>
         /// <param name="newColId"></param>
         public void SetColumn(int newColId){ m_Column = newColId; }
-
         /// <summary>
         /// Define the column layer
         /// </summary>
         /// <param name="columnLayer"></param>
         public void set_column_layer(string columnLayer) { ColumnLayer = ColumnLayer; }
-
         /// <summary>
         /// Check if the camera is in the current selected column
         /// </summary>
@@ -520,7 +665,6 @@ namespace HBP.Module3D.Cam
         {
             return (m_AssociatedScene.RetrieveCurrentSelectedColumnID() == m_Column);
         }
-
         /// <summary>
         /// Update the culling mask rendered of the camera
         /// </summary>
@@ -547,8 +691,6 @@ namespace HBP.Module3D.Cam
                 }
             }                
         }
-
-
         /// <summary>
         /// Set the minimized state of the camera
         /// </summary>
@@ -573,7 +715,6 @@ namespace HBP.Module3D.Cam
             }
             GetComponent<Camera>().cullingMask = cullingMask;
         }
-
         /// <summary>
         /// Check if the mouse is inside the camera rectangle
         /// </summary>
@@ -582,71 +723,6 @@ namespace HBP.Module3D.Cam
         {
             return (GetComponent<Camera>().pixelRect.Contains(Input.mousePosition));
         }
-
-        /// <summary>
-        /// Check and send the mouse events to the mouse manager and apply cameras rotations and straffes
-        /// </summary>
-        protected void send_mouse_events()
-        {
-            Ray ray = GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
-
-            // mouse movement
-            m_InputsSceneManager.send_mouse_movement_to_scenes(ray, m_AssociatedScene, Input.mousePosition, m_Column);
-
-            // left click
-            if (Input.GetMouseButtonUp(0))
-            {
-                m_InputsSceneManager.send_click_ray_to_scenes(ray, m_AssociatedScene, m_Column);
-            }
-
-
-            // right click
-            if (Input.GetMouseButton(1))
-            {
-                float nx = 0;
-                float ny = 0;
-                nx = Input.GetAxis("Mouse X");
-                ny = Input.GetAxis("Mouse Y");
-
-                // check horizontal right click mouse drag movement
-                if (nx != 0)
-                    if (nx < 0)
-                        horizontal_rotation(true, -nx * m_Speed);
-                    else 
-                        horizontal_rotation(false, nx * m_Speed);
-                
-                // check vertical right click mouse drag movement
-                if (ny != 0)
-                    if (ny < 0)
-                        vertical_rotation(true,  ny * m_Speed);
-                    else
-                        vertical_rotation(false,-ny * m_Speed);
-            }
-
-            if (Input.GetMouseButton(2))
-            {
-                float nx = 0;
-                float ny = 0;
-                nx = Input.GetAxis("Mouse X");
-                ny = Input.GetAxis("Mouse Y");
-
-                // check horizontal right click mouse drag movement
-                if (nx != 0)
-                    if (nx < 0)
-                        horizontal_strafe(true,  nx * m_Speed);
-                    else
-                        horizontal_strafe(false,-nx * m_Speed);
-
-
-                // check vertical right click mouse drag movement
-                if (ny != 0)
-                    if (ny < 0)
-                        vertical_strafe(true, -ny * m_Speed);
-                    else
-                        vertical_strafe(false, ny * m_Speed);
-            }
-        }
-
         /// <summary>
         /// Update the selected column with the associated scene
         /// </summary>
@@ -655,119 +731,6 @@ namespace HBP.Module3D.Cam
         {
             m_AssociatedScene.UpdateSelectedColumn(idColumn);
         }
-
-
-        /// <summary>
-        /// Strafe hozizontally the camera position and target with the same vector.
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="amount"></param>
-        protected void horizontal_strafe(bool left, float amount)
-        {
-            m_displayRotationCircles = true;
-            Vector3 strafe;
-            if(left)
-                strafe = -transform.right * amount;
-            else
-                strafe = transform.right * amount;
-
-            transform.position = transform.position + strafe;
-            m_Target = m_Target + strafe;
-        }
-
-        /// <summary>
-        /// Strafe vertically the camera position and target with the same vector.
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="amount"></param>
-        protected void vertical_strafe(bool up, float amount)
-        {
-            m_displayRotationCircles = true;
-            Vector3 strafe;
-            if (up)
-                strafe = transform.up * amount;
-            else
-                strafe = -transform.up * amount;
-
-            transform.position = transform.position + strafe;
-            m_Target = m_Target + strafe;
-        }
-
-        /// <summary>
-        /// Turn horizontally around the camera target
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="amount"></param>
-        protected void horizontal_rotation(bool left, float amount)
-        {
-            m_displayRotationCircles = true;
-            Vector3 vecTargetPos_EyePos = transform.position - m_Target;
-            Quaternion rotation;
-            if(left)
-                rotation = Quaternion.AngleAxis(-amount, transform.up);
-            else
-                rotation = Quaternion.AngleAxis(amount, transform.up);
-
-            transform.position = rotation * vecTargetPos_EyePos + m_Target;
-            transform.LookAt(m_Target, transform.up);
-        }
-
-        /// <summary>
-        /// Turn vertically around the camera target
-        /// </summary>
-        /// <param name="up"></param>
-        /// <param name="amount"></param>
-        protected void vertical_rotation(bool up, float amount)
-        {
-            m_displayRotationCircles = true;
-            Vector3 vecTargetPos_EyePos = transform.position - m_Target;
-            Quaternion rotation;
-            if (up)
-                rotation = Quaternion.AngleAxis(-amount, transform.right); 
-            else
-                rotation = Quaternion.AngleAxis(amount, transform.right); 
-
-            transform.position = rotation * vecTargetPos_EyePos + m_Target;
-            transform.LookAt(m_Target, Vector3.Cross(m_Target - transform.position, transform.right));            
-        }
-
-
-        /// <summary>
-        /// Move forward the position in the direction of the target
-        /// </summary>
-        /// <param name="amount"></param>
-        protected void move_forward(float amount)
-        {
-            float length = Vector3.Distance(transform.position, m_Target);
-            if (length - amount > m_MinDistance)
-            {
-                transform.position += transform.forward * amount;
-            }
-        }
-
-        /// <summary>
-        /// Move backward  the position in the direction of the target
-        /// </summary>
-        /// <param name="amount"></param>
-        protected void move_backward(float amount)
-        {
-            float length = Vector3.Distance(transform.position, m_Target);
-            if (length + amount < m_MaxDistance)
-            {
-                transform.position -= transform.forward * amount;
-            }
-        }
-
-        /// <summary>
-        /// Reset the original target of the camera
-        /// </summary>
-        protected void reset_target()
-        {
-            transform.localEulerAngles = m_OriginalRotationEuler;
-            m_Target = m_OriginalTarget;
-            transform.position = m_Target - transform.forward * m_StartDistance;
-        }
-
         /// <summary>
         /// Define the camera with a position a rotation and it's target.
         /// </summary>
@@ -780,7 +743,6 @@ namespace HBP.Module3D.Cam
             transform.rotation = rotation;
             this.m_Target = target;
         }
-
         /// <summary>
         /// Return the target of the camera
         /// </summary>
@@ -789,7 +751,6 @@ namespace HBP.Module3D.Cam
         {
             return m_Target;
         }
-
         #endregion
     }
 }
