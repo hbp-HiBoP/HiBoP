@@ -28,7 +28,7 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="pathTransfo"></param>
         /// <returns></returns>
-        public bool load(string pathTransfo)
+        public bool Load(string pathTransfo)
         {
             bool fileLoaded = (load_Transformation3(_handle, pathTransfo) == 1);
             if (!fileLoaded)
@@ -43,7 +43,7 @@ namespace HBP.Module3D.DLL
         /// <summary>
         /// 
         /// </summary>
-        void invert()
+        private void Invert()
         {
             invert_Transformation3(_handle);
         }

@@ -57,8 +57,8 @@ namespace HBP.Module3D
             GUIBrainCutWithFMRITextures = new List<Texture2D>();
             for (int ii = 0; ii < nbCuts; ++ii)
             {
-                BrainCutWithFMRITextures.Add(Texture2Dutility.generate_cut(1, 1));
-                GUIBrainCutWithFMRITextures.Add(Texture2Dutility.generate_GUI(1, 1));
+                BrainCutWithFMRITextures.Add(Texture2Dutility.GenerateCut(1, 1));
+                GUIBrainCutWithFMRITextures.Add(Texture2Dutility.GenerateGUI(1, 1));
             }
             
             // DLL textures
@@ -84,8 +84,8 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < -diffCuts; ++ii)
                 {
                     // GO textures 
-                    BrainCutWithFMRITextures.Add(Texture2Dutility.generate_cut());
-                    GUIBrainCutWithFMRITextures.Add(Texture2Dutility.generate_GUI());
+                    BrainCutWithFMRITextures.Add(Texture2Dutility.GenerateCut());
+                    GUIBrainCutWithFMRITextures.Add(Texture2Dutility.GenerateGUI());
 
                     // DLL textures
                     DLLBrainCutWithFMRITextures.Add(new DLL.Texture());
@@ -172,9 +172,9 @@ namespace HBP.Module3D
 
                     // select site ring 
                     if (ii == SelectedSiteID)
-                        m_SelectRing.set_selected_site(Sites[ii], Sites[ii].transform.localScale);
+                        m_SelectRing.SetSelectedSite(Sites[ii], Sites[ii].transform.localScale);
 
-                    renderer.sharedMaterial = SharedMaterials.site_shared_material(highlight, siteType);
+                    renderer.sharedMaterial = SharedMaterials.SiteSharedMaterial(highlight, siteType);
                 }
 
                 Sites[ii].gameObject.SetActive(activity);
@@ -190,10 +190,10 @@ namespace HBP.Module3D
         /// <param name="drawLines"></param>
         public void CreateGUIFMRITexture(int indexCut, string orientation, bool flip, List<Plane> cutPlanes, bool drawLines)
         {
-            if (DLLBrainCutTextures[indexCut].m_sizeTexture[0] > 0)
+            if (DLLBrainCutTextures[indexCut].m_TextureSize[0] > 0)
             {
-                DLLGUIBrainCutWithFMRITextures[indexCut].copy_frome_and_rotate(DLLBrainCutWithFMRITextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
-                DLLGUIBrainCutWithFMRITextures[indexCut].update_texture_2D(GUIBrainCutWithFMRITextures[indexCut], false); // TODO: ;..
+                DLLGUIBrainCutWithFMRITextures[indexCut].CopyAndRotate(DLLBrainCutWithFMRITextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
+                DLLGUIBrainCutWithFMRITextures[indexCut].UpdateTexture2D(GUIBrainCutWithFMRITextures[indexCut], false); // TODO: ;..
             }
         }
         #endregion

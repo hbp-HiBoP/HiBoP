@@ -119,7 +119,7 @@ namespace HBP.Module3D
             // select ring
             gameObject.AddComponent<SiteRing>();
             m_SelectRing = gameObject.GetComponent<SiteRing>();
-            m_SelectRing.set_layer(Layer);
+            m_SelectRing.SetLayer(Layer);
 
             // plots
             m_RawElectrodes = new DLL.RawSiteList();
@@ -179,13 +179,13 @@ namespace HBP.Module3D
             }
 
             // textures 2D
-            BrainColorSchemeTexture = Texture2Dutility.generate_color_scheme();
+            BrainColorSchemeTexture = Texture2Dutility.GenerateColorScheme();
             BrainCutTextures = new List<Texture2D>(nbCuts);
             GUIBrainCutTextures = new List<Texture2D>(nbCuts);
             for (int ii = 0; ii < nbCuts; ++ii)
             {
-                BrainCutTextures.Add(Texture2Dutility.generate_cut());
-                GUIBrainCutTextures.Add(Texture2Dutility.generate_GUI());
+                BrainCutTextures.Add(Texture2Dutility.GenerateCut());
+                GUIBrainCutTextures.Add(Texture2Dutility.GenerateGUI());
             }
 
             // view
@@ -238,8 +238,8 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < -diffCuts; ++ii)
                 {
                     // GO textures
-                    BrainCutTextures.Add(Texture2Dutility.generate_cut());                    
-                    GUIBrainCutTextures.Add(Texture2Dutility.generate_GUI());
+                    BrainCutTextures.Add(Texture2Dutility.GenerateCut());                    
+                    GUIBrainCutTextures.Add(Texture2Dutility.GenerateGUI());
 
                     // DLL textures
                     DLLBrainCutTextures.Add(new DLL.Texture());
@@ -294,11 +294,11 @@ namespace HBP.Module3D
         {
             if(m_SelectedROI != null)
             {
-                m_SelectedROI.set_visible(false);
+                m_SelectedROI.SetVisibility(false);
             }
 
             m_SelectedROI = ROI;
-            m_SelectedROI.set_visible(true);
+            m_SelectedROI.SetVisibility(true);
         }
         /// <summary>
         /// Retrieve a string containing all the plots states
@@ -399,8 +399,8 @@ namespace HBP.Module3D
         /// <param name="colorBrainCut"></param>
         public void ResetColorSchemes(ColorType colormap, ColorType colorBrainCut)
         {
-            DLLCutColorScheme = DLL.Texture.generate_2D_color_texture(colorBrainCut, colormap); 
-            DLLCutFMRIColorScheme = DLL.Texture.generate_2D_color_texture(colorBrainCut, colormap);
+            DLLCutColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap); 
+            DLLCutFMRIColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
         }
         /// <summary>
         /// 
@@ -414,19 +414,19 @@ namespace HBP.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture reset 0  ");
             DLL.MRITextureCutGenerator textureGenerator = DLLMRITextureCutGenerators[indexCut];
-            textureGenerator.reset(geometryGenerator);
+            textureGenerator.Reset(geometryGenerator);
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture fill_texture_with_volume 1  ");
-            textureGenerator.fill_texture_with_volume(volume, DLLCutColorScheme, MRICalMinFactor, MRICalMaxFactor);
+            textureGenerator.FillTextureWithVolume(volume, DLLCutColorScheme, MRICalMinFactor, MRICalMaxFactor);
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture updateTexture 2  ");
-            textureGenerator.update_texture(DLLBrainCutTextures[indexCut]);
+            textureGenerator.UpdateTexture(DLLBrainCutTextures[indexCut]);
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture update_texture_2D 3  ");
-            DLLBrainCutTextures[indexCut].update_texture_2D(BrainCutTextures[indexCut]); // update mesh cut 2D texture
+            DLLBrainCutTextures[indexCut].UpdateTexture2D(BrainCutTextures[indexCut]); // update mesh cut 2D texture
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
@@ -439,10 +439,10 @@ namespace HBP.Module3D
         /// <param name="drawLines"></param>
         public void CreateGUIMRITexture(int indexCut, string orientation, bool flip, List<Plane> cutPlanes, bool drawLines)
         {
-            if (DLLBrainCutTextures[indexCut].m_sizeTexture[0] > 0)
+            if (DLLBrainCutTextures[indexCut].m_TextureSize[0] > 0)
             { 
-                DLLGUIBrainCutTextures[indexCut].copy_frome_and_rotate(DLLBrainCutTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);                
-                DLLGUIBrainCutTextures[indexCut].update_texture_2D(GUIBrainCutTextures[indexCut]);
+                DLLGUIBrainCutTextures[indexCut].CopyAndRotate(DLLBrainCutTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);                
+                DLLGUIBrainCutTextures[indexCut].UpdateTexture2D(GUIBrainCutTextures[indexCut]);
             }
         }
         /// <summary>

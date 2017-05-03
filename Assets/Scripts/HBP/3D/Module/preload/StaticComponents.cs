@@ -31,7 +31,7 @@ namespace HBP.Module3D
         static public UIManager UIManager = null;
         static public MenuManager UICameraManager = null;
         static public UIOverlayManager UIOverlayManager = null;     
-        static public Cam.InputsSceneManager InputsSceneManager = null;
+        static public Cam.InputManager InputsSceneManager = null;
         static public DLL.DLLDebugManager DLLDebugManager = null;
         static public Transform CanvasOverlay = null;
         #endregion

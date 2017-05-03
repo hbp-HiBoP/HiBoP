@@ -19,7 +19,7 @@ namespace HBP.Module3D.Cam
     /// <summary>
     /// A manager class used to retrieve mouse and keyboards inputs events from cameras and apply it to the scenes
     /// </summary>
-    public class InputsSceneManager : MonoBehaviour
+    public class InputManager : MonoBehaviour
     {
         #region Properties
         private ScenesManager m_scenesManager = null;
@@ -41,7 +41,7 @@ namespace HBP.Module3D.Cam
         /// <param name="ray"></param>
         /// <param name="spScene"></param>
         /// <param name="idColumn"></param>
-        public void send_click_ray_to_scenes(Ray ray, Base3DScene scene, int idColumn)
+        public void SendClickRayToScenes(Ray ray, Base3DScene scene, int idColumn)
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type)) return;
             scene.UpdateSelectedColumn(idColumn);
@@ -55,7 +55,7 @@ namespace HBP.Module3D.Cam
         /// <param name="spScene"></param>
         /// <param name="mousePosition"></param>
         /// <param name="idColumn"></param>
-        public void send_mouse_movement_to_scenes(Ray ray, Base3DScene scene, Vector3 mousePosition, int idColumn)
+        public void SendMouseMovementToScenes(Ray ray, Base3DScene scene, Vector3 mousePosition, int idColumn)
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
             {
@@ -72,7 +72,7 @@ namespace HBP.Module3D.Cam
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="mouseScrollDelta"></param>
-        public void send_scroll_mouse_to_scenes(Base3DScene scene, Vector2 mouseScrollDelta)
+        public void SendScrollMouseToScenes(Base3DScene scene, Vector2 mouseScrollDelta)
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
                 return; // click on overlay, don't propagate to the scenes
@@ -83,7 +83,7 @@ namespace HBP.Module3D.Cam
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="key"></param>
-        public void send_keyboard_action_to_scenes(Base3DScene scene, KeyCode key)
+        public void SendKeyboardActionToScenes(Base3DScene scene, KeyCode key)
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
                 return; // click on overlay, don't propagate to the scenes

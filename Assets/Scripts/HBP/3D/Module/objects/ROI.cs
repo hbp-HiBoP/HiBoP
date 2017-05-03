@@ -24,18 +24,18 @@ namespace HBP.Module3D
     {
         #region Properties
         public string m_ROIname = "default_ROI_name";
-        public int m_layer; /**< ROI layer */
+        public int m_Layer; /**< ROI layer */
 
-        public int idSelectedBubble;
+        public int SelectedBubbleID;
 
-        private DLL.ROI m_dllROI; /**< associated ROI DLL */
-        private List<GameObject> m_bubbles = new List<GameObject>(); /**< bubbles of the ROI */
+        private DLL.ROI m_DLLROI; /**< associated ROI DLL */
+        private List<GameObject> m_Bubbles = new List<GameObject>(); /**< bubbles of the ROI */
         #endregion
 
         #region Private Methods
         void Awake()
         {
-            m_dllROI = new DLL.ROI();
+            m_DLLROI = new DLL.ROI();
         }
         #endregion
 
@@ -43,59 +43,59 @@ namespace HBP.Module3D
         /// <summary>
         /// 
         /// </summary>
-        public void clean()
+        public void Clean()
         {
             // Destroy the DLL
-            m_dllROI.Dispose();
+            m_DLLROI.Dispose();
 
             // Destroy each bubble gameobject
-            for (int ii = 0; ii < m_bubbles.Count; ++ii)
+            for (int ii = 0; ii < m_Bubbles.Count; ++ii)
             {
-                Destroy(m_bubbles[ii]);
+                Destroy(m_Bubbles[ii]);
             }
         }
         /// <summary>
         /// Set the visibility of all the bubbles
         /// </summary>
         /// <param name="visibility"></param>
-        public void set_visible(bool visibility)
+        public void SetVisibility(bool visibility)
         {
-            for (int ii = 0; ii < m_bubbles.Count; ++ii)
+            for (int ii = 0; ii < m_Bubbles.Count; ++ii)
             {
-                m_bubbles[ii].SetActive(visibility);
+                m_Bubbles[ii].SetActive(visibility);
             }
         }
         /// <summary>
         /// Enable of disable the rendering of the ROI
         /// </summary>
         /// <param name="state"></param>
-        public void set_rendering_state(bool state)
+        public void SetRenderingState(bool state)
         {
             int inactiveLayer = LayerMask.NameToLayer("Inactive");
-            for (int ii = 0; ii < m_bubbles.Count; ++ii)
+            for (int ii = 0; ii < m_Bubbles.Count; ++ii)
             {
-                m_bubbles[ii].layer = (state ? m_layer : inactiveLayer);
+                m_Bubbles[ii].layer = (state ? m_Layer : inactiveLayer);
             }
         }
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public int bubbles_nb()
+        public int NumberOfBubbles()
         {
-            return m_bubbles.Count;
+            return m_Bubbles.Count;
         }
         /// <summary>
         /// Check if a collision occurs with the ROI bubbles
         /// </summary>
         /// <param name="ray"></param>
         /// <returns></returns>
-        public bool check_collision(Ray ray)
+        public bool CheckCollision(Ray ray)
         {
-            for (int ii = 0; ii < m_bubbles.Count; ++ii)
+            for (int ii = 0; ii < m_Bubbles.Count; ++ii)
             {
                 RaycastHit hitInfo;
-                if(m_bubbles[ii].GetComponent<Bubble>().check_collistion(ray, out hitInfo))
+                if(m_Bubbles[ii].GetComponent<Bubble>().CheckCollision(ray, out hitInfo))
                     return true;
             }
 
@@ -106,25 +106,25 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="plots"></param>
         /// <param name="mask"></param>
-        public void update_mask(DLL.RawSiteList plots, bool[] mask)
+        public void UpdateMask(DLL.RawSiteList plots, bool[] mask)
         {
-            m_dllROI.update_mask(plots, mask);
+            m_DLLROI.UpdateMask(plots, mask);
         }
         /// <summary>
         /// If collision with a bubble return the id of the closest, else return -1
         /// </summary>
         /// <param name="ray"></param>
         /// <returns></returns>
-        public int collided_closest_bubble_id(Ray ray)
+        public int CollidedClosestBubbleID(Ray ray)
         {
             bool collision = false;
             int minDistId = -1;
             float minDist = float.MaxValue;
 
-            for (int ii = 0; ii < m_bubbles.Count; ++ii)
+            for (int ii = 0; ii < m_Bubbles.Count; ++ii)
             {
                 RaycastHit hitInfo;
-                if (m_bubbles[ii].GetComponent<Bubble>().check_collistion(ray, out hitInfo))
+                if (m_Bubbles[ii].GetComponent<Bubble>().CheckCollision(ray, out hitInfo))
                 {
                     collision = true;
 
@@ -151,27 +151,27 @@ namespace HBP.Module3D
         /// <summary>
         /// 
         /// </summary>
-        public void unselect_bubble()
+        public void UnselectBubble()
         {
-            if (idSelectedBubble == -1 || idSelectedBubble > m_bubbles.Count) // no sphere selected
+            if (SelectedBubbleID == -1 || SelectedBubbleID > m_Bubbles.Count) // no sphere selected
                 return;
 
-            m_bubbles[idSelectedBubble].GetComponent<Bubble>().unselect();
-            idSelectedBubble = -1;
+            m_Bubbles[SelectedBubbleID].GetComponent<Bubble>().Selected = false;
+            SelectedBubbleID = -1;
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="idBubble"></param>
-        public void select_bubble(int idBubble)
+        public void SelectBubble(int idBubble)
         {
-            if (idBubble < 0 || idBubble >= m_bubbles.Count)
+            if (idBubble < 0 || idBubble >= m_Bubbles.Count)
                 return;
 
-            unselect_bubble();
+            UnselectBubble();
 
-            m_bubbles[idBubble].GetComponent<Bubble>().select();            
-            idSelectedBubble = idBubble;
+            m_Bubbles[idBubble].GetComponent<Bubble>().Selected = true;           
+            SelectedBubbleID = idBubble;
         }
         /// <summary>
         /// 
@@ -180,45 +180,45 @@ namespace HBP.Module3D
         /// <param name="GObubbleName"></param>
         /// <param name="position"></param>
         /// <param name="ray"></param>
-        public void add_bubble(string layer, string GObubbleName, Vector3 position, float ray)
+        public void AddBubble(string layer, string GObubbleName, Vector3 position, float ray)
         {
-            m_layer = LayerMask.NameToLayer(layer);
+            m_Layer = LayerMask.NameToLayer(layer);
             GameObject newBubble = Instantiate(GlobalGOPreloaded.ROIBubble);
             newBubble.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROIBubble;
             newBubble.name = GObubbleName;
             newBubble.transform.SetParent(transform);            
-            newBubble.GetComponent<Bubble>().init(m_layer, ray, position);
+            newBubble.GetComponent<Bubble>().Initialize(m_Layer, ray, position);
 
-            m_bubbles.Add(newBubble);
+            m_Bubbles.Add(newBubble);
 
             // DLL
             Vector3 positionBubble = position;
             positionBubble.x = -positionBubble.x;
-            m_dllROI.add_bubble(ray, positionBubble);
+            m_DLLROI.AddBubble(ray, positionBubble);
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="idBubble"></param>
-        public void remove_bubble(int idBubble)
+        public void RemoveBubble(int idBubble)
         {
-            if (idSelectedBubble > idBubble)
-                idSelectedBubble--;
-            else if(idSelectedBubble == idBubble)
-                idSelectedBubble = -1;
+            if (SelectedBubbleID > idBubble)
+                SelectedBubbleID--;
+            else if(SelectedBubbleID == idBubble)
+                SelectedBubbleID = -1;
 
             // remove the bubble
-            Destroy(m_bubbles[idBubble]);
-            m_bubbles.RemoveAt(idBubble);
+            Destroy(m_Bubbles[idBubble]);
+            m_Bubbles.RemoveAt(idBubble);
 
             // remove dll sphere
-            m_dllROI.remove_bubble(idBubble);
+            m_DLLROI.RemoveBubble(idBubble);
 
             // if not we removed the selected bubble, select instead the last one
-            if (idSelectedBubble == -1)
+            if (SelectedBubbleID == -1)
             {
-                if(m_bubbles.Count > 0)
-                    select_bubble(m_bubbles.Count - 1);
+                if(m_Bubbles.Count > 0)
+                    SelectBubble(m_Bubbles.Count - 1);
             }
         }
         /// <summary>
@@ -226,36 +226,36 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="idBubble"></param>
         /// <param name="coeff"></param>
-        public void change_bubble_size(int idBubble, float coeff)
+        public void ChangeBubbleSize(int idBubble, float coeff)
         {
-            if (idBubble < 0 || idBubble >= m_bubbles.Count)
+            if (idBubble < 0 || idBubble >= m_Bubbles.Count)
                 return;
 
-            m_bubbles[idBubble].GetComponent<Bubble>().change_size(coeff);
+            m_Bubbles[idBubble].GetComponent<Bubble>().Radius *= coeff;
 
             // DLL
-            m_dllROI.update_bubble(idBubble, m_bubbles[idBubble].GetComponent<Bubble>().m_radius);
+            m_DLLROI.UpdateBubble(idBubble, m_Bubbles[idBubble].GetComponent<Bubble>().Radius);
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="idBubble"></param>
         /// <returns></returns>
-        public Bubble bubble(int idBubble)
+        public Bubble Bubble(int idBubble)
         {
-            return m_bubbles[idBubble].GetComponent<Bubble>();
+            return m_Bubbles[idBubble].GetComponent<Bubble>();
         }
         /// <summary>
         /// Return a string containing all bubbles infos of the ROI
         /// </summary>
         /// <returns></returns>
-        public string ROIbubbulesInfos()
+        public string BubblesInformationIntoString()
         {
             string text = m_ROIname + "\n";
-            for (int ii = 0; ii< m_bubbles.Count; ++ii)
+            for (int ii = 0; ii< m_Bubbles.Count; ++ii)
             {
-                Vector3 pos = m_bubbles[ii].transform.position;
-                text += ii + " " + m_bubbles[ii].GetComponent<Bubble>().m_radius + " " + pos.x + " " + pos.y + " " + pos.z + "\n";
+                Vector3 pos = m_Bubbles[ii].transform.position;
+                text += ii + " " + m_Bubbles[ii].GetComponent<Bubble>().Radius + " " + pos.x + " " + pos.y + " " + pos.z + "\n";
             }
 
             return text;
@@ -321,7 +321,7 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="radius"></param>
             /// <param name="center"></param>
-            public void add_bubble(float radius, Vector3 center)
+            public void AddBubble(float radius, Vector3 center)
             {
                 float[] centerArray = new float[3];
                 centerArray[0] = center.x;
@@ -334,7 +334,7 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="index"></param>
             /// <param name="newRadius"></param>
-            public void update_bubble(int index, float newRadius)
+            public void UpdateBubble(int index, float newRadius)
             {
                 updateSphere_ROI(_handle, index, newRadius);
             }
@@ -342,7 +342,7 @@ namespace HBP.Module3D
             /// 
             /// </summary>
             /// <param name="index"></param>
-            public void remove_bubble(int index)
+            public void RemoveBubble(int index)
             {
                 removeSphere_ROI(_handle, index);
             }
@@ -351,7 +351,7 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="sites"></param>
             /// <param name="mask"></param>
-            public void update_mask(RawSiteList sites, bool[] mask)
+            public void UpdateMask(RawSiteList sites, bool[] mask)
             {
                 for (int ii = 0; ii < sites.NumberOfSites(); ++ii)
                     mask[ii] = isInside_ROI(_handle, sites.getHandle(), ii) != 1;

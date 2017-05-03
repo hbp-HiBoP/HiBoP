@@ -26,7 +26,7 @@ namespace HBP.Module3D.DLL
         /// 
         /// </summary>
         /// <returns></returns>
-        public Vector3 min()
+        public Vector3 Min()
         {
             float[] min = new float[3];
             getMin_BBox(_handle, min);
@@ -36,7 +36,7 @@ namespace HBP.Module3D.DLL
         /// 
         /// </summary>
         /// <returns></returns>
-        public Vector3 max()
+        public Vector3 Max()
         {
             float[] max = new float[3];
             getMax_BBox(_handle, max);
@@ -46,7 +46,7 @@ namespace HBP.Module3D.DLL
         /// 
         /// </summary>
         /// <returns></returns>
-        public Vector3 center()
+        public Vector3 Center()
         {
             float[] center = new float[3];
             getCenter_BBox(_handle, center);
@@ -56,15 +56,15 @@ namespace HBP.Module3D.DLL
         /// 
         /// </summary>
         /// <returns></returns>
-        public float diagLength()
+        public float DiagramLength()
         {
-            return (max() - min()).magnitude;
+            return (Max() - Min()).magnitude;
         }
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        public List<Vector3> points()
+        public List<Vector3> Points()
         {
             float[] points = new float[3 * 8];
             getPoints_BBox(_handle, points);
@@ -81,7 +81,7 @@ namespace HBP.Module3D.DLL
         /// 
         /// </summary>
         /// <returns></returns>
-        public List<Vector3> lines_pair_points()
+        public List<Vector3> LinesPairPoints()
         {
             float[] points = new float[3 * 24];
             getLinesPairPoints_BBox(_handle, points);
@@ -99,7 +99,7 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="planeIntersec"></param>
         /// <returns></returns>
-        public List<Vector3> intersection_points_with_plane(Plane planeIntersec)
+        public List<Vector3> IntersectionPointsWithPlane(Plane planeIntersec)
         {
             // init plane
             float[] plane = new float[6];
@@ -128,7 +128,7 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="planeIntersec"></param>
         /// <returns></returns>
-        public List<Vector3> intersection_lines_with_plane(Plane planeIntersec)
+        public List<Vector3> IntersectionLinesWithPlane(Plane planeIntersec)
         {
             float[] points = new float[8 * 3];
             getLinesIntersectionsWithPlane_BBox(_handle, planeIntersec.ConvertToArray(), points);
@@ -233,7 +233,7 @@ namespace HBP.Module3D.DLL
         /// 
         /// </summary>
         /// <returns></returns>
-        public Vector3 center()
+        public Vector3 Center()
         {
             float[] center = new float[3];
             center_Volume(_handle, center);
@@ -243,7 +243,7 @@ namespace HBP.Module3D.DLL
         /// 
         /// </summary>
         /// <returns></returns>
-        public Vector3 spacing()
+        public Vector3 Spacing()
         {
             float[] spacing = new float[3];
             spacing_Volume(_handle, spacing);
@@ -255,7 +255,7 @@ namespace HBP.Module3D.DLL
         /// <param name="cutPlane"></param>
         /// <param name="nbCuts"></param>
         /// <returns></returns>
-        public float size_offset_cut_plane(Plane cutPlane, int nbCuts)
+        public float SizeOffsetCutPlane(Plane cutPlane, int nbCuts)
         {
             return sizeOffsetCutPlane_Volume(_handle, cutPlane.ConvertToArray(), nbCuts);
         }
@@ -265,7 +265,7 @@ namespace HBP.Module3D.DLL
         /// <param name="plane"></param>
         /// <param name="idOrientation"></param>
         /// <param name="flip"></param>
-        public void set_plane_with_orientation(Plane plane, int idOrientation, bool flip)
+        public void SetPlaneWithOrientation(Plane plane, int idOrientation, bool flip)
         {
             float[] normal = new float[3];
             definePlaneWithOrientation_Volume(_handle, normal, idOrientation, flip);
@@ -275,7 +275,7 @@ namespace HBP.Module3D.DLL
         /// 
         /// </summary>
         /// <returns></returns>
-        public MRICalValues retrieve_extreme_values()
+        public MRICalValues RetrieveExtremeValues()
         {
             MRICalValues values = new MRICalValues();
 

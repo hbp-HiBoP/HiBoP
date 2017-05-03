@@ -17,50 +17,50 @@ namespace HBP.Module3D
     public class SiteRing : MonoBehaviour
     {
         #region Properties
-        private Site m_selectedPlot = null;
-        private GameObject m_ring1 = null;
-        private GameObject m_ring2 = null;
-        private GameObject m_ring3 = null;
+        private Site m_SelectedSite = null;
+        private GameObject m_Ring1 = null;
+        private GameObject m_Ring2 = null;
+        private GameObject m_Ring3 = null;
 
-        private float m_speedRotation = 100f;
+        private float m_RotationSpeed = 100f;
         #endregion
 
         #region Private Methods
         void Awake()
         {
-            m_ring1 = Instantiate(GlobalGOPreloaded.SelectRing);
-            m_ring1.name = "ring 1";
-            m_ring1.transform.SetParent(transform);
-            m_ring1.GetComponent<MeshFilter>().mesh = Geometry.CreateTube(1.7f);
-            m_ring1.SetActive(false);
-            m_ring1.transform.localEulerAngles = new Vector3(90, 0, 0);
+            m_Ring1 = Instantiate(GlobalGOPreloaded.SelectRing);
+            m_Ring1.name = "ring 1";
+            m_Ring1.transform.SetParent(transform);
+            m_Ring1.GetComponent<MeshFilter>().mesh = Geometry.CreateTube(1.7f);
+            m_Ring1.SetActive(false);
+            m_Ring1.transform.localEulerAngles = new Vector3(90, 0, 0);
 
-            m_ring2 = Instantiate(GlobalGOPreloaded.SelectRing);
-            m_ring2.name = "ring 2";
-            m_ring2.transform.SetParent(transform);            
-            m_ring2.GetComponent<MeshFilter>().mesh = Geometry.CreateTube(1.5f);
-            m_ring2.SetActive(false);
-            m_ring2.transform.localEulerAngles = new Vector3(0, 90, 0);
+            m_Ring2 = Instantiate(GlobalGOPreloaded.SelectRing);
+            m_Ring2.name = "ring 2";
+            m_Ring2.transform.SetParent(transform);            
+            m_Ring2.GetComponent<MeshFilter>().mesh = Geometry.CreateTube(1.5f);
+            m_Ring2.SetActive(false);
+            m_Ring2.transform.localEulerAngles = new Vector3(0, 90, 0);
 
-            m_ring3 = Instantiate(GlobalGOPreloaded.SelectRing);
-            m_ring3.name = "ring 3";
-            m_ring3.transform.SetParent(transform);
-            m_ring3.GetComponent<MeshFilter>().mesh = Geometry.CreateTube(1.3f);
-            m_ring3.SetActive(false);
-            m_ring3.transform.localEulerAngles = new Vector3(0, 0, 90);
+            m_Ring3 = Instantiate(GlobalGOPreloaded.SelectRing);
+            m_Ring3.name = "ring 3";
+            m_Ring3.transform.SetParent(transform);
+            m_Ring3.GetComponent<MeshFilter>().mesh = Geometry.CreateTube(1.3f);
+            m_Ring3.SetActive(false);
+            m_Ring3.transform.localEulerAngles = new Vector3(0, 0, 90);
         }
         void Update()
         {
-            if(m_selectedPlot != null)
+            if(m_SelectedSite != null)
             {
-                m_ring1.transform.Rotate(new Vector3(1, 0, 0), m_speedRotation * Time.deltaTime);
-                m_ring2.transform.Rotate(new Vector3(1, 0, 0), m_speedRotation * Time.deltaTime);
-                m_ring3.transform.Rotate(new Vector3(1, 0, 0), m_speedRotation * Time.deltaTime);
+                m_Ring1.transform.Rotate(new Vector3(1, 0, 0), m_RotationSpeed * Time.deltaTime);
+                m_Ring2.transform.Rotate(new Vector3(1, 0, 0), m_RotationSpeed * Time.deltaTime);
+                m_Ring3.transform.Rotate(new Vector3(1, 0, 0), m_RotationSpeed * Time.deltaTime);
             }
 
-            if (m_selectedPlot)
+            if (m_SelectedSite)
             {
-                set_material(SharedMaterials.Ring.Selected);
+                SetMaterial(SharedMaterials.Ring.Selected);
             }
         }
         #endregion
@@ -71,43 +71,43 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="site"></param>
         /// <param name="scale"></param>
-        public void set_selected_site(Site site, Vector3 scale)
+        public void SetSelectedSite(Site site, Vector3 scale)
         {
-            m_selectedPlot = site;
-            bool notNullPlot = m_selectedPlot != null;
+            m_SelectedSite = site;
+            bool notNullPlot = m_SelectedSite != null;
 
             if (notNullPlot)
-                m_ring1.transform.position = m_ring2.transform.position = m_ring3.transform.position = m_selectedPlot.transform.position;
+                m_Ring1.transform.position = m_Ring2.transform.position = m_Ring3.transform.position = m_SelectedSite.transform.position;
             
-            m_ring1.SetActive(notNullPlot);
-            m_ring2.SetActive(notNullPlot);
-            m_ring3.SetActive(notNullPlot);
+            m_Ring1.SetActive(notNullPlot);
+            m_Ring2.SetActive(notNullPlot);
+            m_Ring3.SetActive(notNullPlot);
 
             if (scale.x < 1)
                 scale = new Vector3(1, 1, 1);
 
-            m_ring1.transform.localScale = scale;
-            m_ring2.transform.localScale = scale;
-            m_ring3.transform.localScale = scale;
+            m_Ring1.transform.localScale = scale;
+            m_Ring2.transform.localScale = scale;
+            m_Ring3.transform.localScale = scale;
         }
         /// <summary>
         /// Define the layer of the rings GO
         /// </summary>
         /// <param name="layer"></param>
-        public void set_layer(string layer)
+        public void SetLayer(string layer)
         {
-            if(m_ring1 != null)
-                m_ring1.layer = m_ring2.layer = m_ring3.layer = LayerMask.NameToLayer(layer);
+            if(m_Ring1 != null)
+                m_Ring1.layer = m_Ring2.layer = m_Ring3.layer = LayerMask.NameToLayer(layer);
         }
         /// <summary>
         /// Define the material of the rings renderers
         /// </summary>
         /// <param name="material"></param>
-        public void set_material(Material material)
+        public void SetMaterial(Material material)
         {
-            m_ring1.GetComponent<MeshRenderer>().sharedMaterial = material;
-            m_ring2.GetComponent<MeshRenderer>().sharedMaterial = material;
-            m_ring3.GetComponent<MeshRenderer>().sharedMaterial = material;
+            m_Ring1.GetComponent<MeshRenderer>().sharedMaterial = material;
+            m_Ring2.GetComponent<MeshRenderer>().sharedMaterial = material;
+            m_Ring3.GetComponent<MeshRenderer>().sharedMaterial = material;
         }
         #endregion
     }

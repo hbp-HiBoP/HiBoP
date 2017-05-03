@@ -26,11 +26,25 @@ namespace HBP.Module3D
         public class MRIBrainGenerator : CppDLLImportBase, ICloneable
         {
             #region Properties
-            Vector2[] m_uvAmplitudesV = new Vector2[0];
-            Vector2[] m_uvAlphaV = new Vector2[0];
+            private Vector2[] m_UVAmplitudesV = new Vector2[0];
+            public Vector2[] IEEGUV
+            {
+                get
+                {
+                    return m_UVAmplitudesV;
+                }
+            }
+            private Vector2[] m_UVAlphaV = new Vector2[0];
+            public Vector2[] AlphaUV
+            {
+                get
+                {
+                    return m_UVAlphaV;
+                }
+            }
 
-            GCHandle m_uvAmplitudesHandle;
-            GCHandle m_uvAlphaHandle;
+            private GCHandle m_UVAmplitudesHandle;
+            private GCHandle m_UVAlphaHandle;
             #endregion
 
             #region Public Methods
@@ -39,7 +53,7 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="surface"></param>
             /// <param name="volume"></param>
-            public void reset(DLL.Surface surface, Volume volume)
+            public void Reset(DLL.Surface surface, Volume volume)
             {
                 reset_BrainSurfaceTextureGenerator(_handle, surface.getHandle(), volume.getHandle());
                 StaticComponents.DLLDebugManager.check_error();
@@ -48,7 +62,7 @@ namespace HBP.Module3D
             /// 
             /// </summary>
             /// <param name="rawPlotList"></param>
-            public void init_octree(RawSiteList rawPlotList)
+            public void InitializeOctree(RawSiteList rawPlotList)
             {
                 initOctree_BrainSurfaceTextureGenerator(_handle, rawPlotList.getHandle());
                 StaticComponents.DLLDebugManager.check_error();
@@ -59,7 +73,7 @@ namespace HBP.Module3D
             /// <param name="maxDistance"></param>
             /// <param name="multiCPU"></param>
             /// <returns></returns>
-            public bool compute_distances(float maxDistance, bool multiCPU)
+            public bool ComputeDistances(float maxDistance, bool multiCPU)
             {
                 bool noError = false;
                 noError = computeDistances_BrainSurfaceTextureGenerator( _handle, maxDistance, multiCPU ? 1 : 0) == 1;
@@ -74,7 +88,7 @@ namespace HBP.Module3D
             /// 
             /// </summary>
             /// <returns></returns>
-            public float getMaximumDensity()
+            public float GetMaximumDensity()
             {
                 return getMaximumDensity_BrainSurfaceTextureGenerator( _handle);
             }
@@ -82,7 +96,7 @@ namespace HBP.Module3D
             /// 
             /// </summary>
             /// <returns></returns>
-            public float getMinimumInfluence()
+            public float GetMinimumInfluence()
             {
                 return getMinInf_BrainSurfaceTextureGenerator(_handle);
             }
@@ -90,7 +104,7 @@ namespace HBP.Module3D
             /// 
             /// </summary>
             /// <returns></returns>
-            public float getMaximumInfluence()
+            public float GetMaximumInfluence()
             {
                 return getMaxInf_BrainSurfaceTextureGenerator(_handle);
             }
@@ -100,7 +114,7 @@ namespace HBP.Module3D
             /// <param name="sharedMaxDensity"></param>
             /// <param name="sharedMinInf"></param>
             /// <param name="sharedMaxInf"></param>
-            public void synchronizeWithOthersGenerators(float sharedMaxDensity, float sharedMinInf, float sharedMaxInf)
+            public void SynchronizeWithOthersGenerators(float sharedMaxDensity, float sharedMinInf, float sharedMaxInf)
             {
                 synchronizeWithOthersGenerators_BrainSurfaceTextureGenerator(_handle, sharedMaxDensity, sharedMinInf, sharedMaxInf);
             }
@@ -112,7 +126,7 @@ namespace HBP.Module3D
             /// <param name="addValues"></param>
             /// <param name="ratioDistances"></param>
             /// <returns></returns>
-            public bool compute_influences(Column3DViewIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
+            public bool ComputeInfluences(Column3DViewIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
             {
                 bool noError = false;
                 noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.Dimensions, IEEGColumn.MaxDistanceElec, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances ? 1 : 0,
@@ -127,7 +141,7 @@ namespace HBP.Module3D
             /// <summary>
             /// 
             /// </summary>
-            public void ajustInfluencesToColormap()
+            public void AdjustInfluencesToColormap()
             {
                 ajustInfluencesToColormap_BrainSurfaceTextureGenerator( _handle);
             }
@@ -138,7 +152,7 @@ namespace HBP.Module3D
             /// <param name="volume"></param>
             /// <param name="calMin"></param>
             /// <param name="calMax"></param>
-            public void compute_UVMain_with_volume(DLL.Surface surface, DLL.Volume volume, float calMin, float calMax)
+            public void ComputeUVMainWithVolume(DLL.Surface surface, DLL.Volume volume, float calMin, float calMax)
             {
                 compute_UVMain_with_volume_BrainSurfaceTextureGenerator(_handle, volume.getHandle(), surface.getHandle(), calMin, calMax);// calMin, calMax);
             }
@@ -148,54 +162,38 @@ namespace HBP.Module3D
             /// <param name="surface"></param>
             /// <param name="IEEGColumn"></param>
             /// <returns></returns>
-            public bool compute_surface_UV_IEEG(DLL.Surface surface, Column3DViewIEEG IEEGColumn)
+            public bool ComputeSurfaceUVIEEG(DLL.Surface surface, Column3DViewIEEG IEEGColumn)
             {                
                 bool noError = false;
                 noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), IEEGColumn.CurrentTimeLineID, IEEGColumn.AlphaMin, IEEGColumn.AlphaMax) == 1;
 
-                int m_nbVertices = surface.vertices_nb();
+                int m_nbVertices = surface.NumberOfVertices();
                 if (m_nbVertices == 0) // mesh is empty
                     return true;
 
                 // amplitudes
-                if (m_uvAmplitudesV.Length != m_nbVertices)
+                if (m_UVAmplitudesV.Length != m_nbVertices)
                 {
-                    m_uvAmplitudesV = new Vector2[m_nbVertices];
-                    m_uvAmplitudesHandle.Free();
-                    m_uvAmplitudesHandle = GCHandle.Alloc(m_uvAmplitudesV, GCHandleType.Pinned); 
+                    m_UVAmplitudesV = new Vector2[m_nbVertices];
+                    m_UVAmplitudesHandle.Free();
+                    m_UVAmplitudesHandle = GCHandle.Alloc(m_UVAmplitudesV, GCHandleType.Pinned); 
                 }
-                updateUVAmplitudes_BrainSurfaceTextureGenerator(_handle, m_uvAmplitudesHandle.AddrOfPinnedObject());
+                updateUVAmplitudes_BrainSurfaceTextureGenerator(_handle, m_UVAmplitudesHandle.AddrOfPinnedObject());
 
                 // alpha
-                if (m_uvAlphaV.Length != m_nbVertices)
+                if (m_UVAlphaV.Length != m_nbVertices)
                 {
-                    m_uvAlphaV = new Vector2[m_nbVertices];
-                    m_uvAlphaHandle.Free();
-                    m_uvAlphaHandle = GCHandle.Alloc(m_uvAlphaV, GCHandleType.Pinned);
+                    m_UVAlphaV = new Vector2[m_nbVertices];
+                    m_UVAlphaHandle.Free();
+                    m_UVAlphaHandle = GCHandle.Alloc(m_UVAlphaV, GCHandleType.Pinned);
                 }
-                updateUVAlpha_BrainSurfaceTextureGenerator(_handle, m_uvAlphaHandle.AddrOfPinnedObject());
+                updateUVAlpha_BrainSurfaceTextureGenerator(_handle, m_UVAlphaHandle.AddrOfPinnedObject());
 
                 StaticComponents.DLLDebugManager.check_error();
                 if (!noError)
                     Debug.LogError("computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");
 
                 return noError;
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public Vector2[] get_iEEG_UV()
-            {
-                return m_uvAmplitudesV;
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public Vector2[] get_alpha_UV()
-            {
-                return m_uvAlphaV;
             }
             #endregion
 

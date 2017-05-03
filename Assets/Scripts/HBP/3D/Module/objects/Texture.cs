@@ -19,23 +19,23 @@ namespace HBP.Module3D
     /// <summary>
     /// Predefined colors
     /// </summary>
-    public class TextureColors
+    public class PredefinedColors
     {
-        public static Color red() { return new Color(1, 0, 0); }
-        public static Color blue() { return new Color(0, 0, 1); }
-        public static Color darkRed() { return new Color(157 / 255, 0, 0); }
-        public static Color veryDarkBlue() { return new Color(29 / 255, 35 / 255, 109 / 255); }
-        public static Color darkBlue() { return new Color(0, 0, 0.52f); }
-        public static Color coolBlue() { return new Color(0, 0.5f, 1); }
-        public static Color coolLightBlue() { return new Color(0, 1, 1); }
-        public static Color green() { return new Color(0, 1, 0); }
-        public static Color darkGreen() { return new Color(0.074f, 0.54f, 0.11f); }
-        public static Color white() { return new Color(1, 1, 1); }
-        public static Color black() { return new Color(0, 0, 0); }
-        public static Color yellow() { return new Color(1, 1, 0); }
-        public static Color orange() { return new Color(1, 0.64f, 0); }
-        public static Color pink() { return new Color(0.78f, 0.41f, 0.41f); }
-        public static Color lightGreen() { return new Color(0, 1, 0.5f); }
+        public static Color Red { get { return new Color(1, 0, 0); } }
+        public static Color Blue { get { return new Color(0, 0, 1); } }
+        public static Color DarkRed { get { return new Color(157 / 255, 0, 0); } }
+        public static Color VeryDarkBlue { get { return new Color(29 / 255, 35 / 255, 109 / 255); } }
+        public static Color DarkBlue { get { return new Color(0, 0, 0.52f); } }
+        public static Color CoolBlue { get { return new Color(0, 0.5f, 1); } }
+        public static Color CoolLightBlue { get { return new Color(0, 1, 1); } }
+        public static Color Green { get { return new Color(0, 1, 0); } }
+        public static Color DarkGreen { get { return new Color(0.074f, 0.54f, 0.11f); } }
+        public static Color White { get { return new Color(1, 1, 1); } }
+        public static Color Black { get { return new Color(0, 0, 0); } }
+        public static Color Yellow { get { return new Color(1, 1, 0); } }
+        public static Color Orange { get { return new Color(1, 0.64f, 0); } }
+        public static Color Pink { get { return new Color(0.78f, 0.41f, 0.41f); } }
+        public static Color LightGreen { get { return new Color(0, 1, 0.5f); } }
     }
 
     /// <summary>
@@ -43,7 +43,7 @@ namespace HBP.Module3D
     /// </summary>
     public class UITextureGenerator
     {
-        static public Texture2D generate_slider_background_texture(int posMin, int posMax, int posStart, int posEnd, int timelineSize, int positionMainEvent, List<int> secondaryEventsPosition)
+        static public Texture2D GenerateSliderBackgroundTexture(int posMin, int posMax, int posStart, int posEnd, int timelineSize, int positionMainEvent, List<int> secondaryEventsPosition)
         {
             Color noDataColor = Color.gray;
             Color dataColor = Color.white;
@@ -93,13 +93,22 @@ namespace HBP.Module3D
         }
     }
 
-
     /// <summary>
     /// Some utility funcctions Texture2D
     /// </summary>
     public class Texture2Dutility
     {
-        private static Texture2D generate(int width = 1, int height = 1, float mipMapBias = -10f, int anisoLvl = 9, FilterMode filter = FilterMode.Trilinear, TextureWrapMode wrap = TextureWrapMode.Clamp)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <param name="mipMapBias"></param>
+        /// <param name="anisoLvl"></param>
+        /// <param name="filter"></param>
+        /// <param name="wrap"></param>
+        /// <returns></returns>
+        private static Texture2D Generate(int width = 1, int height = 1, float mipMapBias = -10f, int anisoLvl = 9, FilterMode filter = FilterMode.Trilinear, TextureWrapMode wrap = TextureWrapMode.Clamp)
         {
             Texture2D tex = new Texture2D(width, height);
             tex.wrapMode = wrap;
@@ -111,30 +120,55 @@ namespace HBP.Module3D
             tex.anisoLevel = anisoLvl;
             return tex;
         }
-
-        public static Texture2D generate_GUI(int width = 1, int height = 1)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public static Texture2D GenerateGUI(int width = 1, int height = 1)
         {
-            return generate(width, height, -10, 9, FilterMode.Point); // ... specify custome parameters for gui texture
+            return Generate(width, height, -10, 9, FilterMode.Point); // ... specify custome parameters for gui texture
         }
-
-        public static Texture2D generate_cut(int width = 1, int height = 1)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public static Texture2D GenerateCut(int width = 1, int height = 1)
         {
-            return generate(width, height); // ... specify custome parameters for cut texture
+            return Generate(width, height); // ... specify custome parameters for cut texture
         }
-
-        public static Texture2D generate_color_scheme(int width = 1, int height = 1)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public static Texture2D GenerateColorScheme(int width = 1, int height = 1)
         {
-            return generate(width, height); // ... specify custome parameters for color scheme texture
+            return Generate(width, height); // ... specify custome parameters for color scheme texture
         }
-
-        public static Texture2D generate_histogram(int width = 1, int height = 1)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public static Texture2D GenerateHistogram(int width = 1, int height = 1)
         {
-            return generate(width, height, -10, 9, FilterMode.Point); // ... specify custome parameters for histogram texture
+            return Generate(width, height, -10, 9, FilterMode.Point); // ... specify custome parameters for histogram texture
         }
-
-        public static Texture2D generate_icone(int width = 1, int height = 1)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public static Texture2D GenerateIcon(int width = 1, int height = 1)
         {
-            return generate(width, height, -10, 0, FilterMode.Point, TextureWrapMode.Repeat); // ... specify custome parameters for icone texture
+            return Generate(width, height, -10, 0, FilterMode.Point, TextureWrapMode.Repeat); // ... specify custome parameters for icone texture
         }        
     }
 
@@ -147,11 +181,11 @@ namespace HBP.Module3D
         public class Texture : CppDLLImportBase, ICloneable
         {
             #region Properties
-            private bool m_isPinned = false;
+            private bool m_IsPinned = false;
 
-            public int[] m_sizeTexture = new int[2]; /**< size of the texure */
+            public int[] m_TextureSize = new int[2]; /**< size of the texure */
 
-            private Color32[] pixels2 = new Color32[1];
+            private Color32[] Pixels2 = new Color32[1];
             GCHandle pixelsHandle2;
             #endregion
 
@@ -162,7 +196,7 @@ namespace HBP.Module3D
             /// <param name="other"></param>
             public Texture(Texture other) : base(clone_Texture(other.getHandle()))
             {
-                update_sizes();
+                UpdateSizes();
             }
             /// <summary>
             /// 
@@ -176,7 +210,7 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="path"></param>
             /// <returns></returns>
-            public static Texture load(string pathTextureFile)
+            public static Texture Load(string pathTextureFile)
             {
                 return new Texture(load_Texture(pathTextureFile));
             }
@@ -186,7 +220,7 @@ namespace HBP.Module3D
             /// <param name="texture"></param>
             /// <param name="orientation"></param>
             /// <param name="flip"></param>
-            public void copy_frome_and_rotate(Texture texture, string orientation, bool flip, bool displayCutLines, int indexCut, List<Plane> cutPlanes, MRITextureCutGenerator generator)
+            public void CopyAndRotate(Texture texture, string orientation, bool flip, bool displayCutLines, int indexCut, List<Plane> cutPlanes, MRITextureCutGenerator generator)
             {
                 // init plane
                 int nbPlanes = cutPlanes.Count - 1;
@@ -209,14 +243,14 @@ namespace HBP.Module3D
                 }
 
                 copy_from_and_rotate_Texture(_handle, texture.getHandle(), orientation, flip ? 1 : 0, displayCutLines ? 1 : 0, nbPlanes, planes, generator.getHandle());
-                update_sizes();
+                UpdateSizes();
             }
             /// <summary>
             /// Save the texture to a PNG file
             /// </summary>
             /// <param name="path"></param>
             /// <returns></returns>
-            public bool save_to_PNG(string path)
+            public bool SaveToPNG(string path)
             {
                 return (save_to_png_Texture(_handle, path) == 1);
             }
@@ -224,31 +258,31 @@ namespace HBP.Module3D
             /// Update the input Texture2D with the DLL Texture
             /// </summary>
             /// <param name="texture"></param>
-            public void update_texture_2D(Texture2D texture, bool forcePinned = false)
+            public void UpdateTexture2D(Texture2D texture, bool forcePinned = false)
             {
-                bool nullDLLTexture = m_sizeTexture[1] == 0 || m_sizeTexture[0] == 0;
+                bool nullDLLTexture = m_TextureSize[1] == 0 || m_TextureSize[0] == 0;
                 if (nullDLLTexture)
                 {
                     texture.Resize(10, 10);
-                    pixels2 = texture.GetPixels32(0);
-                    for (int ii = 0; ii < pixels2.Length; ++ii)
-                        pixels2[ii] = new Color32(0, 0, 0, 255);
-                    texture.SetPixels32(pixels2, 0);
+                    Pixels2 = texture.GetPixels32(0);
+                    for (int ii = 0; ii < Pixels2.Length; ++ii)
+                        Pixels2[ii] = new Color32(0, 0, 0, 255);
+                    texture.SetPixels32(Pixels2, 0);
                     texture.Apply();
                     return;
                 }
 
-                if (texture.width != m_sizeTexture[1] || texture.height != m_sizeTexture[0] || forcePinned || !m_isPinned)
+                if (texture.width != m_TextureSize[1] || texture.height != m_TextureSize[0] || forcePinned || !m_IsPinned)
                 {
-                    texture.Resize(m_sizeTexture[1], m_sizeTexture[0]);
-                    pixels2 = texture.GetPixels32(0);
+                    texture.Resize(m_TextureSize[1], m_TextureSize[0]);
+                    Pixels2 = texture.GetPixels32(0);
                     pixelsHandle2.Free();
-                    pixelsHandle2 = GCHandle.Alloc(pixels2, GCHandleType.Pinned);
-                    m_isPinned = true;
+                    pixelsHandle2 = GCHandle.Alloc(Pixels2, GCHandleType.Pinned);
+                    m_IsPinned = true;
                 }
 
                 update_Texture(_handle, pixelsHandle2.AddrOfPinnedObject(), 255);
-                texture.SetPixels32(pixels2, 0);
+                texture.SetPixels32(Pixels2, 0);
                 texture.Apply();
             }
             /// <summary>
@@ -260,7 +294,7 @@ namespace HBP.Module3D
             /// <param name="minCoeff"></param>
             /// <param name="maxCoeff"></param>
             /// <returns></returns>
-            public static Texture generate_distribution_histogram(Volume volume, int height, int width, float minCoeff, float maxCoeff, float middle = -1f)
+            public static Texture GenerateDistributionHistogram(Volume volume, int height, int width, float minCoeff, float maxCoeff, float middle = -1f)
             {
                 return new Texture(generate_distribution_histogram_Texture(volume.getHandle(), height, width, minCoeff, maxCoeff, middle));
             }
@@ -274,23 +308,23 @@ namespace HBP.Module3D
             /// <param name="maxCoeff"></param>
             /// <param name="middle"></param>
             /// <returns></returns>
-            public static Texture generate_distribution_histogram(float[] data, int height, int width, float minCoeff, float maxCoeff, float middle = -1f)
+            public static Texture GenerateDistributionHistogram(float[] data, int height, int width, float minCoeff, float maxCoeff, float middle = -1f)
             {
                 return new Texture(generate_distribution_histogram_with_data_Texture(data, data.Length, height, width, minCoeff, maxCoeff, middle));
             }
             /// <summary>
             /// Update the size array with the DLL data
             /// </summary>
-            public void update_sizes()
+            public void UpdateSizes()
             {
-                get_size_Texture(_handle, m_sizeTexture);
+                get_size_Texture(_handle, m_TextureSize);
             }
             /// <summary>
             /// Generate a one dimension texture corresponding to the input id, see DLL for details
             /// </summary>
             /// <param name="idColor"></param>
             /// <returns></returns>
-            public static Texture generate_1D_color_texture(ColorType color)
+            public static Texture Generate1DColorTexture(ColorType color)
             {
                 return new Texture(generate_1D_color_Texture((int)color));
             }
@@ -300,7 +334,7 @@ namespace HBP.Module3D
             /// <param name="idColor1"></param>
             /// <param name="idColor2"></param>
             /// <returns></returns>
-            public static Texture generate_2D_color_texture(ColorType color1, ColorType color2)
+            public static Texture Generate2DColorTexture(ColorType color1, ColorType color2)
             {
                 return new Texture(generate_2D_color_Texture((int)color1, (int)color2));
             }
@@ -317,7 +351,7 @@ namespace HBP.Module3D
             /// <param name="surfaceHandle"></param>
             public Texture(IntPtr texturePtr) : base(texturePtr)
             {
-                get_size_Texture( _handle, m_sizeTexture);
+                get_size_Texture( _handle, m_TextureSize);
             }
             /// <summary>
             /// Clone the surface
@@ -326,7 +360,7 @@ namespace HBP.Module3D
             public object Clone()
             {
                 Texture clone = new Texture(this);
-                clone.update_sizes();
+                clone.UpdateSizes();
                 return clone;
             }
             /// <summary>
@@ -335,7 +369,7 @@ namespace HBP.Module3D
             protected override void create_DLL_class()
             {
                 _handle = new HandleRef(this,create_Texture());
-                get_size_Texture(_handle, m_sizeTexture);
+                get_size_Texture(_handle, m_TextureSize);
             }
             /// <summary>
             /// Clean DLL memory

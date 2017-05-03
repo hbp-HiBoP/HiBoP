@@ -116,12 +116,12 @@ namespace HBP.Module3D
             }
 
             // get the middle
-            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.bounding_box().center();
+            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox().Center();
 
             // cut the mesh
             List<DLL.Surface> cuts;
             if (PlanesList.Count > 0)
-                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.cut(m_Column3DViewManager.PlanesCutsCopy.ToArray(), SceneInformation.RemoveFrontPlaneList.ToArray(), !SceneInformation.CutHolesEnabled));
+                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(m_Column3DViewManager.PlanesCutsCopy.ToArray(), SceneInformation.RemoveFrontPlaneList.ToArray(), !SceneInformation.CutHolesEnabled));
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.MeshToDisplay.Clone() };
 
@@ -131,14 +131,14 @@ namespace HBP.Module3D
             {
                 // swap DLL pointer
                 for (int ii = 0; ii < cuts.Count; ++ii)
-                    m_Column3DViewManager.DLLCutsList[ii].swap_DLL_handle(cuts[ii]);
+                    m_Column3DViewManager.DLLCutsList[ii].SwapDLLHandle(cuts[ii]);
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 1 splitToSurfaces"); // 2%
 
             // split the cut mesh         
-            m_Column3DViewManager.DLLSplittedMeshesList = new List<DLL.Surface>(m_Column3DViewManager.DLLCutsList[0].split_to_surfaces(m_Column3DViewManager.MeshSplitNumber));
+            m_Column3DViewManager.DLLSplittedMeshesList = new List<DLL.Surface>(m_Column3DViewManager.DLLCutsList[0].SplitToSurfaces(m_Column3DViewManager.MeshSplitNumber));
 
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 2 reset brain texture generator"); // 11%
@@ -146,8 +146,8 @@ namespace HBP.Module3D
             // reset brain texture generator
             for (int ii = 0; ii < m_Column3DViewManager.MeshSplitNumber; ++ii)
             {
-                m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].reset(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume);
-                m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].compute_UVMain_with_volume(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume, m_Column3DViewManager.MRICalMinFactor, m_Column3DViewManager.MRICalMaxFactor);
+                m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume);
+                m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume, m_Column3DViewManager.MRICalMinFactor, m_Column3DViewManager.MRICalMaxFactor);
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -157,7 +157,7 @@ namespace HBP.Module3D
 
             // update brain mesh object mesh filter
             for (int ii = 0; ii < m_Column3DViewManager.MeshSplitNumber; ++ii)
-                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
 
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 4 update cuts generators"); // 17%
@@ -167,10 +167,10 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_Column3DViewManager.PlanesCutsCopy.Count; ++ii)
             {
                 for (int jj = 0; jj < m_Column3DViewManager.ColumnsIEEG.Count; ++jj)
-                    m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].reset(m_Column3DViewManager.DLLVolume, m_Column3DViewManager.PlanesCutsCopy[ii]);                        
+                    m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_Column3DViewManager.DLLVolume, m_Column3DViewManager.PlanesCutsCopy[ii]);                        
 
-                m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].update_cut_mesh_UV(Column3DViewManager.DLLCutsList[ii + 1]);
-                m_Column3DViewManager.DLLCutsList[ii + 1].update_mesh_from_dll(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(Column3DViewManager.DLLCutsList[ii + 1]);
+                m_Column3DViewManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -224,7 +224,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.Initialize(PlanesList.Count);
 
             DLL.Transformation meshTransformation = new DLL.Transformation();
-            meshTransformation.load(Patient.Brain.PreOperationReferenceFrameToScannerReferenceFrameTransformation);
+            meshTransformation.Load(Patient.Brain.PreOperationReferenceFrameToScannerReferenceFrameTransformation);
             if (postIRM)
             {
                 // ...
@@ -294,48 +294,48 @@ namespace HBP.Module3D
 
 
             DLL.Transformation transfo = new DLL.Transformation(); // ############################ TEST
-            transfo.load(pathTransformFile);
+            transfo.Load(pathTransformFile);
 
             // load left hemi
-            bool leftMeshLoaded = m_Column3DViewManager.LHemi.load_GII_file(pathGIIBrainFiles[0], true, pathTransformFile);
+            bool leftMeshLoaded = m_Column3DViewManager.LHemi.LoadGIIFile(pathGIIBrainFiles[0], true, pathTransformFile);
             bool leftWhiteLoaded = false, rightWhiteLoaded = false;
             bool leftParcelsLoaded = false, rightParcelsLoaded = false;
             if (leftMeshLoaded)
             {
-                m_Column3DViewManager.LHemi.flip_triangles();  // the transformation inverses one axis, so faces of the surface must be flipped (TODO : case with no transformation or no inverse axi transfo)
-                m_Column3DViewManager.LHemi.compute_normals();
+                m_Column3DViewManager.LHemi.FlipTriangles();  // the transformation inverses one axis, so faces of the surface must be flipped (TODO : case with no transformation or no inverse axi transfo)
+                m_Column3DViewManager.LHemi.ComputeNormals();
 
                 string leftWhitePath = pathGIIBrainFiles[0].Replace("_Lhemi", "_Lwhite");
-                leftWhiteLoaded = m_Column3DViewManager.LWhite.load_GII_file(leftWhitePath, true, pathTransformFile);
+                leftWhiteLoaded = m_Column3DViewManager.LWhite.LoadGIIFile(leftWhitePath, true, pathTransformFile);
                 if (leftWhiteLoaded)
                 {
-                    m_Column3DViewManager.LWhite.flip_triangles();
-                    m_Column3DViewManager.LWhite.compute_normals();
+                    m_Column3DViewManager.LWhite.FlipTriangles();
+                    m_Column3DViewManager.LWhite.ComputeNormals();
 
                     string[] split = leftWhitePath.Split('\\');
                     string parcelPath = leftWhitePath.Substring(0, leftWhitePath.LastIndexOf('\\')) + "\\surface_analysis\\" + split[split.Length - 1].Replace(".gii", "") + "_parcels_marsAtlas.gii";
-                    leftParcelsLoaded = m_Column3DViewManager.LWhite.seach_mars_parcel_file_and_update_colors(GlobalGOPreloaded.MarsAtlasIndex, parcelPath);
+                    leftParcelsLoaded = m_Column3DViewManager.LWhite.SearchMarsParcelFileAndUpdateColors(GlobalGOPreloaded.MarsAtlasIndex, parcelPath);
                 }                
             }
 
 
             // load right hemi
-            bool rightMeshLoaded = m_Column3DViewManager.RHemi.load_GII_file(pathGIIBrainFiles[1], true, pathTransformFile);
+            bool rightMeshLoaded = m_Column3DViewManager.RHemi.LoadGIIFile(pathGIIBrainFiles[1], true, pathTransformFile);
             if (rightMeshLoaded)
             {
-                m_Column3DViewManager.RHemi.flip_triangles();  // the transformation inverses one axis, so faces of the surface must be flipped (TODO : case with no transformation or no inverse axi transfo)
-                m_Column3DViewManager.RHemi.compute_normals();
+                m_Column3DViewManager.RHemi.FlipTriangles();  // the transformation inverses one axis, so faces of the surface must be flipped (TODO : case with no transformation or no inverse axi transfo)
+                m_Column3DViewManager.RHemi.ComputeNormals();
 
                 string rightWhitePath = pathGIIBrainFiles[1].Replace("_Rhemi", "_Rwhite");
-                rightWhiteLoaded = m_Column3DViewManager.RWhite.load_GII_file(rightWhitePath, true, pathTransformFile);
+                rightWhiteLoaded = m_Column3DViewManager.RWhite.LoadGIIFile(rightWhitePath, true, pathTransformFile);
                 if (rightWhiteLoaded)
                 {
-                    m_Column3DViewManager.RWhite.flip_triangles();
-                    m_Column3DViewManager.RWhite.compute_normals();
+                    m_Column3DViewManager.RWhite.FlipTriangles();
+                    m_Column3DViewManager.RWhite.ComputeNormals();
 
                     string[] split = rightWhitePath.Split('\\');
                     string parcelPath = rightWhitePath.Substring(0, rightWhitePath.LastIndexOf('\\')) + "\\surface_analysis\\" + split[split.Length - 1].Replace(".gii", "") + "_parcels_marsAtlas.gii";
-                    rightParcelsLoaded = m_Column3DViewManager.RWhite.seach_mars_parcel_file_and_update_colors(GlobalGOPreloaded.MarsAtlasIndex, parcelPath);
+                    rightParcelsLoaded = m_Column3DViewManager.RWhite.SearchMarsParcelFileAndUpdateColors(GlobalGOPreloaded.MarsAtlasIndex, parcelPath);
                 }
             }
 
@@ -346,17 +346,17 @@ namespace HBP.Module3D
                 m_Column3DViewManager.BothHemi = (DLL.Surface)m_Column3DViewManager.LHemi.Clone();
 
                 // add right
-                m_Column3DViewManager.BothHemi.add(m_Column3DViewManager.RHemi);
+                m_Column3DViewManager.BothHemi.Add(m_Column3DViewManager.RHemi);
                 SceneInformation.MeshesLoaded = true;
 
                 // get the middle
-                SceneInformation.MeshCenter = m_Column3DViewManager.BothHemi.bounding_box().center();
+                SceneInformation.MeshCenter = m_Column3DViewManager.BothHemi.BoundingBox().Center();
 
                 if(rightWhiteLoaded && leftWhiteLoaded)
                 {
                     m_Column3DViewManager.BothWhite = (DLL.Surface)m_Column3DViewManager.LWhite.Clone();
                     // add right
-                    m_Column3DViewManager.BothWhite.add(m_Column3DViewManager.RWhite);
+                    m_Column3DViewManager.BothWhite.Add(m_Column3DViewManager.RWhite);
                     SceneInformation.WhiteMeshesAvailables = true;
 
                     SceneInformation.MarsAtlasParcelsLoaed = leftParcelsLoaded && rightParcelsLoaded;
@@ -369,14 +369,14 @@ namespace HBP.Module3D
                 return false;
             }
 
-            int maxVerticesNb = m_Column3DViewManager.BothHemi.vertices_nb();
+            int maxVerticesNb = m_Column3DViewManager.BothHemi.NumberOfVertices();
             if (leftWhiteLoaded && rightWhiteLoaded)
-                maxVerticesNb = Math.Max(maxVerticesNb, m_Column3DViewManager.BothWhite.vertices_nb());
+                maxVerticesNb = Math.Max(maxVerticesNb, m_Column3DViewManager.BothWhite.NumberOfVertices());
             int nbSplits = (maxVerticesNb / 65000) + (int)(((maxVerticesNb % 60000) != 0) ? 3 : 2);
             ResetSplitsNumber(nbSplits);
             
             // update scenes cameras
-            UpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.bounding_box().center());
+            UpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox().Center());
            
             // set the transform as the mesh center
             SceneInformation.HemiMeshesAvailables = true;
@@ -651,16 +651,16 @@ namespace HBP.Module3D
                 if (hit.collider.gameObject.name.StartsWith("cut")) // cut hit
                     return;
 
-                if (m_TriEraser.is_enabled() && m_TriEraser.is_click_available())
+                if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable())
                 {
                     //Debug.DrawRay(ray.origin, hit.point, Color.red, 2f, false);
-                    m_TriEraser.erase_triangles(ray.direction, hit.point);
+                    m_TriEraser.EraseTriangles(ray.direction, hit.point);
 
                     for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
                     {
                         //if (go_.brainSurfaceMeshes[ii].name == hit.collider.gameObject.name)
                         {
-                            m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                            m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
                             //break;
                         }
                     }

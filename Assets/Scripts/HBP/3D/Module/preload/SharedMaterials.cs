@@ -128,7 +128,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public static Material site_shared_material(bool hightlighted, SiteType siteType)
+        public static Material SiteSharedMaterial(bool hightlighted, SiteType siteType)
         {
             if (!hightlighted)
             {

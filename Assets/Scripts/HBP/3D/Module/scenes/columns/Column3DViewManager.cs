@@ -238,8 +238,8 @@ namespace HBP.Module3D
             }
             else m_Columns = new List<Column3DView>();
 
-            BrainColorMapTexture = Texture2Dutility.generate_color_scheme();
-            BrainColorTexture = Texture2Dutility.generate_color_scheme();
+            BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
+            BrainColorTexture = Texture2Dutility.GenerateColorScheme();
 
             ResetSplitsNumber(1);
         }
@@ -273,8 +273,8 @@ namespace HBP.Module3D
         public void UpdateColormap(ColorType color)
         {
             Colormap = color;
-            DLL.Texture tex = DLL.Texture.generate_1D_color_texture(Colormap);
-            tex.update_texture_2D(BrainColorMapTexture);
+            DLL.Texture tex = DLL.Texture.Generate1DColorTexture(Colormap);
+            tex.UpdateTexture2D(BrainColorMapTexture);
         }
         /// <summary>
         /// 
@@ -557,11 +557,11 @@ namespace HBP.Module3D
         {
             Column3DViewIEEG column = ColumnsIEEG[indexColumn];            
             DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[indexCut];        
-            generator.fill_texture_with_IEEG(column, column.DLLCutColorScheme, NotInBrainColor);
+            generator.FillTextureWithIEEG(column, column.DLLCutColorScheme, NotInBrainColor);
 
             DLL.Texture cutTexture = column.DLLBrainCutWithIEEGTextures[indexCut];
-            generator.update_texture_with_IEEG(cutTexture);
-            cutTexture.update_texture_2D(column.BrainCutWithIEEGTextures[indexCut]); // update mesh cut 2D texture
+            generator.UpdateTextureWithIEEG(cutTexture);
+            cutTexture.UpdateTexture2D(column.BrainCutWithIEEGTextures[indexCut]); // update mesh cut 2D texture
         }
         /// <summary>
         /// 
@@ -572,11 +572,11 @@ namespace HBP.Module3D
         {
             Column3DViewFMRI column = ColumnsFMRI[indexColumn];
             DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[indexCut];
-            generator.fill_texture_with_FMRI(column, DLLVolumeFMriList[indexColumn]);
+            generator.FillTextureWithFMRI(column, DLLVolumeFMriList[indexColumn]);
 
             DLL.Texture cutTexture = column.DLLBrainCutWithFMRITextures[indexCut];
-            generator.update_texture_with_FMRI(cutTexture);
-            cutTexture.update_texture_2D(column.BrainCutWithFMRITextures[indexCut]); // update mesh cut 2D texture
+            generator.UpdateTextureWithFMRI(cutTexture);
+            cutTexture.UpdateTexture2D(column.BrainCutWithFMRITextures[indexCut]); // update mesh cut 2D texture
         }
         /// <summary>
         /// Compute the amplitudes textures coordinates for the brain mesh
@@ -590,7 +590,7 @@ namespace HBP.Module3D
         public bool ComputeSurfaceBrainUVWithIEEG(bool whiteInflatedMeshes, int indexColumn)
         {
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
-                if(!ColumnsIEEG[indexColumn].DLLBrainTextureGenerators[ii].compute_surface_UV_IEEG(whiteInflatedMeshes ? DLLSplittedWhiteMeshesList[ii] : DLLSplittedMeshesList[ii], ColumnsIEEG[indexColumn]))
+                if(!ColumnsIEEG[indexColumn].DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(whiteInflatedMeshes ? DLLSplittedWhiteMeshesList[ii] : DLLSplittedMeshesList[ii], ColumnsIEEG[indexColumn]))
                     return false;
 
             return true;
@@ -622,11 +622,11 @@ namespace HBP.Module3D
             // disable all ROI render
             for(int ii = 0; ii < m_Columns.Count; ++ii)
                 if (m_Columns[ii].SelectedROI != null)
-                    m_Columns[ii].SelectedROI.set_rendering_state(false);
+                    m_Columns[ii].SelectedROI.SetRenderingState(false);
 
             if(SelectedColumn != null)
                 if(SelectedColumn.SelectedROI != null)
-                SelectedColumn.SelectedROI.set_rendering_state(visible);
+                SelectedColumn.SelectedROI.SetRenderingState(visible);
         }
         /// <summary>
         /// Update the visiblity of the plots for all columns

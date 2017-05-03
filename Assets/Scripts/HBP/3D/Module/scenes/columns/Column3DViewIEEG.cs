@@ -90,8 +90,8 @@ namespace HBP.Module3D
             GUIBrainCutWithIEEGTextures = new List<Texture2D>(nbCuts);
             for (int jj = 0; jj < nbCuts; ++jj)
             {                
-                BrainCutWithIEEGTextures.Add(Texture2Dutility.generate_cut(1,1));
-                GUIBrainCutWithIEEGTextures.Add(Texture2Dutility.generate_GUI(1, 1));                
+                BrainCutWithIEEGTextures.Add(Texture2Dutility.GenerateCut(1,1));
+                GUIBrainCutWithIEEGTextures.Add(Texture2Dutility.GenerateGUI(1, 1));                
             }
             // DLL textures
             DLLBrainCutWithIEEGTextures = new List<DLL.Texture>(nbCuts);
@@ -118,7 +118,7 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateDLLSitesMask()
         {
-            bool noROI = (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.bubbles_nb() == 0);
+            bool noROI = (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles() == 0);
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
                 m_RawElectrodes.UpdateMask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsInROI && !noROI)));
@@ -225,8 +225,8 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < -diffCuts; ++ii)
                 {
                     // GO textures 
-                    BrainCutWithIEEGTextures.Add(Texture2Dutility.generate_cut());
-                    GUIBrainCutWithIEEGTextures.Add(Texture2Dutility.generate_GUI());
+                    BrainCutWithIEEGTextures.Add(Texture2Dutility.GenerateCut());
+                    GUIBrainCutWithIEEGTextures.Add(Texture2Dutility.GenerateGUI());
 
                     // DLL textures
                     DLLBrainCutWithIEEGTextures.Add(new DLL.Texture());
@@ -344,9 +344,9 @@ namespace HBP.Module3D
 
                     // select plot ring 
                     if (ii == SelectedSiteID)
-                        m_SelectRing.set_selected_site(Sites[ii], Sites[ii].transform.localScale);
+                        m_SelectRing.SetSelectedSite(Sites[ii], Sites[ii].transform.localScale);
 
-                    Material siteMaterial = SharedMaterials.site_shared_material(highlight, siteType);
+                    Material siteMaterial = SharedMaterials.SiteSharedMaterial(highlight, siteType);
                     if (customAlpha > 0f)
                     {
                         Color col = siteMaterial.color;
@@ -412,7 +412,7 @@ namespace HBP.Module3D
                     UnityEngine.Profiling.Profiler.EndSample();
                     UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering -3 ");
 
-                    Sites[ii].GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.site_shared_material(Sites[ii].Information.IsHighlighted, siteType);
+                    Sites[ii].GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(Sites[ii].Information.IsHighlighted, siteType);
 
                     if (!activity)
                         Sites[ii].gameObject.SetActive(true);
@@ -424,7 +424,7 @@ namespace HBP.Module3D
 
                 // select plot ring 
                 if (SelectedSiteID >= 0 && SelectedSiteID < Sites.Count)
-                    m_SelectRing.set_selected_site(Sites[SelectedSiteID], Sites[SelectedSiteID].transform.localScale);
+                    m_SelectRing.SetSelectedSite(Sites[SelectedSiteID], Sites[SelectedSiteID].transform.localScale);
 
 
                 UnityEngine.Profiling.Profiler.EndSample();
@@ -432,7 +432,7 @@ namespace HBP.Module3D
 
             if (SelectedSiteID == -1)
             {
-                m_SelectRing.set_selected_site(null, new Vector3(0,0,0));
+                m_SelectRing.SetSelectedSite(null, new Vector3(0,0,0));
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -448,10 +448,10 @@ namespace HBP.Module3D
         /// <param name="drawLines"></param>
         public void CreateGUIIEEGTexture(int indexCut, string orientation, bool flip, List<Plane> cutPlanes, bool drawLines)
         {
-            if (DLLBrainCutTextures[indexCut].m_sizeTexture[0] > 0)
+            if (DLLBrainCutTextures[indexCut].m_TextureSize[0] > 0)
             {
-                DLLGUIBrainCutWithIEEGTextures[indexCut].copy_frome_and_rotate(DLLBrainCutWithIEEGTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
-                DLLGUIBrainCutWithIEEGTextures[indexCut].update_texture_2D(GUIBrainCutWithIEEGTextures[indexCut]);
+                DLLGUIBrainCutWithIEEGTextures[indexCut].CopyAndRotate(DLLBrainCutWithIEEGTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
+                DLLGUIBrainCutWithIEEGTextures[indexCut].UpdateTexture2D(GUIBrainCutWithIEEGTextures[indexCut]);
             }
         }
         #endregion

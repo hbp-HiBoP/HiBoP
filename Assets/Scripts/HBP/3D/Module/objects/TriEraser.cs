@@ -23,12 +23,25 @@ namespace HBP.Module3D
     public class TriEraser
     {
         #region Properties
-        public enum Mode : int
+        public enum Mode
         {
             OneTri, Cylinder, Zone, Invert, Expand
         }; /**< modes id */
 
-        private bool m_isEnabled = false;
+        private bool m_IsEnabled = false;
+        public bool IsEnabled
+        {
+            get
+            {
+                return m_IsEnabled;
+            }
+            set
+            {
+                m_IsEnabled = value;
+                for (int ii = 0; ii < m_BrainInvisibleMeshesGO.Count; ++ii)
+                    m_BrainInvisibleMeshesGO[ii].SetActive(m_IsEnabled);
+            }
+        }
         private Mode m_CurrentMode = Mode.OneTri;
         public Mode CurrentMode
         {
@@ -36,55 +49,35 @@ namespace HBP.Module3D
             {
                 return m_CurrentMode;
             }
+            set
+            {
+                m_CurrentMode = value;
+            }
         }
-        private float m_degrees = 30f;
+        private float m_Degrees = 30f;
+        public float Degrees
+        {
+            set
+            {
+                m_Degrees = value;
+            }
+        }
 
-        int[] m_fullMask;
-        private List<int[]> m_splittedMasks = null;
+        int[] m_FullMask;
+        private List<int[]> m_SplittedMasks = null;
 
-        private DLL.Surface m_brainMeshDLL = null;
-        private List<DLL.Surface> m_brainMeshesSplittedDLL = null;
+        private DLL.Surface m_BrainMeshDLL = null;
+        private List<DLL.Surface> m_BrainMeshesSplittedDLL = null;
 
-        private List<GameObject> m_brainInvisibleMeshesGO = null;
+        private List<GameObject> m_BrainInvisibleMeshesGO = null;
         #endregion
 
         #region Public Methods
         /// <summary>
-        /// Are the invisible part meshes GO enabled
-        /// </summary>
-        /// <returns></returns>
-        public bool is_enabled() { return m_isEnabled; }
-        /// <summary>
-        /// Set the activation of the invisible mesh part gameobjects
-        /// </summary>
-        /// <param name="isEnabled"></param>
-        public void set_enabled(bool isEnabled)
-        {
-            m_isEnabled = isEnabled;
-            for (int ii = 0; ii < m_brainInvisibleMeshesGO.Count; ++ii)
-                m_brainInvisibleMeshesGO[ii].SetActive(isEnabled);
-        }
-        /// <summary>
-        /// Define the current tri erasing mode
-        /// </summary>
-        /// <param name="mode"></param>
-        public void set_tri_erasing_mode(Mode mode)
-        {
-            m_CurrentMode = mode;
-        }
-        /// <summary>
-        /// Define the number of degrees for the zone pencil
-        /// </summary>
-        /// <param name="degrees"></param>
-        public void set_zone_degrees(float degrees)
-        {
-            m_degrees = degrees;
-        }
-        /// <summary>
         /// Check if the current mode of the tri eraser needs clicks on the scene
         /// </summary>
         /// <returns></returns>
-        public bool is_click_available()
+        public bool IsClickAvailable()
         {
             return (m_CurrentMode != Mode.Expand) && (m_CurrentMode != Mode.Invert);
         }
@@ -95,50 +88,50 @@ namespace HBP.Module3D
         /// <param name="branMeshDLL"></param>
         /// <param name="brainMeshesSplittedDLL"></param>
         /// <param name="namesGO"></param>
-        public void reset(List<GameObject> brainInvisibleMeshesGO, DLL.Surface brainMeshDLL, List<DLL.Surface> brainMeshesSplittedDLL)
+        public void Reset(List<GameObject> brainInvisibleMeshesGO, DLL.Surface brainMeshDLL, List<DLL.Surface> brainMeshesSplittedDLL)
         {
-            m_brainInvisibleMeshesGO = brainInvisibleMeshesGO;
-            m_brainMeshesSplittedDLL = brainMeshesSplittedDLL;
-            m_brainMeshDLL = brainMeshDLL;
+            m_BrainInvisibleMeshesGO = brainInvisibleMeshesGO;
+            m_BrainMeshesSplittedDLL = brainMeshesSplittedDLL;
+            m_BrainMeshDLL = brainMeshDLL;
 
-            m_fullMask = new int[m_brainMeshDLL.triangles_nb()];
-            for (int ii = 0; ii < m_fullMask.Length; ++ii)
-                m_fullMask[ii] = 1;
-            m_brainMeshDLL.update_visibility_mask(m_fullMask);
+            m_FullMask = new int[m_BrainMeshDLL.NumberOfTriangles()];
+            for (int ii = 0; ii < m_FullMask.Length; ++ii)
+                m_FullMask[ii] = 1;
+            m_BrainMeshDLL.UpdateVisibilityMask(m_FullMask);
 
-            m_splittedMasks = new List<int[]>(m_brainMeshesSplittedDLL.Count);
-            for (int ii = 0; ii < m_brainMeshesSplittedDLL.Count; ++ii)
+            m_SplittedMasks = new List<int[]>(m_BrainMeshesSplittedDLL.Count);
+            for (int ii = 0; ii < m_BrainMeshesSplittedDLL.Count; ++ii)
             {
-                int[] mask = new int[m_brainMeshesSplittedDLL[ii].triangles_nb()];
+                int[] mask = new int[m_BrainMeshesSplittedDLL[ii].NumberOfTriangles()];
                 for (int jj = 0; jj < mask.Length; ++jj)
                     mask[jj] = 1;
 
-                m_brainMeshesSplittedDLL[ii].update_visibility_mask(mask); // return an empty mesh
-                m_splittedMasks.Add(mask);                
+                m_BrainMeshesSplittedDLL[ii].UpdateVisibilityMask(mask); // return an empty mesh
+                m_SplittedMasks.Add(mask);                
             }
         }
         /// <summary>
         /// Erase triangles and update the invisible part mesh GO
         /// </summary>
         /// <param name="hitPoint"></param>
-        public void erase_triangles(Vector3 rayDirection, Vector3 hitPoint)
+        public void EraseTriangles(Vector3 rayDirection, Vector3 hitPoint)
         {
             rayDirection.x = -rayDirection.x;
             hitPoint.x = -hitPoint.x;
 
             // save current masks
-            m_fullMask = m_brainMeshDLL.visibility_mask();
-            for (int ii = 0; ii < m_brainMeshesSplittedDLL.Count; ++ii)
-                m_splittedMasks[ii] = m_brainMeshesSplittedDLL[ii].visibility_mask();
+            m_FullMask = m_BrainMeshDLL.VisibilityMask();
+            for (int ii = 0; ii < m_BrainMeshesSplittedDLL.Count; ++ii)
+                m_SplittedMasks[ii] = m_BrainMeshesSplittedDLL[ii].VisibilityMask();
 
             // apply rays and retrieve mask
-            /*DLL.Surface brainInvisibleFullMeshDLL = */m_brainMeshDLL.update_visibility_mask(rayDirection, hitPoint, m_CurrentMode, m_degrees);
-            int[] newFullMask = m_brainMeshDLL.visibility_mask();
+            /*DLL.Surface brainInvisibleFullMeshDLL = */m_BrainMeshDLL.UpdateVisibilityMask(rayDirection, hitPoint, m_CurrentMode, m_Degrees);
+            int[] newFullMask = m_BrainMeshDLL.VisibilityMask();
 
             // split it
-            int nbSplits = m_brainMeshesSplittedDLL.Count;            
-            int size = m_fullMask.Length / nbSplits;
-            int lastSize = size + m_fullMask.Length % nbSplits;
+            int nbSplits = m_BrainMeshesSplittedDLL.Count;            
+            int size = m_FullMask.Length / nbSplits;
+            int lastSize = size + m_FullMask.Length % nbSplits;
 
             int currId = 0;
             List<int[]> newSplittedMasks = new List<int[]>(nbSplits);
@@ -153,22 +146,22 @@ namespace HBP.Module3D
                 newSplittedMasks.Add(mask);
             }
 
-            for (int ii = 0; ii < m_brainMeshesSplittedDLL.Count; ++ii)
+            for (int ii = 0; ii < m_BrainMeshesSplittedDLL.Count; ++ii)
             {
-                DLL.Surface brainInvisibleMeshesDLL = m_brainMeshesSplittedDLL[ii].update_visibility_mask(newSplittedMasks[ii]);
-                brainInvisibleMeshesDLL.update_mesh_from_dll(m_brainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
+                DLL.Surface brainInvisibleMeshesDLL = m_BrainMeshesSplittedDLL[ii].UpdateVisibilityMask(newSplittedMasks[ii]);
+                brainInvisibleMeshesDLL.UpdateMeshFromDLL(m_BrainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
             }
         }
         /// <summary>
         /// Cancel the last action and update the invisible part mesh GO
         /// </summary>
-        public void cancel_last_action()
+        public void CancelLastAction()
         {
-            m_brainMeshDLL.update_visibility_mask(m_fullMask);
-            for (int ii = 0; ii < m_brainMeshesSplittedDLL.Count; ++ii)
+            m_BrainMeshDLL.UpdateVisibilityMask(m_FullMask);
+            for (int ii = 0; ii < m_BrainMeshesSplittedDLL.Count; ++ii)
             {
-                DLL.Surface brainInvisibleMeshesDLL = m_brainMeshesSplittedDLL[ii].update_visibility_mask(m_splittedMasks[ii]);
-                brainInvisibleMeshesDLL.update_mesh_from_dll(m_brainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
+                DLL.Surface brainInvisibleMeshesDLL = m_BrainMeshesSplittedDLL[ii].UpdateVisibilityMask(m_SplittedMasks[ii]);
+                brainInvisibleMeshesDLL.UpdateMeshFromDLL(m_BrainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
             }
         }
         #endregion

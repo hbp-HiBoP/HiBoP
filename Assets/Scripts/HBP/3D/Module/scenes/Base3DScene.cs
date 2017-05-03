@@ -703,8 +703,8 @@ namespace HBP.Module3D
         public void UpdateBrainSurfaceColor(ColorType color)
         {
             Column3DViewManager.BrainColor = color;
-            DLL.Texture tex = DLL.Texture.generate_1D_color_texture(Column3DViewManager.BrainColor);
-            tex.update_texture_2D(Column3DViewManager.BrainColorTexture);
+            DLL.Texture tex = DLL.Texture.Generate1DColorTexture(Column3DViewManager.BrainColor);
+            tex.UpdateTexture2D(Column3DViewManager.BrainColorTexture);
 
             SharedMaterials.Brain.BrainMaterials[this].SetTexture("_MainTex", Column3DViewManager.BrainColorTexture);
         }
@@ -1129,7 +1129,7 @@ namespace HBP.Module3D
             }
             else
             {
-                m_Column3DViewManager.DLLVolume.set_plane_with_orientation(newPlane, idOrientation, flip);
+                m_Column3DViewManager.DLLVolume.SetPlaneWithOrientation(newPlane, idOrientation, flip);
             }
 
             m_PlanesList[idPlane].Normal = newPlane.Normal;
@@ -1142,7 +1142,7 @@ namespace HBP.Module3D
             float offset;
             if (SceneInformation.MeshToDisplay != null)
             {
-                offset = SceneInformation.MeshToDisplay.size_offset_cut_plane(m_PlanesList[idPlane], SceneInformation.NumberOfCutsPerPlane[idPlane]);
+                offset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(m_PlanesList[idPlane], SceneInformation.NumberOfCutsPerPlane[idPlane]);
                 offset *= 1.05f; // upsize a little bit the bbox for planes
             }
             else
@@ -1187,11 +1187,11 @@ namespace HBP.Module3D
             }
 
             // load volume
-            bool loadingSuccess = m_Column3DViewManager.DLLNii.load_nii_file(pathNIIBrainVolumeFile);
+            bool loadingSuccess = m_Column3DViewManager.DLLNii.LoadNIIFile(pathNIIBrainVolumeFile);
             if (loadingSuccess)
             {
-                m_Column3DViewManager.DLLNii.convert_to_volume(m_Column3DViewManager.DLLVolume);
-                SceneInformation.VolumeCenter = m_Column3DViewManager.DLLVolume.center();
+                m_Column3DViewManager.DLLNii.ConvertToVolume(m_Column3DViewManager.DLLVolume);
+                SceneInformation.VolumeCenter = m_Column3DViewManager.DLLVolume.Center();
             }
             else
             {
@@ -1203,7 +1203,7 @@ namespace HBP.Module3D
             UpdatePlanes.Invoke();
 
             // send cal values to the UI
-            IRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.retrieve_extreme_values());
+            IRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.RetrieveExtremeValues());
 
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
@@ -1281,9 +1281,9 @@ namespace HBP.Module3D
                 else
                 {
                     // uv 2 (alpha) 
-                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DViewIEEG)currCol).DLLBrainTextureGenerators[ii].get_alpha_UV();
+                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DViewIEEG)currCol).DLLBrainTextureGenerators[ii].AlphaUV;
                     // uv 3 (color map)
-                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DViewIEEG)currCol).DLLBrainTextureGenerators[ii].get_iEEG_UV();
+                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DViewIEEG)currCol).DLLBrainTextureGenerators[ii].IEEGUV;
                 }
             }
 
@@ -1428,7 +1428,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         public bool IsTriangleErasingModeEnabled()
         {
-            return m_TriEraser.is_enabled();
+            return m_TriEraser.IsEnabled;
         }
         /// <summary>
         /// 
@@ -1444,7 +1444,7 @@ namespace HBP.Module3D
         /// <param name="enabled"></param>
         public void SetTriangleErasing(bool enabled)
         {
-            m_TriEraser.set_enabled(enabled);
+            m_TriEraser.IsEnabled = enabled;
         }
         /// <summary>
         /// 
@@ -1476,24 +1476,24 @@ namespace HBP.Module3D
                 invisibleBrainPart.AddComponent<MeshFilter>();
                 invisibleBrainPart.transform.localScale = new Vector3(-1, 1, 1);
                 invisibleBrainPart.transform.localPosition = new Vector3(0, 0, 0);
-                invisibleBrainPart.SetActive(m_TriEraser.is_enabled());
+                invisibleBrainPart.SetActive(m_TriEraser.IsEnabled);
                 m_DisplayedObjects.InvisibleBrainSurfaceMeshes.Add(invisibleBrainPart);
             }
 
-            m_TriEraser.reset(m_DisplayedObjects.InvisibleBrainSurfaceMeshes, m_Column3DViewManager.DLLCutsList[0], m_Column3DViewManager.DLLSplittedMeshesList);
+            m_TriEraser.Reset(m_DisplayedObjects.InvisibleBrainSurfaceMeshes, m_Column3DViewManager.DLLCutsList[0], m_Column3DViewManager.DLLSplittedMeshesList);
 
             if(updateGO)
                 for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
-                    m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                    m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
         }
         /// <summary>
         /// 
         /// </summary>
         public void CancelLastTriangleErasingAction()
         {
-            m_TriEraser.cancel_last_action();
+            m_TriEraser.CancelLastAction();
             for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
-                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
         }
         /// <summary>
         /// 
@@ -1502,14 +1502,14 @@ namespace HBP.Module3D
         public void SetTriangleErasingMode(TriEraser.Mode mode)
         {
             TriEraser.Mode previousMode = m_TriEraser.CurrentMode;
-            m_TriEraser.set_tri_erasing_mode(mode);
+            m_TriEraser.CurrentMode = mode;
 
             if (mode == TriEraser.Mode.Expand || mode == TriEraser.Mode.Invert)
             {
-                m_TriEraser.erase_triangles(new Vector3(), new Vector3());
+                m_TriEraser.EraseTriangles(new Vector3(), new Vector3());
                 for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
-                    m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
-                m_TriEraser.set_tri_erasing_mode(previousMode);
+                    m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_TriEraser.CurrentMode = previousMode;
             }
         }
         /// <summary>
@@ -1518,7 +1518,7 @@ namespace HBP.Module3D
         /// <param name="degrees"></param>
         public void SetTriangleErasingZoneDegrees(float degrees)
         {
-            m_TriEraser.set_zone_degrees(degrees);
+            m_TriEraser.Degrees = degrees;
         }
         /// <summary>
         /// Return the id of the current select column in the scene
@@ -1586,11 +1586,11 @@ namespace HBP.Module3D
             { //TEST
               // recompute UV
                 for (int ii = 0; ii < m_Column3DViewManager.MeshSplitNumber; ++ii)
-                    m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].compute_UVMain_with_volume(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume, m_Column3DViewManager.MRICalMinFactor, m_Column3DViewManager.MRICalMaxFactor);
+                    m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume, m_Column3DViewManager.MRICalMinFactor, m_Column3DViewManager.MRICalMaxFactor);
 
                 // update brain mesh object mesh filter (TODO update only UV)
                 for (int ii = 0; ii < m_Column3DViewManager.MeshSplitNumber; ++ii)
-                    m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                    m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
 
             ComputeMRITextures();
@@ -1617,11 +1617,11 @@ namespace HBP.Module3D
             { //TEST
               // recompute UV
                 for (int ii = 0; ii < m_Column3DViewManager.MeshSplitNumber; ++ii)
-                    m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].compute_UVMain_with_volume(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume, m_Column3DViewManager.MRICalMinFactor, m_Column3DViewManager.MRICalMaxFactor);
+                    m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume, m_Column3DViewManager.MRICalMinFactor, m_Column3DViewManager.MRICalMaxFactor);
 
                 // update brain mesh object mesh filter (TODO update only UV)
                 for (int ii = 0; ii < m_Column3DViewManager.MeshSplitNumber; ++ii)
-                    m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                    m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
 
 
@@ -1763,7 +1763,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         public bool LoadFMRIFile(string FMRIPath)
         {
-            if (m_Column3DViewManager.DLLNii.load_nii_file(FMRIPath))
+            if (m_Column3DViewManager.DLLNii.LoadNIIFile(FMRIPath))
                 return true;
 
             Debug.LogError("-ERROR : Base3DScene::load_FMRI_file -> load NII file failed. " + FMRIPath);
@@ -1795,7 +1795,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
             // convert to volume            
-            m_Column3DViewManager.DLLNii.convert_to_volume(m_Column3DViewManager.DLLVolumeFMriList[idCol]);
+            m_Column3DViewManager.DLLNii.ConvertToVolume(m_Column3DViewManager.DLLVolumeFMriList[idCol]);
 
             if (Type == SceneType.SinglePatient)
                 AskROIUpdateEvent.Invoke(m_Column3DViewManager.ColumnsIEEG.Count + idCol);
@@ -1804,7 +1804,7 @@ namespace HBP.Module3D
             //IRMCalValues calValues = m_CM.DLLVolumeIRMFList[idCol].retrieveExtremeValues();
 
             FMriDataParameters FMRIParams = new FMriDataParameters();
-            FMRIParams.calValues = m_Column3DViewManager.DLLVolumeFMriList[idCol].retrieve_extreme_values();
+            FMRIParams.calValues = m_Column3DViewManager.DLLVolumeFMriList[idCol].RetrieveExtremeValues();
             FMRIParams.columnId = idCol;
             FMRIParams.alpha  = m_Column3DViewManager.ColumnsFMRI[idCol].Alpha;
             FMRIParams.calMin = m_Column3DViewManager.ColumnsFMRI[idCol].CalMin;
@@ -1815,7 +1815,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.ColumnsFMRI[idCol].CalMax = FMRIParams.calValues.computedCalMax;            
 
             // update camera
-            UpdateCameraTarget.Invoke(Type == SceneType.SinglePatient ?  m_Column3DViewManager.BothHemi.bounding_box().center() : m_MNIObjects.BothHemi.bounding_box().center());
+            UpdateCameraTarget.Invoke(Type == SceneType.SinglePatient ?  m_Column3DViewManager.BothHemi.BoundingBox().Center() : m_MNIObjects.BothHemi.BoundingBox().Center());
 
             ComputeMRITextures(-1, -1);
 
@@ -1915,7 +1915,7 @@ namespace HBP.Module3D
                 FMRIDataParams.calMax = m_Column3DViewManager.ColumnsFMRI[ii].CalMax;
                 FMRIDataParams.columnId = ii;
 
-                FMRIDataParams.calValues = m_Column3DViewManager.DLLVolumeFMriList[ii].retrieve_extreme_values(); 
+                FMRIDataParams.calValues = m_Column3DViewManager.DLLVolumeFMriList[ii].RetrieveExtremeValues(); 
                 FMRIDataParams.singlePatient = Type == SceneType.SinglePatient;
                 
                 SendFMRIParameters.Invoke(FMRIDataParams);
@@ -2054,23 +2054,23 @@ namespace HBP.Module3D
                     // splits
                     for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
                     {
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].init_octree(cm_.ColumnsIEEG[ii].RawElectrodes);
+                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(cm_.ColumnsIEEG[ii].RawElectrodes);
 
 
-                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].compute_distances(cm_.ColumnsIEEG[ii].MaxDistanceElec, true))
+                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(cm_.ColumnsIEEG[ii].MaxDistanceElec, true))
                         {
                             Debug.LogError("Abort computing"); // useless
                             return;
                         }
 
-                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].compute_influences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
+                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
                         {
                             Debug.LogError("Abort computing"); // useless
                             return;
                         }
-                        currentMaxDensity = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].getMaximumDensity();
-                        currentMinInfluence = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].getMinimumInfluence();
-                        currentMaxInfluence = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].getMaximumInfluence();
+                        currentMaxDensity = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumDensity();
+                        currentMinInfluence = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMinimumInfluence();
+                        currentMaxInfluence = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumInfluence();
 
                         if (currentMaxDensity > maxDensity)
                             maxDensity = currentMaxDensity;
@@ -2091,18 +2091,18 @@ namespace HBP.Module3D
                     // cuts
                     for (int jj = 0; jj < cm_.PlanesCutsCopy.Count; ++jj)
                     {
-                        cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].init_octree(cm_.ColumnsIEEG[ii].RawElectrodes);
-                        cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].compute_distances(cm_.ColumnsIEEG[ii].MaxDistanceElec, true);
+                        cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(cm_.ColumnsIEEG[ii].RawElectrodes);
+                        cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(cm_.ColumnsIEEG[ii].MaxDistanceElec, true);
 
-                        if (!cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].compute_influences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
+                        if (!cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
                         {
                             Debug.LogError("Abort computing");
                             return;
                         }
 
-                        currentMaxDensity = cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].maximum_density();
-                        currentMinInfluence = cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].minimum_influence();
-                        currentMaxInfluence = cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].maximum_influence();
+                        currentMaxDensity = cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity();
+                        currentMinInfluence = cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MinimumInfluence();
+                        currentMaxInfluence = cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumInfluence();
 
                         if (currentMaxDensity > maxDensity)
                             maxDensity = currentMaxDensity;
@@ -2116,14 +2116,14 @@ namespace HBP.Module3D
 
                     // synchronize max density
                     for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].synchronizeWithOthersGenerators(maxDensity, cm_.ColumnsIEEG[ii].SharedMinInf, cm_.ColumnsIEEG[ii].SharedMaxInf);
+                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, cm_.ColumnsIEEG[ii].SharedMinInf, cm_.ColumnsIEEG[ii].SharedMaxInf);
                     for (int jj = 0; jj < cm_.PlanesCutsCopy.Count; ++jj)
-                        cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].synchronize_with_others_generators(maxDensity, cm_.ColumnsIEEG[ii].SharedMinInf, cm_.ColumnsIEEG[ii].SharedMaxInf);
+                        cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, cm_.ColumnsIEEG[ii].SharedMinInf, cm_.ColumnsIEEG[ii].SharedMaxInf);
 
                     for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ajustInfluencesToColormap();
+                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
                     for (int jj = 0; jj < cm_.PlanesCutsCopy.Count; ++jj)
-                        cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ajust_influences_to_colormap();
+                        cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap();
                 }
             }
             else // if inflated white mesh is displayed, we compute only on the complete white mesh
@@ -2146,24 +2146,24 @@ namespace HBP.Module3D
                     // splits
                     for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
                     {
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].reset(cm_.DLLSplittedWhiteMeshesList[jj], cm_.DLLVolume); // TODO : ?
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].init_octree(cm_.ColumnsIEEG[ii].RawElectrodes);
+                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Reset(cm_.DLLSplittedWhiteMeshesList[jj], cm_.DLLVolume); // TODO : ?
+                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(cm_.ColumnsIEEG[ii].RawElectrodes);
 
-                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].compute_distances(cm_.ColumnsIEEG[ii].MaxDistanceElec, true))
+                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(cm_.ColumnsIEEG[ii].MaxDistanceElec, true))
                         {
                             Debug.LogError("Abort computing");
                             return;
                         }
 
-                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].compute_influences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
+                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
                         {
                             Debug.LogError("Abort computing");
                             return;
                         }
 
-                        currentMaxDensity = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].getMaximumDensity();
-                        currentMinInfluence = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].getMinimumInfluence();
-                        currentMaxInfluence = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].getMaximumInfluence();
+                        currentMaxDensity = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumDensity();
+                        currentMinInfluence = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMinimumInfluence();
+                        currentMaxInfluence = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumInfluence();
 
                         if (currentMaxDensity > maxDensity)
                             maxDensity = currentMaxDensity;
@@ -2182,10 +2182,10 @@ namespace HBP.Module3D
 
                     // synchronize max density
                     for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].synchronizeWithOthersGenerators(maxDensity, cm_.ColumnsIEEG[ii].SharedMinInf, cm_.ColumnsIEEG[ii].SharedMaxInf);
+                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, cm_.ColumnsIEEG[ii].SharedMinInf, cm_.ColumnsIEEG[ii].SharedMaxInf);
 
                     for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ajustInfluencesToColormap();
+                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
                 }
             }
         }

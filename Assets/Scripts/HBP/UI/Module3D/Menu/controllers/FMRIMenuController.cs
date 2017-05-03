@@ -67,7 +67,7 @@ namespace HBP.UI.Module3D
         {
             m_scene = scene;
             m_columnId = idColumn;
-            m_IRMFhistogram = Texture2Dutility.generate_histogram();
+            m_IRMFhistogram = Texture2Dutility.GenerateHistogram();
 
             // define name
             string nameMenu = "fMRI left menu ";
@@ -218,7 +218,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         void update_histogram()
         {
-            HBP.Module3D.DLL.Texture.generate_distribution_histogram(m_scene.Column3DViewManager.DLLVolumeFMriList[m_columnId], 4 * 110, 4 * 110, m_calMin, m_calMax).update_texture_2D(m_IRMFhistogram);
+            HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(m_scene.Column3DViewManager.DLLVolumeFMriList[m_columnId], 4 * 110, 4 * 110, m_calMin, m_calMax).UpdateTexture2D(m_IRMFhistogram);
 
             Transform contentPanelT = transform.Find("panel");
             Image image = contentPanelT.Find("Histogram parent").Find("Histogram panel").GetComponent<Image>();

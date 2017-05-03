@@ -239,7 +239,7 @@ namespace HBP.Module3D
         /// <param name="offset"></param>
         public static void DisplayBBoxDebug(DLL.BBox bbox, Vector3 offset)
         {
-            List<Vector3> linesPoints = bbox.lines_pair_points();
+            List<Vector3> linesPoints = bbox.LinesPairPoints();
 
             for (int ii = 0; ii < linesPoints.Count; ii += 2)
             {
@@ -254,7 +254,7 @@ namespace HBP.Module3D
         /// <param name="offset"></param>
         public static void DisplayBBoxPlaneIntersection(DLL.BBox bbox, Plane plane, Vector3 offset)
         {
-            List<Vector3> interLinesPoints = bbox.intersection_lines_with_plane(plane);
+            List<Vector3> interLinesPoints = bbox.IntersectionLinesWithPlane(plane);
 
             for (int ii = 0; ii < interLinesPoints.Count / 2; ++ii)
             {
@@ -277,7 +277,7 @@ namespace HBP.Module3D
             mat.SetPass(0);
             GL.Color(new Color(mat.color.r, mat.color.g, mat.color.b, mat.color.a));
 
-            List<Vector3> linesPoints = bbox.lines_pair_points();
+            List<Vector3> linesPoints = bbox.LinesPairPoints();
 
             for (int ii = 0; ii < linesPoints.Count; ++ii)
             {

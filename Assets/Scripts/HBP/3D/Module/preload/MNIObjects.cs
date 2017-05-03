@@ -62,7 +62,7 @@ namespace HBP.Module3D
             string baseIRMDir = dataDirPath + "IRM/", baseMeshDir = dataDirPath + "Meshes/";
             // IRM
             NII = new DLL.NIFTI();
-            NII.load_nii_file(baseIRMDir + "ch256.nii");
+            NII.LoadNIIFile(baseIRMDir + "ch256.nii");
 
             List<string> filesPaths = new List<string>(9);
             filesPaths.Add(baseMeshDir + "MNI_single_hight_Lhemi.obj");
@@ -81,7 +81,7 @@ namespace HBP.Module3D
             readMulti = new DLL.ReadMultiFilesBuffers();
             readMulti.ReadBuffersFiles(filesPaths, DLL.ReadMultiFilesBuffers.FilesTypes.MeshesObj);
 #endif
-            Thread thread = new Thread(() => load_data(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID));
+            Thread thread = new Thread(() => LoadData(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID));
             thread.Start();
         }
         /// <summary>
@@ -92,12 +92,12 @@ namespace HBP.Module3D
         /// <param name="idScript"></param>
         /// <param name="GOName"></param>
         /// <param name="instanceID"></param>
-        void load_data(string baseIRMDir, string baseMeshDir, int idScript, string GOName, int instanceID)
+        void LoadData(string baseIRMDir, string baseMeshDir, int idScript, string GOName, int instanceID)
         {
             LoadingMutex.WaitOne();
             
             IRM = new DLL.Volume();
-            NII.convert_to_volume(IRM);
+            NII.ConvertToVolume(IRM);
 
 #if UNITY_EDITOR_WIN
 
@@ -105,7 +105,7 @@ namespace HBP.Module3D
 
             List<DLL.Surface> meshes = readMulti.Meshes();
             for (int ii = 0; ii < meshes.Count; ++ii)
-                meshes[ii].compute_normals();
+                meshes[ii].ComputeNormals();
 
             LeftHemi = meshes[0];
             RightHemi = meshes[1];

@@ -167,15 +167,15 @@ namespace HBP.Module3D
             }
 
             if (SceneInformation.MeshTypeToDisplay == SceneStatesInfo.MeshType.Inflated)
-                m_Column3DViewManager.DLLSplittedWhiteMeshesList = new List<DLL.Surface>(SceneInformation.MeshToDisplay.split_to_surfaces(m_Column3DViewManager.MeshSplitNumber));
+                m_Column3DViewManager.DLLSplittedWhiteMeshesList = new List<DLL.Surface>(SceneInformation.MeshToDisplay.SplitToSurfaces(m_Column3DViewManager.MeshSplitNumber));
 
             // get the middle
-            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.bounding_box().center();
+            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox().Center();
 
             // cut the mesh
             List<DLL.Surface> cuts;
             if (SceneInformation.MeshTypeToDisplay != SceneStatesInfo.MeshType.Inflated && m_Column3DViewManager.PlanesCutsCopy.Count > 0)
-                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.cut(m_Column3DViewManager.PlanesCutsCopy.ToArray(), SceneInformation.RemoveFrontPlaneList.ToArray(), !SceneInformation.CutHolesEnabled));
+                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(m_Column3DViewManager.PlanesCutsCopy.ToArray(), SceneInformation.RemoveFrontPlaneList.ToArray(), !SceneInformation.CutHolesEnabled));
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)(SceneInformation.MeshToDisplay.Clone())};
 
@@ -185,25 +185,25 @@ namespace HBP.Module3D
             {
                 // swap DLL pointer
                 for (int ii = 0; ii < cuts.Count; ++ii)
-                    m_Column3DViewManager.DLLCutsList[ii].swap_DLL_handle(cuts[ii]);
+                    m_Column3DViewManager.DLLCutsList[ii].SwapDLLHandle(cuts[ii]);
             }
 
             // split the mesh
-            List<DLL.Surface> splits = new List<DLL.Surface>(m_Column3DViewManager.DLLCutsList[0].split_to_surfaces(m_Column3DViewManager.MeshSplitNumber));
+            List<DLL.Surface> splits = new List<DLL.Surface>(m_Column3DViewManager.DLLCutsList[0].SplitToSurfaces(m_Column3DViewManager.MeshSplitNumber));
             if (m_Column3DViewManager.DLLSplittedMeshesList.Count != splits.Count)
                 m_Column3DViewManager.DLLSplittedMeshesList = splits;
             else
             {
                 // swap DLL pointer
                 for (int ii = 0; ii < splits.Count; ++ii)
-                    m_Column3DViewManager.DLLSplittedMeshesList[ii].swap_DLL_handle(splits[ii]);
+                    m_Column3DViewManager.DLLSplittedMeshesList[ii].SwapDLLHandle(splits[ii]);
             }
 
             // reset brain texture generator
             for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
             {
-                m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].reset(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume);
-                m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].compute_UVMain_with_volume(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume, m_Column3DViewManager.MRICalMinFactor, m_Column3DViewManager.MRICalMaxFactor);
+                m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume);
+                m_Column3DViewManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_Column3DViewManager.DLLSplittedMeshesList[ii], m_Column3DViewManager.DLLVolume, m_Column3DViewManager.MRICalMinFactor, m_Column3DViewManager.MRICalMaxFactor);
             }
 
             // reset tri eraser
@@ -211,7 +211,7 @@ namespace HBP.Module3D
 
             // update cut brain mesh object mesh filter
             for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
-                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
 
             // update cuts generators
             for (int ii = 0; ii < m_Column3DViewManager.PlanesCutsCopy.Count; ++ii)
@@ -223,10 +223,10 @@ namespace HBP.Module3D
                 }
 
                 for (int jj = 0; jj < m_Column3DViewManager.ColumnsIEEG.Count; ++jj)
-                    m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].reset(m_Column3DViewManager.DLLVolume, m_Column3DViewManager.PlanesCutsCopy[ii]);
+                    m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_Column3DViewManager.DLLVolume, m_Column3DViewManager.PlanesCutsCopy[ii]);
 
-                m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].update_cut_mesh_UV(Column3DViewManager.DLLCutsList[ii + 1]);
-                m_Column3DViewManager.DLLCutsList[ii + 1].update_mesh_from_dll(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(Column3DViewManager.DLLCutsList[ii + 1]);
+                m_Column3DViewManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
                 m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true); // enable cuts gameobject
             }
 
@@ -256,7 +256,7 @@ namespace HBP.Module3D
             Visualisation = visualisation;
 
             // MNI meshes are preloaded
-            SceneInformation.VolumeCenter = m_MNIObjects.IRM.center();
+            SceneInformation.VolumeCenter = m_MNIObjects.IRM.Center();
             SceneInformation.MeshesLoaded = true;
             SceneInformation.HemiMeshesAvailables = true;
             SceneInformation.WhiteMeshesAvailables = true;
@@ -264,7 +264,7 @@ namespace HBP.Module3D
             SceneInformation.IsROICreationModeEnabled = false;
 
             // get the middle
-            SceneInformation.MeshCenter = m_MNIObjects.BothHemi.bounding_box().center();
+            SceneInformation.MeshCenter = m_MNIObjects.BothHemi.BoundingBox().Center();
 
             List<string> ptsFiles = new List<string>(Visualisation.GetImplantation().Length), namePatients = new List<string>(Visualisation.GetImplantation().Length);
             for (int ii = 0; ii < Visualisation.GetImplantation().Length; ++ii)
@@ -279,17 +279,17 @@ namespace HBP.Module3D
 
             // retrieve MNI IRM volume
             m_Column3DViewManager.DLLVolume = m_MNIObjects.IRM;
-            SceneInformation.VolumeCenter = m_Column3DViewManager.DLLVolume.center();
+            SceneInformation.VolumeCenter = m_Column3DViewManager.DLLVolume.Center();
             SceneInformation.MRILoaded = true;
             UpdatePlanes.Invoke();
 
 
             // send cal values to the UI
-            IRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.retrieve_extreme_values());
+            IRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.RetrieveExtremeValues());
 
 
             // update scenes cameras
-            UpdateCameraTarget.Invoke(m_MNIObjects.BothHemi.bounding_box().center());
+            UpdateCameraTarget.Invoke(m_MNIObjects.BothHemi.BoundingBox().Center());
 
 
             //####### UDPATE MODE
@@ -597,7 +597,7 @@ namespace HBP.Module3D
                 ROI ROI = m_Column3DViewManager.Columns[idC].SelectedROI;
                 if (ROI != null)
                 {
-                    ChangeSizeBubbleEvent.Invoke(idC, ROI.idSelectedBubble, (coeff < 0 ? 0.9f : 1.1f));
+                    ChangeSizeBubbleEvent.Invoke(idC, ROI.SelectedBubbleID, (coeff < 0 ? 0.9f : 1.1f));
                     m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
                 }
             }
@@ -626,7 +626,7 @@ namespace HBP.Module3D
                         int idC = m_Column3DViewManager.SelectedColumnID;
 
                         Column3DView col =  m_Column3DViewManager.SelectedColumn;                        
-                        int idBubble = col.SelectedROI.idSelectedBubble;
+                        int idBubble = col.SelectedROI.SelectedBubbleID;
                         if (idBubble != -1)
                             RemoveBubbleEvent.Invoke(idC, idBubble);
 
@@ -747,9 +747,9 @@ namespace HBP.Module3D
                 {
                     if (ROIHit) // ROI collision -> select ROI
                     {
-                        if (m_Column3DViewManager.SelectedColumn.SelectedROI.check_collision(ray))
+                        if (m_Column3DViewManager.SelectedColumn.SelectedROI.CheckCollision(ray))
                         {
-                            int idClickedBubble = m_Column3DViewManager.SelectedColumn.SelectedROI.collided_closest_bubble_id(ray);
+                            int idClickedBubble = m_Column3DViewManager.SelectedColumn.SelectedROI.CollidedClosestBubbleID(ray);
                             SelectBubbleEvent.Invoke(m_Column3DViewManager.SelectedColumnID, idClickedBubble);
                         }
 
@@ -772,11 +772,11 @@ namespace HBP.Module3D
                         if (hit.collider.gameObject.name.StartsWith("cut")) // cut hit
                             return;
 
-                        if (m_TriEraser.is_enabled() && m_TriEraser.is_click_available())
+                        if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable())
                         {
-                            m_TriEraser.erase_triangles(ray.direction, hit.point);
+                            m_TriEraser.EraseTriangles(ray.direction, hit.point);
                             for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
-                                m_Column3DViewManager.DLLSplittedMeshesList[ii].update_mesh_from_dll(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);             
+                                m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);             
                         }
 
                         return;
@@ -926,7 +926,7 @@ namespace HBP.Module3D
                     {
                         masksColumnsData.Add(new List<bool>(m_Column3DViewManager.ColumnsIEEG[ii].Sites.Count));
 
-                        bool isROI = (m_Column3DViewManager.ColumnsIEEG[ii].SelectedROI.bubbles_nb() > 0);
+                        bool isROI = (m_Column3DViewManager.ColumnsIEEG[ii].SelectedROI.NumberOfBubbles() > 0);
                         for (int jj = 0; jj < m_Column3DViewManager.ColumnsIEEG[ii].Sites.Count; ++jj)
                         {
                             Site p = m_Column3DViewManager.ColumnsIEEG[ii].Sites[jj];
@@ -963,7 +963,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < maskROI.Length; ++ii)
                 maskROI[ii] = m_Column3DViewManager.Columns[idColumn].Sites[ii].Information.IsInROI;
 
-            m_Column3DViewManager.Columns[idColumn].SelectedROI.update_mask(m_Column3DViewManager.Columns[idColumn].RawElectrodes, maskROI);
+            m_Column3DViewManager.Columns[idColumn].SelectedROI.UpdateMask(m_Column3DViewManager.Columns[idColumn].RawElectrodes, maskROI);
             for (int ii = 0; ii < m_Column3DViewManager.Columns[idColumn].Sites.Count; ++ii)
                 m_Column3DViewManager.Columns[idColumn].Sites[ii].Information.IsInROI = maskROI[ii];
 
@@ -986,7 +986,7 @@ namespace HBP.Module3D
         public string GetCurrentColumnRegionOfInterestAndSitesStatesIntoString()
         {
             Column3DView currentCol = m_Column3DViewManager.SelectedColumn;
-            return "ROI :\n" +  currentCol.SelectedROI.ROIbubbulesInfos() + currentCol.SiteStatesIntoString();
+            return "ROI :\n" +  currentCol.SelectedROI.BubblesInformationIntoString() + currentCol.SiteStatesIntoString();
         }
         /// <summary>
         /// 
@@ -995,7 +995,7 @@ namespace HBP.Module3D
         public string GetSitesInRegionOfInterestIntoString()
         {
             Column3DView currentCol = m_Column3DViewManager.SelectedColumn;
-            return "Sites in ROI:\n" + currentCol.SelectedROI.ROIbubbulesInfos() + currentCol.OnlySitesInROIIntoString();
+            return "Sites in ROI:\n" + currentCol.SelectedROI.BubblesInformationIntoString() + currentCol.OnlySitesInROIIntoString();
         }
         /// <summary>
         /// 

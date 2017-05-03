@@ -162,10 +162,10 @@ namespace HBP.Module3D
             add_ROI();
 
             ROI currROI = ROIElemGo.GetComponent<ROIElement>().m_ROI.GetComponent<ROI>();
-            for (int jj = 0; jj < currROI.bubbles_nb(); ++jj)
+            for (int jj = 0; jj < currROI.NumberOfBubbles(); ++jj)
             {
-                Bubble bubble = currROI.bubble(jj);
-                m_ROIList[m_ROIList.Count-1].GetComponent<ROIElement>().add_bubble(bubble.transform.position, bubble.m_radius);                    
+                Bubble bubble = currROI.Bubble(jj);
+                m_ROIList[m_ROIList.Count-1].GetComponent<ROIElement>().add_bubble(bubble.transform.position, bubble.Radius);                    
             }
 
             set_selected_ROI(m_ROIList.Count - 1);

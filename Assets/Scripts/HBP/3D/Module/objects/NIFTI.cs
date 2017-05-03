@@ -23,7 +23,7 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="pathNiftiFile"></param>
         /// <returns></returns>
-        public bool load_nii_file(string pathNiftiFile)
+        public bool LoadNIIFile(string pathNiftiFile)
         {
             return (loadNiiFile_NIFTI(_handle, pathNiftiFile) == 1);
         }
@@ -31,7 +31,7 @@ namespace HBP.Module3D.DLL
         /// 
         /// </summary>
         /// <param name="volume"></param>
-        public void convert_to_volume(Volume volume)
+        public void ConvertToVolume(Volume volume)
         {
             convertToVolume_NIFTI(_handle, volume.getHandle());
         }

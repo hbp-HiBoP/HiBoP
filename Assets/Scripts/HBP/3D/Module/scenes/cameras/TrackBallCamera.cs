@@ -340,7 +340,7 @@ namespace HBP.Module3D.Cam
 
                 if (currEvent.type == EventType.KeyDown)
                 {
-                    m_InputsSceneManager.send_keyboard_action_to_scenes(m_AssociatedScene, currEvent.keyCode);
+                    m_InputsSceneManager.SendKeyboardActionToScenes(m_AssociatedScene, currEvent.keyCode);
                 }                
 
                 if (Input.GetKey(KeyCode.Space))
@@ -348,7 +348,7 @@ namespace HBP.Module3D.Cam
             }
             else if(currEvent.type == EventType.ScrollWheel)
             {
-                m_InputsSceneManager.send_scroll_mouse_to_scenes(m_AssociatedScene, Input.mouseScrollDelta);
+                m_InputsSceneManager.SendScrollMouseToScenes(m_AssociatedScene, Input.mouseScrollDelta);
             }
         }
         /// <summary>
@@ -359,12 +359,12 @@ namespace HBP.Module3D.Cam
             Ray ray = GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
 
             // mouse movement
-            m_InputsSceneManager.send_mouse_movement_to_scenes(ray, m_AssociatedScene, Input.mousePosition, m_Column);
+            m_InputsSceneManager.SendMouseMovementToScenes(ray, m_AssociatedScene, Input.mousePosition, m_Column);
 
             // left click
             if (Input.GetMouseButtonUp(0))
             {
-                m_InputsSceneManager.send_click_ray_to_scenes(ray, m_AssociatedScene, m_Column);
+                m_InputsSceneManager.SendClickRayToScenes(ray, m_AssociatedScene, m_Column);
             }
 
 

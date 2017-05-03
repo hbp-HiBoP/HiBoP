@@ -226,8 +226,8 @@ namespace HBP.Module3D
                     string path = m_iconicScenarioList[ii].Icons[jj].IllustrationPath;
                     if (path.Length > 0)
                     {
-                        Texture2D icone = Texture2Dutility.generate_icone();
-                        DLL.Texture.load(m_iconicScenarioList[ii].Icons[jj].IllustrationPath).update_texture_2D(icone);
+                        Texture2D icone = Texture2Dutility.GenerateIcon();
+                        DLL.Texture.Load(m_iconicScenarioList[ii].Icons[jj].IllustrationPath).UpdateTexture2D(icone);
 
                         m_textures[ii].Add(icone);
                         m_sprites[ii].Add(Sprite.Create(m_textures[ii][jj], new Rect(0, 0, m_textures[ii][jj].width, m_textures[ii][jj].height), new Vector2(0, 0)));

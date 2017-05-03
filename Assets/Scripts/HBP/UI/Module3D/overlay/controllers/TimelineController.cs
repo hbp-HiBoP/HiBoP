@@ -407,7 +407,7 @@ namespace HBP.Module3D
                 timelinePanel.Find("max_text").GetComponent<Text>().text = "" + timeLine.End.Value + m_uniteMax;
 
                 // define texture
-                m_sliderTexture = UITextureGenerator.generate_slider_background_texture(posMin, posMax-1, timeLine.Start.Position, timeLine.End.Position, timeLine.Lenght, m_positionMainEvent, m_secondaryEventsPositions[ii]);
+                m_sliderTexture = UITextureGenerator.GenerateSliderBackgroundTexture(posMin, posMax-1, timeLine.Start.Position, timeLine.End.Position, timeLine.Lenght, m_positionMainEvent, m_secondaryEventsPositions[ii]);
                 timelinePanel.Find("slider panel").Find("value_slider").Find("Background").GetComponent<Image>().sprite = Sprite.Create(m_sliderTexture, new Rect(0, 0, m_sliderTexture.width, m_sliderTexture.height), new Vector2(0, 0));
             }
 
@@ -426,7 +426,7 @@ namespace HBP.Module3D
             //if (m_sliderGlobalTexture != null)
             //    Destroy(m_sliderGlobalTexture);
 
-            m_sliderGlobalTexture = UITextureGenerator.generate_slider_background_texture(0, m_size - 1, 0, m_size - 1, m_size, m_positionMainEvent, new List<int>());
+            m_sliderGlobalTexture = UITextureGenerator.GenerateSliderBackgroundTexture(0, m_size - 1, 0, m_size - 1, m_size, m_positionMainEvent, new List<int>());
             timelinePanel.Find("slider panel").Find("value_slider").Find("Background").GetComponent<Image>().sprite = Sprite.Create(m_sliderGlobalTexture, new Rect(0, 0, m_sliderGlobalTexture.width, m_sliderGlobalTexture.height), new Vector2(0, 0));
 
             m_timelinesList = timelinesList;
