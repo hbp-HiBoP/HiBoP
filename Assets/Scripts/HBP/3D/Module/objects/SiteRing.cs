@@ -31,21 +31,21 @@ namespace HBP.Module3D
             m_ring1 = Instantiate(GlobalGOPreloaded.SelectRing);
             m_ring1.name = "ring 1";
             m_ring1.transform.SetParent(transform);
-            m_ring1.GetComponent<MeshFilter>().mesh = Geometry.create_tube(1.7f);
+            m_ring1.GetComponent<MeshFilter>().mesh = Geometry.CreateTube(1.7f);
             m_ring1.SetActive(false);
             m_ring1.transform.localEulerAngles = new Vector3(90, 0, 0);
 
             m_ring2 = Instantiate(GlobalGOPreloaded.SelectRing);
             m_ring2.name = "ring 2";
             m_ring2.transform.SetParent(transform);            
-            m_ring2.GetComponent<MeshFilter>().mesh = Geometry.create_tube(1.5f);
+            m_ring2.GetComponent<MeshFilter>().mesh = Geometry.CreateTube(1.5f);
             m_ring2.SetActive(false);
             m_ring2.transform.localEulerAngles = new Vector3(0, 90, 0);
 
             m_ring3 = Instantiate(GlobalGOPreloaded.SelectRing);
             m_ring3.name = "ring 3";
             m_ring3.transform.SetParent(transform);
-            m_ring3.GetComponent<MeshFilter>().mesh = Geometry.create_tube(1.3f);
+            m_ring3.GetComponent<MeshFilter>().mesh = Geometry.CreateTube(1.3f);
             m_ring3.SetActive(false);
             m_ring3.transform.localEulerAngles = new Vector3(0, 0, 90);
         }

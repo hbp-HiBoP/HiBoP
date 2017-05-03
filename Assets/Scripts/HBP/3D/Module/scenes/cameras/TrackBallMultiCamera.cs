@@ -22,18 +22,18 @@ namespace HBP.Module3D.Cam
     public class TrackBallMultiCamera : TrackBallCamera
     {
         #region Properties
-        private Transform m_MPCameraParent; /**< MP camera parent */
-        private MultiPatients3DScene m_associatedMPScene; /**< MP associated scene */
+        private Transform m_MultiPatientsCameraParent; /**< MP camera parent */
+        private MultiPatients3DScene m_AssociatedScene; /**< MP associated scene */
         #endregion
 
         #region Private Methods
         protected void Start()
         {
-            m_Type = SceneType.MultiPatients;
+            m_SceneType = SceneType.MultiPatients;
 
-            m_AssociatedScene = StaticComponents.MultiPatientsScene;
-            m_associatedMPScene = (MultiPatients3DScene)m_AssociatedScene;
-            m_MPCameraParent = transform.parent;
+            base.m_AssociatedScene = StaticComponents.MultiPatientsScene;
+            m_AssociatedScene = (MultiPatients3DScene)base.m_AssociatedScene;
+            m_MultiPatientsCameraParent = transform.parent;
 
             int layer = 0;
             layer |= 1 << LayerMask.NameToLayer(ColumnLayer);
@@ -59,20 +59,20 @@ namespace HBP.Module3D.Cam
                 GetComponent<Camera>().cullingMask = MinimizedCullingMask;
 
             // listeners
-            m_AssociatedScene.ModifyPlanesCuts.AddListener(() =>
+            base.m_AssociatedScene.ModifyPlanesCuts.AddListener(() =>
             {
-                if (!m_AssociatedScene.SceneInformation.mriLoaded)
+                if (!base.m_AssociatedScene.SceneInformation.MRILoaded)
                     return;
 
                 m_PlanesCutsCirclesVertices = new List<Vector3[]>();
-                for (int ii = 0; ii < m_AssociatedScene.PlanesList.Count; ++ii)
+                for (int ii = 0; ii < base.m_AssociatedScene.PlanesList.Count; ++ii)
                 {
-                    Vector3 point = m_AssociatedScene.PlanesList[ii].point;
+                    Vector3 point = base.m_AssociatedScene.PlanesList[ii].Point;
                     point.x *= -1;
-                    Vector3 normal = m_AssociatedScene.PlanesList[ii].normal;
+                    Vector3 normal = base.m_AssociatedScene.PlanesList[ii].Normal;
                     normal.x *= -1;
                     Quaternion q = Quaternion.FromToRotation(new Vector3(0, 0, 1), normal);
-                    m_PlanesCutsCirclesVertices.Add(Geometry.create_3D_circle_points(new Vector3(0, 0, 0), 100, 150));
+                    m_PlanesCutsCirclesVertices.Add(Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), 100, 150));
                     for (int jj = 0; jj < 150; ++jj)
                     {
                         m_PlanesCutsCirclesVertices[ii][jj] = q * m_PlanesCutsCirclesVertices[ii][jj];
@@ -96,23 +96,23 @@ namespace HBP.Module3D.Cam
             Vector2 scrollDelta = Input.mouseScrollDelta;
             if (scrollDelta.y != 0)
             {
-                if (!m_associatedMPScene.IsRegionOfInterestModeEnabled())
+                if (!m_AssociatedScene.IsRegionOfInterestModeEnabled())
                 {
                     if (scrollDelta.y < 0)
-                        move_backward(m_ZoomSpeed);
+                        MoveBackward(m_ZoomSpeed);
                     else
-                        move_forward(m_ZoomSpeed);
+                        MoveForward(m_ZoomSpeed);
                 }
             }
         }
         public void LateUpdate()
         {
             // if mouse not in the screen, abort
-            if (!is_focus())
+            if (!IsFocused())
                 return;
 
             // force others camera alignment
-            foreach (Transform child in m_MPCameraParent)
+            foreach (Transform child in m_MultiPatientsCameraParent)
             {
                 if (child.gameObject.CompareTag("MultiCamera"))
                 {

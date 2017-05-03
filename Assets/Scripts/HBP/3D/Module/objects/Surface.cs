@@ -226,8 +226,8 @@ namespace HBP.Module3D.DLL
             {
                 for (int jj = 0; jj < 3; ++jj)
                 {
-                    planes[ii * 6 + jj] = cutPlanes[ii].point[jj];
-                    planes[ii * 6 + jj + 3] = cutPlanes[ii].normal[jj];
+                    planes[ii * 6 + jj] = cutPlanes[ii].Point[jj];
+                    planes[ii * 6 + jj + 3] = cutPlanes[ii].Normal[jj];
                 }
             }
 
@@ -260,7 +260,7 @@ namespace HBP.Module3D.DLL
         /// <returns></returns>
         public float size_offset_cut_plane(Plane cutPlane, int nbCuts)
         {            
-            return size_offset_cut_plane_Surface(_handle, cutPlane.convertToArray(), nbCuts);
+            return size_offset_cut_plane_Surface(_handle, cutPlane.ConvertToArray(), nbCuts);
         }
         /// <summary>
         /// 

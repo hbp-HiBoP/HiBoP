@@ -200,7 +200,7 @@ namespace HBP.UI.Module3D
             {
                 // TODO : m_bothScreenMessageController
                 case 0:
-                    switch (mode.m_Type)
+                    switch (mode.Type)
                     {
                         case SceneType.SinglePatient:
                             m_spPlanesController.CurrentActivity = active;
@@ -215,7 +215,7 @@ namespace HBP.UI.Module3D
                     }
                     break;
                 case 1:
-                    switch (mode.m_Type)
+                    switch (mode.Type)
                     {
                         case SceneType.SinglePatient:
                             m_spTimelineController.CurrentActivity = active;
@@ -230,7 +230,7 @@ namespace HBP.UI.Module3D
                     }
                     break;
                 case 2:
-                    switch (mode.m_Type)
+                    switch (mode.Type)
                     {
                         case SceneType.SinglePatient:
                             m_spIconesController.CurrentActivity = active;
@@ -254,7 +254,7 @@ namespace HBP.UI.Module3D
                     m_bothMinimizeController.SetActivity(active, mode);
                     break;
                 case 6:
-                    switch (mode.m_Type)
+                    switch (mode.Type)
                     {
                         case SceneType.SinglePatient:
                             m_spTimeDisplayController.CurrentActivity = active;
@@ -585,17 +585,17 @@ namespace HBP.UI.Module3D
         public void update_time(Base3DScene scene)
         {
             Column3DViewManager cm = scene.Column3DViewManager;
-            int time = cm.globalTimeline ? (int)cm.commonTimelineValue : ((Column3DViewIEEG)cm.SelectedColumn).columnTimeLineID;
+            int time = cm.GlobalTimeline ? (int)cm.CommonTimelineValue : ((Column3DViewIEEG)cm.SelectedColumn).ColumnTimeLineID;
 
             switch (scene.Type)
             {
                 case SceneType.SinglePatient:
-                    m_spIconesController.set_time(cm.globalTimeline, cm.SelectedColumnID, time);
-                    m_spTimeDisplayController.updateTime(cm.SelectedColumnID, time, cm.globalTimeline);
+                    m_spIconesController.set_time(cm.GlobalTimeline, cm.SelectedColumnID, time);
+                    m_spTimeDisplayController.updateTime(cm.SelectedColumnID, time, cm.GlobalTimeline);
                     break;
                 case SceneType.MultiPatients:
-                    m_mpIconesController.set_time(cm.globalTimeline, cm.SelectedColumnID, time);
-                    m_mpTimeDisplayController.updateTime(cm.SelectedColumnID, time, cm.globalTimeline);
+                    m_mpIconesController.set_time(cm.GlobalTimeline, cm.SelectedColumnID, time);
+                    m_mpTimeDisplayController.updateTime(cm.SelectedColumnID, time, cm.GlobalTimeline);
                     break;
                 default:
                     break;
@@ -637,8 +637,8 @@ namespace HBP.UI.Module3D
 
                 if (siteInfo.site != null)
                 {
-                    m_bothDisplaySiteInfoTransform.Find("mars atlas name text").GetComponent<Text>().text = "Mars atlas : " + (siteInfo.site.Information.MarsAtlasIndex == -1 ? "not found" : GlobalGOPreloaded.MarsAtlasIndex.full_name(siteInfo.site.Information.MarsAtlasIndex));
-                    m_bothDisplaySiteInfoTransform.Find("broadman name text").GetComponent<Text>().text = "Broadman : " + (siteInfo.site.Information.MarsAtlasIndex == -1 ? "not found" :  GlobalGOPreloaded.MarsAtlasIndex.broadman_area(siteInfo.site.Information.MarsAtlasIndex));
+                    m_bothDisplaySiteInfoTransform.Find("mars atlas name text").GetComponent<Text>().text = "Mars atlas : " + (siteInfo.site.Information.MarsAtlasIndex == -1 ? "not found" : GlobalGOPreloaded.MarsAtlasIndex.FullName(siteInfo.site.Information.MarsAtlasIndex));
+                    m_bothDisplaySiteInfoTransform.Find("broadman name text").GetComponent<Text>().text = "Broadman : " + (siteInfo.site.Information.MarsAtlasIndex == -1 ? "not found" :  GlobalGOPreloaded.MarsAtlasIndex.BroadmanArea(siteInfo.site.Information.MarsAtlasIndex));
                 }
             }
         }

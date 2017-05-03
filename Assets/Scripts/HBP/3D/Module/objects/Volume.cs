@@ -105,8 +105,8 @@ namespace HBP.Module3D.DLL
             float[] plane = new float[6];
             for (int ii = 0; ii < 3; ++ii)
             {
-                plane[ii] = planeIntersec.point[ii];
-                plane[ii + 3] = planeIntersec.normal[ii];
+                plane[ii] = planeIntersec.Point[ii];
+                plane[ii + 3] = planeIntersec.Normal[ii];
             }
 
             float[] points = new float[8 * 3];
@@ -131,7 +131,7 @@ namespace HBP.Module3D.DLL
         public List<Vector3> intersection_lines_with_plane(Plane planeIntersec)
         {
             float[] points = new float[8 * 3];
-            getLinesIntersectionsWithPlane_BBox(_handle, planeIntersec.convertToArray(), points);
+            getLinesIntersectionsWithPlane_BBox(_handle, planeIntersec.ConvertToArray(), points);
             List<Vector3> intersecLines = new List<Vector3>(8);
 
             for (int ii = 0; ii < 8; ++ii)
@@ -257,7 +257,7 @@ namespace HBP.Module3D.DLL
         /// <returns></returns>
         public float size_offset_cut_plane(Plane cutPlane, int nbCuts)
         {
-            return sizeOffsetCutPlane_Volume(_handle, cutPlane.convertToArray(), nbCuts);
+            return sizeOffsetCutPlane_Volume(_handle, cutPlane.ConvertToArray(), nbCuts);
         }
         /// <summary>
         /// 
@@ -269,7 +269,7 @@ namespace HBP.Module3D.DLL
         {
             float[] normal = new float[3];
             definePlaneWithOrientation_Volume(_handle, normal, idOrientation, flip);
-            plane.normal = new Vector3(normal[0], normal[1], normal[2]);
+            plane.Normal = new Vector3(normal[0], normal[1], normal[2]);
         }
         /// <summary>
         /// 

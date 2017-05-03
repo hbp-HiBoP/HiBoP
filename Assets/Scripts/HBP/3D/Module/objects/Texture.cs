@@ -200,8 +200,8 @@ namespace HBP.Module3D
 
                     for (int jj = 0; jj < 3; ++jj)
                     {
-                        planes[currCut * 6 + jj] = cutPlanes[ii].point[jj];
-                        planes[currCut * 6 + jj + 3] = cutPlanes[ii].normal[jj];
+                        planes[currCut * 6 + jj] = cutPlanes[ii].Point[jj];
+                        planes[currCut * 6 + jj + 3] = cutPlanes[ii].Normal[jj];
 
                     }
 

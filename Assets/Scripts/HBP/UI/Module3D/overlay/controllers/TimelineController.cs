@@ -483,7 +483,7 @@ namespace HBP.Module3D
 
             string textComputeButton = "";
             Color colorComputeButton = Color.white;
-            computeButton.gameObject.GetComponent<Button>().interactable = m_Scene.SceneInformation.iEEGOutdated;
+            computeButton.gameObject.GetComponent<Button>().interactable = m_Scene.SceneInformation.IsiEEGOutdated;
             textComputeButton = "Update iEEG";
             computeButton.gameObject.SetActive(true);
 
@@ -684,7 +684,7 @@ namespace HBP.Module3D
             float startValue = m_globalTimeSlider.value;// m_globalTimeSlider.minValue;
             while (m_globalIsLooping)
             {
-                if(!m_Scene.SceneInformation.generatorUpToDate)
+                if(!m_Scene.SceneInformation.IsGeneratorUpToDate)
                 {
                     m_globalTimeSlider.value = m_globalTimeSlider.minValue;
                     m_globalIsLooping = false;
@@ -710,7 +710,7 @@ namespace HBP.Module3D
             float startValue = timelineSlider.value;// timelineSlider.minValue;
             while (m_individualIsLooping[id])
             {
-                if (!m_Scene.SceneInformation.generatorUpToDate)
+                if (!m_Scene.SceneInformation.IsGeneratorUpToDate)
                 {
                     timelineSlider.value = timelineSlider.minValue;
                     m_individualIsLooping[id] = false;

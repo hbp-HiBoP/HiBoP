@@ -353,7 +353,7 @@ namespace HBP.Module3D
             /// <param name="mask"></param>
             public void update_mask(RawSiteList sites, bool[] mask)
             {
-                for (int ii = 0; ii < sites.sites_nb(); ++ii)
+                for (int ii = 0; ii < sites.NumberOfSites(); ++ii)
                     mask[ii] = isInside_ROI(_handle, sites.getHandle(), ii) != 1;
             }
             #endregion

@@ -72,31 +72,31 @@ namespace HBP.Module3D
                 return m_RawElectrodes;
             }
         }
-        public List<List<List<GameObject>>> plotsGO = null; /**< plots GO list with order : patient/electrode/plot */
+        public List<List<List<GameObject>>> SitesGameObjects = null; /**< plots GO list with order : patient/electrode/plot */
         public List<Site> Sites = null; /**< plots list */
 
         // select plot
-        protected SiteRing m_selectRing = null;
-        public SiteRing SelectRing { get { return m_selectRing; } }
+        protected SiteRing m_SelectRing = null;
+        public SiteRing SelectRing { get { return m_SelectRing; } }
 
         // ROI
         protected ROI m_SelectedROI = null;   /**< selected ROI of the column */
         public ROI SelectedROI { get { return m_SelectedROI;} }
 
         // generators
-        public List<DLL.MRITextureCutGenerator> DLLMRITextureCutGeneratorList = null;
-        public List<DLL.MRIBrainGenerator> DLLBrainTextureGeneratorList = new List<DLL.MRIBrainGenerator>();
+        public List<DLL.MRITextureCutGenerator> DLLMRITextureCutGenerators = null;
+        public List<DLL.MRIBrainGenerator> DLLBrainTextureGenerators = new List<DLL.MRIBrainGenerator>();
 
         //public DLL.Texture DLLBrainColorScheme = null;          /**< brain colorscheme dll texture */
         public DLL.Texture DLLCutColorScheme = null;            /**< cut colorscheme dll texture */
         public DLL.Texture DLLCutFMRIColorScheme = null;        /**< cut colorscheme dll texture */
-        public List<DLL.Texture> dllBrainCutTextures = null;    /**< list of cut DLL textures */
-        public List<DLL.Texture> dllGuiBrainCutTextures = null; /**< list of GUI DLL cut textures| */
+        public List<DLL.Texture> DLLBrainCutTextures = null;    /**< list of cut DLL textures */
+        public List<DLL.Texture> DLLGUIBrainCutTextures = null; /**< list of GUI DLL cut textures| */
         //  texture 2D
         //public DLL.Texture DLLBrainMainColor = null;            /**< main color dll texture of the brain mesh */
-        public Texture2D brainColorSchemeTexture = null;        /**< brain colorscheme unity 2D texture  */
-        public List<Texture2D> brainCutTextures = null;         /**< list of cut textures */
-        public List<Texture2D> guiBrainCutTextures = null;      /**< list of GUI cut textures */
+        public Texture2D BrainColorSchemeTexture = null;        /**< brain colorscheme unity 2D texture  */
+        public List<Texture2D> BrainCutTextures = null;         /**< list of cut textures */
+        public List<Texture2D> GUIBrainCutTextures = null;      /**< list of GUI cut textures */
         #endregion
 
         #region Public Methods
@@ -118,18 +118,18 @@ namespace HBP.Module3D
 
             // select ring
             gameObject.AddComponent<SiteRing>();
-            m_selectRing = gameObject.GetComponent<SiteRing>();
-            m_selectRing.set_layer(Layer);
+            m_SelectRing = gameObject.GetComponent<SiteRing>();
+            m_SelectRing.set_layer(Layer);
 
             // plots
             m_RawElectrodes = new DLL.RawSiteList();
-            plots.extract_raw_site_list(m_RawElectrodes);
+            plots.ExtractRawSiteList(m_RawElectrodes);
 
             GameObject patientPlotsParent = new GameObject("elecs");
             patientPlotsParent.transform.SetParent(transform);
 
-            plotsGO = new List<List<List<GameObject>>>(PlotsPatientParent.Count);
-            Sites = new List<Site>(plots.total_sites_nb());
+            SitesGameObjects = new List<List<List<GameObject>>>(PlotsPatientParent.Count);
+            Sites = new List<Site>(plots.TotalSitesNumber());
             for (int ii = 0; ii < PlotsPatientParent.Count; ++ii)
             {
                 // instantiate patient plots
@@ -137,16 +137,16 @@ namespace HBP.Module3D
                 patientPlots.transform.SetParent(patientPlotsParent.transform);
                 patientPlots.name = PlotsPatientParent[ii].name;
 
-                plotsGO.Add(new List<List<GameObject>>(patientPlots.transform.childCount));
+                SitesGameObjects.Add(new List<List<GameObject>>(patientPlots.transform.childCount));
                 for (int jj = 0; jj < patientPlots.transform.childCount; ++jj)
                 {
                     int nbPlots = patientPlots.transform.GetChild(jj).childCount;
 
-                    plotsGO[ii].Add(new List<GameObject>(nbPlots));
+                    SitesGameObjects[ii].Add(new List<GameObject>(nbPlots));
                     for (int kk = 0; kk < nbPlots; ++kk)
                     {
-                        plotsGO[ii][jj].Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject);
-                        plotsGO[ii][jj][kk].layer = LayerMask.NameToLayer(Layer);
+                        SitesGameObjects[ii][jj].Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject);
+                        SitesGameObjects[ii][jj][kk].layer = LayerMask.NameToLayer(Layer);
                         Sites.Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject.GetComponent<Site>());
 
                         int id = Sites.Count - 1;
@@ -161,31 +161,31 @@ namespace HBP.Module3D
 
 
             // generators dll
-            DLLMRITextureCutGeneratorList = new List<DLL.MRITextureCutGenerator>(nbCuts);
+            DLLMRITextureCutGenerators = new List<DLL.MRITextureCutGenerator>(nbCuts);
             for (int ii = 0; ii < nbCuts; ++ii)
             {                
-                DLLMRITextureCutGeneratorList.Add(new DLL.MRITextureCutGenerator());
+                DLLMRITextureCutGenerators.Add(new DLL.MRITextureCutGenerator());
             }
 
             // DLL textures
             DLLCutColorScheme = new DLL.Texture();
             DLLCutFMRIColorScheme = new DLL.Texture();
-            dllGuiBrainCutTextures = new List<DLL.Texture>(nbCuts);
-            dllBrainCutTextures = new List<DLL.Texture>(nbCuts);
+            DLLGUIBrainCutTextures = new List<DLL.Texture>(nbCuts);
+            DLLBrainCutTextures = new List<DLL.Texture>(nbCuts);
             for (int ii = 0; ii < nbCuts; ++ii)
             {
-                dllGuiBrainCutTextures.Add(new DLL.Texture());
-                dllBrainCutTextures.Add(new DLL.Texture());
+                DLLGUIBrainCutTextures.Add(new DLL.Texture());
+                DLLBrainCutTextures.Add(new DLL.Texture());
             }
 
             // textures 2D
-            brainColorSchemeTexture = Texture2Dutility.generate_color_scheme();
-            brainCutTextures = new List<Texture2D>(nbCuts);
-            guiBrainCutTextures = new List<Texture2D>(nbCuts);
+            BrainColorSchemeTexture = Texture2Dutility.generate_color_scheme();
+            BrainCutTextures = new List<Texture2D>(nbCuts);
+            GUIBrainCutTextures = new List<Texture2D>(nbCuts);
             for (int ii = 0; ii < nbCuts; ++ii)
             {
-                brainCutTextures.Add(Texture2Dutility.generate_cut());
-                guiBrainCutTextures.Add(Texture2Dutility.generate_GUI());
+                BrainCutTextures.Add(Texture2Dutility.generate_cut());
+                GUIBrainCutTextures.Add(Texture2Dutility.generate_GUI());
             }
 
             // view
@@ -198,55 +198,55 @@ namespace HBP.Module3D
         {
             DLLCutColorScheme.Dispose();
             DLLCutFMRIColorScheme.Dispose();
-            Destroy(brainColorSchemeTexture);
+            Destroy(BrainColorSchemeTexture);
 
             // DLL
             // generators
-            for (int ii = 0; ii < DLLBrainTextureGeneratorList.Count; ++ii)
+            for (int ii = 0; ii < DLLBrainTextureGenerators.Count; ++ii)
             {
-                DLLBrainTextureGeneratorList[ii].Dispose();
+                DLLBrainTextureGenerators[ii].Dispose();
             }
-            for (int ii = 0; ii < DLLMRITextureCutGeneratorList.Count; ++ii)
+            for (int ii = 0; ii < DLLMRITextureCutGenerators.Count; ++ii)
             {
-                DLLMRITextureCutGeneratorList[ii].Dispose();
+                DLLMRITextureCutGenerators[ii].Dispose();
             }
 
             // textures 2D
-            for (int ii = 0; ii < brainCutTextures.Count; ++ii)
-                Destroy(brainCutTextures[ii]);
+            for (int ii = 0; ii < BrainCutTextures.Count; ++ii)
+                Destroy(BrainCutTextures[ii]);
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="nbSplits"></param>
-        public void reset_splits_nb(int nbSplits)
+        public void ResetSplitsNumber(int nbSplits)
         {
             // generators dll
             //      brain
-            DLLBrainTextureGeneratorList = new List<DLL.MRIBrainGenerator>(nbSplits);
+            DLLBrainTextureGenerators = new List<DLL.MRIBrainGenerator>(nbSplits);
             for (int ii = 0; ii < nbSplits; ++ii)
-                DLLBrainTextureGeneratorList.Add(new DLL.MRIBrainGenerator());
+                DLLBrainTextureGenerators.Add(new DLL.MRIBrainGenerator());
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="nbCuts"></param>
-        public void update_cuts_planes_nb(int diffCuts)
+        public void UpdateCutsPlanesNumber(int diffCuts)
         {
             if (diffCuts < 0)
             {
                 for (int ii = 0; ii < -diffCuts; ++ii)
                 {
                     // GO textures
-                    brainCutTextures.Add(Texture2Dutility.generate_cut());                    
-                    guiBrainCutTextures.Add(Texture2Dutility.generate_GUI());
+                    BrainCutTextures.Add(Texture2Dutility.generate_cut());                    
+                    GUIBrainCutTextures.Add(Texture2Dutility.generate_GUI());
 
                     // DLL textures
-                    dllBrainCutTextures.Add(new DLL.Texture());
-                    dllGuiBrainCutTextures.Add(new DLL.Texture());
+                    DLLBrainCutTextures.Add(new DLL.Texture());
+                    DLLGUIBrainCutTextures.Add(new DLL.Texture());
 
                     // DLL generators
-                    DLLMRITextureCutGeneratorList.Add(new DLL.MRITextureCutGenerator());
+                    DLLMRITextureCutGenerators.Add(new DLL.MRITextureCutGenerator());
                 }
             }
             else if (diffCuts > 0)
@@ -254,18 +254,18 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < diffCuts; ++ii)
                 {
                     // GO textures          
-                    Destroy(brainCutTextures[brainCutTextures.Count - 1]);
-                    brainCutTextures.RemoveAt(brainCutTextures.Count - 1);
-                    Destroy(guiBrainCutTextures[guiBrainCutTextures.Count - 1]);
-                    guiBrainCutTextures.RemoveAt(guiBrainCutTextures.Count - 1);
+                    Destroy(BrainCutTextures[BrainCutTextures.Count - 1]);
+                    BrainCutTextures.RemoveAt(BrainCutTextures.Count - 1);
+                    Destroy(GUIBrainCutTextures[GUIBrainCutTextures.Count - 1]);
+                    GUIBrainCutTextures.RemoveAt(GUIBrainCutTextures.Count - 1);
                     
                     // DLL textures
-                    dllBrainCutTextures.RemoveAt(dllBrainCutTextures.Count - 1);
-                    dllGuiBrainCutTextures.RemoveAt(dllGuiBrainCutTextures.Count - 1);
+                    DLLBrainCutTextures.RemoveAt(DLLBrainCutTextures.Count - 1);
+                    DLLGUIBrainCutTextures.RemoveAt(DLLGUIBrainCutTextures.Count - 1);
 
                     // DLL generators
-                    DLLMRITextureCutGeneratorList[DLLMRITextureCutGeneratorList.Count - 1].Dispose();
-                    DLLMRITextureCutGeneratorList.RemoveAt(DLLMRITextureCutGeneratorList.Count - 1);
+                    DLLMRITextureCutGenerators[DLLMRITextureCutGenerators.Count - 1].Dispose();
+                    DLLMRITextureCutGenerators.RemoveAt(DLLMRITextureCutGenerators.Count - 1);
                 }
             }
         }
@@ -273,7 +273,7 @@ namespace HBP.Module3D
         /// Set the sites visibility state
         /// </summary>
         /// <param name="isVisible"></param>
-        public void set_visible_sites(bool isVisible)
+        public void SetSitesVisibility(bool isVisible)
         {
             string layer;
             if (isVisible)
@@ -290,7 +290,7 @@ namespace HBP.Module3D
         /// Update the ROI
         /// </summary>
         /// <param name="ROI"></param>
-        public void update_ROI(ROI ROI)
+        public void UpdateROI(ROI ROI)
         {
             if(m_SelectedROI != null)
             {
@@ -304,19 +304,19 @@ namespace HBP.Module3D
         /// Retrieve a string containing all the plots states
         /// </summary>
         /// <returns></returns>
-        public string site_state_str()
+        public string SiteStatesIntoString()
         {
             string text = "Plots states\n";
             int id = 0;
-            for(int ii = 0; ii < plotsGO.Count; ++ii) // patients
+            for(int ii = 0; ii < SitesGameObjects.Count; ++ii) // patients
             {
                 text += "n " + Sites[id].Information.PatientName + "\n";
-                for (int jj = 0; jj < plotsGO[ii].Count; ++jj) // electrodes
+                for (int jj = 0; jj < SitesGameObjects[ii].Count; ++jj) // electrodes
                 {
                     text += "e " + jj + "\n";
-                    for (int kk = 0; kk < plotsGO[ii][jj].Count; ++kk, id++) // plots
+                    for (int kk = 0; kk < SitesGameObjects[ii][jj].Count; ++kk, id++) // plots
                     {
-                        string plotGOName = plotsGO[ii][jj][kk].name;
+                        string plotGOName = SitesGameObjects[ii][jj][kk].name;
                         string[] split = plotGOName.Split('_');
                         text += split[split.Length - 1] + " " + (Sites[id].Information.IsExcluded ? 1 : 0) + " " + (Sites[id].Information.IsBlackListed ? 1 : 0 ) + " " + (Sites[id].Information.IsMasked ? 1 : 0) + " " + (Sites[id].Information.IsHighlighted? 1 : 0) + "\n";
                     }
@@ -329,22 +329,22 @@ namespace HBP.Module3D
         /// 
         /// </summary>
         /// <returns></returns>
-        public string only_sites_in_ROI_str()
+        public string OnlySitesInROIIntoString()
         {
-            List<bool> sitesInROIPerPatient = new List<bool>(plotsGO.Count);
-            List<List<bool>> sitesInROIPerElectrode = new List<List<bool>>(plotsGO.Count);
-            List<List<List<bool>>> sitesInROIPerPlot = new List<List<List<bool>>>(plotsGO.Count);
+            List<bool> sitesInROIPerPatient = new List<bool>(SitesGameObjects.Count);
+            List<List<bool>> sitesInROIPerElectrode = new List<List<bool>>(SitesGameObjects.Count);
+            List<List<List<bool>>> sitesInROIPerPlot = new List<List<List<bool>>>(SitesGameObjects.Count);
             int id = 0;
-            for (int ii = 0; ii < plotsGO.Count; ++ii)
+            for (int ii = 0; ii < SitesGameObjects.Count; ++ii)
             {                
                 bool isInROIP = false;
-                sitesInROIPerPlot.Add(new List<List<bool>>(plotsGO[ii].Count));
-                sitesInROIPerElectrode.Add(new List<bool>(plotsGO[ii].Count));
-                for (int jj = 0; jj < plotsGO[ii].Count; ++jj)
+                sitesInROIPerPlot.Add(new List<List<bool>>(SitesGameObjects[ii].Count));
+                sitesInROIPerElectrode.Add(new List<bool>(SitesGameObjects[ii].Count));
+                for (int jj = 0; jj < SitesGameObjects[ii].Count; ++jj)
                 {
                     bool isInROIElec = false;
-                    sitesInROIPerPlot[ii].Add(new List<bool>(plotsGO[ii][jj].Count));
-                    for (int kk = 0; kk < plotsGO[ii][jj].Count; ++kk, ++id)
+                    sitesInROIPerPlot[ii].Add(new List<bool>(SitesGameObjects[ii][jj].Count));
+                    for (int kk = 0; kk < SitesGameObjects[ii][jj].Count; ++kk, ++id)
                     {
                         bool inROI = !Sites[id].Information.IsInROI;
                         bool blackList = Sites[id].Information.IsBlackListed;
@@ -368,21 +368,21 @@ namespace HBP.Module3D
 
             string text = "";
             id = 0;
-            for (int ii = 0; ii < plotsGO.Count; ++ii) // patients
+            for (int ii = 0; ii < SitesGameObjects.Count; ++ii) // patients
             {
                 if (sitesInROIPerPatient[ii])
                     text += "n " + Sites[id].Information.PatientName + "\n";
 
-                for (int jj = 0; jj < plotsGO[ii].Count; ++jj) // electrodes
+                for (int jj = 0; jj < SitesGameObjects[ii].Count; ++jj) // electrodes
                 {
                     if (sitesInROIPerElectrode[ii][jj])
                         text += "e " + jj + "\n";
 
-                    for (int kk = 0; kk < plotsGO[ii][jj].Count; ++kk, id++) // plots
+                    for (int kk = 0; kk < SitesGameObjects[ii][jj].Count; ++kk, id++) // plots
                     {
                         if (sitesInROIPerPlot[ii][jj][kk])
                         {
-                            string plotGOName = plotsGO[ii][jj][kk].name;
+                            string plotGOName = SitesGameObjects[ii][jj][kk].name;
                             string[] split = plotGOName.Split('_');
                             text += split[split.Length - 1] + " " + (Sites[id].Information.IsExcluded ? 1 : 0) + " " + (Sites[id].Information.IsBlackListed ? 1 : 0) + " " + (Sites[id].Information.IsMasked ? 1 : 0) + " " + (Sites[id].Information.IsHighlighted ? 1 : 0) + "\n";
                         }
@@ -397,7 +397,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="colormap"></param>
         /// <param name="colorBrainCut"></param>
-        public void reset_color_schemes(ColorType colormap, ColorType colorBrainCut)
+        public void ResetColorSchemes(ColorType colormap, ColorType colorBrainCut)
         {
             DLLCutColorScheme = DLL.Texture.generate_2D_color_texture(colorBrainCut, colormap); 
             DLLCutFMRIColorScheme = DLL.Texture.generate_2D_color_texture(colorBrainCut, colormap);
@@ -410,10 +410,10 @@ namespace HBP.Module3D
         /// <param name="indexCut"></param>
         /// <param name="MRICalMinFactor"></param>
         /// <param name="MRICalMaxFactor"></param>
-        public void create_MRI_texture(DLL.MRIGeometryCutGenerator geometryGenerator, DLL.Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor)
+        public void CreateMRITexture(DLL.MRIGeometryCutGenerator geometryGenerator, DLL.Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor)
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture reset 0  ");
-            DLL.MRITextureCutGenerator textureGenerator = DLLMRITextureCutGeneratorList[indexCut];
+            DLL.MRITextureCutGenerator textureGenerator = DLLMRITextureCutGenerators[indexCut];
             textureGenerator.reset(geometryGenerator);
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -422,11 +422,11 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture updateTexture 2  ");
-            textureGenerator.update_texture(dllBrainCutTextures[indexCut]);
+            textureGenerator.update_texture(DLLBrainCutTextures[indexCut]);
             UnityEngine.Profiling.Profiler.EndSample();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture update_texture_2D 3  ");
-            dllBrainCutTextures[indexCut].update_texture_2D(brainCutTextures[indexCut]); // update mesh cut 2D texture
+            DLLBrainCutTextures[indexCut].update_texture_2D(BrainCutTextures[indexCut]); // update mesh cut 2D texture
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
@@ -437,12 +437,12 @@ namespace HBP.Module3D
         /// <param name="flip"></param>
         /// <param name="cutPlanes"></param>
         /// <param name="drawLines"></param>
-        public void create_GUI_MRI_texture(int indexCut, string orientation, bool flip, List<Plane> cutPlanes, bool drawLines)
+        public void CreateGUIMRITexture(int indexCut, string orientation, bool flip, List<Plane> cutPlanes, bool drawLines)
         {
-            if (dllBrainCutTextures[indexCut].m_sizeTexture[0] > 0)
+            if (DLLBrainCutTextures[indexCut].m_sizeTexture[0] > 0)
             { 
-                dllGuiBrainCutTextures[indexCut].copy_frome_and_rotate(dllBrainCutTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGeneratorList[indexCut]);                
-                dllGuiBrainCutTextures[indexCut].update_texture_2D(guiBrainCutTextures[indexCut]);
+                DLLGUIBrainCutTextures[indexCut].copy_frome_and_rotate(DLLBrainCutTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);                
+                DLLGUIBrainCutTextures[indexCut].update_texture_2D(GUIBrainCutTextures[indexCut]);
             }
         }
         /// <summary>

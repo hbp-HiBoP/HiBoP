@@ -335,7 +335,7 @@ namespace HBP.Module3D
                         m_spMinimizeStateList[id] = !m_spMinimizeStateList[id];
 
                         for (int jj = 0; jj < m_CamerasManager.GetComponent<CamerasManager>().GetNumberOfLines(SceneType.SinglePatient); ++jj)
-                            m_CamerasManager.GetComponent<CamerasManager>().GetCamera(SceneType.SinglePatient, id, jj).set_minimized_state(m_spMinimizeStateList[id]);
+                            m_CamerasManager.GetComponent<CamerasManager>().GetCamera(SceneType.SinglePatient, id, jj).SetMinimizedState(m_spMinimizeStateList[id]);
 
                         setçoverlay_state(m_spMinimizeOverlayList[id], m_spMinimizeStateList[id]);
                         m_minimizeStateSwitchEvent.Invoke(true);
@@ -349,7 +349,7 @@ namespace HBP.Module3D
                             m_spMinimizeStateList[jj] = (jj != id);
                            
                             for (int kk = 0; kk < m_CamerasManager.GetComponent<CamerasManager>().GetNumberOfLines(SceneType.SinglePatient); ++kk)
-                                m_CamerasManager.GetComponent<CamerasManager>().GetCamera(SceneType.SinglePatient, jj, kk).set_minimized_state(m_spMinimizeStateList[jj]);
+                                m_CamerasManager.GetComponent<CamerasManager>().GetCamera(SceneType.SinglePatient, jj, kk).SetMinimizedState(m_spMinimizeStateList[jj]);
 
                             setçoverlay_state(m_spMinimizeOverlayList[jj], m_spMinimizeStateList[jj]);
                         }
@@ -374,7 +374,7 @@ namespace HBP.Module3D
             {
                 for (int jj = 0; jj < m_CamerasManager.GetComponent<CamerasManager>().GetNumberOfLines(SceneType.SinglePatient); ++jj)
                 {
-                    m_CamerasManager.GetComponent<CamerasManager>().GetCamera(SceneType.SinglePatient, ii, jj).set_minimized_state(m_spMinimizeStateList[ii]);
+                    m_CamerasManager.GetComponent<CamerasManager>().GetCamera(SceneType.SinglePatient, ii, jj).SetMinimizedState(m_spMinimizeStateList[ii]);
                 }
             }
 
@@ -407,7 +407,7 @@ namespace HBP.Module3D
                         m_mpMinimizeStateList[id] = !m_mpMinimizeStateList[id];
 
                         for (int jj = 0; jj < m_CamerasManager.GetComponent<CamerasManager>().GetNumberOfLines(SceneType.MultiPatients); ++jj)
-                            m_CamerasManager.GetComponent<CamerasManager>().GetCamera(SceneType.MultiPatients, id, jj).set_minimized_state(m_mpMinimizeStateList[id]);
+                            m_CamerasManager.GetComponent<CamerasManager>().GetCamera(SceneType.MultiPatients, id, jj).SetMinimizedState(m_mpMinimizeStateList[id]);
 
                         setçoverlay_state(m_mpMinimizeOverlayList[id], m_mpMinimizeStateList[id]);
                         m_minimizeStateSwitchEvent.Invoke(false);
@@ -422,7 +422,7 @@ namespace HBP.Module3D
                             m_mpMinimizeStateList[jj] = (jj != id);
                             
                             for (int kk = 0; kk < m_CamerasManager.GetComponent<CamerasManager>().GetNumberOfLines(SceneType.MultiPatients); ++kk)
-                                m_CamerasManager.GetComponent<CamerasManager>().GetCamera(SceneType.MultiPatients, jj, kk).set_minimized_state(m_mpMinimizeStateList[jj]);
+                                m_CamerasManager.GetComponent<CamerasManager>().GetCamera(SceneType.MultiPatients, jj, kk).SetMinimizedState(m_mpMinimizeStateList[jj]);
 
                             setçoverlay_state(m_mpMinimizeOverlayList[jj], m_mpMinimizeStateList[jj]); 
                         }
@@ -447,7 +447,7 @@ namespace HBP.Module3D
             {
                 for (int jj = 0; jj < m_CamerasManager.GetComponent<CamerasManager>().GetNumberOfLines(SceneType.MultiPatients); ++jj)
                 {
-                    m_CamerasManager.GetComponent<CamerasManager>().GetCamera(SceneType.MultiPatients, ii, jj).set_minimized_state(m_mpMinimizeStateList[ii]);
+                    m_CamerasManager.GetComponent<CamerasManager>().GetCamera(SceneType.MultiPatients, ii, jj).SetMinimizedState(m_mpMinimizeStateList[ii]);
                 }
             }
 

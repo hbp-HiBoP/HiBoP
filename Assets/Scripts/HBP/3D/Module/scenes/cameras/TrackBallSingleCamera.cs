@@ -20,16 +20,16 @@ namespace HBP.Module3D.Cam
     public class TrackBallSingleCamera : TrackBallCamera
     {
         #region Properties
-        private Transform m_SPCameraParent; /**< SP camera parent */
+        private Transform m_SinglePatientCameraParent; /**< SP camera parent */
         #endregion
 
         #region Private Methods
         protected void Start()
         {
-            m_Type = SceneType.SinglePatient;
+            m_SceneType = SceneType.SinglePatient;
 
             m_AssociatedScene = StaticComponents.SinglePatientScene;
-            m_SPCameraParent = transform.parent;
+            m_SinglePatientCameraParent = transform.parent;
 
             int layer = 0;
             layer |= 1 << LayerMask.NameToLayer(ColumnLayer);
@@ -58,18 +58,18 @@ namespace HBP.Module3D.Cam
             // listeners
             m_AssociatedScene.ModifyPlanesCuts.AddListener(() =>
             {
-                if (!m_AssociatedScene.SceneInformation.mriLoaded)
+                if (!m_AssociatedScene.SceneInformation.MRILoaded)
                     return;
 
                 m_PlanesCutsCirclesVertices = new List<Vector3[]>();
                 for (int ii = 0; ii < m_AssociatedScene.PlanesList.Count; ++ii)
                 {
-                    Vector3 point = m_AssociatedScene.PlanesList[ii].point;
+                    Vector3 point = m_AssociatedScene.PlanesList[ii].Point;
                     point.x *= -1;
-                    Vector3 normal = m_AssociatedScene.PlanesList[ii].normal;
+                    Vector3 normal = m_AssociatedScene.PlanesList[ii].Normal;
                     normal.x *= -1;
                     Quaternion q = Quaternion.FromToRotation(new Vector3(0, 0, 1), normal);
-                    m_PlanesCutsCirclesVertices.Add(Geometry.create_3D_circle_points(new Vector3(0,0,0), 100, 150));
+                    m_PlanesCutsCirclesVertices.Add(Geometry.Create3DCirclePoints(new Vector3(0,0,0), 100, 150));
                     for (int jj = 0; jj < 150; ++jj)
                     {
                         m_PlanesCutsCirclesVertices[ii][jj] = q * m_PlanesCutsCirclesVertices[ii][jj];
@@ -94,9 +94,9 @@ namespace HBP.Module3D.Cam
             if (scrollDelta.y != 0)
             {
                 if (scrollDelta.y < 0)
-                    move_backward(m_ZoomSpeed);
+                    MoveBackward(m_ZoomSpeed);
                 else
-                    move_forward(m_ZoomSpeed);
+                    MoveForward(m_ZoomSpeed);
             }
         }
         public void LateUpdate()
@@ -108,7 +108,7 @@ namespace HBP.Module3D.Cam
             UnityEngine.Profiling.Profiler.BeginSample("TEST-LATE-Update-SP");
 
             // force others camera alignment
-            foreach (Transform child in m_SPCameraParent)
+            foreach (Transform child in m_SinglePatientCameraParent)
             {
                 if (child.gameObject.CompareTag("SingleCamera"))
                 {

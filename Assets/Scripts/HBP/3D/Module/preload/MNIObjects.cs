@@ -79,7 +79,7 @@ namespace HBP.Module3D
 
 #if UNITY_EDITOR_WIN
             readMulti = new DLL.ReadMultiFilesBuffers();
-            readMulti.read_buffers_files(filesPaths, DLL.ReadMultiFilesBuffers.FilesTypes.MeshesObj);
+            readMulti.ReadBuffersFiles(filesPaths, DLL.ReadMultiFilesBuffers.FilesTypes.MeshesObj);
 #endif
             Thread thread = new Thread(() => load_data(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID));
             thread.Start();
@@ -101,9 +101,9 @@ namespace HBP.Module3D
 
 #if UNITY_EDITOR_WIN
 
-            readMulti.parse_meshes();
+            readMulti.ParseMeshes();
 
-            List<DLL.Surface> meshes = readMulti.meshes();
+            List<DLL.Surface> meshes = readMulti.Meshes();
             for (int ii = 0; ii < meshes.Count; ++ii)
                 meshes[ii].compute_normals();
 

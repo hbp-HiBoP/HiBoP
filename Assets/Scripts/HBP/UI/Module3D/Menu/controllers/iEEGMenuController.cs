@@ -605,7 +605,7 @@ namespace HBP.UI.Module3D
             float middleFactor = contentPanelT.Find("Cal middle iEEG slider").GetComponent<Slider>().value;
             float spanMaxFactor = contentPanelT.Find("Cal max iEEG slider").GetComponent<Slider>().value;
 
-            HBP.Module3D.DLL.Texture.generate_distribution_histogram(m_scene.Column3DViewManager.ColumnsIEEG[m_columnId].m_iEegValues, 4 * 110, 4 * 110, spanMinFactor, spanMaxFactor, middleFactor).update_texture_2D(m_iEEGHistogram);
+            HBP.Module3D.DLL.Texture.generate_distribution_histogram(m_scene.Column3DViewManager.ColumnsIEEG[m_columnId].IEEGValues, 4 * 110, 4 * 110, spanMinFactor, spanMaxFactor, middleFactor).update_texture_2D(m_iEEGHistogram);
 
             Image image = contentPanelT.Find("Histogram iEEG parent").Find("Histogram panel").GetComponent<Image>();
             Destroy(image.sprite);
@@ -812,7 +812,7 @@ namespace HBP.UI.Module3D
 
             if (m_scene.Type == SceneType.SinglePatient)
             {
-                if (m_scene.SceneInformation.displayCcepMode)
+                if (m_scene.SceneInformation.DisplayCCEPMode)
                     menuDisplayed = false;
             }
 

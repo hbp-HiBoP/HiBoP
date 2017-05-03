@@ -19,10 +19,10 @@ namespace HBP.Module3D
     {
         #region Properties
         // mani (debug)
-        public Color[] colorsPlots = null;
+        public Color[] ColorsSites = null;
 
         // columns
-        public int idSelectedPatient = 0; /**< id of the selected patient for Multi patient scene */
+        public int SelectedPatientID = 0; /**< id of the selected patient for Multi patient scene */
 
         int m_SelectedColumnID = 0; /**< id of the selected column */
         public int SelectedColumnID 
@@ -52,31 +52,31 @@ namespace HBP.Module3D
         public ReadOnlyCollection<Column3DViewFMRI> ColumnsFMRI { get { return new ReadOnlyCollection<Column3DViewFMRI>((from column in m_Columns where column is Column3DViewFMRI select (Column3DViewFMRI)column).ToArray()); } }
 
         // plots
-        public DLL.RawSiteList DLLLoadedRawPlotsList = null;
+        public DLL.RawSiteList DLLLoadedRawSitesList = null;
         public DLL.PatientElectrodesList DLLLoadedPatientsElectrodes = null;
         public List<GameObject> SitesList = new List<GameObject>();
-        public List<GameObject> PlotsPatientParent = new List<GameObject>(); /**< plots patient parents of the scene */
-        public List<List<GameObject>> PlotsElectrodesParent = new List<List<GameObject>>(); /**< plots electrodes parents of the scene */
+        public List<GameObject> SitesPatientParent = new List<GameObject>(); /**< plots patient parents of the scene */
+        public List<List<GameObject>> SitesElectrodesParent = new List<List<GameObject>>(); /**< plots electrodes parents of the scene */
 
         // latency        
-        public bool latencyFilesDefined = false;
-        public bool latencyFileAvailable = false; /**< latency file is available */
-        public List<Latencies> latenciesFiles = new List<Latencies>(); /*< list of latency files */
+        public bool LatencyFilesDefined = false;
+        public bool LatencyFileAvailable = false; /**< latency file is available */
+        public List<Latencies> LatenciesFiles = new List<Latencies>(); /*< list of latency files */
 
         // timelines 
-        public bool globalTimeline = true;  /**< is global timeline enabled */
-        public float commonTimelineValue = 0f; /**< commmon value of the timelines */
+        public bool GlobalTimeline = true;  /**< is global timeline enabled */
+        public float CommonTimelineValue = 0f; /**< commmon value of the timelines */
 
         // textures
-        public List<Vector2[]> uvNull = null;                   /**< null uv vectors */ // // new List<Vector2[]>(); 
-        public Color notInBrainColor = Color.black;
+        public List<Vector2[]> UVNull = null;                   /**< null uv vectors */ // // new List<Vector2[]>(); 
+        public Color NotInBrainColor = Color.black;
 
 
         public List<DLL.MRIBrainGenerator> DLLCommonBrainTextureGeneratorList = null; /**< common generators for each brain part  */
 
         // Common columns cut textures 
         //  textures 2D
-        public List<Texture2D> rightGUICutTextures = null;                  /**< list of rotated cut textures| */
+        public List<Texture2D> RightGUICutTextures = null;                  /**< list of rotated cut textures| */
 
         //  generator DLL
         public List<DLL.MRIGeometryCutGenerator> DLLMRIGeometryCutGeneratorList = null; /**< ... */        
@@ -85,7 +85,7 @@ namespace HBP.Module3D
         // niftii 
         public DLL.NIFTI DLLNii = null;
         // surface 
-        public int meshSplitNb = 1;
+        public int MeshSplitNumber = 1;
         public DLL.Surface DLLTriErasingMesh = null; // inused
         public DLL.Surface DLLTriErasingPointMesh = null; // inused
         public DLL.Surface LHemi = null; /**< left hemi mesh */
@@ -106,23 +106,23 @@ namespace HBP.Module3D
         public List<DLL.Volume> DLLVolumeFMriList = null;
 
         // planes
-        public List<Plane> planesCutsCopy = new List<Plane>();  /**< cut planes copied before the cut job */        
-        public List<int> idPlanesOrientationList = new List<int>();     /**< id orientation of the cuts planes */
-        public List<bool> planesOrientationFlipList = new List<bool>(); /**< flip state of the cuts plantes orientation */
+        public List<Plane> PlanesCutsCopy = new List<Plane>();  /**< cut planes copied before the cut job */        
+        public List<int> PlanesOrientationID = new List<int>();     /**< id orientation of the cuts planes */
+        public List<bool> PlanesOrientationFlip = new List<bool>(); /**< flip state of the cuts plantes orientation */
 
         // UV coordinates
         public List<Vector2[]> UVCoordinatesSplits = null; // uv coordinates for each brain mesh split
 
         //
-        public bool[] commonMask = null;
+        public bool[] CommonMask = null;
 
 
         // textures
-        public ColorType m_BrainColor = ColorType.BrainColor;
-        public ColorType m_BrainCutColor = ColorType.Default;
-        public ColorType m_Colormap = ColorType.MatLab; // TO move
-        public Texture2D brainColorMapTexture = null;
-        public Texture2D brainColorTexture = null;
+        public ColorType BrainColor = ColorType.BrainColor;
+        public ColorType BrainCutColor = ColorType.Default;
+        public ColorType Colormap = ColorType.MatLab; // TO move
+        public Texture2D BrainColorMapTexture = null;
+        public Texture2D BrainColorTexture = null;
 
         // Column 3D Prefabs
         public GameObject Column3DViewIEEGPrefab;
@@ -133,7 +133,51 @@ namespace HBP.Module3D
         public void Awake()
         {
             Initialize(3);
-            update_columns_nb(1, 0, 3);
+            UpdateColumnsNumber(1, 0, 3);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        private void AddIEEGColumn()
+        {
+            Column3DViewIEEG column = Instantiate(Column3DViewIEEGPrefab, transform).GetComponent<Column3DViewIEEG>();
+            column.gameObject.name = "Column IEEG " + ColumnsIEEG.Count;
+            m_Columns.Add(column);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        private void AddFMRIColumn()
+        {
+            Column3DViewFMRI column = Instantiate(Column3DViewFMRIPrefab, transform).GetComponent<Column3DViewFMRI>();
+            column.gameObject.name = "Column FMRI " + ColumnsFMRI.Count;
+            m_Columns.Add(column);
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        private void RemoveIEEGColumn()
+        {
+            if (ColumnsIEEG.Count > 0)
+            {
+                Column3DViewIEEG column = ColumnsIEEG[ColumnsIEEG.Count - 1];
+                int columnID = m_Columns.IndexOf(column);
+                Destroy(m_Columns[columnID]);
+                m_Columns.RemoveAt(columnID);
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        private void RemoveFMRIColumn()
+        {
+            if (ColumnsIEEG.Count > 0)
+            {
+                Column3DViewFMRI column = ColumnsFMRI[ColumnsFMRI.Count - 1];
+                int columnID = m_Columns.IndexOf(column);
+                Destroy(m_Columns[columnID]);
+                m_Columns.RemoveAt(columnID);
+            }
         }
         #endregion
 
@@ -173,13 +217,13 @@ namespace HBP.Module3D
 
             // cuts
             //  textures 2D            
-            rightGUICutTextures = new List<Texture2D>(cutPlanesNb);
+            RightGUICutTextures = new List<Texture2D>(cutPlanesNb);
 
             //  DLL generators
             DLLMRIGeometryCutGeneratorList = new List<DLL.MRIGeometryCutGenerator>(cutPlanesNb);
             for (int ii = 0; ii < cutPlanesNb; ++ii)
             {                
-                rightGUICutTextures.Add(new Texture2D(1, 1));                
+                RightGUICutTextures.Add(new Texture2D(1, 1));                
                 DLLMRIGeometryCutGeneratorList.Add(new DLL.MRIGeometryCutGenerator());
             }
 
@@ -194,65 +238,65 @@ namespace HBP.Module3D
             }
             else m_Columns = new List<Column3DView>();
 
-            brainColorMapTexture = Texture2Dutility.generate_color_scheme();
-            brainColorTexture = Texture2Dutility.generate_color_scheme();
+            BrainColorMapTexture = Texture2Dutility.generate_color_scheme();
+            BrainColorTexture = Texture2Dutility.generate_color_scheme();
 
-            reset_splits_nb(1);
+            ResetSplitsNumber(1);
         }
         /// <summary>
         /// Reset the number of meshes splits for the brain
         /// </summary>
         /// <param name="nbSplits"></param>
-        public void reset_splits_nb(int nbSplits)
+        public void ResetSplitsNumber(int nbSplits)
         {
-            DLLSplittedMeshesList = new List<DLL.Surface>(meshSplitNb);
-            DLLSplittedWhiteMeshesList = new List<DLL.Surface>(meshSplitNb);
+            DLLSplittedMeshesList = new List<DLL.Surface>(MeshSplitNumber);
+            DLLSplittedWhiteMeshesList = new List<DLL.Surface>(MeshSplitNumber);
 
             // uv coordinates
-            UVCoordinatesSplits = new List<Vector2[]>(Enumerable.Repeat(new Vector2[0], meshSplitNb));
+            UVCoordinatesSplits = new List<Vector2[]>(Enumerable.Repeat(new Vector2[0], MeshSplitNumber));
 
             // brain
             //  generators
-            DLLCommonBrainTextureGeneratorList = new List<DLL.MRIBrainGenerator>(meshSplitNb);
-            for (int ii = 0; ii < meshSplitNb; ++ii)
+            DLLCommonBrainTextureGeneratorList = new List<DLL.MRIBrainGenerator>(MeshSplitNumber);
+            for (int ii = 0; ii < MeshSplitNumber; ++ii)
                 DLLCommonBrainTextureGeneratorList.Add(new DLL.MRIBrainGenerator());
 
             for (int c = 0; c < m_Columns.Count; c++)
             {
-                m_Columns[c].reset_splits_nb(nbSplits);
+                m_Columns[c].ResetSplitsNumber(nbSplits);
             }
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="color"></param>
-        public void update_colormap(ColorType color)
+        public void UpdateColormap(ColorType color)
         {
-            m_Colormap = color;
-            DLL.Texture tex = DLL.Texture.generate_1D_color_texture(m_Colormap);
-            tex.update_texture_2D(brainColorMapTexture);
+            Colormap = color;
+            DLL.Texture tex = DLL.Texture.generate_1D_color_texture(Colormap);
+            tex.update_texture_2D(BrainColorMapTexture);
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="color"></param>
-        public void update_brain_cut_color(ColorType color)
+        public void UpdateBrainCutColor(ColorType color)
         {
-            m_BrainCutColor = color;
+            BrainCutColor = color;
         }
         /// <summary>
         /// 
         /// </summary>
-        public void reset_colors()
+        public void ResetColors()
         {
             for (int ii = 0; ii < m_Columns.Count; ++ii)
-                Columns[ii].reset_color_schemes(m_Colormap, m_BrainCutColor);
+                Columns[ii].ResetColorSchemes(Colormap, BrainCutColor);
         }
         /// <summary>
         /// Update the number of cut planes for every column
         /// </summary>
         /// <param name="nbCuts"></param>
-        public void update_cuts_nb(int nbCuts)
+        public void UpdateCutNumber(int nbCuts)
         {
             // update common
             int diffCuts = DLLMRIGeometryCutGeneratorList.Count - nbCuts;
@@ -262,12 +306,12 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < -diffCuts; ++ii)
                 {
                     // GO textures        
-                    rightGUICutTextures.Add(new Texture2D(1, 1));
-                    int id = rightGUICutTextures.Count - 1;
-                    rightGUICutTextures[id].filterMode = FilterMode.Trilinear; // TODO : test performances with this parameter
-                    rightGUICutTextures[id].wrapMode = TextureWrapMode.Clamp;
-                    rightGUICutTextures[id].anisoLevel = 9; // TODO : test performances with this parameter
-                    rightGUICutTextures[id].mipMapBias = -2; // never superior to -1 (colorscheme 8 texture glitch)    
+                    RightGUICutTextures.Add(new Texture2D(1, 1));
+                    int id = RightGUICutTextures.Count - 1;
+                    RightGUICutTextures[id].filterMode = FilterMode.Trilinear; // TODO : test performances with this parameter
+                    RightGUICutTextures[id].wrapMode = TextureWrapMode.Clamp;
+                    RightGUICutTextures[id].anisoLevel = 9; // TODO : test performances with this parameter
+                    RightGUICutTextures[id].mipMapBias = -2; // never superior to -1 (colorscheme 8 texture glitch)    
 
                     // DLL generators       
                     DLLMRIGeometryCutGeneratorList.Add(new DLL.MRIGeometryCutGenerator());
@@ -278,8 +322,8 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < diffCuts; ++ii)
                 {
                     // GO textures
-                    Destroy(rightGUICutTextures[rightGUICutTextures.Count - 1]);
-                    rightGUICutTextures.RemoveAt(rightGUICutTextures.Count - 1);
+                    Destroy(RightGUICutTextures[RightGUICutTextures.Count - 1]);
+                    RightGUICutTextures.RemoveAt(RightGUICutTextures.Count - 1);
 
                     // DLL generators
                     DLLMRIGeometryCutGeneratorList[DLLMRIGeometryCutGeneratorList.Count - 1].Dispose();
@@ -290,7 +334,7 @@ namespace HBP.Module3D
             // update columns
             for (int c = 0; c < m_Columns.Count; c++)
             {
-                m_Columns[c].update_cuts_planes_nb(diffCuts);
+                m_Columns[c].UpdateCutsPlanesNumber(diffCuts);
             }
         }
         /// <summary>
@@ -299,7 +343,7 @@ namespace HBP.Module3D
         /// <param name="nbIEEGColumns"></param>
         /// /// <param name="nbIRMFColumns"></param>
         /// <param name="nbCuts"></param>
-        public void update_columns_nb(int nbIEEGColumns, int nbIRMFColumns, int nbCuts)
+        public void UpdateColumnsNumber(int nbIEEGColumns, int nbIRMFColumns, int nbCuts)
         {            
             // clean data columns if changes in data columns nb
             if (nbIEEGColumns != ColumnsIEEG.Count)
@@ -359,11 +403,11 @@ namespace HBP.Module3D
             {
                 for (int ii = 0; ii < nbIEEGColumns; ++ii)
                 {
-                    ColumnsIEEG[ii].Initialize(ii, nbCuts, DLLLoadedPatientsElectrodes, PlotsPatientParent);
-                    ColumnsIEEG[ii].reset_splits_nb(meshSplitNb);
+                    ColumnsIEEG[ii].Initialize(ii, nbCuts, DLLLoadedPatientsElectrodes, SitesPatientParent);
+                    ColumnsIEEG[ii].ResetSplitsNumber(MeshSplitNumber);
 
-                    if (latencyFilesDefined)
-                        ColumnsIEEG[ii].currentLatencyFile = 0;
+                    if (LatencyFilesDefined)
+                        ColumnsIEEG[ii].CurrentLatencyFile = 0;
                 }
             }
 
@@ -371,7 +415,7 @@ namespace HBP.Module3D
             if (nbIRMFColumns != ColumnsFMRI.Count)
             {
                 // update IRMF columns mask
-                bool[] maskColumnsOR = new bool[DLLLoadedPatientsElectrodes.total_sites_nb()];
+                bool[] maskColumnsOR = new bool[DLLLoadedPatientsElectrodes.TotalSitesNumber()];
                 for (int ii = 0; ii < SitesList.Count; ++ii)
                 {
                     bool mask = false;
@@ -394,8 +438,8 @@ namespace HBP.Module3D
                 
                 for (int ii = 0; ii < nbIRMFColumns; ++ii)
                 {
-                    ColumnsFMRI[ColumnsFMRI.Count - 1].Initialize(ColumnsIEEG.Count + ii, nbCuts, DLLLoadedPatientsElectrodes, PlotsPatientParent);
-                    ColumnsFMRI[ColumnsFMRI.Count - 1].reset_splits_nb(meshSplitNb);
+                    ColumnsFMRI[ColumnsFMRI.Count - 1].Initialize(ColumnsIEEG.Count + ii, nbCuts, DLLLoadedPatientsElectrodes, SitesPatientParent);
+                    ColumnsFMRI[ColumnsFMRI.Count - 1].ResetSplitsNumber(MeshSplitNumber);
 
                     for (int jj = 0; jj < SitesList.Count; ++jj)
                     {
@@ -405,14 +449,14 @@ namespace HBP.Module3D
             }
 
 
-            commonMask = new bool[DLLLoadedPatientsElectrodes.total_sites_nb()];
+            CommonMask = new bool[DLLLoadedPatientsElectrodes.TotalSitesNumber()];
 
             if (SelectedColumnID >= m_Columns.Count)
                 SelectedColumnID = m_Columns.Count - 1;
 
 
             for (int ii = 0; ii < m_Columns.Count; ++ii)
-                Columns[ii].reset_color_schemes(m_Colormap, m_BrainCutColor);
+                Columns[ii].ResetColorSchemes(Colormap, BrainCutColor);
         }
         /// <summary>
         /// Define the single patient and associated data
@@ -443,10 +487,10 @@ namespace HBP.Module3D
         /// Create the cut mesh texture dll and texture2D
         /// </summary>
         /// <param name="indexCut"></param>
-        public void create_MRI_texture(int indexCut, int indexColumn)
+        public void CreateMRITexture(int indexCut, int indexColumn)
         {
             UnityEngine.Profiling.Profiler.BeginSample("create_MRI_texture");
-                Columns[indexColumn].create_MRI_texture(DLLMRIGeometryCutGeneratorList[indexCut], DLLVolume, indexCut, MRICalMinFactor, MRICalMaxFactor);
+                Columns[indexColumn].CreateMRITexture(DLLMRIGeometryCutGeneratorList[indexCut], DLLVolume, indexCut, MRICalMinFactor, MRICalMaxFactor);
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
@@ -454,54 +498,54 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="indexCut"></param>
         /// <param name="indexColumn"></param>
-        public void create_GUI_MRI_texture(int indexCut, int indexColumn)
+        public void CreateGUIMRITexture(int indexCut, int indexColumn)
         {
             // retrieve orientation to apply
             string orientation = "custom";
-            if (idPlanesOrientationList[indexCut] == 0)
+            if (PlanesOrientationID[indexCut] == 0)
                 orientation = "Axial";
-            else if (idPlanesOrientationList[indexCut] == 1)
+            else if (PlanesOrientationID[indexCut] == 1)
                 orientation = "Coronal";
-            else if (idPlanesOrientationList[indexCut] == 2)
+            else if (PlanesOrientationID[indexCut] == 2)
                 orientation = "Sagital";
 
-            Columns[indexColumn].create_GUI_MRI_texture(indexCut, orientation, planesOrientationFlipList[indexCut], planesCutsCopy, orientation != "custom");            
+            Columns[indexColumn].CreateGUIMRITexture(indexCut, orientation, PlanesOrientationFlip[indexCut], PlanesCutsCopy, orientation != "custom");            
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="indexCut"></param>
         /// <param name="indexColumn"></param>
-        public void create_GUI_IEEG_texture(int indexCut, int indexColumn)
+        public void CreateGUIIEEGTexture(int indexCut, int indexColumn)
         {
             // retrieve orientation to apply
             string orientation = "custom";
-            if (idPlanesOrientationList[indexCut] == 0)
+            if (PlanesOrientationID[indexCut] == 0)
                 orientation = "Axial";
-            else if (idPlanesOrientationList[indexCut] == 1)
+            else if (PlanesOrientationID[indexCut] == 1)
                 orientation = "Coronal";
-            else if (idPlanesOrientationList[indexCut] == 2)
+            else if (PlanesOrientationID[indexCut] == 2)
                 orientation = "Sagital";
 
-            ((Column3DViewIEEG)Columns[indexColumn]).create_GUI_IEEG_texture(indexCut, orientation, planesOrientationFlipList[indexCut], planesCutsCopy, orientation != "custom");
+            ((Column3DViewIEEG)Columns[indexColumn]).CreateGUIIEEGTexture(indexCut, orientation, PlanesOrientationFlip[indexCut], PlanesCutsCopy, orientation != "custom");
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="indexCut"></param>
         /// <param name="indexColumn"></param>
-        public void create_GUI_FMRI_texture(int indexCut, int indexColumn)
+        public void CreateGUIFMRITexture(int indexCut, int indexColumn)
         {
             // retrieve orientation to apply
             string orientation = "custom";
-            if (idPlanesOrientationList[indexCut] == 0)
+            if (PlanesOrientationID[indexCut] == 0)
                 orientation = "Axial";
-            else if (idPlanesOrientationList[indexCut] == 1)
+            else if (PlanesOrientationID[indexCut] == 1)
                 orientation = "Coronal";
-            else if (idPlanesOrientationList[indexCut] == 2)
+            else if (PlanesOrientationID[indexCut] == 2)
                 orientation = "Sagital";
 
-            ((Column3DViewFMRI)Columns[indexColumn]).create_GUI_FMRI_texture(indexCut, orientation, planesOrientationFlipList[indexCut], planesCutsCopy, orientation != "custom");
+            ((Column3DViewFMRI)Columns[indexColumn]).CreateGUIFMRITexture(indexCut, orientation, PlanesOrientationFlip[indexCut], PlanesCutsCopy, orientation != "custom");
         }
         /// <summary>
         /// 
@@ -509,30 +553,30 @@ namespace HBP.Module3D
         /// <param name="indexColumn"></param>
         /// <param name="indexCut"></param>
         /// <param name="thresholdInfluence"></param>
-        public void color_cuts_textures_with_IEEG(int indexColumn, int indexCut)
+        public void ColorCutsTexturesWithIEEG(int indexColumn, int indexCut)
         {
             Column3DViewIEEG column = ColumnsIEEG[indexColumn];            
-            DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGeneratorList[indexCut];        
-            generator.fill_texture_with_IEEG(column, column.DLLCutColorScheme, notInBrainColor);
+            DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[indexCut];        
+            generator.fill_texture_with_IEEG(column, column.DLLCutColorScheme, NotInBrainColor);
 
-            DLL.Texture cutTexture = column.dllBrainCutWithIEEGTextures[indexCut];
+            DLL.Texture cutTexture = column.DLLBrainCutWithIEEGTextures[indexCut];
             generator.update_texture_with_IEEG(cutTexture);
-            cutTexture.update_texture_2D(column.brainCutWithIEEGTextures[indexCut]); // update mesh cut 2D texture
+            cutTexture.update_texture_2D(column.BrainCutWithIEEGTextures[indexCut]); // update mesh cut 2D texture
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="indexColumn"></param>
         /// <param name="indexCut"></param>
-        public void color_cuts_textures_with_FMRI(int indexColumn, int indexCut)
+        public void ColorCutsTexturesWithFMRI(int indexColumn, int indexCut)
         {
             Column3DViewFMRI column = ColumnsFMRI[indexColumn];
-            DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGeneratorList[indexCut];
+            DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[indexCut];
             generator.fill_texture_with_FMRI(column, DLLVolumeFMriList[indexColumn]);
 
-            DLL.Texture cutTexture = column.dllBrainCutWithFMRITextures[indexCut];
+            DLL.Texture cutTexture = column.DLLBrainCutWithFMRITextures[indexCut];
             generator.update_texture_with_FMRI(cutTexture);
-            cutTexture.update_texture_2D(column.brainCutWithFMRITextures[indexCut]); // update mesh cut 2D texture
+            cutTexture.update_texture_2D(column.BrainCutWithFMRITextures[indexCut]); // update mesh cut 2D texture
         }
         /// <summary>
         /// Compute the amplitudes textures coordinates for the brain mesh
@@ -543,10 +587,10 @@ namespace HBP.Module3D
         /// <param name="thresholdInfluence"></param>
         /// <param name="alphaMin"></param>
         /// <param name="alphaMax"></param>
-        public bool compute_surface_brain_UV_with_IEEG(bool whiteInflatedMeshes, int indexColumn)
+        public bool ComputeSurfaceBrainUVWithIEEG(bool whiteInflatedMeshes, int indexColumn)
         {
-            for (int ii = 0; ii < meshSplitNb; ++ii)
-                if(!ColumnsIEEG[indexColumn].DLLBrainTextureGeneratorList[ii].compute_surface_UV_IEEG(whiteInflatedMeshes ? DLLSplittedWhiteMeshesList[ii] : DLLSplittedMeshesList[ii], ColumnsIEEG[indexColumn]))
+            for (int ii = 0; ii < MeshSplitNumber; ++ii)
+                if(!ColumnsIEEG[indexColumn].DLLBrainTextureGenerators[ii].compute_surface_UV_IEEG(whiteInflatedMeshes ? DLLSplittedWhiteMeshesList[ii] : DLLSplittedMeshesList[ii], ColumnsIEEG[indexColumn]))
                     return false;
 
             return true;
@@ -554,26 +598,26 @@ namespace HBP.Module3D
         /// <summary>
         /// Update the plot rendering parameters for all columns
         /// </summary>
-        public void update_all_columns_sites_rendering(SceneStatesInfo data)
+        public void UpdateAllColumnsSitesRendering(SceneStatesInfo data)
         {
             for (int ii = 0; ii < ColumnsIEEG.Count; ++ii)
             {
                 Latencies latencyFile = null;
-                if (ColumnsIEEG[ii].currentLatencyFile != -1)
-                    latencyFile = latenciesFiles[ColumnsIEEG[ii].currentLatencyFile];
+                if (ColumnsIEEG[ii].CurrentLatencyFile != -1)
+                    latencyFile = LatenciesFiles[ColumnsIEEG[ii].CurrentLatencyFile];
 
-                ColumnsIEEG[ii].update_sites_size_and_color_arrays_for_IEEG(); // TEST
-                ColumnsIEEG[ii].update_sites_rendering(data, latencyFile);
+                ColumnsIEEG[ii].UpdateSitesSizeAndColorForIEEG(); // TEST
+                ColumnsIEEG[ii].UpdateSitesRendering(data, latencyFile);
             }
 
             for (int ii = 0; ii < ColumnsFMRI.Count; ++ii)
-                ColumnsFMRI[ii].update_plots_visiblity(data);
+                ColumnsFMRI[ii].UpdateSitesVisibility(data);
         }
         /// <summary>
         /// Update the visiblity of the ROI for all columns
         /// </summary>
         /// <param name="visible"></param>
-        public void update_ROI_visibility(bool visible)
+        public void UpdateROIVisibility(bool visible)
         {
             // disable all ROI render
             for(int ii = 0; ii < m_Columns.Count; ++ii)
@@ -588,53 +632,9 @@ namespace HBP.Module3D
         /// Update the visiblity of the plots for all columns
         /// </summary>
         /// <param name="visible"></param>
-        public void update_sites_visibiliy(bool visible)
+        public void UpdateSitesVisibility(bool visible)
         {
-            foreach (var column in m_Columns) column.set_visible_sites(visible);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        void AddIEEGColumn()
-        {
-            Column3DViewIEEG column = Instantiate(Column3DViewIEEGPrefab, transform).GetComponent<Column3DViewIEEG>();
-            column.gameObject.name = "Column IEEG " + ColumnsIEEG.Count;
-            m_Columns.Add(column);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        void AddFMRIColumn()
-        {
-            Column3DViewFMRI column = Instantiate(Column3DViewFMRIPrefab, transform).GetComponent<Column3DViewFMRI>();
-            column.gameObject.name = "Column FMRI " + ColumnsFMRI.Count;
-            m_Columns.Add(column);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        void RemoveIEEGColumn()
-        {
-            if (ColumnsIEEG.Count > 0)
-            {
-                Column3DViewIEEG column = ColumnsIEEG[ColumnsIEEG.Count - 1];
-                int columnID = m_Columns.IndexOf(column);
-                Destroy(m_Columns[columnID]);
-                m_Columns.RemoveAt(columnID);
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        void RemoveFMRIColumn()
-        {
-            if (ColumnsIEEG.Count > 0)
-            {
-                Column3DViewFMRI column = ColumnsFMRI[ColumnsFMRI.Count - 1];
-                int columnID = m_Columns.IndexOf(column);
-                Destroy(m_Columns[columnID]);
-                m_Columns.RemoveAt(columnID);
-            }
+            foreach (var column in m_Columns) column.SetSitesVisibility(visible);
         }
         #endregion
     }

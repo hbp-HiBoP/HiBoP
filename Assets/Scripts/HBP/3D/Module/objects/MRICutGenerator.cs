@@ -34,8 +34,8 @@ namespace HBP.Module3D
                 float[] planeF = new float[6];
                 for (int ii = 0; ii < 3; ++ii)
                 {
-                    planeF[ii]     = plane.point[ii];
-                    planeF[ii + 3] = plane.normal[ii];
+                    planeF[ii]     = plane.Point[ii];
+                    planeF[ii + 3] = plane.Normal[ii];
                 }
 
                 reset__MRIGeometryCutGenerator(_handle, volume.getHandle(), planeF);
@@ -125,7 +125,7 @@ namespace HBP.Module3D
             public void fill_texture_with_FMRI(Column3DViewFMRI FMRIColumn, DLL.Volume volume)
             {
                 bool noError = false;
-                noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), FMRIColumn.DLLCutFMRIColorScheme.getHandle(), FMRIColumn.calMin, FMRIColumn.calMax, FMRIColumn.alpha) ==1;
+                noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), FMRIColumn.DLLCutFMRIColorScheme.getHandle(), FMRIColumn.CalMin, FMRIColumn.CalMax, FMRIColumn.Alpha) ==1;
                 StaticComponents.DLLDebugManager.check_error();
 
                 if (!noError)
@@ -165,8 +165,8 @@ namespace HBP.Module3D
             public bool compute_influences(Column3DViewIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
             {
                 bool noError = false;
-                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.iEEG_values(), IEEGColumn.dimensions(), IEEGColumn.maxDistanceElec,
-                    multiCPU?1:0, addValues?1:0, ratioDistances?1:0, IEEGColumn.middle, IEEGColumn.spanMin, IEEGColumn.spanMax)== 1;
+                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.Dimensions, IEEGColumn.MaxDistanceElec,
+                    multiCPU?1:0, addValues?1:0, ratioDistances?1:0, IEEGColumn.Middle, IEEGColumn.SpanMin, IEEGColumn.SpanMax)== 1;
                 StaticComponents.DLLDebugManager.check_error();
 
                 if (!noError)
@@ -188,8 +188,8 @@ namespace HBP.Module3D
                 notInBrainColor[0] = notInBrainCol.b;
                 notInBrainColor[1] = notInBrainCol.r;
                 notInBrainColor[2] = notInBrainCol.r;
-                noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, IEEGColumn.currentTimeLineID, colorScheme.getHandle(), 
-                IEEGColumn.alphaMin, IEEGColumn.alphaMax, notInBrainColor)==1;
+                noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, IEEGColumn.CurrentTimeLineID, colorScheme.getHandle(), 
+                IEEGColumn.AlphaMin, IEEGColumn.AlphaMax, notInBrainColor)==1;
                 StaticComponents.DLLDebugManager.check_error();
 
                 if (!noError)

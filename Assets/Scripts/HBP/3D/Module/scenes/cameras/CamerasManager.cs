@@ -121,8 +121,8 @@ namespace HBP.Module3D.Cam
         public void SetModuleFocus(bool focusedOn3D)
         {
             m_FocusedOn3D = focusedOn3D;
-            foreach (var camerasLine in m_SinglePatientCameras) foreach (var camera in camerasLine) camera.SetCameraFocus(focusedOn3D);
-            foreach (var camerasLine in m_MultiPatientsCameras) foreach (var camera in camerasLine) camera.SetCameraFocus(focusedOn3D);
+            foreach (var camerasLine in m_SinglePatientCameras) foreach (var camera in camerasLine) camera.IsFocusedOn3DModule = focusedOn3D;
+            foreach (var camerasLine in m_MultiPatientsCameras) foreach (var camera in camerasLine) camera.IsFocusedOn3DModule = focusedOn3D;
         }
         /// <summary>
         /// 
@@ -394,7 +394,7 @@ namespace HBP.Module3D.Cam
                     for (int jj = 0; jj < m_SinglePatientCameras[ii].Count; ++jj)
                     {
                         m_SinglePatientCameras[ii][jj].DefineCamera(m_MultiPatientsCameras[ii][jj].transform.position,
-                                                                    m_MultiPatientsCameras[ii][jj].transform.rotation, m_MultiPatientsCameras[ii][jj].target());
+                                                                    m_MultiPatientsCameras[ii][jj].transform.rotation, m_MultiPatientsCameras[ii][jj].Target);
                     }
                 }
             }
@@ -589,9 +589,9 @@ namespace HBP.Module3D.Cam
                 {
                     TrackBallCamera camera = Instantiate(cameras[0][column]);
                     newLine.Add(camera);
-                    camera.SetLine(line);
-                    camera.SetColumn(column);
-                    camera.SetCameraFocus(m_FocusedOn3D);
+                    camera.Line = line;
+                    camera.Column = column;
+                    camera.IsFocusedOn3DModule = m_FocusedOn3D;
                     camera.GetComponent<Camera>().depth = column;
                     camera.name = baseName + "Column n°" + column + " Line n°" + line;
                     camera.transform.SetParent(container);
@@ -644,18 +644,18 @@ namespace HBP.Module3D.Cam
                     sceneCameras[ii][currentConditionNumber].transform.parent = cameraParent;
 
                     TrackBallCamera camera = sceneCameras[ii][currentConditionNumber].GetComponent<TrackBallCamera>();
-                    camera.SetLine(ii);
-                    camera.SetColumn(currentConditionNumber);
-                    camera.SetCameraFocus(m_FocusedOn3D);
-                    camera.SetCameraType(column);
+                    camera.Line = ii;
+                    camera.Column = currentConditionNumber;
+                    camera.IsFocusedOn3DModule = m_FocusedOn3D;
+                    camera.Type = column;
 
                     switch(scene)
                     {
                         case SceneType.SinglePatient:
-                            camera.set_column_layer("C" + currentConditionNumber + "_SP");
+                            camera.ColumnLayer = "C" + currentConditionNumber + "_SP";
                             break;
                         case SceneType.MultiPatients:
-                            camera.set_column_layer("C" + currentConditionNumber + "_MP");
+                            camera.ColumnLayer = "C" + currentConditionNumber + "_MP";
                             break;
                     }
                 }
@@ -681,9 +681,9 @@ namespace HBP.Module3D.Cam
                 // destroy last added camera column
                 for (int ii = 0; ii < sceneCameras.Count; ++ii)
                 {
-                    if (sceneCameras[ii][sceneCameras[ii].Count - 1].GetComponent<TrackBallCamera>().is_selected())
+                    if (sceneCameras[ii][sceneCameras[ii].Count - 1].GetComponent<TrackBallCamera>().IsSelected())
                     {
-                        sceneCameras[ii][sceneCameras[ii].Count - 1].GetComponent<TrackBallCamera>().update_selected_column(0);
+                        sceneCameras[ii][sceneCameras[ii].Count - 1].GetComponent<TrackBallCamera>().UpdateSelectedColumn(0);
                     }
 
                     Destroy(sceneCameras[ii][sceneCameras[ii].Count - 1]);

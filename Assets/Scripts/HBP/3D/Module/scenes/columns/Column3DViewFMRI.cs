@@ -29,15 +29,15 @@ namespace HBP.Module3D
             }
         }
         // textures
-        public List<Texture2D> brainCutWithFMRITextures = null;        
-        public List<Texture2D> guiBrainCutWithFMRITextures = null;
+        public List<Texture2D> BrainCutWithFMRITextures = null;        
+        public List<Texture2D> GUIBrainCutWithFMRITextures = null;
 
-        public List<DLL.Texture> dllBrainCutWithFMRITextures = null;
-        public List<DLL.Texture> dllGuiBrainCutWithFMRITextures = null;
+        public List<DLL.Texture> DLLBrainCutWithFMRITextures = null;
+        public List<DLL.Texture> DLLGUIBrainCutWithFMRITextures = null;
 
-        public float calMin = 0.4f;
-        public float calMax = 0.6f;
-        public float alpha = 0.5f;
+        public float CalMin = 0.4f;
+        public float CalMax = 0.6f;
+        public float Alpha = 0.5f;
         #endregion
 
         #region Public Methods
@@ -53,30 +53,30 @@ namespace HBP.Module3D
             base.Initialize(idColumn, nbCuts, plots, PlotsPatientParent);
 
             // GO textures            
-            brainCutWithFMRITextures = new List<Texture2D>();
-            guiBrainCutWithFMRITextures = new List<Texture2D>();
+            BrainCutWithFMRITextures = new List<Texture2D>();
+            GUIBrainCutWithFMRITextures = new List<Texture2D>();
             for (int ii = 0; ii < nbCuts; ++ii)
             {
-                brainCutWithFMRITextures.Add(Texture2Dutility.generate_cut(1, 1));
-                guiBrainCutWithFMRITextures.Add(Texture2Dutility.generate_GUI(1, 1));
+                BrainCutWithFMRITextures.Add(Texture2Dutility.generate_cut(1, 1));
+                GUIBrainCutWithFMRITextures.Add(Texture2Dutility.generate_GUI(1, 1));
             }
             
             // DLL textures
-            dllBrainCutWithFMRITextures = new List<DLL.Texture>(nbCuts);
-            dllGuiBrainCutWithFMRITextures = new List<DLL.Texture>(nbCuts);
+            DLLBrainCutWithFMRITextures = new List<DLL.Texture>(nbCuts);
+            DLLGUIBrainCutWithFMRITextures = new List<DLL.Texture>(nbCuts);
             for (int jj = 0; jj < nbCuts; ++jj)
             {
-                dllBrainCutWithFMRITextures.Add(new DLL.Texture());
-                dllGuiBrainCutWithFMRITextures.Add(new DLL.Texture());
+                DLLBrainCutWithFMRITextures.Add(new DLL.Texture());
+                DLLGUIBrainCutWithFMRITextures.Add(new DLL.Texture());
             }
         }
         /// <summary>
         /// Update the cut planes number of the 3D column view
         /// </summary>
         /// <param name="newCutsNb"></param>
-        public new void update_cuts_planes_nb(int diffCuts)
+        public new void UpdateCutsPlanesNumber(int diffCuts)
         {
-            base.update_cuts_planes_nb(diffCuts);
+            base.UpdateCutsPlanesNumber(diffCuts);
 
             // update number of cuts
             if (diffCuts < 0)
@@ -84,12 +84,12 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < -diffCuts; ++ii)
                 {
                     // GO textures 
-                    brainCutWithFMRITextures.Add(Texture2Dutility.generate_cut());
-                    guiBrainCutWithFMRITextures.Add(Texture2Dutility.generate_GUI());
+                    BrainCutWithFMRITextures.Add(Texture2Dutility.generate_cut());
+                    GUIBrainCutWithFMRITextures.Add(Texture2Dutility.generate_GUI());
 
                     // DLL textures
-                    dllBrainCutWithFMRITextures.Add(new DLL.Texture());
-                    dllGuiBrainCutWithFMRITextures.Add(new DLL.Texture());
+                    DLLBrainCutWithFMRITextures.Add(new DLL.Texture());
+                    DLLGUIBrainCutWithFMRITextures.Add(new DLL.Texture());
                 }
             }
             else if (diffCuts > 0)
@@ -97,15 +97,15 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < diffCuts; ++ii)
                 {
                     // GO textures       
-                    Destroy(brainCutWithFMRITextures[brainCutWithFMRITextures.Count - 1]);
-                    brainCutWithFMRITextures.RemoveAt(brainCutWithFMRITextures.Count - 1);
+                    Destroy(BrainCutWithFMRITextures[BrainCutWithFMRITextures.Count - 1]);
+                    BrainCutWithFMRITextures.RemoveAt(BrainCutWithFMRITextures.Count - 1);
 
-                    Destroy(guiBrainCutWithFMRITextures[guiBrainCutWithFMRITextures.Count - 1]);
-                    guiBrainCutWithFMRITextures.RemoveAt(guiBrainCutWithFMRITextures.Count - 1);
+                    Destroy(GUIBrainCutWithFMRITextures[GUIBrainCutWithFMRITextures.Count - 1]);
+                    GUIBrainCutWithFMRITextures.RemoveAt(GUIBrainCutWithFMRITextures.Count - 1);
 
                     // DLL textures
-                    dllBrainCutWithFMRITextures.RemoveAt(dllBrainCutWithFMRITextures.Count - 1);
-                    dllGuiBrainCutWithFMRITextures.RemoveAt(dllGuiBrainCutWithFMRITextures.Count - 1);
+                    DLLBrainCutWithFMRITextures.RemoveAt(DLLBrainCutWithFMRITextures.Count - 1);
+                    DLLGUIBrainCutWithFMRITextures.RemoveAt(DLLGUIBrainCutWithFMRITextures.Count - 1);
                 }
             }
         }
@@ -120,17 +120,17 @@ namespace HBP.Module3D
             m_RawElectrodes.Dispose();
 
             // textures 2D
-            for (int ii = 0; ii < brainCutWithFMRITextures.Count; ++ii)
+            for (int ii = 0; ii < BrainCutWithFMRITextures.Count; ++ii)
             {
-                Destroy(brainCutWithFMRITextures[ii]);
-                Destroy(guiBrainCutWithFMRITextures[ii]);
+                Destroy(BrainCutWithFMRITextures[ii]);
+                Destroy(GUIBrainCutWithFMRITextures[ii]);
             }
         }
         /// <summary>
         /// 
         /// </summary>
         /// <param name="data"></param>
-        public void update_plots_visiblity(SceneStatesInfo data)
+        public void UpdateSitesVisibility(SceneStatesInfo data)
         {
             Vector3 normalScale = new Vector3(1, 1, 1);
             MeshRenderer renderer = null;
@@ -172,7 +172,7 @@ namespace HBP.Module3D
 
                     // select site ring 
                     if (ii == SelectedSiteID)
-                        m_selectRing.set_selected_site(Sites[ii], Sites[ii].transform.localScale);
+                        m_SelectRing.set_selected_site(Sites[ii], Sites[ii].transform.localScale);
 
                     renderer.sharedMaterial = SharedMaterials.site_shared_material(highlight, siteType);
                 }
@@ -188,12 +188,12 @@ namespace HBP.Module3D
         /// <param name="flip"></param>
         /// <param name="cutPlanes"></param>
         /// <param name="drawLines"></param>
-        public void create_GUI_FMRI_texture(int indexCut, string orientation, bool flip, List<Plane> cutPlanes, bool drawLines)
+        public void CreateGUIFMRITexture(int indexCut, string orientation, bool flip, List<Plane> cutPlanes, bool drawLines)
         {
-            if (dllBrainCutTextures[indexCut].m_sizeTexture[0] > 0)
+            if (DLLBrainCutTextures[indexCut].m_sizeTexture[0] > 0)
             {
-                dllGuiBrainCutWithFMRITextures[indexCut].copy_frome_and_rotate(dllBrainCutWithFMRITextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGeneratorList[indexCut]);
-                dllGuiBrainCutWithFMRITextures[indexCut].update_texture_2D(guiBrainCutWithFMRITextures[indexCut], false); // TODO: ;..
+                DLLGUIBrainCutWithFMRITextures[indexCut].copy_frome_and_rotate(DLLBrainCutWithFMRITextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
+                DLLGUIBrainCutWithFMRITextures[indexCut].update_texture_2D(GUIBrainCutWithFMRITextures[indexCut], false); // TODO: ;..
             }
         }
         #endregion

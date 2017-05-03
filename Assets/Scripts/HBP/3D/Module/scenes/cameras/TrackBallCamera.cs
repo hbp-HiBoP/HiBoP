@@ -32,7 +32,29 @@ namespace HBP.Module3D.Cam
     public abstract class TrackBallCamera : MonoBehaviour
     {
         #region Properties
-        public CameraType Type { get; set; }
+        protected CameraType m_Type;
+        public CameraType Type
+        {
+            get
+            {
+                return m_Type;
+            }
+            set
+            {
+                m_Type = value;
+                int cullingMask = -1;
+                switch (m_Type)
+                {
+                    case CameraType.EEG:
+                        cullingMask = EEGCullingMask;
+                        break;
+                    case CameraType.fMRI:
+                        cullingMask = FMRICullingMask;
+                        break;
+                }
+                GetComponent<Camera>().cullingMask = cullingMask;
+            }
+        }
 
         [SerializeField,Candlelight.PropertyBackingField]
         protected bool m_IsMinimized = false;      /**< is the camera minimized */
@@ -156,18 +178,46 @@ namespace HBP.Module3D.Cam
         protected InputsSceneManager m_InputsSceneManager = null;  /**< inputs scene manager */
         protected Base3DScene m_AssociatedScene = null;            /**< associated 3D scene */       
 
-        protected SceneType m_Type;                  /**< is the camera a single patient one ? */
+        protected SceneType m_SceneType;                  /**< is the camera a single patient one ? */
         protected bool m_IsFocusedOn3DModule = true;       /**< is the focus on the 3D module ? */
+        public bool IsFocusedOn3DModule
+        {
+            set
+            {
+                m_IsFocusedOn3DModule = value;
+            }
+        }
         protected bool m_IsFocusedOnCamera;               /**< is the focus on the camera ? */
         protected bool m_CameraIsRotating = false;  /**< is the camera rotating ? */
-        protected bool m_displayRotationCircles = false;   /**< display rotations circles ?*/
+        protected bool m_DisplayRotationCircles = false;   /**< display rotations circles ?*/
 
         protected int m_Line = 0;           /**< id camera line */
+        public int Line
+        {
+            set
+            {
+                m_Line = value;
+            }
+        }
         protected int m_Column = 0;            /**< id camera column */
+        public int Column
+        {
+            set
+            {
+                m_Column = value;
+            }
+        }
 
         protected float m_RotationCirclesRay = 300f;/**< rotations circles ray */
 
         protected Vector3 m_Target;                 /**< current target of the camera */
+        public Vector3 Target
+        {
+            get
+            {
+                return m_Target;
+            }
+        }
         protected Vector3 m_OriginalTarget;         /**< initial target of the camera */
         protected Vector3 m_OriginalRotationEuler;       /**< initial rotation of the camera */
 
@@ -195,9 +245,9 @@ namespace HBP.Module3D.Cam
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
 
             // rotation circles
-            m_XRotationCircleVertices = Geometry.create_3D_circle_points(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
-            m_YRotationCircleVertices = Geometry.create_3D_circle_points(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
-            m_ZRotationCircleVertices = Geometry.create_3D_circle_points(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
+            m_XRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
+            m_YRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
+            m_ZRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
 
             for (int ii = 0; ii < m_XRotationCircleVertices.Length; ++ii)
             {
@@ -223,8 +273,8 @@ namespace HBP.Module3D.Cam
         }
         protected void OnPostRender()
         {
-            drawGL();
-            m_displayRotationCircles = false;
+            DrawGL();
+            m_DisplayRotationCircles = false;
         }
         protected void Update()
         {
@@ -240,13 +290,13 @@ namespace HBP.Module3D.Cam
             }
 
             if (!m_IsMinimized && m_IsFocusedOnCamera && m_IsFocusedOn3DModule)                
-                send_mouse_events();
+                SendMouseEvents();
           
             StartCoroutine("drawGL");
         }
         protected void OnGUI()
         {
-            m_IsFocusedOnCamera = is_focus();
+            m_IsFocusedOnCamera = IsFocused();
 
             if (m_IsMinimized || !m_IsFocusedOnCamera || !m_IsFocusedOn3DModule)
                 return;
@@ -255,38 +305,38 @@ namespace HBP.Module3D.Cam
             if (Input.anyKey)
             {
                 if (Input.GetKey(KeyCode.R))
-                    reset_target();
+                    ResetTarget();
 
                 // check keybord zooms
                 if (Input.GetKey(KeyCode.A))
-                    move_forward(m_ZoomSpeed);                    
+                    MoveForward(m_ZoomSpeed);                    
 
                 if (Input.GetKey(KeyCode.E))
-                    move_backward(m_ZoomSpeed);
+                    MoveBackward(m_ZoomSpeed);
 
                 if (Input.GetKey(KeyCode.Z))
-                    vertical_rotation(true, 0.2f);
+                    VerticalRotation(true, 0.2f);
 
                 if (Input.GetKey(KeyCode.S))
-                    vertical_rotation(false, 0.2f);
+                    VerticalRotation(false, 0.2f);
 
                 if (Input.GetKey(KeyCode.Q))
-                    horizontal_rotation(true, 0.2f);
+                    HorizontalRotation(true, 0.2f);
 
                 if (Input.GetKey(KeyCode.D))
-                    horizontal_rotation(false, 0.2f);
+                    HorizontalRotation(false, 0.2f);
 
                 if (Input.GetKey(KeyCode.LeftArrow))
-                    horizontal_strafe(true, -0.5f);
+                    HorizontalStrafe(true, -0.5f);
 
                 if (Input.GetKey(KeyCode.RightArrow))
-                    horizontal_strafe(false, -0.5f);
+                    HorizontalStrafe(false, -0.5f);
 
                 if (Input.GetKey(KeyCode.UpArrow))
-                    vertical_strafe(true, -0.5f);
+                    VerticalStrafe(true, -0.5f);
 
                 if (Input.GetKey(KeyCode.DownArrow))
-                    vertical_strafe(false, -0.5f);
+                    VerticalStrafe(false, -0.5f);
 
                 if (currEvent.type == EventType.KeyDown)
                 {
@@ -304,7 +354,7 @@ namespace HBP.Module3D.Cam
         /// <summary>
         /// Check and send the mouse events to the mouse manager and apply cameras rotations and straffes
         /// </summary>
-        protected void send_mouse_events()
+        protected void SendMouseEvents()
         {
             Ray ray = GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
 
@@ -329,16 +379,16 @@ namespace HBP.Module3D.Cam
                 // check horizontal right click mouse drag movement
                 if (nx != 0)
                     if (nx < 0)
-                        horizontal_rotation(true, -nx * m_Speed);
+                        HorizontalRotation(true, -nx * m_Speed);
                     else
-                        horizontal_rotation(false, nx * m_Speed);
+                        HorizontalRotation(false, nx * m_Speed);
 
                 // check vertical right click mouse drag movement
                 if (ny != 0)
                     if (ny < 0)
-                        vertical_rotation(true, ny * m_Speed);
+                        VerticalRotation(true, ny * m_Speed);
                     else
-                        vertical_rotation(false, -ny * m_Speed);
+                        VerticalRotation(false, -ny * m_Speed);
             }
 
             if (Input.GetMouseButton(2))
@@ -351,17 +401,17 @@ namespace HBP.Module3D.Cam
                 // check horizontal right click mouse drag movement
                 if (nx != 0)
                     if (nx < 0)
-                        horizontal_strafe(true, nx * m_Speed);
+                        HorizontalStrafe(true, nx * m_Speed);
                     else
-                        horizontal_strafe(false, -nx * m_Speed);
+                        HorizontalStrafe(false, -nx * m_Speed);
 
 
                 // check vertical right click mouse drag movement
                 if (ny != 0)
                     if (ny < 0)
-                        vertical_strafe(true, -ny * m_Speed);
+                        VerticalStrafe(true, -ny * m_Speed);
                     else
-                        vertical_strafe(false, ny * m_Speed);
+                        VerticalStrafe(false, ny * m_Speed);
             }
         }
         /// <summary>
@@ -369,9 +419,9 @@ namespace HBP.Module3D.Cam
         /// </summary>
         /// <param name="left"></param>
         /// <param name="amount"></param>
-        protected void horizontal_strafe(bool left, float amount)
+        protected void HorizontalStrafe(bool left, float amount)
         {
-            m_displayRotationCircles = true;
+            m_DisplayRotationCircles = true;
             Vector3 strafe;
             if (left)
                 strafe = -transform.right * amount;
@@ -386,9 +436,9 @@ namespace HBP.Module3D.Cam
         /// </summary>
         /// <param name="left"></param>
         /// <param name="amount"></param>
-        protected void vertical_strafe(bool up, float amount)
+        protected void VerticalStrafe(bool up, float amount)
         {
-            m_displayRotationCircles = true;
+            m_DisplayRotationCircles = true;
             Vector3 strafe;
             if (up)
                 strafe = transform.up * amount;
@@ -403,9 +453,9 @@ namespace HBP.Module3D.Cam
         /// </summary>
         /// <param name="left"></param>
         /// <param name="amount"></param>
-        protected void horizontal_rotation(bool left, float amount)
+        protected void HorizontalRotation(bool left, float amount)
         {
-            m_displayRotationCircles = true;
+            m_DisplayRotationCircles = true;
             Vector3 vecTargetPos_EyePos = transform.position - m_Target;
             Quaternion rotation;
             if (left)
@@ -421,9 +471,9 @@ namespace HBP.Module3D.Cam
         /// </summary>
         /// <param name="up"></param>
         /// <param name="amount"></param>
-        protected void vertical_rotation(bool up, float amount)
+        protected void VerticalRotation(bool up, float amount)
         {
-            m_displayRotationCircles = true;
+            m_DisplayRotationCircles = true;
             Vector3 vecTargetPos_EyePos = transform.position - m_Target;
             Quaternion rotation;
             if (up)
@@ -438,7 +488,7 @@ namespace HBP.Module3D.Cam
         /// Move forward the position in the direction of the target
         /// </summary>
         /// <param name="amount"></param>
-        protected void move_forward(float amount)
+        protected void MoveForward(float amount)
         {
             float length = Vector3.Distance(transform.position, m_Target);
             if (length - amount > m_MinDistance)
@@ -450,7 +500,7 @@ namespace HBP.Module3D.Cam
         /// Move backward  the position in the direction of the target
         /// </summary>
         /// <param name="amount"></param>
-        protected void move_backward(float amount)
+        protected void MoveBackward(float amount)
         {
             float length = Vector3.Distance(transform.position, m_Target);
             if (length + amount < m_MaxDistance)
@@ -461,7 +511,7 @@ namespace HBP.Module3D.Cam
         /// <summary>
         /// Reset the original target of the camera
         /// </summary>
-        protected void reset_target()
+        protected void ResetTarget()
         {
             transform.localEulerAngles = m_OriginalRotationEuler;
             m_Target = m_OriginalTarget;
@@ -473,7 +523,7 @@ namespace HBP.Module3D.Cam
         /// <summary>
         /// 
         /// </summary>
-        public void drawGL()
+        public void DrawGL()
         {
             if (!m_IsFocusedOnCamera || m_IsMinimized)
                 return;
@@ -486,7 +536,7 @@ namespace HBP.Module3D.Cam
                     m_PlaneMaterial.SetPass(0);
                     
                     {
-                        int ii = m_AssociatedScene.SceneInformation.lastIdPlaneModified;
+                        int ii = m_AssociatedScene.SceneInformation.LastPlaneModifiedID;
                         for (int jj = 0; jj < m_PlanesCutsCirclesVertices[ii].Length; ++jj)
                         {
                             GL.Begin(GL.LINES);
@@ -509,7 +559,7 @@ namespace HBP.Module3D.Cam
                     m_DisplayCutsCircles = false;
             }
 
-            if (m_displayRotationCircles)
+            if (m_DisplayRotationCircles)
             {
                 //GL.PushMatrix();
                 m_XCircleMaterial.SetPass(0);
@@ -575,7 +625,7 @@ namespace HBP.Module3D.Cam
         /// Corountine for rotating the camera
         /// </summary>
         /// <returns></returns>
-        private IEnumerator rotate_360()
+        private IEnumerator Rotate360() //DELETEME
         {
             float timeFunction = 5f;
 
@@ -607,7 +657,7 @@ namespace HBP.Module3D.Cam
                         rotationToDo = currentRotationState - totalRotation;
 
                         // do the rotation
-                        horizontal_rotation(false, rotationToDo);
+                        HorizontalRotation(false, rotationToDo);
 
                         // update total rotation
                         totalRotation += rotationToDo;
@@ -618,50 +668,10 @@ namespace HBP.Module3D.Cam
             }
         }
         /// <summary>
-        /// Set the focus state of the module
-        /// </summary>
-        /// <param name="state"></param>
-        public void SetCameraFocus(bool state)
-        {
-            m_IsFocusedOn3DModule = state;
-        }
-        /// <summary>
-        /// Update the culling of the camera for fMRI
-        /// </summary>
-        /// <param name="spScene"></param>
-        public void SetCameraType(CameraType type)
-        {
-            Type = type;
-            int cullingMask = -1;
-            switch(type)
-            {
-                case CameraType.EEG: cullingMask = EEGCullingMask;
-                    break;
-                case CameraType.fMRI: cullingMask = FMRICullingMask;
-                    break;
-            }
-            GetComponent<Camera>().cullingMask = cullingMask;
-        }
-        /// <summary>
-        /// Define the line id of the camera
-        /// </summary>
-        /// <param name="newLineId"></param>
-        public void SetLine(int newLineId) { m_Line = newLineId; }
-        /// <summary>
-        /// Define the column id of the camera
-        /// </summary>
-        /// <param name="newColId"></param>
-        public void SetColumn(int newColId){ m_Column = newColId; }
-        /// <summary>
-        /// Define the column layer
-        /// </summary>
-        /// <param name="columnLayer"></param>
-        public void set_column_layer(string columnLayer) { ColumnLayer = ColumnLayer; }
-        /// <summary>
         /// Check if the camera is in the current selected column
         /// </summary>
         /// <returns></returns>
-        public bool is_selected()
+        public bool IsSelected()
         {
             return (m_AssociatedScene.RetrieveCurrentSelectedColumnID() == m_Column);
         }
@@ -695,7 +705,7 @@ namespace HBP.Module3D.Cam
         /// Set the minimized state of the camera
         /// </summary>
         /// <param name="state"></param>
-        public void set_minimized_state(bool state)
+        public void SetMinimizedState(bool state)
         {
             m_IsMinimized = state;
             int cullingMask = -1;
@@ -719,7 +729,7 @@ namespace HBP.Module3D.Cam
         /// Check if the mouse is inside the camera rectangle
         /// </summary>
         /// <returns></returns>
-        public bool is_focus()
+        public bool IsFocused()
         {
             return (GetComponent<Camera>().pixelRect.Contains(Input.mousePosition));
         }
@@ -727,7 +737,7 @@ namespace HBP.Module3D.Cam
         /// Update the selected column with the associated scene
         /// </summary>
         /// <param name="idColumn"></param>
-        public void update_selected_column(int idColumn)
+        public void UpdateSelectedColumn(int idColumn)
         {
             m_AssociatedScene.UpdateSelectedColumn(idColumn);
         }
@@ -742,14 +752,6 @@ namespace HBP.Module3D.Cam
             transform.position = position;
             transform.rotation = rotation;
             this.m_Target = target;
-        }
-        /// <summary>
-        /// Return the target of the camera
-        /// </summary>
-        /// <returns></returns>
-        public Vector3 target()
-        {
-            return m_Target;
         }
         #endregion
     }

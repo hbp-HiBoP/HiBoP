@@ -106,7 +106,7 @@ namespace HBP.Module3D
             {
                 // set UI overlay specs
                 UnityEngine.Profiling.Profiler.BeginSample("TEST-HiBoP_3DModule_Main setSpecificOverlayActive 1");
-                for (int ii = 0; ii < specs.uiOverlayMask.Count; ++ii) { }
+                for (int ii = 0; ii < specs.UIOverlayMask.Count; ++ii) { }
                     //m_UIManager.OverlayManager.set_specific_overlay_active(specs.uiOverlayMask[ii], ii, specs.mode);
                 UnityEngine.Profiling.Profiler.EndSample();
 

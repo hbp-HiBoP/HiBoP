@@ -28,28 +28,42 @@ namespace HBP.Module3D
             get { return m_CurrentMode; }
             set { m_CurrentMode = value; OnChangeMode.Invoke(value); }
         }
+        public string CurrentModeName
+        {
+            get
+            {
+                return m_CurrentMode.name;
+            }
+        }
+        public Mode.ModesId CurrentModeID
+        {
+            get
+            {
+                return m_CurrentMode.IDMode;
+            }
+        }
         public OnChangeMode OnChangeMode = new OnChangeMode();
 
         // sp         
-        private Mode m_noSpPathDefined = null;
-        private Mode minSpPathDefined = null;
-        private Mode allSpPathDefined = null;
-        private Mode spComputingAmplitudes = null;
-        private Mode spAmplitudesComputed = null;
-        private Mode spTriErasing = null;
-        private Mode spAmpNeedUpdate = null;
-        private Mode spErrorMode = null;
+        private Mode m_NoSinglePatientPathDefined = null;
+        private Mode m_MinSinglePatientPathDefined = null;
+        private Mode m_AllSinglePatientPathDefined = null;
+        private Mode m_SinglePatientComputingAmplitudes = null;
+        private Mode m_SinglePatientAmplitudesComputed = null;
+        private Mode m_SinglePatientTriangleErasing = null;
+        private Mode m_SinglePatientAmpNeedUpdate = null;
+        private Mode m_SinglePatientErrorMode = null;
 
         // mp 
-        private Mode noMpPathDefined = null;
-        private Mode minMpPathDefined = null;
-        private Mode allMpPathDefined = null;
-        private Mode mpComputingAmplitudes = null;
-        private Mode mpAmplitudesComputed = null;
+        private Mode m_NoMultiPatientsPathDefined = null;
+        private Mode m_MinMultiPatientsPathDefined = null;
+        private Mode m_AllMultiPatientsPathDefined = null;
+        private Mode m_MultiPatientsComputingAmplitudes = null;
+        private Mode m_MultiPatientsAmplitudesComputed = null;
         //private Mode mpROICreation = null;
-        private Mode mpTriErasing = null;
-        private Mode mpAmpNeedUpdate = null;
-        private Mode mpErrorMode = null;
+        private Mode m_MultiPatientsTriangleErasing = null;
+        private Mode m_MultiPatientsAmpNeedUpdate = null;
+        private Mode m_MultiPatientsErrorMode = null;
 
         // events
         public Events.SendModeSpecifications SendModeSpecifications = new Events.SendModeSpecifications();
@@ -61,10 +75,10 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="mode"></param>
-        private void initMode(Base3DScene scene, out Mode mode, string nameMode)
+        private void InitializeMode(Base3DScene scene, out Mode mode, string nameMode)
         {
             mode = transform.Find(nameMode).GetComponent<Mode>();
-            mode.init(scene);
+            mode.Initialize(scene);
             mode.SendModeSpecifications.AddListener((UnityEngine.Events.UnityAction<ModeSpecifications>)((specs) =>
             {
                 this.SendModeSpecifications.Invoke(specs);
@@ -74,39 +88,39 @@ namespace HBP.Module3D
         /// Set the current mode
         /// </summary>
         /// <param name="idMode"></param>
-        private void setMode(Mode.ModesId idMode)
+        private void SetMode(Mode.ModesId idMode)
         {
-            switch (m_CurrentMode.m_Type)
+            switch (m_CurrentMode.Type)
             {
                 case SceneType.SinglePatient:
                     switch (idMode)
                     {
                         case Mode.ModesId.NoPathDefined:
-                            CurrentMode = m_noSpPathDefined;
+                            CurrentMode = m_NoSinglePatientPathDefined;
                             break;
                         case Mode.ModesId.MinPathDefined:
-                            CurrentMode = minSpPathDefined;
+                            CurrentMode = m_MinSinglePatientPathDefined;
                             break;
                         case Mode.ModesId.AllPathDefined:
-                            CurrentMode = allSpPathDefined;
+                            CurrentMode = m_AllSinglePatientPathDefined;
                             break;
                         case Mode.ModesId.ComputingAmplitudes:
-                            CurrentMode = spComputingAmplitudes;
+                            CurrentMode = m_SinglePatientComputingAmplitudes;
                             break;
                         case Mode.ModesId.AmplitudesComputed:
-                            CurrentMode = spAmplitudesComputed;
+                            CurrentMode = m_SinglePatientAmplitudesComputed;
                             break;
                         case Mode.ModesId.TriErasing:
-                            CurrentMode = spTriErasing;
+                            CurrentMode = m_SinglePatientTriangleErasing;
                             break;
                         case Mode.ModesId.AmpNeedUpdate:
-                            CurrentMode = spAmpNeedUpdate;
+                            CurrentMode = m_SinglePatientAmpNeedUpdate;
                             break;
                         case Mode.ModesId.Error:
-                            CurrentMode = spErrorMode;
+                            CurrentMode = m_SinglePatientErrorMode;
                             break;
                         default:
-                            CurrentMode = spErrorMode;
+                            CurrentMode = m_SinglePatientErrorMode;
                             break;
                     }
                     break;
@@ -114,31 +128,31 @@ namespace HBP.Module3D
                     switch (idMode)
                     {
                         case Mode.ModesId.NoPathDefined:
-                            CurrentMode = noMpPathDefined;
+                            CurrentMode = m_NoMultiPatientsPathDefined;
                             break;
                         case Mode.ModesId.MinPathDefined:
-                            CurrentMode = minMpPathDefined;
+                            CurrentMode = m_MinMultiPatientsPathDefined;
                             break;
                         case Mode.ModesId.AllPathDefined:
-                            CurrentMode = allMpPathDefined;
+                            CurrentMode = m_AllMultiPatientsPathDefined;
                             break;
                         case Mode.ModesId.ComputingAmplitudes:
-                            CurrentMode = mpComputingAmplitudes;
+                            CurrentMode = m_MultiPatientsComputingAmplitudes;
                             break;
                         case Mode.ModesId.AmplitudesComputed:
-                            CurrentMode = mpAmplitudesComputed;
+                            CurrentMode = m_MultiPatientsAmplitudesComputed;
                             break;
                         case Mode.ModesId.TriErasing:
-                            CurrentMode = mpTriErasing;
+                            CurrentMode = m_MultiPatientsTriangleErasing;
                             break;
                         case Mode.ModesId.AmpNeedUpdate:
-                            CurrentMode = mpAmpNeedUpdate;
+                            CurrentMode = m_MultiPatientsAmpNeedUpdate;
                             break;
                         case Mode.ModesId.Error:
-                            CurrentMode = mpErrorMode;
+                            CurrentMode = m_MultiPatientsErrorMode;
                             break;
                         default:
-                            CurrentMode = mpErrorMode;
+                            CurrentMode = m_MultiPatientsErrorMode;
                             break;
                     }
                     break;
@@ -153,31 +167,31 @@ namespace HBP.Module3D
         /// Init all the modes associated to the input scene
         /// </summary>
         /// <param name="scene"></param>
-        public void init(Base3DScene scene)
+        public void Initialize(Base3DScene scene)
         {
             switch (scene.Type)
             {
                 case SceneType.SinglePatient:
-                    initMode(scene, out m_noSpPathDefined, "No path defined");
-                    initMode(scene, out minSpPathDefined, "Min path defined");
-                    initMode(scene, out allSpPathDefined, "All paths defined");
-                    initMode(scene, out spComputingAmplitudes, "Computing amplitudes");
-                    initMode(scene, out spAmplitudesComputed, "Amplitudes computed");
-                    initMode(scene, out spTriErasing, "Tri erasing");
-                    initMode(scene, out spAmpNeedUpdate, "Amp need update");
-                    initMode(scene, out spErrorMode, "Error");
-                    CurrentMode = m_noSpPathDefined;
+                    InitializeMode(scene, out m_NoSinglePatientPathDefined, "No path defined");
+                    InitializeMode(scene, out m_MinSinglePatientPathDefined, "Min path defined");
+                    InitializeMode(scene, out m_AllSinglePatientPathDefined, "All paths defined");
+                    InitializeMode(scene, out m_SinglePatientComputingAmplitudes, "Computing amplitudes");
+                    InitializeMode(scene, out m_SinglePatientAmplitudesComputed, "Amplitudes computed");
+                    InitializeMode(scene, out m_SinglePatientTriangleErasing, "Tri erasing");
+                    InitializeMode(scene, out m_SinglePatientAmpNeedUpdate, "Amp need update");
+                    InitializeMode(scene, out m_SinglePatientErrorMode, "Error");
+                    CurrentMode = m_NoSinglePatientPathDefined;
                     break;
                 case SceneType.MultiPatients:
-                    initMode(scene, out noMpPathDefined, "No path defined");
-                    initMode(scene, out minMpPathDefined, "Min path defined");
-                    initMode(scene, out allMpPathDefined, "All paths defined");
-                    initMode(scene, out mpComputingAmplitudes, "Computing amplitudes");
-                    initMode(scene, out mpAmplitudesComputed, "Amplitudes computed");
+                    InitializeMode(scene, out m_NoMultiPatientsPathDefined, "No path defined");
+                    InitializeMode(scene, out m_MinMultiPatientsPathDefined, "Min path defined");
+                    InitializeMode(scene, out m_AllMultiPatientsPathDefined, "All paths defined");
+                    InitializeMode(scene, out m_MultiPatientsComputingAmplitudes, "Computing amplitudes");
+                    InitializeMode(scene, out m_MultiPatientsAmplitudesComputed, "Amplitudes computed");
                     //initMode(scene, out mpROICreation, "ROI creation");
-                    initMode(scene, out mpAmpNeedUpdate, "Amp need update");
-                    initMode(scene, out mpErrorMode, "Error");
-                    CurrentMode = noMpPathDefined;
+                    InitializeMode(scene, out m_MultiPatientsAmpNeedUpdate, "Amp need update");
+                    InitializeMode(scene, out m_MultiPatientsErrorMode, "Error");
+                    CurrentMode = m_NoMultiPatientsPathDefined;
                     break;
                 default:
                     break;
@@ -188,97 +202,81 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="idFunction"></param>
         /// <returns></returns>
-        public bool functionAccess(Mode.FunctionsId idFunction)
+        public bool FunctionAccess(Mode.FunctionsId idFunction)
         {
-            return m_CurrentMode.functionsMask[(int)idFunction];
-        }
-        /// <summary>
-        /// Return the current mode name
-        /// </summary>
-        /// <returns></returns>
-        public string currentModeName()
-        {            
-            return m_CurrentMode.name;
-        }
-        /// <summary>
-        /// Return the current mode id
-        /// </summary>
-        /// <returns></returns>
-        public Mode.ModesId currentIdMode()
-        {
-            return m_CurrentMode.IDMode;
+            return m_CurrentMode.FunctionsMask[(int)idFunction];
         }
         /// <summary>
         /// Ask the current mode to update it's specifications
         /// </summary>
         /// <param name="force"> force the update</param>
-        public void set_current_mode_specifications(bool force = false)
+        public void SetCurrentModeSpecifications(bool force = false)
         {
-            m_CurrentMode.setModeSpecifications(force);
+            m_CurrentMode.SetModeSpecifications(force);
         }
         /// <summary>
         /// Update the current mode with the input function
         /// </summary>
         /// <param name="idLastFunction"></param>
-        public void updateMode(Mode.FunctionsId idLastFunction)
+        public void UpdateMode(Mode.FunctionsId idLastFunction)
         {
             switch (idLastFunction)
             {
-                case Mode.FunctionsId.resetGIIBrainSurfaceFile:
-                    setMode(m_CurrentMode.mu_resetGIIBrainSurfaceFile());
+                case Mode.FunctionsId.ResetGIIBrainSurfaceFile:
+                    SetMode(m_CurrentMode.mu_ResetGIIBrainSurfaceFile());
                     break;
-                case Mode.FunctionsId.resetNIIBrainVolumeFile:
-                    setMode(m_CurrentMode.mu_resetNIIBrainVolumeFile());
+                case Mode.FunctionsId.ResetNIIBrainVolumeFile:
+                    SetMode(m_CurrentMode.mu_ResetNIIBrainVolumeFile());
                     break;
-                case Mode.FunctionsId.resetElectrodesFile:
-                    setMode(m_CurrentMode.mu_resetElectrodesFile());
+                case Mode.FunctionsId.ResetElectrodesFile:
+                    SetMode(m_CurrentMode.mu_ResetElectrodesFile());
                     break;
-                case Mode.FunctionsId.pre_updateGenerators:
-                    setMode(m_CurrentMode.mu_pre_updateGenerators());
+                case Mode.FunctionsId.PreUpdateGenerators:
+                    SetMode(m_CurrentMode.mu_PreUpdateGenerators());
                     break;
-                case Mode.FunctionsId.post_updateGenerators:
-                    setMode(m_CurrentMode.mu_post_updateGenerators());
+                case Mode.FunctionsId.PostUpdateGenerators:
+                    SetMode(m_CurrentMode.mu_PostUpdateGenerators());
                     break;
-                case Mode.FunctionsId.addNewPlane:
-                    setMode(m_CurrentMode.mu_addNewPlane());
+                case Mode.FunctionsId.AddNewPlane:
+                    SetMode(m_CurrentMode.mu_AddNewPlane());
                     break;
-                case Mode.FunctionsId.updatePlane:
-                    setMode(m_CurrentMode.mu_updatePlane());
+                case Mode.FunctionsId.UpdatePlane:
+                    SetMode(m_CurrentMode.mu_UpdatePlane());
                     break;
-                case Mode.FunctionsId.removeLastPlane:
-                    setMode(m_CurrentMode.mu_removeLastPlane());
+                case Mode.FunctionsId.RemoveLastPlane:
+                    SetMode(m_CurrentMode.mu_RemoveLastPlane());
                     break;
-                case Mode.FunctionsId.setDisplayedMesh:
-                    setMode(m_CurrentMode.mu_setDisplayedMesh());
+                case Mode.FunctionsId.SetDisplayedMesh:
+                    SetMode(m_CurrentMode.mu_SetDisplayedMesh());
                     break;
-                case Mode.FunctionsId.setTimelines:
-                    setMode(m_CurrentMode.mu_setTimelines());
+                case Mode.FunctionsId.SetTimelines:
+                    SetMode(m_CurrentMode.mu_SetTimelines());
                     break;
-                case Mode.FunctionsId.enableTriErasingMode:
-                    setMode(m_CurrentMode.mu_enableTriErasingMode());
+                case Mode.FunctionsId.AnableTriangleErasingMode:
+                    SetMode(m_CurrentMode.mu_EnableTriangleErasingMode());
                     break;
-                case Mode.FunctionsId.disableTriErasingMode:
-                    setMode(m_CurrentMode.mu_disableTriErasingMode());
+                case Mode.FunctionsId.DisableTriangleErasingMode:
+                    SetMode(m_CurrentMode.mu_DisableTriangleErasingMode());
                     break;
-                case Mode.FunctionsId.updateMiddle:
-                    setMode(m_CurrentMode.mu_updateMiddle());
+                case Mode.FunctionsId.UpdateMiddle:
+                    SetMode(m_CurrentMode.mu_UpdateMiddle());
                     break;
-                case Mode.FunctionsId.updateMaskPlot:
-                    setMode(m_CurrentMode.mu_updateMaskPlot());
+                case Mode.FunctionsId.UpdateMaskPlot:
+                    SetMode(m_CurrentMode.mu_UpdateMaskPlot());
                     break;
-                case Mode.FunctionsId.add_FMRI_column:
-                    setMode(m_CurrentMode.mu_addIRMFColumn());
+                case Mode.FunctionsId.AddFMRIColumn:
+                    SetMode(m_CurrentMode.mu_AddFMRIColumn());
                     break;
-                case Mode.FunctionsId.removeLastIRMFColumn:
-                    setMode(m_CurrentMode.mu_removeLastIRMFColumn());
+                case Mode.FunctionsId.RemoveLastFMRIColumn:
+                    SetMode(m_CurrentMode.mu_RemoveLastFMRIColumn());
                     break;
-                case Mode.FunctionsId.resetScene:
-                    setMode(m_CurrentMode.mu_resetScene());
+                case Mode.FunctionsId.ResetScene:
+                    SetMode(m_CurrentMode.mu_ResetScene());
                     break;
 
             }
 
-            m_CurrentMode.updateMode();
+            m_CurrentMode.UpdateMode();
         }
         #endregion
     }

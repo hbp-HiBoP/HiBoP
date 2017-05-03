@@ -6,7 +6,6 @@ namespace HBP.Module3D
     {
         #region Properties
         public Cam.TrackBallCamera Camera { get; set; }
-        public GameObject CameraPrefab;
         #endregion
 
         #region Private Methods

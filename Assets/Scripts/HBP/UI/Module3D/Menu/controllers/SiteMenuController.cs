@@ -152,7 +152,7 @@ namespace HBP.UI.Module3D
             // toggle update info
             contentPanelT.Find("selected site buttons").Find("update infos toggle").GetComponent<Toggle>().onValueChanged.AddListener((value) =>
             {
-                ((Column3DViewIEEG)(m_scene.Column3DViewManager.SelectedColumn)).sendInfos = value;
+                ((Column3DViewIEEG)(m_scene.Column3DViewManager.SelectedColumn)).SendInformation = value;
             });
 
             // compare site
@@ -304,9 +304,9 @@ namespace HBP.UI.Module3D
 
             // update selected patient
             bool patientComplete = true;
-            if (m_scene.Column3DViewManager.idSelectedPatient != -1)
+            if (m_scene.Column3DViewManager.SelectedPatientID != -1)
             {
-                m_idPatientToLoad = m_scene.Column3DViewManager.idSelectedPatient;
+                m_idPatientToLoad = m_scene.Column3DViewManager.SelectedPatientID;
 
                 if(m_scene.Type == SceneType.MultiPatients)
                 {
@@ -323,7 +323,7 @@ namespace HBP.UI.Module3D
             panel.Find("CCEP parent").gameObject.SetActive(m_scene.Type == SceneType.SinglePatient && m_scene.Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.IEEG && !m_isCCEPMinimized);
             // text
             panel.Find("selected site panel").Find("Text").GetComponent<Text>().text = siteNotNull ? m_lastSiteSelected.Information.FullName : "...";
-            panel.Find("selected site panel").Find("mars atlas text").GetComponent<Text>().text = siteNotNull ? (m_lastSiteSelected.Information.MarsAtlasIndex == -1 ? "Mars atlas: not found" : GlobalGOPreloaded.MarsAtlasIndex.full_name(m_lastSiteSelected.Information.MarsAtlasIndex)) : "...";
+            panel.Find("selected site panel").Find("mars atlas text").GetComponent<Text>().text = siteNotNull ? (m_lastSiteSelected.Information.MarsAtlasIndex == -1 ? "Mars atlas: not found" : GlobalGOPreloaded.MarsAtlasIndex.FullName(m_lastSiteSelected.Information.MarsAtlasIndex)) : "...";
 
             // active buttons            
             panel.Find("MP only options parent").Find("blacklist button").GetComponent<Button>().interactable = m_scene.Type == SceneType.MultiPatients && siteNotNull;
@@ -338,7 +338,7 @@ namespace HBP.UI.Module3D
             switch(m_scene.Type)
             {
                 case SceneType.SinglePatient:
-                    bool activeCCEP = m_scene.Column3DViewManager.latencyFileAvailable && m_scene.SceneInformation.displayCcepMode;
+                    bool activeCCEP = m_scene.Column3DViewManager.LatencyFileAvailable && m_scene.SceneInformation.DisplayCCEPMode;
                     Button setSiteAsSourceButton = panel.Find("CCEP parent").Find("site source parent").Find("set site as source button").GetComponent<Button>();
                     Button undefineSourceButton = panel.Find("CCEP parent").Find("undefine source parent").Find("undefine source button").GetComponent<Button>();
                     Text dataLatencyText = panel.Find("CCEP parent").Find("latency data text").GetComponent<Text>();
@@ -359,7 +359,7 @@ namespace HBP.UI.Module3D
                                     break;
 
                                 ColorBlock cb = colLatencyButtons[ii].GetComponent<Button>().colors;
-                                if (ii == IEEGCol.currentLatencyFile)
+                                if (ii == IEEGCol.CurrentLatencyFile)
                                 {
                                     cb.normalColor = Color.green;
                                     cb.highlightedColor = Color.green;
@@ -372,9 +372,9 @@ namespace HBP.UI.Module3D
                                 colLatencyButtons[ii].GetComponent<Button>().colors = cb;
                             }
 
-                            if (IEEGCol.sourceDefined)
+                            if (IEEGCol.SourceDefined)
                             {
-                                if (IEEGCol.siteIsSource)
+                                if (IEEGCol.IsSiteASource)
                                 {
                                     dataLatencyText.text = "Site is the current \ndefined source.";
                                     setSiteAsSourceButton.interactable = false;
@@ -382,7 +382,7 @@ namespace HBP.UI.Module3D
                                 }
                                 else
                                 {
-                                    if (IEEGCol.siteLatencyData)
+                                    if (IEEGCol.SiteLatencyData)
                                     {
                                         dataLatencyText.text = "Latency data available\n for this site.";
                                         setSiteAsSourceButton.interactable &= true;
@@ -392,7 +392,7 @@ namespace HBP.UI.Module3D
                             }
                             else
                             {
-                                if (IEEGCol.siteIsSource)
+                                if (IEEGCol.IsSiteASource)
                                 {
                                     dataLatencyText.text = "Site is a source.";
                                     setSiteAsSourceButton.interactable &= true;
@@ -536,9 +536,9 @@ namespace HBP.UI.Module3D
             {
                 if (m_scene.Column3DViewManager.SelectedColumn.SelectedSite != null)
                 {
-                    if (m_scene.SceneInformation.compareSite)
+                    if (m_scene.SceneInformation.IsComparingSites)
                     {
-                        m_scene.SceneInformation.compareSite = false;
+                        m_scene.SceneInformation.IsComparingSites = false;
                         m_scene.DisplayScreenMessage("Compare : " + m_lastSiteSelected.name + " from col " + m_lastUpdatedColumn + "\n with " + m_scene.Column3DViewManager.SelectedColumn.SelectedSite.name + " from col " + idColumn, 5f, 250, 80);
                         m_scene.SendAdditionalSiteInfoRequest(m_lastSiteSelected);
                     }
@@ -550,7 +550,7 @@ namespace HBP.UI.Module3D
                             case Column3DView.ColumnType.FMRI:
                                 break;
                             case Column3DView.ColumnType.IEEG:
-                                if (((Column3DViewIEEG)col).sendInfos)
+                                if (((Column3DViewIEEG)col).SendInformation)
                                     m_scene.SendAdditionalSiteInfoRequest();
                                 break;
                             default:

@@ -176,7 +176,7 @@ namespace HBP.Module3D
                     baseDir = Application.dataPath + "/Data/";
             #endif
             MarsAtlasIndex = new DLL.MarsAtlasIndex();
-            if(!MarsAtlasIndex.load_mars_atlas_index_file(baseDir + "MarsAtlas/mars_atlas_index.csv"))
+            if(!MarsAtlasIndex.LoadMarsAtlasIndexFile(baseDir + "MarsAtlas/mars_atlas_index.csv"))
             {
                 Debug.LogError("Can't load mars atlas index.");
             }

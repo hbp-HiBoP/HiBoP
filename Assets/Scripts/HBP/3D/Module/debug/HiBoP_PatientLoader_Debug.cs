@@ -327,7 +327,7 @@ namespace HBP.Module3D
             HBP.Data.Visualisation.Limit maxLimit = new Data.Visualisation.Limit(maxValue, maxValue, "ms", posEnd);
             c1.TimeLine = new HBP.Data.Visualisation.TimeLine(minLimit, maxLimit, size, (maxValue - minValue) / size, em1, es1.ToArray());
 
-            c1.PlotMask = new bool[patientsSites.total_sites_nb()];
+            c1.PlotMask = new bool[patientsSites.TotalSitesNumber()];
             for (int ii = 0; ii < c1.PlotMask.Length; ++ii)
             {
                 c1.PlotMask[ii] = false; // mask from the main UI
@@ -407,7 +407,7 @@ namespace HBP.Module3D
 
             // count plots 
             DLL.PatientElectrodesList plotsSP = new DLL.PatientElectrodesList();
-            plotsSP.load_pts_files(ptsFilesSP, namePatient, GlobalGOPreloaded.MarsAtlasIndex);
+            plotsSP.LoadPTSFiles(ptsFilesSP, namePatient, GlobalGOPreloaded.MarsAtlasIndex);
 
             // create columns data
             List<HBP.Data.Visualisation.ColumnData> columnsDataSP = new List<HBP.Data.Visualisation.ColumnData>();
@@ -451,7 +451,7 @@ namespace HBP.Module3D
 
             // count plots
             DLL.PatientElectrodesList plotsMP = new DLL.PatientElectrodesList();
-            plotsMP.load_pts_files(ptsFilesMP, namePatients, GlobalGOPreloaded.MarsAtlasIndex);
+            plotsMP.LoadPTSFiles(ptsFilesMP, namePatients, GlobalGOPreloaded.MarsAtlasIndex);
 
             // create columns data
             List<HBP.Data.Visualisation.ColumnData> columsnDataMP = new List<HBP.Data.Visualisation.ColumnData>();

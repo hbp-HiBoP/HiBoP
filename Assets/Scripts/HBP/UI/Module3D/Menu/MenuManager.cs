@@ -64,7 +64,7 @@ namespace HBP.UI.Module3D
         /// <param name="mode"></param>
         public void update_UI_with_mode(Mode mode)
         {
-            switch (mode.m_Type)
+            switch (mode.Type)
             {
                 case SceneType.SinglePatient:
                     m_buttonsLeftMenuController.SinglePatientLeftMenuController.update_UI_with_mode(mode);

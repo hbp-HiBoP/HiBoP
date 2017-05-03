@@ -66,10 +66,10 @@ namespace HBP.Module3D
         public GameObject MultiPatientsScenePrefab;
 
         // canvas
-        public GameObject m_canvas = null;
+        public GameObject m_Canvas = null;
 
         // UI elements
-        public GameObject m_modulePanel = null;
+        public GameObject m_ModulePanel = null;
         /*
         public Transform SPPanel { get { return m_CamerasManager.SinglePatientPanel; } }
         public Transform MPPanel { get { return m_CamerasManager.MultiPatientsPanel; } }

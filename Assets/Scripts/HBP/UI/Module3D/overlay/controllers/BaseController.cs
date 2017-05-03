@@ -169,7 +169,7 @@ namespace HBP.Module3D
         /// <param name="mode"></param>
         public void SetActivity(bool activity, Mode mode)
         {
-            switch (mode.m_Type)
+            switch (mode.Type)
             {
                 case SceneType.SinglePatient:
                     m_CurrentSinglePatientActivity = activity;
