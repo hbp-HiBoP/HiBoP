@@ -452,6 +452,7 @@ namespace HBP.Module3D
         {
             View view = Instantiate(ViewPrefab, transform).GetComponent<View>();
             view.gameObject.name = "View " + m_Views.Count;
+            view.LineID = m_Views.Count;
             m_Views.Add(view);
         }
         /// <summary>

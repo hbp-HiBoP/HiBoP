@@ -10,6 +10,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.ObjectModel;
 
 // unity
 using UnityEngine;
@@ -255,6 +256,40 @@ namespace HBP.Module3D
             set
             {
                 m_Visualisation = value;
+            }
+        }
+
+        public Dictionary<Column3DView, Dictionary<View, Camera3D>> Cameras
+        {
+            get
+            {
+                Dictionary<Column3DView, Dictionary<View, Camera3D>> cameras = new Dictionary<Column3DView, Dictionary<View, Camera3D>>();
+                foreach (Column3DView column in m_Column3DViewManager.Columns)
+                {
+                    cameras.Add(column, new Dictionary<View, Camera3D>());
+                    foreach (View view in column.Views)
+                    {
+                        cameras[column].Add(view, view.Camera);
+                    }
+                }
+                return cameras;
+            }
+        }
+        public View FocusedView
+        {
+            get
+            {
+                foreach (Column3DView column in m_Column3DViewManager.Columns)
+                {
+                    foreach (View view in column.Views)
+                    {
+                        if (view.IsFocused)
+                        {
+                            return view;
+                        }
+                    }
+                }
+                return null;
             }
         }
 
@@ -642,6 +677,22 @@ namespace HBP.Module3D
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.PostUpdateGenerators);
             //##################
+        }
+        /// <summary>
+        /// Synchronize all the cameras from the same view line
+        /// </summary>
+        private void SynchronizeViewsToFocusedView()
+        {
+            foreach (Column3DView column in m_Column3DViewManager.Columns)
+            {
+                foreach(View view in column.Views)
+                {
+                    if (view.LineID == FocusedView.LineID)
+                    {
+                        view.SynchronizeCamera(FocusedView);
+                    }
+                }
+            }
         }
         /// <summary>
         /// Init gameobjects of the scene
@@ -1961,6 +2012,8 @@ namespace HBP.Module3D
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
             ClickSite.Invoke(-1); // update menu
         }
+
+
         #endregion
 
         #region Abstract Methods
