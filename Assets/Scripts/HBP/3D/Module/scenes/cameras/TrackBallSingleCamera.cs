@@ -99,6 +99,7 @@ namespace HBP.Module3D.Cam
                     MoveForward(m_ZoomSpeed);
             }
         }
+        
         public void LateUpdate()
         {
             // if mouse not in the screen, abort

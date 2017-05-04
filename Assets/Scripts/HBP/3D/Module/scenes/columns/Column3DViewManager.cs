@@ -21,8 +21,91 @@ namespace HBP.Module3D
         // mani (debug)
         public Color[] ColorsSites = null;
 
-        // columns
         public int SelectedPatientID = 0; /**< id of the selected patient for Multi patient scene */
+        public Dictionary<Column3DView, List<View>> Views
+        {
+            get
+            {
+                Dictionary<Column3DView, List<View>> views = new Dictionary<Column3DView, List<View>>();
+                foreach (Column3DView column in Columns)
+                {
+                    views.Add(column, new List<View>());
+                    foreach (View view in column.Views)
+                    {
+                        views[column].Add(view);
+                    }
+                }
+                return views;
+            }
+        }
+        public bool IsFocused
+        {
+            get
+            {
+                foreach (Column3DView column in Columns)
+                {
+                    foreach (View view in column.Views)
+                    {
+                        if (view.IsFocused)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+        public Column3DView FocusedColumn
+        {
+            get
+            {
+                foreach (Column3DView column in Columns)
+                {
+                    foreach (View view in column.Views)
+                    {
+                        if (view.IsFocused)
+                        {
+                            return column;
+                        }
+                    }
+                }
+                return null;
+            }
+        }
+        public View FocusedView
+        {
+            get
+            {
+                foreach (Column3DView column in Columns)
+                {
+                    foreach (View view in column.Views)
+                    {
+                        if (view.IsFocused)
+                        {
+                            return view;
+                        }
+                    }
+                }
+                return null;
+            }
+        }
+        public View ClickedView
+        {
+            get
+            {
+                foreach (Column3DView column in Columns)
+                {
+                    foreach (View view in column.Views)
+                    {
+                        if (view.IsClicked)
+                        {
+                            return view;
+                        }
+                    }
+                }
+                return null;
+            }
+        }
 
         int m_SelectedColumnID = 0; /**< id of the selected column */
         public int SelectedColumnID 
@@ -130,10 +213,14 @@ namespace HBP.Module3D
         #endregion
 
         #region Private Methods
-        public void Awake()
+        private void Awake()
         {
             Initialize(3);
             UpdateColumnsNumber(1, 0, 3);
+        }
+        private void LateUpdate()
+        {
+            SynchronizeViewsToFocusedView();
         }
         /// <summary>
         /// 
@@ -177,6 +264,25 @@ namespace HBP.Module3D
                 int columnID = m_Columns.IndexOf(column);
                 Destroy(m_Columns[columnID]);
                 m_Columns.RemoveAt(columnID);
+            }
+        }
+        /// <summary>
+        /// Synchronize all the cameras from the same view line
+        /// </summary>
+        private void SynchronizeViewsToFocusedView()
+        {
+            if (ClickedView != null)
+            {
+                foreach (Column3DView column in Columns)
+                {
+                    foreach (View view in column.Views)
+                    {
+                        if (view.LineID == ClickedView.LineID)
+                        {
+                            view.SynchronizeCamera(FocusedView);
+                        }
+                    }
+                }
             }
         }
         #endregion

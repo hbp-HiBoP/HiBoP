@@ -105,6 +105,7 @@ namespace HBP.Module3D.Cam
                 }
             }
         }
+        
         public void LateUpdate()
         {
             // if mouse not in the screen, abort

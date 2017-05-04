@@ -610,18 +610,6 @@ namespace HBP.Module3D
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
         }
         /// <summary>
-        /// Reset the rendering settings for this scene, called by each MP camera before rendering
-        /// </summary>
-        /// <param name="cameraRotation"></param>
-        public override void ResetRenderingSettings(Vector3 cameraRotation)
-        {
-            RenderSettings.ambientMode = AmbiantMode;
-            RenderSettings.ambientIntensity = AmbientIntensity;
-            RenderSettings.skybox = null;
-            RenderSettings.ambientLight = AmbiantLight;
-            m_DisplayedObjects.SharedDirectionalLight.GetComponent<Transform>().eulerAngles = cameraRotation;
-        }
-        /// <summary>
         /// Manage the clicks event in the scene
         /// </summary>
         /// <param name="ray"></param>

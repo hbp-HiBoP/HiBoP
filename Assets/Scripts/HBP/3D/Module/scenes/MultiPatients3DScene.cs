@@ -565,18 +565,6 @@ namespace HBP.Module3D
             */
         }
         /// <summary>
-        /// Reset the rendering settings for this scene, called by each MP camera before rendering
-        /// </summary>
-        /// <param name="cameraRotation"></param>
-        public override void ResetRenderingSettings(Vector3 cameraRotation)
-        {
-            RenderSettings.ambientMode = AmbiantMode;
-            RenderSettings.ambientIntensity = AmbientIntensity;
-            RenderSettings.skybox = null;
-            RenderSettings.ambientLight = AmbiantLight;
-            m_DisplayedObjects.SharedDirectionalLight.GetComponent<Transform>().eulerAngles = cameraRotation;
-        }
-        /// <summary>
         /// Mouse scroll events managements, call Base3DScene parent function
         /// </summary>
         /// <param name="scrollDelta"></param>

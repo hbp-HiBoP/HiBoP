@@ -259,37 +259,11 @@ namespace HBP.Module3D
             }
         }
 
-        public Dictionary<Column3DView, Dictionary<View, Camera3D>> Cameras
+        public bool IsSelected
         {
             get
             {
-                Dictionary<Column3DView, Dictionary<View, Camera3D>> cameras = new Dictionary<Column3DView, Dictionary<View, Camera3D>>();
-                foreach (Column3DView column in m_Column3DViewManager.Columns)
-                {
-                    cameras.Add(column, new Dictionary<View, Camera3D>());
-                    foreach (View view in column.Views)
-                    {
-                        cameras[column].Add(view, view.Camera);
-                    }
-                }
-                return cameras;
-            }
-        }
-        public View FocusedView
-        {
-            get
-            {
-                foreach (Column3DView column in m_Column3DViewManager.Columns)
-                {
-                    foreach (View view in column.Views)
-                    {
-                        if (view.IsFocused)
-                        {
-                            return view;
-                        }
-                    }
-                }
-                return null;
+                return m_Column3DViewManager.IsFocused;
             }
         }
 
@@ -308,6 +282,13 @@ namespace HBP.Module3D
         }
 
         protected DisplayedObjects3DView m_DisplayedObjects = null; /**< displayable objects of the scene */
+        public DisplayedObjects3DView DisplayedObjects
+        {
+            get
+            {
+                return m_DisplayedObjects;
+            }
+        }
         protected MNIObjects m_MNIObjects = null;
 
         protected Column3DViewManager m_Column3DViewManager = null; /**< column data manager */
@@ -677,22 +658,6 @@ namespace HBP.Module3D
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.PostUpdateGenerators);
             //##################
-        }
-        /// <summary>
-        /// Synchronize all the cameras from the same view line
-        /// </summary>
-        private void SynchronizeViewsToFocusedView()
-        {
-            foreach (Column3DView column in m_Column3DViewManager.Columns)
-            {
-                foreach(View view in column.Views)
-                {
-                    if (view.LineID == FocusedView.LineID)
-                    {
-                        view.SynchronizeCamera(FocusedView);
-                    }
-                }
-            }
         }
         /// <summary>
         /// Init gameobjects of the scene
@@ -1284,14 +1249,14 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="indexColumn"></param>
         /// <returns></returns>
-        public bool UpdateColumnRendering(int indexColumn)
+        public bool UpdateFocusedColumnRendering()
         {
             if (!SceneInformation.IsGeometryUpToDate)
                 return false;
         
             UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender");
 
-            Column3DView currCol = m_Column3DViewManager.Columns[indexColumn];
+            Column3DView currCol = m_Column3DViewManager.FocusedColumn;
             // TODO : un mesh pour chaque column
 
             // update cuts textures
@@ -2043,11 +2008,6 @@ namespace HBP.Module3D
         /// <param name="mousePosition"></param>
         /// <param name="idColumn"></param>
         public abstract void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn);
-        /// <summary>
-        /// Reset the rendering settings for this scene, called by each camera before rendering
-        /// </summary>
-        /// <param name="cameraRotation"></param>
-        public abstract void ResetRenderingSettings(Vector3 cameraRotation);
         #endregion
     }
 

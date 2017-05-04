@@ -257,7 +257,7 @@ namespace HBP.Module3D.Cam
         }
         protected void OnPreCull()
         {
-            m_AssociatedScene.ResetRenderingSettings(GetComponent<Transform>().eulerAngles);
+            //m_AssociatedScene.ResetRenderingSettings(GetComponent<Transform>().eulerAngles);
         }
         protected void OnPreRender()
         {
@@ -266,7 +266,7 @@ namespace HBP.Module3D.Cam
             if (m_Line == 0)
             {
                 if(!m_IsMinimized)
-                    m_AssociatedScene.UpdateColumnRendering(m_Column);
+                    m_AssociatedScene.UpdateFocusedColumnRendering();
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
