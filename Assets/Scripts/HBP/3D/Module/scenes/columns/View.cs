@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityStandardAssets.ImageEffects;
 
 namespace HBP.Module3D
 {
@@ -8,9 +9,9 @@ namespace HBP.Module3D
         /// <summary>
         /// Camera associated to the view
         /// </summary>
-        public Camera3D Camera { get; set; }
+        private Camera3D m_Camera;
 
-        private bool m_IsFocused;
+        private bool m_IsFocused = false;
         /// <summary>
         /// True if this view is the last view in which the user clicked
         /// </summary>
@@ -22,7 +23,7 @@ namespace HBP.Module3D
             }
         }
 
-        private bool m_IsClicked;
+        private bool m_IsClicked = false;
         /// <summary>
         /// True if this view is the last object in which the user clicked
         /// </summary>
@@ -34,7 +35,7 @@ namespace HBP.Module3D
             }
         }
 
-        private bool m_IsMinimized;
+        private bool m_IsMinimized = false;
         /// <summary>
         /// True if the view is minimized
         /// </summary>
@@ -88,11 +89,26 @@ namespace HBP.Module3D
         {
             get
             {
-                return Camera.AutomaticRotation;
+                return m_Camera.AutomaticRotation;
             }
             set
             {
-                Camera.AutomaticRotation = value;
+                m_Camera.AutomaticRotation = value;
+            }
+        }
+
+        /// <summary>
+        /// Set the edge mode
+        /// </summary>
+        public bool EdgesMode
+        {
+            get
+            {
+                return m_Camera.GetComponent<EdgeDetection>().enabled;
+            }
+            set
+            {
+                m_Camera.GetComponent<EdgeDetection>().enabled = value;
             }
         }
 
@@ -109,7 +125,7 @@ namespace HBP.Module3D
         #region Private Methods
         private void Awake()
         {
-            Camera = transform.GetComponentInChildren<Camera3D>();
+            m_Camera = transform.GetComponentInChildren<Camera3D>();
         }
         private void Start()
         {
@@ -120,16 +136,16 @@ namespace HBP.Module3D
 
             if (!m_IsMinimized)
             {
-                Camera.CullingMask = m_RegularCullingMask;
+                m_Camera.CullingMask = m_RegularCullingMask;
             }
             else
             {
-                Camera.CullingMask = m_MinimizedCullingMask;
+                m_Camera.CullingMask = m_MinimizedCullingMask;
             }
         }
         private void Update()
         {
-            Camera.GetComponent<Camera>().backgroundColor = IsClicked ? m_ClickedColor : (IsFocused ? m_FocusedColor : m_RegularColor);
+            m_Camera.GetComponent<Camera>().backgroundColor = IsClicked ? m_ClickedColor : (IsFocused ? m_FocusedColor : m_RegularColor);
         }
         #endregion
 
@@ -143,11 +159,11 @@ namespace HBP.Module3D
             m_IsMinimized = minimized;
             if (m_IsMinimized)
             {
-                Camera.CullingMask = m_RegularCullingMask;
+                m_Camera.CullingMask = m_RegularCullingMask;
             }
             else
             {
-                Camera.CullingMask = m_MinimizedCullingMask;
+                m_Camera.CullingMask = m_MinimizedCullingMask;
             }
         }
         /// <summary>
@@ -156,9 +172,9 @@ namespace HBP.Module3D
         /// <param name="reference"></param>
         public void SynchronizeCamera(View reference)
         {
-            Camera.transform.position = reference.Camera.transform.position;
-            Camera.transform.rotation = reference.Camera.transform.rotation;
-            Camera.Target = reference.Camera.Target;
+            m_Camera.transform.position = reference.m_Camera.transform.position;
+            m_Camera.transform.rotation = reference.m_Camera.transform.rotation;
+            m_Camera.Target = reference.m_Camera.Target;
         }
         #endregion
     }

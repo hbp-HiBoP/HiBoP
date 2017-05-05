@@ -23,19 +23,6 @@ namespace HBP.Module3D
     public class Camera3D : MonoBehaviour
     {
         #region Properties
-        private CameraType m_Type;
-        public CameraType Type
-        {
-            get
-            {
-                return m_Type;
-            }
-            set
-            {
-                m_Type = value;
-            }
-        }
-
         private Base3DScene m_AssociatedScene;
         private View m_AssociatedView;
 
