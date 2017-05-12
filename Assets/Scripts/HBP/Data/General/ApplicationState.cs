@@ -31,5 +31,18 @@ public static class ApplicationState
 
     public static CoroutineManager CoroutineManager;
 
+    /// <summary>
+    /// 3D Module manager
+    /// </summary>
     public static HBP.Module3D.HBP3DModule Module3D;
+
+    /// <summary>
+    /// 3D Scenes Manager
+    /// </summary>
+    public static HBP.Module3D.ScenesManager ScenesManager;
+
+    /// <summary>
+    /// 3D DLL Debug Manager
+    /// </summary>
+    public static HBP.Module3D.DLL.DLLDebugManager DLLDebugManager;
 }

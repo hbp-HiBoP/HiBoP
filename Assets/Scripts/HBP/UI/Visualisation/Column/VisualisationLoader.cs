@@ -31,7 +31,7 @@ namespace HBP.UI.Visualization
             // TODO
             ApplicationState.Module3D.OnLoadSinglePatientSceneFromMultiPatientsScene.AddListener((i) => LoadSPSceneFromMP(i));
         }
-        void LoadSPSceneFromMP(Data.Visualization.MultiPatientsVisualization visualization ,Data.Patient patient)
+        void LoadSPSceneFromMP(Data.Visualization.MultiPatientsVisualization visualization, Data.Patient patient)
         {
             // TODO
             Data.Visualization.SinglePatientVisualization singlePatientVisualization = visualization.GenerateSinglePatientVisualization(patient);

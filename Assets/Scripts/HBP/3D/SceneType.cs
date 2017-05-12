@@ -1,4 +1,17 @@
-﻿public enum SceneType { SinglePatient, MultiPatients };
+﻿using UnityEngine;
+namespace HBP.Module3D
+{
+    public class GlobalPaths
+    {
+        #if UNITY_EDITOR
+        static public string Data = Application.dataPath + "/Data/";
+        #else
+        static public string Data = Application.dataPath + "/../Data/";
+        #endif
+    }
+}
+
+public enum SceneType { SinglePatient, MultiPatients };
 public enum CameraType { EEG, fMRI };
 public enum ColorType // For now, integers matter because of the link with the dll. FIXME or don't
 {

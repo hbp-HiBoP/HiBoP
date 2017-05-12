@@ -77,6 +77,9 @@ namespace HBP.Module3D
         #region Private Methods
         void Awake()
         {
+            // ApplicationState
+            ApplicationState.Module3D = this;
+
             // Scene Manager
             m_ScenesManager = transform.GetComponentInChildren<ScenesManager>();
             ScenesManager.OnAddScene.AddListener((scene) =>
@@ -94,7 +97,57 @@ namespace HBP.Module3D
         }
         void OnDestroy()
         {
-            StaticComponents.DLLDebugManager.clean();
+            ApplicationState.DLLDebugManager.clean();
+        }
+        /// <summary>
+        /// Load a single patient scene, load the UI and the data.
+        /// </summary>
+        /// <param name="visuDataSP"></param>
+        /// <returns>false if a loading error occurs, else true </returns>
+        private bool SetVisualization(Data.Visualization.SinglePatientVisualization visualization)
+        {
+            bool result = SetSinglePatientSceneData(visualization);
+
+            // Add listeners to last added scene
+            SinglePatient3DScene lastAddedScene = ScenesManager.Scenes.Last() as SinglePatient3DScene;
+            lastAddedScene.SiteInfoRequest.AddListener((siteRequest) =>
+            {
+                OnRequestSiteInformation.Invoke(siteRequest);
+            });
+            return result;
+        }
+        /// <summary>
+        /// Load a multi patients scene, load the UI and the data.
+        /// </summary>
+        /// <param name="visuDataMP"></param>
+        /// <returns>false if a loading error occurs, else true </returns>
+        private bool SetVisualization(Data.Visualization.MultiPatientsVisualization visualization)
+        {
+            bool result = false;
+            if (MNIObjects.LoadingMutex.WaitOne(10000))
+            {
+                result = SetMultiPatientsSceneData(visualization);
+            }
+
+            if (!result)
+            {
+                UnityEngine.Debug.LogError("MNI loading data not finished.");
+            }
+            else
+            {
+                // Add listener to last added scene
+                MultiPatients3DScene lastAddedScene = ScenesManager.Scenes.Last() as MultiPatients3DScene;
+                lastAddedScene.SiteInfoRequest.AddListener((siteRequest) =>
+                {
+                    OnRequestSiteInformation.Invoke(siteRequest);
+                });
+                lastAddedScene.LoadSPSceneFromMP.AddListener((idPatient) =>
+                {
+                    OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(idPatient);
+                });
+            }
+
+            return result;
         }
         /// <summary>
         /// Load a new single patient scene
@@ -127,53 +180,21 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Load a single patient scene, load the UI and the data.
+        /// Load a visualization
         /// </summary>
-        /// <param name="visuDataSP"></param>
-        /// <returns>false if a loading error occurs, else true </returns>
-        public bool AddVisualization(Data.Visualization.SinglePatientVisualization visualization)
-        {
-            bool result = SetSinglePatientSceneData(visualization);
-
-            // Add listeners to last added scene
-            SinglePatient3DScene lastAddedScene = ScenesManager.Scenes.Last() as SinglePatient3DScene;
-            lastAddedScene.SiteInfoRequest.AddListener((siteRequest) =>
-            {
-                OnRequestSiteInformation.Invoke(siteRequest);
-            });
-            return result;
-        }
-        /// <summary>
-        /// Load a multi patients scene, load the UI and the data.
-        /// </summary>
-        /// <param name="visuDataMP"></param>
-        /// <returns>false if a loading error occurs, else true </returns>
-        public bool AddVisualization(Data.Visualization.MultiPatientsVisualization visualization)
+        /// <param name="visualization"></param>
+        /// <returns></returns>
+        public bool AddVisualization(Data.Visualization.Visualization visualization)
         {
             bool result = false;
-            if (MNIObjects.LoadingMutex.WaitOne(10000))
+            if (visualization is Data.Visualization.SinglePatientVisualization)
             {
-                result = SetMultiPatientsSceneData(visualization);
+                result = SetVisualization(visualization as Data.Visualization.SinglePatientVisualization);
             }
-
-            if (!result)
+            else if (visualization is Data.Visualization.MultiPatientsVisualization)
             {
-                UnityEngine.Debug.LogError("MNI loading data not finished.");
+                result = SetVisualization(visualization as Data.Visualization.MultiPatientsVisualization);
             }
-            else
-            {
-                // Add listener to last added scene
-                MultiPatients3DScene lastAddedScene = ScenesManager.Scenes.Last() as MultiPatients3DScene;
-                lastAddedScene.SiteInfoRequest.AddListener((siteRequest) =>
-                {
-                    OnRequestSiteInformation.Invoke(siteRequest);
-                });
-                lastAddedScene.LoadSPSceneFromMP.AddListener((idPatient) =>
-                {
-                    OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(idPatient);
-                });
-            }
-
             return result;
         }
         /// <summary>

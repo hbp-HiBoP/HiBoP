@@ -39,7 +39,7 @@ namespace HBP.Module3D
                 }
 
                 reset__MRIGeometryCutGenerator(_handle, volume.getHandle(), planeF);
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
             }
             /// <summary>
             /// Update the UV of the input mesh
@@ -48,7 +48,7 @@ namespace HBP.Module3D
             public void UpdateCutMeshUV(DLL.Surface mesh)
             {
                 update_cut_mesh_UV__MRIGeometryCutGenerator(_handle, mesh.getHandle());
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
             }
             #endregion
 
@@ -115,7 +115,7 @@ namespace HBP.Module3D
             public void FillTextureWithVolume(DLL.Volume volume, DLL.Texture colorScheme, float calMin, float calMax)
             {
                 fill_texture_with_volume__MRITextureCutGenerator(_handle, volume.getHandle(), colorScheme.getHandle(), calMin, calMax);
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
             }
             /// <summary>
             /// Will update the previously MRI colored texture with a fMRI
@@ -126,7 +126,7 @@ namespace HBP.Module3D
             {
                 bool noError = false;
                 noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), FMRIColumn.DLLCutFMRIColorScheme.getHandle(), FMRIColumn.CalMin, FMRIColumn.CalMax, FMRIColumn.Alpha) ==1;
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
                     Debug.LogError("fill_texture_with_IRMF__MRITextureCutGenerator failed ! (check DLL console debug output)");
@@ -138,7 +138,7 @@ namespace HBP.Module3D
             public void InitializeOctree(RawSiteList sites)
             {
                 init_octree__MRITextureCutGenerator(_handle, sites.getHandle());
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
             }
             /// <summary>
             /// Will compute all the distances between the cut points and the sites positions
@@ -149,7 +149,7 @@ namespace HBP.Module3D
             {
                 bool noError = false;
                 noError = compute_distances__MRITextureCutGenerator(_handle, maxDistance, multiCPU?1:0)==1;
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
                     Debug.LogError("compute_distances__MRITextureCutGenerator failed ! (check DLL console debug output)");
@@ -167,7 +167,7 @@ namespace HBP.Module3D
                 bool noError = false;
                 noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.Dimensions, IEEGColumn.MaxDistanceElec,
                     multiCPU?1:0, addValues?1:0, ratioDistances?1:0, IEEGColumn.Middle, IEEGColumn.SpanMin, IEEGColumn.SpanMax)== 1;
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
                     Debug.LogError("compute_influences__MRITextureCutGenerator failed ! (check DLL console debug output)");
@@ -190,7 +190,7 @@ namespace HBP.Module3D
                 notInBrainColor[2] = notInBrainCol.r;
                 noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, IEEGColumn.CurrentTimeLineID, colorScheme.getHandle(), 
                 IEEGColumn.AlphaMin, IEEGColumn.AlphaMax, notInBrainColor)==1;
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
                     Debug.LogError("fill_texture_with_SSEG__MRITextureCutGenerator failed ! (check DLL console debug output)");

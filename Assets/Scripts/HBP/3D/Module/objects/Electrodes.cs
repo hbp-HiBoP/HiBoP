@@ -312,7 +312,7 @@ namespace HBP.Module3D
             public bool SaveToObj(string pathObjNameFile)
             {
                 bool success = saveToObj_RawPlotList(_handle, pathObjNameFile) == 1;
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
                 return success;
             }
             /// <summary>
@@ -460,7 +460,7 @@ namespace HBP.Module3D
 
                 // load in the DLL
                 bool fileLoaded = load_Pts_files_PatientElectrodesList(_handle, ptsFilesPathStr, namesStr, marsAtlasIndex.getHandle()) == 1;
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
 
                 if (!fileLoaded)
                 {

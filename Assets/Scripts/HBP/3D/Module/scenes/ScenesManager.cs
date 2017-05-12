@@ -81,11 +81,14 @@ namespace HBP.Module3D
         /// <summary>
         /// Prefab corresponding to a multi patient scene
         /// </summary>
-        public GameObject MultiPatientsScenePrefab;        
+        public GameObject MultiPatientsScenePrefab;
         #endregion
 
         #region Private Methods
-
+        private void Awake()
+        {
+            ApplicationState.ScenesManager = this;
+        }
         #endregion
 
         #region Public Methods

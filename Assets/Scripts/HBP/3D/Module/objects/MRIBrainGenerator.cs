@@ -56,7 +56,7 @@ namespace HBP.Module3D
             public void Reset(DLL.Surface surface, Volume volume)
             {
                 reset_BrainSurfaceTextureGenerator(_handle, surface.getHandle(), volume.getHandle());
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
             }
             /// <summary>
             /// 
@@ -65,7 +65,7 @@ namespace HBP.Module3D
             public void InitializeOctree(RawSiteList rawPlotList)
             {
                 initOctree_BrainSurfaceTextureGenerator(_handle, rawPlotList.getHandle());
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
             }
             /// <summary>
             /// 
@@ -77,7 +77,7 @@ namespace HBP.Module3D
             {
                 bool noError = false;
                 noError = computeDistances_BrainSurfaceTextureGenerator( _handle, maxDistance, multiCPU ? 1 : 0) == 1;
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
                     Debug.LogError("computeDistances_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");
@@ -131,7 +131,7 @@ namespace HBP.Module3D
                 bool noError = false;
                 noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.Dimensions, IEEGColumn.MaxDistanceElec, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances ? 1 : 0,
                     IEEGColumn.Middle, IEEGColumn.SpanMin, IEEGColumn.SpanMax) == 1;
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
 
                 if(!noError)
                     Debug.LogError("computeInfluences_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");
@@ -189,7 +189,7 @@ namespace HBP.Module3D
                 }
                 updateUVAlpha_BrainSurfaceTextureGenerator(_handle, m_UVAlphaHandle.AddrOfPinnedObject());
 
-                StaticComponents.DLLDebugManager.check_error();
+                ApplicationState.DLLDebugManager.check_error();
                 if (!noError)
                     Debug.LogError("computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");
 

@@ -28,7 +28,7 @@ namespace HBP.Module3D
 
             public static void Initialize()
             {
-                StaticComponents.ScenesManager.OnAddScene.AddListener((scene) =>
+                ApplicationState.ScenesManager.OnAddScene.AddListener((scene) =>
                 {
                     Material brainMaterial, cutMaterial;
                     switch (scene.Type) // Distinction is useful in the shader in order to show mars atlases in sp
@@ -49,7 +49,7 @@ namespace HBP.Module3D
                             break;
                     }
                 });
-                StaticComponents.ScenesManager.OnRemoveScene.AddListener((scene) =>
+                ApplicationState.ScenesManager.OnRemoveScene.AddListener((scene) =>
                 {
                     Destroy(BrainMaterials[scene]);
                     BrainMaterials.Remove(scene);
