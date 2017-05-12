@@ -28,4 +28,6 @@ public static class ApplicationState
     /// Theme of the application.
     /// </summary>
     public static HBP.UI.Theme.Theme Theme;
+
+    public static CoroutineManager CoroutineManager;
 }

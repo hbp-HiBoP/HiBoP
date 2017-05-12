@@ -69,7 +69,7 @@ namespace HBP.Module3D
         // individual loop
         private List<bool> m_individualIsLooping = new List<bool>();
 
-        private List<HBP.Data.Visualisation.TimeLine> m_timelinesList; /**< timelines list */
+        private List<HBP.Data.Visualization.Timeline> m_timelinesList; /**< timelines list */
         private List<List<int>> m_secondaryEventsPositions = new List<List<int>>(); /**< positions of the secondary events */
         private List<List<GameObject>> m_secondaryEventsText = new List<List<GameObject>>(); /**< textres of the secondary events */
 
@@ -312,7 +312,7 @@ namespace HBP.Module3D
         /// Update the controller with new timelines
         /// </summary>
         /// <param name="timelinesList"></param>
-        public void updateTimelinesUI(List<HBP.Data.Visualisation.TimeLine> timelinesList)
+        public void updateTimelinesUI(List<HBP.Data.Visualization.Timeline> timelinesList)
         {
             if (timelinesList.Count != m_timelineElementsList.Count)
             {
@@ -348,7 +348,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_timelineElementsList.Count; ++ii)
             {
                 timelinePanel = m_timelinePanelList[ii];
-                HBP.Data.Visualisation.TimeLine timeLine = timelinesList[ii];
+                HBP.Data.Visualization.Timeline timeLine = timelinesList[ii];
 
                 Slider slider = timelinePanel.Find("slider panel").Find("value_slider").GetComponent<Slider>();
                 slider.wholeNumbers = true;
@@ -390,7 +390,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_timelineElementsList.Count; ++ii)
             {
                 timelinePanel = m_timelinePanelList[ii];
-                HBP.Data.Visualisation.TimeLine timeLine = timelinesList[ii];
+                HBP.Data.Visualization.Timeline timeLine = timelinesList[ii];
 
                 // define texts
                 string startS = "", endS = "";

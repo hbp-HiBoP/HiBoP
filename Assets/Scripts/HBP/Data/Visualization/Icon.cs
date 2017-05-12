@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.Data.Visualisation
+namespace HBP.Data.Visualization
 {
     /**
     * \class Icon
@@ -63,7 +63,7 @@ namespace HBP.Data.Visualisation
         /// <param name="icon">Icon.</param>
         /// <param name="frequency">Frequency of the data.</param>
         /// <param name="timeLine">Time line of the bloc.</param>
-        public Icon(Experience.Protocol.Icon icon, float frequency,TimeLine timeLine)
+        public Icon(Experience.Protocol.Icon icon, float frequency,Timeline timeLine)
         {
             Label = icon.Name;
             IllustrationPath = icon.IllustrationPath;
@@ -74,7 +74,7 @@ namespace HBP.Data.Visualisation
         /// <summary>
         /// Create a new icon instance with default value;
         /// </summary>
-        public Icon() : this(new Experience.Protocol.Icon(),0.0f,new TimeLine())
+        public Icon() : this(new Experience.Protocol.Icon(),0.0f,new Timeline())
         {
         }
     }

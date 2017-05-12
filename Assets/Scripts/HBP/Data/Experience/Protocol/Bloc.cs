@@ -12,7 +12,7 @@ namespace HBP.Data.Experience.Protocol
     * \date 05 janvier 2017
     * \brief Bloc in a Protocol.
     * 
-    * \details Class which define a bloc in a visualisation protocol which contains : 
+    * \details Class which define a bloc in a visualization protocol which contains : 
     *     - Display informations.
     *     - Main event.
     *     - Secondary events.

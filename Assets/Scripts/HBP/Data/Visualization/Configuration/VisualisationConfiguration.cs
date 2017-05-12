@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Runtime.Serialization;
 
-namespace HBP.Data.Visualisation
+namespace HBP.Data.Visualization
 {
     [DataContract]
-    public class VisualisationConfiguration
+    public class VisualizationConfiguration
     {
+        [DataMember]
+        public Color Color { get; set; }
     }
 }

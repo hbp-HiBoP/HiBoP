@@ -1,9 +1,9 @@
-﻿using HBP.Data.Visualisation;
+﻿using HBP.Data.Visualization;
 using System.Linq;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
-    public class SingleVisualisationList : Tools.Unity.Lists.OneSelectableListWithItemActions<SinglePatientVisualisation>
+    public class SingleVisualizationList : Tools.Unity.Lists.OneSelectableListWithItemActions<SinglePatientVisualization>
     {
         #region Attributs
         bool m_sortByName = false;

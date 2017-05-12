@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
     public class PatientNameItem : Tools.Unity.Lists.ListItem<Data.Patient>
     {

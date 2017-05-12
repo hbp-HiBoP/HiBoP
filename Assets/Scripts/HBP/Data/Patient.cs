@@ -21,20 +21,34 @@ namespace HBP.Data
     *     - \a Epilepsy \a type : epilepsy type of the patient.(IGE,IPE,SGE,SPE,Unknown)
     */
     [Serializable]
-	public class Patient : ICloneable , ICopiable
+	public class Patient : ICloneable
 	{
         #region Properties
-        public const string Extension = ".patient";
+        public const string EXTENSION = ".patient";
 
-        /** Unique ID */
+        /// <summary>
+        /// Unique ID.
+        /// </summary>
         public string ID { get; set; }
-        /** Name of the patient.*/ 
+
+        /// <summary>
+        /// Patient name.
+        /// </summary>
         public string Name { get; set; }
-        /** Date of the study.*/
+
+        /// <summary>
+        /// Date of study.
+        /// </summary>
         public int Date { get; set; }
-        /** Place of the study. */
+
+        /// <summary>
+        /// Place of study.
+        /// </summary>
         public string Place { get; set; }
-        /** Brain of the patient. */
+
+        /// <summary>
+        /// Patient brain.
+        /// </summary>
         public Brain Brain { get; set; }
         #endregion
 
@@ -89,12 +103,12 @@ namespace HBP.Data
                     FileInfo implantationFile = new FileInfo(implantationDirectory.FullName + Path.DirectorySeparatorChar + directory.Name + ".pts");
                     if(implantationFile.Exists)
                     {
-                        Brain.PatientReferenceFrameImplantation = implantationFile.FullName;
+                        Brain.PatientBasedImplantation = implantationFile.FullName;
                     }
                     FileInfo MNIimplantationFile = new FileInfo(implantationDirectory.FullName + Path.DirectorySeparatorChar + directory.Name + "_MNI.pts");
                     if (MNIimplantationFile.Exists)
                     {
-                        Brain.MNIReferenceFrameImplantation = MNIimplantationFile.FullName;
+                        Brain.MNIBasedImplantation = MNIimplantationFile.FullName;
                     }
                 }
 
@@ -108,7 +122,7 @@ namespace HBP.Data
                         FileInfo niiFile = new FileInfo(preDirectory.FullName + Path.DirectorySeparatorChar + directory.Name + ".nii");
                         if(niiFile.Exists)
                         {
-                            Brain.PreOperationMRI = niiFile.FullName;
+                            Brain.PreoperativeMRI = niiFile.FullName;
                         }
                         DirectoryInfo meshDirectory = new DirectoryInfo(preDirectory.FullName + Path.DirectorySeparatorChar + "default_analysis" + Path.DirectorySeparatorChar + "segmentation" + Path.DirectorySeparatorChar + "mesh");
                         if(meshDirectory.Exists)
@@ -130,7 +144,7 @@ namespace HBP.Data
                             FileInfo transformFile = new FileInfo(registrationDirectory.FullName + Path.DirectorySeparatorChar + "RawT1-" + directory.Name + "_" + preDirectory.Name + "_TO_Scanner_Based.trm");
                             if(transformFile.Exists)
                             {
-                                Brain.PreOperationReferenceFrameToScannerReferenceFrameTransformation = transformFile.FullName;
+                                Brain.PreoperativeBasedToScannerBasedTransformation = transformFile.FullName;
                             }
                         }
                     }
@@ -141,7 +155,7 @@ namespace HBP.Data
                         FileInfo niiFile = new FileInfo(postDirectory.FullName + Path.DirectorySeparatorChar + directory.Name + ".nii");
                         if(niiFile.Exists)
                         {
-                            Brain.PostOperationMRI = niiFile.FullName;
+                            Brain.PostoperativeMRI = niiFile.FullName;
                         }
                     }
                 }

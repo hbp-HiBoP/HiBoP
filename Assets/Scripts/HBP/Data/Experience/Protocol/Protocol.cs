@@ -12,7 +12,7 @@ namespace HBP.Data.Experience.Protocol
     * \date 09 janvier 2017
     * \brief Protocol of a Experience.
     * 
-    * \details Class which define a visualisation protocol which contains : 
+    * \details Class which define a visualization protocol which contains : 
     *     - \a Unique \a ID.
     *     - \a Label.
     *     - \a Blocs.

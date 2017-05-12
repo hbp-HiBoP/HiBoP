@@ -260,32 +260,32 @@ namespace HBP.Module3D
             HBP.Data.Anatomy.Brain b1 = new HBP.Data.Anatomy.Brain();
 
             // dummy connectivity
-            b1.PlotsConnectivity = "dummyPath";
+            b1.SitesConnectivities = "dummyPath";
 
             if (pre)
-                b1.PatientReferenceFrameImplantation = paths.imp_PRE_SB_PTS;
+                b1.PatientBasedImplantation = paths.imp_PRE_SB_PTS;
             else
-                b1.PatientReferenceFrameImplantation = paths.imp_PRE_SB_PTS; // paths.imp_POST_SB_PTS;
+                b1.PatientBasedImplantation = paths.imp_PRE_SB_PTS; // paths.imp_POST_SB_PTS;
 
-            b1.MNIReferenceFrameImplantation = paths.imp_MNI_PTS;
+            b1.MNIBasedImplantation = paths.imp_MNI_PTS;
 
             if (spScene)
-                ptsFiles.Add(b1.PatientReferenceFrameImplantation);
+                ptsFiles.Add(b1.PatientBasedImplantation);
             else
-                ptsFiles.Add(b1.MNIReferenceFrameImplantation);
+                ptsFiles.Add(b1.MNIBasedImplantation);
 
             if (pre)
-                b1.PreOperationMRI = paths.IRM;
+                b1.PreoperativeMRI = paths.IRM;
             else
-                b1.PreOperationMRI = paths.IRMPost;
+                b1.PreoperativeMRI = paths.IRMPost;
 
             b1.LeftCerebralHemisphereMesh = paths.Lhemi;
             b1.RightCerebralHemisphereMesh = paths.Rhemi;
 
             if (pre)
-                b1.PreOperationReferenceFrameToScannerReferenceFrameTransformation = paths.transfo_T1Pre_to_SB;
+                b1.PreoperativeBasedToScannerBasedTransformation = paths.transfo_T1Pre_to_SB;
             else
-                b1.PreOperationReferenceFrameToScannerReferenceFrameTransformation = paths.transfo_T1Post_to_T1Pre; // !!!!
+                b1.PreoperativeBasedToScannerBasedTransformation = paths.transfo_T1Post_to_T1Pre; // !!!!
 
             string[] split = patientName.Split('_');
 
@@ -311,21 +311,21 @@ namespace HBP.Module3D
         /// <param name="posEnd"></param>
         /// <param name="plotsNb"></param>
         /// <returns></returns>
-        HBP.Data.Visualisation.ColumnData create_column_data(float minValue, float maxValue, int size, int startLimit, int endLimit, int posStart, int posEnd, DLL.PatientElectrodesList patientsSites)
+        HBP.Data.Visualization.ColumnData create_column_data(float minValue, float maxValue, int size, int startLimit, int endLimit, int posStart, int posEnd, DLL.PatientElectrodesList patientsSites)
         {
-            HBP.Data.Visualisation.ColumnData c1 = new HBP.Data.Visualisation.ColumnData();
+            HBP.Data.Visualization.ColumnData c1 = new HBP.Data.Visualization.ColumnData();
             c1.Label = "Dummy column data " + (m_columnsNb++);
 
-            HBP.Data.Visualisation.Event em1 = new HBP.Data.Visualisation.Event("mainEvent", 50);
-            List<HBP.Data.Visualisation.Event> es1 = new List<HBP.Data.Visualisation.Event>();
-            es1.Add(new HBP.Data.Visualisation.Event("secEvent1", (int)(size * 0.3f)));
-            es1.Add(new HBP.Data.Visualisation.Event("secEvent2", (int)(size * 0.4f)));
-            es1.Add(new HBP.Data.Visualisation.Event("secEvent3", (int)(size * 0.7f)));
+            HBP.Data.Visualization.Event em1 = new HBP.Data.Visualization.Event("mainEvent", 50);
+            List<HBP.Data.Visualization.Event> es1 = new List<HBP.Data.Visualization.Event>();
+            es1.Add(new HBP.Data.Visualization.Event("secEvent1", (int)(size * 0.3f)));
+            es1.Add(new HBP.Data.Visualization.Event("secEvent2", (int)(size * 0.4f)));
+            es1.Add(new HBP.Data.Visualization.Event("secEvent3", (int)(size * 0.7f)));
 
             // check min
-            HBP.Data.Visualisation.Limit minLimit = new Data.Visualisation.Limit(minValue, minValue, "ms", posStart);
-            HBP.Data.Visualisation.Limit maxLimit = new Data.Visualisation.Limit(maxValue, maxValue, "ms", posEnd);
-            c1.TimeLine = new HBP.Data.Visualisation.TimeLine(minLimit, maxLimit, size, (maxValue - minValue) / size, em1, es1.ToArray());
+            HBP.Data.Visualization.Limit minLimit = new Data.Visualization.Limit(minValue, minValue, "ms", posStart);
+            HBP.Data.Visualization.Limit maxLimit = new Data.Visualization.Limit(maxValue, maxValue, "ms", posEnd);
+            c1.TimeLine = new HBP.Data.Visualization.Timeline(minLimit, maxLimit, size, (maxValue - minValue) / size, em1, es1.ToArray());
 
             c1.PlotMask = new bool[patientsSites.total_sites_nb()];
             for (int ii = 0; ii < c1.PlotMask.Length; ++ii)
@@ -334,19 +334,19 @@ namespace HBP.Module3D
             }            
 
             string baseIConesDir = GlobalPaths.Data + "debug/dummy_icones/";
-            c1.IconicScenario = new HBP.Data.Visualisation.IconicScenario();
-            List<HBP.Data.Visualisation.Icon> ic1 = new List<HBP.Data.Visualisation.Icon>();
-            ic1.Add(new HBP.Data.Visualisation.Icon());
+            c1.IconicScenario = new HBP.Data.Visualization.IconicScenario();
+            List<HBP.Data.Visualization.Icon> ic1 = new List<HBP.Data.Visualization.Icon>();
+            ic1.Add(new HBP.Data.Visualization.Icon());
             ic1[0].StartPosition = 0;
             ic1[0].EndPosition = 6;
             ic1[0].Label = "Car";
             ic1[0].IllustrationPath = baseIConesDir + "car.png";
-            ic1.Add(new HBP.Data.Visualisation.Icon());
+            ic1.Add(new HBP.Data.Visualization.Icon());
             ic1[1].StartPosition = 7;
             ic1[1].EndPosition = 8;
             ic1[1].Label = "Computer";
             ic1[1].IllustrationPath = baseIConesDir + "computer.png";
-            ic1.Add(new HBP.Data.Visualisation.Icon());
+            ic1.Add(new HBP.Data.Visualization.Icon());
             ic1[2].StartPosition = 9;
             ic1[2].EndPosition = 11;
             ic1[2].Label = "Test label";
@@ -410,7 +410,7 @@ namespace HBP.Module3D
             plotsSP.load_pts_files(ptsFilesSP, namePatient, GlobalGOPreloaded.MarsAtlasIndex);
 
             // create columns data
-            List<HBP.Data.Visualisation.ColumnData> columnsDataSP = new List<HBP.Data.Visualisation.ColumnData>();
+            List<HBP.Data.Visualization.ColumnData> columnsDataSP = new List<HBP.Data.Visualization.ColumnData>();
 
             float min = float.MaxValue;
             float max = float.MinValue;
@@ -433,7 +433,7 @@ namespace HBP.Module3D
             }
 
             // load multi patients scene
-            m_command.LoadData(new HBP.Data.Visualisation.SinglePatientVisualisationData(patient, columnsDataSP.ToArray()));
+            m_command.LoadData(new HBP.Data.Visualization.SinglePatientVisualizationData(patient, columnsDataSP.ToArray()));
         }
 
         /// <summary>
@@ -454,7 +454,7 @@ namespace HBP.Module3D
             plotsMP.load_pts_files(ptsFilesMP, namePatients, GlobalGOPreloaded.MarsAtlasIndex);
 
             // create columns data
-            List<HBP.Data.Visualisation.ColumnData> columsnDataMP = new List<HBP.Data.Visualisation.ColumnData>();
+            List<HBP.Data.Visualization.ColumnData> columsnDataMP = new List<HBP.Data.Visualization.ColumnData>();
 
             float min = float.MaxValue;
             float max = float.MinValue;
@@ -476,7 +476,7 @@ namespace HBP.Module3D
             }
 
             // load multi patients scene
-            m_command.LoadData(new HBP.Data.Visualisation.MultiPatientsVisualisationData(patients.ToArray(), columsnDataMP.ToArray()));
+            m_command.LoadData(new HBP.Data.Visualization.MultiPatientsVisualizationData(patients.ToArray(), columsnDataMP.ToArray()));
 
         } 
     }    

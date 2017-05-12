@@ -1,6 +1,6 @@
-﻿using HBP.Data.Visualisation;
+﻿using HBP.Data.Visualization;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
     public class ColumnList : Tools.Unity.Lists.CustomList<Column>
     {

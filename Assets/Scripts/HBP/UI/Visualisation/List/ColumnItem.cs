@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Visualisation;
+using HBP.Data.Visualization;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
     public class ColumnItem : Tools.Unity.Lists.ListItem<Column>
     {

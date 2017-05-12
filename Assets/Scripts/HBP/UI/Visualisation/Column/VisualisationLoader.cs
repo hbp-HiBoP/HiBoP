@@ -6,12 +6,12 @@ using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using HBP.Module3D;
-using data = HBP.Data.Visualisation;
+using data = HBP.Data.Visualization;
 using HBP.Data.Experience.Dataset;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
-    public class VisualisationLoader : MonoBehaviour
+    public class VisualizationLoader : MonoBehaviour
     {
         #region Properties
         HiBoP_3DModule_API command;
@@ -33,9 +33,9 @@ namespace HBP.UI.Visualisation
         enum LoadingErrorEnum { None, CanNotFindFilesToRead, CanNotReadData, CanNotEpochingData, CanNotStandardizeColumns };
         #endregion
         #region Public Methods
-        public void Load(data.Visualisation visualisation)
+        public void Load(data.Visualization visualization)
         {
-            this.StartCoroutineAsync(c_Load(visualisation, visualisation.GetType() == typeof(data.MultiPatientsVisualisation)));
+            this.StartCoroutineAsync(c_Load(visualization, visualization.GetType() == typeof(data.MultiPatientsVisualization)));
         }
         #endregion
         #region Private Methods
@@ -45,7 +45,7 @@ namespace HBP.UI.Visualisation
             UnityEngine.Debug.Log(command);
             command.LoadSPSceneFromMP.AddListener((i) => LoadSPSceneFromMP(i));
         }
-        IEnumerator c_Load(data.Visualisation visualisation, bool MNI)
+        IEnumerator c_Load(data.Visualization visualization, bool MNI)
         {
             UnityEngine.Debug.Log("c_Load");
 
@@ -63,8 +63,8 @@ namespace HBP.UI.Visualisation
             // Find files to read.
             List<DataInfo> experienceDataToRead = new List<DataInfo>();
             Dictionary<int, int[]> dataByColumn = new Dictionary<int, int[]>();
-            float progressStep = FIND_FILES_TO_READ / (visualisation.Columns.Count);
-            for (int c = 0; c < visualisation.Columns.Count; c++)
+            float progressStep = FIND_FILES_TO_READ / (visualization.Columns.Count);
+            for (int c = 0; c < visualization.Columns.Count; c++)
             {
                 yield return Ninja.JumpToUnity;
                 loadingCircle.Progress = (c * progressStep);
@@ -72,7 +72,7 @@ namespace HBP.UI.Visualisation
 
                 try
                 {
-                    DataInfo[] dataInfoForThisColumn = visualisation.GetDataInfo(visualisation.Columns[c]);
+                    DataInfo[] dataInfoForThisColumn = visualization.GetDataInfo(visualization.Columns[c]);
                     List<int> dataIndexForThisColumn = new List<int>();
                     for (int d = 0; d < dataInfoForThisColumn.Length; d++)
                     {
@@ -146,9 +146,9 @@ namespace HBP.UI.Visualisation
             yield return Ninja.JumpBack;
 
             // Create ColumnData.
-            data.ColumnData[] columnsData = new data.ColumnData[visualisation.Columns.Count];
-            progressStep = EPOCH_DATA / (visualisation.Columns.Count);
-            for (int c = 0; c < visualisation.Columns.Count; c++)
+            data.ColumnData[] columnsData = new data.ColumnData[visualization.Columns.Count];
+            progressStep = EPOCH_DATA / (visualization.Columns.Count);
+            for (int c = 0; c < visualization.Columns.Count; c++)
             {
                 // Update progressBar.
                 yield return Ninja.JumpToUnity;
@@ -161,17 +161,17 @@ namespace HBP.UI.Visualisation
                 Data.Patient[] patients = new Data.Patient[0];
                 if (MNI)
                 {
-                    data.MultiPatientsVisualisation MPvisu = visualisation as data.MultiPatientsVisualisation;
+                    data.MultiPatientsVisualization MPvisu = visualization as data.MultiPatientsVisualization;
                     patients = MPvisu.Patients.ToArray();
                 }
                 else
                 {
-                    data.SinglePatientVisualisation SPvisu = visualisation as data.SinglePatientVisualisation;
+                    data.SinglePatientVisualization SPvisu = visualization as data.SinglePatientVisualization;
                     patients = new Data.Patient[] { SPvisu.Patient };
                 }
                 try
                 {
-                    columnsData[c] = new data.ColumnData(patients, dataForThisColumn, visualisation.Columns[c]);
+                    columnsData[c] = new data.ColumnData(patients, dataForThisColumn, visualization.Columns[c]);
                 }
                 catch
                 {
@@ -189,11 +189,11 @@ namespace HBP.UI.Visualisation
 
             if (MNI)
             {
-                data.MultiPatientsVisualisation MPvisu = visualisation as data.MultiPatientsVisualisation;
-                data.MultiPatientsVisualisationData visualisationData = new data.MultiPatientsVisualisationData(MPvisu.Patients.ToArray(), columnsData);
+                data.MultiPatientsVisualization MPvisu = visualization as data.MultiPatientsVisualization;
+                data.MultiPatientsVisualizationData visualizationData = new data.MultiPatientsVisualizationData(MPvisu.Patients.ToArray(), columnsData);
                 try
                 {
-                    visualisationData.StandardizeColumns();
+                    visualizationData.StandardizeColumns();
                 }
                 catch
                 {
@@ -201,23 +201,23 @@ namespace HBP.UI.Visualisation
                 }
                 yield return Ninja.JumpToUnity;
                 HandleError(loadingError, additionalInformations);
-                VisualisationLoaded.MP_Visualisation = MPvisu;
-                VisualisationLoaded.MP_VisualisationData = visualisationData;
-                VisualisationLoaded.MP_Columns = new bool[visualisationData.Columns.Count];
+                VisualizationLoaded.MP_Visualization = MPvisu;
+                VisualizationLoaded.MP_VisualizationData = visualizationData;
+                VisualizationLoaded.MP_Columns = new bool[visualizationData.Columns.Count];
 
                 // Set scene.
                 loadingCircle.Set(1, "Finish");
                 yield return Ninja.JumpBack;
                 yield return Ninja.JumpToUnity;
-                command.LoadData(visualisationData);
+                command.LoadData(visualizationData);
             }
             else
             {
-                data.SinglePatientVisualisation SPvisu = visualisation as data.SinglePatientVisualisation;
-                data.SinglePatientVisualisationData visualisationData = new data.SinglePatientVisualisationData(SPvisu.Patient, columnsData);
+                data.SinglePatientVisualization SPvisu = visualization as data.SinglePatientVisualization;
+                data.SinglePatientVisualizationData visualizationData = new data.SinglePatientVisualizationData(SPvisu.Patient, columnsData);
                 try
                 {
-                    visualisationData.StandardizeColumns();
+                    visualizationData.StandardizeColumns();
                 }
                 catch
                 {
@@ -226,15 +226,15 @@ namespace HBP.UI.Visualisation
                 yield return Ninja.JumpToUnity;
                 HandleError(loadingError, additionalInformations);
 
-                VisualisationLoaded.SP_Visualisation = SPvisu;
-                VisualisationLoaded.SP_VisualisationData = visualisationData;
-                VisualisationLoaded.SP_Columns = new bool[visualisationData.Columns.Count];
+                VisualizationLoaded.SP_Visualization = SPvisu;
+                VisualizationLoaded.SP_VisualizationData = visualizationData;
+                VisualizationLoaded.SP_Columns = new bool[visualizationData.Columns.Count];
 
                 // Set scene.
                 loadingCircle.Set(1, "Finish");
                 yield return Ninja.JumpBack;
                 yield return Ninja.JumpToUnity;
-                command.LoadData(visualisationData);
+                command.LoadData(visualizationData);
             }
             command.SetScenesVisibility(!MNI, MNI);
             command.SetModuleFocus(true);
@@ -243,11 +243,11 @@ namespace HBP.UI.Visualisation
         void LoadSPSceneFromMP(int idPatient)
         {
             UnityEngine.Debug.Log("LoadSPSceneFromMP");
-            data.SinglePatientVisualisationData spVisuData = data.SinglePatientVisualisationData.LoadFromMultiPatients(VisualisationLoaded.MP_VisualisationData, idPatient);
-            data.SinglePatientVisualisation spVisu = data.SinglePatientVisualisation.LoadFromMultiPatients(VisualisationLoaded.MP_Visualisation, idPatient);
-            VisualisationLoaded.SP_VisualisationData = spVisuData;
-            VisualisationLoaded.SP_Visualisation = spVisu;
-            VisualisationLoaded.SP_Columns = VisualisationLoaded.MP_Columns;
+            data.SinglePatientVisualizationData spVisuData = data.SinglePatientVisualizationData.LoadFromMultiPatients(VisualizationLoaded.MP_VisualizationData, idPatient);
+            data.SinglePatientVisualization spVisu = data.SinglePatientVisualization.LoadFromMultiPatients(VisualizationLoaded.MP_Visualization, idPatient);
+            VisualizationLoaded.SP_VisualizationData = spVisuData;
+            VisualizationLoaded.SP_Visualization = spVisu;
+            VisualizationLoaded.SP_Columns = VisualizationLoaded.MP_Columns;
         }
         void HandleError(LoadingErrorEnum error, string additionalInformations)
         {
@@ -261,7 +261,7 @@ namespace HBP.UI.Visualisation
         string GetErrorMessage(LoadingErrorEnum error, string additionalInformations)
         {
             string l_errorMessage = string.Empty;
-            string l_firstPart = "The visualisation could not be loaded.\n";
+            string l_firstPart = "The visualization could not be loaded.\n";
             switch (error)
             {
                 case LoadingErrorEnum.None: l_errorMessage = "None error detected."; return l_errorMessage;

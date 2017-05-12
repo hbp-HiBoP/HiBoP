@@ -455,7 +455,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="spScene"> is a single patient scene </param>
         /// <param name="nbColumns"> columns nb</param>
-        public void SetiEEGColumnsNb(SceneType type, List<HBP.Data.Visualisation.ColumnData> columnsData)
+        public void SetiEEGColumnsNb(SceneType type, List<HBP.Data.Visualization.ColumnData> columnsData)
         {
             int nbColumns = (columnsData != null  ? columnsData.Count : 1);
             switch (type)
@@ -545,17 +545,17 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="iEEGDataCols"></param>
-        private void update_iEEG_columns_data_UI(SceneType type, List<Data.Visualisation.ColumnData> iEEGDataCols)
+        private void update_iEEG_columns_data_UI(SceneType type, List<Data.Visualization.ColumnData> iEEGDataCols)
         {
             // timeline controller
-            List<Data.Visualisation.TimeLine> timelines = new List<Data.Visualisation.TimeLine>(iEEGDataCols.Count);
+            List<Data.Visualization.Timeline> timelines = new List<Data.Visualization.Timeline>(iEEGDataCols.Count);
             for (int ii = 0; ii < iEEGDataCols.Count; ++ii)
             {
                 timelines.Add(iEEGDataCols[ii].TimeLine);
             }
 
             // icon controller
-            List<HBP.Data.Visualisation.IconicScenario> iconicScenarioList = new List<Data.Visualisation.IconicScenario>();
+            List<HBP.Data.Visualization.IconicScenario> iconicScenarioList = new List<Data.Visualization.IconicScenario>();
             for (int ii = 0; ii < iEEGDataCols.Count; ++ii)
                 iconicScenarioList.Add(iEEGDataCols[ii].IconicScenario);
 

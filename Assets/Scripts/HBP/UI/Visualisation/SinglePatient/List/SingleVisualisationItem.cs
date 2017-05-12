@@ -1,15 +1,15 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
-using HBP.Data.Visualisation;
+using HBP.Data.Visualization;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
-    public class SingleVisualisationItem : Tools.Unity.Lists.ListItemWithActions<SinglePatientVisualisation>
+    public class SingleVisualizationItem : Tools.Unity.Lists.ListItemWithActions<SinglePatientVisualization>
     {
         #region Attributs
         [SerializeField]
-        private Text m_visualisationName;
+        private Text m_visualizationName;
         [SerializeField]
         private Text m_patientName;
         [SerializeField]
@@ -19,12 +19,12 @@ namespace HBP.UI.Visualisation
         #endregion
 
         #region Private Methods
-        protected override void SetObject(SinglePatientVisualisation visualisation)
+        protected override void SetObject(SinglePatientVisualization visualization)
         {
-            m_visualisationName.text = visualisation.Name;
-            m_patientName.text = visualisation.Patient.Name;
-            m_nbColumn.text = visualisation.Columns.Count.ToString();
-            m_columnList.Display(visualisation.Columns.ToArray());
+            m_visualizationName.text = visualization.Name;
+            m_patientName.text = visualization.Patient.Name;
+            m_nbColumn.text = visualization.Columns.Count.ToString();
+            m_columnList.Display(visualization.Columns.ToArray());
         }
         #endregion
     }

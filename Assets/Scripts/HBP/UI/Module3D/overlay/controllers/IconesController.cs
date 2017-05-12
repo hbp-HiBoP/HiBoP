@@ -20,7 +20,7 @@ namespace HBP.Module3D
         #region members
         
         private List<int> m_times = new List<int>();
-        private List<HBP.Data.Visualisation.IconicScenario> m_iconicScenarioList;
+        private List<HBP.Data.Visualization.IconicScenario> m_iconicScenarioList;
         private List<List<Sprite>> m_sprites = new List<List<Sprite>>();
         private List<List<Texture2D>> m_textures= new List<List<Texture2D>>();
 
@@ -200,7 +200,7 @@ namespace HBP.Module3D
             }
         }
 
-        public void define_iconic_scenario(List<HBP.Data.Visualisation.IconicScenario> iconicScenarioList)
+        public void define_iconic_scenario(List<HBP.Data.Visualization.IconicScenario> iconicScenarioList)
         {
             m_iconicScenarioList = iconicScenarioList;
 

@@ -10,7 +10,7 @@ namespace HBP.Data.General
         public int Groups { get; set; }
         public int Protocols { get; set; }
         public int Datasets { get; set; }
-        public int Visualisations { get; set; }
+        public int Visualizations { get; set; }
         public string Path { get; set; }
 
         public ProjectInfo(string path)
@@ -20,7 +20,7 @@ namespace HBP.Data.General
             Groups = -1;
             Protocols = -1;
             Datasets = -1;
-            Visualisations = -1;
+            Visualizations = -1;
             Path = string.Empty;
             if(Project.IsProject(path)) 
             {
@@ -39,7 +39,7 @@ namespace HBP.Data.General
                 {
                     if(dir.Name == "Patients")
                     {
-                        Patients = dir.GetFiles("*"+Patient.Extension).Length;
+                        Patients = dir.GetFiles("*"+Patient.EXTENSION).Length;
                     }
                     else if(dir.Name == "Groups")
                     {
@@ -53,22 +53,22 @@ namespace HBP.Data.General
                     {
                         Datasets = dir.GetFiles("*" + Experience.Dataset.Dataset.Extension).Length;
                     }
-                    else if (dir.Name == "Visualisations")
+                    else if (dir.Name == "Visualizations")
                     {
-                        int l_visualisations = 0;
-                        DirectoryInfo[] l_visualisationDir = dir.GetDirectories();
-                        foreach(DirectoryInfo visuDir in l_visualisationDir)
+                        int l_visualizations = 0;
+                        DirectoryInfo[] l_visualizationDir = dir.GetDirectories();
+                        foreach(DirectoryInfo visuDir in l_visualizationDir)
                         {
                             if(visuDir.Name == "SinglePatient")
                             {
-                                l_visualisations += visuDir.GetFiles("*" + Visualisation.SinglePatientVisualisation.Extension).Length;
+                                l_visualizations += visuDir.GetFiles("*" + Visualization.SinglePatientVisualization.EXTENSION).Length;
                             }
                             else if(visuDir.Name == "MultiPatients")
                             {
-                                l_visualisations += visuDir.GetFiles("*" + Visualisation.MultiPatientsVisualisation.Extension).Length;
+                                l_visualizations += visuDir.GetFiles("*" + Visualization.MultiPatientsVisualization.EXTENSION).Length;
                             }
                         }
-                        Visualisations = l_visualisations;
+                        Visualizations = l_visualizations;
                     }
                 }
             }

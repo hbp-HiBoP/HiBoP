@@ -29,7 +29,7 @@ namespace HBP.Module3D
             }
         }
         // data
-        public Data.Visualisation.ColumnData columnData = null; /**< column data formalized by the unity main UI part */
+        public Data.Visualization.ColumnData columnData = null; /**< column data formalized by the unity main UI part */
         
         // textures
         public List<Texture2D> brainCutWithIEEGTextures     = null;
@@ -157,7 +157,7 @@ namespace HBP.Module3D
         /// Specify a new columnData to be associated with the columnd3DView
         /// </summary>
         /// <param name="columnData"></param>
-        public void set_column_data(Data.Visualisation.ColumnData newColumnData)
+        public void set_column_data(Data.Visualization.ColumnData newColumnData)
         {
             columnData = newColumnData;
 

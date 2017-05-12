@@ -208,7 +208,7 @@ namespace HBP.Module3D
             m_patient = patient;
 
             List<string> ptsFiles = new List<string>(), namePatients = new List<string>();
-            ptsFiles.Add(m_patient.Brain.PatientReferenceFrameImplantation); //.PatientBasedImplantation);
+            ptsFiles.Add(m_patient.Brain.PatientBasedImplantation); //.PatientBasedImplantation);
             namePatients.Add(m_patient.Place + "_" + m_patient.Date + "_" + m_patient.Name);
 
             List<string> meshesFiles = new List<string>();
@@ -219,7 +219,7 @@ namespace HBP.Module3D
             m_CM.reset(planesList.Count);
 
             DLL.Transformation meshTransformation = new DLL.Transformation();
-            meshTransformation.load(m_patient.Brain.PreOperationReferenceFrameToScannerReferenceFrameTransformation);
+            meshTransformation.load(m_patient.Brain.PreoperativeBasedToScannerBasedTransformation);
             if (postIRM)
             {
                 // ...
@@ -227,11 +227,11 @@ namespace HBP.Module3D
 
 
             // load meshes
-            bool success = reset_brain_surface(meshesFiles, m_patient.Brain.PreOperationReferenceFrameToScannerReferenceFrameTransformation);
+            bool success = reset_brain_surface(meshesFiles, m_patient.Brain.PreoperativeBasedToScannerBasedTransformation);
 
             // load volume
             if (success)
-                success = reset_NII_brain_volume(m_patient.Brain.PreOperationMRI);
+                success = reset_NII_brain_volume(m_patient.Brain.PreoperativeMRI);
 
             // load electrodes
             if (success)
@@ -496,7 +496,7 @@ namespace HBP.Module3D
                 Latencies latencies = null;
 
                 
-                if(m_patient.Brain.PlotsConnectivity == "dummyPath" || m_patient.Brain.PlotsConnectivity == string.Empty)
+                if(m_patient.Brain.SitesConnectivities == "dummyPath" || m_patient.Brain.SitesConnectivities == string.Empty)
                 {
                     // generate dummy latencies
                     latencies = m_CM.DLLLoadedRawPlotsList.generate_dummy_latencies();
@@ -504,12 +504,12 @@ namespace HBP.Module3D
                 else
                 {
                     // load latency file
-                    latencies = m_CM.DLLLoadedRawPlotsList.update_latencies_with_file(m_patient.Brain.PlotsConnectivity);// Connectivities[ii].Path);
+                    latencies = m_CM.DLLLoadedRawPlotsList.update_latencies_with_file(m_patient.Brain.SitesConnectivities);// Connectivities[ii].Path);
                 }
 
                 if(latencies != null)
                 {
-                    latencies.name = m_patient.Brain.PlotsConnectivity; //Connectivities[ii].Label;
+                    latencies.name = m_patient.Brain.SitesConnectivities; //Connectivities[ii].Label;
                     m_CM.latenciesFiles.Add(latencies);
                     CCEPLabels.Add(latencies.name);
                 }
@@ -536,7 +536,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="patient"></param>
         /// <param name="columnDataList"></param>
-        public void set_timeline_data(HBP.Data.Patient patient, List<HBP.Data.Visualisation.ColumnData> columnDataList)
+        public void set_timeline_data(HBP.Data.Patient patient, List<HBP.Data.Visualization.ColumnData> columnDataList)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.setTimelines))

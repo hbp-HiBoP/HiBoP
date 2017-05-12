@@ -1,9 +1,9 @@
-﻿using HBP.Data.Visualisation;
+﻿using HBP.Data.Visualization;
 using System.Linq;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
-    public class MultiVisualisationList : Tools.Unity.Lists.OneSelectableListWithItemActions<MultiPatientsVisualisation>
+    public class MultiVisualizationList : Tools.Unity.Lists.OneSelectableListWithItemActions<MultiPatientsVisualization>
     {
         #region Properties
         bool m_sortByName = false;
@@ -12,7 +12,7 @@ namespace HBP.UI.Visualisation
         #endregion
 
         #region Public Methods
-        public void SortByVisualisationName()
+        public void SortByVisualizationName()
         {
             if (m_sortByName)
             {

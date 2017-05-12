@@ -112,14 +112,14 @@ namespace HBP.Data.Experience.Dataset
         }
 
         /// <summary>
-        /// Usable in single patient visualisation.
+        /// Usable in single patient visualization.
         /// </summary>
         public bool UsableInSinglePatient
         {
             get { return SinglePatientState != StateEnum.ERROR; }
         }
         /// <summary>
-        /// Usable in multi patients visualisation.
+        /// Usable in multi patients visualization.
         /// </summary>
         public bool UsableInMultiPatients
         {
@@ -209,10 +209,10 @@ namespace HBP.Data.Experience.Dataset
                                     if (l_errorType == ErrorTypeEnum.None)
                                     {
                                         //Test if MNI implantation is empty.
-                                        if (Patient.Brain.MNIReferenceFrameImplantation != string.Empty)
+                                        if (Patient.Brain.MNIBasedImplantation != string.Empty)
                                         {
                                             // Create the file info MNI implantation.
-                                            FileInfo l_MNIimplantation = new FileInfo(Patient.Brain.MNIReferenceFrameImplantation);
+                                            FileInfo l_MNIimplantation = new FileInfo(Patient.Brain.MNIBasedImplantation);
 
                                             //Test if the MNI implantation file exist.
                                             if (l_MNIimplantation.Exists)

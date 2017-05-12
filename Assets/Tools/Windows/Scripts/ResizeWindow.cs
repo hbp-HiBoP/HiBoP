@@ -22,8 +22,7 @@ namespace Tools.Unity.Window
 		private RectTransform m_rectTransform;
 
 		/* Vector2 initial position + offset */
-		private Vector2 m_minimizeSizeWindow;
-		public Vector2 MinimizeSizeWindow{get{return m_minimizeSizeWindow;}set{m_minimizeSizeWindow = value;}}
+		public Vector2 MinimizeSizeWindow{ get; set; }
 		public Vector2 MinSizeWindow;
 
         /* Vector2 last postion */

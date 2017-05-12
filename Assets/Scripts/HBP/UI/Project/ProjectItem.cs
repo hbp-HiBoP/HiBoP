@@ -41,10 +41,10 @@ namespace HBP.UI
         Text m_experiences;
 
         /// <summary>
-        /// The number of visualisations textField.
+        /// The number of visualizations textField.
         /// </summary>
         [SerializeField]
-        Text m_visualisations;
+        Text m_visualizations;
         #endregion
 
         #region Protected Methods
@@ -56,7 +56,7 @@ namespace HBP.UI
             m_groups.text = m_object.Groups.ToString();
             m_protocols.text = m_object.Protocols.ToString();
             m_experiences.text = m_object.Datasets.ToString();
-            m_visualisations.text = m_object.Visualisations.ToString();
+            m_visualizations.text = m_object.Visualizations.ToString();
         }
         #endregion
     }

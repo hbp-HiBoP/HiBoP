@@ -1,11 +1,11 @@
 ﻿using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
-using HBP.Data.Visualisation;
+using HBP.Data.Visualization;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
-    public class SingleVisualisationModifier : ItemModifier<SinglePatientVisualisation>
+    public class SingleVisualizationModifier : ItemModifier<SinglePatientVisualization>
     {
         #region Properties
         InputField nameInputField;
@@ -40,7 +40,7 @@ namespace HBP.UI.Visualisation
         {
             ItemTemp.SwapColumns(i1, i2);
         }
-        protected override void SetFields(SinglePatientVisualisation objectToDisplay)
+        protected override void SetFields(SinglePatientVisualization objectToDisplay)
         {
             // Name.
             nameInputField.text = objectToDisplay.Name;
@@ -78,7 +78,7 @@ namespace HBP.UI.Visualisation
             if (ActiveToggles.Count > 0)
             {
                 Column l_column = ItemTemp.Columns[ActiveToggles[0].transform.GetSiblingIndex() - 1];
-                columnModifier.SetTab(l_column, new Data.Patient[] { (ItemTemp as SinglePatientVisualisation).Patient }, true);
+                columnModifier.SetTab(l_column, new Data.Patient[] { (ItemTemp as SinglePatientVisualization).Patient }, true);
             }
         }
         protected override void SetWindow()
@@ -99,7 +99,7 @@ namespace HBP.UI.Visualisation
         }
         protected void OnChangePatient(Data.Patient patient)
         {
-            (ItemTemp as SinglePatientVisualisation).Patient = patient;
+            (ItemTemp as SinglePatientVisualization).Patient = patient;
             SelectColumn();
         }
         #endregion

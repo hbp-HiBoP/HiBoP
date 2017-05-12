@@ -34,7 +34,7 @@ namespace HBP.Module3D
         void Awake()
         {
             // retrieve managers
-            m_UIManager = GameObject.Find("Brain Visualisation").GetComponent<UIManager>();
+            m_UIManager = GameObject.Find("Brain Visualization").GetComponent<UIManager>();
             m_scenesManager = transform.Find("Scenes").GetComponent<ScenesManager>();
 
             // graphics settings
@@ -72,7 +72,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public bool set_SP_data(Data.Visualisation.SinglePatientVisualisationData data, bool postIRM = false)
+        public bool set_SP_data(Data.Visualization.SinglePatientVisualizationData data, bool postIRM = false)
         {
             List<string> ptsFiles = new List<string>(), namePatients = new List<string>();
             ptsFiles.Add(data.Patient.Brain.PatientReferenceFrameImplantation);
@@ -91,7 +91,7 @@ namespace HBP.Module3D
             }
 
             // retrieve column data
-            List<HBP.Data.Visualisation.ColumnData> columnsData = data.Columns.ToList<HBP.Data.Visualisation.ColumnData>();
+            List<HBP.Data.Visualization.ColumnData> columnsData = data.Columns.ToList<HBP.Data.Visualization.ColumnData>();
 
             // 1) define the number of cameras for the scene  
             m_scenesManager.define_conditions_columns_cameras(SceneType.SinglePatient, data.Columns.Count);
@@ -125,7 +125,7 @@ namespace HBP.Module3D
         /// <param name="blacklistMasks"></param>
         /// <param name="excludedMasks"></param>
         /// /// <returns></returns>
-        public bool set_SP_data(HBP.Data.Patient patient, List<HBP.Data.Visualisation.ColumnData> columnsData, int idPlotSelected, List<List<bool>> blacklistMasks,
+        public bool set_SP_data(HBP.Data.Patient patient, List<HBP.Data.Visualization.ColumnData> columnsData, int idPlotSelected, List<List<bool>> blacklistMasks,
             List<List<bool>> excludedMasks, List<List<bool>> hightLightedMasks)
         {
 
@@ -168,7 +168,7 @@ namespace HBP.Module3D
         /// Reload the MP scene
         /// </summary>
         /// <param name="data"></param>
-        public bool set_MP_data(HBP.Data.Visualisation.MultiPatientsVisualisationData data)
+        public bool set_MP_data(HBP.Data.Visualization.MultiPatientsVisualizationData data)
         {
             List<string> ptsFiles = new List<string>(data.GetImplantation().Length), namePatients = new List<string>(data.GetImplantation().Length);
             for (int ii = 0; ii < data.GetImplantation().Length; ++ii)
@@ -186,7 +186,7 @@ namespace HBP.Module3D
             }
 
             // retrieve column data
-            List<HBP.Data.Visualisation.ColumnData> columnsData = data.Columns.ToList<HBP.Data.Visualisation.ColumnData>();
+            List<HBP.Data.Visualization.ColumnData> columnsData = data.Columns.ToList<HBP.Data.Visualization.ColumnData>();
 
             // 1) define the number of cameras for the scene
             m_scenesManager.define_conditions_columns_cameras(SceneType.MultiPatients, data.Columns.Count);

@@ -18,19 +18,18 @@ namespace HBP.Data.Anatomy
     */
     public class Site
 	{
-		#region Attributs
+		#region Properties
         /// <summary>
         /// Name of the plot.
         /// </summary>
 		public string Name { get; set; }
         /// <summary>
-        /// Position of the plot.
-        /// </summary>
-		public Vector3 Position { get; set; }
-        /// <summary>
         /// Electrode of the plot.
         /// </summary>
         public Electrode Electrode { get; set; }
+
+        Vector3 patientPosition;
+        Vector3 MNIPosition;
         #endregion
 
         #region Constructor
@@ -40,24 +39,25 @@ namespace HBP.Data.Anatomy
         /// <param name="name">Name of the site</param>
         /// <param name="position">Position of the site.</param>
         /// <param name="electrode">Electrode that contains the site.</param>
-        public Site(string name, Vector3 position)
+        public Site(string name)
         {
             Name = name;
-            Position = position;
+            patientPosition = new Vector3();
+            MNIPosition = new Vector3();
         }
         /// <summary>
         /// Create site from line.
         /// </summary>
         /// <param name="line">Line in the implantation</param>
         /// <param name="nameCorrection">Automatic correction</param>
-        public Site(string line, bool nameCorrection = true) : this()
+        public Site(string line, ReferenceFrameType referenceFrame, bool nameCorrection = true) : this()
         {
             string[] lineElements = line.Split(new char[] {'\t',' '}, StringSplitOptions.RemoveEmptyEntries); // Split line into elements.
 
             if(lineElements.Length > 4)
             {
                 string name = lineElements[0]; // Get the site name.
-                if (nameCorrection) CorrectSiteName(ref name); // Correct the site name.
+                if (nameCorrection) name = GetCorrectName(name); // Correct the site name.
 
                 Vector3 position;
                 float.TryParse(lineElements[1], out position.x);
@@ -65,19 +65,48 @@ namespace HBP.Data.Anatomy
                 float.TryParse(lineElements[3], out position.z);
 
                 Name = name;
-                Position = position;
+                SetPosition(position,referenceFrame);
             }
         }
         /// <summary>
         /// Create site with default values.
         /// </summary>
-        public Site() : this("Unknown",new Vector3(0,0,0))
+        public Site() : this("Unknown")
 		{
 		}
         #endregion
 
+        #region Public Methods
+        public void SetPosition(Vector3 position,ReferenceFrameType referenceFrame)
+        {
+            switch (referenceFrame)
+            {
+                case ReferenceFrameType.Patient:
+                    patientPosition = position;
+                    break;
+                case ReferenceFrameType.MNI:
+                    MNIPosition = position;
+                    break;
+                default:
+                    break;
+            }
+        }
+        public Vector3 GetPosition(ReferenceFrameType referenceFrame)
+        {
+            switch (referenceFrame)
+            {
+                case ReferenceFrameType.Patient:
+                    return patientPosition;
+                case ReferenceFrameType.MNI:
+                    return MNIPosition;
+                default:
+                    return new Vector3();
+            }
+        }
+        #endregion
+
         #region Private Methods
-        void CorrectSiteName(ref string name)
+        string GetCorrectName(string name)
         {
             name = name.ToUpper();
             StringBuilder stringBuilder = new StringBuilder(name);
@@ -90,7 +119,7 @@ namespace HBP.Data.Anatomy
                     stringBuilder[pIndex] = "'".ToCharArray()[0];
                 }
             }
-            name = stringBuilder.ToString();
+            return stringBuilder.ToString();
         }
         #endregion
     }

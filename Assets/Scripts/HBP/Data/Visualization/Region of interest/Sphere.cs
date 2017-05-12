@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using UnityEngine.Events;
 
-namespace HBP.Data.Visualisation
+namespace HBP.Data.Visualization
 {
     [DataContract]
     public class Sphere : Volume

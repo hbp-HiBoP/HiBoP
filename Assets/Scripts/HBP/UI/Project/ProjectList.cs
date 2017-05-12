@@ -11,7 +11,7 @@ namespace HBP.UI
         bool m_sortByGroups;
         bool m_sortByProtocols;
         bool m_sortByDatasets;
-        bool m_sortByVisualisations;
+        bool m_sortByVisualizations;
         #endregion
 
         #region Public Methods
@@ -85,17 +85,17 @@ namespace HBP.UI
             ApplySort();
         }
 
-        public void SortByVisualisations()
+        public void SortByVisualizations()
         {
-            if (m_sortByVisualisations)
+            if (m_sortByVisualizations)
             {
-                m_objects = m_objects.OrderByDescending(x => x.Visualisations).ToList();
+                m_objects = m_objects.OrderByDescending(x => x.Visualizations).ToList();
             }
             else
             {
-                m_objects = m_objects.OrderBy(x => x.Visualisations).ToList();
+                m_objects = m_objects.OrderBy(x => x.Visualizations).ToList();
             }
-            m_sortByVisualisations = !m_sortByVisualisations;
+            m_sortByVisualizations = !m_sortByVisualizations;
             ApplySort();
         }
         #endregion

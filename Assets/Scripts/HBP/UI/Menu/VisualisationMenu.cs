@@ -1,29 +1,29 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
-    public class VisualisationMenu : MonoBehaviour
+    public class VisualizationMenu : MonoBehaviour
     {
         [SerializeField]
-        GameObject singlePatientVisualisationGestionPrefab;
+        GameObject singlePatientVisualizationGestionPrefab;
 
         [SerializeField]
-        GameObject multiPatientsVisualisationGestionPrefab;
+        GameObject multiPatientsVisualizationGestionPrefab;
 
-        public void OpenSinglePatientVisualisationGestion()
+        public void OpenSinglePatientVisualizationGestion()
         {
-            RectTransform obj = Instantiate(singlePatientVisualisationGestionPrefab).GetComponent<RectTransform>();
+            RectTransform obj = Instantiate(singlePatientVisualizationGestionPrefab).GetComponent<RectTransform>();
             obj.SetParent(GameObject.Find("Windows").transform);
             obj.localPosition = new Vector3(0, 0, 0);
-            obj.GetComponent<SingleVisualisationGestion>().Open();
+            obj.GetComponent<SingleVisualizationGestion>().Open();
         }
 
-        public void OpenMultiPatientsVisualisationGestion()
+        public void OpenMultiPatientsVisualizationGestion()
         {
-            RectTransform obj = Instantiate(multiPatientsVisualisationGestionPrefab).GetComponent<RectTransform>();
+            RectTransform obj = Instantiate(multiPatientsVisualizationGestionPrefab).GetComponent<RectTransform>();
             obj.SetParent(GameObject.Find("Windows").transform);
             obj.localPosition = new Vector3(0, 0, 0);
-            obj.GetComponent<MultiVisualisationGestion>().Open();
+            obj.GetComponent<MultiVisualizationGestion>().Open();
         }
     }
 }

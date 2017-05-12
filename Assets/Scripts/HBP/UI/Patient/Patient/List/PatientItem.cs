@@ -76,13 +76,13 @@ namespace HBP.UI.Patient
             if (objectToSet.Brain.LeftCerebralHemisphereMesh != "" && objectToSet.Brain.RightCerebralHemisphereMesh != "") { m_mesh_state.color = m_enable_color; }
             else { m_mesh_state.color = m_disable_color; }
 
-            if (objectToSet.Brain.PreOperationMRI != "" && objectToSet.Brain.PostOperationMRI != "") { m_IRM_state.color = m_enable_color; }
+            if (objectToSet.Brain.PreoperativeMRI != "" && objectToSet.Brain.PostoperativeMRI != "") { m_IRM_state.color = m_enable_color; }
             else { m_IRM_state.color = m_disable_color; }
 
-            if (objectToSet.Brain.PreOperationReferenceFrameToScannerReferenceFrameTransformation != "") { m_transformBase_state.color = m_enable_color; }
+            if (objectToSet.Brain.PreoperativeBasedToScannerBasedTransformation != "") { m_transformBase_state.color = m_enable_color; }
             else { m_transformBase_state.color = m_disable_color; }
 
-            if (objectToSet.Brain.PatientReferenceFrameImplantation != "") { m_implantation_state.color = m_enable_color; }
+            if (objectToSet.Brain.PatientBasedImplantation != "") { m_implantation_state.color = m_enable_color; }
             else { m_implantation_state.color = m_disable_color; }
         }
 		#endregion

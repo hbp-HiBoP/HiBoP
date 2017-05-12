@@ -31,7 +31,7 @@ namespace HBP.Module3D
         private Transform timeDisplayControllerOverlay = null;
         private List<GameObject> columnsTimeDisplay = new List<GameObject>();
         private List<UIOverlay> m_timeDisplayList = new List<UIOverlay>();
-        private List<HBP.Data.Visualisation.TimeLine> m_iEEGTimelines = new List<Data.Visualisation.TimeLine>();
+        private List<HBP.Data.Visualization.Timeline> m_iEEGTimelines = new List<Data.Visualization.Timeline>();
         private List<bool> m_minimized = new List<bool>();
 
         #endregion members
@@ -214,7 +214,7 @@ namespace HBP.Module3D
         }
 
 
-        public void updateTimelinesUI(List<HBP.Data.Visualisation.TimeLine> iEEGTimelines)
+        public void updateTimelinesUI(List<HBP.Data.Visualization.Timeline> iEEGTimelines)
         {
             m_iEEGTimelines = iEEGTimelines;
             updateTime(0, 0, true);

@@ -383,7 +383,7 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        ///  A PatientElectrodes container, for managing severals patients, more useful for data visualisation, means to be used with unity scripts
+        ///  A PatientElectrodes container, for managing severals patients, more useful for data visualization, means to be used with unity scripts
         /// </summary>
         public class PatientElectrodesList : CppDLLImportBase, ICloneable
         {

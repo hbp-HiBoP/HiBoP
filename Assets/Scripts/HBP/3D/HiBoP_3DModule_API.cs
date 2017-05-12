@@ -113,7 +113,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visuDataSP"></param>
         /// <returns>false if a loading error occurs, else true </returns>
-        public bool LoadData(Data.Visualisation.SinglePatientVisualisationData visuDataSP)
+        public bool LoadData(Data.Visualization.SinglePatientVisualizationData visuDataSP)
         {
             bool result = m_HBP3D.set_SP_data(visuDataSP);
             return result;
@@ -124,7 +124,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visuDataMP"></param>
         /// <returns>false if a loading error occurs, else true </returns>
-        public bool LoadData(Data.Visualisation.MultiPatientsVisualisationData visuDataMP)
+        public bool LoadData(Data.Visualization.MultiPatientsVisualizationData visuDataMP)
         {
             if (MNIObjects.LoadingMutex.WaitOne(10000))
                 return m_HBP3D.set_MP_data(visuDataMP);

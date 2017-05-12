@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System;
 using System.Linq;
 
-namespace HBP.Data.Visualisation
+namespace HBP.Data.Visualization
 {
     [DataContract]
     public class RegionOfInterest : ICloneable

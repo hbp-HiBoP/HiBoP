@@ -429,7 +429,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="patient"></param>
         /// <param name="columnDataList"></param>
-        public void set_SP_timeline_data(Data.Patient patient, List<Data.Visualisation.ColumnData> columnDataList)
+        public void set_SP_timeline_data(Data.Patient patient, List<Data.Visualization.ColumnData> columnDataList)
         {
             spPatient = patient;
             for (int c = 0; c < ColumnsIEEG.Count; c++)
@@ -445,7 +445,7 @@ namespace HBP.Module3D
         /// <param name="patientList"></param>
         /// <param name="columnDataList"></param>
         /// <param name="ptsPathFileList"></param>
-        public void set_MP_timeline_data(List<Data.Patient> patientList, List<Data.Visualisation.ColumnData> columnDataList, List<string> ptsPathFileList)
+        public void set_MP_timeline_data(List<Data.Patient> patientList, List<Data.Visualization.ColumnData> columnDataList, List<string> ptsPathFileList)
         {
             mpPatients = patientList;
             for (int c = 0; c < ColumnsIEEG.Count; c++)

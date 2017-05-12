@@ -1,13 +1,13 @@
-﻿namespace HBP.Data.Visualisation
+﻿namespace HBP.Data.Visualization
 {
     /**
     * \class TimeLine
     * \author Adrien Gannerie
     * \version 1.0
     * \date 11 janvier 2017
-    * \brief TimeLine of the visusalition which define the limits and the events in the visualisation.
+    * \brief TimeLine of the visusalition which define the limits and the events in the visualization.
     * 
-    * \details TimeLine of the visusalition which define the limits and the events in the visualisation and contains:
+    * \details TimeLine of the visusalition which define the limits and the events in the visualization and contains:
     *   - \a Start limit.
     *   - \a End limit.
     *   - \a Lenght.
@@ -15,7 +15,7 @@
     *   - \a Main \a event.
     *   - \a Secondary \a events.      
     */
-    public class TimeLine
+    public class Timeline
 	{
         #region Properties
         Limit start;
@@ -83,7 +83,7 @@
         /// <param name="size">Size of the timeLine.</param>
         /// <param name="mainEvent">Main event.</param>
         /// <param name="secondaryEvents">Secondary events.</param>
-        public TimeLine(Limit min,Limit max,int size,float step,Event mainEvent, Event[] secondaryEvents)
+        public Timeline(Limit min,Limit max,int size,float step,Event mainEvent, Event[] secondaryEvents)
 		{
 			Start = min;
 			End = max;
@@ -99,7 +99,7 @@
         /// <param name="mainEvent">Main Event.</param>
         /// <param name="secondaryEvents">Secondary Events.</param>
         /// <param name="frequency">Frequency of the data.</param>
-		public TimeLine(Experience.Protocol.DisplayInformations displayInformations, Event mainEvent, Event[] secondaryEvents, float frequency)
+		public Timeline(Experience.Protocol.DisplayInformations displayInformations, Event mainEvent, Event[] secondaryEvents, float frequency)
 		{
             int start = UnityEngine.Mathf.CeilToInt((displayInformations.Window.Start) * 0.001f * frequency);
             int end = UnityEngine.Mathf.FloorToInt((displayInformations.Window.End) * 0.001f * frequency);
@@ -113,7 +113,7 @@
         /// <summary>
         /// Create a new TimeLine instance with default values.
         /// </summary>
-        public TimeLine() : this(new Experience.Protocol.DisplayInformations(),new Event(),new Event[0],0.0F)
+        public Timeline() : this(new Experience.Protocol.DisplayInformations(),new Event(),new Event[0],0.0F)
         {
         }
         #endregion

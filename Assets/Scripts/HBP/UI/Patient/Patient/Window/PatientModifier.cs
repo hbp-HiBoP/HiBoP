@@ -41,29 +41,29 @@ namespace HBP.UI.Patient
             rightMeshFileSelector.onValueChanged.RemoveAllListeners();
             rightMeshFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.RightCerebralHemisphereMesh = value);
 
-            preIRMFileSelector.File = objectToDisplay.Brain.PreOperationMRI;
+            preIRMFileSelector.File = objectToDisplay.Brain.PreoperativeMRI;
             preIRMFileSelector.onValueChanged.RemoveAllListeners();
-            preIRMFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PreOperationMRI = value);
+            preIRMFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PreoperativeMRI = value);
 
-            postIRMFileSelector.File = objectToDisplay.Brain.PostOperationMRI;
+            postIRMFileSelector.File = objectToDisplay.Brain.PostoperativeMRI;
             postIRMFileSelector.onValueChanged.RemoveAllListeners();
-            postIRMFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PostOperationMRI = value);
+            postIRMFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PostoperativeMRI = value);
 
-            patientBasedImplantantationFileSelector.File = objectToDisplay.Brain.PatientReferenceFrameImplantation;
+            patientBasedImplantantationFileSelector.File = objectToDisplay.Brain.PatientBasedImplantation;
             patientBasedImplantantationFileSelector.onValueChanged.RemoveAllListeners();
-            patientBasedImplantantationFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PatientReferenceFrameImplantation = value);
+            patientBasedImplantantationFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PatientBasedImplantation = value);
 
-            MNIReferenceFrameImplantationFileSelector.File = objectToDisplay.Brain.MNIReferenceFrameImplantation;
+            MNIReferenceFrameImplantationFileSelector.File = objectToDisplay.Brain.MNIBasedImplantation;
             MNIReferenceFrameImplantationFileSelector.onValueChanged.RemoveAllListeners();
-            MNIReferenceFrameImplantationFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.MNIReferenceFrameImplantation = value);
+            MNIReferenceFrameImplantationFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.MNIBasedImplantation = value);
 
-            preToScannerBasedTransformationFileSelector.File = objectToDisplay.Brain.PreOperationReferenceFrameToScannerReferenceFrameTransformation;
+            preToScannerBasedTransformationFileSelector.File = objectToDisplay.Brain.PreoperativeBasedToScannerBasedTransformation;
             preToScannerBasedTransformationFileSelector.onValueChanged.RemoveAllListeners();
-            preToScannerBasedTransformationFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PreOperationReferenceFrameToScannerReferenceFrameTransformation = value);
+            preToScannerBasedTransformationFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PreoperativeBasedToScannerBasedTransformation = value);
 
-            connectivityFileSelector.File = objectToDisplay.Brain.PlotsConnectivity;
+            connectivityFileSelector.File = objectToDisplay.Brain.SitesConnectivities;
             connectivityFileSelector.onValueChanged.RemoveAllListeners();
-            connectivityFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.PlotsConnectivity = value);
+            connectivityFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.SitesConnectivities = value);
 
             List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
             foreach (int value in Enum.GetValues(typeof(Epilepsy.EpilepsyType)))

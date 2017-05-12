@@ -71,7 +71,7 @@ namespace HBP.Module3D
                 return SceneType.MultiPatients;
             }
         }
-        HBP.Data.Visualisation.MultiPatientsVisualisationData m_data = null;
+        HBP.Data.Visualization.MultiPatientsVisualizationData m_data = null;
         public override string Name
         {
             get
@@ -252,7 +252,7 @@ namespace HBP.Module3D
         /// Reset the scene : reload MRI, sites, and regenerate textures
         /// </summary>
         /// <param name="data"></param>
-        public bool reset(Data.Visualisation.MultiPatientsVisualisationData data)
+        public bool reset(Data.Visualization.MultiPatientsVisualizationData data)
         {
             m_ModesManager.updateMode(Mode.FunctionsId.resetScene);
             m_data = data;
@@ -439,7 +439,7 @@ namespace HBP.Module3D
         /// <param name="patientList"></param>
         /// <param name="columnDataList"></param>
         /// <param name="ptsPathFileList"></param>
-        public void set_timeline_data(List<Data.Patient> patientList, List<Data.Visualisation.ColumnData> columnDataList, List<string> ptsPathFileList)
+        public void set_timeline_data(List<Data.Patient> patientList, List<Data.Visualization.ColumnData> columnDataList, List<string> ptsPathFileList)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.functionAccess(Mode.FunctionsId.setTimelines))
@@ -497,10 +497,10 @@ namespace HBP.Module3D
                 startId += m_CM.DLLLoadedPatientsElectrodes.patient_sites_nb(ii);
 
             // create new column data
-            List<Data.Visualisation.ColumnData> columnDataList = new List<Data.Visualisation.ColumnData>(m_CM.ColumnsIEEG.Count);
+            List<Data.Visualization.ColumnData> columnDataList = new List<Data.Visualization.ColumnData>(m_CM.ColumnsIEEG.Count);
             for (int ii = 0; ii < m_CM.ColumnsIEEG.Count; ++ii)
             {
-                Data.Visualisation.ColumnData columnData = new Data.Visualisation.ColumnData();
+                Data.Visualization.ColumnData columnData = new Data.Visualization.ColumnData();
                 columnData.Label = m_CM.ColumnsIEEG[ii].Label;
 
                 // copy iconic scenario reference

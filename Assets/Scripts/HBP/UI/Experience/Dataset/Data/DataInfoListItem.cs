@@ -55,7 +55,7 @@ namespace HBP.UI.Experience.Dataset
         Button m_POSPathButton;
 
         /// <summary>
-        /// The protocol visualisation dropdown.
+        /// The protocol visualization dropdown.
         /// </summary>
         [SerializeField]
 		Dropdown m_ProvDropdown;

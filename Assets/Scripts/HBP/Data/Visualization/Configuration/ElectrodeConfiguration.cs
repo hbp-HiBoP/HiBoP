@@ -3,8 +3,9 @@ using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using HBP.Data.Anatomy;
 
-namespace HBP.Data.Visualisation
+namespace HBP.Data.Visualization
 {
     /**
     * \class ElectrodeConfiguration
@@ -22,44 +23,50 @@ namespace HBP.Data.Visualisation
     public class ElectrodeConfiguration : ICloneable
     {
         #region Properties
-        /// <summary>
-        /// Unique ID of the electrode.
-        /// </summary>
-        [DataMember]
-        public string ID { get; set; }
-
         [DataMember(Name = "Color")]
-        SerializableColor m_Color;
+        SerializableColor color;
+
         /// <summary>
         /// Color of the electrode.
         /// </summary>
-        public Color Color { get { return m_Color.ToColor(); } set { m_Color = new SerializableColor(value); } }
+        [IgnoreDataMember]
+        public Color Color { get; set; }
 
         /// <summary>
         /// Configurations of the electrode sites.
         /// </summary>
         [DataMember]
-        public List<SiteConfiguration> Sites { get; set; }
+        public Dictionary<Site,SiteConfiguration> ConfigurationBySite { get; set; }
         #endregion
 
         #region Constructors
-        public ElectrodeConfiguration(string ID, Color color,IEnumerable<SiteConfiguration> sites)
+        public ElectrodeConfiguration(Dictionary<Site,SiteConfiguration> configurationBySite, Color color)
         {
-            this.ID = ID;
             Color = color;
-            Sites = sites.ToList();
+            ConfigurationBySite = configurationBySite;
         }
-        public ElectrodeConfiguration() : this(string.Empty, new Color(), new SiteConfiguration[0])
-        {
-
-        }
+        public ElectrodeConfiguration(Color color) : this(new Dictionary<Site, SiteConfiguration>(), color) { }
+        public ElectrodeConfiguration() : this(new Dictionary<Site, SiteConfiguration>(), new Color()) { }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            IEnumerable<SiteConfiguration> sitesCloned = from site in Sites select site.Clone() as SiteConfiguration;
+            IEnumerable<SiteConfiguration> sitesCloned = from site in ConfigurationBySite select site.Clone() as SiteConfiguration;
             return new ElectrodeConfiguration(ID.Clone() as string, Color, sitesCloned);
+        }
+        #endregion
+
+        #region Serialization
+        [OnSerializing]
+        void OnSerializing(StreamingContext streamingContext)
+        {
+            color = new SerializableColor(Color);
+        }
+        [OnDeserialized]
+        void OnDeserialized(StreamingContext streamingContext)
+        {
+            Color = color.ToColor();
         }
         #endregion
     }

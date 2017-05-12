@@ -29,11 +29,11 @@ namespace HBP.UI
         {
             if (sp)
             {
-                VisualisationLoaded.SP_Columns = columns;
+                VisualizationLoaded.SP_Columns = columns;
             }
             else
             {
-                VisualisationLoaded.MP_Columns = columns;
+                VisualizationLoaded.MP_Columns = columns;
             }
         }
         #endregion

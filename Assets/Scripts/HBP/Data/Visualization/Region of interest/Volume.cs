@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
-namespace HBP.Data.Visualisation
+namespace HBP.Data.Visualization
 {
     public abstract class Volume : ICloneable
     {

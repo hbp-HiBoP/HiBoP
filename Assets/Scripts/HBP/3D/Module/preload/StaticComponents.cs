@@ -45,11 +45,11 @@ namespace HBP.Module3D
             SinglePatientScene = ScenesManager.transform.Find("SP").GetComponent<SP3DScene>();
             MultiPatientsScene = ScenesManager.transform.Find("MP").GetComponent<MP3DScene>();
 
-            Transform Visualisation = GameObject.Find("Brain Visualisation").transform;
-            UIManager = Visualisation.GetComponent<UIManager>();
-            CanvasOverlay = Visualisation.FindChild("Overlay");
+            Transform Visualization = GameObject.Find("Brain Visualization").transform;
+            UIManager = Visualization.GetComponent<UIManager>();
+            CanvasOverlay = Visualization.FindChild("Overlay");
             InputsSceneManager = transform.Find("Scenes").GetComponent<Cam.InputsSceneManager>();
-            UICameraManager = Visualisation.FindChild("Mid").GetComponent<MenuManager>();
+            UICameraManager = Visualization.FindChild("Mid").GetComponent<MenuManager>();
             UIOverlayManager = CanvasOverlay.GetComponent<UIOverlayManager>();
         }
     }

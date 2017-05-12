@@ -25,38 +25,83 @@ namespace HBP.Data.Anatomy
     public class Brain : ICloneable
     {
         #region Properties
+        /// <summary>
+        /// Left cerebral hemisphere mesh file(.gii).
+        /// </summary>
         [DataMember]
-        /** Path to the \b left cerebral hemispheres mesh (.gii).*/
         public string LeftCerebralHemisphereMesh { get; set; }
+
+        /// <summary>
+        /// Right cerebral hemisphere mesh file(.gii).
+        /// </summary>
         [DataMember]
-        /** Path to the \b right cerebral hemispheres mesh (.gii).*/
         public string RightCerebralHemisphereMesh { get; set; }
+
+        /// <summary>
+        /// Preoperative MRI file(.nii).
+        /// </summary>
         [DataMember]
-        /** Path to the \b pre operation MRI (.nii).*/
-        public string PreOperationMRI { get; set; }
+        public string PreoperativeMRI { get; set; }
+
+        /// <summary>
+        /// Postoperative MRI file(.nii).
+        /// </summary>
         [DataMember]
-        /** Path to the \b post operation MRI (.nii).*/
-        public string PostOperationMRI { get; set; }
+        public string PostoperativeMRI { get; set; }
+
+        /// <summary>
+        /// Patient based implantation file(.pts).
+        /// </summary>
         [DataMember]
-        /** Path to the \b patient based implantation (.pts).*/
-        public string PatientReferenceFrameImplantation { get; set; }
+        public string PatientBasedImplantation
+        {
+            get { return m_PatientBasedImplantation; }
+            set { m_PatientBasedImplantation = value; Implantation.Load(value, ReferenceFrameType.Patient); }
+        }
+        string m_PatientBasedImplantation;
+
+        /// <summary>
+        /// MNI based implantation file(.pts).
+        /// </summary>
         [DataMember]
-        /** Path to the \b MNI based implantation (.pts).*/
-        public string MNIReferenceFrameImplantation { get; set; }   
+        public string MNIBasedImplantation
+        {
+            get { return m_MNIBasedImplantation; }
+            set { m_MNIBasedImplantation = value; Implantation.Load(value, ReferenceFrameType.MNI); }
+        }
+        string m_MNIBasedImplantation;
+
+        /// <summary>
+        /// Preoperative based to scanner based transformation file(.trm).
+        /// </summary>
         [DataMember]
-        /** Path to the \b pre operation base to scanner base transformation (.trm).*/
-        public string PreOperationReferenceFrameToScannerReferenceFrameTransformation { get; set; }
+        public string PreoperativeBasedToScannerBasedTransformation { get; set; }
+
+        /// <summary>
+        /// Sites connectivities file.
+        /// </summary>
         [DataMember]
-        /** Connectivity between plots. */
-        public string PlotsConnectivity { get; set; }
+        public string SitesConnectivities { get; set; }
+
+        /// <summary>
+        /// Patient epilepsy.
+        /// </summary>
         [DataMember]
-        /** Epilepsy type.*/
         public Epilepsy Epilepsy { get; set; }
 
-        /** Patient witch contains the brain. */
+        /// <summary>
+        /// Brain implantation.
+        /// </summary>
+        public Implantation Implantation { get; set; }
+
+        /// <summary>
+        /// Patient to whon the brain belongs.
+        /// </summary>
         public Patient Patient { get; set; }
 
-        /** Number of fields filled.*/
+        /// <summary>
+        /// Number of fields filled.
+        /// </summary>
         public int NumberOfFieldsFilled
 		{
 			get
@@ -73,36 +118,21 @@ namespace HBP.Data.Anatomy
                 return i;
 			}
 		}
-        /** Can be used in \b single \b patient visualisation.*/
-        public bool CanBeUsedInSinglePatientVisualisation
+
+        /// <summary>
+        /// The patient can be used in single patient visualization.
+        /// </summary>
+        public bool CanBeUsedInSinglePatientVisualization
         {
-            get { return LeftCerebralHemisphereMesh != string.Empty && RightCerebralHemisphereMesh != string.Empty && PreOperationMRI != string.Empty && PatientReferenceFrameImplantation != string.Empty; }
-        }
-        /** Can be used in \b multi-patients visualisation.*/
-        public bool CanBeUsedInMultiPatientsVisualisation
-        {
-            get { return PreOperationMRI != string.Empty && MNIReferenceFrameImplantation != string.Empty;}
+            get { return LeftCerebralHemisphereMesh != string.Empty && RightCerebralHemisphereMesh != string.Empty && PreoperativeMRI != string.Empty && PatientBasedImplantation != string.Empty; }
         }
 
-        Implantation m_Implantation;
-        /** Patient reference frame based implantation. */
-        public Implantation Implantation
+        /// <summary>
+        /// The patient can be used in multi-patients visualization.
+        /// </summary>
+        public bool CanBeUsedInMultiPatientsVisualization
         {
-            get
-            {
-                if (m_Implantation == null) UnityEngine.Debug.LogError("Implantation not loaded.");
-                return m_Implantation;
-            }
-        }
-        Implantation m_MNIImplantation;
-        /** MNI reference frame based implantation. */
-        public Implantation MNIImplantation
-        {
-            get
-            {
-                if (m_MNIImplantation == null) UnityEngine.Debug.LogError("Implantation not loaded.");
-                return m_MNIImplantation;
-            }
+            get { return PreoperativeMRI != string.Empty && MNIBasedImplantation != string.Empty;}
         }
         #endregion
 
@@ -123,12 +153,12 @@ namespace HBP.Data.Anatomy
         {
             LeftCerebralHemisphereMesh = leftCerebralHemisphereMesh;
             RightCerebralHemisphereMesh = rightCerebralHemisphereMesh;
-            PreOperationMRI = preOperationMRI;
-            PostOperationMRI = postOperationMRI;
-            PatientReferenceFrameImplantation = patientReferenceFrameImplantation;
-            MNIReferenceFrameImplantation = MNIreferenceFrameImplantation;
-            PreOperationReferenceFrameToScannerReferenceFrameTransformation = preOperationReferenceFrameToScannerReferenceFrameTransformation;
-            PlotsConnectivity = connectivity;
+            PreoperativeMRI = preOperationMRI;
+            PostoperativeMRI = postOperationMRI;
+            PatientBasedImplantation = patientReferenceFrameImplantation;
+            MNIBasedImplantation = MNIreferenceFrameImplantation;
+            PreoperativeBasedToScannerBasedTransformation = preOperationReferenceFrameToScannerReferenceFrameTransformation;
+            SitesConnectivities = connectivity;
             Epilepsy = epilepsy;
         }
         /// <summary>
@@ -139,53 +169,22 @@ namespace HBP.Data.Anatomy
 		}
         #endregion
 
-        #region Public Methods
-        /// <summary>
-        /// Load implantation.
-        /// </summary>
-        /// <param name="referenceFrame">Reference frame of the implantation.</param>
-        /// <param name="plotNameCorrection">Plot name correction.</param>
-        public void LoadImplantation(Implantation.ReferenceFrameType referenceFrame, bool plotNameCorrection)
-        {
-            switch (referenceFrame)
-            {
-                case Implantation.ReferenceFrameType.Patient:
-                    m_Implantation = new Implantation(PatientReferenceFrameImplantation, plotNameCorrection);
-                    m_Implantation.Brain = this;
-                    break;
-                case Implantation.ReferenceFrameType.MNI:
-                    m_MNIImplantation = new Implantation(MNIReferenceFrameImplantation, plotNameCorrection);
-                    m_MNIImplantation.Brain = this;
-                    break;
-                default:
-                    break;
-            }
-        }
-        /// <summary>
-        /// Dispose implantation.
-        /// </summary>
-        /// <param name="referenceFrame">Reference frame of the implantation.</param>
-        public void DisposeImplantation(Implantation.ReferenceFrameType referenceFrame)
-        {
-            switch (referenceFrame)
-            {
-                case Implantation.ReferenceFrameType.Patient:
-                    m_Implantation = null;
-                    break;
-                case Implantation.ReferenceFrameType.MNI:
-                    m_MNIImplantation = null;
-                    break;
-                default:
-                    break;
-            }
-        }
+        #region Operators
         /// <summary>
         /// Clone The object.
         /// </summary>
         /// <returns>Object cloned.</returns>
         public object Clone()
         {
-            return new Brain(Epilepsy.Clone() as Epilepsy,LeftCerebralHemisphereMesh, RightCerebralHemisphereMesh, PreOperationMRI, PostOperationMRI, PatientReferenceFrameImplantation, MNIReferenceFrameImplantation, PreOperationReferenceFrameToScannerReferenceFrameTransformation,PlotsConnectivity);
+            return new Brain(Epilepsy.Clone() as Epilepsy, LeftCerebralHemisphereMesh, RightCerebralHemisphereMesh, PreoperativeMRI, PostoperativeMRI, PatientBasedImplantation, MNIBasedImplantation, PreoperativeBasedToScannerBasedTransformation, SitesConnectivities);
+        }
+        #endregion
+
+        #region Serialization
+        [OnDeserialized]
+        void OnDeserialized()
+        {
+            LoadImplantation(true);
         }
         #endregion
     }

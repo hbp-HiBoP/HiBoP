@@ -1,4 +1,4 @@
-﻿namespace HBP.Data.Visualisation
+﻿namespace HBP.Data.Visualization
 {
     /**
     * \class Event

@@ -55,7 +55,7 @@ namespace HBP.Data.TrialMatrix
         #endregion
 
         #region Constructor
-        public TrialMatrix(DataInfo dataInfo, PlotID plot)
+        public TrialMatrix(DataInfo dataInfo, Site site)
         {
             // Read ElanFile and POSFile.
             Elan.ElanFile elanFile = new Elan.ElanFile(dataInfo.EEG);
@@ -63,7 +63,7 @@ namespace HBP.Data.TrialMatrix
             float samplingFrequency = elanFile.EEG.SamplingFrequency;
 
             // Read Data.
-            Elan.Track trackToRead = elanFile.FindTrack(dataInfo.Measure, plot.Name);
+            Elan.Track trackToRead = elanFile.FindTrack(dataInfo.Measure, site.Name);
             elanFile.ReadChannel(trackToRead);
             float[] dataReaded = elanFile.EEG.GetFloatData(trackToRead);
 
@@ -92,7 +92,8 @@ namespace HBP.Data.TrialMatrix
             StandardizeBlocs(ref blocs);
 
             // Set properties
-            Title = plot.Patient.Place + " " + plot.Patient.Date + " " + plot.Patient.Name + " " + plot.Name + " " + dataInfo.Protocol.Name + " " + dataInfo.Name;
+            Patient patient = site.Electrode.Implantation.Brain.Patient;
+            Title = patient.Place + " " + patient.Date + " " + patient.Name + " " + site.Name + " " + dataInfo.Protocol.Name + " " + dataInfo.Name;
             Blocs = blocs;
             ValuesLimits = CalculateValueLimit(flatValues.ToArray());
             TimeLimitsByColumn = CalculateTimeLimitsByColumn(blocs);

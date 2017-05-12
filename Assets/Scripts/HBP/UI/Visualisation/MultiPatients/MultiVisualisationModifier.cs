@@ -3,12 +3,12 @@ using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
 using HBP.UI.Patient;
-using HBP.Data.Visualisation;
+using HBP.Data.Visualization;
 using HBP.Data;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
-    public class MultiVisualisationModifier : ItemModifier<MultiPatientsVisualisation>
+    public class MultiVisualizationModifier : ItemModifier<MultiPatientsVisualization>
     {
         #region Properties
         [SerializeField]
@@ -18,7 +18,7 @@ namespace HBP.UI.Visualisation
         InputField nameInputField;
         TabGestion tabGestion;
         ColumnModifier columnModifier;
-        PatientList visualisationPatientsList;
+        PatientList visualizationPatientsList;
         PatientList projectPatientsList;
         Button addPatientButton, removePatientButton, addGroupButton, saveButton, saveAsButton;
         #endregion
@@ -44,7 +44,7 @@ namespace HBP.UI.Visualisation
             Data.Patient[] patientsToAdd = projectPatientsList.GetObjectsSelected();
             ItemTemp.AddPatient(patientsToAdd);
             projectPatientsList.DeactivateObject(patientsToAdd);
-            visualisationPatientsList.Add(patientsToAdd);
+            visualizationPatientsList.Add(patientsToAdd);
             SelectColumn();
         }
         public void AddGroups(Group[] groups)
@@ -54,7 +54,7 @@ namespace HBP.UI.Visualisation
             {
                 foreach(Data.Patient patient in group.Patients)
                 {
-                    if(!visualisationPatientsList.Objects.Contains(patient))
+                    if(!visualizationPatientsList.Objects.Contains(patient))
                     {
                         patientsToAdd.Add(patient);
                     }
@@ -62,7 +62,7 @@ namespace HBP.UI.Visualisation
             }
             ItemTemp.AddPatient(patientsToAdd.ToArray());
             projectPatientsList.DeactivateObject(patientsToAdd.ToArray());
-            visualisationPatientsList.Add(patientsToAdd.ToArray());
+            visualizationPatientsList.Add(patientsToAdd.ToArray());
             SelectColumn();
         }
         public void OpenGroupSelection()
@@ -78,10 +78,10 @@ namespace HBP.UI.Visualisation
         }
         public void RemovePatients()
         {
-            Data.Patient[] patientsToRemove = visualisationPatientsList.GetObjectsSelected();
+            Data.Patient[] patientsToRemove = visualizationPatientsList.GetObjectsSelected();
             ItemTemp.RemovePatient(patientsToRemove);
             projectPatientsList.ActiveObject(patientsToRemove);
-            visualisationPatientsList.Remove(patientsToRemove);
+            visualizationPatientsList.Remove(patientsToRemove);
             SelectColumn();
         }
         #endregion
@@ -91,7 +91,7 @@ namespace HBP.UI.Visualisation
         {
             ItemTemp.SwapColumns(i1, i2);
         }
-        protected override void SetFields(MultiPatientsVisualisation objectToDisplay)
+        protected override void SetFields(MultiPatientsVisualization objectToDisplay)
         {
             // Name.
             nameInputField.text = objectToDisplay.Name;
@@ -110,7 +110,7 @@ namespace HBP.UI.Visualisation
                 tabGestion.AddTab();
             }
 
-            visualisationPatientsList.Display(objectToDisplay.Patients.ToArray());
+            visualizationPatientsList.Display(objectToDisplay.Patients.ToArray());
             projectPatientsList.Display(ApplicationState.ProjectLoaded.Patients.ToArray(), objectToDisplay.Patients.ToArray());
         }
         protected void SelectColumn()
@@ -119,7 +119,7 @@ namespace HBP.UI.Visualisation
             if (ActiveToggles.Count > 0)
             {
                 Column l_column = ItemTemp.Columns[ActiveToggles[0].transform.GetSiblingIndex() - 1];
-                columnModifier.SetTab(l_column, (ItemTemp as MultiPatientsVisualisation).Patients.ToArray(), true);
+                columnModifier.SetTab(l_column, (ItemTemp as MultiPatientsVisualization).Patients.ToArray(), true);
             }
         }
         protected override void SetWindow()
@@ -129,7 +129,7 @@ namespace HBP.UI.Visualisation
             columnModifier = transform.FindChild("Content").FindChild("Columns").FindChild("Column").GetComponent<ColumnModifier>();
             saveButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Save").GetComponent<Button>();
             saveAsButton = transform.FindChild("Content").FindChild("Buttons").FindChild("SaveAs").GetComponent<Button>();
-            visualisationPatientsList = transform.Find("Content").FindChild("Patients").FindChild("Lists").FindChild("PatientToDisplay").FindChild("Container").FindChild("Scrollable").GetComponent<PatientList>();
+            visualizationPatientsList = transform.Find("Content").FindChild("Patients").FindChild("Lists").FindChild("PatientToDisplay").FindChild("Container").FindChild("Scrollable").GetComponent<PatientList>();
             projectPatientsList = transform.Find("Content").FindChild("Patients").FindChild("Lists").FindChild("AllPatients").FindChild("Container").FindChild("Scrollable").GetComponent<PatientList>();
             groupSelection = GetComponent<GroupSelection>();
             addPatientButton = transform.Find("Content").FindChild("Patients").FindChild("Lists").FindChild("Buttons").FindChild("Add").GetComponent<Button>();

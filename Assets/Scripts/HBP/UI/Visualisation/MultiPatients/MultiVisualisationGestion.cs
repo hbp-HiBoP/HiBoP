@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
-using HBP.Data.Visualisation;
+using HBP.Data.Visualization;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
-    public class MultiVisualisationGestion : ItemGestion<MultiPatientsVisualisation>
+    public class MultiVisualizationGestion : ItemGestion<MultiPatientsVisualization>
     {
         #region Properties
         Button displayButton;
@@ -14,13 +14,13 @@ namespace HBP.UI.Visualisation
         #region Public Methods
         public override void Save()
         {
-            ApplicationState.ProjectLoaded.SetMultiPatientsVisualisations(Items.ToArray());
+            ApplicationState.ProjectLoaded.SetMultiPatientsVisualizations(Items.ToArray());
             base.Save();
         }
         public void Display()
         {
             Debug.Log("Display");
-            FindObjectOfType<VisualisationLoader>().Load(list.GetObjectsSelected()[0]);
+            FindObjectOfType<VisualizationLoader>().Load(list.GetObjectsSelected()[0]);
             base.Close();
         }
         #endregion
@@ -29,15 +29,15 @@ namespace HBP.UI.Visualisation
         protected override void SetWindow()
         {
             displayButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Display").GetComponent<Button>();
-            list = transform.FindChild("Content").FindChild("MultiPatientsVisualisations").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<MultiVisualisationList>();
-            (list as MultiVisualisationList).ActionEvent.AddListener((visu, type) => OpenModifier(visu,true));
-            (list as MultiVisualisationList).SelectEvent.AddListener(() => SetDisplay());
-            AddItem(ApplicationState.ProjectLoaded.MultiPatientsVisualisations.ToArray());
+            list = transform.FindChild("Content").FindChild("MultiPatientsVisualizations").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<MultiVisualizationList>();
+            (list as MultiVisualizationList).ActionEvent.AddListener((visu, type) => OpenModifier(visu,true));
+            (list as MultiVisualizationList).SelectEvent.AddListener(() => SetDisplay());
+            AddItem(ApplicationState.ProjectLoaded.MultiPatientsVisualizations.ToArray());
         }
         void SetDisplay()
         {
-            MultiPatientsVisualisation[] visualisationsSelected = list.GetObjectsSelected();
-            displayButton.interactable = (visualisationsSelected.Length == 1 && visualisationsSelected[0].IsVisualisable);
+            MultiPatientsVisualization[] visualizationsSelected = list.GetObjectsSelected();
+            displayButton.interactable = (visualizationsSelected.Length == 1 && visualizationsSelected[0].IsVisualizable);
         }
         #endregion
     }

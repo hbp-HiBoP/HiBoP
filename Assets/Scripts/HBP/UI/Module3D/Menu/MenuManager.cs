@@ -84,7 +84,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="IEEGColumnsNb"></param>
-        public void SetiEEGColumnsNb(SceneType type, List<HBP.Data.Visualisation.ColumnData> columnsData)
+        public void SetiEEGColumnsNb(SceneType type, List<HBP.Data.Visualization.ColumnData> columnsData)
         {
             switch (type)
             {

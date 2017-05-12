@@ -85,7 +85,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="iEEGColumns"></param>
-        public void SetiEEGColumns(SceneType type, List<Data.Visualisation.ColumnData> iEEGColumns)
+        public void SetiEEGColumns(SceneType type, List<Data.Visualization.ColumnData> iEEGColumns)
         {
             OverlayManager.SetiEEGColumnsNb(type, iEEGColumns);
             MenuManager.SetiEEGColumnsNb(type, iEEGColumns);

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using HBP.Data.Anatomy;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -10,8 +11,8 @@ namespace HBP.Data.Experience.Dataset
     * \brief Data readed from a DataInfo.
     * 
     * \detail Data readed from a DataInfo which contains :
-    *   - \a Values readed.
-    *   - \a Plot masks.
+    *   - \a Values readed by site.
+    *   - \a IsMasked by site.
     *   - \a POS file.
     *   - \a EEG frequency.
     *   - \a Patient.
@@ -19,35 +20,26 @@ namespace HBP.Data.Experience.Dataset
     public class Data
     {
         #region Properties
-        float[][] values;
         /// <summary>
-        /// Plot values.
+        /// Site values.
         /// </summary>
-        public float[][] Values { get { return values; } set { values = value; } }
-
-        bool[] mask = new bool[0];
+        public Dictionary<Site,float[]> ValuesBySite { get; set; }
         /// <summary>
         /// Plot mask : \a True if masked and \a false otherwise.
         /// </summary>
-        public bool[] Mask { get { return mask; } set { mask = value; } }
-
-        Localizer.POS pos;
+        public Dictionary<Site,bool> MaskBySite { get; set; }
         /// <summary>
         /// POS file which containts plot anatomy informations.
         /// </summary>
-        public Localizer.POS POS { get { return pos; } set { pos = value; } }
-
-        float frequency;
+        public Localizer.POS POS { get; set; }
         /// <summary>
-        /// Values frequency.
+        /// Frequency of data.
         /// </summary>
-        public float Frequency { get { return frequency; } set { frequency = value; } }
-
-        Patient patient;
+        public float Frequency { get; set; }
         /// <summary>
-        /// Patient 
+        /// Patient of the data.
         /// </summary>
-        public Patient Patient { get { return patient; } set { patient = value; } }
+        public Patient Patient { get; set; }
         #endregion
 
         #region Constructor
@@ -65,10 +57,10 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="pos">POS file.</param>
         /// <param name="frequency">Values frequency.</param>
         /// <param name="patient">Patient.</param>
-        public Data(float[][] values,bool[] mask,Localizer.POS pos,float frequency,Patient patient)
+        public Data(Dictionary<Site,float[]> valuesBySite, Dictionary<Site, bool> maskBySite, Localizer.POS pos, float frequency, Patient patient)
         {
-            Values = values;
-            Mask = mask;
+            ValuesBySite = valuesBySite;
+            MaskBySite = maskBySite;
             POS = pos;
             Frequency = frequency;
             Patient = patient;
@@ -78,64 +70,29 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         /// <param name="info">DataInfo to read.</param>
         /// <param name="MNI">\a True if MNI and \a false otherwise.</param>
-        public Data(DataInfo info, bool MNI)
+        public Data(DataInfo info)
         {
             // Read Elan.
             Elan.ElanFile elanFile = new Elan.ElanFile(info.EEG,true);
-            string[] measures = elanFile.MeasureLabels;
-            Elan.Channel[] channels = elanFile.Channels;
 
-            // Read implantation.
-            if(MNI)
+            foreach (Electrode electrode in info.Patient.Brain.Implantation.Electrodes)
             {
-                info.Patient.Brain.LoadImplantation(Anatomy.Implantation.ReferenceFrameType.MNI,true);
-            }
-            else
-            {
-                info.Patient.Brain.LoadImplantation(Anatomy.Implantation.ReferenceFrameType.Patient, true);
-            }
-
-            string[] plots = info.Patient.Brain.GetImplantation(MNI,ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType == Settings.GeneralSettings.PlotNameCorrectionTypeEnum.Active).GetPlotsName();
-            bool[] maskPlots = new bool[plots.Length];
-            float[][] values = new float[plots.Length][];
-
-            // Find channel to read.
-            List<Elan.Track> tracksToRead = new List<Elan.Track>();
-            for (int p = 0; p < plots.Length; p++)
-            {
-                Elan.Track track = elanFile.FindTrack(info.Measure, plots[p]);
-                if (track.Measure < 0 || track.Channel < 0)
+                foreach (Site site in electrode.Sites)
                 {
-                    maskPlots[p] = true;
-                }
-                else
-                {
-                    maskPlots[p] = false;
-                    tracksToRead.Add(track);
+                    Elan.Track track = elanFile.FindTrack(info.Measure, site.Name);
+                    if(track.Frequency < 0 || track.Measure < 0)
+                    {
+                        MaskBySite.Add(site, true);
+                        ValuesBySite.Add(site, new float[elanFile.EEG.SampleNumber]);
+                    }
+                    else
+                    {
+                        MaskBySite.Add(site, false);
+                        ValuesBySite.Add(site, elanFile.EEG.GetFloatData(track));
+                    }
                 }
             }
 
-            // Read data.
-            float[][] dataReaded = elanFile.EEG.GetFloatData(tracksToRead.ToArray());
-            int sampleNumber = elanFile.EEG.SampleNumber;
-
-            int n = 0;
-            for (int p = 0; p < plots.Length; p++)
-            {
-                if (maskPlots[p])
-                {
-                    values[p] = new float[sampleNumber];
-                }
-                else
-                {
-                    values[p] = dataReaded[n];
-                    n++;
-                }
-            }
-
-            // Set properties.
-            Values = values;
-            Mask = maskPlots;
             POS = new Localizer.POS(info.POS);
             Frequency = elanFile.EEG.SamplingFrequency;
             Patient = info.Patient;

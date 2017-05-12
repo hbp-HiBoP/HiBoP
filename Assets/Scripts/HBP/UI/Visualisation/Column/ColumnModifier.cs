@@ -5,9 +5,9 @@ using System.Linq;
 using System.Collections.Generic;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
-using HBP.Data.Visualisation;
+using HBP.Data.Visualization;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
     public class ColumnModifier : MonoBehaviour
     {

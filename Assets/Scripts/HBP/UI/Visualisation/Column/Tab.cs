@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-namespace HBP.UI.Visualisation
+namespace HBP.UI.Visualization
 {
     public class Tab : MonoBehaviour, IBeginDragHandler, IDropHandler, IEndDragHandler, IDragHandler
     {

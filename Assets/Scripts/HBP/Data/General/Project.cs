@@ -3,7 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using HBP.Data.Settings;
-using HBP.Data.Visualisation;
+using HBP.Data.Visualization;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 
@@ -23,7 +23,7 @@ namespace HBP.Data.General
     *     - Regions of interest.(To Add)
     *     - Protocols.
     *     - Datasets.
-    *     - Visualisations.
+    *     - Visualizations.
     */
     public class Project
     {
@@ -74,22 +74,22 @@ namespace HBP.Data.General
             get { return new ReadOnlyCollection<Dataset>(datasets); }
         }
 
-        List<SinglePatientVisualisation> singlePatientVisualisations;
+        List<SinglePatientVisualization> singlePatientVisualizations;
         /// <summary>
-        /// Singe patient brain visualisations of the project.
+        /// Singe patient brain visualizations of the project.
         /// </summary>
-        public ReadOnlyCollection<SinglePatientVisualisation> SinglePatientVisualisations
+        public ReadOnlyCollection<SinglePatientVisualization> SinglePatientVisualizations
         {
-            get { return new ReadOnlyCollection<SinglePatientVisualisation>(singlePatientVisualisations); }
+            get { return new ReadOnlyCollection<SinglePatientVisualization>(singlePatientVisualizations); }
         }
 
-        List<MultiPatientsVisualisation> multiPatientsVisualisations;
+        List<MultiPatientsVisualization> multiPatientsVisualizations;
         /// <summary>
-        /// Multi patients brain visualisations of the project.
+        /// Multi patients brain visualizations of the project.
         /// </summary>
-        public ReadOnlyCollection<MultiPatientsVisualisation> MultiPatientsVisualisations
+        public ReadOnlyCollection<MultiPatientsVisualization> MultiPatientsVisualizations
         {
-            get { return new ReadOnlyCollection<MultiPatientsVisualisation>(multiPatientsVisualisations); }
+            get { return new ReadOnlyCollection<MultiPatientsVisualization>(multiPatientsVisualizations); }
         }
         #endregion
 
@@ -102,23 +102,23 @@ namespace HBP.Data.General
         /// <param name="groups">Groups of the project.</param>
         /// <param name="protocols">Protocols of the project.</param>
         /// <param name="datasets">Datasets of the project.</param>
-        /// <param name="singleVisualisations">Single patient visualisations of the project.</param>
-        /// <param name="multiVisualisations">Multi patients visualisations of the project.</param>
-        public Project(ProjectSettings settings, Patient[] patients, Group[] groups, Protocol[] protocols, Dataset[] datasets, SinglePatientVisualisation[] singleVisualisations, MultiPatientsVisualisation[] multiVisualisations)
+        /// <param name="singleVisualizations">Single patient visualizations of the project.</param>
+        /// <param name="multiVisualizations">Multi patients visualizations of the project.</param>
+        public Project(ProjectSettings settings, Patient[] patients, Group[] groups, Protocol[] protocols, Dataset[] datasets, SinglePatientVisualization[] singleVisualizations, MultiPatientsVisualization[] multiVisualizations)
         {
             Settings = settings;
             SetPatients(patients);
             SetGroups(groups);
             SetProtocols(protocols);
             SetDatasets(datasets);
-            SetSinglePatientVisualisations(singleVisualisations);
-            SetMultiPatientsVisualisations(multiVisualisations);
+            SetSinglePatientVisualizations(singleVisualizations);
+            SetMultiPatientsVisualizations(multiVisualizations);
         }
         /// <summary>
         /// Create a new project with only the settings.
         /// </summary>
         /// <param name="settings">Settings of the project.</param>
-        public Project(ProjectSettings settings) : this(settings, new Patient[0], new Group[0], new Protocol[0], new Dataset[0] , new SinglePatientVisualisation[0], new MultiPatientsVisualisation[0])
+        public Project(ProjectSettings settings) : this(settings, new Patient[0], new Group[0], new Protocol[0], new Dataset[0] , new SinglePatientVisualization[0], new MultiPatientsVisualization[0])
         {
         }
         /// <summary>
@@ -168,10 +168,10 @@ namespace HBP.Data.General
             {
                 dataset.Data.Remove(from info in dataset.Data where info.Patient == patient select info);
             }
-            RemoveSinglePatientVisualisation((from singlePatientVisualisation in singlePatientVisualisations where singlePatientVisualisation.Patient == patient select singlePatientVisualisation).ToArray());
-            foreach(MultiPatientsVisualisation multiPatientsVisualisation in multiPatientsVisualisations)
+            RemoveSinglePatientVisualization((from singlePatientVisualization in singlePatientVisualizations where singlePatientVisualization.Patient == patient select singlePatientVisualization).ToArray());
+            foreach(MultiPatientsVisualization multiPatientsVisualization in multiPatientsVisualizations)
             {
-                multiPatientsVisualisation.RemovePatient(patient);
+                multiPatientsVisualization.RemovePatient(patient);
             }
             patients.Remove(patient);
         }
@@ -235,13 +235,13 @@ namespace HBP.Data.General
             {
                 dataset.Data.Remove(from info in dataset.Data where info.Protocol == protocol select info);
             }
-            foreach (SinglePatientVisualisation singlePatientVisualisation in singlePatientVisualisations)
+            foreach (SinglePatientVisualization singlePatientVisualization in singlePatientVisualizations)
             {                
-                singlePatientVisualisation.Columns.Remove((from column in singlePatientVisualisation.Columns where column.Protocol == protocol select column).ToArray());
+                singlePatientVisualization.Columns.Remove((from column in singlePatientVisualization.Columns where column.Protocol == protocol select column).ToArray());
             }
-            foreach (MultiPatientsVisualisation multiPatientsVisualisation in multiPatientsVisualisations)
+            foreach (MultiPatientsVisualization multiPatientsVisualization in multiPatientsVisualizations)
             {
-                multiPatientsVisualisation.Columns.Remove((from column in multiPatientsVisualisation.Columns where column.Protocol == protocol select column).ToArray());
+                multiPatientsVisualization.Columns.Remove((from column in multiPatientsVisualization.Columns where column.Protocol == protocol select column).ToArray());
             }
             protocols.Remove(protocol);
         }
@@ -273,13 +273,13 @@ namespace HBP.Data.General
         }
         public void RemoveDataset(Dataset dataset)
         {
-            foreach (SinglePatientVisualisation singlePatientVisualisation in singlePatientVisualisations)
+            foreach (SinglePatientVisualization singlePatientVisualization in singlePatientVisualizations)
             {
-                singlePatientVisualisation.Columns.Remove((from column in singlePatientVisualisation.Columns where column.Dataset == dataset select column).ToArray());
+                singlePatientVisualization.Columns.Remove((from column in singlePatientVisualization.Columns where column.Dataset == dataset select column).ToArray());
             }
-            foreach (MultiPatientsVisualisation multiPatientsVisualisation in multiPatientsVisualisations)
+            foreach (MultiPatientsVisualization multiPatientsVisualization in multiPatientsVisualizations)
             {
-                multiPatientsVisualisation.Columns.Remove((from column in multiPatientsVisualisation.Columns where column.Dataset == dataset select column).ToArray());
+                multiPatientsVisualization.Columns.Remove((from column in multiPatientsVisualization.Columns where column.Dataset == dataset select column).ToArray());
             }
             datasets.Remove(dataset);
         }
@@ -291,61 +291,61 @@ namespace HBP.Data.General
             }
         }
 
-        // SinglePatientVisualisations.
-        public void SetSinglePatientVisualisations(SinglePatientVisualisation[] singlePatientVisualisations)
+        // SinglePatientVisualizations.
+        public void SetSinglePatientVisualizations(SinglePatientVisualization[] singlePatientVisualizations)
         {
-            this.singlePatientVisualisations = new List<SinglePatientVisualisation>();
-            AddSinglePatientVisualisation(singlePatientVisualisations);
+            this.singlePatientVisualizations = new List<SinglePatientVisualization>();
+            AddSinglePatientVisualization(singlePatientVisualizations);
         }
-        public void AddSinglePatientVisualisation(SinglePatientVisualisation singlePatientVisualisation)
+        public void AddSinglePatientVisualization(SinglePatientVisualization singlePatientVisualization)
         {
-            singlePatientVisualisations.Add(singlePatientVisualisation);
+            singlePatientVisualizations.Add(singlePatientVisualization);
         }
-        public void AddSinglePatientVisualisation(SinglePatientVisualisation[] singlePatientVisualisations)
+        public void AddSinglePatientVisualization(SinglePatientVisualization[] singlePatientVisualizations)
         {
-            foreach(SinglePatientVisualisation singlePatientVisualisation in singlePatientVisualisations)
+            foreach(SinglePatientVisualization singlePatientVisualization in singlePatientVisualizations)
             {
-                AddSinglePatientVisualisation(singlePatientVisualisation);
+                AddSinglePatientVisualization(singlePatientVisualization);
             }
         }
-        public void RemoveSinglePatientVisualisation(SinglePatientVisualisation singlePatientVisualisation)
+        public void RemoveSinglePatientVisualization(SinglePatientVisualization singlePatientVisualization)
         {
-            singlePatientVisualisations.Remove(singlePatientVisualisation);
+            singlePatientVisualizations.Remove(singlePatientVisualization);
         }
-        public void RemoveSinglePatientVisualisation(SinglePatientVisualisation[] singlePatientVisualisations)
+        public void RemoveSinglePatientVisualization(SinglePatientVisualization[] singlePatientVisualizations)
         {
-            foreach (SinglePatientVisualisation singlePatientVisualisation in singlePatientVisualisations)
+            foreach (SinglePatientVisualization singlePatientVisualization in singlePatientVisualizations)
             {
-                RemoveSinglePatientVisualisation(singlePatientVisualisation);
+                RemoveSinglePatientVisualization(singlePatientVisualization);
             }
         }
 
-        // MultiPatientsVisualisations.
-        public void SetMultiPatientsVisualisations(MultiPatientsVisualisation[] multiPatientsVisualisations)
+        // MultiPatientsVisualizations.
+        public void SetMultiPatientsVisualizations(MultiPatientsVisualization[] multiPatientsVisualizations)
         {
-            this.multiPatientsVisualisations = new List<MultiPatientsVisualisation>();
-            AddMultiPatientsVisualisation(multiPatientsVisualisations);
+            this.multiPatientsVisualizations = new List<MultiPatientsVisualization>();
+            AddMultiPatientsVisualization(multiPatientsVisualizations);
         }
-        public void AddMultiPatientsVisualisation(MultiPatientsVisualisation multiPatientsVisualisation)
+        public void AddMultiPatientsVisualization(MultiPatientsVisualization multiPatientsVisualization)
         {
-            multiPatientsVisualisations.Add(multiPatientsVisualisation);
+            multiPatientsVisualizations.Add(multiPatientsVisualization);
         }
-        public void AddMultiPatientsVisualisation(MultiPatientsVisualisation[] multiPatientsVisualisations)
+        public void AddMultiPatientsVisualization(MultiPatientsVisualization[] multiPatientsVisualizations)
         {
-            foreach (MultiPatientsVisualisation multiPatientsVisualisation in multiPatientsVisualisations)
+            foreach (MultiPatientsVisualization multiPatientsVisualization in multiPatientsVisualizations)
             {
-                AddMultiPatientsVisualisation(multiPatientsVisualisation);
+                AddMultiPatientsVisualization(multiPatientsVisualization);
             }
         }
-        public void RemoveMultiPatientsVisualisation(MultiPatientsVisualisation multiPatientsVisualisation)
+        public void RemoveMultiPatientsVisualization(MultiPatientsVisualization multiPatientsVisualization)
         {
-            multiPatientsVisualisations.Remove(multiPatientsVisualisation);
+            multiPatientsVisualizations.Remove(multiPatientsVisualization);
         }
-        public void RemoveMultiPatientsVisualisation(MultiPatientsVisualisation[] multiPatientsVisualisations)
+        public void RemoveMultiPatientsVisualization(MultiPatientsVisualization[] multiPatientsVisualizations)
         {
-            foreach (MultiPatientsVisualisation multiPatientsVisualisation in multiPatientsVisualisations)
+            foreach (MultiPatientsVisualization multiPatientsVisualization in multiPatientsVisualizations)
             {
-                RemoveMultiPatientsVisualisation(multiPatientsVisualisation);
+                RemoveMultiPatientsVisualization(multiPatientsVisualization);
             }
         }
 
@@ -359,7 +359,7 @@ namespace HBP.Data.General
             {
                 DirectoryInfo l_projectDirectory = new DirectoryInfo(l_path);
                 l_name = l_projectDirectory.Name;
-                if (Directory.Exists(l_path + Path.DirectorySeparatorChar + "Patients") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Groups") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Protocols") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "ROI") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Datasets") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Visualisations") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Visualisations"+Path.DirectorySeparatorChar+"SinglePatient") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Visualisations" + Path.DirectorySeparatorChar + "MultiPatients") && File.Exists(l_path + Path.DirectorySeparatorChar + l_name + ".settings"))
+                if (Directory.Exists(l_path + Path.DirectorySeparatorChar + "Patients") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Groups") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Protocols") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "ROI") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Datasets") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Visualizations") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Visualizations"+Path.DirectorySeparatorChar+"SinglePatient") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Visualizations" + Path.DirectorySeparatorChar + "MultiPatients") && File.Exists(l_path + Path.DirectorySeparatorChar + l_name + ".settings"))
                 {
                     l_isProject = true;
                 }
