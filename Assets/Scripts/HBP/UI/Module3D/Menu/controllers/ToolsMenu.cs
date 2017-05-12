@@ -114,14 +114,14 @@ namespace HBP.UI.Module3D
             // Brain Types.
             m_BrainTypes.onValueChanged.AddListener((value) =>
             {
-                if (value == 0 && m_ScenesManager.SelectedScene.SceneInformation.MarsAtlasModeEnabled) m_ScenesManager.SelectedScene.SwitchMarsAtlasColor();
+                if (value == 0 && m_ScenesManager.SelectedScene.IsMarsAtlasEnabled) m_ScenesManager.SelectedScene.IsMarsAtlasEnabled = false;
                 m_ScenesManager.SelectedScene.UpdateMeshTypeToDisplay((SceneStatesInfo.MeshType)value);
             });
             // MarsAtlas.
             m_MarsAtlas.onValueChanged.AddListener((value) =>
             {
                 if (value) m_ScenesManager.SelectedScene.UpdateMeshTypeToDisplay(SceneStatesInfo.MeshType.White);
-                m_ScenesManager.SelectedScene.SwitchMarsAtlasColor();
+                m_ScenesManager.SelectedScene.IsMarsAtlasEnabled = value;
                 UpdateUI();
             });
             // Views
@@ -455,8 +455,7 @@ namespace HBP.UI.Module3D
             if (displayLeftPart && displayRightPart) return SceneStatesInfo.MeshPart.Both;
             else if (displayLeftPart && !displayRightPart) return SceneStatesInfo.MeshPart.Left;
             else if (!displayLeftPart && displayRightPart) return SceneStatesInfo.MeshPart.Right;
-            // TODO : Display NONE;
-            else return SceneStatesInfo.MeshPart.Both;
+            else return SceneStatesInfo.MeshPart.None;
         }
         #endregion
     }

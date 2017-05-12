@@ -21,8 +21,8 @@ namespace HBP.Module3D
     [System.Serializable]    
     public class SceneStatesInfo
     {
-        public enum MeshPart : int { Left, Right, Both};
-        public enum MeshType : int { Hemi, White, Inflated};
+        public enum MeshPart { Left, Right, Both, None };
+        public enum MeshType { Hemi, White, Inflated };
 
         #region Properties
         // mutex
@@ -30,7 +30,7 @@ namespace HBP.Module3D
         public float CurrentComputingState = 0f;
 
         // state
-        public bool IsiEEGOutdated = true; /**< it true, the amplitudes may need to be updated (ROI, mask, geometry modifications) */
+        public bool IsIEEGOutdated = true; /**< it true, the amplitudes may need to be updated (ROI, mask, geometry modifications) */
         public bool IsComparingSites = false; /**< if true, the next plot clicked will be used to be compared with the current one */
         public bool DisplayCCEPMode = false; // TEST
         public bool IsROICreationModeEnabled = false; /**< is the ROI creation mode enabled ? */

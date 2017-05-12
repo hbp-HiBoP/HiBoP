@@ -226,7 +226,7 @@ namespace HBP.Module3D
             // set the scrollbar down
             StartCoroutine("scrollabar_down");
 
-            m_mpScene.SceneInformation.IsiEEGOutdated = true;
+            m_mpScene.SceneInformation.IsIEEGOutdated = true;
         }
 
         IEnumerator scrollabar_down()
@@ -251,7 +251,7 @@ namespace HBP.Module3D
 
             StartCoroutine("update_scrollbar");
 
-            m_mpScene.SceneInformation.IsiEEGOutdated = true;
+            m_mpScene.SceneInformation.IsIEEGOutdated = true;
         }
 
         IEnumerator update_scrollbar()

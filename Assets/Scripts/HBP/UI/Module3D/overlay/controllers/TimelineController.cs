@@ -483,7 +483,7 @@ namespace HBP.Module3D
 
             string textComputeButton = "";
             Color colorComputeButton = Color.white;
-            computeButton.gameObject.GetComponent<Button>().interactable = m_Scene.SceneInformation.IsiEEGOutdated;
+            computeButton.gameObject.GetComponent<Button>().interactable = m_Scene.SceneInformation.IsIEEGOutdated;
             textComputeButton = "Update iEEG";
             computeButton.gameObject.SetActive(true);
 

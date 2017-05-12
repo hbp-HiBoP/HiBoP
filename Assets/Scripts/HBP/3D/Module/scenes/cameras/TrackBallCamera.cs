@@ -342,9 +342,10 @@ namespace HBP.Module3D.Cam
                 {
                     m_InputsSceneManager.SendKeyboardActionToScenes(m_AssociatedScene, currEvent.keyCode);
                 }                
-
+                /*
                 if (Input.GetKey(KeyCode.Space))
                     m_AssociatedScene.DisplaySitesName(GetComponent<Camera>());
+                    */
             }
             else if(currEvent.type == EventType.ScrollWheel)
             {

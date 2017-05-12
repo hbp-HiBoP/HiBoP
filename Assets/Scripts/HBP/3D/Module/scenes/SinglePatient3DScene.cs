@@ -86,13 +86,13 @@ namespace HBP.Module3D
                     switch (SceneInformation.MeshPartToDisplay)
                     {
                         case SceneStatesInfo.MeshPart.Both:
-                            SceneInformation.MeshToDisplay = (DLL.Surface)m_Column3DViewManager.BothHemi;
+                            SceneInformation.MeshToDisplay = m_Column3DViewManager.BothHemi;
                             break;
                         case SceneStatesInfo.MeshPart.Left:
-                            SceneInformation.MeshToDisplay = (DLL.Surface)m_Column3DViewManager.LHemi;
+                            SceneInformation.MeshToDisplay = m_Column3DViewManager.LHemi;
                             break;
                         case SceneStatesInfo.MeshPart.Right:
-                            SceneInformation.MeshToDisplay = (DLL.Surface)m_Column3DViewManager.RHemi;
+                            SceneInformation.MeshToDisplay = m_Column3DViewManager.RHemi;
                             break;
                     }
                     break;
@@ -100,13 +100,13 @@ namespace HBP.Module3D
                     switch (SceneInformation.MeshPartToDisplay)
                     {
                         case SceneStatesInfo.MeshPart.Both:
-                            SceneInformation.MeshToDisplay = (DLL.Surface)m_Column3DViewManager.BothWhite;
+                            SceneInformation.MeshToDisplay = m_Column3DViewManager.BothWhite;
                             break;
                         case SceneStatesInfo.MeshPart.Left:
-                            SceneInformation.MeshToDisplay = (DLL.Surface)m_Column3DViewManager.LWhite;
+                            SceneInformation.MeshToDisplay = m_Column3DViewManager.LWhite;
                             break;
                         case SceneStatesInfo.MeshPart.Right:
-                            SceneInformation.MeshToDisplay = (DLL.Surface)m_Column3DViewManager.RWhite;
+                            SceneInformation.MeshToDisplay = m_Column3DViewManager.RWhite;
                             break;
                     }
                     break;
@@ -114,6 +114,8 @@ namespace HBP.Module3D
                     // ...
                     break;
             }
+
+            if (SceneInformation.MeshToDisplay == null) return;
 
             // get the middle
             SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox().Center();

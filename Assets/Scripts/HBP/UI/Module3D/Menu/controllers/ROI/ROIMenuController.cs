@@ -367,7 +367,7 @@ namespace HBP.Module3D
             m_scene.UpdateSitesMasks(m_currentROICol.m_idColumn, electrodes, patientsNames);
             m_columnROI[m_currentROICol.m_idColumn].GetComponent<ColumnROI>().add_ROI(positions, rays, nameROI);
 
-            m_scene.SceneInformation.IsiEEGOutdated = true;
+            m_scene.SceneInformation.IsIEEGOutdated = true;
             return true;
         }
 

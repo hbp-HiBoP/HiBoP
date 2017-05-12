@@ -166,6 +166,8 @@ namespace HBP.Module3D
                     break;
             }
 
+            if (SceneInformation.MeshToDisplay == null) return;
+
             if (SceneInformation.MeshTypeToDisplay == SceneStatesInfo.MeshType.Inflated)
                 m_Column3DViewManager.DLLSplittedWhiteMeshesList = new List<DLL.Surface>(SceneInformation.MeshToDisplay.SplitToSurfaces(m_Column3DViewManager.MeshSplitNumber));
 

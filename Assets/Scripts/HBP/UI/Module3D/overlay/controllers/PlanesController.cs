@@ -398,8 +398,7 @@ namespace HBP.Module3D
             m_SetPlanePanelList.RemoveAt(m_SetPlanePanelList.Count - 1);
 
             // remove last plane and update the scene
-            m_Scene.RemoveLastCutPlane();
-            --m_CurrentPlaneNumber;            
+            m_Scene.RemoveCutPlane(m_CurrentPlaneNumber--);
         }
 
 
