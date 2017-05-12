@@ -240,7 +240,7 @@ namespace HBP.Module3D.Cam
         {
             m_OriginalRotationEuler = transform.localEulerAngles;
 
-            m_InputsSceneManager = StaticComponents.InputsSceneManager;
+            //m_InputsSceneManager = StaticComponents.InputsSceneManager;
 
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
 

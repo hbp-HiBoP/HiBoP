@@ -98,7 +98,7 @@ namespace HBP.UI.Module3D
         /// Update the IRMF data from the scene
         /// </summary>
         /// <param name="IRMFDataParams"></param>
-        public void update_FMRI_params_from_scene(FMriDataParameters IRMFDataParams)
+        public void update_FMRI_params_from_scene(FMRIDataParameters IRMFDataParams)
         {
             Transform contentPanelT = transform.Find("panel");
 

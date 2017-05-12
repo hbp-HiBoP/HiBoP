@@ -105,8 +105,8 @@ namespace HBP.UI.Graph
         {
             HBP3DModule command;
             command = FindObjectOfType<HBP3DModule>();
-            command.SiteInfoRequest.AddListener((plotResquest) => OnDisplayPlots(plotResquest));
-            command.UpdateColumnMinimizedState.AddListener((sp, columns) => OnMinimizeColumns());
+            command.OnRequestSiteInformation.AddListener((plotResquest) => OnDisplayPlots(plotResquest));
+            command.OnMinimizeColumn.AddListener((sp, columns) => OnMinimizeColumns());
         }
         #endregion
 

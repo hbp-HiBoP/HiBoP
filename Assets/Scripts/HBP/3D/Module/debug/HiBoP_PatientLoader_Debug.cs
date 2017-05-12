@@ -234,12 +234,10 @@ namespace HBP.Module3D
             if (spScene)
             {
                 load_debug_SP_scene(names[0], patientsPaths[0], true);
-                m_command.SetScenesVisibility(true, false);
             }
             else
             {
                 load_debug_MP_scene(names, patientsPaths);
-                m_command.SetScenesVisibility(false, true);
             }
         }
 

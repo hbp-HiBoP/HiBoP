@@ -31,7 +31,7 @@ namespace HBP.Module3D.Cam
         {
             m_SceneType = SceneType.MultiPatients;
 
-            base.m_AssociatedScene = StaticComponents.MultiPatientsScene;
+            //base.m_AssociatedScene = StaticComponents.MultiPatientsScene;
             m_AssociatedScene = (MultiPatients3DScene)base.m_AssociatedScene;
             m_MultiPatientsCameraParent = transform.parent;
 

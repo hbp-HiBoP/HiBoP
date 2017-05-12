@@ -34,7 +34,7 @@ namespace HBP.Module3D
 
         void Start()
         {
-            m_infoPanel = StaticComponents.CanvasOverlay.Find("others").Find("tooltip panel").gameObject;
+            //m_infoPanel = StaticComponents.CanvasOverlay.Find("others").Find("tooltip panel").gameObject;
         }
 
         void Update()

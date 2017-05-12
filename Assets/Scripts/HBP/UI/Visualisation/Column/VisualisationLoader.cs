@@ -43,7 +43,7 @@ namespace HBP.UI.Visualisation
         {
             command = FindObjectOfType<HBP3DModule>();
             UnityEngine.Debug.Log(command);
-            command.LoadSPSceneFromMP.AddListener((i) => LoadSPSceneFromMP(i));
+            command.OnLoadSinglePatientSceneFromMultiPatientsScene.AddListener((i) => LoadSPSceneFromMP(i));
         }
         IEnumerator c_Load(data.Visualisation visualisation, bool MNI)
         {

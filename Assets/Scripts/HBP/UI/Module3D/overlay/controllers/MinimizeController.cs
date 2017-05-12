@@ -266,7 +266,6 @@ namespace HBP.Module3D
                     return m_mpMinimizeOverlayList[idButton].transform.Find("minimize_button").GetComponent<RectTransform>();
                 default:
                     return null;
-                    break;
             }
         }
 

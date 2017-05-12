@@ -95,7 +95,7 @@ namespace HBP.Module3D
     /// <summary>
     /// IEEG sites parameters
     /// </summary>
-    public struct iEEGSitesParameters
+    public struct IEEGSitesParameters
     {
         public int columnId;
         public float gain;
@@ -105,7 +105,7 @@ namespace HBP.Module3D
     /// <summary>
     /// IEEG alpha parameters 
     /// </summary>
-    public struct iEEGAlphaParameters
+    public struct IEEGAlphaParameters
     {
         public int columnId;
         public float alphaMin;
@@ -115,7 +115,7 @@ namespace HBP.Module3D
     /// <summary>
     /// IEEG threhsolds parameters
     /// </summary>
-    public struct iEEGThresholdParameters
+    public struct IEEGThresholdParameters
     {
         public int columnId;
         public float minSpan;
@@ -126,7 +126,7 @@ namespace HBP.Module3D
     /// <summary>
     /// IEEG data to be send to the UI
     /// </summary>
-    public struct iEEGDataParameters
+    public struct IEEGDataParameters
     {
         public int columnId;
 
@@ -147,7 +147,7 @@ namespace HBP.Module3D
     /// <summary>
     /// IRMF data to be send to the UI
     /// </summary>
-    public struct FMriDataParameters
+    public struct FMRIDataParameters
     {
         public bool singlePatient;
         public int columnId;
@@ -164,7 +164,7 @@ namespace HBP.Module3D
         /// UI event for sending a plot info request to the outside UI (params : plotRequest)
         /// </summary>
         [System.Serializable]
-        public class SiteInfoRequest : UnityEvent<SiteRequest> { }
+        public class OnRequestSiteInformation : UnityEvent<SiteRequest> { }
         /// <summary>
         /// Event for sending info in order to display a message in a scene screen (params : message, duration, width, height)
         /// </summary>
@@ -184,11 +184,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Event for sending IEEG data parameters to UI (params : IEEGDataParameters)
         /// </summary>
-        public class SendIEEGParameters : UnityEvent<iEEGDataParameters> { }
+        public class SendIEEGParameters : UnityEvent<IEEGDataParameters> { }
         /// <summary>
         /// Event for sending IRMF data parameters to UI (params : IRMFDataParameters)
         /// </summary>
-        public class SendFMRIParameters : UnityEvent<FMriDataParameters> { }
+        public class SendFMRIParameters : UnityEvent<FMRIDataParameters> { }
         /// <summary>
         /// Event for updating cuts planes 
         /// </summary>
@@ -295,8 +295,63 @@ namespace HBP.Module3D
         public Column3DViewManager Column3DViewManager { get { return m_Column3DViewManager; } }
 
         public UIOverlayManager m_uiOverlayManager; /**< UI overlay manager of the scenes */ // DELETEME
-
+        
+        /// <summary>
+        /// Handles triangle erasing
+        /// </summary>
         protected TriEraser m_TriEraser = new TriEraser();
+        /// <summary>
+        /// Is the triangle eraser enabled ?
+        /// </summary>
+        public bool IsTriangleErasingEnabled
+        {
+            get
+            {
+                return m_TriEraser.IsEnabled;
+            }
+            set
+            {
+                m_TriEraser.IsEnabled = value;
+            }
+        }
+        /// <summary>
+        /// Mode of the triangle eraser
+        /// </summary>
+        public TriEraser.Mode TriangleErasingMode
+        {
+            get
+            {
+                return m_TriEraser.CurrentMode;
+            }
+            set
+            {
+                TriEraser.Mode previousMode = m_TriEraser.CurrentMode;
+                m_TriEraser.CurrentMode = value;
+
+                if (value == TriEraser.Mode.Expand || value == TriEraser.Mode.Invert)
+                {
+                    m_TriEraser.EraseTriangles(new Vector3(), new Vector3());
+                    for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
+                        m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                    m_TriEraser.CurrentMode = previousMode;
+                }
+            }
+        }
+        /// <summary>
+        /// Degrees limit when selecting a zone with the triangle eraser
+        /// </summary>
+        public float TriangleErasingZoneDegrees
+        {
+            get
+            {
+                return m_TriEraser.Degrees;
+            }
+            set
+            {
+                m_TriEraser.Degrees = value;
+            }
+        }
+
         // threads / jobs
         protected ComputeGeneratorsJob m_ComputeGeneratorsJob = null; /**< generator computing job */
 
@@ -306,10 +361,10 @@ namespace HBP.Module3D
         public Events.SendIEEGParameters SendIEEGParameters = new Events.SendIEEGParameters();
         public Events.SendFMRIParameters SendFMRIParameters = new Events.SendFMRIParameters();
         public Events.SendColormapEvent SendColorMapValues = new Events.SendColormapEvent();
-        public Events.SendModeSpecifications SendModeSpecifications = new Events.SendModeSpecifications(); 
-        public Events.DisplaySceneMessage display_screen_message_event = new Events.DisplaySceneMessage();
-        public Events.DisplaySceneProgressBar display_scene_progressbar_event = new Events.DisplaySceneProgressBar();
-        public Events.SiteInfoRequest SiteInfoRequest = new Events.SiteInfoRequest();
+        public Events.OnSendModeSpecifications SendModeSpecifications = new Events.OnSendModeSpecifications(); 
+        public Events.DisplaySceneMessage OnDisplayScreenMessage = new Events.DisplaySceneMessage();
+        public Events.DisplaySceneProgressBar OnDisplayScreenProgressbar = new Events.DisplaySceneProgressBar();
+        public Events.OnRequestSiteInformation SiteInfoRequest = new Events.OnRequestSiteInformation();
         public Events.UpdateCutsInUI UpdateCutsInUI = new Events.UpdateCutsInUI();
         public Events.DefineSelectedColumn DefineSelectedColumn = new Events.DefineSelectedColumn();
         public Events.UpdateTimeInUI UpdateTimeInUI = new Events.UpdateTimeInUI();
@@ -318,6 +373,14 @@ namespace HBP.Module3D
         public Events.UpdateCameraTarget UpdateCameraTarget = new Events.UpdateCameraTarget();
         public Events.ClickPlot ClickSite = new Events.ClickPlot();
         public Events.IRMCalValuesUpdate IRMCalValuesUpdate = new Events.IRMCalValuesUpdate();
+        /// <summary>
+        /// Event called when a FMRI column is added
+        /// </summary>
+        public UnityEvent OnAddFMRIColumn = new UnityEvent();
+        /// <summary>
+        /// Event called when a FMRI column is removed
+        /// </summary>
+        public UnityEvent OnRemoveFMRIColumn = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -658,6 +721,126 @@ namespace HBP.Module3D
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.PostUpdateGenerators);
             //##################
+        }
+        /// <summary>
+        /// Load FMRI dialog
+        /// </summary>
+        /// <param name="path">Path of the FMRI file</param>
+        /// <returns></returns>
+        private bool LoadFMRIDialog(out string path)
+        {
+            bool loaded = true;
+            string[] filters = new string[] { "nii", "img" };
+            path = "";
+            path = DLL.QtGUI.GetExistingFileName(filters, "Select an fMRI file");
+
+            if (!string.IsNullOrEmpty(path))
+            {
+                bool result = LoadFMRIFile(path);
+                if (!result)
+                {
+                    Debug.LogError("-ERROR : ScenesManager::addIRMF -> can't load FMRI");
+                    loaded = false;
+                }
+            }
+            else
+            {
+                loaded = false;
+            }
+            return loaded;
+        }
+        /// <summary>
+        /// Load an FMRI column
+        /// </summary>
+        /// <param name="fMRIPath"></param>
+        /// <returns></returns>
+        private bool LoadFMRIFile(string fMRIPath)
+        {
+            if (m_Column3DViewManager.DLLNii.LoadNIIFile(fMRIPath))
+                return true;
+
+            Debug.LogError("-ERROR : Base3DScene::load_FMRI_file -> load NII file failed. " + fMRIPath);
+            return false;
+        }
+        /// <summary>
+        /// Load a FMRI column
+        /// </summary>
+        /// <param name="fmriLabel"></param>
+        /// <returns></returns>
+        private bool LoadFMRIColumn(string fmriLabel)
+        {
+            // Check access
+            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.AddFMRIColumn))
+            {
+                Debug.LogError("-ERROR : Base3DScene::add_FMRI_column -> no acess for mode : " + m_ModesManager.CurrentModeName);
+                return false;
+            }
+
+            // Update column number
+            int newFMRIColumnNumber = m_Column3DViewManager.ColumnsFMRI.Count + 1;
+            m_Column3DViewManager.UpdateColumnsNumber(m_Column3DViewManager.ColumnsIEEG.Count, newFMRIColumnNumber, m_PlanesList.Count);
+
+            // Update label
+            int newFMRIColumnID = newFMRIColumnNumber - 1;
+            m_Column3DViewManager.ColumnsFMRI[newFMRIColumnID].Label = fmriLabel;
+
+            // Update sites visibility
+            m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
+
+            // Convert to volume            
+            m_Column3DViewManager.DLLNii.ConvertToVolume(m_Column3DViewManager.DLLVolumeFMriList[newFMRIColumnID]);
+
+            if (Type == SceneType.SinglePatient)
+                AskROIUpdateEvent.Invoke(m_Column3DViewManager.ColumnsIEEG.Count + newFMRIColumnID);
+
+            // send parameters to UI
+            //IRMCalValues calValues = m_CM.DLLVolumeIRMFList[idCol].retrieveExtremeValues();
+
+            FMRIDataParameters fmriParams = new FMRIDataParameters();
+            fmriParams.calValues = m_Column3DViewManager.DLLVolumeFMriList[newFMRIColumnID].RetrieveExtremeValues();
+            fmriParams.columnId = newFMRIColumnID;
+            fmriParams.alpha = m_Column3DViewManager.ColumnsFMRI[newFMRIColumnID].Alpha;
+            fmriParams.calMin = m_Column3DViewManager.ColumnsFMRI[newFMRIColumnID].CalMin;
+            fmriParams.calMax = m_Column3DViewManager.ColumnsFMRI[newFMRIColumnID].CalMax;
+            fmriParams.singlePatient = Type == SceneType.SinglePatient;
+
+            m_Column3DViewManager.ColumnsFMRI[newFMRIColumnID].CalMin = fmriParams.calValues.computedCalMin;
+            m_Column3DViewManager.ColumnsFMRI[newFMRIColumnID].CalMax = fmriParams.calValues.computedCalMax;
+
+            // Update camera
+            UpdateCameraTarget.Invoke(Type == SceneType.SinglePatient ? m_Column3DViewManager.BothHemi.BoundingBox().Center() : m_MNIObjects.BothHemi.BoundingBox().Center());
+
+            ComputeMRITextures(-1, -1);
+
+            SendFMRIParameters.Invoke(fmriParams);
+            ComputeFMRITextures(-1, -1);
+
+            m_ModesManager.UpdateMode(Mode.FunctionsId.AddFMRIColumn);
+            return true;
+        }
+        /// <summary>
+        /// Unload the last FMRI column
+        /// </summary>
+        private void UnloadLastFMRIColumn()
+        {
+            // Check access
+            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.RemoveLastFMRIColumn))
+            {
+                Debug.LogError("-ERROR : Base3DScene::remove_last_FMRI_column -> no acess for mode : " + m_ModesManager.CurrentModeName);
+                return;
+            }
+
+            // Update columns number
+            m_Column3DViewManager.UpdateColumnsNumber(m_Column3DViewManager.ColumnsIEEG.Count, m_Column3DViewManager.ColumnsFMRI.Count - 1, m_PlanesList.Count);
+
+            // Update plots visibility
+            m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
+
+            ComputeMRITextures(-1, -1);
+            ComputeFMRITextures(-1, -1);
+            UpdateGUITextures();
+
+            m_ModesManager.UpdateMode(Mode.FunctionsId.RemoveLastFMRIColumn);
         }
         /// <summary>
         /// Init gameobjects of the scene
@@ -1441,30 +1624,6 @@ namespace HBP.Module3D
         /// <summary>
         /// 
         /// </summary>
-        /// <returns></returns>
-        public bool IsTriangleErasingModeEnabled()
-        {
-            return m_TriEraser.IsEnabled;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public TriEraser.Mode CurrentTriangleErasingMode()
-        {
-            return m_TriEraser.CurrentMode;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="enabled"></param>
-        public void SetTriangleErasing(bool enabled)
-        {
-            m_TriEraser.IsEnabled = enabled;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="updateGO"></param>
         public void ResetTriangleErasing(bool updateGO = true)
         {
@@ -1510,31 +1669,6 @@ namespace HBP.Module3D
             m_TriEraser.CancelLastAction();
             for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
                 m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="mode"></param>
-        public void SetTriangleErasingMode(TriEraser.Mode mode)
-        {
-            TriEraser.Mode previousMode = m_TriEraser.CurrentMode;
-            m_TriEraser.CurrentMode = mode;
-
-            if (mode == TriEraser.Mode.Expand || mode == TriEraser.Mode.Invert)
-            {
-                m_TriEraser.EraseTriangles(new Vector3(), new Vector3());
-                for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
-                    m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
-                m_TriEraser.CurrentMode = previousMode;
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="degrees"></param>
-        public void SetTriangleErasingZoneDegrees(float degrees)
-        {
-            m_TriEraser.Degrees = degrees;
         }
         /// <summary>
         /// Return the id of the current select column in the scene
@@ -1765,112 +1899,38 @@ namespace HBP.Module3D
             //##################
         }
         /// <summary>
-        /// Return the number of FMRI colums
+        /// Add a FMRI column to this scene
         /// </summary>
         /// <returns></returns>
-        public int GetNumberOffMRIColumns()
+        public bool AddFMRIColumn()
         {
-            return m_Column3DViewManager.ColumnsFMRI.Count;
-        }
-        /// <summary>
-        /// Load an FMRI column
-        /// </summary>
-        /// <param name="FMRIPath"></param>
-        /// <returns></returns>
-        public bool LoadFMRIFile(string FMRIPath)
-        {
-            if (m_Column3DViewManager.DLLNii.LoadNIIFile(FMRIPath))
-                return true;
+            string fMRIPath;
+            if (!LoadFMRIDialog(out fMRIPath)) return false;
 
-            Debug.LogError("-ERROR : Base3DScene::load_FMRI_file -> load NII file failed. " + FMRIPath);
-            return false;
-        }
-        /// <summary>
-        /// Add a FMRI column
-        /// </summary>
-        /// <param name="IRMFPath"></param>
-        /// <returns></returns>
-        public bool AddfMRIColumn(string IMRFLabel)
-        {
-            //####### CHECK ACESS
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.AddFMRIColumn))
+            string[] split = fMRIPath.Split(new Char[] { '/', '\\' });
+            string fMRILabel = split[split.Length - 1];
+
+            bool result = LoadFMRIColumn(fMRILabel);
+            if (!result)
             {
-                Debug.LogError("-ERROR : Base3DScene::add_FMRI_column -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return false;
+                Debug.LogError("-ERROR : ScenesManager::addIRMF -> can't add IRMF column");
             }
-            //##################
-
-            // update columns number
-            int newFMRIColNb = m_Column3DViewManager.ColumnsFMRI.Count + 1;
-            m_Column3DViewManager.UpdateColumnsNumber(m_Column3DViewManager.ColumnsIEEG.Count, newFMRIColNb, m_PlanesList.Count);
-
-            int idCol = newFMRIColNb - 1;
-            m_Column3DViewManager.ColumnsFMRI[idCol].Label = IMRFLabel;
-
-            // update plots visibility
-            m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
-            // convert to volume            
-            m_Column3DViewManager.DLLNii.ConvertToVolume(m_Column3DViewManager.DLLVolumeFMriList[idCol]);
-
-            if (Type == SceneType.SinglePatient)
-                AskROIUpdateEvent.Invoke(m_Column3DViewManager.ColumnsIEEG.Count + idCol);
-
-            // send parameters to UI
-            //IRMCalValues calValues = m_CM.DLLVolumeIRMFList[idCol].retrieveExtremeValues();
-
-            FMriDataParameters FMRIParams = new FMriDataParameters();
-            FMRIParams.calValues = m_Column3DViewManager.DLLVolumeFMriList[idCol].RetrieveExtremeValues();
-            FMRIParams.columnId = idCol;
-            FMRIParams.alpha  = m_Column3DViewManager.ColumnsFMRI[idCol].Alpha;
-            FMRIParams.calMin = m_Column3DViewManager.ColumnsFMRI[idCol].CalMin;
-            FMRIParams.calMax = m_Column3DViewManager.ColumnsFMRI[idCol].CalMax;
-            FMRIParams.singlePatient = Type == SceneType.SinglePatient;
-
-            m_Column3DViewManager.ColumnsFMRI[idCol].CalMin = FMRIParams.calValues.computedCalMin;
-            m_Column3DViewManager.ColumnsFMRI[idCol].CalMax = FMRIParams.calValues.computedCalMax;            
-
-            // update camera
-            UpdateCameraTarget.Invoke(Type == SceneType.SinglePatient ?  m_Column3DViewManager.BothHemi.BoundingBox().Center() : m_MNIObjects.BothHemi.BoundingBox().Center());
-
-            ComputeMRITextures(-1, -1);
-
-            SendFMRIParameters.Invoke(FMRIParams);
-            ComputeFMRITextures(-1, -1);
-
-
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.AddFMRIColumn);
-            //##################
-
-            return true;
+            else
+            {
+                OnAddFMRIColumn.Invoke();
+            }
+            return result;
         }
         /// <summary>
-        /// Remove the last IRMF column
+        /// Remove the last FMRI column from this scene
         /// </summary>
         public void RemoveLastFMRIColumn()
         {
-            //####### CHECK ACESS
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.RemoveLastFMRIColumn))
+            if (m_Column3DViewManager.ColumnsFMRI.Count > 0)
             {
-                Debug.LogError("-ERROR : Base3DScene::remove_last_FMRI_column -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return;
+                UnloadLastFMRIColumn();
+                OnRemoveFMRIColumn.Invoke();
             }
-            //##################
-            
-            // update columns number
-            m_Column3DViewManager.UpdateColumnsNumber(m_Column3DViewManager.ColumnsIEEG.Count, m_Column3DViewManager.ColumnsFMRI.Count - 1, m_PlanesList.Count);
-
-            // update plots visibility
-            m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
-            ComputeMRITextures(-1, -1);
-            ComputeFMRITextures(-1, -1);
-            UpdateGUITextures();
-
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.RemoveLastFMRIColumn);
-            //##################
         }
         /// <summary>
         /// Is the latency mode enabled ?
@@ -1900,7 +1960,7 @@ namespace HBP.Module3D
         {            
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
-                iEEGDataParameters iEEGDataParams;
+                IEEGDataParameters iEEGDataParams;
                 iEEGDataParams.minAmp       = m_Column3DViewManager.ColumnsIEEG[ii].MinAmp;
                 iEEGDataParams.maxAmp       = m_Column3DViewManager.ColumnsIEEG[ii].MaxAmp;
 
@@ -1925,7 +1985,7 @@ namespace HBP.Module3D
         {
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
-                FMriDataParameters FMRIDataParams;
+                FMRIDataParameters FMRIDataParams;
                 FMRIDataParams.alpha = m_Column3DViewManager.ColumnsFMRI[ii].Alpha;
                 FMRIDataParams.calMin = m_Column3DViewManager.ColumnsFMRI[ii].CalMin;
                 FMRIDataParams.calMax = m_Column3DViewManager.ColumnsFMRI[ii].CalMax;
@@ -1946,7 +2006,7 @@ namespace HBP.Module3D
         /// <param name="height"></param>
         public void DisplayScreenMessage(string message, float duration, int width, int height)
         {            
-            display_screen_message_event.Invoke(message, duration, width , height);
+            OnDisplayScreenMessage.Invoke(message, duration, width , height);
         }
         /// <summary>
         /// Send an event for displaying a progressbar on the scene screen
@@ -1957,7 +2017,7 @@ namespace HBP.Module3D
         /// <param name="height"></param>
         public void DisplayProgressbar(float value, float duration, int width, int height)
         {
-            display_scene_progressbar_event.Invoke(duration, width, height, value);
+            OnDisplayScreenProgressbar.Invoke(duration, width, height, value);
         }
         /// <summary>
         /// 
@@ -1977,8 +2037,6 @@ namespace HBP.Module3D
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
             ClickSite.Invoke(-1); // update menu
         }
-
-
         #endregion
 
         #region Abstract Methods

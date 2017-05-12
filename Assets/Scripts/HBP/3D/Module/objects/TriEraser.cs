@@ -57,6 +57,10 @@ namespace HBP.Module3D
         private float m_Degrees = 30f;
         public float Degrees
         {
+            get
+            {
+                return m_Degrees;
+            }
             set
             {
                 m_Degrees = value;

@@ -42,7 +42,7 @@ namespace HBP.UI
         void Awake()
         {
             command = FindObjectOfType<HBP3DModule>();
-            command.UpdateColumnMinimizedState.AddListener((sp, columns) => OnColumnsChange(sp, columns.ToArray()));
+            command.OnMinimizeColumn.AddListener((sp, columns) => OnColumnsChange(sp, columns.ToArray()));
             AddEvents();
         }
         void Update3DPanel()

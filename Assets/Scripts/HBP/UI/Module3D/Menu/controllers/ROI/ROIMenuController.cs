@@ -25,7 +25,7 @@ namespace HBP.Module3D
         /// Send the path of the saved ROI
         /// </summary>
         [System.Serializable]
-        public class ROISavedEvent : UnityEvent<string> { }
+        public class OnSaveRegionOfInterest : UnityEvent<string> { }
     }
 
 
@@ -43,7 +43,7 @@ namespace HBP.Module3D
         public Transform m_middlePanelT = null; /**< middle scene panel transform */
 
         // events
-        public Events.ROISavedEvent ROISavedEvent = new Events.ROISavedEvent();
+        public Events.OnSaveRegionOfInterest ROISavedEvent = new Events.OnSaveRegionOfInterest();
 
         // menus
         List<GameObject> m_columnROI = new List<GameObject>();

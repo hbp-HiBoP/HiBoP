@@ -138,13 +138,13 @@ namespace HBP.UI.Module3D
             // fMRI.
             m_AddfMRI.onClick.AddListener(() =>
             {
-                if (StaticComponents.ScenesManager.AddfMRIColumnToSelectedScene()) m_ScenesManager.DisplayMessageInScene(m_ScenesManager.SelectedScene, "fMRI successfully loaded. ", 2f, 150, 80);
-                else m_ScenesManager.DisplayMessageInScene(m_ScenesManager.SelectedScene, "Error during fMRI loading. ", 2f, 170, 80);
+                if (StaticComponents.ScenesManager.SelectedScene.AddFMRIColumn()) m_ScenesManager.SelectedScene.DisplayScreenMessage("fMRI successfully loaded. ", 2f, 150, 80);
+                else m_ScenesManager.SelectedScene.DisplayScreenMessage("Error during fMRI loading. ", 2f, 170, 80);
                 UpdateUI();
             });
             m_RemovefMRI.onClick.AddListener(() =>
             {
-                StaticComponents.ScenesManager.RemoveLastfMRIColumnFromSelectedScene();
+                StaticComponents.ScenesManager.SelectedScene.RemoveLastFMRIColumn();
                 UpdateUI();
             });
 
@@ -247,7 +247,7 @@ namespace HBP.UI.Module3D
             bool CanRemoveView = (camerasManager.GetNumberOfLines(m_ScenesManager.SelectedScene.Type) > 1);
             bool CanAddfMRI = (camerasManager.MaximumNumberOfColumns != camerasManager.GetNumberOfLines(m_ScenesManager.SelectedScene.Type));
             */
-            bool CanRemovefMRI = (m_ScenesManager.SelectedScene.GetNumberOffMRIColumns() > 0);
+            bool CanRemovefMRI = (m_ScenesManager.SelectedScene.Column3DViewManager.ColumnsFMRI.Count > 0);
             bool CanUseMarsAtlas = m_ScenesManager.SelectedScene.SceneInformation.WhiteMeshesAvailables && m_ScenesManager.SelectedScene.SceneInformation.MarsAtlasParcelsLoaed;
             //bool CcepVisible = m_IsSinglePatientScene && !m_ScenesManager.SPScene.is_latency_mode_enabled();
             //bool iEegVisible = (!CcepVisible && m_IsSinglePatientScene);

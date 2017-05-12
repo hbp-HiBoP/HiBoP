@@ -173,7 +173,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event for sending mode specifications
         /// </summary>
-        public class SendModeSpecifications : UnityEvent<ModeSpecifications> { }
+        public class OnSendModeSpecifications : UnityEvent<ModeSpecifications> { }
     }
 
 
@@ -207,7 +207,7 @@ namespace HBP.Module3D
         private ModeSpecifications m_Specifications = new ModeSpecifications();
 
         // events
-        public Events.SendModeSpecifications SendModeSpecifications = new Events.SendModeSpecifications();
+        public Events.OnSendModeSpecifications SendModeSpecifications = new Events.OnSendModeSpecifications();
         #endregion
 
         #region Public Methods 

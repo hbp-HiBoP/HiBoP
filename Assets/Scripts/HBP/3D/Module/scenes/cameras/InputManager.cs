@@ -30,7 +30,7 @@ namespace HBP.Interaction
         void Awake()
         {
             m_scenesManager = Module3D.StaticComponents.ScenesManager;
-            m_UIManager = Module3D.StaticComponents.UIManager;
+            //m_UIManager = Module3D.StaticComponents.UIManager; // TODO : retrieve
         }
         #endregion
         

@@ -48,7 +48,7 @@ namespace HBP.Module3D
         /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
         /// </summary>        
         [System.Serializable]
-        public class LoadSPSceneFromMP : UnityEvent<int> { }
+        public class OnLoadSinglePatientSceneFromMultiPatientsScene : UnityEvent<int> { }
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ namespace HBP.Module3D
         public Events.ChangeSizeBubble ChangeSizeBubbleEvent = new Events.ChangeSizeBubble();
         public Events.RemoveBubble RemoveBubbleEvent = new Events.RemoveBubble();
         public Events.ApplySceneCamerasToIndividualScene ApplySceneCamerasToIndividualScene = new Events.ApplySceneCamerasToIndividualScene();
-        public Events.LoadSPSceneFromMP LoadSPSceneFromMP = new Events.LoadSPSceneFromMP();
+        public Events.OnLoadSinglePatientSceneFromMultiPatientsScene LoadSPSceneFromMP = new Events.OnLoadSinglePatientSceneFromMultiPatientsScene();
         #endregion
 
         #region Private Methods

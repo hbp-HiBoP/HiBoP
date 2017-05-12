@@ -42,14 +42,13 @@ namespace HBP.UI.Module3D
             m_sceneRatioTransform.GetComponent<Slider>().interactable = false;
             m_sceneRatioTransform.GetComponent<Slider>().onValueChanged.AddListener((value) =>
             {
-                StaticComponents.HBPCommand.SetSceneRatio(value);
                 foreach (Base3DScene scene in scenesManager.Scenes)
                 {
                     scene.SetCurrentModeSpecifications();
                 }
             });
 
-            scenesManager.FocusOnScene.AddListener((spScene) =>
+            scenesManager.OnSelectScene.AddListener((spScene) =>
             {
                 if (spScene)
                     m_spSceneHasBeenActivated = true;
