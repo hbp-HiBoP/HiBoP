@@ -29,7 +29,7 @@ namespace HBP.UI.Visualization
         void Awake()
         {
             // TODO
-            ApplicationState.Module3D.OnLoadSinglePatientSceneFromMultiPatientsScene.AddListener((i) => LoadSPSceneFromMP(i));
+            ApplicationState.Module3D.OnLoadSinglePatientSceneFromMultiPatientsScene.AddListener((visualization, patient) => LoadSPSceneFromMP(visualization, patient));
         }
         void LoadSPSceneFromMP(Data.Visualization.MultiPatientsVisualization visualization, Data.Patient patient)
         {

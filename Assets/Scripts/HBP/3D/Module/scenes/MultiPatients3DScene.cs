@@ -48,7 +48,7 @@ namespace HBP.Module3D
         /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
         /// </summary>        
         [System.Serializable]
-        public class OnLoadSinglePatientSceneFromMultiPatientsScene : UnityEvent<int> { }
+        public class OnLoadSinglePatientSceneFromMultiPatientsScene : UnityEvent<Data.Visualization.MultiPatientsVisualization, Data.Patient> { }
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ namespace HBP.Module3D
         public Events.ChangeSizeBubble ChangeSizeBubbleEvent = new Events.ChangeSizeBubble();
         public Events.RemoveBubble RemoveBubbleEvent = new Events.RemoveBubble();
         public Events.ApplySceneCamerasToIndividualScene ApplySceneCamerasToIndividualScene = new Events.ApplySceneCamerasToIndividualScene();
-        public Events.OnLoadSinglePatientSceneFromMultiPatientsScene LoadSPSceneFromMP = new Events.OnLoadSinglePatientSceneFromMultiPatientsScene();
+        public Events.OnLoadSinglePatientSceneFromMultiPatientsScene OnLoadSinglePatientSceneFromMultiPatientsScene = new Events.OnLoadSinglePatientSceneFromMultiPatientsScene();
         #endregion
 
         #region Private Methods
@@ -483,9 +483,9 @@ namespace HBP.Module3D
         /// Load a patient in the SP scene
         /// </summary>
         /// <param name="idPatientSelected"></param>
-        public void LoadPatientInSinglePatientScene(int idPatientSelected, int idPlotSelected)
+        public void LoadPatientInSinglePatientScene(Data.Visualization.MultiPatientsVisualization visualization, Data.Patient patient, int idPlotSelected)
         {
-            LoadSPSceneFromMP.Invoke(idPatientSelected);
+            OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(visualization, patient);
             /*
             // retrieve patient plots nb
             int nbPlotsSpPatient = m_Column3DViewManager.DLLLoadedPatientsElectrodes.patient_sites_nb(idPatientSelected);

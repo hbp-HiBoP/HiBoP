@@ -228,7 +228,7 @@ namespace HBP.UI.Module3D
                 case SceneType.MultiPatients:
                     contentPanelT.Find("MP only options parent").Find("load sp button").GetComponent<Button>().onClick.AddListener(() =>
                     {
-                        ((MultiPatients3DScene)m_scene).LoadPatientInSinglePatientScene(m_idPatientToLoad, m_lastSiteSelected.GetComponent<Site>().Information.SitePatientID);
+                        //((MultiPatients3DScene)m_scene).LoadPatientInSinglePatientScene(m_idPatientToLoad, m_lastSiteSelected.GetComponent<Site>().Information.SitePatientID);
                     });
 
                     Button blackList = contentPanelT.Find("MP only options parent").Find("blacklist button").GetComponent<Button>();

@@ -141,9 +141,9 @@ namespace HBP.Module3D
                 {
                     OnRequestSiteInformation.Invoke(siteRequest);
                 });
-                lastAddedScene.LoadSPSceneFromMP.AddListener((idPatient) =>
+                lastAddedScene.OnLoadSinglePatientSceneFromMultiPatientsScene.AddListener((visu, patient) =>
                 {
-                    OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(idPatient);
+                    OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(visu, patient);
                 });
             }
 
