@@ -26,7 +26,7 @@ namespace HBP.Module3D
     /// </summary>
     public class ColormapController : BothScenesOverlayController
     {
-        #region members
+        #region Properties
 
         public int m_offsetX = 10;
         public int m_offsetY = 50;
@@ -44,9 +44,9 @@ namespace HBP.Module3D
 
         private Sprite m_colorMapSprite = null;
 
-        #endregion members
+        #endregion
 
-        #region others
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -294,11 +294,11 @@ namespace HBP.Module3D
         }
 
 
-        public void update_colormap(int  colormapId)
+        public void update_colormap(ColorType color)
         {
             Texture2D tex2D = new Texture2D(1, 1);
-            DLL.Texture tex = DLL.Texture.generate_1D_color_texture(colormapId);
-            tex.update_texture_2D(tex2D);
+            DLL.Texture tex = DLL.Texture.Generate1DColorTexture(color);
+            tex.UpdateTexture2D(tex2D);
 
             m_colorMapSprite = Sprite.Create(tex2D, new Rect(0, 0, tex2D.width, tex2D.height), new Vector2(0, 0));
             for (int ii = 0; ii < m_spColormapOverlayList.Count; ++ii)
@@ -313,6 +313,6 @@ namespace HBP.Module3D
             }
         }
 
-        #endregion others
+        #endregion
     }
 }

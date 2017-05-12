@@ -22,62 +22,73 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public class ReadMultiFilesBuffers : CppDLLImportBase
     {
-        #region members
-
+        #region Properties
         public enum FilesTypes : int
         {
             MeshesObj, MeshesGII, MeshesTRI, VolNII, None
         }; /**< Files types */
 
         //List<>
-        private int m_nbFilesRead;
-        private FilesTypes m_currentFilesType;
+        private int m_NumberFilesRead;
+        private FilesTypes m_CurrentFilesType;
         //private bool m_filesParsed;
+        #endregion
 
-        #endregion members
-
-        #region functions
-
-        void reset()
+        #region Public Methods
+        /// <summary>
+        /// 
+        /// </summary>
+        void Reset()
         {
             // ... DLL reset
 
-            m_nbFilesRead = 0;
+            m_NumberFilesRead = 0;
             //m_filesParsed = false;
-            m_currentFilesType = FilesTypes.None;
+            m_CurrentFilesType = FilesTypes.None;
         }
-
-        public bool read_buffers_files(List<string> pathsFiles, FilesTypes filesType)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pathsFiles"></param>
+        /// <param name="filesType"></param>
+        /// <returns></returns>
+        public bool ReadBuffersFiles(List<string> pathsFiles, FilesTypes filesType)
         {
             for (int ii = 0; ii < pathsFiles.Count; ++ii)
                 AddBuffer_readMultiFilesBuffers(_handle, pathsFiles[ii]);
 
-            m_currentFilesType = filesType;
-            m_nbFilesRead = pathsFiles.Count;
+            m_CurrentFilesType = filesType;
+            m_NumberFilesRead = pathsFiles.Count;
 
 
             return true;
         }
-
-        public bool parse_meshes()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public bool ParseMeshes()
         {
-            if (m_currentFilesType == FilesTypes.MeshesObj)
+            if (m_CurrentFilesType == FilesTypes.MeshesObj)
                 parseObjMeshes_readMultiFilesBuffers(_handle);
             else
             {
                 Debug.LogError("...");
-                reset();
+                Reset();
             }
 
             return true;
         }
-
-        public List<Surface> meshes()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public List<Surface> Meshes()
         {
-            List<Surface> meshes = new List<Surface>(m_nbFilesRead);
-            if (m_currentFilesType == FilesTypes.MeshesObj)
+            List<Surface> meshes = new List<Surface>(m_NumberFilesRead);
+            if (m_CurrentFilesType == FilesTypes.MeshesObj)
             {
-                for(int ii = 0; ii < m_nbFilesRead; ++ii)
+                for(int ii = 0; ii < m_NumberFilesRead; ++ii)
                 {
                     meshes.Add(new Surface(retrieveSurface_readMultiFilesBuffers(_handle, ii)));
                 }
@@ -85,12 +96,9 @@ namespace HBP.Module3D.DLL
 
             return meshes;
         }
+        #endregion
 
-
-        #endregion functions
-
-        #region memory_management
-
+        #region Memory Management
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
@@ -98,7 +106,6 @@ namespace HBP.Module3D.DLL
         {
             _handle = new HandleRef(this, create_readMultiFilesBuffers());
         }
-
         /// <summary>
         /// Clean DLL memory
         /// </summary>
@@ -106,8 +113,7 @@ namespace HBP.Module3D.DLL
         {
             delete_readMultiFilesBuffers(_handle);
         }
-
-        #endregion memory_management
+        #endregion
 
         #region DLLImport
 
@@ -130,6 +136,6 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "retrieveSurface_readMultiFilesBuffers", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr retrieveSurface_readMultiFilesBuffers(HandleRef handleReadMultiFilesBuffers, int idSurface);
 
-        #endregion DLLImport
+        #endregion
     }
 }

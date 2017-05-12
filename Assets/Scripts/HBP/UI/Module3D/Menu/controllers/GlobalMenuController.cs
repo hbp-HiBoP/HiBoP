@@ -17,7 +17,7 @@ namespace HBP.Module3D
     /// </summary>
     public class GlobalMenuController : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         public bool m_isColormapMinimized = true;
         public bool m_isBrainColorMinimized = true;
@@ -27,9 +27,9 @@ namespace HBP.Module3D
 
         public ColormapController m_colorMapController = null;
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -49,14 +49,17 @@ namespace HBP.Module3D
             });
 
             Transform baseButtons = m_globalMenuGO.transform.Find("panel").Find("colormap buttons");
-            for(int ii = 1; ii < 15; ++ii)
+            for(int ii = 1; ii < 15; ++ii) // FIXME : Add listeners manually with the corresponding color (not a for loop) : better stability
             {
                 int id = ii;
                 baseButtons.Find("colormap" + id + " button").GetComponent<Button>().onClick.AddListener(() =>
                 {
-                    m_colorMapController.update_colormap(id - 1);
-                    scenesManager.SinglePatientScene.update_colormap(id - 1);
-                    scenesManager.MultiPatientsScene.update_colormap(id - 1);                    
+                    ColorType color = (ColorType)(id - 1); // FIXME : remove this fixme when the for loop is no more
+                    m_colorMapController.update_colormap(color);
+                    foreach (Base3DScene scene in scenesManager.Scenes)
+                    {
+                        scene.UpdateColormap(color);
+                    }                
                 });
             }
             Button minimizeColorMapButton = m_globalMenuGO.transform.Find("panel").Find("Colormap parent").Find("Colormap button").GetComponent<Button>();
@@ -72,23 +75,31 @@ namespace HBP.Module3D
             baseButtons = m_globalMenuGO.transform.Find("panel").Find("braincolor buttons");
             baseButtons.Find("braincolor1 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SinglePatientScene.update_brain_surface_color(15);
-                scenesManager.MultiPatientsScene.update_brain_surface_color(15);
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.UpdateBrainSurfaceColor(ColorType.BrainColor);
+                }
             });
             baseButtons.Find("braincolor2 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SinglePatientScene.update_brain_surface_color(16);
-                scenesManager.MultiPatientsScene.update_brain_surface_color(16);
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.UpdateBrainSurfaceColor(ColorType.White);
+                }
             });
             baseButtons.Find("braincolor3 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SinglePatientScene.update_brain_surface_color(0);
-                scenesManager.MultiPatientsScene.update_brain_surface_color(0);
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.UpdateBrainSurfaceColor(ColorType.Grayscale);
+                }
             });
             baseButtons.Find("braincolor4 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SinglePatientScene.update_brain_surface_color(14);
-                scenesManager.MultiPatientsScene.update_brain_surface_color(14);
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.UpdateBrainSurfaceColor(ColorType.Default);
+                }
             });
 
             Button minimizeBrainColorButton = m_globalMenuGO.transform.Find("panel").Find("Braincolor parent").Find("Braincolor button").GetComponent<Button>();
@@ -104,13 +115,17 @@ namespace HBP.Module3D
             baseButtons = m_globalMenuGO.transform.Find("panel").Find("cutcolor buttons");
             baseButtons.Find("cutcolor1 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SinglePatientScene.update_brain_cut_color(14);
-                scenesManager.MultiPatientsScene.update_brain_cut_color(14);
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.UpdateBrainCutColor(ColorType.Default);
+                }
             });
             baseButtons.Find("cutcolor2 button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                scenesManager.SinglePatientScene.update_brain_cut_color(0);
-                scenesManager.MultiPatientsScene.update_brain_cut_color(0);
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.UpdateBrainCutColor(ColorType.Grayscale);
+                }
             });
 
             Button minimizeCutColorButton = m_globalMenuGO.transform.Find("panel").Find("Cutcolor parent").Find("Cutcolor button").GetComponent<Button>();
@@ -123,7 +138,7 @@ namespace HBP.Module3D
             });
 
             // set default colormap
-            m_colorMapController.update_colormap(13);
+            m_colorMapController.update_colormap(ColorType.MatLab);
         }
 
         public void switch_UI_Visibility()
@@ -133,7 +148,7 @@ namespace HBP.Module3D
 
 
 
-        #endregion functions
+        #endregion
     }
 
 }

@@ -20,18 +20,22 @@ namespace HBP.Module3D
     /// </summary>
     public struct BBox
     {
+        #region Properties
+        public Vector3 Min; /**< min point of the bBox */
+        public Vector3 Max; /**< max point of the bBox */
+        #endregion
+
+        #region Public Methods
         /// <summary>
         ///  Constructor of the bounding box
         /// </summary>
         /// <param name="bboxArray"></param>
         public BBox(float[] bboxArray)
         {
-            this.min = new Vector3(bboxArray[0], bboxArray[1], bboxArray[2]);
-            this.max = new Vector3(bboxArray[3], bboxArray[4], bboxArray[5]);
+            this.Min = new Vector3(bboxArray[0], bboxArray[1], bboxArray[2]);
+            this.Max = new Vector3(bboxArray[3], bboxArray[4], bboxArray[5]);
         }
-
-        public Vector3 min; /**< min point of the bBox */
-        public Vector3 max; /**< max point of the bBox */
+        #endregion
     }
 
     [System.Serializable]
@@ -40,15 +44,20 @@ namespace HBP.Module3D
     /// </summary>
     public class Plane
     {
+        #region Properties
+        public Vector3 Point; /**< point on the plane */
+        public Vector3 Normal; /**< normal of the plane */
+        #endregion
+
+        #region Public Methods
         /// <summary>
         /// Plane default constructor
         /// </summary>
         public Plane()
         {
-            this.point = new Vector3(0, 0, 0);
-            this.normal = new Vector3(1, 0, 0);
+            this.Point = new Vector3(0, 0, 0);
+            this.Normal = new Vector3(1, 0, 0);
         }
-
         /// <summary>
         /// Plane constructor
         /// </summary>
@@ -56,26 +65,31 @@ namespace HBP.Module3D
         /// <param name="normal"></param>
         public Plane(Vector3 point, Vector3 normal)
         {
-            this.point = point;
-            this.normal = normal;
+            this.Point = point;
+            this.Normal = normal;
         }
-
         /// <summary>
         /// Convert to float array for DLL use
         /// </summary>
         /// <returns></returns>
-        public float[] convertToArray()
+        public float[] ConvertToArray()
         {
-            return new float[] { point[0], point[1], point[2], normal[0], normal[1], normal[2]};
+            return new float[] { Point[0], Point[1], Point[2], Normal[0], Normal[1], Normal[2] };
         }
-
-        public Vector3 point; /**< point on the plane */
-        public Vector3 normal; /**< normal of the plane */
+        #endregion
     }
 
     public class Geometry
     {
-        public static Vector3[] create_3D_circle_points(Vector3 center, float ray, int nbVerticesOnCircle)
+        #region Public Methods
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="center"></param>
+        /// <param name="ray"></param>
+        /// <param name="nbVerticesOnCircle"></param>
+        /// <returns></returns>
+        public static Vector3[] Create3DCirclePoints(Vector3 center, float ray, int nbVerticesOnCircle)
         {
             Vector3[] verts = new Vector3[nbVerticesOnCircle];
             float angle = 360.0f / (float)(verts.Length - 1);
@@ -87,8 +101,14 @@ namespace HBP.Module3D
 
             return verts;
         }
-
-        public static Mesh create_sphere_mesh(float radius, int nbLong = 24, int nbLat = 16)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="radius"></param>
+        /// <param name="nbLong"></param>
+        /// <param name="nbLat"></param>
+        /// <returns></returns>
+        public static Mesh CreateSphereMesh(float radius, int nbLong = 24, int nbLat = 16)
         {
             Mesh mesh = new Mesh();
 
@@ -187,8 +207,11 @@ namespace HBP.Module3D
 
             return mesh;
         }
-
-        public static void display_normal_debug(GameObject obj)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        public static void DisplayNormalDebug(GameObject obj)
         {
             Vector3[] normals = obj.GetComponent<MeshFilter>().mesh.normals;
             Vector3[] vertices = obj.GetComponent<MeshFilter>().mesh.vertices;
@@ -209,28 +232,42 @@ namespace HBP.Module3D
                 Debug.DrawRay(invPos, 3 * norm, Color.green);
             }
         }
-
-        public static void display_BBox_debug(DLL.BBox bbox, Vector3 offset)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bbox"></param>
+        /// <param name="offset"></param>
+        public static void DisplayBBoxDebug(DLL.BBox bbox, Vector3 offset)
         {
-            List<Vector3> linesPoints = bbox.lines_pair_points();
+            List<Vector3> linesPoints = bbox.LinesPairPoints();
 
             for (int ii = 0; ii < linesPoints.Count; ii += 2)
             {
                 Debug.DrawRay(offset + linesPoints[ii], linesPoints[ii + 1] - linesPoints[ii], Color.red);
             }
         }
-
-        public static void display_BBox_plane_intersec(DLL.BBox bbox, Plane plane, Vector3 offset)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bbox"></param>
+        /// <param name="plane"></param>
+        /// <param name="offset"></param>
+        public static void DisplayBBoxPlaneIntersection(DLL.BBox bbox, Plane plane, Vector3 offset)
         {
-            List<Vector3> interLinesPoints = bbox.intersection_lines_with_plane(plane);
+            List<Vector3> interLinesPoints = bbox.IntersectionLinesWithPlane(plane);
 
             for (int ii = 0; ii < interLinesPoints.Count / 2; ++ii)
             {
                 Debug.DrawRay(offset + interLinesPoints[2 * ii], interLinesPoints[2 * ii + 1] - interLinesPoints[2 * ii], Color.green);
             }
         }
-
-        public static void display_BBox_GL(Material mat, DLL.BBox bbox, Vector3 offset)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mat"></param>
+        /// <param name="bbox"></param>
+        /// <param name="offset"></param>
+        public static void DisplayBBoxGL(Material mat, DLL.BBox bbox, Vector3 offset)
         {
             GL.PushMatrix();
 
@@ -240,7 +277,7 @@ namespace HBP.Module3D
             mat.SetPass(0);
             GL.Color(new Color(mat.color.r, mat.color.g, mat.color.b, mat.color.a));
 
-            List<Vector3> linesPoints = bbox.lines_pair_points();
+            List<Vector3> linesPoints = bbox.LinesPairPoints();
 
             for (int ii = 0; ii < linesPoints.Count; ++ii)
             {
@@ -268,8 +305,12 @@ namespace HBP.Module3D
 
             GL.PopMatrix();
         }
-        
-        public static Mesh create_tetrahedron_mesh(float size)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public static Mesh CreateTetrahedronMesh(float size)
         {
             Mesh mesh = new Mesh();
 
@@ -296,8 +337,15 @@ namespace HBP.Module3D
 
             return mesh;
         }
-
-        public static Mesh create_tube(float radius = 1.7f, float inter = 0.15f, float height = 0.1f, int nbSides = 60)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="radius"></param>
+        /// <param name="inter"></param>
+        /// <param name="height"></param>
+        /// <param name="nbSides"></param>
+        /// <returns></returns>
+        public static Mesh CreateTube(float radius = 1.7f, float inter = 0.15f, float height = 0.1f, int nbSides = 60)
         {
             Mesh mesh = new Mesh();
 
@@ -552,7 +600,6 @@ namespace HBP.Module3D
 
             return mesh;
         }
-
+        #endregion
     }
-
 }

@@ -184,7 +184,7 @@ namespace HBP.Data.Anatomy
         [OnDeserialized]
         void OnDeserialized()
         {
-            LoadImplantation(true);
+            // TODO
         }
         #endregion
     }

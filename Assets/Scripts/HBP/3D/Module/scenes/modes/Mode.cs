@@ -163,9 +163,9 @@ namespace HBP.Module3D
     /// </summary>
     public class ModeSpecifications
     {
-        public Mode mode;
-        public List<bool> uiOverlayMask;
-        public List<bool> itemMaskDisplay;
+        public Mode Mode;
+        public List<bool> UIOverlayMask;
+        public List<bool> ItemMaskDisplay;
     }
 
     namespace Events
@@ -173,7 +173,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event for sending mode specifications
         /// </summary>
-        public class SendModeSpecifications : UnityEvent<ModeSpecifications> { }
+        public class OnSendModeSpecifications : UnityEvent<ModeSpecifications> { }
     }
 
 
@@ -184,30 +184,30 @@ namespace HBP.Module3D
     public class Mode : MonoBehaviour
     {
         #region Properties
-        public enum ModesId : int
+        public enum ModesId
         {
-            NoPathDefined, MinPathDefined, AllPathDefined, ComputingAmplitudes, AmplitudesComputed, TriErasing, ROICreation, AmpNeedUpdate, Error,
+            NoPathDefined, MinPathDefined, AllPathDefined, ComputingAmplitudes, AmplitudesComputed, TriErasing, ROICreation, AmpNeedUpdate, Error
         }; /**< modes id */
-        public enum FunctionsId : int
+        public enum FunctionsId
         {
-            resetGIIBrainSurfaceFile, resetNIIBrainVolumeFile, resetElectrodesFile, pre_updateGenerators, post_updateGenerators,
-            addNewPlane, removeLastPlane, updatePlane, setDisplayedMesh, setTimelines, enableTriErasingMode, disableTriErasingMode, enableROICreationMode, disableROICreationMode,
-            updateMiddle, updateMaskPlot, add_FMRI_column, removeLastIRMFColumn, resetScene
+            ResetGIIBrainSurfaceFile, ResetNIIBrainVolumeFile, ResetElectrodesFile, PreUpdateGenerators, PostUpdateGenerators,
+            AddNewPlane, RemoveLastPlane, UpdatePlane, SetDisplayedMesh, SetTimelines, AnableTriangleErasingMode, DisableTriangleErasingMode, EnableROICreationMode, DisableROICreationMode,
+            UpdateMiddle, UpdateMaskPlot, AddFMRIColumn, RemoveLastFMRIColumn, ResetScene
         }; /**< scene functions id */
-        public enum UIOverlayId : int { planes_controller, timeline_controller, icones_controller, cut_display_controller, colormap_controller, minimize_controller, time_display_controller}; /**< UI overlay elements */       
-        private bool m_needsUpdate = true; /**< is the mode has to update it's specifications ? */
-        public SceneType m_Type;  /**< is the mode associated to a single patient scene ? */
+        public enum UIOverlayId { PlanesController, TimelineController, IconsController, CutDisplayController, ColormapController, MinimizeController, TimeDisplayController }; /**< UI overlay elements */       
+        private bool m_NeedsUpdate = true; /**< is the mode has to update it's specifications ? */
+        public SceneType Type;  /**< is the mode associated to a single patient scene ? */
         public ModesId IDMode { get; set; } /**< id of the mode */
-        public SceneStatesInfo m_sceneStates = null; /**< scene states info */
+        public SceneStatesInfo SceneInformation = null; /**< scene states info */
 
-        public List<bool> uiOverlayMask = null; /**< ui overlay mask for this mod */
-        public List<bool> functionsMask = null; /**< functions mask for this mode */
-        public List<bool> m_displayItems = null;  /**< items to be displayed in this mode  0 : meshes, 1 : plots, 2 : ROI */
+        public List<bool> UIOverlayMask = null; /**< ui overlay mask for this mod */
+        public List<bool> FunctionsMask = null; /**< functions mask for this mode */
+        public List<bool> DisplayItems = null;  /**< items to be displayed in this mode  0 : meshes, 1 : plots, 2 : ROI */
 
-        private ModeSpecifications m_modeSpecs = new ModeSpecifications();
+        private ModeSpecifications m_Specifications = new ModeSpecifications();
 
         // events
-        public Events.SendModeSpecifications SendModeSpecifications = new Events.SendModeSpecifications();
+        public Events.OnSendModeSpecifications SendModeSpecifications = new Events.OnSendModeSpecifications();
         #endregion
 
         #region Public Methods 
@@ -215,43 +215,47 @@ namespace HBP.Module3D
         /// Init the mode
         /// </summary>
         /// <param name="scene"></param>
-        public void init(Base3DScene scene)
+        public void Initialize(Base3DScene scene)
         {
-            m_sceneStates = scene.data_;
-            m_Type = scene.Type;
+            SceneInformation = scene.SceneInformation;
+            Type = scene.Type;
         }
         /// <summary>
         /// Ask the mode to 
         /// </summary>
-        public void updateMode()
+        public void UpdateMode()
         {
-            m_needsUpdate = true;
+            m_NeedsUpdate = true;
         }
         /// <summary>
         /// Ask the mode for send it's specifications
         /// </summary>
         /// <param name="force"> dot it even when needsUpdate is false </param>
-        public void setModeSpecifications(bool force)
+        public void SetModeSpecifications(bool force)
         {
-            if (!m_needsUpdate && force == false)
+            if (!m_NeedsUpdate && force == false)
                 return;
 
-            m_modeSpecs.mode = GetComponent<Mode>();
-            m_modeSpecs.itemMaskDisplay = m_displayItems;
-            m_modeSpecs.uiOverlayMask = uiOverlayMask;
-            SendModeSpecifications.Invoke(m_modeSpecs);
-            m_needsUpdate = false;
+            m_Specifications.Mode = GetComponent<Mode>();
+            m_Specifications.ItemMaskDisplay = DisplayItems;
+            m_Specifications.UIOverlayMask = UIOverlayMask;
+            SendModeSpecifications.Invoke(m_Specifications);
+            m_NeedsUpdate = false;
         }
-        public ModesId mu_resetGIIBrainSurfaceFile()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_ResetGIIBrainSurfaceFile()
         {
-            switch (m_Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.TriErasing || IDMode == ModesId.AmpNeedUpdate)
                     {
-                        if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
+                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
                         {
-                            if (!m_sceneStates.sitesLoaded || !m_sceneStates.timelinesLoaded)
+                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
                                 return ModesId.MinPathDefined;
                             else
                                 return ModesId.AllPathDefined;
@@ -262,9 +266,9 @@ namespace HBP.Module3D
                 case SceneType.MultiPatients:
                     if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.TriErasing || IDMode == ModesId.AmpNeedUpdate)
                     {
-                        if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
+                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
                         {
-                            if (!m_sceneStates.sitesLoaded || !m_sceneStates.timelinesLoaded)
+                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
                                 return ModesId.MinPathDefined;
                             else
                                 return ModesId.AllPathDefined;
@@ -278,16 +282,20 @@ namespace HBP.Module3D
             // default
             return Mode.ModesId.Error;
         }
-        public ModesId mu_resetNIIBrainVolumeFile()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_ResetNIIBrainVolumeFile()
         {
-            switch (m_Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.TriErasing || IDMode == ModesId.AmpNeedUpdate)
                     {
-                        if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
+                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
                         {
-                            if (!m_sceneStates.sitesLoaded || !m_sceneStates.timelinesLoaded)
+                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
                                 return ModesId.MinPathDefined;
                             else
                                 return ModesId.AllPathDefined;
@@ -298,9 +306,9 @@ namespace HBP.Module3D
                 case SceneType.MultiPatients:
                     if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.TriErasing || IDMode == ModesId.AmpNeedUpdate)
                     {
-                        if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
+                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
                         {
-                            if (!m_sceneStates.sitesLoaded || !m_sceneStates.timelinesLoaded)
+                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
                                 return ModesId.MinPathDefined;
                             else
                                 return ModesId.AllPathDefined;
@@ -313,16 +321,20 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
-        public ModesId mu_resetElectrodesFile()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_ResetElectrodesFile()
         {
-            switch (m_Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.TriErasing || IDMode == ModesId.AmpNeedUpdate)
                     {
-                        if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
+                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
                         {
-                            if (!m_sceneStates.sitesLoaded || !m_sceneStates.timelinesLoaded)
+                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
                                 return ModesId.MinPathDefined;
                             else
                                 return ModesId.AllPathDefined;
@@ -333,9 +345,9 @@ namespace HBP.Module3D
                 case SceneType.MultiPatients:
                     if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.TriErasing || IDMode == ModesId.AmpNeedUpdate)
                     {
-                        if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
+                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
                         {
-                            if (!m_sceneStates.sitesLoaded || !m_sceneStates.timelinesLoaded)
+                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
                                 return ModesId.MinPathDefined;
                             else
                                 return ModesId.AllPathDefined;
@@ -348,16 +360,20 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
-        public ModesId mu_setTimelines()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_SetTimelines()
         {
-            switch (m_Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.AmpNeedUpdate)
                     {
-                        if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
+                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
                         {
-                            if (!m_sceneStates.sitesLoaded || !m_sceneStates.timelinesLoaded)
+                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
                                 return ModesId.MinPathDefined;
                             else
                                 return ModesId.AllPathDefined;
@@ -368,9 +384,9 @@ namespace HBP.Module3D
                 case SceneType.MultiPatients:
                     if (IDMode == ModesId.NoPathDefined || IDMode == ModesId.MinPathDefined || IDMode == ModesId.AllPathDefined || IDMode == ModesId.AmplitudesComputed || IDMode == ModesId.AmpNeedUpdate)
                     {
-                        if (m_sceneStates.mriLoaded && m_sceneStates.meshesLoaded)
+                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
                         {
-                            if (!m_sceneStates.sitesLoaded || !m_sceneStates.timelinesLoaded)
+                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
                                 return ModesId.MinPathDefined;
                             else
                                 return ModesId.AllPathDefined;
@@ -383,9 +399,13 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
-        public ModesId mu_pre_updateGenerators()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_PreUpdateGenerators()
         {
-            switch (m_Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     if (IDMode == ModesId.AllPathDefined || (IDMode == Mode.ModesId.AmpNeedUpdate))
@@ -404,9 +424,13 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
-        public ModesId mu_post_updateGenerators()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_PostUpdateGenerators()
         {
-            switch (m_Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     if (IDMode == ModesId.ComputingAmplitudes)
@@ -425,9 +449,13 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
-        public ModesId mu_addNewPlane()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_AddNewPlane()
         {
-            switch (m_Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.MinPathDefined || IDMode == Mode.ModesId.AllPathDefined)
@@ -454,9 +482,13 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
-        public ModesId mu_removeLastPlane()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_RemoveLastPlane()
         {
-            switch (m_Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.MinPathDefined || IDMode == Mode.ModesId.AllPathDefined)
@@ -483,9 +515,13 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
-        public ModesId mu_updatePlane()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_UpdatePlane()
         {
-            switch (m_Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.MinPathDefined || IDMode == Mode.ModesId.AllPathDefined)
@@ -512,9 +548,13 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
-        public ModesId mu_setDisplayedMesh()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_SetDisplayedMesh()
         {
-            switch (m_Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     break;
@@ -533,9 +573,13 @@ namespace HBP.Module3D
             }
             return Mode.ModesId.Error;
         }
-        public ModesId mu_updateMiddle()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_UpdateMiddle()
         {
-            switch (m_Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     if ((IDMode == Mode.ModesId.AmplitudesComputed) || (IDMode == Mode.ModesId.AmpNeedUpdate))
@@ -564,9 +608,13 @@ namespace HBP.Module3D
 
             return IDMode;
         }
-        public ModesId mu_updateMaskPlot()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_UpdateMaskPlot()
         {
-            switch (m_Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     if (IDMode == Mode.ModesId.AmplitudesComputed)
@@ -585,22 +633,33 @@ namespace HBP.Module3D
             }
             return IDMode;
         }
-        public ModesId mu_addIRMFColumn()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_AddFMRIColumn()
         {
             if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.ComputingAmplitudes)
                 return Mode.ModesId.Error;
 
             return IDMode;
         }
-        public ModesId mu_removeLastIRMFColumn()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_RemoveLastFMRIColumn()
         {
             if (IDMode == Mode.ModesId.NoPathDefined || IDMode == Mode.ModesId.ComputingAmplitudes)
                 return Mode.ModesId.Error;
 
             return IDMode;
         }
-        // TODO
-        public Mode.ModesId mu_enableTriErasingMode()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public Mode.ModesId mu_EnableTriangleErasingMode()
         {
             // TODO : needs work
 
@@ -619,7 +678,11 @@ namespace HBP.Module3D
             // default
             return Mode.ModesId.Error;
         }
-        public Mode.ModesId mu_disableTriErasingMode()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public Mode.ModesId mu_DisableTriangleErasingMode()
         {
             // TODO : needs work
 
@@ -657,10 +720,10 @@ namespace HBP.Module3D
         /// Reset to start mode
         /// </summary>
         /// <returns></returns>
-        public Mode.ModesId mu_resetScene()
+        public Mode.ModesId mu_ResetScene()
         {
             return Mode.ModesId.NoPathDefined;
         }
-        #endregion 
+        #endregion
     }
 }

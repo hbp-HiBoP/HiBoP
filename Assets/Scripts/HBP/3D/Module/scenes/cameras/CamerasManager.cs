@@ -65,6 +65,11 @@ namespace HBP.Module3D.Cam
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="target"></param>
         public void UpdateCamerasTarget(SceneType scene, Vector3 target)
         {
             switch(scene)
@@ -77,6 +82,10 @@ namespace HBP.Module3D.Cam
                     break;
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
         public void StopRotationOfAllCameras(SceneType scene)
         {
             switch(scene)
@@ -89,6 +98,10 @@ namespace HBP.Module3D.Cam
                     break;
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
         public void RotateAllCameras(SceneType scene)
         {
             switch(scene)
@@ -101,12 +114,23 @@ namespace HBP.Module3D.Cam
                     break;
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="focusedOn3D"></param>
         public void SetModuleFocus(bool focusedOn3D)
         {
             m_FocusedOn3D = focusedOn3D;
-            foreach (var camerasLine in m_SinglePatientCameras) foreach (var camera in camerasLine) camera.SetCameraFocus(focusedOn3D);
-            foreach (var camerasLine in m_MultiPatientsCameras) foreach (var camera in camerasLine) camera.SetCameraFocus(focusedOn3D);
+            foreach (var camerasLine in m_SinglePatientCameras) foreach (var camera in camerasLine) camera.IsFocusedOn3DModule = focusedOn3D;
+            foreach (var camerasLine in m_MultiPatientsCameras) foreach (var camera in camerasLine) camera.IsFocusedOn3DModule = focusedOn3D;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="columnNumber"></param>
+        /// <param name="lineNumber"></param>
+        /// <returns></returns>
         public TrackBallCamera GetCamera(SceneType scene, int columnNumber, int lineNumber)
         {
             TrackBallCamera result = null;
@@ -121,7 +145,12 @@ namespace HBP.Module3D.Cam
             }
             return result;
         }
-        // TODO
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rectTransform"></param>
+        /// <param name="camera"></param>
+        /// <returns></returns>
         public static Rect GetScreenRectangle(RectTransform rectTransform, Camera camera)
         {
             if (rectTransform == null)
@@ -152,6 +181,11 @@ namespace HBP.Module3D.Cam
             Rect result = new Rect(xMin, yMin, xMax - xMin, yMax - yMin);
             return result;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <returns></returns>
         public int GetNumberOfColumns(SceneType scene)
         {
             int result = -1;
@@ -166,6 +200,11 @@ namespace HBP.Module3D.Cam
             }
             return result;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <returns></returns>
         public int GetNumberOfLines(SceneType scene)
         {
             int result = -1;
@@ -180,6 +219,11 @@ namespace HBP.Module3D.Cam
             }
             return result;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <returns></returns>
         public RectTransform GetSceneRectTransform(SceneType scene)
         {
             RectTransform result = null;
@@ -194,7 +238,13 @@ namespace HBP.Module3D.Cam
             }
             return result;
         }
-        // TODO
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="columnNumber"></param>
+        /// <param name="lineNumber"></param>
+        /// <returns></returns>
         public RectTransform GetCameraRectTransform(SceneType scene, int columnNumber, int lineNumber)
         {
             RectTransform result = null;
@@ -219,6 +269,10 @@ namespace HBP.Module3D.Cam
             }
             return result;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
         public void AddLine(SceneType scene)
         {
             switch(scene)
@@ -231,6 +285,10 @@ namespace HBP.Module3D.Cam
                     break;
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
         public void RemoveLine(SceneType scene)
         {
             switch(scene)
@@ -248,49 +306,37 @@ namespace HBP.Module3D.Cam
         /// </summary>
         /// <param name="singlePatientScene"></param>
         /// <param name="numberOfColumns"></param>
-        public void DefineConditionsColumnsCameras(SceneType scene, int numberOfColumns)
+        public void SetUpCameras(Base3DScene scene, int numberOfColumns)
         {
-            int diff = 0;
-            switch(scene)
+            for (int i = 0; i < numberOfColumns; i++)
             {
-                case SceneType.SinglePatient:
-                    diff = m_SinglePatientCameras[0].Count - numberOfColumns;
-                    break;
-                case SceneType.MultiPatients:
-                    diff = m_MultiPatientsCameras[0].Count - numberOfColumns;
-                    break;
-            }
-            if (diff < 0)
-            {
-                diff = -diff;
-                for (int ii = 0; ii < diff; ++ii)
-                {
-                    AddColumnCamera(scene,CameraType.EEG);
-                }
-            }
-            else
-            {
-                for (int ii = 0; ii < diff; ++ii)
-                {
-                    RemoveLastColumnCamera(scene);
-                }
+                AddColumnCamera(scene, CameraType.EEG);
             }
         }
-        public void AddColumnCamera(SceneType scene, CameraType column)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="column"></param>
+        public void AddColumnCamera(Base3DScene scene, CameraType column)
         {
-            switch(scene)
+            switch(scene.Type)
             {
                 case SceneType.SinglePatient:
-                    AddColumnCameras(m_SinglePatientCameras, m_SinglePatientLines, m_SinglePatientCamerasContainer.transform, "singlePatient_camera_tb_c", scene, column);
+                    AddColumnCameras(m_SinglePatientCameras, m_SinglePatientLines, m_SinglePatientCamerasContainer.transform, "singlePatient_camera_tb_c", scene.Type, column);
                     break;
                 case SceneType.MultiPatients:
-                    AddColumnCameras(m_MultiPatientsCameras, m_MultiPatientsLines, m_MultiPatientsCamerasContainer.transform, "multiPatients_camera_tb_c", scene, column);
+                    AddColumnCameras(m_MultiPatientsCameras, m_MultiPatientsLines, m_MultiPatientsCamerasContainer.transform, "multiPatients_camera_tb_c", scene.Type, column);
                     break;
             }
         }
-        public void RemoveLastColumnCamera(SceneType scene)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
+        public void RemoveLastColumnCamera(Base3DScene scene)
         {
-            switch(scene)
+            switch(scene.Type)
             {
                 case SceneType.SinglePatient:
                     RemoveLastColumnCameras(m_SinglePatientCameras, m_SinglePatientLines);
@@ -319,6 +365,9 @@ namespace HBP.Module3D.Cam
             }
             foreach (var item in collection) foreach (var camera in item) camera.UpdateCullingMask(layerMask);
         }
+        /// <summary>
+        /// 
+        /// </summary>
         public void ApplyMultiPatientsCamerasSettingsToSinglePatientCameras()
         {
             if (m_SinglePatientCameras.Count < m_MultiPatientsCameras.Count)
@@ -345,11 +394,16 @@ namespace HBP.Module3D.Cam
                     for (int jj = 0; jj < m_SinglePatientCameras[ii].Count; ++jj)
                     {
                         m_SinglePatientCameras[ii][jj].DefineCamera(m_MultiPatientsCameras[ii][jj].transform.position,
-                                                                    m_MultiPatientsCameras[ii][jj].transform.rotation, m_MultiPatientsCameras[ii][jj].target());
+                                                                    m_MultiPatientsCameras[ii][jj].transform.rotation, m_MultiPatientsCameras[ii][jj].Target);
                     }
                 }
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="show"></param>
         public void SetEdgesMode(SceneType scene, bool show)
         {
             List<List<TrackBallCamera>> collection = new List<List<TrackBallCamera>>();
@@ -397,7 +451,7 @@ namespace HBP.Module3D.Cam
             List<TrackBallCamera> initListSinglePatientCameras = new List<TrackBallCamera>();
             initListSinglePatientCameras.Add(singlePatientCamera);
             m_SinglePatientCameras.Add(initListSinglePatientCameras);
-            DefineConditionsColumnsCameras(SceneType.SinglePatient, 1);
+            //SetUpCameras(SceneType.SinglePatient, 1);
 
             // Multi patients
             GameObject multiPatientLine = Instantiate(GlobalGOPreloaded.Line);
@@ -418,12 +472,19 @@ namespace HBP.Module3D.Cam
             List<TrackBallCamera> initListMultiPatientsCameras = new List<TrackBallCamera>();
             initListMultiPatientsCameras.Add(multiPatientsCamera.GetComponent<TrackBallCamera>());
             m_MultiPatientsCameras.Add(initListMultiPatientsCameras);
-            DefineConditionsColumnsCameras(SceneType.MultiPatients, 1);
+            //SetUpCameras(SceneType.MultiPatients, 1);
         }
         private void Update()
         {
             UpdateCamerasViewPort();
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <param name="scene"></param>
+        /// <param name="idColumn"></param>
+        /// <param name="idLine"></param>
         private void InitializeCamera(TrackBallCamera camera, SceneType scene, int idColumn, int idLine)
         {
             switch(scene)
@@ -528,9 +589,9 @@ namespace HBP.Module3D.Cam
                 {
                     TrackBallCamera camera = Instantiate(cameras[0][column]);
                     newLine.Add(camera);
-                    camera.SetLine(line);
-                    camera.SetColumn(column);
-                    camera.SetCameraFocus(m_FocusedOn3D);
+                    camera.Line = line;
+                    camera.Column = column;
+                    camera.IsFocusedOn3DModule = m_FocusedOn3D;
                     camera.GetComponent<Camera>().depth = column;
                     camera.name = baseName + "Column n°" + column + " Line n°" + line;
                     camera.transform.SetParent(container);
@@ -583,18 +644,18 @@ namespace HBP.Module3D.Cam
                     sceneCameras[ii][currentConditionNumber].transform.parent = cameraParent;
 
                     TrackBallCamera camera = sceneCameras[ii][currentConditionNumber].GetComponent<TrackBallCamera>();
-                    camera.SetLine(ii);
-                    camera.SetColumn(currentConditionNumber);
-                    camera.SetCameraFocus(m_FocusedOn3D);
-                    camera.SetCameraType(column);
+                    camera.Line = ii;
+                    camera.Column = currentConditionNumber;
+                    camera.IsFocusedOn3DModule = m_FocusedOn3D;
+                    camera.Type = column;
 
                     switch(scene)
                     {
                         case SceneType.SinglePatient:
-                            camera.set_column_layer("C" + currentConditionNumber + "_SP");
+                            camera.ColumnLayer = "C" + currentConditionNumber + "_SP";
                             break;
                         case SceneType.MultiPatients:
-                            camera.set_column_layer("C" + currentConditionNumber + "_MP");
+                            camera.ColumnLayer = "C" + currentConditionNumber + "_MP";
                             break;
                     }
                 }
@@ -620,9 +681,9 @@ namespace HBP.Module3D.Cam
                 // destroy last added camera column
                 for (int ii = 0; ii < sceneCameras.Count; ++ii)
                 {
-                    if (sceneCameras[ii][sceneCameras[ii].Count - 1].GetComponent<TrackBallCamera>().is_selected())
+                    if (sceneCameras[ii][sceneCameras[ii].Count - 1].GetComponent<TrackBallCamera>().IsSelected())
                     {
-                        sceneCameras[ii][sceneCameras[ii].Count - 1].GetComponent<TrackBallCamera>().update_selected_column(0);
+                        sceneCameras[ii][sceneCameras[ii].Count - 1].GetComponent<TrackBallCamera>().UpdateSelectedColumn(0);
                     }
 
                     Destroy(sceneCameras[ii][sceneCameras[ii].Count - 1]);

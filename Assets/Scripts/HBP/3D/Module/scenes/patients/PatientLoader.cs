@@ -31,7 +31,7 @@
 //    {
 //        private DLL.QtGUI m_gui = null;
 
-//        #region functions
+//        #region Public Methods
 
 //        public PatientLoader(DLL.QtGUI gui)
 //        {

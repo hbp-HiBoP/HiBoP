@@ -1,0 +1,417 @@
+﻿using UnityEngine;
+using UnityEngine.Events;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.Rendering;
+
+namespace HBP.Module3D
+{
+    public enum DisplayedItems { Meshes, Plots, ROI };
+
+    namespace Events
+    {
+        /// <summary>
+        /// Event when a left click occurs in the camera (params : ray, spScene, idColumn)
+        /// </summary>
+        public class LeftClick : UnityEvent<Ray, SceneType, int> { }
+        /// <summary>
+        /// Event when a left mouse movement occurs in the camera (params : ray, mousePosition, spScene, idColumn)
+        /// </summary>
+        public class MouseMovement : UnityEvent<Ray, Vector3, SceneType, int> { }
+    }
+
+    public class Camera3D : MonoBehaviour
+    {
+        #region Properties
+        private Base3DScene m_AssociatedScene;
+        private View m_AssociatedView;
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private int m_CullingMask;
+        public int CullingMask
+        {
+            get
+            {
+                return m_CullingMask;
+            }
+            set
+            {
+                m_CullingMask = value;
+                if (!m_AssociatedView.IsMinimized)
+                {
+                    GetComponent<Camera>().cullingMask = m_CullingMask;
+                }
+            }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private float m_StartDistance = 250.0f;
+        public float StartDistance
+        {
+            get { return m_StartDistance; }
+            set { m_StartDistance = value; }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private float m_Speed = 50.0f;
+        public float Speed
+        {
+            get { return m_Speed; }
+            set { m_Speed = value; }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private float m_ZoomSpeed = 3.5f;
+        public float ZoomSpeed
+        {
+            get { return m_ZoomSpeed; }
+            set { m_ZoomSpeed = value; }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private float m_AutomaticRotationSpeed = 30.0f;
+        public float AutomaticRotationSpeed
+        {
+            get { return m_AutomaticRotationSpeed; }
+            set { m_AutomaticRotationSpeed = value; }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private bool m_AutomaticRotation = false;
+        public bool AutomaticRotation
+        {
+            get { return m_AutomaticRotation; }
+            set { m_AutomaticRotation = value; }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private float m_MinDistance = 50.0f;
+        public float MinDistance
+        {
+            get { return m_MinDistance; }
+            set { m_MinDistance = value; }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private float m_MaxDistance = 750.0f;
+        public float MaxDistance
+        {
+            get { return m_MaxDistance; }
+            set { m_MaxDistance = value; }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private Material m_XCircleMaterial;
+        public Material XCircleMaterial
+        {
+            get { return m_XCircleMaterial; }
+            set { m_XCircleMaterial = value; }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private Material m_YCircleMaterial;
+        public Material YCircleMaterial
+        {
+            get { return m_YCircleMaterial; }
+            set { m_YCircleMaterial = value; }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private Material m_ZCircleMaterial;
+        public Material ZCircleMaterial
+        {
+            get { return m_ZCircleMaterial; }
+            set { m_ZCircleMaterial = value; }
+        }
+        
+        private bool m_DisplayRotationCircles = false;
+
+        private float m_RotationCirclesRay = 300f;
+
+        private Vector3 m_Target;
+        public Vector3 Target
+        {
+            get
+            {
+                return m_Target;
+            }
+            set
+            {
+                m_Target = value;
+            }
+        }
+        private Vector3 m_OriginalTarget;
+        private Vector3 m_OriginalRotationEuler;
+
+        private Vector3[] m_XRotationCircleVertices = null;
+        private Vector3[] m_YRotationCircleVertices = null;
+        private Vector3[] m_ZRotationCircleVertices = null;
+
+        private List<Vector3[]> m_PlanesCutsCirclesVertices = new List<Vector3[]>();
+
+        // Rendering Settings
+        public AmbientMode AmbiantMode = AmbientMode.Flat;
+        public float AmbientIntensity = 1;
+        public Color AmbiantLight = new Color(0.2f, 0.2f, 0.2f, 1);
+
+        // post render
+        public Material m_PlaneMaterial = null;
+        private bool m_DisplayCutsCircles = false;
+        public double m_DisplayPlanesTimeRemaining;
+        private double m_DisplayPlanesTimeStart = 0;
+        private double m_DisplayPlanesTimer = 0;
+        #endregion
+
+        #region Private Methods
+        private void Awake()
+        {
+            m_OriginalRotationEuler = transform.localEulerAngles;
+            m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
+            m_AssociatedScene = GetComponentInParent<Base3DScene>();
+            m_AssociatedView = GetComponentInParent<View>();
+
+            // rotation circles
+            m_XRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
+            m_YRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
+            m_ZRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
+            for (int ii = 0; ii < m_XRotationCircleVertices.Length; ++ii)
+            {
+                m_XRotationCircleVertices[ii] = Quaternion.AngleAxis(90, Vector3.up) * m_XRotationCircleVertices[ii];
+                m_YRotationCircleVertices[ii] = Quaternion.AngleAxis(90, Vector3.left) * m_YRotationCircleVertices[ii];
+            }
+
+            transform.localEulerAngles = m_OriginalRotationEuler;
+            m_Target = m_AssociatedScene.Column3DViewManager.BothHemi.BoundingBox().Center();
+            m_OriginalTarget = m_Target;
+            transform.position = m_Target - transform.forward * m_StartDistance;
+        }
+        private void Start()
+        {
+            m_AssociatedScene.ModifyPlanesCuts.AddListener(() =>
+            {
+                if (!m_AssociatedScene.SceneInformation.MRILoaded)
+                    return;
+
+                m_PlanesCutsCirclesVertices = new List<Vector3[]>();
+                for (int ii = 0; ii < m_AssociatedScene.PlanesList.Count; ++ii)
+                {
+                    Vector3 point = m_AssociatedScene.PlanesList[ii].Point;
+                    point.x *= -1;
+                    Vector3 normal = m_AssociatedScene.PlanesList[ii].Normal;
+                    normal.x *= -1;
+                    Quaternion q = Quaternion.FromToRotation(new Vector3(0, 0, 1), normal);
+                    m_PlanesCutsCirclesVertices.Add(Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), 100, 150));
+                    for (int jj = 0; jj < 150; ++jj)
+                    {
+                        m_PlanesCutsCirclesVertices[ii][jj] = q * m_PlanesCutsCirclesVertices[ii][jj];
+                        m_PlanesCutsCirclesVertices[ii][jj] += point;
+                    }
+                }
+
+                m_DisplayPlanesTimeStart = (float)TimeExecution.get_world_time();
+                m_DisplayPlanesTimer = 0;
+                m_DisplayCutsCircles = true;
+            });
+        }
+        private void OnPreCull()
+        {
+            RenderSettings.ambientMode = AmbiantMode;
+            RenderSettings.ambientIntensity = AmbientIntensity;
+            RenderSettings.skybox = null;
+            RenderSettings.ambientLight = AmbiantLight;
+            m_AssociatedScene.DisplayedObjects.SharedDirectionalLight.transform.eulerAngles = transform.eulerAngles;
+        }
+        private void OnPreRender()
+        {
+            if (m_AssociatedView.LineID == 0)
+            {
+                m_AssociatedScene.UpdateFocusedColumnRendering();
+            }
+        }
+        private void OnPostRender()
+        {
+            DrawGL();
+        }
+        private void Update()
+        {
+            AutomaticCameraRotation();
+        }
+        /// <summary>
+        /// Make the camera rotate automatically
+        /// </summary>
+        private void AutomaticCameraRotation()
+        {
+            if (m_AutomaticRotation)
+            {
+                HorizontalRotation(m_AutomaticRotationSpeed * Time.deltaTime);
+            }
+        }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// 
+        /// </summary>
+        public void DrawGL()
+        {
+            if (!m_AssociatedView.IsFocused || m_AssociatedView.IsMinimized)
+                return;
+
+            if (m_DisplayCutsCircles)
+            {
+                m_DisplayPlanesTimer = TimeExecution.get_world_time() - m_DisplayPlanesTimeStart;
+                if (m_DisplayPlanesTimeRemaining > m_DisplayPlanesTimer)
+                {
+                    m_PlaneMaterial.SetPass(0);
+
+                    {
+                        int ii = m_AssociatedScene.SceneInformation.LastPlaneModifiedID;
+                        for (int jj = 0; jj < m_PlanesCutsCirclesVertices[ii].Length; ++jj)
+                        {
+                            GL.Begin(GL.LINES);
+                            GL.Vertex(m_PlanesCutsCirclesVertices[ii][jj]);
+                            GL.Vertex(m_PlanesCutsCirclesVertices[ii][(jj + 1) % m_PlanesCutsCirclesVertices[ii].Length]);
+                            GL.End();
+                        }
+
+                        GL.Begin(GL.LINES);
+                        GL.Vertex(m_PlanesCutsCirclesVertices[ii][m_PlanesCutsCirclesVertices[ii].Length / 8]);
+                        GL.Vertex(m_PlanesCutsCirclesVertices[ii][5 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
+                        GL.End();
+                        GL.Begin(GL.LINES);
+                        GL.Vertex(m_PlanesCutsCirclesVertices[ii][3 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
+                        GL.Vertex(m_PlanesCutsCirclesVertices[ii][7 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
+                        GL.End();
+                    }
+                }
+                else
+                    m_DisplayCutsCircles = false;
+            }
+
+            if (m_DisplayRotationCircles)
+            {
+                //GL.PushMatrix();
+                m_XCircleMaterial.SetPass(0);
+
+                float currentDist = Vector3.Distance(transform.position, m_Target);
+                float scaleRatio = currentDist / m_MaxDistance;
+
+                for (int ii = 0; ii < m_XRotationCircleVertices.Length; ++ii)
+                {
+                    GL.Begin(GL.LINES);
+                    GL.Vertex(m_Target + scaleRatio * m_XRotationCircleVertices[ii]);
+                    GL.Vertex(m_Target + scaleRatio * m_XRotationCircleVertices[(ii + 1) % m_XRotationCircleVertices.Length]);
+                    GL.End();
+                }
+
+                m_YCircleMaterial.SetPass(0);
+
+                for (int ii = 0; ii < m_YRotationCircleVertices.Length; ++ii)
+                {
+                    GL.Begin(GL.LINES);
+                    GL.Vertex(m_Target + scaleRatio * m_YRotationCircleVertices[ii]);
+                    GL.Vertex(m_Target + scaleRatio * m_YRotationCircleVertices[(ii + 1) % m_YRotationCircleVertices.Length]);
+                    GL.End();
+                }
+
+                m_ZCircleMaterial.SetPass(0);
+
+                for (int ii = 0; ii < m_ZRotationCircleVertices.Length; ++ii)
+                {
+                    GL.Begin(GL.LINES);
+                    GL.Vertex(m_Target + scaleRatio * m_ZRotationCircleVertices[ii]);
+                    GL.Vertex(m_Target + scaleRatio * m_ZRotationCircleVertices[(ii + 1) % m_ZRotationCircleVertices.Length]);
+                    GL.End();
+                }
+            }
+        }
+        /// <summary>
+        /// Strafe hozizontally the camera position and target with the same vector.
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="amount"></param>
+        public void HorizontalStrafe(float amount)
+        {
+            m_DisplayRotationCircles = true;
+            Vector3 strafe = transform.right * amount;
+
+            transform.position = transform.position + strafe;
+            m_Target = m_Target + strafe;
+        }
+        /// <summary>
+        /// Strafe vertically the camera position and target with the same vector.
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="amount"></param>
+        public void VerticalStrafe(float amount)
+        {
+            m_DisplayRotationCircles = true;
+            Vector3 strafe = transform.up * amount;
+
+            transform.position = transform.position + strafe;
+            m_Target = m_Target + strafe;
+        }
+        /// <summary>
+        /// Turn horizontally around the camera target
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="amount"></param>
+        public void HorizontalRotation(float amount)
+        {
+            m_DisplayRotationCircles = true;
+            Vector3 vecTargetPos_EyePos = transform.position - m_Target;
+            Quaternion rotation = Quaternion.AngleAxis(amount, transform.up);
+
+            transform.position = rotation * vecTargetPos_EyePos + m_Target;
+            transform.LookAt(m_Target, transform.up);
+        }
+        /// <summary>
+        /// Turn vertically around the camera target
+        /// </summary>
+        /// <param name="up"></param>
+        /// <param name="amount"></param>
+        public void VerticalRotation(float amount)
+        {
+            m_DisplayRotationCircles = true;
+            Vector3 vecTargetPos_EyePos = transform.position - m_Target;
+            Quaternion rotation = Quaternion.AngleAxis(amount, transform.right);
+
+            transform.position = rotation * vecTargetPos_EyePos + m_Target;
+            transform.LookAt(m_Target, Vector3.Cross(m_Target - transform.position, transform.right));
+        }
+        /// <summary>
+        /// Move forward the position in the direction of the target
+        /// </summary>
+        /// <param name="amount"></param>
+        public void MoveForward(float amount)
+        {
+            float length = Vector3.Distance(transform.position, m_Target);
+            if (length - amount > m_MinDistance)
+            {
+                transform.position += transform.forward * amount;
+            }
+        }
+        /// <summary>
+        /// Move backward  the position in the direction of the target
+        /// </summary>
+        /// <param name="amount"></param>
+        public void MoveBackward(float amount)
+        {
+            float length = Vector3.Distance(transform.position, m_Target);
+            if (length + amount < m_MaxDistance)
+            {
+                transform.position -= transform.forward * amount;
+            }
+        }
+        /// <summary>
+        /// Reset the original target of the camera
+        /// </summary>
+        public void ResetTarget()
+        {
+            transform.localEulerAngles = m_OriginalRotationEuler;
+            m_Target = m_OriginalTarget;
+            transform.position = m_Target - transform.forward * m_StartDistance;
+        }
+        #endregion
+    }
+}

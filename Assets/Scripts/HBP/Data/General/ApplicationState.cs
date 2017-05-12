@@ -30,4 +30,6 @@ public static class ApplicationState
     public static HBP.UI.Theme.Theme Theme;
 
     public static CoroutineManager CoroutineManager;
+
+    public static HBP.Module3D.HBP3DModule Module3D;
 }

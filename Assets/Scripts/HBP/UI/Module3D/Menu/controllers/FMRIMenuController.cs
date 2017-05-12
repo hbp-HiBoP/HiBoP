@@ -31,7 +31,7 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class FMRIMenu : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         public bool m_isDisplayed = false;
         public bool m_isROIMenuMinimized = true;
@@ -55,8 +55,8 @@ namespace HBP.UI.Module3D
         public Events.CloseIRMFWindow CloseIRMFWindow = new Events.CloseIRMFWindow();
         public Events.UpdateROIMenuDisplay UpdateROIMenuDisplay = new Events.UpdateROIMenuDisplay();
 
-        #endregion members
-        #region functions
+        #endregion
+        #region Public Methods
 
         /// <summary>
         /// Init the menu
@@ -67,7 +67,7 @@ namespace HBP.UI.Module3D
         {
             m_scene = scene;
             m_columnId = idColumn;
-            m_IRMFhistogram = Texture2Dutility.generate_histogram();
+            m_IRMFhistogram = Texture2Dutility.GenerateHistogram();
 
             // define name
             string nameMenu = "fMRI left menu ";
@@ -98,7 +98,7 @@ namespace HBP.UI.Module3D
         /// Update the IRMF data from the scene
         /// </summary>
         /// <param name="IRMFDataParams"></param>
-        public void update_FMRI_params_from_scene(FMriDataParameters IRMFDataParams)
+        public void update_FMRI_params_from_scene(FMRIDataParameters IRMFDataParams)
         {
             Transform contentPanelT = transform.Find("panel");
 
@@ -144,7 +144,7 @@ namespace HBP.UI.Module3D
             Slider alphaSlider = contentPanelT.Find("Value alpha parent").Find("Alpha slider").GetComponent<Slider>();
             alphaSlider.onValueChanged.AddListener((value) =>
             {
-                m_scene.update_FMRI_alpha(value, m_columnId);
+                m_scene.UpdateFMRIAlpha(value, m_columnId);
             });
 
             // cal min
@@ -152,7 +152,7 @@ namespace HBP.UI.Module3D
             calMinSlider.onValueChanged.AddListener((value) =>
             {
                 m_calMin = value;
-                m_scene.update_FMRI_cal_min(m_calMin, m_columnId);
+                m_scene.UpdateFMRICalMin(m_calMin, m_columnId);
                 update_histogram();
             });
 
@@ -161,7 +161,7 @@ namespace HBP.UI.Module3D
             calMaxSlider.onValueChanged.AddListener((value) =>
             {
                 m_calMax = value;
-                m_scene.update_FMRI_cal_max(m_calMax, m_columnId);
+                m_scene.UpdateFMRICalMax(m_calMax, m_columnId);
                 update_histogram();
             });
 
@@ -218,7 +218,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         void update_histogram()
         {
-            HBP.Module3D.DLL.Texture.generate_distribution_histogram(m_scene.CM.DLLVolumeFMriList[m_columnId], 4 * 110, 4 * 110, m_calMin, m_calMax).update_texture_2D(m_IRMFhistogram);
+            HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(m_scene.Column3DViewManager.DLLVolumeFMriList[m_columnId], 4 * 110, 4 * 110, m_calMin, m_calMax).UpdateTexture2D(m_IRMFhistogram);
 
             Transform contentPanelT = transform.Find("panel");
             Image image = contentPanelT.Find("Histogram parent").Find("Histogram panel").GetComponent<Image>();
@@ -228,7 +228,7 @@ namespace HBP.UI.Module3D
                    new Vector2(0.5f, 0.5f), 400f);
         }
 
-        #endregion functions
+        #endregion
     }
 
 
@@ -237,7 +237,7 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class FMRIMenuController : MonoBehaviour, UICameraOverlay
     {
-        #region members
+        #region Properties
 
         // scenes
         private Base3DScene m_scene = null; /**< scene */
@@ -252,9 +252,9 @@ namespace HBP.UI.Module3D
         // events
         public Events.UpdateColROIMenuDisplay UpdateColROIMenuDisplay = new Events.UpdateColROIMenuDisplay();
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -355,7 +355,7 @@ namespace HBP.UI.Module3D
         /// <param name="columnId"> id of the column (counting iEEG and fMRI)</param>
         public void define_current_column(int columnId = -1)
         {
-            int nbIEEGCols = m_scene.CM.ColumnsIEEG.Count;
+            int nbIEEGCols = m_scene.Column3DViewManager.ColumnsIEEG.Count;
             if (columnId >= nbIEEGCols)
                 m_currentMenu = m_FMRIMenuList[columnId - nbIEEGCols].GetComponent<FMRIMenu>();
             else
@@ -403,6 +403,6 @@ namespace HBP.UI.Module3D
         }
 
 
-        #endregion functions
+        #endregion
     }
 }

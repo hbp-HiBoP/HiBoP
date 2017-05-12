@@ -25,7 +25,7 @@ namespace HBP.Module3D
     /// </summary>
     public class TimeDisplayController : IndividualSceneOverlayController
     {
-        #region members
+        #region Properties
 
         private List<int> m_times = new List<int>();
         private Transform timeDisplayControllerOverlay = null;
@@ -34,9 +34,9 @@ namespace HBP.Module3D
         private List<HBP.Data.Visualization.Timeline> m_iEEGTimelines = new List<Data.Visualization.Timeline>();
         private List<bool> m_minimized = new List<bool>();
 
-        #endregion members
+        #endregion
 
-
+        #region Public Methods
         /// <summary>
         /// Init the controller
         /// </summary>
@@ -219,6 +219,6 @@ namespace HBP.Module3D
             m_iEEGTimelines = iEEGTimelines;
             updateTime(0, 0, true);
         }
-
+        #endregion
     }
 }

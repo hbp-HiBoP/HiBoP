@@ -49,8 +49,12 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public object Clone()
         {
-            IEnumerable<ElectrodeConfiguration> electrodesCloned = from electrode in ConfigurationByElectrode select electrode.Clone() as ElectrodeConfiguration;
-            return new PatientConfiguration(ID.Clone() as string, electrodesCloned, Color);
+            Dictionary<Electrode, ElectrodeConfiguration> configurationByElectrodeClone = new Dictionary<Electrode, ElectrodeConfiguration>();
+            foreach (var item in ConfigurationByElectrode)
+            {
+                configurationByElectrodeClone.Add(item.Key, item.Value.Clone() as ElectrodeConfiguration);
+            }
+            return new PatientConfiguration(configurationByElectrodeClone, Color);
         }
         #endregion
 

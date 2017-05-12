@@ -41,9 +41,9 @@ namespace HBP.Module3D
         public SendIntValueEvent m_selectROIEvent = new SendIntValueEvent(); /**< event for selecting a ROI */
 
         // scene
-        MP3DScene m_mpScene = null;
+        MultiPatients3DScene m_mpScene = null;
 
-        public void init(string layerMask, int idROI, GameObject ROIElement, MP3DScene mpScene, Transform parentROIUI, Transform parentROI)
+        public void init(string layerMask, int idROI, GameObject ROIElement, MultiPatients3DScene mpScene, Transform parentROIUI, Transform parentROI)
         {
             m_layerMask = layerMask;
             m_idROI = idROI;
@@ -109,7 +109,7 @@ namespace HBP.Module3D
 
             if (m_ROI != null)
             {
-                m_ROI.GetComponent<ROI>().clean();
+                m_ROI.GetComponent<ROI>().Clean();
                 Destroy(m_ROI);
             }
         }
@@ -178,7 +178,7 @@ namespace HBP.Module3D
             newBubbleUI.GetComponent<BubbleElement>().update_ray_text((ray < 0f) ? m_defaultRay : ray);
 
             // add bubble in the ROI
-            m_ROI.GetComponent<ROI>().add_bubble(m_layerMask, "Bubble " + id, position, (ray < 0f) ? m_defaultRay : ray);
+            m_ROI.GetComponent<ROI>().AddBubble(m_layerMask, "Bubble " + id, position, (ray < 0f) ? m_defaultRay : ray);
 
             // init listeners
             newBubbleUI.GetComponent<BubbleElement>().CloseBubbleEvent.AddListener((bubbleId) =>
@@ -190,7 +190,7 @@ namespace HBP.Module3D
             {
                 m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(false);
                 m_idSelectedBubble = bubbleId;
-                m_ROI.GetComponent<ROI>().select_bubble(m_idSelectedBubble);
+                m_ROI.GetComponent<ROI>().SelectBubble(m_idSelectedBubble);
                 m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(true);
             });
 
@@ -201,12 +201,12 @@ namespace HBP.Module3D
 
             // select the new created bubble            
             m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(true);
-            m_ROI.GetComponent<ROI>().select_bubble(m_idSelectedBubble);
+            m_ROI.GetComponent<ROI>().SelectBubble(m_idSelectedBubble);
 
             // set the scrollbar down
             StartCoroutine("scrollbar_down");
 
-            m_mpScene.data_.iEEGOutdated = true;
+            m_mpScene.SceneInformation.IsIEEGOutdated = true;
         }
 
         IEnumerator scrollbar_down()
@@ -222,7 +222,7 @@ namespace HBP.Module3D
         public void remove_bubble(int id)
         {
             // ROI
-            m_ROI.GetComponent<ROI>().remove_bubble(id);
+            m_ROI.GetComponent<ROI>().RemoveBubble(id);
 
             // ROI UI
             if (m_idSelectedBubble > id)
@@ -249,7 +249,7 @@ namespace HBP.Module3D
             }
 
             StartCoroutine("update_scrollbar");
-            m_mpScene.data_.iEEGOutdated = true;
+            m_mpScene.SceneInformation.IsIEEGOutdated = true;
         }
 
 
@@ -268,7 +268,7 @@ namespace HBP.Module3D
             m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(false);
             m_idSelectedBubble = idBubble;
             m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(true);
-            m_ROI.GetComponent<ROI>().select_bubble(m_idSelectedBubble);
+            m_ROI.GetComponent<ROI>().SelectBubble(m_idSelectedBubble);
         }
 
         /// <summary>
@@ -281,10 +281,10 @@ namespace HBP.Module3D
             if (m_bubblesUIList.Count == 0)
                 return;
 
-            m_ROI.GetComponent<ROI>().change_bubble_size(idBubble, coeff);
-            m_bubblesUIList[idBubble].GetComponent<BubbleElement>().update_ray_text(m_ROI.GetComponent<ROI>().bubble(idBubble).m_radius);
+            m_ROI.GetComponent<ROI>().ChangeBubbleSize(idBubble, coeff);
+            m_bubblesUIList[idBubble].GetComponent<BubbleElement>().update_ray_text(m_ROI.GetComponent<ROI>().Bubble(idBubble).Radius);
 
-            m_mpScene.data_.iEEGOutdated = true;
+            m_mpScene.SceneInformation.IsIEEGOutdated = true;
         }
 
         /// <summary>

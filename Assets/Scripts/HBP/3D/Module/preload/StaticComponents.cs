@@ -4,18 +4,19 @@
  * \brief Define StaticVisuComponents
  */
 using UnityEngine;
-using HBP.UI.Module3D;
 
 namespace HBP.Module3D
 {
+    /// <summary>
+    /// Paths to different directories, whether we are working in the release or in the editor
+    /// </summary>
     public class GlobalPaths
     {
-
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
         static public string Data = Application.dataPath + "/Data/";
-#else
+        #else
         static public string Data = Application.dataPath + "/../Data/";
-#endif
+        #endif
     }
 
     /// <summary>
@@ -23,34 +24,19 @@ namespace HBP.Module3D
     /// </summary>
     public class StaticComponents : MonoBehaviour
     {
-        static public HiBoP_3DModule_API HBPCommand = null;
-        static public HiBoP_3DModule_Main HBPMain = null;
+        #region Properties
+        static public HBP3DModule HBP3DModule = null;
         static public ScenesManager ScenesManager = null;
-        static public SP3DScene SinglePatientScene = null;
-        static public MP3DScene MultiPatientsScene = null;
-        static public UIManager UIManager = null;
-        static public MenuManager UICameraManager = null;
-        static public UIOverlayManager UIOverlayManager = null;     
-        static public Cam.InputsSceneManager InputsSceneManager = null;
         static public DLL.DLLDebugManager DLLDebugManager = null;
-        static public Transform CanvasOverlay = null;
+        #endregion
 
+        #region Private Methods
         void Awake()
         {
+            HBP3DModule = GetComponent<HBP3DModule>();
+            ScenesManager = GetComponentInChildren<ScenesManager>();
             DLLDebugManager = GetComponent<DLL.DLLDebugManager>();
-
-            HBPCommand = GetComponent<HiBoP_3DModule_API>();
-            HBPMain = GetComponent<HiBoP_3DModule_Main>();
-            ScenesManager = transform.Find("Scenes").GetComponent<ScenesManager>();
-            SinglePatientScene = ScenesManager.transform.Find("SP").GetComponent<SP3DScene>();
-            MultiPatientsScene = ScenesManager.transform.Find("MP").GetComponent<MP3DScene>();
-
-            Transform Visualization = GameObject.Find("Brain Visualization").transform;
-            UIManager = Visualization.GetComponent<UIManager>();
-            CanvasOverlay = Visualization.FindChild("Overlay");
-            InputsSceneManager = transform.Find("Scenes").GetComponent<Cam.InputsSceneManager>();
-            UICameraManager = Visualization.FindChild("Mid").GetComponent<MenuManager>();
-            UIOverlayManager = CanvasOverlay.GetComponent<UIOverlayManager>();
         }
+        #endregion
     }
 }

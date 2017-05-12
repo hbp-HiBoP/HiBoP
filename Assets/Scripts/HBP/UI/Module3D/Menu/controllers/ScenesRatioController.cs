@@ -21,16 +21,16 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class ScenesRatioController : MonoBehaviour, UICameraOverlay
     {
-        #region members
+        #region Properties
 
         public Transform m_sceneRatioTransform;  /**< scene ratio transform */
 
         private bool m_spSceneHasBeenActivated = false;
         private bool m_mpSceneHasBeenActivated = false;
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -42,12 +42,13 @@ namespace HBP.UI.Module3D
             m_sceneRatioTransform.GetComponent<Slider>().interactable = false;
             m_sceneRatioTransform.GetComponent<Slider>().onValueChanged.AddListener((value) =>
             {
-                StaticComponents.HBPMain.set_ratio_scene(value);
-                scenesManager.SinglePatientScene.set_current_mode_specifications();
-                scenesManager.MultiPatientsScene.set_current_mode_specifications();
+                foreach (Base3DScene scene in scenesManager.Scenes)
+                {
+                    scene.SetCurrentModeSpecifications();
+                }
             });
 
-            scenesManager.FocusOnScene.AddListener((spScene) =>
+            scenesManager.OnSelectScene.AddListener((spScene) =>
             {
                 if (spScene)
                     m_spSceneHasBeenActivated = true;
@@ -64,7 +65,7 @@ namespace HBP.UI.Module3D
         }
 
 
-        #endregion functions
+        #endregion
     }
 
 }

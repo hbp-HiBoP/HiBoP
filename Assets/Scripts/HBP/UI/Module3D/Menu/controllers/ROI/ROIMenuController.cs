@@ -25,7 +25,7 @@ namespace HBP.Module3D
         /// Send the path of the saved ROI
         /// </summary>
         [System.Serializable]
-        public class ROISavedEvent : UnityEvent<string> { }
+        public class OnSaveRegionOfInterest : UnityEvent<string> { }
     }
 
 
@@ -34,31 +34,31 @@ namespace HBP.Module3D
     /// </summary>
     public class ROIMenuController : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         // scene
-        private MP3DScene m_scene = null; /**< MP scene */
+        private MultiPatients3DScene m_scene = null; /**< MP scene */
 
         // canvas
         public Transform m_middlePanelT = null; /**< middle scene panel transform */
 
         // events
-        public Events.ROISavedEvent ROISavedEvent = new Events.ROISavedEvent();
+        public Events.OnSaveRegionOfInterest ROISavedEvent = new Events.OnSaveRegionOfInterest();
 
         // menus
         List<GameObject> m_columnROI = new List<GameObject>();
         ColumnROI m_currentROICol = null;
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
 
-        #endregion mono_behaviour
+        #endregion
 
-        #region functions
+        #region Public Methods
 
-        public void init(MP3DScene scene)
+        public void init(MultiPatients3DScene scene)
         {
             m_scene = scene;
 
@@ -112,20 +112,20 @@ namespace HBP.Module3D
                 string pathFile = save_ROI();
                 if (pathFile.Length == 0)
                 {
-                    m_scene.display_sceen_message("ERROR during ROI saving !", 2f, 200, 80);
+                    m_scene.DisplayScreenMessage("ERROR during ROI saving !", 2f, 200, 80);
                     return;
                 }
 
-                m_scene.display_sceen_message("ROI successfully saved.", 2f, 200, 80);
+                m_scene.DisplayScreenMessage("ROI successfully saved.", 2f, 200, 80);
                 ROISavedEvent.Invoke(pathFile);
             });
 
             newROICol.GetComponent<ColumnROI>().LoadROIEvent.AddListener(() =>
             {
                 if (load_ROI())
-                    m_scene.display_sceen_message("ROI successfully loaded.", 2f, 200, 80);
+                    m_scene.DisplayScreenMessage("ROI successfully loaded.", 2f, 200, 80);
                 else
-                    m_scene.display_sceen_message("ERROR during ROI loading !", 2f, 200, 80);
+                    m_scene.DisplayScreenMessage("ERROR during ROI loading !", 2f, 200, 80);
             });
         }
 
@@ -184,9 +184,9 @@ namespace HBP.Module3D
         public void update_ROI_mode()
         {
             if (m_currentROICol.m_isDisplayed)
-                m_scene.enable_ROI_creation_mode();
+                m_scene.EnableRegionOfInterestCreationMode();
             else
-                m_scene.disable_ROI_creatino_mode();
+                m_scene.DisableRegionOfInterestCreationMode();
         }
 
 
@@ -242,14 +242,14 @@ namespace HBP.Module3D
         public string save_ROI()
         {
             string[] filters = new string[] { "roi"};
-            string ROIPath = Module3D.DLL.QtGUI.get_saved_file_name(filters, "Save column ROI and plots state...", "./" + m_scene.CM.SelectedColumn.SelectedROI.m_ROIname + ".roi");
+            string ROIPath = Module3D.DLL.QtGUI.get_saved_file_name(filters, "Save column ROI and plots state...", "./" + m_scene.Column3DViewManager.SelectedColumn.SelectedROI.m_ROIname + ".roi");
 
             if (ROIPath.Length == 0) // no path selected
                 return "";
 
-            File.WriteAllText(ROIPath, m_scene.get_current_column_ROI_and_sites_state_str(), Encoding.UTF8);
+            File.WriteAllText(ROIPath, m_scene.GetCurrentColumnRegionOfInterestAndSitesStatesIntoString(), Encoding.UTF8);
             string[] parts = ROIPath.Split('.');
-            File.WriteAllText(parts[0] + ".sites", m_scene.get_sites_in_ROI(), Encoding.UTF8);
+            File.WriteAllText(parts[0] + ".sites", m_scene.GetSitesInRegionOfInterestIntoString(), Encoding.UTF8);
 
             return ROIPath;
         }
@@ -364,14 +364,14 @@ namespace HBP.Module3D
                 }
             }
 
-            m_scene.update_sites_mask(m_currentROICol.m_idColumn, electrodes, patientsNames);
+            m_scene.UpdateSitesMasks(m_currentROICol.m_idColumn, electrodes, patientsNames);
             m_columnROI[m_currentROICol.m_idColumn].GetComponent<ColumnROI>().add_ROI(positions, rays, nameROI);
 
-            m_scene.data_.iEEGOutdated = true;
+            m_scene.SceneInformation.IsIEEGOutdated = true;
             return true;
         }
 
 
-        #endregion functions
+        #endregion
     }
 }

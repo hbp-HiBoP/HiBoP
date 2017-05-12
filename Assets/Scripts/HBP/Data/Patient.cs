@@ -21,7 +21,7 @@ namespace HBP.Data
     *     - \a Epilepsy \a type : epilepsy type of the patient.(IGE,IPE,SGE,SPE,Unknown)
     */
     [Serializable]
-	public class Patient : ICloneable
+	public class Patient : ICloneable, ICopiable
 	{
         #region Properties
         public const string EXTENSION = ".patient";

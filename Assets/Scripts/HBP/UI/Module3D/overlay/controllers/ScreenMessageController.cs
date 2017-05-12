@@ -26,7 +26,7 @@ namespace HBP.Module3D
     /// </summary>
     public class ScreenMessageController : BothScenesOverlayController
     {
-        #region members
+        #region Properties
 
         private GameObject m_messageScreenDisplay = null;
         private GameObject m_spScreenMessage = null;
@@ -63,15 +63,15 @@ namespace HBP.Module3D
         private double spProgressBarT;
         private double mpProgressBarT;
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         // ...
 
-        #endregion mono_behaviour
+        #endregion
 
-        #region others
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -111,7 +111,7 @@ namespace HBP.Module3D
             m_mpProgressBar = m_mpScreenProgressBar.GetComponent<ProgressBar>();
             m_mpProgressBar.init();
 
-            m_SinglePatientScene.display_screen_message_event.AddListener((message, duration, width, height) =>
+            m_SinglePatientScene.OnDisplayScreenMessage.AddListener((message, duration, width, height) =>
             {
                 stop(true);
                 m_spScreenText.text = message;
@@ -122,7 +122,7 @@ namespace HBP.Module3D
                 StartCoroutine(displayMessage(true));
             });
 
-            m_SinglePatientScene.display_scene_progressbar_event.AddListener((duration, width, height, value) =>
+            m_SinglePatientScene.OnDisplayScreenProgressbar.AddListener((duration, width, height, value) =>
             {
                 stop(true, true);
                 m_spPDuration = duration;
@@ -133,7 +133,7 @@ namespace HBP.Module3D
                 StartCoroutine(displayProgress(true));
             });
 
-            m_MultiPatientsScene.display_screen_message_event.AddListener((message, duration, width, height) =>
+            m_MultiPatientsScene.OnDisplayScreenMessage.AddListener((message, duration, width, height) =>
             {
                 stop(false);
                 m_mpScreenText.text = message;
@@ -144,7 +144,7 @@ namespace HBP.Module3D
                 StartCoroutine(displayMessage(false));
             });
 
-            m_MultiPatientsScene.display_scene_progressbar_event.AddListener((duration, width, height, value) =>
+            m_MultiPatientsScene.OnDisplayScreenProgressbar.AddListener((duration, width, height, value) =>
             {
                 stop(false, true);
                 m_mpPDuration = duration;
@@ -307,6 +307,6 @@ namespace HBP.Module3D
             }
         }
 
-        #endregion others
+        #endregion
     }
 }

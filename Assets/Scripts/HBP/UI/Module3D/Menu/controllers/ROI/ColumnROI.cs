@@ -40,7 +40,7 @@ namespace HBP.Module3D
         public List<GameObject> m_ROIList = new List<GameObject>(); /**< ROI elements of the column menu */
 
         private Transform m_ROIElementsParent = null; /**< parent of the ROI element */
-        private MP3DScene m_mpScene = null;
+        private MultiPatients3DScene m_mpScene = null;
         private Scrollbar m_scrollbar = null; /**< scrollbar of the ROI list */
 
         public GameObject m_colROIListParent = null;
@@ -52,7 +52,7 @@ namespace HBP.Module3D
         public NoParamEvent SaveROIEvent = new NoParamEvent(); /**< event for saving the ROI and the plots states of the current column */
         public NoParamEvent LoadROIEvent = new NoParamEvent(); /**< event for loading the ROI and the plots states and add it in the current column */
 
-        public void init(int columnId, GameObject menu, MP3DScene mpScene, Transform parentMenu)
+        public void init(int columnId, GameObject menu, MultiPatients3DScene mpScene, Transform parentMenu)
         {
             m_idColumn = columnId;
             m_layerMask = "C" + m_idColumn + "_MP";
@@ -97,7 +97,7 @@ namespace HBP.Module3D
                 if (idC == m_idColumn)
                 {
                     selected_ROI_element().add_bubble(position);
-                    m_mpScene.update_current_ROI(idC);
+                    m_mpScene.UpdateCurrentRegionOfInterest(idC);
                 }
             });
 
@@ -112,7 +112,7 @@ namespace HBP.Module3D
                 if (idC == m_idColumn)
                 {
                     selected_ROI_element().change_bubble_size(idB, coeff);
-                    m_mpScene.update_current_ROI(idC);
+                    m_mpScene.UpdateCurrentRegionOfInterest(idC);
                 }
             });
 
@@ -121,7 +121,7 @@ namespace HBP.Module3D
                 if (idC == m_idColumn)
                 {
                     selected_ROI_element().remove_bubble(idB);
-                    m_mpScene.update_current_ROI(idC);
+                    m_mpScene.UpdateCurrentRegionOfInterest(idC);
                 }
             });
 
@@ -162,10 +162,10 @@ namespace HBP.Module3D
             add_ROI();
 
             ROI currROI = ROIElemGo.GetComponent<ROIElement>().m_ROI.GetComponent<ROI>();
-            for (int jj = 0; jj < currROI.bubbles_nb(); ++jj)
+            for (int jj = 0; jj < currROI.NumberOfBubbles(); ++jj)
             {
-                Bubble bubble = currROI.bubble(jj);
-                m_ROIList[m_ROIList.Count-1].GetComponent<ROIElement>().add_bubble(bubble.transform.position, bubble.m_radius);                    
+                Bubble bubble = currROI.Bubble(jj);
+                m_ROIList[m_ROIList.Count-1].GetComponent<ROIElement>().add_bubble(bubble.transform.position, bubble.Radius);                    
             }
 
             set_selected_ROI(m_ROIList.Count - 1);
@@ -188,7 +188,7 @@ namespace HBP.Module3D
             }
             
             // update the scene ROI
-            m_mpScene.update_current_ROI(m_idColumn);
+            m_mpScene.UpdateCurrentRegionOfInterest(m_idColumn);
 
             // update ROI name
             m_ROIList[m_ROIList.Count - 1].GetComponent<ROIElement>().update_name(ROIName);
@@ -220,13 +220,13 @@ namespace HBP.Module3D
 
             newROIElement.GetComponent<ROIElement>().m_closeBubbleEvent.AddListener(() =>
             {
-                m_mpScene.update_current_ROI(m_idColumn);
+                m_mpScene.UpdateCurrentRegionOfInterest(m_idColumn);
             });
 
             // set the scrollbar down
             StartCoroutine("scrollabar_down");
 
-            m_mpScene.data_.iEEGOutdated = true;
+            m_mpScene.SceneInformation.IsIEEGOutdated = true;
         }
 
         IEnumerator scrollabar_down()
@@ -251,7 +251,7 @@ namespace HBP.Module3D
 
             StartCoroutine("update_scrollbar");
 
-            m_mpScene.data_.iEEGOutdated = true;
+            m_mpScene.SceneInformation.IsIEEGOutdated = true;
         }
 
         IEnumerator update_scrollbar()
@@ -270,7 +270,7 @@ namespace HBP.Module3D
             }
 
             // update the scene with the new selected ROI
-            m_mpScene.update_ROI(m_idColumn, selected_ROI_element().associated_ROI());
+            m_mpScene.UpdateRegionOfInterest(m_idColumn, selected_ROI_element().associated_ROI());
         }
 
         public ROIElement selected_ROI_element()

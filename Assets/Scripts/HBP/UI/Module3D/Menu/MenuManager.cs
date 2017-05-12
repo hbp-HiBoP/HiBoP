@@ -21,14 +21,14 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class MenuManager : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         private ScenesRatioController m_scenesRatioController = null;
         private ToolsMenu m_topPanelMenuController = null;
         private ButtonsLeftMenuController m_buttonsLeftMenuController = null;
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         void Awake()
         {            
@@ -39,9 +39,9 @@ namespace HBP.UI.Module3D
             TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.UICameraManager, gameObject);
         }
 
-        #endregion mono_behaviour
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init all controllers
@@ -64,7 +64,7 @@ namespace HBP.UI.Module3D
         /// <param name="mode"></param>
         public void update_UI_with_mode(Mode mode)
         {
-            switch (mode.m_Type)
+            switch (mode.Type)
             {
                 case SceneType.SinglePatient:
                     m_buttonsLeftMenuController.SinglePatientLeftMenuController.update_UI_with_mode(mode);
@@ -84,7 +84,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="IEEGColumnsNb"></param>
-        public void SetiEEGColumnsNb(SceneType type, List<HBP.Data.Visualization.ColumnData> columnsData)
+        public void SetiEEGColumnsNb(SceneType type, List<Data.Visualization.Column> columnsData)
         {
             switch (type)
             {
@@ -159,7 +159,7 @@ namespace HBP.UI.Module3D
             }
         }
 
-        #endregion functions
+        #endregion
 
 
     }

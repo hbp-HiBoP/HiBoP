@@ -40,7 +40,7 @@ namespace HBP.Module3D
         #region Public Methods
         public abstract void UpdatePosition();
         public abstract void UpdateUI();
-        #endregion functions
+        #endregion
 
         public virtual void Initialize(CamerasManager camerasManager)
         {
@@ -152,14 +152,14 @@ namespace HBP.Module3D
         protected Mode m_CurrentSinglePatientMode = null;
         protected Mode m_CurrentMultiPatientsMode = null;
 
-        protected SP3DScene m_SinglePatientScene = null;
-        protected MP3DScene m_MultiPatientsScene = null;        
+        protected SinglePatient3DScene m_SinglePatientScene = null;
+        protected MultiPatients3DScene m_MultiPatientsScene = null;        
 
         public void Initialize(ScenesManager scenesManager)
         {
-            base.Initialize(scenesManager.CamerasManager);
-            m_SinglePatientScene = scenesManager.SinglePatientScene;
-            m_MultiPatientsScene = scenesManager.MultiPatientsScene;
+            //base.Initialize(scenesManager.CamerasManager);
+            //m_SinglePatientScene = scenesManager.SinglePatientScene;
+            //m_MultiPatientsScene = scenesManager.MultiPatientsScene;
         }
 
         /// <summary>
@@ -169,7 +169,7 @@ namespace HBP.Module3D
         /// <param name="mode"></param>
         public void SetActivity(bool activity, Mode mode)
         {
-            switch (mode.m_Type)
+            switch (mode.Type)
             {
                 case SceneType.SinglePatient:
                     m_CurrentSinglePatientActivity = activity;

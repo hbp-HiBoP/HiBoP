@@ -272,7 +272,6 @@ namespace HBP.Data.Visualization
         }
         protected void AddPatientConfiguration(Patient patient)
         {
-            patient.Brain.LoadImplantation(true);
             foreach (Column column in Columns)
             {
                 if (!column.Configuration.ConfigurationByPatient.ContainsKey(patient)) column.Configuration.ConfigurationByPatient.Add(patient, new PatientConfiguration(Configuration.Color));
@@ -287,7 +286,6 @@ namespace HBP.Data.Visualization
                     }
                 }
             }
-            patient.Brain.UnloadImplantation();
         }
         protected void RemovePatientConfiguration(Patient patient)
         {

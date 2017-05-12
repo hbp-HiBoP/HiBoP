@@ -27,7 +27,7 @@ namespace HBP.Module3D
     /// </summary>
     public class TimelineController : IndividualSceneOverlayController
     {
-        #region members
+        #region Properties
 
         private Transform m_timelineControllerOverlay;
 
@@ -73,9 +73,9 @@ namespace HBP.Module3D
         private List<List<int>> m_secondaryEventsPositions = new List<List<int>>(); /**< positions of the secondary events */
         private List<List<GameObject>> m_secondaryEventsText = new List<List<GameObject>>(); /**< textres of the secondary events */
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         /// <summary>
         /// This function is called after all frame updates for the last frame of the object’s existence (the object might be destroyed in response to Object.Destroy or at the closure of a scene).
@@ -86,8 +86,9 @@ namespace HBP.Module3D
             Destroy(m_sliderGlobalTexture);
         }
 
-        #endregion mono_behaviour
+        #endregion
 
+        #region Public Methods
         /// <summary>
         /// Init the controller
         /// </summary>
@@ -119,7 +120,7 @@ namespace HBP.Module3D
             m_globalTimeSlider.onValueChanged.AddListener(
                 delegate
                 {
-                    m_Scene.update_IEEG_time(0, m_globalTimelinePanel.Find("slider panel").Find("value_slider").gameObject.GetComponent<Slider>().value, true);
+                    m_Scene.UpdateIEEGTime(0, m_globalTimelinePanel.Find("slider panel").Find("value_slider").gameObject.GetComponent<Slider>().value, true);
                 });
             m_globalTimelinePanel.Find("global button").gameObject.GetComponent<Button>().onClick.AddListener(
                 delegate
@@ -136,7 +137,7 @@ namespace HBP.Module3D
             m_globalComputeButton.gameObject.GetComponent<Button>().onClick.AddListener(
                 delegate
                 {
-                    m_Scene.update_generators();
+                    m_Scene.UpdateGenerators();
                 });
             m_globalTimelinePanel.Find("increment_button").gameObject.GetComponent<Button>().onClick.AddListener(
                 delegate
@@ -406,7 +407,7 @@ namespace HBP.Module3D
                 timelinePanel.Find("max_text").GetComponent<Text>().text = "" + timeLine.End.Value + m_uniteMax;
 
                 // define texture
-                m_sliderTexture = UITextureGenerator.generate_slider_background_texture(posMin, posMax-1, timeLine.Start.Position, timeLine.End.Position, timeLine.Lenght, m_positionMainEvent, m_secondaryEventsPositions[ii]);
+                m_sliderTexture = UITextureGenerator.GenerateSliderBackgroundTexture(posMin, posMax-1, timeLine.Start.Position, timeLine.End.Position, timeLine.Lenght, m_positionMainEvent, m_secondaryEventsPositions[ii]);
                 timelinePanel.Find("slider panel").Find("value_slider").Find("Background").GetComponent<Image>().sprite = Sprite.Create(m_sliderTexture, new Rect(0, 0, m_sliderTexture.width, m_sliderTexture.height), new Vector2(0, 0));
             }
 
@@ -425,7 +426,7 @@ namespace HBP.Module3D
             //if (m_sliderGlobalTexture != null)
             //    Destroy(m_sliderGlobalTexture);
 
-            m_sliderGlobalTexture = UITextureGenerator.generate_slider_background_texture(0, m_size - 1, 0, m_size - 1, m_size, m_positionMainEvent, new List<int>());
+            m_sliderGlobalTexture = UITextureGenerator.GenerateSliderBackgroundTexture(0, m_size - 1, 0, m_size - 1, m_size, m_positionMainEvent, new List<int>());
             timelinePanel.Find("slider panel").Find("value_slider").Find("Background").GetComponent<Image>().sprite = Sprite.Create(m_sliderGlobalTexture, new Rect(0, 0, m_sliderGlobalTexture.width, m_sliderGlobalTexture.height), new Vector2(0, 0));
 
             m_timelinesList = timelinesList;
@@ -472,7 +473,7 @@ namespace HBP.Module3D
         /// <param name="mode"></param>
         private void setTimelineState(Transform timelinePanel, Transform computeButton, Mode mode)
         {
-            if(m_selectedColumnIsIRMF || m_Scene.is_latency_mode_enabled() || mode == null)
+            if(m_selectedColumnIsIRMF || m_Scene.IsLatencyModeEnabled() || mode == null)
             {
                 m_timelineIsEnabled = false;
                 computeButton.gameObject.SetActive(false);
@@ -482,7 +483,7 @@ namespace HBP.Module3D
 
             string textComputeButton = "";
             Color colorComputeButton = Color.white;
-            computeButton.gameObject.GetComponent<Button>().interactable = m_Scene.data_.iEEGOutdated;
+            computeButton.gameObject.GetComponent<Button>().interactable = m_Scene.SceneInformation.IsIEEGOutdated;
             textComputeButton = "Update iEEG";
             computeButton.gameObject.SetActive(true);
 
@@ -543,11 +544,11 @@ namespace HBP.Module3D
                     // set listeners
                     m_timelinePanelList[id].Find("slider panel").Find("value_slider").gameObject.GetComponent<Slider>().onValueChanged.AddListener(delegate
                     {
-                            m_Scene.update_IEEG_time(id, m_timelinePanelList[id].Find("slider panel").Find("value_slider").gameObject.GetComponent<Slider>().value, false);
+                            m_Scene.UpdateIEEGTime(id, m_timelinePanelList[id].Find("slider panel").Find("value_slider").gameObject.GetComponent<Slider>().value, false);
                     });
                     m_computeButtonList[id].gameObject.GetComponent<Button>().onClick.AddListener(delegate
                     {
-                        m_Scene.update_generators();
+                        m_Scene.UpdateGenerators();
                     });
                     m_timelinePanelList[id].Find("global button").gameObject.GetComponent<Button>().onClick.AddListener(delegate
                     {
@@ -646,7 +647,7 @@ namespace HBP.Module3D
                 m_timelineElementsList[m_currentTimelineID].SetActive(true);
             }
 
-            m_Scene.update_IEEG_all_times(m_showGlobal);
+            m_Scene.UpdateAllIEEGTime(m_showGlobal);
         }
 
         /// <summary>
@@ -683,7 +684,7 @@ namespace HBP.Module3D
             float startValue = m_globalTimeSlider.value;// m_globalTimeSlider.minValue;
             while (m_globalIsLooping)
             {
-                if(!m_Scene.data_.generatorUpToDate)
+                if(!m_Scene.SceneInformation.IsGeneratorUpToDate)
                 {
                     m_globalTimeSlider.value = m_globalTimeSlider.minValue;
                     m_globalIsLooping = false;
@@ -709,7 +710,7 @@ namespace HBP.Module3D
             float startValue = timelineSlider.value;// timelineSlider.minValue;
             while (m_individualIsLooping[id])
             {
-                if (!m_Scene.data_.generatorUpToDate)
+                if (!m_Scene.SceneInformation.IsGeneratorUpToDate)
                 {
                     timelineSlider.value = timelineSlider.minValue;
                     m_individualIsLooping[id] = false;
@@ -727,5 +728,6 @@ namespace HBP.Module3D
             }
             loopButton.transform.Find("Text").GetComponent<Text>().text = "Loop";
         }
+        #endregion
     }
 }

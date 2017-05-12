@@ -33,7 +33,7 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public class QtGUI
     {
-        #region functions
+        #region Public Methods
 
         private static List<string> launch_fileDialog_window(string argumentsFileDialogs)
         {
@@ -185,6 +185,6 @@ namespace HBP.Module3D.DLL
             return proc.ExitCode;
         }
 
-        #endregion functions
+        #endregion
     }
 }

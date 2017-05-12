@@ -40,10 +40,9 @@ namespace HBP.UI.Module3D
 
         private bool m_initialized = false;
 
-        #endregion members
+        #endregion
 
-
-        #region mono_behaviour
+        #region Private Methods
 
         void Awake()
         {
@@ -80,9 +79,9 @@ namespace HBP.UI.Module3D
             update_UI_position();
         }
 
-        #endregion mono_behaviour
+        #endregion
 
-
+        #region Public Methods
         /// <summary>
         /// Init the overlay manager.
         /// </summary>
@@ -95,6 +94,7 @@ namespace HBP.UI.Module3D
             m_bothDisplaySiteInfoTransform = transform.FindChild("others").FindChild("display site info panel");
 
             // init controllers
+            /*
             //  planes 
             m_spPlanesController.Initialize(scenesManager.SinglePatientScene, scenesManager.CamerasManager);
             m_mpPlanesController.Initialize(scenesManager.MultiPatientsScene, scenesManager.CamerasManager);
@@ -107,6 +107,7 @@ namespace HBP.UI.Module3D
             //  icones
             m_spIconesController.init(scenesManager.SinglePatientScene, scenesManager.CamerasManager);
             m_mpIconesController.init(scenesManager.MultiPatientsScene, scenesManager.CamerasManager);
+            */
             //  display image cut            
             m_bothDisplayImageCutController.init(scenesManager);
             //  minimize
@@ -129,6 +130,7 @@ namespace HBP.UI.Module3D
                 m_bothColorMapController.UpdateUI();
             });
 
+            /*
             // listeners
             scenesManager.SinglePatientScene.UpdateTimeInUI.AddListener(() =>
             {
@@ -148,7 +150,7 @@ namespace HBP.UI.Module3D
             {
                 udpate_display_site_infos(false, siteInfo);
             });
-
+            */
             m_scenesManager = scenesManager;
             m_initialized = true;
         }
@@ -198,7 +200,7 @@ namespace HBP.UI.Module3D
             {
                 // TODO : m_bothScreenMessageController
                 case 0:
-                    switch (mode.m_Type)
+                    switch (mode.Type)
                     {
                         case SceneType.SinglePatient:
                             m_spPlanesController.CurrentActivity = active;
@@ -213,7 +215,7 @@ namespace HBP.UI.Module3D
                     }
                     break;
                 case 1:
-                    switch (mode.m_Type)
+                    switch (mode.Type)
                     {
                         case SceneType.SinglePatient:
                             m_spTimelineController.CurrentActivity = active;
@@ -228,7 +230,7 @@ namespace HBP.UI.Module3D
                     }
                     break;
                 case 2:
-                    switch (mode.m_Type)
+                    switch (mode.Type)
                     {
                         case SceneType.SinglePatient:
                             m_spIconesController.CurrentActivity = active;
@@ -252,7 +254,7 @@ namespace HBP.UI.Module3D
                     m_bothMinimizeController.SetActivity(active, mode);
                     break;
                 case 6:
-                    switch (mode.m_Type)
+                    switch (mode.Type)
                     {
                         case SceneType.SinglePatient:
                             m_spTimeDisplayController.CurrentActivity = active;
@@ -455,7 +457,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="spScene"> is a single patient scene </param>
         /// <param name="nbColumns"> columns nb</param>
-        public void SetiEEGColumnsNb(SceneType type, List<HBP.Data.Visualization.ColumnData> columnsData)
+        public void SetiEEGColumnsNb(SceneType type, List<HBP.Data.Visualization.Column> columnsData)
         {
             int nbColumns = (columnsData != null  ? columnsData.Count : 1);
             switch (type)
@@ -488,7 +490,7 @@ namespace HBP.UI.Module3D
                 // update names
                 for (int ii = 0; ii < nbColumns; ++ii)
                 {
-                    update_columns_name(type, ii, columnsData[ii].Label);
+                    update_columns_name(type, ii, columnsData[ii].DataLabel);
                 }
             }
         }
@@ -545,7 +547,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="iEEGDataCols"></param>
-        private void update_iEEG_columns_data_UI(SceneType type, List<Data.Visualization.ColumnData> iEEGDataCols)
+        private void update_iEEG_columns_data_UI(SceneType type, List<Data.Visualization.Column> iEEGDataCols)
         {
             // timeline controller
             List<Data.Visualization.Timeline> timelines = new List<Data.Visualization.Timeline>(iEEGDataCols.Count);
@@ -580,20 +582,23 @@ namespace HBP.UI.Module3D
         /// Update the timeline current time for the controllers
         /// </summary>
         /// <param name="spScene"></param>
-        public void update_time(bool spScene)
+        public void update_time(Base3DScene scene)
         {
-            Column3DViewManager cm = spScene ? m_scenesManager.SinglePatientScene.CM : m_scenesManager.MultiPatientsScene.CM;
-            int time = cm.globalTimeline ? (int)cm.commonTimelineValue : ((Column3DViewIEEG)cm.SelectedColumn).columnTimeLineID;
+            Column3DViewManager cm = scene.Column3DViewManager;
+            int time = cm.GlobalTimeline ? (int)cm.CommonTimelineValue : ((Column3DViewIEEG)cm.SelectedColumn).ColumnTimeLineID;
 
-            if (spScene)
-            {                
-                m_spIconesController.set_time(cm.globalTimeline, cm.SelectedColumnID, time);
-                m_spTimeDisplayController.updateTime(cm.SelectedColumnID, time, cm.globalTimeline);
-            }
-            else
+            switch (scene.Type)
             {
-                m_mpIconesController.set_time(cm.globalTimeline, cm.SelectedColumnID, time);
-                m_mpTimeDisplayController.updateTime(cm.SelectedColumnID, time, cm.globalTimeline);
+                case SceneType.SinglePatient:
+                    m_spIconesController.set_time(cm.GlobalTimeline, cm.SelectedColumnID, time);
+                    m_spTimeDisplayController.updateTime(cm.SelectedColumnID, time, cm.GlobalTimeline);
+                    break;
+                case SceneType.MultiPatients:
+                    m_mpIconesController.set_time(cm.GlobalTimeline, cm.SelectedColumnID, time);
+                    m_mpTimeDisplayController.updateTime(cm.SelectedColumnID, time, cm.GlobalTimeline);
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -632,8 +637,8 @@ namespace HBP.UI.Module3D
 
                 if (siteInfo.site != null)
                 {
-                    m_bothDisplaySiteInfoTransform.Find("mars atlas name text").GetComponent<Text>().text = "Mars atlas : " + (siteInfo.site.Information.MarsAtlasIndex == -1 ? "not found" : GlobalGOPreloaded.MarsAtlasIndex.full_name(siteInfo.site.Information.MarsAtlasIndex));
-                    m_bothDisplaySiteInfoTransform.Find("broadman name text").GetComponent<Text>().text = "Broadman : " + (siteInfo.site.Information.MarsAtlasIndex == -1 ? "not found" :  GlobalGOPreloaded.MarsAtlasIndex.broadman_area(siteInfo.site.Information.MarsAtlasIndex));
+                    m_bothDisplaySiteInfoTransform.Find("mars atlas name text").GetComponent<Text>().text = "Mars atlas : " + (siteInfo.site.Information.MarsAtlasIndex == -1 ? "not found" : GlobalGOPreloaded.MarsAtlasIndex.FullName(siteInfo.site.Information.MarsAtlasIndex));
+                    m_bothDisplaySiteInfoTransform.Find("broadman name text").GetComponent<Text>().text = "Broadman : " + (siteInfo.site.Information.MarsAtlasIndex == -1 ? "not found" :  GlobalGOPreloaded.MarsAtlasIndex.BroadmanArea(siteInfo.site.Information.MarsAtlasIndex));
                 }
             }
         }
@@ -652,5 +657,6 @@ namespace HBP.UI.Module3D
 
             return m_mpTimelineController.getTime(); 
         }
+        #endregion
     }
 }

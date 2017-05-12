@@ -23,35 +23,36 @@ namespace HBP.Module3D
         /// </summary>
         public class MRIGeometryCutGenerator : CppDLLImportBase
         {
-            #region functions 
-
-            public void reset(DLL.Volume volume, Plane plane)
+            #region Public Methods 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="volume"></param>
+            /// <param name="plane"></param>
+            public void Reset(DLL.Volume volume, Plane plane)
             {
                 float[] planeF = new float[6];
                 for (int ii = 0; ii < 3; ++ii)
                 {
-                    planeF[ii]     = plane.point[ii];
-                    planeF[ii + 3] = plane.normal[ii];
+                    planeF[ii]     = plane.Point[ii];
+                    planeF[ii + 3] = plane.Normal[ii];
                 }
 
                 reset__MRIGeometryCutGenerator(_handle, volume.getHandle(), planeF);
                 StaticComponents.DLLDebugManager.check_error();
             }
-
             /// <summary>
             /// Update the UV of the input mesh
             /// </summary>
             /// <param name="mesh"></param>
-            public void update_cut_mesh_UV(DLL.Surface mesh)
+            public void UpdateCutMeshUV(DLL.Surface mesh)
             {
                 update_cut_mesh_UV__MRIGeometryCutGenerator(_handle, mesh.getHandle());
                 StaticComponents.DLLDebugManager.check_error();
             }
+            #endregion
 
-            #endregion functions
-
-            #region memory_management
-
+            #region Memory Management
             /// <summary>
             /// Allocate DLL memory
             /// </summary>
@@ -59,7 +60,6 @@ namespace HBP.Module3D
             {
                 _handle = new HandleRef(this, create__MRIGeometryCutGenerator());
             }
-
             /// <summary>
             /// Clean DLL memory
             /// </summary>
@@ -67,13 +67,11 @@ namespace HBP.Module3D
             {
                 delete__MRIGeometryCutGenerator(_handle);
             }
-
             /// <summary>
             /// CutTextureGenerator default constructor
             /// </summary>
             public MRIGeometryCutGenerator() : base() { }
-
-            #endregion memory_management
+            #endregion
 
             #region DLLImport
 
@@ -90,7 +88,7 @@ namespace HBP.Module3D
             static private extern void update_cut_mesh_UV__MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator, HandleRef handleSurface);
 
 
-            #endregion DLLImport
+            #endregion
         }
 
         /// <summary>
@@ -98,13 +96,15 @@ namespace HBP.Module3D
         /// </summary>
         public class MRITextureCutGenerator : CppDLLImportBase
         {
-            #region functions
-
-            public void reset(MRIGeometryCutGenerator geometryGenerator)
+            #region Public Methods
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="geometryGenerator"></param>
+            public void Reset(MRIGeometryCutGenerator geometryGenerator)
             {
                 reset__MRITextureCutGenerator(_handle, geometryGenerator.getHandle());
             }
-
             /// <summary>
             /// Will create the cut texture with colors defined with the volume voxels [0f , 1f] and the colorscheme (Gradient of colors)
             /// </summary>
@@ -112,43 +112,40 @@ namespace HBP.Module3D
             /// <param name="colorScheme"></param>
             /// <param name="calMin"></param>
             /// <param name="calMax"></param>
-            public void fill_texture_with_volume(DLL.Volume volume, DLL.Texture colorScheme, float calMin, float calMax)
+            public void FillTextureWithVolume(DLL.Volume volume, DLL.Texture colorScheme, float calMin, float calMax)
             {
                 fill_texture_with_volume__MRITextureCutGenerator(_handle, volume.getHandle(), colorScheme.getHandle(), calMin, calMax);
                 StaticComponents.DLLDebugManager.check_error();
             }
-
             /// <summary>
             /// Will update the previously MRI colored texture with a fMRI
             /// </summary>
             /// <param name="FMRIColumn"></param>
             /// <param name="volume"></param>
-            public void fill_texture_with_FMRI(Column3DViewFMRI FMRIColumn, DLL.Volume volume)
+            public void FillTextureWithFMRI(Column3DViewFMRI FMRIColumn, DLL.Volume volume)
             {
                 bool noError = false;
-                noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), FMRIColumn.DLLCutFMRIColorScheme.getHandle(), FMRIColumn.calMin, FMRIColumn.calMax, FMRIColumn.alpha) ==1;
+                noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), FMRIColumn.DLLCutFMRIColorScheme.getHandle(), FMRIColumn.CalMin, FMRIColumn.CalMax, FMRIColumn.Alpha) ==1;
                 StaticComponents.DLLDebugManager.check_error();
 
                 if (!noError)
                     Debug.LogError("fill_texture_with_IRMF__MRITextureCutGenerator failed ! (check DLL console debug output)");
             }
-
             /// <summary>
             /// Will reset the octree built with the cut points and sites positions
             /// </summary>
             /// <param name="sites"></param>
-            public void init_octree(RawSiteList sites)
+            public void InitializeOctree(RawSiteList sites)
             {
                 init_octree__MRITextureCutGenerator(_handle, sites.getHandle());
                 StaticComponents.DLLDebugManager.check_error();
             }
-
             /// <summary>
             /// Will compute all the distances between the cut points and the sites positions
             /// </summary>
             /// <param name="maxDistance"></param>
             /// <param name="multiCPU"></param>
-            public void compute_distances(float maxDistance, bool multiCPU)
+            public void ComputeDistances(float maxDistance, bool multiCPU)
             {
                 bool noError = false;
                 noError = compute_distances__MRITextureCutGenerator(_handle, maxDistance, multiCPU?1:0)==1;
@@ -157,7 +154,6 @@ namespace HBP.Module3D
                 if (!noError)
                     Debug.LogError("compute_distances__MRITextureCutGenerator failed ! (check DLL console debug output)");
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -166,11 +162,11 @@ namespace HBP.Module3D
             /// <param name="addValues"></param>
             /// <param name="ratioDistances"></param>
             /// <returns></returns>
-            public bool compute_influences(Column3DViewIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
+            public bool ComputeInfluences(Column3DViewIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
             {
                 bool noError = false;
-                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.iEEG_values(), IEEGColumn.dimensions(), IEEGColumn.maxDistanceElec,
-                    multiCPU?1:0, addValues?1:0, ratioDistances?1:0, IEEGColumn.middle, IEEGColumn.spanMin, IEEGColumn.spanMax)== 1;
+                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.Dimensions, IEEGColumn.MaxDistanceElec,
+                    multiCPU?1:0, addValues?1:0, ratioDistances?1:0, IEEGColumn.Middle, IEEGColumn.SpanMin, IEEGColumn.SpanMax)== 1;
                 StaticComponents.DLLDebugManager.check_error();
 
                 if (!noError)
@@ -178,7 +174,6 @@ namespace HBP.Module3D
 
                 return noError;
             }
-
             /// <summary>
             /// 
             /// </summary>
@@ -186,15 +181,15 @@ namespace HBP.Module3D
             /// <param name="colorScheme"></param>
             /// <param name="notInBrainCol"></param>
             /// <returns></returns>
-            public bool fill_texture_with_IEEG(Column3DViewIEEG IEEGColumn, DLL.Texture colorScheme, Color notInBrainCol)
+            public bool FillTextureWithIEEG(Column3DViewIEEG IEEGColumn, DLL.Texture colorScheme, Color notInBrainCol)
             {
                 bool noError = false;
                 float[] notInBrainColor = new float[3];
                 notInBrainColor[0] = notInBrainCol.b;
                 notInBrainColor[1] = notInBrainCol.r;
                 notInBrainColor[2] = notInBrainCol.r;
-                noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, IEEGColumn.currentTimeLineID, colorScheme.getHandle(), 
-                IEEGColumn.alphaMin, IEEGColumn.alphaMax, notInBrainColor)==1;
+                noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, IEEGColumn.CurrentTimeLineID, colorScheme.getHandle(), 
+                IEEGColumn.AlphaMin, IEEGColumn.AlphaMax, notInBrainColor)==1;
                 StaticComponents.DLLDebugManager.check_error();
 
                 if (!noError)
@@ -202,60 +197,77 @@ namespace HBP.Module3D
 
                 return noError;
             }
-
-            public void update_texture(DLL.Texture texture)
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="texture"></param>
+            public void UpdateTexture(DLL.Texture texture)
             {
                 update_texture__MRITextureCutGenerator(_handle, texture.getHandle());
-                texture.update_sizes();
+                texture.UpdateSizes();
             }
-            
-            public void update_texture_with_IEEG(DLL.Texture texture)
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="texture"></param>
+            public void UpdateTextureWithIEEG(DLL.Texture texture)
             {
                 update_texture_with_SEEG__MRITextureCutGenerator(_handle, texture.getHandle());
-                texture.update_sizes();
+                texture.UpdateSizes();
             }
-
-            public void update_texture_with_FMRI(DLL.Texture texture)
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="texture"></param>
+            public void UpdateTextureWithFMRI(DLL.Texture texture)
             {
                 update_texture_with_IRMF__MRITextureCutGenerator(_handle, texture.getHandle());
-                texture.update_sizes();
+                texture.UpdateSizes();
             }
-
-            public void ajust_influences_to_colormap()
+            /// <summary>
+            /// 
+            /// </summary>
+            public void AdjustInfluencesToColormap()
             {
                 ajust_influences_to_colormap__MRITextureCutGenerator(_handle);
             }
-
             /// <summary>
             /// Upathe the max density and influences values
             /// </summary>
             /// <param name="sharedMaxDensity"></param>
             /// <param name="sharedMinInf"></param>
             /// <param name="sharedMaxInf"></param>
-            public void synchronize_with_others_generators(float sharedMaxDensity, float sharedMinInf, float sharedMaxInf)
+            public void SynchronizeWithOthersGenerators(float sharedMaxDensity, float sharedMinInf, float sharedMaxInf)
             {
                 synchronize_with_others_generators__MRITextureCutGenerator(_handle, sharedMaxDensity, sharedMinInf, sharedMaxInf);
             }
-
-            public float maximum_density()
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <returns></returns>
+            public float MaximumDensity()
             {
                 return max_density__MRITextureCutGenerator(_handle);
             }
-
-            public float minimum_influence()
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <returns></returns>
+            public float MinimumInfluence()
             {
                 return min_inf__MRITextureCutGenerator(_handle);
             }
-
-            public float maximum_influence()
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <returns></returns>
+            public float MaximumInfluence()
             {
                 return max_inf__MRITextureCutGenerator(_handle);
             }
+            #endregion
 
-            #endregion functions
-
-            #region memory_management
-
+            #region Memory Management
             /// <summary>
             /// Allocate DLL memory
             /// </summary>
@@ -263,7 +275,6 @@ namespace HBP.Module3D
             {
                 _handle = new HandleRef(this, create__MRITextureCutGenerator());
             }
-
             /// <summary>
             /// Clean DLL memory
             /// </summary>
@@ -271,13 +282,11 @@ namespace HBP.Module3D
             {
                 delete__MRITextureCutGenerator(_handle);
             }
-
             /// <summary>
             /// CutTextureGenerator default constructor
             /// </summary>
             public MRITextureCutGenerator() : base() { }
-
-            #endregion memory_management
+            #endregion
 
             #region DLLImport
         
@@ -320,7 +329,7 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "synchronize_with_others_generators__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void synchronize_with_others_generators__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float sharedMaxDensity, float sharedMinInf, float sharedMaxInf);
 
-            #endregion DLLImport
+            #endregion
         }
     }
 }

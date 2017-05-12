@@ -22,14 +22,13 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public class Transformation : CppDLLImportBase
     {
-        #region functions
-
+        #region Public Methods
         /// <summary>
         /// Load a transformation file
         /// </summary>
         /// <param name="pathTransfo"></param>
         /// <returns></returns>
-        public bool load(string pathTransfo)
+        public bool Load(string pathTransfo)
         {
             bool fileLoaded = (load_Transformation3(_handle, pathTransfo) == 1);
             if (!fileLoaded)
@@ -38,21 +37,23 @@ namespace HBP.Module3D.DLL
             }
             return fileLoaded;
         }
-        
-        void invert()
+        #endregion
+
+        #region Private Methods
+        /// <summary>
+        /// 
+        /// </summary>
+        private void Invert()
         {
             invert_Transformation3(_handle);
         }
+        #endregion
 
-        #endregion functions
-
-        #region memory_management
-
+        #region Memory Management
         /// <summary>
         /// Surface default constructor
         /// </summary>
         public Transformation() : base() { }
-
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
@@ -60,7 +61,6 @@ namespace HBP.Module3D.DLL
         {
             _handle = new HandleRef(this, create_Transformation3());
         }
-
         /// <summary>
         /// Clean DLL memory
         /// </summary>
@@ -68,8 +68,7 @@ namespace HBP.Module3D.DLL
         {
             delete_Transformation3(_handle);
         }
-
-        #endregion memory_management
+        #endregion
 
         #region DLLImport
 
@@ -88,6 +87,6 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "invert_Transformation3", CallingConvention = CallingConvention.Cdecl)]
         static private extern void invert_Transformation3(HandleRef handleTransformation);
 
-        #endregion DLLImport        
+        #endregion
     }
 }

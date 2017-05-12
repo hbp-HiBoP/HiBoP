@@ -38,18 +38,14 @@ namespace HBP.UI.Module3D
         {
             m_OverlayManager.Initialize(scenesManager);
             m_MenuManager.Initialize(scenesManager);
-
-            scenesManager.SinglePatientScene.DefineSelectedColumn.AddListener((column) =>
+            foreach (Base3DScene scene in scenesManager.Scenes)
             {
-                scenesManager.SelectedScene = scenesManager.SinglePatientScene;
-                UpdateFocusedSceneAndColumn(scenesManager.SinglePatientScene, column);
-
-            });
-            scenesManager.MultiPatientsScene.DefineSelectedColumn.AddListener((column) =>
-            {
-                scenesManager.SelectedScene = scenesManager.MultiPatientsScene;
-                UpdateFocusedSceneAndColumn(scenesManager.MultiPatientsScene, column);
-            });
+                scene.DefineSelectedColumn.AddListener((column) =>
+                {
+                    scenesManager.SelectedScene = scene;
+                    UpdateFocusedSceneAndColumn(scene, column);
+                });
+            }
         }
 
         /// <summary>
@@ -85,7 +81,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="spScene"></param>
         /// <param name="iEEGColumns"></param>
-        public void SetiEEGColumns(SceneType type, List<Data.Visualization.ColumnData> iEEGColumns)
+        public void SetiEEGColumns(SceneType type, List<Data.Visualization.Column> iEEGColumns)
         {
             OverlayManager.SetiEEGColumnsNb(type, iEEGColumns);
             MenuManager.SetiEEGColumnsNb(type, iEEGColumns);
@@ -98,7 +94,7 @@ namespace HBP.UI.Module3D
             m_OverlayManager = transform.GetComponentInChildren<UIOverlayManager>(false);
             m_MenuManager = transform.GetComponentInChildren<MenuManager>(false);
         }
-        #endregion   
+        #endregion
 
 
     }

@@ -17,7 +17,7 @@ namespace HBP.Module3D
     /// </summary>
     public class IconesController : IndividualSceneOverlayController
     {    
-        #region members
+        #region Properties
         
         private List<int> m_times = new List<int>();
         private List<HBP.Data.Visualization.IconicScenario> m_iconicScenarioList;
@@ -30,9 +30,9 @@ namespace HBP.Module3D
 
         private int m_currentSize = 95;
 
-        #endregion members
+        #endregion
 
-        #region mono_behaviour
+        #region Private Methods
 
         /// <summary>
         /// This function is called after all frame updates for the last frame of the object’s existence (the object might be destroyed in response to Object.Destroy or at the closure of a scene).
@@ -48,8 +48,9 @@ namespace HBP.Module3D
             }
         }
 
-        #endregion mono_behaviour
+        #endregion
 
+        #region Public Methods
         /// <summary>
         /// Init the controller
         /// </summary>
@@ -225,8 +226,8 @@ namespace HBP.Module3D
                     string path = m_iconicScenarioList[ii].Icons[jj].IllustrationPath;
                     if (path.Length > 0)
                     {
-                        Texture2D icone = Texture2Dutility.generate_icone();
-                        DLL.Texture.load(m_iconicScenarioList[ii].Icons[jj].IllustrationPath).update_texture_2D(icone);
+                        Texture2D icone = Texture2Dutility.GenerateIcon();
+                        DLL.Texture.Load(m_iconicScenarioList[ii].Icons[jj].IllustrationPath).UpdateTexture2D(icone);
 
                         m_textures[ii].Add(icone);
                         m_sprites[ii].Add(Sprite.Create(m_textures[ii][jj], new Rect(0, 0, m_textures[ii][jj].width, m_textures[ii][jj].height), new Vector2(0, 0)));
@@ -338,5 +339,6 @@ namespace HBP.Module3D
 
             UpdateUI();
         }
+        #endregion
     }
 }

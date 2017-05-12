@@ -17,17 +17,14 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public abstract class CppDLLImportBase : IDisposable
     {
-        #region members
-
+        #region Properties
         /// <summary>
         /// pointer to C+ dll class
         /// </summary>
         protected HandleRef _handle;
+        #endregion
 
-        #endregion members
-
-        #region functions
-
+        #region Memory Management
         /// <summary>
         /// CppDLLImportBase default constructor
         /// </summary>
@@ -35,7 +32,6 @@ namespace HBP.Module3D.DLL
         {
             create_DLL_class();
         }
-
         /// <summary>
         /// CppDLLImportBase constructor with an already allocated dll class
         /// </summary>
@@ -44,7 +40,6 @@ namespace HBP.Module3D.DLL
         {
             _handle = new HandleRef(this, ptr);
         }
-
         /// <summary>
         /// CppDLLImportBase Destructor
         /// </summary>
@@ -52,17 +47,14 @@ namespace HBP.Module3D.DLL
         {
             Cleanup();
         }
-
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
         abstract protected void create_DLL_class();
-
         /// <summary>
         /// Clean DLL memory
         /// </summary>
         abstract protected void delete_DLL_class();
-
         /// <summary>
         /// Force delete C++ DLL data (remove GC for this object)
         /// </summary>
@@ -71,7 +63,6 @@ namespace HBP.Module3D.DLL
             Cleanup();
             GC.SuppressFinalize(this);
         }
-
         /// <summary>
         /// Delete C+ DLL data, and set handle to IntPtr.Zero
         /// </summary>
@@ -80,7 +71,6 @@ namespace HBP.Module3D.DLL
             delete_DLL_class();
             _handle = new HandleRef(this, IntPtr.Zero);
         }
-
         /// <summary>
         /// Return pointer to C++ DLL
         /// </summary>
@@ -89,7 +79,6 @@ namespace HBP.Module3D.DLL
         {
             return _handle;
         }
-
-        #endregion functions
+        #endregion
     }
 }

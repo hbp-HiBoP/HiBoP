@@ -29,7 +29,7 @@ namespace HBP.Module3D
     /// </summary>
     public class SceneMenu : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         // scene
         private Base3DScene m_scene = null; /**< scene */
@@ -53,9 +53,9 @@ namespace HBP.Module3D
         // events
         public Events.CloseSceneWindow CloseSceneWindow = new Events.CloseSceneWindow();
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the menu
@@ -148,7 +148,7 @@ namespace HBP.Module3D
                 if (value < m_IRMCalMax)
                 {
                     m_IRMCalMin = value;
-                    m_scene.update_MRI_cal_min(m_IRMCalMin);
+                    m_scene.UpdateMRICalMin(m_IRMCalMin);
                     updateUIValues();
                 }
                 else
@@ -161,7 +161,7 @@ namespace HBP.Module3D
                 if (value > m_IRMCalMin)
                 {
                     m_IRMCalMax = value;
-                    m_scene.update_MRI_cal_max(m_IRMCalMax);
+                    m_scene.UpdateMRICalMax(m_IRMCalMax);
                     updateUIValues();
                 }
                 else
@@ -235,7 +235,7 @@ namespace HBP.Module3D
         /// </summary>
         void update_MRI_histogram()
         {
-            DLL.Texture.generate_distribution_histogram(m_scene.CM.DLLVolume, 4 * 110, 4 * 110, m_IRMCalMin, m_IRMCalMax).update_texture_2D(m_mriHistogram);
+            DLL.Texture.GenerateDistributionHistogram(m_scene.Column3DViewManager.DLLVolume, 4 * 110, 4 * 110, m_IRMCalMin, m_IRMCalMax).UpdateTexture2D(m_mriHistogram);
 
             Transform contentPanelT = transform.Find("panel");
             Image histogramImage = contentPanelT.Find("Histogram IRM parent").Find("Histogram panel").GetComponent<Image>();
@@ -245,7 +245,7 @@ namespace HBP.Module3D
                    new Vector2(0.5f, 0.5f), 400f);
         }
 
-        #endregion functions
+        #endregion
     }
 
     /// <summary>
@@ -253,7 +253,7 @@ namespace HBP.Module3D
     /// </summary>
     public class SceneMenuController : MonoBehaviour, UICameraOverlay
     {
-        #region members
+        #region Properties
 
         private Cam.CamerasManager m_camerasManager = null;
 
@@ -267,9 +267,9 @@ namespace HBP.Module3D
         // parameters
         private bool m_displayMenu = false; /**< menu displayed ? */
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -368,6 +368,6 @@ namespace HBP.Module3D
             m_sceneMenu.SetActive(m_displayMenu);
         }
 
-        #endregion functions
+        #endregion
     }
 }

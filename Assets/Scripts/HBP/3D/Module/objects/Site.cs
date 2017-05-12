@@ -126,6 +126,12 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="hightlighted"></param>
+        /// <param name="siteType"></param>
+        /// <returns></returns>
         public static SiteShaderInfo InstanceShaderInfo(bool hightlighted, SiteType siteType)
         {
             SiteShaderInfo siteShaderInfo = new SiteShaderInfo();

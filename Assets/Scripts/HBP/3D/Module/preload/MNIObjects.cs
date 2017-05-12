@@ -23,8 +23,8 @@ namespace HBP.Module3D
     /// </summary>
     public class MNIObjects : MonoBehaviour
     {
+        #region Properties
         public static Mutex LoadingMutex = new Mutex();
-
 
         public DLL.Surface LeftHemi = null;
         public DLL.Surface RightHemi = null;
@@ -46,7 +46,9 @@ namespace HBP.Module3D
 #if UNITY_EDITOR_WIN
         private DLL.ReadMultiFilesBuffers readMulti = null;
 #endif
+        #endregion
 
+        #region Private Methods
         void Awake()
         {
             int idScript = TimeExecution.get_ID();
@@ -60,7 +62,7 @@ namespace HBP.Module3D
             string baseIRMDir = dataDirPath + "IRM/", baseMeshDir = dataDirPath + "Meshes/";
             // IRM
             NII = new DLL.NIFTI();
-            NII.load_nii_file(baseIRMDir + "ch256.nii");
+            NII.LoadNIIFile(baseIRMDir + "ch256.nii");
 
             List<string> filesPaths = new List<string>(9);
             filesPaths.Add(baseMeshDir + "MNI_single_hight_Lhemi.obj");
@@ -77,27 +79,33 @@ namespace HBP.Module3D
 
 #if UNITY_EDITOR_WIN
             readMulti = new DLL.ReadMultiFilesBuffers();
-            readMulti.read_buffers_files(filesPaths, DLL.ReadMultiFilesBuffers.FilesTypes.MeshesObj);
+            readMulti.ReadBuffersFiles(filesPaths, DLL.ReadMultiFilesBuffers.FilesTypes.MeshesObj);
 #endif
-            Thread thread = new Thread(() => load_data(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID));
+            Thread thread = new Thread(() => LoadData(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID));
             thread.Start();
         }
-
-
-        void load_data(string baseIRMDir, string baseMeshDir, int idScript, string GOName, int instanceID)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="baseIRMDir"></param>
+        /// <param name="baseMeshDir"></param>
+        /// <param name="idScript"></param>
+        /// <param name="GOName"></param>
+        /// <param name="instanceID"></param>
+        void LoadData(string baseIRMDir, string baseMeshDir, int idScript, string GOName, int instanceID)
         {
             LoadingMutex.WaitOne();
             
             IRM = new DLL.Volume();
-            NII.convert_to_volume(IRM);
+            NII.ConvertToVolume(IRM);
 
 #if UNITY_EDITOR_WIN
 
-            readMulti.parse_meshes();
+            readMulti.ParseMeshes();
 
-            List<DLL.Surface> meshes = readMulti.meshes();
+            List<DLL.Surface> meshes = readMulti.Meshes();
             for (int ii = 0; ii < meshes.Count; ++ii)
-                meshes[ii].compute_normals();
+                meshes[ii].ComputeNormals();
 
             LeftHemi = meshes[0];
             RightHemi = meshes[1];
@@ -150,5 +158,6 @@ namespace HBP.Module3D
             LoadingMutex.ReleaseMutex();
             TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.MNIObjects, GOName, instanceID);
         }
+        #endregion
     }
 }

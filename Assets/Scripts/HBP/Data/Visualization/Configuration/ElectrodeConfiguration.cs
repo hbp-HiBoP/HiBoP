@@ -52,8 +52,12 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public object Clone()
         {
-            IEnumerable<SiteConfiguration> sitesCloned = from site in ConfigurationBySite select site.Clone() as SiteConfiguration;
-            return new ElectrodeConfiguration(ID.Clone() as string, Color, sitesCloned);
+            Dictionary<Site, SiteConfiguration> configurationBySiteClone = new Dictionary<Site, SiteConfiguration>();
+            foreach (var item in ConfigurationBySite)
+            {
+                configurationBySiteClone.Add(item.Key, item.Value.Clone() as SiteConfiguration);
+            }
+            return new ElectrodeConfiguration(configurationBySiteClone, Color);
         }
         #endregion
 

@@ -41,7 +41,7 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class SiteMenu : MonoBehaviour
     {
-        #region members
+        #region Properties
 
         // scenes
         private Base3DScene m_scene = null; /**< SP scene */
@@ -62,9 +62,9 @@ namespace HBP.UI.Module3D
         public Events.SiteInfoRequest SiteInfoRequest = new Events.SiteInfoRequest();
         public Events.CloseSiteWindow CloseSiteWindow = new Events.CloseSiteWindow();
         
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the menu
@@ -113,7 +113,7 @@ namespace HBP.UI.Module3D
             });
             contentPanelT.Find("selected site buttons").Find("unselect button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                m_scene.unselect_site(m_columnId);
+                m_scene.UnselectSite(m_columnId);
 
                 update_menu();
             });
@@ -122,7 +122,7 @@ namespace HBP.UI.Module3D
             switch(m_scene.Type)
             {
                 case SceneType.SinglePatient:
-                    SP3DScene SP3DScene = (SP3DScene)(m_scene);
+                    SinglePatient3DScene SP3DScene = (SinglePatient3DScene)(m_scene);
                     SP3DScene.UpdateLatencies.AddListener((labels) =>
                     {
                         labelCCEP = labels;
@@ -137,12 +137,12 @@ namespace HBP.UI.Module3D
             m_scene.ClickSite.AddListener((idColumn) =>
             {
                 if (idColumn == -1)
-                    idColumn = m_scene.CM.SelectedColumnID;
+                    idColumn = m_scene.Column3DViewManager.SelectedColumnID;
 
                 if (idColumn != m_columnId)
                     return;
 
-                if (m_scene.CM.Columns[idColumn].SelectedSiteID == -1)
+                if (m_scene.Column3DViewManager.Columns[idColumn].SelectedSiteID == -1)
                     return;
 
                 SiteInfoRequest.Invoke(m_columnId);
@@ -152,13 +152,13 @@ namespace HBP.UI.Module3D
             // toggle update info
             contentPanelT.Find("selected site buttons").Find("update infos toggle").GetComponent<Toggle>().onValueChanged.AddListener((value) =>
             {
-                ((Column3DViewIEEG)(m_scene.CM.SelectedColumn)).sendInfos = value;
+                ((Column3DViewIEEG)(m_scene.Column3DViewManager.SelectedColumn)).SendInformation = value;
             });
 
             // compare site
             contentPanelT.Find("selected site buttons").Find("compare site button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                m_scene.compate_sites();
+                m_scene.CompareSites();
             });
 
             // apply
@@ -185,9 +185,9 @@ namespace HBP.UI.Module3D
                                             contentPanelT.Find("Apply on parent").Find("broadman name inputField").GetComponent<InputField>().text);
 
                 bool allColumns = contentPanelT.Find("Apply on parent").Find("all columns checkbox").GetComponent<Toggle>().isOn;
-                int action = exclude ? 0 : (include ? 1 : (highlight ? 4 : (unhighlight ? 5 : (marked ? 6 : 7))));
-                int range = selectedSite ? 0 : (electrode ? 1 : (patient ? 2 : (highlighted ? 3 : (unhighlighted ? 4 : (allSites ? 5 : (inROI ? 6 : (noInROI ? 7 : (nameSites ? 8 : (marsNameSites ? 9 : 10)))))))));
-                m_scene.update_sites_masks(allColumns, m_lastSiteSelected.gameObject, action, range, nameFilterStr);
+                SiteAction action = exclude ? SiteAction.Exclude : (include ? SiteAction.Include : (highlight ? SiteAction.Highlight : (unhighlight ? SiteAction.Unhighlight : (marked ? SiteAction.Mark : SiteAction.Unmark))));
+                SiteFilter filter = selectedSite ? SiteFilter.Specific : (electrode ? SiteFilter.Electrode : (patient ? SiteFilter.Patient : (highlighted ? SiteFilter.Highlighted : (unhighlighted ? SiteFilter.Unhighlighted : (allSites ? SiteFilter.All : (inROI ? SiteFilter.InRegionOfInterest : (noInROI ? SiteFilter.OutOfRegionOfInterest : (nameSites ? SiteFilter.Name : (marsNameSites ? SiteFilter.MarsAtlas : SiteFilter.Broadman)))))))));
+                m_scene.UpdateSitesMasks(allColumns, m_lastSiteSelected.gameObject, action, filter, nameFilterStr);
             });
 
             switch(m_scene.Type)
@@ -200,7 +200,7 @@ namespace HBP.UI.Module3D
                     defineSourceButton.onClick.AddListener(
                         delegate
                         {
-                            ((SP3DScene)m_scene).set_current_site_as_source();
+                            ((SinglePatient3DScene)m_scene).SetCurrentSiteAsSource();
                             latencyDataText.text = "Current site is the source.";
                             defineSourceButton.interactable = false;
                             undefineSourceButton.interactable = true;
@@ -209,7 +209,7 @@ namespace HBP.UI.Module3D
                     undefineSourceButton.onClick.AddListener(
                         delegate
                         {
-                            ((SP3DScene)m_scene).undefine_current_source();
+                            ((SinglePatient3DScene)m_scene).UndefineCurrentSource();
 
                             if (latencyDataText.text == "Current site is the source.")
                             {
@@ -228,7 +228,7 @@ namespace HBP.UI.Module3D
                 case SceneType.MultiPatients:
                     contentPanelT.Find("MP only options parent").Find("load sp button").GetComponent<Button>().onClick.AddListener(() =>
                     {
-                        ((MP3DScene)m_scene).load_patient_in_SP_scene(m_idPatientToLoad, m_lastSiteSelected.GetComponent<Site>().Information.SitePatientID);
+                        ((MultiPatients3DScene)m_scene).LoadPatientInSinglePatientScene(m_idPatientToLoad, m_lastSiteSelected.GetComponent<Site>().Information.SitePatientID);
                     });
 
                     Button blackList = contentPanelT.Find("MP only options parent").Find("blacklist button").GetComponent<Button>();
@@ -237,13 +237,13 @@ namespace HBP.UI.Module3D
                         if (blackList.transform.Find("Text").GetComponent<Text>().text == "Blacklist site")
                         {
                             m_lastSiteSelected.Information.IsBlackListed = true;
-                            m_scene.update_sites_masks(true, m_lastSiteSelected.gameObject, 2, 0);
+                            m_scene.UpdateSitesMasks(true, m_lastSiteSelected.gameObject, SiteAction.Blacklist, 0);
                             blackList.transform.Find("Text").GetComponent<Text>().text = "Unblacklist site";
                         }
                         else
                         {
                             m_lastSiteSelected.Information.IsBlackListed = false;
-                            m_scene.update_sites_masks(true, m_lastSiteSelected.gameObject, 3, 0);
+                            m_scene.UpdateSitesMasks(true, m_lastSiteSelected.gameObject, SiteAction.Unblacklist, 0);
                             blackList.transform.Find("Text").GetComponent<Text>().text = "Blacklist site";
                         }
                     });
@@ -299,18 +299,18 @@ namespace HBP.UI.Module3D
 
         private void update_menu()
         {
-            m_lastSiteSelected = m_scene.CM.SelectedColumn.SelectedSite;
+            m_lastSiteSelected = m_scene.Column3DViewManager.SelectedColumn.SelectedSite;
             bool siteNotNull = m_lastSiteSelected != null;
 
             // update selected patient
             bool patientComplete = true;
-            if (m_scene.CM.idSelectedPatient != -1)
+            if (m_scene.Column3DViewManager.SelectedPatientID != -1)
             {
-                m_idPatientToLoad = m_scene.CM.idSelectedPatient;
+                m_idPatientToLoad = m_scene.Column3DViewManager.SelectedPatientID;
 
                 if(m_scene.Type == SceneType.MultiPatients)
                 {
-                    Data.Patient patient = m_scene.CM.mpPatients[m_idPatientToLoad];
+                    Data.Patient patient = (m_scene as MultiPatients3DScene).Patients[m_idPatientToLoad];
                     patientComplete = (patient.Brain.PreoperativeMRI.Length > 0) && (patient.Brain.RightCerebralHemisphereMesh.Length > 0) && (patient.Brain.LeftCerebralHemisphereMesh.Length > 0);
                 }
             }
@@ -320,10 +320,10 @@ namespace HBP.UI.Module3D
             Transform panel = transform.Find("panel");
             // parents
             panel.Find("MP only options parent").gameObject.SetActive(m_scene.Type == SceneType.MultiPatients);
-            panel.Find("CCEP parent").gameObject.SetActive(m_scene.Type == SceneType.SinglePatient && m_scene.CM.SelectedColumn.Type == Column3DView.ColumnType.IEEG && !m_isCCEPMinimized);
+            panel.Find("CCEP parent").gameObject.SetActive(m_scene.Type == SceneType.SinglePatient && m_scene.Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.IEEG && !m_isCCEPMinimized);
             // text
             panel.Find("selected site panel").Find("Text").GetComponent<Text>().text = siteNotNull ? m_lastSiteSelected.Information.FullName : "...";
-            panel.Find("selected site panel").Find("mars atlas text").GetComponent<Text>().text = siteNotNull ? (m_lastSiteSelected.Information.MarsAtlasIndex == -1 ? "Mars atlas: not found" : GlobalGOPreloaded.MarsAtlasIndex.full_name(m_lastSiteSelected.Information.MarsAtlasIndex)) : "...";
+            panel.Find("selected site panel").Find("mars atlas text").GetComponent<Text>().text = siteNotNull ? (m_lastSiteSelected.Information.MarsAtlasIndex == -1 ? "Mars atlas: not found" : GlobalGOPreloaded.MarsAtlasIndex.FullName(m_lastSiteSelected.Information.MarsAtlasIndex)) : "...";
 
             // active buttons            
             panel.Find("MP only options parent").Find("blacklist button").GetComponent<Button>().interactable = m_scene.Type == SceneType.MultiPatients && siteNotNull;
@@ -338,19 +338,19 @@ namespace HBP.UI.Module3D
             switch(m_scene.Type)
             {
                 case SceneType.SinglePatient:
-                    bool activeCCEP = m_scene.CM.latencyFileAvailable && m_scene.data_.displayCcepMode;
+                    bool activeCCEP = m_scene.Column3DViewManager.LatencyFileAvailable && m_scene.SceneInformation.DisplayCCEPMode;
                     Button setSiteAsSourceButton = panel.Find("CCEP parent").Find("site source parent").Find("set site as source button").GetComponent<Button>();
                     Button undefineSourceButton = panel.Find("CCEP parent").Find("undefine source parent").Find("undefine source button").GetComponent<Button>();
                     Text dataLatencyText = panel.Find("CCEP parent").Find("latency data text").GetComponent<Text>();
                     setSiteAsSourceButton.interactable = activeCCEP && siteNotNull;
                     undefineSourceButton.interactable = activeCCEP && siteNotNull;
 
-                    switch (m_scene.CM.SelectedColumn.Type)
+                    switch (m_scene.Column3DViewManager.SelectedColumn.Type)
                     {
                         case Column3DView.ColumnType.FMRI:
                             return;
                         case Column3DView.ColumnType.IEEG:
-                            Column3DViewIEEG IEEGCol = (Column3DViewIEEG)m_scene.CM.SelectedColumn;
+                            Column3DViewIEEG IEEGCol = (Column3DViewIEEG)m_scene.Column3DViewManager.SelectedColumn;
 
                             // color buttons
                             for (int ii = 0; ii < colLatencyButtons.Count; ++ii)
@@ -359,7 +359,7 @@ namespace HBP.UI.Module3D
                                     break;
 
                                 ColorBlock cb = colLatencyButtons[ii].GetComponent<Button>().colors;
-                                if (ii == IEEGCol.currentLatencyFile)
+                                if (ii == IEEGCol.CurrentLatencyFile)
                                 {
                                     cb.normalColor = Color.green;
                                     cb.highlightedColor = Color.green;
@@ -372,9 +372,9 @@ namespace HBP.UI.Module3D
                                 colLatencyButtons[ii].GetComponent<Button>().colors = cb;
                             }
 
-                            if (IEEGCol.sourceDefined)
+                            if (IEEGCol.SourceDefined)
                             {
-                                if (IEEGCol.siteIsSource)
+                                if (IEEGCol.IsSiteASource)
                                 {
                                     dataLatencyText.text = "Site is the current \ndefined source.";
                                     setSiteAsSourceButton.interactable = false;
@@ -382,7 +382,7 @@ namespace HBP.UI.Module3D
                                 }
                                 else
                                 {
-                                    if (IEEGCol.siteLatencyData)
+                                    if (IEEGCol.SiteLatencyData)
                                     {
                                         dataLatencyText.text = "Latency data available\n for this site.";
                                         setSiteAsSourceButton.interactable &= true;
@@ -392,7 +392,7 @@ namespace HBP.UI.Module3D
                             }
                             else
                             {
-                                if (IEEGCol.siteIsSource)
+                                if (IEEGCol.IsSiteASource)
                                 {
                                     dataLatencyText.text = "Site is a source.";
                                     setSiteAsSourceButton.interactable &= true;
@@ -411,9 +411,9 @@ namespace HBP.UI.Module3D
                     }
                     break;
                 case SceneType.MultiPatients:
-                    if (m_scene.CM.SelectedColumn.SelectedSite != null)
+                    if (m_scene.Column3DViewManager.SelectedColumn.SelectedSite != null)
                         panel.Find("MP only options parent").Find("blacklist button").Find("Text").GetComponent<Text>().text
-                            = m_scene.CM.SelectedColumn.SelectedSite.Information.IsBlackListed ? "Unblacklist site" : "Blacklist site";
+                            = m_scene.Column3DViewManager.SelectedColumn.SelectedSite.Information.IsBlackListed ? "Unblacklist site" : "Blacklist site";
                     break;
             }
         }
@@ -446,7 +446,7 @@ namespace HBP.UI.Module3D
                 latencyButton.GetComponent<LatencyButton>().init(jj);
                 latencyButton.GetComponent<LatencyButton>().ChooseLatencyFile.AddListener((id) =>
                 {
-                    ((SP3DScene)m_scene).update_current_latency_file(id);
+                    ((SinglePatient3DScene)m_scene).UpdateCurrentLatencyFile(id);
                     update_menu();
                 });
                 latencyButton.SetActive(true);
@@ -465,7 +465,7 @@ namespace HBP.UI.Module3D
         }
 
 
-        #endregion functions
+        #endregion
     }
 
     /// <summary>
@@ -473,7 +473,7 @@ namespace HBP.UI.Module3D
     /// </summary>
     public class SiteMenuController : MonoBehaviour, UICameraOverlay
     {
-        #region members
+        #region Properties
 
         // scenes
         private Base3DScene m_scene = null; /**< scene */
@@ -490,9 +490,9 @@ namespace HBP.UI.Module3D
         private int m_lastUpdatedColumn = -1;
         private Site m_lastSiteSelected = null; /**< last selected site */
 
-        #endregion members
+        #endregion
 
-        #region functions
+        #region Public Methods
 
         /// <summary>
         /// Init the controller
@@ -534,24 +534,24 @@ namespace HBP.UI.Module3D
 
             menu.SiteInfoRequest.AddListener((idColumn) =>
             {
-                if (m_scene.CM.SelectedColumn.SelectedSite != null)
+                if (m_scene.Column3DViewManager.SelectedColumn.SelectedSite != null)
                 {
-                    if (m_scene.data_.compareSite)
+                    if (m_scene.SceneInformation.IsComparingSites)
                     {
-                        m_scene.data_.compareSite = false;
-                        m_scene.display_sceen_message("Compare : " + m_lastSiteSelected.name + " from col " + m_lastUpdatedColumn + "\n with " + m_scene.CM.SelectedColumn.SelectedSite.name + " from col " + idColumn, 5f, 250, 80);
-                        m_scene.send_additionnal_site_info_request(m_lastSiteSelected);
+                        m_scene.SceneInformation.IsComparingSites = false;
+                        m_scene.DisplayScreenMessage("Compare : " + m_lastSiteSelected.name + " from col " + m_lastUpdatedColumn + "\n with " + m_scene.Column3DViewManager.SelectedColumn.SelectedSite.name + " from col " + idColumn, 5f, 250, 80);
+                        m_scene.SendAdditionalSiteInfoRequest(m_lastSiteSelected);
                     }
                     else
                     {
-                        Column3DView col = m_scene.CM.SelectedColumn;
+                        Column3DView col = m_scene.Column3DViewManager.SelectedColumn;
                         switch (col.Type)
                         {
                             case Column3DView.ColumnType.FMRI:
                                 break;
                             case Column3DView.ColumnType.IEEG:
-                                if (((Column3DViewIEEG)col).sendInfos)
-                                    m_scene.send_additionnal_site_info_request();
+                                if (((Column3DViewIEEG)col).SendInformation)
+                                    m_scene.SendAdditionalSiteInfoRequest();
                                 break;
                             default:
                                 break;
@@ -693,6 +693,6 @@ namespace HBP.UI.Module3D
             update_UI();
         }
 
-        #endregion functions
+        #endregion
     }
 }

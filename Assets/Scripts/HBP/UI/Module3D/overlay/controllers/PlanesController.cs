@@ -311,7 +311,7 @@ namespace HBP.Module3D
             float y = float.Parse(valueY, CultureInfo.InvariantCulture.NumberFormat);
             float z = float.Parse(valueZ, CultureInfo.InvariantCulture.NumberFormat);
 
-            m_Scene.update_cut_plane(idOrientation, flip, removeFrontPlane, new Vector3(x, y, z), idPlane, position);
+            m_Scene.UpdateCutPlane(idOrientation, flip, removeFrontPlane, new Vector3(x, y, z), idPlane, position);
         }
 
         /// <summary>
@@ -378,7 +378,7 @@ namespace HBP.Module3D
 
             // add new plane and update the scene
             ++m_CurrentPlaneNumber;
-            m_Scene.add_new_cut_plane();
+            m_Scene.AddCutPlane();
             update_plane(idSetPlane);
         }
 
@@ -398,11 +398,10 @@ namespace HBP.Module3D
             m_SetPlanePanelList.RemoveAt(m_SetPlanePanelList.Count - 1);
 
             // remove last plane and update the scene
-            m_Scene.remove_last_cut_plane();
-            --m_CurrentPlaneNumber;            
+            m_Scene.RemoveCutPlane(m_CurrentPlaneNumber--);
         }
 
 
-        #endregion others
+        #endregion
     }
 }
