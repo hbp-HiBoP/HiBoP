@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -243,11 +244,21 @@ namespace HBP.Data.Experience.Dataset
                                                                     // Test EEG Measure
                                                                     if (elanFile.MeasureLabels.Contains(Measure))
                                                                     {
-                                                                        string[] plots = Patient.Brain.GetImplantation(MNI, ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType == Settings.GeneralSettings.PlotNameCorrectionTypeEnum.Active).GetPlotsName();
-                                                                        string[] channels = (from channel in elanFile.Channels select channel.Label).ToArray();
-                                                                        if(plots.Length != 0)
+                                                                        // FIXME
+                                                                        List<string> sitesList = new List<string>();
+                                                                        foreach (Anatomy.Electrode electrode in Patient.Brain.Implantation.Electrodes)
                                                                         {
-                                                                            foreach(string plot in plots)
+                                                                            foreach (Anatomy.Site site in electrode.Sites)
+                                                                            {
+                                                                                sitesList.Add(site.Name);
+                                                                            }
+                                                                        }
+                                                                        string[] sites = sitesList.ToArray();
+                                                                        //string[] sites = Patient.Brain.GetImplantation(MNI, ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType == Settings.GeneralSettings.PlotNameCorrectionTypeEnum.Active).GetPlotsName();
+                                                                        string[] channels = (from channel in elanFile.Channels select channel.Label).ToArray();
+                                                                        if(sites.Length != 0)
+                                                                        {
+                                                                            foreach(string plot in sites)
                                                                             {
                                                                                 if(!channels.Contains(plot))
                                                                                 {

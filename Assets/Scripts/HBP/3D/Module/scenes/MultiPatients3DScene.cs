@@ -269,10 +269,10 @@ namespace HBP.Module3D
             SceneInformation.MeshCenter = m_MNIObjects.BothHemi.BoundingBox().Center();
 
             /// TODO
-            List<string> ptsFiles = new List<string>(Visualization.GetImplantation().Length), namePatients = new List<string>(Visualization.GetImplantation().Length);
-            for (int ii = 0; ii < Visualization.GetImplantation().Length; ++ii)
+            List<string> ptsFiles = new List<string>(Visualization.Patients.Count), namePatients = new List<string>(Visualization.Patients.Count);
+            for (int ii = 0; ii < Visualization.Patients.Count; ++ii)
             {
-                ptsFiles.Add(Visualization.GetImplantation()[ii]);
+                ptsFiles.Add(Visualization.Patients[ii].Brain.MNIBasedImplantation);
                 namePatients.Add(Visualization.Patients[ii].Place + "_" + Visualization.Patients[ii].Date + "_" + Visualization.Patients[ii].Name);
             }
 

@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System;
+using System.Linq;
 
 namespace HBP.Module3D
 {
@@ -33,6 +33,16 @@ namespace HBP.Module3D
         public ReadOnlyCollection<Base3DScene> Scenes
         {
             get { return new ReadOnlyCollection<Base3DScene>(m_Scenes); }
+        }
+        /// <summary>
+        /// List of loaded visualizations
+        /// </summary>
+        public ReadOnlyCollection<Data.Visualization.Visualization> Visualizations
+        {
+            get
+            {
+                return new ReadOnlyCollection<Data.Visualization.Visualization>((from scene in m_Scenes select scene.Visualization).ToList());
+            }
         }
 
         private Base3DScene m_SelectedScene = null;
