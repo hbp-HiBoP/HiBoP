@@ -265,10 +265,10 @@ namespace HBP.Module3D.DLL
         /// <param name="plane"></param>
         /// <param name="idOrientation"></param>
         /// <param name="flip"></param>
-        public void SetPlaneWithOrientation(Plane plane, int idOrientation, bool flip)
+        public void SetPlaneWithOrientation(Plane plane, CutOrientation orientation, bool flip)
         {
             float[] normal = new float[3];
-            definePlaneWithOrientation_Volume(_handle, normal, idOrientation, flip);
+            definePlaneWithOrientation_Volume(_handle, normal, (int)orientation, flip);
             plane.Normal = new Vector3(normal[0], normal[1], normal[2]);
         }
         /// <summary>

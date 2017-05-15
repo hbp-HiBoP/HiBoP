@@ -846,7 +846,7 @@ namespace HBP.Module3D
 
             // init default planes
             m_PlanesList = new List<Plane>();
-            m_Column3DViewManager.PlanesOrientationID = new List<int>();
+            m_Column3DViewManager.PlanesOrientationID = new List<CutOrientation>();
             m_Column3DViewManager.PlanesOrientationFlip = new List<bool>();
             SceneInformation.RemoveFrontPlaneList = new List<int>();
             SceneInformation.NumberOfCutsPerPlane = new List<int>();
@@ -1273,18 +1273,17 @@ namespace HBP.Module3D
         /// <param name="customNormal"></param>
         /// <param name="idPlane"></param>
         /// <param name="position"></param>
-        public void UpdateCutPlane(int orientationID, bool flip, bool removeFrontPlane, Vector3 customNormal, int idPlane, float position)
+        public void UpdateCutPlane(CutOrientation orientation, bool flip, bool removeFrontPlane, Vector3 customNormal, int idPlane, float position)
         {
-            //####### CHECK ACESS
+            // Check access
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.UpdatePlane))
             {
                 Debug.LogError("-ERROR : Base3DScene::updatePlane -> no acess for mode : " + m_ModesManager.CurrentModeName);
                 return;
             }
-            //##################
 
             Plane newPlane = new Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
-            if (orientationID == 3 || !SceneInformation.MRILoaded) // custom normal
+            if (orientation == CutOrientation.Custom || !SceneInformation.MRILoaded) // custom normal
             {
                 if (customNormal.x != 0 || customNormal.y != 0 || customNormal.z != 0)
                     newPlane.Normal = customNormal;
@@ -1293,16 +1292,16 @@ namespace HBP.Module3D
             }
             else
             {
-                m_Column3DViewManager.DLLVolume.SetPlaneWithOrientation(newPlane, orientationID, flip);
+                m_Column3DViewManager.DLLVolume.SetPlaneWithOrientation(newPlane, orientation, flip);
             }
 
             m_PlanesList[idPlane].Normal = newPlane.Normal;
-            m_Column3DViewManager.PlanesOrientationID[idPlane] = orientationID;
+            m_Column3DViewManager.PlanesOrientationID[idPlane] = orientation;
             m_Column3DViewManager.PlanesOrientationFlip[idPlane] = flip;
             SceneInformation.RemoveFrontPlaneList[idPlane] = removeFrontPlane?1:0;
             SceneInformation.LastPlaneModifiedID = idPlane;
 
-            // ########### cuts base on the mesh
+            // Cuts base on the mesh
             float offset;
             if (SceneInformation.MeshToDisplay != null)
             {
@@ -1323,9 +1322,8 @@ namespace HBP.Module3D
             // update cameras cuts display
             ModifyPlanesCuts.Invoke();
 
-            //####### UDPATE MODE
+            // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdatePlane);
-            //##################
         }
         /// <summary>
         /// Reset the volume of the scene

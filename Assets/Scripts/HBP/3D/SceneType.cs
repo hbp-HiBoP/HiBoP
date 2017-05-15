@@ -59,3 +59,4 @@ public enum SiteAction
     Mark,
     Unmark
 }
+public enum CutOrientation { Axial = 0, Coronal = 1, Sagital = 2, Custom = 3 } // Same as above
