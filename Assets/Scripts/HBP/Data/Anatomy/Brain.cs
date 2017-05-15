@@ -52,7 +52,6 @@ namespace HBP.Data.Anatomy
         /// <summary>
         /// Patient based implantation file(.pts).
         /// </summary>
-        [IgnoreDataMember]
         public string PatientBasedImplantation
         {
             get { return m_PatientBasedImplantation; }
@@ -61,14 +60,12 @@ namespace HBP.Data.Anatomy
                 Implantation.Load(value, ReferenceFrameType.Patient);
             }
         }
-        //[DataMember(Name = "PatientBasedImplantation")]
-        [IgnoreDataMember]
+        [DataMember(Name = "PatientBasedImplantation")]
         string m_PatientBasedImplantation;
 
         /// <summary>
         /// MNI based implantation file(.pts).
         /// </summary>
-        [IgnoreDataMember]
         public string MNIBasedImplantation
         {
             get { return m_MNIBasedImplantation; }
@@ -77,8 +74,7 @@ namespace HBP.Data.Anatomy
                 Implantation.Load(value, ReferenceFrameType.MNI);
             }
         }
-        //[DataMember(Name = "MNIBasedImplantation")]
-        [IgnoreDataMember]
+        [DataMember(Name = "MNIBasedImplantation")]
         string m_MNIBasedImplantation;
 
         /// <summary>
@@ -96,7 +92,7 @@ namespace HBP.Data.Anatomy
         /// <summary>
         /// Patient epilepsy.
         /// </summary>
-        [IgnoreDataMember]
+        [DataMember]
         public Epilepsy Epilepsy { get; set; }
 
         /// <summary>
@@ -210,7 +206,7 @@ namespace HBP.Data.Anatomy
         
         #region Serialization
         [OnDeserialized]
-        void OnDeserialized()
+        void OnDeserialized(StreamingContext context)
         {
             LoadImplantations();
         }
