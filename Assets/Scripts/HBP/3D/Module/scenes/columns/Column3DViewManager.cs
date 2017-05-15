@@ -208,8 +208,8 @@ namespace HBP.Module3D
         public Texture2D BrainColorTexture = null;
 
         // Column 3D Prefabs
-        public GameObject Column3DViewIEEGPrefab; // FIXME : wrong prefab in editor
-        public GameObject Column3DViewFMRIPrefab; // FIXME : wrong prefab in editor
+        public GameObject Column3DViewIEEGPrefab;
+        public GameObject Column3DViewFMRIPrefab;
         #endregion
 
         #region Private Methods

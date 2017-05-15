@@ -724,7 +724,7 @@ namespace HBP.Module3D
                 UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;
             }
-            if (hit.collider.transform.parent.name == "cuts" || hit.collider.transform.parent.name == "brains")
+            if (hit.collider.transform.parent.name == "Cutes" || hit.collider.transform.parent.name == "Brains")
             {
                 UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;
@@ -743,10 +743,10 @@ namespace HBP.Module3D
 
                     // retrieve currant plot amp
                     float amp = 0;
-                    //if (currIEEGCol.Column.Values.Length > 0)
-                    //{
-                    //    amp = currIEEGCol.Column.Values[idPlot][currIEEGCol.CurrentTimeLineID];
-                    //}
+                    if (currIEEGCol.IEEGValuesBySiteID.Length > 0)
+                    {
+                        amp = currIEEGCol.IEEGValuesBySiteID[idPlot][currIEEGCol.CurrentTimeLineID];
+                    }
 
                     // retrieve current lateny/height
                     string latency = "none", height = "none";

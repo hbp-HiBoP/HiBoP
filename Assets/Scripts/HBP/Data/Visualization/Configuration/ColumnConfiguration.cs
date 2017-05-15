@@ -22,7 +22,7 @@ namespace HBP.Data.Visualization
     {
         #region Properties
         [DataMember]
-        Dictionary<string, PatientConfiguration> configurationByPatientID;
+        Dictionary<string, PatientConfiguration> m_ConfigurationByPatientID;
         [IgnoreDataMember]
         /// <summary>
         /// Configuration by patient.
@@ -60,21 +60,21 @@ namespace HBP.Data.Visualization
         [OnSerializing]
         void OnSerializing(StreamingContext streamingContext)
         {
-            configurationByPatientID = new Dictionary<string, PatientConfiguration>();
+            m_ConfigurationByPatientID = new Dictionary<string, PatientConfiguration>();
             foreach (var item in ConfigurationByPatient)
             {
-                configurationByPatientID.Add(item.Key.ID, item.Value);
+                m_ConfigurationByPatientID.Add(item.Key.ID, item.Value);
             }
         }
         [OnSerialized]
         void OnSerialized(StreamingContext streamingContext)
         {
-            configurationByPatientID = null;
+            m_ConfigurationByPatientID = null;
         }
         [OnDeserialized]
         void OnDeserialized(StreamingContext streamingContext)
         {
-            foreach (var item in configurationByPatientID)
+            foreach (var item in m_ConfigurationByPatientID)
             {
                 ConfigurationByPatient.Add(ApplicationState.ProjectLoaded.Patients.First((elmt) => elmt.ID == item.Key), item.Value);
             }
