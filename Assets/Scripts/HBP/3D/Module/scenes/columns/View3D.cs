@@ -3,7 +3,7 @@ using UnityStandardAssets.ImageEffects;
 
 namespace HBP.Module3D
 {
-    public class View : MonoBehaviour
+    public class View3D : MonoBehaviour
     {
         #region Properties
         /// <summary>
@@ -170,7 +170,7 @@ namespace HBP.Module3D
         /// Synchronize the camera of this view using the camera from a reference view
         /// </summary>
         /// <param name="reference"></param>
-        public void SynchronizeCamera(View reference)
+        public void SynchronizeCamera(View3D reference)
         {
             m_Camera.transform.position = reference.m_Camera.transform.position;
             m_Camera.transform.rotation = reference.m_Camera.transform.rotation;

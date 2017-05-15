@@ -531,7 +531,7 @@ namespace HBP.Module3D.Cam
 
             if(m_DisplayCutsCircles)
             {
-                m_DisplayPlanesTimer = TimeExecution.get_world_time() - m_DisplayPlanesTimeStart;
+                m_DisplayPlanesTimer = TimeExecution.GetWorldTime() - m_DisplayPlanesTimeStart;
                 if (m_DisplayPlanesTimeRemaining > m_DisplayPlanesTimer)
                 {
                     m_PlaneMaterial.SetPass(0);

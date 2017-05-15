@@ -98,8 +98,8 @@ namespace HBP.Module3D
             bool activity = m_CurrentActivity && m_IsVisibleFromScene && m_IsEnoughtRoom;
             
             if (m_CurrentMode != null)
-                if (m_CurrentMode.IDMode == Mode.ModesId.NoPathDefined || m_CurrentMode.IDMode == Mode.ModesId.MinPathDefined  ||
-                    m_CurrentMode.IDMode == Mode.ModesId.AllPathDefined || m_CurrentMode.IDMode == Mode.ModesId.Error)
+                if (m_CurrentMode.ID == Mode.ModesId.NoPathDefined || m_CurrentMode.ID == Mode.ModesId.MinPathDefined  ||
+                    m_CurrentMode.ID == Mode.ModesId.AllPathDefined || m_CurrentMode.ID == Mode.ModesId.Error)
                 {
                     activity = false;
                 }

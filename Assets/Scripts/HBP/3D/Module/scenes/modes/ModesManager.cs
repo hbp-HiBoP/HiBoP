@@ -39,7 +39,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_CurrentMode.IDMode;
+                return m_CurrentMode.ID;
             }
         }
         public OnChangeMode OnChangeMode = new OnChangeMode();

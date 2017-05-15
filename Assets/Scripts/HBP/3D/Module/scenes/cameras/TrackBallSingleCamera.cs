@@ -77,7 +77,7 @@ namespace HBP.Module3D.Cam
                     }
                 }
 
-                m_DisplayPlanesTimeStart = (float)TimeExecution.get_world_time();
+                m_DisplayPlanesTimeStart = (float)TimeExecution.GetWorldTime();
                 m_DisplayPlanesTimer = 0;
                 m_DisplayCutsCircles = true;
             });

@@ -42,12 +42,12 @@ namespace HBP.Module3D
         }
 
         public GameObject ViewPrefab;
-        protected List<View> m_Views;
-        public ReadOnlyCollection<View> Views
+        protected List<View3D> m_Views;
+        public ReadOnlyCollection<View3D> Views
         {
             get
             {
-                return new ReadOnlyCollection<View>(m_Views);
+                return new ReadOnlyCollection<View3D>(m_Views);
             }
         }
 
@@ -450,7 +450,7 @@ namespace HBP.Module3D
         /// </summary>
         public void AddView()
         {
-            View view = Instantiate(ViewPrefab, transform).GetComponent<View>();
+            View3D view = Instantiate(ViewPrefab, transform).GetComponent<View3D>();
             view.gameObject.name = "View " + m_Views.Count;
             view.LineID = m_Views.Count;
             view.Layer = Layer;

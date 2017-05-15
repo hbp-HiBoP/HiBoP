@@ -24,7 +24,7 @@ namespace HBP.Module3D
     {
         #region Properties
         private Base3DScene m_AssociatedScene;
-        private View m_AssociatedView;
+        private View3D m_AssociatedView;
 
         [SerializeField, Candlelight.PropertyBackingField]
         private int m_CullingMask;
@@ -168,7 +168,7 @@ namespace HBP.Module3D
             m_OriginalRotationEuler = transform.localEulerAngles;
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
             m_AssociatedScene = GetComponentInParent<Base3DScene>();
-            m_AssociatedView = GetComponentInParent<View>();
+            m_AssociatedView = GetComponentInParent<View3D>();
 
             // rotation circles
             m_XRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
@@ -208,7 +208,7 @@ namespace HBP.Module3D
                     }
                 }
 
-                m_DisplayPlanesTimeStart = (float)TimeExecution.get_world_time();
+                m_DisplayPlanesTimeStart = (float)TimeExecution.GetWorldTime();
                 m_DisplayPlanesTimer = 0;
                 m_DisplayCutsCircles = true;
             });
@@ -259,7 +259,7 @@ namespace HBP.Module3D
 
             if (m_DisplayCutsCircles)
             {
-                m_DisplayPlanesTimer = TimeExecution.get_world_time() - m_DisplayPlanesTimeStart;
+                m_DisplayPlanesTimer = TimeExecution.GetWorldTime() - m_DisplayPlanesTimeStart;
                 if (m_DisplayPlanesTimeRemaining > m_DisplayPlanesTimer)
                 {
                     m_PlaneMaterial.SetPass(0);

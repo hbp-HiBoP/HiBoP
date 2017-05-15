@@ -118,7 +118,7 @@ namespace HBP.Module3D
                 m_spMDuration = duration;
                 m_spMessageSize = new Vector2(width, height);
 
-                spMessageT = TimeExecution.get_world_time();
+                spMessageT = TimeExecution.GetWorldTime();
                 StartCoroutine(displayMessage(true));
             });
 
@@ -129,7 +129,7 @@ namespace HBP.Module3D
                 m_spProgressBarSize = new Vector2(width, height);
                 m_spProgressBar.setProgessBarState(value);
 
-                spProgressBarT = TimeExecution.get_world_time();
+                spProgressBarT = TimeExecution.GetWorldTime();
                 StartCoroutine(displayProgress(true));
             });
 
@@ -140,7 +140,7 @@ namespace HBP.Module3D
                 m_mpMDuration = duration;
                 m_mpMessageSize = new Vector2(width, height);
 
-                mpMessageT = TimeExecution.get_world_time();
+                mpMessageT = TimeExecution.GetWorldTime();
                 StartCoroutine(displayMessage(false));
             });
 
@@ -151,7 +151,7 @@ namespace HBP.Module3D
                 m_mpProgressBarSize = new Vector2(width, height);
                 m_mpProgressBar.setProgessBarState(value);
 
-                mpProgressBarT = TimeExecution.get_world_time();
+                mpProgressBarT = TimeExecution.GetWorldTime();
                 StartCoroutine(displayProgress(false));
             });
         }
@@ -240,7 +240,7 @@ namespace HBP.Module3D
                 bool notEnd = true;
                 while (notEnd)
                 {
-                    if (TimeExecution.get_world_time() - spMessageT > m_spMDuration)
+                    if (TimeExecution.GetWorldTime() - spMessageT > m_spMDuration)
                         break;
 
                     yield return new WaitForSeconds(0.05f);
@@ -257,7 +257,7 @@ namespace HBP.Module3D
                 bool notEnd = true;
                 while (notEnd)
                 {
-                    if (TimeExecution.get_world_time() - mpMessageT > m_mpMDuration)
+                    if (TimeExecution.GetWorldTime() - mpMessageT > m_mpMDuration)
                         break;
 
                     yield return new WaitForSeconds(0.05f);
@@ -279,7 +279,7 @@ namespace HBP.Module3D
                 bool notEnd = true;
                 while (notEnd)
                 {
-                    if (TimeExecution.get_world_time() - spProgressBarT > m_spPDuration)
+                    if (TimeExecution.GetWorldTime() - spProgressBarT > m_spPDuration)
                         break;
 
                     yield return new WaitForSeconds(0.05f);
@@ -296,7 +296,7 @@ namespace HBP.Module3D
                 bool notEnd = true;
                 while (notEnd)
                 {
-                    if (TimeExecution.get_world_time() - mpProgressBarT > m_mpPDuration)
+                    if (TimeExecution.GetWorldTime() - mpProgressBarT > m_mpPDuration)
                         break;
 
                     yield return new WaitForSeconds(0.05f);

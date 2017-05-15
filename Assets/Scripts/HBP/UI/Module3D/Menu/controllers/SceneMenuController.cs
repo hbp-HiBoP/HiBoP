@@ -317,7 +317,7 @@ namespace HBP.Module3D
             bool menuDisplayed = m_displayMenu;
 
             // define mode ui specifities
-            switch (mode.IDMode)
+            switch (mode.ID)
             {
                 case Mode.ModesId.NoPathDefined:
                     menuDisplayed = false;

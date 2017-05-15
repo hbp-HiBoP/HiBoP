@@ -101,14 +101,14 @@ namespace HBP.Module3D
         #region Private Methods
         new void Awake()
         {
-            int idScript = TimeExecution.get_ID();
-            TimeExecution.start_awake(idScript, TimeExecution.ScriptsId.MP3DScene);
+            int idScript = TimeExecution.ID;
+            TimeExecution.StartAwake(idScript, TimeExecution.ScriptsId.MP3DScene);
 
             base.Awake();
 
             m_MNIObjects = GetComponent<MNIObjects>();
             
-            TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.MP3DScene, gameObject);
+            TimeExecution.EndAwake(idScript, TimeExecution.ScriptsId.MP3DScene, gameObject);
         }
         #endregion
 

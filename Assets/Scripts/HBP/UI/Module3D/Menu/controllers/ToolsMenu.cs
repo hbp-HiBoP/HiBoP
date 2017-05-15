@@ -253,7 +253,7 @@ namespace HBP.UI.Module3D
             //bool iEegVisible = (!CcepVisible && m_IsSinglePatientScene);
             //bool isTriErasingEnabled = scene.is_tri_erasing_enabled();
 
-            switch (m_ScenesManager.SelectedScene.ModesManager.CurrentMode.IDMode)
+            switch (m_ScenesManager.SelectedScene.ModesManager.CurrentMode.ID)
             {
                 case Mode.ModesId.NoPathDefined:
                     SetToggleState(m_LeftBrainHemisphere, true, false);
@@ -418,7 +418,7 @@ namespace HBP.UI.Module3D
                     //m_zoneDegreesInputField.interactable = false;
                     break;
                 default:
-                    Debug.LogError("Error : setUIActivity :" + m_ScenesManager.SelectedScene.ModesManager.CurrentMode.IDMode.ToString());
+                    Debug.LogError("Error : setUIActivity :" + m_ScenesManager.SelectedScene.ModesManager.CurrentMode.ID.ToString());
                     break;
             }
 

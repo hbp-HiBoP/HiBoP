@@ -32,11 +32,11 @@ namespace HBP.UI.Module3D
 
         void Awake()
         {            
-            int idScript = TimeExecution.get_ID();
-            TimeExecution.start_awake(idScript, TimeExecution.ScriptsId.UICameraManager);
+            int idScript = TimeExecution.ID;
+            TimeExecution.StartAwake(idScript, TimeExecution.ScriptsId.UICameraManager);
             m_topPanelMenuController = GameObject.Find("Tools Menu").GetComponent<ToolsMenu>();
             //m_buttonsLeftMenuController = transform.FindChild("Left").Find("button menu parent").gameObject.GetComponent<ButtonsLeftMenuController>();        
-            TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.UICameraManager, gameObject);
+            TimeExecution.EndAwake(idScript, TimeExecution.ScriptsId.UICameraManager, gameObject);
         }
 
         #endregion

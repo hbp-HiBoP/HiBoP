@@ -20,62 +20,88 @@ namespace HBP.Module3D
     /// </summary>
     public class TimeExecution : MonoBehaviour
     {
-        #region Properties          
-
-        public enum ScriptsId : int
+        #region Properties
+        public enum ScriptsId
         {
             CamerasManager, Column3DView, Column3DViewEEG, Column3DViewFMRI, Column3DViewManager, ModesManager, Base3DScene, MP3DScene, ScenesManager, SP3DScene,
             UICameraManager, UIOverlayManager, UIManager, MNIObjects, SharedMeshes, SharedMaterials
-        }; /**< scripts id */
-
-        static int m_id = 0; /**< id of the script */
-
-        static List<double> times = new List<double>();
-
-        static private double m_startProgramTime;
-
-        static DateTime m_epochStart;
-
+        };
+        static int m_ID = 0;
+        /// <summary>
+        /// ID of the script
+        /// </summary>
+        public static int ID
+        {
+            get
+            {
+                return m_ID++;
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        static List<double> m_Times = new List<double>();
+        /// <summary>
+        /// 
+        /// </summary>
+        static private double m_StartProgramTime;
+        /// <summary>
+        /// 
+        /// </summary>
+        static DateTime m_EpochStart;
         #endregion
 
         #region Private Methods
-
         void Awake()
         {
-            m_epochStart = new System.DateTime(1970, 1, 1, 8, 0, 0, System.DateTimeKind.Utc);
-            m_startProgramTime = get_world_time();
+            m_EpochStart = new System.DateTime(1970, 1, 1, 8, 0, 0, System.DateTimeKind.Utc);
+            m_StartProgramTime = GetWorldTime();
         }
-
         #endregion
 
         #region Public Methods
-
-        public static double get_world_time()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static double GetWorldTime()
         {
-            return (System.DateTime.UtcNow - m_epochStart).TotalSeconds;
+            return (System.DateTime.UtcNow - m_EpochStart).TotalSeconds;
         }
-
-        public static int get_ID() { return m_id++; }
-
-        public static void start_awake(int id, ScriptsId scriptId)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="scriptId"></param>
+        public static void StartAwake(int id, ScriptsId scriptId)
         {
-            if (id >= times.Count)
-                times.Add(get_world_time());
+            if (id >= m_Times.Count)
+                m_Times.Add(GetWorldTime());
         }
-
-        public static void end_awake(int id, ScriptsId scriptId, string GOName, int instanceId)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="scriptId"></param>
+        /// <param name="GOName"></param>
+        /// <param name="instanceId"></param>
+        public static void EndAwake(int id, ScriptsId scriptId, string GOName, int instanceId)
         {
 #if UNITY_EDITOR
-            double currTime = get_world_time();
-            Debug.Log(Enum.GetNames(typeof(ScriptsId))[(int)scriptId] + " Awake -> id : " + id + "  Time : " + (currTime - times[id]).ToString("0.00") + "s total time : " + (currTime - m_startProgramTime).ToString("0.00") + "s " + GOName + " " + instanceId);
+            double currTime = GetWorldTime();
+            Debug.Log(Enum.GetNames(typeof(ScriptsId))[(int)scriptId] + " Awake -> id : " + id + "  Time : " + (currTime - m_Times[id]).ToString("0.00") + "s total time : " + (currTime - m_StartProgramTime).ToString("0.00") + "s " + GOName + " " + instanceId);
 #endif
         }
-
-        public static void end_awake(int id, ScriptsId scriptId, GameObject obj)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="scriptId"></param>
+        /// <param name="obj"></param>
+        public static void EndAwake(int id, ScriptsId scriptId, GameObject obj)
         {
-            end_awake(id, scriptId, obj.name, obj.GetInstanceID());            
+            EndAwake(id, scriptId, obj.name, obj.GetInstanceID());            
         }
-
         #endregion
 
     }

@@ -120,7 +120,7 @@ namespace HBP.UI.Module3D
 
             if (mode != null)
             {
-                switch (mode.IDMode)
+                switch (mode.ID)
                 {
                     case Mode.ModesId.NoPathDefined:
                         m_sceneButton.interactable = false;

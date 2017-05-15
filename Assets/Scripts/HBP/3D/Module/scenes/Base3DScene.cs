@@ -399,8 +399,8 @@ namespace HBP.Module3D
         #region Private Methods
         protected void Awake()
         {         
-            int idScript = TimeExecution.get_ID();
-            TimeExecution.start_awake(idScript, TimeExecution.ScriptsId.Base3DScene);
+            int idScript = TimeExecution.ID;
+            TimeExecution.StartAwake(idScript, TimeExecution.ScriptsId.Base3DScene);
 
             m_DisplayedObjects = new DisplayedObjects3DView();
             SceneInformation = new SceneStatesInfo();
@@ -434,7 +434,7 @@ namespace HBP.Module3D
             InitializeSceneGameObjects();
 
 
-            TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.Base3DScene, gameObject);
+            TimeExecution.EndAwake(idScript, TimeExecution.ScriptsId.Base3DScene, gameObject);
         }
         protected void Update()
         {

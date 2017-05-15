@@ -22,15 +22,15 @@ namespace HBP.Module3D
         public Color[] ColorsSites = null;
 
         public int SelectedPatientID = 0; /**< id of the selected patient for Multi patient scene */
-        public Dictionary<Column3DView, List<View>> Views
+        public Dictionary<Column3DView, List<View3D>> Views
         {
             get
             {
-                Dictionary<Column3DView, List<View>> views = new Dictionary<Column3DView, List<View>>();
+                Dictionary<Column3DView, List<View3D>> views = new Dictionary<Column3DView, List<View3D>>();
                 foreach (Column3DView column in Columns)
                 {
-                    views.Add(column, new List<View>());
-                    foreach (View view in column.Views)
+                    views.Add(column, new List<View3D>());
+                    foreach (View3D view in column.Views)
                     {
                         views[column].Add(view);
                     }
@@ -44,7 +44,7 @@ namespace HBP.Module3D
             {
                 foreach (Column3DView column in Columns)
                 {
-                    foreach (View view in column.Views)
+                    foreach (View3D view in column.Views)
                     {
                         if (view.IsFocused)
                         {
@@ -61,7 +61,7 @@ namespace HBP.Module3D
             {
                 foreach (Column3DView column in Columns)
                 {
-                    foreach (View view in column.Views)
+                    foreach (View3D view in column.Views)
                     {
                         if (view.IsFocused)
                         {
@@ -72,13 +72,13 @@ namespace HBP.Module3D
                 return null;
             }
         }
-        public View FocusedView
+        public View3D FocusedView
         {
             get
             {
                 foreach (Column3DView column in Columns)
                 {
-                    foreach (View view in column.Views)
+                    foreach (View3D view in column.Views)
                     {
                         if (view.IsFocused)
                         {
@@ -89,13 +89,13 @@ namespace HBP.Module3D
                 return null;
             }
         }
-        public View ClickedView
+        public View3D ClickedView
         {
             get
             {
                 foreach (Column3DView column in Columns)
                 {
-                    foreach (View view in column.Views)
+                    foreach (View3D view in column.Views)
                     {
                         if (view.IsClicked)
                         {
@@ -275,7 +275,7 @@ namespace HBP.Module3D
             {
                 foreach (Column3DView column in Columns)
                 {
-                    foreach (View view in column.Views)
+                    foreach (View3D view in column.Views)
                     {
                         if (view.LineID == ClickedView.LineID)
                         {

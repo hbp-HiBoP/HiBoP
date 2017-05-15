@@ -51,8 +51,8 @@ namespace HBP.Module3D
         #region Private Methods
         void Awake()
         {
-            int idScript = TimeExecution.get_ID();
-            TimeExecution.start_awake(idScript, TimeExecution.ScriptsId.MNIObjects);
+            int idScript = TimeExecution.ID;
+            TimeExecution.StartAwake(idScript, TimeExecution.ScriptsId.MNIObjects);
 
             string dataDirPath = GlobalPaths.Data;
         
@@ -156,7 +156,7 @@ namespace HBP.Module3D
 
 #endif
             LoadingMutex.ReleaseMutex();
-            TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.MNIObjects, GOName, instanceID);
+            TimeExecution.EndAwake(idScript, TimeExecution.ScriptsId.MNIObjects, GOName, instanceID);
         }
         #endregion
     }

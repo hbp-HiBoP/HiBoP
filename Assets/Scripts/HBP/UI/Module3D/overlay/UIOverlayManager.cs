@@ -46,8 +46,8 @@ namespace HBP.UI.Module3D
 
         void Awake()
         {
-            int idScript = TimeExecution.get_ID();
-            TimeExecution.start_awake(idScript, TimeExecution.ScriptsId.UIOverlayManager);
+            int idScript = TimeExecution.ID;
+            TimeExecution.StartAwake(idScript, TimeExecution.ScriptsId.UIOverlayManager);
             
             // retrieve contollers 
             //  planes
@@ -71,7 +71,7 @@ namespace HBP.UI.Module3D
             //  screen message
             m_bothScreenMessageController = transform.Find("both").GetComponent<ScreenMessageController>();
 
-            TimeExecution.end_awake(idScript, TimeExecution.ScriptsId.UIOverlayManager, gameObject);
+            TimeExecution.EndAwake(idScript, TimeExecution.ScriptsId.UIOverlayManager, gameObject);
         }
 
         void Update()
