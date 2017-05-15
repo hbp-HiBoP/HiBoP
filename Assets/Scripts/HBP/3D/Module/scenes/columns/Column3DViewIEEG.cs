@@ -9,7 +9,7 @@
 // system
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 // unity
 using UnityEngine;
 
@@ -144,35 +144,44 @@ namespace HBP.Module3D
             Dimensions = new int[3];
             Dimensions[0] = Column.TimeLine.Lenght;
             Dimensions[1] = 1;
-            Dimensions[2] = Column.SiteMask.Length;
+            Dimensions[2] = 0;
 
             MinAmp = float.MaxValue;
             MaxAmp = float.MinValue;
 
-            IEEGValues = new float[Dimensions[0] * Dimensions[1] * Dimensions[2]];
-            for (int ii = 0; ii < Dimensions[0]; ++ii)
+            // TODO
+            foreach (var configurationPatient in Column.Configuration.ConfigurationByPatient)
             {
-                for (int jj = 0; jj < Dimensions[2]; ++jj)
+                foreach(var electrodeconfiguration in configurationPatient.Value.ConfigurationByElectrode)
                 {
-                    IEEGValues[ii * Dimensions[2] + jj] = Column.Values[jj][ii];
-
-                    // update min/max values
-                    if (Column.Values[jj][ii] > MaxAmp)
-                        MaxAmp = Column.Values[jj][ii];
-
-                    if (Column.Values[jj][ii] < MinAmp)
-                        MinAmp = Column.Values[jj][ii];
+                    Dimensions[2] += electrodeconfiguration.Value.ConfigurationBySite.Count;
                 }
             }
+
+            IEEGValues = new float[Dimensions[0] * Dimensions[1] * Dimensions[2]];
+            //for (int ii = 0; ii < Dimensions[0]; ++ii)
+            //{
+            //    for (int jj = 0; jj < Dimensions[2]; ++jj)
+            //    {
+            //        IEEGValues[ii * Dimensions[2] + jj] = Column.Values[jj][ii];
+
+            //        // update min/max values
+            //        if (Column.Values[jj][ii] > MaxAmp)
+            //            MaxAmp = Column.Values[jj][ii];
+
+            //        if (Column.Values[jj][ii] < MinAmp)
+            //            MinAmp = Column.Values[jj][ii];
+            //    }
+            //}
 
             Middle = (MinAmp + MaxAmp) / 2;
             SpanMin = MinAmp;
             SpanMax = MaxAmp;
 
-            for (int ii = 0; ii < Sites.Count; ++ii)
-            {
-                Sites[ii].Information.IsMasked = Column.SiteMask[ii];
-            }
+            //for (int ii = 0; ii < Sites.Count; ++ii)
+            //{
+            //    Sites[ii].Information.IsMasked = Column.SiteMask[ii];
+            //}
         }
         /// <summary>
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
@@ -189,7 +198,7 @@ namespace HBP.Module3D
                 if (Sites[ii].Information.IsInROI || Sites[ii].Information.IsMasked)
                     continue;
 
-                float value = Column.Values[ii][CurrentTimeLineID];
+                float value = 0; //= Column.Values[ii][CurrentTimeLineID];
                 if (value < SpanMin)
                     value = SpanMin;
                 if (value > SpanMax)
@@ -366,12 +375,12 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < Sites.Count; ++ii)
                 {
                     bool activity;
-                    if(Sites[ii].firstUse)
-                    {
-                        Sites[ii].firstUse = false;
-                        activity = Sites[ii].gameObject.activeSelf;
-                    }
-                    else
+                    //if(Sites[ii].firstUse)
+                    //{
+                    //    Sites[ii].firstUse = false;
+                    //    activity = Sites[ii].gameObject.activeSelf;
+                    //}
+                    //else
                         activity = Sites[ii].IsActive;
 
       

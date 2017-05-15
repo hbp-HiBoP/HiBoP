@@ -20,7 +20,7 @@ namespace HBP.Data.Experience.Protocol
 	public class Protocol : ICloneable,ICopiable
     {
         #region Properties
-        public const string Extension = ".prov";
+        public const string EXTENSION = ".prov";
         /// <summary>
         /// Unique ID.
         /// </summary>

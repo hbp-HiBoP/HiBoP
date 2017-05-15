@@ -214,11 +214,11 @@ namespace HBP.UI.TrialMatrix
         }
         void SendMessageSelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc,bool additive)
         {
-            Graph.GraphsGestion graphGestion = FindObjectOfType<Graph.GraphsGestion>();
-            if(graphGestion)
-            {
-                graphGestion.OnSelectLines(lines, bloc, additive);
-            }
+            //Graph.GraphsGestion graphGestion = FindObjectOfType<Graph.GraphsGestion>();
+            //if(graphGestion)
+            //{
+            //    graphGestion.OnSelectLines(lines, bloc, additive);
+            //}
         }
         void SetTexture(d.Bloc bloc,Texture2D colorMap,Vector2 limits)
         {

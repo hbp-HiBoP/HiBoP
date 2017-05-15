@@ -148,7 +148,7 @@ namespace HBP.UI
             // Load groups.
             List<Data.Group> groups = new List<Data.Group>();
             DirectoryInfo grousDirectory = projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
-            FileInfo[] groupFiles = grousDirectory.GetFiles("*" + Data.Group.Extension  , SearchOption.TopDirectoryOnly);
+            FileInfo[] groupFiles = grousDirectory.GetFiles("*" + Data.Group.EXTENSION  , SearchOption.TopDirectoryOnly);
             foreach (FileInfo groupFile in groupFiles)
             {
                 yield return Ninja.JumpToUnity;
@@ -175,7 +175,7 @@ namespace HBP.UI
             //Load Protocols
             List<Protocol> protocols = new List<Protocol>();
             DirectoryInfo protocolDirectory = projectDirectory.GetDirectories("Protocols", SearchOption.TopDirectoryOnly)[0];
-            FileInfo[] protocolFiles = protocolDirectory.GetFiles("*" + Protocol.Extension, SearchOption.TopDirectoryOnly);
+            FileInfo[] protocolFiles = protocolDirectory.GetFiles("*" + Protocol.EXTENSION, SearchOption.TopDirectoryOnly);
             foreach (FileInfo protocolFile in protocolFiles)
             {
                 yield return Ninja.JumpToUnity;
@@ -202,7 +202,7 @@ namespace HBP.UI
             //Load Datasets
             List<Dataset> datasets = new List<Dataset>();
             DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
-            FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.Extension, SearchOption.TopDirectoryOnly);
+            FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
             foreach (FileInfo datasetFile in datasetFiles)
             {
                 yield return Ninja.JumpToUnity;
@@ -393,7 +393,7 @@ namespace HBP.UI
             {
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(groupToSave, groupDirectory.FullName + Path.DirectorySeparatorChar + groupToSave.Name + Data.Group.Extension);
+                    ClassLoaderSaver.SaveToJSon(groupToSave, groupDirectory.FullName + Path.DirectorySeparatorChar + groupToSave.Name + Data.Group.EXTENSION);
                 }
                 catch
                 {
@@ -416,7 +416,7 @@ namespace HBP.UI
             {
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(protocolToSave, protocolDirectory.FullName + Path.DirectorySeparatorChar + protocolToSave.Name + Protocol.Extension);
+                    ClassLoaderSaver.SaveToJSon(protocolToSave, protocolDirectory.FullName + Path.DirectorySeparatorChar + protocolToSave.Name + Protocol.EXTENSION);
                 }
                 catch
                 {
@@ -439,7 +439,7 @@ namespace HBP.UI
             {
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(datasetToSave, datasetDirectory.FullName + Path.DirectorySeparatorChar + datasetToSave.Name + Dataset.Extension);
+                    ClassLoaderSaver.SaveToJSon(datasetToSave, datasetDirectory.FullName + Path.DirectorySeparatorChar + datasetToSave.Name + Dataset.EXTENSION);
                 }
                 catch
                 {
@@ -600,7 +600,7 @@ namespace HBP.UI
                 ApplicationState.ProjectLoadedLocation = m_OldProjectLocation;
                 m_LoadingCircle.Close();
                 StopAllCoroutines();
-                GameObject popUpobj = GameObject.Instantiate(m_PopUpPrefab, GetComponentInParent<Visualization.VisualizationLoader>().transform) as GameObject;
+                GameObject popUpobj = GameObject.Instantiate(m_PopUpPrefab, GameObject.Find("Windows").transform) as GameObject;
                 popUpobj.GetComponent<PopUp>().Show(GetErrorMessage(error, additionalInformations));
             }
         }

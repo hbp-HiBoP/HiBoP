@@ -80,7 +80,7 @@ namespace HBP.Data.Experience.Dataset
                 foreach (Site site in electrode.Sites)
                 {
                     Elan.Track track = elanFile.FindTrack(info.Measure, site.Name);
-                    if(track.Frequency < 0 || track.Measure < 0)
+                    if (track.Frequency < 0 || track.Measure < 0)
                     {
                         MaskBySite.Add(site, true);
                         ValuesBySite.Add(site, new float[elanFile.EEG.SampleNumber]);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using HBP.Data.Anatomy;
 
 namespace HBP.Data
@@ -20,7 +21,7 @@ namespace HBP.Data
     *     - \a Brain : informations of the brain.(mesh,irm,implantation,...)
     *     - \a Epilepsy \a type : epilepsy type of the patient.(IGE,IPE,SGE,SPE,Unknown)
     */
-    [Serializable]
+    [DataContract]
 	public class Patient : ICloneable, ICopiable
 	{
         #region Properties
@@ -29,26 +30,31 @@ namespace HBP.Data
         /// <summary>
         /// Unique ID.
         /// </summary>
+        [DataMember]
         public string ID { get; set; }
 
         /// <summary>
         /// Patient name.
         /// </summary>
+        [DataMember]
         public string Name { get; set; }
 
         /// <summary>
         /// Date of study.
         /// </summary>
+        [DataMember]
         public int Date { get; set; }
 
         /// <summary>
         /// Place of study.
         /// </summary>
+        [DataMember]
         public string Place { get; set; }
 
         /// <summary>
         /// Patient brain.
         /// </summary>
+        [DataMember]
         public Brain Brain { get; set; }
         #endregion
 

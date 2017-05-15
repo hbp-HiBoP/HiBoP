@@ -43,15 +43,15 @@ namespace HBP.Data.General
                     }
                     else if(dir.Name == "Groups")
                     {
-                        Groups = dir.GetFiles("*" + Group.Extension).Length;
+                        Groups = dir.GetFiles("*" + Group.EXTENSION).Length;
                     }
                     else if (dir.Name == "Protocols")
                     {
-                        Protocols = dir.GetFiles("*" + Experience.Protocol.Protocol.Extension).Length;
+                        Protocols = dir.GetFiles("*" + Experience.Protocol.Protocol.EXTENSION).Length;
                     }
                     else if (dir.Name == "Datasets")
                     {
-                        Datasets = dir.GetFiles("*" + Experience.Dataset.Dataset.Extension).Length;
+                        Datasets = dir.GetFiles("*" + Experience.Dataset.Dataset.EXTENSION).Length;
                     }
                     else if (dir.Name == "Visualizations")
                     {

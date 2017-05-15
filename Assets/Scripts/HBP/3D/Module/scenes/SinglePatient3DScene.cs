@@ -743,10 +743,10 @@ namespace HBP.Module3D
 
                     // retrieve currant plot amp
                     float amp = 0;
-                    if (currIEEGCol.Column.Values.Length > 0)
-                    {
-                        amp = currIEEGCol.Column.Values[idPlot][currIEEGCol.CurrentTimeLineID];
-                    }
+                    //if (currIEEGCol.Column.Values.Length > 0)
+                    //{
+                    //    amp = currIEEGCol.Column.Values[idPlot][currIEEGCol.CurrentTimeLineID];
+                    //}
 
                     // retrieve current lateny/height
                     string latency = "none", height = "none";

@@ -27,7 +27,7 @@ namespace HBP.Data.Visualization
     public class MultiPatientsVisualization : Visualization
     {
         #region Properties
-        public const string EXTENSION = ".multiVisualization";
+        public const string EXTENSION = ".mpv";
         [DataMember(Name = "Patients", Order = 3)]
         IEnumerable<string> m_patientsID;
         List<Patient> m_patients;

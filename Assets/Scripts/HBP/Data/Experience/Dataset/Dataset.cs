@@ -21,7 +21,7 @@ namespace HBP.Data.Experience.Dataset
 	public class Dataset : ICloneable, ICopiable
 	{
         #region Attributs
-        public const string Extension = ".dataset";
+        public const string EXTENSION = ".dataset";
         [DataMember]
         /// <summary>
         /// Unique ID of the dataset.

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace HBP.Data.Anatomy
 {
@@ -12,6 +13,7 @@ namespace HBP.Data.Anatomy
     * \details Brain epilepsy which contains:
     *   - \a Type.
     */
+    [DataContract]
 	public class Epilepsy : ICloneable
 	{
 		#region Properties
@@ -22,6 +24,7 @@ namespace HBP.Data.Anatomy
         /// <summary>
         /// Type of this epilepsy.
         /// </summary>
+        [DataMember]
 		public EpilepsyType Type { get; set; }
 		#endregion
 

@@ -150,6 +150,7 @@ namespace HBP.Data.General
         public void AddPatient(Patient patient)
         {
             patients.Add(patient);
+            patient.Brain.LoadImplantations();
         }
         public void AddPatient(Patient[] patients)
         {
@@ -174,6 +175,7 @@ namespace HBP.Data.General
                 multiPatientsVisualization.RemovePatient(patient);
             }
             patients.Remove(patient);
+            patient.Brain.UnloadImplantations();
         }
         public void RemovePatient(Patient[] patients)
         {
@@ -352,35 +354,37 @@ namespace HBP.Data.General
         // Others.
         public static bool IsProject(string path)
         {
-            bool l_isProject = false;
-            string l_path = path;
-            string l_name;
-            if (Directory.Exists(l_path))
+            if(!string.IsNullOrEmpty(path))
             {
-                DirectoryInfo l_projectDirectory = new DirectoryInfo(l_path);
-                l_name = l_projectDirectory.Name;
-                if (Directory.Exists(l_path + Path.DirectorySeparatorChar + "Patients") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Groups") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Protocols") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "ROI") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Datasets") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Visualizations") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Visualizations"+Path.DirectorySeparatorChar+"SinglePatient") && Directory.Exists(l_path + Path.DirectorySeparatorChar + "Visualizations" + Path.DirectorySeparatorChar + "MultiPatients") && File.Exists(l_path + Path.DirectorySeparatorChar + l_name + ".settings"))
+                DirectoryInfo directory = new DirectoryInfo(path);
+                if(directory.Exists)
                 {
-                    l_isProject = true;
-                }
-            }
-            return l_isProject;
-        }
-        public static string[] GetProject(string path)
-        {
-            List<string> l_listPathProject = new List<string>();
-            if (path != string.Empty && Directory.Exists(path))
-            {
-                string[] l_directories = Directory.GetDirectories(path);
-                foreach (string l_directoryPath in l_directories)
-                {
-                    if (IsProject(l_directoryPath))
+                    DirectoryInfo[] directories = directory.GetDirectories();
+                    if (directories.Any((d) => d.Name == "Patients")
+                        && directories.Any((d) => d.Name == "Groups")
+                        && directories.Any((d) => d.Name == "Protocols")
+                        && directories.Any((d) => d.Name == "Datasets")
+                        && directories.Any((d) => d.Name == "Visualizations")
+                        && directory.GetFiles().Any((f) => f.Extension == ProjectSettings.EXTENSION))
                     {
-                        l_listPathProject.Add(l_directoryPath);
+                        return true;
                     }
                 }
             }
-            return l_listPathProject.ToArray();
+            return false;
+        }
+        public static IEnumerable<string> GetProject(string path)
+        {
+            if(!string.IsNullOrEmpty(path))
+            {
+                DirectoryInfo directory = new DirectoryInfo(path);
+                if(directory.Exists)
+                {
+                    DirectoryInfo[] directories = directory.GetDirectories();
+                    return from dir in directories where IsProject(dir.FullName) select dir.FullName;
+                }
+            }
+            return new string[0];
         }
         public string GetProject(string path, string ID)
         {

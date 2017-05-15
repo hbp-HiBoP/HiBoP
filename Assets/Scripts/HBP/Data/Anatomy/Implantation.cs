@@ -43,7 +43,7 @@ namespace HBP.Data.Anatomy
                             Site[] sites = new Site[numberOfSites];
                             for (int line = 0; line < numberOfSites; line++)
                             {
-                                sites[line] = new Site(lines[line + 3], referenceFrame , automaticCorrection);
+                                sites[line] = new Site(lines[line + 3], referenceFrame, automaticCorrection);
                             }
 
                             // Separate sites into electrodes.
@@ -69,25 +69,33 @@ namespace HBP.Data.Anatomy
                                 }
                             }
                         }
-                        else
-                        {
-                            Debug.LogError("Can not read the " + referenceFrame.ToString() + " reference frame implantation because the specified file is not in the correct format.");
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogError("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified file is not in the correct format.");
+                        //            else
+                        //            {
+                        //                Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame implantation because the specified file is not in the correct format.");
+                        //            }
+                        //        }
+                        //        else
+                        //        {
+                        //            Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified file is not in the correct format.");
+                        //        }
+                        //    }
+                        //    else
+                        //    {
+                        //        Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified file does not exist or does not have the correct extension.");
+                        //    }
+                        //}
+                        //else
+                        //{
+                        //    Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified path is null or empty.");
+                        //}
                     }
                 }
-                else
-                {
-                    Debug.LogError("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified file does not exist or does not have the correct extension.");
-                }
             }
-            else
-            {
-                Debug.LogError("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified path is null or empty.");
-            }
+        }
+
+        public void Unload()
+        {
+            Electrodes = new List<Electrode>();
         }
         #endregion
     }

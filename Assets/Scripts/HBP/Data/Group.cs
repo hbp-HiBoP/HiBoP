@@ -22,7 +22,7 @@ namespace HBP.Data
     public class Group : ICloneable , ICopiable
     {
         #region Properties
-        public const string Extension = ".group";
+        public const string EXTENSION = ".group";
         /** Unique ID. */
         [DataMember]
         public string ID { get; set; }

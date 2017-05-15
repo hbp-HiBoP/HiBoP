@@ -52,23 +52,33 @@ namespace HBP.Data.Anatomy
         /// <summary>
         /// Patient based implantation file(.pts).
         /// </summary>
-        [DataMember]
+        [IgnoreDataMember]
         public string PatientBasedImplantation
         {
             get { return m_PatientBasedImplantation; }
-            set { m_PatientBasedImplantation = value; Implantation.Load(value, ReferenceFrameType.Patient); }
+            set {
+                m_PatientBasedImplantation = value;
+                Implantation.Load(value, ReferenceFrameType.Patient);
+            }
         }
+        //[DataMember(Name = "PatientBasedImplantation")]
+        [IgnoreDataMember]
         string m_PatientBasedImplantation;
 
         /// <summary>
         /// MNI based implantation file(.pts).
         /// </summary>
-        [DataMember]
+        [IgnoreDataMember]
         public string MNIBasedImplantation
         {
             get { return m_MNIBasedImplantation; }
-            set { m_MNIBasedImplantation = value; Implantation.Load(value, ReferenceFrameType.MNI); }
+            set {
+                m_MNIBasedImplantation = value;
+                Implantation.Load(value, ReferenceFrameType.MNI);
+            }
         }
+        //[DataMember(Name = "MNIBasedImplantation")]
+        [IgnoreDataMember]
         string m_MNIBasedImplantation;
 
         /// <summary>
@@ -86,22 +96,25 @@ namespace HBP.Data.Anatomy
         /// <summary>
         /// Patient epilepsy.
         /// </summary>
-        [DataMember]
+        [IgnoreDataMember]
         public Epilepsy Epilepsy { get; set; }
 
         /// <summary>
         /// Brain implantation.
         /// </summary>
+        [IgnoreDataMember]
         public Implantation Implantation { get; set; }
 
         /// <summary>
         /// Patient to whon the brain belongs.
         /// </summary>
+        [IgnoreDataMember]
         public Patient Patient { get; set; }
 
         /// <summary>
         /// Number of fields filled.
         /// </summary>
+        [IgnoreDataMember]
         public int NumberOfFieldsFilled
 		{
 			get
@@ -122,6 +135,7 @@ namespace HBP.Data.Anatomy
         /// <summary>
         /// The patient can be used in single patient visualization.
         /// </summary>
+        [IgnoreDataMember]
         public bool CanBeUsedInSinglePatientVisualization
         {
             get { return LeftCerebralHemisphereMesh != string.Empty && RightCerebralHemisphereMesh != string.Empty && PreoperativeMRI != string.Empty && PatientBasedImplantation != string.Empty; }
@@ -130,6 +144,7 @@ namespace HBP.Data.Anatomy
         /// <summary>
         /// The patient can be used in multi-patients visualization.
         /// </summary>
+        [IgnoreDataMember]
         public bool CanBeUsedInMultiPatientsVisualization
         {
             get { return PreoperativeMRI != string.Empty && MNIBasedImplantation != string.Empty;}
@@ -151,12 +166,13 @@ namespace HBP.Data.Anatomy
         /// <param name="epilepsy">Epilepsy.</param>
         public Brain(Epilepsy epilepsy,string leftCerebralHemisphereMesh = "", string rightCerebralHemisphereMesh = "", string preOperationMRI = "", string postOperationMRI = "", string patientReferenceFrameImplantation = "", string MNIreferenceFrameImplantation = "", string preOperationReferenceFrameToScannerReferenceFrameTransformation = "",string connectivity = "")
         {
+            Implantation = new Implantation();
             LeftCerebralHemisphereMesh = leftCerebralHemisphereMesh;
             RightCerebralHemisphereMesh = rightCerebralHemisphereMesh;
             PreoperativeMRI = preOperationMRI;
             PostoperativeMRI = postOperationMRI;
-            PatientBasedImplantation = patientReferenceFrameImplantation;
-            MNIBasedImplantation = MNIreferenceFrameImplantation;
+            m_PatientBasedImplantation = patientReferenceFrameImplantation;
+            m_MNIBasedImplantation = MNIreferenceFrameImplantation;
             PreoperativeBasedToScannerBasedTransformation = preOperationReferenceFrameToScannerReferenceFrameTransformation;
             SitesConnectivities = connectivity;
             Epilepsy = epilepsy;
@@ -169,6 +185,18 @@ namespace HBP.Data.Anatomy
 		}
         #endregion
 
+        #region Public Methods
+        public void LoadImplantations()
+        {
+            Implantation.Load(PatientBasedImplantation, ReferenceFrameType.Patient);
+            Implantation.Load(MNIBasedImplantation, ReferenceFrameType.MNI);
+        }
+        public void UnloadImplantations()
+        {
+            Implantation.Unload();
+        }
+        #endregion
+
         #region Operators
         /// <summary>
         /// Clone The object.
@@ -179,12 +207,12 @@ namespace HBP.Data.Anatomy
             return new Brain(Epilepsy.Clone() as Epilepsy, LeftCerebralHemisphereMesh, RightCerebralHemisphereMesh, PreoperativeMRI, PostoperativeMRI, PatientBasedImplantation, MNIBasedImplantation, PreoperativeBasedToScannerBasedTransformation, SitesConnectivities);
         }
         #endregion
-
+        
         #region Serialization
         [OnDeserialized]
         void OnDeserialized()
         {
-            // TODO
+            LoadImplantations();
         }
         #endregion
     }

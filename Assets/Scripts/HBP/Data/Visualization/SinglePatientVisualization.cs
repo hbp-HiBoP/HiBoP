@@ -19,7 +19,7 @@ namespace HBP.Data.Visualization
     public class SinglePatientVisualization : Visualization
     {
         #region Properties
-        public const string EXTENSION = ".singleVisualization";
+        public const string EXTENSION = ".spv";
         [DataMember(Name = "Patient",Order = 3)]
         private string m_patientID;
         /// <summary>

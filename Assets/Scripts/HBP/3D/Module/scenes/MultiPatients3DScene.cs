@@ -842,8 +842,8 @@ namespace HBP.Module3D
 
                     // retrieve current plot amp
                     float amp = 0;
-                    if (currIEEGCol.Column.Values.Length > 0)
-                        amp = currIEEGCol.Column.Values[site.Information.GlobalID][currIEEGCol.CurrentTimeLineID];
+                    //if (currIEEGCol.Column.Values.Length > 0)
+                    //    amp = currIEEGCol.Column.Values[site.Information.GlobalID][currIEEGCol.CurrentTimeLineID];
 
                     UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.FMRI, false, hits[idHitToKeep].collider.GetComponent<Site>().Information.FullName, "" + amp));
                     break;
