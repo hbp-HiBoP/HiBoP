@@ -56,7 +56,8 @@ namespace HBP.Module3D
         public float AlphaMax = 1f; /**< maximum alpha */
         //  amplitudes
         public int[] Dimensions = new int[3]; /**< amplitudes array dimensions (dims[0] = size| dims[1] = 1 (legacy) | dims[2] = plots number ) */
-        public float[] IEEGValues = new float[0]; /**< amplitudes 1D array (to be sent to the DLL) */        
+        public float[] IEEGValues = new float[0]; /**< amplitudes 1D array (to be sent to the DLL) */
+        public float[][] IEEGValuesBySiteID;
         //  plots
         public List<Vector3> ElectrodesSizeScale = null;  /**< scale of the plots of this column */
         public List<bool> ElectrodesPositiveColor = null; /**< is positive color ? */
@@ -146,42 +147,45 @@ namespace HBP.Module3D
             Dimensions[1] = 1;
             Dimensions[2] = 0;
 
-            MinAmp = float.MaxValue;
-            MaxAmp = float.MinValue;
-
-            // TODO
+            // Construct sites value array the old way, and set sites masks // maybe FIXME
+            IEEGValuesBySiteID = new float[Dimensions[0]][];
+            int siteID = 0;
             foreach (var configurationPatient in Column.Configuration.ConfigurationByPatient)
             {
-                foreach(var electrodeconfiguration in configurationPatient.Value.ConfigurationByElectrode)
+                foreach (var electrodeConfiguration in configurationPatient.Value.ConfigurationByElectrode)
                 {
-                    Dimensions[2] += electrodeconfiguration.Value.ConfigurationBySite.Count;
+                    foreach (var siteConfiguration in electrodeConfiguration.Value.ConfigurationBySite)
+                    {
+                        IEEGValuesBySiteID[siteID] = siteConfiguration.Value.Values;
+                        Sites[siteID].Information.IsMasked = siteConfiguration.Value.IsMasked; // update mask
+                        siteID++;
+                    }
+                    Dimensions[2] += electrodeConfiguration.Value.ConfigurationBySite.Count;
                 }
             }
 
+            MinAmp = float.MaxValue;
+            MaxAmp = float.MinValue;
+
             IEEGValues = new float[Dimensions[0] * Dimensions[1] * Dimensions[2]];
-            //for (int ii = 0; ii < Dimensions[0]; ++ii)
-            //{
-            //    for (int jj = 0; jj < Dimensions[2]; ++jj)
-            //    {
-            //        IEEGValues[ii * Dimensions[2] + jj] = Column.Values[jj][ii];
+            for (int ii = 0; ii < Dimensions[0]; ++ii)
+            {
+                for (int jj = 0; jj < Dimensions[2]; ++jj)
+                {
+                    IEEGValues[ii * Dimensions[2] + jj] = IEEGValuesBySiteID[jj][ii];
 
-            //        // update min/max values
-            //        if (Column.Values[jj][ii] > MaxAmp)
-            //            MaxAmp = Column.Values[jj][ii];
+                    // update min/max values
+                    if (IEEGValuesBySiteID[jj][ii] > MaxAmp)
+                        MaxAmp = IEEGValuesBySiteID[jj][ii];
 
-            //        if (Column.Values[jj][ii] < MinAmp)
-            //            MinAmp = Column.Values[jj][ii];
-            //    }
-            //}
+                    if (IEEGValuesBySiteID[jj][ii] < MinAmp)
+                        MinAmp = IEEGValuesBySiteID[jj][ii];
+                }
+            }
 
             Middle = (MinAmp + MaxAmp) / 2;
             SpanMin = MinAmp;
             SpanMax = MaxAmp;
-
-            //for (int ii = 0; ii < Sites.Count; ++ii)
-            //{
-            //    Sites[ii].Information.IsMasked = Column.SiteMask[ii];
-            //}
         }
         /// <summary>
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
@@ -198,7 +202,7 @@ namespace HBP.Module3D
                 if (Sites[ii].Information.IsInROI || Sites[ii].Information.IsMasked)
                     continue;
 
-                float value = 0; //= Column.Values[ii][CurrentTimeLineID];
+                float value = IEEGValuesBySiteID[ii][CurrentTimeLineID];
                 if (value < SpanMin)
                     value = SpanMin;
                 if (value > SpanMax)

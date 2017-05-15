@@ -125,7 +125,7 @@ namespace HBP.Module3D
             m_RawElectrodes = new DLL.RawSiteList();
             plots.ExtractRawSiteList(m_RawElectrodes);
 
-            GameObject patientPlotsParent = new GameObject("elecs");
+            GameObject patientPlotsParent = new GameObject("Sites");
             patientPlotsParent.transform.SetParent(transform);
 
             SitesGameObjects = new List<List<List<GameObject>>>(PlotsPatientParent.Count);
