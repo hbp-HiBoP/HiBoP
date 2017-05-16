@@ -289,6 +289,7 @@ namespace HBP.Module3D
         /// <param name="idPlane"></param>
         private void update_plane(int idPlane)
         {
+            /*
             float position = m_SetPlanePanelList[idPlane].transform.Find("setplane bottom layout").Find("setplane_position_slider").GetComponent<Slider>().value;
             bool sagital = m_SetPlanePanelList[idPlane].transform.Find("setplane_middle1_layout").Find("setplane_sagital_radiobutton").GetComponent<UnityEngine.UI.Toggle>().isOn;
             bool coronal = m_SetPlanePanelList[idPlane].transform.Find("setplane_middle1_layout").Find("setplane_coronal_radiobutton").GetComponent<UnityEngine.UI.Toggle>().isOn;
@@ -312,6 +313,7 @@ namespace HBP.Module3D
             float z = float.Parse(valueZ, CultureInfo.InvariantCulture.NumberFormat);
 
             m_Scene.UpdateCutPlane(orientation, flip, removeFrontPlane, new Vector3(x, y, z), idPlane, position);
+            */
         }
 
         /// <summary>
@@ -398,7 +400,7 @@ namespace HBP.Module3D
             m_SetPlanePanelList.RemoveAt(m_SetPlanePanelList.Count - 1);
 
             // remove last plane and update the scene
-            m_Scene.RemoveCutPlane(m_CurrentPlaneNumber--);
+            //m_Scene.RemoveCutPlane(m_CurrentPlaneNumber--);
         }
 
 

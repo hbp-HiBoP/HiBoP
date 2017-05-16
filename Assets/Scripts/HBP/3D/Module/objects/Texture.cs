@@ -220,7 +220,7 @@ namespace HBP.Module3D
             /// <param name="texture"></param>
             /// <param name="orientation"></param>
             /// <param name="flip"></param>
-            public void CopyAndRotate(Texture texture, string orientation, bool flip, bool displayCutLines, int indexCut, List<Plane> cutPlanes, MRITextureCutGenerator generator)
+            public void CopyAndRotate(Texture texture, string orientation, bool flip, bool displayCutLines, int indexCut, List<Cut> cutPlanes, MRITextureCutGenerator generator)
             {
                 // init plane
                 int nbPlanes = cutPlanes.Count - 1;

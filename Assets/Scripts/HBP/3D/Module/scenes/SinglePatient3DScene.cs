@@ -122,8 +122,8 @@ namespace HBP.Module3D
 
             // cut the mesh
             List<DLL.Surface> cuts;
-            if (PlanesList.Count > 0)
-                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(m_Column3DViewManager.PlanesCutsCopy.ToArray(), SceneInformation.RemoveFrontPlaneList.ToArray(), !SceneInformation.CutHolesEnabled));
+            if (Cuts.Count > 0)
+                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(m_Cuts.ToArray(), !SceneInformation.CutHolesEnabled));
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.MeshToDisplay.Clone() };
 
@@ -166,10 +166,10 @@ namespace HBP.Module3D
             
 
             // update cuts generators
-            for (int ii = 0; ii < m_Column3DViewManager.PlanesCutsCopy.Count; ++ii)
+            for (int ii = 0; ii < m_Cuts.Count; ++ii)
             {
                 for (int jj = 0; jj < m_Column3DViewManager.ColumnsIEEG.Count; ++jj)
-                    m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_Column3DViewManager.DLLVolume, m_Column3DViewManager.PlanesCutsCopy[ii]);                        
+                    m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_Column3DViewManager.DLLVolume, m_Cuts[ii]);                        
 
                 m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(Column3DViewManager.DLLCutsList[ii + 1]);
                 m_Column3DViewManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
@@ -191,7 +191,7 @@ namespace HBP.Module3D
             
 
             // enable cuts gameobject
-            for (int ii = 0; ii < m_Column3DViewManager.PlanesCutsCopy.Count; ++ii)
+            for (int ii = 0; ii < m_Cuts.Count; ++ii)
                     m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true); 
 
             SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
@@ -223,7 +223,7 @@ namespace HBP.Module3D
             meshesFiles.Add(Patient.Brain.RightCerebralHemisphereMesh);
 
             // reset columns
-            m_Column3DViewManager.Initialize(PlanesList.Count);
+            m_Column3DViewManager.Initialize(Cuts.Count);
 
             DLL.Transformation meshTransformation = new DLL.Transformation();
             meshTransformation.Load(Patient.Brain.PreoperativeBasedToScannerBasedTransformation);
@@ -251,7 +251,7 @@ namespace HBP.Module3D
             {
                 Debug.LogError("-ERROR : SP3DScene : reset failed. ");
                 SceneInformation.Reset();
-                m_Column3DViewManager.Initialize(PlanesList.Count);
+                m_Column3DViewManager.Initialize(Cuts.Count);
                 ResetSceneGameObjects();
                 return false;
             }
@@ -554,7 +554,7 @@ namespace HBP.Module3D
             //##################
             
             // update columns number
-            m_Column3DViewManager.UpdateColumnsNumber(Visualization.Columns.Count, 0, PlanesList.Count);
+            m_Column3DViewManager.UpdateColumnsNumber(Visualization.Columns.Count, 0, Cuts.Count);
 
             // update columns names
             for (int ii = 0; ii < Visualization.Columns.Count; ++ii)

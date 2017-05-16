@@ -46,7 +46,6 @@ namespace HBP.Module3D
         public bool MarsAtlasModeEnabled = false;
         public bool MarsAtlasParcelsLoaed = false;
         public bool CutHolesEnabled = false; /**< cuts holes are enabled */
-        public int DefaultNumberOfCutsPerPlane = 500; /**< default number of cuts for the planes */
         public int LastPlaneModifiedID = 0;
 
         // surface
@@ -66,8 +65,6 @@ namespace HBP.Module3D
 
         // work     
         public Vector3 VolumeCenter = new Vector3(0, 0, 0); /**< center of the loaded volume */
-        public List<int> NumberOfCutsPerPlane = new List<int>(); /**< number of cuts per plane list */
-        public List<int> RemoveFrontPlaneList = null; // TO BE REMOVED
         #endregion
 
         #region Public Methods

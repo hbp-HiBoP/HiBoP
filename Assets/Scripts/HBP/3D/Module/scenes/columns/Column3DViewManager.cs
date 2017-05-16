@@ -189,9 +189,7 @@ namespace HBP.Module3D
         public List<DLL.Volume> DLLVolumeFMriList = null;
 
         // planes
-        public List<Plane> PlanesCutsCopy = new List<Plane>();  /**< cut planes copied before the cut job */        
-        public List<CutOrientation> PlanesOrientationID = new List<CutOrientation>();     /**< id orientation of the cuts planes */
-        public List<bool> PlanesOrientationFlip = new List<bool>(); /**< flip state of the cuts plantes orientation */
+        public List<Cut> PlanesCutsCopy = new List<Cut>();
 
         // UV coordinates
         public List<Vector2[]> UVCoordinatesSplits = null; // uv coordinates for each brain mesh split
@@ -606,16 +604,27 @@ namespace HBP.Module3D
         /// <param name="indexColumn"></param>
         public void CreateGUIMRITexture(int indexCut, int indexColumn)
         {
-            // retrieve orientation to apply
-            string orientation = "custom";
-            if (PlanesOrientationID[indexCut] == CutOrientation.Axial)
-                orientation = "Axial";
-            else if (PlanesOrientationID[indexCut] == CutOrientation.Coronal)
-                orientation = "Coronal";
-            else if (PlanesOrientationID[indexCut] == CutOrientation.Sagital)
-                orientation = "Sagital";
+            string orientation = "";
+            switch (PlanesCutsCopy[indexCut].Orientation)
+            {
+                case CutOrientation.Axial:
+                    orientation = "Axial";
+                    break;
+                case CutOrientation.Coronal:
+                    orientation = "Coronal";
+                    break;
+                case CutOrientation.Sagital:
+                    orientation = "Sagital";
+                    break;
+                case CutOrientation.Custom:
+                    orientation = "custom";
+                    break;
+                default:
+                    orientation = "custom";
+                    break;
+            }
 
-            Columns[indexColumn].CreateGUIMRITexture(indexCut, orientation, PlanesOrientationFlip[indexCut], PlanesCutsCopy, orientation != "custom");            
+            Columns[indexColumn].CreateGUIMRITexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom");            
         }
         /// <summary>
         /// 
@@ -624,16 +633,27 @@ namespace HBP.Module3D
         /// <param name="indexColumn"></param>
         public void CreateGUIIEEGTexture(int indexCut, int indexColumn)
         {
-            // retrieve orientation to apply
-            string orientation = "custom";
-            if (PlanesOrientationID[indexCut] == CutOrientation.Axial)
-                orientation = "Axial";
-            else if (PlanesOrientationID[indexCut] == CutOrientation.Coronal)
-                orientation = "Coronal";
-            else if (PlanesOrientationID[indexCut] == CutOrientation.Sagital)
-                orientation = "Sagital";
+            string orientation = "";
+            switch (PlanesCutsCopy[indexCut].Orientation)
+            {
+                case CutOrientation.Axial:
+                    orientation = "Axial";
+                    break;
+                case CutOrientation.Coronal:
+                    orientation = "Coronal";
+                    break;
+                case CutOrientation.Sagital:
+                    orientation = "Sagital";
+                    break;
+                case CutOrientation.Custom:
+                    orientation = "custom";
+                    break;
+                default:
+                    orientation = "custom";
+                    break;
+            }
 
-            ((Column3DViewIEEG)Columns[indexColumn]).CreateGUIIEEGTexture(indexCut, orientation, PlanesOrientationFlip[indexCut], PlanesCutsCopy, orientation != "custom");
+            ((Column3DViewIEEG)Columns[indexColumn]).CreateGUIIEEGTexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom");
         }
         /// <summary>
         /// 
@@ -642,16 +662,27 @@ namespace HBP.Module3D
         /// <param name="indexColumn"></param>
         public void CreateGUIFMRITexture(int indexCut, int indexColumn)
         {
-            // retrieve orientation to apply
-            string orientation = "custom";
-            if (PlanesOrientationID[indexCut] == CutOrientation.Axial)
-                orientation = "Axial";
-            else if (PlanesOrientationID[indexCut] == CutOrientation.Coronal)
-                orientation = "Coronal";
-            else if (PlanesOrientationID[indexCut] == CutOrientation.Sagital)
-                orientation = "Sagital";
+            string orientation = "";
+            switch (PlanesCutsCopy[indexCut].Orientation)
+            {
+                case CutOrientation.Axial:
+                    orientation = "Axial";
+                    break;
+                case CutOrientation.Coronal:
+                    orientation = "Coronal";
+                    break;
+                case CutOrientation.Sagital:
+                    orientation = "Sagital";
+                    break;
+                case CutOrientation.Custom:
+                    orientation = "custom";
+                    break;
+                default:
+                    orientation = "custom";
+                    break;
+            }
 
-            ((Column3DViewFMRI)Columns[indexColumn]).CreateGUIFMRITexture(indexCut, orientation, PlanesOrientationFlip[indexCut], PlanesCutsCopy, orientation != "custom");
+            ((Column3DViewFMRI)Columns[indexColumn]).CreateGUIFMRITexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom");
         }
         /// <summary>
         /// 
