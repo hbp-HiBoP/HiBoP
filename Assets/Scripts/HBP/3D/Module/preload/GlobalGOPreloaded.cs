@@ -156,14 +156,6 @@ namespace HBP.Module3D
             ScreenProgressBar = Instantiate(Resources.Load("Prefabs/ui/overlay/progressbar", typeof(GameObject))) as GameObject;
             InitializeGameObject(ScreenProgressBar, "Screen Progress Bar");
 
-            // SP camera
-            SinglePatientCamera = Instantiate(Resources.Load("Prefabs/Cameras/SPCamera", typeof(GameObject))) as GameObject;
-            InitializeGameObject(SinglePatientCamera, "SP Camera");
-
-            // MP camera
-            MultiPatientsCamera = Instantiate(Resources.Load("Prefabs/Cameras/MPCamera", typeof(GameObject))) as GameObject;
-            InitializeGameObject(MultiPatientsCamera, "MP Camera");
-
             // tri center position
             InvisibleBrain = Instantiate(Resources.Load("Prefabs/scene objects/Invisible brain", typeof(GameObject))) as GameObject;
             InitializeGameObject(InvisibleBrain, "Invisible brain part");

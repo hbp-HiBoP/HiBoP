@@ -26,17 +26,17 @@ namespace HBP.Module3D
     public class HBP3DModule : MonoBehaviour
     {
         #region Properties
+        [SerializeField, Candlelight.PropertyBackingField]
         private ScenesManager m_ScenesManager;
         /// <summary>
         /// Reference to the scene manager
         /// </summary>
         public ScenesManager ScenesManager
         {
-            get
-            {
-                return m_ScenesManager;
-            }
+            get { return m_ScenesManager; }
+            set { m_ScenesManager = value; }
         }
+
         /// <summary>
         /// List of all the loaded visualizations
         /// </summary>
