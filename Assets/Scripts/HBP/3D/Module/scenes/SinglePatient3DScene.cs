@@ -23,6 +23,9 @@ namespace HBP.Module3D
     public class SinglePatient3DScene : Base3DScene
     {
         #region Properties
+        /// <summary>
+        /// Type of the scene
+        /// </summary>
         public override SceneType Type
         {
             get
@@ -30,11 +33,9 @@ namespace HBP.Module3D
                 return SceneType.SinglePatient;
             }
         }
-        public AmbientMode AmbiantMode = AmbientMode.Flat;
-        public float AmbientIntensity = 1;
-        public Color AmbiantLight = new Color(0.2f, 0.2f, 0.2f, 1);
-
-        
+        /// <summary>
+        /// Visualization corresponding to this scenes
+        /// </summary>
         public new Data.Visualization.SinglePatientVisualization Visualization
         {
             get
@@ -46,6 +47,9 @@ namespace HBP.Module3D
                 Visualization = value;
             }
         }
+        /// <summary>
+        /// Patient of this scene
+        /// </summary>
         public Data.Patient Patient
         {
             get
@@ -53,13 +57,15 @@ namespace HBP.Module3D
                 return Visualization.Patient;
             }
         }
+        /// <summary>
+        /// CCEP Labels
+        /// </summary>
+        private List<string> CCEPLabels = null;
 
         /// <summary>
         /// Event for asking the UI to update the latencies display on the plot menu (params : labels)
         /// </summary>
         public GenericEvent<List<string>> UpdateLatencies = new GenericEvent<List<string>>();
-
-        private List<string> CCEPLabels = null;
         #endregion
 
         #region Public Methods

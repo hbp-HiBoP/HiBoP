@@ -16,7 +16,7 @@ using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.UI.Module3D;
-
+using UnityEngine.Rendering;
 
 namespace HBP.Module3D
 {
@@ -361,6 +361,19 @@ namespace HBP.Module3D
                 m_DisplayedObjects.BrainSurfaceMeshes[0].GetComponent<Renderer>().sharedMaterial.SetInt("_MarsAtlas", SceneInformation.MarsAtlasModeEnabled ? 1 : 0);
             }
         }
+
+        /// <summary>
+        /// Ambient mode (rendering)
+        /// </summary>
+        public AmbientMode AmbientMode = AmbientMode.Flat;
+        /// <summary>
+        /// Ambient intensity (rendering)
+        /// </summary>
+        public float AmbientIntensity = 1;
+        /// <summary>
+        /// Ambient light (rendering)
+        /// </summary>
+        public Color AmbientLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
         /// <summary>
         /// Threads / Job
@@ -2003,7 +2016,13 @@ namespace HBP.Module3D
     public class ComputeGeneratorsJob : ThreadedJob
     {
         #region Properties
+        /// <summary>
+        /// Information of the scene (same as the one in the respective Base3DScene)
+        /// </summary>
         public SceneStatesInfo SceneInformation = null;
+        /// <summary>
+        /// Column3DViewManager of the scene
+        /// </summary>
         public Column3DViewManager Column3DViewManager = null;
         #endregion
 

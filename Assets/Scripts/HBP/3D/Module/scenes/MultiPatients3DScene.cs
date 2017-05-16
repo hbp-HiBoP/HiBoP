@@ -25,6 +25,9 @@ namespace HBP.Module3D
     public class MultiPatients3DScene : Base3DScene
     {
         #region Properties
+        /// <summary>
+        /// Type of the scene
+        /// </summary>
         public override SceneType Type
         {
             get
@@ -32,7 +35,9 @@ namespace HBP.Module3D
                 return SceneType.MultiPatients;
             }
         }
-
+        /// <summary>
+        /// Visualization associated to this scene
+        /// </summary>
         public new Data.Visualization.MultiPatientsVisualization Visualization
         {
             get
@@ -44,6 +49,9 @@ namespace HBP.Module3D
                 Visualization = value;
             }
         }
+        /// <summary>
+        /// List of the patients in this scene
+        /// </summary>
         public ReadOnlyCollection<Data.Patient> Patients
         {
             get
@@ -51,9 +59,6 @@ namespace HBP.Module3D
                 return new ReadOnlyCollection<Data.Patient>(Visualization.Patients);
             }
         }
-        public AmbientMode AmbiantMode = AmbientMode.Flat;
-        public float AmbientIntensity = 1;
-        public Color AmbiantLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
         /// <summary>
         /// Event for sending a ROI associated to a column id (params : ROI, idColumn)
