@@ -12,14 +12,6 @@ using System.Linq;
 
 namespace HBP.Module3D
 {
-    namespace Events
-    {
-        public class OnSelectScene : UnityEvent<bool> { }
-        public class OnChangeSelectedScene : UnityEvent<Base3DScene> { }
-        public class OnAddScene : UnityEvent<Base3DScene> { }
-        public class OnRemoveScene : UnityEvent<Base3DScene> { }
-    }
-
     /// <summary>
     /// Manager for the single patient and the multi patients scenes
     /// </summary>
@@ -66,23 +58,23 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when the user selects another scene
         /// </summary>
-        public Events.OnChangeSelectedScene OnChangeSelectedScene = new Events.OnChangeSelectedScene();
+        public GenericEvent<Base3DScene> OnChangeSelectedScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event called when a scene is added
         /// </summary>
-        public Events.OnAddScene OnAddScene = new Events.OnAddScene();
+        public GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event called when a scene is removed
         /// </summary>
-        public Events.OnRemoveScene OnRemoveScene = new Events.OnRemoveScene();
+        public GenericEvent<Base3DScene> OnRemoveScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event called when the mode specifications are sent
         /// </summary>
-        public Events.OnSendModeSpecifications OnSendModeSpecifications = new Events.OnSendModeSpecifications();
+        public GenericEvent<ModeSpecifications> OnSendModeSpecifications = new GenericEvent<ModeSpecifications>();
         /// <summary>
         /// Event called when the user selects a scene
         /// </summary>
-        public Events.OnSelectScene OnSelectScene = new Events.OnSelectScene();
+        public GenericEvent<bool> OnSelectScene = new GenericEvent<bool>();
 
         /// <summary>
         /// Prefab corresponding to a single patient scene

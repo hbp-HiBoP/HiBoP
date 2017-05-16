@@ -16,16 +16,6 @@ using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
-    namespace Events
-    {
-        /// <summary>
-        /// Event for asking the UI to update the latencies display on the plot menu (params : labels)
-        /// </summary>
-        public class UpdateLatencies : UnityEvent<List<string>> { }
-    }
-
-
-
     /// <summary>
     /// The single patient scene class, inheritance of Base3DScene.
     /// </summary>
@@ -63,9 +53,11 @@ namespace HBP.Module3D
                 return Visualization.Patient;
             }
         }
-        // events
-        private Events.UpdateLatencies m_UpdateLatencies = new Events.UpdateLatencies();
-        public Events.UpdateLatencies UpdateLatencies { get { return m_UpdateLatencies; } }
+
+        /// <summary>
+        /// Event for asking the UI to update the latencies display on the plot menu (params : labels)
+        /// </summary>
+        public GenericEvent<List<string>> UpdateLatencies = new GenericEvent<List<string>>();
 
         private List<string> CCEPLabels = null;
         #endregion
@@ -528,7 +520,7 @@ namespace HBP.Module3D
             }
 
             m_Column3DViewManager.LatencyFilesDefined = true; //(Patient.Brain.Connectivities.Count > 0);
-            m_UpdateLatencies.Invoke(CCEPLabels);
+            UpdateLatencies.Invoke(CCEPLabels);
 
             //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -584,7 +576,7 @@ namespace HBP.Module3D
         /// <param name="idSelectedPlot"></param>
         public void SelectSite(int idSelectedPlot)
         {
-            m_UpdateLatencies.Invoke(CCEPLabels);
+            UpdateLatencies.Invoke(CCEPLabels);
 
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {

@@ -7,18 +7,6 @@ namespace HBP.Module3D
 {
     public enum DisplayedItems { Meshes, Plots, ROI };
 
-    namespace Events
-    {
-        /// <summary>
-        /// Event when a left click occurs in the camera (params : ray, spScene, idColumn)
-        /// </summary>
-        public class LeftClick : UnityEvent<Ray, SceneType, int> { }
-        /// <summary>
-        /// Event when a left mouse movement occurs in the camera (params : ray, mousePosition, spScene, idColumn)
-        /// </summary>
-        public class MouseMovement : UnityEvent<Ray, Vector3, SceneType, int> { }
-    }
-
     public class Camera3D : MonoBehaviour
     {
         #region Properties

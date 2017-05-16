@@ -18,39 +18,6 @@ using UnityEngine.Rendering;
 
 namespace HBP.Module3D
 {
-    namespace Events
-    {
-        /// <summary>
-        /// Event for sending a ROI associated to a column id (params : ROI, idColumn)
-        /// </summary>
-        public class SendColumnROI : UnityEvent<ROI, int> { }
-        /// <summary>
-        /// Event for creating a new bubble to a column id with a position  (params : position, idColumn)
-        /// </summary>
-        public class CreateBubble : UnityEvent<Vector3, int> { }
-        /// <summary>
-        /// Event for selecting a bubble of a column (params : idColumn, idBubble)
-        /// </summary>
-        public class SelectBubble : UnityEvent<int, int> { }
-        /// <summary>
-        /// Event for changing the size of a bubble (params : idColumn, idBubble, size)
-        /// </summary>
-        public class ChangeSizeBubble : UnityEvent<int, int, float> { }
-        /// <summary>
-        /// Event for removing a bubble (params : idColumn, idBubble)
-        /// </summary>
-        public class RemoveBubble : UnityEvent<int, int> { }
-        /// <summary>
-        /// Ask the UI to update set the same cameras to the individual scene
-        /// </summary>
-        public class ApplySceneCamerasToIndividualScene : UnityEvent { }
-        /// <summary>
-        /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
-        /// </summary>        
-        [System.Serializable]
-        public class OnLoadSinglePatientSceneFromMultiPatientsScene : UnityEvent<Data.Visualization.MultiPatientsVisualization, Data.Patient> { }
-    }
-
     /// <summary>
     /// The multi patients scene class, inheritance of Base3DScene.
     /// </summary>
@@ -88,14 +55,34 @@ namespace HBP.Module3D
         public float AmbientIntensity = 1;
         public Color AmbiantLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
-        // events
-        public Events.SendColumnROI SendColumnROIEvent = new Events.SendColumnROI();
-        public Events.CreateBubble CreateBubbleEvent = new Events.CreateBubble();
-        public Events.SelectBubble SelectBubbleEvent = new Events.SelectBubble();    
-        public Events.ChangeSizeBubble ChangeSizeBubbleEvent = new Events.ChangeSizeBubble();
-        public Events.RemoveBubble RemoveBubbleEvent = new Events.RemoveBubble();
-        public Events.ApplySceneCamerasToIndividualScene ApplySceneCamerasToIndividualScene = new Events.ApplySceneCamerasToIndividualScene();
-        public Events.OnLoadSinglePatientSceneFromMultiPatientsScene OnLoadSinglePatientSceneFromMultiPatientsScene = new Events.OnLoadSinglePatientSceneFromMultiPatientsScene();
+        /// <summary>
+        /// Event for sending a ROI associated to a column id (params : ROI, idColumn)
+        /// </summary>
+        public GenericEvent<ROI, int> SendColumnROIEvent = new GenericEvent<ROI, int>();
+        /// <summary>
+        /// Event for creating a new bubble to a column id with a position  (params : position, idColumn)
+        /// </summary>
+        public GenericEvent<Vector3, int> CreateBubbleEvent = new GenericEvent<Vector3, int>();
+        /// <summary>
+        /// Event for selecting a bubble of a column (params : idColumn, idBubble)
+        /// </summary>
+        public GenericEvent<int, int> SelectBubbleEvent = new GenericEvent<int, int>();
+        /// <summary>
+        /// Event for changing the size of a bubble (params : idColumn, idBubble, size)
+        /// </summary>
+        public GenericEvent<int, int, float> ChangeSizeBubbleEvent = new GenericEvent<int, int, float>();
+        /// <summary>
+        /// Event for removing a bubble (params : idColumn, idBubble)
+        /// </summary>
+        public GenericEvent<int, int> RemoveBubbleEvent = new GenericEvent<int, int>();
+        /// <summary>
+        /// Ask the UI to update set the same cameras to the individual scene
+        /// </summary>
+        public UnityEvent ApplySceneCamerasToIndividualScene = new UnityEvent();
+        /// <summary>
+        /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
+        /// </summary>        
+        public GenericEvent<Data.Visualization.MultiPatientsVisualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.MultiPatientsVisualization, Data.Patient>();
         #endregion
 
         #region Private Methods

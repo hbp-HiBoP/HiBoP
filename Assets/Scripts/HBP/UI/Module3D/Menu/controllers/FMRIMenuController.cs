@@ -18,14 +18,6 @@ using HBP.Module3D;
 
 namespace HBP.UI.Module3D
 {
-    namespace Events
-    {
-        /// <summary>
-        /// Sned a signal for closing the window
-        /// </summary>
-        public class CloseIRMFWindow : UnityEvent { }
-    }
-
     /// <summary>
     /// An IRMF menu
     /// </summary>
@@ -51,8 +43,10 @@ namespace HBP.UI.Module3D
         private bool m_isAlphaMinimized = true;
         private bool m_isThresholdIRMFMinimized = true;
 
-        // events
-        public Events.CloseIRMFWindow CloseIRMFWindow = new Events.CloseIRMFWindow();
+        /// <summary>
+        /// Sned a signal for closing the window
+        /// </summary>
+        public UnityEvent CloseIRMFWindow = new UnityEvent();
         public Events.UpdateROIMenuDisplay UpdateROIMenuDisplay = new Events.UpdateROIMenuDisplay();
 
         #endregion

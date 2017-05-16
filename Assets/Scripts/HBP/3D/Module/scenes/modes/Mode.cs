@@ -167,15 +167,6 @@ namespace HBP.Module3D
         public List<bool> ItemMaskDisplay;
     }
 
-    namespace Events
-    {
-        /// <summary>
-        /// Event for sending mode specifications
-        /// </summary>
-        public class OnSendModeSpecifications : UnityEvent<ModeSpecifications> { }
-    }
-
-
     /// <summary>
     /// Logic state of the scene
     /// </summary>
@@ -205,8 +196,10 @@ namespace HBP.Module3D
 
         private ModeSpecifications m_Specifications = new ModeSpecifications();
 
-        // events
-        public Events.OnSendModeSpecifications SendModeSpecifications = new Events.OnSendModeSpecifications();
+        /// <summary>
+        /// Event for sending mode specifications
+        /// </summary>
+        public GenericEvent<ModeSpecifications> SendModeSpecifications = new GenericEvent<ModeSpecifications>();
         #endregion
 
         #region Public Methods 
