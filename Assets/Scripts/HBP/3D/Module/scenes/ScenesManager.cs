@@ -95,10 +95,6 @@ namespace HBP.Module3D
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            ApplicationState.ScenesManager = this;
-        }
         #endregion
 
         #region Public Methods
@@ -121,7 +117,7 @@ namespace HBP.Module3D
             else
             {
                 // Add the listeners
-                scene.SendModeSpecifications.AddListener(((specs) =>
+                scene.OnSendModeSpecifications.AddListener(((specs) =>
                 {
                     OnSendModeSpecifications.Invoke(specs);
                 }));
@@ -149,7 +145,7 @@ namespace HBP.Module3D
             }
             else
             {
-                scene.SendModeSpecifications.AddListener(((specs) =>
+                scene.OnSendModeSpecifications.AddListener(((specs) =>
                 {
                     OnSendModeSpecifications.Invoke(specs);
                 }));

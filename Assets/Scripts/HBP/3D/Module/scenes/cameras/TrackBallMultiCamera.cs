@@ -59,7 +59,7 @@ namespace HBP.Module3D.Cam
                 GetComponent<Camera>().cullingMask = MinimizedCullingMask;
 
             // listeners
-            base.m_AssociatedScene.ModifyPlanesCuts.AddListener(() =>
+            base.m_AssociatedScene.OnModifyPlanesCuts.AddListener(() =>
             {
                 if (!base.m_AssociatedScene.SceneInformation.MRILoaded)
                     return;

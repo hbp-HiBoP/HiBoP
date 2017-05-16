@@ -111,7 +111,7 @@ namespace HBP.Module3D
             m_mpProgressBar = m_mpScreenProgressBar.GetComponent<ProgressBar>();
             m_mpProgressBar.init();
 
-            m_SinglePatientScene.OnDisplayScreenMessage.AddListener((message, duration, width, height) =>
+            m_SinglePatientScene.OnDisplaySceneMessage.AddListener((message, duration, width, height) =>
             {
                 stop(true);
                 m_spScreenText.text = message;
@@ -122,7 +122,7 @@ namespace HBP.Module3D
                 StartCoroutine(displayMessage(true));
             });
 
-            m_SinglePatientScene.OnDisplayScreenProgressbar.AddListener((duration, width, height, value) =>
+            m_SinglePatientScene.OnDisplaySceneProgressBar.AddListener((duration, width, height, value) =>
             {
                 stop(true, true);
                 m_spPDuration = duration;
@@ -133,7 +133,7 @@ namespace HBP.Module3D
                 StartCoroutine(displayProgress(true));
             });
 
-            m_MultiPatientsScene.OnDisplayScreenMessage.AddListener((message, duration, width, height) =>
+            m_MultiPatientsScene.OnDisplaySceneMessage.AddListener((message, duration, width, height) =>
             {
                 stop(false);
                 m_mpScreenText.text = message;
@@ -144,7 +144,7 @@ namespace HBP.Module3D
                 StartCoroutine(displayMessage(false));
             });
 
-            m_MultiPatientsScene.OnDisplayScreenProgressbar.AddListener((duration, width, height, value) =>
+            m_MultiPatientsScene.OnDisplaySceneProgressBar.AddListener((duration, width, height, value) =>
             {
                 stop(false, true);
                 m_mpPDuration = duration;

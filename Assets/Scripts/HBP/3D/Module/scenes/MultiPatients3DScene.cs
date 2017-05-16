@@ -284,15 +284,15 @@ namespace HBP.Module3D
             m_Column3DViewManager.DLLVolume = m_MNIObjects.IRM;
             SceneInformation.VolumeCenter = m_Column3DViewManager.DLLVolume.Center();
             SceneInformation.MRILoaded = true;
-            UpdatePlanes.Invoke();
+            OnUpdatePlanes.Invoke();
 
 
             // send cal values to the UI
-            IRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.RetrieveExtremeValues());
+            OnIRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.RetrieveExtremeValues());
 
 
             // update scenes cameras
-            UpdateCameraTarget.Invoke(m_MNIObjects.BothHemi.BoundingBox().Center());
+            OnUpdateCameraTarget.Invoke(m_MNIObjects.BothHemi.BoundingBox().Center());
 
 
             //####### UDPATE MODE
@@ -470,7 +470,7 @@ namespace HBP.Module3D
             // set flag
             SceneInformation.TimelinesLoaded = true;
 
-            AskROIUpdateEvent.Invoke(-1);
+            OnAskRegionOfInterestUpdate.Invoke(-1);
 
             // send data to UI
             SendIEEGParametersToMenu();
@@ -568,15 +568,6 @@ namespace HBP.Module3D
             */
         }
         /// <summary>
-        /// Mouse scroll events managements, call Base3DScene parent function
-        /// </summary>
-        /// <param name="scrollDelta"></param>
-        public new void MouseScrollAction(Vector2 scrollDelta)
-        {
-            base.MouseScrollAction(scrollDelta);
-            ChangeRegionOfInterestSize(scrollDelta.y);
-        }
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="coeff"></param>
@@ -602,34 +593,20 @@ namespace HBP.Module3D
             return SceneInformation.IsROICreationModeEnabled;
         }
         /// <summary>
-        /// Keyboard events management, call Base3DScene parent function
+        /// TMP : DELETEME
         /// </summary>
-        /// <param name="keyCode"></param>
-        public new void KeyboardAction(KeyCode keyCode)
+        public void RemoveSelectedROIBubble()
         {
-            base.KeyboardAction(keyCode);
-            switch (keyCode)
+            if (SceneInformation.IsROICreationModeEnabled)
             {
-                // choose active plane
-                case KeyCode.Delete:                
-                    if (SceneInformation.IsROICreationModeEnabled)
-                    {
-                        int idC = m_Column3DViewManager.SelectedColumnID;
+                int idC = m_Column3DViewManager.SelectedColumnID;
 
-                        Column3DView col =  m_Column3DViewManager.SelectedColumn;                        
-                        int idBubble = col.SelectedROI.SelectedBubbleID;
-                        if (idBubble != -1)
-                            RemoveBubbleEvent.Invoke(idC, idBubble);
+                Column3DView col = m_Column3DViewManager.SelectedColumn;
+                int idBubble = col.SelectedROI.SelectedBubbleID;
+                if (idBubble != -1)
+                    RemoveBubbleEvent.Invoke(idC, idBubble);
 
-                        m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
-                    }
-                    break;
-                case KeyCode.KeypadPlus:
-                    ChangeRegionOfInterestSize(0.2f);
-                    break;
-                case KeyCode.KeypadMinus:
-                    ChangeRegionOfInterestSize(-0.2f);
-                    break;
+                m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
             }
         }
         /// <summary>
@@ -728,7 +705,7 @@ namespace HBP.Module3D
                 m_Column3DViewManager.SelectedColumn.SelectedSiteID = idPlotGlobal;
 
                 m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
-                ClickSite.Invoke(-1); // test
+                OnClickSite.Invoke(-1); // test
 
                 return;
             }
@@ -799,7 +776,7 @@ namespace HBP.Module3D
             RaycastHit[] hits = Physics.RaycastAll(ray.origin, ray.direction, Mathf.Infinity, layerMask);
             if (hits.Length == 0)
             {
-                UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
+                OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;
             }
 
@@ -820,13 +797,13 @@ namespace HBP.Module3D
 
             if (idHitToKeep == -1) // not plot hit
             {
-                UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
+                OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;
             }
 
             if (hits[idHitToKeep].collider.transform.parent.name == "cuts" || hits[idHitToKeep].collider.transform.parent.name == "brains") // meshes hit
             {
-                UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
+                OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;
             }
 
@@ -835,7 +812,7 @@ namespace HBP.Module3D
             switch (m_Column3DViewManager.SelectedColumn.Type)
             {
                 case Column3DView.ColumnType.FMRI:
-                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hits[idHitToKeep].collider.GetComponent<Site>().Information.FullName));
+                    OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hits[idHitToKeep].collider.GetComponent<Site>().Information.FullName));
                     break;
                 case Column3DView.ColumnType.IEEG:
                     Column3DViewIEEG currIEEGCol = (Column3DViewIEEG)m_Column3DViewManager.SelectedColumn;
@@ -845,7 +822,7 @@ namespace HBP.Module3D
                     if (currIEEGCol.IEEGValuesBySiteID.Length > 0)
                         amp = currIEEGCol.IEEGValuesBySiteID[site.Information.GlobalID][currIEEGCol.CurrentTimeLineID];
 
-                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.FMRI, false, hits[idHitToKeep].collider.GetComponent<Site>().Information.FullName, "" + amp));
+                    OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.FMRI, false, hits[idHitToKeep].collider.GetComponent<Site>().Information.FullName, "" + amp));
                     break;
                 default:
                     break;
@@ -857,7 +834,7 @@ namespace HBP.Module3D
         /// <param name="idColumn"></param>
         public override void DisableSiteDisplayWindow(int idColumn)
         {
-            UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
+            OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
         }
         /// <summary>
         /// 
@@ -936,7 +913,7 @@ namespace HBP.Module3D
                     request.idPatient = Visualization.Patients[id].ID;
                     request.idPatient2 = (previousPlot == null) ? "" : Visualization.Patients[previousPlot.Information.PatientID].ID;
                     request.maskColumn = masksColumnsData;
-                    SiteInfoRequest.Invoke(request);
+                    OnRequestSiteInformation.Invoke(request);
                     break;
                 default:
                     break;

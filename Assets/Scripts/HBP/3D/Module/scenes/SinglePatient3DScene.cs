@@ -378,7 +378,7 @@ namespace HBP.Module3D
             ResetSplitsNumber(nbSplits);
             
             // update scenes cameras
-            UpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox().Center());
+            OnUpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox().Center());
            
             // set the transform as the mesh center
             SceneInformation.HemiMeshesAvailables = true;
@@ -589,7 +589,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
                 m_Column3DViewManager.ColumnsIEEG[ii].SelectedSiteID = idSelectedPlot;
-                ClickSite.Invoke(ii);
+                OnClickSite.Invoke(ii);
             }
         }
         /// <summary>
@@ -693,7 +693,7 @@ namespace HBP.Module3D
                     break;
             }
 
-            ClickSite.Invoke(-1);            
+            OnClickSite.Invoke(-1);            
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);            
         }
         /// <summary>
@@ -721,12 +721,12 @@ namespace HBP.Module3D
             bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
             if (!isCollision)
             {
-                UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
+                OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;
             }
             if (hit.collider.transform.parent.name == "Cutes" || hit.collider.transform.parent.name == "Brains")
             {
-                UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
+                OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;
             }
 
@@ -735,7 +735,7 @@ namespace HBP.Module3D
             switch (m_Column3DViewManager.SelectedColumn.Type)
             {
                 case Column3DView.ColumnType.FMRI:
-                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hit.collider.GetComponent<Site>().Information.FullName));
+                    OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hit.collider.GetComponent<Site>().Information.FullName));
                     return;
                 case Column3DView.ColumnType.IEEG:
                     Column3DViewIEEG currIEEGCol = (Column3DViewIEEG)m_Column3DViewManager.SelectedColumn;
@@ -779,7 +779,7 @@ namespace HBP.Module3D
                         }
                     }
 
-                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.FMRI, SceneInformation.DisplayCCEPMode,
+                    OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.FMRI, SceneInformation.DisplayCCEPMode,
                         hit.collider.GetComponent<Site>().Information.FullName, "" + amp, height, latency));
                     break;
                 default:
@@ -794,7 +794,7 @@ namespace HBP.Module3D
         /// <param name="idColumn"></param>
         public override void DisableSiteDisplayWindow(int idColumn)
         {
-            UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
+            OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
         }
         /// <summary>
         /// Update the display mode of the scene
@@ -881,7 +881,7 @@ namespace HBP.Module3D
                         request.idPatient2 = Patient.ID;
                         request.maskColumn = masksColumnsData;
 
-                        SiteInfoRequest.Invoke(request);
+                        OnRequestSiteInformation.Invoke(request);
                     }
                     break;
                 default:

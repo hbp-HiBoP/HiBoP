@@ -279,7 +279,7 @@ namespace HBP.Module3D.Cam
         protected void Update()
         {
             // update current color
-            int id = m_AssociatedScene.RetrieveCurrentSelectedColumnID();
+            int id = m_AssociatedScene.SelectedColumnID;
             if (id == m_Column)
             {
                 GetComponent<Camera>().backgroundColor = m_SelectedColor;
@@ -674,7 +674,7 @@ namespace HBP.Module3D.Cam
         /// <returns></returns>
         public bool IsSelected()
         {
-            return (m_AssociatedScene.RetrieveCurrentSelectedColumnID() == m_Column);
+            return (m_AssociatedScene.SelectedColumnID == m_Column);
         }
         /// <summary>
         /// Update the culling mask rendered of the camera

@@ -36,7 +36,6 @@ namespace HBP.Module3D.DLL
 
         void Awake()
         {
-            ApplicationState.DLLDebugManager = this;
             mainThread = System.Threading.Thread.CurrentThread;
             clean();
             reset(retrieveDLLOutput, writeOutputInLogFile);

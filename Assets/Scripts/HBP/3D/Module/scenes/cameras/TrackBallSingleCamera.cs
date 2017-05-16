@@ -56,7 +56,7 @@ namespace HBP.Module3D.Cam
 
 
             // listeners
-            m_AssociatedScene.ModifyPlanesCuts.AddListener(() =>
+            m_AssociatedScene.OnModifyPlanesCuts.AddListener(() =>
             {
                 if (!m_AssociatedScene.SceneInformation.MRILoaded)
                     return;

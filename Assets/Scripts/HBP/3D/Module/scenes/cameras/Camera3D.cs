@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -185,7 +184,7 @@ namespace HBP.Module3D
         }
         private void Start()
         {
-            m_AssociatedScene.ModifyPlanesCuts.AddListener(() =>
+            m_AssociatedScene.OnModifyPlanesCuts.AddListener(() =>
             {
                 if (!m_AssociatedScene.SceneInformation.MRILoaded)
                     return;

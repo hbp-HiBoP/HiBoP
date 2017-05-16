@@ -473,7 +473,7 @@ namespace HBP.Module3D
         /// <param name="mode"></param>
         private void setTimelineState(Transform timelinePanel, Transform computeButton, Mode mode)
         {
-            if(m_selectedColumnIsIRMF || m_Scene.IsLatencyModeEnabled() || mode == null)
+            if(m_selectedColumnIsIRMF || m_Scene.IsLatencyModeEnabled || mode == null)
             {
                 m_timelineIsEnabled = false;
                 computeButton.gameObject.SetActive(false);
