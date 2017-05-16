@@ -40,7 +40,7 @@ namespace HBP.UI.Module3D
             m_MenuManager.Initialize(scenesManager);
             foreach (Base3DScene scene in scenesManager.Scenes)
             {
-                scene.DefineSelectedColumn.AddListener((column) =>
+                scene.OnDefineSelectedColumn.AddListener((column) =>
                 {
                     scenesManager.SelectedScene = scene;
                     UpdateFocusedSceneAndColumn(scene, column);

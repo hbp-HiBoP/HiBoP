@@ -63,7 +63,7 @@ namespace HBP.Interaction
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
                 return; // click on overlay, don't propagate to the scenes
-            scene.MouseScrollAction(mouseScrollDelta);
+            //scene.MouseScrollAction(mouseScrollDelta);
         }
         /// <summary>
         /// Send a keyboard action to the scenes
@@ -74,7 +74,7 @@ namespace HBP.Interaction
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
                 return; // click on overlay, don't propagate to the scenes
-            scene.KeyboardAction(key);
+            //scene.KeyboardAction(key);
         }
         #endregion
     }

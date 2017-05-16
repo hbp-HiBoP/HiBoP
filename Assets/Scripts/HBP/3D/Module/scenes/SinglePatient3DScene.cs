@@ -16,16 +16,6 @@ using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
-    namespace Events
-    {
-        /// <summary>
-        /// Event for asking the UI to update the latencies display on the plot menu (params : labels)
-        /// </summary>
-        public class UpdateLatencies : UnityEvent<List<string>> { }
-    }
-
-
-
     /// <summary>
     /// The single patient scene class, inheritance of Base3DScene.
     /// </summary>
@@ -33,6 +23,9 @@ namespace HBP.Module3D
     public class SinglePatient3DScene : Base3DScene
     {
         #region Properties
+        /// <summary>
+        /// Type of the scene
+        /// </summary>
         public override SceneType Type
         {
             get
@@ -40,11 +33,9 @@ namespace HBP.Module3D
                 return SceneType.SinglePatient;
             }
         }
-        public AmbientMode AmbiantMode = AmbientMode.Flat;
-        public float AmbientIntensity = 1;
-        public Color AmbiantLight = new Color(0.2f, 0.2f, 0.2f, 1);
-
-        
+        /// <summary>
+        /// Visualization corresponding to this scenes
+        /// </summary>
         public new Data.Visualization.SinglePatientVisualization Visualization
         {
             get
@@ -56,6 +47,9 @@ namespace HBP.Module3D
                 Visualization = value;
             }
         }
+        /// <summary>
+        /// Patient of this scene
+        /// </summary>
         public Data.Patient Patient
         {
             get
@@ -63,11 +57,15 @@ namespace HBP.Module3D
                 return Visualization.Patient;
             }
         }
-        // events
-        private Events.UpdateLatencies m_UpdateLatencies = new Events.UpdateLatencies();
-        public Events.UpdateLatencies UpdateLatencies { get { return m_UpdateLatencies; } }
-
+        /// <summary>
+        /// CCEP Labels
+        /// </summary>
         private List<string> CCEPLabels = null;
+
+        /// <summary>
+        /// Event for asking the UI to update the latencies display on the plot menu (params : labels)
+        /// </summary>
+        public GenericEvent<List<string>> UpdateLatencies = new GenericEvent<List<string>>();
         #endregion
 
         #region Public Methods
@@ -122,8 +120,8 @@ namespace HBP.Module3D
 
             // cut the mesh
             List<DLL.Surface> cuts;
-            if (PlanesList.Count > 0)
-                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(m_Column3DViewManager.PlanesCutsCopy.ToArray(), SceneInformation.RemoveFrontPlaneList.ToArray(), !SceneInformation.CutHolesEnabled));
+            if (Cuts.Count > 0)
+                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(m_Cuts.ToArray(), !SceneInformation.CutHolesEnabled));
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.MeshToDisplay.Clone() };
 
@@ -166,10 +164,10 @@ namespace HBP.Module3D
             
 
             // update cuts generators
-            for (int ii = 0; ii < m_Column3DViewManager.PlanesCutsCopy.Count; ++ii)
+            for (int ii = 0; ii < m_Cuts.Count; ++ii)
             {
                 for (int jj = 0; jj < m_Column3DViewManager.ColumnsIEEG.Count; ++jj)
-                    m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_Column3DViewManager.DLLVolume, m_Column3DViewManager.PlanesCutsCopy[ii]);                        
+                    m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_Column3DViewManager.DLLVolume, m_Cuts[ii]);                        
 
                 m_Column3DViewManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(Column3DViewManager.DLLCutsList[ii + 1]);
                 m_Column3DViewManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
@@ -191,7 +189,7 @@ namespace HBP.Module3D
             
 
             // enable cuts gameobject
-            for (int ii = 0; ii < m_Column3DViewManager.PlanesCutsCopy.Count; ++ii)
+            for (int ii = 0; ii < m_Cuts.Count; ++ii)
                     m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true); 
 
             SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
@@ -223,7 +221,7 @@ namespace HBP.Module3D
             meshesFiles.Add(Patient.Brain.RightCerebralHemisphereMesh);
 
             // reset columns
-            m_Column3DViewManager.Initialize(PlanesList.Count);
+            m_Column3DViewManager.Initialize(Cuts.Count);
 
             DLL.Transformation meshTransformation = new DLL.Transformation();
             meshTransformation.Load(Patient.Brain.PreoperativeBasedToScannerBasedTransformation);
@@ -251,7 +249,7 @@ namespace HBP.Module3D
             {
                 Debug.LogError("-ERROR : SP3DScene : reset failed. ");
                 SceneInformation.Reset();
-                m_Column3DViewManager.Initialize(PlanesList.Count);
+                m_Column3DViewManager.Initialize(Cuts.Count);
                 ResetSceneGameObjects();
                 return false;
             }
@@ -378,7 +376,7 @@ namespace HBP.Module3D
             ResetSplitsNumber(nbSplits);
             
             // update scenes cameras
-            UpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox().Center());
+            OnUpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox().Center());
            
             // set the transform as the mesh center
             SceneInformation.HemiMeshesAvailables = true;
@@ -528,7 +526,7 @@ namespace HBP.Module3D
             }
 
             m_Column3DViewManager.LatencyFilesDefined = true; //(Patient.Brain.Connectivities.Count > 0);
-            m_UpdateLatencies.Invoke(CCEPLabels);
+            UpdateLatencies.Invoke(CCEPLabels);
 
             //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -554,7 +552,7 @@ namespace HBP.Module3D
             //##################
             
             // update columns number
-            m_Column3DViewManager.UpdateColumnsNumber(Visualization.Columns.Count, 0, PlanesList.Count);
+            m_Column3DViewManager.UpdateColumnsNumber(Visualization.Columns.Count, 0, Cuts.Count);
 
             // update columns names
             for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
@@ -584,12 +582,12 @@ namespace HBP.Module3D
         /// <param name="idSelectedPlot"></param>
         public void SelectSite(int idSelectedPlot)
         {
-            m_UpdateLatencies.Invoke(CCEPLabels);
+            UpdateLatencies.Invoke(CCEPLabels);
 
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
                 m_Column3DViewManager.ColumnsIEEG[ii].SelectedSiteID = idSelectedPlot;
-                ClickSite.Invoke(ii);
+                OnClickSite.Invoke(ii);
             }
         }
         /// <summary>
@@ -693,7 +691,7 @@ namespace HBP.Module3D
                     break;
             }
 
-            ClickSite.Invoke(-1);            
+            OnClickSite.Invoke(-1);            
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);            
         }
         /// <summary>
@@ -721,12 +719,12 @@ namespace HBP.Module3D
             bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
             if (!isCollision)
             {
-                UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
+                OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;
             }
             if (hit.collider.transform.parent.name == "Cutes" || hit.collider.transform.parent.name == "Brains")
             {
-                UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
+                OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;
             }
 
@@ -735,7 +733,7 @@ namespace HBP.Module3D
             switch (m_Column3DViewManager.SelectedColumn.Type)
             {
                 case Column3DView.ColumnType.FMRI:
-                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hit.collider.GetComponent<Site>().Information.FullName));
+                    OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hit.collider.GetComponent<Site>().Information.FullName));
                     return;
                 case Column3DView.ColumnType.IEEG:
                     Column3DViewIEEG currIEEGCol = (Column3DViewIEEG)m_Column3DViewManager.SelectedColumn;
@@ -779,7 +777,7 @@ namespace HBP.Module3D
                         }
                     }
 
-                    UpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.FMRI, SceneInformation.DisplayCCEPMode,
+                    OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_Column3DViewManager.SelectedColumn.Type == Column3DView.ColumnType.FMRI, SceneInformation.DisplayCCEPMode,
                         hit.collider.GetComponent<Site>().Information.FullName, "" + amp, height, latency));
                     break;
                 default:
@@ -794,7 +792,7 @@ namespace HBP.Module3D
         /// <param name="idColumn"></param>
         public override void DisableSiteDisplayWindow(int idColumn)
         {
-            UpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
+            OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
         }
         /// <summary>
         /// Update the display mode of the scene
@@ -881,7 +879,7 @@ namespace HBP.Module3D
                         request.idPatient2 = Patient.ID;
                         request.maskColumn = masksColumnsData;
 
-                        SiteInfoRequest.Invoke(request);
+                        OnRequestSiteInformation.Invoke(request);
                     }
                     break;
                 default:

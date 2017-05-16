@@ -8,6 +8,7 @@
 
 // system
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 // unity
@@ -210,7 +211,7 @@ namespace HBP.Module3D.DLL
         /// <param name="removeFrontPlane"> NOT USED </param>
         /// <param name="noHoles"></param>
         /// <returns></returns>
-        public Surface[] Cut(Plane[] cutPlanes, int[] removeFrontPlane, bool noHoles = false)
+        public Surface[] Cut(Cut[] cutPlanes, bool noHoles = false)
         {
             // check planes
             if (cutPlanes.Length <= 0)
@@ -231,8 +232,15 @@ namespace HBP.Module3D.DLL
                 }
             }
 
+            // removeFrontPlane construction
+            List<int> removeFrontPlane = new List<int>();
+            for (int i = 0; i < cutPlanes.Length; i++)
+            {
+                removeFrontPlane.Add(cutPlanes[i].RemoveFrontPlane);
+            }
+
             // do the cut            
-            HandleRef pCutMultiSurface = new HandleRef(this, cut_Surface(_handle, removeFrontPlane, planes, cutPlanes.Length, noHoles?1:0));
+            HandleRef pCutMultiSurface = new HandleRef(this, cut_Surface(_handle, removeFrontPlane.ToArray(), planes, cutPlanes.Length, noHoles?1:0));
 
             // move data            
             int nbMultiSurface =nb_MultiSurface(pCutMultiSurface);

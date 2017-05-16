@@ -65,8 +65,10 @@ namespace HBP.Module3D
         private Mode m_MultiPatientsAmpNeedUpdate = null;
         private Mode m_MultiPatientsErrorMode = null;
 
-        // events
-        public Events.OnSendModeSpecifications SendModeSpecifications = new Events.OnSendModeSpecifications();
+        /// <summary>
+        /// Event for sending mode specifications
+        /// </summary>
+        public GenericEvent<ModeSpecifications> SendModeSpecifications = new GenericEvent<ModeSpecifications>();
         #endregion
 
         #region Private Methods

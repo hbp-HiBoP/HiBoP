@@ -16,7 +16,7 @@ using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.UI.Module3D;
-
+using UnityEngine.Rendering;
 
 namespace HBP.Module3D
 {
@@ -158,79 +158,6 @@ namespace HBP.Module3D
     }
     #endregion
 
-    namespace Events
-    {
-        /// <summary>
-        /// UI event for sending a plot info request to the outside UI (params : plotRequest)
-        /// </summary>
-        [System.Serializable]
-        public class OnRequestSiteInformation : UnityEvent<SiteRequest> { }
-        /// <summary>
-        /// Event for sending info in order to display a message in a scene screen (params : message, duration, width, height)
-        /// </summary>
-        public class DisplaySceneMessage : UnityEvent<string, float, int, int> { }
-        /// <summary>
-        /// Event for sending info in order to display a loadingbar in a scene screen (params : duration, width, height, value)
-        /// </summary>
-        public class DisplaySceneProgressBar : UnityEvent<float, int, int, float> { }
-        /// <summary>
-        /// Event of sending the current selected scene and column (params : spScene, id column)
-        /// </summary>
-        public class UpdateSceneAndColSelection : UnityEvent<bool, int> { }
-        /// <summary>
-        /// Event for colormap values associated to a column id (params : minValue, middle, maxValue, id)
-        /// </summary>
-        public class SendColormapEvent : UnityEvent<float, float, float, int> { }
-        /// <summary>
-        /// Event for sending IEEG data parameters to UI (params : IEEGDataParameters)
-        /// </summary>
-        public class SendIEEGParameters : UnityEvent<IEEGDataParameters> { }
-        /// <summary>
-        /// Event for sending IRMF data parameters to UI (params : IRMFDataParameters)
-        /// </summary>
-        public class SendFMRIParameters : UnityEvent<FMRIDataParameters> { }
-        /// <summary>
-        /// Event for updating cuts planes 
-        /// </summary>
-        public class UpdatePlanes : UnityEvent { }
-        /// <summary>
-        /// Event for updating the planes cuts display in the cameras
-        /// </summary>
-        public class ModifyPlanesCuts : UnityEvent { }
-        /// <summary>
-        /// Event for updating the cuts images in the UI (params : textures, columnId, planeNb)
-        /// </summary>
-        public class UpdateCutsInUI : UnityEvent<List<Texture2D>, int, int> { }
-        /// <summary>
-        /// Send the new selected id column to the UI (params : idColumn)
-        /// </summary>
-        public class DefineSelectedColumn : UnityEvent<int> { }
-        /// <summary>
-        /// Event for updating time in the UI
-        /// </summary>
-        public class UpdateTimeInUI : UnityEvent { }
-        /// <summary>
-        /// 
-        /// </summary>
-        public class UpdateDisplayedSitesInfo : UnityEvent<SiteInfo> { }
-        /// <summary>
-        /// Ask the UI to udpate the ROI of all the scene columns
-        /// </summary>
-        public class AskROIUpdate : UnityEvent<int> { }
-        /// <summary>
-        /// Ask the camera manager to update the target for this scene
-        /// </summary>
-        public class UpdateCameraTarget : UnityEvent<Vector3> { }
-        /// <summary>
-        /// Occurs when a plot is clicked in the scene (params : id of the column, if = -1 use the current selected column id)
-        /// </summary>
-        public class ClickPlot : UnityEvent<int> { }
-        /// <summary>
-        /// Event for updating the IRM cal values in the UI
-        /// </summary>
-        public class IRMCalValuesUpdate : UnityEvent<MRICalValues> { }
-    }
-
     /// <summary>
     /// Class containing all the DLL data and the displayable Gameobjects of a 3D scene.
     /// </summary>
@@ -238,6 +165,9 @@ namespace HBP.Module3D
     public abstract class Base3DScene : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Name of the scene
+        /// </summary>
         public string Name
         {
             get
@@ -245,8 +175,15 @@ namespace HBP.Module3D
                 return Visualization.Name;
             }
         }
+        /// <summary>
+        /// Type of the scene (Single / Multi)
+        /// </summary>
         public abstract SceneType Type { get; }
+
         protected Data.Visualization.Visualization m_Visualization;
+        /// <summary>
+        /// Visualization associated to this scene
+        /// </summary>
         public virtual Data.Visualization.Visualization Visualization
         {
             get
@@ -259,6 +196,9 @@ namespace HBP.Module3D
             }
         }
 
+        /// <summary>
+        /// Is a view on this scene selected ?
+        /// </summary>
         public bool IsSelected
         {
             get
@@ -267,18 +207,30 @@ namespace HBP.Module3D
             }
         }
 
-        private List<Plane> m_PlanesList = new List<Plane>();         /**< cut planes list */
-        public List<Plane> PlanesList { get { return m_PlanesList; } }
+        protected List<Cut> m_Cuts = new List<Cut>();
+        /// <summary>
+        /// Cuts planes list
+        /// </summary>
+        public List<Cut> Cuts { get { return m_Cuts; } }
 
-        public SceneStatesInfo SceneInformation { get; set; } /**<  data of the scene */
+        /// <summary>
+        /// Information about the scene
+        /// </summary>
+        public SceneStatesInfo SceneInformation { get; set; }
 
-        protected ModesManager m_ModesManager = null; /**< modes of the scene */
+        protected ModesManager m_ModesManager = null;
+        /// <summary>
+        /// Modes of the scene
+        /// </summary>
         public ModesManager ModesManager
         {
             get { return m_ModesManager; }
         }
 
-        protected DisplayedObjects3DView m_DisplayedObjects = null; /**< displayable objects of the scene */
+        protected DisplayedObjects3DView m_DisplayedObjects = null;
+        /// <summary>
+        /// Displayable objects of the scene
+        /// </summary>
         public DisplayedObjects3DView DisplayedObjects
         {
             get
@@ -286,13 +238,58 @@ namespace HBP.Module3D
                 return m_DisplayedObjects;
             }
         }
+
+        /// <summary>
+        /// MNI Objects
+        /// </summary>
         protected MNIObjects m_MNIObjects = null;
 
-        protected Column3DViewManager m_Column3DViewManager = null; /**< column data manager */
+        protected Column3DViewManager m_Column3DViewManager = null;
+        /// <summary>
+        /// Column data manager
+        /// </summary>
         public Column3DViewManager Column3DViewManager { get { return m_Column3DViewManager; } }
-
-        public UIOverlayManager m_uiOverlayManager; /**< UI overlay manager of the scenes */ // DELETEME
         
+        /// <summary>
+        /// ID of the selected column of this scene
+        /// </summary>
+        public int SelectedColumnID
+        {
+            get
+            {
+                return m_Column3DViewManager.SelectedColumnID;
+            }
+        }
+        /// <summary>
+        /// Are cut holes in MRI enabled ?
+        /// </summary>
+        public bool CutHolesEnabled
+        {
+            get
+            {
+                return SceneInformation.CutHolesEnabled;
+            }
+            set
+            {
+                if (!SceneInformation.MeshesLoaded || !SceneInformation.MRILoaded) return;
+
+                SceneInformation.CutHolesEnabled = value;
+                SceneInformation.CutMeshGeometryNeedsUpdate = true;
+                SceneInformation.IsIEEGOutdated = true;
+                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdatePlane);
+            }
+        }
+        /// <summary>
+        /// Is the latency mode enabled ?
+        /// </summary>
+        public bool IsLatencyModeEnabled
+        {
+            get
+            {
+                return SceneInformation.DisplayCCEPMode;
+            }
+        }
+
         /// <summary>
         /// Handles triangle erasing
         /// </summary>
@@ -365,27 +362,92 @@ namespace HBP.Module3D
             }
         }
 
-        // threads / jobs
-        protected ComputeGeneratorsJob m_ComputeGeneratorsJob = null; /**< generator computing job */
+        /// <summary>
+        /// Ambient mode (rendering)
+        /// </summary>
+        public AmbientMode AmbientMode = AmbientMode.Flat;
+        /// <summary>
+        /// Ambient intensity (rendering)
+        /// </summary>
+        public float AmbientIntensity = 1;
+        /// <summary>
+        /// Ambient light (rendering)
+        /// </summary>
+        public Color AmbientLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
-        // events
-        public Events.UpdatePlanes UpdatePlanes = new Events.UpdatePlanes(); 
-        public Events.ModifyPlanesCuts ModifyPlanesCuts = new Events.ModifyPlanesCuts();
-        public Events.SendIEEGParameters SendIEEGParameters = new Events.SendIEEGParameters();
-        public Events.SendFMRIParameters SendFMRIParameters = new Events.SendFMRIParameters();
-        public Events.SendColormapEvent SendColorMapValues = new Events.SendColormapEvent();
-        public Events.OnSendModeSpecifications SendModeSpecifications = new Events.OnSendModeSpecifications(); 
-        public Events.DisplaySceneMessage OnDisplayScreenMessage = new Events.DisplaySceneMessage();
-        public Events.DisplaySceneProgressBar OnDisplayScreenProgressbar = new Events.DisplaySceneProgressBar();
-        public Events.OnRequestSiteInformation SiteInfoRequest = new Events.OnRequestSiteInformation();
-        public Events.UpdateCutsInUI UpdateCutsInUI = new Events.UpdateCutsInUI();
-        public Events.DefineSelectedColumn DefineSelectedColumn = new Events.DefineSelectedColumn();
-        public Events.UpdateTimeInUI UpdateTimeInUI = new Events.UpdateTimeInUI();
-        public Events.UpdateDisplayedSitesInfo UpdateDisplayedSitesInfo = new Events.UpdateDisplayedSitesInfo();
-        public Events.AskROIUpdate AskROIUpdateEvent = new Events.AskROIUpdate();
-        public Events.UpdateCameraTarget UpdateCameraTarget = new Events.UpdateCameraTarget();
-        public Events.ClickPlot ClickSite = new Events.ClickPlot();
-        public Events.IRMCalValuesUpdate IRMCalValuesUpdate = new Events.IRMCalValuesUpdate();
+        /// <summary>
+        /// Threads / Job
+        /// </summary>
+        protected ComputeGeneratorsJob m_ComputeGeneratorsJob = null;
+        
+        /// <summary>
+        /// Event for updating cuts planes 
+        /// </summary>
+        public UnityEvent OnUpdatePlanes = new UnityEvent();
+        /// <summary>
+        /// Event for updating the planes cuts display in the cameras
+        /// </summary>
+        public UnityEvent OnModifyPlanesCuts = new UnityEvent();
+        /// <summary>
+        /// Event for sending IEEG data parameters to UI (params : IEEGDataParameters)
+        /// </summary>
+        public GenericEvent<IEEGDataParameters> OnSendIEEGParameters = new GenericEvent<IEEGDataParameters>();
+        /// <summary>
+        /// Event for sending IRMF data parameters to UI (params : IRMFDataParameters)
+        /// </summary>
+        public GenericEvent<FMRIDataParameters> OnSendFMRIParameters = new GenericEvent<FMRIDataParameters>();
+        /// <summary>
+        /// Event for colormap values associated to a column id (params : minValue, middle, maxValue, id)
+        /// </summary>
+        public GenericEvent<float, float, float, int> OnSendColorMapValues = new GenericEvent<float, float, float, int>();
+        /// <summary>
+        /// Event for sending mode specifications
+        /// </summary>
+        public GenericEvent<ModeSpecifications> OnSendModeSpecifications = new GenericEvent<ModeSpecifications>();
+        /// <summary>
+        /// Event for sending info in order to display a message in a scene screen (params : message, duration, width, height)
+        /// </summary>
+        public GenericEvent<string, float, int, int> OnDisplaySceneMessage = new GenericEvent<string, float, int, int>();
+        /// <summary>
+        /// Event for sending info in order to display a loadingbar in a scene screen (params : duration, width, height, value)
+        /// </summary>
+        public GenericEvent<float, int, int, float> OnDisplaySceneProgressBar = new GenericEvent<float, int, int, float>();
+        /// <summary>
+        /// UI event for sending a plot info request to the outside UI (params : plotRequest)
+        /// </summary>
+        public GenericEvent<SiteRequest> OnRequestSiteInformation = new GenericEvent<SiteRequest>();
+        /// <summary>
+        /// Event for updating the cuts images in the UI (params : textures, columnId, planeNb)
+        /// </summary>
+        public GenericEvent<List<Texture2D>, int, int> OnUpdateCutsInUI = new GenericEvent<List<Texture2D>, int, int>();
+        /// <summary>
+        /// Send the new selected id column to the UI (params : idColumn)
+        /// </summary>
+        public GenericEvent<int> OnDefineSelectedColumn = new GenericEvent<int>();
+        /// <summary>
+        /// Event for updating time in the UI
+        /// </summary>
+        public UnityEvent OnUpdateTimeInUI = new UnityEvent();
+        /// <summary>
+        /// Update displayed sites info
+        /// </summary>
+        public GenericEvent<SiteInfo> OnUpdateDisplayedSitesInfo = new GenericEvent<SiteInfo>();
+        /// <summary>
+        /// Ask the UI to udpate the ROI of all the scene columns
+        /// </summary>
+        public GenericEvent<int> OnAskRegionOfInterestUpdate = new GenericEvent<int>();
+        /// <summary>
+        /// Ask the camera manager to update the target for this scene
+        /// </summary>
+        public GenericEvent<Vector3> OnUpdateCameraTarget = new GenericEvent<Vector3>();
+        /// <summary>
+        /// Occurs when a plot is clicked in the scene (params : id of the column, if = -1 use the current selected column id)
+        /// </summary>
+        public GenericEvent<int> OnClickSite = new GenericEvent<int>();
+        /// <summary>
+        /// Event for updating the IRM cal values in the UI
+        /// </summary>
+        public GenericEvent<MRICalValues> OnIRMCalValuesUpdate = new GenericEvent<MRICalValues>();
         /// <summary>
         /// Event called when a FMRI column is added
         /// </summary>
@@ -422,7 +484,7 @@ namespace HBP.Module3D
             m_ModesManager.Initialize(this);
             m_ModesManager.SendModeSpecifications.AddListener((specs) =>
             {
-                SendModeSpecifications.Invoke(specs);
+                OnSendModeSpecifications.Invoke(specs);
 
                 // update scene visibility (useless)
                 //UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-SendModeSpecifications update_scene_items_visibility");
@@ -448,16 +510,14 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update");
 
             // TEMP : useless
-            for (int ii = 0; ii < SceneInformation.RemoveFrontPlaneList.Count; ++ii)
-                SceneInformation.RemoveFrontPlaneList[ii] = 0;
+            for (int ii = 0; ii < m_Cuts.Count; ++ii)
+                m_Cuts[ii].RemoveFrontPlane = 0;
 
             // check if we must perform new cuts of the brain            
             if (SceneInformation.CutMeshGeometryNeedsUpdate)
             {
                 SceneInformation.IsGeometryUpToDate = false;
-                Column3DViewManager.PlanesCutsCopy = new List<Plane>();
-                for (int ii = 0; ii < m_PlanesList.Count; ++ii)
-                    Column3DViewManager.PlanesCutsCopy.Add(new Plane(m_PlanesList[ii].Point, m_PlanesList[ii].Normal));
+                Column3DViewManager.PlanesCutsCopy = m_Cuts;
 
                 UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
                 ComputeMeshesCut();
@@ -511,7 +571,7 @@ namespace HBP.Module3D
             bool allCuts = indexCut == -1;
 
             int[] columnsIndexes = allColumns ? Enumerable.Range(0, m_Column3DViewManager.Columns.Count).ToArray() : new int[1] { indexColumn };
-            int[] cutsIndexes = allCuts ? Enumerable.Range(0, m_PlanesList.Count).ToArray() : new int[1] { indexCut };
+            int[] cutsIndexes = allCuts ? Enumerable.Range(0, m_Cuts.Count).ToArray() : new int[1] { indexCut };
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene compute_MRI_textures 0 create_MRI_texture ");
 
@@ -543,7 +603,7 @@ namespace HBP.Module3D
             bool allCuts = indexCut == -1;
 
             int[] columnsIndexes = allColumns ? Enumerable.Range(0, m_Column3DViewManager.Columns.Count).ToArray() : new int[1] { indexColumn };
-            int[] cutsIndexes = allCuts ? Enumerable.Range(0, m_PlanesList.Count).ToArray() : new int[1] { indexCut };
+            int[] cutsIndexes = allCuts ? Enumerable.Range(0, m_Cuts.Count).ToArray() : new int[1] { indexCut };
 
             for (int ii = 0; ii < columnsIndexes.Length; ++ii)
             {
@@ -592,7 +652,7 @@ namespace HBP.Module3D
             bool allCuts = indexCut == -1;
 
             int[] columnsIndexes = allColumns ? Enumerable.Range(0, m_Column3DViewManager.ColumnsFMRI.Count).ToArray() : new int[1] { indexColumn };
-            int[] cutsIndexes = allCuts ? Enumerable.Range(0, m_PlanesList.Count).ToArray() : new int[1] { indexCut };
+            int[] cutsIndexes = allCuts ? Enumerable.Range(0, m_Cuts.Count).ToArray() : new int[1] { indexCut };
 
             for (int ii = 0; ii < columnsIndexes.Length; ++ii)
             {
@@ -609,7 +669,7 @@ namespace HBP.Module3D
             UpdateGUITextures();
         }
         /// <summary>
-        /// 
+        /// Compute textures to be displayed on the UI
         /// </summary>
         /// <param name="indexCut"></param>
         /// <param name="indexColumn"></param>
@@ -619,13 +679,13 @@ namespace HBP.Module3D
             bool allCuts = indexCut == -1;
 
             int[] columnsIndexes = allColumns ? Enumerable.Range(0, m_Column3DViewManager.Columns.Count).ToArray() : new int[1] { indexColumn };
-            int[] cutsIndexes = allCuts ? Enumerable.Range(0, m_PlanesList.Count).ToArray() : new int[1] { indexCut };
+            int[] cutsIndexes = allCuts ? Enumerable.Range(0, m_Cuts.Count).ToArray() : new int[1] { indexCut };
 
             for (int ii = 0; ii < columnsIndexes.Length; ++ii)
             {
                 Column3DView currCol = m_Column3DViewManager.Columns[columnsIndexes[ii]];
 
-                for (int jj = 0; jj < PlanesList.Count; ++jj)
+                for (int jj = 0; jj < Cuts.Count; ++jj)
                 {
                     switch (currCol.Type)
                     {
@@ -645,7 +705,7 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// 
+        /// Update textures displayed on the UI
         /// </summary>
         /// <param name="indexCut"></param>
         private void UpdateGUITextures()
@@ -666,10 +726,10 @@ namespace HBP.Module3D
                 default:
                     break;
             }
-            UpdateCutsInUI.Invoke(texturesToDisplay, m_Column3DViewManager.SelectedColumnID, m_PlanesList.Count);
+            OnUpdateCutsInUI.Invoke(texturesToDisplay, m_Column3DViewManager.SelectedColumnID, m_Cuts.Count);
         }
         /// <summary>
-        /// 
+        /// Finalize Generators Computing
         /// </summary>
         private void FinalizeGeneratorsComputing()
         {
@@ -687,7 +747,7 @@ namespace HBP.Module3D
                 float minValue = -maxValue;
                 minValue += m_Column3DViewManager.ColumnsIEEG[ii].Middle;
                 maxValue += m_Column3DViewManager.ColumnsIEEG[ii].Middle;
-                SendColorMapValues.Invoke(minValue, m_Column3DViewManager.ColumnsIEEG[ii].Middle, maxValue, ii);
+                OnSendColorMapValues.Invoke(minValue, m_Column3DViewManager.ColumnsIEEG[ii].Middle, maxValue, ii);
             }
 
             // amplitudes are not displayed yet
@@ -767,7 +827,7 @@ namespace HBP.Module3D
 
             // Update column number
             int newFMRIColumnNumber = m_Column3DViewManager.ColumnsFMRI.Count + 1;
-            m_Column3DViewManager.UpdateColumnsNumber(m_Column3DViewManager.ColumnsIEEG.Count, newFMRIColumnNumber, m_PlanesList.Count);
+            m_Column3DViewManager.UpdateColumnsNumber(m_Column3DViewManager.ColumnsIEEG.Count, newFMRIColumnNumber, m_Cuts.Count);
 
             // Update label
             int newFMRIColumnID = newFMRIColumnNumber - 1;
@@ -780,7 +840,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.DLLNii.ConvertToVolume(m_Column3DViewManager.DLLVolumeFMriList[newFMRIColumnID]);
 
             if (Type == SceneType.SinglePatient)
-                AskROIUpdateEvent.Invoke(m_Column3DViewManager.ColumnsIEEG.Count + newFMRIColumnID);
+                OnAskRegionOfInterestUpdate.Invoke(m_Column3DViewManager.ColumnsIEEG.Count + newFMRIColumnID);
 
             // send parameters to UI
             //IRMCalValues calValues = m_CM.DLLVolumeIRMFList[idCol].retrieveExtremeValues();
@@ -797,11 +857,11 @@ namespace HBP.Module3D
             m_Column3DViewManager.ColumnsFMRI[newFMRIColumnID].CalMax = fmriParams.calValues.computedCalMax;
 
             // Update camera
-            UpdateCameraTarget.Invoke(Type == SceneType.SinglePatient ? m_Column3DViewManager.BothHemi.BoundingBox().Center() : m_MNIObjects.BothHemi.BoundingBox().Center());
+            OnUpdateCameraTarget.Invoke(Type == SceneType.SinglePatient ? m_Column3DViewManager.BothHemi.BoundingBox().Center() : m_MNIObjects.BothHemi.BoundingBox().Center());
 
             ComputeMRITextures(-1, -1);
 
-            SendFMRIParameters.Invoke(fmriParams);
+            OnSendFMRIParameters.Invoke(fmriParams);
             ComputeFMRITextures(-1, -1);
 
             m_ModesManager.UpdateMode(Mode.FunctionsId.AddFMRIColumn);
@@ -820,7 +880,7 @@ namespace HBP.Module3D
             }
 
             // Update columns number
-            m_Column3DViewManager.UpdateColumnsNumber(m_Column3DViewManager.ColumnsIEEG.Count, m_Column3DViewManager.ColumnsFMRI.Count - 1, m_PlanesList.Count);
+            m_Column3DViewManager.UpdateColumnsNumber(m_Column3DViewManager.ColumnsIEEG.Count, m_Column3DViewManager.ColumnsFMRI.Count - 1, m_Cuts.Count);
 
             // Update plots visibility
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
@@ -837,19 +897,15 @@ namespace HBP.Module3D
         protected void InitializeSceneGameObjects()
         {
             // init parents 
-            m_DisplayedObjects.SitesMeshesParent = transform.Find("base electrodes").gameObject;
-            m_DisplayedObjects.BrainSurfaceMeshesParent = transform.Find("meshes").Find("brains").gameObject;
-            m_DisplayedObjects.BrainCutMeshesParent = transform.Find("meshes").Find("cuts").gameObject;
+            m_DisplayedObjects.SitesMeshesParent = transform.Find("Sites").gameObject;
+            m_DisplayedObjects.BrainSurfaceMeshesParent = transform.Find("Meshes").Find("Brains").gameObject;
+            m_DisplayedObjects.BrainCutMeshesParent = transform.Find("Meshes").Find("Cuts").gameObject;
 
             // init lights
-            m_DisplayedObjects.SharedDirectionalLight = transform.parent.Find("directionnal light").gameObject;
+            m_DisplayedObjects.SharedDirectionalLight = transform.parent.Find("Global Light").gameObject;
 
             // init default planes
-            m_PlanesList = new List<Plane>();
-            m_Column3DViewManager.PlanesOrientationID = new List<int>();
-            m_Column3DViewManager.PlanesOrientationFlip = new List<bool>();
-            SceneInformation.RemoveFrontPlaneList = new List<int>();
-            SceneInformation.NumberOfCutsPerPlane = new List<int>();
+            m_Cuts = new List<Cut>();
             m_DisplayedObjects.BrainCutMeshes = new List<GameObject>();
 
             UpdateBrainSurfaceColor(ColorType.BrainColor);
@@ -1203,15 +1259,17 @@ namespace HBP.Module3D
                 return;
             }
 
-            m_PlanesList.Add(new Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0)));
-            m_Column3DViewManager.PlanesOrientationID.Add(0);
-            m_Column3DViewManager.PlanesOrientationFlip.Add(false);
-            SceneInformation.RemoveFrontPlaneList.Add(0);
-            SceneInformation.NumberOfCutsPerPlane.Add(SceneInformation.DefaultNumberOfCutsPerPlane);
+            // Add new cut
+            m_Cuts.Add(new Cut(new Vector3(0, 0, 0), new Vector3(1, 0, 0)));
+            for (int i = 0; i < m_Cuts.Count; i++)
+            {
+                m_Cuts[i].ID = i;
+            }
 
+            // Add new cut GameObject
             GameObject cut = Instantiate(GlobalGOPreloaded.Cut);
             cut.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.CutMaterials[this];
-            cut.name = "cut_" + (m_PlanesList.Count - 1);
+            cut.name = "cut_" + (m_Cuts.Count - 1);
             cut.transform.parent = m_DisplayedObjects.BrainCutMeshesParent.transform;
             cut.AddComponent<MeshCollider>();
             cut.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
@@ -1233,7 +1291,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Remove the last cut plane
         /// </summary>
-        public void RemoveCutPlane(int cutID)
+        public void RemoveCutPlane(Cut cut)
         {
             // Check access
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.RemoveLastPlane))
@@ -1242,14 +1300,10 @@ namespace HBP.Module3D
                 return;
             }
 
-            m_PlanesList.RemoveAt(cutID);
-            m_Column3DViewManager.PlanesOrientationID.RemoveAt(cutID);
-            m_Column3DViewManager.PlanesOrientationFlip.RemoveAt(cutID);
-            SceneInformation.RemoveFrontPlaneList.RemoveAt(cutID);
-            SceneInformation.NumberOfCutsPerPlane.RemoveAt(cutID);
+            m_Cuts.Remove(cut);
 
-            Destroy(m_DisplayedObjects.BrainCutMeshes[cutID]);
-            m_DisplayedObjects.BrainCutMeshes.RemoveAt(cutID);
+            Destroy(m_DisplayedObjects.BrainCutMeshes[cut.ID]);
+            m_DisplayedObjects.BrainCutMeshes.RemoveAt(cut.ID);
 
             // update columns manager
             m_Column3DViewManager.UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
@@ -1263,7 +1317,6 @@ namespace HBP.Module3D
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.RemoveLastPlane);
         }
-        //////////////////////// TODO from here ////////////////////
         /// <summary>
         /// Update a cut plane
         /// </summary>
@@ -1273,18 +1326,17 @@ namespace HBP.Module3D
         /// <param name="customNormal"></param>
         /// <param name="idPlane"></param>
         /// <param name="position"></param>
-        public void UpdateCutPlane(int orientationID, bool flip, bool removeFrontPlane, Vector3 customNormal, int idPlane, float position)
+        public void UpdateCutPlane(Cut cut, CutOrientation orientation, bool flip, bool removeFrontPlane, Vector3 customNormal, float position)
         {
-            //####### CHECK ACESS
+            // Check access
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.UpdatePlane))
             {
                 Debug.LogError("-ERROR : Base3DScene::updatePlane -> no acess for mode : " + m_ModesManager.CurrentModeName);
                 return;
             }
-            //##################
 
             Plane newPlane = new Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
-            if (orientationID == 3 || !SceneInformation.MRILoaded) // custom normal
+            if (orientation == CutOrientation.Custom || !SceneInformation.MRILoaded) // custom normal
             {
                 if (customNormal.x != 0 || customNormal.y != 0 || customNormal.z != 0)
                     newPlane.Normal = customNormal;
@@ -1293,26 +1345,26 @@ namespace HBP.Module3D
             }
             else
             {
-                m_Column3DViewManager.DLLVolume.SetPlaneWithOrientation(newPlane, orientationID, flip);
+                m_Column3DViewManager.DLLVolume.SetPlaneWithOrientation(newPlane, orientation, flip);
             }
 
-            m_PlanesList[idPlane].Normal = newPlane.Normal;
-            m_Column3DViewManager.PlanesOrientationID[idPlane] = orientationID;
-            m_Column3DViewManager.PlanesOrientationFlip[idPlane] = flip;
-            SceneInformation.RemoveFrontPlaneList[idPlane] = removeFrontPlane?1:0;
-            SceneInformation.LastPlaneModifiedID = idPlane;
+            cut.Normal = newPlane.Normal;
+            cut.Orientation = orientation;
+            cut.Flip = flip;
+            cut.RemoveFrontPlane = removeFrontPlane?1:0;
+            SceneInformation.LastPlaneModifiedID = cut.ID;
 
-            // ########### cuts base on the mesh
+            // Cuts base on the mesh
             float offset;
             if (SceneInformation.MeshToDisplay != null)
             {
-                offset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(m_PlanesList[idPlane], SceneInformation.NumberOfCutsPerPlane[idPlane]);
+                offset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(cut, cut.NumberOfCuts);
                 offset *= 1.05f; // upsize a little bit the bbox for planes
             }
             else
                 offset = 0.1f;
 
-            m_PlanesList[idPlane].Point = SceneInformation.MeshCenter + m_PlanesList[idPlane].Normal * (position - 0.5f) * offset * SceneInformation.NumberOfCutsPerPlane[idPlane];
+            cut.Point = SceneInformation.MeshCenter + cut.Normal * (position - 0.5f) * offset * cut.NumberOfCuts;
 
             SceneInformation.CutMeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
@@ -1321,11 +1373,10 @@ namespace HBP.Module3D
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
             // update cameras cuts display
-            ModifyPlanesCuts.Invoke();
+            OnModifyPlanesCuts.Invoke();
 
-            //####### UDPATE MODE
+            // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdatePlane);
-            //##################
         }
         /// <summary>
         /// Reset the volume of the scene
@@ -1334,7 +1385,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         public bool ResetNiftiBrainVolume(string pathNIIBrainVolumeFile)
         {
-            //####### CHECK ACESS
+            // Check access
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetNIIBrainVolumeFile))
             {
                 Debug.LogError("-ERROR : Base3DScene::resetNIIBrainVolumeFile -> no acess for mode : " + m_ModesManager.CurrentModeName);
@@ -1364,14 +1415,13 @@ namespace HBP.Module3D
             }
 
             SceneInformation.MRILoaded = loadingSuccess;
-            UpdatePlanes.Invoke();
+            OnUpdatePlanes.Invoke();
 
             // send cal values to the UI
-            IRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.RetrieveExtremeValues());
+            OnIRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.RetrieveExtremeValues());
 
-            //####### UDPATE MODE
+            // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
-            //##################
 
             return SceneInformation.MRILoaded;
         }
@@ -1410,7 +1460,7 @@ namespace HBP.Module3D
             // update cuts textures
             if ((SceneInformation.MeshTypeToDisplay != SceneStatesInfo.MeshType.Inflated))
             {
-                for (int ii = 0; ii < PlanesList.Count; ++ii)
+                for (int ii = 0; ii < Cuts.Count; ++ii)
                 {
                     switch (currCol.Type)
                     {
@@ -1485,35 +1535,33 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateGenerators()
         {
-            //####### CHECK ACESS
+            // Check access
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.PreUpdateGenerators))
             {
                 Debug.LogError("-ERROR : Base3DScene::pre_updateGenerators -> no acess for mode : " + m_ModesManager.CurrentModeName);
                 return;
             }
-            //##################
 
             if (SceneInformation.CutMeshGeometryNeedsUpdate || !SceneInformation.IsGeometryUpToDate) // if update cut plane is pending, cancel action
                 return;
 
-            //####### UDPATE MODE
+            // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.PreUpdateGenerators);
-            //##################
 
             SceneInformation.IsGeneratorUpToDate = false;
 
             m_ComputeGeneratorsJob = new ComputeGeneratorsJob();
-            m_ComputeGeneratorsJob.data_ = SceneInformation;
-            m_ComputeGeneratorsJob.cm_ = m_Column3DViewManager;
+            m_ComputeGeneratorsJob.SceneInformation = SceneInformation;
+            m_ComputeGeneratorsJob.Column3DViewManager = m_Column3DViewManager;
             m_ComputeGeneratorsJob.Start();
         }
         /// <summary>
         /// Update the displayed amplitudes on the brain and the cuts with the slider position.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="columnID"></param>
         /// <param name="slider"></param>
         /// <param name="globalTimeline"> if globaltime is true, update all columns with the same slider, else udapte only current selected column </param>
-        public void UpdateIEEGTime(int id, float value, bool globalTimeline)
+        public void UpdateIEEGTime(int columnID, float value, bool globalTimeline)
         {
             m_Column3DViewManager.GlobalTimeline = globalTimeline;
             if (m_Column3DViewManager.GlobalTimeline)
@@ -1524,14 +1572,14 @@ namespace HBP.Module3D
             }
             else
             {
-                Column3DViewIEEG currIEEGCol = (Column3DViewIEEG)m_Column3DViewManager.Columns[id];
+                Column3DViewIEEG currIEEGCol = (Column3DViewIEEG)m_Column3DViewManager.Columns[columnID];
                 currIEEGCol.ColumnTimeLineID = (int)value;
                 currIEEGCol.CurrentTimeLineID = currIEEGCol.ColumnTimeLineID;
             }
 
             ComputeIEEGTextures();
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            UpdateTimeInUI.Invoke();
+            OnUpdateTimeInUI.Invoke();
         }
         /// <summary>
         /// Update displayed amplitudes with the timeline id corresponding to global timeline mode or individual timeline mode
@@ -1548,36 +1596,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
         }
         /// <summary>
-        /// Mouse scroll events managements
-        /// </summary>
-        /// <param name="scrollDelta"></param>
-        public void MouseScrollAction(Vector2 scrollDelta)
-        {
-            // nothing for now 
-            // (not not delete children classes use it)
-        }
-        /// <summary>
-        /// Keyboard events management
-        /// </summary>
-        /// <param name="keyCode"></param>
-        public void KeyboardAction(KeyCode keyCode)
-        {
-            if (!SceneInformation.MeshesLoaded || !SceneInformation.MRILoaded)
-                return;
-
-            switch (keyCode)
-            {
-                // enable/disable holes in the cuts
-                case KeyCode.H:
-                    SceneInformation.CutHolesEnabled = !SceneInformation.CutHolesEnabled;
-                    SceneInformation.CutMeshGeometryNeedsUpdate = true;
-                    SceneInformation.IsIEEGOutdated = true;
-                    m_ModesManager.UpdateMode(Mode.FunctionsId.UpdatePlane); // TEMP
-                    break;
-            }
-        }
-        /// <summary>
-        /// 
+        /// Reset invisible brain and triangle eraser
         /// </summary>
         /// <param name="updateGO"></param>
         public void ResetTriangleErasing(bool updateGO = true)
@@ -1593,7 +1612,7 @@ namespace HBP.Module3D
             {
                 GameObject invisibleBrainPart = Instantiate(GlobalGOPreloaded.InvisibleBrain);
                 invisibleBrainPart.name = "erased brain part " + ii;
-                invisibleBrainPart.transform.SetParent(transform.Find("meshes").Find("erased brains"));
+                invisibleBrainPart.transform.SetParent(transform.Find("Meshes").Find("Erased Brains"));
                 switch(Type)
                 {
                     case SceneType.SinglePatient:
@@ -1617,21 +1636,13 @@ namespace HBP.Module3D
                     m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
         }
         /// <summary>
-        /// 
+        /// CTRL+Z on triangle eraser
         /// </summary>
         public void CancelLastTriangleErasingAction()
         {
             m_TriEraser.CancelLastAction();
             for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
                 m_Column3DViewManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
-        }
-        /// <summary>
-        /// Return the id of the current select column in the scene
-        /// </summary>
-        /// <returns></returns>
-        public int RetrieveCurrentSelectedColumnID()
-        {
-            return m_Column3DViewManager.SelectedColumnID;
         }
         /// <summary>
         /// Update the middle of a IEEG column
@@ -1650,9 +1661,8 @@ namespace HBP.Module3D
             SceneInformation.IsIEEGOutdated = true;
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
-            //####### UDPATE MODE
+            // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMiddle);
-            //##################
         }
         /// <summary>
         /// Update the max distance of a IEEG column
@@ -1670,12 +1680,11 @@ namespace HBP.Module3D
             SceneInformation.IsIEEGOutdated = true;
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
-            //####### UDPATE MODE
+            // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMiddle);
-            //##################
         }
         /// <summary>
-        /// 
+        /// Update MRI Cal minimum value
         /// </summary>
         /// <param name="value"></param>
         public void UpdateMRICalMin(float value)
@@ -1701,12 +1710,11 @@ namespace HBP.Module3D
             ComputeMRITextures();
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
-            //####### UDPATE MODE
+            // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMiddle);
-            //##################
         }
         /// <summary>
-        /// 
+        /// Update MRI Cal maximum value
         /// </summary>
         /// <param name="value"></param>
         public void UpdateMRICalMax(float value)
@@ -1733,9 +1741,8 @@ namespace HBP.Module3D
             ComputeMRITextures();
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
-            //####### UDPATE MODE
+            // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMiddle);
-            //##################
         }
         /// <summary>
         /// Update the cal min value of the input FMRI column
@@ -1888,30 +1895,9 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Is the latency mode enabled ?
-        /// </summary>
-        /// <returns></returns>
-        public bool IsLatencyModeEnabled()
-        {
-            return SceneInformation.DisplayCCEPMode;
-        }
-        /// <summary>
-        /// Updat visibility of the columns 3D items
-        /// </summary>
-        /// <param name="displayMeshes"></param>
-        /// <param name="displaySites"></param>
-        /// <param name="displayROI"></param>
-        public void UpdateSceneItemsVisibility(bool displayMeshes, bool displaySites, bool displayROI)
-        {
-            //if (!singlePatient)
-            //    m_CM.update_ROI_visibility(displayROI && data_.ROICreationMode);
-
-            //m_CM.update_sites_visibiliy(displaySites);
-        }
-        /// <summary>
         /// Send IEEG read min/max/middle to the IEEG menu
         /// </summary>
-        public void SendIEEGParametersToMenu()
+        public void SendIEEGParametersToMenu() // FIXME
         {            
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
@@ -1930,13 +1916,13 @@ namespace HBP.Module3D
                 iEEGDataParams.alphaMin     = m_Column3DViewManager.ColumnsIEEG[ii].AlphaMin;
                 iEEGDataParams.alphaMax     = m_Column3DViewManager.ColumnsIEEG[ii].AlphaMax; // useless
 
-                SendIEEGParameters.Invoke(iEEGDataParams);
+                OnSendIEEGParameters.Invoke(iEEGDataParams);
             }
         }
         /// <summary>
-        /// 
+        /// Send FMRI parameters to menu via event
         /// </summary>
-        public void SendFMRIParametersToMenu() // TODO
+        public void SendFMRIParametersToMenu() // TODO / FIXME
         {
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
@@ -1949,7 +1935,7 @@ namespace HBP.Module3D
                 FMRIDataParams.calValues = m_Column3DViewManager.DLLVolumeFMriList[ii].RetrieveExtremeValues(); 
                 FMRIDataParams.singlePatient = Type == SceneType.SinglePatient;
                 
-                SendFMRIParameters.Invoke(FMRIDataParams);
+                OnSendFMRIParameters.Invoke(FMRIDataParams);
             }
         }
         /// <summary>
@@ -1960,8 +1946,8 @@ namespace HBP.Module3D
         /// <param name="width"></param>
         /// <param name="height"></param>
         public void DisplayScreenMessage(string message, float duration, int width, int height)
-        {            
-            OnDisplayScreenMessage.Invoke(message, duration, width , height);
+        {
+            OnDisplaySceneMessage.Invoke(message, duration, width , height);
         }
         /// <summary>
         /// Send an event for displaying a progressbar on the scene screen
@@ -1972,10 +1958,10 @@ namespace HBP.Module3D
         /// <param name="height"></param>
         public void DisplayProgressbar(float value, float duration, int width, int height)
         {
-            OnDisplayScreenProgressbar.Invoke(duration, width, height, value);
+            OnDisplaySceneProgressBar.Invoke(duration, width, height, value);
         }
         /// <summary>
-        /// 
+        /// Begin the comparison between two sites
         /// </summary>
         public void CompareSites()
         {
@@ -1990,7 +1976,7 @@ namespace HBP.Module3D
         {
             m_Column3DViewManager.Columns[columnId].SelectedSiteID = -1; // unselect current site
             m_Column3DViewManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            ClickSite.Invoke(-1); // update menu
+            OnClickSite.Invoke(-1); // update menu
         }
         #endregion
 
@@ -2030,8 +2016,14 @@ namespace HBP.Module3D
     public class ComputeGeneratorsJob : ThreadedJob
     {
         #region Properties
-        public SceneStatesInfo data_ = null;
-        public Column3DViewManager cm_ = null;
+        /// <summary>
+        /// Information of the scene (same as the one in the respective Base3DScene)
+        /// </summary>
+        public SceneStatesInfo SceneInformation = null;
+        /// <summary>
+        /// Column3DViewManager of the scene
+        /// </summary>
+        public Column3DViewManager Column3DViewManager = null;
         #endregion
 
         #region Private Methods
@@ -2044,174 +2036,174 @@ namespace HBP.Module3D
             bool addValues = false;
             bool ratioDistances = true;
 
-            data_.RWLock.AcquireWriterLock(1000);
-            data_.CurrentComputingState = 0f;
-            data_.RWLock.ReleaseWriterLock();
+            SceneInformation.RWLock.AcquireWriterLock(1000);
+            SceneInformation.CurrentComputingState = 0f;
+            SceneInformation.RWLock.ReleaseWriterLock();
 
             // copy from main generators
-            for (int ii = 0; ii < cm_.ColumnsIEEG.Count; ++ii)
+            for (int ii = 0; ii < Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
-                for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
+                for (int jj = 0; jj < Column3DViewManager.MeshSplitNumber; ++jj)
                 {
-                    cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)cm_.DLLCommonBrainTextureGeneratorList[jj].Clone();
+                    Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)Column3DViewManager.DLLCommonBrainTextureGeneratorList[jj].Clone();
                 }
             }
 
-            float offsetState = 1f / (2 * cm_.ColumnsIEEG.Count);
+            float offsetState = 1f / (2 * Column3DViewManager.ColumnsIEEG.Count);
 
             // Do your threaded task. DON'T use the Unity API here
-            if (data_.MeshTypeToDisplay != SceneStatesInfo.MeshType.Inflated)
+            if (SceneInformation.MeshTypeToDisplay != SceneStatesInfo.MeshType.Inflated)
             {
-                for (int ii = 0; ii < cm_.ColumnsIEEG.Count; ++ii)
+                for (int ii = 0; ii < Column3DViewManager.ColumnsIEEG.Count; ++ii)
                 {
-                    data_.RWLock.AcquireWriterLock(1000);
-                    data_.CurrentComputingState += offsetState;
-                    data_.RWLock.ReleaseWriterLock();
+                    SceneInformation.RWLock.AcquireWriterLock(1000);
+                    SceneInformation.CurrentComputingState += offsetState;
+                    SceneInformation.RWLock.ReleaseWriterLock();
 
                     float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
                     float maxDensity = 1;
 
-                    cm_.ColumnsIEEG[ii].SharedMinInf = float.MaxValue;
-                    cm_.ColumnsIEEG[ii].SharedMaxInf = float.MinValue;
+                    Column3DViewManager.ColumnsIEEG[ii].SharedMinInf = float.MaxValue;
+                    Column3DViewManager.ColumnsIEEG[ii].SharedMaxInf = float.MinValue;
 
                     // update raw electrodes
-                    cm_.ColumnsIEEG[ii].UpdateDLLSitesMask();
+                    Column3DViewManager.ColumnsIEEG[ii].UpdateDLLSitesMask();
 
                     // splits
-                    for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
+                    for (int jj = 0; jj < Column3DViewManager.MeshSplitNumber; ++jj)
                     {
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(cm_.ColumnsIEEG[ii].RawElectrodes);
+                        Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(Column3DViewManager.ColumnsIEEG[ii].RawElectrodes);
 
 
-                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(cm_.ColumnsIEEG[ii].MaxDistanceElec, true))
+                        if (!Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(Column3DViewManager.ColumnsIEEG[ii].MaxDistanceElec, true))
                         {
                             Debug.LogError("Abort computing"); // useless
                             return;
                         }
 
-                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
+                        if (!Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(Column3DViewManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
                         {
                             Debug.LogError("Abort computing"); // useless
                             return;
                         }
-                        currentMaxDensity = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumDensity();
-                        currentMinInfluence = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMinimumInfluence();
-                        currentMaxInfluence = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumInfluence();
+                        currentMaxDensity = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumDensity();
+                        currentMinInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMinimumInfluence();
+                        currentMaxInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumInfluence();
 
                         if (currentMaxDensity > maxDensity)
                             maxDensity = currentMaxDensity;
 
-                        if (currentMinInfluence < cm_.ColumnsIEEG[ii].SharedMinInf)
-                            cm_.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
+                        if (currentMinInfluence < Column3DViewManager.ColumnsIEEG[ii].SharedMinInf)
+                            Column3DViewManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
 
-                        if (currentMaxInfluence > cm_.ColumnsIEEG[ii].SharedMaxInf)
-                            cm_.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
+                        if (currentMaxInfluence > Column3DViewManager.ColumnsIEEG[ii].SharedMaxInf)
+                            Column3DViewManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
 
                     }
 
-                    data_.RWLock.AcquireWriterLock(1000);
-                    data_.CurrentComputingState += offsetState;
-                    data_.RWLock.ReleaseWriterLock();
+                    SceneInformation.RWLock.AcquireWriterLock(1000);
+                    SceneInformation.CurrentComputingState += offsetState;
+                    SceneInformation.RWLock.ReleaseWriterLock();
 
 
                     // cuts
-                    for (int jj = 0; jj < cm_.PlanesCutsCopy.Count; ++jj)
+                    for (int jj = 0; jj < Column3DViewManager.PlanesCutsCopy.Count; ++jj)
                     {
-                        cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(cm_.ColumnsIEEG[ii].RawElectrodes);
-                        cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(cm_.ColumnsIEEG[ii].MaxDistanceElec, true);
+                        Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(Column3DViewManager.ColumnsIEEG[ii].RawElectrodes);
+                        Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(Column3DViewManager.ColumnsIEEG[ii].MaxDistanceElec, true);
 
-                        if (!cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
+                        if (!Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(Column3DViewManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
                         {
                             Debug.LogError("Abort computing");
                             return;
                         }
 
-                        currentMaxDensity = cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity();
-                        currentMinInfluence = cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MinimumInfluence();
-                        currentMaxInfluence = cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumInfluence();
+                        currentMaxDensity = Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity();
+                        currentMinInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MinimumInfluence();
+                        currentMaxInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumInfluence();
 
                         if (currentMaxDensity > maxDensity)
                             maxDensity = currentMaxDensity;
 
-                        if (currentMinInfluence < cm_.ColumnsIEEG[ii].SharedMinInf)
-                            cm_.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
+                        if (currentMinInfluence < Column3DViewManager.ColumnsIEEG[ii].SharedMinInf)
+                            Column3DViewManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
 
-                        if (currentMaxInfluence > cm_.ColumnsIEEG[ii].SharedMaxInf)
-                            cm_.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
+                        if (currentMaxInfluence > Column3DViewManager.ColumnsIEEG[ii].SharedMaxInf)
+                            Column3DViewManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
                     }
 
                     // synchronize max density
-                    for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, cm_.ColumnsIEEG[ii].SharedMinInf, cm_.ColumnsIEEG[ii].SharedMaxInf);
-                    for (int jj = 0; jj < cm_.PlanesCutsCopy.Count; ++jj)
-                        cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, cm_.ColumnsIEEG[ii].SharedMinInf, cm_.ColumnsIEEG[ii].SharedMaxInf);
+                    for (int jj = 0; jj < Column3DViewManager.MeshSplitNumber; ++jj)
+                        Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, Column3DViewManager.ColumnsIEEG[ii].SharedMinInf, Column3DViewManager.ColumnsIEEG[ii].SharedMaxInf);
+                    for (int jj = 0; jj < Column3DViewManager.PlanesCutsCopy.Count; ++jj)
+                        Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, Column3DViewManager.ColumnsIEEG[ii].SharedMinInf, Column3DViewManager.ColumnsIEEG[ii].SharedMaxInf);
 
-                    for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
-                    for (int jj = 0; jj < cm_.PlanesCutsCopy.Count; ++jj)
-                        cm_.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap();
+                    for (int jj = 0; jj < Column3DViewManager.MeshSplitNumber; ++jj)
+                        Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
+                    for (int jj = 0; jj < Column3DViewManager.PlanesCutsCopy.Count; ++jj)
+                        Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap();
                 }
             }
             else // if inflated white mesh is displayed, we compute only on the complete white mesh
             {
-                for (int ii = 0; ii < cm_.ColumnsIEEG.Count; ++ii)
+                for (int ii = 0; ii < Column3DViewManager.ColumnsIEEG.Count; ++ii)
                 {
-                    data_.RWLock.AcquireWriterLock(1000);
-                    data_.CurrentComputingState += offsetState;
-                    data_.RWLock.ReleaseWriterLock();
+                    SceneInformation.RWLock.AcquireWriterLock(1000);
+                    SceneInformation.CurrentComputingState += offsetState;
+                    SceneInformation.RWLock.ReleaseWriterLock();
 
                     float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
                     float maxDensity = 1;
 
-                    cm_.ColumnsIEEG[ii].SharedMinInf = float.MaxValue;
-                    cm_.ColumnsIEEG[ii].SharedMaxInf = float.MinValue;
+                    Column3DViewManager.ColumnsIEEG[ii].SharedMinInf = float.MaxValue;
+                    Column3DViewManager.ColumnsIEEG[ii].SharedMaxInf = float.MinValue;
 
                     // update raw electrodes
-                    cm_.ColumnsIEEG[ii].UpdateDLLSitesMask();
+                    Column3DViewManager.ColumnsIEEG[ii].UpdateDLLSitesMask();
 
                     // splits
-                    for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
+                    for (int jj = 0; jj < Column3DViewManager.MeshSplitNumber; ++jj)
                     {
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Reset(cm_.DLLSplittedWhiteMeshesList[jj], cm_.DLLVolume); // TODO : ?
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(cm_.ColumnsIEEG[ii].RawElectrodes);
+                        Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Reset(Column3DViewManager.DLLSplittedWhiteMeshesList[jj], Column3DViewManager.DLLVolume); // TODO : ?
+                        Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(Column3DViewManager.ColumnsIEEG[ii].RawElectrodes);
 
-                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(cm_.ColumnsIEEG[ii].MaxDistanceElec, true))
+                        if (!Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(Column3DViewManager.ColumnsIEEG[ii].MaxDistanceElec, true))
                         {
                             Debug.LogError("Abort computing");
                             return;
                         }
 
-                        if (!cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(cm_.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
+                        if (!Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(Column3DViewManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
                         {
                             Debug.LogError("Abort computing");
                             return;
                         }
 
-                        currentMaxDensity = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumDensity();
-                        currentMinInfluence = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMinimumInfluence();
-                        currentMaxInfluence = cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumInfluence();
+                        currentMaxDensity = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumDensity();
+                        currentMinInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMinimumInfluence();
+                        currentMaxInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumInfluence();
 
                         if (currentMaxDensity > maxDensity)
                             maxDensity = currentMaxDensity;
 
-                        if (currentMinInfluence < cm_.ColumnsIEEG[ii].SharedMinInf)
-                            cm_.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
+                        if (currentMinInfluence < Column3DViewManager.ColumnsIEEG[ii].SharedMinInf)
+                            Column3DViewManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
 
-                        if (currentMaxInfluence > cm_.ColumnsIEEG[ii].SharedMaxInf)
-                            cm_.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
+                        if (currentMaxInfluence > Column3DViewManager.ColumnsIEEG[ii].SharedMaxInf)
+                            Column3DViewManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
                     }
 
-                    data_.RWLock.AcquireWriterLock(1000);
-                    data_.CurrentComputingState += offsetState;
-                    data_.RWLock.ReleaseWriterLock();
+                    SceneInformation.RWLock.AcquireWriterLock(1000);
+                    SceneInformation.CurrentComputingState += offsetState;
+                    SceneInformation.RWLock.ReleaseWriterLock();
 
 
                     // synchronize max density
-                    for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, cm_.ColumnsIEEG[ii].SharedMinInf, cm_.ColumnsIEEG[ii].SharedMaxInf);
+                    for (int jj = 0; jj < Column3DViewManager.MeshSplitNumber; ++jj)
+                        Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, Column3DViewManager.ColumnsIEEG[ii].SharedMinInf, Column3DViewManager.ColumnsIEEG[ii].SharedMaxInf);
 
-                    for (int jj = 0; jj < cm_.MeshSplitNumber; ++jj)
-                        cm_.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
+                    for (int jj = 0; jj < Column3DViewManager.MeshSplitNumber; ++jj)
+                        Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
                 }
             }
         }

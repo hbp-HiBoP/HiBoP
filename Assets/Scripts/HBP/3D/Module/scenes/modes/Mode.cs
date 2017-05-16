@@ -38,8 +38,7 @@ namespace HBP.Module3D
 
         void OnEnable()
         {
-            IDMode = serializedObject.FindProperty("m_ID");
-            Debug.Log(IDMode);
+            IDMode = serializedObject.FindProperty("ID");
             FunctionsMask = serializedObject.FindProperty("FunctionsMask");
             UIOverlayMask = serializedObject.FindProperty("UIOverlayMask");
             DisplayItems = serializedObject.FindProperty("DisplayItems");
@@ -102,7 +101,6 @@ namespace HBP.Module3D
 
 
             EditorGUILayout.PropertyField(IDMode, new GUIContent("ID : "), true);
-
             showFunctions = EditorGUILayout.Foldout(showFunctions, "Functions");
             if(showFunctions)
             {
@@ -169,15 +167,6 @@ namespace HBP.Module3D
         public List<bool> ItemMaskDisplay;
     }
 
-    namespace Events
-    {
-        /// <summary>
-        /// Event for sending mode specifications
-        /// </summary>
-        public class OnSendModeSpecifications : UnityEvent<ModeSpecifications> { }
-    }
-
-
     /// <summary>
     /// Logic state of the scene
     /// </summary>
@@ -198,18 +187,7 @@ namespace HBP.Module3D
         public enum UIOverlayId { PlanesController, TimelineController, IconsController, CutDisplayController, ColormapController, MinimizeController, TimeDisplayController }; /**< UI overlay elements */       
         private bool m_NeedsUpdate = true; /**< is the mode has to update it's specifications ? */
         public SceneType Type;  /**< is the mode associated to a single patient scene ? */
-        private ModesId m_ID;
-        public ModesId ID
-        {
-            get
-            {
-                return m_ID;
-            }
-            set
-            {
-                m_ID = value;
-            }
-        } /**< id of the mode */
+        public ModesId ID;
         public SceneStatesInfo SceneInformation = null; /**< scene states info */
 
         public List<bool> UIOverlayMask = null; /**< ui overlay mask for this mod */
@@ -218,8 +196,10 @@ namespace HBP.Module3D
 
         private ModeSpecifications m_Specifications = new ModeSpecifications();
 
-        // events
-        public Events.OnSendModeSpecifications SendModeSpecifications = new Events.OnSendModeSpecifications();
+        /// <summary>
+        /// Event for sending mode specifications
+        /// </summary>
+        public GenericEvent<ModeSpecifications> SendModeSpecifications = new GenericEvent<ModeSpecifications>();
         #endregion
 
         #region Public Methods 

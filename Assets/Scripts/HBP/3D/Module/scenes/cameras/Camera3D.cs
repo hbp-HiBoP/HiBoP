@@ -1,24 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
 namespace HBP.Module3D
 {
     public enum DisplayedItems { Meshes, Plots, ROI };
-
-    namespace Events
-    {
-        /// <summary>
-        /// Event when a left click occurs in the camera (params : ray, spScene, idColumn)
-        /// </summary>
-        public class LeftClick : UnityEvent<Ray, SceneType, int> { }
-        /// <summary>
-        /// Event when a left mouse movement occurs in the camera (params : ray, mousePosition, spScene, idColumn)
-        /// </summary>
-        public class MouseMovement : UnityEvent<Ray, Vector3, SceneType, int> { }
-    }
 
     public class Camera3D : MonoBehaviour
     {
@@ -169,6 +156,9 @@ namespace HBP.Module3D
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
             m_AssociatedScene = GetComponentInParent<Base3DScene>();
             m_AssociatedView = GetComponentInParent<View3D>();
+            m_Target = m_AssociatedScene.Column3DViewManager.BothHemi.BoundingBox().Center();
+            m_OriginalTarget = m_Target;
+            transform.position = m_Target - transform.forward * m_StartDistance;
 
             // rotation circles
             m_XRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
@@ -179,25 +169,20 @@ namespace HBP.Module3D
                 m_XRotationCircleVertices[ii] = Quaternion.AngleAxis(90, Vector3.up) * m_XRotationCircleVertices[ii];
                 m_YRotationCircleVertices[ii] = Quaternion.AngleAxis(90, Vector3.left) * m_YRotationCircleVertices[ii];
             }
-
-            transform.localEulerAngles = m_OriginalRotationEuler;
-            m_Target = m_AssociatedScene.Column3DViewManager.BothHemi.BoundingBox().Center();
-            m_OriginalTarget = m_Target;
-            transform.position = m_Target - transform.forward * m_StartDistance;
         }
         private void Start()
         {
-            m_AssociatedScene.ModifyPlanesCuts.AddListener(() =>
+            m_AssociatedScene.OnModifyPlanesCuts.AddListener(() =>
             {
                 if (!m_AssociatedScene.SceneInformation.MRILoaded)
                     return;
 
                 m_PlanesCutsCirclesVertices = new List<Vector3[]>();
-                for (int ii = 0; ii < m_AssociatedScene.PlanesList.Count; ++ii)
+                for (int ii = 0; ii < m_AssociatedScene.Cuts.Count; ++ii)
                 {
-                    Vector3 point = m_AssociatedScene.PlanesList[ii].Point;
+                    Vector3 point = m_AssociatedScene.Cuts[ii].Point;
                     point.x *= -1;
-                    Vector3 normal = m_AssociatedScene.PlanesList[ii].Normal;
+                    Vector3 normal = m_AssociatedScene.Cuts[ii].Normal;
                     normal.x *= -1;
                     Quaternion q = Quaternion.FromToRotation(new Vector3(0, 0, 1), normal);
                     m_PlanesCutsCirclesVertices.Add(Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), 100, 150));

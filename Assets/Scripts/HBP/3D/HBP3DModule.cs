@@ -20,23 +20,6 @@ using UnityEditor;
 
 namespace HBP.Module3D
 {
-    namespace Events
-    {
-        /// <summary>
-        /// Event called when an IEGG column minimized state has changed (params : spScene, IEEGColumnsMinimizedStates)
-        /// </summary>
-        [System.Serializable]
-        public class OnMinimizeColumn : UnityEvent<bool, List<bool>> { }
-        /// <summary>
-        /// Event called when a visualization is added
-        /// </summary>
-        public class OnAddVisualization : UnityEvent<Data.Visualization.Visualization> { }
-        /// <summary>
-        /// Event called when a visualization is removed
-        /// </summary>
-        public class OnRemoveVisualization : UnityEvent<Data.Visualization.Visualization> { }
-    }
-
     /// <summary>
     /// Interface class for controling the 3D module. Never uses other GameObject than this one from outside of the module
     /// </summary>
@@ -64,22 +47,36 @@ namespace HBP.Module3D
                 return new ReadOnlyCollection<Data.Visualization.Visualization>((from scene in ScenesManager.Scenes select scene.Visualization).ToList());
             }
         }
-
-        [Header("API events")]
-        public Events.OnMinimizeColumn OnMinimizeColumn = new Events.OnMinimizeColumn();
-        public Events.OnRequestSiteInformation OnRequestSiteInformation = new Events.OnRequestSiteInformation();        
-        public Events.OnLoadSinglePatientSceneFromMultiPatientsScene OnLoadSinglePatientSceneFromMultiPatientsScene = new Events.OnLoadSinglePatientSceneFromMultiPatientsScene();
-        public Events.OnSaveRegionOfInterest OnSaveRegionOfInterest = new Events.OnSaveRegionOfInterest();
-        public Events.OnAddVisualization OnAddVisualization = new Events.OnAddVisualization();
-        public Events.OnRemoveVisualization OnRemoveVisualization = new Events.OnRemoveVisualization();
+        
+        /// <summary>
+        /// Event called when an IEGG column minimized state has changed (params : spScene, IEEGColumnsMinimizedStates)
+        /// </summary>
+        public GenericEvent<bool, List<bool>> OnMinimizeColumn = new GenericEvent<bool, List<bool>>();
+        /// <summary>
+        /// UI event for sending a plot info request to the outside UI (params : plotRequest)
+        /// </summary>
+        public GenericEvent<SiteRequest> OnRequestSiteInformation = new GenericEvent<SiteRequest>();
+        /// <summary>
+        /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
+        /// </summary>   
+        public GenericEvent<Data.Visualization.MultiPatientsVisualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.MultiPatientsVisualization, Data.Patient>();
+        /// <summary>
+        /// Send the path of the saved ROI
+        /// </summary>
+        public GenericEvent<string> OnSaveRegionOfInterest = new GenericEvent<string>();
+        /// <summary>
+        /// Event called when a visualization is added
+        /// </summary>
+        public GenericEvent<Data.Visualization.Visualization> OnAddVisualization = new GenericEvent<Data.Visualization.Visualization>();
+        /// <summary>
+        /// Event called when a visualization is removed
+        /// </summary>
+        public GenericEvent<Data.Visualization.Visualization> OnRemoveVisualization = new GenericEvent<Data.Visualization.Visualization>();
         #endregion
 
         #region Private Methods
         void Awake()
         {
-            // ApplicationState
-            ApplicationState.Module3D = this;
-
             // Scene Manager
             m_ScenesManager = transform.GetComponentInChildren<ScenesManager>();
             ScenesManager.OnAddScene.AddListener((scene) =>
@@ -110,7 +107,7 @@ namespace HBP.Module3D
 
             // Add listeners to last added scene
             SinglePatient3DScene lastAddedScene = ScenesManager.Scenes.Last() as SinglePatient3DScene;
-            lastAddedScene.SiteInfoRequest.AddListener((siteRequest) =>
+            lastAddedScene.OnRequestSiteInformation.AddListener((siteRequest) =>
             {
                 OnRequestSiteInformation.Invoke(siteRequest);
             });
@@ -137,7 +134,7 @@ namespace HBP.Module3D
             {
                 // Add listener to last added scene
                 MultiPatients3DScene lastAddedScene = ScenesManager.Scenes.Last() as MultiPatients3DScene;
-                lastAddedScene.SiteInfoRequest.AddListener((siteRequest) =>
+                lastAddedScene.OnRequestSiteInformation.AddListener((siteRequest) =>
                 {
                     OnRequestSiteInformation.Invoke(siteRequest);
                 });

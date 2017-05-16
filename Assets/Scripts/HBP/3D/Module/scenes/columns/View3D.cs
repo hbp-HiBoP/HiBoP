@@ -45,6 +45,18 @@ namespace HBP.Module3D
             {
                 return m_IsMinimized;
             }
+            set
+            {
+                m_IsMinimized = value;
+                if (m_IsMinimized)
+                {
+                    m_Camera.CullingMask = m_RegularCullingMask;
+                }
+                else
+                {
+                    m_Camera.CullingMask = m_MinimizedCullingMask;
+                }
+            }
         }
 
         /// <summary>
@@ -116,9 +128,14 @@ namespace HBP.Module3D
         /// Layer of the view
         /// </summary>
         public string Layer { get; set; }
-
-        // Default Culling Masks values
+        
+        /// <summary>
+        /// Default minimized culling mask value
+        /// </summary>
         private int m_MinimizedCullingMask;
+        /// <summary>
+        /// Default regular culling mask value
+        /// </summary>
         private int m_RegularCullingMask;
         #endregion
 
@@ -150,22 +167,6 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Set the minimized state of the view
-        /// </summary>
-        /// <param name="minimized"></param>
-        public void SetMinimized(bool minimized)
-        {
-            m_IsMinimized = minimized;
-            if (m_IsMinimized)
-            {
-                m_Camera.CullingMask = m_RegularCullingMask;
-            }
-            else
-            {
-                m_Camera.CullingMask = m_MinimizedCullingMask;
-            }
-        }
         /// <summary>
         /// Synchronize the camera of this view using the camera from a reference view
         /// </summary>

@@ -459,7 +459,7 @@ namespace HBP.Module3D
         /// <param name="flip"></param>
         /// <param name="cutPlanes"></param>
         /// <param name="drawLines"></param>
-        public void CreateGUIIEEGTexture(int indexCut, string orientation, bool flip, List<Plane> cutPlanes, bool drawLines)
+        public void CreateGUIIEEGTexture(int indexCut, string orientation, bool flip, List<Cut> cutPlanes, bool drawLines)
         {
             if (DLLBrainCutTextures[indexCut].m_TextureSize[0] > 0)
             {

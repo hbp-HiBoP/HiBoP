@@ -78,7 +78,7 @@ namespace HBP.Module3D
             removePlaneButton.onClick.AddListener(delegate { if (m_CurrentPlaneNumber > 0) { removePlane(); } });
 
             // updates planes after reloading volume 
-            m_Scene.UpdatePlanes.AddListener(
+            m_Scene.OnUpdatePlanes.AddListener(
                     delegate { updateAllSceneCutPlanes(); }
                 );
 
@@ -289,6 +289,7 @@ namespace HBP.Module3D
         /// <param name="idPlane"></param>
         private void update_plane(int idPlane)
         {
+            /*
             float position = m_SetPlanePanelList[idPlane].transform.Find("setplane bottom layout").Find("setplane_position_slider").GetComponent<Slider>().value;
             bool sagital = m_SetPlanePanelList[idPlane].transform.Find("setplane_middle1_layout").Find("setplane_sagital_radiobutton").GetComponent<UnityEngine.UI.Toggle>().isOn;
             bool coronal = m_SetPlanePanelList[idPlane].transform.Find("setplane_middle1_layout").Find("setplane_coronal_radiobutton").GetComponent<UnityEngine.UI.Toggle>().isOn;
@@ -299,19 +300,20 @@ namespace HBP.Module3D
             string valueZ = m_SetPlanePanelList[idPlane].transform.Find("setplane_middle2_layout").Find("setplane_z_inputfield").GetComponent<InputField>().text;
             bool removeFrontPlane = false;// setPlanePanelList[idPlane].transform.Find("setplane_bottom_layout").Find("setplane_removeFrontPlane_toggle").GetComponent<UnityEngine.UI.Toggle>().isOn;
 
-            int idOrientation = 0;
+            CutOrientation orientation = CutOrientation.Axial;
             if (sagital)
-                idOrientation = 2;
+                orientation = CutOrientation.Sagital;
             else if (coronal)
-                idOrientation = 1;
+                orientation = CutOrientation.Coronal;
             else if (custom)
-                idOrientation = 3;
+                orientation = CutOrientation.Custom;
 
             float x = float.Parse(valueX, CultureInfo.InvariantCulture.NumberFormat);
             float y = float.Parse(valueY, CultureInfo.InvariantCulture.NumberFormat);
             float z = float.Parse(valueZ, CultureInfo.InvariantCulture.NumberFormat);
 
-            m_Scene.UpdateCutPlane(idOrientation, flip, removeFrontPlane, new Vector3(x, y, z), idPlane, position);
+            m_Scene.UpdateCutPlane(orientation, flip, removeFrontPlane, new Vector3(x, y, z), idPlane, position);
+            */
         }
 
         /// <summary>
@@ -398,7 +400,7 @@ namespace HBP.Module3D
             m_SetPlanePanelList.RemoveAt(m_SetPlanePanelList.Count - 1);
 
             // remove last plane and update the scene
-            m_Scene.RemoveCutPlane(m_CurrentPlaneNumber--);
+            //m_Scene.RemoveCutPlane(m_CurrentPlaneNumber--);
         }
 
 

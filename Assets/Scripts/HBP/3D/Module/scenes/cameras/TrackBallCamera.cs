@@ -13,18 +13,6 @@ namespace HBP.Module3D.Cam
 {
     public enum DisplayedItems{ Meshes, Plots, ROI };
 
-    namespace Events
-    {
-        /// <summary>
-        /// Event when a left click occurs in the camera (params : ray, spScene, idColumn)
-        /// </summary>
-        public class LeftClick : UnityEvent<Ray, SceneType, int> { }
-        /// <summary>
-        /// Event when a left mouse movement occurs in the camera (params : ray, mousePosition, spScene, idColumn)
-        /// </summary>
-        public class MouseMovement : UnityEvent<Ray, Vector3, SceneType, int> { }            
-    }
-
     /// <summary>
     /// The base scene 3D camera class, can move around a target and manage line and column position
     /// </summary>
@@ -279,7 +267,7 @@ namespace HBP.Module3D.Cam
         protected void Update()
         {
             // update current color
-            int id = m_AssociatedScene.RetrieveCurrentSelectedColumnID();
+            int id = m_AssociatedScene.SelectedColumnID;
             if (id == m_Column)
             {
                 GetComponent<Camera>().backgroundColor = m_SelectedColor;
@@ -674,7 +662,7 @@ namespace HBP.Module3D.Cam
         /// <returns></returns>
         public bool IsSelected()
         {
-            return (m_AssociatedScene.RetrieveCurrentSelectedColumnID() == m_Column);
+            return (m_AssociatedScene.SelectedColumnID == m_Column);
         }
         /// <summary>
         /// Update the culling mask rendered of the camera

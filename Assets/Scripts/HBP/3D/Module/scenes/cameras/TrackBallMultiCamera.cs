@@ -59,17 +59,17 @@ namespace HBP.Module3D.Cam
                 GetComponent<Camera>().cullingMask = MinimizedCullingMask;
 
             // listeners
-            base.m_AssociatedScene.ModifyPlanesCuts.AddListener(() =>
+            base.m_AssociatedScene.OnModifyPlanesCuts.AddListener(() =>
             {
                 if (!base.m_AssociatedScene.SceneInformation.MRILoaded)
                     return;
 
                 m_PlanesCutsCirclesVertices = new List<Vector3[]>();
-                for (int ii = 0; ii < base.m_AssociatedScene.PlanesList.Count; ++ii)
+                for (int ii = 0; ii < base.m_AssociatedScene.Cuts.Count; ++ii)
                 {
-                    Vector3 point = base.m_AssociatedScene.PlanesList[ii].Point;
+                    Vector3 point = base.m_AssociatedScene.Cuts[ii].Point;
                     point.x *= -1;
-                    Vector3 normal = base.m_AssociatedScene.PlanesList[ii].Normal;
+                    Vector3 normal = base.m_AssociatedScene.Cuts[ii].Normal;
                     normal.x *= -1;
                     Quaternion q = Quaternion.FromToRotation(new Vector3(0, 0, 1), normal);
                     m_PlanesCutsCirclesVertices.Add(Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), 100, 150));

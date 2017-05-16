@@ -134,7 +134,7 @@ namespace HBP.UI.Module3D
             }
 
             // click site  
-            m_scene.ClickSite.AddListener((idColumn) =>
+            m_scene.OnClickSite.AddListener((idColumn) =>
             {
                 if (idColumn == -1)
                     idColumn = m_scene.Column3DViewManager.SelectedColumnID;
