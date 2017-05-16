@@ -12,37 +12,35 @@ public static class ApplicationState
     /// <summary>
     /// Project loaded on the application.
     /// </summary>
-    public static HBP.Data.General.Project ProjectLoaded;
+    public static HBP.Data.General.Project ProjectLoaded { get; set; }
 
     /// <summary>
     /// Location of the project loaded.
     /// </summary>
-    public static string ProjectLoadedLocation;
+    public static string ProjectLoadedLocation { get; set; }
 
     /// <summary>
     /// General settings of the application.
     /// </summary>
-    public static HBP.Data.Settings.GeneralSettings GeneralSettings;
+    public static HBP.Data.Settings.GeneralSettings GeneralSettings { get; set; }
 
     /// <summary>
     /// Theme of the application.
     /// </summary>
-    public static HBP.UI.Theme.Theme Theme;
-
-    public static CoroutineManager CoroutineManager;
+    public static HBP.UI.Theme.Theme Theme { get; set; }
 
     /// <summary>
-    /// 3D Module manager
+    /// Coroutine manager.
     /// </summary>
-    public static HBP.Module3D.HBP3DModule Module3D;
+    public static CoroutineManager CoroutineManager { get; set; }
 
     /// <summary>
-    /// 3D Scenes Manager
+    /// 3D Module manager.
     /// </summary>
-    public static HBP.Module3D.ScenesManager ScenesManager;
+    public static HBP.Module3D.HBP3DModule Module3D { get; set; }
 
     /// <summary>
-    /// 3D DLL Debug Manager
+    /// 3D DLL Debug Manager.
     /// </summary>
-    public static HBP.Module3D.DLL.DLLDebugManager DLLDebugManager;
+    public static HBP.Module3D.DLL.DLLDebugManager DLLDebugManager { get; set; }
 }

@@ -6,10 +6,10 @@ using CielaSpike;
 
 public class CoroutineManager : MonoBehaviour
 {
-    List<Coroutine> m_coroutines;
+    List<Coroutine> m_coroutines = new List<Coroutine>();
     public ReadOnlyCollection<Coroutine> Coroutines { get { return new ReadOnlyCollection<Coroutine>(m_coroutines); } }
 
-    public Coroutine LaunchCoroutineAsync(IEnumerator coroutine)
+    public Coroutine Add(IEnumerator coroutine)
     {
         Coroutine l_coroutine = this.StartCoroutineAsync(coroutine);
         m_coroutines.Add(l_coroutine);

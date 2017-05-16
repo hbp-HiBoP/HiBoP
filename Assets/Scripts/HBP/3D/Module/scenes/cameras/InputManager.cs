@@ -5,11 +5,6 @@
  * \date    2015
  * \brief   Define InputsSceneManager class
  */
-
-// system
-using System.Collections;
-
-// unity
 using UnityEngine;
 using HBP.UI.Module3D;
 
@@ -24,14 +19,6 @@ namespace HBP.Interaction
         #region Properties
         private Module3D.ScenesManager m_scenesManager = null;
         private UIManager m_UIManager = null;
-        #endregion
-
-        #region Private Methods
-        void Awake()
-        {
-            m_scenesManager = ApplicationState.ScenesManager;
-            //m_UIManager = Module3D.StaticComponents.UIManager; // TODO : retrieve
-        }
         #endregion
         
         #region Public Methods

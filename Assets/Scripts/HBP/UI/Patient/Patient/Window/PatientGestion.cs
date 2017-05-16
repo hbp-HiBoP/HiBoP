@@ -18,7 +18,7 @@ namespace HBP.UI.Patient
         // General.
         public override void Save()
         {
-            ApplicationState.ProjectLoaded.SetPatients(Items.ToArray());
+            ApplicationState.CoroutineManager.Add(c_Save());
             base.Save();
         }
 
@@ -51,6 +51,11 @@ namespace HBP.UI.Patient
                 yield return Ninja.JumpToUnity;
                 databaseList.Add(patient, !Items.Contains(patient));
             }
+        }
+        IEnumerator c_Save()
+        {
+            ApplicationState.ProjectLoaded.SetPatients(Items.ToArray());
+            yield return true;
         }
         protected override void SetWindow()
         {

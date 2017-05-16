@@ -5,12 +5,7 @@
  * \brief Define SharedMaterials
  */
 
-// system
-using System;
-using System.Text;
 using System.Collections.Generic;
-
-// unity
 using UnityEngine;
 
 namespace HBP.Module3D
@@ -28,7 +23,7 @@ namespace HBP.Module3D
 
             public static void Initialize()
             {
-                ApplicationState.ScenesManager.OnAddScene.AddListener((scene) =>
+                ApplicationState.Module3D.ScenesManager.OnAddScene.AddListener((scene) =>
                 {
                     Material brainMaterial, cutMaterial;
                     switch (scene.Type) // Distinction is useful in the shader in order to show mars atlases in sp
@@ -49,7 +44,7 @@ namespace HBP.Module3D
                             break;
                     }
                 });
-                ApplicationState.ScenesManager.OnRemoveScene.AddListener((scene) =>
+                ApplicationState.Module3D.ScenesManager.OnRemoveScene.AddListener((scene) =>
                 {
                     Destroy(BrainMaterials[scene]);
                     BrainMaterials.Remove(scene);

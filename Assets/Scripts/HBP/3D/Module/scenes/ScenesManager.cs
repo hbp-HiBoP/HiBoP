@@ -94,13 +94,6 @@ namespace HBP.Module3D
         public GameObject MultiPatientsScenePrefab;
         #endregion
 
-        #region Private Methods
-        private void Awake()
-        {
-            ApplicationState.ScenesManager = this;
-        }
-        #endregion
-
         #region Public Methods
         /// <summary>
         /// Add a new single patient scene

@@ -544,7 +544,6 @@ namespace HBP.UI
             yield return c_Save(path);
             yield return Ninja.JumpToUnity;
             GameObject.FindGameObjectWithTag("Gestion").GetComponent<MenuButtonState>().SetInteractableButtons();
-            //UnityEngine.SceneManagement.SceneManager.LoadScene(0);
         }
         #endregion
 

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Reflection;
 using System.Runtime.Serialization;
+using CielaSpike;
 
 namespace HBP.Data.Anatomy
 {
@@ -187,9 +189,23 @@ namespace HBP.Data.Anatomy
             Implantation.Load(PatientBasedImplantation, ReferenceFrameType.Patient);
             Implantation.Load(MNIBasedImplantation, ReferenceFrameType.MNI);
         }
+        public void LoadImplantationsAsyn()
+        {
+            ApplicationState.CoroutineManager.Add(LoadAsyn());
+        }
         public void UnloadImplantations()
         {
             Implantation.Unload();
+        }
+        #endregion
+
+        #region Methods
+        IEnumerator LoadAsyn()
+        {
+            yield return Ninja.JumpBack;
+            Implantation.Load(PatientBasedImplantation, ReferenceFrameType.Patient);
+            Implantation.Load(MNIBasedImplantation, ReferenceFrameType.MNI);
+            yield return Ninja.JumpToUnity;
         }
         #endregion
 
