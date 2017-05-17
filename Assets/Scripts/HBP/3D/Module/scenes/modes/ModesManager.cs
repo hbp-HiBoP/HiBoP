@@ -174,24 +174,24 @@ namespace HBP.Module3D
             switch (scene.Type)
             {
                 case SceneType.SinglePatient:
-                    InitializeMode(scene, out m_NoSinglePatientPathDefined, "No path defined");
-                    InitializeMode(scene, out m_MinSinglePatientPathDefined, "Min path defined");
-                    InitializeMode(scene, out m_AllSinglePatientPathDefined, "All paths defined");
-                    InitializeMode(scene, out m_SinglePatientComputingAmplitudes, "Computing amplitudes");
-                    InitializeMode(scene, out m_SinglePatientAmplitudesComputed, "Amplitudes computed");
-                    InitializeMode(scene, out m_SinglePatientTriangleErasing, "Tri erasing");
-                    InitializeMode(scene, out m_SinglePatientAmpNeedUpdate, "Amp need update");
+                    InitializeMode(scene, out m_NoSinglePatientPathDefined, "No Path Defined");
+                    InitializeMode(scene, out m_MinSinglePatientPathDefined, "Min Path Defined");
+                    InitializeMode(scene, out m_AllSinglePatientPathDefined, "All Paths Defined");
+                    InitializeMode(scene, out m_SinglePatientComputingAmplitudes, "Computing Amplitudes");
+                    InitializeMode(scene, out m_SinglePatientAmplitudesComputed, "Amplitudes Computed");
+                    InitializeMode(scene, out m_SinglePatientTriangleErasing, "Triangle Erasing");
+                    InitializeMode(scene, out m_SinglePatientAmpNeedUpdate, "Amplitudes Need Update");
                     InitializeMode(scene, out m_SinglePatientErrorMode, "Error");
                     CurrentMode = m_NoSinglePatientPathDefined;
                     break;
                 case SceneType.MultiPatients:
-                    InitializeMode(scene, out m_NoMultiPatientsPathDefined, "No path defined");
-                    InitializeMode(scene, out m_MinMultiPatientsPathDefined, "Min path defined");
-                    InitializeMode(scene, out m_AllMultiPatientsPathDefined, "All paths defined");
-                    InitializeMode(scene, out m_MultiPatientsComputingAmplitudes, "Computing amplitudes");
-                    InitializeMode(scene, out m_MultiPatientsAmplitudesComputed, "Amplitudes computed");
+                    InitializeMode(scene, out m_NoMultiPatientsPathDefined, "No Path Defined");
+                    InitializeMode(scene, out m_MinMultiPatientsPathDefined, "Min Path Defined");
+                    InitializeMode(scene, out m_AllMultiPatientsPathDefined, "All Paths Defined");
+                    InitializeMode(scene, out m_MultiPatientsComputingAmplitudes, "Computing Amplitudes");
+                    InitializeMode(scene, out m_MultiPatientsAmplitudesComputed, "Amplitudes Computed");
                     //initMode(scene, out mpROICreation, "ROI creation");
-                    InitializeMode(scene, out m_MultiPatientsAmpNeedUpdate, "Amp need update");
+                    InitializeMode(scene, out m_MultiPatientsAmpNeedUpdate, "Amplitudes Need Update");
                     InitializeMode(scene, out m_MultiPatientsErrorMode, "Error");
                     CurrentMode = m_NoMultiPatientsPathDefined;
                     break;

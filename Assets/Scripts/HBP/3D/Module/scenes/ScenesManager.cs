@@ -18,7 +18,7 @@ namespace HBP.Module3D
     public class ScenesManager : MonoBehaviour
     {
         #region Properties
-        private List<Base3DScene> m_Scenes = null;
+        private List<Base3DScene> m_Scenes = new List<Base3DScene>();
         /// <summary>
         /// List of loaded scenes
         /// </summary>
@@ -52,6 +52,18 @@ namespace HBP.Module3D
             get
             {
                 return m_SelectedScene;
+            }
+        }
+
+        private int m_NumberOfScenesLoadedSinceStart = 0;
+        /// <summary>
+        /// Number of scenes that have been loaded in this instance of HiBoP
+        /// </summary>
+        public int NumberOfScenesLoadedSinceStart
+        {
+            get
+            {
+                return m_NumberOfScenesLoadedSinceStart;
             }
         }
 
@@ -95,10 +107,10 @@ namespace HBP.Module3D
         /// <returns></returns>
         public bool AddSinglePatientScene(Data.Visualization.SinglePatientVisualization visualization, bool postIRM)
         {
-            GameObject newSinglePatientScene = Instantiate(SinglePatientScenePrefab, transform);
-            SinglePatient3DScene scene = newSinglePatientScene.GetComponent<SinglePatient3DScene>();
+            SinglePatient3DScene scene = Instantiate(SinglePatientScenePrefab, transform).GetComponent<SinglePatient3DScene>();
             // Initialize the scene
             bool success = scene.Initialize(visualization, postIRM);
+            m_NumberOfScenesLoadedSinceStart++;
             if (!success)
             {
                 Debug.LogError("-ERROR : Could not initialize new single patient scene.");
@@ -128,6 +140,7 @@ namespace HBP.Module3D
             MultiPatients3DScene scene = newMultiPatientsScene.GetComponent<MultiPatients3DScene>();
             // Initialize the scene
             bool success = scene.Initialize(visualization);
+            m_NumberOfScenesLoadedSinceStart++;
             if (!success)
             {
                 Debug.LogError("-ERROR : Could not initialize new multi patients scene.");

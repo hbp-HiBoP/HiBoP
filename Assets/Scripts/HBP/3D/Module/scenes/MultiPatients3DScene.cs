@@ -42,11 +42,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return Visualization as Data.Visualization.MultiPatientsVisualization;
+                return m_Visualization as Data.Visualization.MultiPatientsVisualization;
             }
             set
             {
-                Visualization = value;
+                m_Visualization = value;
             }
         }
         /// <summary>
@@ -247,7 +247,10 @@ namespace HBP.Module3D
         public bool Initialize(Data.Visualization.MultiPatientsVisualization visualization)
         {
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
+
             Visualization = visualization;
+            gameObject.name = "MultiPatients Scene (" + GetComponentInParent<ScenesManager>().NumberOfScenesLoadedSinceStart + ")";
+            transform.position = new Vector3(SPACE_BETWEEN_SCENES * GetComponentInParent<ScenesManager>().NumberOfScenesLoadedSinceStart, transform.position.y, transform.position.z);
 
             // MNI meshes are preloaded
             SceneInformation.VolumeCenter = m_MNIObjects.IRM.Center();
@@ -283,10 +286,6 @@ namespace HBP.Module3D
             OnIRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.RetrieveExtremeValues());
 
 
-            // update scenes cameras
-            OnUpdateCameraTarget.Invoke(m_MNIObjects.BothHemi.BoundingBox().Center());
-
-
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
             //##################
@@ -311,6 +310,9 @@ namespace HBP.Module3D
 
             SetTimelineData();
             UpdateSelectedColumn(0);
+
+            // update scenes cameras
+            OnUpdateCameraTarget.Invoke(m_MNIObjects.BothHemi.BoundingBox().Center());
 
             DisplayScreenMessage("Multi Patients Scene loaded", 2.0f, 400, 80);
             return true;

@@ -42,7 +42,7 @@ namespace HBP.Module3D
         }
 
         public GameObject ViewPrefab;
-        protected List<View3D> m_Views;
+        protected List<View3D> m_Views = new List<View3D>();
         public ReadOnlyCollection<View3D> Views
         {
             get
@@ -111,22 +111,20 @@ namespace HBP.Module3D
         {
             // scene
             Layer = "C" + idColumn + "_";
-            if (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient)
+            if (transform.GetComponentInParent<Base3DScene>().Type == SceneType.SinglePatient)
                 Layer += "SP";
             else
                 Layer += "MP";
 
             // select ring
-            gameObject.AddComponent<SiteRing>();
-            m_SelectRing = gameObject.GetComponent<SiteRing>();
+            m_SelectRing = gameObject.GetComponentInChildren<SiteRing>();
             m_SelectRing.SetLayer(Layer);
 
             // plots
             m_RawElectrodes = new DLL.RawSiteList();
             plots.ExtractRawSiteList(m_RawElectrodes);
 
-            GameObject patientPlotsParent = new GameObject("Sites");
-            patientPlotsParent.transform.SetParent(transform);
+            GameObject patientPlotsParent = transform.Find("Sites").gameObject;
 
             SitesGameObjects = new List<List<List<GameObject>>>(PlotsPatientParent.Count);
             Sites = new List<Site>(plots.TotalSitesNumber());
@@ -450,7 +448,7 @@ namespace HBP.Module3D
         /// </summary>
         public void AddView()
         {
-            View3D view = Instantiate(ViewPrefab, transform).GetComponent<View3D>();
+            View3D view = Instantiate(ViewPrefab, transform.Find("Views")).GetComponent<View3D>();
             view.gameObject.name = "View " + m_Views.Count;
             view.LineID = m_Views.Count;
             view.Layer = Layer;

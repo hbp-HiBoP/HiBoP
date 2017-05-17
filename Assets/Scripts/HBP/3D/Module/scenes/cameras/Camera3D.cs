@@ -197,6 +197,12 @@ namespace HBP.Module3D
                 m_DisplayPlanesTimer = 0;
                 m_DisplayCutsCircles = true;
             });
+
+            m_AssociatedScene.OnUpdateCameraTarget.AddListener((target) =>
+            {
+                m_OriginalTarget = target;
+                m_Target = target;
+            });
         }
         private void OnPreCull()
         {

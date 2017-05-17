@@ -40,11 +40,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return Visualization as Data.Visualization.SinglePatientVisualization;
+                return m_Visualization as Data.Visualization.SinglePatientVisualization;
             }
             set
             {
-                Visualization = value;
+                m_Visualization = value;
             }
         }
         /// <summary>
@@ -65,7 +65,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event for asking the UI to update the latencies display on the plot menu (params : labels)
         /// </summary>
-        public GenericEvent<List<string>> UpdateLatencies = new GenericEvent<List<string>>();
+        public GenericEvent<List<string>> OnUpdateLatencies = new GenericEvent<List<string>>();
         #endregion
 
         #region Public Methods
@@ -211,9 +211,11 @@ namespace HBP.Module3D
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
 
             Visualization = visualization;
+            gameObject.name = "SinglePatient Scene (" + GetComponentInParent<ScenesManager>().NumberOfScenesLoadedSinceStart + ")";
+            transform.position = new Vector3(SPACE_BETWEEN_SCENES * GetComponentInParent<ScenesManager>().NumberOfScenesLoadedSinceStart, transform.position.y, transform.position.z);
 
             List<string> ptsFiles = new List<string>(), namePatients = new List<string>();
-            ptsFiles.Add(Patient.Brain.PatientBasedImplantation); //.PatientBasedImplantation);
+            ptsFiles.Add(Patient.Brain.PatientBasedImplantation);
             namePatients.Add(Patient.Place + "_" + Patient.Date + "_" + Patient.Name);
 
             List<string> meshesFiles = new List<string>();
@@ -221,7 +223,7 @@ namespace HBP.Module3D
             meshesFiles.Add(Patient.Brain.RightCerebralHemisphereMesh);
 
             // reset columns
-            m_Column3DViewManager.Initialize(Cuts.Count);
+            m_Column3DViewManager.Initialize(m_Cuts.Count);
 
             DLL.Transformation meshTransformation = new DLL.Transformation();
             meshTransformation.Load(Patient.Brain.PreoperativeBasedToScannerBasedTransformation);
@@ -232,15 +234,15 @@ namespace HBP.Module3D
 
 
             // load meshes
-            bool success = ResetBrainSurface(meshesFiles, Patient.Brain.PreoperativeBasedToScannerBasedTransformation);
+            bool success = LoadBrainSurface(meshesFiles, Patient.Brain.PreoperativeBasedToScannerBasedTransformation);
 
             // load volume
             if (success)
-                success = ResetNiftiBrainVolume(Patient.Brain.PreoperativeMRI);
+                success = LoadNiftiBrainVolume(Patient.Brain.PreoperativeMRI);
 
             // load electrodes
             if (success)
-                success = ResetElectrodes(ptsFiles, namePatients);
+                success = LoadSites(ptsFiles, namePatients);
 
             if (success)
                 SceneInformation.CutMeshGeometryNeedsUpdate = true;
@@ -258,6 +260,9 @@ namespace HBP.Module3D
             SelectSite(-1);
             UpdateSelectedColumn(0);
 
+            // update scenes cameras
+            OnUpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox().Center());
+
             DisplayScreenMessage("Single Patient Scene loaded : " + visualization.Patient.Place + "_" + visualization.Patient.Name + "_" + visualization.Patient.Date, 2.0f, 400, 80);
             return true;
         }
@@ -267,7 +272,7 @@ namespace HBP.Module3D
         /// <param name="pathGIIBrainFiles"></param>
         /// <param name="pathTransformFile"></param>
         /// <returns></returns>
-        public bool ResetBrainSurface(List<string> pathGIIBrainFiles, string pathTransformFile)
+        public bool LoadBrainSurface(List<string> pathGIIBrainFiles, string pathTransformFile)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetGIIBrainSurfaceFile))
@@ -374,9 +379,6 @@ namespace HBP.Module3D
                 maxVerticesNb = Math.Max(maxVerticesNb, m_Column3DViewManager.BothWhite.NumberOfVertices());
             int nbSplits = (maxVerticesNb / 65000) + (int)(((maxVerticesNb % 60000) != 0) ? 3 : 2);
             ResetSplitsNumber(nbSplits);
-            
-            // update scenes cameras
-            OnUpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox().Center());
            
             // set the transform as the mesh center
             SceneInformation.HemiMeshesAvailables = true;
@@ -392,7 +394,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="pathsElectrodesPtsFile"></param>
         /// <returns></returns>
-        public bool ResetElectrodes(List<string> pathsElectrodesPtsFile, List<string> namePatients)
+        public bool LoadSites(List<string> pathsElectrodesPtsFile, List<string> namePatients)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetElectrodesFile))
@@ -427,7 +429,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.SitesPatientParent.Clear();
             m_Column3DViewManager.SitesElectrodesParent.Clear();
 
-
+            // TODO : Do this with the visualization data because everything is already read
             if (SceneInformation.SitesLoaded)
             {
                 int currPlotNb = 0;
@@ -494,7 +496,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.DLLLoadedPatientsElectrodes.ExtractRawSiteList(m_Column3DViewManager.DLLLoadedRawSitesList);
 
 
-            ///////////////////////// TO DOOOOO : FixMe /////////////////////////////////////
+            // FIXME : Something has been commented. See one of the first commits for more information
             // reset latencies
             m_Column3DViewManager.LatenciesFiles = new List<Latencies>();
             CCEPLabels = new List<string>();
@@ -526,9 +528,7 @@ namespace HBP.Module3D
             }
 
             m_Column3DViewManager.LatencyFilesDefined = true; //(Patient.Brain.Connectivities.Count > 0);
-            UpdateLatencies.Invoke(CCEPLabels);
-
-            //////////////////////////////////////////////////////////////////////////////////////////////
+            OnUpdateLatencies.Invoke(CCEPLabels);
 
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetElectrodesFile);
@@ -579,14 +579,14 @@ namespace HBP.Module3D
         /// <summary>
         /// Set the current plot to be selected in all the columns
         /// </summary>
-        /// <param name="idSelectedPlot"></param>
-        public void SelectSite(int idSelectedPlot)
+        /// <param name="selectedSiteID"></param>
+        public void SelectSite(int selectedSiteID)
         {
-            UpdateLatencies.Invoke(CCEPLabels);
+            OnUpdateLatencies.Invoke(CCEPLabels);
 
             for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
             {
-                m_Column3DViewManager.ColumnsIEEG[ii].SelectedSiteID = idSelectedPlot;
+                m_Column3DViewManager.ColumnsIEEG[ii].SelectedSiteID = selectedSiteID;
                 OnClickSite.Invoke(ii);
             }
         }

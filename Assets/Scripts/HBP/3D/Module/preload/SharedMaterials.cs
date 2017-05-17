@@ -25,32 +25,54 @@ namespace HBP.Module3D
             {
                 ApplicationState.Module3D.ScenesManager.OnAddScene.AddListener((scene) =>
                 {
-                    Material brainMaterial, cutMaterial;
-                    switch (scene.Type) // Distinction is useful in the shader in order to show mars atlases in sp
-                    {
-                        case SceneType.SinglePatient:
-                            brainMaterial = Instantiate(Resources.Load("Materials/Brain/SpBrain", typeof(Material))) as Material;
-                            BrainMaterials.Add(scene, brainMaterial);
-                            cutMaterial = Instantiate(Resources.Load("Materials/Brain/SpCut", typeof(Material))) as Material;
-                            CutMaterials.Add(scene, cutMaterial);
-                            break;
-                        case SceneType.MultiPatients:
-                            brainMaterial = Instantiate(Resources.Load("Materials/Brain/MpBrain", typeof(Material))) as Material;
-                            BrainMaterials.Add(scene, brainMaterial);
-                            cutMaterial = Instantiate(Resources.Load("Materials/Brain/MpCut", typeof(Material))) as Material;
-                            CutMaterials.Add(scene, cutMaterial);
-                            break;
-                        default:
-                            break;
-                    }
+                    AddSceneMaterials(scene);
                 });
                 ApplicationState.Module3D.ScenesManager.OnRemoveScene.AddListener((scene) =>
                 {
-                    Destroy(BrainMaterials[scene]);
-                    BrainMaterials.Remove(scene);
-                    Destroy(CutMaterials[scene]);
-                    CutMaterials.Remove(scene);
+                    RemoveSceneMaterials(scene);
                 });
+            }
+
+            public static void AddSceneMaterials(Base3DScene scene)
+            {
+                Material brainMaterial = null, cutMaterial = null;
+                switch (scene.Type) // Distinction is useful in the shader in order to show mars atlases in sp
+                {
+                    case SceneType.SinglePatient:
+                        brainMaterial = Instantiate(Resources.Load("Materials/Brain/SpBrain", typeof(Material))) as Material;
+                        cutMaterial = Instantiate(Resources.Load("Materials/Brain/SpCut", typeof(Material))) as Material;
+                        break;
+                    case SceneType.MultiPatients:
+                        brainMaterial = Instantiate(Resources.Load("Materials/Brain/MpBrain", typeof(Material))) as Material;
+                        cutMaterial = Instantiate(Resources.Load("Materials/Brain/MpCut", typeof(Material))) as Material;
+                        break;
+                    default:
+                        break;
+                }
+                if (!BrainMaterials.ContainsKey(scene))
+                {
+                    BrainMaterials.Add(scene, brainMaterial);
+                }
+                else
+                {
+                    BrainMaterials[scene] = brainMaterial;
+                }
+                if (!CutMaterials.ContainsKey(scene))
+                {
+                    CutMaterials.Add(scene, cutMaterial);
+                }
+                else
+                {
+                    CutMaterials[scene] = cutMaterial;
+                }
+            }
+
+            public static void RemoveSceneMaterials(Base3DScene scene)
+            {
+                Destroy(BrainMaterials[scene]);
+                BrainMaterials.Remove(scene);
+                Destroy(CutMaterials[scene]);
+                CutMaterials.Remove(scene);
             }
         }
 

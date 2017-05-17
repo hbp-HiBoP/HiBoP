@@ -180,6 +180,11 @@ namespace HBP.Module3D
         /// </summary>
         public abstract SceneType Type { get; }
 
+        /// <summary>
+        /// Space between scenes in world space
+        /// </summary>
+        protected const int SPACE_BETWEEN_SCENES = 1000;
+
         protected Data.Visualization.Visualization m_Visualization;
         /// <summary>
         /// Visualization associated to this scene
@@ -468,6 +473,9 @@ namespace HBP.Module3D
             SceneInformation = new SceneStatesInfo();
             m_Column3DViewManager = GetComponent<Column3DViewManager>();
 
+            // Init materials
+            SharedMaterials.Brain.AddSceneMaterials(this);
+
             // set meshes layer
             switch(Type)
             {
@@ -480,7 +488,7 @@ namespace HBP.Module3D
             }
 
             // init modes            
-            m_ModesManager = transform.Find("modes").gameObject.GetComponent<ModesManager>();
+            m_ModesManager = transform.Find("Modes").gameObject.GetComponent<ModesManager>();
             m_ModesManager.Initialize(this);
             m_ModesManager.SendModeSpecifications.AddListener((specs) =>
             {
@@ -1383,7 +1391,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="pathNIIBrainVolumeFile"></param>
         /// <returns></returns>
-        public bool ResetNiftiBrainVolume(string pathNIIBrainVolumeFile)
+        public bool LoadNiftiBrainVolume(string pathNIIBrainVolumeFile)
         {
             // Check access
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetNIIBrainVolumeFile))

@@ -123,7 +123,7 @@ namespace HBP.UI.Module3D
             {
                 case SceneType.SinglePatient:
                     SinglePatient3DScene SP3DScene = (SinglePatient3DScene)(m_scene);
-                    SP3DScene.UpdateLatencies.AddListener((labels) =>
+                    SP3DScene.OnUpdateLatencies.AddListener((labels) =>
                     {
                         labelCCEP = labels;
                         update_CCEP();

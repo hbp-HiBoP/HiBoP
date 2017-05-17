@@ -104,13 +104,15 @@ namespace HBP.Module3D
         private bool SetVisualization(Data.Visualization.SinglePatientVisualization visualization)
         {
             bool result = SetSinglePatientSceneData(visualization);
-
-            // Add listeners to last added scene
-            SinglePatient3DScene lastAddedScene = ScenesManager.Scenes.Last() as SinglePatient3DScene;
-            lastAddedScene.OnRequestSiteInformation.AddListener((siteRequest) =>
+            if (result)
             {
-                OnRequestSiteInformation.Invoke(siteRequest);
-            });
+                // Add listeners to last added scene
+                SinglePatient3DScene lastAddedScene = ScenesManager.Scenes.Last() as SinglePatient3DScene;
+                lastAddedScene.OnRequestSiteInformation.AddListener((siteRequest) =>
+                {
+                    OnRequestSiteInformation.Invoke(siteRequest);
+                });
+            }
             return result;
         }
         /// <summary>
@@ -192,6 +194,10 @@ namespace HBP.Module3D
             {
                 result = SetVisualization(visualization as Data.Visualization.MultiPatientsVisualization);
             }
+            if (result)
+            {
+                OnAddVisualization.Invoke(visualization);
+            }
             return result;
         }
         /// <summary>
@@ -202,6 +208,7 @@ namespace HBP.Module3D
         {
             Base3DScene scene = m_ScenesManager.Scenes.ToList().Find(s => s.Visualization == visualization);
             m_ScenesManager.RemoveScene(scene);
+            OnRemoveVisualization.Invoke(visualization);
         }
         #endregion
     }

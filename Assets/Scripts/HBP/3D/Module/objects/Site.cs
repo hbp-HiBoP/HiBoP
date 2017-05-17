@@ -125,6 +125,13 @@ namespace HBP.Module3D
         public SiteInformation Information { get; set; }
         #endregion
 
+        #region Private Methods
+        private void Awake()
+        {
+            Information = new SiteInformation();
+        }
+        #endregion
+
         #region Public Methods
         /// <summary>
         /// 
