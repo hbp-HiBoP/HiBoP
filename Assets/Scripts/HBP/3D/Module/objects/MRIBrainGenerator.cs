@@ -43,6 +43,37 @@ namespace HBP.Module3D
                 }
             }
 
+            /// <summary>
+            /// Maximum density
+            /// </summary>
+            public float MaximumDensity
+            {
+                get
+                {
+                    return getMaximumDensity_BrainSurfaceTextureGenerator(_handle);
+                }
+            }
+            /// <summary>
+            /// Minimum influence
+            /// </summary>
+            public float MinimumInfluence
+            {
+                get
+                {
+                    return getMinInf_BrainSurfaceTextureGenerator(_handle);
+                }
+            }
+            /// <summary>
+            /// Maximum influence
+            /// </summary>
+            public float MaximumInfluence
+            {
+                get
+                {
+                    return getMaxInf_BrainSurfaceTextureGenerator(_handle);
+                }
+            }
+
             private GCHandle m_UVAmplitudesHandle;
             private GCHandle m_UVAlphaHandle;
             #endregion
@@ -83,30 +114,6 @@ namespace HBP.Module3D
                     Debug.LogError("computeDistances_BrainSurfaceTextureGenerator failed ! (check DLL console debug output)");
 
                 return noError;
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public float GetMaximumDensity()
-            {
-                return getMaximumDensity_BrainSurfaceTextureGenerator( _handle);
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public float GetMinimumInfluence()
-            {
-                return getMinInf_BrainSurfaceTextureGenerator(_handle);
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public float GetMaximumInfluence()
-            {
-                return getMaxInf_BrainSurfaceTextureGenerator(_handle);
             }
             /// <summary>
             /// 
@@ -167,7 +174,7 @@ namespace HBP.Module3D
                 bool noError = false;
                 noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), IEEGColumn.CurrentTimeLineID, IEEGColumn.AlphaMin, IEEGColumn.AlphaMax) == 1;
 
-                int m_nbVertices = surface.NumberOfVertices();
+                int m_nbVertices = surface.NumberOfVertices;
                 if (m_nbVertices == 0) // mesh is empty
                     return true;
 

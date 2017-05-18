@@ -127,7 +127,7 @@ namespace HBP.Module3D
             GameObject patientPlotsParent = transform.Find("Sites").gameObject;
 
             SitesGameObjects = new List<List<List<GameObject>>>(PlotsPatientParent.Count);
-            Sites = new List<Site>(plots.TotalSitesNumber());
+            Sites = new List<Site>(plots.TotalSitesNumber);
             for (int ii = 0; ii < PlotsPatientParent.Count; ++ii)
             {
                 // instantiate patient plots

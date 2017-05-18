@@ -849,7 +849,7 @@ namespace HBP.Module3D
             //IRMCalValues calValues = m_CM.DLLVolumeIRMFList[idCol].retrieveExtremeValues();
 
             FMRIDataParameters fmriParams = new FMRIDataParameters();
-            fmriParams.calValues = m_Column3DViewManager.DLLVolumeFMriList[newFMRIColumnID].RetrieveExtremeValues();
+            fmriParams.calValues = m_Column3DViewManager.DLLVolumeFMriList[newFMRIColumnID].ExtremeValues;
             fmriParams.columnId = newFMRIColumnID;
             fmriParams.alpha = m_Column3DViewManager.ColumnsFMRI[newFMRIColumnID].Alpha;
             fmriParams.calMin = m_Column3DViewManager.ColumnsFMRI[newFMRIColumnID].CalMin;
@@ -860,7 +860,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.ColumnsFMRI[newFMRIColumnID].CalMax = fmriParams.calValues.computedCalMax;
 
             // Update camera
-            OnUpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox().Center());
+            OnUpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox.Center);
 
             ComputeMRITextures(-1, -1);
 
@@ -1409,7 +1409,7 @@ namespace HBP.Module3D
             if (loadingSuccess)
             {
                 m_Column3DViewManager.DLLNii.ConvertToVolume(m_Column3DViewManager.DLLVolume);
-                SceneInformation.VolumeCenter = m_Column3DViewManager.DLLVolume.Center();
+                SceneInformation.VolumeCenter = m_Column3DViewManager.DLLVolume.Center;
             }
             else
             {
@@ -1421,7 +1421,7 @@ namespace HBP.Module3D
             OnUpdatePlanes.Invoke();
 
             // send cal values to the UI
-            OnIRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.RetrieveExtremeValues());
+            OnIRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.ExtremeValues);
 
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
@@ -1935,7 +1935,7 @@ namespace HBP.Module3D
                 FMRIDataParams.calMax = m_Column3DViewManager.ColumnsFMRI[ii].CalMax;
                 FMRIDataParams.columnId = ii;
 
-                FMRIDataParams.calValues = m_Column3DViewManager.DLLVolumeFMriList[ii].RetrieveExtremeValues(); 
+                FMRIDataParams.calValues = m_Column3DViewManager.DLLVolumeFMriList[ii].ExtremeValues; 
                 FMRIDataParams.singlePatient = Type == SceneType.SinglePatient;
                 
                 OnSendFMRIParameters.Invoke(FMRIDataParams);
@@ -2089,9 +2089,9 @@ namespace HBP.Module3D
                             Debug.LogError("Abort computing"); // useless
                             return;
                         }
-                        currentMaxDensity = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumDensity();
-                        currentMinInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMinimumInfluence();
-                        currentMaxInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumInfluence();
+                        currentMaxDensity = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
+                        currentMinInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
+                        currentMaxInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
 
                         if (currentMaxDensity > maxDensity)
                             maxDensity = currentMaxDensity;
@@ -2121,9 +2121,9 @@ namespace HBP.Module3D
                             return;
                         }
 
-                        currentMaxDensity = Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity();
-                        currentMinInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MinimumInfluence();
-                        currentMaxInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumInfluence();
+                        currentMaxDensity = Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity;
+                        currentMinInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MinimumInfluence;
+                        currentMaxInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumInfluence;
 
                         if (currentMaxDensity > maxDensity)
                             maxDensity = currentMaxDensity;
@@ -2182,9 +2182,9 @@ namespace HBP.Module3D
                             return;
                         }
 
-                        currentMaxDensity = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumDensity();
-                        currentMinInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMinimumInfluence();
-                        currentMaxInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].GetMaximumInfluence();
+                        currentMaxDensity = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
+                        currentMinInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
+                        currentMaxInfluence = Column3DViewManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
 
                         if (currentMaxDensity > maxDensity)
                             maxDensity = currentMaxDensity;

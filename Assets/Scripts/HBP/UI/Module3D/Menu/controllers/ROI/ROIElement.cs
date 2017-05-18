@@ -282,7 +282,7 @@ namespace HBP.Module3D
                 return;
 
             m_ROI.GetComponent<ROI>().ChangeBubbleSize(idBubble, coeff);
-            m_bubblesUIList[idBubble].GetComponent<BubbleElement>().update_ray_text(m_ROI.GetComponent<ROI>().Bubble(idBubble).Radius);
+            m_bubblesUIList[idBubble].GetComponent<BubbleElement>().update_ray_text(m_ROI.GetComponent<ROI>().GetBubbleByIndex(idBubble).Radius);
 
             m_mpScene.SceneInformation.IsIEEGOutdated = true;
         }

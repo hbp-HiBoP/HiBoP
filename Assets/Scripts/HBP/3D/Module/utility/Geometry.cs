@@ -239,7 +239,7 @@ namespace HBP.Module3D
         /// <param name="offset"></param>
         public static void DisplayBBoxDebug(DLL.BBox bbox, Vector3 offset)
         {
-            List<Vector3> linesPoints = bbox.LinesPairPoints();
+            List<Vector3> linesPoints = bbox.LinesPairPoints;
 
             for (int ii = 0; ii < linesPoints.Count; ii += 2)
             {
@@ -277,7 +277,7 @@ namespace HBP.Module3D
             mat.SetPass(0);
             GL.Color(new Color(mat.color.r, mat.color.g, mat.color.b, mat.color.a));
 
-            List<Vector3> linesPoints = bbox.LinesPairPoints();
+            List<Vector3> linesPoints = bbox.LinesPairPoints;
 
             for (int ii = 0; ii < linesPoints.Count; ++ii)
             {

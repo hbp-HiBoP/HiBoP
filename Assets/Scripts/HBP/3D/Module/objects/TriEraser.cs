@@ -74,17 +74,20 @@ namespace HBP.Module3D
         private List<DLL.Surface> m_BrainMeshesSplittedDLL = null;
 
         private List<GameObject> m_BrainInvisibleMeshesGO = null;
-        #endregion
 
-        #region Public Methods
         /// <summary>
         /// Check if the current mode of the tri eraser needs clicks on the scene
         /// </summary>
-        /// <returns></returns>
-        public bool IsClickAvailable()
+        public bool IsClickAvailable
         {
-            return (m_CurrentMode != Mode.Expand) && (m_CurrentMode != Mode.Invert);
+            get
+            {
+                return (m_CurrentMode != Mode.Expand) && (m_CurrentMode != Mode.Invert);
+            }
         }
+        #endregion
+
+        #region Public Methods
         /// <summary>
         /// 
         /// </summary>
@@ -98,7 +101,7 @@ namespace HBP.Module3D
             m_BrainMeshesSplittedDLL = brainMeshesSplittedDLL;
             m_BrainMeshDLL = brainMeshDLL;
 
-            m_FullMask = new int[m_BrainMeshDLL.NumberOfTriangles()];
+            m_FullMask = new int[m_BrainMeshDLL.NumberOfTriangles];
             for (int ii = 0; ii < m_FullMask.Length; ++ii)
                 m_FullMask[ii] = 1;
             m_BrainMeshDLL.UpdateVisibilityMask(m_FullMask);
@@ -106,7 +109,7 @@ namespace HBP.Module3D
             m_SplittedMasks = new List<int[]>(m_BrainMeshesSplittedDLL.Count);
             for (int ii = 0; ii < m_BrainMeshesSplittedDLL.Count; ++ii)
             {
-                int[] mask = new int[m_BrainMeshesSplittedDLL[ii].NumberOfTriangles()];
+                int[] mask = new int[m_BrainMeshesSplittedDLL[ii].NumberOfTriangles];
                 for (int jj = 0; jj < mask.Length; ++jj)
                     mask[jj] = 1;
 
@@ -124,13 +127,13 @@ namespace HBP.Module3D
             hitPoint.x = -hitPoint.x;
 
             // save current masks
-            m_FullMask = m_BrainMeshDLL.VisibilityMask();
+            m_FullMask = m_BrainMeshDLL.VisibilityMask;
             for (int ii = 0; ii < m_BrainMeshesSplittedDLL.Count; ++ii)
-                m_SplittedMasks[ii] = m_BrainMeshesSplittedDLL[ii].VisibilityMask();
+                m_SplittedMasks[ii] = m_BrainMeshesSplittedDLL[ii].VisibilityMask;
 
             // apply rays and retrieve mask
             /*DLL.Surface brainInvisibleFullMeshDLL = */m_BrainMeshDLL.UpdateVisibilityMask(rayDirection, hitPoint, m_CurrentMode, m_Degrees);
-            int[] newFullMask = m_BrainMeshDLL.VisibilityMask();
+            int[] newFullMask = m_BrainMeshDLL.VisibilityMask;
 
             // split it
             int nbSplits = m_BrainMeshesSplittedDLL.Count;            

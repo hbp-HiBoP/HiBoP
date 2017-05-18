@@ -96,6 +96,42 @@ namespace HBP.Module3D
         /// </summary>
         public class MRITextureCutGenerator : CppDLLImportBase
         {
+            #region Properties
+            /// <summary>
+            /// Maximum density
+            /// </summary>
+            /// <returns></returns>
+            public float MaximumDensity
+            {
+                get
+                {
+                    return max_density__MRITextureCutGenerator(_handle);
+                }
+            }
+            /// <summary>
+            /// Minimum influence
+            /// </summary>
+            /// <returns></returns>
+            public float MinimumInfluence
+            {
+                get
+                {
+                    return min_inf__MRITextureCutGenerator(_handle);
+                }
+            }
+            /// <summary>
+            /// Maximum influence
+            /// </summary>
+            /// <returns></returns>
+            public float MaximumInfluence
+            {
+                get
+                {
+                    return max_inf__MRITextureCutGenerator(_handle);
+                }
+            }
+            #endregion
+
             #region Public Methods
             /// <summary>
             /// 
@@ -240,30 +276,6 @@ namespace HBP.Module3D
             public void SynchronizeWithOthersGenerators(float sharedMaxDensity, float sharedMinInf, float sharedMaxInf)
             {
                 synchronize_with_others_generators__MRITextureCutGenerator(_handle, sharedMaxDensity, sharedMinInf, sharedMaxInf);
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public float MaximumDensity()
-            {
-                return max_density__MRITextureCutGenerator(_handle);
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public float MinimumInfluence()
-            {
-                return min_inf__MRITextureCutGenerator(_handle);
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public float MaximumInfluence()
-            {
-                return max_inf__MRITextureCutGenerator(_handle);
             }
             #endregion
 

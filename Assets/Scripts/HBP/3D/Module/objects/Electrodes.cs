@@ -303,6 +303,19 @@ namespace HBP.Module3D
         /// </summary>
         public class RawSiteList : CppDLLImportBase
         {
+            #region Properties
+            /// <summary>
+            /// Number of sites
+            /// </summary>
+            public int NumberOfSites
+            {
+                get
+                {
+                    return sites_nb_RawSiteList(_handle);
+                }
+            }
+            #endregion
+
             #region Public Methods
             /// <summary>
             /// Save the raw plot list to an obj file
@@ -314,14 +327,6 @@ namespace HBP.Module3D
                 bool success = saveToObj_RawPlotList(_handle, pathObjNameFile) == 1;
                 ApplicationState.DLLDebugManager.check_error();
                 return success;
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public int NumberOfSites()
-            {
-                return sites_nb_RawSiteList(_handle);
             }
             /// <summary>
             /// Update the mask of the site corresponding to the input id
@@ -339,7 +344,7 @@ namespace HBP.Module3D
             /// <returns></returns>
             public Latencies UpdateLatenciesWithFile(string latencyFilePath)
             {
-                int nbPlots = NumberOfSites();
+                int nbPlots = NumberOfSites;
                 int[] latencies = new int[nbPlots * nbPlots];
                 float[] heights = new float[nbPlots * nbPlots];
 
@@ -356,7 +361,7 @@ namespace HBP.Module3D
             /// <returns></returns>
             public Latencies GenerateDummyLatencies()
             {
-                int nbPlots = NumberOfSites();
+                int nbPlots = NumberOfSites;
                 int[] latencies = new int[nbPlots * nbPlots];
                 float[] heights = new float[nbPlots * nbPlots];
 
@@ -433,6 +438,29 @@ namespace HBP.Module3D
         /// </summary>
         public class PatientElectrodesList : CppDLLImportBase, ICloneable
         {
+            #region Properties
+            /// <summary>
+            /// Number of sites
+            /// </summary>
+            public int TotalSitesNumber
+            {
+                get
+                {
+                    return sites_nb_PatientElectrodesList(_handle);
+                }
+            }
+            /// <summary>
+            /// Number of patients
+            /// </summary>
+            public int NumberOfPatients
+            {
+                get
+                {
+                    return patients_nb_PatientElectrodesList(_handle);
+                }
+            }
+            #endregion
+
             #region Public Methods
             /// <summary>
             /// Load a list of pts files add fill ElectrodesPatientMultiList with data
@@ -469,22 +497,6 @@ namespace HBP.Module3D
                 }
 
                 return true;
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public int TotalSitesNumber()
-            {
-                return sites_nb_PatientElectrodesList(_handle);
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public int NumberOfPatients()
-            {
-                return patients_nb_PatientElectrodesList(_handle);
             }
             /// <summary>
             /// Return the number of electrode for the input patient id 

@@ -116,7 +116,7 @@ namespace HBP.Module3D
             if (SceneInformation.MeshToDisplay == null) return;
 
             // get the middle
-            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox().Center();
+            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox.Center;
 
             // cut the mesh
             List<DLL.Surface> cuts;
@@ -261,7 +261,7 @@ namespace HBP.Module3D
             UpdateSelectedColumn(0);
 
             // update scenes cameras
-            OnUpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox().Center());
+            OnUpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox.Center);
 
             DisplayScreenMessage("Single Patient Scene loaded : " + visualization.Patient.Place + "_" + visualization.Patient.Name + "_" + visualization.Patient.Date, 2.0f, 400, 80);
             return true;
@@ -355,7 +355,7 @@ namespace HBP.Module3D
                 SceneInformation.MeshesLoaded = true;
 
                 // get the middle
-                SceneInformation.MeshCenter = m_Column3DViewManager.BothHemi.BoundingBox().Center();
+                SceneInformation.MeshCenter = m_Column3DViewManager.BothHemi.BoundingBox.Center;
 
                 if(rightWhiteLoaded && leftWhiteLoaded)
                 {
@@ -374,9 +374,9 @@ namespace HBP.Module3D
                 return false;
             }
 
-            int maxVerticesNb = m_Column3DViewManager.BothHemi.NumberOfVertices();
+            int maxVerticesNb = m_Column3DViewManager.BothHemi.NumberOfVertices;
             if (leftWhiteLoaded && rightWhiteLoaded)
-                maxVerticesNb = Math.Max(maxVerticesNb, m_Column3DViewManager.BothWhite.NumberOfVertices());
+                maxVerticesNb = Math.Max(maxVerticesNb, m_Column3DViewManager.BothWhite.NumberOfVertices);
             int nbSplits = (maxVerticesNb / 65000) + (int)(((maxVerticesNb % 60000) != 0) ? 3 : 2);
             ResetSplitsNumber(nbSplits);
            
@@ -433,7 +433,7 @@ namespace HBP.Module3D
             if (SceneInformation.SitesLoaded)
             {
                 int currPlotNb = 0;
-                for (int ii = 0; ii < m_Column3DViewManager.DLLLoadedPatientsElectrodes.NumberOfPatients(); ++ii)
+                for (int ii = 0; ii < m_Column3DViewManager.DLLLoadedPatientsElectrodes.NumberOfPatients; ++ii)
                 {
                     int idPlotPatient = 0;
                     string patientName = m_Column3DViewManager.DLLLoadedPatientsElectrodes.PatientName(ii);
@@ -639,7 +639,7 @@ namespace HBP.Module3D
                 if (hit.collider.gameObject.name.StartsWith("cut")) // cut hit
                     return;
 
-                if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable())
+                if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable)
                 {
                     //Debug.DrawRay(ray.origin, hit.point, Color.red, 2f, false);
                     m_TriEraser.EraseTriangles(ray.direction, hit.point);

@@ -156,7 +156,7 @@ namespace HBP.Module3D
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
             m_AssociatedScene = GetComponentInParent<Base3DScene>();
             m_AssociatedView = GetComponentInParent<View3D>();
-            m_Target = m_AssociatedScene.Column3DViewManager.BothHemi.BoundingBox().Center();
+            m_Target = m_AssociatedScene.Column3DViewManager.BothHemi.BoundingBox.Center;
             m_OriginalTarget = m_Target;
             transform.position = m_Target - transform.forward * m_StartDistance;
 

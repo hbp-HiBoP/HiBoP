@@ -515,7 +515,7 @@ namespace HBP.Module3D
             if (diffIRMFColumns != 0)
             {
                 // update IRMF columns mask
-                bool[] maskColumnsOR = new bool[DLLLoadedPatientsElectrodes.TotalSitesNumber()];
+                bool[] maskColumnsOR = new bool[DLLLoadedPatientsElectrodes.TotalSitesNumber];
                 for (int ii = 0; ii < SitesList.Count; ++ii)
                 {
                     bool mask = false;
@@ -549,7 +549,7 @@ namespace HBP.Module3D
             }
 
 
-            CommonMask = new bool[DLLLoadedPatientsElectrodes.TotalSitesNumber()];
+            CommonMask = new bool[DLLLoadedPatientsElectrodes.TotalSitesNumber];
 
             if (SelectedColumnID >= m_Columns.Count && SelectedColumnID > 0)
                 SelectedColumnID = m_Columns.Count - 1;

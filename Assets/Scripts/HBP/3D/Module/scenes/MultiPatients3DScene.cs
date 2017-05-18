@@ -169,7 +169,7 @@ namespace HBP.Module3D
                 m_Column3DViewManager.DLLSplittedWhiteMeshesList = new List<DLL.Surface>(SceneInformation.MeshToDisplay.SplitToSurfaces(m_Column3DViewManager.MeshSplitNumber));
 
             // get the middle
-            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox().Center();
+            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox.Center;
 
             // cut the mesh
             List<DLL.Surface> cuts;
@@ -258,7 +258,7 @@ namespace HBP.Module3D
             transform.position = new Vector3(SPACE_BETWEEN_SCENES * GetComponentInParent<ScenesManager>().NumberOfScenesLoadedSinceStart, transform.position.y, transform.position.z);
 
             // MNI meshes are preloaded
-            SceneInformation.VolumeCenter = m_MNIObjects.IRM.Center();
+            SceneInformation.VolumeCenter = m_MNIObjects.IRM.Center;
             SceneInformation.MeshesLoaded = true;
             SceneInformation.HemiMeshesAvailables = true;
             SceneInformation.WhiteMeshesAvailables = true;
@@ -266,7 +266,7 @@ namespace HBP.Module3D
             SceneInformation.IsROICreationModeEnabled = false;
 
             // get the middle
-            SceneInformation.MeshCenter = m_MNIObjects.BothHemi.BoundingBox().Center();
+            SceneInformation.MeshCenter = m_MNIObjects.BothHemi.BoundingBox.Center;
 
             /// TODO
             List<string> ptsFiles = new List<string>(Visualization.Patients.Count), namePatients = new List<string>(Visualization.Patients.Count);
@@ -282,12 +282,12 @@ namespace HBP.Module3D
 
             // retrieve MNI IRM volume
             m_Column3DViewManager.DLLVolume = m_MNIObjects.IRM;
-            SceneInformation.VolumeCenter = m_Column3DViewManager.DLLVolume.Center();
+            SceneInformation.VolumeCenter = m_Column3DViewManager.DLLVolume.Center;
             SceneInformation.MRILoaded = true;
             OnUpdatePlanes.Invoke();
             
             // send cal values to the UI
-            OnIRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.RetrieveExtremeValues());
+            OnIRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.ExtremeValues);
             
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
@@ -324,7 +324,7 @@ namespace HBP.Module3D
             UpdateSelectedColumn(0);
 
             // update scenes cameras
-            OnUpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox().Center());
+            OnUpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox.Center);
 
             DisplayScreenMessage("Multi Patients Scene loaded", 2.0f, 400, 80);
             return true;
@@ -374,7 +374,7 @@ namespace HBP.Module3D
             if (SceneInformation.SitesLoaded)
             {
                 int currPlotNb = 0;
-                for (int ii = 0; ii < m_Column3DViewManager.DLLLoadedPatientsElectrodes.NumberOfPatients(); ++ii)
+                for (int ii = 0; ii < m_Column3DViewManager.DLLLoadedPatientsElectrodes.NumberOfPatients; ++ii)
                 {
                     int idPlotPatient = 0;
                     string patientName = m_Column3DViewManager.DLLLoadedPatientsElectrodes.PatientName(ii);
@@ -747,7 +747,7 @@ namespace HBP.Module3D
                         if (hit.collider.gameObject.name.StartsWith("cut")) // cut hit
                             return;
 
-                        if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable())
+                        if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable)
                         {
                             m_TriEraser.EraseTriangles(ray.direction, hit.point);
                             for (int ii = 0; ii < m_Column3DViewManager.DLLSplittedMeshesList.Count; ++ii)
@@ -901,7 +901,7 @@ namespace HBP.Module3D
                     {
                         masksColumnsData.Add(new List<bool>(m_Column3DViewManager.ColumnsIEEG[ii].Sites.Count));
 
-                        bool isROI = (m_Column3DViewManager.ColumnsIEEG[ii].SelectedROI.NumberOfBubbles() > 0);
+                        bool isROI = (m_Column3DViewManager.ColumnsIEEG[ii].SelectedROI.NumberOfBubbles > 0);
                         for (int jj = 0; jj < m_Column3DViewManager.ColumnsIEEG[ii].Sites.Count; ++jj)
                         {
                             Site p = m_Column3DViewManager.ColumnsIEEG[ii].Sites[jj];

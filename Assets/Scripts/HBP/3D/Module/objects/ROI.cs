@@ -30,6 +30,17 @@ namespace HBP.Module3D
 
         private DLL.ROI m_DLLROI; /**< associated ROI DLL */
         private List<GameObject> m_Bubbles = new List<GameObject>(); /**< bubbles of the ROI */
+
+        /// <summary>
+        /// Number of bubbles in ROI
+        /// </summary>
+        public int NumberOfBubbles
+        {
+            get
+            {
+                return m_Bubbles.Count;
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -76,14 +87,6 @@ namespace HBP.Module3D
             {
                 m_Bubbles[ii].layer = (state ? m_Layer : inactiveLayer);
             }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public int NumberOfBubbles()
-        {
-            return m_Bubbles.Count;
         }
         /// <summary>
         /// Check if a collision occurs with the ROI bubbles
@@ -241,7 +244,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="idBubble"></param>
         /// <returns></returns>
-        public Bubble Bubble(int idBubble)
+        public Bubble GetBubbleByIndex(int idBubble)
         {
             return m_Bubbles[idBubble].GetComponent<Bubble>();
         }
@@ -353,7 +356,7 @@ namespace HBP.Module3D
             /// <param name="mask"></param>
             public void UpdateMask(RawSiteList sites, bool[] mask)
             {
-                for (int ii = 0; ii < sites.NumberOfSites(); ++ii)
+                for (int ii = 0; ii < sites.NumberOfSites; ++ii)
                     mask[ii] = isInside_ROI(_handle, sites.getHandle(), ii) != 1;
             }
             #endregion

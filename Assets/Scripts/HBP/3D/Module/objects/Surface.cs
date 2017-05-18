@@ -30,6 +30,63 @@ namespace HBP.Module3D.DLL
 
         private int[] m_Sizes = new int[5];             /**< array for containing the sizes the mesh : */
 
+        /// <summary>
+        /// Bounding Box of this surface
+        /// </summary>
+        public BBox BoundingBox
+        {
+            get
+            {
+                return new BBox(bounding_box_Surface(_handle));
+            }
+        }
+        /// <summary>
+        /// Number of vertices of this surface
+        /// </summary>
+        public int NumberOfVertices
+        {
+            get
+            {
+                return vertices_nb_Surface(_handle);
+            }
+        }
+        /// <summary>
+        /// Visibility mask of this surface
+        /// </summary>
+        public int[] VisibilityMask
+        {
+            get
+            {
+                int[] visibilityMask = new int[NumberOfTriangles];
+                retrieve_visibility_mask(_handle, visibilityMask);
+                return visibilityMask;
+            }
+        }
+        /// <summary>
+        /// Number of triangles of this surface
+        /// </summary>
+        public int NumberOfTriangles
+        {
+            get
+            {
+                m_Sizes = new int[6];
+                sizes_Surface(_handle, m_Sizes);
+                return m_Sizes[5];
+            }
+        }
+        /// <summary>
+        /// Number of visible triangles of this surface
+        /// </summary>
+        public int NumberOfVisibleTriangles
+        {
+            get
+            {
+                m_Sizes = new int[6];
+                sizes_Surface(_handle, m_Sizes);
+                return m_Sizes[1];
+            }
+        }
+
         GCHandle m_verticesHandle;
         GCHandle m_normalsHandle;
         GCHandle m_uvHandle;
@@ -146,22 +203,6 @@ namespace HBP.Module3D.DLL
             return splits;
         }
         /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public int NumberOfVertices()
-        {
-            return vertices_nb_Surface(_handle);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public BBox BoundingBox()
-        {           
-            return new BBox(bounding_box_Surface(_handle));
-        }
-        /// <summary>
         /// Update the visibility triangle mask of the mesh with the input array and return a new mesh made with invisible triangles
         /// </summary>
         /// <param name="visibilityMask"></param>
@@ -193,16 +234,6 @@ namespace HBP.Module3D.DLL
             DLL.Surface invisiblePartMesh = new DLL.Surface();
             update_visiblity_mask_with_ray(_handle, invisiblePartMesh.getHandle(), rayDirectionArray, hitPointArray, (int) mode, degrees);
             return invisiblePartMesh;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public int[] VisibilityMask()
-        {
-            int[] visibilityMask = new int[NumberOfTriangles()];
-            retrieve_visibility_mask(_handle, visibilityMask);
-            return visibilityMask;
         }
         /// <summary>
         /// Cut the mesh with the input cut planes and return it:  Surface[0]: cut mesh result,  Surface[1]: plane cut mesh for the first plane, Surface[2]: plane cut mesh for the second plane...
@@ -359,26 +390,6 @@ namespace HBP.Module3D.DLL
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public int NumberOfTriangles()
-        {
-            m_Sizes = new int[6];
-            sizes_Surface(_handle, m_Sizes);
-            return m_Sizes[5];
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public int NumberOfVisibleTriangles()
-        {
-            m_Sizes = new int[6];
-            sizes_Surface(_handle, m_Sizes);
-            return m_Sizes[1];
         }
         /// <summary>
         /// 

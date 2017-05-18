@@ -104,11 +104,11 @@ namespace HBP.Module3D
             }
 
             // plots
-            ElectrodesSizeScale = new List<Vector3>(m_RawElectrodes.NumberOfSites());
-            ElectrodesPositiveColor = new List<bool>(m_RawElectrodes.NumberOfSites());
+            ElectrodesSizeScale = new List<Vector3>(m_RawElectrodes.NumberOfSites);
+            ElectrodesPositiveColor = new List<bool>(m_RawElectrodes.NumberOfSites);
 
             // masks
-            for (int ii = 0; ii < m_RawElectrodes.NumberOfSites(); ii++)
+            for (int ii = 0; ii < m_RawElectrodes.NumberOfSites; ii++)
             {
                 ElectrodesSizeScale.Add(new Vector3(1, 1, 1));
                 ElectrodesPositiveColor.Add(true);
@@ -119,7 +119,7 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateDLLSitesMask()
         {
-            bool noROI = (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles() == 0);
+            bool noROI = (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles == 0);
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
                 m_RawElectrodes.UpdateMask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsInROI && !noROI)));

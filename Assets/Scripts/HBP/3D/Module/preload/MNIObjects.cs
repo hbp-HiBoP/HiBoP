@@ -99,7 +99,6 @@ namespace HBP.Module3D
             
             IRM = new DLL.Volume();
             NII.ConvertToVolume(IRM);
-            IRM.Center();
 
 #if UNITY_EDITOR_WIN
 
