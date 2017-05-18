@@ -148,6 +148,17 @@ namespace HBP.Module3D
         {
             int layer = 0;
             layer |= 1 << LayerMask.NameToLayer(Layer);
+            switch (GetComponentInParent<Base3DScene>().Type)
+            {
+                case SceneType.SinglePatient:
+                    layer |= 1 << LayerMask.NameToLayer("Meshes_SP");
+                    break;
+                case SceneType.MultiPatients:
+                    layer |= 1 << LayerMask.NameToLayer("Meshes_MP");
+                    break;
+                default:
+                    break;
+            }
             m_RegularCullingMask = layer;
             m_MinimizedCullingMask = 0;
 

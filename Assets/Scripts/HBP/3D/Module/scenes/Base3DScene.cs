@@ -244,11 +244,6 @@ namespace HBP.Module3D
             }
         }
 
-        /// <summary>
-        /// MNI Objects
-        /// </summary>
-        protected MNIObjects m_MNIObjects = null;
-
         protected Column3DViewManager m_Column3DViewManager = null;
         /// <summary>
         /// Column data manager
@@ -865,7 +860,7 @@ namespace HBP.Module3D
             m_Column3DViewManager.ColumnsFMRI[newFMRIColumnID].CalMax = fmriParams.calValues.computedCalMax;
 
             // Update camera
-            OnUpdateCameraTarget.Invoke(Type == SceneType.SinglePatient ? m_Column3DViewManager.BothHemi.BoundingBox().Center() : m_MNIObjects.BothHemi.BoundingBox().Center());
+            OnUpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox().Center());
 
             ComputeMRITextures(-1, -1);
 

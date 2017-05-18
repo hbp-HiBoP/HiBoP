@@ -722,7 +722,7 @@ namespace HBP.Module3D
                 OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;
             }
-            if (hit.collider.transform.parent.name == "Cutes" || hit.collider.transform.parent.name == "Brains")
+            if (hit.collider.transform.parent.name == "Cuts" || hit.collider.transform.parent.name == "Brains")
             {
                 OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;

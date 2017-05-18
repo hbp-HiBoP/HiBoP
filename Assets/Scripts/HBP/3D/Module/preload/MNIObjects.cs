@@ -41,7 +41,7 @@ namespace HBP.Module3D
         // ch256.nii
         public DLL.Volume IRM = null;
 
-        private DLL.NIFTI NII = null;
+        public DLL.NIFTI NII = null;
 
 #if UNITY_EDITOR_WIN
         private DLL.ReadMultiFilesBuffers readMulti = null;
@@ -81,8 +81,9 @@ namespace HBP.Module3D
             readMulti = new DLL.ReadMultiFilesBuffers();
             readMulti.ReadBuffersFiles(filesPaths, DLL.ReadMultiFilesBuffers.FilesTypes.MeshesObj);
 #endif
-            Thread thread = new Thread(() => LoadData(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID));
-            thread.Start();
+            //Thread thread = new Thread(() => LoadData(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID));
+            //thread.Start();
+            LoadData(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID);
         }
         /// <summary>
         /// 
@@ -98,6 +99,7 @@ namespace HBP.Module3D
             
             IRM = new DLL.Volume();
             NII.ConvertToVolume(IRM);
+            IRM.Center();
 
 #if UNITY_EDITOR_WIN
 

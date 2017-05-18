@@ -61,6 +61,11 @@ namespace HBP.Module3D
         }
 
         /// <summary>
+        /// MNI Objects
+        /// </summary>
+        private MNIObjects m_MNIObjects = null;
+
+        /// <summary>
         /// Event for sending a ROI associated to a column id (params : ROI, idColumn)
         /// </summary>
         public GenericEvent<ROI, int> SendColumnROIEvent = new GenericEvent<ROI, int>();
@@ -280,18 +285,25 @@ namespace HBP.Module3D
             SceneInformation.VolumeCenter = m_Column3DViewManager.DLLVolume.Center();
             SceneInformation.MRILoaded = true;
             OnUpdatePlanes.Invoke();
-
-
+            
             // send cal values to the UI
             OnIRMCalValuesUpdate.Invoke(m_Column3DViewManager.DLLVolume.RetrieveExtremeValues());
-
-
+            
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
             //##################
 
+            // set references in column manager
+            m_Column3DViewManager.BothHemi = m_MNIObjects.BothHemi;
+            m_Column3DViewManager.BothWhite = m_MNIObjects.BothWhite;
+            m_Column3DViewManager.LHemi = m_MNIObjects.LeftHemi;
+            m_Column3DViewManager.LWhite = m_MNIObjects.LeftWhite;
+            m_Column3DViewManager.RHemi = m_MNIObjects.RightHemi;
+            m_Column3DViewManager.RWhite = m_MNIObjects.RightWhite;
+            m_Column3DViewManager.DLLNii = m_MNIObjects.NII;
+
             // reset electrodes
-            bool success = ResetElectrodesFiles(ptsFiles, namePatients);
+            bool success = LoadSites(ptsFiles, namePatients);
 
             // define meshes splits nb
             ResetSplitsNumber(3);
@@ -312,7 +324,7 @@ namespace HBP.Module3D
             UpdateSelectedColumn(0);
 
             // update scenes cameras
-            OnUpdateCameraTarget.Invoke(m_MNIObjects.BothHemi.BoundingBox().Center());
+            OnUpdateCameraTarget.Invoke(m_Column3DViewManager.BothHemi.BoundingBox().Center());
 
             DisplayScreenMessage("Multi Patients Scene loaded", 2.0f, 400, 80);
             return true;
@@ -322,7 +334,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="pathsElectrodesPtsFile"></param>
         /// <returns></returns>
-        public bool ResetElectrodesFiles(List<string> pathsElectrodesPtsFile, List<string> names)
+        public bool LoadSites(List<string> pathsElectrodesPtsFile, List<string> names)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetElectrodesFile))
@@ -419,9 +431,9 @@ namespace HBP.Module3D
             }
 
             // reset selected plot
-            for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
+            for (int ii = 0; ii < m_Column3DViewManager.Columns.Count; ++ii)
             {
-                m_Column3DViewManager.ColumnsIEEG[ii].SelectedSiteID = -1;
+                m_Column3DViewManager.Columns[ii].SelectedSiteID = -1;
             }
 
             //####### UDPATE MODE
@@ -480,6 +492,7 @@ namespace HBP.Module3D
         public void LoadPatientInSinglePatientScene(Data.Visualization.MultiPatientsVisualization visualization, Data.Patient patient, int idPlotSelected)
         {
             OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(visualization, patient);
+            ApplySceneCamerasToIndividualScene.Invoke();
             /*
             // retrieve patient plots nb
             int nbPlotsSpPatient = m_Column3DViewManager.DLLLoadedPatientsElectrodes.patient_sites_nb(idPatientSelected);
