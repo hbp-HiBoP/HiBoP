@@ -147,10 +147,6 @@ namespace Tools.Unity.ResizableGrid
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            AddColumn();
-        }
         private void OnRectTransformDimensionsChange()
         {
             m_MinimumViewHeight = Mathf.Min(MINIMUM_VIEW_HEIGHT_DEFAULT, GetComponent<RectTransform>().rect.height / ViewNumber);

@@ -37,7 +37,6 @@ namespace Tools.Unity.ResizableGrid
         void Awake()
         {
             m_ViewPrefab = GetComponentInParent<ResizableGrid>().ViewPrefab;
-            AddView();
         }
         #endregion
 

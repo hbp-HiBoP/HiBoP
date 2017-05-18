@@ -5,13 +5,13 @@
  * \brief   Define Column3DViewManager class
  */
 using UnityEngine;
+using UnityEngine.Events;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace HBP.Module3D
 {
-    public class OnChangeSelectedColumn : UnityEngine.Events.UnityEvent<Column3DView> { }
     /// <summary>
     /// A class for managing all the columns data from a specific scene
     /// </summary>
@@ -127,7 +127,7 @@ namespace HBP.Module3D
                 else Debug.LogError("Column3DViewManager didn't contain this column.");
             }
         }
-        public OnChangeSelectedColumn OnChangeSelectedColumn = new OnChangeSelectedColumn();
+        public GenericEvent<Column3DView> OnChangeSelectedColumn = new GenericEvent<Column3DView>();
 
         List<Column3DView> m_Columns = new List<Column3DView>();
         public ReadOnlyCollection<Column3DView> Columns { get { return m_Columns != null ? new ReadOnlyCollection<Column3DView>(m_Columns) : new ReadOnlyCollection<Column3DView>(new List<Column3DView>(0)); } }

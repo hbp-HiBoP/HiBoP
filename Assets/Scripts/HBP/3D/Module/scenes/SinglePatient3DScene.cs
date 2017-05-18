@@ -255,7 +255,7 @@ namespace HBP.Module3D
                 ResetSceneGameObjects();
                 return false;
             }
-            
+
             SetTimelineData();
             SelectSite(-1);
             UpdateSelectedColumn(0);
@@ -559,6 +559,9 @@ namespace HBP.Module3D
             {
                 m_Column3DViewManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].DataLabel;                
             }
+
+            //FIXME
+            return;
 
             // set timelines
             m_Column3DViewManager.SetTimelineData(Patient, Visualization.Columns);

@@ -59,7 +59,7 @@ namespace HBP.Module3D
         }
         public Site SelectedSite
         {
-            get { return Sites[m_SelectedSiteID]; }
+            get { return m_SelectedSiteID >= 0 ? Sites[m_SelectedSiteID] : null; }
             set { m_SelectedSiteID = Sites.FindIndex((site) => site == value); OnChangeSelectedSite.Invoke(value); }
         }
         public OnChangeSelectedSite OnChangeSelectedSite = new OnChangeSelectedSite();

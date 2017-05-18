@@ -188,6 +188,14 @@ namespace HBP.Module3D
             m_Camera.transform.rotation = reference.m_Camera.transform.rotation;
             m_Camera.Target = reference.m_Camera.Target;
         }
+        /// <summary>
+        /// Set the viewport of the camera
+        /// </summary>
+        /// <param name="viewport">Viewport</param>
+        public void SetViewport(float x, float y, float width, float height)
+        {
+            m_Camera.GetComponent<Camera>().rect = new Rect(x / Screen.width, y / Screen.height, width / Screen.width, height / Screen.height);
+        }
         #endregion
     }
 }
