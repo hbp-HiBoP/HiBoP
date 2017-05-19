@@ -24,10 +24,7 @@ namespace HBP.Module3D
             set
             {
                 m_CullingMask = value;
-                if (!m_AssociatedView.IsMinimized)
-                {
-                    GetComponent<Camera>().cullingMask = m_CullingMask;
-                }
+                GetComponent<Camera>().cullingMask = m_CullingMask;
             }
         }
 
@@ -156,7 +153,7 @@ namespace HBP.Module3D
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
             m_AssociatedScene = GetComponentInParent<Base3DScene>();
             m_AssociatedView = GetComponentInParent<View3D>();
-            m_Target = m_AssociatedScene.Column3DViewManager.BothHemi.BoundingBox.Center;
+            m_Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center;
             m_OriginalTarget = m_Target;
             transform.position = m_Target - transform.forward * m_StartDistance;
 

@@ -64,12 +64,12 @@ public class View3DUI : MonoBehaviour {
             {
                 m_MinimizedGameObject.SetActive(true);
             }
-            //m_View.IsMinimized = true;
+            m_View.IsMinimized = true;
         }
         else
         {
             m_MinimizedGameObject.SetActive(false);
-            //m_View.IsMinimized = false;
+            m_View.IsMinimized = false;
         }
 
         Rect viewport = RectTransformToScreenSpace(GetComponent<RectTransform>());

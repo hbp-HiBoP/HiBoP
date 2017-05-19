@@ -212,7 +212,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         void update_histogram()
         {
-            HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(m_scene.Column3DViewManager.DLLVolumeFMriList[m_columnId], 4 * 110, 4 * 110, m_calMin, m_calMax).UpdateTexture2D(m_IRMFhistogram);
+            HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(m_scene.ColumnManager.DLLVolumeFMriList[m_columnId], 4 * 110, 4 * 110, m_calMin, m_calMax).UpdateTexture2D(m_IRMFhistogram);
 
             Transform contentPanelT = transform.Find("panel");
             Image image = contentPanelT.Find("Histogram parent").Find("Histogram panel").GetComponent<Image>();
@@ -349,7 +349,7 @@ namespace HBP.UI.Module3D
         /// <param name="columnId"> id of the column (counting iEEG and fMRI)</param>
         public void define_current_column(int columnId = -1)
         {
-            int nbIEEGCols = m_scene.Column3DViewManager.ColumnsIEEG.Count;
+            int nbIEEGCols = m_scene.ColumnManager.ColumnsIEEG.Count;
             if (columnId >= nbIEEGCols)
                 m_currentMenu = m_FMRIMenuList[columnId - nbIEEGCols].GetComponent<FMRIMenu>();
             else

@@ -15,19 +15,19 @@ namespace HBP.Module3D
     /// <summary>
     /// A class for managing all the columns data from a specific scene
     /// </summary>
-    public class Column3DViewManager : MonoBehaviour
+    public class Column3DManager : MonoBehaviour
     {
         #region Properties
         // mani (debug)
         public Color[] ColorsSites = null;
 
         public int SelectedPatientID = 0; /**< id of the selected patient for Multi patient scene */
-        public Dictionary<Column3DView, List<View3D>> Views
+        public Dictionary<Column3D, List<View3D>> Views
         {
             get
             {
-                Dictionary<Column3DView, List<View3D>> views = new Dictionary<Column3DView, List<View3D>>();
-                foreach (Column3DView column in Columns)
+                Dictionary<Column3D, List<View3D>> views = new Dictionary<Column3D, List<View3D>>();
+                foreach (Column3D column in Columns)
                 {
                     views.Add(column, new List<View3D>());
                     foreach (View3D view in column.Views)
@@ -42,7 +42,7 @@ namespace HBP.Module3D
         {
             get
             {
-                foreach (Column3DView column in Columns)
+                foreach (Column3D column in Columns)
                 {
                     foreach (View3D view in column.Views)
                     {
@@ -55,11 +55,11 @@ namespace HBP.Module3D
                 return false;
             }
         }
-        public Column3DView FocusedColumn
+        public Column3D FocusedColumn
         {
             get
             {
-                foreach (Column3DView column in Columns)
+                foreach (Column3D column in Columns)
                 {
                     foreach (View3D view in column.Views)
                     {
@@ -76,7 +76,7 @@ namespace HBP.Module3D
         {
             get
             {
-                foreach (Column3DView column in Columns)
+                foreach (Column3D column in Columns)
                 {
                     foreach (View3D view in column.Views)
                     {
@@ -93,7 +93,7 @@ namespace HBP.Module3D
         {
             get
             {
-                foreach (Column3DView column in Columns)
+                foreach (Column3D column in Columns)
                 {
                     foreach (View3D view in column.Views)
                     {
@@ -117,7 +117,7 @@ namespace HBP.Module3D
                 OnChangeSelectedColumn.Invoke(m_Columns[value]);
             }
         }
-        public Column3DView SelectedColumn
+        public Column3D SelectedColumn
         {
             get { return m_Columns[SelectedColumnID]; }
             set
@@ -127,12 +127,12 @@ namespace HBP.Module3D
                 else Debug.LogError("Column3DViewManager didn't contain this column.");
             }
         }
-        public GenericEvent<Column3DView> OnChangeSelectedColumn = new GenericEvent<Column3DView>();
+        public GenericEvent<Column3D> OnChangeSelectedColumn = new GenericEvent<Column3D>();
 
-        List<Column3DView> m_Columns = new List<Column3DView>();
-        public ReadOnlyCollection<Column3DView> Columns { get { return m_Columns != null ? new ReadOnlyCollection<Column3DView>(m_Columns) : new ReadOnlyCollection<Column3DView>(new List<Column3DView>(0)); } }
-        public ReadOnlyCollection<Column3DViewIEEG> ColumnsIEEG { get { return m_Columns != null ? new ReadOnlyCollection<Column3DViewIEEG>((from column in m_Columns where column is Column3DViewIEEG select (Column3DViewIEEG)column).ToArray()) : new ReadOnlyCollection<Column3DViewIEEG>(new List<Column3DViewIEEG>(0)); } }
-        public ReadOnlyCollection<Column3DViewFMRI> ColumnsFMRI { get { return m_Columns != null ? new ReadOnlyCollection<Column3DViewFMRI>((from column in m_Columns where column is Column3DViewFMRI select (Column3DViewFMRI)column).ToArray()) : new ReadOnlyCollection<Column3DViewFMRI>(new List<Column3DViewFMRI>(0)); } }
+        List<Column3D> m_Columns = new List<Column3D>();
+        public ReadOnlyCollection<Column3D> Columns { get { return m_Columns != null ? new ReadOnlyCollection<Column3D>(m_Columns) : new ReadOnlyCollection<Column3D>(new List<Column3D>(0)); } }
+        public ReadOnlyCollection<Column3DIEEG> ColumnsIEEG { get { return m_Columns != null ? new ReadOnlyCollection<Column3DIEEG>((from column in m_Columns where column is Column3DIEEG select (Column3DIEEG)column).ToArray()) : new ReadOnlyCollection<Column3DIEEG>(new List<Column3DIEEG>(0)); } }
+        public ReadOnlyCollection<Column3DFMRI> ColumnsFMRI { get { return m_Columns != null ? new ReadOnlyCollection<Column3DFMRI>((from column in m_Columns where column is Column3DFMRI select (Column3DFMRI)column).ToArray()) : new ReadOnlyCollection<Column3DFMRI>(new List<Column3DFMRI>(0)); } }
 
         // plots
         public DLL.RawSiteList DLLLoadedRawSitesList = null;
@@ -226,7 +226,7 @@ namespace HBP.Module3D
         /// </summary>
         private void AddIEEGColumn()
         {
-            Column3DViewIEEG column = Instantiate(Column3DViewIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DViewIEEG>();
+            Column3DIEEG column = Instantiate(Column3DViewIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
             column.gameObject.name = "Column IEEG " + ColumnsIEEG.Count;
             m_Columns.Add(column);
         }
@@ -235,7 +235,7 @@ namespace HBP.Module3D
         /// </summary>
         private void AddFMRIColumn()
         {
-            Column3DViewFMRI column = Instantiate(Column3DViewFMRIPrefab, transform.Find("Columns")).GetComponent<Column3DViewFMRI>();
+            Column3DFMRI column = Instantiate(Column3DViewFMRIPrefab, transform.Find("Columns")).GetComponent<Column3DFMRI>();
             column.gameObject.name = "Column FMRI " + ColumnsFMRI.Count;
             m_Columns.Add(column);
         }
@@ -246,7 +246,7 @@ namespace HBP.Module3D
         {
             if (ColumnsIEEG.Count > 0)
             {
-                Column3DViewIEEG column = ColumnsIEEG[ColumnsIEEG.Count - 1];
+                Column3DIEEG column = ColumnsIEEG[ColumnsIEEG.Count - 1];
                 int columnID = m_Columns.IndexOf(column);
                 Destroy(m_Columns[columnID]);
                 m_Columns.RemoveAt(columnID);
@@ -259,7 +259,7 @@ namespace HBP.Module3D
         {
             if (ColumnsIEEG.Count > 0)
             {
-                Column3DViewFMRI column = ColumnsFMRI[ColumnsFMRI.Count - 1];
+                Column3DFMRI column = ColumnsFMRI[ColumnsFMRI.Count - 1];
                 int columnID = m_Columns.IndexOf(column);
                 Destroy(m_Columns[columnID]);
                 m_Columns.RemoveAt(columnID);
@@ -272,7 +272,7 @@ namespace HBP.Module3D
         {
             if (ClickedView != null)
             {
-                foreach (Column3DView column in Columns)
+                foreach (Column3D column in Columns)
                 {
                     foreach (View3D view in column.Views)
                     {
@@ -339,7 +339,7 @@ namespace HBP.Module3D
                 }
                 m_Columns.Clear();
             }
-            else m_Columns = new List<Column3DView>();
+            else m_Columns = new List<Column3D>();
 
             ResetSplitsNumber(1);
         }
@@ -649,7 +649,7 @@ namespace HBP.Module3D
                     break;
             }
 
-            ((Column3DViewIEEG)Columns[indexColumn]).CreateGUIIEEGTexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom");
+            ((Column3DIEEG)Columns[indexColumn]).CreateGUIIEEGTexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom");
         }
         /// <summary>
         /// 
@@ -678,7 +678,7 @@ namespace HBP.Module3D
                     break;
             }
 
-            ((Column3DViewFMRI)Columns[indexColumn]).CreateGUIFMRITexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom");
+            ((Column3DFMRI)Columns[indexColumn]).CreateGUIFMRITexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom");
         }
         /// <summary>
         /// 
@@ -688,7 +688,7 @@ namespace HBP.Module3D
         /// <param name="thresholdInfluence"></param>
         public void ColorCutsTexturesWithIEEG(int indexColumn, int indexCut)
         {
-            Column3DViewIEEG column = ColumnsIEEG[indexColumn];            
+            Column3DIEEG column = ColumnsIEEG[indexColumn];            
             DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[indexCut];        
             generator.FillTextureWithIEEG(column, column.DLLCutColorScheme, NotInBrainColor);
 
@@ -703,7 +703,7 @@ namespace HBP.Module3D
         /// <param name="indexCut"></param>
         public void ColorCutsTexturesWithFMRI(int indexColumn, int indexCut)
         {
-            Column3DViewFMRI column = ColumnsFMRI[indexColumn];
+            Column3DFMRI column = ColumnsFMRI[indexColumn];
             DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[indexCut];
             generator.FillTextureWithFMRI(column, DLLVolumeFMriList[indexColumn]);
 

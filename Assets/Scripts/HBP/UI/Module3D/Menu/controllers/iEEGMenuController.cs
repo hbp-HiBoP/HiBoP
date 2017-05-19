@@ -605,7 +605,7 @@ namespace HBP.UI.Module3D
             float middleFactor = contentPanelT.Find("Cal middle iEEG slider").GetComponent<Slider>().value;
             float spanMaxFactor = contentPanelT.Find("Cal max iEEG slider").GetComponent<Slider>().value;
 
-            HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(m_scene.Column3DViewManager.ColumnsIEEG[m_columnId].IEEGValues, 4 * 110, 4 * 110, spanMinFactor, spanMaxFactor, middleFactor).UpdateTexture2D(m_iEEGHistogram);
+            HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(m_scene.ColumnManager.ColumnsIEEG[m_columnId].IEEGValues, 4 * 110, 4 * 110, spanMinFactor, spanMaxFactor, middleFactor).UpdateTexture2D(m_iEEGHistogram);
 
             Image image = contentPanelT.Find("Histogram iEEG parent").Find("Histogram panel").GetComponent<Image>();
             Destroy(image.sprite);

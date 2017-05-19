@@ -31,7 +31,7 @@ public class Scene3DUI : MonoBehaviour {
             GetComponent<ResizableGrid>().AddViewLine();
             for (int i = 0; i < GetComponent<ResizableGrid>().Columns.Count; i++)
             {
-                GetComponent<ResizableGrid>().Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(Scene.Column3DViewManager.Columns[i].Views.Last());
+                GetComponent<ResizableGrid>().Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(Scene.ColumnManager.Columns[i].Views.Last());
             }
         });
     }
@@ -51,10 +51,10 @@ public class Scene3DUI : MonoBehaviour {
     /// </summary>
     private void AddColumns()
     {
-        for (int i = 0; i < Scene.Column3DViewManager.Columns.Count; i++)
+        for (int i = 0; i < Scene.ColumnManager.Columns.Count; i++)
         {
             GetComponent<ResizableGrid>().AddColumn();
-            GetComponent<ResizableGrid>().Columns.Last().GetComponent<Column3DUI>().Initialize(Scene.Column3DViewManager.Columns[i]);
+            GetComponent<ResizableGrid>().Columns.Last().GetComponent<Column3DUI>().Initialize(Scene.ColumnManager.Columns[i]);
         }
     }
     #endregion
@@ -65,14 +65,14 @@ public class Scene3DUI : MonoBehaviour {
     /// </summary>
     public void AddView()
     {
-        for (int i = 0; i < Scene.Column3DViewManager.Columns.Count; i++)
+        for (int i = 0; i < Scene.ColumnManager.Columns.Count; i++)
         {
-            Scene.Column3DViewManager.Columns[i].AddView();
+            Scene.ColumnManager.Columns[i].AddView();
         }
         GetComponent<ResizableGrid>().AddViewLine();
         for (int i = 0; i < GetComponent<ResizableGrid>().Columns.Count; i++)
         {
-            GetComponent<ResizableGrid>().Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(Scene.Column3DViewManager.Columns[i].Views.Last());
+            GetComponent<ResizableGrid>().Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(Scene.ColumnManager.Columns[i].Views.Last());
         }
     }
     /// <summary>
@@ -80,9 +80,9 @@ public class Scene3DUI : MonoBehaviour {
     /// </summary>
     public void RemoveView()
     {
-        for (int i = 0; i < Scene.Column3DViewManager.Columns.Count; i++)
+        for (int i = 0; i < Scene.ColumnManager.Columns.Count; i++)
         {
-            Scene.Column3DViewManager.Columns[i].RemoveView();
+            Scene.ColumnManager.Columns[i].RemoveView();
         }
         GetComponent<ResizableGrid>().RemoveViewLine(GetComponent<ResizableGrid>().ViewNumber - 1);
     }

@@ -8,11 +8,11 @@ using UnityEngine.UI;
 
 public class Column3DUI : MonoBehaviour {
     #region Properties
-    private Column3DView m_Column;
+    private Column3D m_Column;
     /// <summary>
     /// Associated logical column 3D
     /// </summary>
-    public Column3DView Column
+    public Column3D Column
     {
         get
         {
@@ -71,7 +71,7 @@ public class Column3DUI : MonoBehaviour {
     /// <summary>
     /// Initialize this view
     /// </summary>
-    public void Initialize(Column3DView column)
+    public void Initialize(Column3D column)
     {
         m_Column = column;
         m_MinimizedGameObject = transform.Find("MinimizedImage").gameObject;

@@ -133,7 +133,7 @@ namespace HBP.Module3D
             /// <param name="addValues"></param>
             /// <param name="ratioDistances"></param>
             /// <returns></returns>
-            public bool ComputeInfluences(Column3DViewIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
+            public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
             {
                 bool noError = false;
                 noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.Dimensions, IEEGColumn.MaxDistanceElec, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances ? 1 : 0,
@@ -169,7 +169,7 @@ namespace HBP.Module3D
             /// <param name="surface"></param>
             /// <param name="IEEGColumn"></param>
             /// <returns></returns>
-            public bool ComputeSurfaceUVIEEG(DLL.Surface surface, Column3DViewIEEG IEEGColumn)
+            public bool ComputeSurfaceUVIEEG(DLL.Surface surface, Column3DIEEG IEEGColumn)
             {                
                 bool noError = false;
                 noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), IEEGColumn.CurrentTimeLineID, IEEGColumn.AlphaMin, IEEGColumn.AlphaMax) == 1;

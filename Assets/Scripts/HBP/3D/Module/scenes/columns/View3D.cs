@@ -48,7 +48,7 @@ namespace HBP.Module3D
             set
             {
                 m_IsMinimized = value;
-                if (m_IsMinimized)
+                if (!m_IsMinimized)
                 {
                     m_Camera.CullingMask = m_RegularCullingMask;
                 }
@@ -174,6 +174,7 @@ namespace HBP.Module3D
         private void Update()
         {
             m_Camera.GetComponent<Camera>().backgroundColor = IsClicked ? m_ClickedColor : (IsFocused ? m_FocusedColor : m_RegularColor);
+            Debug.Log(m_RegularCullingMask);
         }
         #endregion
 

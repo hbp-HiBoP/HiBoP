@@ -158,7 +158,7 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="FMRIColumn"></param>
             /// <param name="volume"></param>
-            public void FillTextureWithFMRI(Column3DViewFMRI FMRIColumn, DLL.Volume volume)
+            public void FillTextureWithFMRI(Column3DFMRI FMRIColumn, DLL.Volume volume)
             {
                 bool noError = false;
                 noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), FMRIColumn.DLLCutFMRIColorScheme.getHandle(), FMRIColumn.CalMin, FMRIColumn.CalMax, FMRIColumn.Alpha) ==1;
@@ -198,7 +198,7 @@ namespace HBP.Module3D
             /// <param name="addValues"></param>
             /// <param name="ratioDistances"></param>
             /// <returns></returns>
-            public bool ComputeInfluences(Column3DViewIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
+            public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
             {
                 bool noError = false;
                 noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.Dimensions, IEEGColumn.MaxDistanceElec,
@@ -217,7 +217,7 @@ namespace HBP.Module3D
             /// <param name="colorScheme"></param>
             /// <param name="notInBrainCol"></param>
             /// <returns></returns>
-            public bool FillTextureWithIEEG(Column3DViewIEEG IEEGColumn, DLL.Texture colorScheme, Color notInBrainCol)
+            public bool FillTextureWithIEEG(Column3DIEEG IEEGColumn, DLL.Texture colorScheme, Color notInBrainCol)
             {
                 bool noError = false;
                 float[] notInBrainColor = new float[3];

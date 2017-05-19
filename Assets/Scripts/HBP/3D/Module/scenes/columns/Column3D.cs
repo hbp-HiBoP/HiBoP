@@ -16,7 +16,7 @@ namespace HBP.Module3D
     /// <summary>
     /// Column 3D view base class
     /// </summary>
-    public abstract class Column3DView : MonoBehaviour
+    public abstract class Column3D : MonoBehaviour
     {
         #region Properties
         public enum ColumnType

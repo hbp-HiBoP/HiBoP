@@ -18,7 +18,7 @@ namespace HBP.Module3D
     /// <summary>
     /// A 3D column view IEGG, containing all necessary data concerning a data column
     /// </summary>
-    public class Column3DViewIEEG : Column3DView
+    public class Column3DIEEG : Column3D
     {
         #region Properties
         public override ColumnType Type
