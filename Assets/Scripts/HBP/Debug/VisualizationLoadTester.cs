@@ -17,11 +17,11 @@ public class VisualizationLoadTester : MonoBehaviour
             Debug.Log("LoadSingle");
             Project project = ApplicationState.ProjectLoaded;
             List<Column> columns = new List<Column>();
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 3; i++)
             {
                 Dataset dataset = project.Datasets[0];
                 Protocol protocol = project.Protocols[0];
-                Bloc bloc = protocol.Blocs[i];
+                Bloc bloc = protocol.Blocs[i%2];
                 ColumnConfiguration configuration = new ColumnConfiguration();
                 Column col = new Column(dataset, "TestLabel", protocol, bloc, configuration);
                 columns.Add(col);

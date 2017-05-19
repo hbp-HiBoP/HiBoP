@@ -47,35 +47,14 @@ public class Scene3DUI : MonoBehaviour {
         }
     }
     /// <summary>
-    /// Add a displayed column but no logic behind
+    /// Add displayed columns but no logic behind
     /// </summary>
     private void AddColumns()
     {
         for (int i = 0; i < Scene.Column3DViewManager.Columns.Count; i++)
         {
             GetComponent<ResizableGrid>().AddColumn();
-            m_MinimizedColumns.Add(Instantiate(MinimizedColumnPrefab, transform));
-
-            Column3DUI column = GetComponent<ResizableGrid>().Columns.Last().GetComponent<Column3DUI>();
-            GameObject minimizedColumn = m_MinimizedColumns.Last();
-
-            column.Initialize(Scene.Column3DViewManager.Columns[i]);
-            minimizedColumn.GetComponentInChildren<Text>().text = column.Column.Label;
-
-            minimizedColumn.SetActive(false);
-            column.OnColumnResize.AddListener(() =>
-            {
-                minimizedColumn.GetComponent<RectTransform>().anchorMin = column.GetComponent<RectTransform>().anchorMin;
-                minimizedColumn.GetComponent<RectTransform>().anchorMax = column.GetComponent<RectTransform>().anchorMax;
-                if (Mathf.Abs(column.GetComponent<RectTransform>().rect.width - GetComponent<ResizableGrid>().MinimumViewWidth) <= 0.9f)
-                {
-                    minimizedColumn.SetActive(true);
-                }
-                else
-                {
-                    minimizedColumn.SetActive(false);
-                }
-            });
+            GetComponent<ResizableGrid>().Columns.Last().GetComponent<Column3DUI>().Initialize(Scene.Column3DViewManager.Columns[i]);
         }
     }
     #endregion

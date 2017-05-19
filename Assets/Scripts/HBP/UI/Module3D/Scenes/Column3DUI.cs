@@ -24,19 +24,23 @@ public class Column3DUI : MonoBehaviour {
     /// </summary>
     public ResizableGrid ParentGrid { get; set; }
     /// <summary>
+    /// GameObject to hide a minimized column
+    /// </summary>
+    private GameObject m_MinimizedGameObject;
+    /// <summary>
     /// Is the column initialized ?
     /// </summary>
     private bool m_IsInitialized = false;
-    /// <summary>
-    /// Event called when resizing a column
-    /// </summary>
-    public UnityEvent OnColumnResize = new UnityEvent();
     #endregion
 
     #region Private Methods
     private void Awake()
     {
         ParentGrid = GetComponentInParent<ResizableGrid>();
+    }
+    private void Update()
+    {
+        m_MinimizedGameObject.transform.SetAsLastSibling();
     }
     /// <summary>
     /// Get RectTransform screen coordinates
@@ -55,7 +59,14 @@ public class Column3DUI : MonoBehaviour {
     {
         if (!m_IsInitialized) return;
 
-        OnColumnResize.Invoke();
+        if (Mathf.Abs(GetComponent<RectTransform>().rect.width - ParentGrid.MinimumViewWidth) <= 0.9f)
+        {
+            m_MinimizedGameObject.SetActive(true);
+        }
+        else
+        {
+            m_MinimizedGameObject.SetActive(false);
+        }
     }
     /// <summary>
     /// Initialize this view
@@ -63,6 +74,9 @@ public class Column3DUI : MonoBehaviour {
     public void Initialize(Column3DView column)
     {
         m_Column = column;
+        m_MinimizedGameObject = transform.Find("MinimizedImage").gameObject;
+        m_MinimizedGameObject.GetComponentInChildren<Text>().text = m_Column.Label;
+        m_MinimizedGameObject.SetActive(false);
         m_IsInitialized = true;
     }
     #endregion
