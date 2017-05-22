@@ -213,7 +213,7 @@ namespace HBP.Module3D
         {
             if (m_AssociatedView.LineID == 0)
             {
-                m_AssociatedScene.UpdateFocusedColumnRendering();
+                //m_AssociatedScene.UpdateColumnRendering();
             }
         }
         private void OnPostRender()

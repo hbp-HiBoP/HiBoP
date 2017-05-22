@@ -77,7 +77,7 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 0 cutSurface"); // 40%
 
             // choose the mesh
-            SceneInformation.MeshToDisplay = null;
+            SceneInformation.MeshToDisplay = new DLL.Surface();
             switch (SceneInformation.MeshTypeToDisplay)
             {
                 case SceneStatesInfo.MeshType.Hemi:

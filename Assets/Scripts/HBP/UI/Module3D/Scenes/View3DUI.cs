@@ -52,14 +52,8 @@ public class View3DUI : MonoBehaviour {
         set
         {
             m_UsingRenderTexture = value;
-            if (m_UsingRenderTexture)
-            {
-                m_RawImage.enabled = true;
-            }
-            else
-            {
-                m_RawImage.enabled = false;
-            }
+            m_RawImage.enabled = value;
+            OnRectTransformDimensionsChange();
         }
     }
     #endregion
@@ -70,7 +64,7 @@ public class View3DUI : MonoBehaviour {
         ParentGrid = GetComponentInParent<ResizableGrid>();
         m_RectTransform = GetComponent<RectTransform>();
         m_RawImage = GetComponent<RawImage>();
-        UsingRenderTexture = false;
+        UsingRenderTexture = true;
     }
     /// <summary>
     /// Get RectTransform screen coordinates
@@ -101,6 +95,10 @@ public class View3DUI : MonoBehaviour {
             }
             m_View.IsMinimized = true;
         }
+        else if (Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= 0.9f)
+        {
+            m_View.IsMinimized = true;
+        }
         else
         {
             m_MinimizedGameObject.SetActive(false);
@@ -110,7 +108,7 @@ public class View3DUI : MonoBehaviour {
         if (m_UsingRenderTexture)
         {
             UnityEngine.Profiling.Profiler.BeginSample("RenderTexture");
-            RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 16);
+            RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
             renderTexture.antiAliasing = 1;
             m_View.TargetTexture = renderTexture;
             m_View.Aspect = m_RectTransform.rect.width / m_RectTransform.rect.height;
@@ -134,6 +132,14 @@ public class View3DUI : MonoBehaviour {
         {
             Rect viewport = RectTransformToScreenSpace(m_RectTransform);
             m_View.SetViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+        }
+        else
+        {
+            RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
+            renderTexture.antiAliasing = 1;
+            m_View.TargetTexture = renderTexture;
+            m_View.Aspect = m_RectTransform.rect.width / m_RectTransform.rect.height;
+            m_RawImage.texture = m_View.TargetTexture;
         }
         
         m_MinimizedGameObject = transform.Find("MinimizedImage").gameObject;

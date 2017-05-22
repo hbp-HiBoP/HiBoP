@@ -110,7 +110,8 @@ namespace HBP.UI.Module3D
 
             // Brain Hemispheres.
             m_LeftBrainHemisphere.onValueChanged.AddListener((display) => m_ScenesManager.SelectedScene.UpdateMeshPartToDisplay(GetMeshPart(m_LeftBrainHemisphere.isOn, m_RightBrainHemisphere.isOn)));
-            m_LeftBrainHemisphere.onValueChanged.AddListener((display) => m_ScenesManager.SelectedScene.UpdateMeshPartToDisplay(GetMeshPart(m_LeftBrainHemisphere.isOn, m_RightBrainHemisphere.isOn)));
+            m_RightBrainHemisphere.onValueChanged.AddListener((display) => m_ScenesManager.SelectedScene.UpdateMeshPartToDisplay(GetMeshPart(m_LeftBrainHemisphere.isOn, m_RightBrainHemisphere.isOn)));
+
             // Brain Types.
             m_BrainTypes.onValueChanged.AddListener((value) =>
             {

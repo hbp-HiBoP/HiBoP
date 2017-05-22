@@ -41,6 +41,8 @@ namespace HBP.Module3D
             set { m_Layer = value; }
         }
 
+        public bool IsRenderingUpToDate { get; set; }
+
         public GameObject ViewPrefab;
         protected List<View3D> m_Views = new List<View3D>();
         public ReadOnlyCollection<View3D> Views
@@ -188,6 +190,9 @@ namespace HBP.Module3D
 
             // view
             AddView();
+
+            // update rendering
+            IsRenderingUpToDate = false;
         }
         /// <summary>
         ///  Clean all allocated data

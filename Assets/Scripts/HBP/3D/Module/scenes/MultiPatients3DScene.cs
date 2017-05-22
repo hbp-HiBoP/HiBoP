@@ -116,7 +116,7 @@ namespace HBP.Module3D
         public override void ComputeMeshesCut()
         {
             // choose the mesh
-            SceneInformation.MeshToDisplay = null;
+            SceneInformation.MeshToDisplay = new DLL.Surface();
             switch (SceneInformation.MeshTypeToDisplay)
             {
                 case SceneStatesInfo.MeshType.Hemi:

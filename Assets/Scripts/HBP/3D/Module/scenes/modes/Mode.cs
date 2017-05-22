@@ -240,38 +240,17 @@ namespace HBP.Module3D
         /// <returns></returns>
         public ModesId mu_ResetGIIBrainSurfaceFile()
         {
-            switch (Type)
+            if (ID == ModesId.NoPathDefined || ID == ModesId.MinPathDefined || ID == ModesId.AllPathDefined || ID == ModesId.AmplitudesComputed || ID == ModesId.TriErasing || ID == ModesId.AmpNeedUpdate)
             {
-                case SceneType.SinglePatient:
-                    if (ID == ModesId.NoPathDefined || ID == ModesId.MinPathDefined || ID == ModesId.AllPathDefined || ID == ModesId.AmplitudesComputed || ID == ModesId.TriErasing || ID == ModesId.AmpNeedUpdate)
-                    {
-                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
-                        {
-                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
-                                return ModesId.MinPathDefined;
-                            else
-                                return ModesId.AllPathDefined;
-                        }
-                        return ModesId.NoPathDefined;
-                    }
-                    break;
-                case SceneType.MultiPatients:
-                    if (ID == ModesId.NoPathDefined || ID == ModesId.MinPathDefined || ID == ModesId.AllPathDefined || ID == ModesId.AmplitudesComputed || ID == ModesId.TriErasing || ID == ModesId.AmpNeedUpdate)
-                    {
-                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
-                        {
-                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
-                                return ModesId.MinPathDefined;
-                            else
-                                return ModesId.AllPathDefined;
-                        }
-                        return ModesId.NoPathDefined;
-                    }
-                    break;
-                default:
-                    break;
+                if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
+                {
+                    if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
+                        return ModesId.MinPathDefined;
+                    else
+                        return ModesId.AllPathDefined;
+                }
+                return ModesId.NoPathDefined;
             }
-            // default
             return Mode.ModesId.Error;
         }
         /// <summary>
@@ -280,36 +259,16 @@ namespace HBP.Module3D
         /// <returns></returns>
         public ModesId mu_ResetNIIBrainVolumeFile()
         {
-            switch (Type)
+            if (ID == ModesId.NoPathDefined || ID == ModesId.MinPathDefined || ID == ModesId.AllPathDefined || ID == ModesId.AmplitudesComputed || ID == ModesId.TriErasing || ID == ModesId.AmpNeedUpdate)
             {
-                case SceneType.SinglePatient:
-                    if (ID == ModesId.NoPathDefined || ID == ModesId.MinPathDefined || ID == ModesId.AllPathDefined || ID == ModesId.AmplitudesComputed || ID == ModesId.TriErasing || ID == ModesId.AmpNeedUpdate)
-                    {
-                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
-                        {
-                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
-                                return ModesId.MinPathDefined;
-                            else
-                                return ModesId.AllPathDefined;
-                        }
-                        return ModesId.NoPathDefined;
-                    }
-                    break;
-                case SceneType.MultiPatients:
-                    if (ID == ModesId.NoPathDefined || ID == ModesId.MinPathDefined || ID == ModesId.AllPathDefined || ID == ModesId.AmplitudesComputed || ID == ModesId.TriErasing || ID == ModesId.AmpNeedUpdate)
-                    {
-                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
-                        {
-                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
-                                return ModesId.MinPathDefined;
-                            else
-                                return ModesId.AllPathDefined;
-                        }
-                        return ModesId.NoPathDefined;
-                    }
-                    break;
-                default:
-                    break;
+                if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
+                {
+                    if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
+                        return ModesId.MinPathDefined;
+                    else
+                        return ModesId.AllPathDefined;
+                }
+                return ModesId.NoPathDefined;
             }
             return Mode.ModesId.Error;
         }
@@ -319,36 +278,16 @@ namespace HBP.Module3D
         /// <returns></returns>
         public ModesId mu_ResetElectrodesFile()
         {
-            switch (Type)
+            if (ID == ModesId.NoPathDefined || ID == ModesId.MinPathDefined || ID == ModesId.AllPathDefined || ID == ModesId.AmplitudesComputed || ID == ModesId.TriErasing || ID == ModesId.AmpNeedUpdate)
             {
-                case SceneType.SinglePatient:
-                    if (ID == ModesId.NoPathDefined || ID == ModesId.MinPathDefined || ID == ModesId.AllPathDefined || ID == ModesId.AmplitudesComputed || ID == ModesId.TriErasing || ID == ModesId.AmpNeedUpdate)
-                    {
-                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
-                        {
-                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
-                                return ModesId.MinPathDefined;
-                            else
-                                return ModesId.AllPathDefined;
-                        }
-                        return ModesId.NoPathDefined;
-                    }
-                    break;
-                case SceneType.MultiPatients:
-                    if (ID == ModesId.NoPathDefined || ID == ModesId.MinPathDefined || ID == ModesId.AllPathDefined || ID == ModesId.AmplitudesComputed || ID == ModesId.TriErasing || ID == ModesId.AmpNeedUpdate)
-                    {
-                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
-                        {
-                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
-                                return ModesId.MinPathDefined;
-                            else
-                                return ModesId.AllPathDefined;
-                        }
-                        return ModesId.NoPathDefined;
-                    }
-                    break;
-                default:
-                    break;
+                if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
+                {
+                    if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
+                        return ModesId.MinPathDefined;
+                    else
+                        return ModesId.AllPathDefined;
+                }
+                return ModesId.NoPathDefined;
             }
             return Mode.ModesId.Error;
         }
@@ -358,36 +297,16 @@ namespace HBP.Module3D
         /// <returns></returns>
         public ModesId mu_SetTimelines()
         {
-            switch (Type)
+            if (ID == ModesId.NoPathDefined || ID == ModesId.MinPathDefined || ID == ModesId.AllPathDefined || ID == ModesId.AmplitudesComputed || ID == ModesId.AmpNeedUpdate)
             {
-                case SceneType.SinglePatient:
-                    if (ID == ModesId.NoPathDefined || ID == ModesId.MinPathDefined || ID == ModesId.AllPathDefined || ID == ModesId.AmplitudesComputed || ID == ModesId.AmpNeedUpdate)
-                    {
-                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
-                        {
-                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
-                                return ModesId.MinPathDefined;
-                            else
-                                return ModesId.AllPathDefined;
-                        }
-                        return ModesId.NoPathDefined;
-                    }
-                    break;
-                case SceneType.MultiPatients:
-                    if (ID == ModesId.NoPathDefined || ID == ModesId.MinPathDefined || ID == ModesId.AllPathDefined || ID == ModesId.AmplitudesComputed || ID == ModesId.AmpNeedUpdate)
-                    {
-                        if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
-                        {
-                            if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
-                                return ModesId.MinPathDefined;
-                            else
-                                return ModesId.AllPathDefined;
-                        }
-                        return ModesId.NoPathDefined;
-                    }
-                    break;
-                default:
-                    break;
+                if (SceneInformation.MRILoaded && SceneInformation.MeshesLoaded)
+                {
+                    if (!SceneInformation.SitesLoaded || !SceneInformation.TimelinesLoaded)
+                        return ModesId.MinPathDefined;
+                    else
+                        return ModesId.AllPathDefined;
+                }
+                return ModesId.NoPathDefined;
             }
             return Mode.ModesId.Error;
         }
@@ -406,7 +325,7 @@ namespace HBP.Module3D
                     }
                     break;
                 case SceneType.MultiPatients:
-                    if ((ID == ModesId.AllPathDefined) /** || (m_idMode == Mode.ModesId.ROICreation) */ || (ID == Mode.ModesId.AmpNeedUpdate) || (ID == Mode.ModesId.AmplitudesComputed))
+                    if ((ID == ModesId.AllPathDefined) || (ID == Mode.ModesId.AmpNeedUpdate) || (ID == Mode.ModesId.AmplitudesComputed))
                     {
                         return ModesId.ComputingAmplitudes;
                     }
@@ -422,22 +341,9 @@ namespace HBP.Module3D
         /// <returns></returns>
         public ModesId mu_PostUpdateGenerators()
         {
-            switch (Type)
+            if (ID == ModesId.ComputingAmplitudes)
             {
-                case SceneType.SinglePatient:
-                    if (ID == ModesId.ComputingAmplitudes)
-                    {
-                        return ModesId.AmplitudesComputed;
-                    }
-                    break;
-                case SceneType.MultiPatients:
-                    if (ID == ModesId.ComputingAmplitudes)
-                    {
-                        return ModesId.AmplitudesComputed;
-                    }
-                    break;
-                default:
-                    break;
+                return ModesId.AmplitudesComputed;
             }
             return Mode.ModesId.Error;
         }
@@ -447,30 +353,13 @@ namespace HBP.Module3D
         /// <returns></returns>
         public ModesId mu_AddNewPlane()
         {
-            switch (Type)
+            if (ID == Mode.ModesId.NoPathDefined || ID == Mode.ModesId.MinPathDefined || ID == Mode.ModesId.AllPathDefined)
             {
-                case SceneType.SinglePatient:
-                    if (ID == Mode.ModesId.NoPathDefined || ID == Mode.ModesId.MinPathDefined || ID == Mode.ModesId.AllPathDefined)
-                    {
-                        return ID;
-                    }
-                    if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
-                    {
-                        return Mode.ModesId.AllPathDefined;
-                    }
-                    break;
-                case SceneType.MultiPatients:
-                    if (ID == Mode.ModesId.NoPathDefined || ID == Mode.ModesId.MinPathDefined || ID == Mode.ModesId.AllPathDefined)
-                    {
-                        return ID;
-                    }
-                    if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
-                    {
-                        return Mode.ModesId.AllPathDefined;
-                    }
-                    break;
-                default:
-                    break;
+                return ID;
+            }
+            if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
+            {
+                return Mode.ModesId.AllPathDefined;
             }
             return Mode.ModesId.Error;
         }
@@ -480,30 +369,13 @@ namespace HBP.Module3D
         /// <returns></returns>
         public ModesId mu_RemoveLastPlane()
         {
-            switch (Type)
+            if (ID == Mode.ModesId.NoPathDefined || ID == Mode.ModesId.MinPathDefined || ID == Mode.ModesId.AllPathDefined)
             {
-                case SceneType.SinglePatient:
-                    if (ID == Mode.ModesId.NoPathDefined || ID == Mode.ModesId.MinPathDefined || ID == Mode.ModesId.AllPathDefined)
-                    {
-                        return ID;
-                    }
-                    if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
-                    {
-                        return Mode.ModesId.AllPathDefined;
-                    }
-                    break;
-                case SceneType.MultiPatients:
-                    if (ID == Mode.ModesId.NoPathDefined || ID == Mode.ModesId.MinPathDefined || ID == Mode.ModesId.AllPathDefined)
-                    {
-                        return ID;
-                    }
-                    if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
-                    {
-                        return Mode.ModesId.AllPathDefined;
-                    }
-                    break;
-                default:
-                    break;
+                return ID;
+            }
+            if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
+            {
+                return Mode.ModesId.AllPathDefined;
             }
             return Mode.ModesId.Error;
         }
@@ -513,30 +385,13 @@ namespace HBP.Module3D
         /// <returns></returns>
         public ModesId mu_UpdatePlane()
         {
-            switch (Type)
+            if (ID == Mode.ModesId.NoPathDefined || ID == Mode.ModesId.MinPathDefined || ID == Mode.ModesId.AllPathDefined)
             {
-                case SceneType.SinglePatient:
-                    if (ID == Mode.ModesId.NoPathDefined || ID == Mode.ModesId.MinPathDefined || ID == Mode.ModesId.AllPathDefined)
-                    {
-                        return ID;
-                    }
-                    if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
-                    {
-                        return Mode.ModesId.AllPathDefined;
-                    }
-                    break;
-                case SceneType.MultiPatients:
-                    if (ID == Mode.ModesId.NoPathDefined || ID == Mode.ModesId.MinPathDefined || ID == Mode.ModesId.AllPathDefined)
-                    {
-                        return ID;
-                    }
-                    if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
-                    {
-                        return Mode.ModesId.AllPathDefined;
-                    }
-                    break;
-                default:
-                    break;
+                return ID;
+            }
+            if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
+            {
+                return Mode.ModesId.AllPathDefined;
             }
             return Mode.ModesId.Error;
         }
@@ -546,22 +401,13 @@ namespace HBP.Module3D
         /// <returns></returns>
         public ModesId mu_SetDisplayedMesh()
         {
-            switch (Type)
+            if ((ID == Mode.ModesId.MinPathDefined) || (ID == Mode.ModesId.AllPathDefined))
             {
-                case SceneType.SinglePatient:
-                    break;
-                case SceneType.MultiPatients:
-                    if ((ID == Mode.ModesId.MinPathDefined) || (ID == Mode.ModesId.AllPathDefined))
-                    {
-                        return ID;
-                    }
-                    if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
-                    {
-                        return Mode.ModesId.AllPathDefined;
-                    }
-                    break;
-                default:
-                    break;
+                return ID;
+            }
+            if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
+            {
+                return Mode.ModesId.AllPathDefined;
             }
             return Mode.ModesId.Error;
         }
@@ -571,33 +417,10 @@ namespace HBP.Module3D
         /// <returns></returns>
         public ModesId mu_UpdateMiddle()
         {
-            switch (Type)
+            if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
             {
-                case SceneType.SinglePatient:
-                    if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
-                    {
-                        return Mode.ModesId.AllPathDefined;
-                    }
-                    break;
-                case SceneType.MultiPatients:
-                    if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
-                    {
-                        return Mode.ModesId.AllPathDefined;
-                    }
-                    break;
-                default:
-                    break;
+                return Mode.ModesId.AllPathDefined;
             }
-            //if ((idMode == Mode.ModesId.SpAmplitudesComputed) || (idMode == Mode.ModesId.SpAmpNeedUpdate))
-            //{
-            //    return Mode.ModesId.AllSpPathDefined;
-            //}
-
-            //if ((idMode == Mode.ModesId.MpAmplitudesComputed) || (idMode == Mode.ModesId.MpAmpNeedUpdate))
-            //{
-            //    return Mode.ModesId.AllMpPathDefined;
-            //}
-
             return ID;
         }
         /// <summary>
@@ -606,22 +429,9 @@ namespace HBP.Module3D
         /// <returns></returns>
         public ModesId mu_UpdateMaskPlot()
         {
-            switch (Type)
+            if (ID == Mode.ModesId.AmplitudesComputed)
             {
-                case SceneType.SinglePatient:
-                    if (ID == Mode.ModesId.AmplitudesComputed)
-                    {
-                        return Mode.ModesId.AmpNeedUpdate;
-                    }
-                    break;
-                case SceneType.MultiPatients:
-                    if (ID == Mode.ModesId.AmplitudesComputed)
-                    {
-                        return Mode.ModesId.AmpNeedUpdate;
-                    }
-                    break;
-                default:
-                    break;
+                return Mode.ModesId.AmpNeedUpdate;
             }
             return ID;
         }
@@ -632,8 +442,9 @@ namespace HBP.Module3D
         public ModesId mu_AddFMRIColumn()
         {
             if (ID == Mode.ModesId.NoPathDefined || ID == Mode.ModesId.ComputingAmplitudes)
+            {
                 return Mode.ModesId.Error;
-
+            }
             return ID;
         }
         /// <summary>
@@ -643,8 +454,9 @@ namespace HBP.Module3D
         public ModesId mu_RemoveLastFMRIColumn()
         {
             if (ID == Mode.ModesId.NoPathDefined || ID == Mode.ModesId.ComputingAmplitudes)
+            {
                 return Mode.ModesId.Error;
-
+            }
             return ID;
         }
         /// <summary>

@@ -56,6 +56,7 @@ namespace HBP.Module3D
                 {
                     m_Camera.CullingMask = m_MinimizedCullingMask;
                 }
+                m_Camera.GetComponent<Camera>().enabled = !m_IsMinimized;
             }
         }
 
