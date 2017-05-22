@@ -30,12 +30,47 @@ public class View3DUI : MonoBehaviour {
     /// Is the view initialized ?
     /// </summary>
     private bool m_IsInitialized = false;
+    /// <summary>
+    /// Render camera texture
+    /// </summary>
+    private RawImage m_RawImage;
+    /// <summary>
+    /// Rect Transform
+    /// </summary>
+    private RectTransform m_RectTransform;
+
+    private bool m_UsingRenderTexture;
+    /// <summary>
+    /// True if we are using render textures for the cameras (instead of changing the viewport)
+    /// </summary>
+    public bool UsingRenderTexture
+    {
+        get
+        {
+            return m_UsingRenderTexture;
+        }
+        set
+        {
+            m_UsingRenderTexture = value;
+            if (m_UsingRenderTexture)
+            {
+                m_RawImage.enabled = true;
+            }
+            else
+            {
+                m_RawImage.enabled = false;
+            }
+        }
+    }
     #endregion
 
     #region Private Methods
     private void Awake()
     {
         ParentGrid = GetComponentInParent<ResizableGrid>();
+        m_RectTransform = GetComponent<RectTransform>();
+        m_RawImage = GetComponent<RawImage>();
+        UsingRenderTexture = false;
     }
     /// <summary>
     /// Get RectTransform screen coordinates
@@ -54,9 +89,9 @@ public class View3DUI : MonoBehaviour {
     {
         if (!m_IsInitialized) return;
 
-        if (Mathf.Abs(GetComponent<RectTransform>().rect.height - ParentGrid.MinimumViewHeight) <= 0.9f)
+        if (Mathf.Abs(m_RectTransform.rect.height - ParentGrid.MinimumViewHeight) <= 0.9f)
         {
-            if (Mathf.Abs(GetComponent<RectTransform>().rect.width - ParentGrid.MinimumViewWidth) <= 0.9f)
+            if (Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= 0.9f)
             {
                 m_MinimizedGameObject.SetActive(false);
             }
@@ -71,9 +106,22 @@ public class View3DUI : MonoBehaviour {
             m_MinimizedGameObject.SetActive(false);
             m_View.IsMinimized = false;
         }
-
-        Rect viewport = RectTransformToScreenSpace(GetComponent<RectTransform>());
-        m_View.SetViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+        
+        if (m_UsingRenderTexture)
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("RenderTexture");
+            RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 16);
+            renderTexture.antiAliasing = 1;
+            m_View.TargetTexture = renderTexture;
+            m_View.Aspect = m_RectTransform.rect.width / m_RectTransform.rect.height;
+            m_RawImage.texture = m_View.TargetTexture;
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+        else
+        {
+            Rect viewport = RectTransformToScreenSpace(m_RectTransform);
+            m_View.SetViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+        }
     }
     /// <summary>
     /// Initialize this view
@@ -81,8 +129,13 @@ public class View3DUI : MonoBehaviour {
     public void Initialize(View3D view)
     {
         m_View = view;
-        Rect viewport = RectTransformToScreenSpace(GetComponent<RectTransform>());
-        m_View.SetViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+        
+        if (!m_UsingRenderTexture)
+        {
+            Rect viewport = RectTransformToScreenSpace(m_RectTransform);
+            m_View.SetViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+        }
+        
         m_MinimizedGameObject = transform.Find("MinimizedImage").gameObject;
         m_MinimizedGameObject.GetComponentInChildren<Text>().text = "View " + view.LineID;
         m_MinimizedGameObject.SetActive(false);

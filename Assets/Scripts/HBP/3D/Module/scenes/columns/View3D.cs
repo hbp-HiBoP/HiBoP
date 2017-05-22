@@ -128,7 +128,38 @@ namespace HBP.Module3D
         /// Layer of the view
         /// </summary>
         public string Layer { get; set; }
-        
+
+        /// <summary>
+        /// Set the texture on which the camera renders
+        /// </summary>
+        /// <param name="texture">Texture to be rendered on</param>
+        public RenderTexture TargetTexture
+        {
+            get
+            {
+                return m_Camera.GetComponent<Camera>().targetTexture;
+            }
+            set
+            {
+                m_Camera.GetComponent<Camera>().targetTexture = value;
+            }
+        }
+
+        /// <summary>
+        /// Aspect ration of the camera
+        /// </summary>
+        public float Aspect
+        {
+            get
+            {
+                return m_Camera.GetComponent<Camera>().aspect;
+            }
+            set
+            {
+                m_Camera.GetComponent<Camera>().aspect = value;
+            }
+        }
+
         /// <summary>
         /// Default minimized culling mask value
         /// </summary>
@@ -174,7 +205,6 @@ namespace HBP.Module3D
         private void Update()
         {
             m_Camera.GetComponent<Camera>().backgroundColor = IsClicked ? m_ClickedColor : (IsFocused ? m_FocusedColor : m_RegularColor);
-            Debug.Log(m_RegularCullingMask);
         }
         #endregion
 

@@ -379,12 +379,12 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < Sites.Count; ++ii)
                 {
                     bool activity;
-                    //if(Sites[ii].firstUse)
-                    //{
-                    //    Sites[ii].firstUse = false;
-                    //    activity = Sites[ii].gameObject.activeSelf;
-                    //}
-                    //else
+                    if (!Sites[ii].IsInitialized)
+                    {
+                        Sites[ii].IsInitialized = true;
+                        activity = Sites[ii].gameObject.activeSelf;
+                    }
+                    else
                         activity = Sites[ii].IsActive;
 
       
