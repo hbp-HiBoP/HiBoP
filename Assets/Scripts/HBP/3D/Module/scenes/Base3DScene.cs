@@ -180,6 +180,27 @@ namespace HBP.Module3D
         /// </summary>
         public abstract SceneType Type { get; }
 
+        private bool m_IsSelected;
+        /// <summary>
+        /// Is this scene selected ?
+        /// </summary>
+        public bool IsSelected
+        {
+            get
+            {
+                return m_IsSelected;
+            }
+            set
+            {
+                bool wasSelected = m_IsSelected;
+                m_IsSelected = value;
+                if (m_IsSelected && !wasSelected)
+                {
+                    OnSelectScene.Invoke(this);
+                }
+            }
+        }
+
         /// <summary>
         /// Space between scenes in world space
         /// </summary>
@@ -198,17 +219,6 @@ namespace HBP.Module3D
             set
             {
                 m_Visualization = value;
-            }
-        }
-
-        /// <summary>
-        /// Is a view on this scene selected ?
-        /// </summary>
-        public bool IsSelected
-        {
-            get
-            {
-                return m_ColumnManager.IsFocused;
             }
         }
 
@@ -379,7 +389,11 @@ namespace HBP.Module3D
         /// Threads / Job
         /// </summary>
         protected ComputeGeneratorsJob m_ComputeGeneratorsJob = null;
-        
+
+        /// <summary>
+        /// Event called when this scene is selected
+        /// </summary>
+        public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event for updating cuts planes 
         /// </summary>
@@ -1438,11 +1452,18 @@ namespace HBP.Module3D
             if (idColumn >= m_ColumnManager.Columns.Count)
                 return;
 
-            m_ColumnManager.SelectedColumnID = idColumn;
+            m_ColumnManager.Columns[idColumn].IsSelected = true;
 
             // force mode to update UI
             m_ModesManager.SetCurrentModeSpecifications(true);
 
+            ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
+            UpdateGUITextures();
+        }
+        public void SelectDefaultView()
+        {
+            m_ColumnManager.Columns[0].Views[0].IsSelected = true;
+            m_ModesManager.SetCurrentModeSpecifications(true);
             ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
             UpdateGUITextures();
         }

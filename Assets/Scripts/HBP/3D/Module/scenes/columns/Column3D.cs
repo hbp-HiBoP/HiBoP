@@ -8,11 +8,10 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
-    public class OnChangeSelectedSite : UnityEngine.Events.UnityEvent<Site> { }
-
     /// <summary>
     /// Column 3D view base class
     /// </summary>
@@ -43,6 +42,27 @@ namespace HBP.Module3D
 
         public bool IsRenderingUpToDate { get; set; }
 
+        private bool m_IsSelected;
+        /// <summary>
+        /// Is this column selected ?
+        /// </summary>
+        public bool IsSelected
+        {
+            get
+            {
+                return m_IsSelected;
+            }
+            set
+            {
+                bool wasSelected = m_IsSelected;
+                m_IsSelected = value;
+                if (m_IsSelected && !wasSelected)
+                {
+                    OnSelectColumn.Invoke(this);
+                }
+            }
+        }
+
         public GameObject ViewPrefab;
         protected List<View3D> m_Views = new List<View3D>();
         public ReadOnlyCollection<View3D> Views
@@ -50,6 +70,21 @@ namespace HBP.Module3D
             get
             {
                 return new ReadOnlyCollection<View3D>(m_Views);
+            }
+        }
+
+        public View3D SelectedView
+        {
+            get
+            {
+                foreach (View3D view in Views)
+                {
+                    if (view.IsSelected)
+                    {
+                        return view;
+                    }
+                }
+                return null;
             }
         }
 
@@ -64,7 +99,7 @@ namespace HBP.Module3D
             get { return m_SelectedSiteID >= 0 ? Sites[m_SelectedSiteID] : null; }
             set { m_SelectedSiteID = Sites.FindIndex((site) => site == value); OnChangeSelectedSite.Invoke(value); }
         }
-        public OnChangeSelectedSite OnChangeSelectedSite = new OnChangeSelectedSite();
+        public GenericEvent<Site> OnChangeSelectedSite = new GenericEvent<Site>();
 
         protected DLL.RawSiteList m_RawElectrodes = null;  /**< raw format of the plots container dll */
         public DLL.RawSiteList RawElectrodes
@@ -99,6 +134,11 @@ namespace HBP.Module3D
         public Texture2D BrainColorSchemeTexture = null;        /**< brain colorscheme unity 2D texture  */
         public List<Texture2D> BrainCutTextures = null;         /**< list of cut textures */
         public List<Texture2D> GUIBrainCutTextures = null;      /**< list of GUI cut textures */
+
+        /// <summary>
+        /// Event called when this column is selected
+        /// </summary>
+        public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
         #endregion
 
         #region Public Methods
@@ -457,6 +497,11 @@ namespace HBP.Module3D
             view.gameObject.name = "View " + m_Views.Count;
             view.LineID = m_Views.Count;
             view.Layer = Layer;
+            view.OnSelectView.AddListener((v) =>
+            {
+                Debug.Log("OnSelectView");
+                IsSelected = v.IsSelected;
+            });
             m_Views.Add(view);
         }
         /// <summary>

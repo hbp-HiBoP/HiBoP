@@ -4,8 +4,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using System;
 
-public class View3DUI : MonoBehaviour {
+public class View3DUI : MonoBehaviour, IPointerDownHandler {
     #region Properties
     private View3D m_View;
     /// <summary>
@@ -79,6 +81,10 @@ public class View3DUI : MonoBehaviour {
     #endregion
 
     #region Public Methods
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        m_View.IsSelected = true;
+    }
     public void OnRectTransformDimensionsChange()
     {
         if (!m_IsInitialized) return;

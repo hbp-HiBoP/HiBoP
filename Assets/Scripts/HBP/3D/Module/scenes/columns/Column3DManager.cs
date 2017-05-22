@@ -22,23 +22,7 @@ namespace HBP.Module3D
         public Color[] ColorsSites = null;
 
         public int SelectedPatientID = 0; /**< id of the selected patient for Multi patient scene */
-        public Dictionary<Column3D, List<View3D>> Views
-        {
-            get
-            {
-                Dictionary<Column3D, List<View3D>> views = new Dictionary<Column3D, List<View3D>>();
-                foreach (Column3D column in Columns)
-                {
-                    views.Add(column, new List<View3D>());
-                    foreach (View3D view in column.Views)
-                    {
-                        views[column].Add(view);
-                    }
-                }
-                return views;
-            }
-        }
-        public bool IsFocused
+        public View3D SelectedView
         {
             get
             {
@@ -46,41 +30,7 @@ namespace HBP.Module3D
                 {
                     foreach (View3D view in column.Views)
                     {
-                        if (view.IsFocused)
-                        {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-        }
-        public Column3D FocusedColumn
-        {
-            get
-            {
-                foreach (Column3D column in Columns)
-                {
-                    foreach (View3D view in column.Views)
-                    {
-                        if (view.IsFocused)
-                        {
-                            return column;
-                        }
-                    }
-                }
-                return null;
-            }
-        }
-        public View3D FocusedView
-        {
-            get
-            {
-                foreach (Column3D column in Columns)
-                {
-                    foreach (View3D view in column.Views)
-                    {
-                        if (view.IsFocused)
+                        if (view.IsSelected)
                         {
                             return view;
                         }
@@ -107,27 +57,49 @@ namespace HBP.Module3D
             }
         }
 
-        int m_SelectedColumnID = 0; /**< id of the selected column */
+        /// <summary>
+        /// ID of the seleccted column
+        /// </summary>
         public int SelectedColumnID 
         {
-            get { return m_SelectedColumnID; }
-            set
+            get
             {
-                m_SelectedColumnID = value;
-                OnChangeSelectedColumn.Invoke(m_Columns[value]);
+                return m_Columns.FindIndex((c) => c.IsSelected);
             }
         }
+        /// <summary>
+        /// Selected column
+        /// </summary>
         public Column3D SelectedColumn
         {
-            get { return m_Columns[SelectedColumnID]; }
-            set
+            get
             {
-                int index = m_Columns.FindIndex((elmt) => elmt == value);
-                if (index != -1) SelectedColumnID = index;
-                else Debug.LogError("Column3DViewManager didn't contain this column.");
+                return m_Columns.Find((c) => c.IsSelected);
             }
         }
-        public GenericEvent<Column3D> OnChangeSelectedColumn = new GenericEvent<Column3D>();
+
+        private bool m_IsSelected;
+        /// <summary>
+        /// Is this column manager selected ?
+        /// </summary>
+        public bool IsSelected
+        {
+            get
+            {
+                return m_IsSelected;
+            }
+            set
+            {
+                bool wasSelected = m_IsSelected;
+                m_IsSelected = value;
+                if (m_IsSelected && !wasSelected)
+                {
+                    OnSelectColumnManager.Invoke(this);
+                }
+            }
+        }
+
+        public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
 
         List<Column3D> m_Columns = new List<Column3D>();
         public ReadOnlyCollection<Column3D> Columns { get { return m_Columns != null ? new ReadOnlyCollection<Column3D>(m_Columns) : new ReadOnlyCollection<Column3D>(new List<Column3D>(0)); } }
@@ -219,7 +191,7 @@ namespace HBP.Module3D
         }
         private void LateUpdate()
         {
-            SynchronizeViewsToFocusedView();
+            SynchronizeViewsToSelectedView();
         }
         /// <summary>
         /// 
@@ -228,6 +200,11 @@ namespace HBP.Module3D
         {
             Column3DIEEG column = Instantiate(Column3DViewIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
             column.gameObject.name = "Column IEEG " + ColumnsIEEG.Count;
+            column.OnSelectColumn.AddListener((c) =>
+            {
+                Debug.Log("OnSelectColumn");
+                IsSelected = c.IsSelected;
+            });
             m_Columns.Add(column);
         }
         /// <summary>
@@ -237,6 +214,11 @@ namespace HBP.Module3D
         {
             Column3DFMRI column = Instantiate(Column3DViewFMRIPrefab, transform.Find("Columns")).GetComponent<Column3DFMRI>();
             column.gameObject.name = "Column FMRI " + ColumnsFMRI.Count;
+            column.OnSelectColumn.AddListener((c) =>
+            {
+                Debug.Log("OnSelectColumn");
+                IsSelected = c.IsSelected;
+            });
             m_Columns.Add(column);
         }
         /// <summary>
@@ -268,7 +250,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Synchronize all the cameras from the same view line
         /// </summary>
-        private void SynchronizeViewsToFocusedView()
+        private void SynchronizeViewsToSelectedView()
         {
             if (ClickedView != null)
             {
@@ -278,7 +260,7 @@ namespace HBP.Module3D
                     {
                         if (view.LineID == ClickedView.LineID)
                         {
-                            view.SynchronizeCamera(FocusedView);
+                            view.SynchronizeCamera(SelectedView);
                         }
                     }
                 }
@@ -552,7 +534,7 @@ namespace HBP.Module3D
             CommonMask = new bool[DLLLoadedPatientsElectrodes.TotalSitesNumber];
 
             if (SelectedColumnID >= m_Columns.Count && SelectedColumnID > 0)
-                SelectedColumnID = m_Columns.Count - 1;
+                m_Columns.Last().IsSelected = true;
 
 
             for (int ii = 0; ii < m_Columns.Count; ++ii)

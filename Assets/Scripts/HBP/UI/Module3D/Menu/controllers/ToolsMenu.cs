@@ -17,8 +17,6 @@ namespace HBP.UI.Module3D
     public class ToolsMenu : MonoBehaviour, UICameraOverlay
     {
         #region Properties
-        ScenesManager m_ScenesManager = null;
-
         // Information Scene
         Text m_SceneInformations;
         // Brain Hemispheres
@@ -53,9 +51,8 @@ namespace HBP.UI.Module3D
         /// Init the menu
         /// </summary>
         /// <param name="scenesManager"></param>
-        public void Initialize(ScenesManager scenesManager)
+        public void Initialize()
         {
-            m_ScenesManager = scenesManager;
             FindButtons();
             AddListeners();
         }
@@ -106,57 +103,57 @@ namespace HBP.UI.Module3D
         void AddListeners()
         {
             // On Change Scene.
-            m_ScenesManager.OnChangeSelectedScene.AddListener((scene) => OnChangeScene());
+            ApplicationState.Module3D.OnSelectScene.AddListener((scene) => OnChangeScene());
 
             // Brain Hemispheres.
-            m_LeftBrainHemisphere.onValueChanged.AddListener((display) => m_ScenesManager.SelectedScene.UpdateMeshPartToDisplay(GetMeshPart(m_LeftBrainHemisphere.isOn, m_RightBrainHemisphere.isOn)));
-            m_RightBrainHemisphere.onValueChanged.AddListener((display) => m_ScenesManager.SelectedScene.UpdateMeshPartToDisplay(GetMeshPart(m_LeftBrainHemisphere.isOn, m_RightBrainHemisphere.isOn)));
+            m_LeftBrainHemisphere.onValueChanged.AddListener((display) => ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(GetMeshPart(m_LeftBrainHemisphere.isOn, m_RightBrainHemisphere.isOn)));
+            m_RightBrainHemisphere.onValueChanged.AddListener((display) => ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(GetMeshPart(m_LeftBrainHemisphere.isOn, m_RightBrainHemisphere.isOn)));
 
             // Brain Types.
             m_BrainTypes.onValueChanged.AddListener((value) =>
             {
-                if (value == 0 && m_ScenesManager.SelectedScene.IsMarsAtlasEnabled) m_ScenesManager.SelectedScene.IsMarsAtlasEnabled = false;
-                m_ScenesManager.SelectedScene.UpdateMeshTypeToDisplay((SceneStatesInfo.MeshType)value);
+                if (value == 0 && ApplicationState.Module3D.SelectedScene.IsMarsAtlasEnabled) ApplicationState.Module3D.SelectedScene.IsMarsAtlasEnabled = false;
+                ApplicationState.Module3D.SelectedScene.UpdateMeshTypeToDisplay((SceneStatesInfo.MeshType)value);
             });
             // MarsAtlas.
             m_MarsAtlas.onValueChanged.AddListener((value) =>
             {
-                if (value) m_ScenesManager.SelectedScene.UpdateMeshTypeToDisplay(SceneStatesInfo.MeshType.White);
-                m_ScenesManager.SelectedScene.IsMarsAtlasEnabled = value;
+                if (value) ApplicationState.Module3D.SelectedScene.UpdateMeshTypeToDisplay(SceneStatesInfo.MeshType.White);
+                ApplicationState.Module3D.SelectedScene.IsMarsAtlasEnabled = value;
                 UpdateUI();
             });
             // Views
             m_AddView.onClick.AddListener(() =>
             {
-                //m_ScenesManager.CamerasManager.AddLine(m_ScenesManager.SelectedScene.Type);
+                //ApplicationState.Module3D.CamerasManager.AddLine(ApplicationState.Module3D.SelectedScene.Type);
                 UpdateUI();
             });
             m_RemoveView.onClick.AddListener(() =>
             {
-                //m_ScenesManager.CamerasManager.RemoveLine(m_ScenesManager.SelectedScene.Type);
+                //ApplicationState.Module3D.CamerasManager.RemoveLine(ApplicationState.Module3D.SelectedScene.Type);
                 UpdateUI();
             });
             // fMRI.
             m_AddfMRI.onClick.AddListener(() =>
             {
-                if (ApplicationState.Module3D.ScenesManager.SelectedScene.AddFMRIColumn()) m_ScenesManager.SelectedScene.DisplayScreenMessage("fMRI successfully loaded. ", 2f, 150, 80);
-                else m_ScenesManager.SelectedScene.DisplayScreenMessage("Error during fMRI loading. ", 2f, 170, 80);
+                if (ApplicationState.Module3D.SelectedScene.AddFMRIColumn()) ApplicationState.Module3D.SelectedScene.DisplayScreenMessage("fMRI successfully loaded. ", 2f, 150, 80);
+                else ApplicationState.Module3D.SelectedScene.DisplayScreenMessage("Error during fMRI loading. ", 2f, 170, 80);
                 UpdateUI();
             });
             m_RemovefMRI.onClick.AddListener(() =>
             {
-                ApplicationState.Module3D.ScenesManager.SelectedScene.RemoveLastFMRIColumn();
+                ApplicationState.Module3D.SelectedScene.RemoveLastFMRIColumn();
                 UpdateUI();
             });
 
             //m_iEegButton.onClick.AddListener(() =>
             //{
-            //    m_ScenesManager.SPScene.set_CCEP_display_mode(false);
+            //    ApplicationState.Module3D.SPScene.set_CCEP_display_mode(false);
             //    UpdateUI();
             //});
             //m_CcepButton.onClick.AddListener(() =>
             //{
-            //    m_ScenesManager.SPScene.set_CCEP_display_mode(true);
+            //    ApplicationState.Module3D.SPScene.set_CCEP_display_mode(true);
             //    UpdateUI();
             //});
 
@@ -166,13 +163,13 @@ namespace HBP.UI.Module3D
             //{
             //    GetCurrentScene().set_tri_erasing(true);
             //    UpdateUI();
-            //    m_ScenesManager.DisplayMessageInScene(m_IsSinglePatientScene, "Triangles erasing mode enabled. ", 2f, 200, 80);
+            //    ApplicationState.Module3D.DisplayMessageInScene(m_IsSinglePatientScene, "Triangles erasing mode enabled. ", 2f, 200, 80);
             //});
             //m_disableTriErasingButton.onClick.AddListener(() =>
             //{
             //    GetCurrentScene().set_tri_erasing(false);
             //    UpdateUI();
-            //    m_ScenesManager.DisplayMessageInScene(m_IsSinglePatientScene, "Triangles erasing mode disabled. ", 2f, 200, 80);
+            //    ApplicationState.Module3D.DisplayMessageInScene(m_IsSinglePatientScene, "Triangles erasing mode disabled. ", 2f, 200, 80);
             //});
             //m_resetTriErasingButton.onClick.AddListener(() =>
             //{
@@ -188,19 +185,19 @@ namespace HBP.UI.Module3D
             //{
             //    GetCurrentScene().set_tri_erasing_mode(TriEraser.Mode.OneTri);
             //    UpdateUI();
-            //    m_ScenesManager.DisplayMessageInScene(m_IsSinglePatientScene, "Triangle pencil. ", 1f, 120, 50);
+            //    ApplicationState.Module3D.DisplayMessageInScene(m_IsSinglePatientScene, "Triangle pencil. ", 1f, 120, 50);
             //});
             //m_cylinderTriErasingButton.onClick.AddListener(() =>
             //{
             //    GetCurrentScene().set_tri_erasing_mode(TriEraser.Mode.Cylinder);
             //    UpdateUI();
-            //    m_ScenesManager.DisplayMessageInScene(m_IsSinglePatientScene, "Cylinder pencil. ", 1f, 120, 50);
+            //    ApplicationState.Module3D.DisplayMessageInScene(m_IsSinglePatientScene, "Cylinder pencil. ", 1f, 120, 50);
             //});
             //m_zoneTriErasingButton.onClick.AddListener(() =>
             //{
             //    GetCurrentScene().set_tri_erasing_mode(TriEraser.Mode.Zone);
             //    UpdateUI();
-            //    m_ScenesManager.DisplayMessageInScene(m_IsSinglePatientScene, "Zone pencil. ", 1f, 120, 50);
+            //    ApplicationState.Module3D.DisplayMessageInScene(m_IsSinglePatientScene, "Zone pencil. ", 1f, 120, 50);
             //});
             //m_invertTriErasingButton.onClick.AddListener(() =>
             //{
@@ -226,14 +223,14 @@ namespace HBP.UI.Module3D
             //    }
 
             //    m_zoneDegreesInputField.text = "" + degrees;
-            //    m_ScenesManager.SPScene.set_tri_erasing_zone_degrees(1f * degrees);
-            //    m_ScenesManager.MPScene.set_tri_erasing_zone_degrees(1f * degrees);
+            //    ApplicationState.Module3D.SPScene.set_tri_erasing_zone_degrees(1f * degrees);
+            //    ApplicationState.Module3D.MPScene.set_tri_erasing_zone_degrees(1f * degrees);
             //});
         }
         void OnChangeScene()
         {
-            m_ScenesManager.SelectedScene.ModesManager.OnChangeMode.AddListener((mode) => UpdateUI());
-            m_SceneInformations.text = m_ScenesManager.SelectedScene.Name;
+            ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.AddListener((mode) => UpdateUI());
+            m_SceneInformations.text = ApplicationState.Module3D.SelectedScene.Name;
             UpdateUI();
         }
         /// <summary>
@@ -242,19 +239,19 @@ namespace HBP.UI.Module3D
         void UpdateUI()
         {
             /*
-            HBP.Module3D.Cam.CamerasManager camerasManager = m_ScenesManager.CamerasManager;
+            HBP.Module3D.Cam.CamerasManager camerasManager = ApplicationState.Module3D.CamerasManager;
 
-            bool CanAddView = (camerasManager.MaximumNumberOfLines != camerasManager.GetNumberOfLines(m_ScenesManager.SelectedScene.Type));
-            bool CanRemoveView = (camerasManager.GetNumberOfLines(m_ScenesManager.SelectedScene.Type) > 1);
-            bool CanAddfMRI = (camerasManager.MaximumNumberOfColumns != camerasManager.GetNumberOfLines(m_ScenesManager.SelectedScene.Type));
+            bool CanAddView = (camerasManager.MaximumNumberOfLines != camerasManager.GetNumberOfLines(ApplicationState.Module3D.SelectedScene.Type));
+            bool CanRemoveView = (camerasManager.GetNumberOfLines(ApplicationState.Module3D.SelectedScene.Type) > 1);
+            bool CanAddfMRI = (camerasManager.MaximumNumberOfColumns != camerasManager.GetNumberOfLines(ApplicationState.Module3D.SelectedScene.Type));
             */
-            bool CanRemovefMRI = (m_ScenesManager.SelectedScene.ColumnManager.ColumnsFMRI.Count > 0);
-            bool CanUseMarsAtlas = m_ScenesManager.SelectedScene.SceneInformation.WhiteMeshesAvailables && m_ScenesManager.SelectedScene.SceneInformation.MarsAtlasParcelsLoaed;
-            //bool CcepVisible = m_IsSinglePatientScene && !m_ScenesManager.SPScene.is_latency_mode_enabled();
+            bool CanRemovefMRI = (ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsFMRI.Count > 0);
+            bool CanUseMarsAtlas = ApplicationState.Module3D.SelectedScene.SceneInformation.WhiteMeshesAvailables && ApplicationState.Module3D.SelectedScene.SceneInformation.MarsAtlasParcelsLoaed;
+            //bool CcepVisible = m_IsSinglePatientScene && !ApplicationState.Module3D.SPScene.is_latency_mode_enabled();
             //bool iEegVisible = (!CcepVisible && m_IsSinglePatientScene);
             //bool isTriErasingEnabled = scene.is_tri_erasing_enabled();
 
-            switch (m_ScenesManager.SelectedScene.ModesManager.CurrentMode.ID)
+            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
             {
                 case Mode.ModesId.NoPathDefined:
                     SetToggleState(m_LeftBrainHemisphere, true, false);
@@ -419,7 +416,7 @@ namespace HBP.UI.Module3D
                     //m_zoneDegreesInputField.interactable = false;
                     break;
                 default:
-                    Debug.LogError("Error : setUIActivity :" + m_ScenesManager.SelectedScene.ModesManager.CurrentMode.ID.ToString());
+                    Debug.LogError("Error : setUIActivity :" + ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID.ToString());
                     break;
             }
 

@@ -279,6 +279,11 @@ namespace HBP.Module3D
             // reset columns
             m_ColumnManager.DLLVolume = null; // this object must no be reseted
             m_ColumnManager.Initialize(Cuts.Count);
+            m_ColumnManager.OnSelectColumnManager.AddListener((cm) =>
+            {
+                Debug.Log("OnSelectColumnManager");
+                IsSelected = cm.IsSelected;
+            });
 
             // retrieve MNI IRM volume
             m_ColumnManager.DLLVolume = m_MNIObjects.IRM;
@@ -321,7 +326,6 @@ namespace HBP.Module3D
             }
 
             SetTimelineData();
-            UpdateSelectedColumn(0);
 
             // update scenes cameras
             OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);

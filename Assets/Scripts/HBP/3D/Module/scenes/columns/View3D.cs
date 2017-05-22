@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityStandardAssets.ImageEffects;
 
 namespace HBP.Module3D
@@ -11,15 +12,24 @@ namespace HBP.Module3D
         /// </summary>
         private Camera3D m_Camera;
 
-        private bool m_IsFocused = false;
+        private bool m_IsSelected = false;
         /// <summary>
         /// True if this view is the last view in which the user clicked
         /// </summary>
-        public bool IsFocused
+        public bool IsSelected
         {
             get
             {
-                return m_IsFocused;
+                return m_IsSelected;
+            }
+            set
+            {
+                bool wasSelected = m_IsSelected;
+                m_IsSelected = value;
+                if (m_IsSelected && !wasSelected)
+                {
+                    OnSelectView.Invoke(this);
+                }
             }
         }
 
@@ -32,6 +42,11 @@ namespace HBP.Module3D
             get
             {
                 return m_IsClicked;
+            }
+            set
+            {
+                m_IsClicked = value;
+                IsSelected = value;
             }
         }
 
@@ -75,19 +90,19 @@ namespace HBP.Module3D
             set { m_ClickedColor = value; }
         }
 
-        protected Color m_FocusedColor = new Color(0.35f, 0.38f, 0.48f);
+        protected Color m_SelectedColor = new Color(0.35f, 0.38f, 0.48f);
         /// <summary>
-        /// Color of the background when the view is focused
+        /// Color of the background when the view is selected
         /// </summary>
-        public Color FocusedColor
+        public Color SelectedColor
         {
-            get { return m_FocusedColor; }
-            set { m_FocusedColor = value; }
+            get { return m_SelectedColor; }
+            set { m_SelectedColor = value; }
         }
         
         protected Color m_RegularColor = new Color(0.65f, 0.65f, 0.65f);
         /// <summary>
-        /// Color of the background when the view is not focused
+        /// Color of the background when the view is not selected
         /// </summary>
         public Color RegularColor
         {
@@ -169,6 +184,11 @@ namespace HBP.Module3D
         /// Default regular culling mask value
         /// </summary>
         private int m_RegularCullingMask;
+
+        /// <summary>
+        /// Event called when we select this view
+        /// </summary>
+        public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
         #endregion
 
         #region Private Methods
@@ -205,7 +225,7 @@ namespace HBP.Module3D
         }
         private void Update()
         {
-            m_Camera.GetComponent<Camera>().backgroundColor = IsClicked ? m_ClickedColor : (IsFocused ? m_FocusedColor : m_RegularColor);
+            m_Camera.GetComponent<Camera>().backgroundColor = IsClicked ? m_ClickedColor : (IsSelected ? m_SelectedColor : m_RegularColor);
         }
         #endregion
 

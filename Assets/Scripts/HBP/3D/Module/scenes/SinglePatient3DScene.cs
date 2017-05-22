@@ -224,6 +224,11 @@ namespace HBP.Module3D
 
             // reset columns
             m_ColumnManager.Initialize(m_Cuts.Count);
+            m_ColumnManager.OnSelectColumnManager.AddListener((cm) =>
+            {
+                Debug.Log("OnSelectColumnManager");
+                IsSelected = cm.IsSelected;
+            });
 
             DLL.Transformation meshTransformation = new DLL.Transformation();
             meshTransformation.Load(Patient.Brain.PreoperativeBasedToScannerBasedTransformation);
@@ -258,7 +263,6 @@ namespace HBP.Module3D
 
             SetTimelineData();
             SelectSite(-1);
-            UpdateSelectedColumn(0);
 
             // update scenes cameras
             OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
@@ -709,7 +713,7 @@ namespace HBP.Module3D
             if (!SceneInformation.MRILoaded)
                 return;
 
-            // current column is different : we display only for the focused column
+            // current column is different : we display only for the selected column
             if (m_ColumnManager.SelectedColumnID != idColumn)
                 return;
 

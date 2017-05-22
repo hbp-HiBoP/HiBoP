@@ -42,7 +42,6 @@ namespace HBP.UI.Module3D
             {
                 scene.OnSelectColumn.AddListener((column) =>
                 {
-                    scenesManager.SelectedScene = scene;
                     UpdateFocusedSceneAndColumn(scene, column);
                 });
             }
@@ -55,7 +54,7 @@ namespace HBP.UI.Module3D
         public void UpdateFocusedSceneAndColumn(Base3DScene scene, int column)
         {
             m_OverlayManager.UpdateFocusedSceneAndColumn(scene, column);
-            m_MenuManager.UpdateFocusedSceneAndColumn(scene, column);
+            m_MenuManager.UpdateSelectedSceneAndColumn(scene, column);
         }
         /// <summary>
         /// Add a FMRI column in the UI

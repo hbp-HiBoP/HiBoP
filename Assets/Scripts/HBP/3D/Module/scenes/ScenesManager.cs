@@ -36,22 +36,15 @@ namespace HBP.Module3D
                 return new ReadOnlyCollection<Data.Visualization.Visualization>((from scene in m_Scenes select scene.Visualization).ToList());
             }
         }
-
-        private Base3DScene m_SelectedScene = null;
+        
         /// <summary>
         /// Currently selected scene
         /// </summary>
         public Base3DScene SelectedScene
         {
-            set
-            {
-                m_SelectedScene.ModesManager.OnChangeMode.RemoveAllListeners();
-                m_SelectedScene = value;
-                OnChangeSelectedScene.Invoke(value);
-            }
             get
             {
-                return m_SelectedScene;
+                return m_Scenes.Find((s) => s.IsSelected);
             }
         }
 
@@ -86,7 +79,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when the user selects a scene
         /// </summary>
-        public GenericEvent<bool> OnSelectScene = new GenericEvent<bool>();
+        public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
 
         /// <summary>
         /// Prefab corresponding to a single patient scene
@@ -122,9 +115,14 @@ namespace HBP.Module3D
                 {
                     OnSendModeSpecifications.Invoke(specs);
                 }));
+                scene.OnSelectScene.AddListener((s) =>
+                {
+                    Debug.Log("OnSelectScene (ScenesManager)");
+                    OnSelectScene.Invoke(s);
+                });
                 // Add the scene to the list
                 m_Scenes.Add(scene);
-                m_SelectedScene = scene;
+                scene.SelectDefaultView();
                 OnAddScene.Invoke(scene);
             }
             return success;
@@ -151,9 +149,14 @@ namespace HBP.Module3D
                 {
                     OnSendModeSpecifications.Invoke(specs);
                 }));
+                scene.OnSelectScene.AddListener((s) =>
+                {
+                    Debug.Log("OnSelectScene (ScenesManager)");
+                    OnSelectScene.Invoke(s);
+                });
                 // Add the scene to the list
                 m_Scenes.Add(scene);
-                m_SelectedScene = scene;
+                scene.SelectDefaultView();
                 OnAddScene.Invoke(scene);
             }
             return success;

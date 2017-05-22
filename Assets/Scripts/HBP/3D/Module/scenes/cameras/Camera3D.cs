@@ -242,7 +242,7 @@ namespace HBP.Module3D
         /// </summary>
         public void DrawGL()
         {
-            if (!m_AssociatedView.IsFocused || m_AssociatedView.IsMinimized)
+            if (!m_AssociatedView.IsSelected || m_AssociatedView.IsMinimized)
                 return;
 
             if (m_DisplayCutsCircles)
