@@ -93,22 +93,22 @@ namespace HBP.UI.Experience.Protocol
         }
         protected override void SetWindow()
         {
-            nameInputField = transform.FindChild("Content").FindChild("Display informations").FindChild("Name").FindChild("InputField").GetComponent<InputField>();
-            imageFileSelector = transform.FindChild("Content").FindChild("Display informations").FindChild("Image").FindChild("Illustration").FindChild("FileSelector").GetComponent<FileSelector>();
-            sortInputField = transform.FindChild("Content").FindChild("Display informations").FindChild("Sort").FindChild("InputField").GetComponent<InputField>();
-            windowMinInputField = transform.FindChild("Content").FindChild("Display informations").FindChild("Window").FindChild("Panel").FindChild("Min").FindChild("InputField").GetComponent<InputField>();
-            windowMaxInputField = transform.FindChild("Content").FindChild("Display informations").FindChild("Window").FindChild("Panel").FindChild("Max").FindChild("InputField").GetComponent<InputField>();
-            baseLineMinInputField = transform.FindChild("Content").FindChild("Display informations").FindChild("BaseLine").FindChild("Panel").FindChild("Min").FindChild("InputField").GetComponent<InputField>();
-            baseLineMaxInputField = transform.FindChild("Content").FindChild("Display informations").FindChild("BaseLine").FindChild("Panel").FindChild("Max").FindChild("InputField").GetComponent<InputField>();
-            mainEventLabelInputField = transform.FindChild("Content").FindChild("Main Event").FindChild("Label").FindChild("InputField").GetComponent<InputField>();
-            mainEventCodesInputField = transform.FindChild("Content").FindChild("Main Event").FindChild("Code").FindChild("InputField").GetComponent<InputField>();
-            eventList = transform.FindChild("Content").FindChild("Secondary Events").FindChild("List").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<EventList>();
-            iconList = transform.FindChild("Content").FindChild("Iconic Scenario").FindChild("List").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<IconList>();
-            saveButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Save").GetComponent<Button>();
-            addEventButton = transform.FindChild("Content").FindChild("Secondary Events").FindChild("List").FindChild("Buttons").FindChild("Add").GetComponent<Button>();
-            removeEventButton = transform.FindChild("Content").FindChild("Secondary Events").FindChild("List").FindChild("Buttons").FindChild("Remove").GetComponent<Button>();
-            addIconButton = transform.FindChild("Content").FindChild("Iconic Scenario").FindChild("List").FindChild("Buttons").FindChild("Add").GetComponent<Button>();
-            removeIconButton = transform.FindChild("Content").FindChild("Iconic Scenario").FindChild("List").FindChild("Buttons").FindChild("Remove").GetComponent<Button>();
+            nameInputField = transform.Find("Content").Find("Display informations").Find("Name").Find("InputField").GetComponent<InputField>();
+            imageFileSelector = transform.Find("Content").Find("Display informations").Find("Image").Find("Illustration").Find("FileSelector").GetComponent<FileSelector>();
+            sortInputField = transform.Find("Content").Find("Display informations").Find("Sort").Find("InputField").GetComponent<InputField>();
+            windowMinInputField = transform.Find("Content").Find("Display informations").Find("Window").Find("Panel").Find("Min").Find("InputField").GetComponent<InputField>();
+            windowMaxInputField = transform.Find("Content").Find("Display informations").Find("Window").Find("Panel").Find("Max").Find("InputField").GetComponent<InputField>();
+            baseLineMinInputField = transform.Find("Content").Find("Display informations").Find("BaseLine").Find("Panel").Find("Min").Find("InputField").GetComponent<InputField>();
+            baseLineMaxInputField = transform.Find("Content").Find("Display informations").Find("BaseLine").Find("Panel").Find("Max").Find("InputField").GetComponent<InputField>();
+            mainEventLabelInputField = transform.Find("Content").Find("Main Event").Find("Label").Find("InputField").GetComponent<InputField>();
+            mainEventCodesInputField = transform.Find("Content").Find("Main Event").Find("Code").Find("InputField").GetComponent<InputField>();
+            eventList = transform.Find("Content").Find("Secondary Events").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<EventList>();
+            iconList = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<IconList>();
+            saveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
+            addEventButton = transform.Find("Content").Find("Secondary Events").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
+            removeEventButton = transform.Find("Content").Find("Secondary Events").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
+            addIconButton = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
+            removeIconButton = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {

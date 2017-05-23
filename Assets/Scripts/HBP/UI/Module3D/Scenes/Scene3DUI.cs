@@ -4,34 +4,37 @@ using UnityEngine;
 using System.Linq;
 using Tools.Unity.ResizableGrid;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using System;
 
 public class Scene3DUI : MonoBehaviour {
     #region Properties
     /// <summary>
     /// Associated logical Base3DScene
     /// </summary>
-    public HBP.Module3D.Base3DScene Scene { get; set; }
+    private HBP.Module3D.Base3DScene m_Scene;
     /// <summary>
     /// List of GameObjects to be shown when a column is minimized
     /// </summary>
     private List<GameObject> m_MinimizedColumns = new List<GameObject>();
     /// <summary>
-    /// Prefab of the column minimized object
+    /// Linked resizable grid
     /// </summary>
-    public GameObject MinimizedColumnPrefab;
+    private ResizableGrid m_ResizableGrid;
     #endregion
 
     #region Private Methods
     private void Awake()
     {
+        m_ResizableGrid = GetComponent<ResizableGrid>();
         ApplicationState.Module3D.ScenesManager.OnAddScene.AddListener((scene) =>
         {
-            Scene = scene;
+            m_Scene = scene;
             AddColumns();
-            GetComponent<ResizableGrid>().AddViewLine();
-            for (int i = 0; i < GetComponent<ResizableGrid>().Columns.Count; i++)
+            m_ResizableGrid.AddViewLine();
+            for (int i = 0; i < m_ResizableGrid.Columns.Count; i++)
             {
-                GetComponent<ResizableGrid>().Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(Scene.ColumnManager.Columns[i].Views.Last());
+                m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(m_Scene.ColumnManager.Columns[i].Views.Last());
             }
         });
     }
@@ -51,10 +54,10 @@ public class Scene3DUI : MonoBehaviour {
     /// </summary>
     private void AddColumns()
     {
-        for (int i = 0; i < Scene.ColumnManager.Columns.Count; i++)
+        for (int i = 0; i < m_Scene.ColumnManager.Columns.Count; i++)
         {
-            GetComponent<ResizableGrid>().AddColumn();
-            GetComponent<ResizableGrid>().Columns.Last().GetComponent<Column3DUI>().Initialize(Scene.ColumnManager.Columns[i]);
+            m_ResizableGrid.AddColumn();
+            m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>().Initialize(m_Scene.ColumnManager.Columns[i]);
         }
     }
     #endregion
@@ -65,14 +68,14 @@ public class Scene3DUI : MonoBehaviour {
     /// </summary>
     public void AddView()
     {
-        for (int i = 0; i < Scene.ColumnManager.Columns.Count; i++)
+        for (int i = 0; i < m_Scene.ColumnManager.Columns.Count; i++)
         {
-            Scene.ColumnManager.Columns[i].AddView();
+            m_Scene.ColumnManager.Columns[i].AddView();
         }
-        GetComponent<ResizableGrid>().AddViewLine();
-        for (int i = 0; i < GetComponent<ResizableGrid>().Columns.Count; i++)
+        m_ResizableGrid.AddViewLine();
+        for (int i = 0; i < m_ResizableGrid.Columns.Count; i++)
         {
-            GetComponent<ResizableGrid>().Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(Scene.ColumnManager.Columns[i].Views.Last());
+            m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(m_Scene.ColumnManager.Columns[i].Views.Last());
         }
     }
     /// <summary>
@@ -80,11 +83,11 @@ public class Scene3DUI : MonoBehaviour {
     /// </summary>
     public void RemoveView()
     {
-        for (int i = 0; i < Scene.ColumnManager.Columns.Count; i++)
+        for (int i = 0; i < m_Scene.ColumnManager.Columns.Count; i++)
         {
-            Scene.ColumnManager.Columns[i].RemoveView();
+            m_Scene.ColumnManager.Columns[i].RemoveView();
         }
-        GetComponent<ResizableGrid>().RemoveViewLine(GetComponent<ResizableGrid>().ViewNumber - 1);
+        m_ResizableGrid.RemoveViewLine(m_ResizableGrid.ViewNumber - 1);
     }
     #endregion
 }

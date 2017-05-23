@@ -103,10 +103,10 @@ namespace HBP.UI.TrialMatrix
         #region Private Methods
         void Awake()
         {
-            title = transform.FindChild("Title").FindChild("Text").GetComponent<Text>();
-            valuesLegend = transform.FindChild("Body").FindChild("ValuesLegend").GetComponent<ValuesLegend>();
-            timeLegend = transform.FindChild("Body").FindChild("Main").FindChild("TimeLegend").GetComponent<TimeLegend>();
-            linesRect = transform.FindChild("Body").FindChild("Main").FindChild("Lines").GetComponent<RectTransform>();
+            title = transform.Find("Title").Find("Text").GetComponent<Text>();
+            valuesLegend = transform.Find("Body").Find("ValuesLegend").GetComponent<ValuesLegend>();
+            timeLegend = transform.Find("Body").Find("Main").Find("TimeLegend").GetComponent<TimeLegend>();
+            linesRect = transform.Find("Body").Find("Main").Find("Lines").GetComponent<RectTransform>();
         }
         void UpdateLimites(Vector2 limits)
         {

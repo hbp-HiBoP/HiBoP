@@ -7,7 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 
-public class View3DUI : MonoBehaviour, IPointerDownHandler {
+public class View3DUI : MonoBehaviour {
     #region Properties
     private View3D m_View;
     /// <summary>
@@ -68,6 +68,10 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler {
         m_RawImage = GetComponent<RawImage>();
         UsingRenderTexture = true;
     }
+    private void Update()
+    {
+        MouseHandler();
+    }
     /// <summary>
     /// Get RectTransform screen coordinates
     /// </summary>
@@ -78,13 +82,23 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler {
         Vector2 size = Vector2.Scale(transform.rect.size, transform.lossyScale);
         return new Rect((Vector2)transform.position - (size * 0.5f), size);
     }
+    /// <summary>
+    /// Handles mouse events
+    /// </summary>
+    private void MouseHandler()
+    {
+        UnityEngine.Profiling.Profiler.BeginSample("check click");
+        if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2))
+        {
+            float x = Input.mousePosition.x, y = Input.mousePosition.y;
+            Rect rect = RectTransformToScreenSpace(m_RectTransform);
+            m_View.IsClicked = (x > rect.x && x < rect.x + rect.width && y > rect.y && y < rect.y + rect.height);
+        }
+        UnityEngine.Profiling.Profiler.EndSample();
+    }
     #endregion
 
     #region Public Methods
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        m_View.IsSelected = true;
-    }
     public void OnRectTransformDimensionsChange()
     {
         if (!m_IsInitialized) return;

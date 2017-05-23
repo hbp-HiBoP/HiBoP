@@ -55,9 +55,9 @@ namespace HBP.UI.Experience.Protocol
         }
         protected override void SetWindow()
         {
-            nameInputField = transform.FindChild("Content").FindChild("Name").FindChild("InputField").GetComponent<InputField>();
-            blocGrid = transform.FindChild("Content").FindChild("Blocs").FindChild("List").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<BlocGrid>();
-            saveButton  = transform.FindChild("Content").FindChild("Buttons").FindChild("Save").GetComponent<Button>();
+            nameInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
+            blocGrid = transform.Find("Content").Find("Blocs").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<BlocGrid>();
+            saveButton  = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {

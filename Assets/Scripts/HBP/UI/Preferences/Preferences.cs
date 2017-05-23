@@ -46,17 +46,17 @@ namespace HBP.UI.Settings
         #region Private Methods
         protected override void SetWindow()
         {
-            defaultNameProjectInputField = transform.FindChild("Content").FindChild("Name").FindChild("InputField").GetComponent<InputField>();
-            defaultLocationProjectFolderSelector = transform.FindChild("Content").FindChild("Location").FindChild("Projects").FindChild("FolderSelector").GetComponent<FolderSelector>();
-            defaultPatientDatabaseLocationFolderSelector = transform.FindChild("Content").FindChild("Location").FindChild("Patients").FindChild("FolderSelector").GetComponent<FolderSelector>();
-            defaultLocalizerDatabaseLocationFolderSelector = transform.FindChild("Content").FindChild("Location").FindChild("SEEG").FindChild("FolderSelector").GetComponent<FolderSelector>();
-            plotNameAutoCorrectionOption = transform.FindChild("Content").FindChild("EEG").FindChild("PlotNameAutomaticCorrection").GetComponentInChildren<Dropdown>();
-            trialBaseLineOption = transform.FindChild("Content").FindChild("Trial Matrix").FindChild("BaseLine").GetComponentInChildren<Dropdown>();
-            trialMatrixSmoothingOption = transform.FindChild("Content").FindChild("Trial Matrix").FindChild("TrialMatrixSmoothing").GetComponentInChildren<Dropdown>();
-            blocFormatOption = transform.FindChild("Content").FindChild("Trial Matrix").FindChild("BlocFormat").GetComponentInChildren<Dropdown>();
-            constantLineInputField = transform.FindChild("Content").FindChild("Trial Matrix").FindChild("ConstantLine").GetComponentInChildren<InputField>(true);
-            LineRatioInputField = transform.FindChild("Content").FindChild("Trial Matrix").FindChild("LineRatio").GetComponentInChildren<InputField>(true);
-            BlocRatioInputField = transform.FindChild("Content").FindChild("Trial Matrix").FindChild("BlocRatio").GetComponentInChildren<InputField>(true);
+            defaultNameProjectInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
+            defaultLocationProjectFolderSelector = transform.Find("Content").Find("Location").Find("Projects").Find("FolderSelector").GetComponent<FolderSelector>();
+            defaultPatientDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("Patients").Find("FolderSelector").GetComponent<FolderSelector>();
+            defaultLocalizerDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("SEEG").Find("FolderSelector").GetComponent<FolderSelector>();
+            plotNameAutoCorrectionOption = transform.Find("Content").Find("EEG").Find("PlotNameAutomaticCorrection").GetComponentInChildren<Dropdown>();
+            trialBaseLineOption = transform.Find("Content").Find("Trial Matrix").Find("BaseLine").GetComponentInChildren<Dropdown>();
+            trialMatrixSmoothingOption = transform.Find("Content").Find("Trial Matrix").Find("TrialMatrixSmoothing").GetComponentInChildren<Dropdown>();
+            blocFormatOption = transform.Find("Content").Find("Trial Matrix").Find("BlocFormat").GetComponentInChildren<Dropdown>();
+            constantLineInputField = transform.Find("Content").Find("Trial Matrix").Find("ConstantLine").GetComponentInChildren<InputField>(true);
+            LineRatioInputField = transform.Find("Content").Find("Trial Matrix").Find("LineRatio").GetComponentInChildren<InputField>(true);
+            BlocRatioInputField = transform.Find("Content").Find("Trial Matrix").Find("BlocRatio").GetComponentInChildren<InputField>(true);
 
             defaultNameProjectInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
             defaultLocationProjectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;

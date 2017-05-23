@@ -21,7 +21,7 @@ namespace HBP.UI.Patient
         #region Private Methods
         protected override void SetWindow()
         {
-            groupList = transform.FindChild("Content").FindChild("Groups").FindChild("Scroll View").FindChild("Viewport").FindChild("Content").GetComponent<GroupList>();
+            groupList = transform.Find("Content").Find("Groups").Find("Scroll View").Find("Viewport").Find("Content").GetComponent<GroupList>();
             groupList.Display(ApplicationState.ProjectLoaded.Groups.ToArray());
         }
         #endregion

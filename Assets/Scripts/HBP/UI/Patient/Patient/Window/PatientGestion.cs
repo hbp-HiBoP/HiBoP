@@ -60,15 +60,15 @@ namespace HBP.UI.Patient
         protected override void SetWindow()
         {
             // Project list.
-            list = transform.FindChild("Content").FindChild("Lists").FindChild("Project").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<PatientList>();
+            list = transform.Find("Content").Find("Lists").Find("Project").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
             AddItem(ApplicationState.ProjectLoaded.Patients.ToArray());
             (list as SelectableListWithItemAction<Data.Patient>).ActionEvent.AddListener((patient, i) => OpenModifier(patient, true));
 
             // Database list.            
-            databaseFolderSelector = transform.FindChild("Content").FindChild("Lists").FindChild("Database").FindChild("FolderSelector").GetComponent<FolderSelector>();
+            databaseFolderSelector = transform.Find("Content").Find("Lists").Find("Database").Find("FolderSelector").GetComponent<FolderSelector>();
             databaseFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayDataBasePatients()));
             databaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
-            databaseList = transform.FindChild("Content").FindChild("Lists").FindChild("Database").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<PatientList>();
+            databaseList = transform.Find("Content").Find("Lists").Find("Database").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
             databaseList.ActionEvent.AddListener((patient, i) => OpenModifier(patient, false));
         }
         #endregion

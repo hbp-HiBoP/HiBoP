@@ -26,8 +26,8 @@ namespace HBP.UI.TrialMatrix
 
         void Awake()
         {
-            m_min = transform.GetChild(0).FindChild("Min").GetComponent<Text>();
-            m_max = transform.GetChild(0).FindChild("Max").GetComponent<Text>();
+            m_min = transform.GetChild(0).Find("Min").GetComponent<Text>();
+            m_max = transform.GetChild(0).Find("Max").GetComponent<Text>();
         }
         #endregion
     }

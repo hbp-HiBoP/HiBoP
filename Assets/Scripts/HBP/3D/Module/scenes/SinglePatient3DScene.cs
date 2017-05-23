@@ -227,7 +227,7 @@ namespace HBP.Module3D
             m_ColumnManager.OnSelectColumnManager.AddListener((cm) =>
             {
                 Debug.Log("OnSelectColumnManager");
-                IsSelected = cm.IsSelected;
+                IsSelected = true;
             });
 
             DLL.Transformation meshTransformation = new DLL.Transformation();

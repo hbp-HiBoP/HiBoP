@@ -88,13 +88,13 @@ namespace Tools.Unity.Window
 		}
 		private void initializeTitle()
 		{
-			m_title = transform.FindChild("Header").FindChild("Title").GetComponent<Text>();
+			m_title = transform.Find("Header").Find("Title").GetComponent<Text>();
 			m_title.text = Title;
 		}
 
 		private void initializeContent()
 		{
-			if(transform.FindChild("Content").childCount == 0 )
+			if(transform.Find("Content").childCount == 0 )
 			{
 				GameObject l_content = GameObject.Instantiate(Content) as GameObject;
 				l_content.transform.SetParent(transform.GetChild(1));
@@ -180,19 +180,19 @@ namespace Tools.Unity.Window
 		{
 			if(windowState == WindowState.Normal)
 			{
-				transform.FindChild("Content").gameObject.SetActive(true);
+				transform.Find("Content").gameObject.SetActive(true);
 				m_dragWindow.DragEnabled = true;
 				m_resizeWindow.ResizeEnabled = true;
 			}
 			else if(windowState == WindowState.Minimized)
 			{
-				transform.FindChild("Content").gameObject.SetActive(false);
+				transform.Find("Content").gameObject.SetActive(false);
 				m_dragWindow.DragEnabled = false;
 				m_resizeWindow.ResizeEnabled = false;
 			}
 			else if(windowState == WindowState.Maximized)
 			{
-				transform.FindChild("Content").gameObject.SetActive(true);
+				transform.Find("Content").gameObject.SetActive(true);
 				m_dragWindow.DragEnabled = false;
 				m_resizeWindow.ResizeEnabled = false;
 			}
@@ -212,7 +212,7 @@ namespace Tools.Unity.Window
 
 		private void setInteractble(bool isInteractable)
 		{
-			transform.FindChild("Hider").gameObject.SetActive(!isInteractable);
+			transform.Find("Hider").gameObject.SetActive(!isInteractable);
 			if(isInteractable)
 			{
 				transform.SetAsLastSibling();

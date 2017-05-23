@@ -124,17 +124,17 @@ namespace HBP.UI.Visualization
         }
         protected override void SetWindow()
         {
-            nameInputField = transform.FindChild("Content").FindChild("General").FindChild("Name").FindChild("InputField").GetComponent<InputField>();
-            tabGestion = transform.FindChild("Content").FindChild("Columns").FindChild("Tabs").GetComponent<TabGestion>();
-            columnModifier = transform.FindChild("Content").FindChild("Columns").FindChild("Column").GetComponent<ColumnModifier>();
-            saveButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Save").GetComponent<Button>();
-            saveAsButton = transform.FindChild("Content").FindChild("Buttons").FindChild("SaveAs").GetComponent<Button>();
-            visualizationPatientsList = transform.Find("Content").FindChild("Patients").FindChild("Lists").FindChild("PatientToDisplay").FindChild("Container").FindChild("Scrollable").GetComponent<PatientList>();
-            projectPatientsList = transform.Find("Content").FindChild("Patients").FindChild("Lists").FindChild("AllPatients").FindChild("Container").FindChild("Scrollable").GetComponent<PatientList>();
+            nameInputField = transform.Find("Content").Find("General").Find("Name").Find("InputField").GetComponent<InputField>();
+            tabGestion = transform.Find("Content").Find("Columns").Find("Tabs").GetComponent<TabGestion>();
+            columnModifier = transform.Find("Content").Find("Columns").Find("Column").GetComponent<ColumnModifier>();
+            saveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
+            saveAsButton = transform.Find("Content").Find("Buttons").Find("SaveAs").GetComponent<Button>();
+            visualizationPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("PatientToDisplay").Find("Container").Find("Scrollable").GetComponent<PatientList>();
+            projectPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("AllPatients").Find("Container").Find("Scrollable").GetComponent<PatientList>();
             groupSelection = GetComponent<GroupSelection>();
-            addPatientButton = transform.Find("Content").FindChild("Patients").FindChild("Lists").FindChild("Buttons").FindChild("Add").GetComponent<Button>();
-            removePatientButton = transform.Find("Content").FindChild("Patients").FindChild("Lists").FindChild("Buttons").FindChild("Remove").GetComponent<Button>();
-            addGroupButton = transform.Find("Content").FindChild("Patients").FindChild("Lists").FindChild("Buttons").FindChild("AddGroup").GetComponent<Button>();
+            addPatientButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Add").GetComponent<Button>();
+            removePatientButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Remove").GetComponent<Button>();
+            addGroupButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("AddGroup").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {

@@ -497,11 +497,22 @@ namespace HBP.Module3D
             view.gameObject.name = "View " + m_Views.Count;
             view.LineID = m_Views.Count;
             view.Layer = Layer;
-            view.OnSelectView.AddListener((v) =>
+            view.OnSelectView.AddListener((selectedView) =>
             {
                 Debug.Log("OnSelectView");
-                IsSelected = v.IsSelected;
+                foreach (View3D v in m_Views)
+                {
+                    if (v != selectedView)
+                    {
+                        v.IsSelected = false;
+                    }
+                }
+                IsSelected = true;
             });
+            if (IsSelected)
+            {
+                view.IsColumnSelected = true;
+            }
             m_Views.Add(view);
         }
         /// <summary>

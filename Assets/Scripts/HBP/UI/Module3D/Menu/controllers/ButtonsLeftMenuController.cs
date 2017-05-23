@@ -177,10 +177,10 @@ namespace HBP.UI.Module3D
         }
         void FindButtons()
         {
-            m_globalButton = transform.FindChild("Global button").GetComponent<Button>();
-            m_sceneButton = transform.FindChild("Scene button").GetComponent<Button>();
-            m_iEEGButton = transform.FindChild("iEEG button").GetComponent<Button>();
-            m_fMRIButton = transform.FindChild("fMRI button").GetComponent<Button>();
+            m_globalButton = transform.Find("Global button").GetComponent<Button>();
+            m_sceneButton = transform.Find("Scene button").GetComponent<Button>();
+            m_iEEGButton = transform.Find("iEEG button").GetComponent<Button>();
+            m_fMRIButton = transform.Find("fMRI button").GetComponent<Button>();
         }
         #endregion
     }

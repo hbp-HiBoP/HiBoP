@@ -28,8 +28,8 @@ namespace HBP.UI.Visualization
         #region Private Methods
         protected override void SetWindow()
         {
-            displayButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Display").GetComponent<Button>();
-            list = transform.FindChild("Content").FindChild("MultiPatientsVisualizations").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<MultiVisualizationList>();
+            displayButton = transform.Find("Content").Find("Buttons").Find("Display").GetComponent<Button>();
+            list = transform.Find("Content").Find("MultiPatientsVisualizations").Find("List").Find("Viewport").Find("Content").GetComponent<MultiVisualizationList>();
             (list as MultiVisualizationList).ActionEvent.AddListener((visu, type) => OpenModifier(visu,true));
             (list as MultiVisualizationList).SelectEvent.AddListener(() => SetDisplay());
             AddItem(ApplicationState.ProjectLoaded.MultiPatientsVisualizations.ToArray());

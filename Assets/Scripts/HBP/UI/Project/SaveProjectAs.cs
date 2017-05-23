@@ -23,8 +23,8 @@ namespace HBP.UI
         #region Private Methods
         protected override void SetWindow()
         {
-            nameInputField = transform.Find("Content").FindChild("Name").FindChild("InputField").GetComponent<InputField>();
-            locationFolderSelector = transform.Find("Content").FindChild("Location").FindChild("FolderSelector").GetComponent<FolderSelector>();
+            nameInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
+            locationFolderSelector = transform.Find("Content").Find("Location").Find("FolderSelector").GetComponent<FolderSelector>();
             nameInputField.text = ApplicationState.ProjectLoaded.Settings.Name;
             locationFolderSelector.Folder = ApplicationState.ProjectLoadedLocation;
         }

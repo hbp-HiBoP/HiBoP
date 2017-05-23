@@ -71,10 +71,10 @@ namespace HBP.Module3D
             m_ChoosePlanePanel.SetActive(true);
 
             // choose plane 
-            Button addPlaneButton = m_ChoosePlanePanel.transform.FindChild("choosePlane_addRemovePlane_layout").FindChild("choosePlane_addPlane_button").GetComponent<Button>();
+            Button addPlaneButton = m_ChoosePlanePanel.transform.Find("choosePlane_addRemovePlane_layout").Find("choosePlane_addPlane_button").GetComponent<Button>();
             addPlaneButton.onClick.AddListener(delegate { if (m_CurrentPlaneNumber < m_MaxPlaneNumber) { add_and_init_plane(); } });
 
-            Button removePlaneButton = m_ChoosePlanePanel.transform.FindChild("choosePlane_addRemovePlane_layout").FindChild("choosePlane_removePlane_button").GetComponent<Button>();
+            Button removePlaneButton = m_ChoosePlanePanel.transform.Find("choosePlane_addRemovePlane_layout").Find("choosePlane_removePlane_button").GetComponent<Button>();
             removePlaneButton.onClick.AddListener(delegate { if (m_CurrentPlaneNumber > 0) { removePlane(); } });
 
             // updates planes after reloading volume 
@@ -322,10 +322,10 @@ namespace HBP.Module3D
         private void add_plane()
         {
             // add plane button
-            GameObject newPlaneButton = Instantiate(m_ChoosePlanePanel.transform.FindChild("choosePlane_selectPlaneBase_button").gameObject);
+            GameObject newPlaneButton = Instantiate(m_ChoosePlanePanel.transform.Find("choosePlane_selectPlaneBase_button").gameObject);
             newPlaneButton.SetActive(true);
             newPlaneButton.transform.SetParent(m_ChoosePlanePanel.transform, false);
-            newPlaneButton.transform.FindChild("Text").gameObject.GetComponent<Text>().text = "Cut " + (m_CurrentPlaneNumber +1);
+            newPlaneButton.transform.Find("Text").gameObject.GetComponent<Text>().text = "Cut " + (m_CurrentPlaneNumber +1);
             newPlaneButton.name = "choosePlane_selectPlane" + m_CurrentPlaneNumber + "_button";
 
             // raise ui position
@@ -390,7 +390,7 @@ namespace HBP.Module3D
         private void removePlane()
         {
             // destroy plane button
-            Destroy(m_ChoosePlanePanel.transform.FindChild("choosePlane_selectPlane" + (m_CurrentPlaneNumber - 1) + "_button").gameObject);
+            Destroy(m_ChoosePlanePanel.transform.Find("choosePlane_selectPlane" + (m_CurrentPlaneNumber - 1) + "_button").gameObject);
 
             // down ui
             m_ChoosePlanePanel.GetComponent<RectTransform>().sizeDelta = new Vector2(m_ChoosePlanePanel.GetComponent<RectTransform>().rect.width, m_ChoosePlanePanel.GetComponent<RectTransform>().rect.height - 25);

@@ -282,7 +282,7 @@ namespace HBP.Module3D
             m_ColumnManager.OnSelectColumnManager.AddListener((cm) =>
             {
                 Debug.Log("OnSelectColumnManager");
-                IsSelected = cm.IsSelected;
+                IsSelected = true;
             });
 
             // retrieve MNI IRM volume

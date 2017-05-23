@@ -44,11 +44,11 @@ namespace HBP.UI.Experience.Dataset
         }
         protected override void SetWindow()
         {
-            nameInputField = transform.FindChild("Content").FindChild("Name").FindChild("InputField").GetComponent<InputField>();
-            dataInfoList = transform.FindChild("Content").FindChild("Data").FindChild("List").FindChild("List").FindChild("List").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<DataInfoList>();
-            saveButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Save").GetComponent<Button>();
-            createButton = transform.FindChild("Content").FindChild("Data").FindChild("List").FindChild("Buttons").FindChild("Add").GetComponent<Button>();
-            removeButton = transform.FindChild("Content").FindChild("Data").FindChild("List").FindChild("Buttons").FindChild("Remove").GetComponent<Button>();
+            nameInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
+            dataInfoList = transform.Find("Content").Find("Data").Find("List").Find("List").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<DataInfoList>();
+            saveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
+            createButton = transform.Find("Content").Find("Data").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
+            removeButton = transform.Find("Content").Find("Data").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {

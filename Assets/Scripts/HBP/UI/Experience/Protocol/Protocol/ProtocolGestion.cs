@@ -27,7 +27,7 @@ namespace HBP.UI.Experience.Protocol
         #region Private Methods
         protected override void SetWindow()
         {
-            list = transform.FindChild("Content").FindChild("Protocols").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<ProtocolList>();
+            list = transform.Find("Content").Find("Protocols").Find("List").Find("Viewport").Find("Content").GetComponent<ProtocolList>();
             (list as ProtocolList).ActionEvent.AddListener((item, i) => OpenModifier(item, true));
             AddItem(ApplicationState.ProjectLoaded.Protocols.ToArray());
         }

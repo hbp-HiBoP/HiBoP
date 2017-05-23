@@ -62,12 +62,12 @@ namespace HBP.UI.Patient
         }
         protected override void SetWindow()
         {
-            nameInputField = transform.FindChild("Content").FindChild("Name").FindChild("InputField").GetComponent<InputField>();
-            projectPatientsList = transform.FindChild("Content").FindChild("Patients").FindChild("Lists").FindChild("ProjectPatients").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<PatientList>();
-            groupPatientsList = transform.FindChild("Content").FindChild("Patients").FindChild("Lists").FindChild("GroupPatients").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<PatientList>();
-            saveButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Save").GetComponent<Button>();
-            addButton = transform.FindChild("Content").FindChild("Patients").FindChild("Lists").FindChild("Buttons").FindChild("Add").GetComponent<Button>();
-            removeButton = transform.FindChild("Content").FindChild("Patients").FindChild("Lists").FindChild("Buttons").FindChild("Remove").GetComponent<Button>();
+            nameInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
+            projectPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("ProjectPatients").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
+            groupPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("GroupPatients").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
+            saveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
+            addButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Add").GetComponent<Button>();
+            removeButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Remove").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {

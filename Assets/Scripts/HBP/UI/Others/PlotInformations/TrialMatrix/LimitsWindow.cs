@@ -32,8 +32,8 @@ namespace HBP.UI.TrialMatrix
         #region Private Methods
         void Awake()
         {
-            minInputField = transform.FindChild("Min").FindChild("Value").GetComponent<InputField>();
-            maxInputField = transform.FindChild("Max").FindChild("Value").GetComponent<InputField>();
+            minInputField = transform.Find("Min").Find("Value").GetComponent<InputField>();
+            maxInputField = transform.Find("Max").Find("Value").GetComponent<InputField>();
         }
         #endregion
     }

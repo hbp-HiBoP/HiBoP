@@ -78,27 +78,6 @@ namespace HBP.Module3D
             }
         }
 
-        private bool m_IsSelected;
-        /// <summary>
-        /// Is this column manager selected ?
-        /// </summary>
-        public bool IsSelected
-        {
-            get
-            {
-                return m_IsSelected;
-            }
-            set
-            {
-                bool wasSelected = m_IsSelected;
-                m_IsSelected = value;
-                if (m_IsSelected && !wasSelected)
-                {
-                    OnSelectColumnManager.Invoke(this);
-                }
-            }
-        }
-
         public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
 
         List<Column3D> m_Columns = new List<Column3D>();
@@ -200,10 +179,26 @@ namespace HBP.Module3D
         {
             Column3DIEEG column = Instantiate(Column3DViewIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
             column.gameObject.name = "Column IEEG " + ColumnsIEEG.Count;
-            column.OnSelectColumn.AddListener((c) =>
+            column.OnSelectColumn.AddListener((selectedColumn) =>
             {
                 Debug.Log("OnSelectColumn");
-                IsSelected = c.IsSelected;
+                foreach (Column3D c in m_Columns)
+                {
+                    if (c != selectedColumn)
+                    {
+                        c.IsSelected = false;
+                        foreach (View3D v in c.Views)
+                        {
+                            v.IsSelected = false;
+                            v.IsColumnSelected = false;
+                        }
+                    }
+                }
+                foreach (View3D v in selectedColumn.Views)
+                {
+                    v.IsColumnSelected = true;
+                }
+                OnSelectColumnManager.Invoke(this);
             });
             m_Columns.Add(column);
         }
@@ -214,10 +209,26 @@ namespace HBP.Module3D
         {
             Column3DFMRI column = Instantiate(Column3DViewFMRIPrefab, transform.Find("Columns")).GetComponent<Column3DFMRI>();
             column.gameObject.name = "Column FMRI " + ColumnsFMRI.Count;
-            column.OnSelectColumn.AddListener((c) =>
+            column.OnSelectColumn.AddListener((selectedColumn) =>
             {
                 Debug.Log("OnSelectColumn");
-                IsSelected = c.IsSelected;
+                foreach (Column3D c in m_Columns)
+                {
+                    if (c != selectedColumn)
+                    {
+                        c.IsSelected = false;
+                        foreach (View3D v in c.Views)
+                        {
+                            v.IsSelected = false;
+                            v.IsColumnSelected = false;
+                        }
+                    }
+                }
+                foreach (View3D v in selectedColumn.Views)
+                {
+                    v.IsColumnSelected = true;
+                }
+                OnSelectColumnManager.Invoke(this);
             });
             m_Columns.Add(column);
         }

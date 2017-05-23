@@ -12,6 +12,22 @@ namespace HBP.Module3D
         /// </summary>
         private Camera3D m_Camera;
 
+        private bool m_IsColumnSelected = false;
+        /// <summary>
+        /// True if any view of the column this view belongs to is selected
+        /// </summary>
+        public bool IsColumnSelected
+        {
+            get
+            {
+                return m_IsColumnSelected;
+            }
+            set
+            {
+                m_IsColumnSelected = value;
+            }
+        }
+
         private bool m_IsSelected = false;
         /// <summary>
         /// True if this view is the last view in which the user clicked
@@ -80,7 +96,7 @@ namespace HBP.Module3D
         /// </summary>
         public int LineID { get; set; }
 
-        protected Color m_ClickedColor = new Color(0.45f, 0.48f, 0.58f);
+        protected Color m_ClickedColor = new Color(0.30f, 0.33f, 0.43f);
         /// <summary>
         /// Color of the background when the view is clicked
         /// </summary>
@@ -225,7 +241,7 @@ namespace HBP.Module3D
         }
         private void Update()
         {
-            m_Camera.GetComponent<Camera>().backgroundColor = IsClicked ? m_ClickedColor : (IsSelected ? m_SelectedColor : m_RegularColor);
+            m_Camera.GetComponent<Camera>().backgroundColor = IsClicked ? m_ClickedColor : ((IsSelected || IsColumnSelected) ? m_SelectedColor : m_RegularColor);
         }
         #endregion
 

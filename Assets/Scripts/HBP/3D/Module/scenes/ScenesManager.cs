@@ -115,10 +115,17 @@ namespace HBP.Module3D
                 {
                     OnSendModeSpecifications.Invoke(specs);
                 }));
-                scene.OnSelectScene.AddListener((s) =>
+                scene.OnSelectScene.AddListener((selectedScene) =>
                 {
                     Debug.Log("OnSelectScene (ScenesManager)");
-                    OnSelectScene.Invoke(s);
+                    foreach (Base3DScene s in m_Scenes)
+                    {
+                        if (s != selectedScene)
+                        {
+                            s.IsSelected = false;
+                        }
+                    }
+                    OnSelectScene.Invoke(selectedScene);
                 });
                 // Add the scene to the list
                 m_Scenes.Add(scene);
@@ -149,10 +156,17 @@ namespace HBP.Module3D
                 {
                     OnSendModeSpecifications.Invoke(specs);
                 }));
-                scene.OnSelectScene.AddListener((s) =>
+                scene.OnSelectScene.AddListener((selectedScene) =>
                 {
                     Debug.Log("OnSelectScene (ScenesManager)");
-                    OnSelectScene.Invoke(s);
+                    foreach (Base3DScene s in m_Scenes)
+                    {
+                        if (s != selectedScene)
+                        {
+                            s.IsSelected = false;
+                        }
+                    }
+                    OnSelectScene.Invoke(selectedScene);
                 });
                 // Add the scene to the list
                 m_Scenes.Add(scene);
