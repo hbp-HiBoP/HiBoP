@@ -58,7 +58,7 @@ namespace HBP.UI.Module3D
         }
         public void UpdateByMode(Mode mode)
         {
-            UpdateUI();
+            UpdateInteractableButtons();
         }
         #endregion
 
@@ -120,30 +120,30 @@ namespace HBP.UI.Module3D
             {
                 if (value) ApplicationState.Module3D.SelectedScene.UpdateMeshTypeToDisplay(SceneStatesInfo.MeshType.White);
                 ApplicationState.Module3D.SelectedScene.IsMarsAtlasEnabled = value;
-                UpdateUI();
+                UpdateInteractableButtons();
             });
             // Views
             m_AddView.onClick.AddListener(() =>
             {
                 //ApplicationState.Module3D.CamerasManager.AddLine(ApplicationState.Module3D.SelectedScene.Type);
-                UpdateUI();
+                UpdateInteractableButtons();
             });
             m_RemoveView.onClick.AddListener(() =>
             {
                 //ApplicationState.Module3D.CamerasManager.RemoveLine(ApplicationState.Module3D.SelectedScene.Type);
-                UpdateUI();
+                UpdateInteractableButtons();
             });
             // fMRI.
             m_AddfMRI.onClick.AddListener(() =>
             {
                 if (ApplicationState.Module3D.SelectedScene.AddFMRIColumn()) ApplicationState.Module3D.SelectedScene.DisplayScreenMessage("fMRI successfully loaded. ", 2f, 150, 80);
                 else ApplicationState.Module3D.SelectedScene.DisplayScreenMessage("Error during fMRI loading. ", 2f, 170, 80);
-                UpdateUI();
+                UpdateInteractableButtons();
             });
             m_RemovefMRI.onClick.AddListener(() =>
             {
                 ApplicationState.Module3D.SelectedScene.RemoveLastFMRIColumn();
-                UpdateUI();
+                UpdateInteractableButtons();
             });
 
             //m_iEegButton.onClick.AddListener(() =>
@@ -229,14 +229,15 @@ namespace HBP.UI.Module3D
         }
         void OnChangeScene()
         {
-            ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.AddListener((mode) => UpdateUI());
+            ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.AddListener((mode) => UpdateInteractableButtons());
             m_SceneInformations.text = ApplicationState.Module3D.SelectedScene.Name;
-            UpdateUI();
+            UpdateInteractableButtons();
+            UpdateButtonsStatus();
         }
         /// <summary>
         /// Update the menu UI activity with the current parameters
         /// </summary>
-        void UpdateUI()
+        void UpdateInteractableButtons()
         {
             /*
             HBP.Module3D.Cam.CamerasManager camerasManager = ApplicationState.Module3D.CamerasManager;
@@ -432,6 +433,30 @@ namespace HBP.UI.Module3D
             //        m_zoneTriErasingButton.interactable = false;
             //        break;
             //}
+        }
+        void UpdateButtonsStatus()
+        {
+            switch (ApplicationState.Module3D.SelectedScene.SceneInformation.MeshPartToDisplay)
+            {
+                case SceneStatesInfo.MeshPart.Left:
+                    m_LeftBrainHemisphere.isOn = true;
+                    m_RightBrainHemisphere.isOn = false;
+                    break;
+                case SceneStatesInfo.MeshPart.Right:
+                    m_LeftBrainHemisphere.isOn = false;
+                    m_RightBrainHemisphere.isOn = true;
+                    break;
+                case SceneStatesInfo.MeshPart.Both:
+                    m_LeftBrainHemisphere.isOn = true;
+                    m_RightBrainHemisphere.isOn = true;
+                    break;
+                case SceneStatesInfo.MeshPart.None:
+                    m_LeftBrainHemisphere.isOn = false;
+                    m_RightBrainHemisphere.isOn = false;
+                    break;
+                default:
+                    break;
+            }
         }
         void SetButtonState(Button button, bool active, bool interactable)
         {
