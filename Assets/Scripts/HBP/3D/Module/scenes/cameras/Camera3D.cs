@@ -13,6 +13,11 @@ namespace HBP.Module3D
         private Base3DScene m_AssociatedScene;
         private View3D m_AssociatedView;
 
+        /// <summary>
+        /// Camera component
+        /// </summary>
+        public Camera Camera { get; set; }
+
         [SerializeField, Candlelight.PropertyBackingField]
         private int m_CullingMask;
         public int CullingMask
@@ -24,7 +29,7 @@ namespace HBP.Module3D
             set
             {
                 m_CullingMask = value;
-                GetComponent<Camera>().cullingMask = m_CullingMask;
+                Camera.cullingMask = m_CullingMask;
             }
         }
 
@@ -108,7 +113,7 @@ namespace HBP.Module3D
             set { m_ZCircleMaterial = value; }
         }
         
-        private bool m_DisplayRotationCircles = false;
+        public bool DisplayRotationCircles { get; set; }
 
         private float m_RotationCirclesRay = 300f;
 
@@ -149,6 +154,7 @@ namespace HBP.Module3D
         #region Private Methods
         private void Awake()
         {
+            Camera = GetComponent<Camera>();
             m_OriginalRotationEuler = transform.localEulerAngles;
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
             m_AssociatedScene = GetComponentInParent<Base3DScene>();
@@ -276,7 +282,7 @@ namespace HBP.Module3D
                     m_DisplayCutsCircles = false;
             }
 
-            if (m_DisplayRotationCircles)
+            if (DisplayRotationCircles)
             {
                 //GL.PushMatrix();
                 m_XCircleMaterial.SetPass(0);
@@ -320,8 +326,7 @@ namespace HBP.Module3D
         /// <param name="amount"></param>
         public void HorizontalStrafe(float amount)
         {
-            m_DisplayRotationCircles = true;
-            Vector3 strafe = transform.right * amount;
+            Vector3 strafe = - transform.right * amount;
 
             transform.position = transform.position + strafe;
             m_Target = m_Target + strafe;
@@ -333,8 +338,7 @@ namespace HBP.Module3D
         /// <param name="amount"></param>
         public void VerticalStrafe(float amount)
         {
-            m_DisplayRotationCircles = true;
-            Vector3 strafe = transform.up * amount;
+            Vector3 strafe = - transform.up * amount;
 
             transform.position = transform.position + strafe;
             m_Target = m_Target + strafe;
@@ -346,7 +350,6 @@ namespace HBP.Module3D
         /// <param name="amount"></param>
         public void HorizontalRotation(float amount)
         {
-            m_DisplayRotationCircles = true;
             Vector3 vecTargetPos_EyePos = transform.position - m_Target;
             Quaternion rotation = Quaternion.AngleAxis(amount, transform.up);
 
@@ -360,35 +363,22 @@ namespace HBP.Module3D
         /// <param name="amount"></param>
         public void VerticalRotation(float amount)
         {
-            m_DisplayRotationCircles = true;
             Vector3 vecTargetPos_EyePos = transform.position - m_Target;
-            Quaternion rotation = Quaternion.AngleAxis(amount, transform.right);
+            Quaternion rotation = Quaternion.AngleAxis(-amount, transform.right);
 
             transform.position = rotation * vecTargetPos_EyePos + m_Target;
             transform.LookAt(m_Target, Vector3.Cross(m_Target - transform.position, transform.right));
         }
         /// <summary>
-        /// Move forward the position in the direction of the target
+        /// Zoom towards target
         /// </summary>
-        /// <param name="amount"></param>
-        public void MoveForward(float amount)
+        /// <param name="amount">Distance</param>
+        public void Zoom(float amount)
         {
-            float length = Vector3.Distance(transform.position, m_Target);
-            if (length - amount > m_MinDistance)
+            float distance = Vector3.Distance(transform.position, m_Target) + amount;
+            if (distance > m_MinDistance && distance < m_MaxDistance)
             {
                 transform.position += transform.forward * amount;
-            }
-        }
-        /// <summary>
-        /// Move backward  the position in the direction of the target
-        /// </summary>
-        /// <param name="amount"></param>
-        public void MoveBackward(float amount)
-        {
-            float length = Vector3.Distance(transform.position, m_Target);
-            if (length + amount < m_MaxDistance)
-            {
-                transform.position -= transform.forward * amount;
             }
         }
         /// <summary>

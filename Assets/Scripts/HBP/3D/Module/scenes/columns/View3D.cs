@@ -8,9 +8,19 @@ namespace HBP.Module3D
     {
         #region Properties
         /// <summary>
-        /// Camera associated to the view
+        /// Camera 3D associated to the view
         /// </summary>
-        private Camera3D m_Camera;
+        private Camera3D m_Camera3D;
+        /// <summary>
+        /// Physical camera component of this view
+        /// </summary>
+        public Camera Camera
+        {
+            get
+            {
+                return m_Camera3D.Camera;
+            }
+        }
 
         private bool m_IsColumnSelected = false;
         /// <summary>
@@ -81,13 +91,13 @@ namespace HBP.Module3D
                 m_IsMinimized = value;
                 if (!m_IsMinimized)
                 {
-                    m_Camera.CullingMask = m_RegularCullingMask;
+                    m_Camera3D.CullingMask = m_RegularCullingMask;
                 }
                 else
                 {
-                    m_Camera.CullingMask = m_MinimizedCullingMask;
+                    m_Camera3D.CullingMask = m_MinimizedCullingMask;
                 }
-                m_Camera.GetComponent<Camera>().enabled = !m_IsMinimized;
+                m_Camera3D.Camera.enabled = !m_IsMinimized;
             }
         }
 
@@ -133,11 +143,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Camera.AutomaticRotation;
+                return m_Camera3D.AutomaticRotation;
             }
             set
             {
-                m_Camera.AutomaticRotation = value;
+                m_Camera3D.AutomaticRotation = value;
             }
         }
 
@@ -148,11 +158,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Camera.GetComponent<EdgeDetection>().enabled;
+                return m_Camera3D.GetComponent<EdgeDetection>().enabled;
             }
             set
             {
-                m_Camera.GetComponent<EdgeDetection>().enabled = value;
+                m_Camera3D.GetComponent<EdgeDetection>().enabled = value;
             }
         }
 
@@ -169,11 +179,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Camera.GetComponent<Camera>().targetTexture;
+                return m_Camera3D.Camera.targetTexture;
             }
             set
             {
-                m_Camera.GetComponent<Camera>().targetTexture = value;
+                m_Camera3D.Camera.targetTexture = value;
             }
         }
 
@@ -184,11 +194,23 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Camera.GetComponent<Camera>().aspect;
+                return m_Camera3D.Camera.aspect;
             }
             set
             {
-                m_Camera.GetComponent<Camera>().aspect = value;
+                m_Camera3D.Camera.aspect = value;
+            }
+        }
+
+        public bool DisplayRotationCircles
+        {
+            get
+            {
+                return m_Camera3D.DisplayRotationCircles;
+            }
+            set
+            {
+                m_Camera3D.DisplayRotationCircles = value;
             }
         }
 
@@ -210,7 +232,7 @@ namespace HBP.Module3D
         #region Private Methods
         private void Awake()
         {
-            m_Camera = transform.GetComponentInChildren<Camera3D>();
+            m_Camera3D = transform.GetComponentInChildren<Camera3D>();
         }
         private void Start()
         {
@@ -232,16 +254,16 @@ namespace HBP.Module3D
 
             if (!m_IsMinimized)
             {
-                m_Camera.CullingMask = m_RegularCullingMask;
+                m_Camera3D.CullingMask = m_RegularCullingMask;
             }
             else
             {
-                m_Camera.CullingMask = m_MinimizedCullingMask;
+                m_Camera3D.CullingMask = m_MinimizedCullingMask;
             }
         }
         private void Update()
         {
-            m_Camera.GetComponent<Camera>().backgroundColor = IsClicked ? m_ClickedColor : ((IsSelected || IsColumnSelected) ? m_SelectedColor : m_RegularColor);
+            m_Camera3D.Camera.backgroundColor = IsClicked ? m_ClickedColor : ((IsSelected || IsColumnSelected) ? m_SelectedColor : m_RegularColor);
         }
         #endregion
 
@@ -252,9 +274,9 @@ namespace HBP.Module3D
         /// <param name="reference"></param>
         public void SynchronizeCamera(View3D reference)
         {
-            m_Camera.transform.position = reference.m_Camera.transform.position;
-            m_Camera.transform.rotation = reference.m_Camera.transform.rotation;
-            m_Camera.Target = reference.m_Camera.Target;
+            m_Camera3D.transform.position = reference.m_Camera3D.transform.position;
+            m_Camera3D.transform.rotation = reference.m_Camera3D.transform.rotation;
+            m_Camera3D.Target = reference.m_Camera3D.Target;
         }
         /// <summary>
         /// Set the viewport of the camera
@@ -262,7 +284,33 @@ namespace HBP.Module3D
         /// <param name="viewport">Viewport</param>
         public void SetViewport(float x, float y, float width, float height)
         {
-            m_Camera.GetComponent<Camera>().rect = new Rect(x / Screen.width, y / Screen.height, width / Screen.width, height / Screen.height);
+            m_Camera3D.Camera.rect = new Rect(x / Screen.width, y / Screen.height, width / Screen.width, height / Screen.height);
+        }
+        /// <summary>
+        /// Rotate the camera around
+        /// </summary>
+        /// <param name="amountX">Distance</param>
+        public void RotateCamera(Vector2 amount)
+        {
+            m_Camera3D.HorizontalRotation(amount.x);
+            m_Camera3D.VerticalRotation(amount.y);
+        }
+        /// <summary>
+        /// Strafe the camera
+        /// </summary>
+        /// <param name="amount">Distance</param>
+        public void StrafeCamera(Vector2 amount)
+        {
+            m_Camera3D.HorizontalStrafe(amount.x);
+            m_Camera3D.VerticalStrafe(amount.y);
+        }
+        /// <summary>
+        /// Zoom with the camera
+        /// </summary>
+        /// <param name="amount">Distance</param>
+        public void ZoomCamera(float amount)
+        {
+            m_Camera3D.Zoom(3*amount);
         }
         #endregion
     }

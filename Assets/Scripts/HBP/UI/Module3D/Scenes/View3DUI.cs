@@ -7,7 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 
-public class View3DUI : MonoBehaviour {
+public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler {
     #region Properties
     private View3D m_View;
     /// <summary>
@@ -40,6 +40,10 @@ public class View3DUI : MonoBehaviour {
     /// Rect Transform
     /// </summary>
     private RectTransform m_RectTransform;
+    /// <summary>
+    /// Lock to know whether a click triggered OnPointerDown event or not
+    /// </summary>
+    private bool m_PointerDownLock;
 
     private bool m_UsingRenderTexture;
     /// <summary>
@@ -70,7 +74,7 @@ public class View3DUI : MonoBehaviour {
     }
     private void Update()
     {
-        MouseHandler();
+        DeselectView();
     }
     /// <summary>
     /// Get RectTransform screen coordinates
@@ -85,20 +89,62 @@ public class View3DUI : MonoBehaviour {
     /// <summary>
     /// Handles mouse events
     /// </summary>
-    private void MouseHandler()
+    private void DeselectView()
     {
         UnityEngine.Profiling.Profiler.BeginSample("check click");
-        if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2))
+        if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2) || Input.mouseScrollDelta != Vector2.zero)
         {
-            float x = Input.mousePosition.x, y = Input.mousePosition.y;
-            Rect rect = RectTransformToScreenSpace(m_RectTransform);
-            m_View.IsClicked = (x > rect.x && x < rect.x + rect.width && y > rect.y && y < rect.y + rect.height);
+            if (!m_PointerDownLock) // If a click was recorded but this click did not trigger OnPointerDown, consider that the view has not been clicked
+            {
+                m_View.IsClicked = false;
+            }
         }
+        m_PointerDownLock = false;
         UnityEngine.Profiling.Profiler.EndSample();
     }
     #endregion
 
     #region Public Methods
+    public void OnPointerDown(PointerEventData data)
+    {
+        m_View.IsClicked = true;
+        m_PointerDownLock = true;
+        if (Input.GetMouseButton(1) || Input.GetMouseButton(2))
+        {
+            m_View.DisplayRotationCircles = true;
+        }
+    }
+    public void OnDrag(PointerEventData data)
+    {
+        switch (data.button)
+        {
+            case PointerEventData.InputButton.Left:
+                break;
+            case PointerEventData.InputButton.Right:
+                m_View.RotateCamera(data.delta);
+                break;
+            case PointerEventData.InputButton.Middle:
+                m_View.StrafeCamera(data.delta);
+                break;
+            default:
+                break;
+        }
+    }
+    public void OnEndDrag(PointerEventData data)
+    {
+        m_View.DisplayRotationCircles = false;
+    }
+    public void OnPointerUp(PointerEventData data)
+    {
+        m_PointerDownLock = false;
+        m_View.DisplayRotationCircles = false;
+    }
+    public void OnScroll(PointerEventData data)
+    {
+        m_View.IsClicked = true;
+        m_PointerDownLock = true;
+        m_View.ZoomCamera(data.scrollDelta.y);
+    }
     public void OnRectTransformDimensionsChange()
     {
         if (!m_IsInitialized) return;
@@ -166,6 +212,21 @@ public class View3DUI : MonoBehaviour {
         m_MinimizedGameObject.GetComponentInChildren<Text>().text = "View " + view.LineID;
         m_MinimizedGameObject.SetActive(false);
         m_IsInitialized = true;
+    }
+    /// <summary>
+    /// Get ray from PointerEventData to the camera of the view
+    /// </summary>
+    /// <param name="data">Pointer event data from OnPointerDown or similar</param>
+    /// <returns>Ray obtained from conversion</returns>
+    public Ray RaycastToCamera(PointerEventData data)
+    {
+        Vector2 localPosition = new Vector2();
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, data.position, null, out localPosition);
+        localPosition = new Vector2((localPosition.x / m_RectTransform.rect.width) + 0.5f, (localPosition.y / m_RectTransform.rect.height) + 0.5f);
+        Ray ray = m_View.Camera.ViewportPointToRay(localPosition);
+        RaycastHit hit = new RaycastHit();
+        Physics.Raycast(ray, out hit);
+        return ray;
     }
     #endregion
 }
