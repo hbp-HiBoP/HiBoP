@@ -161,7 +161,7 @@ namespace HBP.Module3D
             m_AssociatedView = GetComponentInParent<View3D>();
             m_Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center;
             m_OriginalTarget = m_Target;
-            transform.position = m_Target - transform.forward * m_StartDistance;
+            transform.localPosition = m_Target - transform.forward * m_StartDistance;
 
             // rotation circles
             m_XRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
