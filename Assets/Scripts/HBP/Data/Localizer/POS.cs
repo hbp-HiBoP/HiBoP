@@ -31,7 +31,7 @@ namespace HBP.Data.Localizer
                     }
                     else
                     {
-                        m_eventDictionary.Add(eventCode, new List<int>(sampleIndex)); // Add new event code with its first sample index.
+                        m_eventDictionary.Add(eventCode, new List<int>() { sampleIndex }); // Add new event code with its first sample index.
                     }
                 }
 			}
