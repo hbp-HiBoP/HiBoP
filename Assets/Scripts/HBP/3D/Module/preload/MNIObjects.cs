@@ -124,35 +124,35 @@ namespace HBP.Module3D
             LeftHemi = new DLL.Surface();
             RightHemi = new DLL.Surface();
             BothHemi = new DLL.Surface();
-            LeftHemi.load_GII_file(baseMeshDir + "MNI_single_hight_Lhemi.gii", true, baseMeshDir + "transfo_mni.trm"); LeftHemi.flip_triangles();
-            RightHemi.load_GII_file(baseMeshDir + "MNI_single_hight_Rhemi.gii", true, baseMeshDir + "transfo_mni.trm"); RightHemi.flip_triangles();
+            LeftHemi.LoadGIIFile(baseMeshDir + "MNI_single_hight_Lhemi.gii", true, baseMeshDir + "transfo_mni.trm"); LeftHemi.FlipTriangles();
+            RightHemi.LoadGIIFile(baseMeshDir + "MNI_single_hight_Rhemi.gii", true, baseMeshDir + "transfo_mni.trm"); RightHemi.FlipTriangles();
             BothHemi = (DLL.Surface)LeftHemi.Clone();
-            BothHemi.add(RightHemi);
-            LeftHemi.compute_normals();
-            RightHemi.compute_normals();
-            BothHemi.compute_normals();
+            BothHemi.Add(RightHemi);
+            LeftHemi.ComputeNormals();
+            RightHemi.ComputeNormals();
+            BothHemi.ComputeNormals();
 
             LeftWhite = new DLL.Surface();
             RightWhite = new DLL.Surface();
             BothWhite = new DLL.Surface();
-            LeftWhite.load_GII_file(baseMeshDir + "MNI_single_hight_Lwhite.gii", true, baseMeshDir + "transfo_mni.trm"); LeftWhite.flip_triangles();
-            RightWhite.load_GII_file(baseMeshDir + "MNI_single_hight_Rwhite.gii", true, baseMeshDir + "transfo_mni.trm"); RightWhite.flip_triangles();
+            LeftWhite.LoadGIIFile(baseMeshDir + "MNI_single_hight_Lwhite.gii", true, baseMeshDir + "transfo_mni.trm"); LeftWhite.FlipTriangles();
+            RightWhite.LoadGIIFile(baseMeshDir + "MNI_single_hight_Rwhite.gii", true, baseMeshDir + "transfo_mni.trm"); RightWhite.FlipTriangles();
             BothWhite = (DLL.Surface)LeftWhite.Clone();
-            BothWhite.add(RightWhite);
-            LeftWhite.compute_normals();
-            RightWhite.compute_normals();
-            BothWhite.compute_normals();
+            BothWhite.Add(RightWhite);
+            LeftWhite.ComputeNormals();
+            RightWhite.ComputeNormals();
+            BothWhite.ComputeNormals();
 
             LeftWhiteInflated = new DLL.Surface();
             RightWhiteInflated = new DLL.Surface();
             BothWhiteInflated = new DLL.Surface();
-            LeftWhiteInflated.load_GII_file(baseMeshDir + "MNI_single_hight_Lwhite_inflated.gii", true, baseMeshDir + "transfo_mni.trm"); LeftWhiteInflated.flip_triangles();
-            RightWhiteInflated.load_GII_file(baseMeshDir + "MNI_single_hight_Rwhite_inflated.gii", true, baseMeshDir + "transfo_mni.trm"); RightWhiteInflated.flip_triangles();
+            LeftWhiteInflated.LoadGIIFile(baseMeshDir + "MNI_single_hight_Lwhite_inflated.gii", true, baseMeshDir + "transfo_mni.trm"); LeftWhiteInflated.FlipTriangles();
+            RightWhiteInflated.LoadGIIFile(baseMeshDir + "MNI_single_hight_Rwhite_inflated.gii", true, baseMeshDir + "transfo_mni.trm"); RightWhiteInflated.FlipTriangles();
             BothWhiteInflated = (DLL.Surface)LeftWhiteInflated.Clone();
-            BothWhiteInflated.add(RightWhiteInflated);
-            LeftWhiteInflated.compute_normals();
-            RightWhiteInflated.compute_normals();
-            BothWhiteInflated.compute_normals();
+            BothWhiteInflated.Add(RightWhiteInflated);
+            LeftWhiteInflated.ComputeNormals();
+            RightWhiteInflated.ComputeNormals();
+            BothWhiteInflated.ComputeNormals();
 
 #endif
             LoadingMutex.ReleaseMutex();

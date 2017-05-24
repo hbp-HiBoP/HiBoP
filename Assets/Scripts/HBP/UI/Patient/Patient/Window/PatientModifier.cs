@@ -77,19 +77,19 @@ namespace HBP.UI.Patient
         }
         protected override void SetWindow()
         {
-            nameInputField = transform.FindChild("Content").FindChild("General").FindChild("Name").GetComponentInChildren<InputField>();
-            placeInputField = transform.FindChild("Content").FindChild("General").FindChild("Place").GetComponentInChildren<InputField>();
-            dateInputField = transform.FindChild("Content").FindChild("General").FindChild("Date").GetComponentInChildren<InputField>();
-            leftMeshFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("LeftCerebralHemisphereMesh").GetComponentInChildren<FileSelector>();
-            rightMeshFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("RightCerebralHemisphereMesh").GetComponentInChildren<FileSelector>();
-            preIRMFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("PreOperationMRI").GetComponentInChildren<FileSelector>();
-            postIRMFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("PostOperationMRI").GetComponentInChildren<FileSelector>();
-            patientBasedImplantantationFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("PatientReferenceFrameImplantation").GetComponentInChildren<FileSelector>();
-            MNIReferenceFrameImplantationFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("MNIReferenceFrameImplantation").GetComponentInChildren<FileSelector>();
-            preToScannerBasedTransformationFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("PreToScannerBasedTransformationFileSelector").GetComponentInChildren<FileSelector>();
-            connectivityFileSelector = transform.FindChild("Content").FindChild("Brain").FindChild("Connectivity").GetComponentInChildren<FileSelector>();
-            epilepsyTypeDropdown = transform.FindChild("Content").FindChild("Brain").FindChild("EpilepsyType").GetComponentInChildren<Dropdown>();
-            saveButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Save").GetComponent<Button>();
+            nameInputField = transform.Find("Content").Find("General").Find("Name").GetComponentInChildren<InputField>();
+            placeInputField = transform.Find("Content").Find("General").Find("Place").GetComponentInChildren<InputField>();
+            dateInputField = transform.Find("Content").Find("General").Find("Date").GetComponentInChildren<InputField>();
+            leftMeshFileSelector = transform.Find("Content").Find("Brain").Find("LeftCerebralHemisphereMesh").GetComponentInChildren<FileSelector>();
+            rightMeshFileSelector = transform.Find("Content").Find("Brain").Find("RightCerebralHemisphereMesh").GetComponentInChildren<FileSelector>();
+            preIRMFileSelector = transform.Find("Content").Find("Brain").Find("PreOperationMRI").GetComponentInChildren<FileSelector>();
+            postIRMFileSelector = transform.Find("Content").Find("Brain").Find("PostOperationMRI").GetComponentInChildren<FileSelector>();
+            patientBasedImplantantationFileSelector = transform.Find("Content").Find("Brain").Find("PatientReferenceFrameImplantation").GetComponentInChildren<FileSelector>();
+            MNIReferenceFrameImplantationFileSelector = transform.Find("Content").Find("Brain").Find("MNIReferenceFrameImplantation").GetComponentInChildren<FileSelector>();
+            preToScannerBasedTransformationFileSelector = transform.Find("Content").Find("Brain").Find("PreToScannerBasedTransformationFileSelector").GetComponentInChildren<FileSelector>();
+            connectivityFileSelector = transform.Find("Content").Find("Brain").Find("Connectivity").GetComponentInChildren<FileSelector>();
+            epilepsyTypeDropdown = transform.Find("Content").Find("Brain").Find("EpilepsyType").GetComponentInChildren<Dropdown>();
+            saveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {

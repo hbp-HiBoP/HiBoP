@@ -61,9 +61,9 @@ namespace HBP.UI.TrialMatrix
         #region Private Methods
         void Awake()
         {
-            rect = transform.FindChild("Blocs").GetComponent<RectTransform>();
-            label = transform.FindChild("Title").FindChild("Label").GetComponent<Text>();
-            illustration = transform.FindChild("Title").FindChild("Image").GetComponent<Image>();
+            rect = transform.Find("Blocs").GetComponent<RectTransform>();
+            label = transform.Find("Title").Find("Label").GetComponent<Text>();
+            illustration = transform.Find("Title").Find("Image").GetComponent<Image>();
         }
 
         void SetIllustration(d.Bloc bloc)

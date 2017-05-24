@@ -69,27 +69,24 @@ namespace HBP.Data.Anatomy
                                 }
                             }
                         }
-                        //            else
-                        //            {
-                        //                Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame implantation because the specified file is not in the correct format.");
-                        //            }
-                        //        }
-                        //        else
-                        //        {
-                        //            Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified file is not in the correct format.");
-                        //        }
-                        //    }
-                        //    else
-                        //    {
-                        //        Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified file does not exist or does not have the correct extension.");
-                        //    }
-                        //}
-                        //else
-                        //{
-                        //    Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified path is null or empty.");
-                        //}
+                        else
+                        {
+                            Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame implantation because the specified file is not in the correct format.");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified file is not in the correct format.");
                     }
                 }
+                else
+                {
+                    Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified file does not exist or does not have the correct extension.");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified path is null or empty.");
             }
         }
 

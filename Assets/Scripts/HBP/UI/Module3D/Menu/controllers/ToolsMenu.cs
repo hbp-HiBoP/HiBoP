@@ -69,26 +69,26 @@ namespace HBP.UI.Module3D
         void FindButtons()
         {
             // Scene Informations.
-            m_SceneInformations = transform.FindChild("Scene Informations").GetComponentInChildren<Text>();
+            m_SceneInformations = transform.Find("Scene Informations").GetComponentInChildren<Text>();
 
             // Tools.
-            Transform toolsTransform = transform.FindChild("Tools Buttons");
+            Transform toolsTransform = transform.Find("Tools Buttons");
             // Brain Hemispheres.
-            Transform brainHemispheres = toolsTransform.FindChild("Brain hemispheres");
-            m_LeftBrainHemisphere = brainHemispheres.FindChild("Left hemisphere toggle").GetComponent<Toggle>();
-            m_RightBrainHemisphere = brainHemispheres.FindChild("Right hemisphere toggle").GetComponent<Toggle>();
+            Transform brainHemispheres = toolsTransform.Find("Brain hemispheres");
+            m_LeftBrainHemisphere = brainHemispheres.Find("Left hemisphere toggle").GetComponent<Toggle>();
+            m_RightBrainHemisphere = brainHemispheres.Find("Right hemisphere toggle").GetComponent<Toggle>();
             // Brain Types.
-            m_BrainTypes = toolsTransform.FindChild("Brain Types").GetComponent<Dropdown>();   
+            m_BrainTypes = toolsTransform.Find("Brain Types").GetComponent<Dropdown>();   
             // MarsAtlas.
-            m_MarsAtlas = toolsTransform.FindChild("MarsAtlas").GetComponent<Toggle>();
+            m_MarsAtlas = toolsTransform.Find("MarsAtlas").GetComponent<Toggle>();
             // Views
-            Transform views = toolsTransform.FindChild("Views");
-            m_AddView = views.FindChild("Add view").GetComponent<Button>();
-            m_RemoveView = views.FindChild("Remove view").GetComponent<Button>();
+            Transform views = toolsTransform.Find("Views");
+            m_AddView = views.Find("Add view").GetComponent<Button>();
+            m_RemoveView = views.Find("Remove view").GetComponent<Button>();
             // fMRI.
-            Transform fMRI = toolsTransform.FindChild("fMRI");
-            m_AddfMRI = fMRI.FindChild("Add fMRI").GetComponent<Button>();      
-            m_RemovefMRI = fMRI.FindChild("Remove fMRI").GetComponent<Button>();
+            Transform fMRI = toolsTransform.Find("fMRI");
+            m_AddfMRI = fMRI.Find("Add fMRI").GetComponent<Button>();      
+            m_RemovefMRI = fMRI.Find("Remove fMRI").GetComponent<Button>();
 
             // m_iEegButton = transform.Find("iEEG button").GetComponent<Button>();
             //m_CcepButton = transform.Find("CCEP button").GetComponent<Button>();

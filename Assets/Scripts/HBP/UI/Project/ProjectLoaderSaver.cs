@@ -600,7 +600,7 @@ namespace HBP.UI
                 m_LoadingCircle.Close();
                 StopAllCoroutines();
                 GameObject popUpobj = GameObject.Instantiate(m_PopUpPrefab, GameObject.Find("Windows").transform) as GameObject;
-                popUpobj.GetComponent<PopUp>().Show(GetErrorMessage(error, additionalInformations));
+                popUpobj.GetComponent<DialogBox>().Open(GetErrorMessage(error, additionalInformations));
             }
         }
         void HandleError(SaveErrorTypeEnum error, string additionalInformations, DirectoryInfo directory)
@@ -614,7 +614,7 @@ namespace HBP.UI
                 m_LoadingCircle.Close();
                 StopAllCoroutines();
                 GameObject popUpobj = Instantiate(m_PopUpPrefab, GetComponentInParent<Visualization.VisualizationLoader>().transform) as GameObject;
-                popUpobj.GetComponent<PopUp>().Show(GetErrorMessage(error, additionalInformations));
+                popUpobj.GetComponent<DialogBox>().Open(GetErrorMessage(error, additionalInformations));
             }
         }
         #endregion

@@ -16,7 +16,7 @@ namespace HBP.UI.Patient
         #region Protected Methods
         protected override void SetWindow()
         {
-            list = transform.FindChild("Content").FindChild("List").FindChild("List").FindChild("GameObject").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<GroupList>();
+            list = transform.Find("Content").Find("List").Find("List").Find("GameObject").Find("List").Find("Viewport").Find("Content").GetComponent<GroupList>();
             (list as GroupList).ActionEvent.AddListener((item,i) => OpenModifier(item,true));
             AddItem(ApplicationState.ProjectLoaded.Groups.ToArray());
         }

@@ -40,8 +40,8 @@ namespace HBP.UI.Visualization
         void ErrorHandler(string message)
         {
             GameObject popUpGameObject = Instantiate(m_PopUpPrefab);
-            PopUp popUp = popUpGameObject.GetComponent<PopUp>();
-            popUp.Show(message);
+            DialogBox popUp = popUpGameObject.GetComponent<DialogBox>();
+            popUp.Open(message);
         }
         void ProgressHandler(float progress,float duration,string message)
         {

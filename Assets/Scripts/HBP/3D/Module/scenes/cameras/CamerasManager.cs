@@ -430,8 +430,8 @@ namespace HBP.Module3D.Cam
         private void Awake()
         {
             // Cameras Containers.
-            m_SinglePatientCamerasContainer = transform.FindChild("Single patient container");
-            m_MultiPatientsCamerasContainer = transform.FindChild("Multi patients container");
+            m_SinglePatientCamerasContainer = transform.Find("Single patient container");
+            m_MultiPatientsCamerasContainer = transform.Find("Multi patients container");
 
             // Single patient
             GameObject singlePatientLine = Instantiate(GlobalGOPreloaded.Line);
@@ -516,7 +516,7 @@ namespace HBP.Module3D.Cam
             {
                 for (int c = 0; c < m_SinglePatientCameras[l].Count; ++c)
                 {
-                    Transform column = m_SinglePatientLines[l].transform.FindChild("Column n°" + c);
+                    Transform column = m_SinglePatientLines[l].transform.Find("Column n°" + c);
                     LayoutElement layout = column.GetComponent<LayoutElement>();
 
                     if (m_SinglePatientCameras[l][c].GetComponent<TrackBallCamera>().IsMinimized)
@@ -545,7 +545,7 @@ namespace HBP.Module3D.Cam
             {
                 for (int jj = 0; jj < m_MultiPatientsCameras[0].Count; ++jj)
                 {
-                    GameObject convView = m_MultiPatientsLines[ii].transform.FindChild("conv_view_" + jj).gameObject;
+                    GameObject convView = m_MultiPatientsLines[ii].transform.Find("conv_view_" + jj).gameObject;
                     LayoutElement layout = convView.GetComponent<LayoutElement>();
 
                     if (m_MultiPatientsCameras[ii][jj].GetComponent<TrackBallCamera>().IsMinimized)

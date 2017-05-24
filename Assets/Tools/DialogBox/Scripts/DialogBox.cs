@@ -1,36 +1,28 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 
 namespace Tools.Unity
 {
-    public class PopUp : MonoBehaviour
+    public class DialogBox : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        Text m_title;
-
         [SerializeField]
         Text m_message;
         #endregion
 
         #region Public Methods
-        public void Show(string message, string title)
+        public void Open(string message)
         {
             RectTransform rect = (transform as RectTransform);
             rect.offsetMin = new Vector2(0, 0);
             rect.offsetMax = new Vector2(0, 0);
-            gameObject.SetActive(true);
-            m_title.text = title;
             m_message.text = message;
-        }
-        public void Show(string message)
-        {
-            Show(message, "Error");
+            LayoutElement texteLayoutElement = m_message.GetComponent<LayoutElement>();
+            texteLayoutElement.preferredWidth = Mathf.Min(m_message.preferredWidth, texteLayoutElement.preferredWidth);
         }
         public void Close()
         {
-            GameObject.Destroy(this.gameObject);
+            Destroy(gameObject);
         }
         #endregion
     }

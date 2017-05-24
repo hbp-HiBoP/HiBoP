@@ -30,9 +30,9 @@ namespace HBP.UI.TrialMatrix
         #region Private Methods
         void Awake()
         {
-            colorMapRawImage = transform.FindChild("ColorLegend").GetComponent<RawImage>();
-            valuesRect = transform.FindChild("ValuesRect").GetComponent<RectTransform>();
-            limitsWindow = transform.FindChild("LimitsWindow").GetComponent<LimitsWindow>();
+            colorMapRawImage = transform.Find("ColorLegend").GetComponent<RawImage>();
+            valuesRect = transform.Find("ValuesRect").GetComponent<RectTransform>();
+            limitsWindow = transform.Find("LimitsWindow").GetComponent<LimitsWindow>();
         }
         void SetColorMap(Texture2D colorMap)
         {

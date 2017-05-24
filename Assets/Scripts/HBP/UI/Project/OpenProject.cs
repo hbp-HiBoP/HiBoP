@@ -30,12 +30,12 @@ namespace HBP.UI
         #region Private Methods
         protected override void SetWindow()
         {
-            m_LoadingButton = transform.FindChild("Content").FindChild("GeneralButtons").FindChild("Load").GetComponent<Button>();
-            m_ProjectList = transform.FindChild("Content").FindChild("Projects").FindChild("ProjectList").FindChild("List").FindChild("List").FindChild("Viewport").FindChild("Content").GetComponent<ProjectList>();
+            m_LoadingButton = transform.Find("Content").Find("GeneralButtons").Find("Load").GetComponent<Button>();
+            m_ProjectList = transform.Find("Content").Find("Projects").Find("ProjectList").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<ProjectList>();
             m_ProjectList.SelectEvent.AddListener(() => m_LoadingButton.interactable = true);
             m_ProjectList.ActionEvent.AddListener((info, i) => Load(info));
 
-            m_LocationFolderSelector = transform.FindChild("Content").FindChild("Projects").FindChild("FolderSelector").GetComponent<FolderSelector>();
+            m_LocationFolderSelector = transform.Find("Content").Find("Projects").Find("FolderSelector").GetComponent<FolderSelector>();
             m_LocationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(DisplayProjects(value)));
             m_LocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
         }

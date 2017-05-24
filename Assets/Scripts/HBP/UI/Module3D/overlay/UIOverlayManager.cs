@@ -91,7 +91,7 @@ namespace HBP.UI.Module3D
         public void Initialize(ScenesManager scenesManager)
         {
             // find elements UI
-            m_bothDisplaySiteInfoTransform = transform.FindChild("others").FindChild("display site info panel");
+            m_bothDisplaySiteInfoTransform = transform.Find("others").Find("display site info panel");
 
             // init controllers
             /*

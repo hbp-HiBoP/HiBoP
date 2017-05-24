@@ -83,12 +83,12 @@ namespace HBP.UI.Visualization
         }
         protected override void SetWindow()
         {
-            nameInputField = transform.FindChild("Content").FindChild("General").FindChild("Name").FindChild("InputField").GetComponent<InputField>();
-            tabGestion = transform.FindChild("Content").FindChild("Columns").FindChild("Tabs").GetComponent<TabGestion>();
-            columnModifier = transform.FindChild("Content").FindChild("Columns").FindChild("Column").GetComponent<ColumnModifier>();
-            saveButton = transform.FindChild("Content").FindChild("Buttons").FindChild("Save").GetComponent<Button>();
-            saveAsButton = transform.FindChild("Content").FindChild("Buttons").FindChild("SaveAs").GetComponent<Button>();
-            patientDropdown = transform.FindChild("Content").FindChild("General").FindChild("Patient").FindChild("Dropdown").GetComponent<Dropdown>();
+            nameInputField = transform.Find("Content").Find("General").Find("Name").Find("InputField").GetComponent<InputField>();
+            tabGestion = transform.Find("Content").Find("Columns").Find("Tabs").GetComponent<TabGestion>();
+            columnModifier = transform.Find("Content").Find("Columns").Find("Column").GetComponent<ColumnModifier>();
+            saveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
+            saveAsButton = transform.Find("Content").Find("Buttons").Find("SaveAs").GetComponent<Button>();
+            patientDropdown = transform.Find("Content").Find("General").Find("Patient").Find("Dropdown").GetComponent<Dropdown>();
         }
         protected override void SetInteractableFields(bool interactable)
         {
