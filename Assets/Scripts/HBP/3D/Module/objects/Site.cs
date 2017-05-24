@@ -109,7 +109,15 @@ namespace HBP.Module3D
     public class Site : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Has this site been initialized ?
+        /// </summary>
+        public bool IsInitialized = false;
+
         bool m_IsActive;
+        /// <summary>
+        /// Is this site active ?
+        /// </summary>
         public bool IsActive
         {
             get
@@ -122,7 +130,18 @@ namespace HBP.Module3D
                 gameObject.SetActive(value);
             }
         }
+
+        /// <summary>
+        /// Information about this site
+        /// </summary>
         public SiteInformation Information { get; set; }
+        #endregion
+
+        #region Private Methods
+        private void Awake()
+        {
+            Information = new SiteInformation();
+        }
         #endregion
 
         #region Public Methods

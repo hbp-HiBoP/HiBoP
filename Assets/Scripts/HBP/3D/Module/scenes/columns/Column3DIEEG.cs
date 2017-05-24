@@ -18,7 +18,7 @@ namespace HBP.Module3D
     /// <summary>
     /// A 3D column view IEGG, containing all necessary data concerning a data column
     /// </summary>
-    public class Column3DViewIEEG : Column3DView
+    public class Column3DIEEG : Column3D
     {
         #region Properties
         public override ColumnType Type
@@ -104,11 +104,11 @@ namespace HBP.Module3D
             }
 
             // plots
-            ElectrodesSizeScale = new List<Vector3>(m_RawElectrodes.NumberOfSites());
-            ElectrodesPositiveColor = new List<bool>(m_RawElectrodes.NumberOfSites());
+            ElectrodesSizeScale = new List<Vector3>(m_RawElectrodes.NumberOfSites);
+            ElectrodesPositiveColor = new List<bool>(m_RawElectrodes.NumberOfSites);
 
             // masks
-            for (int ii = 0; ii < m_RawElectrodes.NumberOfSites(); ii++)
+            for (int ii = 0; ii < m_RawElectrodes.NumberOfSites; ii++)
             {
                 ElectrodesSizeScale.Add(new Vector3(1, 1, 1));
                 ElectrodesPositiveColor.Add(true);
@@ -119,7 +119,7 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateDLLSitesMask()
         {
-            bool noROI = (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles() == 0);
+            bool noROI = (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles == 0);
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
                 m_RawElectrodes.UpdateMask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsInROI && !noROI)));
@@ -379,12 +379,12 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < Sites.Count; ++ii)
                 {
                     bool activity;
-                    //if(Sites[ii].firstUse)
-                    //{
-                    //    Sites[ii].firstUse = false;
-                    //    activity = Sites[ii].gameObject.activeSelf;
-                    //}
-                    //else
+                    if (!Sites[ii].IsInitialized)
+                    {
+                        Sites[ii].IsInitialized = true;
+                        activity = Sites[ii].gameObject.activeSelf;
+                    }
+                    else
                         activity = Sites[ii].IsActive;
 
       

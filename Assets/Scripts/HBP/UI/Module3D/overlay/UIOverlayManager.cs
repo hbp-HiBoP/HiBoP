@@ -584,8 +584,8 @@ namespace HBP.UI.Module3D
         /// <param name="spScene"></param>
         public void update_time(Base3DScene scene)
         {
-            Column3DViewManager cm = scene.Column3DViewManager;
-            int time = cm.GlobalTimeline ? (int)cm.CommonTimelineValue : ((Column3DViewIEEG)cm.SelectedColumn).ColumnTimeLineID;
+            Column3DManager cm = scene.ColumnManager;
+            int time = cm.GlobalTimeline ? (int)cm.CommonTimelineValue : ((Column3DIEEG)cm.SelectedColumn).ColumnTimeLineID;
 
             switch (scene.Type)
             {

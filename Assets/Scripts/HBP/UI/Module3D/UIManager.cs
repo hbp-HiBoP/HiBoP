@@ -36,18 +36,16 @@ namespace HBP.UI.Module3D
         /// <param name="scenesManager"></param>
         public void Initialize(ScenesManager scenesManager)
         {
-            m_OverlayManager.Initialize(scenesManager);
+            //m_OverlayManager.Initialize(scenesManager);
             m_MenuManager.Initialize(scenesManager);
             foreach (Base3DScene scene in scenesManager.Scenes)
             {
-                scene.OnDefineSelectedColumn.AddListener((column) =>
+                scene.OnSelectColumn.AddListener((column) =>
                 {
-                    scenesManager.SelectedScene = scene;
                     UpdateFocusedSceneAndColumn(scene, column);
                 });
             }
         }
-
         /// <summary>
         /// Update the focused scene and column for the canvas managers
         /// </summary>
@@ -56,7 +54,7 @@ namespace HBP.UI.Module3D
         public void UpdateFocusedSceneAndColumn(Base3DScene scene, int column)
         {
             m_OverlayManager.UpdateFocusedSceneAndColumn(scene, column);
-            m_MenuManager.UpdateFocusedSceneAndColumn(scene, column);
+            m_MenuManager.UpdateSelectedSceneAndColumn(scene, column);
         }
         /// <summary>
         /// Add a FMRI column in the UI
@@ -93,9 +91,8 @@ namespace HBP.UI.Module3D
         {
             m_OverlayManager = transform.GetComponentInChildren<UIOverlayManager>(false);
             m_MenuManager = transform.GetComponentInChildren<MenuManager>(false);
+            Initialize(ApplicationState.Module3D.ScenesManager);
         }
         #endregion
-
-
     }
 }

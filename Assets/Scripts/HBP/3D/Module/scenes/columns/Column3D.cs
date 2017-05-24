@@ -8,15 +8,14 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
-    public class OnChangeSelectedSite : UnityEngine.Events.UnityEvent<Site> { }
-
     /// <summary>
     /// Column 3D view base class
     /// </summary>
-    public abstract class Column3DView : MonoBehaviour
+    public abstract class Column3D : MonoBehaviour
     {
         #region Properties
         public enum ColumnType
@@ -41,13 +40,51 @@ namespace HBP.Module3D
             set { m_Layer = value; }
         }
 
+        public bool IsRenderingUpToDate { get; set; }
+
+        private bool m_IsSelected;
+        /// <summary>
+        /// Is this column selected ?
+        /// </summary>
+        public bool IsSelected
+        {
+            get
+            {
+                return m_IsSelected;
+            }
+            set
+            {
+                bool wasSelected = m_IsSelected;
+                m_IsSelected = value;
+                if (m_IsSelected && !wasSelected)
+                {
+                    OnSelectColumn.Invoke(this);
+                }
+            }
+        }
+
         public GameObject ViewPrefab;
-        protected List<View3D> m_Views;
+        protected List<View3D> m_Views = new List<View3D>();
         public ReadOnlyCollection<View3D> Views
         {
             get
             {
                 return new ReadOnlyCollection<View3D>(m_Views);
+            }
+        }
+
+        public View3D SelectedView
+        {
+            get
+            {
+                foreach (View3D view in Views)
+                {
+                    if (view.IsSelected)
+                    {
+                        return view;
+                    }
+                }
+                return null;
             }
         }
 
@@ -59,10 +96,10 @@ namespace HBP.Module3D
         }
         public Site SelectedSite
         {
-            get { return Sites[m_SelectedSiteID]; }
+            get { return m_SelectedSiteID >= 0 ? Sites[m_SelectedSiteID] : null; }
             set { m_SelectedSiteID = Sites.FindIndex((site) => site == value); OnChangeSelectedSite.Invoke(value); }
         }
-        public OnChangeSelectedSite OnChangeSelectedSite = new OnChangeSelectedSite();
+        public GenericEvent<Site> OnChangeSelectedSite = new GenericEvent<Site>();
 
         protected DLL.RawSiteList m_RawElectrodes = null;  /**< raw format of the plots container dll */
         public DLL.RawSiteList RawElectrodes
@@ -97,6 +134,11 @@ namespace HBP.Module3D
         public Texture2D BrainColorSchemeTexture = null;        /**< brain colorscheme unity 2D texture  */
         public List<Texture2D> BrainCutTextures = null;         /**< list of cut textures */
         public List<Texture2D> GUIBrainCutTextures = null;      /**< list of GUI cut textures */
+
+        /// <summary>
+        /// Event called when this column is selected
+        /// </summary>
+        public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
         #endregion
 
         #region Public Methods
@@ -111,25 +153,23 @@ namespace HBP.Module3D
         {
             // scene
             Layer = "C" + idColumn + "_";
-            if (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient)
+            if (transform.GetComponentInParent<Base3DScene>().Type == SceneType.SinglePatient)
                 Layer += "SP";
             else
                 Layer += "MP";
 
             // select ring
-            gameObject.AddComponent<SiteRing>();
-            m_SelectRing = gameObject.GetComponent<SiteRing>();
+            m_SelectRing = gameObject.GetComponentInChildren<SiteRing>();
             m_SelectRing.SetLayer(Layer);
 
             // plots
             m_RawElectrodes = new DLL.RawSiteList();
             plots.ExtractRawSiteList(m_RawElectrodes);
 
-            GameObject patientPlotsParent = new GameObject("Sites");
-            patientPlotsParent.transform.SetParent(transform);
+            GameObject patientPlotsParent = transform.Find("Sites").gameObject;
 
             SitesGameObjects = new List<List<List<GameObject>>>(PlotsPatientParent.Count);
-            Sites = new List<Site>(plots.TotalSitesNumber());
+            Sites = new List<Site>(plots.TotalSitesNumber);
             for (int ii = 0; ii < PlotsPatientParent.Count; ++ii)
             {
                 // instantiate patient plots
@@ -190,6 +230,9 @@ namespace HBP.Module3D
 
             // view
             AddView();
+
+            // update rendering
+            IsRenderingUpToDate = false;
         }
         /// <summary>
         ///  Clean all allocated data
@@ -450,10 +493,26 @@ namespace HBP.Module3D
         /// </summary>
         public void AddView()
         {
-            View3D view = Instantiate(ViewPrefab, transform).GetComponent<View3D>();
+            View3D view = Instantiate(ViewPrefab, transform.Find("Views")).GetComponent<View3D>();
             view.gameObject.name = "View " + m_Views.Count;
             view.LineID = m_Views.Count;
             view.Layer = Layer;
+            view.OnSelectView.AddListener((selectedView) =>
+            {
+                Debug.Log("OnSelectView");
+                foreach (View3D v in m_Views)
+                {
+                    if (v != selectedView)
+                    {
+                        v.IsSelected = false;
+                    }
+                }
+                IsSelected = true;
+            });
+            if (IsSelected)
+            {
+                view.IsColumnSelected = true;
+            }
             m_Views.Add(view);
         }
         /// <summary>

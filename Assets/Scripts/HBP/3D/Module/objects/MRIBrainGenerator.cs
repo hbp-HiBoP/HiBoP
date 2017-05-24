@@ -43,6 +43,37 @@ namespace HBP.Module3D
                 }
             }
 
+            /// <summary>
+            /// Maximum density
+            /// </summary>
+            public float MaximumDensity
+            {
+                get
+                {
+                    return getMaximumDensity_BrainSurfaceTextureGenerator(_handle);
+                }
+            }
+            /// <summary>
+            /// Minimum influence
+            /// </summary>
+            public float MinimumInfluence
+            {
+                get
+                {
+                    return getMinInf_BrainSurfaceTextureGenerator(_handle);
+                }
+            }
+            /// <summary>
+            /// Maximum influence
+            /// </summary>
+            public float MaximumInfluence
+            {
+                get
+                {
+                    return getMaxInf_BrainSurfaceTextureGenerator(_handle);
+                }
+            }
+
             private GCHandle m_UVAmplitudesHandle;
             private GCHandle m_UVAlphaHandle;
             #endregion
@@ -87,30 +118,6 @@ namespace HBP.Module3D
             /// <summary>
             /// 
             /// </summary>
-            /// <returns></returns>
-            public float GetMaximumDensity()
-            {
-                return getMaximumDensity_BrainSurfaceTextureGenerator( _handle);
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public float GetMinimumInfluence()
-            {
-                return getMinInf_BrainSurfaceTextureGenerator(_handle);
-            }
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <returns></returns>
-            public float GetMaximumInfluence()
-            {
-                return getMaxInf_BrainSurfaceTextureGenerator(_handle);
-            }
-            /// <summary>
-            /// 
-            /// </summary>
             /// <param name="sharedMaxDensity"></param>
             /// <param name="sharedMinInf"></param>
             /// <param name="sharedMaxInf"></param>
@@ -126,7 +133,7 @@ namespace HBP.Module3D
             /// <param name="addValues"></param>
             /// <param name="ratioDistances"></param>
             /// <returns></returns>
-            public bool ComputeInfluences(Column3DViewIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
+            public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
             {
                 bool noError = false;
                 noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.Dimensions, IEEGColumn.MaxDistanceElec, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances ? 1 : 0,
@@ -162,12 +169,12 @@ namespace HBP.Module3D
             /// <param name="surface"></param>
             /// <param name="IEEGColumn"></param>
             /// <returns></returns>
-            public bool ComputeSurfaceUVIEEG(DLL.Surface surface, Column3DViewIEEG IEEGColumn)
+            public bool ComputeSurfaceUVIEEG(DLL.Surface surface, Column3DIEEG IEEGColumn)
             {                
                 bool noError = false;
                 noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), IEEGColumn.CurrentTimeLineID, IEEGColumn.AlphaMin, IEEGColumn.AlphaMax) == 1;
 
-                int m_nbVertices = surface.NumberOfVertices();
+                int m_nbVertices = surface.NumberOfVertices;
                 if (m_nbVertices == 0) // mesh is empty
                     return true;
 

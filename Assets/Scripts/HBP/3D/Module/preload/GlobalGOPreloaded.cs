@@ -179,6 +179,6 @@ namespace HBP.Module3D
             baseGameObject.name = objectName;
             baseGameObject.transform.SetParent(transform);
             baseGameObject.SetActive(false);
-        } 
+        }
     }
 }

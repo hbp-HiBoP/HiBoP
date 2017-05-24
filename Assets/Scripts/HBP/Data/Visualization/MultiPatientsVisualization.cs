@@ -127,6 +127,7 @@ namespace HBP.Data.Visualization
         /// <param name="patients">Patients to set in the visualization.</param>
         public void SetPatients(Patient[] patients)
         {
+            m_patients = patients.ToList(); // required for 3D visualization tester
             RemovePatient(from patient in this.m_patients where !patients.Contains(patient) select patient);
             AddPatient(from patient in patients where !this.m_patients.Contains(patient) select patient);
         }

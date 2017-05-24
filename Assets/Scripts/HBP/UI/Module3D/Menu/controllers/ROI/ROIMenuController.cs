@@ -242,7 +242,7 @@ namespace HBP.Module3D
         public string save_ROI()
         {
             string[] filters = new string[] { "roi"};
-            string ROIPath = Module3D.DLL.QtGUI.get_saved_file_name(filters, "Save column ROI and plots state...", "./" + m_scene.Column3DViewManager.SelectedColumn.SelectedROI.m_ROIname + ".roi");
+            string ROIPath = Module3D.DLL.QtGUI.get_saved_file_name(filters, "Save column ROI and plots state...", "./" + m_scene.ColumnManager.SelectedColumn.SelectedROI.m_ROIname + ".roi");
 
             if (ROIPath.Length == 0) // no path selected
                 return "";

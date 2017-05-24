@@ -18,7 +18,7 @@ namespace HBP.Module3D
     public class ScenesManager : MonoBehaviour
     {
         #region Properties
-        private List<Base3DScene> m_Scenes = null;
+        private List<Base3DScene> m_Scenes = new List<Base3DScene>();
         /// <summary>
         /// List of loaded scenes
         /// </summary>
@@ -36,22 +36,27 @@ namespace HBP.Module3D
                 return new ReadOnlyCollection<Data.Visualization.Visualization>((from scene in m_Scenes select scene.Visualization).ToList());
             }
         }
-
-        private Base3DScene m_SelectedScene = null;
+        
         /// <summary>
         /// Currently selected scene
         /// </summary>
         public Base3DScene SelectedScene
         {
-            set
-            {
-                m_SelectedScene.ModesManager.OnChangeMode.RemoveAllListeners();
-                m_SelectedScene = value;
-                OnChangeSelectedScene.Invoke(value);
-            }
             get
             {
-                return m_SelectedScene;
+                return m_Scenes.Find((s) => s.IsSelected);
+            }
+        }
+
+        private int m_NumberOfScenesLoadedSinceStart = 0;
+        /// <summary>
+        /// Number of scenes that have been loaded in this instance of HiBoP
+        /// </summary>
+        public int NumberOfScenesLoadedSinceStart
+        {
+            get
+            {
+                return m_NumberOfScenesLoadedSinceStart;
             }
         }
 
@@ -74,7 +79,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when the user selects a scene
         /// </summary>
-        public GenericEvent<bool> OnSelectScene = new GenericEvent<bool>();
+        public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
 
         /// <summary>
         /// Prefab corresponding to a single patient scene
@@ -95,10 +100,10 @@ namespace HBP.Module3D
         /// <returns></returns>
         public bool AddSinglePatientScene(Data.Visualization.SinglePatientVisualization visualization, bool postIRM)
         {
-            GameObject newSinglePatientScene = Instantiate(SinglePatientScenePrefab, transform);
-            SinglePatient3DScene scene = newSinglePatientScene.GetComponent<SinglePatient3DScene>();
+            SinglePatient3DScene scene = Instantiate(SinglePatientScenePrefab, transform).GetComponent<SinglePatient3DScene>();
             // Initialize the scene
             bool success = scene.Initialize(visualization, postIRM);
+            m_NumberOfScenesLoadedSinceStart++;
             if (!success)
             {
                 Debug.LogError("-ERROR : Could not initialize new single patient scene.");
@@ -110,9 +115,21 @@ namespace HBP.Module3D
                 {
                     OnSendModeSpecifications.Invoke(specs);
                 }));
+                scene.OnSelectScene.AddListener((selectedScene) =>
+                {
+                    Debug.Log("OnSelectScene (ScenesManager)");
+                    foreach (Base3DScene s in m_Scenes)
+                    {
+                        if (s != selectedScene)
+                        {
+                            s.IsSelected = false;
+                        }
+                    }
+                    OnSelectScene.Invoke(selectedScene);
+                });
                 // Add the scene to the list
                 m_Scenes.Add(scene);
-                m_SelectedScene = scene;
+                scene.SelectDefaultView();
                 OnAddScene.Invoke(scene);
             }
             return success;
@@ -128,6 +145,7 @@ namespace HBP.Module3D
             MultiPatients3DScene scene = newMultiPatientsScene.GetComponent<MultiPatients3DScene>();
             // Initialize the scene
             bool success = scene.Initialize(visualization);
+            m_NumberOfScenesLoadedSinceStart++;
             if (!success)
             {
                 Debug.LogError("-ERROR : Could not initialize new multi patients scene.");
@@ -138,9 +156,21 @@ namespace HBP.Module3D
                 {
                     OnSendModeSpecifications.Invoke(specs);
                 }));
+                scene.OnSelectScene.AddListener((selectedScene) =>
+                {
+                    Debug.Log("OnSelectScene (ScenesManager)");
+                    foreach (Base3DScene s in m_Scenes)
+                    {
+                        if (s != selectedScene)
+                        {
+                            s.IsSelected = false;
+                        }
+                    }
+                    OnSelectScene.Invoke(selectedScene);
+                });
                 // Add the scene to the list
                 m_Scenes.Add(scene);
-                m_SelectedScene = scene;
+                scene.SelectDefaultView();
                 OnAddScene.Invoke(scene);
             }
             return success;

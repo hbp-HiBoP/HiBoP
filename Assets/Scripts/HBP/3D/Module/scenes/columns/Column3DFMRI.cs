@@ -18,7 +18,7 @@ namespace HBP.Module3D
     /// <summary>
     /// A 3D column view class, containing all necessary data concerning an FMRI column
     /// </summary>
-    public class Column3DViewFMRI : Column3DView
+    public class Column3DFMRI : Column3D
     {
         #region Properties
         public override ColumnType Type

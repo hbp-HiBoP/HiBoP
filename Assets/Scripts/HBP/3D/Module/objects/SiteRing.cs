@@ -29,21 +29,21 @@ namespace HBP.Module3D
         void Awake()
         {
             m_Ring1 = Instantiate(GlobalGOPreloaded.SelectRing);
-            m_Ring1.name = "ring 1";
+            m_Ring1.name = "Ring 1";
             m_Ring1.transform.SetParent(transform);
             m_Ring1.GetComponent<MeshFilter>().mesh = Geometry.CreateTube(1.7f);
             m_Ring1.SetActive(false);
             m_Ring1.transform.localEulerAngles = new Vector3(90, 0, 0);
 
             m_Ring2 = Instantiate(GlobalGOPreloaded.SelectRing);
-            m_Ring2.name = "ring 2";
+            m_Ring2.name = "Ring 2";
             m_Ring2.transform.SetParent(transform);            
             m_Ring2.GetComponent<MeshFilter>().mesh = Geometry.CreateTube(1.5f);
             m_Ring2.SetActive(false);
             m_Ring2.transform.localEulerAngles = new Vector3(0, 90, 0);
 
             m_Ring3 = Instantiate(GlobalGOPreloaded.SelectRing);
-            m_Ring3.name = "ring 3";
+            m_Ring3.name = "Ring 3";
             m_Ring3.transform.SetParent(transform);
             m_Ring3.GetComponent<MeshFilter>().mesh = Geometry.CreateTube(1.3f);
             m_Ring3.SetActive(false);

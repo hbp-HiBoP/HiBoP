@@ -21,79 +21,100 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public class BBox : CppDLLImportBase
     {
+        #region Properties
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public Vector3 Min
+        {
+            get
+            {
+                float[] min = new float[3];
+                getMin_BBox(_handle, min);
+                return new Vector3(min[0], min[1], min[2]);
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public Vector3 Max
+        {
+            get
+            {
+                float[] max = new float[3];
+                getMax_BBox(_handle, max);
+                return new Vector3(max[0], max[1], max[2]);
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public Vector3 Center
+        {
+            get
+            {
+                float[] center = new float[3];
+                getCenter_BBox(_handle, center);
+                return new Vector3(center[0], center[1], center[2]);
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public float DiagramLength
+        {
+            get
+            {
+                return (Max - Min).magnitude;
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public List<Vector3> Points
+        {
+            get
+            {
+                float[] points = new float[3 * 8];
+                getPoints_BBox(_handle, points);
+                List<Vector3> pointsV = new List<Vector3>(8);
+
+                for (int ii = 0; ii < 8; ii++)
+                {
+                    pointsV.Add(new Vector3(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]));
+                }
+
+                return pointsV;
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public List<Vector3> LinesPairPoints
+        {
+            get
+            {
+                float[] points = new float[3 * 24];
+                getLinesPairPoints_BBox(_handle, points);
+                List<Vector3> linesPoints = new List<Vector3>(24);
+
+                for (int ii = 0; ii < 24; ii++)
+                {
+                    linesPoints.Add(new Vector3(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]));
+                }
+
+                return linesPoints;
+            }
+        }
+        #endregion
+
         #region Public Methods
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public Vector3 Min()
-        {
-            float[] min = new float[3];
-            getMin_BBox(_handle, min);
-            return new Vector3(min[0], min[1], min[2]);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public Vector3 Max()
-        {
-            float[] max = new float[3];
-            getMax_BBox(_handle, max);
-            return new Vector3(max[0], max[1], max[2]);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public Vector3 Center()
-        {
-            float[] center = new float[3];
-            getCenter_BBox(_handle, center);
-            return new Vector3(center[0], center[1], center[2]);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public float DiagramLength()
-        {
-            return (Max() - Min()).magnitude;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public List<Vector3> Points()
-        {
-            float[] points = new float[3 * 8];
-            getPoints_BBox(_handle, points);
-            List<Vector3> pointsV = new List<Vector3>(8);
-
-            for (int ii = 0; ii < 8; ii++)
-            {
-                pointsV.Add(new Vector3(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]));
-            }
-
-            return pointsV;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public List<Vector3> LinesPairPoints()
-        {
-            float[] points = new float[3 * 24];
-            getLinesPairPoints_BBox(_handle, points);
-            List<Vector3> linesPoints = new List<Vector3>(24);
-
-            for (int ii = 0; ii < 24; ii++)
-            {
-                linesPoints.Add(new Vector3(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]));
-            }
-
-            return linesPoints;
-        }
         /// <summary>
         /// 
         /// </summary>
@@ -228,27 +249,59 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public class Volume : CppDLLImportBase
     {
+        #region Properties
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public Vector3 Center
+        {
+            get
+            {
+                float[] center = new float[3];
+                center_Volume(_handle, center);
+                return new Vector3(center[0], center[1], center[2]);
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public Vector3 Spacing
+        {
+            get
+            {
+                float[] spacing = new float[3];
+                spacing_Volume(_handle, spacing);
+                return new Vector3(spacing[0], spacing[1], spacing[2]);
+            }
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public MRICalValues ExtremeValues
+        {
+            get
+            {
+                MRICalValues values = new MRICalValues();
+
+                float[] valuesF = new float[6];
+                retrieveExtremeValues_Volume(_handle, valuesF);
+
+                values.min = valuesF[0];
+                values.max = valuesF[1];
+                values.loadedCalMin = valuesF[2];
+                values.loadedCalMax = valuesF[3];
+                values.computedCalMin = valuesF[4];
+                values.computedCalMax = valuesF[5];
+
+                return values;
+            }
+        }
+        #endregion
+
         #region Public Methods
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public Vector3 Center()
-        {
-            float[] center = new float[3];
-            center_Volume(_handle, center);
-            return new Vector3(center[0], center[1], center[2]);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public Vector3 Spacing()
-        {
-            float[] spacing = new float[3];
-            spacing_Volume(_handle, spacing);
-            return new Vector3(spacing[0], spacing[1], spacing[2]);
-        }
         /// <summary>
         /// 
         /// </summary>
@@ -270,26 +323,6 @@ namespace HBP.Module3D.DLL
             float[] normal = new float[3];
             definePlaneWithOrientation_Volume(_handle, normal, (int)orientation, flip);
             plane.Normal = new Vector3(normal[0], normal[1], normal[2]);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public MRICalValues RetrieveExtremeValues()
-        {
-            MRICalValues values = new MRICalValues();
-
-            float[] valuesF = new float[6];
-            retrieveExtremeValues_Volume(_handle, valuesF);
-
-            values.min = valuesF[0];
-            values.max = valuesF[1];
-            values.loadedCalMin = valuesF[2];
-            values.loadedCalMax = valuesF[3];
-            values.computedCalMin = valuesF[4];
-            values.computedCalMax = valuesF[5];
-
-            return values;
         }
         #endregion
 

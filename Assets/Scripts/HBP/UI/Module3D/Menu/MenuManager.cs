@@ -50,12 +50,12 @@ namespace HBP.UI.Module3D
         public void Initialize(ScenesManager scenesManager)
         {
             // init controllers
-            m_buttonsLeftMenuController.GlobalMenuController.Initialize(scenesManager);
-            m_buttonsLeftMenuController.SinglePatientLeftMenuController.Initialize(scenesManager);
-            m_buttonsLeftMenuController.MultiPatientsLeftMenuController.Initialize(scenesManager);
-            m_topPanelMenuController.Initialize(scenesManager);
-            m_scenesRatioController.Initialize(scenesManager);
-            m_buttonsLeftMenuController.Initialize(scenesManager);            
+            //m_buttonsLeftMenuController.GlobalMenuController.Initialize(scenesManager);
+            //m_buttonsLeftMenuController.SinglePatientLeftMenuController.Initialize(scenesManager);
+            //m_buttonsLeftMenuController.MultiPatientsLeftMenuController.Initialize(scenesManager);
+            m_topPanelMenuController.Initialize();
+            //m_scenesRatioController.Initialize(scenesManager);
+            //m_buttonsLeftMenuController.Initialize(scenesManager);            
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace HBP.UI.Module3D
         /// Update the focused scene and column for all concerned UI
         /// </summary>
         /// <param name="scene"></param>
-        public void UpdateFocusedSceneAndColumn(Base3DScene scene, int column = -1)
+        public void UpdateSelectedSceneAndColumn(Base3DScene scene, int column = -1)
         {
             switch (scene.Type)
             {

@@ -38,13 +38,44 @@ namespace HBP.Module3D
         }
 
         /// <summary>
+        /// Current selected scene
+        /// </summary>
+        public Base3DScene SelectedScene
+        {
+            get
+            {
+                return m_ScenesManager.SelectedScene;
+            }
+        }
+        /// <summary>
+        /// Current selected column
+        /// </summary>
+        public Column3D SelectedColumn
+        {
+            get
+            {
+                return m_ScenesManager.SelectedScene.ColumnManager.SelectedColumn;
+            }
+        }
+        /// <summary>
+        /// Current selected view
+        /// </summary>
+        public View3D SelectedView
+        {
+            get
+            {
+                return m_ScenesManager.SelectedScene.ColumnManager.SelectedColumn.SelectedView;
+            }
+        }
+
+        /// <summary>
         /// List of all the loaded visualizations
         /// </summary>
         public ReadOnlyCollection<Data.Visualization.Visualization> Visualizations
         {
             get
             {
-                return new ReadOnlyCollection<Data.Visualization.Visualization>((from scene in ScenesManager.Scenes select scene.Visualization).ToList());
+                return new ReadOnlyCollection<Data.Visualization.Visualization>((from scene in m_ScenesManager.Scenes select scene.Visualization).ToList());
             }
         }
         
@@ -72,6 +103,10 @@ namespace HBP.Module3D
         /// Event called when a visualization is removed
         /// </summary>
         public GenericEvent<Data.Visualization.Visualization> OnRemoveVisualization = new GenericEvent<Data.Visualization.Visualization>();
+        /// <summary>
+        /// Event called when changing the selected scene
+        /// </summary>
+        public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
         #endregion
 
         #region Private Methods
@@ -79,13 +114,18 @@ namespace HBP.Module3D
         {
             // Scene Manager
             m_ScenesManager = transform.GetComponentInChildren<ScenesManager>();
-            ScenesManager.OnAddScene.AddListener((scene) =>
+            m_ScenesManager.OnAddScene.AddListener((scene) =>
             {
                 OnAddVisualization.Invoke(scene.Visualization);
             });
-            ScenesManager.OnRemoveScene.AddListener((scene) =>
+            m_ScenesManager.OnRemoveScene.AddListener((scene) =>
             {
                 OnRemoveVisualization.Invoke(scene.Visualization);
+            });
+            m_ScenesManager.OnSelectScene.AddListener((s) =>
+            {
+                UnityEngine.Debug.Log("OnSelectScene (Module3D)");
+                OnSelectScene.Invoke(s);
             });
 
             // Graphic Settings
@@ -104,13 +144,15 @@ namespace HBP.Module3D
         private bool SetVisualization(Data.Visualization.SinglePatientVisualization visualization)
         {
             bool result = SetSinglePatientSceneData(visualization);
-
-            // Add listeners to last added scene
-            SinglePatient3DScene lastAddedScene = ScenesManager.Scenes.Last() as SinglePatient3DScene;
-            lastAddedScene.OnRequestSiteInformation.AddListener((siteRequest) =>
+            if (result)
             {
-                OnRequestSiteInformation.Invoke(siteRequest);
-            });
+                // Add listeners to last added scene
+                SinglePatient3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as SinglePatient3DScene;
+                lastAddedScene.OnRequestSiteInformation.AddListener((siteRequest) =>
+                {
+                    OnRequestSiteInformation.Invoke(siteRequest);
+                });
+            }
             return result;
         }
         /// <summary>
@@ -133,7 +175,7 @@ namespace HBP.Module3D
             else
             {
                 // Add listener to last added scene
-                MultiPatients3DScene lastAddedScene = ScenesManager.Scenes.Last() as MultiPatients3DScene;
+                MultiPatients3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as MultiPatients3DScene;
                 lastAddedScene.OnRequestSiteInformation.AddListener((siteRequest) =>
                 {
                     OnRequestSiteInformation.Invoke(siteRequest);
@@ -192,6 +234,10 @@ namespace HBP.Module3D
             {
                 result = SetVisualization(visualization as Data.Visualization.MultiPatientsVisualization);
             }
+            if (result)
+            {
+                OnAddVisualization.Invoke(visualization);
+            }
             return result;
         }
         /// <summary>
@@ -202,6 +248,7 @@ namespace HBP.Module3D
         {
             Base3DScene scene = m_ScenesManager.Scenes.ToList().Find(s => s.Visualization == visualization);
             m_ScenesManager.RemoveScene(scene);
+            OnRemoveVisualization.Invoke(visualization);
         }
         #endregion
     }

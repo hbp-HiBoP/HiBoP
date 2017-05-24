@@ -253,8 +253,8 @@ namespace HBP.Module3D.Cam
 
             if (m_Line == 0)
             {
-                if(!m_IsMinimized)
-                    m_AssociatedScene.UpdateFocusedColumnRendering();
+                if(!m_IsMinimized) { }
+                    //m_AssociatedScene.UpdateColumnRendering();
             }
 
             UnityEngine.Profiling.Profiler.EndSample();

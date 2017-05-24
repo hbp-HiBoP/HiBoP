@@ -48,12 +48,19 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            scenesManager.OnSelectScene.AddListener((spScene) =>
+            scenesManager.OnSelectScene.AddListener((scene) =>
             {
-                if (spScene)
-                    m_spSceneHasBeenActivated = true;
-                else
-                    m_mpSceneHasBeenActivated = true;
+                switch (scene.Type)
+                {
+                    case SceneType.SinglePatient:
+                        m_spSceneHasBeenActivated = true;
+                        break;
+                    case SceneType.MultiPatients:
+                        m_mpSceneHasBeenActivated = true;
+                        break;
+                    default:
+                        break;
+                }
 
                 m_sceneRatioTransform.GetComponent<Slider>().interactable = m_spSceneHasBeenActivated && m_mpSceneHasBeenActivated;
             });
