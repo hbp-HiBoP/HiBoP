@@ -37,7 +37,7 @@ namespace HBP.Module3D.Cam
 
             int layer = 0;
             layer |= 1 << LayerMask.NameToLayer(ColumnLayer);
-            layer |= 1 << LayerMask.NameToLayer("Meshes_MP");
+            layer |= 1 << LayerMask.NameToLayer("Default");
             EEGCullingMask = FMRICullingMask = layer;
             MinimizedCullingMask = 0;
 
@@ -105,7 +105,7 @@ namespace HBP.Module3D.Cam
                 }
             }
         }
-        
+
         public void LateUpdate()
         {
             // if mouse not in the screen, abort

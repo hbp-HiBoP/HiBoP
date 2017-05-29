@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace HBP.Module3D.Cam
 {
-    public enum DisplayedItems{ Meshes, Plots, ROI };
+    public enum DisplayedItems { Meshes, Plots, ROI };
 
     /// <summary>
     /// The base scene 3D camera class, can move around a target and manage line and column position
@@ -44,7 +44,7 @@ namespace HBP.Module3D.Cam
             }
         }
 
-        [SerializeField,Candlelight.PropertyBackingField]
+        [SerializeField, Candlelight.PropertyBackingField]
         protected bool m_IsMinimized = false;      /**< is the camera minimized */
         public bool IsMinimized
         {
@@ -100,7 +100,7 @@ namespace HBP.Module3D.Cam
         } /**< camera speed rotation and strafe  */
 
         [SerializeField, Candlelight.PropertyBackingField]
-        protected float m_ZoomSpeed = 3.5f; 
+        protected float m_ZoomSpeed = 3.5f;
         public float ZoomSpeed
         {
             get { return m_ZoomSpeed; }
@@ -133,7 +133,7 @@ namespace HBP.Module3D.Cam
 
         [SerializeField, Candlelight.PropertyBackingField]
         protected Color m_UnselectedColor;
-        public Color UnselectedColor 
+        public Color UnselectedColor
         {
             get { return m_UnselectedColor; }
             set { m_UnselectedColor = value; }
@@ -164,7 +164,7 @@ namespace HBP.Module3D.Cam
         } /**< matierial used for drawing camera z rotation circles */
 
         protected Interaction.InputManager m_InputsSceneManager = null;  /**< inputs scene manager */
-        protected Base3DScene m_AssociatedScene = null;            /**< associated 3D scene */       
+        protected Base3DScene m_AssociatedScene = null;            /**< associated 3D scene */
 
         protected SceneType m_SceneType;                  /**< is the camera a single patient one ? */
         protected bool m_IsFocusedOn3DModule = true;       /**< is the focus on the 3D module ? */
@@ -253,8 +253,8 @@ namespace HBP.Module3D.Cam
 
             if (m_Line == 0)
             {
-                if(!m_IsMinimized) { }
-                    //m_AssociatedScene.UpdateColumnRendering();
+                if (!m_IsMinimized) { }
+                //m_AssociatedScene.UpdateColumnRendering();
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -277,9 +277,9 @@ namespace HBP.Module3D.Cam
                 GetComponent<Camera>().backgroundColor = m_UnselectedColor;
             }
 
-            if (!m_IsMinimized && m_IsFocusedOnCamera && m_IsFocusedOn3DModule)                
+            if (!m_IsMinimized && m_IsFocusedOnCamera && m_IsFocusedOn3DModule)
                 SendMouseEvents();
-          
+
             StartCoroutine("drawGL");
         }
         protected void OnGUI()
@@ -297,7 +297,7 @@ namespace HBP.Module3D.Cam
 
                 // check keybord zooms
                 if (Input.GetKey(KeyCode.A))
-                    MoveForward(m_ZoomSpeed);                    
+                    MoveForward(m_ZoomSpeed);
 
                 if (Input.GetKey(KeyCode.E))
                     MoveBackward(m_ZoomSpeed);
@@ -329,13 +329,13 @@ namespace HBP.Module3D.Cam
                 if (currEvent.type == EventType.KeyDown)
                 {
                     m_InputsSceneManager.SendKeyboardActionToScenes(m_AssociatedScene, currEvent.keyCode);
-                }                
+                }
                 /*
                 if (Input.GetKey(KeyCode.Space))
                     m_AssociatedScene.DisplaySitesName(GetComponent<Camera>());
                     */
             }
-            else if(currEvent.type == EventType.ScrollWheel)
+            else if (currEvent.type == EventType.ScrollWheel)
             {
                 m_InputsSceneManager.SendScrollMouseToScenes(m_AssociatedScene, Input.mouseScrollDelta);
             }
@@ -517,13 +517,13 @@ namespace HBP.Module3D.Cam
             if (!m_IsFocusedOnCamera || m_IsMinimized)
                 return;
 
-            if(m_DisplayCutsCircles)
+            if (m_DisplayCutsCircles)
             {
                 m_DisplayPlanesTimer = TimeExecution.GetWorldTime() - m_DisplayPlanesTimeStart;
                 if (m_DisplayPlanesTimeRemaining > m_DisplayPlanesTimer)
                 {
                     m_PlaneMaterial.SetPass(0);
-                    
+
                     {
                         int ii = m_AssociatedScene.SceneInformation.LastPlaneModifiedID;
                         for (int jj = 0; jj < m_PlanesCutsCirclesVertices[ii].Length; ++jj)
@@ -539,7 +539,7 @@ namespace HBP.Module3D.Cam
                         GL.Vertex(m_PlanesCutsCirclesVertices[ii][5 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
                         GL.End();
                         GL.Begin(GL.LINES);
-                        GL.Vertex(m_PlanesCutsCirclesVertices[ii][3 *m_PlanesCutsCirclesVertices[ii].Length / 8]);
+                        GL.Vertex(m_PlanesCutsCirclesVertices[ii][3 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
                         GL.Vertex(m_PlanesCutsCirclesVertices[ii][7 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
                         GL.End();
                     }
@@ -582,7 +582,7 @@ namespace HBP.Module3D.Cam
                     GL.Vertex(m_Target + scaleRatio * m_ZRotationCircleVertices[ii]);
                     GL.Vertex(m_Target + scaleRatio * m_ZRotationCircleVertices[(ii + 1) % m_ZRotationCircleVertices.Length]);
                     GL.End();
-                }                
+                }
             }
         }
         /// <summary>
@@ -593,14 +593,14 @@ namespace HBP.Module3D.Cam
         {
             transform.localEulerAngles = m_OriginalRotationEuler;
             m_Target = position;
-            m_OriginalTarget = m_Target;            
+            m_OriginalTarget = m_Target;
             transform.position = m_Target - transform.forward * m_StartDistance;
         }
         /// <summary>
         /// stop the rotation of the camera
         /// </summary>
         public void StopAutomaticRotation()
-        {            
+        {
             m_CameraIsRotating = false;
         }
         /// <summary>
@@ -621,7 +621,7 @@ namespace HBP.Module3D.Cam
             m_CameraIsRotating = true;
             while (m_CameraIsRotating)
             {
-                
+
                 float startTime = Time.time;
                 float totalRotation = 0f;
                 float currentRotationState;
@@ -631,7 +631,7 @@ namespace HBP.Module3D.Cam
                 while (!end)
                 {
                     if (!m_CameraIsRotating)
-                        break;                        
+                        break;
 
                     // retrieve elapsed time
                     float elapsedTime = (Time.time - startTime);
@@ -688,7 +688,7 @@ namespace HBP.Module3D.Cam
                 {
                     GetComponent<Camera>().cullingMask = EEGCullingMask;
                 }
-            }                
+            }
         }
         /// <summary>
         /// Set the minimized state of the camera
@@ -698,17 +698,19 @@ namespace HBP.Module3D.Cam
         {
             m_IsMinimized = state;
             int cullingMask = -1;
-            if(m_IsMinimized)
+            if (m_IsMinimized)
             {
                 cullingMask = MinimizedCullingMask;
             }
             else
             {
-                switch(Type)
+                switch (Type)
                 {
-                    case CameraType.EEG: cullingMask = EEGCullingMask;
+                    case CameraType.EEG:
+                        cullingMask = EEGCullingMask;
                         break;
-                    case CameraType.fMRI: cullingMask = FMRICullingMask;
+                    case CameraType.fMRI:
+                        cullingMask = FMRICullingMask;
                         break;
                 }
             }

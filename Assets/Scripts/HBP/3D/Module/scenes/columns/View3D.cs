@@ -203,10 +203,10 @@ namespace HBP.Module3D
             switch (GetComponentInParent<Base3DScene>().Type)
             {
                 case SceneType.SinglePatient:
-                    layer |= 1 << LayerMask.NameToLayer("Meshes_SP");
+                    layer |= 1 << LayerMask.NameToLayer("Default");
                     break;
                 case SceneType.MultiPatients:
-                    layer |= 1 << LayerMask.NameToLayer("Meshes_MP");
+                    layer |= 1 << LayerMask.NameToLayer("Default");
                     break;
                 default:
                     break;

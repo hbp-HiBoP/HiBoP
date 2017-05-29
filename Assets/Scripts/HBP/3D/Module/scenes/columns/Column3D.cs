@@ -151,11 +151,7 @@ namespace HBP.Module3D
         public virtual void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList sites, List<GameObject> sitesPatientParent)
         {
             // scene
-            Layer = "C" + idColumn + "_";
-            if (transform.GetComponentInParent<Base3DScene>().Type == SceneType.SinglePatient)
-                Layer += "SP";
-            else
-                Layer += "MP";
+            Layer = "C" + idColumn;
 
             // select ring
             m_SelectRing = gameObject.GetComponentInChildren<SiteRing>();

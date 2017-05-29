@@ -489,10 +489,10 @@ namespace HBP.Module3D
             switch(Type)
             {
                 case SceneType.SinglePatient:
-                    SceneInformation.MeshesLayerName = "Meshes_SP";
+                    SceneInformation.MeshesLayerName = "Default";
                     break;
                 case SceneType.MultiPatients:
-                    SceneInformation.MeshesLayerName = "Meshes_MP";
+                    SceneInformation.MeshesLayerName = "Default";
                     break;
             }
 
@@ -1657,10 +1657,10 @@ namespace HBP.Module3D
                 switch(Type)
                 {
                     case SceneType.SinglePatient:
-                        invisibleBrainPart.layer = LayerMask.NameToLayer("Meshes_SP");
+                        invisibleBrainPart.layer = LayerMask.NameToLayer("Default");
                         break;
                     case SceneType.MultiPatients:
-                        invisibleBrainPart.layer = LayerMask.NameToLayer("Meshes_MP");
+                        invisibleBrainPart.layer = LayerMask.NameToLayer("Default");
                         break;
                 }
                 invisibleBrainPart.AddComponent<MeshFilter>();

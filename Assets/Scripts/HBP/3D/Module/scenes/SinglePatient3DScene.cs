@@ -635,7 +635,7 @@ namespace HBP.Module3D
             // retrieve layer
             int layerMask = 0;
             layerMask |= 1 << LayerMask.NameToLayer(m_ColumnManager.SelectedColumn.Layer);
-            layerMask |= 1 << LayerMask.NameToLayer("Meshes_SP");
+            layerMask |= 1 << LayerMask.NameToLayer("Default");
 
             // collision with all colliders
             RaycastHit hit;
@@ -643,7 +643,7 @@ namespace HBP.Module3D
             if (!isCollision) // no hit
                 return;
 
-            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Meshes_SP")) // mesh hit
+            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Default")) // mesh hit
             {
                 if (hit.collider.gameObject.name.StartsWith("cut")) // cut hit
                     return;
@@ -722,7 +722,7 @@ namespace HBP.Module3D
             // retrieve layer
             int layerMask = 0;
             layerMask |= 1 << LayerMask.NameToLayer(m_ColumnManager.SelectedColumn.Layer);
-            layerMask |= 1 << LayerMask.NameToLayer("Meshes_SP");
+            layerMask |= 1 << LayerMask.NameToLayer("Default");
 
             RaycastHit hit;
             bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
