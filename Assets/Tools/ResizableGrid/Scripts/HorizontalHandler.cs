@@ -39,6 +39,7 @@ namespace Tools.Unity.ResizableGrid
         #region Private Methods
         private void Awake()
         {
+            Initialize();
             m_Cursor = Resources.Load("Cursor/horizontal") as Texture2D;
             m_CursorHotSpot = new Vector2(4, 13);
             MinimumPosition = GetComponentInParent<ResizableGrid>().MinimumViewHeight / GetComponentInParent<ResizableGrid>().GetComponent<RectTransform>().rect.height;

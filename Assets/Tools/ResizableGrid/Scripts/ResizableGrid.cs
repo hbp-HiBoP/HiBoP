@@ -139,6 +139,11 @@ namespace Tools.Unity.ResizableGrid
             }
         }
 
+        /// <summary>
+        /// True if a handler is selected for a drag (to prevent updating the cursor)
+        /// </summary>
+        public bool IsHandlerClicked { get; set; }
+
         public GameObject ViewPrefab;
         public GameObject ColumnPrefab;
         public GameObject VerticalHandlerPrefab;

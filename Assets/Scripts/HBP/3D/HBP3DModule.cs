@@ -68,6 +68,9 @@ namespace HBP.Module3D
             }
         }
 
+        public const int MAXIMUM_VIEW_NUMBER = 5;
+        public const int MAXIMUM_COLUMN_NUMBER = 5;
+
         /// <summary>
         /// List of all the loaded visualizations
         /// </summary>

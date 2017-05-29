@@ -46,6 +46,14 @@ namespace HBP.UI.Module3D
         {
             FindButtons();
             AddListeners();
+            SetToggleState(m_LeftBrainHemisphere, true, false);
+            SetToggleState(m_RightBrainHemisphere, true, false);
+            SetDropDown(m_BrainTypes, true, false);
+            SetToggleState(m_MarsAtlas, true, false);
+            SetButtonState(m_AddView, true, false);
+            SetButtonState(m_RemoveView, true, false);
+            SetButtonState(m_AddfMRI, true, false);
+            SetButtonState(m_RemovefMRI, true, false);
         }
         void FindButtons()
         {
@@ -96,13 +104,11 @@ namespace HBP.UI.Module3D
             // Views
             m_AddView.onClick.AddListener(() =>
             {
-                //ApplicationState.Module3D.CamerasManager.AddLine(ApplicationState.Module3D.SelectedScene.Type);
                 ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.AddViewLine();
                 UpdateInteractableButtons();
             });
             m_RemoveView.onClick.AddListener(() =>
             {
-                //ApplicationState.Module3D.CamerasManager.RemoveLine(ApplicationState.Module3D.SelectedScene.Type);
                 ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.RemoveViewLine(ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.ViewNumber - 1);
                 UpdateInteractableButtons();
             });
@@ -212,13 +218,9 @@ namespace HBP.UI.Module3D
         /// </summary>
         void UpdateInteractableButtons()
         {
-            /*
-            HBP.Module3D.Cam.CamerasManager camerasManager = ApplicationState.Module3D.CamerasManager;
-
-            bool CanAddView = (camerasManager.MaximumNumberOfLines != camerasManager.GetNumberOfLines(ApplicationState.Module3D.SelectedScene.Type));
-            bool CanRemoveView = (camerasManager.GetNumberOfLines(ApplicationState.Module3D.SelectedScene.Type) > 1);
-            bool CanAddfMRI = (camerasManager.MaximumNumberOfColumns != camerasManager.GetNumberOfLines(ApplicationState.Module3D.SelectedScene.Type));
-            */
+            bool CanAddView = ApplicationState.Module3D.SelectedScene.ColumnManager.ViewNumber < HBP3DModule.MAXIMUM_VIEW_NUMBER;
+            bool CanRemoveView = ApplicationState.Module3D.SelectedScene.ColumnManager.ViewNumber > 1;
+            bool CanAddfMRI = ApplicationState.Module3D.SelectedScene.ColumnManager.Columns.Count < HBP3DModule.MAXIMUM_COLUMN_NUMBER;
             bool CanRemovefMRI = (ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsFMRI.Count > 0);
             bool CanUseMarsAtlas = ApplicationState.Module3D.SelectedScene.SceneInformation.WhiteMeshesAvailables && ApplicationState.Module3D.SelectedScene.SceneInformation.MarsAtlasParcelsLoaed;
             //bool CcepVisible = m_IsSinglePatientScene && !ApplicationState.Module3D.SPScene.is_latency_mode_enabled();
@@ -256,9 +258,9 @@ namespace HBP.UI.Module3D
                     SetToggleState(m_RightBrainHemisphere, true, true);
                     SetDropDown(m_BrainTypes, true, true);
                     SetToggleState(m_MarsAtlas, true, true);
-                    //SetButtonState(m_AddView, true, CanAddView);
-                    //SetButtonState(m_RemoveView, true, CanRemoveView);               
-                    //SetButtonState(m_AddfMRI, true, CanAddfMRI);
+                    SetButtonState(m_AddView, true, CanAddView);
+                    SetButtonState(m_RemoveView, true, CanRemoveView);               
+                    SetButtonState(m_AddfMRI, true, CanAddfMRI);
                     SetButtonState(m_RemovefMRI, true, CanRemovefMRI);
                     //set_state_button(m_enableTriErasingButton, !isTriErasingEnabled, true);
                     //set_state_button(m_disableTriErasingButton, isTriErasingEnabled, true);
@@ -278,9 +280,9 @@ namespace HBP.UI.Module3D
                     SetToggleState(m_RightBrainHemisphere, true, true);
                     SetDropDown(m_BrainTypes, true, true);
                     SetToggleState(m_MarsAtlas, true, CanUseMarsAtlas);
-                    //SetButtonState(m_AddView, true, CanAddView);
-                    //SetButtonState(m_RemoveView, true, CanRemoveView);
-                    //SetButtonState(m_AddfMRI, true, CanAddfMRI);
+                    SetButtonState(m_AddView, true, CanAddView);
+                    SetButtonState(m_RemoveView, true, CanRemoveView);
+                    SetButtonState(m_AddfMRI, true, CanAddfMRI);
                     SetButtonState(m_RemovefMRI, true, CanRemovefMRI);
                     //set_state_button(m_iEegButton, iEegVisible, true);
                     //set_state_button(m_CcepButton, CcepVisible, true);
@@ -301,8 +303,8 @@ namespace HBP.UI.Module3D
                     SetToggleState(m_RightBrainHemisphere, true, false);
                     SetDropDown(m_BrainTypes, true, false);
                     SetToggleState(m_MarsAtlas, true, false);
-                    //SetButtonState(m_AddView, true, CanAddView);
-                    //SetButtonState(m_RemoveView, true, CanRemoveView);
+                    SetButtonState(m_AddView, true, CanAddView);
+                    SetButtonState(m_RemoveView, true, CanRemoveView);
                     SetButtonState(m_AddfMRI, true, false);
                     SetButtonState(m_RemovefMRI, true, false);
                     //set_state_button(m_iEegButton, iEegVisible, false);
@@ -325,9 +327,9 @@ namespace HBP.UI.Module3D
                     SetToggleState(m_RightBrainHemisphere, true, true);
                     SetDropDown(m_BrainTypes, true, true);
                     SetToggleState(m_MarsAtlas, true, CanUseMarsAtlas);
-                    //SetButtonState(m_AddView, true, CanAddView);
-                    //SetButtonState(m_RemoveView, true, CanRemoveView);
-                    //SetButtonState(m_AddfMRI, true, CanAddfMRI);
+                    SetButtonState(m_AddView, true, CanAddView);
+                    SetButtonState(m_RemoveView, true, CanRemoveView);
+                    SetButtonState(m_AddfMRI, true, CanAddfMRI);
                     SetButtonState(m_RemovefMRI, true, CanRemovefMRI);
                     //set_state_button(m_iEegButton, iEegVisible, true);
                     //set_state_button(m_CcepButton, CcepVisible, true);
@@ -348,9 +350,9 @@ namespace HBP.UI.Module3D
                     SetToggleState(m_RightBrainHemisphere, true, true);
                     SetDropDown(m_BrainTypes, true, true);
                     SetToggleState(m_MarsAtlas, true, CanUseMarsAtlas);
-                    //SetButtonState(m_AddView, true, CanAddView);
-                    //SetButtonState(m_RemoveView, true, CanRemoveView);
-                    //SetButtonState(m_AddfMRI, true, CanAddfMRI);
+                    SetButtonState(m_AddView, true, CanAddView);
+                    SetButtonState(m_RemoveView, true, CanRemoveView);
+                    SetButtonState(m_AddfMRI, true, CanAddfMRI);
                     SetButtonState(m_RemovefMRI, true, CanRemovefMRI);
                     //set_state_button(m_iEegButton, iEegVisible, true);
                     //set_state_button(m_CcepButton, CcepVisible, true);
