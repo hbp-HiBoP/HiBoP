@@ -11,6 +11,17 @@ using UnityEngine.EventSystems;
 
 public class Debug3D : MonoBehaviour
 {
+    public GameObject SceneUIPrefab;
+
+    private void Awake()
+    {
+        ApplicationState.Module3D.OnAddScene.AddListener((scene) =>
+        {
+            Scene3DUI sceneUI = Instantiate(SceneUIPrefab, transform).GetComponent<Scene3DUI>();
+            sceneUI.Initialize(scene);
+        });
+    }
+
 	void Update ()
     {
 		if (Input.GetKeyDown(KeyCode.A))

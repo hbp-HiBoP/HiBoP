@@ -79,6 +79,22 @@ namespace HBP.Module3D
         }
 
         public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
+        /// <summary>
+        /// Event called when adding a column
+        /// </summary>
+        public UnityEvent OnAddColumn = new UnityEvent();
+        /// <summary>
+        /// Event called when removing a column
+        /// </summary>
+        public GenericEvent<Column3D> OnRemoveColumn = new GenericEvent<Column3D>();
+        /// <summary>
+        /// Event called when adding a line of views
+        /// </summary>
+        public UnityEvent OnAddViewLine = new UnityEvent();
+        /// <summary>
+        /// Event called when removing a line of views
+        /// </summary>
+        public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
 
         List<Column3D> m_Columns = new List<Column3D>();
         public ReadOnlyCollection<Column3D> Columns { get { return m_Columns != null ? new ReadOnlyCollection<Column3D>(m_Columns) : new ReadOnlyCollection<Column3D>(new List<Column3D>(0)); } }
@@ -220,7 +236,7 @@ namespace HBP.Module3D
                 OnSelectColumnManager.Invoke(this);
             });
             m_Columns.Add(column);
-            ApplicationState.Module3D.OnAddColumn.Invoke();
+            OnAddColumn.Invoke();
         }
         /// <summary>
         /// 
@@ -251,7 +267,7 @@ namespace HBP.Module3D
                 OnSelectColumnManager.Invoke(this);
             });
             m_Columns.Add(column);
-            ApplicationState.Module3D.OnAddColumn.Invoke();
+            OnAddColumn.Invoke();
         }
         /// <summary>
         /// 
@@ -264,7 +280,7 @@ namespace HBP.Module3D
                 int columnID = m_Columns.IndexOf(column);
                 Destroy(m_Columns[columnID]);
                 m_Columns.RemoveAt(columnID);
-                ApplicationState.Module3D.OnRemoveColumn.Invoke(column);
+                OnRemoveColumn.Invoke(column);
             }
         }
         /// <summary>
@@ -278,7 +294,7 @@ namespace HBP.Module3D
                 int columnID = m_Columns.IndexOf(column);
                 Destroy(m_Columns[columnID]);
                 m_Columns.RemoveAt(columnID);
-                ApplicationState.Module3D.OnRemoveColumn.Invoke(column);
+                OnRemoveColumn.Invoke(column);
             }
         }
         /// <summary>
@@ -794,7 +810,7 @@ namespace HBP.Module3D
             {
                 column.AddView();
             }
-            ApplicationState.Module3D.OnAddViewLine.Invoke();
+            OnAddViewLine.Invoke();
         }
         /// <summary>
         /// Remove a view from every columns
@@ -806,7 +822,7 @@ namespace HBP.Module3D
             {
                 column.RemoveView(lineID);
             }
-            ApplicationState.Module3D.OnRemoveViewLine.Invoke(ViewNumber);
+            OnRemoveViewLine.Invoke(ViewNumber);
         }
         #endregion
     }

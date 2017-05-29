@@ -21,22 +21,11 @@ namespace HBP.Module3D
                 return m_Camera3D.Camera;
             }
         }
-
-        private bool m_IsColumnSelected = false;
+        
         /// <summary>
         /// True if any view of the column this view belongs to is selected
         /// </summary>
-        public bool IsColumnSelected
-        {
-            get
-            {
-                return m_IsColumnSelected;
-            }
-            set
-            {
-                m_IsColumnSelected = value;
-            }
-        }
+        public bool IsColumnSelected { get; set; }
 
         private bool m_IsSelected = false;
         /// <summary>
@@ -50,9 +39,8 @@ namespace HBP.Module3D
             }
             set
             {
-                bool wasSelected = m_IsSelected;
                 m_IsSelected = value;
-                if (m_IsSelected && !wasSelected)
+                if (m_IsSelected)
                 {
                     OnSelectView.Invoke(this);
                 }
