@@ -53,7 +53,6 @@ namespace HBP.UI.Module3D
             //m_buttonsLeftMenuController.GlobalMenuController.Initialize(scenesManager);
             //m_buttonsLeftMenuController.SinglePatientLeftMenuController.Initialize(scenesManager);
             //m_buttonsLeftMenuController.MultiPatientsLeftMenuController.Initialize(scenesManager);
-            m_topPanelMenuController.Initialize();
             //m_scenesRatioController.Initialize(scenesManager);
             //m_buttonsLeftMenuController.Initialize(scenesManager);            
         }

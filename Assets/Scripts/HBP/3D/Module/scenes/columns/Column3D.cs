@@ -518,10 +518,10 @@ namespace HBP.Module3D
         /// <summary>
         /// 
         /// </summary>
-        public void RemoveView()
+        public void RemoveView(int lineID)
         {
-            Destroy(m_Views[m_Views.Count - 1].gameObject);
-            m_Views.RemoveAt(m_Views.Count - 1);
+            Destroy(m_Views[lineID].gameObject);
+            m_Views.RemoveAt(lineID);
         }
         /// <summary>
         /// 

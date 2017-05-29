@@ -32,30 +32,9 @@ namespace HBP.UI.Module3D
         // fMRI
         Button m_AddfMRI = null;
         Button m_RemovefMRI = null;
-        //Button m_iEegButton = null;
-        //Button m_CcepButton = null;
-        //Button m_enableTriErasingButton = null;
-        //Button m_disableTriErasingButton = null;
-        //Button m_resetTriErasingButton = null;
-        //Button m_cancelTriErasingButton = null;
-        //Button m_pointTriErasingButton = null;
-        //Button m_zoneTriErasingButton = null;
-        //Button m_invertTriErasingButton = null;
-        //Button m_expandTriErasingButton = null;
-        //Button m_cylinderTriErasingButton = null;
-        //InputField m_zoneDegreesInputField = null;    
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Init the menu
-        /// </summary>
-        /// <param name="scenesManager"></param>
-        public void Initialize()
-        {
-            FindButtons();
-            AddListeners();
-        }
         public void UpdateByMode(Mode mode)
         {
             UpdateInteractableButtons();
@@ -63,6 +42,11 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            FindButtons();
+            AddListeners();
+        }
         void FindButtons()
         {
             // Scene Informations.
@@ -86,19 +70,6 @@ namespace HBP.UI.Module3D
             Transform fMRI = toolsTransform.Find("fMRI");
             m_AddfMRI = fMRI.Find("Add fMRI").GetComponent<Button>();      
             m_RemovefMRI = fMRI.Find("Remove fMRI").GetComponent<Button>();
-
-            // m_iEegButton = transform.Find("iEEG button").GetComponent<Button>();
-            //m_CcepButton = transform.Find("CCEP button").GetComponent<Button>();
-            //m_enableTriErasingButton = transform.Find("tri erasing button").GetComponent<Button>();
-            //m_disableTriErasingButton = transform.Find("escape tri erasing button").GetComponent<Button>();
-            //m_resetTriErasingButton = transform.Find("reset tri erasing button").GetComponent<Button>();
-            //m_cancelTriErasingButton = transform.Find("cancel tri erasing button").GetComponent<Button>();
-            //m_pointTriErasingButton = transform.Find("onePoint tri erasing button").GetComponent<Button>();
-            //m_cylinderTriErasingButton = transform.Find("cylinder tri erasing button").GetComponent<Button>();
-            //m_zoneTriErasingButton = transform.Find("zone tri erasing button").GetComponent<Button>();
-            //m_invertTriErasingButton = transform.Find("invert tri erasing button").GetComponent<Button>();
-            //m_expandTriErasingButton = transform.Find("expand tri erasing button").GetComponent<Button>();
-            //m_zoneDegreesInputField = transform.Find("zone degree input field").GetComponent<InputField>();
         }
         void AddListeners()
         {
@@ -126,11 +97,13 @@ namespace HBP.UI.Module3D
             m_AddView.onClick.AddListener(() =>
             {
                 //ApplicationState.Module3D.CamerasManager.AddLine(ApplicationState.Module3D.SelectedScene.Type);
+                ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.AddViewLine();
                 UpdateInteractableButtons();
             });
             m_RemoveView.onClick.AddListener(() =>
             {
                 //ApplicationState.Module3D.CamerasManager.RemoveLine(ApplicationState.Module3D.SelectedScene.Type);
+                ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.RemoveViewLine(ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.ViewNumber - 1);
                 UpdateInteractableButtons();
             });
             // fMRI.

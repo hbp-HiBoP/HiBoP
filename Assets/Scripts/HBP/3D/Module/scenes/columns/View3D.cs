@@ -183,6 +183,10 @@ namespace HBP.Module3D
             }
             set
             {
+                if (m_Camera3D.Camera.targetTexture)
+                {
+                    m_Camera3D.Camera.targetTexture.Release();
+                }
                 m_Camera3D.Camera.targetTexture = value;
             }
         }

@@ -107,6 +107,22 @@ namespace HBP.Module3D
         /// Event called when changing the selected scene
         /// </summary>
         public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
+        /// <summary>
+        /// Event called when adding a column
+        /// </summary>
+        public UnityEvent OnAddColumn = new UnityEvent();
+        /// <summary>
+        /// Event called when removing a column
+        /// </summary>
+        public GenericEvent<Column3D> OnRemoveColumn = new GenericEvent<Column3D>();
+        /// <summary>
+        /// Event called when adding a line of views
+        /// </summary>
+        public UnityEvent OnAddViewLine = new UnityEvent();
+        /// <summary>
+        /// Event called when removing a line of views
+        /// </summary>
+        public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
         #endregion
 
         #region Private Methods

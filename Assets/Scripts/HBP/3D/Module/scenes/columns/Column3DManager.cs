@@ -85,6 +85,25 @@ namespace HBP.Module3D
         public ReadOnlyCollection<Column3DIEEG> ColumnsIEEG { get { return m_Columns != null ? new ReadOnlyCollection<Column3DIEEG>((from column in m_Columns where column is Column3DIEEG select (Column3DIEEG)column).ToArray()) : new ReadOnlyCollection<Column3DIEEG>(new List<Column3DIEEG>(0)); } }
         public ReadOnlyCollection<Column3DFMRI> ColumnsFMRI { get { return m_Columns != null ? new ReadOnlyCollection<Column3DFMRI>((from column in m_Columns where column is Column3DFMRI select (Column3DFMRI)column).ToArray()) : new ReadOnlyCollection<Column3DFMRI>(new List<Column3DFMRI>(0)); } }
 
+        /// <summary>
+        /// Maximum number of view in a column
+        /// </summary>
+        public int ViewNumber
+        {
+            get
+            {
+                int viewNumber = 0;
+                foreach (Column3D column in m_Columns)
+                {
+                    if (column.Views.Count > viewNumber)
+                    {
+                        viewNumber = column.Views.Count;
+                    }
+                }
+                return viewNumber;
+            }
+        }
+
         // plots
         public DLL.RawSiteList DLLLoadedRawSitesList = null;
         public DLL.PatientElectrodesList DLLLoadedPatientsElectrodes = null;
@@ -201,6 +220,7 @@ namespace HBP.Module3D
                 OnSelectColumnManager.Invoke(this);
             });
             m_Columns.Add(column);
+            ApplicationState.Module3D.OnAddColumn.Invoke();
         }
         /// <summary>
         /// 
@@ -231,6 +251,7 @@ namespace HBP.Module3D
                 OnSelectColumnManager.Invoke(this);
             });
             m_Columns.Add(column);
+            ApplicationState.Module3D.OnAddColumn.Invoke();
         }
         /// <summary>
         /// 
@@ -243,6 +264,7 @@ namespace HBP.Module3D
                 int columnID = m_Columns.IndexOf(column);
                 Destroy(m_Columns[columnID]);
                 m_Columns.RemoveAt(columnID);
+                ApplicationState.Module3D.OnRemoveColumn.Invoke(column);
             }
         }
         /// <summary>
@@ -256,6 +278,7 @@ namespace HBP.Module3D
                 int columnID = m_Columns.IndexOf(column);
                 Destroy(m_Columns[columnID]);
                 m_Columns.RemoveAt(columnID);
+                ApplicationState.Module3D.OnRemoveColumn.Invoke(column);
             }
         }
         /// <summary>
@@ -436,7 +459,7 @@ namespace HBP.Module3D
         /// <param name="nbIEEGColumns"></param>
         /// /// <param name="nbIRMFColumns"></param>
         /// <param name="nbCuts"></param>
-        public void UpdateColumnsNumber(int nbIEEGColumns, int nbIRMFColumns, int nbCuts)
+        public void UpdateColumnsNumber(int nbIEEGColumns, int nbIRMFColumns, int nbCuts) //FIXME : rework this function (make it disappear and only use add columns methods)
         {            
             // clean data columns if changes in data columns nb
             if (nbIEEGColumns != ColumnsIEEG.Count)
@@ -761,6 +784,29 @@ namespace HBP.Module3D
         public void UpdateSitesVisibility(bool visible)
         {
             foreach (var column in m_Columns) column.SetSitesVisibility(visible);
+        }
+        /// <summary>
+        /// Add a view to every columns
+        /// </summary>
+        public void AddViewLine()
+        {
+            foreach (Column3D column in m_Columns)
+            {
+                column.AddView();
+            }
+            ApplicationState.Module3D.OnAddViewLine.Invoke();
+        }
+        /// <summary>
+        /// Remove a view from every columns
+        /// </summary>
+        /// <param name="lineID">ID of the line of the view to be removed</param>
+        public void RemoveViewLine(int lineID)
+        {
+            foreach (Column3D column in m_Columns)
+            {
+                column.RemoveView(lineID);
+            }
+            ApplicationState.Module3D.OnRemoveViewLine.Invoke(ViewNumber);
         }
         #endregion
     }
