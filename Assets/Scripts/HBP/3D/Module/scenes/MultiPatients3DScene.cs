@@ -387,6 +387,7 @@ namespace HBP.Module3D
                     // create plot patient parent
                     m_ColumnManager.SitesPatientParent.Add(new GameObject("P" + ii + " - " + patientName));
                     m_ColumnManager.SitesPatientParent[m_ColumnManager.SitesPatientParent.Count - 1].transform.SetParent(m_DisplayedObjects.SitesMeshesParent.transform);
+                    m_ColumnManager.SitesPatientParent[m_ColumnManager.SitesPatientParent.Count - 1].transform.localPosition = Vector3.zero;
                     m_ColumnManager.SitesElectrodesParent.Add(new List<GameObject>(m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfElectrodesInPatient(ii)));
 
 
@@ -395,6 +396,7 @@ namespace HBP.Module3D
                         // create plot electrode parent
                         m_ColumnManager.SitesElectrodesParent[ii].Add(new GameObject(m_ColumnManager.DLLLoadedPatientsElectrodes.ElectrodeName(ii, jj)));
                         m_ColumnManager.SitesElectrodesParent[ii][m_ColumnManager.SitesElectrodesParent[ii].Count - 1].transform.SetParent(m_ColumnManager.SitesPatientParent[ii].transform);
+                        m_ColumnManager.SitesElectrodesParent[ii][m_ColumnManager.SitesElectrodesParent[ii].Count - 1].transform.localPosition = Vector3.zero;
 
 
                         for (int kk = 0; kk < m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfSitesInElectrode(ii, jj); ++kk)
@@ -405,8 +407,8 @@ namespace HBP.Module3D
                                      
                             Vector3 posInverted = m_ColumnManager.DLLLoadedPatientsElectrodes.SitePosition(ii, jj, kk);
                             posInverted.x = -posInverted.x;
-                            siteGO.transform.position = posInverted;
                             siteGO.transform.SetParent(m_ColumnManager.SitesElectrodesParent[ii][jj].transform);
+                            siteGO.transform.localPosition = posInverted;
 
                             siteGO.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
 
