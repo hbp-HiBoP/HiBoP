@@ -7,8 +7,9 @@ using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 using HBP.Data.General;
 using System.Linq;
+using UnityEngine.EventSystems;
 
-public class VisualizationLoadTester : MonoBehaviour
+public class Debug3D : MonoBehaviour
 {
 	void Update ()
     {
@@ -55,4 +56,16 @@ public class VisualizationLoadTester : MonoBehaviour
             ApplicationState.Module3D.RemoveVisualization(ApplicationState.Module3D.Visualizations.Last());
         }
 	}
+
+    public void RaycastToCursor()
+    {
+        PointerEventData data = new PointerEventData(EventSystem.current);
+        data.position = Input.mousePosition;
+        List<RaycastResult> res = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(data, res);
+        foreach (var item in res)
+        {
+            Debug.Log(item.gameObject.name);
+        }
+    }
 }

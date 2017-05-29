@@ -106,36 +106,6 @@ namespace HBP.Module3D
         /// </summary>
         public int LineID { get; set; }
 
-        protected Color m_ClickedColor = new Color(0.30f, 0.33f, 0.43f);
-        /// <summary>
-        /// Color of the background when the view is clicked
-        /// </summary>
-        public Color ClickedColor
-        {
-            get { return m_ClickedColor; }
-            set { m_ClickedColor = value; }
-        }
-
-        protected Color m_SelectedColor = new Color(0.35f, 0.38f, 0.48f);
-        /// <summary>
-        /// Color of the background when the view is selected
-        /// </summary>
-        public Color SelectedColor
-        {
-            get { return m_SelectedColor; }
-            set { m_SelectedColor = value; }
-        }
-        
-        protected Color m_RegularColor = new Color(0.65f, 0.65f, 0.65f);
-        /// <summary>
-        /// Color of the background when the view is not selected
-        /// </summary>
-        public Color RegularColor
-        {
-            get { return m_RegularColor; }
-            set { m_RegularColor = value; }
-        }
-
         /// <summary>
         /// Start or stop the automatic rotation of the camera of this view
         /// </summary>
@@ -267,7 +237,7 @@ namespace HBP.Module3D
         }
         private void Update()
         {
-            m_Camera3D.Camera.backgroundColor = IsClicked ? m_ClickedColor : ((IsSelected || IsColumnSelected) ? m_SelectedColor : m_RegularColor);
+            m_Camera3D.Camera.backgroundColor = IsClicked ? ApplicationState.Theme.Color.ClickedViewColor : ((IsSelected || IsColumnSelected) ? ApplicationState.Theme.Color.SelectedViewColor : ApplicationState.Theme.Color.RegularViewColor);
         }
         #endregion
 

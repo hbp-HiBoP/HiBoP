@@ -6,13 +6,14 @@ using Tools.Unity.ResizableGrid;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
+using HBP.Module3D;
 
 public class Scene3DUI : MonoBehaviour {
     #region Properties
     /// <summary>
     /// Associated logical Base3DScene
     /// </summary>
-    private HBP.Module3D.Base3DScene m_Scene;
+    private Base3DScene m_Scene;
     /// <summary>
     /// List of GameObjects to be shown when a column is minimized
     /// </summary>
@@ -27,18 +28,15 @@ public class Scene3DUI : MonoBehaviour {
     private void Awake()
     {
         m_ResizableGrid = GetComponent<ResizableGrid>();
-        ApplicationState.Module3D.ScenesManager.OnAddScene.AddListener((scene) => // TODO : update the methods for N scenes
+        ApplicationState.Module3D.OnAddScene.AddListener((scene) => // TODO : update the methods for N scenes
         {
-            m_Scene = scene;
-            for (int i = 0; i < m_Scene.ColumnManager.Columns.Count; i++)
+            Initialize(scene);
+        });
+        ApplicationState.Module3D.OnRemoveScene.AddListener((scene) =>
+        {
+            if (scene == m_Scene)
             {
-                m_ResizableGrid.AddColumn();
-                m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>().Initialize(m_Scene.ColumnManager.Columns[i]);
-            }
-            m_ResizableGrid.AddViewLine();
-            for (int i = 0; i < m_ResizableGrid.Columns.Count; i++)
-            {
-                m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(m_Scene.ColumnManager.Columns[i].Views.Last());
+                Destroy(gameObject);
             }
         });
         ApplicationState.Module3D.OnAddColumn.AddListener(() =>
@@ -50,10 +48,13 @@ public class Scene3DUI : MonoBehaviour {
         });
         ApplicationState.Module3D.OnRemoveColumn.AddListener((column) =>
         {
+            if (!m_Scene) return;
 
         });
         ApplicationState.Module3D.OnAddViewLine.AddListener(() =>
         {
+            if (!m_Scene) return;
+
             m_ResizableGrid.AddViewLine();
             for (int i = 0; i < m_ResizableGrid.Columns.Count; i++)
             {
@@ -62,11 +63,31 @@ public class Scene3DUI : MonoBehaviour {
         });
         ApplicationState.Module3D.OnRemoveViewLine.AddListener((lineID) =>
         {
+            if (!m_Scene) return;
+
             m_ResizableGrid.RemoveViewLine(lineID);
         });
     }
     #endregion
 
     #region Public Methods
+    /// <summary>
+    /// Initialize the UI Scene
+    /// </summary>
+    /// <param name="scene">Logical associated scene</param>
+    public void Initialize(Base3DScene scene)
+    {
+        m_Scene = scene;
+        for (int i = 0; i < m_Scene.ColumnManager.Columns.Count; i++)
+        {
+            m_ResizableGrid.AddColumn();
+            m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>().Initialize(m_Scene.ColumnManager.Columns[i]);
+        }
+        m_ResizableGrid.AddViewLine();
+        for (int i = 0; i < m_ResizableGrid.Columns.Count; i++)
+        {
+            m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(m_Scene.ColumnManager.Columns[i].Views.Last());
+        }
+    }
     #endregion
 }

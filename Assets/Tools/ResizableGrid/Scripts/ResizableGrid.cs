@@ -367,7 +367,9 @@ namespace Tools.Unity.ResizableGrid
         /// <param name="column">Column to be removed</param>
         public void RemoveColumn(Column column)
         {
-            if (ColumnNumber > 1 && column != null)
+            if (!column) return;
+
+            if (ColumnNumber > 1)
             {
                 int columnCornerHandlerIndex = m_Columns.FindIndex((c) => { return c == column; }) - 1;
 

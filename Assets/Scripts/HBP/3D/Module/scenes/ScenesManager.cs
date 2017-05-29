@@ -65,14 +65,6 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Base3DScene> OnChangeSelectedScene = new GenericEvent<Base3DScene>();
         /// <summary>
-        /// Event called when a scene is added
-        /// </summary>
-        public GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
-        /// <summary>
-        /// Event called when a scene is removed
-        /// </summary>
-        public GenericEvent<Base3DScene> OnRemoveScene = new GenericEvent<Base3DScene>();
-        /// <summary>
         /// Event called when the mode specifications are sent
         /// </summary>
         public GenericEvent<ModeSpecifications> OnSendModeSpecifications = new GenericEvent<ModeSpecifications>();
@@ -130,7 +122,7 @@ namespace HBP.Module3D
                 // Add the scene to the list
                 m_Scenes.Add(scene);
                 scene.SelectDefaultView();
-                OnAddScene.Invoke(scene);
+                ApplicationState.Module3D.OnAddScene.Invoke(scene);
             }
             return success;
         }
@@ -171,7 +163,7 @@ namespace HBP.Module3D
                 // Add the scene to the list
                 m_Scenes.Add(scene);
                 scene.SelectDefaultView();
-                OnAddScene.Invoke(scene);
+                ApplicationState.Module3D.OnAddScene.Invoke(scene);
             }
             return success;
         }
@@ -182,7 +174,7 @@ namespace HBP.Module3D
         public void RemoveScene(Base3DScene scene)
         {
             Destroy(scene.gameObject);
-            OnRemoveScene.Invoke(scene);
+            ApplicationState.Module3D.OnRemoveScene.Invoke(scene);
             m_Scenes.Remove(scene);
         }
         #endregion

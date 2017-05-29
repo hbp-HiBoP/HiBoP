@@ -107,6 +107,14 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Data.Visualization.Visualization> OnRemoveVisualization = new GenericEvent<Data.Visualization.Visualization>();
         /// <summary>
+        /// Event called when a scene is added
+        /// </summary>
+        public GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
+        /// <summary>
+        /// Event called when a scene is removed
+        /// </summary>
+        public GenericEvent<Base3DScene> OnRemoveScene = new GenericEvent<Base3DScene>();
+        /// <summary>
         /// Event called when changing the selected scene
         /// </summary>
         public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
@@ -133,11 +141,11 @@ namespace HBP.Module3D
         {
             // Scene Manager
             m_ScenesManager = transform.GetComponentInChildren<ScenesManager>();
-            m_ScenesManager.OnAddScene.AddListener((scene) =>
+            OnAddScene.AddListener((scene) =>
             {
                 OnAddVisualization.Invoke(scene.Visualization);
             });
-            m_ScenesManager.OnRemoveScene.AddListener((scene) =>
+            OnRemoveScene.AddListener((scene) =>
             {
                 OnRemoveVisualization.Invoke(scene.Visualization);
             });
