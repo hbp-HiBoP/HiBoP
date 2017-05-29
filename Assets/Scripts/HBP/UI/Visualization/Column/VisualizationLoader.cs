@@ -16,7 +16,7 @@ namespace HBP.UI.Visualization
         #region Public Methods
         public void Load(Data.Visualization.Visualization visualization)
         {
-            visualization.OnErrorOccur.AddListener((message) => ErrorHandler(message));
+            visualization.OnErrorOccur.AddListener((message) => ErrorHandler("Cannot load visualization.",message));
             visualization.OnChangeLoadingProgress.AddListener((progress, duration, message) => ProgressHandler(progress, duration, message));
             m_LoadingCircle = Instantiate(m_LoadingCirclePrefab).GetComponent<LoadingCircle>();
             visualization.Load();
@@ -37,11 +37,11 @@ namespace HBP.UI.Visualization
             Data.Visualization.SinglePatientVisualization singlePatientVisualization = Data.Visualization.SinglePatientVisualization.LoadFromMultiPatients(visualization, patient);
             ApplicationState.Module3D.AddVisualization(singlePatientVisualization);
         }
-        void ErrorHandler(string message)
+        void ErrorHandler(string title,string message)
         {
             GameObject popUpGameObject = Instantiate(m_PopUpPrefab);
             DialogBox popUp = popUpGameObject.GetComponent<DialogBox>();
-            popUp.Open(message);
+            popUp.Open(title,message);
         }
         void ProgressHandler(float progress,float duration,string message)
         {

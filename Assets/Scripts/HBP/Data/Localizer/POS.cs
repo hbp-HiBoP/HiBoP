@@ -7,45 +7,44 @@ namespace HBP.Data.Localizer
 	{
         #region Attributs
         public const string EXTENSION = ".pos";
-		Dictionary<int,List<int>> m_eventDictionary;
-		public Dictionary<int,List<int>> EventDictionary {get{return m_eventDictionary;}}
+		public Dictionary<int,List<int>> IndexSampleByCode { get; set; }
 		#endregion
 
 		#region Constructor
 		public POS(string filePath)
 		{
-			// instantiate the dictionary
-			m_eventDictionary = new Dictionary<int,List<int>>();
+            // instantiate the dictionary
+            IndexSampleByCode = new Dictionary<int,List<int>>();
 
 			// Read the file
-			string[] l_lines = File.ReadAllLines(filePath);
+			string[] lines = File.ReadAllLines(filePath);
 
 			// initialize some values for the optimisation
 			int nSample;
 			int nEvent;
 
 			// Read the lines to complete the dictionary
-			foreach(string l_line in l_lines)
+			foreach(string line in lines)
 			{
 				// Splite the line
-				string[] l_line_splitted = l_line.Split('	');
-				if(l_line_splitted.Length == 3)
+				string[] lineElements = line.Split('	');
+				if(lineElements.Length == 3)
 				{
-					nSample = int.Parse(l_line_splitted[0]);
-					nEvent  = int.Parse(l_line_splitted[1]);
+					nSample = int.Parse(lineElements[0]);
+					nEvent  = int.Parse(lineElements[1]);
 
 					// Test if the dictionary contains the key
-					if(EventDictionary.ContainsKey(nEvent))
+					if(IndexSampleByCode.ContainsKey(nEvent))
 					{
-						// Add the value at the key
-						m_eventDictionary[nEvent].Add(nSample);
+                        // Add the value at the key
+                        IndexSampleByCode[nEvent].Add(nSample);
 					}
 					else
 					{
 						// add a new key in the dictionary
 						List<int> l_value = new List<int>();
 						l_value.Add(nSample);
-						m_eventDictionary.Add(nEvent,l_value);
+                        IndexSampleByCode.Add(nEvent,l_value);
 					}
 				}
 			}
@@ -62,19 +61,17 @@ namespace HBP.Data.Localizer
             }
             return l_result.ToArray();
         }
-
 		public int[] ConvertEventCodeToSampleIndex(int CodeEvent)
 		{
-            if(EventDictionary.ContainsKey(CodeEvent))
+            if(IndexSampleByCode.ContainsKey(CodeEvent))
             {
-                return EventDictionary[CodeEvent].ToArray();
+                return IndexSampleByCode[CodeEvent].ToArray();
             }
             else
             {
                 return new int[0];
             }
 		}
-
         public TrialMatrix.Event[] ConvertEventCodeToSampleIndexAndCode(int[] CodeEvents)
         {
             //foreach(int i in CodeEvents)
@@ -85,9 +82,9 @@ namespace HBP.Data.Localizer
             List<TrialMatrix.Event> l_result = new List<TrialMatrix.Event>();
             foreach (int codeEvent in CodeEvents)
             {
-                if(EventDictionary.ContainsKey(codeEvent))
+                if(IndexSampleByCode.ContainsKey(codeEvent))
                 {
-                    List<int> l_list = EventDictionary[codeEvent];
+                    List<int> l_list = IndexSampleByCode[codeEvent];
                     l_list.Sort();
                     int[] l_positions = l_list.ToArray();
                     foreach (int position in l_positions)

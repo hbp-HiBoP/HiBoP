@@ -19,9 +19,6 @@ namespace HBP.UI
         GameObject m_ProgressWindowPrefab;
         LoadingCircle m_LoadingCircle;
 
-        [SerializeField]
-        GameObject m_PopUpPrefab;
-
         Project m_OldProject;
         string m_OldProjectLocation;
 
@@ -134,7 +131,7 @@ namespace HBP.UI
                 }
                 catch
                 {
-                    additionalInformations = patientFile.Name;
+                    additionalInformations = Path.GetFileNameWithoutExtension(patientFile.Name);
                     loadingError = LoadErrorTypeEnum.CanNotReadPatient;
                     break;
                 }
@@ -161,7 +158,7 @@ namespace HBP.UI
                 }
                 catch
                 {
-                    additionalInformations = groupFile.Name;
+                    additionalInformations = Path.GetFileNameWithoutExtension(groupFile.Name);
                     loadingError = LoadErrorTypeEnum.CanNotReadGroup;
                     break;
                 }
@@ -188,7 +185,7 @@ namespace HBP.UI
                 }
                 catch
                 {
-                    additionalInformations = protocolFile.Name;
+                    additionalInformations = Path.GetFileNameWithoutExtension(protocolFile.Name);
                     loadingError = LoadErrorTypeEnum.CanNotReadProtocol;
                     break;
                 }
@@ -216,7 +213,7 @@ namespace HBP.UI
                 }
                 catch
                 {
-                    additionalInformations = datasetFile.Name;
+                    additionalInformations = Path.GetFileNameWithoutExtension(datasetFile.Name);
                     loadingError = LoadErrorTypeEnum.CanNotReadDataset;
                     break;
                 }
@@ -246,7 +243,7 @@ namespace HBP.UI
                 }
                 catch
                 {
-                    additionalInformations = singlePatientVisualizationFile.Name;
+                    additionalInformations = Path.GetFileNameWithoutExtension(singlePatientVisualizationFile.Name);
                     loadingError = LoadErrorTypeEnum.CanNotReadSingleVisualization;
                     break;
                 }
@@ -272,7 +269,7 @@ namespace HBP.UI
                 }
                 catch
                 {
-                    additionalInformations = multiPatientVisualizationFile.Name;
+                    additionalInformations = Path.GetFileNameWithoutExtension(multiPatientVisualizationFile.Name);
                     loadingError = LoadErrorTypeEnum.CanNotReadMultiVisualization;
                     break;
                 }
@@ -551,44 +548,39 @@ namespace HBP.UI
         string GetErrorMessage(LoadErrorTypeEnum error, string additionalInformations)
         {
             string l_errorMessage = string.Empty;
-            string l_firstPart = "The project could not be loaded.\n";
-            string l_lastPart = " Please verify the file.";
             switch (error)
             {
                 case LoadErrorTypeEnum.None: l_errorMessage = "None error detected."; return l_errorMessage;
-                case LoadErrorTypeEnum.DirectoryDoNoExist: l_errorMessage = "The project directory doesn't exist. Please verify the directory."; break;
-                case LoadErrorTypeEnum.IsNotAProject: l_errorMessage = "The project selected isn't a correct project. Please verify the project."; break;
-                case LoadErrorTypeEnum.CanNotReadSettings: l_errorMessage = "The settings file could not be loaded .Please verify the settings file of the project selected."; break;
-                case LoadErrorTypeEnum.CanNotReadPatient: l_errorMessage = "The patient file \" <color=red>"+ additionalInformations + " </color>\" could not be loaded." + l_lastPart; break;
-                case LoadErrorTypeEnum.CanNotReadGroup: l_errorMessage = " The group file \" <color=red>" + additionalInformations + " </color>\" could not be loaded." + l_lastPart; break;
-                case LoadErrorTypeEnum.CanNotReadProtocol: l_errorMessage = "The protocol file \" <color=red>" + additionalInformations + " </color>\" could not be loaded." + l_lastPart; break;
-                case LoadErrorTypeEnum.CanNotReadDataset: l_errorMessage = "The dataset file \" <color=red>" + additionalInformations + " </color>\" could not be loaded." + l_lastPart; break;
-                case LoadErrorTypeEnum.CanNotReadSingleVisualization: l_errorMessage = "The single patient visualization file \" <color=red>" + additionalInformations + " </color>\" could not be loaded." + l_lastPart; break;
-                case LoadErrorTypeEnum.CanNotReadMultiVisualization: l_errorMessage = "The multi patients visualization file \" <color=red>" + additionalInformations + " </color>\" could not be loaded." + l_lastPart; break;
+                case LoadErrorTypeEnum.DirectoryDoNoExist: l_errorMessage = "The project directory does not exist.\n\nPlease verify the directory."; break;
+                case LoadErrorTypeEnum.IsNotAProject: l_errorMessage = "The selected project is not valid.\n\nPlease verify the project."; break;
+                case LoadErrorTypeEnum.CanNotReadSettings: l_errorMessage = "The settings could not be loaded.\n\nPlease verify the settings file of the selected project."; break;
+                case LoadErrorTypeEnum.CanNotReadPatient: l_errorMessage = "The patient <color=#C80000>" + additionalInformations + "</color> could not be loaded.\n\nPlease verify the file."; break;
+                case LoadErrorTypeEnum.CanNotReadGroup: l_errorMessage = " The group <color=#C80000>" + additionalInformations + "</color> could not be loaded.\n\nPlease verify the file."; break;
+                case LoadErrorTypeEnum.CanNotReadProtocol: l_errorMessage = "The protocol <color=#C80000>" + additionalInformations + "</color> could not be loaded.\n\nPlease verify the file."; break;
+                case LoadErrorTypeEnum.CanNotReadDataset: l_errorMessage = "The dataset <color=#C80000>" + additionalInformations + "</color> could not be loaded.\n\nPlease verify the file."; break;
+                case LoadErrorTypeEnum.CanNotReadSingleVisualization: l_errorMessage = "The single patient visualization <color=#C80000>" + additionalInformations + "</color> could not be loaded.\n\nPlease verify the file."; break;
+                case LoadErrorTypeEnum.CanNotReadMultiVisualization: l_errorMessage = "The multi patients visualization <b><color=#C80000>" + additionalInformations + "</color></b> could not be loaded.\n\nPlease verify the file."; break;
             }
-            l_errorMessage = l_firstPart + l_errorMessage;
             return l_errorMessage;
         }
         string GetErrorMessage(SaveErrorTypeEnum error, string additionalInformations)
         {
             string l_errorMessage = string.Empty;
-            string l_firstPart = "The project could not be saved.\n";
             switch (error)
             {
                 case SaveErrorTypeEnum.None: l_errorMessage = "None error detected."; return l_errorMessage;
-                case SaveErrorTypeEnum.DirectoryDoNoExist: l_errorMessage = "The location could not be found. Verifiy your location"; break;
-                case SaveErrorTypeEnum.CanNotCreateNewDirectories: l_errorMessage = "Could not create a new directory. Verify your right on this directory."; break;
+                case SaveErrorTypeEnum.DirectoryDoNoExist: l_errorMessage = "The location could not be found.\n\nPlease verify your location"; break;
+                case SaveErrorTypeEnum.CanNotCreateNewDirectories: l_errorMessage = "Could not create a new directory.\n\nPlease verify your right on this directory."; break;
                 case SaveErrorTypeEnum.CanNotSaveSettings: l_errorMessage = "Could not save the settings file."; break;
-                case SaveErrorTypeEnum.CanNotSavePatient: l_errorMessage = "Could not save the patient <color=red>"+additionalInformations+"</color>."; break;
-                case SaveErrorTypeEnum.CanNotSaveGroup: l_errorMessage = "Could not save the group <color=red>" + additionalInformations + "</color>."; break;
-                case SaveErrorTypeEnum.CanNotSaveProtocol: l_errorMessage = "Could not save the protocol <color=red>" + additionalInformations + "</color>."; break;
-                case SaveErrorTypeEnum.CanNotSaveDataset: l_errorMessage = "Could not save the dataset <color=red>" + additionalInformations + "</color>."; break;
-                case SaveErrorTypeEnum.CanNotSaveSinglePatientVisualization: l_errorMessage = "Could not save the single patient visualization <color=red>" + additionalInformations + "</color>."; break;
-                case SaveErrorTypeEnum.CanNotSaveMultiPatientsVisualization: l_errorMessage = "Could not save the multi patients visualization <color=red>" + additionalInformations + "</color>."; break;
+                case SaveErrorTypeEnum.CanNotSavePatient: l_errorMessage = "Could not save the patient <color=#C80000>" + additionalInformations+"</color>."; break;
+                case SaveErrorTypeEnum.CanNotSaveGroup: l_errorMessage = "Could not save the group <color=#C80000>" + additionalInformations + "</color>."; break;
+                case SaveErrorTypeEnum.CanNotSaveProtocol: l_errorMessage = "Could not save the protocol <color=#C80000>" + additionalInformations + "</color>."; break;
+                case SaveErrorTypeEnum.CanNotSaveDataset: l_errorMessage = "Could not save the dataset <color=#C80000>" + additionalInformations + "</color>."; break;
+                case SaveErrorTypeEnum.CanNotSaveSinglePatientVisualization: l_errorMessage = "Could not save the single patient visualization <color=#C80000>" + additionalInformations + "</color>."; break;
+                case SaveErrorTypeEnum.CanNotSaveMultiPatientsVisualization: l_errorMessage = "Could not save the multi patients visualization <color=#C80000>" + additionalInformations + "</color>."; break;
                 case SaveErrorTypeEnum.CanNotDeleteOldDirectories: l_errorMessage = "Could not delete the old directory."; break;
                 case SaveErrorTypeEnum.CanNotMoveDirectory: l_errorMessage = "Could not move the directory"; break;
             }
-            l_errorMessage = l_firstPart + l_errorMessage;
             return l_errorMessage;
         }
         void HandleError(LoadErrorTypeEnum error, string additionalInformations)
@@ -599,8 +591,7 @@ namespace HBP.UI
                 ApplicationState.ProjectLoadedLocation = m_OldProjectLocation;
                 m_LoadingCircle.Close();
                 StopAllCoroutines();
-                GameObject popUpobj = GameObject.Instantiate(m_PopUpPrefab, GameObject.Find("Windows").transform) as GameObject;
-                popUpobj.GetComponent<DialogBox>().Open(GetErrorMessage(error, additionalInformations));
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error,"The project could not be loaded.", GetErrorMessage(error, additionalInformations));
             }
         }
         void HandleError(SaveErrorTypeEnum error, string additionalInformations, DirectoryInfo directory)
@@ -613,8 +604,7 @@ namespace HBP.UI
                 }
                 m_LoadingCircle.Close();
                 StopAllCoroutines();
-                GameObject popUpobj = Instantiate(m_PopUpPrefab, GetComponentInParent<Visualization.VisualizationLoader>().transform) as GameObject;
-                popUpobj.GetComponent<DialogBox>().Open(GetErrorMessage(error, additionalInformations));
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error,"The project could not be saved.", GetErrorMessage(error, additionalInformations));
             }
         }
         #endregion

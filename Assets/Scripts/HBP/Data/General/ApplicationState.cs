@@ -43,4 +43,6 @@ public static class ApplicationState
     /// 3D DLL Debug Manager.
     /// </summary>
     public static HBP.Module3D.DLL.DLLDebugManager DLLDebugManager { get; set; }
+
+    public static Tools.Unity.DialogBoxManager DialogBoxManager { get; set; }
 }
