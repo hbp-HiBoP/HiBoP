@@ -204,7 +204,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Space between scenes in world space
         /// </summary>
-        protected const int SPACE_BETWEEN_SCENES = 1000;
+        protected const int SPACE_BETWEEN_SCENES = 3000;
 
         protected Data.Visualization.Visualization m_Visualization;
         /// <summary>

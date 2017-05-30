@@ -63,7 +63,6 @@ public class Debug3D : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Z)) // to be tested when loading a sp visualization works entirely
         {
             Debug.Log("RemoveScene");
-            Debug.Log(ApplicationState.Module3D.Visualizations.Count);
             ApplicationState.Module3D.RemoveVisualization(ApplicationState.Module3D.Visualizations.Last());
         }
 	}
