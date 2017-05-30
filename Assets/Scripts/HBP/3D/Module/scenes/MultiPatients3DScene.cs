@@ -119,7 +119,7 @@ namespace HBP.Module3D
             SceneInformation.MeshToDisplay = new DLL.Surface();
             switch (SceneInformation.MeshTypeToDisplay)
             {
-                case SceneStatesInfo.MeshType.Hemi:
+                case SceneStatesInfo.MeshType.Grey:
                     switch (SceneInformation.MeshPartToDisplay)
                     {
                         case SceneStatesInfo.MeshPart.Both:
@@ -260,7 +260,7 @@ namespace HBP.Module3D
             // MNI meshes are preloaded
             SceneInformation.VolumeCenter = m_MNIObjects.IRM.Center;
             SceneInformation.MeshesLoaded = true;
-            SceneInformation.HemiMeshesAvailables = true;
+            SceneInformation.GreyMeshesAvailables = true;
             SceneInformation.WhiteMeshesAvailables = true;
             SceneInformation.WhiteInflatedMeshesAvailables = true;
             SceneInformation.IsROICreationModeEnabled = false;

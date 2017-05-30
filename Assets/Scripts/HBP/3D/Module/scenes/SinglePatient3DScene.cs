@@ -80,7 +80,7 @@ namespace HBP.Module3D
             SceneInformation.MeshToDisplay = new DLL.Surface();
             switch (SceneInformation.MeshTypeToDisplay)
             {
-                case SceneStatesInfo.MeshType.Hemi:
+                case SceneStatesInfo.MeshType.Grey:
                     switch (SceneInformation.MeshPartToDisplay)
                     {
                         case SceneStatesInfo.MeshPart.Both:
@@ -385,7 +385,7 @@ namespace HBP.Module3D
             ResetSplitsNumber(nbSplits);
            
             // set the transform as the mesh center
-            SceneInformation.HemiMeshesAvailables = true;
+            SceneInformation.GreyMeshesAvailables = true;
 
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetGIIBrainSurfaceFile);

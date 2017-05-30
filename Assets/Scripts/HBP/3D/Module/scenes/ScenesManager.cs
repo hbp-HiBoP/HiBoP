@@ -173,8 +173,8 @@ namespace HBP.Module3D
         /// <param name="scene"></param>
         public void RemoveScene(Base3DScene scene)
         {
-            Destroy(scene.gameObject);
             ApplicationState.Module3D.OnRemoveScene.Invoke(scene);
+            Destroy(scene.gameObject);
             m_Scenes.Remove(scene);
         }
         #endregion

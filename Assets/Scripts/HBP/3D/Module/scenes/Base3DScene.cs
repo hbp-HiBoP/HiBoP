@@ -1247,8 +1247,8 @@ namespace HBP.Module3D
 
             switch(meshTypeToDisplay)
             {
-                case SceneStatesInfo.MeshType.Hemi:
-                    if (!SceneInformation.HemiMeshesAvailables) return;
+                case SceneStatesInfo.MeshType.Grey:
+                    if (!SceneInformation.GreyMeshesAvailables) return;
                     break;
                 case SceneStatesInfo.MeshType.White:
                     if (!SceneInformation.WhiteMeshesAvailables) return;

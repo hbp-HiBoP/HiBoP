@@ -37,6 +37,11 @@ namespace HBP.UI.Module3D
         // Brain Types Dropdown
         public Sprite BrainTypeSprite;
         private Dictionary<Dropdown.OptionData, SceneStatesInfo.MeshType> m_BrainTypesData = new Dictionary<Dropdown.OptionData, SceneStatesInfo.MeshType>();
+
+        /// <summary>
+        /// Lock to prevent the calls to the listeners when only changing the selected scene
+        /// </summary>
+        private bool m_ChangeSceneLock;
         #endregion
 
         #region Public Methods
@@ -87,15 +92,36 @@ namespace HBP.UI.Module3D
             // On Change Scene.
             ApplicationState.Module3D.OnSelectScene.AddListener((scene) => OnChangeScene());
 
+            // On Remove Scene.
+            ApplicationState.Module3D.OnRemoveScene.AddListener((scene) =>
+            {
+                if (scene == ApplicationState.Module3D.SelectedScene)
+                {
+                    SetToolbarDefaultState();
+                }
+            });
+
             // Brain Hemispheres.
-            m_LeftBrainHemisphere.onValueChanged.AddListener((display) => ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(GetMeshPart(m_LeftBrainHemisphere.isOn, m_RightBrainHemisphere.isOn)));
-            m_RightBrainHemisphere.onValueChanged.AddListener((display) => ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(GetMeshPart(m_LeftBrainHemisphere.isOn, m_RightBrainHemisphere.isOn)));
+            m_LeftBrainHemisphere.onValueChanged.AddListener((display) =>
+            {
+                if (m_ChangeSceneLock) return;
+
+                ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(GetMeshPart(m_LeftBrainHemisphere.isOn, m_RightBrainHemisphere.isOn));
+            });
+            m_RightBrainHemisphere.onValueChanged.AddListener((display) =>
+            {
+                if (m_ChangeSceneLock) return;
+
+                ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(GetMeshPart(m_LeftBrainHemisphere.isOn, m_RightBrainHemisphere.isOn));
+            });
 
             // Brain Types.
             m_BrainTypes.onValueChanged.AddListener((value) =>
             {
+                if (m_ChangeSceneLock) return;
+
                 SceneStatesInfo.MeshType type = m_BrainTypesData[m_BrainTypes.options[value]];
-                if (type == SceneStatesInfo.MeshType.Hemi && ApplicationState.Module3D.SelectedScene.IsMarsAtlasEnabled)
+                if (type == SceneStatesInfo.MeshType.Grey && ApplicationState.Module3D.SelectedScene.IsMarsAtlasEnabled)
                 {
                     m_MarsAtlas.isOn = false;
                 }
@@ -104,6 +130,8 @@ namespace HBP.UI.Module3D
             // MarsAtlas.
             m_MarsAtlas.onValueChanged.AddListener((value) =>
             {
+                if (m_ChangeSceneLock) return;
+
                 if (value)
                 {
                     Dropdown.OptionData whiteMeshOptionData = m_BrainTypesData.Where(item => item.Value == SceneStatesInfo.MeshType.White).Select(item => item.Key).ToArray()[0];
@@ -115,23 +143,31 @@ namespace HBP.UI.Module3D
             // Views
             m_AddView.onClick.AddListener(() =>
             {
+                if (m_ChangeSceneLock) return;
+
                 ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.AddViewLine();
                 UpdateInteractableButtons();
             });
             m_RemoveView.onClick.AddListener(() =>
             {
+                if (m_ChangeSceneLock) return;
+
                 ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.RemoveViewLine(ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.ViewNumber - 1);
                 UpdateInteractableButtons();
             });
             // fMRI.
             m_AddfMRI.onClick.AddListener(() =>
             {
+                if (m_ChangeSceneLock) return;
+
                 if (ApplicationState.Module3D.SelectedScene.AddFMRIColumn()) ApplicationState.Module3D.SelectedScene.DisplayScreenMessage("fMRI successfully loaded. ", 2f, 150, 80);
                 else ApplicationState.Module3D.SelectedScene.DisplayScreenMessage("Error during fMRI loading. ", 2f, 170, 80);
                 UpdateInteractableButtons();
             });
             m_RemovefMRI.onClick.AddListener(() =>
             {
+                if (m_ChangeSceneLock) return;
+
                 ApplicationState.Module3D.SelectedScene.RemoveLastFMRIColumn();
                 UpdateInteractableButtons();
             });
@@ -219,6 +255,10 @@ namespace HBP.UI.Module3D
         }
         void SetToolbarDefaultState()
         {
+            m_LeftBrainHemisphere.isOn = false;
+            m_RightBrainHemisphere.isOn = false;
+            m_BrainTypes.value = 0;
+            m_MarsAtlas.isOn = false;
             SetToggleState(m_LeftBrainHemisphere, true, false);
             SetToggleState(m_RightBrainHemisphere, true, false);
             SetDropDown(m_BrainTypes, true, false);
@@ -230,10 +270,12 @@ namespace HBP.UI.Module3D
         }
         void OnChangeScene()
         {
+            m_ChangeSceneLock = true;
             ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.AddListener((mode) => UpdateInteractableButtons());
             m_SceneInformations.text = ApplicationState.Module3D.SelectedScene.Name;
             UpdateInteractableButtons();
             UpdateButtonsStatus();
+            m_ChangeSceneLock = false;
         }
         /// <summary>
         /// Update the menu UI activity with the current parameters
@@ -433,6 +475,7 @@ namespace HBP.UI.Module3D
         }
         void UpdateButtonsStatus()
         {
+            // Brain part
             switch (ApplicationState.Module3D.SelectedScene.SceneInformation.MeshPartToDisplay)
             {
                 case SceneStatesInfo.MeshPart.Left:
@@ -455,27 +498,49 @@ namespace HBP.UI.Module3D
                     break;
             }
             
+            // Brain type
             m_BrainTypesData.Clear();
             List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
-            if (ApplicationState.Module3D.SelectedScene.SceneInformation.HemiMeshesAvailables)
+            Dropdown.OptionData greyBrain = new Dropdown.OptionData("G", BrainTypeSprite);
+            Dropdown.OptionData whiteBrain = new Dropdown.OptionData("W", BrainTypeSprite);
+            Dropdown.OptionData inflatedBrain = new Dropdown.OptionData("I", BrainTypeSprite);
+            if (ApplicationState.Module3D.SelectedScene.SceneInformation.GreyMeshesAvailables)
             {
-                Dropdown.OptionData greyBrain = new Dropdown.OptionData("G", BrainTypeSprite);
                 options.Add(greyBrain);
-                m_BrainTypesData.Add(greyBrain, SceneStatesInfo.MeshType.Hemi);
+                m_BrainTypesData.Add(greyBrain, SceneStatesInfo.MeshType.Grey);
             }
             if (ApplicationState.Module3D.SelectedScene.SceneInformation.WhiteMeshesAvailables)
             {
-                Dropdown.OptionData whiteBrain = new Dropdown.OptionData("W", BrainTypeSprite);
                 options.Add(whiteBrain);
                 m_BrainTypesData.Add(whiteBrain, SceneStatesInfo.MeshType.White);
             }
             if (ApplicationState.Module3D.SelectedScene.SceneInformation.WhiteInflatedMeshesAvailables)
             {
-                Dropdown.OptionData inflatedBrain = new Dropdown.OptionData("I", BrainTypeSprite);
                 options.Add(inflatedBrain);
                 m_BrainTypesData.Add(inflatedBrain, SceneStatesInfo.MeshType.Inflated);
             }
             m_BrainTypes.options = options;
+
+            int dropDownIndex = 0;
+            switch (ApplicationState.Module3D.SelectedScene.SceneInformation.MeshTypeToDisplay)
+            {
+                case SceneStatesInfo.MeshType.Grey:
+                    dropDownIndex = m_BrainTypes.options.FindIndex((o) => o == greyBrain);
+                    break;
+                case SceneStatesInfo.MeshType.White:
+                    dropDownIndex = m_BrainTypes.options.FindIndex((o) => o == whiteBrain);
+                    break;
+                case SceneStatesInfo.MeshType.Inflated:
+                    dropDownIndex = m_BrainTypes.options.FindIndex((o) => o == inflatedBrain);
+                    break;
+                default:
+                    dropDownIndex = 0;
+                    break;
+            }
+            m_BrainTypes.value = dropDownIndex;
+
+            // Mars Atlas
+            m_MarsAtlas.isOn = ApplicationState.Module3D.SelectedScene.IsMarsAtlasEnabled;
         }
         void SetButtonState(Button button, bool active, bool interactable)
         {
