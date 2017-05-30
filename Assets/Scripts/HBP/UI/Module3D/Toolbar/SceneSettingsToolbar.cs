@@ -42,11 +42,23 @@ namespace HBP.UI.Module3D
         /// Remove the last FMRI column from the selected scene
         /// </summary>
         public Button RemoveFMRI { get; set; }
-        
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private Sprite m_BrainTypeSprite;
         /// <summary>
         /// Sprite for the brain type icon
         /// </summary>
-        public Sprite BrainTypeSprite { get; set; }
+        public Sprite BrainTypeSprite
+        {
+            get
+            {
+                return m_BrainTypeSprite;
+            }
+            set
+            {
+                m_BrainTypeSprite = value;
+            }
+        }
         /// <summary>
         /// Dictionary that stores the MeshType info corresponding to the OptionData in the dropdown menu
         /// </summary>

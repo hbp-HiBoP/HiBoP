@@ -4,22 +4,62 @@ using UnityEngine;
 
 namespace HBP.UI.Module3D {
     public class ToolbarMenu : MonoBehaviour {
-
-        enum ToolBarState { SceneSettings, DisplaySettings, IEEGSettings, FMRISettings, SiteSettings, TriangleErasing, RegionOfInterest }
-
+        
         #region Properties
+        [SerializeField, Candlelight.PropertyBackingField]
+        private SceneSettingsToolbar m_SceneSettingsToolbar;
         /// <summary>
         /// Toolbar for the scene settings
         /// </summary>
-        private SceneSettingsToolbar m_SceneSettingsToolbar;
+        public SceneSettingsToolbar SceneSettingsToolbar
+        {
+            get
+            {
+                return m_SceneSettingsToolbar;
+            }
+            set
+            {
+                m_SceneSettingsToolbar = value;
+            }
+        }
 
-        private Toolbar m_CurrentToolbar;
+        [SerializeField, Candlelight.PropertyBackingField]
+        private DisplaySettingsToolbar m_DisplaySettingsToolbar;
+        /// <summary>
+        /// Toolbar for the scene settings
+        /// </summary>
+        public DisplaySettingsToolbar DisplaySettingsToolbar
+        {
+            get
+            {
+                return m_DisplaySettingsToolbar;
+            }
+            set
+            {
+                m_DisplaySettingsToolbar = value;
+            }
+        }
+
+        /// <summary>
+        /// Currently used toolbar
+        /// </summary>
+        public Toolbar CurrentToolbar { get; set; }
         #endregion
 
         #region Private Methods
         private void Awake()
         {
-            m_SceneSettingsToolbar = transform.Find("Scene Settings").GetComponent<SceneSettingsToolbar>();
+            Initialize();
+        }
+        /// <summary>
+        /// Initialize the toolbar menu
+        /// </summary>
+        private void Initialize()
+        {
+            CurrentToolbar = m_SceneSettingsToolbar;
+
+            m_SceneSettingsToolbar.gameObject.SetActive(true);
+            m_DisplaySettingsToolbar.gameObject.SetActive(false);
         }
         #endregion
 
