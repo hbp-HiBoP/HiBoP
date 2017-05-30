@@ -12,6 +12,8 @@ using System.Linq;
 
 namespace HBP.UI.Module3D
 {
+    enum ToolBarState { SceneSettings, DisplaySettings, IEEGSettings, FMRISettings, SiteSettings, TriangleErasing, RegionOfInterest }
+    
     /// <summary>
     /// A class for managing the tools menu in the UI
     /// </summary>
