@@ -5,6 +5,8 @@ namespace HBP.UI.Module3D
 {
     public abstract class Toolbar : MonoBehaviour
     {
+        protected enum UpdateToolbarType { Scene, Column, View }
+
         #region Properties
         /// <summary>
         /// Lock to prevent the calls to the listeners when only changing the selected scene
@@ -21,7 +23,22 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Add the listeners to the elements of the toolbar
         /// </summary>
-        protected abstract void AddListeners();
+        protected virtual void AddListeners()
+        {
+            ApplicationState.Module3D.OnSelectScene.AddListener((scene) => OnChangeScene());
+
+            ApplicationState.Module3D.OnRemoveScene.AddListener((scene) =>
+            {
+                if (scene == ApplicationState.Module3D.SelectedScene)
+                {
+                    DefaultState();
+                }
+            });
+
+            ApplicationState.Module3D.OnSelectColumn.AddListener((column) => OnChangeColumn());
+
+            ApplicationState.Module3D.OnSelectView.AddListener((column) => OnChangeView());
+        }
         /// <summary>
         /// Set the toolbar elements to their default state
         /// </summary>
@@ -43,7 +60,27 @@ namespace HBP.UI.Module3D
             ChangeSceneLock = true;
             ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.AddListener((mode) => UpdateInteractableButtons()); // maybe FIXME : problem with infinite number of listeners ?
             UpdateInteractableButtons();
-            UpdateButtonsStatus();
+            UpdateButtonsStatus(UpdateToolbarType.Scene);
+            ChangeSceneLock = false;
+        }
+        /// <summary>
+        /// Callback when the selected column is changed
+        /// </summary>
+        protected void OnChangeColumn()
+        {
+            ChangeSceneLock = true;
+            UpdateInteractableButtons();
+            UpdateButtonsStatus(UpdateToolbarType.Column);
+            ChangeSceneLock = false;
+        }
+        /// <summary>
+        /// Callback when the selected view is changed
+        /// </summary>
+        protected void OnChangeView()
+        {
+            ChangeSceneLock = true;
+            UpdateInteractableButtons();
+            UpdateButtonsStatus(UpdateToolbarType.View);
             ChangeSceneLock = false;
         }
         /// <summary>
@@ -53,7 +90,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Change the status of the toolbar elements according to the selected scene parameters
         /// </summary>
-        protected abstract void UpdateButtonsStatus();
+        protected abstract void UpdateButtonsStatus(UpdateToolbarType type);
         #endregion
     }
 }

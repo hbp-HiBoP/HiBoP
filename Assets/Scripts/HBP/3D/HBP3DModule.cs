@@ -118,6 +118,14 @@ namespace HBP.Module3D
         /// Event called when changing the selected scene
         /// </summary>
         public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
+        /// <summary>
+        /// Event called when changing the selected column
+        /// </summary>
+        public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        /// <summary>
+        /// Event called when changing the selected view
+        /// </summary>
+        public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
         #endregion
 
         #region Private Methods

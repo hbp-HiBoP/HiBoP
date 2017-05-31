@@ -141,7 +141,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     }
     public void OnScroll(PointerEventData data)
     {
-        m_View.IsClicked = true;
         m_PointerDownLock = true;
         m_View.ZoomCamera(data.scrollDelta.y);
     }

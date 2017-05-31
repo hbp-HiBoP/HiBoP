@@ -110,9 +110,24 @@ namespace HBP.Module3D
         }
 
         /// <summary>
+        /// Automatic rotation speed
+        /// </summary>
+        public float AutomaticRotationSpeed
+        {
+            get
+            {
+                return m_Camera3D.AutomaticRotationSpeed;
+            }
+            set
+            {
+                m_Camera3D.AutomaticRotationSpeed = value;
+            }
+        }
+
+        /// <summary>
         /// Set the edge mode
         /// </summary>
-        public bool EdgesMode
+        public bool EdgeMode
         {
             get
             {

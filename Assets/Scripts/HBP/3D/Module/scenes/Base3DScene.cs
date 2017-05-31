@@ -371,6 +371,75 @@ namespace HBP.Module3D
                 m_DisplayedObjects.BrainSurfaceMeshes[0].GetComponent<Renderer>().sharedMaterial.SetInt("_MarsAtlas", SceneInformation.MarsAtlasModeEnabled ? 1 : 0);
             }
         }
+        
+        private bool m_EdgeMode = false;
+        /// <summary>
+        /// Are the edges displayed ?
+        /// </summary>
+        public bool EdgeMode
+        {
+            get
+            {
+                return m_EdgeMode;
+            }
+            set
+            {
+                m_EdgeMode = value;
+                foreach (Column3D column in m_ColumnManager.Columns)
+                {
+                    foreach (View3D view in column.Views)
+                    {
+                        view.EdgeMode = m_EdgeMode;
+                    }
+                }
+            }
+        }
+
+        private bool m_AutomaticRotation = false;
+        /// <summary>
+        /// Are the brains automatically rotating ?
+        /// </summary>
+        public bool AutomaticRotation
+        {
+            get
+            {
+                return m_AutomaticRotation;
+            }
+            set
+            {
+                m_AutomaticRotation = value;
+                foreach (Column3D column in m_ColumnManager.Columns)
+                {
+                    foreach (View3D view in column.Views)
+                    {
+                        view.AutomaticRotation = m_AutomaticRotation;
+                    }
+                }
+            }
+        }
+
+        private float m_AutomaticRotationSpeed = 30.0f;
+        /// <summary>
+        /// Automatic rotation speed
+        /// </summary>
+        public float AutomaticRotationSpeed
+        {
+            get
+            {
+                return m_AutomaticRotationSpeed;
+            }
+            set
+            {
+                m_AutomaticRotationSpeed = value;
+                foreach (Column3D column in m_ColumnManager.Columns)
+                {
+                    foreach (View3D view in column.Views)
+                    {
+                        view.AutomaticRotationSpeed = m_AutomaticRotationSpeed;
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Ambient mode (rendering)
