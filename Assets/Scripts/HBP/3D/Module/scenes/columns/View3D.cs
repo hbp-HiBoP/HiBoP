@@ -204,6 +204,10 @@ namespace HBP.Module3D
         /// Event called when we select this view
         /// </summary>
         public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
+        /// <summary>
+        /// Event called when the camera is moved (rotation, strafe, zoom)
+        /// </summary>
+        public UnityEvent OnMoveView = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -271,6 +275,7 @@ namespace HBP.Module3D
         {
             m_Camera3D.HorizontalRotation(amount.x);
             m_Camera3D.VerticalRotation(amount.y);
+            OnMoveView.Invoke();
         }
         /// <summary>
         /// Strafe the camera
@@ -280,6 +285,7 @@ namespace HBP.Module3D
         {
             m_Camera3D.HorizontalStrafe(amount.x);
             m_Camera3D.VerticalStrafe(amount.y);
+            OnMoveView.Invoke();
         }
         /// <summary>
         /// Zoom with the camera
@@ -288,6 +294,7 @@ namespace HBP.Module3D
         public void ZoomCamera(float amount)
         {
             m_Camera3D.Zoom(3*amount);
+            OnMoveView.Invoke();
         }
         #endregion
     }

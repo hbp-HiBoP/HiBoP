@@ -203,10 +203,6 @@ namespace HBP.Module3D
             BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
             BrainColorTexture = Texture2Dutility.GenerateColorScheme();
         }
-        private void LateUpdate()
-        {
-            SynchronizeViewsToSelectedView();
-        }
         /// <summary>
         /// 
         /// </summary>
@@ -234,6 +230,10 @@ namespace HBP.Module3D
                     v.IsColumnSelected = true;
                 }
                 OnSelectColumnManager.Invoke(this);
+            });
+            column.OnMoveView.AddListener((view) =>
+            {
+                SynchronizeViewsToReferenceView(view);
             });
             m_Columns.Add(column);
             OnAddColumn.Invoke();
@@ -300,18 +300,15 @@ namespace HBP.Module3D
         /// <summary>
         /// Synchronize all the cameras from the same view line
         /// </summary>
-        private void SynchronizeViewsToSelectedView()
+        private void SynchronizeViewsToReferenceView(View3D referenceView)
         {
-            if (ClickedView != null)
+            foreach (Column3D column in Columns)
             {
-                foreach (Column3D column in Columns)
+                foreach (View3D view in column.Views)
                 {
-                    foreach (View3D view in column.Views)
+                    if (view.LineID == referenceView.LineID)
                     {
-                        if (view.LineID == ClickedView.LineID)
-                        {
-                            view.SynchronizeCamera(SelectedView);
-                        }
+                        view.SynchronizeCamera(referenceView);
                     }
                 }
             }

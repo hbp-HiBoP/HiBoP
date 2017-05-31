@@ -138,6 +138,10 @@ namespace HBP.Module3D
         /// Event called when this column is selected
         /// </summary>
         public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        /// <summary>
+        /// Event called when a view is moved
+        /// </summary>
+        public GenericEvent<View3D> OnMoveView = new GenericEvent<View3D>();
         #endregion
 
         #region Public Methods
@@ -504,6 +508,10 @@ namespace HBP.Module3D
                     }
                 }
                 IsSelected = true;
+            });
+            view.OnMoveView.AddListener(() =>
+            {
+                OnMoveView.Invoke(view);
             });
             if (IsSelected)
             {
