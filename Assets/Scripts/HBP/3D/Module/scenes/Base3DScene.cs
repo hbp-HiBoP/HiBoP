@@ -1009,7 +1009,7 @@ namespace HBP.Module3D
         /// <param name="updateColors">Do the colors need to be reset ?</param>
         public void UpdateColormap(ColorType color, bool updateColors = true)
         {
-            ColumnManager.UpdateColormap(color);
+            ColumnManager.Colormap = color;
             if (updateColors)
                 ColumnManager.ResetColors();
 
@@ -1037,7 +1037,7 @@ namespace HBP.Module3D
         /// <param name="updateColors">Do the colors need to be reset ?</param>
         public void UpdateBrainCutColor(ColorType color, bool updateColors = true)
         {
-            ColumnManager.UpdateBrainCutColor(color);
+            ColumnManager.BrainCutColor = color;
             if (updateColors)
                 ColumnManager.ResetColors();
 

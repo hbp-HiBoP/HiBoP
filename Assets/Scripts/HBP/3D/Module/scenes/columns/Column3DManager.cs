@@ -183,9 +183,56 @@ namespace HBP.Module3D
 
 
         // textures
-        public ColorType BrainColor = ColorType.BrainColor;
-        public ColorType BrainCutColor = ColorType.Default;
-        public ColorType Colormap = ColorType.MatLab; // TO move
+        private ColorType m_BrainColor = ColorType.BrainColor;
+        /// <summary>
+        /// Brain surface color
+        /// </summary>
+        public ColorType BrainColor
+        {
+            get
+            {
+                return m_BrainColor;
+            }
+            set
+            {
+                m_BrainColor = value;
+            }
+        }
+
+        private ColorType m_BrainCutColor = ColorType.Default;
+        /// <summary>
+        /// Brain cut color
+        /// </summary>
+        public ColorType BrainCutColor
+        {
+            get
+            {
+                return m_BrainCutColor;
+            }
+            set
+            {
+                m_BrainCutColor = value;
+            }
+        }
+
+        private ColorType m_Colormap = ColorType.MatLab;
+        /// <summary>
+        /// Colormap
+        /// </summary>
+        public ColorType Colormap
+        {
+            get
+            {
+                return m_Colormap;
+            }
+            set
+            {
+                m_Colormap = value;
+                DLL.Texture tex = DLL.Texture.Generate1DColorTexture(Colormap);
+                tex.UpdateTexture2D(BrainColorMapTexture);
+            }
+        }
+
         public Texture2D BrainColorMapTexture = null;
         public Texture2D BrainColorTexture = null;
 
@@ -204,7 +251,7 @@ namespace HBP.Module3D
             BrainColorTexture = Texture2Dutility.GenerateColorScheme();
         }
         /// <summary>
-        /// 
+        /// Add a IEEG column to this scene
         /// </summary>
         private void AddIEEGColumn()
         {
@@ -239,7 +286,7 @@ namespace HBP.Module3D
             OnAddColumn.Invoke();
         }
         /// <summary>
-        /// 
+        /// Add a FMRI Column to this scene
         /// </summary>
         private void AddFMRIColumn()
         {
@@ -270,7 +317,7 @@ namespace HBP.Module3D
             OnAddColumn.Invoke();
         }
         /// <summary>
-        /// 
+        /// Remove the last IEEG Column of this scene
         /// </summary>
         private void RemoveIEEGColumn()
         {
@@ -284,7 +331,7 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// 
+        /// Remove the last FMRI Column of this scene
         /// </summary>
         private void RemoveFMRIColumn()
         {
@@ -394,24 +441,6 @@ namespace HBP.Module3D
             {
                 m_Columns[c].ResetSplitsNumber(nbSplits);
             }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="color"></param>
-        public void UpdateColormap(ColorType color)
-        {
-            Colormap = color;
-            DLL.Texture tex = DLL.Texture.Generate1DColorTexture(Colormap);
-            tex.UpdateTexture2D(BrainColorMapTexture);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="color"></param>
-        public void UpdateBrainCutColor(ColorType color)
-        {
-            BrainCutColor = color;
         }
         /// <summary>
         /// 
