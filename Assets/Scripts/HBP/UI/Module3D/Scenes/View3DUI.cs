@@ -141,13 +141,12 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     }
     public void OnScroll(PointerEventData data)
     {
-        m_View.IsClicked = true;
         m_PointerDownLock = true;
         m_View.ZoomCamera(data.scrollDelta.y);
     }
     public void OnRectTransformDimensionsChange()
     {
-        if (!m_IsInitialized) return;
+        if (!m_IsInitialized) return; // if not initialized, don't do anything
 
         if (Mathf.Abs(m_RectTransform.rect.height - ParentGrid.MinimumViewHeight) <= 0.9f)
         {
@@ -174,6 +173,10 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         if (m_UsingRenderTexture)
         {
             UnityEngine.Profiling.Profiler.BeginSample("RenderTexture");
+            if (m_RectTransform.rect.width <= 0 || m_RectTransform.rect.height <= 0) // If the user drags too fast and width or height are negative or zero, do not continue;
+            {
+                return;
+            }
             RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
             renderTexture.antiAliasing = 1;
             m_View.TargetTexture = renderTexture;

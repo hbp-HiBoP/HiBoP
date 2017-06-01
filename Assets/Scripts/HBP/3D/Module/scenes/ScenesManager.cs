@@ -65,14 +65,6 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Base3DScene> OnChangeSelectedScene = new GenericEvent<Base3DScene>();
         /// <summary>
-        /// Event called when a scene is added
-        /// </summary>
-        public GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
-        /// <summary>
-        /// Event called when a scene is removed
-        /// </summary>
-        public GenericEvent<Base3DScene> OnRemoveScene = new GenericEvent<Base3DScene>();
-        /// <summary>
         /// Event called when the mode specifications are sent
         /// </summary>
         public GenericEvent<ModeSpecifications> OnSendModeSpecifications = new GenericEvent<ModeSpecifications>();
@@ -111,11 +103,11 @@ namespace HBP.Module3D
             else
             {
                 // Add the listeners
-                scene.OnSendModeSpecifications.AddListener(((specs) =>
+                scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
                 {
                     OnSendModeSpecifications.Invoke(specs);
                 }));
-                scene.OnSelectScene.AddListener((selectedScene) =>
+                scene.Events.OnSelectScene.AddListener((selectedScene) =>
                 {
                     Debug.Log("OnSelectScene (ScenesManager)");
                     foreach (Base3DScene s in m_Scenes)
@@ -130,7 +122,7 @@ namespace HBP.Module3D
                 // Add the scene to the list
                 m_Scenes.Add(scene);
                 scene.SelectDefaultView();
-                OnAddScene.Invoke(scene);
+                ApplicationState.Module3D.OnAddScene.Invoke(scene);
             }
             return success;
         }
@@ -152,11 +144,11 @@ namespace HBP.Module3D
             }
             else
             {
-                scene.OnSendModeSpecifications.AddListener(((specs) =>
+                scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
                 {
                     OnSendModeSpecifications.Invoke(specs);
                 }));
-                scene.OnSelectScene.AddListener((selectedScene) =>
+                scene.Events.OnSelectScene.AddListener((selectedScene) =>
                 {
                     Debug.Log("OnSelectScene (ScenesManager)");
                     foreach (Base3DScene s in m_Scenes)
@@ -171,7 +163,7 @@ namespace HBP.Module3D
                 // Add the scene to the list
                 m_Scenes.Add(scene);
                 scene.SelectDefaultView();
-                OnAddScene.Invoke(scene);
+                ApplicationState.Module3D.OnAddScene.Invoke(scene);
             }
             return success;
         }
@@ -181,8 +173,8 @@ namespace HBP.Module3D
         /// <param name="scene"></param>
         public void RemoveScene(Base3DScene scene)
         {
+            ApplicationState.Module3D.OnRemoveScene.Invoke(scene);
             Destroy(scene.gameObject);
-            OnRemoveScene.Invoke(scene);
             m_Scenes.Remove(scene);
         }
         #endregion

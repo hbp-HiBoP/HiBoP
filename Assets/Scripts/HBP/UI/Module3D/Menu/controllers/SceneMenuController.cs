@@ -284,7 +284,7 @@ namespace HBP.Module3D
             m_sceneMenu = generate_menu();
 
             // listeners
-            m_scene.OnIRMCalValuesUpdate.AddListener((IRMCalValues) =>
+            m_scene.Events.OnIRMCalValuesUpdate.AddListener((IRMCalValues) =>
             {
                 m_sceneMenu.GetComponent<SceneMenu>().updateUIValuesFromScene(IRMCalValues);
             });

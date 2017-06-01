@@ -33,7 +33,7 @@ namespace HBP.Module3D.Cam
 
             int layer = 0;
             layer |= 1 << LayerMask.NameToLayer(ColumnLayer);
-            layer |= 1 << LayerMask.NameToLayer("Meshes_SP");
+            layer |= 1 << LayerMask.NameToLayer("Default");
             m_EEGCullingMask = FMRICullingMask = layer;
             MinimizedCullingMask = 0;
 
@@ -56,7 +56,7 @@ namespace HBP.Module3D.Cam
 
 
             // listeners
-            m_AssociatedScene.OnModifyPlanesCuts.AddListener(() =>
+            m_AssociatedScene.Events.OnModifyPlanesCuts.AddListener(() =>
             {
                 if (!m_AssociatedScene.SceneInformation.MRILoaded)
                     return;
@@ -69,7 +69,7 @@ namespace HBP.Module3D.Cam
                     Vector3 normal = m_AssociatedScene.Cuts[ii].Normal;
                     normal.x *= -1;
                     Quaternion q = Quaternion.FromToRotation(new Vector3(0, 0, 1), normal);
-                    m_PlanesCutsCirclesVertices.Add(Geometry.Create3DCirclePoints(new Vector3(0,0,0), 100, 150));
+                    m_PlanesCutsCirclesVertices.Add(Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), 100, 150));
                     for (int jj = 0; jj < 150; ++jj)
                     {
                         m_PlanesCutsCirclesVertices[ii][jj] = q * m_PlanesCutsCirclesVertices[ii][jj];
@@ -99,7 +99,7 @@ namespace HBP.Module3D.Cam
                     MoveForward(m_ZoomSpeed);
             }
         }
-        
+
         public void LateUpdate()
         {
             // if mouse not in the screen, abort

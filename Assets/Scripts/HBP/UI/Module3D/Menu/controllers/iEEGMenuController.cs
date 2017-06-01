@@ -660,7 +660,7 @@ namespace HBP.UI.Module3D
             m_iEEGMenuList.Add(generate_menu(0));
 
             // listeners
-            m_scene.OnSendIEEGParameters.AddListener((iEEGDataParams) =>
+            m_scene.Events.OnSendIEEGParameters.AddListener((iEEGDataParams) =>
             {
                 m_iEEGMenuList[iEEGDataParams.columnId].GetComponent<iEEGMenu>().update_UI_iEEG_data_from_scene(iEEGDataParams);
             });

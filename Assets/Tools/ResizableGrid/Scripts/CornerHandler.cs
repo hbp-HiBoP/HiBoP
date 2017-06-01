@@ -21,6 +21,7 @@ namespace Tools.Unity.ResizableGrid
         #region Private Methods
         private void Awake()
         {
+            Initialize();
             m_Cursor = Resources.Load("Cursor/corner") as Texture2D;
             m_CursorHotSpot = new Vector2(11, 13);
         }

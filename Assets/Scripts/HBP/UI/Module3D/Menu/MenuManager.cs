@@ -34,7 +34,7 @@ namespace HBP.UI.Module3D
         {            
             int idScript = TimeExecution.ID;
             TimeExecution.StartAwake(idScript, TimeExecution.ScriptsId.UICameraManager);
-            m_topPanelMenuController = GameObject.Find("Tools Menu").GetComponent<ToolsMenu>();
+            //m_topPanelMenuController = GameObject.Find("Tools Menu").GetComponent<ToolsMenu>();
             //m_buttonsLeftMenuController = transform.FindChild("Left").Find("button menu parent").gameObject.GetComponent<ButtonsLeftMenuController>();        
             TimeExecution.EndAwake(idScript, TimeExecution.ScriptsId.UICameraManager, gameObject);
         }
@@ -53,7 +53,6 @@ namespace HBP.UI.Module3D
             //m_buttonsLeftMenuController.GlobalMenuController.Initialize(scenesManager);
             //m_buttonsLeftMenuController.SinglePatientLeftMenuController.Initialize(scenesManager);
             //m_buttonsLeftMenuController.MultiPatientsLeftMenuController.Initialize(scenesManager);
-            m_topPanelMenuController.Initialize();
             //m_scenesRatioController.Initialize(scenesManager);
             //m_buttonsLeftMenuController.Initialize(scenesManager);            
         }

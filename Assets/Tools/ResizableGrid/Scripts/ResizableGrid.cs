@@ -139,6 +139,11 @@ namespace Tools.Unity.ResizableGrid
             }
         }
 
+        /// <summary>
+        /// True if a handler is selected for a drag (to prevent updating the cursor)
+        /// </summary>
+        public bool IsHandlerClicked { get; set; }
+
         public GameObject ViewPrefab;
         public GameObject ColumnPrefab;
         public GameObject VerticalHandlerPrefab;
@@ -362,7 +367,9 @@ namespace Tools.Unity.ResizableGrid
         /// <param name="column">Column to be removed</param>
         public void RemoveColumn(Column column)
         {
-            if (ColumnNumber > 1 && column != null)
+            if (!column) return;
+
+            if (ColumnNumber > 1)
             {
                 int columnCornerHandlerIndex = m_Columns.FindIndex((c) => { return c == column; }) - 1;
 

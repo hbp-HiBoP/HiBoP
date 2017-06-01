@@ -68,6 +68,9 @@ namespace HBP.Module3D
             }
         }
 
+        public const int MAXIMUM_VIEW_NUMBER = 5;
+        public const int MAXIMUM_COLUMN_NUMBER = 5;
+
         /// <summary>
         /// List of all the loaded visualizations
         /// </summary>
@@ -104,9 +107,25 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Data.Visualization.Visualization> OnRemoveVisualization = new GenericEvent<Data.Visualization.Visualization>();
         /// <summary>
+        /// Event called when a scene is added
+        /// </summary>
+        public GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
+        /// <summary>
+        /// Event called when a scene is removed
+        /// </summary>
+        public GenericEvent<Base3DScene> OnRemoveScene = new GenericEvent<Base3DScene>();
+        /// <summary>
         /// Event called when changing the selected scene
         /// </summary>
         public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
+        /// <summary>
+        /// Event called when changing the selected column
+        /// </summary>
+        public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        /// <summary>
+        /// Event called when changing the selected view
+        /// </summary>
+        public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
         #endregion
 
         #region Private Methods
@@ -114,11 +133,11 @@ namespace HBP.Module3D
         {
             // Scene Manager
             m_ScenesManager = transform.GetComponentInChildren<ScenesManager>();
-            m_ScenesManager.OnAddScene.AddListener((scene) =>
+            OnAddScene.AddListener((scene) =>
             {
                 OnAddVisualization.Invoke(scene.Visualization);
             });
-            m_ScenesManager.OnRemoveScene.AddListener((scene) =>
+            OnRemoveScene.AddListener((scene) =>
             {
                 OnRemoveVisualization.Invoke(scene.Visualization);
             });
@@ -148,7 +167,7 @@ namespace HBP.Module3D
             {
                 // Add listeners to last added scene
                 SinglePatient3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as SinglePatient3DScene;
-                lastAddedScene.OnRequestSiteInformation.AddListener((siteRequest) =>
+                lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
                 {
                     OnRequestSiteInformation.Invoke(siteRequest);
                 });
@@ -176,7 +195,7 @@ namespace HBP.Module3D
             {
                 // Add listener to last added scene
                 MultiPatients3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as MultiPatients3DScene;
-                lastAddedScene.OnRequestSiteInformation.AddListener((siteRequest) =>
+                lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
                 {
                     OnRequestSiteInformation.Invoke(siteRequest);
                 });

@@ -22,7 +22,7 @@ namespace HBP.Module3D
     public class SceneStatesInfo
     {
         public enum MeshPart { Left, Right, Both, None };
-        public enum MeshType { Hemi, White, Inflated };
+        public enum MeshType { Grey, White, Inflated };
 
         #region Properties
         // mutex
@@ -39,7 +39,7 @@ namespace HBP.Module3D
         public bool MeshesLoaded = false;    /**< meshes have been loaded */
         public bool MRILoaded = false;    /**< volume has been loaded */
         public bool CollidersUpdated = false;/**< colluders are up to date */
-        public bool HemiMeshesAvailables = false;    /**< hemi meshes are availables */
+        public bool GreyMeshesAvailables = false;    /**< hemi meshes are availables */
         public bool WhiteMeshesAvailables = false;    /**< white meshes are availables */
         public bool WhiteInflatedMeshesAvailables = false; /**< white inflated meshes are availables */
         // parameters
@@ -50,7 +50,7 @@ namespace HBP.Module3D
 
         // surface
         public MeshPart MeshPartToDisplay = MeshPart.Both; /**< mesh part to be displayed in the scene */
-        public MeshType MeshTypeToDisplay = MeshType.Hemi; /**< mesh type to be displayed in the scene */
+        public MeshType MeshTypeToDisplay = MeshType.Grey; /**< mesh type to be displayed in the scene */
         public DLL.Surface MeshToDisplay = null; /**< reference of the mesh to be displayed */
         public Vector3 MeshCenter = new Vector3(0, 0, 0); /**< center of the loaded mesh */
 
@@ -78,7 +78,7 @@ namespace HBP.Module3D
             MeshesLoaded = false;
             MRILoaded = false; 
             CollidersUpdated = false;
-            HemiMeshesAvailables = false;
+            GreyMeshesAvailables = false;
             WhiteMeshesAvailables = false; 
             WhiteInflatedMeshesAvailables = false;            
 

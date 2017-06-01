@@ -79,11 +79,46 @@ namespace HBP.Module3D
         }
 
         public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
+        /// <summary>
+        /// Event called when adding a column
+        /// </summary>
+        public UnityEvent OnAddColumn = new UnityEvent();
+        /// <summary>
+        /// Event called when removing a column
+        /// </summary>
+        public GenericEvent<Column3D> OnRemoveColumn = new GenericEvent<Column3D>();
+        /// <summary>
+        /// Event called when adding a line of views
+        /// </summary>
+        public UnityEvent OnAddViewLine = new UnityEvent();
+        /// <summary>
+        /// Event called when removing a line of views
+        /// </summary>
+        public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
 
         List<Column3D> m_Columns = new List<Column3D>();
         public ReadOnlyCollection<Column3D> Columns { get { return m_Columns != null ? new ReadOnlyCollection<Column3D>(m_Columns) : new ReadOnlyCollection<Column3D>(new List<Column3D>(0)); } }
         public ReadOnlyCollection<Column3DIEEG> ColumnsIEEG { get { return m_Columns != null ? new ReadOnlyCollection<Column3DIEEG>((from column in m_Columns where column is Column3DIEEG select (Column3DIEEG)column).ToArray()) : new ReadOnlyCollection<Column3DIEEG>(new List<Column3DIEEG>(0)); } }
         public ReadOnlyCollection<Column3DFMRI> ColumnsFMRI { get { return m_Columns != null ? new ReadOnlyCollection<Column3DFMRI>((from column in m_Columns where column is Column3DFMRI select (Column3DFMRI)column).ToArray()) : new ReadOnlyCollection<Column3DFMRI>(new List<Column3DFMRI>(0)); } }
+
+        /// <summary>
+        /// Maximum number of view in a column
+        /// </summary>
+        public int ViewNumber
+        {
+            get
+            {
+                int viewNumber = 0;
+                foreach (Column3D column in m_Columns)
+                {
+                    if (column.Views.Count > viewNumber)
+                    {
+                        viewNumber = column.Views.Count;
+                    }
+                }
+                return viewNumber;
+            }
+        }
 
         // plots
         public DLL.RawSiteList DLLLoadedRawSitesList = null;
@@ -148,9 +183,56 @@ namespace HBP.Module3D
 
 
         // textures
-        public ColorType BrainColor = ColorType.BrainColor;
-        public ColorType BrainCutColor = ColorType.Default;
-        public ColorType Colormap = ColorType.MatLab; // TO move
+        private ColorType m_BrainColor = ColorType.BrainColor;
+        /// <summary>
+        /// Brain surface color
+        /// </summary>
+        public ColorType BrainColor
+        {
+            get
+            {
+                return m_BrainColor;
+            }
+            set
+            {
+                m_BrainColor = value;
+            }
+        }
+
+        private ColorType m_BrainCutColor = ColorType.Default;
+        /// <summary>
+        /// Brain cut color
+        /// </summary>
+        public ColorType BrainCutColor
+        {
+            get
+            {
+                return m_BrainCutColor;
+            }
+            set
+            {
+                m_BrainCutColor = value;
+            }
+        }
+
+        private ColorType m_Colormap = ColorType.MatLab;
+        /// <summary>
+        /// Colormap
+        /// </summary>
+        public ColorType Colormap
+        {
+            get
+            {
+                return m_Colormap;
+            }
+            set
+            {
+                m_Colormap = value;
+                DLL.Texture tex = DLL.Texture.Generate1DColorTexture(Colormap);
+                tex.UpdateTexture2D(BrainColorMapTexture);
+            }
+        }
+
         public Texture2D BrainColorMapTexture = null;
         public Texture2D BrainColorTexture = null;
 
@@ -168,12 +250,8 @@ namespace HBP.Module3D
             BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
             BrainColorTexture = Texture2Dutility.GenerateColorScheme();
         }
-        private void LateUpdate()
-        {
-            SynchronizeViewsToSelectedView();
-        }
         /// <summary>
-        /// 
+        /// Add a IEEG column to this scene
         /// </summary>
         private void AddIEEGColumn()
         {
@@ -200,10 +278,15 @@ namespace HBP.Module3D
                 }
                 OnSelectColumnManager.Invoke(this);
             });
+            column.OnMoveView.AddListener((view) =>
+            {
+                SynchronizeViewsToReferenceView(view);
+            });
             m_Columns.Add(column);
+            OnAddColumn.Invoke();
         }
         /// <summary>
-        /// 
+        /// Add a FMRI Column to this scene
         /// </summary>
         private void AddFMRIColumn()
         {
@@ -231,9 +314,10 @@ namespace HBP.Module3D
                 OnSelectColumnManager.Invoke(this);
             });
             m_Columns.Add(column);
+            OnAddColumn.Invoke();
         }
         /// <summary>
-        /// 
+        /// Remove the last IEEG Column of this scene
         /// </summary>
         private void RemoveIEEGColumn()
         {
@@ -243,10 +327,11 @@ namespace HBP.Module3D
                 int columnID = m_Columns.IndexOf(column);
                 Destroy(m_Columns[columnID]);
                 m_Columns.RemoveAt(columnID);
+                OnRemoveColumn.Invoke(column);
             }
         }
         /// <summary>
-        /// 
+        /// Remove the last FMRI Column of this scene
         /// </summary>
         private void RemoveFMRIColumn()
         {
@@ -256,23 +341,21 @@ namespace HBP.Module3D
                 int columnID = m_Columns.IndexOf(column);
                 Destroy(m_Columns[columnID]);
                 m_Columns.RemoveAt(columnID);
+                OnRemoveColumn.Invoke(column);
             }
         }
         /// <summary>
         /// Synchronize all the cameras from the same view line
         /// </summary>
-        private void SynchronizeViewsToSelectedView()
+        private void SynchronizeViewsToReferenceView(View3D referenceView)
         {
-            if (ClickedView != null)
+            foreach (Column3D column in Columns)
             {
-                foreach (Column3D column in Columns)
+                foreach (View3D view in column.Views)
                 {
-                    foreach (View3D view in column.Views)
+                    if (view.LineID == referenceView.LineID)
                     {
-                        if (view.LineID == ClickedView.LineID)
-                        {
-                            view.SynchronizeCamera(SelectedView);
-                        }
+                        view.SynchronizeCamera(referenceView);
                     }
                 }
             }
@@ -362,24 +445,6 @@ namespace HBP.Module3D
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="color"></param>
-        public void UpdateColormap(ColorType color)
-        {
-            Colormap = color;
-            DLL.Texture tex = DLL.Texture.Generate1DColorTexture(Colormap);
-            tex.UpdateTexture2D(BrainColorMapTexture);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="color"></param>
-        public void UpdateBrainCutColor(ColorType color)
-        {
-            BrainCutColor = color;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
         public void ResetColors()
         {
             for (int ii = 0; ii < m_Columns.Count; ++ii)
@@ -436,7 +501,7 @@ namespace HBP.Module3D
         /// <param name="nbIEEGColumns"></param>
         /// /// <param name="nbIRMFColumns"></param>
         /// <param name="nbCuts"></param>
-        public void UpdateColumnsNumber(int nbIEEGColumns, int nbIRMFColumns, int nbCuts)
+        public void UpdateColumnsNumber(int nbIEEGColumns, int nbIRMFColumns, int nbCuts) //FIXME : rework this function (make it disappear and only use add columns methods)
         {            
             // clean data columns if changes in data columns nb
             if (nbIEEGColumns != ColumnsIEEG.Count)
@@ -761,6 +826,29 @@ namespace HBP.Module3D
         public void UpdateSitesVisibility(bool visible)
         {
             foreach (var column in m_Columns) column.SetSitesVisibility(visible);
+        }
+        /// <summary>
+        /// Add a view to every columns
+        /// </summary>
+        public void AddViewLine()
+        {
+            foreach (Column3D column in m_Columns)
+            {
+                column.AddView();
+            }
+            OnAddViewLine.Invoke();
+        }
+        /// <summary>
+        /// Remove a view from every columns
+        /// </summary>
+        /// <param name="lineID">ID of the line of the view to be removed</param>
+        public void RemoveViewLine(int lineID)
+        {
+            foreach (Column3D column in m_Columns)
+            {
+                column.RemoveView(lineID);
+            }
+            OnRemoveViewLine.Invoke(ViewNumber);
         }
         #endregion
     }

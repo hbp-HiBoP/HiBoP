@@ -54,9 +54,8 @@ namespace HBP.Module3D
             }
             set
             {
-                bool wasSelected = m_IsSelected;
                 m_IsSelected = value;
-                if (m_IsSelected && !wasSelected)
+                if (m_IsSelected)
                 {
                     OnSelectColumn.Invoke(this);
                 }
@@ -139,6 +138,10 @@ namespace HBP.Module3D
         /// Event called when this column is selected
         /// </summary>
         public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        /// <summary>
+        /// Event called when a view is moved
+        /// </summary>
+        public GenericEvent<View3D> OnMoveView = new GenericEvent<View3D>();
         #endregion
 
         #region Public Methods
@@ -147,16 +150,12 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="idColumn"></param>
         /// <param name="nbCuts"></param>
-        /// <param name="plots"></param>
+        /// <param name="sites"></param>
         /// <param name="plotsGO"></param>
-        public virtual void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList plots, List<GameObject> PlotsPatientParent)
+        public virtual void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList sites, List<GameObject> sitesPatientParent)
         {
             // scene
-            Layer = "C" + idColumn + "_";
-            if (transform.GetComponentInParent<Base3DScene>().Type == SceneType.SinglePatient)
-                Layer += "SP";
-            else
-                Layer += "MP";
+            Layer = "C" + idColumn;
 
             // select ring
             m_SelectRing = gameObject.GetComponentInChildren<SiteRing>();
@@ -164,18 +163,19 @@ namespace HBP.Module3D
 
             // plots
             m_RawElectrodes = new DLL.RawSiteList();
-            plots.ExtractRawSiteList(m_RawElectrodes);
+            sites.ExtractRawSiteList(m_RawElectrodes);
 
             GameObject patientPlotsParent = transform.Find("Sites").gameObject;
 
-            SitesGameObjects = new List<List<List<GameObject>>>(PlotsPatientParent.Count);
-            Sites = new List<Site>(plots.TotalSitesNumber);
-            for (int ii = 0; ii < PlotsPatientParent.Count; ++ii)
+            SitesGameObjects = new List<List<List<GameObject>>>(sitesPatientParent.Count);
+            Sites = new List<Site>(sites.TotalSitesNumber);
+            for (int ii = 0; ii < sitesPatientParent.Count; ++ii)
             {
                 // instantiate patient plots
-                GameObject patientPlots = Instantiate(PlotsPatientParent[ii]);
+                GameObject patientPlots = Instantiate(sitesPatientParent[ii]);
                 patientPlots.transform.SetParent(patientPlotsParent.transform);
-                patientPlots.name = PlotsPatientParent[ii].name;
+                patientPlots.transform.localPosition = Vector3.zero;
+                patientPlots.name = sitesPatientParent[ii].name;
 
                 SitesGameObjects.Add(new List<List<GameObject>>(patientPlots.transform.childCount));
                 for (int jj = 0; jj < patientPlots.transform.childCount; ++jj)
@@ -194,7 +194,7 @@ namespace HBP.Module3D
                         Sites[id].Information.IsInROI = false; // FIXME : initially not in a ROI in MPScene, but also in SPScene if we decide to use ROI in sp
                         Sites[id].Information.IsMasked = false;
                         Sites[id].Information.IsBlackListed = false;
-                        Sites[id].IsActive = false; // FIXME : see above, opposite
+                        Sites[id].IsActive = true; // FIXME : see above, opposite
                     }
                 }
             }
@@ -509,6 +509,10 @@ namespace HBP.Module3D
                 }
                 IsSelected = true;
             });
+            view.OnMoveView.AddListener(() =>
+            {
+                OnMoveView.Invoke(view);
+            });
             if (IsSelected)
             {
                 view.IsColumnSelected = true;
@@ -518,10 +522,10 @@ namespace HBP.Module3D
         /// <summary>
         /// 
         /// </summary>
-        public void RemoveView()
+        public void RemoveView(int lineID)
         {
-            Destroy(m_Views[m_Views.Count - 1].gameObject);
-            m_Views.RemoveAt(m_Views.Count - 1);
+            Destroy(m_Views[lineID].gameObject);
+            m_Views.RemoveAt(lineID);
         }
         /// <summary>
         /// 

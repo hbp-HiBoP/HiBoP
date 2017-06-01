@@ -159,9 +159,9 @@ namespace HBP.Module3D
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
             m_AssociatedScene = GetComponentInParent<Base3DScene>();
             m_AssociatedView = GetComponentInParent<View3D>();
-            m_Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center;
+            m_Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center + m_AssociatedView.transform.position;
             m_OriginalTarget = m_Target;
-            transform.localPosition = m_Target - transform.forward * m_StartDistance;
+            transform.position = m_Target - transform.forward * m_StartDistance;
 
             // rotation circles
             m_XRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
@@ -175,7 +175,7 @@ namespace HBP.Module3D
         }
         private void Start()
         {
-            m_AssociatedScene.OnModifyPlanesCuts.AddListener(() =>
+            m_AssociatedScene.Events.OnModifyPlanesCuts.AddListener(() =>
             {
                 if (!m_AssociatedScene.SceneInformation.MRILoaded)
                     return;
@@ -201,7 +201,7 @@ namespace HBP.Module3D
                 m_DisplayCutsCircles = true;
             });
 
-            m_AssociatedScene.OnUpdateCameraTarget.AddListener((target) =>
+            m_AssociatedScene.Events.OnUpdateCameraTarget.AddListener((target) =>
             {
                 m_OriginalTarget = target;
                 m_Target = target;
@@ -375,10 +375,18 @@ namespace HBP.Module3D
         /// <param name="amount">Distance</param>
         public void Zoom(float amount)
         {
-            float distance = Vector3.Distance(transform.position, m_Target) + amount;
+            float distance = Vector3.Distance(transform.position, m_Target) - amount;
             if (distance > m_MinDistance && distance < m_MaxDistance)
             {
                 transform.position += transform.forward * amount;
+            }
+            else if (distance >= m_MaxDistance)
+            {
+                transform.position = m_Target - transform.forward * m_MaxDistance;
+            }
+            else if (distance <= m_MinDistance)
+            {
+                transform.position = m_Target - transform.forward * m_MinDistance;
             }
         }
         /// <summary>

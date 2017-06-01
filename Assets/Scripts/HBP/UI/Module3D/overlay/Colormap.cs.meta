@@ -1,0 +1,30 @@
+fileFormatVersion: 2
+guid: a1d937d3b052f4c49b049f308330e4d2
+timeCreated: 1496310794
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - Colormap0: {fileID: 21300000, guid: 6ce7493c86e49b945a450fd508288dcf, type: 3}
+  - Colormap1: {fileID: 21300000, guid: 700043465a1933544a5b01306ad98001, type: 3}
+  - Colormap2: {fileID: 21300000, guid: 29cbc18f5a1f05d42a2ea14f1a054343, type: 3}
+  - Colormap3: {fileID: 21300000, guid: 9c36f4d5763c7f6458830df2cee84ab2, type: 3}
+  - Colormap4: {fileID: 21300000, guid: 3f273a8be82e2c54ba23c5d2380e3765, type: 3}
+  - Colormap5: {fileID: 21300000, guid: c042f4a14e9f9bf47b6a796083fb88e9, type: 3}
+  - Colormap6: {fileID: 21300000, guid: 2d603592a40762949a7de975ae85af80, type: 3}
+  - Colormap7: {fileID: 21300000, guid: 049cc2204de7f624c9c183242814e334, type: 3}
+  - Colormap8: {fileID: 21300000, guid: 50fa5693154665c4f882fcdde9b2b71f, type: 3}
+  - Colormap9: {fileID: 21300000, guid: f4048ed0551687546944a6b258abb6c6, type: 3}
+  - Colormap10: {fileID: 21300000, guid: ee3209661ce8a5c4985c732c38ae1fec, type: 3}
+  - Colormap11: {fileID: 21300000, guid: dbc166eac1bb9a14fa7877a4a7a582ca, type: 3}
+  - Colormap12: {fileID: 21300000, guid: a0abf55feb3e0c04281b4274f971022e, type: 3}
+  - Colormap13: {fileID: 21300000, guid: 235909a77bd22974e8570d25dd5e736c, type: 3}
+  - Colormap14: {fileID: 21300000, guid: 687e91b3c15a96d449936a1092c24fa9, type: 3}
+  - Colormap15: {fileID: 21300000, guid: 7cf48bb30aaf4f142af0ace6eee77cf3, type: 3}
+  - Colormap16: {fileID: 21300000, guid: ba54d1caad784f94d9b8e9067e58ed24, type: 3}
+  - Colormap17: {fileID: 21300000, guid: f5e5255cb073b46469dc40ae1678f2aa, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

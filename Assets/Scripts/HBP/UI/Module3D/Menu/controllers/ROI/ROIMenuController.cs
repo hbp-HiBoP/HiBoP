@@ -66,7 +66,7 @@ namespace HBP.Module3D
             add_menu();
 
 
-            m_scene.OnAskRegionOfInterestUpdate.AddListener((idColumn) =>
+            m_scene.Events.OnAskRegionOfInterestUpdate.AddListener((idColumn) =>
             {
                 if (idColumn == -1)
                 {

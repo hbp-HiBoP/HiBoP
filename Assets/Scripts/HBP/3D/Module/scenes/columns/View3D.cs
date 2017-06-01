@@ -21,22 +21,11 @@ namespace HBP.Module3D
                 return m_Camera3D.Camera;
             }
         }
-
-        private bool m_IsColumnSelected = false;
+        
         /// <summary>
         /// True if any view of the column this view belongs to is selected
         /// </summary>
-        public bool IsColumnSelected
-        {
-            get
-            {
-                return m_IsColumnSelected;
-            }
-            set
-            {
-                m_IsColumnSelected = value;
-            }
-        }
+        public bool IsColumnSelected { get; set; }
 
         private bool m_IsSelected = false;
         /// <summary>
@@ -50,9 +39,8 @@ namespace HBP.Module3D
             }
             set
             {
-                bool wasSelected = m_IsSelected;
                 m_IsSelected = value;
-                if (m_IsSelected && !wasSelected)
+                if (m_IsSelected)
                 {
                     OnSelectView.Invoke(this);
                 }
@@ -106,36 +94,6 @@ namespace HBP.Module3D
         /// </summary>
         public int LineID { get; set; }
 
-        protected Color m_ClickedColor = new Color(0.30f, 0.33f, 0.43f);
-        /// <summary>
-        /// Color of the background when the view is clicked
-        /// </summary>
-        public Color ClickedColor
-        {
-            get { return m_ClickedColor; }
-            set { m_ClickedColor = value; }
-        }
-
-        protected Color m_SelectedColor = new Color(0.35f, 0.38f, 0.48f);
-        /// <summary>
-        /// Color of the background when the view is selected
-        /// </summary>
-        public Color SelectedColor
-        {
-            get { return m_SelectedColor; }
-            set { m_SelectedColor = value; }
-        }
-        
-        protected Color m_RegularColor = new Color(0.65f, 0.65f, 0.65f);
-        /// <summary>
-        /// Color of the background when the view is not selected
-        /// </summary>
-        public Color RegularColor
-        {
-            get { return m_RegularColor; }
-            set { m_RegularColor = value; }
-        }
-
         /// <summary>
         /// Start or stop the automatic rotation of the camera of this view
         /// </summary>
@@ -152,9 +110,24 @@ namespace HBP.Module3D
         }
 
         /// <summary>
+        /// Automatic rotation speed
+        /// </summary>
+        public float AutomaticRotationSpeed
+        {
+            get
+            {
+                return m_Camera3D.AutomaticRotationSpeed;
+            }
+            set
+            {
+                m_Camera3D.AutomaticRotationSpeed = value;
+            }
+        }
+
+        /// <summary>
         /// Set the edge mode
         /// </summary>
-        public bool EdgesMode
+        public bool EdgeMode
         {
             get
             {
@@ -183,6 +156,10 @@ namespace HBP.Module3D
             }
             set
             {
+                if (m_Camera3D.Camera.targetTexture)
+                {
+                    m_Camera3D.Camera.targetTexture.Release();
+                }
                 m_Camera3D.Camera.targetTexture = value;
             }
         }
@@ -227,6 +204,10 @@ namespace HBP.Module3D
         /// Event called when we select this view
         /// </summary>
         public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
+        /// <summary>
+        /// Event called when the camera is moved (rotation, strafe, zoom)
+        /// </summary>
+        public UnityEvent OnMoveView = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -241,10 +222,10 @@ namespace HBP.Module3D
             switch (GetComponentInParent<Base3DScene>().Type)
             {
                 case SceneType.SinglePatient:
-                    layer |= 1 << LayerMask.NameToLayer("Meshes_SP");
+                    layer |= 1 << LayerMask.NameToLayer("Default");
                     break;
                 case SceneType.MultiPatients:
-                    layer |= 1 << LayerMask.NameToLayer("Meshes_MP");
+                    layer |= 1 << LayerMask.NameToLayer("Default");
                     break;
                 default:
                     break;
@@ -263,7 +244,7 @@ namespace HBP.Module3D
         }
         private void Update()
         {
-            m_Camera3D.Camera.backgroundColor = IsClicked ? m_ClickedColor : ((IsSelected || IsColumnSelected) ? m_SelectedColor : m_RegularColor);
+            m_Camera3D.Camera.backgroundColor = IsClicked ? ApplicationState.Theme.Color.ClickedViewColor : ((IsSelected || IsColumnSelected) ? ApplicationState.Theme.Color.SelectedViewColor : ApplicationState.Theme.Color.RegularViewColor);
         }
         #endregion
 
@@ -294,6 +275,7 @@ namespace HBP.Module3D
         {
             m_Camera3D.HorizontalRotation(amount.x);
             m_Camera3D.VerticalRotation(amount.y);
+            OnMoveView.Invoke();
         }
         /// <summary>
         /// Strafe the camera
@@ -303,6 +285,7 @@ namespace HBP.Module3D
         {
             m_Camera3D.HorizontalStrafe(amount.x);
             m_Camera3D.VerticalStrafe(amount.y);
+            OnMoveView.Invoke();
         }
         /// <summary>
         /// Zoom with the camera
@@ -311,6 +294,7 @@ namespace HBP.Module3D
         public void ZoomCamera(float amount)
         {
             m_Camera3D.Zoom(3*amount);
+            OnMoveView.Invoke();
         }
         #endregion
     }
