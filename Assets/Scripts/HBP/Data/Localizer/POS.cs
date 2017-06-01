@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.IO;
+using System.Collections.Generic;
 
 namespace HBP.Data.Localizer
 {
@@ -13,6 +14,17 @@ namespace HBP.Data.Localizer
 		#region Constructor
 		public POS(string filePath)
 		{
+            filePath = null;
+            if (filePath != null)
+            {
+                UnityEngine.Debug.Log("la");
+            }
+            else
+            {
+                UnityEngine.Debug.Log("ArgumentNullException");
+                throw new ArgumentNullException("filePath");
+            }
+
             // instantiate the dictionary
             IndexSampleByCode = new Dictionary<int,List<int>>();
 
@@ -27,7 +39,7 @@ namespace HBP.Data.Localizer
 			foreach(string line in lines)
 			{
 				// Splite the line
-				string[] lineElements = line.Split('	');
+				string[] lineElements = line.Split(new char[]{' ','\t'},System.StringSplitOptions.RemoveEmptyEntries);
 				if(lineElements.Length == 3)
 				{
 					nSample = int.Parse(lineElements[0]);

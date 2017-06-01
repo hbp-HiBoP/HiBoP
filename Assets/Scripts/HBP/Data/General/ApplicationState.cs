@@ -44,5 +44,13 @@ public static class ApplicationState
     /// </summary>
     public static HBP.Module3D.DLL.DLLDebugManager DLLDebugManager { get; set; }
 
+    /// <summary>
+    /// Dialog box manager.
+    /// </summary>
     public static Tools.Unity.DialogBoxManager DialogBoxManager { get; set; }
+
+    /// <summary>
+    /// Loading circle manager.
+    /// </summary>
+    public static LoadingManager LoadingManager { get; set; }
 }

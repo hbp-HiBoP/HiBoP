@@ -15,5 +15,6 @@ public class ApplicationManager : MonoBehaviour
         ApplicationState.Module3D = FindObjectOfType<HBP.Module3D.HBP3DModule>();
         ApplicationState.DLLDebugManager = FindObjectOfType<HBP.Module3D.DLL.DLLDebugManager>();
         ApplicationState.DialogBoxManager = FindObjectOfType<DialogBoxManager>();
+        ApplicationState.LoadingManager = FindObjectOfType<LoadingManager>();
     }
 }

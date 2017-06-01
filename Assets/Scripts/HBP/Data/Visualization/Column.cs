@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using HBP.Data.Anatomy;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
@@ -120,22 +120,22 @@ namespace HBP.Data.Visualization
         /// <param name="data"></param>
         public void Load(IEnumerable<Experience.Dataset.Data> data)
         {
-            Dictionary<Experience.Dataset.Data, Localizer.Bloc> BlocByData = new Dictionary<Experience.Dataset.Data, Localizer.Bloc>();
+            Dictionary<Experience.Dataset.Data, Localizer.Bloc> blocByData = new Dictionary<Experience.Dataset.Data, Localizer.Bloc>();
             foreach (var d in data)
             {
                 Experience.EpochedData epochedData = new Experience.EpochedData(Bloc, d);
-                BlocByData.Add(d,Localizer.Bloc.Average(epochedData.Blocs));
+                blocByData.Add(d,Localizer.Bloc.Average(epochedData.Blocs));
                 foreach (Electrode electrode in d.Patient.Brain.Implantation.Electrodes)
                 {
                     foreach (Site site in electrode.Sites)
                     {
                         SiteConfiguration siteConfiguration = Configuration.ConfigurationByPatient[d.Patient].ConfigurationByElectrode[electrode].ConfigurationBySite[site];
                         siteConfiguration.IsMasked = d.MaskBySite[site];
-                        siteConfiguration.Values = BlocByData[d].ValuesBySite[site];
+                        siteConfiguration.Values = blocByData[d].ValuesBySite[site];
                     }
                 }
             }
-            TimeLine = new Timeline(Bloc.DisplayInformations, new Event(Bloc.MainEvent.Name, (int) Math.Round(BlocByData.Values.Average((b) => b.PositionByEvent[Bloc.MainEvent]))), (from evt in Bloc.SecondaryEvents select new Event(evt.Name, (int) BlocByData.Values.Average((b) => b.PositionByEvent[evt]))).ToArray(), data.Average((d) => d.Frequency));
+            TimeLine = new Timeline(Bloc.DisplayInformations, new Event(Bloc.MainEvent.Name, (int) Math.Round(blocByData.Values.Average((b) => b.PositionByEvent[Bloc.MainEvent]))), (from evt in Bloc.SecondaryEvents select new Event(evt.Name, (int) blocByData.Values.Average((b) => b.PositionByEvent[evt]))).ToArray(), data.Average((d) => d.Frequency));
             IconicScenario = new IconicScenario(Bloc, data.Average((d) => d.Frequency), TimeLine);
         }
         /// <summary>

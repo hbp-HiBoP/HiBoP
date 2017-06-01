@@ -22,14 +22,20 @@ namespace HBP.Data.Visualization
     public class PatientConfiguration : ICloneable
     {
         #region Properties
+        [DataMember(Name = "Patient")]
+        string m_PatientID;
+        Patient m_Patient;
+
+        [DataMember(Name = "ConfigurationByElectrode")]
+        Dictionary <string, ElectrodeConfiguration> m_ConfigurationByElectrodeName;
         /// <summary>
         /// Configuration of the patient electrodes.
         /// </summary>
-        [DataMember]
+        [IgnoreDataMember]
         public Dictionary<Electrode,ElectrodeConfiguration> ConfigurationByElectrode { get; set; }
 
         [DataMember(Name = "Color")]
-        SerializableColor color;
+        SerializableColor m_Color;
         /// <summary>
         /// Color of the patient.
         /// </summary>
@@ -37,13 +43,15 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public PatientConfiguration(Dictionary<Electrode,ElectrodeConfiguration> configurationByElectrode, Color color)
+        public PatientConfiguration(Dictionary<Electrode,ElectrodeConfiguration> configurationByElectrode, Color color, Patient patient)
         {
+            m_Patient = patient;
             ConfigurationByElectrode = configurationByElectrode;
             Color = color;
         }
-        public PatientConfiguration(Color color) : this(new Dictionary<Electrode, ElectrodeConfiguration>(), color) { }
-        public PatientConfiguration() : this(new Dictionary<Electrode, ElectrodeConfiguration>(), new Color()) { }
+        public PatientConfiguration(Color color, Patient patient) : this(new Dictionary<Electrode, ElectrodeConfiguration>(), color, patient) { }
+        public PatientConfiguration(Patient patient) : this(new Dictionary<Electrode, ElectrodeConfiguration>(), new Color(), patient) { }
+        public PatientConfiguration() : this(new Patient()) { }
         #endregion
 
         #region Public Methods
@@ -54,7 +62,7 @@ namespace HBP.Data.Visualization
             {
                 configurationByElectrodeClone.Add(item.Key, item.Value.Clone() as ElectrodeConfiguration);
             }
-            return new PatientConfiguration(configurationByElectrodeClone, Color);
+            return new PatientConfiguration(configurationByElectrodeClone, Color, m_Patient);
         }
         #endregion
 
@@ -62,12 +70,22 @@ namespace HBP.Data.Visualization
         [OnSerializing]
         void OnSerializing(StreamingContext streamingContext)
         {
-            color = new SerializableColor(Color);
+            m_Color = new SerializableColor(Color);
+            m_PatientID = m_Patient.ID;
+            m_ConfigurationByElectrodeName = new Dictionary<string, ElectrodeConfiguration>();
+            foreach (var pair in ConfigurationByElectrode) m_ConfigurationByElectrodeName.Add(pair.Key.Name, pair.Value);
         }
         [OnDeserialized]
         void OnDeserialized(StreamingContext streamingContext)
         {
-            Color = color.ToColor();
+            Color = m_Color.ToColor();
+            m_Patient = ApplicationState.ProjectLoaded.Patients.First((p) => p.ID == m_PatientID);
+            ConfigurationByElectrode = new Dictionary<Electrode, ElectrodeConfiguration>();
+            foreach (var pair in m_ConfigurationByElectrodeName)
+            {
+                Electrode electrode = m_Patient.Brain.Implantation.Electrodes.First((elec) => elec.Name == pair.Key);
+                ConfigurationByElectrode.Add(electrode, pair.Value);
+            }
         }
         #endregion
     }

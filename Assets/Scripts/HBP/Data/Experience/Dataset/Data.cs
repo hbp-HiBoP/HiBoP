@@ -72,6 +72,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="MNI">\a True if MNI and \a false otherwise.</param>
         public Data(DataInfo info)
         {
+            UnityEngine.Debug.Log("data");
             // Read Elan.
             Elan.ElanFile elanFile = new Elan.ElanFile(info.EEG,true);
 
@@ -92,7 +93,6 @@ namespace HBP.Data.Experience.Dataset
                     }
                 }
             }
-
             POS = new Localizer.POS(info.POS);
             Frequency = elanFile.EEG.SamplingFrequency;
             Patient = info.Patient;

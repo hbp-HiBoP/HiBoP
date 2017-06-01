@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,17 +7,17 @@ public class LoadingCircle : MonoBehaviour
 {
     #region Properties
     [SerializeField]
-    float progress;
+    float m_Progress;
     public float Progress
     {
         get
         {
-            return progress;
+            return m_Progress;
         }
         set
         {
-            progress = value;
-            int percentage = Mathf.FloorToInt(progress * 100.0f);
+            m_Progress = value;
+            int percentage = Mathf.FloorToInt(m_Progress * 100.0f);
             int circles = percentage / 5;
             transform.GetChild(1).GetComponent<Image>().fillAmount = circles * 0.05f;
             string path = "BrainAnim" + System.IO.Path.DirectorySeparatorChar + percentage;
@@ -27,12 +26,12 @@ public class LoadingCircle : MonoBehaviour
         }
     }
 
-    string text;
+    string m_Text;
     public string Text
     {
         get
         {
-            return text;
+            return m_Text;
         }
         set
         {
@@ -40,7 +39,7 @@ public class LoadingCircle : MonoBehaviour
             loading = false;
             transform.GetChild(0).GetChild(0).GetComponent<Text>().text = value;
             transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<Text>().text = "";
-            text = value;
+            m_Text = value;
         }
     }
     bool loading;
@@ -52,9 +51,25 @@ public class LoadingCircle : MonoBehaviour
         Progress = progress;
         Text = text;
     }
+    public void ChangePercentage(float progress, float seconds, string message)
+    {
+        ChangePercentage(m_Progress, progress, seconds);
+        Text = message;
+    }
     public void ChangePercentage(float start, float end, float seconds)
     {
-        StartCoroutine(c_ChangePercentage(start, end, seconds));
+        if(!Mathf.Approximately(start,end))
+        {
+            if(seconds > 0)
+            {
+                StartCoroutine(c_ChangePercentage(start, end, seconds));
+            }
+            else
+            {
+                Progress = end;
+            }
+        }
+
     }
     public void Close()
     {
@@ -75,6 +90,7 @@ public class LoadingCircle : MonoBehaviour
     #region Coroutines
     IEnumerator c_ChangePercentage(float start, float end, float seconds)
     {
+        Debug.Log(start + "  " + end + "  " + seconds);
         float delay = 0.05f;
         int max = Mathf.CeilToInt(seconds / delay);
         float ratio = (end - start) / (max - 1);
@@ -88,7 +104,7 @@ public class LoadingCircle : MonoBehaviour
             {
                 Progress = end;
             }
-            yield return new WaitForSeconds(0.05f);
+            yield return new WaitForSeconds(delay);
         }
     }
     IEnumerator c_Load()

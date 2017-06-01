@@ -1,27 +1,18 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections;
+using UnityEngine.Events;
+using UnityEngine;
 using Tools.Unity;
+using CielaSpike;
 
 namespace HBP.UI.Visualization
 {
     public class VisualizationLoader : MonoBehaviour
     {
-        #region Properties
-        [SerializeField]
-        GameObject m_LoadingCirclePrefab;
-        LoadingCircle m_LoadingCircle;
-        [SerializeField]
-        GameObject m_PopUpPrefab;
-        #endregion
-
         #region Public Methods
         public void Load(Data.Visualization.Visualization visualization)
         {
-            visualization.OnErrorOccur.AddListener((message) => ErrorHandler("Cannot load visualization.",message));
-            visualization.OnChangeLoadingProgress.AddListener((progress, duration, message) => ProgressHandler(progress, duration, message));
-            m_LoadingCircle = Instantiate(m_LoadingCirclePrefab).GetComponent<LoadingCircle>();
-            visualization.Load();
-            Destroy(m_LoadingCircle.gameObject);
-            ApplicationState.Module3D.AddVisualization(visualization);
+            this.StartCoroutineAsync(c_Load(visualization));
         }
         #endregion
 
@@ -37,16 +28,26 @@ namespace HBP.UI.Visualization
             Data.Visualization.SinglePatientVisualization singlePatientVisualization = Data.Visualization.SinglePatientVisualization.LoadFromMultiPatients(visualization, patient);
             ApplicationState.Module3D.AddVisualization(singlePatientVisualization);
         }
-        void ErrorHandler(string title,string message)
+        IEnumerator c_Load(Data.Visualization.Visualization visualization)
         {
-            GameObject popUpGameObject = Instantiate(m_PopUpPrefab);
-            DialogBox popUp = popUpGameObject.GetComponent<DialogBox>();
-            popUp.Open(title,message);
-        }
-        void ProgressHandler(float progress,float duration,string message)
-        {
-            m_LoadingCircle.Text = message;
-            m_LoadingCircle.ChangePercentage(m_LoadingCircle.Progress, progress, duration);
+            yield return Ninja.JumpToUnity;
+            LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
+            UnityAction<float, float, string> OnChangeLoadingProgressAction = new UnityAction<float, float, string>((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
+            visualization.OnChangeLoadingProgress.AddListener(OnChangeLoadingProgressAction);
+            Task loadingTask;
+            yield return this.StartCoroutineAsync(visualization.c_Load(), out loadingTask);
+            switch (loadingTask.State)
+            {
+                case TaskState.Done:
+                    yield return new WaitForSeconds(0.5f);
+                    break;
+                case TaskState.Error:
+                    Exception exception = loadingTask.Exception;
+                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
+                    break;
+            }
+            visualization.OnChangeLoadingProgress.RemoveListener(OnChangeLoadingProgressAction);
+            loadingCircle.Close();
         }
         #endregion
     }

@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections;
+using UnityEngine;
+using CielaSpike;
 
 namespace Tools.Unity
 {
@@ -60,7 +63,7 @@ namespace Tools.Unity
                     break;
             }
             dialogBox.transform.SetAsLastSibling();
-            dialogBox.GetComponent<DialogBox>().Open(title,message);
+            dialogBox.GetComponent<DialogBox>().Open(title, message);
         }
         #endregion
     }
