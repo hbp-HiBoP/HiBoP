@@ -167,7 +167,7 @@ namespace HBP.Module3D
             {
                 // Add listeners to last added scene
                 SinglePatient3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as SinglePatient3DScene;
-                lastAddedScene.OnRequestSiteInformation.AddListener((siteRequest) =>
+                lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
                 {
                     OnRequestSiteInformation.Invoke(siteRequest);
                 });
@@ -195,7 +195,7 @@ namespace HBP.Module3D
             {
                 // Add listener to last added scene
                 MultiPatients3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as MultiPatients3DScene;
-                lastAddedScene.OnRequestSiteInformation.AddListener((siteRequest) =>
+                lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
                 {
                     OnRequestSiteInformation.Invoke(siteRequest);
                 });

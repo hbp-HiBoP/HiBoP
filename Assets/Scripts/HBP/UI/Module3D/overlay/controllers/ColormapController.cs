@@ -66,18 +66,18 @@ namespace HBP.Module3D
 
             // listeners
             //  update colors map values
-            m_SinglePatientScene.OnSendColorMapValues.AddListener((minValue, middle, maxValue, id) =>
-            {
-                m_spColormapOverlayList[id].transform.Find("values panel").Find("minInf text").GetComponent<Text>().text = "" + minValue;
-                m_spColormapOverlayList[id].transform.Find("values panel").Find("mid text").GetComponent<Text>().text = "" + middle;
-                m_spColormapOverlayList[id].transform.Find("values panel").Find("maxInf text").GetComponent<Text>().text = "" + maxValue;
-            });
-            m_MultiPatientsScene.OnSendColorMapValues.AddListener((minValue, middle, maxValue, id) =>
-            {
-                m_mpColormapOverlayList[id].transform.Find("values panel").Find("minInf text").GetComponent<Text>().text = "" + minValue;
-                m_mpColormapOverlayList[id].transform.Find("values panel").Find("mid text").GetComponent<Text>().text = "" + middle;
-                m_mpColormapOverlayList[id].transform.Find("values panel").Find("maxInf text").GetComponent<Text>().text = "" + maxValue;
-            });
+            //m_SinglePatientScene.Events.OnSendColorMapValues.AddListener((minValue, middle, maxValue, id) =>
+            //{
+            //    m_spColormapOverlayList[id].transform.Find("values panel").Find("minInf text").GetComponent<Text>().text = "" + minValue;
+            //    m_spColormapOverlayList[id].transform.Find("values panel").Find("mid text").GetComponent<Text>().text = "" + middle;
+            //    m_spColormapOverlayList[id].transform.Find("values panel").Find("maxInf text").GetComponent<Text>().text = "" + maxValue;
+            //});
+            //m_MultiPatientsScene.Events.OnSendColorMapValues.AddListener((minValue, middle, maxValue, id) =>
+            //{
+            //    m_mpColormapOverlayList[id].transform.Find("values panel").Find("minInf text").GetComponent<Text>().text = "" + minValue;
+            //    m_mpColormapOverlayList[id].transform.Find("values panel").Find("mid text").GetComponent<Text>().text = "" + middle;
+            //    m_mpColormapOverlayList[id].transform.Find("values panel").Find("maxInf text").GetComponent<Text>().text = "" + maxValue;
+            //});
         }
 
         /// <summary>

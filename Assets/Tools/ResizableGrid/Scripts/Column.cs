@@ -46,7 +46,9 @@ namespace Tools.Unity.ResizableGrid
         /// </summary>
         public void AddView()
         {
-            m_Views.Add(Instantiate(m_ViewPrefab, transform).GetComponent<View>());
+            View view = Instantiate(m_ViewPrefab, transform).GetComponent<View>();
+            m_Views.Add(view);
+            view.transform.SetAsFirstSibling();
         }
         /// <summary>
         /// Remove a view from this column

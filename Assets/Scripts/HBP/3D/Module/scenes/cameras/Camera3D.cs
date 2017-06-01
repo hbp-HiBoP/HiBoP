@@ -175,7 +175,7 @@ namespace HBP.Module3D
         }
         private void Start()
         {
-            m_AssociatedScene.OnModifyPlanesCuts.AddListener(() =>
+            m_AssociatedScene.Events.OnModifyPlanesCuts.AddListener(() =>
             {
                 if (!m_AssociatedScene.SceneInformation.MRILoaded)
                     return;
@@ -201,7 +201,7 @@ namespace HBP.Module3D
                 m_DisplayCutsCircles = true;
             });
 
-            m_AssociatedScene.OnUpdateCameraTarget.AddListener((target) =>
+            m_AssociatedScene.Events.OnUpdateCameraTarget.AddListener((target) =>
             {
                 m_OriginalTarget = target;
                 m_Target = target;

@@ -260,7 +260,7 @@ namespace HBP.UI.Module3D
             m_scene = scene;
 
             // listeners
-            m_scene.OnSendFMRIParameters.AddListener((FMRIParams) =>
+            m_scene.Events.OnSendFMRIParameters.AddListener((FMRIParams) =>
             {
                 m_FMRIMenuList[FMRIParams.columnId].GetComponent<FMRIMenu>().update_FMRI_params_from_scene(FMRIParams);
             });

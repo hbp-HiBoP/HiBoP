@@ -103,11 +103,11 @@ namespace HBP.Module3D
             else
             {
                 // Add the listeners
-                scene.OnSendModeSpecifications.AddListener(((specs) =>
+                scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
                 {
                     OnSendModeSpecifications.Invoke(specs);
                 }));
-                scene.OnSelectScene.AddListener((selectedScene) =>
+                scene.Events.OnSelectScene.AddListener((selectedScene) =>
                 {
                     Debug.Log("OnSelectScene (ScenesManager)");
                     foreach (Base3DScene s in m_Scenes)
@@ -144,11 +144,11 @@ namespace HBP.Module3D
             }
             else
             {
-                scene.OnSendModeSpecifications.AddListener(((specs) =>
+                scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
                 {
                     OnSendModeSpecifications.Invoke(specs);
                 }));
-                scene.OnSelectScene.AddListener((selectedScene) =>
+                scene.Events.OnSelectScene.AddListener((selectedScene) =>
                 {
                     Debug.Log("OnSelectScene (ScenesManager)");
                     foreach (Base3DScene s in m_Scenes)

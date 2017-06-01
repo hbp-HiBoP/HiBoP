@@ -265,7 +265,7 @@ namespace HBP.Module3D
             SelectSite(-1);
 
             // update scenes cameras
-            OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
+            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
 
             DisplayScreenMessage("Single Patient Scene loaded : " + visualization.Patient.Place + "_" + visualization.Patient.Name + "_" + visualization.Patient.Date, 2.0f, 400, 80);
             return true;
@@ -596,7 +596,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
                 m_ColumnManager.ColumnsIEEG[ii].SelectedSiteID = selectedSiteID;
-                OnClickSite.Invoke(ii);
+                Events.OnClickSite.Invoke(ii);
             }
         }
         /// <summary>
@@ -700,7 +700,7 @@ namespace HBP.Module3D
                     break;
             }
 
-            OnClickSite.Invoke(-1);            
+            Events.OnClickSite.Invoke(-1);            
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);            
         }
         /// <summary>
@@ -728,12 +728,12 @@ namespace HBP.Module3D
             bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
             if (!isCollision)
             {
-                OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
+                Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;
             }
             if (hit.collider.transform.parent.name == "Cuts" || hit.collider.transform.parent.name == "Brains")
             {
-                OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
+                Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
                 return;
             }
 
@@ -742,7 +742,7 @@ namespace HBP.Module3D
             switch (m_ColumnManager.SelectedColumn.Type)
             {
                 case Column3D.ColumnType.FMRI:
-                    OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hit.collider.GetComponent<Site>().Information.FullName));
+                    Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hit.collider.GetComponent<Site>().Information.FullName));
                     return;
                 case Column3D.ColumnType.IEEG:
                     Column3DIEEG currIEEGCol = (Column3DIEEG)m_ColumnManager.SelectedColumn;
@@ -786,7 +786,7 @@ namespace HBP.Module3D
                         }
                     }
 
-                    OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.FMRI, SceneInformation.DisplayCCEPMode,
+                    Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.FMRI, SceneInformation.DisplayCCEPMode,
                         hit.collider.GetComponent<Site>().Information.FullName, "" + amp, height, latency));
                     break;
                 default:
@@ -801,7 +801,7 @@ namespace HBP.Module3D
         /// <param name="idColumn"></param>
         public override void DisableSiteDisplayWindow(int idColumn)
         {
-            OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
+            Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
         }
         /// <summary>
         /// Update the display mode of the scene
@@ -888,7 +888,7 @@ namespace HBP.Module3D
                         request.idPatient2 = Patient.ID;
                         request.maskColumn = masksColumnsData;
 
-                        OnRequestSiteInformation.Invoke(request);
+                        Events.OnRequestSiteInformation.Invoke(request);
                     }
                     break;
                 default:
