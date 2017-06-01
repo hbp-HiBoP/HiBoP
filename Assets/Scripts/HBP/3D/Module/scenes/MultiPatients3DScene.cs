@@ -292,7 +292,7 @@ namespace HBP.Module3D
             Events.OnUpdatePlanes.Invoke();
 
             // send cal values to the UI
-            Events.OnIRMCalValuesUpdate.Invoke(m_ColumnManager.DLLVolume.ExtremeValues);
+            Events.OnMRICalValuesUpdate.Invoke(m_ColumnManager.DLLVolume.ExtremeValues);
             
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);

@@ -252,7 +252,7 @@ namespace HBP.Module3D
             /// <summary>
             /// Event for updating the IRM cal values in the UI
             /// </summary>
-            public GenericEvent<MRICalValues> OnIRMCalValuesUpdate = new GenericEvent<MRICalValues>();
+            public GenericEvent<MRICalValues> OnMRICalValuesUpdate = new GenericEvent<MRICalValues>();
 
             /// <summary>
             /// Event for sending mode specifications
@@ -1525,7 +1525,7 @@ namespace HBP.Module3D
             Events.OnUpdatePlanes.Invoke();
 
             // send cal values to the UI
-            Events.OnIRMCalValuesUpdate.Invoke(m_ColumnManager.DLLVolume.ExtremeValues);
+            Events.OnMRICalValuesUpdate.Invoke(m_ColumnManager.DLLVolume.ExtremeValues);
 
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);

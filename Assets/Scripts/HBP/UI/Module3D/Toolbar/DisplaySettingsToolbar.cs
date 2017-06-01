@@ -34,6 +34,10 @@ namespace HBP.UI.Module3D
         /// Automatic rotation speed slider
         /// </summary>
         public Slider AutoRotateSpeed { get; set; }
+        /// <summary>
+        /// Threshold MRI parameters
+        /// </summary>
+        public Button ThresholdMRI { get; set; }
 
         /// <summary>
         /// Correspondance between colormap dropdown options indices and color type
@@ -74,6 +78,8 @@ namespace HBP.UI.Module3D
             Transform autoRotateParent = transform.Find("Auto Rotate");
             AutoRotate = autoRotateParent.Find("Toggle").GetComponent<Toggle>();
             AutoRotateSpeed = autoRotateParent.Find("Slider").GetComponent<Slider>();
+
+            ThresholdMRI = transform.Find("Threshold MRI").GetComponent<Button>();
         }
         /// <summary>
         /// Add the listeners to the elements of the toolbar
@@ -112,6 +118,8 @@ namespace HBP.UI.Module3D
             {
                 ApplicationState.Module3D.SelectedScene.AutomaticRotationSpeed = value;
             });
+
+            //TODO : threshold MRI listeners
         }
         /// <summary>
         /// Set the toolbar elements to their default state
@@ -131,6 +139,7 @@ namespace HBP.UI.Module3D
             EdgeMode.interactable = false;
             AutoRotate.interactable = false;
             AutoRotateSpeed.interactable = false;
+            ThresholdMRI.interactable = false;
         }
         /// <summary>
         /// Update the interactable buttons of the toolbar
@@ -146,6 +155,7 @@ namespace HBP.UI.Module3D
                     EdgeMode.interactable = false;
                     AutoRotate.interactable = false;
                     AutoRotateSpeed.interactable = false;
+                    ThresholdMRI.interactable = false;
                     break;
 
                 case HBP.Module3D.Mode.ModesId.MinPathDefined:
@@ -155,6 +165,7 @@ namespace HBP.UI.Module3D
                     EdgeMode.interactable = true;
                     AutoRotate.interactable = true;
                     AutoRotateSpeed.interactable = true;
+                    ThresholdMRI.interactable = true;
                     break;
 
                 case HBP.Module3D.Mode.ModesId.AllPathDefined:
@@ -164,6 +175,7 @@ namespace HBP.UI.Module3D
                     EdgeMode.interactable = true;
                     AutoRotate.interactable = true;
                     AutoRotateSpeed.interactable = true;
+                    ThresholdMRI.interactable = true;
                     break;
 
                 case HBP.Module3D.Mode.ModesId.ComputingAmplitudes:
@@ -173,6 +185,7 @@ namespace HBP.UI.Module3D
                     EdgeMode.interactable = true;
                     AutoRotate.interactable = true;
                     AutoRotateSpeed.interactable = true;
+                    ThresholdMRI.interactable = false;
                     break;
 
                 case HBP.Module3D.Mode.ModesId.AmplitudesComputed:
@@ -182,6 +195,7 @@ namespace HBP.UI.Module3D
                     EdgeMode.interactable = true;
                     AutoRotate.interactable = true;
                     AutoRotateSpeed.interactable = true;
+                    ThresholdMRI.interactable = true;
                     break;
 
                 case HBP.Module3D.Mode.ModesId.AmpNeedUpdate:
@@ -191,6 +205,7 @@ namespace HBP.UI.Module3D
                     EdgeMode.interactable = true;
                     AutoRotate.interactable = true;
                     AutoRotateSpeed.interactable = true;
+                    ThresholdMRI.interactable = true;
                     break;
 
                 case HBP.Module3D.Mode.ModesId.Error:
@@ -200,6 +215,7 @@ namespace HBP.UI.Module3D
                     EdgeMode.interactable = false;
                     AutoRotate.interactable = false;
                     AutoRotateSpeed.interactable = false;
+                    ThresholdMRI.interactable = false;
                     break;
 
                 default:
@@ -220,6 +236,7 @@ namespace HBP.UI.Module3D
                 EdgeMode.isOn = ApplicationState.Module3D.SelectedScene.EdgeMode;
                 AutoRotate.isOn = ApplicationState.Module3D.SelectedScene.AutomaticRotation;
                 AutoRotateSpeed.value = ApplicationState.Module3D.SelectedScene.AutomaticRotationSpeed;
+                ThresholdMRI.GetComponent<DropWindow>().Content.GetComponent<ThresholdMRI>().UpdateMRICalValues(ApplicationState.Module3D.SelectedScene.ColumnManager.DLLVolume.ExtremeValues);
             }
         }
         #endregion

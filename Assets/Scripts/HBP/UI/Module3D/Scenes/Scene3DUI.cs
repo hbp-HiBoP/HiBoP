@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 using System;
 using HBP.Module3D;
 
-namespace HBP.Module3D.UI
+namespace HBP.UI.Module3D
 {
     public class Scene3DUI : MonoBehaviour
     {

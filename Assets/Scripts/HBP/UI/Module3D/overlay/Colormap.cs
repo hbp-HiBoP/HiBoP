@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HBP.Module3D.UI
+namespace HBP.UI.Module3D
 {
     public class Colormap : MonoBehaviour
     {

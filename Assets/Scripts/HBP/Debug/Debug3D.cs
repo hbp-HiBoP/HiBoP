@@ -9,7 +9,7 @@ using HBP.Data.General;
 using System.Linq;
 using UnityEngine.EventSystems;
 
-namespace HBP.Module3D.UI.DBG
+namespace HBP.UI.Module3D.DBG
 {
     public class Debug3D : MonoBehaviour
     {
@@ -40,7 +40,7 @@ namespace HBP.Module3D.UI.DBG
                     Column col = new Column(dataset, "TestLabel", protocol, bloc, configuration);
                     columns.Add(col);
                 }
-                Patient patient = project.Patients[0];
+                Data.Patient patient = project.Patients[0];
                 SinglePatientVisualization visualization = new SinglePatientVisualization("VisuTest", columns, patient);
                 ApplicationState.Module3D.AddVisualization(visualization);
             }
@@ -58,7 +58,7 @@ namespace HBP.Module3D.UI.DBG
                     Column col = new Column(dataset, "TestLabel", protocol, bloc, configuration);
                     columns.Add(col);
                 }
-                Patient[] patients = { project.Patients[0], project.Patients[1] };
+                Data.Patient[] patients = { project.Patients[0], project.Patients[1] };
                 MultiPatientsVisualization visualization = new MultiPatientsVisualization("VisuTest", columns, patients);
                 ApplicationState.Module3D.AddVisualization(visualization);
             }
