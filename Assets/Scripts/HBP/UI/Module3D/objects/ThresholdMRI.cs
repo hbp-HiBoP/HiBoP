@@ -56,7 +56,6 @@ namespace HBP.UI.Module3D
 
                 m_MRICalMin = m_MinHandler.Position;
                 ApplicationState.Module3D.SelectedScene.UpdateMRICalMin(m_MRICalMin);
-                UpdateMRIHistogram();
             });
 
             m_MaxHandler.OnChangePosition.AddListener(() =>
@@ -66,7 +65,6 @@ namespace HBP.UI.Module3D
 
                 m_MRICalMax = m_MaxHandler.Position;
                 ApplicationState.Module3D.SelectedScene.UpdateMRICalMax(m_MRICalMax);
-                UpdateMRIHistogram();
             });
         }
         /// <summary>
