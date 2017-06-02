@@ -3,8 +3,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-public class OnChangePosition : UnityEvent { }
-
 namespace Tools.Unity.ResizableGrid
 {
     public abstract class Handler : MonoBehaviour, IDragHandler, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler
@@ -28,7 +26,7 @@ namespace Tools.Unity.ResizableGrid
         /// </summary>
         protected ResizableGrid m_ResizableGrid;
 
-        public OnChangePosition OnChangePosition = new OnChangePosition();
+        public UnityEvent OnChangePosition = new UnityEvent();
         #endregion
 
         #region Private Methods
