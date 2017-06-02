@@ -16,6 +16,15 @@ namespace Tools.Unity.ResizableGrid
         /// </summary>
         public float MaximumPosition { get; set; }
 
+        /// <summary>
+        /// Threshold to decide when to attract the handler
+        /// </summary>
+        public float MagneticThreshold { get; set; }
+        /// <summary>
+        /// Position near which the handler is attracted
+        /// </summary>
+        public float MagneticPosition { get; set; }
+
         private float m_Position;
         /// <summary>
         /// Current position of the handler
@@ -29,6 +38,10 @@ namespace Tools.Unity.ResizableGrid
             set
             {
                 m_Position = Mathf.Clamp(value, MinimumPosition, MaximumPosition);
+                if (Mathf.Abs(m_Position - MagneticPosition) < MagneticThreshold)
+                {
+                    m_Position = MagneticPosition;
+                }
                 RectTransform handler = GetComponent<RectTransform>();
                 handler.anchorMin = new Vector2(m_Position, handler.anchorMin.y);
                 handler.anchorMax = new Vector2(m_Position, handler.anchorMax.y);
