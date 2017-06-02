@@ -19,10 +19,12 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// RectTransform of this handler
         /// </summary>
+        [SerializeField]
         private RectTransform m_RectTransform;
         /// <summary>
         /// RectTransform of the parent of this handler
         /// </summary>
+        [SerializeField]
         private RectTransform m_ParentRectTransform;
 
         private float m_Position;
@@ -62,8 +64,6 @@ namespace HBP.UI.Module3D
         {
             m_Cursor = Resources.Load("Cursor/vertical") as Texture2D;
             m_CursorHotSpot = new Vector2(11, 6);
-            m_RectTransform = GetComponent<RectTransform>();
-            m_ParentRectTransform = transform.parent.GetComponent<RectTransform>();
         }
         #endregion
 
