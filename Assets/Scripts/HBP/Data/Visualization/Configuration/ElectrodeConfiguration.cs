@@ -23,30 +23,36 @@ namespace HBP.Data.Visualization
     public class ElectrodeConfiguration : ICloneable
     {
         #region Properties
-        [DataMember(Name = "Color")]
-        SerializableColor color;
+        [DataMember(Name = "Patient")]
+        string m_PatientID;
+        Patient m_Patient;
 
+        [DataMember(Name = "Color")]
+        SerializableColor m_Color;
         /// <summary>
         /// Color of the electrode.
         /// </summary>
         [IgnoreDataMember]
         public Color Color { get; set; }
 
+        [DataMember(Name = "ConfigurationBySite")]
+        Dictionary <string, SiteConfiguration> m_ConfigurationBySiteName;
         /// <summary>
         /// Configurations of the electrode sites.
         /// </summary>
-        [DataMember]
         public Dictionary<Site,SiteConfiguration> ConfigurationBySite { get; set; }
         #endregion
 
         #region Constructors
-        public ElectrodeConfiguration(Dictionary<Site,SiteConfiguration> configurationBySite, Color color)
+        public ElectrodeConfiguration(Dictionary<Site,SiteConfiguration> configurationBySite, Color color, Patient patient)
         {
+            m_Patient = patient;
             Color = color;
             ConfigurationBySite = configurationBySite;
         }
-        public ElectrodeConfiguration(Color color) : this(new Dictionary<Site, SiteConfiguration>(), color) { }
-        public ElectrodeConfiguration() : this(new Dictionary<Site, SiteConfiguration>(), new Color()) { }
+        public ElectrodeConfiguration(Color color, Patient patient) : this(new Dictionary<Site, SiteConfiguration>(), color, patient) { }
+        public ElectrodeConfiguration(Patient patient) : this(new Dictionary<Site, SiteConfiguration>(), new Color(), patient) { }
+        public ElectrodeConfiguration() : this(new Patient()) { }
         #endregion
 
         #region Public Methods
@@ -57,7 +63,7 @@ namespace HBP.Data.Visualization
             {
                 configurationBySiteClone.Add(item.Key, item.Value.Clone() as SiteConfiguration);
             }
-            return new ElectrodeConfiguration(configurationBySiteClone, Color);
+            return new ElectrodeConfiguration(configurationBySiteClone, Color, m_Patient);
         }
         #endregion
 
@@ -65,12 +71,23 @@ namespace HBP.Data.Visualization
         [OnSerializing]
         void OnSerializing(StreamingContext streamingContext)
         {
-            color = new SerializableColor(Color);
+            m_Color = new SerializableColor(Color);
+            m_PatientID = m_Patient.ID;
+            m_ConfigurationBySiteName = new Dictionary<string, SiteConfiguration>();
+            foreach (var pair in ConfigurationBySite) m_ConfigurationBySiteName.Add(pair.Key.Name, pair.Value);
         }
         [OnDeserialized]
         void OnDeserialized(StreamingContext streamingContext)
         {
-            Color = color.ToColor();
+            Color = m_Color.ToColor();
+            m_Patient = ApplicationState.ProjectLoaded.Patients.First((p) => p.ID == m_PatientID);
+            Electrode electrode = m_Patient.Brain.Implantation.Electrodes.First((elec) => elec.Name == Electrode.FindElectrodeName(m_ConfigurationBySiteName.FirstOrDefault().Key));
+            ConfigurationBySite = new Dictionary<Site, SiteConfiguration>();
+            foreach (var pair in m_ConfigurationBySiteName)
+            {
+                Site site = electrode.Sites.First((s) => s.Name == pair.Key);
+                ConfigurationBySite.Add(site, pair.Value);
+            }
         }
         #endregion
     }

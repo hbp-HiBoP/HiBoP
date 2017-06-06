@@ -3,12 +3,12 @@ using UnityEngine.Events;
 using System;
 using System.IO;
 using System.Linq;
-using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using CielaSpike;
 using HBP.Data.Experience.Dataset;
+using System.Diagnostics;
 
 namespace HBP.Data.Visualization
 {
@@ -70,18 +70,10 @@ namespace HBP.Data.Visualization
         /// </summary>
         public GenericEvent<float, float, string> OnChangeLoadingProgress { get; set; }
 
-        /// <summary>
-        /// Event called when an error occurs.
-        /// <para> Argument 1 : Error message.</para>
-        /// </summary>
-        public GenericEvent<string> OnErrorOccur { get; set; }
-
-        enum LoadingErrorType { None, CanNotFindFilesToRead, CanNotReadData, CanNotEpochingData, CanNotStandardizeColumns };
         const float FIND_FILES_TO_READ_PROGRESS = 0.025f;
         const float READ_FILES_PROGRESS = 0.8f;
         const float EPOCH_DATA_PROGRESS = 0.025f;
         const float STANDARDIZE_COLUMNS_PROGRESS = 0.15f;
-        Coroutine m_LoadingCoroutine;
         #endregion
 
         #region Constructors
@@ -96,6 +88,8 @@ namespace HBP.Data.Visualization
             ID = id;
             Name = name;
             Columns = columns.ToList();
+            Configuration = new VisualizationConfiguration();
+            OnChangeLoadingProgress = new GenericEvent<float, float, string>();
         }
         /// <summary>
         /// Create a new visualization instance.
@@ -110,6 +104,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         protected Visualization() : this("Unknown",new List<Column>())
         {
+
         }
         #endregion
 
@@ -117,9 +112,20 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Load the visualization.
         /// </summary>
-        public virtual void Load()
+        /// <returns></returns>
+        public virtual IEnumerator c_Load()
         {
-            ApplicationState.CoroutineManager.StartCoroutineAsync(c_Load());
+            // Initialisation.
+            float progress = 0.0f;
+
+            Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
+            yield return c_FindDataToRead(progress, (value, progressValue) => { dataInfoByColumn = value; progress = progressValue; });
+            Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo = (from dataInfos in dataInfoByColumn.Values from dataInfo in dataInfos select dataInfo).Distinct().ToDictionary(t => t, t => new Data.Experience.Dataset.Data());
+
+            Dictionary<Column, Experience.Dataset.Data[]> dataByColumn = new Dictionary<Column, Experience.Dataset.Data[]>();
+            yield return c_ReadData(dataInfoByColumn, dataByDataInfo, progress, (value, progressValue) => { dataByColumn = value; progress = progressValue; });
+
+            yield return c_LoadColumns(dataByColumn, progress, (value) => progress = value);
         }
         /// <summary>
         /// Unload the visualization.
@@ -169,42 +175,64 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Private Methods
-        IEnumerator c_Load()
+        protected void AddPatientConfiguration(Patient patient)
         {
-            // Initialisation.
-            LoadingErrorType loadingError = LoadingErrorType.None;
-            string additionalInformations = string.Empty;
-            float progress = 0.0f;
-
+            foreach (Column column in Columns)
+            {
+                if (!column.Configuration.ConfigurationByPatient.ContainsKey(patient)) column.Configuration.ConfigurationByPatient.Add(patient, new PatientConfiguration(Configuration.Color, patient));
+                PatientConfiguration patientConfiguration = column.Configuration.ConfigurationByPatient[patient];
+                foreach (Anatomy.Electrode electrode in patient.Brain.Implantation.Electrodes)
+                {
+                    if (!patientConfiguration.ConfigurationByElectrode.ContainsKey(electrode)) patientConfiguration.ConfigurationByElectrode.Add(electrode, new ElectrodeConfiguration(patientConfiguration.Color, patient));
+                    ElectrodeConfiguration electrodeConfiguration = patientConfiguration.ConfigurationByElectrode[electrode];
+                    foreach (Anatomy.Site site in electrode.Sites)
+                    {
+                        if (!electrodeConfiguration.ConfigurationBySite.ContainsKey(site)) electrodeConfiguration.ConfigurationBySite.Add(site, new SiteConfiguration(electrodeConfiguration.Color));
+                    }
+                }
+            }
+        }
+        protected void RemovePatientConfiguration(Patient patient)
+        {
+            foreach (Column column in Columns) column.Configuration.ConfigurationByPatient.Remove(patient);
+        }
+        protected IEnumerator c_FindDataToRead(float progress, Action<Dictionary<Column, DataInfo[]>, float> outPut)
+        {
             // Find files to read.
             Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
             float progressStep = FIND_FILES_TO_READ_PROGRESS / (Columns.Count);
             foreach (var column in Columns)
             {
-                progress += progressStep;
+                // Update progress;
                 yield return Ninja.JumpToUnity;
+                progress += progressStep;
                 OnChangeLoadingProgress.Invoke(progress, 0.0f, "Finding files to read.");
                 yield return Ninja.JumpBack;
+
+                // Work.
                 try
                 {
+                    List<DataInfo> dataInfoForThisColumn = GetDataInfo(column).ToList();
+                    foreach (Patient patient in GetPatients())
+                    {
+                        if (!dataInfoForThisColumn.Exists((dataInfo) => dataInfo.Patient == patient))
+                        {
+                            throw new CannotFindDataInfoException(patient.ID, column.DataLabel);
+                        }
+                    }
                     dataInfoByColumn.Add(column, GetDataInfo(column).ToArray());
                 }
-                catch
+                catch(Exception exception)
                 {
-                    additionalInformations = (column.DataLabel).ToString();
-                    loadingError = LoadingErrorType.CanNotFindFilesToRead;
-                    break;
-                }
-                yield return Ninja.JumpToUnity;
-            }
-            Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo = (from dataInfos in dataInfoByColumn.Values from dataInfo in dataInfos select dataInfo).Distinct().ToDictionary(t => t, t => new Data.Experience.Dataset.Data());
-            yield return Ninja.JumpToUnity;
-            HandleError(loadingError, additionalInformations);
-            yield return Ninja.JumpBack;
 
-            // Read files.
+                }
+            }
+            outPut(dataInfoByColumn, progress);
+        }
+        protected IEnumerator c_ReadData(Dictionary<Column, DataInfo[]> dataInfoByColumn, Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo, float progress, Action<Dictionary<Column, Experience.Dataset.Data[]>, float> outPut)
+        {
             Stopwatch timer = new Stopwatch();
-            progressStep = READ_FILES_PROGRESS / (dataByDataInfo.Count);
+            float progressStep = READ_FILES_PROGRESS / (dataByDataInfo.Count);
             float readingSpeed = 18000000;
             List<DataInfo> dataInfoToRead = dataByDataInfo.Keys.ToList();
             foreach (var dataInfo in dataInfoToRead)
@@ -226,11 +254,9 @@ namespace HBP.Data.Visualization
                     dataByDataInfo[dataInfo] = new Experience.Dataset.Data(dataInfo);
                     timer.Stop();
                 }
-                catch
+                catch (Exception exception)
                 {
-                    loadingError = LoadingErrorType.CanNotReadData;
-                    additionalInformations = fileToRead.Name;
-                    break;
+
                 }
 
                 // Calculate real reading speed.
@@ -238,58 +264,19 @@ namespace HBP.Data.Visualization
                 readingSpeed = Mathf.Lerp(readingSpeed, fileToRead.Length / actualReadingTime, 0.5f);
             }
             Dictionary<Column, Experience.Dataset.Data[]> dataByColumn = dataInfoByColumn.ToDictionary(t => t.Key, t => (from dataInfo in t.Value select dataByDataInfo[dataInfo]).ToArray());
-            yield return Ninja.JumpToUnity;
-            HandleError(loadingError, additionalInformations);
-
-            /// Load Column.
+            outPut(dataByColumn, progress);
+        }
+        protected IEnumerator c_LoadColumns(Dictionary<Column, Experience.Dataset.Data[]> dataByColumn, float progress, Action<float> outPut)
+        {
+            float progressStep = EPOCH_DATA_PROGRESS / Columns.Count;
             foreach (Column column in Columns)
             {
+                yield return Ninja.JumpToUnity;
+                progress += progressStep;
+                OnChangeLoadingProgress.Invoke(progress, 0, "Load column <color=blue>" + column.DataLabel + "</color>.");
+                yield return Ninja.JumpBack;
                 column.Load(dataByColumn[column]);
             }
-        }
-        void HandleError(LoadingErrorType error, string additionalInformations)
-        {
-            if (error != LoadingErrorType.None)
-            {
-                ApplicationState.CoroutineManager.StopCoroutine(m_LoadingCoroutine);
-                OnErrorOccur.Invoke(GetErrorMessage(error, additionalInformations));
-            }
-        }
-        string GetErrorMessage(LoadingErrorType error, string additionalInformations)
-        {
-            string l_errorMessage = string.Empty;
-            string l_firstPart = "The visualization could not be loaded.\n";
-            switch (error)
-            {
-                case LoadingErrorType.None: l_errorMessage = "None error detected."; return l_errorMessage;
-                case LoadingErrorType.CanNotFindFilesToRead: l_errorMessage = " Can not find the files of the column <color=red>n°  " + additionalInformations + "</color>."; break;
-                case LoadingErrorType.CanNotReadData: l_errorMessage = " Can not read \" <color=red>" + additionalInformations + "</color>.\""; break;
-                case LoadingErrorType.CanNotEpochingData: l_errorMessage = " Can not epoching data of the column \"<color=red>n°" + additionalInformations + "</color>.\""; break;
-                case LoadingErrorType.CanNotStandardizeColumns: l_errorMessage = " Can not standardize columns."; break;
-            }
-            l_errorMessage = l_firstPart + l_errorMessage;
-            return l_errorMessage;
-        }
-        protected void AddPatientConfiguration(Patient patient)
-        {
-            foreach (Column column in Columns)
-            {
-                if (!column.Configuration.ConfigurationByPatient.ContainsKey(patient)) column.Configuration.ConfigurationByPatient.Add(patient, new PatientConfiguration(Configuration.Color));
-                PatientConfiguration patientConfiguration = column.Configuration.ConfigurationByPatient[patient];
-                foreach (Anatomy.Electrode electrode in patient.Brain.Implantation.Electrodes)
-                {
-                    if (!patientConfiguration.ConfigurationByElectrode.ContainsKey(electrode)) patientConfiguration.ConfigurationByElectrode.Add(electrode, new ElectrodeConfiguration(patientConfiguration.Color));
-                    ElectrodeConfiguration electrodeConfiguration = patientConfiguration.ConfigurationByElectrode[electrode];
-                    foreach (Anatomy.Site site in electrode.Sites)
-                    {
-                        if (!electrodeConfiguration.ConfigurationBySite.ContainsKey(site)) electrodeConfiguration.ConfigurationBySite.Add(site, new SiteConfiguration(electrodeConfiguration.Color));
-                    }
-                }
-            }
-        }
-        protected void RemovePatientConfiguration(Patient patient)
-        {
-            foreach (Column column in Columns) column.Configuration.ConfigurationByPatient.Remove(patient);
         }
         #endregion
     }

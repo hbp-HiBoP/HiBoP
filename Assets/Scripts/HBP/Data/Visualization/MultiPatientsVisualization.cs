@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 using System.Collections.ObjectModel;
 using HBP.Data.Anatomy;
 using HBP.Data.Experience.Dataset;
+using System.Collections;
 using System;
 
 namespace HBP.Data.Visualization
@@ -74,7 +75,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         public MultiPatientsVisualization() : base()
         {
-            RemoveAllPatients();
+            SetPatients(new Patient[] { });
         }
         #endregion
 
@@ -161,10 +162,10 @@ namespace HBP.Data.Visualization
         {
             return m_patients;
         }
-        public override void Load()
+        public override IEnumerator c_Load()
         {
             foreach (Patient patient in m_patients) AddPatientConfiguration(patient);
-            base.Load();
+            yield return base.c_Load();
         }
         #endregion  
 

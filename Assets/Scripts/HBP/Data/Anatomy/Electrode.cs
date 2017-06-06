@@ -61,8 +61,12 @@ namespace HBP.Data.Anatomy
         /// <returns>Electrode name.</returns>
         public static string FindElectrodeName(Site plot)
         {
+            return FindElectrodeName(plot.Name);
+        }
+        public static string FindElectrodeName(string plotName)
+        {
             List<string> l_char = new List<string>();
-            foreach (char l_elmt in plot.Name)
+            foreach (char l_elmt in plotName)
             {
                 char[] charElmt = new Char[1] { l_elmt };
                 string l_elmtString = new string(charElmt);

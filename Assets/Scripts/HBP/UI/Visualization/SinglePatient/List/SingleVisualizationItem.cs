@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Linq;
 using HBP.Data.Visualization;
 
 namespace HBP.UI.Visualization

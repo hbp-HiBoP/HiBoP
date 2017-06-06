@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using HBP.Data.Experience.Dataset;
@@ -22,10 +23,20 @@ namespace HBP.Data.Visualization
         public const string EXTENSION = ".spv";
         [DataMember(Name = "Patient",Order = 3)]
         private string m_patientID;
+        Patient m_Patient;
         /// <summary>
         /// Patient of the single patient visualization.
         /// </summary>
-        public Patient Patient { get; set; }
+        public Patient Patient
+        {
+            get { return m_Patient; }
+            set
+            {
+                RemovePatientConfiguration(m_Patient);
+                m_Patient = value;
+                AddPatientConfiguration(m_Patient);
+            }
+        }
         /// <summary>
         /// Test if the visualization is visualizable.
         /// </summary>
@@ -92,10 +103,10 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Load the visualization data.
         /// </summary>
-        public override void Load()
+        public override IEnumerator c_Load()
         {
             AddPatientConfiguration(Patient);
-            base.Load();
+            yield return base.c_Load();
         }
         public override IEnumerable<Patient> GetPatients()
         {

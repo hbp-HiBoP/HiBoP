@@ -21,7 +21,7 @@ namespace HBP.Data.Visualization
     public class ColumnConfiguration : ICloneable
     {
         #region Properties
-        [DataMember]
+        [DataMember(Name = "ConfigurationByPatient")]
         Dictionary<string, PatientConfiguration> m_ConfigurationByPatientID;
         [IgnoreDataMember]
         /// <summary>

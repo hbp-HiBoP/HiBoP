@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using System.Runtime.Serialization;
 
 namespace HBP.Data.Visualization
@@ -8,7 +6,11 @@ namespace HBP.Data.Visualization
     [DataContract]
     public class VisualizationConfiguration
     {
-        [DataMember]
+        [DataMember(Name = "Color")]
+        SerializableColor color;
+        /// <summary>
+        /// Color of the visualization.
+        /// </summary>
         public Color Color { get; set; }
     }
 }

@@ -7,22 +7,37 @@ namespace Tools.Unity
     {
         #region Properties
         [SerializeField]
-        Text m_message;
+        Text m_Message;
+        [SerializeField]
+        Text m_Title;
         #endregion
 
         #region Public Methods
-        public void Open(string message)
+        public void Open(string title, string message)
         {
-            RectTransform rect = (transform as RectTransform);
-            rect.offsetMin = new Vector2(0, 0);
-            rect.offsetMax = new Vector2(0, 0);
-            m_message.text = message;
-            LayoutElement texteLayoutElement = m_message.GetComponent<LayoutElement>();
-            texteLayoutElement.preferredWidth = Mathf.Min(m_message.preferredWidth, texteLayoutElement.preferredWidth);
+            SetRect();
+            SetMessages(title, message);
+
         }
         public void Close()
         {
             Destroy(gameObject);
+        }
+        #endregion
+
+        #region Private Methods
+        void SetRect()
+        {
+            RectTransform rect = (transform as RectTransform);
+            rect.offsetMin = new Vector2(0, 0);
+            rect.offsetMax = new Vector2(0, 0);
+        }
+        void SetMessages(string title, string message)
+        {
+            m_Title.text = title;
+            m_Message.text = message;
+            LayoutElement layoutElement = m_Message.transform.parent.GetComponent<LayoutElement>();
+            layoutElement.preferredWidth = Mathf.Min(Mathf.Max(m_Title.preferredWidth, m_Message.preferredWidth), layoutElement.preferredWidth);
         }
         #endregion
     }
