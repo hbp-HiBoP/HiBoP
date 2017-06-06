@@ -13,14 +13,14 @@ namespace HBP.UI.Module3D.DBG
 {
     public class Debug3D : MonoBehaviour
     {
-        public GameObject SceneUIPrefab;
+        public GameObject SceneWindowPrefab;
 
         private void Awake()
         {
             ApplicationState.Module3D.OnAddScene.AddListener((scene) =>
             {
-                Scene3DUI sceneUI = Instantiate(SceneUIPrefab, transform).GetComponent<Scene3DUI>();
-                sceneUI.Initialize(scene);
+                Scene3DWindow sceneWindow = Instantiate(SceneWindowPrefab, transform).GetComponent<Scene3DWindow>();
+                sceneWindow.Initialize(scene);
             });
         }
 

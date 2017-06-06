@@ -18,10 +18,6 @@ namespace HBP.UI.Module3D
         /// </summary>
         private Base3DScene m_Scene;
         /// <summary>
-        /// List of GameObjects to be shown when a column is minimized
-        /// </summary>
-        private List<GameObject> m_MinimizedColumns = new List<GameObject>();
-        /// <summary>
         /// Linked resizable grid
         /// </summary>
         private ResizableGrid m_ResizableGrid;

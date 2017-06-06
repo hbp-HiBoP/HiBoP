@@ -29,24 +29,15 @@ namespace Tools.Unity.ResizableGrid
                 return m_Views.Count;
             }
         }
-
-        private GameObject m_ViewPrefab;
-        #endregion
-
-        #region Private Methods
-        void Awake()
-        {
-            m_ViewPrefab = GetComponentInParent<ResizableGrid>().ViewPrefab;
-        }
         #endregion
 
         #region Public Methods
         /// <summary>
         /// Add a view to this column
         /// </summary>
-        public void AddView()
+        public void AddView(GameObject customPrefab)
         {
-            View view = Instantiate(m_ViewPrefab, transform).GetComponent<View>();
+            View view = Instantiate(customPrefab, transform).GetComponent<View>();
             m_Views.Add(view);
             view.transform.SetAsFirstSibling();
         }

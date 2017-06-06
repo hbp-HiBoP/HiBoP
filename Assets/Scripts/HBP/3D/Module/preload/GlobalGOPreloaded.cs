@@ -46,7 +46,6 @@ namespace HBP.Module3D
         static public GameObject SiteLeftMenu = null;
         static public GameObject SceneLeftMenu = null;
         static public GameObject Plot = null;
-        static public GameObject Cut = null;
         static public GameObject Brain = null;
         static public GameObject SelectRing = null;
         static public GameObject Line = null;
@@ -134,11 +133,6 @@ namespace HBP.Module3D
             // Ring
             SelectRing = Instantiate(Resources.Load("Prefabs/scene objects/Select ring", typeof(GameObject))) as GameObject;
             InitializeGameObject(SelectRing, "Ring");
-
-            // Cut
-            Cut = Instantiate(Resources.Load("Prefabs/scene objects/Cut", typeof(GameObject))) as GameObject;
-            Cut.GetComponent<MeshFilter>().mesh.MarkDynamic();
-            InitializeGameObject(Cut, "Cut");
 
             // Line views panel
             Line = Instantiate(Resources.Load("Prefabs/ui/camera/Camera line views panel", typeof(GameObject))) as GameObject;

@@ -347,6 +347,10 @@ namespace Tools.Unity.ResizableGrid
         /// </summary>
         public void AddColumn()
         {
+            AddColumn(ColumnPrefab, ViewPrefab);
+        }
+        public void AddColumn(GameObject customColumnPrefab, GameObject customViewPrefab)
+        {
             if (ColumnNumber > 0)
             {
                 m_VerticalHandlers.Add(Instantiate(VerticalHandlerPrefab, transform).GetComponent<VerticalHandler>());
@@ -363,11 +367,11 @@ namespace Tools.Unity.ResizableGrid
                     m_CornerHandlers.Last().Last().Initialize(m_VerticalHandlers.Last(), m_HorizontalHandlers[i]);
                 }
             }
-            m_Columns.Add(Instantiate(ColumnPrefab, transform).GetComponent<Column>());
+            m_Columns.Add(Instantiate(customColumnPrefab?customColumnPrefab:ColumnPrefab, transform).GetComponent<Column>());
 
-            for (int i = 1; i < ViewNumber; i++)
+            for (int i = 0; i < ViewNumber; i++)
             {
-                m_Columns.Last().AddView();
+                m_Columns.Last().AddView(customViewPrefab?customViewPrefab:ViewPrefab);
             }
 
             ChangeNumberOfElementsCallback();
@@ -404,6 +408,10 @@ namespace Tools.Unity.ResizableGrid
         /// </summary>
         public void AddViewLine()
         {
+            AddViewLine(ViewPrefab);
+        }
+        public void AddViewLine(GameObject customViewPrefab)
+        {
             if (ViewNumber > 0)
             {
                 m_HorizontalHandlers.Add(Instantiate(HorizontalHandlerPrefab, transform).GetComponent<HorizontalHandler>());
@@ -422,7 +430,7 @@ namespace Tools.Unity.ResizableGrid
 
             foreach (Column column in m_Columns)
             {
-                column.AddView();
+                column.AddView(customViewPrefab);
             }
 
             ChangeNumberOfElementsCallback();
