@@ -62,7 +62,7 @@ namespace HBP.UI.Module3D
         /// Link elements to the toolbar
         /// </summary>
         /// <param name="parent">Transform of the toolbar</param>
-        protected override void FindButtons()
+        protected override void AddTools()
         {
             Transform colormapParent = transform.Find("Colormap");
             Colormap = colormapParent.Find("Dropdown").GetComponent<Dropdown>();
@@ -90,7 +90,6 @@ namespace HBP.UI.Module3D
 
             Colormap.onValueChanged.AddListener((value) =>
             {
-                // TODO : update colormap controller
                 ApplicationState.Module3D.SelectedScene.UpdateColormap(m_ColormapIndices[value]);
             });
 

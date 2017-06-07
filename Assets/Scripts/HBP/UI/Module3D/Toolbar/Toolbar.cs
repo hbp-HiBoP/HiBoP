@@ -1,17 +1,23 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using System.Linq;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
     public abstract class Toolbar : MonoBehaviour
     {
-        protected enum UpdateToolbarType { Scene, Column, View }
+        public enum UpdateToolbarType { Scene, Column, View }
 
         #region Properties
         /// <summary>
-        /// Lock to prevent the calls to the listeners when only changing the selected scene
+        /// Lock to prevent the calls to the listeners when only changing the selected scene / column / view
         /// </summary>
-        public bool ChangeSceneLock { get; set; }
+        public bool ListenerLock { get; set; }
+        /// <summary>
+        /// List of the tools of the toolbar
+        /// </summary>
+        protected List<Tools.Tool> m_Tools;
         #endregion
 
         #region Private Methods
@@ -19,7 +25,7 @@ namespace HBP.UI.Module3D
         /// Link elements to the toolbar
         /// </summary>
         /// <param name="parent">Transform of the toolbar</param>
-        protected abstract void FindButtons();
+        protected abstract void AddTools();
         /// <summary>
         /// Add the listeners to the elements of the toolbar
         /// </summary>
@@ -38,17 +44,28 @@ namespace HBP.UI.Module3D
             ApplicationState.Module3D.OnSelectColumn.AddListener((column) => OnChangeColumn());
 
             ApplicationState.Module3D.OnSelectView.AddListener((column) => OnChangeView());
+
+            foreach (Tools.Tool tool in m_Tools)
+            {
+                tool.AddListeners();
+            }
         }
         /// <summary>
         /// Set the toolbar elements to their default state
         /// </summary>
-        protected abstract void DefaultState();
+        protected virtual void DefaultState()
+        {
+            foreach (Tools.Tool tool in m_Tools)
+            {
+                tool.DefaultState();
+            }
+        }
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
         protected void Initialize()
         {
-            FindButtons();
+            AddTools();
             AddListeners();
             DefaultState();
         }
@@ -57,40 +74,58 @@ namespace HBP.UI.Module3D
         /// </summary>
         protected void OnChangeScene()
         {
-            ChangeSceneLock = true;
+            ListenerLock = true;
+            m_Tools.ForEach((t) => t.ListenerLock = true);
             ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.AddListener((mode) => UpdateInteractableButtons()); // maybe FIXME : problem with infinite number of listeners ?
             UpdateInteractableButtons();
             UpdateButtonsStatus(UpdateToolbarType.Scene);
-            ChangeSceneLock = false;
+            m_Tools.ForEach((t) => t.ListenerLock = false);
+            ListenerLock = false;
         }
         /// <summary>
         /// Callback when the selected column is changed
         /// </summary>
         protected void OnChangeColumn()
         {
-            ChangeSceneLock = true;
+            ListenerLock = true;
+            m_Tools.ForEach((t) => t.ListenerLock = true);
             UpdateInteractableButtons();
             UpdateButtonsStatus(UpdateToolbarType.Column);
-            ChangeSceneLock = false;
+            m_Tools.ForEach((t) => t.ListenerLock = false);
+            ListenerLock = false;
         }
         /// <summary>
         /// Callback when the selected view is changed
         /// </summary>
         protected void OnChangeView()
         {
-            ChangeSceneLock = true;
+            ListenerLock = true;
+            m_Tools.ForEach((t) => t.ListenerLock = true);
             UpdateInteractableButtons();
             UpdateButtonsStatus(UpdateToolbarType.View);
-            ChangeSceneLock = false;
+            m_Tools.ForEach((t) => t.ListenerLock = false);
+            ListenerLock = false;
         }
         /// <summary>
         /// Update the interactable buttons of the toolbar
         /// </summary>
-        protected abstract void UpdateInteractableButtons();
+        protected virtual void UpdateInteractableButtons()
+        {
+            foreach (Tools.Tool tool in m_Tools)
+            {
+                tool.UpdateInteractable();
+            }
+        }
         /// <summary>
         /// Change the status of the toolbar elements according to the selected scene parameters
         /// </summary>
-        protected abstract void UpdateButtonsStatus(UpdateToolbarType type);
+        protected virtual void UpdateButtonsStatus(UpdateToolbarType type)
+        {
+            foreach (Tools.Tool tool in m_Tools)
+            {
+                tool.UpdateStatus(type);
+            }
+        }
         #endregion
     }
 }
