@@ -11,13 +11,9 @@ namespace HBP.UI.Module3D
 
         #region Properties
         /// <summary>
-        /// Lock to prevent the calls to the listeners when only changing the selected scene / column / view
-        /// </summary>
-        public bool ListenerLock { get; set; }
-        /// <summary>
         /// List of the tools of the toolbar
         /// </summary>
-        protected List<Tools.Tool> m_Tools;
+        protected List<Tools.Tool> m_Tools = new List<Tools.Tool>();
         #endregion
 
         #region Private Methods
@@ -74,37 +70,31 @@ namespace HBP.UI.Module3D
         /// </summary>
         protected void OnChangeScene()
         {
-            ListenerLock = true;
             m_Tools.ForEach((t) => t.ListenerLock = true);
             ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.AddListener((mode) => UpdateInteractableButtons()); // maybe FIXME : problem with infinite number of listeners ?
             UpdateInteractableButtons();
             UpdateButtonsStatus(UpdateToolbarType.Scene);
             m_Tools.ForEach((t) => t.ListenerLock = false);
-            ListenerLock = false;
         }
         /// <summary>
         /// Callback when the selected column is changed
         /// </summary>
         protected void OnChangeColumn()
         {
-            ListenerLock = true;
             m_Tools.ForEach((t) => t.ListenerLock = true);
             UpdateInteractableButtons();
             UpdateButtonsStatus(UpdateToolbarType.Column);
             m_Tools.ForEach((t) => t.ListenerLock = false);
-            ListenerLock = false;
         }
         /// <summary>
         /// Callback when the selected view is changed
         /// </summary>
         protected void OnChangeView()
         {
-            ListenerLock = true;
             m_Tools.ForEach((t) => t.ListenerLock = true);
             UpdateInteractableButtons();
             UpdateButtonsStatus(UpdateToolbarType.View);
             m_Tools.ForEach((t) => t.ListenerLock = false);
-            ListenerLock = false;
         }
         /// <summary>
         /// Update the interactable buttons of the toolbar

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
@@ -37,6 +38,8 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private ThresholdHandler m_MaxHandler;
+
+        public GenericEvent<float, float> OnChangeValues = new GenericEvent<float, float>();
         #endregion
 
         #region Private Methods
@@ -56,6 +59,8 @@ namespace HBP.UI.Module3D
 
                 m_MRICalMin = m_MinHandler.Position;
                 ApplicationState.Module3D.SelectedScene.UpdateMRICalMin(m_MRICalMin);
+
+                OnChangeValues.Invoke(m_MRICalMin, m_MRICalMax);
             });
 
             m_MaxHandler.OnChangePosition.AddListener(() =>
@@ -65,6 +70,8 @@ namespace HBP.UI.Module3D
 
                 m_MRICalMax = m_MaxHandler.Position;
                 ApplicationState.Module3D.SelectedScene.UpdateMRICalMax(m_MRICalMax);
+
+                OnChangeValues.Invoke(m_MRICalMin, m_MRICalMax);
             });
         }
         /// <summary>
