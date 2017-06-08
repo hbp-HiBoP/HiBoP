@@ -28,9 +28,6 @@ namespace HBP.UI.Module3D {
         private RectTransform m_AddCutButton;
         #endregion
 
-        #region Private Methods
-        #endregion
-
         #region Public Methods
         public void Initialize(Base3DScene scene)
         {

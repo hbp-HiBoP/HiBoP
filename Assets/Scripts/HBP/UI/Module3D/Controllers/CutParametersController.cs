@@ -39,10 +39,21 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Button m_Remove;
-        #endregion
-
-        #region Private Methods
-
+        /// <summary>
+        /// X value for the custom normal
+        /// </summary>
+        [SerializeField]
+        private InputField m_CustomX;
+        /// <summary>
+        /// Y value for the custom normal
+        /// </summary>
+        [SerializeField]
+        private InputField m_CustomY;
+        /// <summary>
+        /// Z value for the custom normal
+        /// </summary>
+        [SerializeField]
+        private InputField m_CustomZ;
         #endregion
 
         #region Public Methods
@@ -92,7 +103,8 @@ namespace HBP.UI.Module3D
 
                 if (value == 4) // Custom orientation
                 {
-                    // TODO
+                    Vector3 normal = new Vector3(int.Parse(m_CustomX.text), int.Parse(m_CustomY.text), int.Parse(m_CustomZ.text));
+                    scene.UpdateCutPlane(cut, (CutOrientation)value, cut.Flip, cut.RemoveFrontPlane == 1, normal, cut.Position);
                 }
                 else
                 {
@@ -111,6 +123,27 @@ namespace HBP.UI.Module3D
 
                 scene.RemoveCutPlane(cut);
                 Destroy(gameObject);
+            });
+            m_CustomX.onValueChanged.AddListener((value) =>
+            {
+                if (!m_IsInitialized) return;
+
+                Vector3 normal = new Vector3(int.Parse(m_CustomX.text), int.Parse(m_CustomY.text), int.Parse(m_CustomZ.text));
+                scene.UpdateCutPlane(cut, cut.Orientation, cut.Flip, cut.RemoveFrontPlane == 1, normal, cut.Position);
+            });
+            m_CustomY.onValueChanged.AddListener((value) =>
+            {
+                if (!m_IsInitialized) return;
+
+                Vector3 normal = new Vector3(int.Parse(m_CustomX.text), int.Parse(m_CustomY.text), int.Parse(m_CustomZ.text));
+                scene.UpdateCutPlane(cut, cut.Orientation, cut.Flip, cut.RemoveFrontPlane == 1, normal, cut.Position);
+            });
+            m_CustomZ.onValueChanged.AddListener((value) =>
+            {
+                if (!m_IsInitialized) return;
+
+                Vector3 normal = new Vector3(int.Parse(m_CustomX.text), int.Parse(m_CustomY.text), int.Parse(m_CustomZ.text));
+                scene.UpdateCutPlane(cut, cut.Orientation, cut.Flip, cut.RemoveFrontPlane == 1, normal, cut.Position);
             });
             m_IsInitialized = true;
         }
