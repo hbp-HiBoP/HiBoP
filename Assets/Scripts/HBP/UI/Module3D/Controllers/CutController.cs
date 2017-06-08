@@ -35,9 +35,9 @@ namespace HBP.UI.Module3D {
         }
         public void AddNewCut()
         {
-            m_Scene.AddCutPlane();
+            Cut cut = m_Scene.AddCutPlane();
             CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
-            controller.Initialize(m_Scene, m_Scene.Cuts.Last());
+            controller.Initialize(m_Scene, cut);
             m_AddCutButton.SetAsLastSibling();
         }
         #endregion

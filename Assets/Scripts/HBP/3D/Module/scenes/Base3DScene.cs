@@ -1375,22 +1375,51 @@ namespace HBP.Module3D
             }
 
             // Add new cut
-            Cut newCut = new Cut(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
-            m_Cuts.Add(newCut);
+            Cut cut = new Cut(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+            switch (m_Cuts.Count)
+            {
+                case 0:
+                    cut.Orientation = CutOrientation.Axial;
+                    cut.Flip = false;
+                    cut.RemoveFrontPlane = 0;
+                    cut.Position = 0.5f;
+                    break;
+                case 1:
+                    cut.Orientation = CutOrientation.Coronal;
+                    cut.Flip = false;
+                    cut.RemoveFrontPlane = 0;
+                    cut.Position = 0.5f;
+                    break;
+                case 2:
+                    cut.Orientation = CutOrientation.Sagital;
+                    cut.Flip = false;
+                    cut.RemoveFrontPlane = 0;
+                    cut.Position = 0.5f;
+                    break;
+                default:
+                    cut.Orientation = CutOrientation.Axial;
+                    cut.Flip = false;
+                    cut.RemoveFrontPlane = 0;
+                    cut.Position = 0.5f;
+                    break;
+            }
+            m_Cuts.Add(cut);
+
+            // Update IDs
             for (int i = 0; i < m_Cuts.Count; i++)
             {
                 m_Cuts[i].ID = i;
             }
 
             // Add new cut GameObject
-            GameObject cut = Instantiate(m_CutPrefab);
-            cut.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.CutMaterials[this];
-            cut.name = "cut_" + (m_Cuts.Count - 1);
-            cut.transform.parent = m_DisplayedObjects.BrainCutMeshesParent.transform;
-            cut.AddComponent<MeshCollider>();
-            cut.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
-            cut.transform.localPosition = Vector3.zero;
-            m_DisplayedObjects.BrainCutMeshes.Add(cut);
+            GameObject cutGameObject = Instantiate(m_CutPrefab);
+            cutGameObject.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.CutMaterials[this];
+            cutGameObject.name = "cut_" + (m_Cuts.Count - 1);
+            cutGameObject.transform.parent = m_DisplayedObjects.BrainCutMeshesParent.transform;
+            cutGameObject.AddComponent<MeshCollider>();
+            cutGameObject.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
+            cutGameObject.transform.localPosition = Vector3.zero;
+            m_DisplayedObjects.BrainCutMeshes.Add(cutGameObject);
             m_DisplayedObjects.BrainCutMeshes.Last().layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
 
             // update columns manager
@@ -1405,7 +1434,9 @@ namespace HBP.Module3D
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.AddNewPlane);
 
-            return newCut;
+            UpdateCutPlane(cut);
+
+            return cut;
         }
         /// <summary>
         /// Remove the last cut plane
@@ -1449,7 +1480,7 @@ namespace HBP.Module3D
         /// <param name="customNormal"></param>
         /// <param name="idPlane"></param>
         /// <param name="position"></param>
-        public void UpdateCutPlane(Cut cut, CutOrientation orientation, bool flip, bool removeFrontPlane, Vector3 customNormal, float position)
+        public void UpdateCutPlane(Cut cut)
         {
             // Check access
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.UpdatePlane))
@@ -1458,23 +1489,20 @@ namespace HBP.Module3D
                 return;
             }
 
-            Plane newPlane = new Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
-            if (orientation == CutOrientation.Custom || !SceneInformation.MRILoaded) // custom normal
+            if (cut.Orientation == CutOrientation.Custom || !SceneInformation.MRILoaded)
             {
-                if (customNormal.x != 0 || customNormal.y != 0 || customNormal.z != 0)
-                    newPlane.Normal = customNormal;
-                else
-                    newPlane.Normal = new Vector3(1, 0, 0);
+                if (cut.Normal.x == 0 && cut.Normal.y == 0 && cut.Normal.z == 0)
+                {
+                    cut.Normal = new Vector3(1, 0, 0);
+                }
             }
             else
             {
-                m_ColumnManager.DLLVolume.SetPlaneWithOrientation(newPlane, orientation, flip);
+                Plane plane = new Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+                m_ColumnManager.DLLVolume.SetPlaneWithOrientation(plane, cut.Orientation, cut.Flip);
+                cut.Normal = plane.Normal;
             }
 
-            cut.Normal = newPlane.Normal;
-            cut.Orientation = orientation;
-            cut.Flip = flip;
-            cut.RemoveFrontPlane = removeFrontPlane?1:0;
             SceneInformation.LastPlaneModifiedID = cut.ID;
 
             // Cuts base on the mesh
@@ -1487,8 +1515,7 @@ namespace HBP.Module3D
             else
                 offset = 0.1f;
 
-            cut.Point = SceneInformation.MeshCenter + cut.Normal * (position - 0.5f) * offset * cut.NumberOfCuts;
-            cut.Position = position;
+            cut.Point = SceneInformation.MeshCenter + cut.Normal * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
 
             SceneInformation.CutMeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
