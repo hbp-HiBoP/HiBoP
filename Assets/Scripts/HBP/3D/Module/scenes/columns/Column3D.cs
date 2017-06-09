@@ -513,6 +513,7 @@ namespace HBP.Module3D
                     }
                 }
                 IsSelected = true;
+                ApplicationState.Module3D.OnSelectView.Invoke(selectedView);
             });
             view.OnMoveView.AddListener(() =>
             {

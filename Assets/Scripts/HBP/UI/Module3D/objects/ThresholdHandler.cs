@@ -68,6 +68,13 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Clamps the position of the handler between min and max
+        /// </summary>
+        public void ClampPosition()
+        {
+            Position = Position;
+        }
         public void OnDrag(PointerEventData data)
         {
             Vector2 localPosition = new Vector2(0, 0);

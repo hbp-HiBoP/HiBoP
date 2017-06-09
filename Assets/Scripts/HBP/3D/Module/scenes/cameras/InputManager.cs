@@ -31,7 +31,7 @@ namespace HBP.Interaction
         public void SendClickRayToScenes(Ray ray, Module3D.Base3DScene scene, int idColumn)
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type)) return;
-            scene.UpdateSelectedColumn(idColumn);
+            //scene.UpdateSelectedColumn(idColumn);
             scene.ClickOnScene(ray);
             m_UIManager.UpdateFocusedSceneAndColumn(scene, idColumn);
         }

@@ -17,6 +17,10 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
+        protected void Awake()
+        {
+            Initialize();
+        }
         /// <summary>
         /// Link elements to the toolbar
         /// </summary>

@@ -3,22 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-[ExecuteInEditMode]
-public class CutDisplayImageFitter : MonoBehaviour
+namespace HBP.UI.Module3D
 {
-    private LayoutElement m_LayoutElement;
-    private RectTransform m_RectTransform;
-
-    private void Awake()
+    [ExecuteInEditMode]
+    public class CutDisplayImageFitter : MonoBehaviour
     {
-        m_LayoutElement = GetComponent<LayoutElement>();
-        m_RectTransform = GetComponent<RectTransform>();
-    }
+        private LayoutElement m_LayoutElement;
+        private RectTransform m_RectTransform;
 
-    public void OnRectTransformDimensionsChange()
-    {
-        if (!m_LayoutElement || !m_RectTransform) return;
+        private void Awake()
+        {
+            m_LayoutElement = GetComponent<LayoutElement>();
+            m_RectTransform = GetComponent<RectTransform>();
+        }
 
-        m_LayoutElement.preferredHeight = m_RectTransform.rect.width;
+        public void OnRectTransformDimensionsChange()
+        {
+            if (!m_LayoutElement || !m_RectTransform) return;
+
+            m_LayoutElement.preferredHeight = m_RectTransform.rect.width;
+        }
     }
 }

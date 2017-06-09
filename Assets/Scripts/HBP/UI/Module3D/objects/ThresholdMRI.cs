@@ -55,10 +55,10 @@ namespace HBP.UI.Module3D
             m_MinHandler.OnChangePosition.AddListener(() =>
             {
                 m_MaxHandler.MinimumPosition = m_MinHandler.Position + 0.1f;
-                m_MaxHandler.Position = m_MaxHandler.Position; // call to setter
+                m_MaxHandler.ClampPosition();
 
                 m_MRICalMin = m_MinHandler.Position;
-                ApplicationState.Module3D.SelectedScene.UpdateMRICalMin(m_MRICalMin);
+                ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMinFactor = m_MRICalMin;
 
                 OnChangeValues.Invoke(m_MRICalMin, m_MRICalMax);
             });
@@ -66,10 +66,10 @@ namespace HBP.UI.Module3D
             m_MaxHandler.OnChangePosition.AddListener(() =>
             {
                 m_MinHandler.MaximumPosition = m_MaxHandler.Position - 0.1f;
-                m_MinHandler.Position = m_MinHandler.Position; // call to setter
+                m_MinHandler.ClampPosition();
 
                 m_MRICalMax = m_MaxHandler.Position;
-                ApplicationState.Module3D.SelectedScene.UpdateMRICalMax(m_MRICalMax);
+                ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMaxFactor = m_MRICalMax;
 
                 OnChangeValues.Invoke(m_MRICalMin, m_MRICalMax);
             });

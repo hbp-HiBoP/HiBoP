@@ -148,7 +148,7 @@ namespace HBP.Module3D
                 if (value < m_IRMCalMax)
                 {
                     m_IRMCalMin = value;
-                    m_scene.UpdateMRICalMin(m_IRMCalMin);
+                    m_scene.ColumnManager.MRICalMinFactor = m_IRMCalMin;
                     updateUIValues();
                 }
                 else
@@ -161,7 +161,7 @@ namespace HBP.Module3D
                 if (value > m_IRMCalMin)
                 {
                     m_IRMCalMax = value;
-                    m_scene.UpdateMRICalMax(m_IRMCalMax);
+                    m_scene.ColumnManager.MRICalMaxFactor = m_IRMCalMax;
                     updateUIValues();
                 }
                 else
