@@ -196,7 +196,7 @@ namespace HBP.UI.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        private Column3DIEEG.IEEGDataParameters DBG()
+        private Column3DIEEG.IEEGDataParameters DBG() // DELETEME
         {
             Column3DIEEG.IEEGDataParameters data = new Column3DIEEG.IEEGDataParameters();
             data.MinimumAmplitude = -10.0f;

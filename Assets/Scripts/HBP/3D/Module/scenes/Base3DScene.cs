@@ -93,37 +93,6 @@ namespace HBP.Module3D
     }
 
     /// <summary>
-    /// IEEG sites parameters
-    /// </summary>
-    public struct IEEGSitesParameters
-    {
-        public float Gain;
-        public float MaximumDistance;
-    }
-
-    /// <summary>
-    /// IEEG alpha parameters 
-    /// </summary>
-    public struct IEEGAlphaParameters
-    {
-        public float AlphaMin;
-        public float AlphaMax;
-    }
-
-    /// <summary>
-    /// IEEG threhsolds parameters
-    /// </summary>
-    public struct IEEGThresholdParameters
-    {
-        public float SpanMin;
-        public float Middle;
-        public float SpanMax;
-        public float MinimumAmplitude;
-        public float MaximumAmplitude;
-    }
-
-
-    /// <summary>
     /// IRMF data to be send to the UI
     /// </summary>
     public struct FMRIDataParameters
@@ -1909,31 +1878,6 @@ namespace HBP.Module3D
             {
                 UnloadLastFMRIColumn();
                 Events.OnRemoveFMRIColumn.Invoke();
-            }
-        }
-        /// <summary>
-        /// Send IEEG read min/max/middle to the IEEG menu
-        /// </summary>
-        public void SendIEEGParametersToMenu() // FIXME
-        {            
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-            {
-                //IEEGDataParameters iEEGDataParams;
-                //iEEGDataParams.MinimumAmplitude       = m_ColumnManager.ColumnsIEEG[ii].MinAmp;
-                //iEEGDataParams.MaximumAmplitude       = m_ColumnManager.ColumnsIEEG[ii].MaxAmp;
-
-                //iEEGDataParams.SpanMin      = m_ColumnManager.ColumnsIEEG[ii].SpanMin;
-                //iEEGDataParams.Middle       = m_ColumnManager.ColumnsIEEG[ii].Middle;
-                //iEEGDataParams.SpanMax      = m_ColumnManager.ColumnsIEEG[ii].SpanMax;
-
-                //iEEGDataParams.Gain         = m_ColumnManager.ColumnsIEEG[ii].GainBubbles;
-                //iEEGDataParams.MaximumDistance  = m_ColumnManager.ColumnsIEEG[ii].MaxDistanceElec;
-                ////iEEGDataParams.columnId     = ii;
-
-                //iEEGDataParams.AlphaMin     = m_ColumnManager.ColumnsIEEG[ii].AlphaMin;
-                //iEEGDataParams.AlphaMax     = m_ColumnManager.ColumnsIEEG[ii].AlphaMax; // useless
-
-                //Events.OnSendIEEGParameters.Invoke(iEEGDataParams);
             }
         }
         /// <summary>

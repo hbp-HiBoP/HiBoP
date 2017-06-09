@@ -487,9 +487,6 @@ namespace HBP.Module3D
 
             Events.OnAskRegionOfInterestUpdate.Invoke(-1);
 
-            // send data to UI
-            SendIEEGParametersToMenu();
-
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetTimelines);
             //##################
