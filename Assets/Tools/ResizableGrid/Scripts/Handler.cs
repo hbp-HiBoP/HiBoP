@@ -3,11 +3,9 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-public class OnChangePosition : UnityEvent { }
-
 namespace Tools.Unity.ResizableGrid
 {
-    public abstract class Handler : MonoBehaviour, IDragHandler, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler
+    public abstract class Handler : MonoBehaviour, IDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
         /// <summary>
@@ -28,7 +26,7 @@ namespace Tools.Unity.ResizableGrid
         /// </summary>
         protected ResizableGrid m_ResizableGrid;
 
-        public OnChangePosition OnChangePosition = new OnChangePosition();
+        public UnityEvent OnChangePosition = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -48,6 +46,14 @@ namespace Tools.Unity.ResizableGrid
         /// <param name="data">Data of the pointer when the event occurs</param>
         public abstract void OnDrag(PointerEventData data);
         /// <summary>
+        /// Callback event when ending the drag of the handler
+        /// </summary>
+        /// <param name="data">Data of the pointer when the event occurs</param>
+        public void OnEndDrag(PointerEventData data)
+        {
+            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+        }
+        /// <summary>
         /// Callback event when clicking on the handler
         /// </summary>
         /// <param name="data">Data of the pointer when the event occurs</param>
@@ -55,6 +61,7 @@ namespace Tools.Unity.ResizableGrid
         {
             IsClicked = true;
             m_ResizableGrid.IsHandlerClicked = true;
+            Cursor.SetCursor(m_Cursor, m_CursorHotSpot, CursorMode.Auto);
         }
         /// <summary>
         /// Callback event when releasing the click on the handler

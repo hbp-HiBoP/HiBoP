@@ -9,56 +9,29 @@ namespace HBP.UI.Module3D
     {
 
         #region Properties
-        [SerializeField, Candlelight.PropertyBackingField]
-        private ToolbarMenu m_ToolbarMenu;
         /// <summary>
         /// Toolbar menu
         /// </summary>
-        public ToolbarMenu ToolbarMenu
-        {
-            get
-            {
-                return m_ToolbarMenu;
-            }
-            set
-            {
-                m_ToolbarMenu = value;
-            }
-        }
+        [SerializeField]
+        private ToolbarMenu m_ToolbarMenu;
 
-        [SerializeField, Candlelight.PropertyBackingField]
-        private Toggle m_SceneToggle;
         /// <summary>
         /// Scene toggle
         /// </summary>
-        public Toggle SceneToggle
-        {
-            get
-            {
-                return m_SceneToggle;
-            }
-            set
-            {
-                m_SceneToggle = value;
-            }
-        }
+        [SerializeField]
+        private Toggle m_SceneToggle;
 
-        [SerializeField, Candlelight.PropertyBackingField]
-        private Toggle m_DisplayToggle;
         /// <summary>
         /// Display toggle
         /// </summary>
-        public Toggle DisplayToggle
-        {
-            get
-            {
-                return m_DisplayToggle;
-            }
-            set
-            {
-                m_DisplayToggle = value;
-            }
-        }
+        [SerializeField]
+        private Toggle m_DisplayToggle;
+
+        /// <summary>
+        /// Display toggle
+        /// </summary>
+        [SerializeField]
+        private Toggle m_IEEGToggle;
 
         /// <summary>
         /// Toggle group associated to the left menu toggles
@@ -78,6 +51,7 @@ namespace HBP.UI.Module3D
 
             m_Toolbars.Add(m_SceneToggle, m_ToolbarMenu.SceneSettingsToolbar);
             m_Toolbars.Add(m_DisplayToggle, m_ToolbarMenu.DisplaySettingsToolbar);
+            m_Toolbars.Add(m_IEEGToggle, m_ToolbarMenu.IEEGSettingsToolbar);
 
             AddListeners();
         }
@@ -92,10 +66,6 @@ namespace HBP.UI.Module3D
                 {
                     ChangeToolbar(m_SceneToggle);
                 }
-                else
-                {
-                    // todo
-                }
             });
             m_DisplayToggle.onValueChanged.AddListener((isOn) =>
             {
@@ -103,9 +73,12 @@ namespace HBP.UI.Module3D
                 {
                     ChangeToolbar(m_DisplayToggle);
                 }
-                else
+            });
+            m_IEEGToggle.onValueChanged.AddListener((isOn) =>
+            {
+                if (isOn)
                 {
-                    // todo
+                    ChangeToolbar(m_IEEGToggle);
                 }
             });
         }
@@ -120,10 +93,6 @@ namespace HBP.UI.Module3D
             newlyActivatedToolbar.gameObject.SetActive(true);
             m_ToolbarMenu.CurrentToolbar = newlyActivatedToolbar;
         }
-        #endregion
-
-        #region Public Methods
-
         #endregion
     }
 }

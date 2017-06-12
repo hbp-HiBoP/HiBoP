@@ -730,7 +730,7 @@ namespace HBP.Module3D.Cam
         /// <param name="idColumn"></param>
         public void UpdateSelectedColumn(int idColumn)
         {
-            m_AssociatedScene.UpdateSelectedColumn(idColumn);
+            //m_AssociatedScene.UpdateSelectedColumn(idColumn);
         }
         /// <summary>
         /// Define the camera with a position a rotation and it's target.

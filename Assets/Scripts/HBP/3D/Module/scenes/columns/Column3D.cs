@@ -311,6 +311,11 @@ namespace HBP.Module3D
                     DLLMRITextureCutGenerators.RemoveAt(DLLMRITextureCutGenerators.Count - 1);
                 }
             }
+
+            if (diffCuts != 0)
+            {
+                IsRenderingUpToDate = false;
+            }
         }
         /// <summary>
         /// Set the sites visibility state
@@ -508,6 +513,7 @@ namespace HBP.Module3D
                     }
                 }
                 IsSelected = true;
+                ApplicationState.Module3D.OnSelectView.Invoke(selectedView);
             });
             view.OnMoveView.AddListener(() =>
             {

@@ -49,6 +49,11 @@ namespace Tools.Unity.ResizableGrid
         /// </summary>
         private List<List<CornerHandler>> m_CornerHandlers = new List<List<CornerHandler>>();
 
+        /// <summary>
+        /// Threshold for the magntic attraction of the handlers
+        /// </summary>
+        private const float MAGNETIC_THRESHOLD = 0.015f;
+
         private const float MINIMUM_VIEW_HEIGHT_DEFAULT = 20.0f;
         private float m_MinimumViewHeight = MINIMUM_VIEW_HEIGHT_DEFAULT;
         /// <summary>
@@ -250,11 +255,17 @@ namespace Tools.Unity.ResizableGrid
         {
             for (int i = 0; i < m_VerticalHandlers.Count; i++)
             {
-                m_VerticalHandlers[i].Position = (i + 1) / (float)ColumnNumber;
+                float defaultPosition = (i + 1) / (float)ColumnNumber;
+                m_VerticalHandlers[i].Position = defaultPosition;
+                m_VerticalHandlers[i].MagneticPosition = defaultPosition;
+                m_VerticalHandlers[i].MagneticThreshold = Mathf.Min(MAGNETIC_THRESHOLD, 0.1f * Mathf.Abs(m_VerticalHandlers[i].MaximumPosition - m_VerticalHandlers[i].MinimumPosition));
             }
             for (int i = 0; i < m_HorizontalHandlers.Count; i++)
             {
-                m_HorizontalHandlers[i].Position = (m_HorizontalHandlers.Count - i) / (float)ViewNumber;
+                float defaultPosition = (m_HorizontalHandlers.Count - i) / (float)ViewNumber;
+                m_HorizontalHandlers[i].Position = defaultPosition;
+                m_HorizontalHandlers[i].MagneticPosition = defaultPosition;
+                m_HorizontalHandlers[i].MagneticThreshold = Mathf.Min(MAGNETIC_THRESHOLD, 0.1f * Mathf.Abs(m_HorizontalHandlers[i].MaximumPosition - m_HorizontalHandlers[i].MinimumPosition));
             }
         }
         /// <summary>
@@ -336,6 +347,10 @@ namespace Tools.Unity.ResizableGrid
         /// </summary>
         public void AddColumn()
         {
+            AddColumn(ColumnPrefab, ViewPrefab);
+        }
+        public void AddColumn(GameObject customColumnPrefab, GameObject customViewPrefab)
+        {
             if (ColumnNumber > 0)
             {
                 m_VerticalHandlers.Add(Instantiate(VerticalHandlerPrefab, transform).GetComponent<VerticalHandler>());
@@ -352,11 +367,11 @@ namespace Tools.Unity.ResizableGrid
                     m_CornerHandlers.Last().Last().Initialize(m_VerticalHandlers.Last(), m_HorizontalHandlers[i]);
                 }
             }
-            m_Columns.Add(Instantiate(ColumnPrefab, transform).GetComponent<Column>());
+            m_Columns.Add(Instantiate(customColumnPrefab?customColumnPrefab:ColumnPrefab, transform).GetComponent<Column>());
 
-            for (int i = 1; i < ViewNumber; i++)
+            for (int i = 0; i < ViewNumber; i++)
             {
-                m_Columns.Last().AddView();
+                m_Columns.Last().AddView(customViewPrefab?customViewPrefab:ViewPrefab);
             }
 
             ChangeNumberOfElementsCallback();
@@ -393,6 +408,10 @@ namespace Tools.Unity.ResizableGrid
         /// </summary>
         public void AddViewLine()
         {
+            AddViewLine(ViewPrefab);
+        }
+        public void AddViewLine(GameObject customViewPrefab)
+        {
             if (ViewNumber > 0)
             {
                 m_HorizontalHandlers.Add(Instantiate(HorizontalHandlerPrefab, transform).GetComponent<HorizontalHandler>());
@@ -411,7 +430,7 @@ namespace Tools.Unity.ResizableGrid
 
             foreach (Column column in m_Columns)
             {
-                column.AddView();
+                column.AddView(customViewPrefab);
             }
 
             ChangeNumberOfElementsCallback();

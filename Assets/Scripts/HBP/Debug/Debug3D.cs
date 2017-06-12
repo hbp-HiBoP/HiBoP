@@ -9,18 +9,18 @@ using HBP.Data.General;
 using System.Linq;
 using UnityEngine.EventSystems;
 
-namespace HBP.Module3D.UI.DBG
+namespace HBP.UI.Module3D.DBG
 {
     public class Debug3D : MonoBehaviour
     {
-        public GameObject SceneUIPrefab;
+        public GameObject SceneWindowPrefab;
 
         private void Awake()
         {
             ApplicationState.Module3D.OnAddScene.AddListener((scene) =>
             {
-                Scene3DUI sceneUI = Instantiate(SceneUIPrefab, transform).GetComponent<Scene3DUI>();
-                sceneUI.Initialize(scene);
+                Scene3DWindow sceneWindow = Instantiate(SceneWindowPrefab, transform).GetComponent<Scene3DWindow>();
+                sceneWindow.Initialize(scene);
             });
         }
 
@@ -31,20 +31,20 @@ namespace HBP.Module3D.UI.DBG
                 Debug.Log("LoadSingle");
                 Project project = ApplicationState.ProjectLoaded;
                 List<Column> columns = new List<Column>();
-                Patient patient = project.Patients[0];
+                Data.Patient patient = project.Patients[0];
                 for (int i = 0; i < 3; i++)
                 {
                     Dataset dataset = project.Datasets[0];
                     Protocol protocol = project.Protocols[0];
                     Bloc bloc = protocol.Blocs[i % 2];
                     PatientConfiguration patientConfig = new PatientConfiguration(patient);
-                    Dictionary<Patient, PatientConfiguration> patientConfigByPatient = new Dictionary<Patient, PatientConfiguration>();
+                    Dictionary<Data.Patient, PatientConfiguration> patientConfigByPatient = new Dictionary<Data.Patient, PatientConfiguration>();
                     patientConfigByPatient.Add(patient, patientConfig);
                     ColumnConfiguration configuration = new ColumnConfiguration(patientConfigByPatient, new RegionOfInterest[0] { });
                     Column col = new Column(dataset, "TestLabel", protocol, bloc, configuration);
                     columns.Add(col);
                 }
-                Visualization visualization = new Visualization("VisuTest", Data.Anatomy.ReferenceFrameType.Patient, new Patient[] { patient }, columns);
+                Data.Visualization.Visualization visualization = new Data.Visualization.Visualization("VisuTest", Data.Anatomy.ReferenceFrameType.Patient, new Data.Patient[] { patient }, columns);
                 ApplicationState.Module3D.AddVisualization(visualization);
             }
             if (Input.GetKeyDown(KeyCode.B))
@@ -61,8 +61,8 @@ namespace HBP.Module3D.UI.DBG
                     Column col = new Column(dataset, "TestLabel", protocol, bloc, configuration);
                     columns.Add(col);
                 }
-                Patient[] patients = { project.Patients[0], project.Patients[1] };
-                Visualization visualization = new Visualization("VisuTest", Data.Anatomy.ReferenceFrameType.MNI, patients, columns);
+                Data.Patient[] patients = { project.Patients[0], project.Patients[1] };
+                Data.Visualization.Visualization visualization = new Data.Visualization.Visualization("VisuTest", Data.Anatomy.ReferenceFrameType.MNI, patients, columns);
                 ApplicationState.Module3D.AddVisualization(visualization);
             }
             if (Input.GetKeyDown(KeyCode.Z)) // to be tested when loading a sp visualization works entirely

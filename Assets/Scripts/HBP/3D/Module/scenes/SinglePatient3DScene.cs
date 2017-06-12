@@ -577,9 +577,6 @@ namespace HBP.Module3D
 
             // set flag
             SceneInformation.TimelinesLoaded = true;
-
-            // send data to UI
-            SendIEEGParametersToMenu();
             
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetTimelines);

@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 using System;
 using HBP.Module3D;
 
-namespace HBP.Module3D.UI
+namespace HBP.UI.Module3D
 {
     public class Scene3DUI : MonoBehaviour
     {
@@ -17,10 +17,6 @@ namespace HBP.Module3D.UI
         /// Associated logical Base3DScene
         /// </summary>
         private Base3DScene m_Scene;
-        /// <summary>
-        /// List of GameObjects to be shown when a column is minimized
-        /// </summary>
-        private List<GameObject> m_MinimizedColumns = new List<GameObject>();
         /// <summary>
         /// Linked resizable grid
         /// </summary>

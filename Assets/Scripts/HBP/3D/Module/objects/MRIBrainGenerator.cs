@@ -136,8 +136,8 @@ namespace HBP.Module3D
             public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
             {
                 bool noError = false;
-                noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.Dimensions, IEEGColumn.MaxDistanceElec, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances ? 1 : 0,
-                    IEEGColumn.Middle, IEEGColumn.SpanMin, IEEGColumn.SpanMax) == 1;
+                noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.Dimensions, IEEGColumn.IEEGParameters.MaximumInfluence, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances ? 1 : 0,
+                    IEEGColumn.IEEGParameters.Middle, IEEGColumn.IEEGParameters.SpanMin, IEEGColumn.IEEGParameters.SpanMax) == 1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if(!noError)
@@ -172,7 +172,7 @@ namespace HBP.Module3D
             public bool ComputeSurfaceUVIEEG(DLL.Surface surface, Column3DIEEG IEEGColumn)
             {                
                 bool noError = false;
-                noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), IEEGColumn.CurrentTimeLineID, IEEGColumn.AlphaMin, IEEGColumn.AlphaMax) == 1;
+                noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), IEEGColumn.CurrentTimeLineID, IEEGColumn.IEEGParameters.AlphaMin, IEEGColumn.IEEGParameters.AlphaMax) == 1;
 
                 int m_nbVertices = surface.NumberOfVertices;
                 if (m_nbVertices == 0) // mesh is empty

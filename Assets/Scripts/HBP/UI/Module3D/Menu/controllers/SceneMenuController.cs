@@ -148,7 +148,7 @@ namespace HBP.Module3D
                 if (value < m_IRMCalMax)
                 {
                     m_IRMCalMin = value;
-                    m_scene.UpdateMRICalMin(m_IRMCalMin);
+                    m_scene.ColumnManager.MRICalMinFactor = m_IRMCalMin;
                     updateUIValues();
                 }
                 else
@@ -161,7 +161,7 @@ namespace HBP.Module3D
                 if (value > m_IRMCalMin)
                 {
                     m_IRMCalMax = value;
-                    m_scene.UpdateMRICalMax(m_IRMCalMax);
+                    m_scene.ColumnManager.MRICalMaxFactor = m_IRMCalMax;
                     updateUIValues();
                 }
                 else
@@ -284,7 +284,7 @@ namespace HBP.Module3D
             m_sceneMenu = generate_menu();
 
             // listeners
-            m_scene.Events.OnIRMCalValuesUpdate.AddListener((IRMCalValues) =>
+            m_scene.Events.OnMRICalValuesUpdate.AddListener((IRMCalValues) =>
             {
                 m_sceneMenu.GetComponent<SceneMenu>().updateUIValuesFromScene(IRMCalValues);
             });

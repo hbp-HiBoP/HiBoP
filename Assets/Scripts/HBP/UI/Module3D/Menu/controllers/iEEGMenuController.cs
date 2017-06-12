@@ -23,17 +23,17 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Send the alpha params (params : alphaParams)
         /// </summary>
-        public class ApplyAlphaToTAllCols : UnityEvent<IEEGAlphaParameters> { }
+        public class ApplyAlphaToTAllCols : UnityEvent<Column3DIEEG.IEEGDataParameters> { }
 
         /// <summary>
         /// Send the sites params (params : sitesParams)
         /// </summary>
-        public class ApplySitesToTAllCols : UnityEvent<IEEGSitesParameters> { }
+        public class ApplySitesToTAllCols : UnityEvent<Column3DIEEG.IEEGDataParameters> { }
 
         /// <summary>
         /// Send the threshold params (params : thresholdParams)
         /// </summary>
-        public class ApplyThresholdToTAllCols : UnityEvent<IEEGThresholdParameters> { }
+        public class ApplyThresholdToTAllCols : UnityEvent<Column3DIEEG.IEEGDataParameters> { }
 
         /// <summary>
         /// Send a signal for closing the window
@@ -66,7 +66,7 @@ namespace HBP.UI.Module3D
         private bool m_isThresholdIEEGMinimized = true;
         private bool m_isROIMenuMinimized = true;
         
-        private IEEGDataParameters m_;
+        private Column3DIEEG.IEEGDataParameters m_;
 
         public int m_columnId = -1;
         public int m_maxDistance = 50;
@@ -124,14 +124,14 @@ namespace HBP.UI.Module3D
         /// Update the UI alpha values
         /// </summary>
         /// <param name="iEEGAlphaParams"></param>
-        public void update_UI_alpha_values(IEEGAlphaParameters iEEGAlphaParams)
+        public void update_UI_alpha_values(Column3DIEEG.IEEGDataParameters iEEGAlphaParams)
         {
-            m_.alphaMin = iEEGAlphaParams.alphaMin;
-            m_.alphaMax = iEEGAlphaParams.alphaMax;
+            m_.AlphaMin = iEEGAlphaParams.AlphaMin;
+            m_.AlphaMax = iEEGAlphaParams.AlphaMax;
 
             Transform contentPanelT = transform.Find("panel");
-            contentPanelT.Find("Min alpha parent").Find("Min alpha slider").GetComponent<Slider>().value = m_.alphaMin;
-            contentPanelT.Find("Max alpha parent").Find("Max alpha slider").GetComponent<Slider>().value = m_.alphaMax;
+            contentPanelT.Find("Min alpha parent").Find("Min alpha slider").GetComponent<Slider>().value = m_.AlphaMin;
+            contentPanelT.Find("Max alpha parent").Find("Max alpha slider").GetComponent<Slider>().value = m_.AlphaMax;
         }
 
         /// <summary>
@@ -139,36 +139,36 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="menus"></param>
         /// <param name="iEEGSitesParams"></param>
-        public void update_UI_gain_sites_values(IEEGSitesParameters iEEGSitesParams)
+        public void update_UI_gain_sites_values(Column3DIEEG.IEEGDataParameters iEEGSitesParams)
         {
-            m_.maxDistance = iEEGSitesParams.maxDistance;
-            m_.gain = iEEGSitesParams.gain;
+            m_.MaximumInfluence = iEEGSitesParams.MaximumInfluence;
+            m_.Gain = iEEGSitesParams.Gain;
 
             Transform contentPanelT = transform.Find("panel");
-            contentPanelT.Find("Inf dist parent").Find("Inf dist inputfield").GetComponent<InputField>().text = "" + m_.maxDistance;
-            contentPanelT.Find("Gain plots parent").Find("Gain plot slider").GetComponent<Slider>().value = m_.gain;
+            contentPanelT.Find("Inf dist parent").Find("Inf dist inputfield").GetComponent<InputField>().text = "" + m_.MaximumInfluence;
+            contentPanelT.Find("Gain plots parent").Find("Gain plot slider").GetComponent<Slider>().value = m_.Gain;
         }
 
         /// <summary>
         /// Update the UI threshold values
         /// </summary>
         /// <param name="iEEGThresholdParams"></param>
-        public void update_UI_threshold_values(IEEGThresholdParameters iEEGThresholdParams)
+        public void update_UI_threshold_values(Column3DIEEG.IEEGDataParameters iEEGThresholdParams)
         {
-            m_.spanMin = iEEGThresholdParams.minSpan;
-            m_.middle = iEEGThresholdParams.middle;
-            m_.spanMax = iEEGThresholdParams.maxSpan;
+            m_.SpanMin = iEEGThresholdParams.SpanMin;
+            m_.Middle = iEEGThresholdParams.Middle;
+            m_.SpanMax = iEEGThresholdParams.SpanMax;
 
             Transform contentPanelT = transform.Find("panel");
-            contentPanelT.Find("Min span parent").Find("Min span inputfield").GetComponent<InputField>().text = "" + m_.spanMin;
-            contentPanelT.Find("Middle parent").Find("Middle inputfield").GetComponent<InputField>().text = "" + m_.middle;
-            contentPanelT.Find("Max span parent").Find("Max span inputfield").GetComponent<InputField>().text = "" + m_.spanMax;
+            contentPanelT.Find("Min span parent").Find("Min span inputfield").GetComponent<InputField>().text = "" + m_.SpanMin;
+            contentPanelT.Find("Middle parent").Find("Middle inputfield").GetComponent<InputField>().text = "" + m_.Middle;
+            contentPanelT.Find("Max span parent").Find("Max span inputfield").GetComponent<InputField>().text = "" + m_.SpanMax;
 
             // cal sliders
-            float diff = m_.maxAmp - m_.minAmp;
-            contentPanelT.Find("Cal min iEEG slider").GetComponent<Slider>().value = (iEEGThresholdParams.minSpan - m_.minAmp) / diff;
-            contentPanelT.Find("Cal middle iEEG slider").GetComponent<Slider>().value = (iEEGThresholdParams.middle - m_.minAmp) / diff;
-            contentPanelT.Find("Cal max iEEG slider").GetComponent<Slider>().value = (iEEGThresholdParams.maxSpan - m_.minAmp) / diff;
+            float diff = m_.MaximumAmplitude - m_.MinimumAmplitude;
+            contentPanelT.Find("Cal min iEEG slider").GetComponent<Slider>().value = (iEEGThresholdParams.SpanMin - m_.MinimumAmplitude) / diff;
+            contentPanelT.Find("Cal middle iEEG slider").GetComponent<Slider>().value = (iEEGThresholdParams.Middle - m_.MinimumAmplitude) / diff;
+            contentPanelT.Find("Cal max iEEG slider").GetComponent<Slider>().value = (iEEGThresholdParams.SpanMax - m_.MinimumAmplitude) / diff;
 
             update_histogram();
         }
@@ -180,31 +180,31 @@ namespace HBP.UI.Module3D
         /// <param name="iEEGThresholdParams"></param>
         /// <param name="warningsTruncation"></param>
         /// <returns></returns>
-        public IEEGThresholdParameters check_threshold_values(IEEGThresholdParameters iEEGThresholdParams, List<bool> warningsTruncation)
+        public Column3DIEEG.IEEGDataParameters check_threshold_values(Column3DIEEG.IEEGDataParameters iEEGThresholdParams, List<bool> warningsTruncation)
         {
-            IEEGThresholdParameters thresholdParams = iEEGThresholdParams;
+            Column3DIEEG.IEEGDataParameters thresholdParams = iEEGThresholdParams;
 
             bool warning = false;
             //Transform contentPanelT = transform.Find("panel");
 
             // middle
-            if (thresholdParams.middle < m_.minAmp || thresholdParams.middle > m_.maxAmp)
+            if (thresholdParams.Middle < m_.MinimumAmplitude || thresholdParams.Middle > m_.MaximumAmplitude)
             {
-                thresholdParams.middle = m_.minAmp;
+                thresholdParams.Middle = m_.MinimumAmplitude;
                 warning = true;
             }
 
             // span min
-            if (thresholdParams.minSpan < m_.minAmp || thresholdParams.minSpan > m_.maxAmp)
+            if (thresholdParams.SpanMin < m_.MinimumAmplitude || thresholdParams.SpanMin > m_.MaximumAmplitude)
             {
-                thresholdParams.minSpan = m_.minAmp;
+                thresholdParams.SpanMin = m_.MinimumAmplitude;
                 warning = true;
             }
 
             // span max
-            if (thresholdParams.maxSpan > m_.maxAmp || thresholdParams.maxSpan < m_.minAmp)
+            if (thresholdParams.SpanMax > m_.MaximumAmplitude || thresholdParams.SpanMax < m_.MinimumAmplitude)
             {
-                thresholdParams.maxSpan = m_.maxAmp;
+                thresholdParams.SpanMax = m_.MaximumAmplitude;
                 warning = true;
             }
 
@@ -218,37 +218,37 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="menus"></param>
         /// <param name="iEEGDataParams"></param>
-        public void update_UI_iEEG_data_from_scene(IEEGDataParameters iEEGDataParams)
+        public void update_UI_iEEG_data_from_scene(Column3DIEEG.IEEGDataParameters iEEGDataParams)
         {
             Transform contentPanelT = transform.Find("panel");
 
             // min amp            
-            m_.minAmp = iEEGDataParams.minAmp;
-            string minAmpStr = "" + m_.minAmp;
+            m_.MinimumAmplitude = iEEGDataParams.MinimumAmplitude;
+            string minAmpStr = "" + m_.MinimumAmplitude;
             contentPanelT.Find("Min parent").Find("Min value text").GetComponent<Text>().text = (minAmpStr.Length > 5) ? minAmpStr.Substring(0, 5) : minAmpStr; // TODO : add unit
 
             // max amp
-            m_.maxAmp = iEEGDataParams.maxAmp;
-            string maxAmpStr = "" + m_.maxAmp;
+            m_.MaximumAmplitude = iEEGDataParams.MaximumAmplitude;
+            string maxAmpStr = "" + m_.MaximumAmplitude;
             contentPanelT.Find("Max parent").Find("Max value text").GetComponent<Text>().text = (maxAmpStr.Length > 5) ? maxAmpStr.Substring(0, 5) : maxAmpStr;
 
-            IEEGAlphaParameters alphaParams;
-            alphaParams.alphaMin = iEEGDataParams.alphaMin;
-            alphaParams.alphaMax = iEEGDataParams.alphaMax;
-            alphaParams.columnId = iEEGDataParams.columnId;
+            Column3DIEEG.IEEGDataParameters alphaParams = new Column3DIEEG.IEEGDataParameters();
+            alphaParams.AlphaMin = iEEGDataParams.AlphaMin;
+            alphaParams.AlphaMax = iEEGDataParams.AlphaMax;
+            //alphaParams.columnId = iEEGDataParams.columnId;
             update_UI_alpha_values(alphaParams);
 
-            IEEGSitesParameters sitesParams;
-            sitesParams.gain = iEEGDataParams.gain;
-            sitesParams.maxDistance = iEEGDataParams.maxDistance;
-            sitesParams.columnId = iEEGDataParams.columnId;
+            Column3DIEEG.IEEGDataParameters sitesParams = new Column3DIEEG.IEEGDataParameters();
+            sitesParams.Gain = iEEGDataParams.Gain;
+            sitesParams.MaximumInfluence = iEEGDataParams.MaximumInfluence;
+            //sitesParams.columnId = iEEGDataParams.columnId;
             update_UI_gain_sites_values(sitesParams);
 
-            IEEGThresholdParameters thresholdsParams;
-            thresholdsParams.minSpan = iEEGDataParams.spanMin;
-            thresholdsParams.middle = iEEGDataParams.middle;
-            thresholdsParams.maxSpan = iEEGDataParams.spanMax;
-            thresholdsParams.columnId = iEEGDataParams.columnId;
+            Column3DIEEG.IEEGDataParameters thresholdsParams = new Column3DIEEG.IEEGDataParameters();
+            thresholdsParams.SpanMin = iEEGDataParams.SpanMin;
+            thresholdsParams.Middle = iEEGDataParams.Middle;
+            thresholdsParams.SpanMax = iEEGDataParams.SpanMax;
+            //thresholdsParams.columnId = iEEGDataParams.columnId;
             update_UI_threshold_values(thresholdsParams);
         }
 
@@ -283,11 +283,11 @@ namespace HBP.UI.Module3D
             Slider maxSpanSlider = contentPanelT.Find("Cal max iEEG slider").GetComponent<Slider>();
 
             // alpha
-            minAlphaSlider.onValueChanged.AddListener((value) =>{ m_.alphaMin = value; m_scene.UpdateIEEGMinAlpha(value, m_columnId); });            
-            maxAlphaSlider.onValueChanged.AddListener((value) =>{ m_.alphaMax = value; m_scene.UpdateIEEGMaxAlpha(value, m_columnId); });
+            minAlphaSlider.onValueChanged.AddListener((value) =>{ m_.AlphaMin = value; ((Column3DIEEG)m_scene.ColumnManager.SelectedColumn).IEEGParameters.AlphaMin = value; });            
+            maxAlphaSlider.onValueChanged.AddListener((value) =>{ m_.AlphaMax = value; ((Column3DIEEG)m_scene.ColumnManager.SelectedColumn).IEEGParameters.AlphaMax = value; });
 
             // gain bubble            
-            gainSlider.onValueChanged.AddListener((value) => { m_.gain = value; m_scene.UpdateBubblesGain(value, m_columnId); });            
+            gainSlider.onValueChanged.AddListener((value) => { m_.Gain = value; ((Column3DIEEG)m_scene.ColumnManager.SelectedColumn).IEEGParameters.Gain = value; });            
 
             // min span            
             minSpanInputF.onEndEdit.AddListener(delegate
@@ -303,24 +303,24 @@ namespace HBP.UI.Module3D
                         minSpanInputF.text = "0";
                 }
 
-                m_.spanMin = float.Parse(minSpanInputF.text);
-                float diff = m_.maxAmp - m_.minAmp;
+                m_.SpanMin = float.Parse(minSpanInputF.text);
+                float diff = m_.MaximumAmplitude - m_.MinimumAmplitude;
 
                 // truncate min value
-                if (m_.spanMin > m_.middle)
+                if (m_.SpanMin > m_.Middle)
                 {
-                    m_.spanMin = m_.middle;
-                    minSpanInputF.text = "" + m_.spanMin;
+                    m_.SpanMin = m_.Middle;
+                    minSpanInputF.text = "" + m_.SpanMin;
                 }
-                if (m_.spanMin < m_.minAmp)
+                if (m_.SpanMin < m_.MinimumAmplitude)
                 {
-                    m_.spanMin = m_.minAmp;
-                    minSpanInputF.text = "" + m_.spanMin;
+                    m_.SpanMin = m_.MinimumAmplitude;
+                    minSpanInputF.text = "" + m_.SpanMin;
                 }
 
                 // update span min
-                minSpanSlider.value = (m_.spanMin - m_.minAmp) / diff;
-                m_scene.UpdateIEEGSpanMin(m_.spanMin, m_columnId);
+                minSpanSlider.value = (m_.SpanMin - m_.MinimumAmplitude) / diff;
+                //m_scene.UpdateIEEGSpanMin(m_.spanMin, m_columnId);
 
                 update_histogram();
             });
@@ -328,17 +328,17 @@ namespace HBP.UI.Module3D
 
             minSpanSlider.onValueChanged.AddListener((value) =>
             {
-                float diff = m_.maxAmp - m_.minAmp;
-                m_.spanMin = m_.minAmp + value * diff;
+                float diff = m_.MaximumAmplitude - m_.MinimumAmplitude;
+                m_.SpanMin = m_.MinimumAmplitude + value * diff;
 
-                if (m_.spanMin > m_.middle)
+                if (m_.SpanMin > m_.Middle)
                 {
-                    m_.spanMin = m_.middle;
-                    minSpanSlider.value = (m_.spanMin - m_.minAmp) / diff;
+                    m_.SpanMin = m_.Middle;
+                    minSpanSlider.value = (m_.SpanMin - m_.MinimumAmplitude) / diff;
                 }
                 
-                minSpanInputF.text = "" + m_.spanMin;
-                m_scene.UpdateIEEGSpanMin(m_.spanMin, m_columnId);
+                minSpanInputF.text = "" + m_.SpanMin;
+                //m_scene.UpdateIEEGSpanMin(m_.spanMin, m_columnId);
 
                 update_histogram();
             });
@@ -358,65 +358,65 @@ namespace HBP.UI.Module3D
                         middleInputF.text = "0";
                 }
 
-                m_.middle = float.Parse(middleInputF.text);
-                float diff = m_.maxAmp - m_.minAmp;
+                m_.Middle = float.Parse(middleInputF.text);
+                float diff = m_.MaximumAmplitude - m_.MinimumAmplitude;
 
                 // truncate middle values
-                if (m_.middle > m_.maxAmp)
+                if (m_.Middle > m_.MaximumAmplitude)
                 {
-                    m_.middle = m_.maxAmp;
-                    middleInputF.text = "" + m_.middle;
+                    m_.Middle = m_.MaximumAmplitude;
+                    middleInputF.text = "" + m_.Middle;
                 }
-                if (m_.middle < m_.minAmp)
+                if (m_.Middle < m_.MinimumAmplitude)
                 {
-                    m_.middle = m_.minAmp;
-                    middleInputF.text = "" + m_.middle;
+                    m_.Middle = m_.MinimumAmplitude;
+                    middleInputF.text = "" + m_.Middle;
                 }
 
-                if (m_.spanMin > m_.middle)
+                if (m_.SpanMin > m_.Middle)
                 {
-                    m_.spanMin = m_.middle;
-                    minSpanInputF.text = "" + m_.spanMin;
+                    m_.SpanMin = m_.Middle;
+                    minSpanInputF.text = "" + m_.SpanMin;
 
                     // update span min
-                    minSpanSlider.value = (m_.spanMin - m_.minAmp) / diff;
+                    minSpanSlider.value = (m_.SpanMin - m_.MinimumAmplitude) / diff;
                 }
 
-                if (m_.spanMax < m_.middle)
+                if (m_.SpanMax < m_.Middle)
                 {
-                    m_.spanMax = m_.middle;
-                    maxSpanInputF.text = "" + m_.spanMax;
+                    m_.SpanMax = m_.Middle;
+                    maxSpanInputF.text = "" + m_.SpanMax;
 
                     // update span max
-                    maxSpanSlider.value = (m_.spanMax - m_.minAmp) / diff;
+                    maxSpanSlider.value = (m_.SpanMax - m_.MinimumAmplitude) / diff;
                 }
 
                 // update middle
-                middleSpanSlider.value = (m_.middle - m_.minAmp) / diff;
-                m_scene.UpdateIEEGMiddle(m_.middle, m_columnId);
+                middleSpanSlider.value = (m_.Middle - m_.MinimumAmplitude) / diff;
+                //m_scene.UpdateIEEGMiddle(m_.middle, m_columnId);
 
                 update_histogram();
             });
 
             middleSpanSlider.onValueChanged.AddListener((value) =>
             {
-                float diff = m_.maxAmp - m_.minAmp;
-                m_.middle = m_.minAmp + value * diff;
+                float diff = m_.MaximumAmplitude - m_.MinimumAmplitude;
+                m_.Middle = m_.MinimumAmplitude + value * diff;
 
-                if (m_.middle < m_.spanMin)
+                if (m_.Middle < m_.SpanMin)
                 {
-                    m_.middle = m_.spanMin;
-                    middleSpanSlider.value = (m_.middle - m_.minAmp) / diff;
+                    m_.Middle = m_.SpanMin;
+                    middleSpanSlider.value = (m_.Middle - m_.MinimumAmplitude) / diff;
                 }
 
-                if (m_.middle > m_.spanMax)
+                if (m_.Middle > m_.SpanMax)
                 {
-                    m_.middle = m_.spanMax;
-                    middleSpanSlider.value = (m_.middle - m_.minAmp) / diff;
+                    m_.Middle = m_.SpanMax;
+                    middleSpanSlider.value = (m_.Middle - m_.MinimumAmplitude) / diff;
                 }
 
-                middleInputF.text = "" + m_.middle;
-                m_scene.UpdateIEEGMiddle(m_.middle, m_columnId);
+                middleInputF.text = "" + m_.Middle;
+                //m_scene.UpdateIEEGMiddle(m_.middle, m_columnId);
 
                 update_histogram();
             });
@@ -435,39 +435,39 @@ namespace HBP.UI.Module3D
                         maxSpanInputF.text = "0";
                 }
 
-                m_.spanMax = float.Parse(maxSpanInputF.text);
+                m_.SpanMax = float.Parse(maxSpanInputF.text);
 
-                float diff = m_.maxAmp - m_.minAmp;
-                if (m_.spanMax > m_.maxAmp)
+                float diff = m_.MaximumAmplitude - m_.MinimumAmplitude;
+                if (m_.SpanMax > m_.MaximumAmplitude)
                 {
-                    m_.spanMax = m_.maxAmp;
-                    maxSpanInputF.text = "" + m_.spanMax;
+                    m_.SpanMax = m_.MaximumAmplitude;
+                    maxSpanInputF.text = "" + m_.SpanMax;
                 }
-                if (m_.spanMax < m_.middle)
+                if (m_.SpanMax < m_.Middle)
                 {
-                    m_.spanMax = m_.middle;
-                    maxSpanInputF.text = "" + m_.spanMax;
+                    m_.SpanMax = m_.Middle;
+                    maxSpanInputF.text = "" + m_.SpanMax;
                 }
 
-                maxSpanSlider.value = (m_.spanMax - m_.minAmp) / diff;
-                m_scene.UpdateIEEGSpanMax(m_.spanMax, m_columnId);
+                maxSpanSlider.value = (m_.SpanMax - m_.MinimumAmplitude) / diff;
+                //m_scene.UpdateIEEGSpanMax(m_.spanMax, m_columnId);
 
                 update_histogram();
             });
 
             maxSpanSlider.onValueChanged.AddListener((value) =>
             {
-                float diff = m_.maxAmp - m_.minAmp;
-                m_.spanMax = m_.minAmp + value * diff;
+                float diff = m_.MaximumAmplitude - m_.MinimumAmplitude;
+                m_.SpanMax = m_.MinimumAmplitude + value * diff;
 
-                if (m_.spanMax < m_.middle)
+                if (m_.SpanMax < m_.Middle)
                 {
-                    m_.spanMax = m_.middle;
-                    maxSpanSlider.value = (m_.spanMax - m_.minAmp) / diff;
+                    m_.SpanMax = m_.Middle;
+                    maxSpanSlider.value = (m_.SpanMax - m_.MinimumAmplitude) / diff;
                 }
 
-                maxSpanInputF.text = "" + m_.spanMax;
-                m_scene.UpdateIEEGSpanMax(m_.spanMax, m_columnId);
+                maxSpanInputF.text = "" + m_.SpanMax;
+                //m_scene.UpdateIEEGSpanMax(m_.spanMax, m_columnId);
 
                 update_histogram();
             });
@@ -488,24 +488,24 @@ namespace HBP.UI.Module3D
                         maxDistInputF.text = "0" + maxDistInputF.text;
                 }
 
-                m_.maxDistance = float.Parse(maxDistInputF.text);
-                if (m_.maxDistance > m_maxDistance)
+                m_.MaximumInfluence = float.Parse(maxDistInputF.text);
+                if (m_.MaximumInfluence > m_maxDistance)
                 {
-                    m_.maxDistance = m_maxDistance;
+                    m_.MaximumInfluence = m_maxDistance;
                     maxDistInputF.text = "" + m_maxDistance;
                 }
 
-                m_scene.UpdateSiteMaximumInfluence(m_.maxDistance, m_columnId);
+                ((Column3DIEEG)m_scene.ColumnManager.SelectedColumn).IEEGParameters.MaximumInfluence = m_.MaximumInfluence;
             });
 
             // set alpha to all 
             Button setAlphaForAllColsButton = contentPanelT.Find("set alpha for all columns parent").Find("set alpha for all columns button").GetComponent<Button>();
             setAlphaForAllColsButton.onClick.AddListener(delegate
             {
-                IEEGAlphaParameters iEEGAlphaParams;
-                iEEGAlphaParams.alphaMin = minAlphaSlider.value;
-                iEEGAlphaParams.alphaMax = maxAlphaSlider.value;
-                iEEGAlphaParams.columnId = m_columnId;
+                Column3DIEEG.IEEGDataParameters iEEGAlphaParams = new Column3DIEEG.IEEGDataParameters();
+                iEEGAlphaParams.AlphaMin = minAlphaSlider.value;
+                iEEGAlphaParams.AlphaMax = maxAlphaSlider.value;
+                //iEEGAlphaParams.columnId = m_columnId;
                 ApplyAlphaToTAllCols.Invoke(iEEGAlphaParams);
             });
 
@@ -513,10 +513,10 @@ namespace HBP.UI.Module3D
             Button setSiteForAllColsButton = contentPanelT.Find("set sites params for all columns parent").Find("set sites params for all columns button").GetComponent<Button>();
             setSiteForAllColsButton.onClick.AddListener(delegate
             {
-                IEEGSitesParameters iEEGSitesParams;
-                iEEGSitesParams.gain = gainSlider.value;
-                iEEGSitesParams.maxDistance = float.Parse(maxDistInputF.text);
-                iEEGSitesParams.columnId = m_columnId;
+                Column3DIEEG.IEEGDataParameters iEEGSitesParams = new Column3DIEEG.IEEGDataParameters();
+                iEEGSitesParams.Gain = gainSlider.value;
+                iEEGSitesParams.MinimumAmplitude = float.Parse(maxDistInputF.text);
+                //iEEGSitesParams.columnId = m_columnId;
                 ApplySitesToTAllCols.Invoke(iEEGSitesParams);
             });
 
@@ -524,12 +524,12 @@ namespace HBP.UI.Module3D
             Button setThresholdForAllColsButton = contentPanelT.Find("set threshold for all columns parent").Find("set threshold for all columns button").GetComponent<Button>();
             setThresholdForAllColsButton.onClick.AddListener(delegate
             {
-                IEEGThresholdParameters iEEGThresholdParams;
-                iEEGThresholdParams.minSpan = float.Parse(minSpanInputF.text);
-                iEEGThresholdParams.middle = float.Parse(middleInputF.text);
-                iEEGThresholdParams.maxSpan = float.Parse(maxSpanInputF.text);
-                iEEGThresholdParams.columnId = m_columnId;
-                ApplyThresholdToTAllCols.Invoke(iEEGThresholdParams);
+                Column3DIEEG.IEEGDataParameters iEEGThresholdParams = new Column3DIEEG.IEEGDataParameters();
+                iEEGThresholdParams.SpanMin = float.Parse(minSpanInputF.text);
+                iEEGThresholdParams.Middle = float.Parse(middleInputF.text);
+                iEEGThresholdParams.SpanMax = float.Parse(maxSpanInputF.text);
+                //iEEGThresholdParams.columnId = m_columnId;
+                //ApplyThresholdToTAllCols.Invoke(iEEGThresholdParams);
             });
 
             // minimize/expand alpha
@@ -660,10 +660,11 @@ namespace HBP.UI.Module3D
             m_iEEGMenuList.Add(generate_menu(0));
 
             // listeners
-            m_scene.Events.OnSendIEEGParameters.AddListener((iEEGDataParams) =>
-            {
-                m_iEEGMenuList[iEEGDataParams.columnId].GetComponent<iEEGMenu>().update_UI_iEEG_data_from_scene(iEEGDataParams);
-            });
+            //m_scene.Events.OnSendIEEGParameters.AddListener((iEEGDataParams) =>
+            //{
+            //    m_iEEGMenuList[0].GetComponent<iEEGMenu>().update_UI_iEEG_data_from_scene(iEEGDataParams);
+            //    //m_iEEGMenuList[iEEGDataParams.columnId].GetComponent<iEEGMenu>().update_UI_iEEG_data_from_scene(iEEGDataParams);
+            //});
         }
 
         /// <summary>
@@ -690,40 +691,48 @@ namespace HBP.UI.Module3D
             menu.ApplyAlphaToTAllCols.AddListener((alphaParams) =>
             {
                 // update UI/scenes values for all others columns 
-                int senderId = alphaParams.columnId;
+                int senderId = 0;
+                //int senderId = alphaParams.columnId;
                 for (int ii = 0; ii < m_iEEGMenuList.Count; ++ii)
                 {
                     if (ii == senderId)
                         continue;
 
-                    alphaParams.columnId = ii;
+                    //alphaParams.columnId = ii;
 
                     // update UI values
-                    m_iEEGMenuList[alphaParams.columnId].GetComponent<iEEGMenu>().update_UI_alpha_values(alphaParams);
+                    m_iEEGMenuList[0].GetComponent<iEEGMenu>().update_UI_alpha_values(alphaParams);
+                    //m_iEEGMenuList[alphaParams.columnId].GetComponent<iEEGMenu>().update_UI_alpha_values(alphaParams);
 
                     // update scene values
-                    m_scene.UpdateIEEGMinAlpha(alphaParams.alphaMin, alphaParams.columnId);
-                    m_scene.UpdateIEEGMaxAlpha(alphaParams.alphaMax, alphaParams.columnId);
+                    ((Column3DIEEG)m_scene.ColumnManager.SelectedColumn).IEEGParameters.AlphaMin = alphaParams.AlphaMin;
+                    ((Column3DIEEG)m_scene.ColumnManager.SelectedColumn).IEEGParameters.AlphaMax = alphaParams.AlphaMax;
+                    //m_scene.UpdateIEEGMinAlpha(alphaParams.AlphaMin, alphaParams.columnId);
+                    //m_scene.UpdateIEEGMaxAlpha(alphaParams.AlphaMax, alphaParams.columnId);
                 }
             });
 
             menu.ApplySitesToTAllCols.AddListener((sitesParams) =>
             {
                 // update UI/scenes values for all others columns 
-                int senderId = sitesParams.columnId;
+                int senderId = 0;
+                //int senderId = sitesParams.columnId;
                 for (int ii = 0; ii < m_iEEGMenuList.Count; ++ii)
                 {
                     if (ii == senderId)
                         continue;
 
-                    sitesParams.columnId = ii;
+                    //sitesParams.columnId = ii;
 
                     // update UI values
-                    m_iEEGMenuList[sitesParams.columnId].GetComponent<iEEGMenu>().update_UI_gain_sites_values(sitesParams);
+                    m_iEEGMenuList[0].GetComponent<iEEGMenu>().update_UI_gain_sites_values(sitesParams);
+                    //m_iEEGMenuList[sitesParams.columnId].GetComponent<iEEGMenu>().update_UI_gain_sites_values(sitesParams);
 
                     // update scene values
-                    m_scene.UpdateBubblesGain(sitesParams.gain, sitesParams.columnId);
-                    m_scene.UpdateSiteMaximumInfluence(sitesParams.maxDistance, sitesParams.columnId);
+                    ((Column3DIEEG)m_scene.ColumnManager.SelectedColumn).IEEGParameters.Gain = sitesParams.Gain;
+                    ((Column3DIEEG)m_scene.ColumnManager.SelectedColumn).IEEGParameters.MaximumInfluence = sitesParams.MaximumInfluence;
+                    //m_scene.UpdateBubblesGain(sitesParams.Gain, sitesParams.columnId);
+                    //m_scene.UpdateSiteMaximumInfluence(sitesParams.MaximumDistance, sitesParams.columnId);
                 }
 
             });
@@ -732,27 +741,29 @@ namespace HBP.UI.Module3D
             {
                 // update UI/scenes values for all others columns 
                 List<bool> truncateWarnings = new List<bool>();
-                int senderId = thresholdParams.columnId;
+                int senderId = 0;
+                //int senderId = thresholdParams.columnId;
                 for (int ii = 0; ii < m_iEEGMenuList.Count; ++ii)
                 {
                     if (ii == senderId)
                         continue;
 
-                    thresholdParams.columnId = ii;
+                    //thresholdParams.columnId = ii;
 
                     // retrieve menu
-                    iEEGMenu menuToUpdate = m_iEEGMenuList[thresholdParams.columnId].GetComponent<iEEGMenu>();
+                    iEEGMenu menuToUpdate = m_iEEGMenuList[0].GetComponent<iEEGMenu>();
+                    //iEEGMenu menuToUpdate = m_iEEGMenuList[thresholdParams.columnId].GetComponent<iEEGMenu>();
 
                     // check if values must be truncated
-                    IEEGThresholdParameters truncatedValues = menuToUpdate.check_threshold_values(thresholdParams, truncateWarnings);
+                    Column3DIEEG.IEEGDataParameters truncatedValues = menuToUpdate.check_threshold_values(thresholdParams, truncateWarnings);
 
                     // update UI values
                     menuToUpdate.update_UI_threshold_values(truncatedValues);
 
                     // update scene values
-                    m_scene.UpdateIEEGMiddle(truncatedValues.middle, thresholdParams.columnId);
-                    m_scene.UpdateIEEGSpanMin(truncatedValues.minSpan, thresholdParams.columnId);
-                    m_scene.UpdateIEEGSpanMax(truncatedValues.maxSpan, thresholdParams.columnId);
+                    //m_scene.UpdateIEEGMiddle(truncatedValues.middle, thresholdParams.columnId);
+                    //m_scene.UpdateIEEGSpanMin(truncatedValues.minSpan, thresholdParams.columnId);
+                    //m_scene.UpdateIEEGSpanMax(truncatedValues.maxSpan, thresholdParams.columnId);
                 }
 
                 // check if a warning message must be displayed

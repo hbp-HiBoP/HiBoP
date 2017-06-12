@@ -40,6 +40,23 @@ namespace HBP.UI.Module3D {
             }
         }
 
+        [SerializeField, Candlelight.PropertyBackingField]
+        private IEEGSettingsToolbar m_IEEGSettingsToolbar;
+        /// <summary>
+        /// Toolbar for the scene settings
+        /// </summary>
+        public IEEGSettingsToolbar IEEGSettingsToolbar
+        {
+            get
+            {
+                return m_IEEGSettingsToolbar;
+            }
+            set
+            {
+                m_IEEGSettingsToolbar = value;
+            }
+        }
+
         /// <summary>
         /// Currently used toolbar
         /// </summary>
@@ -60,11 +77,8 @@ namespace HBP.UI.Module3D {
 
             m_SceneSettingsToolbar.gameObject.SetActive(true);
             m_DisplaySettingsToolbar.gameObject.SetActive(false);
+            //m_IEEGSettingsToolbar.gameObject.SetActive(false); // FIXME
         }
-        #endregion
-
-        #region Public Methods
-
         #endregion
     }
 }

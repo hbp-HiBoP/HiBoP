@@ -188,7 +188,7 @@ namespace HBP.Module3D
         /// Add a plane, and depending on the number of plances, init it with predefined parameters
         /// </summary>
         private void add_and_init_plane()
-        {            
+        {
             add_plane();
             int currentPlanesNb = m_SetPlanePanelList.Count;
 
@@ -196,7 +196,7 @@ namespace HBP.Module3D
             {
                 initPlane(0, 0.5f, 0, false, false, new Vector3(1, 0, 0));
             }
-            else if(currentPlanesNb == 2)
+            else if (currentPlanesNb == 2)
             {
                 initPlane(1, 0.5f, 1, false, false, new Vector3(1, 0, 0));
             }
@@ -289,7 +289,7 @@ namespace HBP.Module3D
         /// <param name="idPlane"></param>
         private void update_plane(int idPlane)
         {
-            /*
+            
             float position = m_SetPlanePanelList[idPlane].transform.Find("setplane bottom layout").Find("setplane_position_slider").GetComponent<Slider>().value;
             bool sagital = m_SetPlanePanelList[idPlane].transform.Find("setplane_middle1_layout").Find("setplane_sagital_radiobutton").GetComponent<UnityEngine.UI.Toggle>().isOn;
             bool coronal = m_SetPlanePanelList[idPlane].transform.Find("setplane_middle1_layout").Find("setplane_coronal_radiobutton").GetComponent<UnityEngine.UI.Toggle>().isOn;
@@ -312,8 +312,8 @@ namespace HBP.Module3D
             float y = float.Parse(valueY, CultureInfo.InvariantCulture.NumberFormat);
             float z = float.Parse(valueZ, CultureInfo.InvariantCulture.NumberFormat);
 
-            m_Scene.UpdateCutPlane(orientation, flip, removeFrontPlane, new Vector3(x, y, z), idPlane, position);
-            */
+            //m_Scene.UpdateCutPlane(orientation, flip, removeFrontPlane, new Vector3(x, y, z), idPlane, position);
+            
         }
 
         /// <summary>

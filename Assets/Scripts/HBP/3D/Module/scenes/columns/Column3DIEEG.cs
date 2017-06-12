@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 // unity
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
@@ -45,15 +46,216 @@ namespace HBP.Module3D
         public int CurrentTimeLineID = 0; /**< curent timeline column ID */
         public float SharedMinInf = 0f;
         public float SharedMaxInf = 0f;
-        public float MinAmp = float.MaxValue; /**< min amplitude value */
-        public float MaxAmp = float.MinValue; /**< max amplitude value */
-        public float GainBubbles = 1f; /**< gain bubbles */
-        public float Middle = 0f;   /**< middle value */
-        public float MaxDistanceElec = 15f; /**< amplitude maximum influence of a plot */
-        public float SpanMin = -50f;
-        public float SpanMax = 50f;
-        public float AlphaMin = 0.2f; /**< minimum alpha */
-        public float AlphaMax = 1f; /**< maximum alpha */
+
+        /// <summary>
+        /// IEEG data of the column
+        /// </summary>
+        public class IEEGDataParameters
+        {
+            private const float MIN_INFLUENCE = 0.0f;
+            private const float MAX_INFLUENCE = 50.0f;
+            private float m_MaximumInfluence = 15.0f;
+            /// <summary>
+            /// Maximum influence amplitude of a site
+            /// </summary>
+            public float MaximumInfluence
+            {
+                get
+                {
+                    return m_MaximumInfluence;
+                }
+                set
+                {
+                    float val = Mathf.Clamp(value, MIN_INFLUENCE, MAX_INFLUENCE);
+                    if (m_MaximumInfluence != val)
+                    {
+                        m_MaximumInfluence = val;
+                        OnUpdateMaximumInfluence.Invoke();
+                    }
+                }
+            }
+
+            private float m_Gain = 1.0f;
+            /// <summary>
+            /// Gain of the spheres representing the sites
+            /// </summary>
+            public float Gain
+            {
+                get
+                {
+                    return m_Gain;
+                }
+                set
+                {
+                    if (m_Gain != value)
+                    {
+                        m_Gain = value;
+                        OnUpdateGain.Invoke();
+                    }
+                }
+            }
+
+            private float m_MinimumAmplitude = float.MinValue;
+            /// <summary>
+            /// Minimum amplitude value
+            /// </summary>
+            public float MinimumAmplitude
+            {
+                get
+                {
+                    return m_MinimumAmplitude;
+                }
+                set
+                {
+                    m_MinimumAmplitude = value;
+                }
+            }
+
+            private float m_MaximumAmplitude = float.MaxValue;
+            /// <summary>
+            /// Maximum amplitude value
+            /// </summary>
+            public float MaximumAmplitude
+            {
+                get
+                {
+                    return m_MaximumAmplitude;
+                }
+                set
+                {
+                    m_MaximumAmplitude = value;
+                }
+            }
+
+            private float m_AlphaMin = 0.2f;
+            /// <summary>
+            /// Minimum Alpha
+            /// </summary>
+            public float AlphaMin
+            {
+                get
+                {
+                    return m_AlphaMin;
+                }
+                set
+                {
+                    if (m_AlphaMin != value)
+                    {
+                        m_AlphaMin = value;
+                        OnUpdateAlphaValues.Invoke();
+                    }
+                }
+            }
+
+            private float m_AlphaMax = 1.0f;
+            /// <summary>
+            /// Maximum Alpha
+            /// </summary>
+            public float AlphaMax
+            {
+                get
+                {
+                    return m_AlphaMax;
+                }
+                set
+                {
+                    if (m_AlphaMax != value)
+                    {
+                        m_AlphaMax = value;
+                        OnUpdateAlphaValues.Invoke();
+                    }
+                }
+            }
+
+            private float m_SpanMin = -50.0f;
+            /// <summary>
+            /// Span Min value
+            /// </summary>
+            public float SpanMin
+            {
+                get
+                {
+                    return m_SpanMin;
+                }
+                set
+                {
+                    if (m_SpanMin != value)
+                    {
+                        m_SpanMin = value;
+                        OnUpdateSpanValues.Invoke();
+                    }
+                }
+            }
+
+            private float m_Middle = 0.0f;
+            /// <summary>
+            /// Middle value
+            /// </summary>
+            public float Middle
+            {
+                get
+                {
+                    return m_Middle;
+                }
+                set
+                {
+                    if (m_Middle != value)
+                    {
+                        m_Middle = value;
+                        OnUpdateSpanValues.Invoke();
+                    }
+                }
+            }
+
+            private float m_SpanMax = 50.0f;
+            /// <summary>
+            /// Span Min value
+            /// </summary>
+            public float SpanMax
+            {
+                get
+                {
+                    return m_SpanMax;
+                }
+                set
+                {
+                    if (m_SpanMax != value)
+                    {
+                        m_SpanMax = value;
+                        OnUpdateSpanValues.Invoke();
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Event called when updating the span values (min, mid or max)
+            /// </summary>
+            public UnityEvent OnUpdateSpanValues = new UnityEvent();
+            /// <summary>
+            /// Event called when updating the alpha values
+            /// </summary>
+            public UnityEvent OnUpdateAlphaValues = new UnityEvent();
+            /// <summary>
+            /// Event called when updating the sphere gain
+            /// </summary>
+            public UnityEvent OnUpdateGain = new UnityEvent();
+            /// <summary>
+            /// Event called when updating the maximum influence
+            /// </summary>
+            public UnityEvent OnUpdateMaximumInfluence = new UnityEvent();
+        }
+        private IEEGDataParameters m_IEEGParameters = new IEEGDataParameters();
+        /// <summary>
+        /// IEEG Parameters
+        /// </summary>
+        public IEEGDataParameters IEEGParameters
+        {
+            get
+            {
+                return m_IEEGParameters;
+            }
+        }
+
         //  amplitudes
         public int[] Dimensions = new int[3]; /**< amplitudes array dimensions (dims[0] = size| dims[1] = 1 (legacy) | dims[2] = plots number ) */
         public float[] IEEGValues = new float[0]; /**< amplitudes 1D array (to be sent to the DLL) */
@@ -164,8 +366,8 @@ namespace HBP.Module3D
                 }
             }
 
-            MinAmp = float.MaxValue;
-            MaxAmp = float.MinValue;
+            IEEGParameters.MinimumAmplitude = float.MaxValue;
+            IEEGParameters.MaximumAmplitude = float.MinValue;
 
             IEEGValues = new float[Dimensions[0] * Dimensions[1] * Dimensions[2]];
             for (int ii = 0; ii < Dimensions[0]; ++ii)
@@ -175,17 +377,17 @@ namespace HBP.Module3D
                     IEEGValues[ii * Dimensions[2] + jj] = IEEGValuesBySiteID[jj][ii];
 
                     // update min/max values
-                    if (IEEGValuesBySiteID[jj][ii] > MaxAmp)
-                        MaxAmp = IEEGValuesBySiteID[jj][ii];
+                    if (IEEGValuesBySiteID[jj][ii] > IEEGParameters.MaximumAmplitude)
+                        IEEGParameters.MaximumAmplitude = IEEGValuesBySiteID[jj][ii];
 
-                    if (IEEGValuesBySiteID[jj][ii] < MinAmp)
-                        MinAmp = IEEGValuesBySiteID[jj][ii];
+                    if (IEEGValuesBySiteID[jj][ii] < IEEGParameters.MinimumAmplitude)
+                        IEEGParameters.MinimumAmplitude = IEEGValuesBySiteID[jj][ii];
                 }
             }
 
-            Middle = (MinAmp + MaxAmp) / 2;
-            SpanMin = MinAmp;
-            SpanMax = MaxAmp;
+            IEEGParameters.Middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
+            IEEGParameters.SpanMin = IEEGParameters.MinimumAmplitude;
+            IEEGParameters.SpanMax = IEEGParameters.MaximumAmplitude;
         }
         /// <summary>
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
@@ -196,8 +398,8 @@ namespace HBP.Module3D
 
             if (IEEGValuesBySiteID == null) return; // FIXME : delete this when reading data
 
-            float diffMin = SpanMin - Middle;
-            float diffMax = SpanMax - Middle;
+            float diffMin = IEEGParameters.SpanMin - IEEGParameters.Middle;
+            float diffMax = IEEGParameters.SpanMax - IEEGParameters.Middle;
 
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
@@ -205,12 +407,12 @@ namespace HBP.Module3D
                     continue;
 
                 float value = IEEGValuesBySiteID[ii][CurrentTimeLineID];
-                if (value < SpanMin)
-                    value = SpanMin;
-                if (value > SpanMax)
-                    value = SpanMax;
+                if (value < IEEGParameters.SpanMin)
+                    value = IEEGParameters.SpanMin;
+                if (value > IEEGParameters.SpanMax)
+                    value = IEEGParameters.SpanMax;
 
-                value -= Middle;
+                value -= IEEGParameters.Middle;
 
                 if (value < 0)
                 {
@@ -414,7 +616,7 @@ namespace HBP.Module3D
                     }
                     else if (data.IsGeneratorUpToDate)
                     {
-                        Sites[ii].transform.localScale = ElectrodesSizeScale[ii] * GainBubbles;
+                        Sites[ii].transform.localScale = ElectrodesSizeScale[ii] * IEEGParameters.Gain;
                         //  plot size (collider and shape) and color are updated with the current timeline amplitude   
                         siteType = ElectrodesPositiveColor[ii] ? SiteType.Positive : SiteType.Negative;
                     }

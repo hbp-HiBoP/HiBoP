@@ -167,10 +167,53 @@ namespace HBP.Module3D
         public List<DLL.Surface> DLLSplittedWhiteMeshesList = null;
 
         // volume
-        public float MRICalMinFactor = 0f;
-        public float MRICalMaxFactor = 1f;
+        private float m_MRICalMinFactor = 0.0f;
+        /// <summary>
+        /// MRI Cal Min Value
+        /// </summary>
+        public float MRICalMinFactor
+        {
+            get
+            {
+                return m_MRICalMinFactor;
+            }
+            set
+            {
+                if (m_MRICalMinFactor != value)
+                {
+                    m_MRICalMinFactor = value;
+                    OnUpdateMRICalValues.Invoke();
+                }
+            }
+        }
+
+        private float m_MRICalMaxFactor = 1.0f;
+        /// <summary>
+        /// MRI Cal Max Value
+        /// </summary>
+        public float MRICalMaxFactor
+        {
+            get
+            {
+                return m_MRICalMaxFactor;
+            }
+            set
+            {
+                if (m_MRICalMaxFactor != value)
+                {
+                    m_MRICalMaxFactor = value;
+                    OnUpdateMRICalValues.Invoke();
+                }
+            }
+        }
+
         public DLL.Volume DLLVolume = null;
         public List<DLL.Volume> DLLVolumeFMriList = null;
+
+        /// <summary>
+        /// Event called when changing the values of the MRI Cal Values
+        /// </summary>
+        public UnityEvent OnUpdateMRICalValues = new UnityEvent();
 
         // planes
         public List<Cut> PlanesCutsCopy = new List<Cut>();
@@ -236,6 +279,11 @@ namespace HBP.Module3D
         public Texture2D BrainColorMapTexture = null;
         public Texture2D BrainColorTexture = null;
 
+        public UnityEvent OnUpdateIEEGSpan = new UnityEvent();
+        public UnityEvent OnUpdateIEEGAlpha = new UnityEvent();
+        public UnityEvent OnUpdateIEEGGain = new UnityEvent();
+        public UnityEvent OnUpdateIEEGMaximumInfluence = new UnityEvent();
+
         // Column 3D Prefabs
         public GameObject Column3DViewIEEGPrefab;
         public GameObject Column3DViewFMRIPrefab;
@@ -277,10 +325,27 @@ namespace HBP.Module3D
                     v.IsColumnSelected = true;
                 }
                 OnSelectColumnManager.Invoke(this);
+                ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
             });
             column.OnMoveView.AddListener((view) =>
             {
                 SynchronizeViewsToReferenceView(view);
+            });
+            column.IEEGParameters.OnUpdateSpanValues.AddListener(() =>
+            {
+                OnUpdateIEEGSpan.Invoke();
+            });
+            column.IEEGParameters.OnUpdateAlphaValues.AddListener(() =>
+            {
+                OnUpdateIEEGAlpha.Invoke();
+            });
+            column.IEEGParameters.OnUpdateGain.AddListener(() =>
+            {
+                OnUpdateIEEGGain.Invoke();
+            });
+            column.IEEGParameters.OnUpdateMaximumInfluence.AddListener(() =>
+            {
+                OnUpdateIEEGMaximumInfluence.Invoke();
             });
             m_Columns.Add(column);
             OnAddColumn.Invoke();
@@ -312,6 +377,7 @@ namespace HBP.Module3D
                     v.IsColumnSelected = true;
                 }
                 OnSelectColumnManager.Invoke(this);
+                ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
             });
             m_Columns.Add(column);
             OnAddColumn.Invoke();
