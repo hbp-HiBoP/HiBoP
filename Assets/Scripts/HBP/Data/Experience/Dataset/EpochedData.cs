@@ -22,8 +22,8 @@ namespace HBP.Data.Experience
         public EpochedData(Protocol.Bloc bloc, Dataset.Data data)
         {
             Dictionary<Protocol.Event, int[]> indexByEvent = new Dictionary<Protocol.Event, int[]>();
-            indexByEvent.Add(bloc.MainEvent, data.POS.ConvertEventCodeToSampleIndex(bloc.MainEvent.Codes.ToArray()));
-            foreach (Protocol.Event evnt in bloc.SecondaryEvents) indexByEvent.Add(evnt, data.POS.ConvertEventCodeToSampleIndex(bloc.MainEvent.Codes.ToArray()));
+            indexByEvent.Add(bloc.MainEvent, data.POS.GetSamples(bloc.MainEvent.Codes).ToArray());
+            foreach (Protocol.Event evnt in bloc.SecondaryEvents) indexByEvent.Add(evnt, data.POS.GetSamples(bloc.MainEvent.Codes).ToArray());
 
             // Calcul the size of a bloc and initialize bloc list
             int sampleAfterMainEvent = Mathf.FloorToInt((bloc.DisplayInformations.Window.End) * 0.001f * data.Frequency);

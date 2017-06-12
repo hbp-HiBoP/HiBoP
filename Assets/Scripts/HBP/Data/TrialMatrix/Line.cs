@@ -31,11 +31,11 @@ namespace HBP.Data.TrialMatrix
         public static Line[] MakeLines(Experience.Protocol.Bloc bloc, Localizer.POS pos, float[] data, float frequency)
         {
             // Read Index
-            Event[] mainEvent = pos.ConvertEventCodeToSampleIndexAndCode(bloc.MainEvent.Codes.ToArray());
+            Event[] mainEvent = (from sample in pos.GetSamples(bloc.MainEvent.Codes) select new Event(sample,bloc.MainEvent)).ToArray();
             Event[][] secondaryEventsByType = new Event[bloc.SecondaryEvents.Count][];
             for (int i = 0; i < bloc.SecondaryEvents.Count; i++)
             {
-                Event[] secondaryEvent = pos.ConvertEventCodeToSampleIndexAndCode(bloc.SecondaryEvents[i].Codes.ToArray());
+                Event[] secondaryEvent = (from sample in pos.GetSamples(bloc.SecondaryEvents[i].Codes) select new Event(sample, bloc.SecondaryEvents[i])).ToArray();
                 secondaryEventsByType[i] = secondaryEvent;
             }
 
@@ -102,7 +102,7 @@ namespace HBP.Data.TrialMatrix
                             if ((secondaryEvent.Position >= windowFirstIndex) && (secondaryEvent.Position <= windowLastIndex))
                             {
                                 position = secondaryEvent.Position - (MainEventIndex + windowBefore);
-                                code = secondaryEvent.Code;
+                                code = secondaryEvent.ProtocolEvent.Codes[0];
                                 found = true;
                             }
                         }
@@ -110,11 +110,12 @@ namespace HBP.Data.TrialMatrix
                         {
                             position = -1;
                         }
-                        secondaryEventsOfTheLine[p] = new Event(position, code);
+                        // TODO
+                        secondaryEventsOfTheLine[p] = new Event(position, new Experience.Protocol.Event());
                     }
 
                     // Add the bloc
-                    Line line = new Line(window, baseLine, MainEventIndex, new Event(mainEventPosition, mainEvent[i].Code), secondaryEventsOfTheLine);
+                    Line line = new Line(window, baseLine, MainEventIndex, new Event(mainEventPosition, mainEvent[i].ProtocolEvent), secondaryEventsOfTheLine);
                     lines.Add(line);
                 }
             }
@@ -150,13 +151,15 @@ namespace HBP.Data.TrialMatrix
                     {
                         if (p == 0)
                         {
-                            l_linesSorted = l_linesSorted.ThenBy(t => t.Main.Code);
+                            // TODO.
+                            l_linesSorted = l_linesSorted.ThenBy(t => t.Main.ProtocolEvent.Codes[0]);
                         }
                         else
                         {
                             if ((p - 1) < bloc.SecondaryEvents.Count)
                             {
-                                l_linesSorted = l_linesSorted.ThenBy(t => t.Secondaries[p - 1].Code);
+                                // TODO.
+                                l_linesSorted = l_linesSorted.ThenBy(t => t.Secondaries[p - 1].ProtocolEvent.Codes[0]);
                             }
                         }
                     }

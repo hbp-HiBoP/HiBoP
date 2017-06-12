@@ -90,7 +90,7 @@ namespace HBP.Module3D
         /// <param name="visualization"></param>
         /// <param name="postIRM"></param>
         /// <returns></returns>
-        public bool AddSinglePatientScene(Data.Visualization.SinglePatientVisualization visualization, bool postIRM)
+        public bool AddSinglePatientScene(Data.Visualization.Visualization visualization, bool postIRM)
         {
             SinglePatient3DScene scene = Instantiate(SinglePatientScenePrefab, transform).GetComponent<SinglePatient3DScene>();
             // Initialize the scene
@@ -131,7 +131,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visualization"></param>
         /// <returns></returns>
-        public bool AddMultiPatientsScene(Data.Visualization.MultiPatientsVisualization visualization)
+        public bool AddMultiPatientsScene(Data.Visualization.Visualization visualization)
         {
             GameObject newMultiPatientsScene = Instantiate(MultiPatientsScenePrefab, transform);
             MultiPatients3DScene scene = newMultiPatientsScene.GetComponent<MultiPatients3DScene>();

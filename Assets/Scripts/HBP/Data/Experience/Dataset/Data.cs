@@ -46,7 +46,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new Data instance with default values.
         /// </summary>
-        public Data()
+        public Data(): this(new Dictionary < Site, float[] >(), new Dictionary < Site, bool >(), new Localizer.POS(), 0, new Patient())
         {
         }
         /// <summary>
@@ -70,9 +70,8 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         /// <param name="info">DataInfo to read.</param>
         /// <param name="MNI">\a True if MNI and \a false otherwise.</param>
-        public Data(DataInfo info)
+        public Data(DataInfo info) : this()
         {
-            UnityEngine.Debug.Log("data");
             // Read Elan.
             Elan.ElanFile elanFile = new Elan.ElanFile(info.EEG,true);
 

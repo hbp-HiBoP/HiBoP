@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.IO;
 using System.Collections.Generic;
 
@@ -12,102 +13,66 @@ namespace HBP.Data.Localizer
 		#endregion
 
 		#region Constructor
-		public POS(string filePath)
+        public POS()
+        { 
+            IndexSampleByCode = new Dictionary<int, List<int>>();
+        }
+		public POS(string path): this()
 		{
-            filePath = null;
-            if (filePath != null)
+            if (!String.IsNullOrEmpty(path)) throw new ArgumentException();
+            if (!File.Exists(path)) throw new FileNotFoundException();
+
+            foreach (string line in File.ReadAllLines(path))
             {
-                UnityEngine.Debug.Log("la");
-            }
-            else
-            {
-                UnityEngine.Debug.Log("ArgumentNullException");
-                throw new ArgumentNullException("filePath");
-            }
-
-            // instantiate the dictionary
-            IndexSampleByCode = new Dictionary<int,List<int>>();
-
-			// Read the file
-			string[] lines = File.ReadAllLines(filePath);
-
-			// initialize some values for the optimisation
-			int nSample;
-			int nEvent;
-
-			// Read the lines to complete the dictionary
-			foreach(string line in lines)
-			{
-				// Splite the line
-				string[] lineElements = line.Split(new char[]{' ','\t'},System.StringSplitOptions.RemoveEmptyEntries);
-				if(lineElements.Length == 3)
-				{
-					nSample = int.Parse(lineElements[0]);
-					nEvent  = int.Parse(lineElements[1]);
-
-					// Test if the dictionary contains the key
-					if(IndexSampleByCode.ContainsKey(nEvent))
-					{
-                        // Add the value at the key
-                        IndexSampleByCode[nEvent].Add(nSample);
-					}
-					else
-					{
-						// add a new key in the dictionary
-						List<int> l_value = new List<int>();
-						l_value.Add(nSample);
-                        IndexSampleByCode.Add(nEvent,l_value);
-					}
-				}
-			}
+                int code, sample;
+                if(ReadLine(line,out code, out sample))
+                {
+                    if (IndexSampleByCode.ContainsKey(code))
+                    {
+                        IndexSampleByCode[code].Add(sample);
+                    }
+                    else
+                    {
+                        List<int> samples = new List<int>();
+                        samples.Add(sample);
+                        IndexSampleByCode.Add(code, samples);
+                    }
+                }                  
+            }      
 		}
 		#endregion
 
 		#region Public Methods
-		public int[] ConvertEventCodeToSampleIndex(int[] CodeEvents)
+		public IEnumerable<int> GetSamples(IEnumerable<int> codes)
 		{
-            List<int> l_result = new List<int>();
-            foreach(int codeEvent in CodeEvents)
+            List<int> samples = new List<int>();
+            foreach (int code in codes)
             {
-                l_result.AddRange(ConvertEventCodeToSampleIndex(codeEvent));
+                samples.AddRange(GetSamples(code));
             }
-            return l_result.ToArray();
+            return samples.ToArray();
         }
-		public int[] ConvertEventCodeToSampleIndex(int CodeEvent)
+		public IEnumerable<int> GetSamples(int code)
 		{
-            if(IndexSampleByCode.ContainsKey(CodeEvent))
+            if(IndexSampleByCode.ContainsKey(code))
             {
-                return IndexSampleByCode[CodeEvent].ToArray();
+                return IndexSampleByCode[code].ToArray();
             }
             else
             {
                 return new int[0];
             }
 		}
-        public TrialMatrix.Event[] ConvertEventCodeToSampleIndexAndCode(int[] CodeEvents)
-        {
-            //foreach(int i in CodeEvents)
-            //{
-            //    UnityEngine.Debug.Log(i);
-            //}
+        #endregion
 
-            List<TrialMatrix.Event> l_result = new List<TrialMatrix.Event>();
-            foreach (int codeEvent in CodeEvents)
-            {
-                if(IndexSampleByCode.ContainsKey(codeEvent))
-                {
-                    List<int> l_list = IndexSampleByCode[codeEvent];
-                    l_list.Sort();
-                    int[] l_positions = l_list.ToArray();
-                    foreach (int position in l_positions)
-                    {
-                        //UnityEngine.Debug.Log("Position :" + position + "  Code event : " + codeEvent);
-                        l_result.Add(new TrialMatrix.Event(position, codeEvent));
-                    }
-                }
-            }
-            return l_result.ToArray();
+        #region Private Methods
+        bool ReadLine(string line,out int code,out int sample)
+        {
+            code = -1;
+            sample = -1;
+            string[] elements = line.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            return elements.Length == 3 && int.TryParse(elements[0], out sample) && int.TryParse(elements[1], out code);
         }
-		#endregion
-	}
+        #endregion
+    }
 }

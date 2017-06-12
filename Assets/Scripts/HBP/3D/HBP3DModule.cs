@@ -93,7 +93,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
         /// </summary>   
-        public GenericEvent<Data.Visualization.MultiPatientsVisualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.MultiPatientsVisualization, Data.Patient>();
+        public GenericEvent<Data.Visualization.Visualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.Visualization, Data.Patient>();
         /// <summary>
         /// Send the path of the saved ROI
         /// </summary>
@@ -160,7 +160,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visuDataSP"></param>
         /// <returns>false if a loading error occurs, else true </returns>
-        private bool SetVisualization(Data.Visualization.SinglePatientVisualization visualization)
+        private bool SetSPVisualization(Data.Visualization.Visualization visualization)
         {
             bool result = SetSinglePatientSceneData(visualization);
             if (result)
@@ -179,7 +179,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visuDataMP"></param>
         /// <returns>false if a loading error occurs, else true </returns>
-        private bool SetVisualization(Data.Visualization.MultiPatientsVisualization visualization)
+        private bool SetMPVisualization(Data.Visualization.Visualization visualization)
         {
             bool result = false;
             if (MNIObjects.LoadingMutex.WaitOne(10000))
@@ -212,7 +212,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visualization"></param>
         /// <returns></returns>
-        private bool SetSinglePatientSceneData(Data.Visualization.SinglePatientVisualization visualization, bool postIRM = false)
+        private bool SetSinglePatientSceneData(Data.Visualization.Visualization visualization, bool postIRM = false)
         {
             bool success = m_ScenesManager.AddSinglePatientScene(visualization, postIRM);
             if (!success)
@@ -225,7 +225,7 @@ namespace HBP.Module3D
         /// Load a new multi patients scene
         /// </summary>
         /// <param name="data"></param>
-        private bool SetMultiPatientsSceneData(Data.Visualization.MultiPatientsVisualization visualization)
+        private bool SetMultiPatientsSceneData(Data.Visualization.Visualization visualization)
         {
             bool success = m_ScenesManager.AddMultiPatientsScene(visualization);
             if (!success)
@@ -245,13 +245,16 @@ namespace HBP.Module3D
         public bool AddVisualization(Data.Visualization.Visualization visualization)
         {
             bool result = false;
-            if (visualization is Data.Visualization.SinglePatientVisualization)
+            switch (visualization.ReferenceFrame)
             {
-                result = SetVisualization(visualization as Data.Visualization.SinglePatientVisualization);
-            }
-            else if (visualization is Data.Visualization.MultiPatientsVisualization)
-            {
-                result = SetVisualization(visualization as Data.Visualization.MultiPatientsVisualization);
+                case Data.Anatomy.ReferenceFrameType.Patient:
+                    result = SetSPVisualization(visualization);
+                    break;
+                case Data.Anatomy.ReferenceFrameType.MNI:
+                    result = SetMPVisualization(visualization);
+                    break;
+                default:
+                    break;
             }
             if (result)
             {

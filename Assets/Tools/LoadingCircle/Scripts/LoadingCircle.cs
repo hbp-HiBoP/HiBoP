@@ -90,7 +90,6 @@ public class LoadingCircle : MonoBehaviour
     #region Coroutines
     IEnumerator c_ChangePercentage(float start, float end, float seconds)
     {
-        Debug.Log(start + "  " + end + "  " + seconds);
         float delay = 0.05f;
         int max = Mathf.CeilToInt(seconds / delay);
         float ratio = (end - start) / (max - 1);

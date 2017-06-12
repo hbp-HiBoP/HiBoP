@@ -11,7 +11,7 @@ namespace HBP.UI
         RectTransform[] m_subMenu;
 
         [SerializeField]
-        ButtonGestion[] m_buttonGestion;
+        InteractableConditions[] m_buttonGestion;
 
         bool m_isOnMenu;
         #endregion

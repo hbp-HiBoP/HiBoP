@@ -36,11 +36,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Visualization corresponding to this scenes
         /// </summary>
-        public new Data.Visualization.SinglePatientVisualization Visualization
+        public new Data.Visualization.Visualization Visualization
         {
             get
             {
-                return m_Visualization as Data.Visualization.SinglePatientVisualization;
+                return m_Visualization;
             }
             set
             {
@@ -54,7 +54,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return Visualization.Patient;
+                return Visualization.Patients[0];
             }
         }
         /// <summary>
@@ -206,7 +206,7 @@ namespace HBP.Module3D
         /// Reset the scene : reload meshes, IRM, plots, and regenerate textures
         /// </summary>
         /// <param name="patient"></param>
-        public bool Initialize(Data.Visualization.SinglePatientVisualization visualization, bool postIRM)
+        public bool Initialize(Data.Visualization.Visualization visualization, bool postIRM)
         {
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
 
@@ -267,7 +267,7 @@ namespace HBP.Module3D
             // update scenes cameras
             Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
 
-            DisplayScreenMessage("Single Patient Scene loaded : " + visualization.Patient.Place + "_" + visualization.Patient.Name + "_" + visualization.Patient.Date, 2.0f, 400, 80);
+            DisplayScreenMessage("Single Patient Scene loaded : " + visualization.Patients[0].Place + "_" + visualization.Patients[0].Name + "_" + visualization.Patients[0].Date, 2.0f, 400, 80);
             return true;
         }
         /// <summary>

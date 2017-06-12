@@ -22,20 +22,20 @@ namespace HBP.UI.Visualization
             // TODO
             ApplicationState.Module3D.OnLoadSinglePatientSceneFromMultiPatientsScene.AddListener((visualization, patient) => LoadSPSceneFromMP(visualization, patient));
         }
-        void LoadSPSceneFromMP(Data.Visualization.MultiPatientsVisualization visualization, Data.Patient patient)
+        void LoadSPSceneFromMP(Data.Visualization.Visualization visualization, Data.Patient patient)
         {
             // TODO
-            Data.Visualization.SinglePatientVisualization singlePatientVisualization = Data.Visualization.SinglePatientVisualization.LoadFromMultiPatients(visualization, patient);
-            ApplicationState.Module3D.AddVisualization(singlePatientVisualization);
+            //Data.Visualization.Visualization singlePatientVisualization = Data.Visualization.Visualization.LoadFromMultiPatients(visualization, patient);
+            //ApplicationState.Module3D.AddVisualization(singlePatientVisualization);
         }
         IEnumerator c_Load(Data.Visualization.Visualization visualization)
         {
             yield return Ninja.JumpToUnity;
             LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
-            UnityAction<float, float, string> OnChangeLoadingProgressAction = new UnityAction<float, float, string>((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
-            visualization.OnChangeLoadingProgress.AddListener(OnChangeLoadingProgressAction);
+            GenericEvent<float, float, string> OnChangeLoadingProgress = new GenericEvent<float, float, string>();
+            OnChangeLoadingProgress.AddListener((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
             Task loadingTask;
-            yield return this.StartCoroutineAsync(visualization.c_Load(), out loadingTask);
+            yield return this.StartCoroutineAsync(visualization.c_Load(OnChangeLoadingProgress), out loadingTask);
             switch (loadingTask.State)
             {
                 case TaskState.Done:
@@ -46,7 +46,6 @@ namespace HBP.UI.Visualization
                     ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
                     break;
             }
-            visualization.OnChangeLoadingProgress.RemoveListener(OnChangeLoadingProgressAction);
             loadingCircle.Close();
         }
         #endregion

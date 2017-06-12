@@ -86,7 +86,10 @@ namespace HBP.UI.Theme
             foreach (Button button in menuButtons)
             {
                 SetButton(button, theme.Color.MenuButton);
-                SetText(button.GetComponentInChildren<Text>(), theme.Color.ContentOtherButtonLabel, theme.Font.WindowContentOtherButton);
+                foreach (var text in button.GetComponentsInChildren<Text>())
+                {
+                    SetText(text, theme.Color.ContentOtherButtonLabel, theme.Font.Menu);
+                }
             }
         }
         void SetTexts(ThemeElement[] themeElements, Theme theme)
@@ -157,7 +160,7 @@ namespace HBP.UI.Theme
             {
                 text.color = color;
                 text.alignByGeometry = fontData.alignByGeometry;
-                text.alignment = fontData.alignment;
+                //text.alignment = fontData.alignment;
                 text.resizeTextForBestFit = fontData.bestFit;
                 text.font = fontData.font;
                 text.fontSize = fontData.fontSize;

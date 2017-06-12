@@ -19,11 +19,11 @@ namespace HBP.UI
         {
             if (m_sortByName)
             {
-                m_objects = m_objects.OrderByDescending(x => x.Name).ToList();
+                m_objects = m_objects.OrderByDescending(x => x.Settings.Name).ToList();
             }
             else
             {
-                m_objects = m_objects.OrderBy(x => x.Name).ToList();
+                m_objects = m_objects.OrderBy(x => x.Settings.Name).ToList();
             }
             m_sortByName = !m_sortByName;
             ApplySort();

@@ -60,13 +60,13 @@ namespace HBP.UI.Module3D
         /// <param name="parent">Transform of the toolbar</param>
         protected override void FindButtons()
         {
-            Transform colormapParent = transform.Find("Colormap");
+            Transform colormapParent = transform.Find("IEEG");
             Colormap = colormapParent.Find("Dropdown").GetComponent<Dropdown>();
 
-            Transform brainColorparent = transform.Find("Brain Color");
+            Transform brainColorparent = transform.Find("Brain");
             BrainColor = brainColorparent.Find("Dropdown").GetComponent<Dropdown>();
 
-            Transform cutColorParent = transform.Find("Cut Color");
+            Transform cutColorParent = transform.Find("MRI");
             CutColor = cutColorParent.Find("Dropdown").GetComponent<Dropdown>();
 
             EdgeMode = transform.Find("Edge Mode").GetComponent<Toggle>();

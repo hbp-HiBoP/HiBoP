@@ -6,13 +6,13 @@ namespace HBP.UI
     {
         #region Properties
         [SerializeField]
-        ButtonGestion[] m_buttons;
+        InteractableConditions[] m_buttons;
         #endregion
 
         #region Public Methods
         public void SetInteractableButtons()
         {
-            foreach (ButtonGestion b in m_buttons)
+            foreach (InteractableConditions b in m_buttons)
             {
                 SetInteractableButton(b);
             }
@@ -25,7 +25,7 @@ namespace HBP.UI
             SetInteractableButtons();
         }
 
-        void SetInteractableButton(ButtonGestion buttonGestion)
+        void SetInteractableButton(InteractableConditions buttonGestion)
         {
             bool l_interactable = true;
             if (buttonGestion.NeedProject)
@@ -35,21 +35,21 @@ namespace HBP.UI
                     l_interactable = false;
                 }
             }
-            if (buttonGestion.NeedPatients)
+            if (buttonGestion.NeedPatient)
             {
                 if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Patients.Count == 0)
                 {
                     l_interactable = false;
                 }
             }
-            if (buttonGestion.NeedGroups)
+            if (buttonGestion.NeedGroup)
             {
                 if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Groups.Count == 0)
                 {
                     l_interactable = false;
                 }
             }
-            if (buttonGestion.NeedProtocols)
+            if (buttonGestion.NeedProtocol)
             {
                 if (ApplicationState.ProjectLoaded != null && ApplicationState.ProjectLoaded.Protocols.Count == 0)
                 {

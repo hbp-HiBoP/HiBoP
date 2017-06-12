@@ -38,10 +38,10 @@ namespace HBP.UI
             ApplicationState.ProjectLoaded = project;
             yield return Ninja.JumpToUnity;
             LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
-            UnityAction<float, float, string> OnChangeLoadingProgressAction = new UnityAction<float, float, string>((progress,time,message) => loadingCircle.ChangePercentage(progress, time, message));
-            project.OnChangeLoadingProgress.AddListener(OnChangeLoadingProgressAction);
+            GenericEvent<float, float, string> onChangeProgress = new GenericEvent<float, float, string>();
+            onChangeProgress.AddListener((progress,time,message) => loadingCircle.ChangePercentage(progress, time, message));
             Task loadingTask;
-            yield return this.StartCoroutineAsync(project.c_Load(info), out loadingTask);
+            yield return this.StartCoroutineAsync(project.c_Load(info, onChangeProgress), out loadingTask);
             switch (loadingTask.State)
             {
                 case TaskState.Done:
@@ -57,17 +57,16 @@ namespace HBP.UI
                     ApplicationState.ProjectLoaded = oldProject;
                     break;
             }
-            project.OnChangeLoadingProgress.RemoveListener(OnChangeLoadingProgressAction);
             loadingCircle.Close();
         }
         IEnumerator c_Save(string path)
         {
             yield return Ninja.JumpToUnity;
             LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
-            UnityAction<float, float, string> OnChangeSavingProgressAction = new UnityAction<float, float, string>((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
-            ApplicationState.ProjectLoaded.OnChangeSavingProgress.AddListener(OnChangeSavingProgressAction);
+            GenericEvent<float, float, string> onChangeProgress = new GenericEvent<float, float, string>();
+            onChangeProgress.AddListener((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
             Task savingTask;
-            yield return this.StartCoroutineAsync(ApplicationState.ProjectLoaded.c_Save(path),out savingTask);
+            yield return this.StartCoroutineAsync(ApplicationState.ProjectLoaded.c_Save(path,onChangeProgress),out savingTask);
             switch (savingTask.State)
             {
                 case TaskState.Done:
@@ -78,7 +77,6 @@ namespace HBP.UI
                     ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
                     break;
             }
-            ApplicationState.ProjectLoaded.OnChangeSavingProgress.RemoveListener(OnChangeSavingProgressAction);
             loadingCircle.Close();
         }
         IEnumerator c_SaveAndReload(string path)

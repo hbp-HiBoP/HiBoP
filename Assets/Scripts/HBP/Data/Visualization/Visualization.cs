@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using CielaSpike;
@@ -27,9 +28,11 @@ namespace HBP.Data.Visualization
     *   - \a Columns.   
     */
     [DataContract]
-    public abstract class Visualization :  ICloneable , ICopiable
+    public class Visualization :  ICloneable , ICopiable
     {
         #region Properties
+        public const string EXTENSION = ".visualization";
+
         /// <summary>
         /// Unique ID.
         /// </summary>
@@ -41,6 +44,20 @@ namespace HBP.Data.Visualization
         /// </summary>
         [DataMember(Order = 2)]
         public string Name { get; set; }
+
+        [DataMember(Order =3)]
+        public Anatomy.ReferenceFrameType ReferenceFrame { get; set; }
+
+        [DataMember(Name = "Patients", Order = 3)]
+        IEnumerable<string> m_patientsID;
+        List<Patient> m_patients;
+        /// <summary>
+        /// Patients of the Visualization.
+        /// </summary>
+        public ReadOnlyCollection<Patient> Patients
+        {
+            get { return new ReadOnlyCollection<Patient>(m_patients); }
+        }
 
         /// <summary>
         /// Configuration of the visualization.
@@ -59,16 +76,8 @@ namespace HBP.Data.Visualization
         /// </summary>
         public virtual bool IsVisualizable
         {
-            get { return Columns.Count > 0; }
+            get { return Columns.Count > 0 && Patients.Count > 0 && Columns.All((column) => column.IsCompatible(Patients)); }
         }
-
-        /// <summary>
-        /// Event called when changing loading progress.
-        /// <para>Argument 1 : Visualization progress.</para>
-        /// <para>Argument 2 : Time to reach the progress.</para>
-        /// <para>Argument 3 : Message.</para>
-        /// </summary>
-        public GenericEvent<float, float, string> OnChangeLoadingProgress { get; set; }
 
         const float FIND_FILES_TO_READ_PROGRESS = 0.025f;
         const float READ_FILES_PROGRESS = 0.8f;
@@ -83,28 +92,94 @@ namespace HBP.Data.Visualization
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
         /// <param name="id">Unique ID.</param>
-        protected Visualization(string name, IEnumerable<Column> columns, string id)
+        public Visualization(string name, Anatomy.ReferenceFrameType referenceFrame, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id)
         {
-            ID = id;
             Name = name;
+            ReferenceFrame = referenceFrame;
+            SetPatients(patients);
             Columns = columns.ToList();
             Configuration = new VisualizationConfiguration();
-            OnChangeLoadingProgress = new GenericEvent<float, float, string>();
+            ID = id;
         }
         /// <summary>
         /// Create a new visualization instance.
         /// </summary>
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
-        protected Visualization(string name, IEnumerable<Column> columns) : this(name,columns,Guid.NewGuid().ToString())
+        public Visualization(string name, Anatomy.ReferenceFrameType referenceFrame, IEnumerable<Patient> patients, IEnumerable<Column> columns) : this(name, referenceFrame, patients, columns, Guid.NewGuid().ToString())
         {
         }
         /// <summary>
         /// Create a new visualization instance with default value.
         /// </summary>
-        protected Visualization() : this("Unknown",new List<Column>())
+        public Visualization() : this("Unknown", Anatomy.ReferenceFrameType.Patient, new Patient[0], new Column[0])
         {
 
+        }
+        #endregion
+
+        #region Getter/Setter
+        /// <summary>
+        /// Add a patient to the visualization.
+        /// </summary>
+        /// <param name="patient">Patient to add.</param>
+        public void AddPatient(Patient patient)
+        {
+            if (!Patients.Contains(patient))
+            {
+                m_patients.Add(patient);
+                AddPatientConfiguration(patient);
+                if(m_patients.Count > 1)
+                {
+                    ReferenceFrame = Anatomy.ReferenceFrameType.MNI;
+                }
+            }
+        }
+        /// <summary>
+        /// Add patients to the visualization.
+        /// </summary>
+        /// <param name="patients">Patients to add.</param>
+        public void AddPatient(IEnumerable<Patient> patients)
+        {
+            foreach (Patient patient in patients)
+            {
+                AddPatient(patient);
+            }
+        }
+        /// <summary>
+        /// Remove a patient to the visualization.
+        /// </summary>
+        /// <param name="patient">Patient to remove.</param>
+        public void RemovePatient(Patient patient)
+        {
+            if (m_patients.Remove(patient))
+            {
+                RemovePatientConfiguration(patient);
+            }
+        }
+        /// <summary>
+        /// Remove patients to the visualization.
+        /// </summary>
+        /// <param name="patients">Patients to remove.</param>
+        public void RemovePatient(IEnumerable<Patient> patients)
+        {
+            foreach (Patient patient in patients) RemovePatient(patient);
+        }
+        /// <summary>
+        /// Set patients in the visualization.
+        /// </summary>
+        /// <param name="patients">Patients to set in the visualization.</param>
+        public void SetPatients(IEnumerable<Patient> patients)
+        {
+            m_patients = new List<Patient>();
+            AddPatient(from patient in patients where !this.m_patients.Contains(patient) select patient);
+        }
+        /// <summary>
+        /// Remove all patients in the visualization.
+        /// </summary>
+        public void RemoveAllPatients()
+        {
+            RemovePatient(Patients);
         }
         #endregion
 
@@ -113,24 +188,24 @@ namespace HBP.Data.Visualization
         /// Load the visualization.
         /// </summary>
         /// <returns></returns>
-        public virtual IEnumerator c_Load()
+        public IEnumerator c_Load(GenericEvent<float,float,string> onChangeProgress = null)
         {
-            // Initialisation.
+            if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, string>();
+
             float progress = 0.0f;
 
+            foreach (Patient patient in m_patients) AddPatientConfiguration(patient);
             Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
-            yield return c_FindDataToRead(progress, (value, progressValue) => { dataInfoByColumn = value; progress = progressValue; });
+            yield return c_FindDataToRead(progress, onChangeProgress,(value, progressValue) => { dataInfoByColumn = value; progress = progressValue; });
             Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo = (from dataInfos in dataInfoByColumn.Values from dataInfo in dataInfos select dataInfo).Distinct().ToDictionary(t => t, t => new Data.Experience.Dataset.Data());
-
             Dictionary<Column, Experience.Dataset.Data[]> dataByColumn = new Dictionary<Column, Experience.Dataset.Data[]>();
-            yield return c_ReadData(dataInfoByColumn, dataByDataInfo, progress, (value, progressValue) => { dataByColumn = value; progress = progressValue; });
-
-            yield return c_LoadColumns(dataByColumn, progress, (value) => progress = value);
+            yield return c_ReadData(dataInfoByColumn, dataByDataInfo, progress, onChangeProgress,(value, progressValue) => { dataByColumn = value; progress = progressValue; });
+            yield return c_LoadColumns(dataByColumn, progress, onChangeProgress,(value) => progress = value);
         }
         /// <summary>
         /// Unload the visualization.
         /// </summary>
-        public virtual void Unload()
+        public void Unload()
         {
             foreach (Column column in Columns) column.Unload();
         }
@@ -150,8 +225,20 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <param name="column">Column</param>
         /// <returns>DataInfo of the column.</returns>
-        public abstract IEnumerable<DataInfo> GetDataInfo(Column column);
-        public abstract IEnumerable<Patient> GetPatients();
+        public IEnumerable<DataInfo> GetDataInfo(Column column)
+        {
+            return column.Dataset.Data.FindAll((data) => (column.DataLabel == data.Name && Patients.Contains(data.Patient) && column.Protocol == data.Protocol && data.Protocol.Blocs.Contains(column.Bloc)));
+        }
+        /// <summary>
+        /// Get the DataInfo used by the column for a specific Patient.
+        /// </summary>
+        /// <param name="patient">Patient concerned.</param>
+        /// <param name="column">Column concerned.</param>
+        /// <returns>DataInfo used by the column for the specific Patient.</returns>
+        public DataInfo GetDataInfo(Patient patient, Column column)
+        {
+            return GetDataInfo(column).First((dataInfo) => dataInfo.Patient == patient);
+        }
         #endregion
 
         #region Operators
@@ -159,23 +246,28 @@ namespace HBP.Data.Visualization
         /// Clone this instance.
         /// </summary>
         /// <returns>Clone of this instance.</returns>
-        public abstract object Clone();
+        public object Clone()
+        {
+            return new Visualization(Name, ReferenceFrame, Patients, from column in Columns select column.Clone() as Column, ID);
+
+        }
         /// <summary>
         /// Copy an instance in this instance.
         /// </summary>
         /// <param name="copy">Instance to copy.</param>
-        public virtual void Copy(object copy)
+        public void Copy(object copy)
         {
             Visualization visualization = copy as Visualization;
             Name = visualization.Name;
             Columns = visualization.Columns;
             ID = visualization.ID;
             Configuration = visualization.Configuration;
+            SetPatients(Patients);
         }
         #endregion
 
         #region Private Methods
-        protected void AddPatientConfiguration(Patient patient)
+        void AddPatientConfiguration(Patient patient)
         {
             foreach (Column column in Columns)
             {
@@ -192,11 +284,17 @@ namespace HBP.Data.Visualization
                 }
             }
         }
-        protected void RemovePatientConfiguration(Patient patient)
+        void RemovePatientConfiguration(Patient patient)
         {
-            foreach (Column column in Columns) column.Configuration.ConfigurationByPatient.Remove(patient);
+            foreach (Column column in Columns)
+            {
+                if(column.Configuration.ConfigurationByPatient.ContainsKey(patient))
+                {
+                    column.Configuration.ConfigurationByPatient.Remove(patient);
+                }
+            }
         }
-        protected IEnumerator c_FindDataToRead(float progress, Action<Dictionary<Column, DataInfo[]>, float> outPut)
+        IEnumerator c_FindDataToRead(float progress, GenericEvent<float, float, string> onChangeProgress, Action<Dictionary<Column, DataInfo[]>, float> outPut)
         {
             // Find files to read.
             Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
@@ -206,14 +304,14 @@ namespace HBP.Data.Visualization
                 // Update progress;
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                OnChangeLoadingProgress.Invoke(progress, 0.0f, "Finding files to read.");
+                onChangeProgress.Invoke(progress, 0.0f, "Finding files to read.");
                 yield return Ninja.JumpBack;
 
                 // Work.
                 try
                 {
                     List<DataInfo> dataInfoForThisColumn = GetDataInfo(column).ToList();
-                    foreach (Patient patient in GetPatients())
+                    foreach (Patient patient in Patients)
                     {
                         if (!dataInfoForThisColumn.Exists((dataInfo) => dataInfo.Patient == patient))
                         {
@@ -229,7 +327,7 @@ namespace HBP.Data.Visualization
             }
             outPut(dataInfoByColumn, progress);
         }
-        protected IEnumerator c_ReadData(Dictionary<Column, DataInfo[]> dataInfoByColumn, Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo, float progress, Action<Dictionary<Column, Experience.Dataset.Data[]>, float> outPut)
+        IEnumerator c_ReadData(Dictionary<Column, DataInfo[]> dataInfoByColumn, Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo, float progress, GenericEvent<float, float, string> onChangeProgress, Action<Dictionary<Column, Experience.Dataset.Data[]>, float> outPut)
         {
             Stopwatch timer = new Stopwatch();
             float progressStep = READ_FILES_PROGRESS / (dataByDataInfo.Count);
@@ -244,7 +342,7 @@ namespace HBP.Data.Visualization
                 // Update progressBar
                 progress += progressStep;
                 yield return Ninja.JumpToUnity;
-                OnChangeLoadingProgress.Invoke(progress, assumedReadingTime, "Reading" + fileToRead.Name);
+                onChangeProgress.Invoke(progress, assumedReadingTime, "Reading" + fileToRead.Name);
                 yield return Ninja.JumpBack;
 
                 // Read Data.
@@ -256,7 +354,7 @@ namespace HBP.Data.Visualization
                 }
                 catch (Exception exception)
                 {
-
+                    throw (exception);
                 }
 
                 // Calculate real reading speed.
@@ -266,17 +364,30 @@ namespace HBP.Data.Visualization
             Dictionary<Column, Experience.Dataset.Data[]> dataByColumn = dataInfoByColumn.ToDictionary(t => t.Key, t => (from dataInfo in t.Value select dataByDataInfo[dataInfo]).ToArray());
             outPut(dataByColumn, progress);
         }
-        protected IEnumerator c_LoadColumns(Dictionary<Column, Experience.Dataset.Data[]> dataByColumn, float progress, Action<float> outPut)
+        IEnumerator c_LoadColumns(Dictionary<Column, Experience.Dataset.Data[]> dataByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float> outPut)
         {
             float progressStep = EPOCH_DATA_PROGRESS / Columns.Count;
             foreach (Column column in Columns)
             {
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                OnChangeLoadingProgress.Invoke(progress, 0, "Load column <color=blue>" + column.DataLabel + "</color>.");
+                onChangeProgress.Invoke(progress, 0, "Load column <color=blue>" + column.DataLabel + "</color>.");
                 yield return Ninja.JumpBack;
                 column.Load(dataByColumn[column]);
             }
+        }
+        #endregion
+
+        #region Serialization
+        [OnSerializing]
+        void OnSerializing(StreamingContext streamingContext)
+        {
+            m_patientsID = from patient in m_patients select patient.ID;
+        }
+        [OnDeserialized]
+        void OnDeserialized(StreamingContext streamingContext)
+        {
+            m_patients = ApplicationState.ProjectLoaded.Patients.Where((patient) => m_patientsID.Contains(patient.ID)).ToList();
         }
         #endregion
     }

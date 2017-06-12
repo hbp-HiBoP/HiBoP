@@ -51,7 +51,7 @@ namespace HBP.UI
         protected override void SetObject(ProjectInfo objectToSet)
         {
             m_object = objectToSet;
-            m_Name.text = m_object.Name;
+            m_Name.text = m_object.Settings.Name;
             m_Patients.text = m_object.Patients.ToString();
             m_Groups.text = m_object.Groups.ToString();
             m_Protocols.text = m_object.Protocols.ToString();

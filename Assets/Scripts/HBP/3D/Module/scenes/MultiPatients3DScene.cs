@@ -38,11 +38,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Visualization associated to this scene
         /// </summary>
-        public new Data.Visualization.MultiPatientsVisualization Visualization
+        public new Data.Visualization.Visualization Visualization
         {
             get
             {
-                return m_Visualization as Data.Visualization.MultiPatientsVisualization;
+                return m_Visualization;
             }
             set
             {
@@ -92,7 +92,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
         /// </summary>        
-        public GenericEvent<Data.Visualization.MultiPatientsVisualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.MultiPatientsVisualization, Data.Patient>();
+        public GenericEvent<Data.Visualization.Visualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.Visualization, Data.Patient>();
         #endregion
 
         #region Private Methods
@@ -249,7 +249,7 @@ namespace HBP.Module3D
         /// Reset the scene : reload MRI, sites, and regenerate textures
         /// </summary>
         /// <param name="data"></param>
-        public bool Initialize(Data.Visualization.MultiPatientsVisualization visualization)
+        public bool Initialize(Data.Visualization.Visualization visualization)
         {
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
 
@@ -498,7 +498,7 @@ namespace HBP.Module3D
         /// Load a patient in the SP scene
         /// </summary>
         /// <param name="idPatientSelected"></param>
-        public void LoadPatientInSinglePatientScene(Data.Visualization.MultiPatientsVisualization visualization, Data.Patient patient, int idPlotSelected)
+        public void LoadPatientInSinglePatientScene(Data.Visualization.Visualization visualization, Data.Patient patient, int idPlotSelected)
         {
             OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(visualization, patient);
             ApplySceneCamerasToIndividualScene.Invoke();

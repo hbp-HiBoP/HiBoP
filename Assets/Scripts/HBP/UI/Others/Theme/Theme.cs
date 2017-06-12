@@ -95,24 +95,24 @@ namespace HBP.UI.Theme
             OtherButton = otherButton;
 
             ColorBlock menuButton = ColorBlock.defaultColorBlock;
-            menuButton.normalColor = new Color(65, 65, 65, 0) / 255.0f;
-            menuButton.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-            menuButton.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-            menuButton.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+            menuButton.normalColor = new Color(40, 40, 40, 255) / 255.0f;
+            menuButton.highlightedColor = new Color(30, 30, 30, 255) / 255.0f;
+            menuButton.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
+            menuButton.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
             MenuButton = menuButton;
 
             ColorBlock windowToggle = ColorBlock.defaultColorBlock;
             windowToggle.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-            windowToggle.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
-            windowToggle.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+            windowToggle.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+            windowToggle.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
             windowToggle.disabledColor = new Color(65, 65, 65, 255) / 255.0f;
             WindowToggle = windowToggle;
 
             ColorBlock menuToggle = ColorBlock.defaultColorBlock;
-            menuToggle.normalColor = new Color(65, 65, 65, 0) / 255.0f;
+            menuToggle.normalColor = new Color(0, 0, 0, 0) / 255.0f;
             menuToggle.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
             menuToggle.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-            menuToggle.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+            menuToggle.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
             MenuToggle = menuToggle;
 
             ColorBlock windowDropdown = ColorBlock.defaultColorBlock;
@@ -123,10 +123,10 @@ namespace HBP.UI.Theme
             WindowDropdown = windowDropdown;
 
             ColorBlock menuDropdown = ColorBlock.defaultColorBlock;
-            menuDropdown.normalColor = new Color(65, 65, 65, 0) / 255.0f;
+            menuDropdown.normalColor = new Color(0, 0, 0, 0) / 255.0f;
             menuDropdown.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
             menuDropdown.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-            menuDropdown.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+            menuDropdown.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
             MenuDropdown = menuDropdown;
 
             ColorBlock folderSelectorButton = ColorBlock.defaultColorBlock;
@@ -181,10 +181,9 @@ namespace HBP.UI.Theme
             WindowContentLabel.fontStyle = FontStyle.Normal;
 
             Menu = FontData.defaultFontData;
-            Menu.fontSize = 14;
+            Menu.fontSize = 13;
             Menu.font = Resources.Load<Font>("Fonts/Arial");
             Menu.alignByGeometry = true;
-            Menu.alignment = TextAnchor.MiddleLeft;
             Menu.fontStyle = FontStyle.Normal;
 
             WindowContentGeneralButton = FontData.defaultFontData;
