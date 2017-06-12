@@ -18,6 +18,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.IEEGTransparency m_IEEGTransparency;
+        /// <summary>
+        /// IEEG Sites Parameters
+        /// </summary>
+        [SerializeField]
+        private Tools.IEEGSitesParameters m_IEEGSitesParameters;
         #endregion
 
         #region Private Methods
@@ -25,6 +30,7 @@ namespace HBP.UI.Module3D
         {
             m_Tools.Add(m_ThresholdIEEG);
             m_Tools.Add(m_IEEGTransparency);
+            m_Tools.Add(m_IEEGSitesParameters);
         }
         #endregion
     }

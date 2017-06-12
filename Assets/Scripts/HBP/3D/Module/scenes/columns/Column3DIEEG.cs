@@ -52,6 +52,8 @@ namespace HBP.Module3D
         /// </summary>
         public class IEEGDataParameters
         {
+            private const float MIN_INFLUENCE = 0.0f;
+            private const float MAX_INFLUENCE = 50.0f;
             private float m_MaximumInfluence = 15.0f;
             /// <summary>
             /// Maximum influence amplitude of a site
@@ -64,9 +66,10 @@ namespace HBP.Module3D
                 }
                 set
                 {
-                    if (m_MaximumInfluence != value)
+                    float val = Mathf.Clamp(value, MIN_INFLUENCE, MAX_INFLUENCE);
+                    if (m_MaximumInfluence != val)
                     {
-                        m_MaximumInfluence = value;
+                        m_MaximumInfluence = val;
                         OnUpdateMaximumInfluence.Invoke();
                     }
                 }

@@ -66,8 +66,10 @@ namespace HBP.UI.Module3D
         protected void Initialize()
         {
             AddTools();
+            m_Tools.ForEach((t) => t.ListenerLock = true);
             AddListeners();
             DefaultState();
+            m_Tools.ForEach((t) => t.ListenerLock = false);
         }
         /// <summary>
         /// Callback when the selected scene is changed
