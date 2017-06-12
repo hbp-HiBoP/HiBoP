@@ -77,7 +77,7 @@ namespace HBP.UI.Module3D {
 
             m_SceneSettingsToolbar.gameObject.SetActive(true);
             m_DisplaySettingsToolbar.gameObject.SetActive(false);
-            //m_IEEGSettingsToolbar.gameObject.SetActive(false); // FIXME
+            m_IEEGSettingsToolbar.gameObject.SetActive(false);
         }
         #endregion
     }
