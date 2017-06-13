@@ -23,7 +23,7 @@ namespace HBP.Data.Experience
         {
             Dictionary<Protocol.Event, int[]> indexByEvent = new Dictionary<Protocol.Event, int[]>();
             indexByEvent.Add(bloc.MainEvent, data.POS.GetSamples(bloc.MainEvent.Codes).ToArray());
-            foreach (Protocol.Event evnt in bloc.SecondaryEvents) indexByEvent.Add(evnt, data.POS.GetSamples(bloc.MainEvent.Codes).ToArray());
+            foreach (Protocol.Event evnt in bloc.SecondaryEvents) indexByEvent.Add(evnt, data.POS.GetSamples(evnt.Codes).ToArray());
 
             // Calcul the size of a bloc and initialize bloc list
             int sampleAfterMainEvent = Mathf.FloorToInt((bloc.DisplayInformations.Window.End) * 0.001f * data.Frequency);
@@ -38,7 +38,15 @@ namespace HBP.Data.Experience
                 if (firstIndex >= 0 && lastIndex < data.ValuesBySite[data.Patient.Brain.Implantation.Electrodes[0].Sites[0]].Length)
                 {
                     Dictionary<Protocol.Event, int> positionByEvent = new Dictionary<Protocol.Event, int>();
-                    foreach (var item in indexByEvent) positionByEvent.Add(item.Key, item.Value.DefaultIfEmpty(-1).First((t) => (t >= firstIndex && t <= lastIndex)));
+                    foreach (var item in indexByEvent)
+                    {
+                        int eventIndex = item.Value.DefaultIfEmpty(-1).First((t) => (t >= firstIndex && t <= lastIndex));
+                        if(eventIndex != -1)
+                        {
+                            eventIndex -= firstIndex;
+                        }
+                        positionByEvent.Add(item.Key, eventIndex);
+                    }
 
                     Dictionary<Anatomy.Site, float[]> valuesBySite = new Dictionary<Anatomy.Site, float[]>();
                     foreach (var item in data.ValuesBySite)
@@ -47,8 +55,10 @@ namespace HBP.Data.Experience
                         Array.Copy(item.Value, firstIndex, values, 0, lenght);
                         valuesBySite.Add(item.Key, values);
                     }
+                    blocs.Add(new Localizer.Bloc(positionByEvent, valuesBySite));
                 }
             }
+            Blocs = blocs.ToArray();
         }
         #endregion
     }

@@ -9,4 +9,6 @@ public class ThemeElement : MonoBehaviour
     [SerializeField]
     ElementType type;
     public ElementType Type { get { return type; } set { type = value; } }
+
+    public bool IgnoreTheme { get; set; }
 }

@@ -26,6 +26,7 @@ namespace HBP.UI.Module3D.DBG
 
         void Update()
         {
+            /*
             if (Input.GetKeyDown(KeyCode.A))
             {
                 Debug.Log("LoadSingle");
@@ -70,6 +71,7 @@ namespace HBP.UI.Module3D.DBG
                 Debug.Log("RemoveScene");
                 ApplicationState.Module3D.RemoveVisualization(ApplicationState.Module3D.Visualizations.Last());
             }
+            */
         }
 
         public void RaycastToCursor()

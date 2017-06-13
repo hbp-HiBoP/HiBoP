@@ -145,7 +145,7 @@ namespace HBP.Data.General
         public void AddPatient(Patient patient)
         {
             m_Patients.Add(patient);
-            patient.Brain.LoadImplantations();
+            patient.Brain.LoadImplantationsAsyn();
         }
         public void AddPatient(IEnumerable<Patient> patients)
         {

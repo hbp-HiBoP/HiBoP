@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 namespace HBP.UI
 {
@@ -10,8 +11,22 @@ namespace HBP.UI
         Selectable m_Selectable;
         public bool interactable
         {
-            get { return m_Selectable.interactable; }
-            set { m_Selectable.interactable = value; }
+            get
+            {
+                if(m_Selectable == null)
+                {
+                    m_Selectable = GetComponent<Selectable>();
+                }
+                return m_Selectable.interactable;
+            }
+            set
+            {
+                if (m_Selectable == null)
+                {
+                    m_Selectable = GetComponent<Selectable>();
+                }
+                m_Selectable.interactable = value;
+            }
         }
 
         [SerializeField, Candlelight.PropertyBackingField]
@@ -52,13 +67,6 @@ namespace HBP.UI
         {
             get { return m_NeedDataset; }
             set { m_NeedDataset = value; }
-        }
-        #endregion
-
-        #region Private Method
-        void OnEnable()
-        {
-            m_Selectable = GetComponent<Selectable>();
         }
         #endregion
     }

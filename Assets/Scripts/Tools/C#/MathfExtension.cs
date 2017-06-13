@@ -1,4 +1,7 @@
 ﻿using UnityEngine;
+using System;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Tools.CSharp
 {
@@ -17,7 +20,6 @@ namespace Tools.CSharp
 
             return a;
         }
-
         public static float Average(float[] array)
         {
             float l_result = 0;
@@ -28,7 +30,6 @@ namespace Tools.CSharp
             l_result /= array.Length;
             return l_result;
         }
-
         public static float StandardDeviation(float[] array)
         {
             if(array.Length > 1)
@@ -49,10 +50,20 @@ namespace Tools.CSharp
             }
 
         }
-
         public static float SEM(float[] array)
         {
             return StandardDeviation(array) / Mathf.Sqrt(array.Length);
         }
+        public static T Median<T>(this T[] array) where T : IComparable
+        {
+            Array.Sort(array);
+            return array[Mathf.CeilToInt(array.Length / 2)];
+        }
+        public static T Median<T>(this List<T> array) where T : IComparable
+        {
+            array.Sort();
+            return array[Mathf.CeilToInt(array.Count / 2)];
+        }
+
     }
 }

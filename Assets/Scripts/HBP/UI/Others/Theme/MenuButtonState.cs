@@ -6,15 +6,15 @@ namespace HBP.UI
     {
         #region Properties
         [SerializeField]
-        InteractableConditions[] m_buttons;
+        InteractableConditions[] m_Interactables;
         #endregion
 
         #region Public Methods
-        public void SetInteractableButtons()
+        public void SetInteractables()
         {
-            foreach (InteractableConditions b in m_buttons)
+            foreach (InteractableConditions b in m_Interactables)
             {
-                SetInteractableButton(b);
+                SetInteractable(b);
             }
         }
         #endregion
@@ -22,10 +22,10 @@ namespace HBP.UI
         #region Private Methods
         void Start()
         {
-            SetInteractableButtons();
+            SetInteractables();
         }
 
-        void SetInteractableButton(InteractableConditions buttonGestion)
+        void SetInteractable(InteractableConditions buttonGestion)
         {
             bool l_interactable = true;
             if (buttonGestion.NeedProject)
@@ -64,7 +64,6 @@ namespace HBP.UI
                 }
             }
             buttonGestion.interactable = l_interactable;
-            //Debug.Log("Name: " + buttonGestion.name + " Interactable: " + l_interactable);
         }
         #endregion
     }

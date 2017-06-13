@@ -7,50 +7,6 @@ namespace Tools.CSharp
 {
     public static class ArrayExtension
     {
-        public static int Median(this int[] array)
-        {
-            // Create a clone of the array and sort it.
-            int[] l_array = array.Clone() as int[];
-            Array.Sort(l_array);
-
-            int l_median = 0;
-            if (l_array.Length != 0)
-            {
-                if (l_array.Length % 2 == 0)
-                {
-                    //Pair
-                    l_median = (l_array[(l_array.Length / 2) - 1] + l_array[(l_array.Length / 2)]) / 2;
-                }
-                else
-                {
-                    // Impair
-                    l_median = l_array[l_array.Length / 2];
-                }
-            }
-            return l_median;
-        }
-        public static float Median(this float[] array)
-        {
-            // Create a clone of the array and sort it.
-            float[] l_array = array.Clone() as float[];
-            Array.Sort(l_array);
-
-            float l_median = 0;
-            if (l_array.Length != 0)
-            {
-                if (l_array.Length % 2 == 0)
-                {
-                    //Pair
-                    l_median = (l_array[(l_array.Length / 2) - 1] + l_array[(l_array.Length / 2)]) / 2;
-                }
-                else
-                {
-                    // Impair
-                    l_median = l_array[l_array.Length / 2];
-                }
-            }
-            return l_median;
-        }
         public static Vector2 Quantile(this float[] floats, float percentage)
         {
             if ((percentage > 1) || (percentage < 0))

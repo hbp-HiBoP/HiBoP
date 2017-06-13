@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace Elan
 {
@@ -210,7 +211,6 @@ namespace Elan
             Readed = new bool[MeasureNumberByChannel, ChannelNumber];
             if (readData)
             {
-                Console.WriteLine("ReadData");
                 ReadChannel();
             }
         }

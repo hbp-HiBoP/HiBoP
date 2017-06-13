@@ -74,13 +74,12 @@ namespace HBP.Data.Experience.Dataset
         {
             // Read Elan.
             Elan.ElanFile elanFile = new Elan.ElanFile(info.EEG,true);
-
             foreach (Electrode electrode in info.Patient.Brain.Implantation.Electrodes)
             {
                 foreach (Site site in electrode.Sites)
                 {
                     Elan.Track track = elanFile.FindTrack(info.Measure, site.Name);
-                    if (track.Frequency < 0 || track.Measure < 0)
+                    if (track.Channel < 0 || track.Measure < 0)
                     {
                         MaskBySite.Add(site, true);
                         ValuesBySite.Add(site, new float[elanFile.EEG.SampleNumber]);

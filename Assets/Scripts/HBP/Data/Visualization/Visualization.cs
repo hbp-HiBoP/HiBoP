@@ -194,10 +194,9 @@ namespace HBP.Data.Visualization
 
             float progress = 0.0f;
 
-            foreach (Patient patient in m_patients) AddPatientConfiguration(patient);
             Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
             yield return c_FindDataToRead(progress, onChangeProgress,(value, progressValue) => { dataInfoByColumn = value; progress = progressValue; });
-            Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo = (from dataInfos in dataInfoByColumn.Values from dataInfo in dataInfos select dataInfo).Distinct().ToDictionary(t => t, t => new Data.Experience.Dataset.Data());
+            Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo = (from dataInfos in dataInfoByColumn.Values from dataInfo in dataInfos select dataInfo).Distinct().ToDictionary(t => t, t => new Experience.Dataset.Data());
             Dictionary<Column, Experience.Dataset.Data[]> dataByColumn = new Dictionary<Column, Experience.Dataset.Data[]>();
             yield return c_ReadData(dataInfoByColumn, dataByDataInfo, progress, onChangeProgress,(value, progressValue) => { dataByColumn = value; progress = progressValue; });
             yield return c_LoadColumns(dataByColumn, progress, onChangeProgress,(value) => progress = value);
@@ -262,7 +261,7 @@ namespace HBP.Data.Visualization
             Columns = visualization.Columns;
             ID = visualization.ID;
             Configuration = visualization.Configuration;
-            SetPatients(Patients);
+            SetPatients(visualization.Patients);
         }
         #endregion
 

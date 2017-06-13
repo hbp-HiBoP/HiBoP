@@ -49,7 +49,7 @@ namespace HBP.UI
                     ApplicationState.ProjectLoaded = project;
                     ApplicationState.ProjectLoadedLocation = Directory.GetParent(info.Path).FullName;
                     // TODO
-                    GameObject.FindGameObjectWithTag("Gestion").GetComponent<MenuButtonState>().SetInteractableButtons();
+                    GameObject.FindGameObjectWithTag("Gestion").GetComponent<MenuButtonState>().SetInteractables();
                     break;
                 case TaskState.Error:
                     Exception exception = loadingTask.Exception;
@@ -84,7 +84,7 @@ namespace HBP.UI
             yield return c_Save(path);
             yield return Ninja.JumpToUnity;
             // TODO
-            GameObject.FindGameObjectWithTag("Gestion").GetComponent<MenuButtonState>().SetInteractableButtons();
+            GameObject.FindGameObjectWithTag("Gestion").GetComponent<MenuButtonState>().SetInteractables();
         }
         #endregion
     }

@@ -19,7 +19,7 @@ namespace HBP.Data.Localizer
         }
 		public POS(string path): this()
 		{
-            if (!String.IsNullOrEmpty(path)) throw new ArgumentException();
+            if (String.IsNullOrEmpty(path)) throw new ArgumentException();
             if (!File.Exists(path)) throw new FileNotFoundException();
 
             foreach (string line in File.ReadAllLines(path))

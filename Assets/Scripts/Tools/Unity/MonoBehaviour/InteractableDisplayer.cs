@@ -11,15 +11,18 @@ public class InteractableDisplayer : MonoBehaviour
 
     Dictionary<Graphic, Color> m_ColorByGraphic = new Dictionary<Graphic, Color>();
     Selectable m_Selectable;
+    ThemeElement m_ThemeElement;
     bool m_LastState;
     #endregion
 
     #region Private Methods
-    void OnEnable()
+    private void Awake()
     {
         m_Selectable = GetComponent<Selectable>();
+        m_ThemeElement = GetComponent<ThemeElement>();
         UpdateColor(m_Selectable.interactable);
     }
+
     void Update()
     {
         if(m_Selectable.interactable != m_LastState)
@@ -31,6 +34,10 @@ public class InteractableDisplayer : MonoBehaviour
     {
         if (interactable)
         {
+            if (m_ThemeElement != null)
+            {
+                m_ThemeElement.IgnoreTheme = false;
+            }
             foreach (Graphic graphic in Graphics)
             {
                 if(m_ColorByGraphic.ContainsKey(graphic))
@@ -42,6 +49,10 @@ public class InteractableDisplayer : MonoBehaviour
         }
         else
         {
+            if(m_ThemeElement != null)
+            {
+                m_ThemeElement.IgnoreTheme = true;
+            }
             foreach (Graphic graphique in Graphics)
             {
                 if(!m_ColorByGraphic.ContainsKey(graphique))

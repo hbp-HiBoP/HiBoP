@@ -21,7 +21,7 @@ namespace HBP.UI.Theme
         }
         public void Set(Theme theme)
         {
-            ThemeElement[] themeElements = GetComponentsInChildren<ThemeElement>(true);
+            ThemeElement[] themeElements = GetComponentsInChildren<ThemeElement>(true).Where((element) => !element.IgnoreTheme).ToArray();
             SetBackgrounds(themeElements,theme);
             SetContentInputfields(themeElements,theme);
             SetContentButtons(themeElements, theme);

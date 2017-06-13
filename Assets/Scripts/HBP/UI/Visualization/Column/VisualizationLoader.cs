@@ -47,6 +47,7 @@ namespace HBP.UI.Visualization
                     break;
             }
             loadingCircle.Close();
+            ApplicationState.Module3D.AddVisualization(visualization);
         }
         #endregion
     }
