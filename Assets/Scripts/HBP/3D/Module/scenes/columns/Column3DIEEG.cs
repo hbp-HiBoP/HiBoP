@@ -347,10 +347,10 @@ namespace HBP.Module3D
             Dimensions = new int[3];
             Dimensions[0] = Column.TimeLine.Lenght;
             Dimensions[1] = 1;
-            Dimensions[2] = 0;
+            Dimensions[2] = Sites.Count;
 
             // Construct sites value array the old way, and set sites masks // maybe FIXME
-            IEEGValuesBySiteID = new float[Dimensions[0]][];
+            IEEGValuesBySiteID = new float[Dimensions[2]][];
             int siteID = 0;
             foreach (var configurationPatient in Column.Configuration.ConfigurationByPatient)
             {
@@ -362,10 +362,8 @@ namespace HBP.Module3D
                         Sites[siteID].Information.IsMasked = siteConfiguration.Value.IsMasked; // update mask
                         siteID++;
                     }
-                    Dimensions[2] += electrodeConfiguration.Value.ConfigurationBySite.Count;
                 }
             }
-
             IEEGParameters.MinimumAmplitude = float.MaxValue;
             IEEGParameters.MaximumAmplitude = float.MinValue;
 

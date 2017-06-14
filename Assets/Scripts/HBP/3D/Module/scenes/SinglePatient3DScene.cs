@@ -566,9 +566,6 @@ namespace HBP.Module3D
                 m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].DataLabel;                
             }
 
-            //FIXME
-            return;
-
             // set timelines
             m_ColumnManager.SetTimelineData(Patient, Visualization.Columns);
 

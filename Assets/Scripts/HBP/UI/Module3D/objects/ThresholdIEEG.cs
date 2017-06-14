@@ -189,8 +189,8 @@ namespace HBP.UI.Module3D
             {
                 m_IEEGHistogram = new Texture2D(1, 1);
             }
-            HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(ApplicationState.Module3D.SelectedScene.ColumnManager.DLLVolume, 4 * 110, 4 * 110, m_SpanMinFactor, m_SpanMaxFactor, m_MiddleFactor).UpdateTexture2D(m_IEEGHistogram);
-            
+            HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGValues, 4 * 110, 4 * 110, m_SpanMinFactor, m_SpanMaxFactor, m_MiddleFactor).UpdateTexture2D(m_IEEGHistogram);
+
             Destroy(m_Histogram.sprite);
             m_Histogram.sprite = Sprite.Create(m_IEEGHistogram, new Rect(0, 0, m_IEEGHistogram.width, m_IEEGHistogram.height), new Vector2(0.5f, 0.5f), 400f);
             UnityEngine.Profiling.Profiler.EndSample();
@@ -237,7 +237,7 @@ namespace HBP.UI.Module3D
             m_MidHandler.MaximumPosition = m_MaxHandler.Position;
             m_MaxHandler.MinimumPosition = m_MidHandler.Position;
 
-            //UpdateIEEGHistogram();
+            UpdateIEEGHistogram();
         }
         #endregion
     }

@@ -828,6 +828,8 @@ namespace HBP.Module3D
         private void UpdateGUITextures()
         {
             Column3D currCol = m_ColumnManager.SelectedColumn;
+            if (!currCol) return;
+
             List<Texture2D> texturesToDisplay = null;
             switch (currCol.Type)
             {
