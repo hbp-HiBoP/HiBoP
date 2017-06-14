@@ -284,6 +284,10 @@ namespace HBP.Module3D
                 Debug.Log("OnSelectColumnManager");
                 IsSelected = true;
             });
+            m_ColumnManager.OnUpdateColumnRendering.AddListener((column) =>
+            {
+                UpdateColumnRendering(column);
+            });
 
             // retrieve MNI IRM volume
             m_ColumnManager.DLLVolume = m_MNIObjects.IRM;
@@ -329,7 +333,6 @@ namespace HBP.Module3D
 
             // update scenes cameras
             Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
-
             DisplayScreenMessage("Multi Patients Scene loaded", 2.0f, 400, 80);
             return true;
         }
@@ -472,9 +475,6 @@ namespace HBP.Module3D
             {
                 m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].DataLabel;
             }
-
-            // FIXME
-            return;
 
             // set timelines
             m_ColumnManager.SetTimelineData(Visualization.Patients.ToList(), Visualization.Columns);

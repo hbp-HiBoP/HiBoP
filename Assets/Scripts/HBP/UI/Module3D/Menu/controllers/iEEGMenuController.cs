@@ -612,7 +612,7 @@ namespace HBP.UI.Module3D
             image.sprite = Sprite.Create(m_iEEGHistogram,
                    new Rect(0, 0, m_iEEGHistogram.width, m_iEEGHistogram.height),
                    new Vector2(0.5f, 0.5f), 400f);
-        }            
+        }
 
         private void switch_ROI_menu()
         {

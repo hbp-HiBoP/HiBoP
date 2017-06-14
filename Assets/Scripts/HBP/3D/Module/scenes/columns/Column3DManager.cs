@@ -95,6 +95,10 @@ namespace HBP.Module3D
         /// Event called when removing a line of views
         /// </summary>
         public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
+        /// <summary>
+        /// Event called when updating a column rendering
+        /// </summary>
+        public GenericEvent<Column3D> OnUpdateColumnRendering = new GenericEvent<Column3D>();
 
         List<Column3D> m_Columns = new List<Column3D>();
         public ReadOnlyCollection<Column3D> Columns { get { return m_Columns != null ? new ReadOnlyCollection<Column3D>(m_Columns) : new ReadOnlyCollection<Column3D>(new List<Column3D>(0)); } }
@@ -347,6 +351,10 @@ namespace HBP.Module3D
             {
                 OnUpdateIEEGMaximumInfluence.Invoke();
             });
+            column.OnUpdateRendering.AddListener(() =>
+            {
+                OnUpdateColumnRendering.Invoke(column);
+            });
             m_Columns.Add(column);
             OnAddColumn.Invoke();
         }
@@ -378,6 +386,10 @@ namespace HBP.Module3D
                 }
                 OnSelectColumnManager.Invoke(this);
                 ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
+            });
+            column.OnUpdateRendering.AddListener(() =>
+            {
+                OnUpdateColumnRendering.Invoke(column);
             });
             m_Columns.Add(column);
             OnAddColumn.Invoke();

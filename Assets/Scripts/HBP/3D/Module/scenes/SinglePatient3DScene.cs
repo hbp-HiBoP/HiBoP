@@ -229,6 +229,10 @@ namespace HBP.Module3D
                 Debug.Log("OnSelectColumnManager");
                 IsSelected = true;
             });
+            m_ColumnManager.OnUpdateColumnRendering.AddListener((column) =>
+            {
+                UpdateColumnRendering(column);
+            });
 
             DLL.Transformation meshTransformation = new DLL.Transformation();
             meshTransformation.Load(Patient.Brain.PreoperativeBasedToScannerBasedTransformation);
@@ -266,7 +270,6 @@ namespace HBP.Module3D
 
             // update scenes cameras
             Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
-
             DisplayScreenMessage("Single Patient Scene loaded : " + visualization.Patients[0].Place + "_" + visualization.Patients[0].Name + "_" + visualization.Patients[0].Date, 2.0f, 400, 80);
             return true;
         }

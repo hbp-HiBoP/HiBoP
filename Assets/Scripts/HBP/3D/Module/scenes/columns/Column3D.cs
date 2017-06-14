@@ -40,7 +40,7 @@ namespace HBP.Module3D
             set { m_Layer = value; }
         }
 
-        public bool IsRenderingUpToDate { get; set; }
+        public UnityEvent OnUpdateRendering = new UnityEvent();
 
         private bool m_IsSelected;
         /// <summary>
@@ -232,7 +232,7 @@ namespace HBP.Module3D
             AddView();
 
             // update rendering
-            IsRenderingUpToDate = false;
+            OnUpdateRendering.Invoke();
         }
         /// <summary>
         ///  Clean all allocated data
@@ -314,7 +314,7 @@ namespace HBP.Module3D
 
             if (diffCuts != 0)
             {
-                IsRenderingUpToDate = false;
+                OnUpdateRendering.Invoke();
             }
         }
         /// <summary>
