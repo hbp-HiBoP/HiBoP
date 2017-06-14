@@ -25,10 +25,6 @@ namespace HBP.Module3D
         public enum MeshType { Grey, White, Inflated };
 
         #region Properties
-        // mutex
-        public ReaderWriterLock RWLock = new ReaderWriterLock();
-        public float CurrentComputingState = 0f;
-
         // state
         public bool IsIEEGOutdated = true; /**< it true, the amplitudes may need to be updated (ROI, mask, geometry modifications) */
         public bool IsComparingSites = false; /**< if true, the next plot clicked will be used to be compared with the current one */

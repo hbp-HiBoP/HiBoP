@@ -1705,7 +1705,7 @@ namespace HBP.Module3D
             m_ModesManager.UpdateMode(Mode.FunctionsId.PreUpdateGenerators);
 
             SceneInformation.IsGeneratorUpToDate = false;
-            this.StartCoroutineAsync(c_Load());
+            this.StartCoroutineAsync(c_ComputeGenerators());
         }
         /// <summary>
         /// Update the displayed amplitudes on the brain and the cuts with the slider position.
@@ -1951,7 +1951,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Coroutines
-        private IEnumerator c_Load()
+        private IEnumerator c_ComputeGenerators()
         {
             yield return Ninja.JumpToUnity;
             LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
@@ -1976,409 +1976,170 @@ namespace HBP.Module3D
         private IEnumerator c_LoadIEEG(GenericEvent<float, float, string> onChangeProgress = null)
         {
             float progress = 0.0f;
-            float progressStep = 1 / (2 * ColumnManager.ColumnsIEEG.Count);
+            float progressStep = 1.0f / ColumnManager.ColumnsIEEG.Count;
 
             bool useMultiCPU = true;
             bool addValues = false;
             bool ratioDistances = true;
 
-            SceneInformation.RWLock.AcquireWriterLock(1000);
-            SceneInformation.CurrentComputingState = 0f;
-            SceneInformation.RWLock.ReleaseWriterLock();
-
             // copy from main generators
-            for (int ii = 0; ii < ColumnManager.ColumnsIEEG.Count; ++ii)
+            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
-                yield return Ninja.JumpToUnity;
-                progress += progressStep;
-                onChangeProgress.Invoke(progressStep, 0.0f, "Copy from main generators");
-                yield return Ninja.JumpBack;
-                for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
+                for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
-                    ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)ColumnManager.DLLCommonBrainTextureGeneratorList[jj].Clone();
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)m_ColumnManager.DLLCommonBrainTextureGeneratorList[jj].Clone();
                 }
             }
-
-            float offsetState = 1f / (2 * ColumnManager.ColumnsIEEG.Count);
+            float offsetState = 1f / (2 * m_ColumnManager.ColumnsIEEG.Count);
 
             // Do your threaded task. DON'T use the Unity API here
             if (SceneInformation.MeshTypeToDisplay != SceneStatesInfo.MeshType.Inflated)
             {
-                for (int ii = 0; ii < ColumnManager.ColumnsIEEG.Count; ++ii)
+                for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
                 {
                     yield return Ninja.JumpToUnity;
                     progress += progressStep;
-                    onChangeProgress.Invoke(progressStep, 0.0f, "Computing amplitudes for column " + ii);
+                    onChangeProgress.Invoke(progress, 1.0f, "Computing IEEG for column n°" + ii);
                     yield return Ninja.JumpBack;
-                    SceneInformation.RWLock.AcquireWriterLock(1000);
-                    SceneInformation.CurrentComputingState += offsetState;
-                    SceneInformation.RWLock.ReleaseWriterLock();
-
+                    
                     float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
                     float maxDensity = 1;
 
-                    ColumnManager.ColumnsIEEG[ii].SharedMinInf = float.MaxValue;
-                    ColumnManager.ColumnsIEEG[ii].SharedMaxInf = float.MinValue;
+                    m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = float.MaxValue;
+                    m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = float.MinValue;
 
                     // update raw electrodes
-                    ColumnManager.ColumnsIEEG[ii].UpdateDLLSitesMask();
+                    m_ColumnManager.ColumnsIEEG[ii].UpdateDLLSitesMask();
 
                     // splits
-                    for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
+                    for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                     {
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
 
 
-                        if (!ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true))
+                        if (!m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true))
                         {
                             Debug.LogError("Abort computing"); // useless
                             yield return null;
                         }
 
-                        if (!ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
+                        if (!m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
                         {
                             Debug.LogError("Abort computing"); // useless
                             yield return null;
                         }
-                        currentMaxDensity = ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
-                        currentMinInfluence = ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
-                        currentMaxInfluence = ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
+                        currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
+                        currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
+                        currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
 
                         if (currentMaxDensity > maxDensity)
                             maxDensity = currentMaxDensity;
 
-                        if (currentMinInfluence < ColumnManager.ColumnsIEEG[ii].SharedMinInf)
-                            ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
+                        if (currentMinInfluence < m_ColumnManager.ColumnsIEEG[ii].SharedMinInf)
+                            m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
 
-                        if (currentMaxInfluence > ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
-                            ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
+                        if (currentMaxInfluence > m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
+                            m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
 
                     }
 
-                    SceneInformation.RWLock.AcquireWriterLock(1000);
-                    SceneInformation.CurrentComputingState += offsetState;
-                    SceneInformation.RWLock.ReleaseWriterLock();
-
-
                     // cuts
-                    for (int jj = 0; jj < ColumnManager.PlanesCutsCopy.Count; ++jj)
+                    for (int jj = 0; jj < m_ColumnManager.PlanesCutsCopy.Count; ++jj)
                     {
-                        ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(ColumnManager.ColumnsIEEG[ii].RawElectrodes);
-                        ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true);
+                        m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                        m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true);
 
-                        if (!ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
+                        if (!m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
                         {
                             Debug.LogError("Abort computing");
                             yield return null;
                         }
 
-                        currentMaxDensity = ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity;
-                        currentMinInfluence = ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MinimumInfluence;
-                        currentMaxInfluence = ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumInfluence;
+                        currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity;
+                        currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MinimumInfluence;
+                        currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumInfluence;
 
                         if (currentMaxDensity > maxDensity)
                             maxDensity = currentMaxDensity;
 
-                        if (currentMinInfluence < ColumnManager.ColumnsIEEG[ii].SharedMinInf)
-                            ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
+                        if (currentMinInfluence < m_ColumnManager.ColumnsIEEG[ii].SharedMinInf)
+                            m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
 
-                        if (currentMaxInfluence > ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
-                            ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
+                        if (currentMaxInfluence > m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
+                            m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
                     }
 
                     // synchronize max density
-                    for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, ColumnManager.ColumnsIEEG[ii].SharedMinInf, ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
-                    for (int jj = 0; jj < ColumnManager.PlanesCutsCopy.Count; ++jj)
-                        ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, ColumnManager.ColumnsIEEG[ii].SharedMinInf, ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
+                    for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
+                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
+                    for (int jj = 0; jj < m_ColumnManager.PlanesCutsCopy.Count; ++jj)
+                        m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
 
-                    for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
-                    for (int jj = 0; jj < ColumnManager.PlanesCutsCopy.Count; ++jj)
-                        ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap();
+                    for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
+                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
+                    for (int jj = 0; jj < m_ColumnManager.PlanesCutsCopy.Count; ++jj)
+                        m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap();
                 }
             }
             else // if inflated white mesh is displayed, we compute only on the complete white mesh
             {
-                for (int ii = 0; ii < ColumnManager.ColumnsIEEG.Count; ++ii)
+                for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
                 {
                     yield return Ninja.JumpToUnity;
                     progress += progressStep;
-                    onChangeProgress.Invoke(progressStep, 0.0f, "Computing amplitudes for column " + ii);
+                    onChangeProgress.Invoke(progress, 1.0f, "Loading IEEG for column " + ii);
                     yield return Ninja.JumpBack;
-
-                    SceneInformation.RWLock.AcquireWriterLock(1000);
-                    SceneInformation.CurrentComputingState += offsetState;
-                    SceneInformation.RWLock.ReleaseWriterLock();
-
+                    
                     float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
                     float maxDensity = 1;
 
-                    ColumnManager.ColumnsIEEG[ii].SharedMinInf = float.MaxValue;
-                    ColumnManager.ColumnsIEEG[ii].SharedMaxInf = float.MinValue;
+                    m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = float.MaxValue;
+                    m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = float.MinValue;
 
                     // update raw electrodes
-                    ColumnManager.ColumnsIEEG[ii].UpdateDLLSitesMask();
+                    m_ColumnManager.ColumnsIEEG[ii].UpdateDLLSitesMask();
 
                     // splits
-                    for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
+                    for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                     {
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Reset(ColumnManager.DLLSplittedWhiteMeshesList[jj], ColumnManager.DLLVolume); // TODO : ?
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Reset(m_ColumnManager.DLLSplittedWhiteMeshesList[jj], m_ColumnManager.DLLVolume); // TODO : ?
+                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
 
-                        if (!ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true))
+                        if (!m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true))
                         {
                             Debug.LogError("Abort computing");
                             yield return null;
                         }
 
-                        if (!ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
+                        if (!m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
                         {
                             Debug.LogError("Abort computing");
                             yield return null;
                         }
 
-                        currentMaxDensity = ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
-                        currentMinInfluence = ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
-                        currentMaxInfluence = ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
+                        currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
+                        currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
+                        currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
 
                         if (currentMaxDensity > maxDensity)
                             maxDensity = currentMaxDensity;
 
-                        if (currentMinInfluence < ColumnManager.ColumnsIEEG[ii].SharedMinInf)
-                            ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
+                        if (currentMinInfluence < m_ColumnManager.ColumnsIEEG[ii].SharedMinInf)
+                            m_ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
 
-                        if (currentMaxInfluence > ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
-                            ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
+                        if (currentMaxInfluence > m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
+                            m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
                     }
 
-                    SceneInformation.RWLock.AcquireWriterLock(1000);
-                    SceneInformation.CurrentComputingState += offsetState;
-                    SceneInformation.RWLock.ReleaseWriterLock();
-
-
                     // synchronize max density
-                    for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, ColumnManager.ColumnsIEEG[ii].SharedMinInf, ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
+                    for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
+                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
 
-                    for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
+                    for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
+                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
                 }
             }
         }
-        #endregion
-    }
-
-    /// <summary>
-    /// The job class for doing the textures generators computing stuff
-    /// </summary>
-    public class ComputeGeneratorsJob : ThreadedJob
-    {
-        #region Properties
-        /// <summary>
-        /// Information of the scene (same as the one in the respective Base3DScene)
-        /// </summary>
-        public SceneStatesInfo SceneInformation = null;
-        /// <summary>
-        /// Column3DViewManager of the scene
-        /// </summary>
-        public Column3DManager ColumnManager = null;
-        #endregion
-
-        #region Private Methods
-        /// <summary>
-        /// 
-        /// </summary>
-        protected override void ThreadFunction()
-        {
-            bool useMultiCPU = true;
-            bool addValues = false;
-            bool ratioDistances = true;
-
-            SceneInformation.RWLock.AcquireWriterLock(1000);
-            SceneInformation.CurrentComputingState = 0f;
-            SceneInformation.RWLock.ReleaseWriterLock();
-
-            // copy from main generators
-            for (int ii = 0; ii < ColumnManager.ColumnsIEEG.Count; ++ii)
-            {
-                for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
-                {
-                    ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)ColumnManager.DLLCommonBrainTextureGeneratorList[jj].Clone();
-                }
-            }
-
-            float offsetState = 1f / (2 * ColumnManager.ColumnsIEEG.Count);
-
-            // Do your threaded task. DON'T use the Unity API here
-            if (SceneInformation.MeshTypeToDisplay != SceneStatesInfo.MeshType.Inflated)
-            {
-                for (int ii = 0; ii < ColumnManager.ColumnsIEEG.Count; ++ii)
-                {
-                    SceneInformation.RWLock.AcquireWriterLock(1000);
-                    SceneInformation.CurrentComputingState += offsetState;
-                    SceneInformation.RWLock.ReleaseWriterLock();
-
-                    float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
-                    float maxDensity = 1;
-
-                    ColumnManager.ColumnsIEEG[ii].SharedMinInf = float.MaxValue;
-                    ColumnManager.ColumnsIEEG[ii].SharedMaxInf = float.MinValue;
-
-                    // update raw electrodes
-                    ColumnManager.ColumnsIEEG[ii].UpdateDLLSitesMask();
-
-                    // splits
-                    for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
-                    {
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(ColumnManager.ColumnsIEEG[ii].RawElectrodes);
-
-
-                        if (!ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true))
-                        {
-                            Debug.LogError("Abort computing"); // useless
-                            return;
-                        }
-
-                        if (!ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
-                        {
-                            Debug.LogError("Abort computing"); // useless
-                            return;
-                        }
-                        currentMaxDensity = ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
-                        currentMinInfluence = ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
-                        currentMaxInfluence = ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
-
-                        if (currentMaxDensity > maxDensity)
-                            maxDensity = currentMaxDensity;
-
-                        if (currentMinInfluence < ColumnManager.ColumnsIEEG[ii].SharedMinInf)
-                            ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
-
-                        if (currentMaxInfluence > ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
-                            ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
-
-                    }
-
-                    SceneInformation.RWLock.AcquireWriterLock(1000);
-                    SceneInformation.CurrentComputingState += offsetState;
-                    SceneInformation.RWLock.ReleaseWriterLock();
-
-
-                    // cuts
-                    for (int jj = 0; jj < ColumnManager.PlanesCutsCopy.Count; ++jj)
-                    {
-                        ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(ColumnManager.ColumnsIEEG[ii].RawElectrodes);
-                        ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true);
-
-                        if (!ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
-                        {
-                            Debug.LogError("Abort computing");
-                            return;
-                        }
-
-                        currentMaxDensity = ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity;
-                        currentMinInfluence = ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MinimumInfluence;
-                        currentMaxInfluence = ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumInfluence;
-
-                        if (currentMaxDensity > maxDensity)
-                            maxDensity = currentMaxDensity;
-
-                        if (currentMinInfluence < ColumnManager.ColumnsIEEG[ii].SharedMinInf)
-                            ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
-
-                        if (currentMaxInfluence > ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
-                            ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
-                    }
-
-                    // synchronize max density
-                    for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, ColumnManager.ColumnsIEEG[ii].SharedMinInf, ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
-                    for (int jj = 0; jj < ColumnManager.PlanesCutsCopy.Count; ++jj)
-                        ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, ColumnManager.ColumnsIEEG[ii].SharedMinInf, ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
-
-                    for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
-                    for (int jj = 0; jj < ColumnManager.PlanesCutsCopy.Count; ++jj)
-                        ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap();
-                }
-            }
-            else // if inflated white mesh is displayed, we compute only on the complete white mesh
-            {
-                for (int ii = 0; ii < ColumnManager.ColumnsIEEG.Count; ++ii)
-                {
-                    SceneInformation.RWLock.AcquireWriterLock(1000);
-                    SceneInformation.CurrentComputingState += offsetState;
-                    SceneInformation.RWLock.ReleaseWriterLock();
-
-                    float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
-                    float maxDensity = 1;
-
-                    ColumnManager.ColumnsIEEG[ii].SharedMinInf = float.MaxValue;
-                    ColumnManager.ColumnsIEEG[ii].SharedMaxInf = float.MinValue;
-
-                    // update raw electrodes
-                    ColumnManager.ColumnsIEEG[ii].UpdateDLLSitesMask();
-
-                    // splits
-                    for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
-                    {
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Reset(ColumnManager.DLLSplittedWhiteMeshesList[jj], ColumnManager.DLLVolume); // TODO : ?
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(ColumnManager.ColumnsIEEG[ii].RawElectrodes);
-
-                        if (!ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true))
-                        {
-                            Debug.LogError("Abort computing");
-                            return;
-                        }
-
-                        if (!ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
-                        {
-                            Debug.LogError("Abort computing");
-                            return;
-                        }
-
-                        currentMaxDensity = ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
-                        currentMinInfluence = ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
-                        currentMaxInfluence = ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
-
-                        if (currentMaxDensity > maxDensity)
-                            maxDensity = currentMaxDensity;
-
-                        if (currentMinInfluence < ColumnManager.ColumnsIEEG[ii].SharedMinInf)
-                            ColumnManager.ColumnsIEEG[ii].SharedMinInf = currentMinInfluence;
-
-                        if (currentMaxInfluence > ColumnManager.ColumnsIEEG[ii].SharedMaxInf)
-                            ColumnManager.ColumnsIEEG[ii].SharedMaxInf = currentMaxInfluence;
-                    }
-
-                    SceneInformation.RWLock.AcquireWriterLock(1000);
-                    SceneInformation.CurrentComputingState += offsetState;
-                    SceneInformation.RWLock.ReleaseWriterLock();
-
-
-                    // synchronize max density
-                    for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, ColumnManager.ColumnsIEEG[ii].SharedMinInf, ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
-
-                    for (int jj = 0; jj < ColumnManager.MeshSplitNumber; ++jj)
-                        ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
-                }
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        protected override void OnFinished()
-        { }
-        #endregion
-
-        #region Public Methods
-        /// <summary>
-        /// 
-        /// </summary>
-        public ComputeGeneratorsJob()
-        { }
         #endregion
     }
 }

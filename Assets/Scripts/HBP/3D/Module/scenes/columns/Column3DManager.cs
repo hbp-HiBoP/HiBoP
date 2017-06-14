@@ -338,18 +338,22 @@ namespace HBP.Module3D
             column.IEEGParameters.OnUpdateSpanValues.AddListener(() =>
             {
                 OnUpdateIEEGSpan.Invoke();
+                OnUpdateColumnRendering.Invoke(column);
             });
             column.IEEGParameters.OnUpdateAlphaValues.AddListener(() =>
             {
                 OnUpdateIEEGAlpha.Invoke();
+                OnUpdateColumnRendering.Invoke(column);
             });
             column.IEEGParameters.OnUpdateGain.AddListener(() =>
             {
                 OnUpdateIEEGGain.Invoke();
+                OnUpdateColumnRendering.Invoke(column);
             });
             column.IEEGParameters.OnUpdateMaximumInfluence.AddListener(() =>
             {
                 OnUpdateIEEGMaximumInfluence.Invoke();
+                OnUpdateColumnRendering.Invoke(column);
             });
             column.OnUpdateRendering.AddListener(() =>
             {

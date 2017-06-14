@@ -26,6 +26,8 @@ public class LoadingCircle : MonoBehaviour
         }
     }
 
+    Coroutine m_TextCoroutine;
+
     string m_Text;
     public string Text
     {
@@ -35,7 +37,7 @@ public class LoadingCircle : MonoBehaviour
         }
         set
         {
-            StopAllCoroutines();
+            StopCoroutine(m_TextCoroutine);
             loading = false;
             transform.GetChild(0).GetChild(0).GetComponent<Text>().text = value;
             transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<Text>().text = "";
@@ -128,7 +130,7 @@ public class LoadingCircle : MonoBehaviour
     #region Private Methods
     void LateUpdate()
     {
-        if (!loading && transform.GetChild(0).GetChild(0).GetChild(0).gameObject.activeSelf) StartCoroutine(c_Load());
+        if (!loading && transform.GetChild(0).GetChild(0).GetChild(0).gameObject.activeSelf) m_TextCoroutine = StartCoroutine(c_Load());
     }
     #endregion
 }
