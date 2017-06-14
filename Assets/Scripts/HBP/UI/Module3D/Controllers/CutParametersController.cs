@@ -70,7 +70,28 @@ namespace HBP.UI.Module3D
                 cut.Orientation = (CutOrientation)value;
                 if (cut.Orientation == CutOrientation.Custom)
                 {
-                    cut.Normal = new Vector3(int.Parse(m_CustomX.text), int.Parse(m_CustomY.text), int.Parse(m_CustomZ.text));
+                    int x = 1, y = 0, z = 0;
+                    if (!int.TryParse(m_CustomX.text, out x))
+                    {
+                        x = 1;
+                        m_CustomX.text = "0";
+                    }
+                    if (!int.TryParse(m_CustomY.text, out y))
+                    {
+                        y = 0;
+                        m_CustomY.text = "0";
+                    }
+                    if (!int.TryParse(m_CustomZ.text, out z))
+                    {
+                        z = 0;
+                        m_CustomZ.text = "0";
+                    }
+                    if (x == 0 && y == 0 && z == 0)
+                    {
+                        x = 1;
+                        m_CustomX.text = "1";
+                    }
+                    cut.Normal = new Vector3(x, y, z);
                 }
                 scene.UpdateCutPlane(cut);
             });
@@ -84,27 +105,90 @@ namespace HBP.UI.Module3D
                 scene.RemoveCutPlane(cut);
                 Destroy(gameObject);
             });
-            m_CustomX.onValueChanged.AddListener((value) =>
+            m_CustomX.onEndEdit.AddListener((value) =>
             {
                 if (cut.Orientation == CutOrientation.Custom)
                 {
-                    cut.Normal = new Vector3(int.Parse(m_CustomX.text), int.Parse(m_CustomY.text), int.Parse(m_CustomZ.text));
+                    int x = 0, y = 0, z = 0;
+                    if (!int.TryParse(m_CustomX.text, out x))
+                    {
+                        x = 0;
+                        m_CustomX.text = "0";
+                    }
+                    if (!int.TryParse(m_CustomY.text, out y))
+                    {
+                        y = 0;
+                        m_CustomY.text = "0";
+                    }
+                    if (!int.TryParse(m_CustomZ.text, out z))
+                    {
+                        z = 0;
+                        m_CustomZ.text = "0";
+                    }
+                    if (x == 0 && y == 0 && z == 0)
+                    {
+                        x = 1;
+                        m_CustomX.text = "1";
+                    }
+                    cut.Normal = new Vector3(x, y, z);
                     scene.UpdateCutPlane(cut);
                 }
             });
-            m_CustomY.onValueChanged.AddListener((value) =>
+            m_CustomY.onEndEdit.AddListener((value) =>
             {
                 if (cut.Orientation == CutOrientation.Custom)
                 {
-                    cut.Normal = new Vector3(int.Parse(m_CustomX.text), int.Parse(m_CustomY.text), int.Parse(m_CustomZ.text));
+                    int x = 0, y = 0, z = 0;
+                    if (!int.TryParse(m_CustomX.text, out x))
+                    {
+                        x = 0;
+                        m_CustomX.text = "0";
+                    }
+                    if (!int.TryParse(m_CustomY.text, out y))
+                    {
+                        y = 0;
+                        m_CustomY.text = "0";
+                    }
+                    if (!int.TryParse(m_CustomZ.text, out z))
+                    {
+                        z = 0;
+                        m_CustomZ.text = "0";
+                    }
+                    if (x == 0 && y == 0 && z == 0)
+                    {
+                        x = 1;
+                        m_CustomX.text = "1";
+                    }
+                    cut.Normal = new Vector3(x, y, z);
                     scene.UpdateCutPlane(cut);
                 }
             });
-            m_CustomZ.onValueChanged.AddListener((value) =>
+            m_CustomZ.onEndEdit.AddListener((value) =>
             {
                 if (cut.Orientation == CutOrientation.Custom)
                 {
-                    cut.Normal = new Vector3(int.Parse(m_CustomX.text), int.Parse(m_CustomY.text), int.Parse(m_CustomZ.text));
+                    int x = 0, y = 0, z = 0;
+                    if (!int.TryParse(m_CustomX.text, out x))
+                    {
+                        x = 0;
+                        m_CustomX.text = "0";
+                    }
+                    if (!int.TryParse(m_CustomY.text, out y))
+                    {
+                        y = 0;
+                        m_CustomY.text = "0";
+                    }
+                    if (!int.TryParse(m_CustomZ.text, out z))
+                    {
+                        z = 0;
+                        m_CustomZ.text = "0";
+                    }
+                    if (x == 0 && y == 0 && z == 0)
+                    {
+                        x = 1;
+                        m_CustomX.text = "1";
+                    }
+                    cut.Normal = new Vector3(x, y, z);
                     scene.UpdateCutPlane(cut);
                 }
             });
