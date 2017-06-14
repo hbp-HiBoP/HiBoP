@@ -17,10 +17,6 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        protected void Awake()
-        {
-            Initialize();
-        }
         /// <summary>
         /// Link elements to the toolbar
         /// </summary>
@@ -59,17 +55,6 @@ namespace HBP.UI.Module3D
             {
                 tool.DefaultState();
             }
-        }
-        /// <summary>
-        /// Initialize the toolbar
-        /// </summary>
-        protected void Initialize()
-        {
-            AddTools();
-            m_Tools.ForEach((t) => t.ListenerLock = true);
-            AddListeners();
-            DefaultState();
-            m_Tools.ForEach((t) => t.ListenerLock = false);
         }
         /// <summary>
         /// Callback when the selected scene is changed
@@ -121,6 +106,20 @@ namespace HBP.UI.Module3D
             {
                 tool.UpdateStatus(type);
             }
+        }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Initialize the toolbar
+        /// </summary>
+        public void Initialize()
+        {
+            AddTools();
+            m_Tools.ForEach((t) => t.ListenerLock = true);
+            AddListeners();
+            DefaultState();
+            m_Tools.ForEach((t) => t.ListenerLock = false);
         }
         #endregion
     }

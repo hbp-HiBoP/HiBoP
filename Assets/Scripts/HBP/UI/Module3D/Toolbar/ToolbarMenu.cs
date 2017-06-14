@@ -73,6 +73,10 @@ namespace HBP.UI.Module3D {
         /// </summary>
         private void Initialize()
         {
+            m_SceneSettingsToolbar.Initialize();
+            m_DisplaySettingsToolbar.Initialize();
+            m_IEEGSettingsToolbar.Initialize();
+
             CurrentToolbar = m_SceneSettingsToolbar;
 
             m_SceneSettingsToolbar.gameObject.SetActive(true);

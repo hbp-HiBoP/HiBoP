@@ -237,7 +237,7 @@ namespace HBP.UI.Module3D
             m_MidHandler.MaximumPosition = m_MaxHandler.Position;
             m_MaxHandler.MinimumPosition = m_MidHandler.Position;
 
-            UpdateIEEGHistogram();
+            //UpdateIEEGHistogram();
         }
         #endregion
     }
