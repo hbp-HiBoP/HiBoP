@@ -331,6 +331,10 @@ namespace HBP.Module3D
                 SceneInformation.CutHolesEnabled = value;
                 SceneInformation.CutMeshGeometryNeedsUpdate = true;
                 SceneInformation.IsIEEGOutdated = true;
+                foreach (Column3D column in m_ColumnManager.Columns)
+                {
+                    column.IsRenderingUpToDate = false;
+                }
                 m_ModesManager.UpdateMode(Mode.FunctionsId.UpdatePlane);
             }
         }
@@ -499,11 +503,6 @@ namespace HBP.Module3D
         /// </summary>
         public Color AmbientLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
-        /// <summary>
-        /// Are the columns up to date rendering wise ?
-        /// </summary>
-        protected bool m_ColumnsRenderingUpToDate = false;
-
         [SerializeField]
         public GameObject m_CutPrefab;
         #endregion
@@ -588,11 +587,6 @@ namespace HBP.Module3D
                 UnityEngine.Profiling.Profiler.EndSample();
             }
             UnityEngine.Profiling.Profiler.EndSample();
-
-            if (!m_ColumnsRenderingUpToDate)
-            {
-                m_ColumnsRenderingUpToDate = UpdateAllColumnsRendering();
-            }
         }
         /// <summary>
         /// Add every listeners required for the scene
@@ -731,7 +725,7 @@ namespace HBP.Module3D
                     currCol.UpdateSitesRendering(SceneInformation, null);
                 }
 
-                ColumnManager.Columns[columnsIndexes[ii]].OnUpdateRendering.Invoke();
+                ColumnManager.Columns[columnsIndexes[ii]].IsRenderingUpToDate = false;
             }
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("TEST-compute_IEEG_textures 1 compute_GUI_textures");
@@ -1068,6 +1062,10 @@ namespace HBP.Module3D
 
             SceneInformation.CutMeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                column.IsRenderingUpToDate = false;
+            }
 
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdatePlane); // TEMP
@@ -1092,6 +1090,10 @@ namespace HBP.Module3D
             SceneInformation.CutMeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
             //m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                column.IsRenderingUpToDate = false;
+            }
 
             // Update Mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
@@ -1128,6 +1130,10 @@ namespace HBP.Module3D
             SceneInformation.CutMeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                column.IsRenderingUpToDate = false;
+            }
 
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
@@ -1587,28 +1593,13 @@ namespace HBP.Module3D
             UpdateGUITextures();
         }
         /// <summary>
-        /// Update the data render of all columns
-        /// </summary>
-        /// <returns></returns>
-        public bool UpdateAllColumnsRendering()
-        {
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-updateAllColumnsRender");
-            bool result = true;
-            foreach (Column3D column in m_ColumnManager.Columns)
-            {
-                result &= UpdateColumnRendering(column);
-            }
-            UnityEngine.Profiling.Profiler.EndSample();
-            return result;
-        }
-        /// <summary>
         /// Update the data render corresponding to the column
         /// </summary>
         /// <param name="indexColumn"></param>
         /// <returns></returns>
         public bool UpdateColumnRendering(Column3D column)
         {
-            if (!SceneInformation.IsGeometryUpToDate)
+            if (!SceneInformation.IsGeometryUpToDate || column.IsRenderingUpToDate)
                 return false;
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender");
@@ -1627,9 +1618,17 @@ namespace HBP.Module3D
                             break;
                         case Column3D.ColumnType.IEEG:
                             if (!SceneInformation.IsGeneratorUpToDate)
+                            {
+                                UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-BrainCutTextures");
                                 m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = column.BrainCutTextures[ii];
+                                UnityEngine.Profiling.Profiler.EndSample();
+                            }
                             else
+                            {
+                                UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-BrainCutTexturesWithEEG");
                                 m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = ((Column3DIEEG)column).BrainCutWithIEEGTextures[ii];
+                                UnityEngine.Profiling.Profiler.EndSample();
+                            }
                             break;
                         default:
                             break;
@@ -1646,20 +1645,29 @@ namespace HBP.Module3D
                 if (column.Type == Column3D.ColumnType.FMRI || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
                 {
                     // uv 2 (alpha) 
+                    UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-UV2-Alpha");
                     m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv2 = m_ColumnManager.UVNull[ii];
+                    UnityEngine.Profiling.Profiler.EndSample();
                     // uv 3 (color map)
+                    UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-UV3-EEG");
                     m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv3 = m_ColumnManager.UVNull[ii];
+                    UnityEngine.Profiling.Profiler.EndSample();
                 }
                 else
                 {
                     // uv 2 (alpha)
+                    UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-UV2-Alpha");
                     m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DIEEG)column).DLLBrainTextureGenerators[ii].AlphaUV;
+                    UnityEngine.Profiling.Profiler.EndSample();
                     // uv 3 (color map)
+                    UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-UV3-EEG");
                     m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DIEEG)column).DLLBrainTextureGenerators[ii].IEEGUV;
+                    UnityEngine.Profiling.Profiler.EndSample();
                 }
             }
             
             UnityEngine.Profiling.Profiler.EndSample();
+            //column.IsRenderingUpToDate = true; // FIXME : uncomment this when updating to multiple meshes
             return true;
         }
         /// <summary>

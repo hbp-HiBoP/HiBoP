@@ -229,11 +229,6 @@ namespace HBP.Module3D
                 Debug.Log("OnSelectColumnManager");
                 IsSelected = true;
             });
-            m_ColumnManager.OnUpdateColumnRendering.AddListener((column) =>
-            {
-                m_ColumnsRenderingUpToDate = false;
-                //UpdateColumnRendering(column);
-            });
 
             DLL.Transformation meshTransformation = new DLL.Transformation();
             meshTransformation.Load(Patient.Brain.PreoperativeBasedToScannerBasedTransformation);

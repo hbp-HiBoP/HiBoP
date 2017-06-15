@@ -284,11 +284,6 @@ namespace HBP.Module3D
                 Debug.Log("OnSelectColumnManager");
                 IsSelected = true;
             });
-            m_ColumnManager.OnUpdateColumnRendering.AddListener((column) =>
-            {
-                m_ColumnsRenderingUpToDate = false;
-                //UpdateColumnRendering(column);
-            });
 
             // retrieve MNI IRM volume
             m_ColumnManager.DLLVolume = m_MNIObjects.IRM;

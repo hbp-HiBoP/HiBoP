@@ -40,8 +40,6 @@ namespace HBP.Module3D
             set { m_Layer = value; }
         }
 
-        public UnityEvent OnUpdateRendering = new UnityEvent();
-
         private bool m_IsSelected;
         /// <summary>
         /// Is this column selected ?
@@ -61,6 +59,11 @@ namespace HBP.Module3D
                 }
             }
         }
+
+        /// <summary>
+        /// Does the column rendering need to be updated ?
+        /// </summary>
+        public bool IsRenderingUpToDate { get; set; }
 
         public GameObject ViewPrefab;
         protected List<View3D> m_Views = new List<View3D>();
@@ -232,7 +235,7 @@ namespace HBP.Module3D
             AddView();
 
             // update rendering
-            OnUpdateRendering.Invoke();
+            IsRenderingUpToDate = false;
         }
         /// <summary>
         ///  Clean all allocated data
@@ -314,7 +317,7 @@ namespace HBP.Module3D
 
             if (diffCuts != 0)
             {
-                OnUpdateRendering.Invoke();
+                IsRenderingUpToDate = false;
             }
         }
         /// <summary>
