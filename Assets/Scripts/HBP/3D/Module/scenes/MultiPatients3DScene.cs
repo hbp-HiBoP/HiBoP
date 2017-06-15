@@ -286,7 +286,8 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateColumnRendering.AddListener((column) =>
             {
-                UpdateColumnRendering(column);
+                m_ColumnsRenderingUpToDate = false;
+                //UpdateColumnRendering(column);
             });
 
             // retrieve MNI IRM volume

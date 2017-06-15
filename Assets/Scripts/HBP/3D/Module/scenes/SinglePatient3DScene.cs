@@ -231,7 +231,8 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateColumnRendering.AddListener((column) =>
             {
-                UpdateColumnRendering(column);
+                m_ColumnsRenderingUpToDate = false;
+                //UpdateColumnRendering(column);
             });
 
             DLL.Transformation meshTransformation = new DLL.Transformation();

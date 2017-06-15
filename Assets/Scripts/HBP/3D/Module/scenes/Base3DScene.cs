@@ -502,7 +502,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Are the columns up to date rendering wise ?
         /// </summary>
-        private bool m_ColumnsRenderingUpToDate = false;
+        protected bool m_ColumnsRenderingUpToDate = false;
 
         [SerializeField]
         public GameObject m_CutPrefab;
