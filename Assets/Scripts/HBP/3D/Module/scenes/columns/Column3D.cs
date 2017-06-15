@@ -274,7 +274,7 @@ namespace HBP.Module3D
         /// 
         /// </summary>
         /// <param name="nbCuts"></param>
-        public void UpdateCutsPlanesNumber(int diffCuts)
+        public virtual void UpdateCutsPlanesNumber(int diffCuts)
         {
             if (diffCuts < 0)
             {

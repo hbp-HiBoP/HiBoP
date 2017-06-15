@@ -432,7 +432,7 @@ namespace HBP.Module3D
         /// Update the cut planes number of the 3D column view
         /// </summary>
         /// <param name="newCutsNb"></param>
-        public new void UpdateCutsPlanesNumber(int diffCuts)
+        public override void UpdateCutsPlanesNumber(int diffCuts)
         {
             base.UpdateCutsPlanesNumber(diffCuts);            
             if (diffCuts < 0)
