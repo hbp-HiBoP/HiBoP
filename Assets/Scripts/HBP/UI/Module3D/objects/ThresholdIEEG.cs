@@ -1,4 +1,5 @@
 ﻿using HBP.Module3D;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -41,6 +42,10 @@ namespace HBP.UI.Module3D
         /// Amplitude
         /// </summary>
         private float m_Amplitude = 1.0f;
+        /// <summary>
+        /// Is the module initialized ?
+        /// </summary>
+        private bool m_Initialized = false;
 
         /// <summary>
         /// IEEG Histogram
@@ -112,14 +117,14 @@ namespace HBP.UI.Module3D
             {
                 float val = float.Parse(value);
                 val = Mathf.Clamp(val, m_MinAmplitude, Middle);
-                m_SpanMinInput.text = val.ToString("N2");
+                m_SpanMinInput.text = val.ToString("N3");
                 m_SpanMinFactor = (val - m_MinAmplitude) / m_Amplitude;
 
                 m_MinHandler.Position = m_SpanMinFactor;
                 m_MidHandler.MinimumPosition = m_SpanMinFactor;
                 m_MidHandler.ClampPosition();
 
-                ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SpanMin = val;
+                if (m_Initialized) ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SpanMin = val;
 
                 OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
             });
@@ -128,7 +133,7 @@ namespace HBP.UI.Module3D
             {
                 float val = float.Parse(value);
                 val = Mathf.Clamp(val, SpanMin, SpanMax);
-                m_MiddleInput.text = val.ToString("N2");
+                m_MiddleInput.text = val.ToString("N3");
                 m_MiddleFactor = (val - m_MinAmplitude) / m_Amplitude;
 
                 m_MidHandler.Position = m_MiddleFactor;
@@ -137,7 +142,7 @@ namespace HBP.UI.Module3D
                 m_MaxHandler.MinimumPosition = m_MiddleFactor;
                 m_MaxHandler.ClampPosition();
 
-                ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.Middle = val;
+                if (m_Initialized) ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.Middle = val;
 
                 OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
             });
@@ -146,14 +151,14 @@ namespace HBP.UI.Module3D
             {
                 float val = float.Parse(value);
                 val = Mathf.Clamp(val, Middle, m_MaxAmplitude);
-                m_SpanMaxInput.text = val.ToString("N2");
+                m_SpanMaxInput.text = val.ToString("N3");
                 m_SpanMaxFactor = (val - m_MinAmplitude) / m_Amplitude;
 
                 m_MaxHandler.Position = m_SpanMaxFactor;
                 m_MidHandler.MaximumPosition = m_SpanMaxFactor;
                 m_MidHandler.ClampPosition();
 
-                ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SpanMax = val;
+                if (m_Initialized) ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SpanMax = val;
 
                 OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
             });
@@ -161,21 +166,21 @@ namespace HBP.UI.Module3D
             m_MinHandler.OnChangePosition.AddListener(() =>
             {
                 m_SpanMinFactor = m_MinHandler.Position;
-                m_SpanMinInput.text = SpanMin.ToString("N2");
+                m_SpanMinInput.text = SpanMin.ToString("N3");
                 m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
             });
 
             m_MidHandler.OnChangePosition.AddListener(() =>
             {
                 m_MiddleFactor = m_MidHandler.Position;
-                m_MiddleInput.text = Middle.ToString("N2");
+                m_MiddleInput.text = Middle.ToString("N3");
                 m_MiddleInput.onEndEdit.Invoke(m_MiddleInput.text);
             });
 
             m_MaxHandler.OnChangePosition.AddListener(() =>
             {
                 m_SpanMaxFactor = m_MaxHandler.Position;
-                m_SpanMaxInput.text = SpanMax.ToString("N2");
+                m_SpanMaxInput.text = SpanMax.ToString("N3");
                 m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
             });
         }
@@ -195,17 +200,6 @@ namespace HBP.UI.Module3D
             m_Histogram.sprite = Sprite.Create(m_IEEGHistogram, new Rect(0, 0, m_IEEGHistogram.width, m_IEEGHistogram.height), new Vector2(0.5f, 0.5f), 400f);
             UnityEngine.Profiling.Profiler.EndSample();
         }
-
-        private Column3DIEEG.IEEGDataParameters DBG() // DELETEME
-        {
-            Column3DIEEG.IEEGDataParameters data = new Column3DIEEG.IEEGDataParameters();
-            data.MinimumAmplitude = -10.0f;
-            data.MaximumAmplitude = 15.0f;
-            data.SpanMin = -10.0f;
-            data.SpanMax = 15.0f;
-            data.Middle = 5.0f;
-            return data;
-        }
         #endregion
 
         #region Public Methods
@@ -215,6 +209,8 @@ namespace HBP.UI.Module3D
         /// <param name="values">IEEG data values</param>
         public void UpdateIEEGValues(Column3DIEEG.IEEGDataParameters values)
         {
+            m_Initialized = false;
+
             m_MinAmplitude = values.MinimumAmplitude;
             m_MaxAmplitude = values.MaximumAmplitude;
             m_Amplitude = m_MaxAmplitude - m_MinAmplitude;
@@ -222,11 +218,11 @@ namespace HBP.UI.Module3D
             m_MiddleFactor = (values.Middle - m_MinAmplitude) / m_Amplitude;
             m_SpanMaxFactor = (values.SpanMax - m_MinAmplitude) / m_Amplitude;
 
-            m_MinText.text = m_MinAmplitude.ToString("N2");
-            m_MaxText.text = m_MaxAmplitude.ToString("N2");
-            m_SpanMinInput.text = values.SpanMin.ToString("N2");
-            m_MiddleInput.text = values.Middle.ToString("N2");
-            m_SpanMaxInput.text = values.SpanMax.ToString("N2");
+            m_MinText.text = m_MinAmplitude.ToString("N3");
+            m_MaxText.text = m_MaxAmplitude.ToString("N3");
+            m_SpanMinInput.text = values.SpanMin.ToString("N3");
+            m_MiddleInput.text = values.Middle.ToString("N3");
+            m_SpanMaxInput.text = values.SpanMax.ToString("N3");
 
             m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
             m_MiddleInput.onEndEdit.Invoke(m_MiddleInput.text);
@@ -238,6 +234,8 @@ namespace HBP.UI.Module3D
             m_MaxHandler.MinimumPosition = m_MidHandler.Position;
 
             UpdateIEEGHistogram();
+
+            m_Initialized = true;
         }
         #endregion
     }

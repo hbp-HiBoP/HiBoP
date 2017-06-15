@@ -383,9 +383,10 @@ namespace HBP.Module3D
                 }
             }
 
-            IEEGParameters.Middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
-            IEEGParameters.SpanMin = IEEGParameters.MinimumAmplitude;
-            IEEGParameters.SpanMax = IEEGParameters.MaximumAmplitude;
+            float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
+            IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
+            IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
+            IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
         }
         /// <summary>
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
