@@ -23,6 +23,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.IEEGSitesParameters m_IEEGSitesParameters;
+        /// <summary>
+        /// Compute IEEG values
+        /// </summary>
+        [SerializeField]
+        private Tools.ComputeIEEG m_ComputeIEEG;
         #endregion
 
         #region Private Methods
@@ -31,6 +36,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_ThresholdIEEG);
             m_Tools.Add(m_IEEGTransparency);
             m_Tools.Add(m_IEEGSitesParameters);
+            m_Tools.Add(m_ComputeIEEG);
         }
         #endregion
     }

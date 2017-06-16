@@ -26,10 +26,10 @@ namespace HBP.UI.Module3D.DBG
 
         void Update()
         {
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                ApplicationState.Module3D.SelectedScene.UpdateGenerators();
-            }
+            //if (Input.GetKeyDown(KeyCode.A))
+            //{
+            //    ApplicationState.Module3D.SelectedScene.UpdateGenerators();
+            //}
             /*
             if (Input.GetKeyDown(KeyCode.A))
             {
