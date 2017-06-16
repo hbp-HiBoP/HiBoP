@@ -788,6 +788,75 @@ namespace HBP.Module3D
 
             
         }
+        public override void PassiveRaycastOnScene(Ray ray, Column3D column)
+        {
+            if (!SceneInformation.MRILoaded) return;
+
+            int layerMask = 0;
+            layerMask |= 1 << LayerMask.NameToLayer(column.Layer);
+            layerMask |= 1 << LayerMask.NameToLayer("Default");
+
+            RaycastHit hit;
+            bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
+            if (!isCollision)
+            {
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition, false));
+                return;
+            }
+
+            Site site = hit.collider.GetComponent<Site>();
+            if (!site) return;
+
+            switch (column.Type)
+            {
+                case Column3D.ColumnType.FMRI:
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, true, false, site.Information.FullName));
+                    break;
+                case Column3D.ColumnType.IEEG:
+                    Column3DIEEG columnIEEG = column as Column3DIEEG;
+                    int siteID = site.Information.SitePatientID;
+
+                    float amplitude = 0;
+                    if (columnIEEG.IEEGValuesBySiteID.Length > 0)
+                    {
+                        amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
+                    }
+
+                    string latency = "none", height = "none";
+                    if (columnIEEG.CurrentLatencyFile != -1)
+                    {
+                        Latencies latencyFile = m_ColumnManager.LatenciesFiles[columnIEEG.CurrentLatencyFile];
+
+                        if (columnIEEG.SourceSelectedID == -1) // no source selected
+                        {
+                            latency = "...";
+                            height = "no source selected";
+                        }
+                        else if (columnIEEG.SourceSelectedID == siteID) // site is the source
+                        {
+                            latency = "0";
+                            height = "source";
+                        }
+                        else
+                        {
+                            if (latencyFile.IsSiteResponsiveForSource(siteID, columnIEEG.SourceSelectedID))
+                            {
+                                latency = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
+                                height = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
+                            }
+                            else
+                            {
+                                latency = "No data";
+                                height = "No data";
+                            }
+                        }
+                    }
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, column.Type == Column3D.ColumnType.FMRI, SceneInformation.DisplayCCEPMode, site.Information.FullName, "" + amplitude, height, latency));
+                    break;
+                default:
+                    break;
+            }
+        }
         /// <summary>
         /// 
         /// </summary>

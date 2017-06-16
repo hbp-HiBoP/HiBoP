@@ -91,6 +91,10 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<SiteRequest> OnRequestSiteInformation = new GenericEvent<SiteRequest>();
         /// <summary>
+        /// Event called when hovering a site to display its information
+        /// </summary>
+        public GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
+        /// <summary>
         /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
         /// </summary>   
         public GenericEvent<Data.Visualization.Visualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.Visualization, Data.Patient>();

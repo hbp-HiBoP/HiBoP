@@ -232,6 +232,8 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string FullName(int label)
             {
+                if (label < 0) return "not found";
+
                 int length = 50;
                 StringBuilder str = new StringBuilder();
                 str.Append('?', length);
@@ -246,6 +248,8 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string BroadmanArea(int label)
             {
+                if (label < 0) return "not found";
+
                 int length = 100;
                 StringBuilder str = new StringBuilder();
                 str.Append('?', length);

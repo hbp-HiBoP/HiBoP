@@ -837,6 +837,45 @@ namespace HBP.Module3D
                     break;
             }
         }
+        public override void PassiveRaycastOnScene(Ray ray, Column3D column)
+        {
+            if (!SceneInformation.MRILoaded) return;
+
+            int layerMask = 0;
+            layerMask |= 1 << LayerMask.NameToLayer(column.Layer);
+            layerMask |= 1 << LayerMask.NameToLayer("Default");
+
+            RaycastHit hit;
+            bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
+            if (!isCollision)
+            {
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition, false));
+                return;
+            }
+
+            Site site = hit.collider.GetComponent<Site>();
+            if (!site) return;
+
+            switch (column.Type)
+            {
+                case Column3D.ColumnType.FMRI:
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, true, false, site.Information.FullName));
+                    break;
+                case Column3D.ColumnType.IEEG:
+                    Column3DIEEG columnIEEG = column as Column3DIEEG;
+                    int siteID = site.Information.SitePatientID;
+
+                    float amplitude = 0;
+                    if (columnIEEG.IEEGValuesBySiteID.Length > 0)
+                    {
+                        amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
+                    }
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, column.Type == Column3D.ColumnType.FMRI, false, site.Information.FullName, "" + amplitude));
+                    break;
+                default:
+                    break;
+            }
+        }
         /// <summary>
         /// 
         /// </summary>

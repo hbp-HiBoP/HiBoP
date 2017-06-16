@@ -9,17 +9,18 @@ using System;
 
 public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler {
     #region Properties
-    private View3D m_View;
+    /// <summary>
+    /// Associated logical scene 3D
+    /// </summary>
+    private Base3DScene m_Scene;
+    /// <summary>
+    /// Associated logical column 3D
+    /// </summary>
+    private Column3D m_Column;
     /// <summary>
     /// Associated logical view 3D
     /// </summary>
-    public View3D View
-    {
-        get
-        {
-            return m_View;
-        }
-    }
+    private View3D m_View;
     /// <summary>
     /// Parent resizable grid
     /// </summary>
@@ -75,6 +76,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     private void Update()
     {
         DeselectView();
+        SendRayToScene();
     }
     /// <summary>
     /// Get RectTransform screen coordinates
@@ -101,6 +103,14 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         }
         m_PointerDownLock = false;
         UnityEngine.Profiling.Profiler.EndSample();
+    }
+    /// <summary>
+    /// Transform the mouse position to a ray and send it to the scene
+    /// </summary>
+    private void SendRayToScene()
+    {
+        Ray ray = CursorToRay();
+        m_Scene.PassiveRaycastOnScene(ray, m_Column);
     }
     #endregion
 
@@ -193,8 +203,10 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     /// <summary>
     /// Initialize this view
     /// </summary>
-    public void Initialize(View3D view)
+    public void Initialize(Base3DScene scene, Column3D column, View3D view)
     {
+        m_Scene = scene;
+        m_Column = column;
         m_View = view;
         
         if (!m_UsingRenderTexture)
@@ -216,19 +228,28 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         m_MinimizedGameObject.SetActive(false);
         m_IsInitialized = true;
     }
+    /*
     /// <summary>
     /// Get ray from PointerEventData to the camera of the view
     /// </summary>
     /// <param name="data">Pointer event data from OnPointerDown or similar</param>
     /// <returns>Ray obtained from conversion</returns>
-    public Ray RaycastToCamera(PointerEventData data)
+    public Ray PointerToRay(PointerEventData data)
     {
         Vector2 localPosition = new Vector2();
         RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, data.position, null, out localPosition);
         localPosition = new Vector2((localPosition.x / m_RectTransform.rect.width) + 0.5f, (localPosition.y / m_RectTransform.rect.height) + 0.5f);
         Ray ray = m_View.Camera.ViewportPointToRay(localPosition);
-        RaycastHit hit = new RaycastHit();
-        Physics.Raycast(ray, out hit);
+        return ray;
+    }
+    */
+    public Ray CursorToRay()
+    {
+        Vector2 localPosition = new Vector2();
+        Vector2 position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, position, null, out localPosition);
+        localPosition = new Vector2((localPosition.x / m_RectTransform.rect.width) + 0.5f, (localPosition.y / m_RectTransform.rect.height) + 0.5f);
+        Ray ray = m_View.Camera.ViewportPointToRay(localPosition);
         return ray;
     }
     #endregion

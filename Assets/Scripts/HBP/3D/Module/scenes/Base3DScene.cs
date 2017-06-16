@@ -1956,6 +1956,11 @@ namespace HBP.Module3D
         /// <param name="mousePosition"></param>
         /// <param name="idColumn"></param>
         public abstract void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn);
+        /// <summary>
+        /// Raycast on scene at each frame
+        /// </summary>
+        /// <param name="ray">Ray to be raycasted</param>
+        public abstract void PassiveRaycastOnScene(Ray ray, Column3D column);
         #endregion
 
         #region Coroutines
