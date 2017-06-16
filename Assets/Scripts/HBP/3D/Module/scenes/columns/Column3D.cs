@@ -40,8 +40,6 @@ namespace HBP.Module3D
             set { m_Layer = value; }
         }
 
-        public bool IsRenderingUpToDate { get; set; }
-
         private bool m_IsSelected;
         /// <summary>
         /// Is this column selected ?
@@ -61,6 +59,11 @@ namespace HBP.Module3D
                 }
             }
         }
+
+        /// <summary>
+        /// Does the column rendering need to be updated ?
+        /// </summary>
+        public bool IsRenderingUpToDate { get; set; }
 
         public GameObject ViewPrefab;
         protected List<View3D> m_Views = new List<View3D>();
@@ -152,7 +155,7 @@ namespace HBP.Module3D
         /// <param name="nbCuts"></param>
         /// <param name="sites"></param>
         /// <param name="plotsGO"></param>
-        public virtual void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList sites, List<GameObject> sitesPatientParent)
+        public virtual void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             // scene
             Layer = "C" + idColumn;
@@ -190,11 +193,8 @@ namespace HBP.Module3D
                         Sites.Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject.GetComponent<Site>());
 
                         int id = Sites.Count - 1;
-                        Sites[id].Information.IsExcluded = false;
-                        Sites[id].Information.IsInROI = false; // FIXME : initially not in a ROI in MPScene, but also in SPScene if we decide to use ROI in sp
-                        Sites[id].Information.IsMasked = false;
-                        Sites[id].Information.IsBlackListed = false;
-                        Sites[id].IsActive = true; // FIXME : see above, opposite
+                        Sites[id].Information = new SiteInformation(siteList[id].GetComponent<Site>().Information);
+                        Sites[id].IsActive = true;
                     }
                 }
             }
@@ -274,7 +274,7 @@ namespace HBP.Module3D
         /// 
         /// </summary>
         /// <param name="nbCuts"></param>
-        public void UpdateCutsPlanesNumber(int diffCuts)
+        public virtual void UpdateCutsPlanesNumber(int diffCuts)
         {
             if (diffCuts < 0)
             {

@@ -11,6 +11,7 @@ namespace HBP.Module3D
     {
         #region Properties
         private Base3DScene m_AssociatedScene;
+        private Column3D m_AssociatedColumn;
         private View3D m_AssociatedView;
 
         /// <summary>
@@ -158,6 +159,7 @@ namespace HBP.Module3D
             m_OriginalRotationEuler = transform.localEulerAngles;
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
             m_AssociatedScene = GetComponentInParent<Base3DScene>();
+            m_AssociatedColumn = GetComponentInParent<Column3D>();
             m_AssociatedView = GetComponentInParent<View3D>();
             m_Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center + m_AssociatedView.transform.position;
             m_OriginalTarget = m_Target;
@@ -219,7 +221,7 @@ namespace HBP.Module3D
         {
             if (m_AssociatedView.LineID == 0)
             {
-                //m_AssociatedScene.UpdateColumnRendering();
+                m_AssociatedScene.UpdateColumnRendering(m_AssociatedColumn);
             }
         }
         private void OnPostRender()

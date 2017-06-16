@@ -45,7 +45,7 @@ namespace HBP.Module3D
         static public GameObject fMRILeftMenu = null;
         static public GameObject SiteLeftMenu = null;
         static public GameObject SceneLeftMenu = null;
-        static public GameObject Plot = null;
+        static public GameObject Site = null;
         static public GameObject Brain = null;
         static public GameObject SelectRing = null;
         static public GameObject Line = null;
@@ -56,8 +56,6 @@ namespace HBP.Module3D
         static public GameObject MultiPatientsCamera = null;
 
         static public GameObject InvisibleBrain = null;
-
-        static public DLL.MarsAtlasIndex MarsAtlasIndex = null;
 
         void Awake()
         {
@@ -122,8 +120,8 @@ namespace HBP.Module3D
             InitializeGameObject(globalLeftMenu, "Global left menu");
 
             // site
-            Plot = Instantiate(Resources.Load("Prefabs/scene objects/Plot", typeof(GameObject))) as GameObject;
-            InitializeGameObject(Plot, "Plot");
+            Site = Instantiate(Resources.Load("Prefabs/scene objects/Plot", typeof(GameObject))) as GameObject;
+            InitializeGameObject(Site, "Plot");
 
             // Brain
             Brain = Instantiate(Resources.Load("Prefabs/scene objects/Brain", typeof(GameObject))) as GameObject;
@@ -153,19 +151,6 @@ namespace HBP.Module3D
             // tri center position
             InvisibleBrain = Instantiate(Resources.Load("Prefabs/scene objects/Invisible brain", typeof(GameObject))) as GameObject;
             InitializeGameObject(InvisibleBrain, "Invisible brain part");
-
-
-            // ### DLL
-            // MarsAtlas index
-            string baseDir = Application.dataPath + "/../Data/";
-            #if UNITY_EDITOR
-                    baseDir = Application.dataPath + "/Data/";
-            #endif
-            MarsAtlasIndex = new DLL.MarsAtlasIndex();
-            if(!MarsAtlasIndex.LoadMarsAtlasIndexFile(baseDir + "MarsAtlas/mars_atlas_index.csv"))
-            {
-                Debug.LogError("Can't load mars atlas index.");
-            }
         }
 
         private void InitializeGameObject(GameObject baseGameObject, string objectName)

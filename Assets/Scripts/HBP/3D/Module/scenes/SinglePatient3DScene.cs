@@ -266,7 +266,6 @@ namespace HBP.Module3D
 
             // update scenes cameras
             Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
-
             DisplayScreenMessage("Single Patient Scene loaded : " + visualization.Patients[0].Place + "_" + visualization.Patients[0].Name + "_" + visualization.Patients[0].Date, 2.0f, 400, 80);
             return true;
         }
@@ -323,7 +322,7 @@ namespace HBP.Module3D
 
                     string[] split = leftWhitePath.Split('\\');
                     string parcelPath = leftWhitePath.Substring(0, leftWhitePath.LastIndexOf('\\')) + "\\surface_analysis\\" + split[split.Length - 1].Replace(".gii", "") + "_parcels_marsAtlas.gii";
-                    leftParcelsLoaded = m_ColumnManager.LWhite.SearchMarsParcelFileAndUpdateColors(GlobalGOPreloaded.MarsAtlasIndex, parcelPath);
+                    leftParcelsLoaded = m_ColumnManager.LWhite.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlasIndex, parcelPath);
                 }                
             }
 
@@ -344,7 +343,7 @@ namespace HBP.Module3D
 
                     string[] split = rightWhitePath.Split('\\');
                     string parcelPath = rightWhitePath.Substring(0, rightWhitePath.LastIndexOf('\\')) + "\\surface_analysis\\" + split[split.Length - 1].Replace(".gii", "") + "_parcels_marsAtlas.gii";
-                    rightParcelsLoaded = m_ColumnManager.RWhite.SearchMarsParcelFileAndUpdateColors(GlobalGOPreloaded.MarsAtlasIndex, parcelPath);
+                    rightParcelsLoaded = m_ColumnManager.RWhite.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlasIndex, parcelPath);
                 }
             }
 
@@ -398,7 +397,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="pathsElectrodesPtsFile"></param>
         /// <returns></returns>
-        public bool LoadSites(List<string> pathsElectrodesPtsFile, List<string> namePatients)
+        public bool LoadSites(List<string> pathsElectrodesPtsFile, List<string> patientNames)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetElectrodesFile))
@@ -409,7 +408,7 @@ namespace HBP.Module3D
             //##################
 
             // load list of pts files
-            SceneInformation.SitesLoaded = m_ColumnManager.DLLLoadedPatientsElectrodes.LoadPTSFiles(pathsElectrodesPtsFile, namePatients, GlobalGOPreloaded.MarsAtlasIndex); // TODO (maybe) : replace with values from visualization
+            SceneInformation.SitesLoaded = m_ColumnManager.DLLLoadedPatientsElectrodes.LoadPTSFiles(pathsElectrodesPtsFile, patientNames, ApplicationState.Module3D.MarsAtlasIndex); // TODO (maybe) : replace with values from visualization
 
             // destroy previous electrodes gameobjects
             for (int ii = 0; ii < m_ColumnManager.SitesList.Count; ++ii)
@@ -457,21 +456,20 @@ namespace HBP.Module3D
 
                         for (int kk = 0; kk < m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfSitesInElectrode(ii, jj); ++kk)
                         {
-                            Vector3 positionInverted = m_ColumnManager.DLLLoadedPatientsElectrodes.SitePosition(ii, jj, kk);
-                            positionInverted.x = -positionInverted.x;
+                            Vector3 invertedPosition = m_ColumnManager.DLLLoadedPatientsElectrodes.SitePosition(ii, jj, kk);
+                            invertedPosition.x = -invertedPosition.x;
 
+                            GameObject siteGameObject = Instantiate(GlobalGOPreloaded.Site);
+                            siteGameObject.name = m_ColumnManager.DLLLoadedPatientsElectrodes.SiteName(ii, jj, kk);
 
-                            GameObject siteGO = Instantiate(GlobalGOPreloaded.Plot);
-                            siteGO.name = m_ColumnManager.DLLLoadedPatientsElectrodes.SiteName(ii, jj, kk);
+                            siteGameObject.transform.SetParent(m_ColumnManager.SitesElectrodesParent[ii][jj].transform);
+                            siteGameObject.transform.localPosition = invertedPosition;
+                            siteGameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
 
-                            siteGO.transform.SetParent(m_ColumnManager.SitesElectrodesParent[ii][jj].transform);
-                            siteGO.transform.localPosition = positionInverted;// + go_.PlotsParent.transform.position; // TODO : ?
-                            siteGO.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
+                            siteGameObject.SetActive(true);
+                            siteGameObject.layer = LayerMask.NameToLayer("Inactive");
 
-                            siteGO.SetActive(true);
-                            siteGO.layer = LayerMask.NameToLayer("Inactive");
-
-                            Site site = siteGO.GetComponent<Site>();
+                            Site site = siteGameObject.GetComponent<Site>();
                             site.Information.SitePatientID = idPlotPatient++;
                             site.Information.PatientID = ii;
                             site.Information.ElectrodeID = jj;
@@ -479,13 +477,16 @@ namespace HBP.Module3D
                             site.Information.GlobalID = currPlotNb++;
                             site.Information.IsBlackListed = false;
                             site.Information.IsHighlighted = false;
+                            site.Information.IsExcluded = false;
+                            site.Information.IsInROI = false;
+                            site.Information.IsMarked = false;
+                            site.Information.IsMasked = false;
                             site.Information.PatientName = patientName;
-                            site.Information.FullName = namePatients[ii] + "_" + siteGO.name;
+                            site.Information.FullName = patientNames[ii] + "_" + siteGameObject.name;
+                            site.Information.MarsAtlasIndex = m_ColumnManager.DLLLoadedPatientsElectrodes.MarsAtlasLabelOfSite(ii, jj, kk);
+                            site.IsActive = true;
 
-                            // mars atlas
-                            site.Information.MarsAtlasIndex =  m_ColumnManager.DLLLoadedPatientsElectrodes.MarsAtlasLabelOfSite(ii,jj,kk);//
-
-                            m_ColumnManager.SitesList.Add(siteGO);
+                            m_ColumnManager.SitesList.Add(siteGameObject);
                         }
                     }
                 }
@@ -565,9 +566,6 @@ namespace HBP.Module3D
             {
                 m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].DataLabel;                
             }
-
-            //FIXME
-            return;
 
             // set timelines
             m_ColumnManager.SetTimelineData(Patient, Visualization.Columns);
@@ -791,6 +789,75 @@ namespace HBP.Module3D
             }
 
             
+        }
+        public override void PassiveRaycastOnScene(Ray ray, Column3D column)
+        {
+            if (!SceneInformation.MRILoaded) return;
+
+            int layerMask = 0;
+            layerMask |= 1 << LayerMask.NameToLayer(column.Layer);
+            layerMask |= 1 << LayerMask.NameToLayer("Default");
+
+            RaycastHit hit;
+            bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
+            if (!isCollision)
+            {
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition, false));
+                return;
+            }
+
+            Site site = hit.collider.GetComponent<Site>();
+            if (!site) return;
+
+            switch (column.Type)
+            {
+                case Column3D.ColumnType.FMRI:
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, true, false, site.Information.FullName));
+                    break;
+                case Column3D.ColumnType.IEEG:
+                    Column3DIEEG columnIEEG = column as Column3DIEEG;
+                    int siteID = site.Information.SitePatientID;
+
+                    float amplitude = 0;
+                    if (columnIEEG.IEEGValuesBySiteID.Length > 0)
+                    {
+                        amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
+                    }
+
+                    string latency = "none", height = "none";
+                    if (columnIEEG.CurrentLatencyFile != -1)
+                    {
+                        Latencies latencyFile = m_ColumnManager.LatenciesFiles[columnIEEG.CurrentLatencyFile];
+
+                        if (columnIEEG.SourceSelectedID == -1) // no source selected
+                        {
+                            latency = "...";
+                            height = "no source selected";
+                        }
+                        else if (columnIEEG.SourceSelectedID == siteID) // site is the source
+                        {
+                            latency = "0";
+                            height = "source";
+                        }
+                        else
+                        {
+                            if (latencyFile.IsSiteResponsiveForSource(siteID, columnIEEG.SourceSelectedID))
+                            {
+                                latency = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
+                                height = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
+                            }
+                            else
+                            {
+                                latency = "No data";
+                                height = "No data";
+                            }
+                        }
+                    }
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, column.Type == Column3D.ColumnType.FMRI, SceneInformation.DisplayCCEPMode, site.Information.FullName, "" + amplitude, height, latency));
+                    break;
+                default:
+                    break;
+            }
         }
         /// <summary>
         /// 

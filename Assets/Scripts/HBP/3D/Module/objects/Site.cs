@@ -83,6 +83,25 @@ namespace HBP.Module3D
     }
     public class SiteInformation
     {
+        public SiteInformation(SiteInformation info)
+        {
+            IsMasked = info.IsMasked;
+            IsExcluded = info.IsExcluded;
+            IsBlackListed = info.IsBlackListed;
+            IsInROI = info.IsInROI;
+            IsHighlighted = info.IsHighlighted;
+            IsMarked = info.IsMarked;
+            GlobalID = info.GlobalID;
+            SitePatientID = info.SitePatientID;
+            PatientID = info.PatientID;
+            ElectrodeID = info.ElectrodeID;
+            SiteID = info.SiteID;
+            MarsAtlasIndex = info.MarsAtlasIndex;
+            PatientName = info.PatientName;
+            FullName = info.FullName;
+        }
+        public SiteInformation() { }
+
         public bool IsMasked { get; set; }     /**< is the site masked on the column ? */
         public bool IsExcluded { get; set; }        /**< is the site excluded ? */
         public bool IsBlackListed { get; set; }      /**< is the site blacklisted ? */

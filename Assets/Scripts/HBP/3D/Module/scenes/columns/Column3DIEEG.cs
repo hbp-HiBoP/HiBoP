@@ -280,10 +280,10 @@ namespace HBP.Module3D
         /// <param name="nbCuts"></param>
         /// <param name="plots"></param>
         /// <param name="plotsGO"></param>
-        public override void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList plots, List<GameObject> PlotsPatientParent)
+        public override void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList plots, List<GameObject> PlotsPatientParent, List<GameObject> siteList)
         {
             // call parent init
-            base.Initialize(idColumn, nbCuts, plots, PlotsPatientParent);
+            base.Initialize(idColumn, nbCuts, plots, PlotsPatientParent, siteList);
 
             // amplitudes
             UpdateIEEG = false;
@@ -321,7 +321,7 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateDLLSitesMask()
         {
-            bool noROI = (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles == 0);
+            bool noROI = false; // (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles == 0);
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
                 m_RawElectrodes.UpdateMask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsInROI && !noROI)));
@@ -347,10 +347,10 @@ namespace HBP.Module3D
             Dimensions = new int[3];
             Dimensions[0] = Column.TimeLine.Lenght;
             Dimensions[1] = 1;
-            Dimensions[2] = 0;
+            Dimensions[2] = Sites.Count;
 
             // Construct sites value array the old way, and set sites masks // maybe FIXME
-            IEEGValuesBySiteID = new float[Dimensions[0]][];
+            IEEGValuesBySiteID = new float[Dimensions[2]][];
             int siteID = 0;
             foreach (var configurationPatient in Column.Configuration.ConfigurationByPatient)
             {
@@ -362,10 +362,8 @@ namespace HBP.Module3D
                         Sites[siteID].Information.IsMasked = siteConfiguration.Value.IsMasked; // update mask
                         siteID++;
                     }
-                    Dimensions[2] += electrodeConfiguration.Value.ConfigurationBySite.Count;
                 }
             }
-
             IEEGParameters.MinimumAmplitude = float.MaxValue;
             IEEGParameters.MaximumAmplitude = float.MinValue;
 
@@ -385,9 +383,10 @@ namespace HBP.Module3D
                 }
             }
 
-            IEEGParameters.Middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
-            IEEGParameters.SpanMin = IEEGParameters.MinimumAmplitude;
-            IEEGParameters.SpanMax = IEEGParameters.MaximumAmplitude;
+            float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
+            IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
+            IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
+            IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
         }
         /// <summary>
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
@@ -434,7 +433,7 @@ namespace HBP.Module3D
         /// Update the cut planes number of the 3D column view
         /// </summary>
         /// <param name="newCutsNb"></param>
-        public new void UpdateCutsPlanesNumber(int diffCuts)
+        public override void UpdateCutsPlanesNumber(int diffCuts)
         {
             base.UpdateCutsPlanesNumber(diffCuts);            
             if (diffCuts < 0)

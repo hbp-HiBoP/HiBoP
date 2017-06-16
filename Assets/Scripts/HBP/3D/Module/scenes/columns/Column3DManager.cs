@@ -334,18 +334,22 @@ namespace HBP.Module3D
             column.IEEGParameters.OnUpdateSpanValues.AddListener(() =>
             {
                 OnUpdateIEEGSpan.Invoke();
+                column.IsRenderingUpToDate = false;
             });
             column.IEEGParameters.OnUpdateAlphaValues.AddListener(() =>
             {
                 OnUpdateIEEGAlpha.Invoke();
+                column.IsRenderingUpToDate = false;
             });
             column.IEEGParameters.OnUpdateGain.AddListener(() =>
             {
                 OnUpdateIEEGGain.Invoke();
+                column.IsRenderingUpToDate = false;
             });
             column.IEEGParameters.OnUpdateMaximumInfluence.AddListener(() =>
             {
                 OnUpdateIEEGMaximumInfluence.Invoke();
+                column.IsRenderingUpToDate = false;
             });
             m_Columns.Add(column);
             OnAddColumn.Invoke();
@@ -627,7 +631,7 @@ namespace HBP.Module3D
             {
                 for (int ii = 0; ii < nbIEEGColumns; ++ii)
                 {
-                    ColumnsIEEG[ii].Initialize(ii, nbCuts, DLLLoadedPatientsElectrodes, SitesPatientParent);
+                    ColumnsIEEG[ii].Initialize(ii, nbCuts, DLLLoadedPatientsElectrodes, SitesPatientParent, SitesList);
                     ColumnsIEEG[ii].ResetSplitsNumber(MeshSplitNumber);
 
                     if (LatencyFilesDefined)
@@ -662,7 +666,7 @@ namespace HBP.Module3D
                 
                 for (int ii = 0; ii < nbIRMFColumns; ++ii)
                 {
-                    ColumnsFMRI[ColumnsFMRI.Count - 1].Initialize(ColumnsIEEG.Count + ii, nbCuts, DLLLoadedPatientsElectrodes, SitesPatientParent);
+                    ColumnsFMRI[ColumnsFMRI.Count - 1].Initialize(ColumnsIEEG.Count + ii, nbCuts, DLLLoadedPatientsElectrodes, SitesPatientParent, SitesList);
                     ColumnsFMRI[ColumnsFMRI.Count - 1].ResetSplitsNumber(MeshSplitNumber);
 
                     for (int jj = 0; jj < SitesList.Count; ++jj)

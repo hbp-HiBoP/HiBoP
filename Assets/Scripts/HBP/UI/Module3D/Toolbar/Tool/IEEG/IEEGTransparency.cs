@@ -23,7 +23,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.AlphaMin = value;
+                ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IEEGParameters.AlphaMin = value;
                 //((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.AlphaMax = value; // FIXME : Required / other value ?
                 OnChangeValue.Invoke(value);
             });
@@ -75,7 +75,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
             {
-                m_Slider.value = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.AlphaMin;
+                m_Slider.value = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IEEGParameters.AlphaMin;
             }
         }
         #endregion
