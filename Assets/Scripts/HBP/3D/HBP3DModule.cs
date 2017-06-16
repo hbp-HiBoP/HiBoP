@@ -81,7 +81,12 @@ namespace HBP.Module3D
                 return new ReadOnlyCollection<Data.Visualization.Visualization>((from scene in m_ScenesManager.Scenes select scene.Visualization).ToList());
             }
         }
-        
+
+        /// <summary>
+        /// Mars atlas index (to get name of mars atlas, broadman etc)
+        /// </summary>
+        public DLL.MarsAtlasIndex MarsAtlasIndex;
+
         /// <summary>
         /// Event called when an IEGG column minimized state has changed (params : spScene, IEEGColumnsMinimizedStates)
         /// </summary>
@@ -154,6 +159,18 @@ namespace HBP.Module3D
             // Graphic Settings
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
             QualitySettings.antiAliasing = 8;
+
+            // MarsAtlas index
+            string dataDirectory = Application.dataPath + "/../Data/";
+            #if UNITY_EDITOR
+                dataDirectory = Application.dataPath + "/Data/";
+            #endif
+
+            MarsAtlasIndex = new DLL.MarsAtlasIndex();
+            if (!MarsAtlasIndex.LoadMarsAtlasIndexFile(dataDirectory + "MarsAtlas/mars_atlas_index.csv"))
+            {
+                UnityEngine.Debug.LogError("Can't load mars atlas index.");
+            }
         }
         void OnDestroy()
         {

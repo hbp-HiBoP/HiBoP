@@ -323,7 +323,7 @@ namespace HBP.UI.Module3D
             panel.Find("CCEP parent").gameObject.SetActive(m_scene.Type == SceneType.SinglePatient && m_scene.ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG && !m_isCCEPMinimized);
             // text
             panel.Find("selected site panel").Find("Text").GetComponent<Text>().text = siteNotNull ? m_lastSiteSelected.Information.FullName : "...";
-            panel.Find("selected site panel").Find("mars atlas text").GetComponent<Text>().text = siteNotNull ? (m_lastSiteSelected.Information.MarsAtlasIndex == -1 ? "Mars atlas: not found" : GlobalGOPreloaded.MarsAtlasIndex.FullName(m_lastSiteSelected.Information.MarsAtlasIndex)) : "...";
+            panel.Find("selected site panel").Find("mars atlas text").GetComponent<Text>().text = siteNotNull ? (m_lastSiteSelected.Information.MarsAtlasIndex == -1 ? "Mars atlas: not found" : ApplicationState.Module3D.MarsAtlasIndex.FullName(m_lastSiteSelected.Information.MarsAtlasIndex)) : "...";
 
             // active buttons            
             panel.Find("MP only options parent").Find("blacklist button").GetComponent<Button>().interactable = m_scene.Type == SceneType.MultiPatients && siteNotNull;

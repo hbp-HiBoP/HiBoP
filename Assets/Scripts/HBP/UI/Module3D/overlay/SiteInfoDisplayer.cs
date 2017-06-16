@@ -77,8 +77,8 @@ namespace HBP.UI.Module3D
                     
                     if (siteInfo.site)
                     {
-                        m_MarsAtlas.text = "Mars Atlas: " + GlobalGOPreloaded.MarsAtlasIndex.FullName(siteInfo.site.Information.MarsAtlasIndex);
-                        m_Broadman.text = "Broadman: " + GlobalGOPreloaded.MarsAtlasIndex.BroadmanArea(siteInfo.site.Information.MarsAtlasIndex);
+                        m_MarsAtlas.text = "Mars Atlas: " + ApplicationState.Module3D.MarsAtlasIndex.FullName(siteInfo.site.Information.MarsAtlasIndex);
+                        m_Broadman.text = "Broadman: " + ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(siteInfo.site.Information.MarsAtlasIndex);
                     }
                 }
             });

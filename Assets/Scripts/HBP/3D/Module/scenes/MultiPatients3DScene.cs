@@ -348,7 +348,7 @@ namespace HBP.Module3D
             //##################
 
             // load list of pts files
-            SceneInformation.SitesLoaded = m_ColumnManager.DLLLoadedPatientsElectrodes.LoadPTSFiles(pathsElectrodesPtsFile, names, GlobalGOPreloaded.MarsAtlasIndex);
+            SceneInformation.SitesLoaded = m_ColumnManager.DLLLoadedPatientsElectrodes.LoadPTSFiles(pathsElectrodesPtsFile, names, ApplicationState.Module3D.MarsAtlasIndex);
 
             if (!SceneInformation.SitesLoaded)
                 return false;

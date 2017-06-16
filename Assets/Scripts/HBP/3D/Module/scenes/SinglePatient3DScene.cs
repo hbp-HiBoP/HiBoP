@@ -322,7 +322,7 @@ namespace HBP.Module3D
 
                     string[] split = leftWhitePath.Split('\\');
                     string parcelPath = leftWhitePath.Substring(0, leftWhitePath.LastIndexOf('\\')) + "\\surface_analysis\\" + split[split.Length - 1].Replace(".gii", "") + "_parcels_marsAtlas.gii";
-                    leftParcelsLoaded = m_ColumnManager.LWhite.SearchMarsParcelFileAndUpdateColors(GlobalGOPreloaded.MarsAtlasIndex, parcelPath);
+                    leftParcelsLoaded = m_ColumnManager.LWhite.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlasIndex, parcelPath);
                 }                
             }
 
@@ -343,7 +343,7 @@ namespace HBP.Module3D
 
                     string[] split = rightWhitePath.Split('\\');
                     string parcelPath = rightWhitePath.Substring(0, rightWhitePath.LastIndexOf('\\')) + "\\surface_analysis\\" + split[split.Length - 1].Replace(".gii", "") + "_parcels_marsAtlas.gii";
-                    rightParcelsLoaded = m_ColumnManager.RWhite.SearchMarsParcelFileAndUpdateColors(GlobalGOPreloaded.MarsAtlasIndex, parcelPath);
+                    rightParcelsLoaded = m_ColumnManager.RWhite.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlasIndex, parcelPath);
                 }
             }
 
@@ -408,7 +408,7 @@ namespace HBP.Module3D
             //##################
 
             // load list of pts files
-            SceneInformation.SitesLoaded = m_ColumnManager.DLLLoadedPatientsElectrodes.LoadPTSFiles(pathsElectrodesPtsFile, namePatients, GlobalGOPreloaded.MarsAtlasIndex); // TODO (maybe) : replace with values from visualization
+            SceneInformation.SitesLoaded = m_ColumnManager.DLLLoadedPatientsElectrodes.LoadPTSFiles(pathsElectrodesPtsFile, namePatients, ApplicationState.Module3D.MarsAtlasIndex); // TODO (maybe) : replace with values from visualization
 
             // destroy previous electrodes gameobjects
             for (int ii = 0; ii < m_ColumnManager.SitesList.Count; ++ii)

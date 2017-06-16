@@ -57,8 +57,6 @@ namespace HBP.Module3D
 
         static public GameObject InvisibleBrain = null;
 
-        static public DLL.MarsAtlasIndex MarsAtlasIndex = null;
-
         void Awake()
         {
             // ROIBubble
@@ -153,19 +151,6 @@ namespace HBP.Module3D
             // tri center position
             InvisibleBrain = Instantiate(Resources.Load("Prefabs/scene objects/Invisible brain", typeof(GameObject))) as GameObject;
             InitializeGameObject(InvisibleBrain, "Invisible brain part");
-
-
-            // ### DLL
-            // MarsAtlas index
-            string baseDir = Application.dataPath + "/../Data/";
-            #if UNITY_EDITOR
-                    baseDir = Application.dataPath + "/Data/";
-            #endif
-            MarsAtlasIndex = new DLL.MarsAtlasIndex();
-            if(!MarsAtlasIndex.LoadMarsAtlasIndexFile(baseDir + "MarsAtlas/mars_atlas_index.csv"))
-            {
-                Debug.LogError("Can't load mars atlas index.");
-            }
         }
 
         private void InitializeGameObject(GameObject baseGameObject, string objectName)
