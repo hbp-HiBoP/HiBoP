@@ -337,7 +337,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="pathsElectrodesPtsFile"></param>
         /// <returns></returns>
-        public bool LoadSites(List<string> pathsElectrodesPtsFile, List<string> names)
+        public bool LoadSites(List<string> pathsElectrodesPtsFile, List<string> patientNames)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetElectrodesFile))
@@ -348,7 +348,7 @@ namespace HBP.Module3D
             //##################
 
             // load list of pts files
-            SceneInformation.SitesLoaded = m_ColumnManager.DLLLoadedPatientsElectrodes.LoadPTSFiles(pathsElectrodesPtsFile, names, ApplicationState.Module3D.MarsAtlasIndex);
+            SceneInformation.SitesLoaded = m_ColumnManager.DLLLoadedPatientsElectrodes.LoadPTSFiles(pathsElectrodesPtsFile, patientNames, ApplicationState.Module3D.MarsAtlasIndex);
 
             if (!SceneInformation.SitesLoaded)
                 return false;
@@ -400,21 +400,20 @@ namespace HBP.Module3D
 
                         for (int kk = 0; kk < m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfSitesInElectrode(ii, jj); ++kk)
                         {
-                            GameObject siteGO = Instantiate(GlobalGOPreloaded.Plot);
-                            siteGO.name = m_ColumnManager.DLLLoadedPatientsElectrodes.SiteName(ii, jj, kk);
-                            //brainElectrode.name = "????? " + cm_.DLLLoadedPatientsElectrodes.getPlotName(ii, jj, kk);
-                                     
-                            Vector3 posInverted = m_ColumnManager.DLLLoadedPatientsElectrodes.SitePosition(ii, jj, kk);
-                            posInverted.x = -posInverted.x;
-                            siteGO.transform.SetParent(m_ColumnManager.SitesElectrodesParent[ii][jj].transform);
-                            siteGO.transform.localPosition = posInverted;
+                            Vector3 invertedPosition = m_ColumnManager.DLLLoadedPatientsElectrodes.SitePosition(ii, jj, kk);
+                            invertedPosition.x = -invertedPosition.x;
 
-                            siteGO.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
+                            GameObject siteGameObject = Instantiate(GlobalGOPreloaded.Site);
+                            siteGameObject.name = m_ColumnManager.DLLLoadedPatientsElectrodes.SiteName(ii, jj, kk);
 
-                            siteGO.SetActive(true);
-                            siteGO.layer = LayerMask.NameToLayer("Inactive");
+                            siteGameObject.transform.SetParent(m_ColumnManager.SitesElectrodesParent[ii][jj].transform);
+                            siteGameObject.transform.localPosition = invertedPosition;
+                            siteGameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
 
-                            Site site = siteGO.GetComponent<Site>();
+                            siteGameObject.SetActive(true);
+                            siteGameObject.layer = LayerMask.NameToLayer("Inactive");
+
+                            Site site = siteGameObject.GetComponent<Site>();
                             site.Information.SitePatientID = idPlotPatient++;
                             site.Information.PatientID = ii;
                             site.Information.ElectrodeID = jj;
@@ -422,14 +421,16 @@ namespace HBP.Module3D
                             site.Information.GlobalID = currPlotNb++;
                             site.Information.IsBlackListed = false;
                             site.Information.IsHighlighted = false;
+                            site.Information.IsExcluded = false;
+                            site.Information.IsInROI = false;
+                            site.Information.IsMarked = false;
+                            site.Information.IsMasked = false;
                             site.Information.PatientName = patientName;
-                            site.Information.FullName = names[ii] + "_" + siteGO.name;
+                            site.Information.FullName = patientNames[ii] + "_" + siteGameObject.name;
+                            site.Information.MarsAtlasIndex = m_ColumnManager.DLLLoadedPatientsElectrodes.MarsAtlasLabelOfSite(ii, jj, kk);
                             site.IsActive = true;
 
-                            // mars atlas
-                            //Debug.Log("sp-> " + ii + " " + jj + " " + kk);
-                            site.Information.MarsAtlasIndex = m_ColumnManager.DLLLoadedPatientsElectrodes.MarsAtlasLabelOfSite(ii, jj, kk);//
-                            m_ColumnManager.SitesList.Add(siteGO);
+                            m_ColumnManager.SitesList.Add(siteGameObject);
                         }
                     }
                 }

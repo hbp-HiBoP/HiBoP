@@ -45,7 +45,7 @@ namespace HBP.Module3D
         static public GameObject fMRILeftMenu = null;
         static public GameObject SiteLeftMenu = null;
         static public GameObject SceneLeftMenu = null;
-        static public GameObject Plot = null;
+        static public GameObject Site = null;
         static public GameObject Brain = null;
         static public GameObject SelectRing = null;
         static public GameObject Line = null;
@@ -120,8 +120,8 @@ namespace HBP.Module3D
             InitializeGameObject(globalLeftMenu, "Global left menu");
 
             // site
-            Plot = Instantiate(Resources.Load("Prefabs/scene objects/Plot", typeof(GameObject))) as GameObject;
-            InitializeGameObject(Plot, "Plot");
+            Site = Instantiate(Resources.Load("Prefabs/scene objects/Plot", typeof(GameObject))) as GameObject;
+            InitializeGameObject(Site, "Plot");
 
             // Brain
             Brain = Instantiate(Resources.Load("Prefabs/scene objects/Brain", typeof(GameObject))) as GameObject;

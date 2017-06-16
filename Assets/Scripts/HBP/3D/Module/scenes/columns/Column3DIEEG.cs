@@ -280,10 +280,10 @@ namespace HBP.Module3D
         /// <param name="nbCuts"></param>
         /// <param name="plots"></param>
         /// <param name="plotsGO"></param>
-        public override void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList plots, List<GameObject> PlotsPatientParent)
+        public override void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList plots, List<GameObject> PlotsPatientParent, List<GameObject> siteList)
         {
             // call parent init
-            base.Initialize(idColumn, nbCuts, plots, PlotsPatientParent);
+            base.Initialize(idColumn, nbCuts, plots, PlotsPatientParent, siteList);
 
             // amplitudes
             UpdateIEEG = false;
