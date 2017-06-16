@@ -32,15 +32,11 @@ namespace HBP.Data.Experience.Dataset
         public string Name { get; set; }
 
         [DataMember(Name = "Patient")]
-        private string patientID;
+        private string m_PatientID;
         /// <summary>
         /// Patient who has passed the experiment.
         /// </summary>
-        public Patient Patient
-        {
-            get { return ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == patientID); }
-            set { patientID = value.ID; }
-        }
+        public Patient Patient { get; set; }
 
         [DataMember]
         /// <summary>
@@ -61,38 +57,31 @@ namespace HBP.Data.Experience.Dataset
         public string POS { get; set; }
 
         [DataMember(Name = "Protocol")]
-        private string protocolID;
+        private string m_ProtocolID;
         /// <summary>
         /// Protocol used during the experiment.
         /// </summary>
-        public Protocol.Protocol Protocol
-        {
-            get { return ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == protocolID); }
-            set { protocolID = value.ID; }
-        }
+        public Protocol.Protocol Protocol { get; set; }
 
         /// <summary>
         /// State of the DataInfo {OK, INCOMPLETE, ERROR}.
         /// </summary>
-        public enum StateEnum
+        public enum State
         {
             OK, INCOMPLETE, ERROR
         }
         /// <summary>
         /// Error type of the DataInfo.
         /// </summary>
-        private enum ErrorTypeEnum
+        private enum Error
         {
-            None, LabelEmpty, PatientEmpty, MeasureEmpty, EEGEmpty, POSEmpty, ProtocolEmpty, ImplantationEmpty, MNIImplantationEmpty,
+            LabelEmpty, PatientEmpty, PatientNotVisualizable, MeasureEmpty, EEGEmpty, POSEmpty, ProtocolEmpty, ImplantationEmpty, MNIImplantationEmpty,
             ImplantationFileNotExist, ImplantationFileIsNotAGoodFile, MNIImplantationFileNotExist, MNIImplantationFileIsNotAGoodFile, EEGFileNotExist, POSFileNotExist,
             EEGFileNotAGoodFile, POSFileNotAGoodFile, ChannelAndPlotDoNotMatch, ChannelAndMNIPLotDoNotMatch, MeasureNotFound, CantReadMNIImplantationFile, CantReadImplantationFile
         }
 
-        private ErrorTypeEnum singlePatientError;
-        /// <summary>
-        /// Single Patient DataInfo state.
-        /// </summary>
-        public StateEnum SinglePatientState
+        private Error[] ErrorTypes;
+        public State[] States
         {
             get
             {
@@ -100,32 +89,6 @@ namespace HBP.Data.Experience.Dataset
             }
         }
 
-        private ErrorTypeEnum multiPatientsError;
-        /// <summary>
-        /// Multi Patients DataInfo state.
-        /// </summary>
-        public StateEnum MultiPatientsState
-        {
-            get
-            {
-                return GetState(multiPatientsError);
-            }
-        }
-
-        /// <summary>
-        /// Usable in single patient visualization.
-        /// </summary>
-        public bool UsableInSinglePatient
-        {
-            get { return SinglePatientState != StateEnum.ERROR; }
-        }
-        /// <summary>
-        /// Usable in multi patients visualization.
-        /// </summary>
-        public bool UsableInMultiPatients
-        {
-            get { return MultiPatientsState != StateEnum.ERROR; }
-        }
         private string additionnalMessage;
         #endregion
 
@@ -162,8 +125,13 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public void UpdateStates()
         {
+            Enum.GetValues(Anatomy.ReferenceFrameType)
             multiPatientsError = GetError(true);
             singlePatientError = GetError(false);
+        }
+        public bool IsUsable(Anatomy.ReferenceFrameType referenceFrame)
+        {
+
         }
         #endregion
 
@@ -182,223 +150,188 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Get type of the error.
         /// </summary>
-        /// <param name="MNI">\a True if Multi patients and \a false otherwise.</param>
+        /// <param name="referenceFrame">\a True if Multi patients and \a false otherwise.</param>
         /// <returns>Error type.</returns>
-        ErrorTypeEnum GetError(bool MNI)
+        Error[] GetErrors(Anatomy.ReferenceFrameType referenceFrame)
         {
-            ErrorTypeEnum l_errorType = ErrorTypeEnum.None;
-
-            // Test if label field is empty.
-            if (Name != string.Empty)
-            {
-                // Test if patient field is null.
-                if (Patient != null)
+            List<Error> errors = new List<Error>();
+            if (string.IsNullOrEmpty(Name)) errors.Add(Error.LabelEmpty);
+            if (Patient == null) errors.Add(Error.PatientEmpty);
+            if (string.IsNullOrEmpty(Measure)) errors.Add(Error.MeasureEmpty);
+            if (string.IsNullOrEmpty(EEG)) errors.Add(Error.EEGEmpty);
+            if (string.IsNullOrEmpty(POS)) errors.Add(Error.POSEmpty);
+            if (Protocol == null) errors.Add(Error.ProtocolEmpty);
+            if (!Patient.Brain.IsVisualizable(referenceFrame)) errors.Add(Error.PatientNotVisualizable);
+                //Test if MNI implantation is empty.
+                if (Patient.Brain.MNIBasedImplantation != string.Empty)
                 {
-                    // Test if measure field is empty.
-                    if (Measure != string.Empty)
+                    // Create the file info MNI implantation.
+                    FileInfo l_MNIimplantation = new FileInfo(Patient.Brain.MNIBasedImplantation);
+
+                    //Test if the MNI implantation file exist.
+                    if (l_MNIimplantation.Exists)
                     {
-                        // Test if eeg field is empty.
-                        if (EEG != string.Empty)
+                        // Test if the MNI implantation file is a implantation file.
+                        if (l_MNIimplantation.Extension == Anatomy.Implantation.EXTENSION)
                         {
-                            // Test if pos field is empty.
-                            if (POS != string.Empty)
+                            // Create the file info POS
+                            FileInfo l_pos = new FileInfo(POS);
+
+                            // Test if the POS file exist.
+                            if (l_pos.Exists)
                             {
-                                // Test if protocol is null.
-                                if (Protocol != null)
+                                // Test if the POS file is a pos file.
+                                if (l_pos.Extension == Localizer.POS.EXTENSION)
                                 {
-                                    l_errorType = ErrorTypeEnum.None;
-                                    if (l_errorType == ErrorTypeEnum.None)
+                                    // Create the file info EEG.
+                                    FileInfo l_eeg = new FileInfo(EEG);
+
+                                    // Test if the EEG file exist.
+                                    if (l_eeg.Exists)
                                     {
-                                        //Test if MNI implantation is empty.
-                                        if (Patient.Brain.MNIBasedImplantation != string.Empty)
+                                        // Test if the EEG path is a eeg file.
+                                        if (l_eeg.Extension == Elan.EEG.EXTENSION)
                                         {
-                                            // Create the file info MNI implantation.
-                                            FileInfo l_MNIimplantation = new FileInfo(Patient.Brain.MNIBasedImplantation);
-
-                                            //Test if the MNI implantation file exist.
-                                            if (l_MNIimplantation.Exists)
+                                            // Read EEG File.
+                                            Elan.ElanFile elanFile = new Elan.ElanFile(EEG);
+                                            // Test EEG Measure
+                                            if (elanFile.MeasureLabels.Contains(Measure))
                                             {
-                                                // Test if the MNI implantation file is a implantation file.
-                                                if (l_MNIimplantation.Extension == Anatomy.Implantation.EXTENSION)
+                                                // FIXME
+                                                List<string> sitesList = new List<string>();
+                                                foreach (Anatomy.Electrode electrode in Patient.Brain.Implantation.Electrodes)
                                                 {
-                                                    // Create the file info POS
-                                                    FileInfo l_pos = new FileInfo(POS);
-
-                                                    // Test if the POS file exist.
-                                                    if (l_pos.Exists)
+                                                    foreach (Anatomy.Site site in electrode.Sites)
                                                     {
-                                                        // Test if the POS file is a pos file.
-                                                        if (l_pos.Extension == Localizer.POS.EXTENSION)
+                                                        sitesList.Add(site.Name);
+                                                    }
+                                                }
+                                                string[] sites = sitesList.ToArray();
+                                                //string[] sites = Patient.Brain.GetImplantation(MNI, ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType == Settings.GeneralSettings.PlotNameCorrectionTypeEnum.Active).GetPlotsName();
+                                                string[] channels = (from channel in elanFile.Channels select channel.Label).ToArray();
+                                                if (sites.Length != 0)
+                                                {
+                                                    foreach (string plot in sites)
+                                                    {
+                                                        if (!channels.Contains(plot))
                                                         {
-                                                            // Create the file info EEG.
-                                                            FileInfo l_eeg = new FileInfo(EEG);
-
-                                                            // Test if the EEG file exist.
-                                                            if (l_eeg.Exists)
-                                                            {
-                                                                // Test if the EEG path is a eeg file.
-                                                                if (l_eeg.Extension == Elan.EEG.EXTENSION)
-                                                                {
-                                                                    // Read EEG File.
-                                                                    Elan.ElanFile elanFile = new Elan.ElanFile(EEG);
-                                                                    // Test EEG Measure
-                                                                    if (elanFile.MeasureLabels.Contains(Measure))
-                                                                    {
-                                                                        // FIXME
-                                                                        List<string> sitesList = new List<string>();
-                                                                        foreach (Anatomy.Electrode electrode in Patient.Brain.Implantation.Electrodes)
-                                                                        {
-                                                                            foreach (Anatomy.Site site in electrode.Sites)
-                                                                            {
-                                                                                sitesList.Add(site.Name);
-                                                                            }
-                                                                        }
-                                                                        string[] sites = sitesList.ToArray();
-                                                                        //string[] sites = Patient.Brain.GetImplantation(MNI, ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType == Settings.GeneralSettings.PlotNameCorrectionTypeEnum.Active).GetPlotsName();
-                                                                        string[] channels = (from channel in elanFile.Channels select channel.Label).ToArray();
-                                                                        if(sites.Length != 0)
-                                                                        {
-                                                                            foreach(string plot in sites)
-                                                                            {
-                                                                                if(!channels.Contains(plot))
-                                                                                {
-                                                                                    l_errorType = ErrorTypeEnum.ChannelAndMNIPLotDoNotMatch;
-                                                                                    additionnalMessage = "channel \"" + plot + "\"";
-                                                                                    break;
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            l_errorType = ErrorTypeEnum.CantReadMNIImplantationFile;
-                                                                        }
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        l_errorType = ErrorTypeEnum.MeasureNotFound;
-
-                                                                    }
-                                                                }
-                                                                else
-                                                                {
-                                                                    l_errorType = ErrorTypeEnum.EEGFileNotAGoodFile;
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                l_errorType = ErrorTypeEnum.EEGFileNotExist;
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            l_errorType = ErrorTypeEnum.POSFileNotAGoodFile;
+                                                            error = Error.ChannelAndMNIPLotDoNotMatch;
+                                                            additionnalMessage = "channel \"" + plot + "\"";
+                                                            break;
                                                         }
                                                     }
-                                                    else
-                                                    {
-                                                        l_errorType = ErrorTypeEnum.POSFileNotExist;
-                                                    }
-
                                                 }
                                                 else
                                                 {
-                                                    l_errorType = ErrorTypeEnum.MNIImplantationFileIsNotAGoodFile;
+                                                    error = Error.CantReadMNIImplantationFile;
                                                 }
                                             }
                                             else
                                             {
-                                                l_errorType = ErrorTypeEnum.MNIImplantationFileNotExist;
+                                                error = Error.MeasureNotFound;
+
                                             }
                                         }
                                         else
                                         {
-                                            l_errorType = ErrorTypeEnum.MNIImplantationEmpty;
+                                            error = Error.EEGFileNotAGoodFile;
                                         }
+                                    }
+                                    else
+                                    {
+                                        error = Error.EEGFileNotExist;
                                     }
                                 }
                                 else
                                 {
-                                    l_errorType = ErrorTypeEnum.ProtocolEmpty;
+                                    error = Error.POSFileNotAGoodFile;
                                 }
                             }
                             else
                             {
-                                l_errorType = ErrorTypeEnum.POSEmpty;
+                                error = Error.POSFileNotExist;
                             }
+
                         }
                         else
                         {
-                            l_errorType = ErrorTypeEnum.EEGEmpty;
+                            error = Error.MNIImplantationFileIsNotAGoodFile;
                         }
                     }
                     else
                     {
-                        l_errorType = ErrorTypeEnum.MeasureEmpty;
+                        error = Error.MNIImplantationFileNotExist;
                     }
-                }
-                else
-                {
-                    l_errorType = ErrorTypeEnum.PatientEmpty;
-                }
             }
-            else
-            {
-                l_errorType = ErrorTypeEnum.LabelEmpty;
-            }
-            return l_errorType;
-        }
-        /// <summary>
-        /// Get Error Message.
-        /// </summary>
-        /// <param name="error">Type of the error.</param>
-        /// <returns>Error message.</returns>
-        string GetErrorMessage(ErrorTypeEnum error)
-        {
-            string l_errorMessage = string.Empty;
-            switch (error)
-            {
-                case ErrorTypeEnum.None: l_errorMessage = "None error detected."; break;
-                case ErrorTypeEnum.LabelEmpty: l_errorMessage = "The label field is empty."; break;
-                case ErrorTypeEnum.PatientEmpty: l_errorMessage = "The patient field is empty."; break;
-                case ErrorTypeEnum.MeasureEmpty: l_errorMessage = "The measure field is empty."; break;
-                case ErrorTypeEnum.EEGEmpty: l_errorMessage = "The .eeg field is empty."; break;
-                case ErrorTypeEnum.POSEmpty: l_errorMessage = "The .pos field is empty."; break;
-                case ErrorTypeEnum.ImplantationEmpty: l_errorMessage = "The implantation path of the patient is empty."; break;
-                case ErrorTypeEnum.MNIImplantationEmpty: l_errorMessage = "The MNI implantation path of the patient is empty."; break;
-                case ErrorTypeEnum.ImplantationFileNotExist: l_errorMessage = "The implantation file does not  exist."; break;
-                case ErrorTypeEnum.ImplantationFileIsNotAGoodFile: l_errorMessage = "The implantation file isn't a .pts file."; break;
-                case ErrorTypeEnum.MNIImplantationFileNotExist: l_errorMessage = "The MNI implantation file does not exist."; break;
-                case ErrorTypeEnum.MNIImplantationFileIsNotAGoodFile: l_errorMessage = "The MNI implantation file isn't a .pts file"; break;
-                case ErrorTypeEnum.EEGFileNotExist: l_errorMessage = "The eeg file does not exist."; break;
-                case ErrorTypeEnum.EEGFileNotAGoodFile: l_errorMessage = "The eeg file isn't a .eeg file."; break;
-                case ErrorTypeEnum.POSFileNotExist : l_errorMessage = "The pos file does not exist."; break;
-                case ErrorTypeEnum.POSFileNotAGoodFile: l_errorMessage = "The pos file isn't a .pos file."; break;
-                case ErrorTypeEnum.ChannelAndPlotDoNotMatch: l_errorMessage = "The implantation and the channels do not match : " + additionnalMessage + " do not match with the implantation"; break;
-                case ErrorTypeEnum.ChannelAndMNIPLotDoNotMatch: l_errorMessage = "The implantation and the channels do not match : " + additionnalMessage + " do not match witch the MNI implantation"; break;
-                case ErrorTypeEnum.MeasureNotFound: l_errorMessage = "The measures in the eeg file and the measure field do not match"; break;
-                case ErrorTypeEnum.CantReadMNIImplantationFile: l_errorMessage = "Can't read the MNI implantation file."; break;
-            }
-            return l_errorMessage;
+            return error;
         }
         /// <summary>
         /// Get state of the dataInfo.
         /// </summary>
         /// <param name="error">Type of the error.</param>
         /// <returns>State enum.</returns>
-        StateEnum GetState(ErrorTypeEnum error)
+        State GetState(Error error)
         {
-            if(error == ErrorTypeEnum.None)
+            if(error == Error.None)
             {
-                return StateEnum.OK;
+                return State.OK;
             }
-            else if((error == ErrorTypeEnum.ChannelAndMNIPLotDoNotMatch) || (error == ErrorTypeEnum.ChannelAndPlotDoNotMatch))
+            else if(error == Error.ChannelAndPlotDoNotMatch)
             {
-                return StateEnum.INCOMPLETE;
+                return State.INCOMPLETE;
             }
             else
             {
-                return StateEnum.ERROR;
+                return State.ERROR;
             }
+        }
+        ///// <summary>
+        ///// Get Error Message.
+        ///// </summary>
+        ///// <param name="error">Type of the error.</param>
+        ///// <returns>Error message.</returns>
+        //string GetErrorMessage(ErrorType error)
+        //{
+        //    string l_errorMessage = string.Empty;
+        //    switch (error)
+        //    {
+        //        case ErrorType.None: l_errorMessage = "None error detected."; break;
+        //        case ErrorType.LabelEmpty: l_errorMessage = "The label field is empty."; break;
+        //        case ErrorType.PatientEmpty: l_errorMessage = "The patient field is empty."; break;
+        //        case ErrorType.MeasureEmpty: l_errorMessage = "The measure field is empty."; break;
+        //        case ErrorType.EEGEmpty: l_errorMessage = "The .eeg field is empty."; break;
+        //        case ErrorType.POSEmpty: l_errorMessage = "The .pos field is empty."; break;
+        //        case ErrorType.ImplantationEmpty: l_errorMessage = "The implantation path of the patient is empty."; break;
+        //        case ErrorType.MNIImplantationEmpty: l_errorMessage = "The MNI implantation path of the patient is empty."; break;
+        //        case ErrorType.ImplantationFileNotExist: l_errorMessage = "The implantation file does not  exist."; break;
+        //        case ErrorType.ImplantationFileIsNotAGoodFile: l_errorMessage = "The implantation file isn't a .pts file."; break;
+        //        case ErrorType.MNIImplantationFileNotExist: l_errorMessage = "The MNI implantation file does not exist."; break;
+        //        case ErrorType.MNIImplantationFileIsNotAGoodFile: l_errorMessage = "The MNI implantation file isn't a .pts file"; break;
+        //        case ErrorType.EEGFileNotExist: l_errorMessage = "The eeg file does not exist."; break;
+        //        case ErrorType.EEGFileNotAGoodFile: l_errorMessage = "The eeg file isn't a .eeg file."; break;
+        //        case ErrorType.POSFileNotExist : l_errorMessage = "The pos file does not exist."; break;
+        //        case ErrorType.POSFileNotAGoodFile: l_errorMessage = "The pos file isn't a .pos file."; break;
+        //        case ErrorType.ChannelAndPlotDoNotMatch: l_errorMessage = "The implantation and the channels do not match : " + additionnalMessage + " do not match with the implantation"; break;
+        //        case ErrorType.ChannelAndMNIPLotDoNotMatch: l_errorMessage = "The implantation and the channels do not match : " + additionnalMessage + " do not match witch the MNI implantation"; break;
+        //        case ErrorType.MeasureNotFound: l_errorMessage = "The measures in the eeg file and the measure field do not match"; break;
+        //        case ErrorType.CantReadMNIImplantationFile: l_errorMessage = "Can't read the MNI implantation file."; break;
+        //    }
+        //    return l_errorMessage;
+        //}
+        #endregion
+
+        #region Serialization
+        [OnSerializing]
+        void OnSerializing()
+        {
+            m_PatientID = Patient.ID;
+            m_ProtocolID = Protocol.ID;
+        }
+        [OnDeserialized]
+        void OnDeserialized()
+        {
+            Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+            Protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID);
         }
         #endregion
     }

@@ -219,8 +219,8 @@ namespace HBP.Module3D
             namePatients.Add(Patient.Place + "_" + Patient.Date + "_" + Patient.Name);
 
             List<string> meshesFiles = new List<string>();
-            meshesFiles.Add(Patient.Brain.LeftCerebralHemisphereMesh);
-            meshesFiles.Add(Patient.Brain.RightCerebralHemisphereMesh);
+            meshesFiles.Add(Patient.Brain.LeftHemisphereGreyMatter);
+            meshesFiles.Add(Patient.Brain.RightHemisphereGreyMatter);
 
             // reset columns
             m_ColumnManager.Initialize(m_Cuts.Count);

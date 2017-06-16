@@ -23,26 +23,20 @@ namespace HBP.UI.Visualization
         Dropdown m_blocCB;
         #endregion
         #region Data
-        Data.Patient[] m_patients;
-        Data.Patient[] Patients
-        {
-            get { return m_patients; }
-            set { m_patients = value; }
-        }
-        bool SP;
+        Data.Patient[] Patients { get; set; }
 
-        Column m_column;
+        Column m_Column;
         Column Column
         {
             get
             {
-                return m_column;
+                return m_Column;
             }
             set
             {
-                m_column = value;           
+                m_Column = value;           
                 SetDatasetComboBox();
-                SetDataset(m_column.Dataset);
+                SetDataset(m_Column.Dataset);
             }
         }
         #endregion
@@ -57,19 +51,10 @@ namespace HBP.UI.Visualization
 
         #region Public Methods
         #region General
-        public void SetTab(Column column,Data.Patient[] patients,bool sp)
+        public void SetTab(Column column,Data.Patient[] patients)
         {
-            Profiler.BeginSample("SetTab");
-            Profiler.BeginSample("SetTab : Patient");
             Patients = patients;
-            Profiler.EndSample();
-            Profiler.BeginSample("SetTab : SP");
-            SP = sp;
-            Profiler.EndSample();
-            Profiler.BeginSample("SetTab : Column");
             Column = column;
-            Profiler.EndSample();
-            Profiler.EndSample();
         }
         #endregion
         #region OnChangeEvent()
@@ -117,6 +102,7 @@ namespace HBP.UI.Visualization
             if (m_blocs.Count > m_blocCB.value)
             {
                 Column.Bloc = m_blocs[m_blocCB.value];
+                Debug.Log(Column.Bloc.DisplayInformations.Name);
             }
             else
             {
@@ -207,21 +193,17 @@ namespace HBP.UI.Visualization
         #region ExperienceData
         void SetDataComboBox()
         {
-            Profiler.BeginSample("SetDataCB");
-            Profiler.BeginSample("Part 1");
-            Profiler.BeginSample("1.1");
             Dataset l_dataset = new Dataset();
             if (m_datasets.Count > m_datasetCB.value)
             {
                 l_dataset = m_datasets[m_datasetCB.value];
             }
-            Profiler.EndSample();
-            Profiler.BeginSample("1.2");
             List<string> l_dataInfoLabel = new List<string>();
             List<string> l_dataInfoLabelToUse = new List<string>();
             List<DataInfo> l_dataInfoToUse = new List<DataInfo>();
             foreach (DataInfo i_dataInfo in l_dataset.Data)
             {
+                i_dataInfo.U
                 if(SP)
                 {
                     if(i_dataInfo.UsableInSinglePatient)
@@ -237,8 +219,6 @@ namespace HBP.UI.Visualization
                     }
                 }
             }
-            Profiler.EndSample();
-            Profiler.BeginSample("1.3");
             foreach (DataInfo i_dataInfo in l_dataInfoToUse)
             {
                 if (!l_dataInfoLabel.Contains(i_dataInfo.Name))
@@ -246,8 +226,6 @@ namespace HBP.UI.Visualization
                     l_dataInfoLabel.Add(i_dataInfo.Name);
                 }
             }
-            Profiler.EndSample();
-            Profiler.BeginSample("1.4");
             foreach (string i_dataLabel in l_dataInfoLabel)
             {
                 List<DataInfo> l_dataInfoForThisLabel = new List<DataInfo>();
@@ -279,9 +257,6 @@ namespace HBP.UI.Visualization
                     l_dataInfoLabelToUse.Add(i_dataLabel);
                 }
             }
-            Profiler.EndSample();
-            Profiler.EndSample();
-            Profiler.BeginSample("Part 2");
             if (l_dataInfoLabelToUse.Count != 0 && m_datasetCB.interactable)
             {
                 m_dataCB.interactable = true;
@@ -297,8 +272,6 @@ namespace HBP.UI.Visualization
             {
                 DeactivateDataInfoCB();
             }
-            Profiler.EndSample();
-            Profiler.EndSample();
         }
 
         void DeactivateDataInfoCB()

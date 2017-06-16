@@ -1,98 +1,89 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Collections.Generic;
+using System.Runtime.Serialization;
+using UnityEngine;
+using System.Linq;
 
 namespace HBP.Data.Anatomy
 {
-    public enum ReferenceFrameType { Patient, MNI }
-
+    [DataContract]
     public class Implantation
     {
         #region Properties
         const string HEADER = "ptsfile";
         public const string EXTENSION = ".pts";
-        public List<Electrode> Electrodes { get; set; }
-        public Brain Brain { get; set; }
+        public enum Error { None, PathIsNullOrEmpty, FileNotFound, WrongExtension, CannotReadFile, WrongFormat, CannotReadAllSites};
+        [DataMember] public string Name { get; set; }
+        [DataMember] public string Path { get; set; }
+        [IgnoreDataMember] public Electrode[] Electrodes { get; set; }
+        //[IgnoreDataMember] public Brain Brain { get; set; }
         #endregion
 
         #region Constructor
-        public Implantation()
+        public Implantation(string name,string path)
+        {
+            Name = name;
+            Path = path;
+            Electrodes = new Site[0];
+        }
+        public Implantation(): this("New implantation",string.Empty)
         {
             Electrodes = new List<Electrode>();
         }
         #endregion
 
         #region Public Methods
-        public void Load(string path, ReferenceFrameType referenceFrame, bool automaticCorrection = true)
+        public Error Load()
         {
-            if (!string.IsNullOrEmpty(path))
+            if(string.IsNullOrEmpty(Path)) return Error.PathIsNullOrEmpty;
+            FileInfo fileInfo = new FileInfo(Path);
+            if(!fileInfo.Exists) return Error.FileNotFound;
+            if(fileInfo.Extension != EXTENSION) return Error.WrongExtension;
+            string[] lines = new string[0];
+            try
             {
-                FileInfo fileInfo = new FileInfo(path);
-                if (fileInfo.Exists && fileInfo.Extension == EXTENSION)
+                lines = File.ReadAllLines(fileInfo.FullName);
+            }
+            catch
+            {
+                return Error.CannotReadFile;
+            }
+            if (!IsCorrect(lines)) return Error.WrongFormat;
+            IEnumerable<Site> sites;
+            if (!ReadSites(lines, out sites)) return Error.CannotReadAllSites;
+            Electrodes = sites.ToArray();
+            return Error.None;
+        }
+        public void Unload()
+        {
+            Electrodes = new Site[0];
+        }
+        #endregion
+
+        #region Private Methods
+        bool IsCorrect(string[] lines)
+        {
+            int sites = 0;
+            return lines[0] == HEADER && int.TryParse(lines[2],out sites) && sites == (lines.Length - 3);
+        }
+        bool ReadSites(IEnumerable<string> lines, out IEnumerable<Site> sites)
+        {
+            sites = new List<Site>();
+            bool ok = true;
+            foreach (var line in lines)
+            {
+                Site site;
+                if (Site.ReadLine(line, out site))
                 {
-                    // Read The File
-                    string[] lines = File.ReadAllLines(fileInfo.FullName);
-
-                    if (lines[0] == HEADER && lines.Length > 3)
-                    {
-                        // Analyse the header
-                        int numberOfSites; int.TryParse(lines[2], out numberOfSites);
-                        if (lines.Length == numberOfSites + 3)
-                        {
-                            // Work on line
-                            Site[] sites = new Site[numberOfSites];
-                            for (int line = 0; line < numberOfSites; line++)
-                            {
-                                sites[line] = new Site(lines[line + 3], referenceFrame, automaticCorrection);
-                            }
-
-                            // Separate sites into electrodes.
-                            foreach (Site site in sites)
-                            {
-                                string electrodeName = Electrode.FindElectrodeName(site);
-                                Electrode electrode = Electrodes.Find(x => x.Name == electrodeName);
-                                if (electrode == null)
-                                {
-                                    electrode = new Electrode(electrodeName);
-                                    electrode.Implantation = this;
-                                    Electrodes.Add(electrode);
-                                }
-                                Site existingSite = electrode.Sites.Find(x => x.Name == site.Name);
-                                if (existingSite == null)
-                                {
-                                    electrode.Sites.Add(site);
-                                    site.Electrode = electrode;
-                                }
-                                else
-                                {
-                                    existingSite.SetPosition(site.GetPosition(referenceFrame), referenceFrame);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame implantation because the specified file is not in the correct format.");
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified file is not in the correct format.");
-                    }
+                    ok &= true;
+                    (sites as List<Site>).Add(site);
                 }
                 else
                 {
-                    Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified file does not exist or does not have the correct extension.");
+                    ok = false;
                 }
             }
-            else
-            {
-                Debug.LogWarning("Can not read the " + referenceFrame.ToString() + " reference frame  implantation because the specified path is null or empty.");
-            }
-        }
-
-        public void Unload()
-        {
-            Electrodes = new List<Electrode>();
+            return ok;
         }
         #endregion
     }

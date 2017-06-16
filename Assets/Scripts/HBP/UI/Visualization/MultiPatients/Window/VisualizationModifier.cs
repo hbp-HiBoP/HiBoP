@@ -168,6 +168,7 @@ namespace HBP.UI.Visualization
         }
         protected void SetColumns(Data.Visualization.Visualization objectToDisplay)
         {
+            Debug.Log(objectToDisplay);
             // Columns.
             if (objectToDisplay.Columns.Count == 0)
             {

@@ -73,7 +73,7 @@ namespace HBP.UI.Patient
             m_place.text = objectToSet.Place;
             m_date.text = objectToSet.Date.ToString();
 
-            if (objectToSet.Brain.LeftCerebralHemisphereMesh != "" && objectToSet.Brain.RightCerebralHemisphereMesh != "") { m_mesh_state.color = m_enable_color; }
+            if (objectToSet.Brain.LeftHemisphereGreyMatter != "" && objectToSet.Brain.RightHemisphereGreyMatter != "") { m_mesh_state.color = m_enable_color; }
             else { m_mesh_state.color = m_disable_color; }
 
             if (objectToSet.Brain.PreoperativeMRI != "" && objectToSet.Brain.PostoperativeMRI != "") { m_IRM_state.color = m_enable_color; }

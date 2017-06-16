@@ -164,6 +164,31 @@ namespace HBP.Data.Visualization
             TimeLine = null;
             IconicScenario = null;
         }
+        /// <summary>
+        /// Standardize column.
+        /// </summary>
+        /// <param name="before">sample before</param>
+        /// <param name="after">sample after</param>
+        public void Standardize(int before,int after)
+        {
+            UnityEngine.Debug.Log("Before : " + before);
+            UnityEngine.Debug.Log("After : " + after);
+            int diffBefore = TimeLine.MainEvent.Position - before;
+            int diffAfter = (TimeLine.Lenght - TimeLine.MainEvent.Position) - after;
+            UnityEngine.Debug.Log("DiffBefore : " + diffBefore);
+            UnityEngine.Debug.Log("DiffAfter : " + diffAfter);
+            TimeLine.Resize(diffBefore, diffAfter);
+            //foreach(var patientConfiguration in Configuration.ConfigurationByPatient.Values)
+            //{
+            //    foreach(var electrodeConfiguration in patientConfiguration.ConfigurationByElectrode.Values)
+            //    {
+            //        foreach(var siteConfiguration in electrodeConfiguration.ConfigurationBySite.Values)
+            //        {
+            //            siteConfiguration.Values;
+            //        }
+            //    }
+            //}
+        }
         #endregion
 
         #region Operators

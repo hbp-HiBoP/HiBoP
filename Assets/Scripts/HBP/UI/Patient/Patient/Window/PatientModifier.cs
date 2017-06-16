@@ -33,13 +33,13 @@ namespace HBP.UI.Patient
             dateInputField.onValueChanged.AddListener((value) => ItemTemp.Date = int.Parse(value));
 
             // Brain.
-            leftMeshFileSelector.File = objectToDisplay.Brain.LeftCerebralHemisphereMesh;
+            leftMeshFileSelector.File = objectToDisplay.Brain.LeftHemisphereGreyMatter;
             leftMeshFileSelector.onValueChanged.RemoveAllListeners();
-            leftMeshFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.LeftCerebralHemisphereMesh = value);
+            leftMeshFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.LeftHemisphereGreyMatter = value);
 
-            rightMeshFileSelector.File = objectToDisplay.Brain.RightCerebralHemisphereMesh;
+            rightMeshFileSelector.File = objectToDisplay.Brain.RightHemisphereGreyMatter;
             rightMeshFileSelector.onValueChanged.RemoveAllListeners();
-            rightMeshFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.RightCerebralHemisphereMesh = value);
+            rightMeshFileSelector.onValueChanged.AddListener((value) => ItemTemp.Brain.RightHemisphereGreyMatter = value);
 
             preIRMFileSelector.File = objectToDisplay.Brain.PreoperativeMRI;
             preIRMFileSelector.onValueChanged.RemoveAllListeners();

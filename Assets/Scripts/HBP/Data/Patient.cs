@@ -25,37 +25,30 @@ namespace HBP.Data
 	public class Patient : ICloneable, ICopiable
 	{
         #region Properties
+        /// <summary>
+        /// Patient file extension.
+        /// </summary>
         public const string EXTENSION = ".patient";
-
         /// <summary>
         /// Unique ID.
         /// </summary>
-        [DataMember]
-        public string ID { get; set; }
-
+        [DataMember] public string ID { get; set; }
         /// <summary>
         /// Patient name.
         /// </summary>
-        [DataMember]
-        public string Name { get; set; }
-
+        [DataMember]public string Name { get; set; }
         /// <summary>
         /// Date of study.
         /// </summary>
-        [DataMember]
-        public int Date { get; set; }
-
+        [DataMember] public int Date { get; set; }
         /// <summary>
         /// Place of study.
         /// </summary>
-        [DataMember]
-        public string Place { get; set; }
-
+        [DataMember] public string Place { get; set; }
         /// <summary>
         /// Patient brain.
         /// </summary>
-        [DataMember]
-        public Brain Brain { get; set; }
+        [DataMember] public Brain Brain { get; set; }
         #endregion
 
         #region Constructors
@@ -136,12 +129,12 @@ namespace HBP.Data
                             FileInfo leftHemiFile = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + directory.Name + "_Lhemi.gii");
                             if(leftHemiFile.Exists)
                             {
-                                Brain.LeftCerebralHemisphereMesh = leftHemiFile.FullName;
+                                Brain.LeftHemisphereGreyMatter = leftHemiFile.FullName;
                             }
                             FileInfo rightHemiFile = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + directory.Name + "_Rhemi.gii");
                             if (rightHemiFile.Exists)
                             {
-                                Brain.RightCerebralHemisphereMesh = rightHemiFile.FullName;
+                                Brain.RightHemisphereGreyMatter = rightHemiFile.FullName;
                             }
                         }
                         DirectoryInfo registrationDirectory = new DirectoryInfo(preDirectory.FullName + Path.DirectorySeparatorChar + "registration");
@@ -172,6 +165,30 @@ namespace HBP.Data
         /// </summary>
         public Patient() : this("Unknown", "Unknown", 0, new Brain())
         {
+        }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Get patient directories in the directory.
+        /// </summary>
+        /// <param name="path">Directory path.</param>
+        /// <returns></returns>
+        public static string[] GetPatientsDirectories(string path)
+        {
+            List<string> patientDirectories = new List<string>();
+            if (Directory.Exists(path))
+            {
+                DirectoryInfo[] directories = new DirectoryInfo(path).GetDirectories();
+                foreach (DirectoryInfo directory in directories)
+                {
+                    if (directory.Name.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries).Length == 3)
+                    {
+                        patientDirectories.Add(directory.FullName);
+                    }
+                }
+            }
+            return patientDirectories.ToArray();
         }
         #endregion
 
@@ -259,30 +276,6 @@ namespace HBP.Data
             Place = patient.Place;
             ID = patient.ID;
             Brain = patient.Brain;
-        }
-        #endregion
-
-        #region Public Methods
-        /// <summary>
-        /// Get patient directories in the directory.
-        /// </summary>
-        /// <param name="path">Directory path.</param>
-        /// <returns></returns>
-        public static string[] GetPatientsDirectories(string path)
-        {
-            List<string> patientDirectories = new List<string>();
-            if (Directory.Exists(path))
-            {
-                DirectoryInfo[] directories = new DirectoryInfo(path).GetDirectories();
-                foreach (DirectoryInfo directory in directories)
-                {
-                    if (directory.Name.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries).Length == 3)
-                    {
-                        patientDirectories.Add(directory.FullName);
-                    }
-                }
-            }
-            return patientDirectories.ToArray();
         }
         #endregion
     }

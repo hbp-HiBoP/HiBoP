@@ -96,8 +96,8 @@ namespace HBP.Data.Visualization
         {
             Name = name;
             ReferenceFrame = referenceFrame;
-            SetPatients(patients);
             Columns = columns.ToList();
+            SetPatients(patients);
             Configuration = new VisualizationConfiguration();
             ID = id;
         }
@@ -200,6 +200,7 @@ namespace HBP.Data.Visualization
             Dictionary<Column, Experience.Dataset.Data[]> dataByColumn = new Dictionary<Column, Experience.Dataset.Data[]>();
             yield return c_ReadData(dataInfoByColumn, dataByDataInfo, progress, onChangeProgress,(value, progressValue) => { dataByColumn = value; progress = progressValue; });
             yield return c_LoadColumns(dataByColumn, progress, onChangeProgress,(value) => progress = value);
+            yield return c_StandardizeColumns(progress, onChangeProgress,(value) => progress = value);
         }
         /// <summary>
         /// Unload the visualization.
@@ -247,7 +248,8 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            return new Visualization(Name, ReferenceFrame, Patients, from column in Columns select column.Clone() as Column, ID);
+            Column[] columns = (from column in Columns select column.Clone() as Column).ToArray();
+            return new Visualization(Name, ReferenceFrame, Patients, columns, ID);
 
         }
         /// <summary>
@@ -373,6 +375,20 @@ namespace HBP.Data.Visualization
                 onChangeProgress.Invoke(progress, 0, "Load column <color=blue>" + column.DataLabel + "</color>.");
                 yield return Ninja.JumpBack;
                 column.Load(dataByColumn[column]);
+            }
+        }
+        IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, string> onChangeProgress, Action<float> outPut)
+        {
+            float progressStep = STANDARDIZE_COLUMNS_PROGRESS / Columns.Count;
+            int maxBefore = (from column in Columns select column.TimeLine.MainEvent.Position).Max();
+            int maxAfter = (from column in Columns select column.TimeLine.Lenght - column.TimeLine.MainEvent.Position).Max();
+            foreach (var column in Columns)
+            {
+                yield return Ninja.JumpToUnity;
+                progress += progressStep;
+                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.DataLabel + "</color>.");
+                yield return Ninja.JumpBack;
+                column.Standardize(maxBefore, maxAfter);
             }
         }
         #endregion

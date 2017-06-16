@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace HBP.Data.Anatomy
@@ -17,14 +18,14 @@ namespace HBP.Data.Anatomy
     public class Electrode
 	{
         #region Properties
-        /** Electrode name. */
-		public string Name { get; set; }
-        /** Electrode plots. */
-        public List<Site> Sites { get; set; }
         /// <summary>
-        /// Implantation which contains the electrode.
+        /// Name of the electrode.
         /// </summary>
-        public Implantation Implantation { get; set; }
+		public string Name { get; set; }
+        /// <summary>
+        /// Sites of the electrode.
+        /// </summary>
+        public Site[] Sites { get; set; }
         #endregion
 
         #region Constructor
@@ -32,28 +33,23 @@ namespace HBP.Data.Anatomy
         /// Create a new Electrode instance.
         /// </summary>
         /// <param name="name">Electrode name.</param>
-        /// <param name="plots">Electrode plots.</param>
-        public Electrode(string name, IEnumerable<Site> plots)
+        /// <param name="sites">Electrode plots.</param>
+        public Electrode(string name, IEnumerable<Site> sites)
         {
             Name = name;
-            Sites = new List<Site>(plots);
-        }
-        /// <summary>
-        /// Create a new Electrode instance with no plots.
-        /// </summary>
-        /// <param name="name">Electrode name.</param>
-		public Electrode(string name) : this(name,new Site[0])
-		{
-		}
-        /// <summary>
-        /// Create a new Electrode instance with a empty name and no plots.
-        /// </summary>
-        public Electrode() : this(string.Empty,new Site[0])
-        {
+            Sites = sites.ToArray();
         }
         #endregion
 
         #region Public Static Methods
+        public static bool GenerateElectrodes(IEnumerable<Site> sites, out IEnumerable<Electrode> electrodes)
+        {
+            electrodes = new List<Electrode>();
+            foreach (var site in sites)
+            {
+
+            }
+        }
         /// <summary>
         /// Find electrode name from a plot name.
         /// </summary>
