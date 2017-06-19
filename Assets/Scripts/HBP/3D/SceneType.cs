@@ -60,3 +60,4 @@ public enum SiteAction
     Unmark
 }
 public enum CutOrientation { Axial = 0, Coronal = 1, Sagital = 2, Custom = 3 } // Same as above
+public enum SiteInformationDisplayMode { IEEG, FMRI, CCEP }

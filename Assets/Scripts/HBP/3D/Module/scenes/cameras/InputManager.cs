@@ -46,12 +46,12 @@ namespace HBP.Interaction
         {
             if (m_UIManager.OverlayManager.check_if_click_on_overlay(scene.Type))
             {
-                scene.DisableSiteDisplayWindow(idColumn);
+                //scene.DisableSiteDisplayWindow(idColumn);
                 return;
             }
             else
             {
-                scene.MoveMouseOnScene(ray, mousePosition, idColumn);
+                //scene.MoveMouseOnScene(ray, mousePosition, idColumn);
             }
         }
         /// <summary>

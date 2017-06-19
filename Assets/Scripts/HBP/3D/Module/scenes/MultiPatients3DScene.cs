@@ -761,82 +761,6 @@ namespace HBP.Module3D
                     }                    
                 }
             }         
-        }        
-        /// <summary>
-        /// Manage the mouse movement events in the scene
-        /// </summary>
-        /// <param name="ray"></param>
-        /// <param name="mousePosition"></param>
-        /// /// <param name="idColumn"></param>
-        public override void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn)
-        {
-            // scene not loaded
-            if (!SceneInformation.MRILoaded)
-                return;
-
-            if (m_ColumnManager.SelectedColumnID != idColumn) // not the selected column
-                return;
-
-            // retrieve layer
-            int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(m_ColumnManager.SelectedColumn.Layer);
-            layerMask |= 1 << LayerMask.NameToLayer("Default");
-
-            // raycasts
-            RaycastHit[] hits = Physics.RaycastAll(ray.origin, ray.direction, Mathf.Infinity, layerMask);
-            if (hits.Length == 0)
-            {
-                Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
-                return;
-            }
-
-            // check the hits
-            int idHitToKeep = -1;
-            float minDistance = float.MaxValue;
-            for(int ii = 0; ii < hits.Length; ++ii)
-            {
-                if (hits[ii].collider.GetComponent<Site>() == null) // not a plot hit
-                    continue;
-
-                if (minDistance > hits[ii].distance)
-                {
-                    minDistance = hits[ii].distance;
-                    idHitToKeep = ii;
-                }
-            }
-
-            if (idHitToKeep == -1) // not plot hit
-            {
-                Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
-                return;
-            }
-
-            if (hits[idHitToKeep].collider.transform.parent.name == "cuts" || hits[idHitToKeep].collider.transform.parent.name == "brains") // meshes hit
-            {
-                Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
-                return;
-            }
-
-            Site site = hits[idHitToKeep].collider.GetComponent<Site>();
-
-            switch (m_ColumnManager.SelectedColumn.Type)
-            {
-                case Column3D.ColumnType.FMRI:
-                    Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hits[idHitToKeep].collider.GetComponent<Site>().Information.FullName));
-                    break;
-                case Column3D.ColumnType.IEEG:
-                    Column3DIEEG currIEEGCol = (Column3DIEEG)m_ColumnManager.SelectedColumn;
-
-                    // retrieve current plot amp
-                    float amp = 0;
-                    if (currIEEGCol.IEEGValuesBySiteID.Length > 0)
-                        amp = currIEEGCol.IEEGValuesBySiteID[site.Information.GlobalID][currIEEGCol.CurrentTimeLineID];
-
-                    Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.FMRI, false, hits[idHitToKeep].collider.GetComponent<Site>().Information.FullName, "" + amp));
-                    break;
-                default:
-                    break;
-            }
         }
         public override void PassiveRaycastOnScene(Ray ray, Column3D column)
         {
@@ -850,7 +774,7 @@ namespace HBP.Module3D
             bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
             if (!isCollision)
             {
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition, false));
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
                 return;
             }
 
@@ -860,7 +784,7 @@ namespace HBP.Module3D
             switch (column.Type)
             {
                 case Column3D.ColumnType.FMRI:
-                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, true, false, site.Information.FullName));
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.FMRI, site.Information.FullName));
                     break;
                 case Column3D.ColumnType.IEEG:
                     Column3DIEEG columnIEEG = column as Column3DIEEG;
@@ -871,19 +795,11 @@ namespace HBP.Module3D
                     {
                         amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
                     }
-                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, column.Type == Column3D.ColumnType.FMRI, false, site.Information.FullName, "" + amplitude));
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.IEEG, site.Information.FullName, "" + amplitude));
                     break;
                 default:
                     break;
             }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="idColumn"></param>
-        public override void DisableSiteDisplayWindow(int idColumn)
-        {
-            Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
         }
         /// <summary>
         /// 

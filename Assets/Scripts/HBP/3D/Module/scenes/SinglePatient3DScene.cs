@@ -704,92 +704,6 @@ namespace HBP.Module3D
         /// <param name="ray"></param>
         /// <param name="mousePosition"></param>
         /// /// <param name="idColumn"></param>
-        public override void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn)
-        {
-            // scene not loaded
-            if (!SceneInformation.MRILoaded)
-                return;
-
-            // current column is different : we display only for the selected column
-            if (m_ColumnManager.SelectedColumnID != idColumn)
-                return;
-
-            // retrieve layer
-            int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(m_ColumnManager.SelectedColumn.Layer);
-            layerMask |= 1 << LayerMask.NameToLayer("Default");
-
-            RaycastHit hit;
-            bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
-            if (!isCollision)
-            {
-                Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
-                return;
-            }
-            if (hit.collider.transform.parent.name == "Cuts" || hit.collider.transform.parent.name == "Brains")
-            {
-                Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, mousePosition, false));
-                return;
-            }
-
-            Site site = hit.collider.GetComponent<Site>();
-
-            switch (m_ColumnManager.SelectedColumn.Type)
-            {
-                case Column3D.ColumnType.FMRI:
-                    Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, true, false, hit.collider.GetComponent<Site>().Information.FullName));
-                    return;
-                case Column3D.ColumnType.IEEG:
-                    Column3DIEEG currIEEGCol = (Column3DIEEG)m_ColumnManager.SelectedColumn;
-                    int idPlot = site.Information.SitePatientID;
-
-                    // retrieve currant plot amp
-                    float amp = 0;
-                    if (currIEEGCol.IEEGValuesBySiteID.Length > 0)
-                    {
-                        amp = currIEEGCol.IEEGValuesBySiteID[idPlot][currIEEGCol.CurrentTimeLineID];
-                    }
-
-                    // retrieve current lateny/height
-                    string latency = "none", height = "none";
-                    if (currIEEGCol.CurrentLatencyFile != -1)
-                    {
-                        Latencies latencyFile = m_ColumnManager.LatenciesFiles[currIEEGCol.CurrentLatencyFile];
-
-                        if (currIEEGCol.SourceSelectedID == -1) // no source selected
-                        {
-                            latency = "...";
-                            height = "no source selected";
-                        }
-                        else if (currIEEGCol.SourceSelectedID == idPlot) // plot is the source
-                        {
-                            latency = "0";
-                            height = "source";
-                        }
-                        else
-                        {
-                            if (latencyFile.IsSiteResponsiveForSource(idPlot, currIEEGCol.SourceSelectedID)) // data available
-                            {
-                                latency = "" + latencyFile.LatenciesValues[currIEEGCol.SourceSelectedID][idPlot];
-                                height = "" + latencyFile.Heights[currIEEGCol.SourceSelectedID][idPlot];
-                            }
-                            else
-                            {
-                                latency = "No data";
-                                height = "No data";
-                            }
-                        }
-                    }
-
-                    Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(site, true, mousePosition, m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.FMRI, SceneInformation.DisplayCCEPMode,
-                        hit.collider.GetComponent<Site>().Information.FullName, "" + amp, height, latency));
-                    break;
-                default:
-                    break;
-            }
-
-            
-        }
         public override void PassiveRaycastOnScene(Ray ray, Column3D column)
         {
             if (!SceneInformation.MRILoaded) return;
@@ -802,7 +716,7 @@ namespace HBP.Module3D
             bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
             if (!isCollision)
             {
-                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition, false));
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
                 return;
             }
 
@@ -812,7 +726,7 @@ namespace HBP.Module3D
             switch (column.Type)
             {
                 case Column3D.ColumnType.FMRI:
-                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, true, false, site.Information.FullName));
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.FMRI, site.Information.FullName));
                     break;
                 case Column3D.ColumnType.IEEG:
                     Column3DIEEG columnIEEG = column as Column3DIEEG;
@@ -853,19 +767,11 @@ namespace HBP.Module3D
                             }
                         }
                     }
-                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, column.Type == Column3D.ColumnType.FMRI, SceneInformation.DisplayCCEPMode, site.Information.FullName, "" + amplitude, height, latency));
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode?SiteInformationDisplayMode.CCEP:SiteInformationDisplayMode.IEEG, site.Information.FullName, "" + amplitude, height, latency));
                     break;
                 default:
                     break;
             }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="idColumn"></param>
-        public override void DisableSiteDisplayWindow(int idColumn)
-        {
-            Events.OnUpdateDisplayedSitesInfo.Invoke(new SiteInfo(null, false, new Vector3(0, 0, 0), false));
         }
         /// <summary>
         /// Update the display mode of the scene

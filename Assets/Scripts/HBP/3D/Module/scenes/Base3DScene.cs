@@ -55,31 +55,26 @@ namespace HBP.Module3D
     /// </summary>
     public class SiteInfo
     {
-        public SiteInfo(Site site, bool enabled, Vector3 position, bool isFMRI, bool displayLatencies = false, string name = "", string amplitude = "", string height = "", string latency = "")
+        public SiteInfo(Site site, bool enabled, Vector3 position, SiteInformationDisplayMode mode = SiteInformationDisplayMode.IEEG, string name = "", string amplitude = "", string height = "", string latency = "")
         {
             this.site = site;
             this.enabled = enabled;
             this.position = position;
-            this.isFMRI = isFMRI;
-            this.displayLatencies = displayLatencies;
             this.name = name;
             this.amplitude = amplitude;
             this.height = height;
             this.latency = latency;
+            this.mode = mode;
         }
 
         public Site site = null;
-
-        public bool isFMRI;
         public bool enabled;
-        public bool displayLatencies;
-
         public Vector3 position;
-
         public string name;
         public string amplitude;
         public string height;
         public string latency;
+        public SiteInformationDisplayMode mode;
     }
 
     /// <summary>
@@ -175,10 +170,6 @@ namespace HBP.Module3D
             /// UI event for sending a plot info request to the outside UI (params : plotRequest)
             /// </summary>
             public GenericEvent<SiteRequest> OnRequestSiteInformation = new GenericEvent<SiteRequest>();
-            /// <summary>
-            /// Update displayed sites info
-            /// </summary>
-            public GenericEvent<SiteInfo> OnUpdateDisplayedSitesInfo = new GenericEvent<SiteInfo>();
             /// <summary>
             /// Occurs when a plot is clicked in the scene (params : id of the column, if = -1 use the current selected column id)
             /// </summary>
@@ -1944,18 +1935,6 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="ray"></param>
         public abstract void ClickOnScene(Ray ray);
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="idColumn"></param>
-        public abstract void DisableSiteDisplayWindow(int idColumn);
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ray"></param>
-        /// <param name="mousePosition"></param>
-        /// <param name="idColumn"></param>
-        public abstract void MoveMouseOnScene(Ray ray, Vector3 mousePosition, int idColumn);
         /// <summary>
         /// Raycast on scene at each frame
         /// </summary>
