@@ -127,6 +127,14 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         {
             m_View.DisplayRotationCircles = true;
         }
+        else
+        {
+            Ray ray;
+            if (CursorToRay(out ray))
+            {
+                m_Scene.ClickOnScene(ray);
+            }
+        }
     }
     public void OnDrag(PointerEventData data)
     {

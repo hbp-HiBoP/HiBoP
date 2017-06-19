@@ -174,6 +174,12 @@ namespace HBP.Module3D
             /// Occurs when a plot is clicked in the scene (params : id of the column, if = -1 use the current selected column id)
             /// </summary>
             public GenericEvent<int> OnClickSite = new GenericEvent<int>();
+            /// <summary>
+            /// Event called when clicking on a ROI
+            /// </summary>
+            public GenericEvent<int, int> OnSelectROI = new GenericEvent<int, int>();
+
+            public GenericEvent<Vector3, int> OnCreateROIBubble = new GenericEvent<Vector3, int>();
 
             /// <summary>
             /// Event for updating time in the UI
@@ -234,6 +240,17 @@ namespace HBP.Module3D
                 {
                     Events.OnSelectScene.Invoke(this);
                 }
+            }
+        }
+        
+        /// <summary>
+        /// List of the patients in this scene
+        /// </summary>
+        public ReadOnlyCollection<Data.Patient> Patients
+        {
+            get
+            {
+                return new ReadOnlyCollection<Data.Patient>(Visualization.Patients);
             }
         }
 
@@ -985,6 +1002,25 @@ namespace HBP.Module3D
             m_ModesManager.UpdateMode(Mode.FunctionsId.RemoveLastFMRIColumn);
         }
         /// <summary>
+        /// Actions to perform when clicking on a site
+        /// </summary>
+        private void ClickOnSiteCallback()
+        {
+            if (m_ColumnManager.SelectedColumn.SelectedSiteID == -1) return;
+            if (SceneInformation.IsComparingSites)
+            {
+                SceneInformation.IsComparingSites = false;
+                //SendAdditionalSiteInfoRequest(LAST_SELECTED_SITE); //FIXME : retrieve last selected site
+            }
+            else
+            {
+                if (((Column3DIEEG)m_ColumnManager.SelectedColumn).SendInformation)
+                {
+                    SendAdditionalSiteInfoRequest();
+                }
+            }
+        }
+        /// <summary>
         /// Init gameobjects of the scene
         /// </summary>
         protected void InitializeSceneGameObjects()
@@ -1666,7 +1702,7 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateMeshesColliders()
         {
-            if (!SceneInformation.MeshesLoaded || !SceneInformation.MRILoaded)
+            if (!SceneInformation.MeshesLoaded || !SceneInformation.MRILoaded || SceneInformation.CollidersUpdated)
                 return;
 
             // update splits colliders
@@ -1918,6 +1954,181 @@ namespace HBP.Module3D
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             Events.OnClickSite.Invoke(-1); // update menu
         }
+        /// <summary>
+        /// Manage the mouse movments event in the scene
+        /// </summary>
+        /// <param name="ray"></param>
+        /// <param name="mousePosition"></param>
+        /// /// <param name="idColumn"></param>
+        public void PassiveRaycastOnScene(Ray ray, Column3D column)
+        {
+            if (!SceneInformation.MRILoaded) return;
+
+            // update colliders if necessary
+            UpdateMeshesColliders();
+
+            int layerMask = 0;
+            layerMask |= 1 << LayerMask.NameToLayer(column.Layer);
+            layerMask |= 1 << LayerMask.NameToLayer("Default");
+
+            RaycastHit hit;
+            bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
+            if (!isCollision)
+            {
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
+                return;
+            }
+
+            Site site = hit.collider.GetComponent<Site>();
+            if (!site)
+            {
+                ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
+                return;
+            }
+
+            switch (column.Type)
+            {
+                case Column3D.ColumnType.FMRI:
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.FMRI, site.Information.FullName));
+                    break;
+                case Column3D.ColumnType.IEEG:
+                    Column3DIEEG columnIEEG = column as Column3DIEEG;
+                    int siteID = site.Information.SitePatientID;
+
+                    float amplitude = 0;
+                    if (columnIEEG.IEEGValuesBySiteID.Length > 0)
+                    {
+                        amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
+                    }
+                    switch (Type)
+                    {
+                        case SceneType.SinglePatient:
+                            string latency = "none", height = "none";
+                            if (columnIEEG.CurrentLatencyFile != -1)
+                            {
+                                Latencies latencyFile = m_ColumnManager.LatenciesFiles[columnIEEG.CurrentLatencyFile];
+
+                                if (columnIEEG.SourceSelectedID == -1) // no source selected
+                                {
+                                    latency = "...";
+                                    height = "no source selected";
+                                }
+                                else if (columnIEEG.SourceSelectedID == siteID) // site is the source
+                                {
+                                    latency = "0";
+                                    height = "source";
+                                }
+                                else
+                                {
+                                    if (latencyFile.IsSiteResponsiveForSource(siteID, columnIEEG.SourceSelectedID))
+                                    {
+                                        latency = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
+                                        height = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
+                                    }
+                                    else
+                                    {
+                                        latency = "No data";
+                                        height = "No data";
+                                    }
+                                }
+                            }
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? SiteInformationDisplayMode.CCEP : SiteInformationDisplayMode.IEEG, site.Information.FullName, "" + amplitude, height, latency));
+                            break;
+                        case SceneType.MultiPatients:
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.IEEG, site.Information.FullName, "" + amplitude));
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        /// <summary>
+        /// Manage the clicks on the scene
+        /// </summary>
+        /// <param name="ray"></param>
+        public void ClickOnScene(Ray ray)
+        {
+            if (!SceneInformation.MRILoaded) return;
+
+            int layerMask = 0;
+            layerMask |= 1 << LayerMask.NameToLayer(m_ColumnManager.SelectedColumn.Layer);
+            layerMask |= 1 << LayerMask.NameToLayer("Default");
+
+            RaycastHit hit;
+            bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
+            if (!isCollision) return;
+
+            // FIXME : maybe create a component instead of checking the name of the parent
+            bool cutHit = hit.transform.parent.gameObject.name == "Cuts";
+            bool meshHit = hit.transform.parent.gameObject.name == "Brains" || hit.transform.parent.gameObject.name == "Erased Brains";
+            bool siteHit = hit.collider.GetComponent<Site>() != null;
+            bool roiHit = hit.collider.GetComponent<Bubble>() != null;
+
+            if (siteHit)
+            {
+                Site site = hit.collider.gameObject.GetComponent<Site>();
+                m_ColumnManager.SelectedColumn.SelectedSiteID = site.Information.GlobalID;
+                m_ColumnManager.SelectedPatientID = site.Information.PatientID;
+                if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG && Type == SceneType.SinglePatient)
+                {
+                    Column3DIEEG columnIEEG = (Column3DIEEG)m_ColumnManager.SelectedColumn;
+                    m_ColumnManager.LatencyFileAvailable = (columnIEEG.CurrentLatencyFile != -1);
+                    columnIEEG.SourceDefined = false;
+                    columnIEEG.IsSiteASource = false;
+                    columnIEEG.SiteLatencyData = false;
+                    if (m_ColumnManager.LatencyFileAvailable)
+                    {
+                        columnIEEG.SourceDefined = (columnIEEG.SourceSelectedID != -1);
+                        if (m_ColumnManager.LatenciesFiles[columnIEEG.CurrentLatencyFile].IsSiteASource(columnIEEG.SelectedSiteID))
+                        {
+                            columnIEEG.IsSiteASource = true;
+                        }
+                        if (columnIEEG.SourceDefined)
+                        {
+                            columnIEEG.SiteLatencyData = m_ColumnManager.LatenciesFiles[columnIEEG.CurrentLatencyFile].IsSiteResponsiveForSource(columnIEEG.SelectedSiteID, columnIEEG.SourceSelectedID);
+                        }
+                    }
+                }
+                ClickOnSiteCallback();
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            }
+            else
+            {
+                if (SceneInformation.IsROICreationModeEnabled)
+                {
+                    if (roiHit)
+                    {
+                        if (m_ColumnManager.SelectedColumn.SelectedROI.CheckCollision(ray))
+                        {
+                            int bubbleID = m_ColumnManager.SelectedColumn.SelectedROI.CollidedClosestBubbleID(ray);
+                            Events.OnSelectROI.Invoke(m_ColumnManager.SelectedColumnID, bubbleID);
+                        }
+                    }
+                    else if (meshHit || cutHit)
+                    {
+                        Events.OnCreateROIBubble.Invoke(hit.point, m_ColumnManager.SelectedColumnID);
+                        m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                    }
+                }
+                else
+                {
+                    if (meshHit)
+                    {
+                        if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable)
+                        {
+                            m_TriEraser.EraseTriangles(ray.direction, hit.point);
+                            for (int i = 0; i < m_ColumnManager.DLLSplittedMeshesList.Count; i++)
+                            {
+                                m_ColumnManager.DLLSplittedMeshesList[i].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         #endregion
 
         #region Abstract Methods
@@ -1930,16 +2141,6 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="previousPlot"></param>
         public abstract void SendAdditionalSiteInfoRequest(Site previousPlot = null);
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ray"></param>
-        public abstract void ClickOnScene(Ray ray);
-        /// <summary>
-        /// Raycast on scene at each frame
-        /// </summary>
-        /// <param name="ray">Ray to be raycasted</param>
-        public abstract void PassiveRaycastOnScene(Ray ray, Column3D column);
         #endregion
 
         #region Coroutines
