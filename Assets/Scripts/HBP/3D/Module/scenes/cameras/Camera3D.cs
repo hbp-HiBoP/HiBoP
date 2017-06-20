@@ -205,8 +205,8 @@ namespace HBP.Module3D
 
             m_AssociatedScene.Events.OnUpdateCameraTarget.AddListener((target) =>
             {
-                m_OriginalTarget = target;
-                m_Target = target;
+                m_OriginalTarget = target + m_AssociatedView.transform.position;
+                m_Target = target + m_AssociatedView.transform.position;
             });
         }
         private void OnPreCull()

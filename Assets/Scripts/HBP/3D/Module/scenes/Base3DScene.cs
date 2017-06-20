@@ -520,7 +520,7 @@ namespace HBP.Module3D
         {         
             int idScript = TimeExecution.ID;
             TimeExecution.StartAwake(idScript, TimeExecution.ScriptsId.Base3DScene);
-
+            
             m_DisplayedObjects = new DisplayedObjects3DView();
             SceneInformation = new SceneStatesInfo();
             m_ColumnManager = GetComponent<Column3DManager>();
@@ -529,7 +529,7 @@ namespace HBP.Module3D
             SharedMaterials.Brain.AddSceneMaterials(this);
 
             // set meshes layer
-            switch(Type)
+            switch (Type)
             {
                 case SceneType.SinglePatient:
                     SceneInformation.MeshesLayerName = "Default";
@@ -551,11 +551,10 @@ namespace HBP.Module3D
                 //    update_scene_items_visibility(specs.itemMaskDisplay[0], specs.itemMaskDisplay[1], specs.itemMaskDisplay[2]);
                 //UnityEngine.Profiling.Profiler.EndSample();
             });
-
+            
             AddListeners();
             // init GO
             InitializeSceneGameObjects();
-
 
             TimeExecution.EndAwake(idScript, TimeExecution.ScriptsId.Base3DScene, gameObject);
         }
@@ -1565,53 +1564,6 @@ namespace HBP.Module3D
             // Update Mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMaskPlot);
         }
-        /// <summary>
-        /// Reset the volume of the scene
-        /// </summary>
-        /// <param name="pathNIIBrainVolumeFile"></param>
-        /// <returns></returns>
-        public bool LoadNiftiBrainVolume(string pathNIIBrainVolumeFile)
-        {
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetNIIBrainVolumeFile))
-            {
-                Debug.LogError("-ERROR : Base3DScene::resetNIIBrainVolumeFile -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return false;
-            }
-
-            SceneInformation.MRILoaded = false;
-
-            // checks parameter
-            if (pathNIIBrainVolumeFile.Length == 0)
-            {
-                Debug.LogError("-ERROR : Base3DScene::resetNIIBrainVolumeFile -> path NII brain volume file is empty. ");
-                return (SceneInformation.MeshesLoaded = false);
-            }
-
-            // load volume
-            bool loadingSuccess = m_ColumnManager.DLLNii.LoadNIIFile(pathNIIBrainVolumeFile);
-            if (loadingSuccess)
-            {
-                m_ColumnManager.DLLNii.ConvertToVolume(m_ColumnManager.DLLVolume);
-                SceneInformation.VolumeCenter = m_ColumnManager.DLLVolume.Center;
-            }
-            else
-            {
-                Debug.LogError("-ERROR : Base3DScene::resetNIIBrainVolumeFile -> load NII file failed. " + pathNIIBrainVolumeFile);
-                return SceneInformation.MRILoaded;
-            }
-
-            SceneInformation.MRILoaded = loadingSuccess;
-            Events.OnUpdatePlanes.Invoke();
-
-            // send cal values to the UI
-            Events.OnMRICalValuesUpdate.Invoke(m_ColumnManager.DLLVolume.ExtremeValues);
-
-            // Update mode
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
-
-            return SceneInformation.MRILoaded;
-        }
         public void SelectDefaultView()
         {
             m_ColumnManager.Columns[0].Views[0].IsSelected = true;
@@ -2332,6 +2284,50 @@ namespace HBP.Module3D
                         m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
                 }
             }
+        }
+        /// <summary>
+        /// Reset the volume of the scene
+        /// </summary>
+        /// <param name="pathNIIBrainVolumeFile"></param>
+        /// <returns></returns>
+        protected IEnumerator c_LoadNiftiBrainVolume(string pathNIIBrainVolumeFile)
+        {
+            // Check access
+            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetNIIBrainVolumeFile))
+            {
+                throw new ModeAccessException(m_ModesManager.CurrentModeName);
+            }
+
+            SceneInformation.MRILoaded = false;
+
+            // checks parameter
+            if (pathNIIBrainVolumeFile.Length == 0)
+            {
+                throw new EmptyFilePathException("NII");
+            }
+
+            // load volume
+            bool loadingSuccess = m_ColumnManager.DLLNii.LoadNIIFile(pathNIIBrainVolumeFile);
+            if (loadingSuccess)
+            {
+                m_ColumnManager.DLLNii.ConvertToVolume(m_ColumnManager.DLLVolume);
+                SceneInformation.VolumeCenter = m_ColumnManager.DLLVolume.Center;
+            }
+            else
+            {
+                throw new CanNotLoadNIIFile(pathNIIBrainVolumeFile);
+            }
+
+            SceneInformation.MRILoaded = loadingSuccess;
+            Events.OnUpdatePlanes.Invoke();
+
+            // send cal values to the UI
+            Events.OnMRICalValuesUpdate.Invoke(m_ColumnManager.DLLVolume.ExtremeValues);
+
+            // Update mode
+            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
+
+            yield return SceneInformation.MRILoaded;
         }
         #endregion
     }

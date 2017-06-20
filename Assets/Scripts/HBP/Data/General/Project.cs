@@ -365,8 +365,11 @@ namespace HBP.Data.General
             if (!Directory.Exists(projectInfo.Path)) throw new DirectoryNotFoundException(projectInfo.Path); // Test if the directory exist.
             if (!IsProject(projectInfo.Path)) throw new DirectoryNotProjectException(projectInfo.Path); // Test if the directory is a project.
             DirectoryInfo projectDirectory = new DirectoryInfo(projectInfo.Path);
-
+            
             yield return c_LoadSettings(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            //yield return Ninja.JumpToUnity;
+            //yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadPatients(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
+            //yield return Ninja.JumpBack;
             yield return c_LoadPatients(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
             yield return c_LoadGroups(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
             yield return c_LoadProtocols(projectDirectory, progress, progressStep, OnChangeProgress, outPut);

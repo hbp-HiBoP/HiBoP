@@ -298,3 +298,73 @@ public class CanNotRenameProjectDirectory : HBPException
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }
+
+[Serializable]
+public class ModeAccessException : HBPException
+{
+    public ModeAccessException() { }
+    public ModeAccessException(string name) : base("No access for mode " + name)
+    {
+        Title = "Can not perform this operation.";
+    }
+    public ModeAccessException(string message, Exception inner) : base(message, inner) { }
+    protected ModeAccessException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class EmptyFilePathException : HBPException
+{
+    public EmptyFilePathException() { }
+    public EmptyFilePathException(string type) : base("The path of the file of type " + type + " is empty.\n\nPlease verify the path.")
+    {
+        Title = "Path of a file is empty";
+    }
+    public EmptyFilePathException(string message, Exception inner) : base(message, inner) { }
+    protected EmptyFilePathException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class CanNotLoadTransformation : HBPException
+{
+    public CanNotLoadTransformation() { }
+    public CanNotLoadTransformation(string path) : base(path + " could not be loaded.\n\nPlease verify the path or the file.")
+    {
+        Title = "Can not load transformation.";
+    }
+    public CanNotLoadTransformation(string message, Exception inner) : base(message, inner) { }
+    protected CanNotLoadTransformation(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class CanNotLoadGIIFile : HBPException
+{
+    public CanNotLoadGIIFile() { }
+    public CanNotLoadGIIFile(bool left, bool right) : base("Left: " + (left?"OK":"NOT OK") + "\n" + "Right: " + (right?"OK":"NOT OK"))
+    {
+        Title = "Can not load GII file.";
+    }
+    public CanNotLoadGIIFile(string message, Exception inner) : base(message, inner) { }
+    protected CanNotLoadGIIFile(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class CanNotLoadNIIFile : HBPException
+{
+    public CanNotLoadNIIFile() { }
+    public CanNotLoadNIIFile(string path) : base(path + " could not be loaded.\n\nPlease verify the file.")
+    {
+        Title = "Can not load NII file.";
+    }
+    public CanNotLoadNIIFile(string message, Exception inner) : base(message, inner) { }
+    protected CanNotLoadNIIFile(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}

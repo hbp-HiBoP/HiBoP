@@ -79,10 +79,14 @@ namespace HBP.Data.Visualization
             get { return Columns.Count > 0 && Patients.Count > 0 && Columns.All((column) => column.IsCompatible(Patients)); }
         }
 
-        const float FIND_FILES_TO_READ_PROGRESS = 0.025f;
-        const float READ_FILES_PROGRESS = 0.8f;
-        const float EPOCH_DATA_PROGRESS = 0.025f;
-        const float STANDARDIZE_COLUMNS_PROGRESS = 0.15f;
+        //const float FIND_FILES_TO_READ_PROGRESS = 0.025f;
+        //const float READ_FILES_PROGRESS = 0.8f;
+        //const float EPOCH_DATA_PROGRESS = 0.025f;
+        //const float STANDARDIZE_COLUMNS_PROGRESS = 0.15f;
+        const float FIND_FILES_TO_READ_PROGRESS = 0.01f;
+        const float READ_FILES_PROGRESS = 0.4f;
+        const float EPOCH_DATA_PROGRESS = 0.01f;
+        const float STANDARDIZE_COLUMNS_PROGRESS = 0.08f;
         #endregion
 
         #region Constructors
@@ -194,12 +198,14 @@ namespace HBP.Data.Visualization
 
             float progress = 0.0f;
 
+            yield return Ninja.JumpToUnity;
             Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
-            yield return c_FindDataToRead(progress, onChangeProgress,(value, progressValue) => { dataInfoByColumn = value; progress = progressValue; });
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataToRead(progress, onChangeProgress,(value, progressValue) => { dataInfoByColumn = value; progress = progressValue; }));
             Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo = (from dataInfos in dataInfoByColumn.Values from dataInfo in dataInfos select dataInfo).Distinct().ToDictionary(t => t, t => new Experience.Dataset.Data());
             Dictionary<Column, Experience.Dataset.Data[]> dataByColumn = new Dictionary<Column, Experience.Dataset.Data[]>();
-            yield return c_ReadData(dataInfoByColumn, dataByDataInfo, progress, onChangeProgress,(value, progressValue) => { dataByColumn = value; progress = progressValue; });
-            yield return c_LoadColumns(dataByColumn, progress, onChangeProgress,(value) => progress = value);
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_ReadData(dataInfoByColumn, dataByDataInfo, progress, onChangeProgress,(value, progressValue) => { dataByColumn = value; progress = progressValue; }));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataByColumn, progress, onChangeProgress,(value) => progress = value));
+            yield return Ninja.JumpBack;
         }
         /// <summary>
         /// Unload the visualization.

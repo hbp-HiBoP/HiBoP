@@ -9,6 +9,9 @@ using UnityEngine.Events;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Collections;
+using CielaSpike;
+using System;
 
 namespace HBP.Module3D
 {
@@ -85,53 +88,11 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Add a new single patient scene
-        /// </summary>
-        /// <param name="visualization"></param>
-        /// <param name="postIRM"></param>
-        /// <returns></returns>
-        public bool AddSinglePatientScene(Data.Visualization.Visualization visualization, bool postIRM)
-        {
-            SinglePatient3DScene scene = Instantiate(SinglePatientScenePrefab, transform).GetComponent<SinglePatient3DScene>();
-            // Initialize the scene
-            bool success = scene.Initialize(visualization, postIRM);
-            m_NumberOfScenesLoadedSinceStart++;
-            if (!success)
-            {
-                Debug.LogError("-ERROR : Could not initialize new single patient scene.");
-            }
-            else
-            {
-                // Add the listeners
-                scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
-                {
-                    OnSendModeSpecifications.Invoke(specs);
-                }));
-                scene.Events.OnSelectScene.AddListener((selectedScene) =>
-                {
-                    Debug.Log("OnSelectScene (ScenesManager)");
-                    foreach (Base3DScene s in m_Scenes)
-                    {
-                        if (s != selectedScene)
-                        {
-                            s.IsSelected = false;
-                        }
-                    }
-                    OnSelectScene.Invoke(selectedScene);
-                });
-                // Add the scene to the list
-                m_Scenes.Add(scene);
-                scene.SelectDefaultView();
-                ApplicationState.Module3D.OnAddScene.Invoke(scene);
-            }
-            return success;
-        }
-        /// <summary>
         /// Add a new multi patients scene
         /// </summary>
         /// <param name="visualization"></param>
         /// <returns></returns>
-        public bool AddMultiPatientsScene(Data.Visualization.Visualization visualization)
+        public bool AddMultiPatientsScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
         {
             GameObject newMultiPatientsScene = Instantiate(MultiPatientsScenePrefab, transform);
             MultiPatients3DScene scene = newMultiPatientsScene.GetComponent<MultiPatients3DScene>();
@@ -176,6 +137,43 @@ namespace HBP.Module3D
             ApplicationState.Module3D.OnRemoveScene.Invoke(scene);
             Destroy(scene.gameObject);
             m_Scenes.Remove(scene);
+        }
+        #endregion
+
+        #region Coroutines
+        /// <summary>
+        /// Add a new single patient scene
+        /// </summary>
+        /// <param name="visualization"></param>
+        /// <param name="postIRM"></param>
+        /// <returns></returns>
+        public IEnumerator c_AddSinglePatientScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, bool postIRM)
+        {
+            yield return Ninja.JumpToUnity;
+            SinglePatient3DScene scene = Instantiate(SinglePatientScenePrefab, transform).GetComponent<SinglePatient3DScene>();
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress, postIRM));
+            m_NumberOfScenesLoadedSinceStart++;
+            // Add the listeners
+            scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
+            {
+                OnSendModeSpecifications.Invoke(specs);
+            }));
+            scene.Events.OnSelectScene.AddListener((selectedScene) =>
+            {
+                Debug.Log("OnSelectScene (ScenesManager)");
+                foreach (Base3DScene s in m_Scenes)
+                {
+                    if (s != selectedScene)
+                    {
+                        s.IsSelected = false;
+                    }
+                }
+                OnSelectScene.Invoke(selectedScene);
+            });
+            // Add the scene to the list
+            m_Scenes.Add(scene);
+            scene.SelectDefaultView();
+            ApplicationState.Module3D.OnAddScene.Invoke(scene);
         }
         #endregion
     }
