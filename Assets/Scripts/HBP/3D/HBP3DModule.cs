@@ -57,7 +57,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_ScenesManager.SelectedScene.ColumnManager.SelectedColumn;
+                if (m_ScenesManager.SelectedScene)
+                {
+                    return m_ScenesManager.SelectedScene.ColumnManager.SelectedColumn;
+                }
+                else return null;
             }
         }
         /// <summary>

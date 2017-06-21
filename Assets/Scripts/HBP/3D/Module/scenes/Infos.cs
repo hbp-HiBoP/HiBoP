@@ -12,6 +12,7 @@ using System.Threading;
 
 // unity
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
@@ -54,13 +55,30 @@ namespace HBP.Module3D
         public bool CutMeshGeometryNeedsUpdate = true; /**< cut planes meshes must be updated */
 
         public bool IsGeometryUpToDate = false;
-        public bool IsGeneratorUpToDate = false;  /**< texture generator is up to date */
+        private bool m_IsGeneratorUpToDate = false;
+        public bool IsGeneratorUpToDate
+        {
+            get
+            {
+                return m_IsGeneratorUpToDate;
+            }
+            set
+            {
+                if (value != m_IsGeneratorUpToDate)
+                {
+                    m_IsGeneratorUpToDate = value;
+                    OnUpdateGeneratorState.Invoke(value);
+                }
+            }
+        }
  
         // others                
         public string MeshesLayerName; /**< layer name of all the meshes of the scene */
 
         // work     
         public Vector3 VolumeCenter = new Vector3(0, 0, 0); /**< center of the loaded volume */
+
+        public GenericEvent<bool> OnUpdateGeneratorState = new GenericEvent<bool>();
         #endregion
 
         #region Public Methods

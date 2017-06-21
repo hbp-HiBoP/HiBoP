@@ -7,7 +7,6 @@ namespace HBP.UI.Module3D
 {
     public class ToolbarSelector : MonoBehaviour
     {
-
         #region Properties
         /// <summary>
         /// Toolbar menu
@@ -28,10 +27,16 @@ namespace HBP.UI.Module3D
         private Toggle m_DisplayToggle;
 
         /// <summary>
-        /// Display toggle
+        /// IEEG toggle
         /// </summary>
         [SerializeField]
         private Toggle m_IEEGToggle;
+
+        /// <summary>
+        /// Timeline toggle
+        /// </summary>
+        [SerializeField]
+        private Toggle m_TimelineToggle;
 
         /// <summary>
         /// Toggle group associated to the left menu toggles
@@ -52,6 +57,7 @@ namespace HBP.UI.Module3D
             m_Toolbars.Add(m_SceneToggle, m_ToolbarMenu.SceneSettingsToolbar);
             m_Toolbars.Add(m_DisplayToggle, m_ToolbarMenu.DisplaySettingsToolbar);
             m_Toolbars.Add(m_IEEGToggle, m_ToolbarMenu.IEEGSettingsToolbar);
+            m_Toolbars.Add(m_TimelineToggle, m_ToolbarMenu.TimelineToolbar);
 
             AddListeners();
         }
@@ -79,6 +85,13 @@ namespace HBP.UI.Module3D
                 if (isOn)
                 {
                     ChangeToolbar(m_IEEGToggle);
+                }
+            });
+            m_TimelineToggle.onValueChanged.AddListener((isOn) =>
+            {
+                if (isOn)
+                {
+                    ChangeToolbar(m_TimelineToggle);
                 }
             });
         }

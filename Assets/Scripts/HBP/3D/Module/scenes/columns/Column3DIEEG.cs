@@ -1,13 +1,16 @@
 ﻿
-/**
- * \file    Column3DViewIEEG.cs
- * \author  Lance Florian
- * \date    2015
- * \brief   Define Column3DViewIEEG class
- */
+
 
 // system
+using CielaSpike;
+/**
+* \file    Column3DViewIEEG.cs
+* \author  Lance Florian
+* \date    2015
+* \brief   Define Column3DViewIEEG class
+*/
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 // unity
@@ -42,10 +45,67 @@ namespace HBP.Module3D
         // IEEG
         public bool SendInformation = true; /**< send info at each plot click ? */
         public bool UpdateIEEG; /**< amplitude needs to be updated ? */
-        public int ColumnTimeLineID = 0; /**< timeline column ID */
-        public int CurrentTimeLineID = 0; /**< curent timeline column ID */
+        private int m_CurrentTimeLineID = 0;
+        public int CurrentTimeLineID
+        {
+            get
+            {
+                return m_CurrentTimeLineID;
+            }
+            set
+            {
+                m_CurrentTimeLineID = Mathf.Clamp(value, 0, MaxTimeLineID);
+            }
+        }
+        public int MaxTimeLineID { get; set; }
+        public float MinTimeLine { get; set; }
+        public float MaxTimeLine { get; set; }
         public float SharedMinInf = 0f;
         public float SharedMaxInf = 0f;
+
+        private Coroutine m_LoopingCoroutine = null;
+
+        private bool m_IsLooping = false;
+        /// <summary>
+        /// Is the column data looping ?
+        /// </summary>
+        public bool IsLooping
+        {
+            get
+            {
+                return m_IsLooping;
+            }
+            set
+            {
+                m_IsLooping = value;
+                if (m_IsLooping)
+                {
+                    m_LoopingCoroutine = this.StartCoroutineAsync(c_Loop());
+                }
+                else if (m_LoopingCoroutine != null)
+                {
+                    StopCoroutine(m_LoopingCoroutine);
+                    m_LoopingCoroutine = null;
+                }
+            }
+        }
+
+        private int m_LoopingStep = 1;
+        /// <summary>
+        /// Looping step (for the timeline)
+        /// </summary>
+        public int LoopingStep
+        {
+            get
+            {
+                return m_LoopingStep;
+            }
+            set
+            {
+                m_LoopingStep = value % MaxTimeLineID;
+                if (m_LoopingStep < 1) m_LoopingStep = 1;
+            }
+        }
 
         /// <summary>
         /// IEEG data of the column
@@ -342,6 +402,10 @@ namespace HBP.Module3D
         public void SetColumnData(Data.Visualization.Column newColumnData)
         {
             Column = newColumnData;
+
+            MinTimeLine = newColumnData.TimeLine.Start.Value;
+            MaxTimeLine = newColumnData.TimeLine.End.Value;
+            MaxTimeLineID = Column.TimeLine.Lenght - 1;
 
             // update amplitudes sizes and values
             Dimensions = new int[3];
@@ -669,6 +733,18 @@ namespace HBP.Module3D
                 DLLGUIBrainCutWithIEEGTextures[indexCut].CopyAndRotate(DLLBrainCutWithIEEGTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
                 DLLGUIBrainCutWithIEEGTextures[indexCut].UpdateTexture2D(GUIBrainCutWithIEEGTextures[indexCut]);
             }
+        }
+        #endregion
+
+        #region Coroutines
+        private IEnumerator c_Loop()
+        {
+            while (m_IsLooping)
+            {
+                CurrentTimeLineID += m_LoopingStep;
+                yield return new WaitForSeconds(0.05f);
+            }
+            CurrentTimeLineID = 0;
         }
         #endregion
     }

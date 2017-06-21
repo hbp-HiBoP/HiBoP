@@ -136,7 +136,7 @@ namespace HBP.Module3D
         public Texture2D BrainColorSchemeTexture = null;        /**< brain colorscheme unity 2D texture  */
         public List<Texture2D> BrainCutTextures = null;         /**< list of cut textures */
         public List<Texture2D> GUIBrainCutTextures = null;      /**< list of GUI cut textures */
-
+        
         /// <summary>
         /// Event called when this column is selected
         /// </summary>

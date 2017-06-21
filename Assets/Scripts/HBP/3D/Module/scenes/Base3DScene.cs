@@ -659,6 +659,16 @@ namespace HBP.Module3D
                 
                 m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMiddle);
             });
+            SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
+            {
+                if (!value)
+                {
+                    foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+                    {
+                        column.IsLooping = false;
+                    }
+                }
+            });
         }
         /// <summary>
         /// 
@@ -1700,35 +1710,18 @@ namespace HBP.Module3D
         /// <param name="columnID"></param>
         /// <param name="slider"></param>
         /// <param name="globalTimeline"> if globaltime is true, update all columns with the same slider, else udapte only current selected column </param>
-        public void UpdateIEEGTime(int columnID, float value, bool globalTimeline)
+        public void UpdateIEEGTimeline(int value, bool global)
         {
-            m_ColumnManager.GlobalTimeline = globalTimeline;
-            if (m_ColumnManager.GlobalTimeline)
+            if (global)
             {
-                m_ColumnManager.CommonTimelineValue = value;
-                for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-                    m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID = (int)m_ColumnManager.CommonTimelineValue;
+                foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+                {
+                    column.CurrentTimeLineID = value;
+                }
             }
             else
             {
-                Column3DIEEG currIEEGCol = (Column3DIEEG)m_ColumnManager.Columns[columnID];
-                currIEEGCol.ColumnTimeLineID = (int)value;
-                currIEEGCol.CurrentTimeLineID = currIEEGCol.ColumnTimeLineID;
-            }
-
-            ComputeIEEGTextures();
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            Events.OnUpdateTimeInUI.Invoke();
-        }
-        /// <summary>
-        /// Update displayed amplitudes with the timeline id corresponding to global timeline mode or individual timeline mode
-        /// </summary>
-        /// <param name="globalTimeline"></param>
-        public void UpdateAllIEEGTime(bool globalTimeline)
-        {
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-            {
-                m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID = globalTimeline ? (int)m_ColumnManager.CommonTimelineValue : m_ColumnManager.ColumnsIEEG[ii].ColumnTimeLineID;
+                ((Column3DIEEG)m_ColumnManager.SelectedColumn).CurrentTimeLineID = value;
             }
 
             ComputeIEEGTextures();

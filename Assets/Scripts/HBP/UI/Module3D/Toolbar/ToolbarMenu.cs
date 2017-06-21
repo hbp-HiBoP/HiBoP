@@ -57,6 +57,23 @@ namespace HBP.UI.Module3D {
             }
         }
 
+        [SerializeField, Candlelight.PropertyBackingField]
+        private TimelineToolbar m_TimelineToolbar;
+        /// <summary>
+        /// Toolbar for the scene settings
+        /// </summary>
+        public TimelineToolbar TimelineToolbar
+        {
+            get
+            {
+                return m_TimelineToolbar;
+            }
+            set
+            {
+                m_TimelineToolbar = value;
+            }
+        }
+
         /// <summary>
         /// Currently used toolbar
         /// </summary>
@@ -76,12 +93,14 @@ namespace HBP.UI.Module3D {
             m_SceneSettingsToolbar.Initialize();
             m_DisplaySettingsToolbar.Initialize();
             m_IEEGSettingsToolbar.Initialize();
+            m_TimelineToolbar.Initialize();
 
             CurrentToolbar = m_SceneSettingsToolbar;
 
             m_SceneSettingsToolbar.gameObject.SetActive(true);
             m_DisplaySettingsToolbar.gameObject.SetActive(false);
             m_IEEGSettingsToolbar.gameObject.SetActive(false);
+            m_TimelineToolbar.gameObject.SetActive(false);
         }
         #endregion
     }
