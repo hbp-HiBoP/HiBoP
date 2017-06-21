@@ -88,47 +88,6 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Add a new multi patients scene
-        /// </summary>
-        /// <param name="visualization"></param>
-        /// <returns></returns>
-        public bool AddMultiPatientsScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
-        {
-            GameObject newMultiPatientsScene = Instantiate(MultiPatientsScenePrefab, transform);
-            MultiPatients3DScene scene = newMultiPatientsScene.GetComponent<MultiPatients3DScene>();
-            // Initialize the scene
-            bool success = scene.Initialize(visualization);
-            m_NumberOfScenesLoadedSinceStart++;
-            if (!success)
-            {
-                Debug.LogError("-ERROR : Could not initialize new multi patients scene.");
-            }
-            else
-            {
-                scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
-                {
-                    OnSendModeSpecifications.Invoke(specs);
-                }));
-                scene.Events.OnSelectScene.AddListener((selectedScene) =>
-                {
-                    Debug.Log("OnSelectScene (ScenesManager)");
-                    foreach (Base3DScene s in m_Scenes)
-                    {
-                        if (s != selectedScene)
-                        {
-                            s.IsSelected = false;
-                        }
-                    }
-                    OnSelectScene.Invoke(selectedScene);
-                });
-                // Add the scene to the list
-                m_Scenes.Add(scene);
-                scene.SelectDefaultView();
-                ApplicationState.Module3D.OnAddScene.Invoke(scene);
-            }
-            return success;
-        }
-        /// <summary>
         /// Remove a scene
         /// </summary>
         /// <param name="scene"></param>
@@ -145,13 +104,46 @@ namespace HBP.Module3D
         /// Add a new single patient scene
         /// </summary>
         /// <param name="visualization"></param>
-        /// <param name="postIRM"></param>
+        /// <param name="postMRI"></param>
         /// <returns></returns>
-        public IEnumerator c_AddSinglePatientScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, bool postIRM)
+        public IEnumerator c_AddSinglePatientScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, bool postMRI)
         {
             yield return Ninja.JumpToUnity;
             SinglePatient3DScene scene = Instantiate(SinglePatientScenePrefab, transform).GetComponent<SinglePatient3DScene>();
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress, postIRM));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress, postMRI));
+            m_NumberOfScenesLoadedSinceStart++;
+            // Add the listeners
+            scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
+            {
+                OnSendModeSpecifications.Invoke(specs);
+            }));
+            scene.Events.OnSelectScene.AddListener((selectedScene) =>
+            {
+                Debug.Log("OnSelectScene (ScenesManager)");
+                foreach (Base3DScene s in m_Scenes)
+                {
+                    if (s != selectedScene)
+                    {
+                        s.IsSelected = false;
+                    }
+                }
+                OnSelectScene.Invoke(selectedScene);
+            });
+            // Add the scene to the list
+            m_Scenes.Add(scene);
+            scene.SelectDefaultView();
+            ApplicationState.Module3D.OnAddScene.Invoke(scene);
+        }
+        /// <summary>
+        /// Add a new multi patients scene
+        /// </summary>
+        /// <param name="visualization"></param>
+        /// <returns></returns>
+        public IEnumerator c_AddMultiPatientsScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
+        {
+            yield return Ninja.JumpToUnity;
+            MultiPatients3DScene scene = Instantiate(MultiPatientsScenePrefab, transform).GetComponent<MultiPatients3DScene>();
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress));
             m_NumberOfScenesLoadedSinceStart++;
             // Add the listeners
             scene.Events.OnSendModeSpecifications.AddListener(((specs) =>

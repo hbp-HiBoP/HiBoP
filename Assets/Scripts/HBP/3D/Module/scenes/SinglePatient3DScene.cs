@@ -554,6 +554,7 @@ namespace HBP.Module3D
             // load list of pts files
             SceneInformation.SitesLoaded = m_ColumnManager.DLLLoadedPatientsElectrodes.LoadPTSFiles(pathsElectrodesPtsFile, patientNames, ApplicationState.Module3D.MarsAtlasIndex); // TODO (maybe) : replace with values from visualization
 
+            yield return Ninja.JumpToUnity;
             // destroy previous electrodes gameobjects
             for (int ii = 0; ii < m_ColumnManager.SitesList.Count; ++ii)
             {
@@ -576,7 +577,6 @@ namespace HBP.Module3D
             m_ColumnManager.SitesPatientParent.Clear();
             m_ColumnManager.SitesElectrodesParent.Clear();
 
-            yield return Ninja.JumpToUnity;
             // TODO : Do this with the visualization data because everything is already read
             if (SceneInformation.SitesLoaded)
             {
@@ -636,8 +636,8 @@ namespace HBP.Module3D
                     }
                 }
             }
-            yield return Ninja.JumpBack;
 
+            yield return Ninja.JumpBack;
             // reset selected plot
             for (int ii = 0; ii < m_ColumnManager.Columns.Count; ++ii)
             {
@@ -686,8 +686,6 @@ namespace HBP.Module3D
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetElectrodesFile);
             //##################
-
-            yield return SceneInformation.SitesLoaded;
         }
         /// <summary>
         /// Define the timeline data with a patient and a list of column data
@@ -728,8 +726,6 @@ namespace HBP.Module3D
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetTimelines);
             //##################
-
-            yield return true;
         }
         #endregion
     }

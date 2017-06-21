@@ -1,12 +1,15 @@
 ﻿
-/**
- * \file    MP3DScene.cs
- * \author  Lance Florian
- * \date    2015
- * \brief   Define MP3DScene class
- */
 
+
+using CielaSpike;
+/**
+* \file    MP3DScene.cs
+* \author  Lance Florian
+* \date    2015
+* \brief   Define MP3DScene class
+*/
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -83,6 +86,11 @@ namespace HBP.Module3D
         /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
         /// </summary>        
         public GenericEvent<Data.Visualization.Visualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.Visualization, Data.Patient>();
+
+        private const float LOADING_MESHES_PROGRESS = 0.034f;
+        private const float LOADING_COLUMNS_PROGRESS = 0.033f;
+        private const float LOADING_ELECTRODES_PROGRESS = 0.033f;
+        private const float SETTING_TIMELINE_PROGRESS = 0.4f;
         #endregion
 
         #region Private Methods
@@ -234,249 +242,6 @@ namespace HBP.Module3D
             // update amplitude for all columns
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
                 m_ColumnManager.ColumnsIEEG[ii].UpdateIEEG = true;
-        }
-        /// <summary>
-        /// Reset the scene : reload MRI, sites, and regenerate textures
-        /// </summary>
-        /// <param name="data"></param>
-        public bool Initialize(Data.Visualization.Visualization visualization)
-        {
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
-
-            Visualization = visualization;
-            gameObject.name = "MultiPatients Scene (" + GetComponentInParent<ScenesManager>().NumberOfScenesLoadedSinceStart + ")";
-            transform.position = new Vector3(SPACE_BETWEEN_SCENES * GetComponentInParent<ScenesManager>().NumberOfScenesLoadedSinceStart, transform.position.y, transform.position.z);
-
-            // MNI meshes are preloaded
-            SceneInformation.VolumeCenter = m_MNIObjects.IRM.Center;
-            SceneInformation.MeshesLoaded = true;
-            SceneInformation.GreyMeshesAvailables = true;
-            SceneInformation.WhiteMeshesAvailables = true;
-            SceneInformation.WhiteInflatedMeshesAvailables = true;
-            SceneInformation.IsROICreationModeEnabled = false;
-
-            // get the middle
-            SceneInformation.MeshCenter = m_MNIObjects.BothHemi.BoundingBox.Center;
-
-            /// TODO
-            List<string> ptsFiles = new List<string>(Visualization.Patients.Count), namePatients = new List<string>(Visualization.Patients.Count);
-            for (int ii = 0; ii < Visualization.Patients.Count; ++ii)
-            {
-                ptsFiles.Add(Visualization.Patients[ii].Brain.MNIBasedImplantation);
-                namePatients.Add(Visualization.Patients[ii].Place + "_" + Visualization.Patients[ii].Date + "_" + Visualization.Patients[ii].Name);
-            }
-
-            // reset columns
-            m_ColumnManager.DLLVolume = null; // this object must no be reseted
-            m_ColumnManager.Initialize(Cuts.Count);
-            m_ColumnManager.OnSelectColumnManager.AddListener((cm) =>
-            {
-                Debug.Log("OnSelectColumnManager");
-                IsSelected = true;
-            });
-
-            // retrieve MNI IRM volume
-            m_ColumnManager.DLLVolume = m_MNIObjects.IRM;
-            SceneInformation.VolumeCenter = m_ColumnManager.DLLVolume.Center;
-            SceneInformation.MRILoaded = true;
-            Events.OnUpdatePlanes.Invoke();
-
-            // send cal values to the UI
-            Events.OnMRICalValuesUpdate.Invoke(m_ColumnManager.DLLVolume.ExtremeValues);
-            
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
-            //##################
-
-            // set references in column manager
-            m_ColumnManager.BothHemi = m_MNIObjects.BothHemi;
-            m_ColumnManager.BothWhite = m_MNIObjects.BothWhite;
-            m_ColumnManager.LHemi = m_MNIObjects.LeftHemi;
-            m_ColumnManager.LWhite = m_MNIObjects.LeftWhite;
-            m_ColumnManager.RHemi = m_MNIObjects.RightHemi;
-            m_ColumnManager.RWhite = m_MNIObjects.RightWhite;
-            m_ColumnManager.DLLNii = m_MNIObjects.NII;
-
-            // reset electrodes
-            bool success = LoadSites(ptsFiles, namePatients);
-
-            // define meshes splits nb
-            ResetSplitsNumber(3);
-
-            if (success)
-                SceneInformation.CutMeshGeometryNeedsUpdate = true;
-
-            if (!success)
-            {
-                Debug.LogError("-ERROR : MP3DScene : reset failed. ");
-                SceneInformation.Reset();
-                m_ColumnManager.Initialize(Cuts.Count);
-                ResetSceneGameObjects();                
-                return false;
-            }
-
-            SetTimelineData();
-
-            // update scenes cameras
-            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
-            DisplayScreenMessage("Multi Patients Scene loaded", 2.0f, 400, 80);
-            return true;
-        }
-        /// <summary>
-        /// Reset all the sites with a new list of pts files
-        /// </summary>
-        /// <param name="pathsElectrodesPtsFile"></param>
-        /// <returns></returns>
-        public bool LoadSites(List<string> pathsElectrodesPtsFile, List<string> patientNames)
-        {
-            //####### CHECK ACESS
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetElectrodesFile))
-            {
-                Debug.LogError("-ERROR : MultiPatients3DScene::resetElectrodesFile -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return false;
-            }
-            //##################
-
-            // load list of pts files
-            SceneInformation.SitesLoaded = m_ColumnManager.DLLLoadedPatientsElectrodes.LoadPTSFiles(pathsElectrodesPtsFile, patientNames, ApplicationState.Module3D.MarsAtlasIndex);
-
-            if (!SceneInformation.SitesLoaded)
-                return false;
-
-            // destroy previous electrodes gameobject
-            for (int ii = 0; ii < m_ColumnManager.SitesList.Count; ++ii)
-            {
-                // destroy material
-                Destroy(m_ColumnManager.SitesList[ii]);
-            }
-            m_ColumnManager.SitesList.Clear();
-
-            // destroy plots elecs/patients parents
-            for (int ii = 0; ii < m_ColumnManager.SitesPatientParent.Count; ++ii)
-            {
-                Destroy(m_ColumnManager.SitesPatientParent[ii]);
-                for (int jj = 0; jj < m_ColumnManager.SitesElectrodesParent[ii].Count; ++jj)
-                {
-                    Destroy(m_ColumnManager.SitesElectrodesParent[ii][jj]);
-                }
-
-            }
-            m_ColumnManager.SitesPatientParent.Clear();
-            m_ColumnManager.SitesElectrodesParent.Clear();
-
-            if (SceneInformation.SitesLoaded)
-            {
-                int currPlotNb = 0;
-                for (int ii = 0; ii < m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfPatients; ++ii)
-                {
-                    int idPlotPatient = 0;
-                    string patientName = m_ColumnManager.DLLLoadedPatientsElectrodes.PatientName(ii);
-
-
-                    // create plot patient parent
-                    m_ColumnManager.SitesPatientParent.Add(new GameObject("P" + ii + " - " + patientName));
-                    m_ColumnManager.SitesPatientParent[m_ColumnManager.SitesPatientParent.Count - 1].transform.SetParent(m_DisplayedObjects.SitesMeshesParent.transform);
-                    m_ColumnManager.SitesPatientParent[m_ColumnManager.SitesPatientParent.Count - 1].transform.localPosition = Vector3.zero;
-                    m_ColumnManager.SitesElectrodesParent.Add(new List<GameObject>(m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfElectrodesInPatient(ii)));
-
-
-                    for (int jj = 0; jj < m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfElectrodesInPatient(ii); ++jj)
-                    {
-                        // create plot electrode parent
-                        m_ColumnManager.SitesElectrodesParent[ii].Add(new GameObject(m_ColumnManager.DLLLoadedPatientsElectrodes.ElectrodeName(ii, jj)));
-                        m_ColumnManager.SitesElectrodesParent[ii][m_ColumnManager.SitesElectrodesParent[ii].Count - 1].transform.SetParent(m_ColumnManager.SitesPatientParent[ii].transform);
-                        m_ColumnManager.SitesElectrodesParent[ii][m_ColumnManager.SitesElectrodesParent[ii].Count - 1].transform.localPosition = Vector3.zero;
-
-
-                        for (int kk = 0; kk < m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfSitesInElectrode(ii, jj); ++kk)
-                        {
-                            Vector3 invertedPosition = m_ColumnManager.DLLLoadedPatientsElectrodes.SitePosition(ii, jj, kk);
-                            invertedPosition.x = -invertedPosition.x;
-
-                            GameObject siteGameObject = Instantiate(GlobalGOPreloaded.Site);
-                            siteGameObject.name = m_ColumnManager.DLLLoadedPatientsElectrodes.SiteName(ii, jj, kk);
-
-                            siteGameObject.transform.SetParent(m_ColumnManager.SitesElectrodesParent[ii][jj].transform);
-                            siteGameObject.transform.localPosition = invertedPosition;
-                            siteGameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
-
-                            siteGameObject.SetActive(true);
-                            siteGameObject.layer = LayerMask.NameToLayer("Inactive");
-
-                            Site site = siteGameObject.GetComponent<Site>();
-                            site.Information.SitePatientID = idPlotPatient++;
-                            site.Information.PatientID = ii;
-                            site.Information.ElectrodeID = jj;
-                            site.Information.SiteID = kk;
-                            site.Information.GlobalID = currPlotNb++;
-                            site.Information.IsBlackListed = false;
-                            site.Information.IsHighlighted = false;
-                            site.Information.IsExcluded = false;
-                            site.Information.IsInROI = false;
-                            site.Information.IsMarked = false;
-                            site.Information.IsMasked = false;
-                            site.Information.PatientName = patientName;
-                            site.Information.FullName = patientNames[ii] + "_" + siteGameObject.name;
-                            site.Information.MarsAtlasIndex = m_ColumnManager.DLLLoadedPatientsElectrodes.MarsAtlasLabelOfSite(ii, jj, kk);
-                            site.IsActive = true;
-
-                            m_ColumnManager.SitesList.Add(siteGameObject);
-                        }
-                    }
-                }
-            }
-
-            // reset selected plot
-            for (int ii = 0; ii < m_ColumnManager.Columns.Count; ++ii)
-            {
-                m_ColumnManager.Columns[ii].SelectedSiteID = -1;
-            }
-
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetElectrodesFile);
-            //##################
-
-            return true;
-        }
-        /// <summary>
-        /// Define the timeline data with a patient list, a list of column data and the pts paths
-        /// </summary>
-        /// <param name="patientList"></param>
-        /// <param name="columnDataList"></param>
-        /// <param name="ptsPathFileList"></param>
-        public void SetTimelineData()
-        {
-            //####### CHECK ACESS
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetTimelines))
-            {
-                Debug.LogError("-ERROR : Base3DScene::setTimelines -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return;
-            }
-            //##################
-
-            // update columns number
-            m_ColumnManager.UpdateColumnsNumber(Visualization.Columns.Count, 0, Cuts.Count);
-
-            // update columns names
-            for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
-            {
-                m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].DataLabel;
-            }
-
-            // set timelines
-            m_ColumnManager.SetTimelineData(Visualization.Patients.ToList(), Visualization.Columns);
-
-            // update plots visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
-            // set flag
-            SceneInformation.TimelinesLoaded = true;
-
-            Events.OnAskRegionOfInterestUpdate.Invoke(-1);
-
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.SetTimelines);
-            //##################
         }
         /// <summary>
         /// Load a patient in the SP scene
@@ -780,6 +545,252 @@ namespace HBP.Module3D
 
                 }
             }
+        }
+        #endregion
+
+        #region Coroutines
+        /// <summary>
+        /// Reset the scene : reload MRI, sites, and regenerate textures
+        /// </summary>
+        /// <param name="data"></param>
+        public IEnumerator c_Initialize(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
+        {
+            yield return Ninja.JumpToUnity;
+            float progress = 0.5f;
+
+            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
+
+            Visualization = visualization;
+            int sceneID = GetComponentInParent<ScenesManager>().NumberOfScenesLoadedSinceStart;
+            gameObject.name = "MultiPatients Scene (" + sceneID + ")";
+            transform.position = new Vector3(SPACE_BETWEEN_SCENES * sceneID, transform.position.y, transform.position.z);
+
+            progress += LOADING_MESHES_PROGRESS;
+            onChangeProgress.Invoke(progress, 0.05f, "Loading meshes");
+            yield return Ninja.JumpBack;
+            // MNI meshes are preloaded
+            SceneInformation.VolumeCenter = m_MNIObjects.IRM.Center;
+            SceneInformation.MeshesLoaded = true;
+            SceneInformation.GreyMeshesAvailables = true;
+            SceneInformation.WhiteMeshesAvailables = true;
+            SceneInformation.WhiteInflatedMeshesAvailables = true;
+            SceneInformation.IsROICreationModeEnabled = false;
+
+            // get the middle
+            SceneInformation.MeshCenter = m_MNIObjects.BothHemi.BoundingBox.Center;
+
+            /// TODO
+            List<string> ptsFiles = new List<string>(Visualization.Patients.Count), namePatients = new List<string>(Visualization.Patients.Count);
+            for (int ii = 0; ii < Visualization.Patients.Count; ++ii)
+            {
+                ptsFiles.Add(Visualization.Patients[ii].Brain.MNIBasedImplantation);
+                namePatients.Add(Visualization.Patients[ii].Place + "_" + Visualization.Patients[ii].Date + "_" + Visualization.Patients[ii].Name);
+            }
+
+            yield return Ninja.JumpToUnity;
+            progress += LOADING_COLUMNS_PROGRESS;
+            onChangeProgress.Invoke(progress, 0.05f, "Loading columns");
+            // reset columns
+            m_ColumnManager.DLLVolume = null; // this object must no be reseted
+            m_ColumnManager.Initialize(Cuts.Count);
+            m_ColumnManager.OnSelectColumnManager.AddListener((cm) =>
+            {
+                Debug.Log("OnSelectColumnManager");
+                IsSelected = true;
+            });
+
+            yield return Ninja.JumpBack;
+            // retrieve MNI IRM volume
+            m_ColumnManager.DLLVolume = m_MNIObjects.IRM;
+            SceneInformation.VolumeCenter = m_ColumnManager.DLLVolume.Center;
+            SceneInformation.MRILoaded = true;
+
+            //####### UDPATE MODE
+            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
+            //##################
+
+            // set references in column manager
+            m_ColumnManager.BothHemi = m_MNIObjects.BothHemi;
+            m_ColumnManager.BothWhite = m_MNIObjects.BothWhite;
+            m_ColumnManager.LHemi = m_MNIObjects.LeftHemi;
+            m_ColumnManager.LWhite = m_MNIObjects.LeftWhite;
+            m_ColumnManager.RHemi = m_MNIObjects.RightHemi;
+            m_ColumnManager.RWhite = m_MNIObjects.RightWhite;
+            m_ColumnManager.DLLNii = m_MNIObjects.NII;
+
+            // reset electrodes
+            yield return Ninja.JumpToUnity;
+            progress += LOADING_ELECTRODES_PROGRESS;
+            onChangeProgress.Invoke(progress, 0.05f, "Loading electrodes");
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSites(ptsFiles, namePatients));
+
+            // define meshes splits nb
+            ResetSplitsNumber(3);
+            
+            SceneInformation.CutMeshGeometryNeedsUpdate = true;
+
+            progress += SETTING_TIMELINE_PROGRESS;
+            onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetTimelineData());
+
+            // update scenes cameras
+            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
+            DisplayScreenMessage("Multi Patients Scene loaded", 2.0f, 400, 80);
+        }
+        /// <summary>
+        /// Reset all the sites with a new list of pts files
+        /// </summary>
+        /// <param name="pathsElectrodesPtsFile"></param>
+        /// <returns></returns>
+        private IEnumerator c_LoadSites(List<string> pathsElectrodesPtsFile, List<string> patientNames)
+        {
+            //####### CHECK ACESS
+            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetElectrodesFile))
+            {
+                throw new ModeAccessException(m_ModesManager.CurrentModeName);
+            }
+            //##################
+
+            // load list of pts files
+            SceneInformation.SitesLoaded = m_ColumnManager.DLLLoadedPatientsElectrodes.LoadPTSFiles(pathsElectrodesPtsFile, patientNames, ApplicationState.Module3D.MarsAtlasIndex);
+
+            yield return Ninja.JumpToUnity;
+            // destroy previous electrodes gameobject
+            for (int ii = 0; ii < m_ColumnManager.SitesList.Count; ++ii)
+            {
+                // destroy material
+                Destroy(m_ColumnManager.SitesList[ii]);
+            }
+            m_ColumnManager.SitesList.Clear();
+
+            // destroy plots elecs/patients parents
+            for (int ii = 0; ii < m_ColumnManager.SitesPatientParent.Count; ++ii)
+            {
+                Destroy(m_ColumnManager.SitesPatientParent[ii]);
+                for (int jj = 0; jj < m_ColumnManager.SitesElectrodesParent[ii].Count; ++jj)
+                {
+                    Destroy(m_ColumnManager.SitesElectrodesParent[ii][jj]);
+                }
+
+            }
+            m_ColumnManager.SitesPatientParent.Clear();
+            m_ColumnManager.SitesElectrodesParent.Clear();
+
+            if (SceneInformation.SitesLoaded)
+            {
+                int currPlotNb = 0;
+                for (int ii = 0; ii < m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfPatients; ++ii)
+                {
+                    int idPlotPatient = 0;
+                    string patientName = m_ColumnManager.DLLLoadedPatientsElectrodes.PatientName(ii);
+
+
+                    // create plot patient parent
+                    m_ColumnManager.SitesPatientParent.Add(new GameObject("P" + ii + " - " + patientName));
+                    m_ColumnManager.SitesPatientParent[m_ColumnManager.SitesPatientParent.Count - 1].transform.SetParent(m_DisplayedObjects.SitesMeshesParent.transform);
+                    m_ColumnManager.SitesPatientParent[m_ColumnManager.SitesPatientParent.Count - 1].transform.localPosition = Vector3.zero;
+                    m_ColumnManager.SitesElectrodesParent.Add(new List<GameObject>(m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfElectrodesInPatient(ii)));
+
+
+                    for (int jj = 0; jj < m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfElectrodesInPatient(ii); ++jj)
+                    {
+                        // create plot electrode parent
+                        m_ColumnManager.SitesElectrodesParent[ii].Add(new GameObject(m_ColumnManager.DLLLoadedPatientsElectrodes.ElectrodeName(ii, jj)));
+                        m_ColumnManager.SitesElectrodesParent[ii][m_ColumnManager.SitesElectrodesParent[ii].Count - 1].transform.SetParent(m_ColumnManager.SitesPatientParent[ii].transform);
+                        m_ColumnManager.SitesElectrodesParent[ii][m_ColumnManager.SitesElectrodesParent[ii].Count - 1].transform.localPosition = Vector3.zero;
+
+
+                        for (int kk = 0; kk < m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfSitesInElectrode(ii, jj); ++kk)
+                        {
+                            Vector3 invertedPosition = m_ColumnManager.DLLLoadedPatientsElectrodes.SitePosition(ii, jj, kk);
+                            invertedPosition.x = -invertedPosition.x;
+
+                            GameObject siteGameObject = Instantiate(GlobalGOPreloaded.Site);
+                            siteGameObject.name = m_ColumnManager.DLLLoadedPatientsElectrodes.SiteName(ii, jj, kk);
+
+                            siteGameObject.transform.SetParent(m_ColumnManager.SitesElectrodesParent[ii][jj].transform);
+                            siteGameObject.transform.localPosition = invertedPosition;
+                            siteGameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
+
+                            siteGameObject.SetActive(true);
+                            siteGameObject.layer = LayerMask.NameToLayer("Inactive");
+
+                            Site site = siteGameObject.GetComponent<Site>();
+                            site.Information.SitePatientID = idPlotPatient++;
+                            site.Information.PatientID = ii;
+                            site.Information.ElectrodeID = jj;
+                            site.Information.SiteID = kk;
+                            site.Information.GlobalID = currPlotNb++;
+                            site.Information.IsBlackListed = false;
+                            site.Information.IsHighlighted = false;
+                            site.Information.IsExcluded = false;
+                            site.Information.IsInROI = false;
+                            site.Information.IsMarked = false;
+                            site.Information.IsMasked = false;
+                            site.Information.PatientName = patientName;
+                            site.Information.FullName = patientNames[ii] + "_" + siteGameObject.name;
+                            site.Information.MarsAtlasIndex = m_ColumnManager.DLLLoadedPatientsElectrodes.MarsAtlasLabelOfSite(ii, jj, kk);
+                            site.IsActive = true;
+
+                            m_ColumnManager.SitesList.Add(siteGameObject);
+                        }
+                    }
+                }
+            }
+
+            yield return Ninja.JumpBack;
+            // reset selected plot
+            for (int ii = 0; ii < m_ColumnManager.Columns.Count; ++ii)
+            {
+                m_ColumnManager.Columns[ii].SelectedSiteID = -1;
+            }
+
+            //####### UDPATE MODE
+            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetElectrodesFile);
+            //##################
+        }
+        /// <summary>
+        /// Define the timeline data with a patient list, a list of column data and the pts paths
+        /// </summary>
+        /// <param name="patientList"></param>
+        /// <param name="columnDataList"></param>
+        /// <param name="ptsPathFileList"></param>
+        private IEnumerator c_SetTimelineData()
+        {
+            //####### CHECK ACESS
+            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetTimelines))
+            {
+                throw new ModeAccessException(m_ModesManager.CurrentModeName);
+            }
+            //##################
+
+            yield return Ninja.JumpToUnity;
+            // update columns number
+            m_ColumnManager.UpdateColumnsNumber(Visualization.Columns.Count, 0, Cuts.Count);
+            yield return Ninja.JumpBack;
+
+            // update columns names
+            for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
+            {
+                m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].DataLabel;
+            }
+
+            yield return Ninja.JumpToUnity;
+            // set timelines
+            m_ColumnManager.SetTimelineData(Visualization.Patients.ToList(), Visualization.Columns);
+
+            // update plots visibility
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            yield return Ninja.JumpBack;
+
+            // set flag
+            SceneInformation.TimelinesLoaded = true;
+
+            Events.OnAskRegionOfInterestUpdate.Invoke(-1);
+
+            //####### UDPATE MODE
+            m_ModesManager.UpdateMode(Mode.FunctionsId.SetTimelines);
+            //##################
         }
         #endregion
     }

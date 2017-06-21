@@ -179,39 +179,6 @@ namespace HBP.Module3D
         {
             ApplicationState.DLLDebugManager.clean();
         }
-        /// <summary>
-        /// Load a multi patients scene, load the UI and the data.
-        /// </summary>
-        /// <param name="visuDataMP"></param>
-        /// <returns>false if a loading error occurs, else true </returns>
-        private bool SetMultiPatientsVisualization(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
-        {
-            bool result = false;
-            if (MNIObjects.LoadingMutex.WaitOne(10000))
-            {
-                result = m_ScenesManager.AddMultiPatientsScene(visualization, onChangeProgress);
-            }
-
-            if (!result)
-            {
-                UnityEngine.Debug.LogError("MNI loading data not finished.");
-            }
-            else
-            {
-                // Add listener to last added scene
-                MultiPatients3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as MultiPatients3DScene;
-                lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
-                {
-                    OnRequestSiteInformation.Invoke(siteRequest);
-                });
-                lastAddedScene.OnLoadSinglePatientSceneFromMultiPatientsScene.AddListener((visu, patient) =>
-                {
-                    OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(visu, patient);
-                });
-            }
-
-            return result;
-        }
         #endregion
 
         #region Public Methods
@@ -273,36 +240,45 @@ namespace HBP.Module3D
         {
             if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, string>();
             
-            bool result = false;
+            yield return Ninja.JumpToUnity;
             switch (visualization.ReferenceFrame)
             {
                 case Data.Anatomy.ReferenceFrameType.Patient:
-                    yield return Ninja.JumpToUnity;
                     yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetSinglePatientVisualization(visualization, onChangeProgress));
-                    yield return Ninja.JumpBack;
                     break;
                 case Data.Anatomy.ReferenceFrameType.MNI:
-                    result = SetMultiPatientsVisualization(visualization, onChangeProgress);
+                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetMultiPatientsVisualization(visualization, onChangeProgress));
                     break;
                 default:
                     break;
             }
-            yield return Ninja.JumpToUnity;
-            if (result)
-            {
-                OnAddVisualization.Invoke(visualization);
-            }
+            OnAddVisualization.Invoke(visualization);
         }
         IEnumerator c_SetSinglePatientVisualization(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, bool postMRI = false)
         {
             yield return Ninja.JumpToUnity;
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddSinglePatientScene(visualization, onChangeProgress, postMRI));
-            yield return Ninja.JumpBack;
             // Add listeners to last added scene
             SinglePatient3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as SinglePatient3DScene;
             lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
             {
                 OnRequestSiteInformation.Invoke(siteRequest);
+            });
+        }
+        private IEnumerator c_SetMultiPatientsVisualization(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
+        {
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddMultiPatientsScene(visualization, onChangeProgress));
+            bool result = false;
+            // Add listener to last added scene
+            MultiPatients3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as MultiPatients3DScene;
+            lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
+            {
+                OnRequestSiteInformation.Invoke(siteRequest);
+            });
+            lastAddedScene.OnLoadSinglePatientSceneFromMultiPatientsScene.AddListener((visu, patient) =>
+            {
+                OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(visu, patient);
             });
         }
         #endregion
