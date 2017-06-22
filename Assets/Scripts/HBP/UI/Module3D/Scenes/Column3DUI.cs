@@ -29,10 +29,12 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// GameObject to hide a minimized column
         /// </summary>
+        [SerializeField]
         private GameObject m_MinimizedGameObject;
         /// <summary>
         /// Associated colormap
         /// </summary>
+        [SerializeField]
         private Colormap m_Colormap;
         /// <summary>
         /// Is the column initialized ?
@@ -44,7 +46,6 @@ namespace HBP.UI.Module3D
         private void Awake()
         {
             m_ParentGrid = GetComponentInParent<ResizableGrid>();
-            m_Colormap = transform.Find("Colormap").GetComponent<Colormap>();
         }
         private void Update()
         {
