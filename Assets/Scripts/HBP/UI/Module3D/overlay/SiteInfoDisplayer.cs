@@ -84,7 +84,7 @@ namespace HBP.UI.Module3D
                             break;
                     }
                 }
-                gameObject.SetActive(siteInfo.enabled); // le gameobject est désactivé parce que il n'y a que la dernière colonne qui est prise en compte
+                gameObject.SetActive(siteInfo.enabled);
                 if (siteInfo.enabled)
                 {
                     transform.position = siteInfo.position;
@@ -97,7 +97,7 @@ namespace HBP.UI.Module3D
                     else if (siteInfo.mode == SiteInformationDisplayMode.IEEG)
                     {
                         m_IEEG.text = "IEEG: " + siteInfo.amplitude;
-                        m_Time.text = "NYI: GET_TIME";
+                        m_Time.text = "Time: " + siteInfo.timeline;
                         if (siteInfo.site)
                         {
                             m_MarsAtlas.text = "Mars Atlas: " + ApplicationState.Module3D.MarsAtlasIndex.FullName(siteInfo.site.Information.MarsAtlasIndex);

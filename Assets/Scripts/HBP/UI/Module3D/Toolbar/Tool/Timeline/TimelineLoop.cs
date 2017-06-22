@@ -13,8 +13,6 @@ namespace HBP.UI.Module3D.Tools
         #region Properties
         [SerializeField]
         private Toggle m_Toggle;
-        [SerializeField]
-        private InputField m_InputField;
 
         private bool m_IsGlobal = false;
         /// <summary>
@@ -37,12 +35,11 @@ namespace HBP.UI.Module3D.Tools
                         column.IsLooping = false;
                     }
                     m_Toggle.onValueChanged.Invoke(m_Toggle.isOn);
-                    m_InputField.onEndEdit.Invoke(m_InputField.text);
                 }
             }
         }
 
-        public GenericEvent<bool, int> OnChangeValue = new GenericEvent<bool, int>();
+        public GenericEvent<bool> OnChangeValue = new GenericEvent<bool>();
         #endregion
 
         #region Public Methods
@@ -66,42 +63,7 @@ namespace HBP.UI.Module3D.Tools
                 {
                     column.IsLooping = m_Toggle.isOn;
                 }
-                OnChangeValue.Invoke(isOn, int.Parse(m_InputField.text));
-            });
-
-            m_InputField.onEndEdit.AddListener((value) =>
-            {
-                if (ListenerLock) return;
-
-                List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
-                if (IsGlobal)
-                {
-                    columns = ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG.ToList();
-                }
-                else
-                {
-                    columns.Add((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
-                }
-
-                int val;
-                if (int.TryParse(value, out val))
-                {
-                    foreach (HBP.Module3D.Column3DIEEG column in columns)
-                    {
-                        column.LoopingStep = val;
-                        m_InputField.text = column.LoopingStep.ToString();
-                    }
-                    OnChangeValue.Invoke(m_Toggle.isOn, val);
-                }
-                else
-                {
-                    foreach (HBP.Module3D.Column3DIEEG column in columns)
-                    {
-                        m_InputField.text = "1";
-                        column.LoopingStep = 1;
-                    }
-                    OnChangeValue.Invoke(m_Toggle.isOn, 1);
-                }
+                OnChangeValue.Invoke(isOn);
             });
         }
 
@@ -109,8 +71,6 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Toggle.isOn = false;
             m_Toggle.interactable = false;
-            m_InputField.text = "1";
-            m_InputField.interactable = false;
         }
 
         public override void UpdateInteractable()
@@ -119,39 +79,30 @@ namespace HBP.UI.Module3D.Tools
             {
                 case HBP.Module3D.Mode.ModesId.NoPathDefined:
                     m_Toggle.interactable = false;
-                    m_InputField.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.MinPathDefined:
                     m_Toggle.interactable = false;
-                    m_InputField.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.AllPathDefined:
                     m_Toggle.interactable = false;
-                    m_InputField.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.ComputingAmplitudes:
                     m_Toggle.interactable = false;
-                    m_InputField.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.AmplitudesComputed:
                     m_Toggle.interactable = true;
-                    m_InputField.interactable = true;
                     break;
                 case HBP.Module3D.Mode.ModesId.TriErasing:
                     m_Toggle.interactable = false;
-                    m_InputField.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.ROICreation:
                     m_Toggle.interactable = false;
-                    m_InputField.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.AmpNeedUpdate:
                     m_Toggle.interactable = false;
-                    m_InputField.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.Error:
                     m_Toggle.interactable = false;
-                    m_InputField.interactable = false;
                     break;
                 default:
                     break;
@@ -163,7 +114,6 @@ namespace HBP.UI.Module3D.Tools
             if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
             {
                 m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IsLooping;
-                m_InputField.text = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).LoopingStep.ToString();
             }
         }
         #endregion

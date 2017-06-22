@@ -156,6 +156,7 @@ namespace HBP.Module3D
         private void Awake()
         {
             Camera = GetComponent<Camera>();
+            transform.localEulerAngles = new Vector3(0, -100, -90);
             m_OriginalRotationEuler = transform.localEulerAngles;
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
             m_AssociatedScene = GetComponentInParent<Base3DScene>();

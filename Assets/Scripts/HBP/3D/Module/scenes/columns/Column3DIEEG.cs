@@ -61,6 +61,13 @@ namespace HBP.Module3D
         public int MaxTimeLineID { get; set; }
         public float MinTimeLine { get; set; }
         public float MaxTimeLine { get; set; }
+        public float CurrentTimeLine
+        {
+            get
+            {
+                return Column.TimeLine.Step * CurrentTimeLineID + MinTimeLine;
+            }
+        }
         public float SharedMinInf = 0f;
         public float SharedMaxInf = 0f;
 
@@ -88,23 +95,6 @@ namespace HBP.Module3D
                     StopCoroutine(m_LoopingCoroutine);
                     m_LoopingCoroutine = null;
                 }
-            }
-        }
-
-        private int m_LoopingStep = 1;
-        /// <summary>
-        /// Looping step (for the timeline)
-        /// </summary>
-        public int LoopingStep
-        {
-            get
-            {
-                return m_LoopingStep;
-            }
-            set
-            {
-                m_LoopingStep = value % MaxTimeLineID;
-                if (m_LoopingStep < 1) m_LoopingStep = 1;
             }
         }
 
@@ -746,7 +736,7 @@ namespace HBP.Module3D
             while (m_IsLooping)
             {
                 yield return Ninja.JumpToUnity;
-                CurrentTimeLineID += m_LoopingStep;
+                CurrentTimeLineID++;
                 yield return Ninja.JumpBack;
                 yield return new WaitForSeconds(0.05f);
             }

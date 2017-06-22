@@ -55,13 +55,14 @@ namespace HBP.Module3D
     /// </summary>
     public class SiteInfo
     {
-        public SiteInfo(Site site, bool enabled, Vector3 position, SiteInformationDisplayMode mode = SiteInformationDisplayMode.IEEG, string name = "", string amplitude = "", string height = "", string latency = "")
+        public SiteInfo(Site site, bool enabled, Vector3 position, SiteInformationDisplayMode mode = SiteInformationDisplayMode.IEEG, string name = "", string amplitude = "", string timeline = "", string height = "", string latency = "")
         {
             this.site = site;
             this.enabled = enabled;
             this.position = position;
             this.name = name;
             this.amplitude = amplitude;
+            this.timeline = timeline;
             this.height = height;
             this.latency = latency;
             this.mode = mode;
@@ -74,6 +75,7 @@ namespace HBP.Module3D
         public string amplitude;
         public string height;
         public string latency;
+        public string timeline;
         public SiteInformationDisplayMode mode;
     }
 
@@ -1983,6 +1985,7 @@ namespace HBP.Module3D
                     {
                         amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
                     }
+                    string timeline = columnIEEG.CurrentTimeLineID.ToString() + " (" + columnIEEG.CurrentTimeLine.ToString("N2") + "ms)";
                     switch (Type)
                     {
                         case SceneType.SinglePatient:
@@ -2015,10 +2018,10 @@ namespace HBP.Module3D
                                     }
                                 }
                             }
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? SiteInformationDisplayMode.CCEP : SiteInformationDisplayMode.IEEG, site.Information.FullName, "" + amplitude, height, latency));
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? SiteInformationDisplayMode.CCEP : SiteInformationDisplayMode.IEEG, site.Information.FullName, "" + amplitude, timeline, height, latency));
                             break;
                         case SceneType.MultiPatients:
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.IEEG, site.Information.FullName, "" + amplitude));
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.IEEG, site.Information.FullName, "" + amplitude, timeline));
                             break;
                         default:
                             break;
