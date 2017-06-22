@@ -659,6 +659,11 @@ namespace HBP.Module3D
                 
                 m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMiddle);
             });
+            m_ColumnManager.OnUpdateColumnTimelineID.AddListener((column) =>
+            {
+                ComputeIEEGTexturesOfColumn(column);
+                m_ColumnManager.UpdateColumnIEEGSitesRendering(column, SceneInformation);
+            });
             SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
                 if (!value)
@@ -728,13 +733,13 @@ namespace HBP.Module3D
 
                 // brain surface
                 if (surface)
-                    if (!m_ColumnManager.ComputeSurfaceBrainUVWithIEEG((SceneInformation.MeshTypeToDisplay == SceneStatesInfo.MeshType.Inflated), columnsIndexes[ii]))
+                    if (!m_ColumnManager.ComputeSurfaceBrainUVWithIEEG((SceneInformation.MeshTypeToDisplay == SceneStatesInfo.MeshType.Inflated), m_ColumnManager.ColumnsIEEG[columnsIndexes[ii]]))
                         return;
 
                 // brain cuts
                 if (cuts)
                     for (int jj = 0; jj < cutsIndexes.Length; ++jj)
-                        m_ColumnManager.ColorCutsTexturesWithIEEG(columnsIndexes[ii], cutsIndexes[jj]);
+                        m_ColumnManager.ColorCutsTexturesWithIEEG(m_ColumnManager.ColumnsIEEG[columnsIndexes[ii]], cutsIndexes[jj]);
 
                 if (plots)
                 {
@@ -752,6 +757,39 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("TEST-compute_IEEG_textures 2 update_GUI_textures");
             UpdateGUITextures();
             UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+        private void ComputeIEEGTexturesOfColumn(Column3DIEEG column)
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("compute_IEEG_textures");
+
+            UnityEngine.Profiling.Profiler.BeginSample("compute_IEEG_textures 0");
+
+            if (!m_ColumnManager.ComputeSurfaceBrainUVWithIEEG((SceneInformation.MeshTypeToDisplay == SceneStatesInfo.MeshType.Inflated), column)) return;
+
+            for (int jj = 0; jj < m_Cuts.Count; ++jj)
+            {
+                m_ColumnManager.ColorCutsTexturesWithIEEG(column, jj);
+            }
+
+            column.UpdateSitesSizeAndColorForIEEG();
+            column.UpdateSitesRendering(SceneInformation, null);
+
+            column.IsRenderingUpToDate = false;
+
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            if (column == m_ColumnManager.SelectedColumn)
+            {
+                UnityEngine.Profiling.Profiler.BeginSample("compute_IEEG_textures 1 compute_GUI_textures");
+                ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
+                UnityEngine.Profiling.Profiler.EndSample();
+
+                UnityEngine.Profiling.Profiler.BeginSample("compute_IEEG_textures 2 update_GUI_textures");
+                UpdateGUITextures();
+                UnityEngine.Profiling.Profiler.EndSample();
+            }
 
             UnityEngine.Profiling.Profiler.EndSample();
         }

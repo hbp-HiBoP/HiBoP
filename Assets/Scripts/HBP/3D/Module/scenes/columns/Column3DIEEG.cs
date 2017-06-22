@@ -54,7 +54,8 @@ namespace HBP.Module3D
             }
             set
             {
-                m_CurrentTimeLineID = Mathf.Clamp(value, 0, MaxTimeLineID);
+                m_CurrentTimeLineID = value % (MaxTimeLineID + 1);
+                OnUpdateCurrentTimelineID.Invoke();
             }
         }
         public int MaxTimeLineID { get; set; }
@@ -330,6 +331,9 @@ namespace HBP.Module3D
         public bool SiteLatencyData = false; /**< latency data defined for the current selected plot */
         public int SourceSelectedID = -1; /**< id of the selected source */
         public int CurrentLatencyFile = -1; /**< id of the current latency file */
+
+        // events
+        public UnityEvent OnUpdateCurrentTimelineID = new UnityEvent();
         #endregion
 
         #region Public Methods
@@ -741,7 +745,9 @@ namespace HBP.Module3D
         {
             while (m_IsLooping)
             {
+                yield return Ninja.JumpToUnity;
                 CurrentTimeLineID += m_LoopingStep;
+                yield return Ninja.JumpBack;
                 yield return new WaitForSeconds(0.05f);
             }
             CurrentTimeLineID = 0;

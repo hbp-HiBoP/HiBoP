@@ -283,6 +283,7 @@ namespace HBP.Module3D
         public UnityEvent OnUpdateIEEGAlpha = new UnityEvent();
         public UnityEvent OnUpdateIEEGGain = new UnityEvent();
         public UnityEvent OnUpdateIEEGMaximumInfluence = new UnityEvent();
+        public GenericEvent<Column3DIEEG> OnUpdateColumnTimelineID = new GenericEvent<Column3DIEEG>();
 
         // Column 3D Prefabs
         public GameObject Column3DViewIEEGPrefab;
@@ -350,6 +351,10 @@ namespace HBP.Module3D
             {
                 OnUpdateIEEGMaximumInfluence.Invoke();
                 column.IsRenderingUpToDate = false;
+            });
+            column.OnUpdateCurrentTimelineID.AddListener(() =>
+            {
+                OnUpdateColumnTimelineID.Invoke(column);
             });
             m_Columns.Add(column);
             OnAddColumn.Invoke();
@@ -814,9 +819,8 @@ namespace HBP.Module3D
         /// <param name="indexColumn"></param>
         /// <param name="indexCut"></param>
         /// <param name="thresholdInfluence"></param>
-        public void ColorCutsTexturesWithIEEG(int indexColumn, int indexCut)
-        {
-            Column3DIEEG column = ColumnsIEEG[indexColumn];            
+        public void ColorCutsTexturesWithIEEG(Column3DIEEG column, int indexCut)
+        {       
             DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[indexCut];        
             generator.FillTextureWithIEEG(column, column.DLLCutColorScheme, NotInBrainColor);
 
@@ -848,10 +852,10 @@ namespace HBP.Module3D
         /// <param name="thresholdInfluence"></param>
         /// <param name="alphaMin"></param>
         /// <param name="alphaMax"></param>
-        public bool ComputeSurfaceBrainUVWithIEEG(bool whiteInflatedMeshes, int indexColumn)
+        public bool ComputeSurfaceBrainUVWithIEEG(bool whiteInflatedMeshes, Column3DIEEG column)
         {
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
-                if(!ColumnsIEEG[indexColumn].DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(whiteInflatedMeshes ? DLLSplittedWhiteMeshesList[ii] : DLLSplittedMeshesList[ii], ColumnsIEEG[indexColumn]))
+                if(!column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(whiteInflatedMeshes ? DLLSplittedWhiteMeshesList[ii] : DLLSplittedMeshesList[ii], column))
                     return false;
 
             return true;
@@ -873,6 +877,15 @@ namespace HBP.Module3D
 
             for (int ii = 0; ii < ColumnsFMRI.Count; ++ii)
                 ColumnsFMRI[ii].UpdateSitesVisibility(data);
+        }
+        public void UpdateColumnIEEGSitesRendering(Column3DIEEG column, SceneStatesInfo data)
+        {
+            Latencies latencyFile = null;
+            if (column.CurrentLatencyFile != -1)
+                latencyFile = LatenciesFiles[column.CurrentLatencyFile];
+
+            column.UpdateSitesSizeAndColorForIEEG(); // TEST
+            column.UpdateSitesRendering(data, latencyFile);
         }
         /// <summary>
         /// Update the visiblity of the ROI for all columns

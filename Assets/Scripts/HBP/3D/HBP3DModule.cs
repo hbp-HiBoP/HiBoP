@@ -213,7 +213,7 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
             LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
             GenericEvent<float, float, string> OnChangeLoadingProgress = new GenericEvent<float, float, string>();
-            OnChangeLoadingProgress.AddListener((progress, time, message) => { loadingCircle.ChangePercentage(progress, time, message); UnityEngine.Debug.Log(progress + " " + message); });
+            OnChangeLoadingProgress.AddListener((progress, time, message) => { loadingCircle.ChangePercentage(progress, time, message); });
             Task visualizationLoadingTask;
             yield return this.StartCoroutineAsync(visualization.c_Load(OnChangeLoadingProgress), out visualizationLoadingTask);
             switch (visualizationLoadingTask.State)

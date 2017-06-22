@@ -61,14 +61,25 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 int val = (int)value;
-                ApplicationState.Module3D.SelectedScene.UpdateIEEGTimeline(val, IsGlobal);
-                ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).CurrentTimeLineID = val;
+                if (IsGlobal)
+                {
+                    foreach (HBP.Module3D.Column3DIEEG column in ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG)
+                    {
+                        column.CurrentTimeLineID = val;
+                    }
+                }
+                else
+                {
+                    ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).CurrentTimeLineID = val;
+                }
                 OnChangeValue.Invoke(val);
             });
         }
 
         public override void DefaultState()
         {
+            m_Min.text = "Min";
+            m_Max.text = "Max";
             m_Slider.value = 0;
             m_Slider.interactable = false;
         }
