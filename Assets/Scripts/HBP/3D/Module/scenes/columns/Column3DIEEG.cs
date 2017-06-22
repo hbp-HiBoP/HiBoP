@@ -98,6 +98,22 @@ namespace HBP.Module3D
             }
         }
 
+        private float m_LoopingSpeed = 0.25f;
+        /// <summary>
+        /// Looping speed
+        /// </summary>
+        public float LoopingSpeed
+        {
+            get
+            {
+                return m_LoopingSpeed;
+            }
+            set
+            {
+                m_LoopingSpeed = value;
+            }
+        }
+
         /// <summary>
         /// IEEG data of the column
         /// </summary>
@@ -738,7 +754,7 @@ namespace HBP.Module3D
                 yield return Ninja.JumpToUnity;
                 CurrentTimeLineID++;
                 yield return Ninja.JumpBack;
-                yield return new WaitForSeconds(0.05f);
+                yield return new WaitForSeconds(1.0f-m_LoopingSpeed);
             }
             CurrentTimeLineID = 0;
         }
