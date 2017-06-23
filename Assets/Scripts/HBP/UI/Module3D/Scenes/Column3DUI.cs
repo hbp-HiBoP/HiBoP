@@ -37,6 +37,16 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Colormap m_Colormap;
         /// <summary>
+        /// Associated timeline
+        /// </summary>
+        [SerializeField]
+        private TimeDisplay m_TimeDisplay;
+        /// <summary>
+        /// Associated Icon
+        /// </summary>
+        [SerializeField]
+        private Icon m_Icon;
+        /// <summary>
         /// Is the column initialized ?
         /// </summary>
         private bool m_IsInitialized = false;
@@ -87,6 +97,11 @@ namespace HBP.UI.Module3D
             m_MinimizedGameObject.GetComponentInChildren<Text>().text = m_Column.Label;
             m_MinimizedGameObject.SetActive(false);
             m_Colormap.Initialize(scene, column);
+            m_Colormap.gameObject.SetActive(false);
+            m_TimeDisplay.Initialize(scene, column);
+            m_TimeDisplay.gameObject.SetActive(false);
+            m_Icon.Initialize(scene, column);
+            m_Icon.gameObject.SetActive(false);
             m_IsInitialized = true;
         }
         #endregion

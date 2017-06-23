@@ -85,6 +85,11 @@ namespace HBP.UI.Module3D
         #region Public Methods
         public void Initialize(Base3DScene scene, Column3D column)
         {
+            scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
+            {
+                gameObject.SetActive(value);
+            });
+
             scene.Events.OnChangeColormap.AddListener((color) => m_Icon.sprite = m_SpriteByColorType[color]);
 
             scene.Events.OnSendColorMapValues.AddListener((min, mid, max, col) =>

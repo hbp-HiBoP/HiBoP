@@ -907,6 +907,7 @@ namespace HBP.Module3D
                 minValue += m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle;
                 maxValue += m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle;
                 Events.OnSendColorMapValues.Invoke(minValue, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle, maxValue, m_ColumnManager.ColumnsIEEG[ii]);
+                m_ColumnManager.ColumnsIEEG[ii].OnUpdateCurrentTimelineID.Invoke();
             }
 
             // amplitudes are not displayed yet
@@ -1985,7 +1986,7 @@ namespace HBP.Module3D
                     {
                         amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
                     }
-                    string timeline = columnIEEG.CurrentTimeLineID.ToString() + " (" + columnIEEG.CurrentTimeLine.ToString("N2") + "ms)";
+                    string timeline = columnIEEG.CurrentTimeLineID.ToString() + " (" + columnIEEG.CurrentTimeLine.ToString("N2") + columnIEEG.Column.TimeLine.Start.Unite + ")";
                     switch (Type)
                     {
                         case SceneType.SinglePatient:

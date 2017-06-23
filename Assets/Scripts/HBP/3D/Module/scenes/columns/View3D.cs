@@ -60,7 +60,10 @@ namespace HBP.Module3D
             set
             {
                 m_IsClicked = value;
-                IsSelected = value;
+                if (m_IsClicked)
+                {
+                    IsSelected = value;
+                }
             }
         }
 
@@ -244,7 +247,8 @@ namespace HBP.Module3D
         }
         private void Update()
         {
-            m_Camera3D.Camera.backgroundColor = IsClicked ? ApplicationState.Theme.Color.ClickedViewColor : ((IsSelected || IsColumnSelected) ? ApplicationState.Theme.Color.SelectedViewColor : ApplicationState.Theme.Color.RegularViewColor);
+            //m_Camera3D.Camera.backgroundColor = IsClicked ? ApplicationState.Theme.Color.ClickedViewColor : ((IsSelected || IsColumnSelected) ? ApplicationState.Theme.Color.SelectedViewColor : ApplicationState.Theme.Color.RegularViewColor);
+            m_Camera3D.Camera.backgroundColor = IsSelected ? ApplicationState.Theme.Color.SelectedViewColor : ApplicationState.Theme.Color.RegularViewColor;
         }
         #endregion
 

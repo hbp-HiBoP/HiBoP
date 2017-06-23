@@ -22,6 +22,7 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void AddListeners()
         {
+            m_ThresholdIEEG.Initialize();
             m_ThresholdIEEG.OnChangeValues.AddListener((min, mid, max) =>
             {
                 OnChangeValues.Invoke(min, mid, max);
