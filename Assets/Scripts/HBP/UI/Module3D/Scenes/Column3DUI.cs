@@ -32,6 +32,11 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private GameObject m_MinimizedGameObject;
         /// <summary>
+        /// Associated label
+        /// </summary>
+        [SerializeField]
+        private ColumnLabel m_Label;
+        /// <summary>
         /// Associated colormap
         /// </summary>
         [SerializeField]
@@ -102,6 +107,7 @@ namespace HBP.UI.Module3D
             m_TimeDisplay.gameObject.SetActive(false);
             m_Icon.Initialize(scene, column);
             m_Icon.gameObject.SetActive(false);
+            m_Label.Initialize(scene, column);
             m_IsInitialized = true;
         }
         #endregion

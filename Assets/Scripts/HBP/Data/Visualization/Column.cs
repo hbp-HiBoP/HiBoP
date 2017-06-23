@@ -67,6 +67,17 @@ namespace HBP.Data.Visualization
         /// Iconic scenario which define the labels,images to display during the timeLine. 
         /// </summary>
         public IconicScenario IconicScenario { get; set; }
+
+        /// <summary>
+        /// Display label of the column
+        /// </summary>
+        public string DisplayLabel
+        {
+            get
+            {
+                return "Data: " + DataLabel + ", Dataset: " + Dataset.Name + ", Protocol: " + Protocol.Name + ", Bloc: " + Bloc.DisplayInformations.Name;
+            }
+        }
         #endregion
 
         #region Constructors
