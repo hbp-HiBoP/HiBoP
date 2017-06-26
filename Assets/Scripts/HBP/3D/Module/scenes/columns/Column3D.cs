@@ -159,7 +159,7 @@ namespace HBP.Module3D
         public virtual void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             // scene
-            Layer = "C" + idColumn;
+            Layer = "Column" + idColumn;
 
             // select ring
             m_SelectRing = gameObject.GetComponentInChildren<SiteRing>();
