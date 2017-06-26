@@ -23,6 +23,7 @@ namespace HBP.Module3D
             FMRI, IEEG
         }
         public abstract ColumnType Type { get; }
+        public int ID { get; set; }
 
         [SerializeField, Candlelight.PropertyBackingField]
         protected string m_Label;

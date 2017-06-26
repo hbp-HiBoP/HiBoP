@@ -306,6 +306,7 @@ namespace HBP.Module3D
         {
             Column3DIEEG column = Instantiate(Column3DViewIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
             column.gameObject.name = "Column IEEG " + ColumnsIEEG.Count;
+            column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
             column.OnSelectColumn.AddListener((selectedColumn) =>
             {
                 Debug.Log("OnSelectColumn");
@@ -366,6 +367,7 @@ namespace HBP.Module3D
         {
             Column3DFMRI column = Instantiate(Column3DViewFMRIPrefab, transform.Find("Columns")).GetComponent<Column3DFMRI>();
             column.gameObject.name = "Column FMRI " + ColumnsFMRI.Count;
+            column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
             column.OnSelectColumn.AddListener((selectedColumn) =>
             {
                 Debug.Log("OnSelectColumn");

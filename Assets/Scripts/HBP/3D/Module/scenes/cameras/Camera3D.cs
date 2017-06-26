@@ -156,12 +156,13 @@ namespace HBP.Module3D
         private void Awake()
         {
             Camera = GetComponent<Camera>();
-            transform.localEulerAngles = new Vector3(0, 100, 90);
-            m_OriginalRotationEuler = transform.localEulerAngles;
-            m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
             m_AssociatedScene = GetComponentInParent<Base3DScene>();
             m_AssociatedColumn = GetComponentInParent<Column3D>();
             m_AssociatedView = GetComponentInParent<View3D>();
+
+            transform.localEulerAngles = new Vector3(0, 100, 90);
+            m_OriginalRotationEuler = transform.localEulerAngles;
+            m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
             m_Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center + m_AssociatedView.transform.position;
             m_OriginalTarget = m_Target;
             transform.position = m_Target - transform.forward * m_StartDistance;
@@ -178,6 +179,8 @@ namespace HBP.Module3D
         }
         private void Start()
         {
+            Camera.depth = m_AssociatedColumn.ID + m_AssociatedView.LineID * 0.1f; // Temp fix for rendering order // FIXME : remove when using multiple meshes per scene (one for each column)
+
             m_AssociatedScene.Events.OnModifyPlanesCuts.AddListener(() =>
             {
                 if (!m_AssociatedScene.SceneInformation.MRILoaded)

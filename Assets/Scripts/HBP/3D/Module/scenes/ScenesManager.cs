@@ -51,18 +51,6 @@ namespace HBP.Module3D
             }
         }
 
-        private int m_NumberOfScenesLoadedSinceStart = 0;
-        /// <summary>
-        /// Number of scenes that have been loaded in this instance of HiBoP
-        /// </summary>
-        public int NumberOfScenesLoadedSinceStart
-        {
-            get
-            {
-                return m_NumberOfScenesLoadedSinceStart;
-            }
-        }
-
         /// <summary>
         /// Event called when the user selects another scene
         /// </summary>
@@ -111,7 +99,7 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
             SinglePatient3DScene scene = Instantiate(SinglePatientScenePrefab, transform).GetComponent<SinglePatient3DScene>();
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress, postMRI));
-            m_NumberOfScenesLoadedSinceStart++;
+            ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
             // Add the listeners
             scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
             {
@@ -144,7 +132,7 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
             MultiPatients3DScene scene = Instantiate(MultiPatientsScenePrefab, transform).GetComponent<MultiPatients3DScene>();
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress));
-            m_NumberOfScenesLoadedSinceStart++;
+            ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
             // Add the listeners
             scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
             {

@@ -77,6 +77,16 @@ namespace HBP.Module3D
 
         public const int MAXIMUM_VIEW_NUMBER = 5;
         public const int MAXIMUM_COLUMN_NUMBER = 5;
+        
+        /// <summary>
+        /// Number of scenes that have been loaded in this instance of HiBoP (to apply a unique ID to each scene)
+        /// </summary>
+        public int NumberOfScenesLoadedSinceStart { get; set; }
+
+        /// <summary>
+        /// Number of columns that have been instanciated in this instance of HiBoP (to apply a unique ID to each column)
+        /// </summary>
+        public int NumberOfColumnsSinceStart { get; set; }
 
         /// <summary>
         /// List of all the loaded visualizations

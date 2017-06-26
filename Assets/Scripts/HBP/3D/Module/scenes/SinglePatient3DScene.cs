@@ -369,7 +369,7 @@ namespace HBP.Module3D
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
 
             Visualization = visualization;
-            int sceneID = GetComponentInParent<ScenesManager>().NumberOfScenesLoadedSinceStart;
+            int sceneID = ApplicationState.Module3D.NumberOfScenesLoadedSinceStart;
             gameObject.name = "SinglePatient Scene (" + sceneID + ")";
             transform.position = new Vector3(SPACE_BETWEEN_SCENES * sceneID, transform.position.y, transform.position.z);
 
