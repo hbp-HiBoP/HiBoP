@@ -152,6 +152,10 @@ namespace HBP.Module3D
         /// Event called when changing the selected view
         /// </summary>
         public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
+        /// <summary>
+        /// Event called when changing the selected site
+        /// </summary>
+        public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
         #endregion
 
         #region Private Methods

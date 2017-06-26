@@ -1447,8 +1447,9 @@ namespace HBP.Module3D
         /// <param name="action"> 0 : excluded / 1 : included / 2 : blacklisted / 3 : unblacklist / 4 : highlight / 5 : unhighlight / 6 : marked / 7 : unmarked </param>
         /// <param name="range"> 0 : a plot / 1 : all plots from an electrode / 2 : all plots from a patient / 3 : all highlighted / 4 : all unhighlighted 
         /// / 5 : all plots / 6 : in ROI / 7 : not in ROI / 8 : names filter / 9 : mars filter / 10 : broadman filter </param>
-        public void UpdateSitesMasks(bool allColumns, GameObject siteGameObject, SiteAction action = SiteAction.Exclude, SiteFilter filter = SiteFilter.Specific, string nameFilter = "")
+        public void UpdateSitesMasks(bool allColumns, SiteAction action = SiteAction.Exclude, SiteFilter filter = SiteFilter.Site, string nameFilter = "")
         {
+            GameObject siteGameObject = m_ColumnManager.SelectedColumn.SelectedSite.gameObject;
             // Check access
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.UpdateMaskPlot))
             {
@@ -1472,7 +1473,7 @@ namespace HBP.Module3D
             {
                 switch(filter)
                 {
-                    case SiteFilter.Specific:
+                    case SiteFilter.Site:
                         {
                             sitesID.Add(siteGameObject.GetComponent<Site>().Information.GlobalID);
                         }
@@ -1547,7 +1548,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < column.Sites.Count; ++jj)
                             {
-                                if (column.Sites[jj].Information.FullName.Contains(nameFilter))
+                                if (column.Sites[jj].Information.FullName.ToLower().Contains(nameFilter.ToLower()))
                                     sitesID.Add(jj);
                             }
                         }
@@ -1556,7 +1557,7 @@ namespace HBP.Module3D
                         {                            
                             for (int jj = 0; jj < column.Sites.Count; ++jj)
                             {
-                                if (ApplicationState.Module3D.MarsAtlasIndex.FullName(column.Sites[jj].Information.MarsAtlasIndex).Contains(nameFilter))
+                                if (ApplicationState.Module3D.MarsAtlasIndex.FullName(column.Sites[jj].Information.MarsAtlasIndex).ToLower().Contains(nameFilter.ToLower()))
                                     sitesID.Add(jj);      
                             }
                         }
@@ -1565,7 +1566,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < column.Sites.Count; ++jj)
                             {
-                                if (ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(column.Sites[jj].Information.MarsAtlasIndex).Contains(nameFilter))
+                                if (ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(column.Sites[jj].Information.MarsAtlasIndex).ToLower().Contains(nameFilter.ToLower()))
                                     sitesID.Add(jj);
                             }
                         }
@@ -2081,6 +2082,7 @@ namespace HBP.Module3D
                 }
                 ClickOnSiteCallback();
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                ApplicationState.Module3D.OnSelectSite.Invoke(site);
             }
             else
             {

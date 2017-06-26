@@ -39,6 +39,12 @@ namespace HBP.UI.Module3D
         private Toggle m_TimelineToggle;
 
         /// <summary>
+        /// Site toggle
+        /// </summary>
+        [SerializeField]
+        private Toggle m_SiteToggle;
+
+        /// <summary>
         /// Toggle group associated to the left menu toggles
         /// </summary>
         private ToggleGroup m_ToggleGroup;
@@ -58,6 +64,7 @@ namespace HBP.UI.Module3D
             m_Toolbars.Add(m_DisplayToggle, m_ToolbarMenu.DisplaySettingsToolbar);
             m_Toolbars.Add(m_IEEGToggle, m_ToolbarMenu.IEEGSettingsToolbar);
             m_Toolbars.Add(m_TimelineToggle, m_ToolbarMenu.TimelineToolbar);
+            m_Toolbars.Add(m_SiteToggle, m_ToolbarMenu.SiteToolbar);
 
             AddListeners();
         }
@@ -92,6 +99,13 @@ namespace HBP.UI.Module3D
                 if (isOn)
                 {
                     ChangeToolbar(m_TimelineToggle);
+                }
+            });
+            m_SiteToggle.onValueChanged.AddListener((isOn) =>
+            {
+                if (isOn)
+                {
+                    ChangeToolbar(m_SiteToggle);
                 }
             });
         }
