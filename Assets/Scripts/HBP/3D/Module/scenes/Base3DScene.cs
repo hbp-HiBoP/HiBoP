@@ -1935,10 +1935,11 @@ namespace HBP.Module3D
         /// Unselect the site of the corresponding column
         /// </summary>
         /// <param name="columnId"></param>
-        public void UnselectSite(int columnId)
+        public void UnselectSite(Column3D column)
         {
-            m_ColumnManager.Columns[columnId].SelectedSiteID = -1; // unselect current site
+            column.SelectedSiteID = -1; // unselect current site
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ApplicationState.Module3D.OnSelectSite.Invoke(null);
             Events.OnClickSite.Invoke(-1); // update menu
         }
         /// <summary>
@@ -2047,7 +2048,11 @@ namespace HBP.Module3D
 
             RaycastHit hit;
             bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
-            if (!isCollision) return;
+            if (!isCollision)
+            {
+                UnselectSite(m_ColumnManager.SelectedColumn);
+                return;
+            }
 
             // FIXME : maybe create a component instead of checking the name of the parent
             bool cutHit = hit.transform.parent.gameObject.name == "Cuts";
@@ -2116,6 +2121,11 @@ namespace HBP.Module3D
                         }
                     }
                 }
+            }
+
+            if (!siteHit)
+            {
+                UnselectSite(m_ColumnManager.SelectedColumn);
             }
         }
         #endregion

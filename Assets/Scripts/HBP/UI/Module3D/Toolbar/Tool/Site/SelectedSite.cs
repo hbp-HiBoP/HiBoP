@@ -21,7 +21,14 @@ namespace HBP.UI.Module3D.Tools
         {
             ApplicationState.Module3D.OnSelectSite.AddListener((site) =>
             {
-                m_Text.text = site.Information.FullName;
+                if (site)
+                {
+                    m_Text.text = site.Information.FullName;
+                }
+                else
+                {
+                    DefaultState();
+                }
             });
         }
         public override void DefaultState()

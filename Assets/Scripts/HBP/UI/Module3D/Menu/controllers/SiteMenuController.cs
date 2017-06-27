@@ -113,7 +113,7 @@ namespace HBP.UI.Module3D
             });
             contentPanelT.Find("selected site buttons").Find("unselect button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                m_scene.UnselectSite(m_columnId);
+                m_scene.UnselectSite(ApplicationState.Module3D.SelectedScene.ColumnManager.Columns[m_columnId]);
 
                 update_menu();
             });

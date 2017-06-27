@@ -16,6 +16,11 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Tools.SelectedSite m_SelectedSite;
         /// <summary>
+        /// Compare two sites
+        /// </summary>
+        [SerializeField]
+        private Tools.CompareSite m_CompareSite;
+        /// <summary>
         /// Modify the state of some sites
         /// </summary>
         [SerializeField]
@@ -30,6 +35,7 @@ namespace HBP.UI.Module3D
         protected override void AddTools()
         {
             m_Tools.Add(m_SelectedSite);
+            m_Tools.Add(m_CompareSite);
             m_Tools.Add(m_SiteModifier);
         }
         #endregion
