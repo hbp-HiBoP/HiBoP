@@ -13,6 +13,8 @@ namespace HBP.UI.Module3D.Tools
         [SerializeField]
         private Button m_Button;
         [SerializeField]
+        private DropWindow m_DropWindow;
+        [SerializeField]
         private Dropdown m_Selector;
         [SerializeField]
         private InputField m_Filter;
@@ -50,6 +52,7 @@ namespace HBP.UI.Module3D.Tools
             m_Apply.onClick.AddListener(() =>
             {
                 ApplicationState.Module3D.SelectedScene.UpdateSitesMasks(m_AllColumns.isOn, (SiteAction)m_Action.value, (SiteFilter)m_Selector.value, m_Filter.text);
+                m_DropWindow.ChangeWindowState();
             });
             m_Filter.gameObject.SetActive(false);
         }
