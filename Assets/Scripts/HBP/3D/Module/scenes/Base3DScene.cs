@@ -1449,7 +1449,11 @@ namespace HBP.Module3D
         /// / 5 : all plots / 6 : in ROI / 7 : not in ROI / 8 : names filter / 9 : mars filter / 10 : broadman filter </param>
         public void UpdateSitesMasks(bool allColumns, SiteAction action = SiteAction.Exclude, SiteFilter filter = SiteFilter.Site, string nameFilter = "")
         {
-            GameObject siteGameObject = m_ColumnManager.SelectedColumn.SelectedSite.gameObject;
+            GameObject siteGameObject = null;
+            if (m_ColumnManager.SelectedColumn.SelectedSite)
+            {
+                siteGameObject = m_ColumnManager.SelectedColumn.SelectedSite.gameObject;
+            }
             // Check access
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.UpdateMaskPlot))
             {
@@ -2064,7 +2068,7 @@ namespace HBP.Module3D
             {
                 Site site = hit.collider.gameObject.GetComponent<Site>();
                 m_ColumnManager.SelectedColumn.SelectedSiteID = site.Information.GlobalID;
-                m_ColumnManager.SelectedPatientID = site.Information.PatientID;
+                m_ColumnManager.SelectedColumn.SelectedPatientID = site.Information.PatientID;
                 if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG && Type == SceneType.SinglePatient)
                 {
                     Column3DIEEG columnIEEG = (Column3DIEEG)m_ColumnManager.SelectedColumn;

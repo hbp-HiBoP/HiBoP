@@ -21,6 +21,11 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Tools.CompareSite m_CompareSite;
         /// <summary>
+        /// Load a single patient scene from a multi patient scene
+        /// </summary>
+        [SerializeField]
+        private Tools.LoadPatient m_LoadPatient;
+        /// <summary>
         /// Modify the state of some sites
         /// </summary>
         [SerializeField]
@@ -36,6 +41,7 @@ namespace HBP.UI.Module3D
         {
             m_Tools.Add(m_SelectedSite);
             m_Tools.Add(m_CompareSite);
+            m_Tools.Add(m_LoadPatient);
             m_Tools.Add(m_SiteModifier);
         }
         #endregion

@@ -102,6 +102,7 @@ namespace HBP.Module3D
             get { return m_SelectedSiteID >= 0 ? Sites[m_SelectedSiteID] : null; }
             set { m_SelectedSiteID = Sites.FindIndex((site) => site == value); OnChangeSelectedSite.Invoke(value); }
         }
+        public int SelectedPatientID { get; set; }
         public GenericEvent<Site> OnChangeSelectedSite = new GenericEvent<Site>();
 
         protected DLL.RawSiteList m_RawElectrodes = null;  /**< raw format of the plots container dll */

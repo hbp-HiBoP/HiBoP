@@ -11,6 +11,8 @@ namespace HBP.UI.Module3D.Tools
     {
         #region Properties
         [SerializeField]
+        private Button m_Button;
+        [SerializeField]
         private Dropdown m_Selector;
         [SerializeField]
         private InputField m_Filter;
@@ -25,11 +27,12 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Public Methods
-        public override void AddListeners()
+        public override void Initialize()
         {
             ApplicationState.Module3D.OnSelectSite.AddListener((site) =>
             {
-                m_Apply.interactable = site != null;
+                SiteFilter filter = (SiteFilter)m_Selector.value;
+                m_Apply.interactable = !((filter == SiteFilter.Site || filter == SiteFilter.Electrode || filter == SiteFilter.Patient) && site == null);
             });
             m_Selector.onValueChanged.AddListener((value) =>
             {
@@ -42,14 +45,17 @@ namespace HBP.UI.Module3D.Tools
                 {
                     m_Filter.gameObject.SetActive(false);
                 }
+                m_Apply.interactable = !((filter == SiteFilter.Site || filter == SiteFilter.Electrode || filter == SiteFilter.Patient) && ApplicationState.Module3D.SelectedColumn.SelectedSite == null);
             });
             m_Apply.onClick.AddListener(() =>
             {
                 ApplicationState.Module3D.SelectedScene.UpdateSitesMasks(m_AllColumns.isOn, (SiteAction)m_Action.value, (SiteFilter)m_Selector.value, m_Filter.text);
             });
+            m_Filter.gameObject.SetActive(false);
         }
         public override void DefaultState()
         {
+            m_Button.interactable = true;
             m_Selector.value = 0;
             m_Selector.interactable = false;
             m_Filter.text = "";
@@ -62,7 +68,8 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isSiteSelected = ApplicationState.Module3D.SelectedColumn.SelectedSite != null;
+            SiteFilter filter = (SiteFilter)m_Selector.value;
+            bool interactable = !((filter == SiteFilter.Site || filter == SiteFilter.Electrode || filter == SiteFilter.Patient) && ApplicationState.Module3D.SelectedColumn.SelectedSite == null);
             switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
             {
                 case Mode.ModesId.NoPathDefined:
@@ -76,14 +83,14 @@ namespace HBP.UI.Module3D.Tools
                     m_Selector.interactable = true;
                     m_Filter.interactable = true;
                     m_Action.interactable = true;
-                    m_Apply.interactable = isSiteSelected;
+                    m_Apply.interactable = interactable;
                     m_AllColumns.interactable = true;
                     break;
                 case Mode.ModesId.AllPathDefined:
                     m_Selector.interactable = true;
                     m_Filter.interactable = true;
                     m_Action.interactable = true;
-                    m_Apply.interactable = isSiteSelected;
+                    m_Apply.interactable = interactable;
                     m_AllColumns.interactable = true;
                     break;
                 case Mode.ModesId.ComputingAmplitudes:
@@ -97,7 +104,7 @@ namespace HBP.UI.Module3D.Tools
                     m_Selector.interactable = true;
                     m_Filter.interactable = true;
                     m_Action.interactable = true;
-                    m_Apply.interactable = isSiteSelected;
+                    m_Apply.interactable = interactable;
                     m_AllColumns.interactable = true;
                     break;
                 case Mode.ModesId.TriErasing:
@@ -118,7 +125,7 @@ namespace HBP.UI.Module3D.Tools
                     m_Selector.interactable = true;
                     m_Filter.interactable = true;
                     m_Action.interactable = true;
-                    m_Apply.interactable = isSiteSelected;
+                    m_Apply.interactable = interactable;
                     m_AllColumns.interactable = true;
                     break;
                 case Mode.ModesId.Error:

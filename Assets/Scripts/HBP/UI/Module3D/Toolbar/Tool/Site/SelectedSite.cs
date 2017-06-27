@@ -17,7 +17,7 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Public Methods
-        public override void AddListeners()
+        public override void Initialize()
         {
             ApplicationState.Module3D.OnSelectSite.AddListener((site) =>
             {

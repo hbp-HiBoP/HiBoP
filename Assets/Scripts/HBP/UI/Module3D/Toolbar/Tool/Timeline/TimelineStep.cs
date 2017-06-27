@@ -29,7 +29,7 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Public Methods
-        public override void AddListeners()
+        public override void Initialize()
         {
             m_Minus.onClick.AddListener(() =>
             {

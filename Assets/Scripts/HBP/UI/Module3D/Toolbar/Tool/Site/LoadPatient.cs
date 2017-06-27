@@ -7,11 +7,11 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class CompareSite : Tool
+    public class LoadPatient : Tool
     {
         #region Properties
         [SerializeField]
-        private Toggle m_Toggle;
+        private Button m_Button;
 
         private Site m_LastSelectedSite;
         #endregion
@@ -23,31 +23,23 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (!site)
                 {
-                    m_Toggle.interactable = false;
-                    m_Toggle.isOn = false;
-                    return;
+                    m_Button.interactable = false;
                 }
                 else
                 {
-                    m_Toggle.interactable = true;
-                }
-
-                if (m_Toggle.isOn)
-                {
-                    ApplicationState.Module3D.SelectedScene.SendAdditionalSiteInfoRequest(m_LastSelectedSite);
-                    m_Toggle.isOn = false;
+                    m_Button.interactable = true;
                 }
             });
 
-            m_Toggle.onValueChanged.AddListener((isOn) =>
+            m_Button.onClick.AddListener(() =>
             {
-                m_LastSelectedSite = isOn ? ApplicationState.Module3D.SelectedColumn.SelectedSite : null;
+                Base3DScene scene = ApplicationState.Module3D.SelectedScene;
+                ApplicationState.Module3D.OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(scene.Visualization, scene.Patients[scene.ColumnManager.SelectedColumn.SelectedPatientID]);
             });
         }
         public override void DefaultState()
         {
-            m_Toggle.interactable = false;
-            m_Toggle.isOn = false;
+            m_Button.interactable = false;
         }
         public override void UpdateInteractable()
         {
@@ -55,31 +47,31 @@ namespace HBP.UI.Module3D.Tools
             switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
             {
                 case Mode.ModesId.NoPathDefined:
-                    m_Toggle.interactable = false;
+                    m_Button.interactable = false;
                     break;
                 case Mode.ModesId.MinPathDefined:
-                    m_Toggle.interactable = isSiteSelected;
+                    m_Button.interactable = isSiteSelected;
                     break;
                 case Mode.ModesId.AllPathDefined:
-                    m_Toggle.interactable = isSiteSelected;
+                    m_Button.interactable = isSiteSelected;
                     break;
                 case Mode.ModesId.ComputingAmplitudes:
-                    m_Toggle.interactable = false;
+                    m_Button.interactable = false;
                     break;
                 case Mode.ModesId.AmplitudesComputed:
-                    m_Toggle.interactable = isSiteSelected;
+                    m_Button.interactable = isSiteSelected;
                     break;
                 case Mode.ModesId.TriErasing:
-                    m_Toggle.interactable = false;
+                    m_Button.interactable = false;
                     break;
                 case Mode.ModesId.ROICreation:
-                    m_Toggle.interactable = false;
+                    m_Button.interactable = false;
                     break;
                 case Mode.ModesId.AmpNeedUpdate:
-                    m_Toggle.interactable = isSiteSelected;
+                    m_Button.interactable = isSiteSelected;
                     break;
                 case Mode.ModesId.Error:
-                    m_Toggle.interactable = false;
+                    m_Button.interactable = false;
                     break;
                 default:
                     break;
@@ -89,15 +81,21 @@ namespace HBP.UI.Module3D.Tools
         {
             if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
             {
+                if (ApplicationState.Module3D.SelectedScene.Type != SceneType.MultiPatients)
+                {
+                    gameObject.SetActive(false);
+                    return;
+                }
+
+                gameObject.SetActive(true);
                 Site site = ApplicationState.Module3D.SelectedColumn.SelectedSite;
                 if (!site)
                 {
-                    m_Toggle.interactable = false;
-                    m_Toggle.isOn = false;
+                    m_Button.interactable = false;
                 }
                 else
                 {
-                    m_Toggle.interactable = true;
+                    m_Button.interactable = true;
                 }
             }
         }

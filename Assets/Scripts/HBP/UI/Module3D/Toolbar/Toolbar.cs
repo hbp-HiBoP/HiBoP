@@ -43,7 +43,7 @@ namespace HBP.UI.Module3D
 
             foreach (Tools.Tool tool in m_Tools)
             {
-                tool.AddListeners();
+                tool.Initialize();
             }
         }
         /// <summary>
