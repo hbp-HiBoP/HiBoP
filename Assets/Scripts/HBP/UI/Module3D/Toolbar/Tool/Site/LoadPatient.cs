@@ -24,10 +24,12 @@ namespace HBP.UI.Module3D.Tools
                 if (!site)
                 {
                     m_Button.interactable = false;
+                    gameObject.SetActive(false);
                 }
-                else
+                else if (ApplicationState.Module3D.SelectedScene.Type == SceneType.MultiPatients)
                 {
                     m_Button.interactable = true;
+                    gameObject.SetActive(true);
                 }
             });
 

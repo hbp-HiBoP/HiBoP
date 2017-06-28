@@ -56,6 +56,10 @@ namespace HBP.Module3D
             {
                 m_CurrentTimeLineID = value % (MaxTimeLineID + 1);
                 OnUpdateCurrentTimelineID.Invoke();
+                if (IsSelected)
+                {
+                    ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.Invoke();
+                }
             }
         }
         public int MaxTimeLineID { get; set; }
@@ -66,6 +70,13 @@ namespace HBP.Module3D
             get
             {
                 return Column.TimeLine.Step * CurrentTimeLineID + MinTimeLine;
+            }
+        }
+        public string TimeLineUnite
+        {
+            get
+            {
+                return Column.TimeLine.Start.Unite;
             }
         }
         public float SharedMinInf = 0f;

@@ -34,6 +34,8 @@ namespace HBP.UI.Module3D
                 Column3DIEEG col = (Column3DIEEG)column;
                 col.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
+                    if (!scene.SceneInformation.IsGeneratorUpToDate) return;
+
                     Data.Visualization.Icon icon = col.Column.IconicScenario.Icons.DefaultIfEmpty(null).FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
                     if (icon != m_CurrentIcon)
                     {

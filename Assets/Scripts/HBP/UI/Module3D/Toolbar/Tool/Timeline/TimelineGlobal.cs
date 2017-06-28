@@ -41,10 +41,10 @@ namespace HBP.UI.Module3D.Tools
                     m_Toggle.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.MinPathDefined:
-                    m_Toggle.interactable = true;
+                    m_Toggle.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.AllPathDefined:
-                    m_Toggle.interactable = true;
+                    m_Toggle.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.ComputingAmplitudes:
                     m_Toggle.interactable = false;
@@ -59,7 +59,7 @@ namespace HBP.UI.Module3D.Tools
                     m_Toggle.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.AmpNeedUpdate:
-                    m_Toggle.interactable = true;
+                    m_Toggle.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.Error:
                     m_Toggle.interactable = false;

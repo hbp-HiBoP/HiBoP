@@ -25,11 +25,13 @@ namespace HBP.UI.Module3D.Tools
                 {
                     m_Toggle.interactable = false;
                     m_Toggle.isOn = false;
+                    gameObject.SetActive(false);
                     return;
                 }
                 else
                 {
                     m_Toggle.interactable = true;
+                    gameObject.SetActive(true);
                 }
 
                 if (m_Toggle.isOn)
@@ -94,10 +96,12 @@ namespace HBP.UI.Module3D.Tools
                 {
                     m_Toggle.interactable = false;
                     m_Toggle.isOn = false;
+                    gameObject.SetActive(false);
                 }
                 else
                 {
                     m_Toggle.interactable = true;
+                    gameObject.SetActive(true);
                 }
             }
         }

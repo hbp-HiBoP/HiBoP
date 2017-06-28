@@ -1992,7 +1992,7 @@ namespace HBP.Module3D
                     {
                         amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
                     }
-                    string timeline = columnIEEG.CurrentTimeLineID.ToString() + " (" + columnIEEG.CurrentTimeLine.ToString("N2") + columnIEEG.Column.TimeLine.Start.Unite + ")";
+                    string timeline = columnIEEG.CurrentTimeLineID.ToString() + " (" + columnIEEG.CurrentTimeLine.ToString("N2") + columnIEEG.TimeLineUnite + ")";
                     switch (Type)
                     {
                         case SceneType.SinglePatient:

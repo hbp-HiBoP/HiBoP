@@ -36,6 +36,11 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Button m_Remove;
         /// <summary>
+        /// Rect Transform of the custom vector editor
+        /// </summary>
+        [SerializeField]
+        private RectTransform m_CustomValues;
+        /// <summary>
         /// X value for the custom normal
         /// </summary>
         [SerializeField]
@@ -70,6 +75,7 @@ namespace HBP.UI.Module3D
                 cut.Orientation = (CutOrientation)value;
                 if (cut.Orientation == CutOrientation.Custom)
                 {
+                    m_CustomValues.gameObject.SetActive(true);
                     int x = 1, y = 0, z = 0;
                     if (!int.TryParse(m_CustomX.text, out x))
                     {
@@ -92,6 +98,10 @@ namespace HBP.UI.Module3D
                         m_CustomX.text = "1";
                     }
                     cut.Normal = new Vector3(x, y, z);
+                }
+                else
+                {
+                    m_CustomValues.gameObject.SetActive(false);
                 }
                 scene.UpdateCutPlane(cut);
             });

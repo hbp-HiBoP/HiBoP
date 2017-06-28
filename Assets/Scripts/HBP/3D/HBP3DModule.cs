@@ -117,6 +117,10 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
         /// <summary>
+        /// Event called when changing the value of the timeline of the selected column
+        /// </summary>
+        public UnityEvent OnUpdateSelectedColumnTimeLineID = new UnityEvent();
+        /// <summary>
         /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
         /// </summary>   
         public GenericEvent<Data.Visualization.Visualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.Visualization, Data.Patient>();
