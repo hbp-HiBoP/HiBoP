@@ -244,6 +244,8 @@ namespace HBP.Module3D
             {
                 m_Camera3D.CullingMask = m_MinimizedCullingMask;
             }
+
+            Default();
         }
         private void Update()
         {
@@ -299,6 +301,27 @@ namespace HBP.Module3D
         {
             m_Camera3D.Zoom(3*amount);
             OnMoveView.Invoke();
+        }
+        /// <summary>
+        /// Set the default state of the view
+        /// </summary>
+        public void Default()
+        {
+            m_Camera3D.ResetTarget();
+            switch (LineID)
+            {
+                case 1:
+                    m_Camera3D.HorizontalRotation(180);
+                    m_Camera3D.VerticalRotation(-20);
+                    break;
+                case 2:
+                    m_Camera3D.VerticalRotation(10);
+                    m_Camera3D.HorizontalRotation(-90);
+                    m_Camera3D.VerticalRotation(90);
+                    break;
+                default:
+                    break;
+            }
         }
         #endregion
     }

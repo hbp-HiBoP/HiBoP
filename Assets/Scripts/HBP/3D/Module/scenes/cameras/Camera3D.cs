@@ -132,6 +132,18 @@ namespace HBP.Module3D
         }
         private Vector3 m_OriginalTarget;
         private Vector3 m_OriginalRotationEuler;
+        public Vector3 RotationEuler
+        {
+            get
+            {
+                return m_OriginalRotationEuler;
+            }
+            set
+            {
+                m_OriginalRotationEuler = value;
+                transform.eulerAngles = value;
+            }
+        }
 
         private Vector3[] m_XRotationCircleVertices = null;
         private Vector3[] m_YRotationCircleVertices = null;

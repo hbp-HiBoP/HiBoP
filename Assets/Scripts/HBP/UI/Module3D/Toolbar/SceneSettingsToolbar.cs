@@ -35,6 +35,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.FMRI m_FMRI;
+        /// <summary>
+        /// Set the scene to the standard views
+        /// </summary>
+        [SerializeField]
+        private Tools.StandardViews m_StandardViews;
         #endregion
 
         #region Private Methods
@@ -49,6 +54,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_MarsAtlas);
             m_Tools.Add(m_Views);
             m_Tools.Add(m_FMRI);
+            m_Tools.Add(m_StandardViews);
         }
         /// <summary>
         /// Add the listeners to the elements of the toolbar
@@ -74,6 +80,11 @@ namespace HBP.UI.Module3D
             });
 
             m_FMRI.OnClick.AddListener(() =>
+            {
+                UpdateInteractableButtons();
+            });
+
+            m_StandardViews.OnClick.AddListener(() =>
             {
                 UpdateInteractableButtons();
             });
