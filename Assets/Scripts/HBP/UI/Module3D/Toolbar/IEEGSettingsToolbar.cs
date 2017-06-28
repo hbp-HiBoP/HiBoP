@@ -9,6 +9,11 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         /// <summary>
+        /// IEEG Global setter
+        /// </summary>
+        [SerializeField]
+        private Tools.IEEGGlobal m_IEEGGlobal;
+        /// <summary>
         /// Threshold IEEG parameters
         /// </summary>
         [SerializeField]
@@ -33,10 +38,22 @@ namespace HBP.UI.Module3D
         #region Private Methods
         protected override void AddTools()
         {
+            m_Tools.Add(m_IEEGGlobal);
             m_Tools.Add(m_ThresholdIEEG);
             m_Tools.Add(m_IEEGTransparency);
             m_Tools.Add(m_IEEGSitesParameters);
             m_Tools.Add(m_ComputeIEEG);
+        }
+        protected override void AddListeners()
+        {
+            base.AddListeners();
+
+            m_IEEGGlobal.OnChangeValue.AddListener((value) => {
+                Debug.Log(value);
+                m_ThresholdIEEG.IsGlobal = value;
+                m_IEEGTransparency.IsGlobal = value;
+                m_IEEGSitesParameters.IsGlobal = value;
+            });
         }
         #endregion
     }

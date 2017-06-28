@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class TimelineGlobal : Tool
+    public class IEEGGlobal : Tool
     {
         #region Properties
         [SerializeField]
@@ -22,7 +22,7 @@ namespace HBP.UI.Module3D.Tools
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
                 if (ListenerLock) return;
-                
+
                 OnChangeValue.Invoke(isOn);
             });
         }
@@ -41,10 +41,10 @@ namespace HBP.UI.Module3D.Tools
                     m_Toggle.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.MinPathDefined:
-                    m_Toggle.interactable = false;
+                    m_Toggle.interactable = true;
                     break;
                 case HBP.Module3D.Mode.ModesId.AllPathDefined:
-                    m_Toggle.interactable = false;
+                    m_Toggle.interactable = true;
                     break;
                 case HBP.Module3D.Mode.ModesId.ComputingAmplitudes:
                     m_Toggle.interactable = false;
@@ -59,7 +59,7 @@ namespace HBP.UI.Module3D.Tools
                     m_Toggle.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.AmpNeedUpdate:
-                    m_Toggle.interactable = false;
+                    m_Toggle.interactable = true;
                     break;
                 case HBP.Module3D.Mode.ModesId.Error:
                     m_Toggle.interactable = false;
