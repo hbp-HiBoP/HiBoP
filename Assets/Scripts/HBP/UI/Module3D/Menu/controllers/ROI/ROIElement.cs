@@ -84,7 +84,7 @@ namespace HBP.Module3D
 
             m_ROIUI.transform.Find("title input field").GetComponent<InputField>().onEndEdit.AddListener((text) =>
             {
-                m_ROI.GetComponent<ROI>().m_ROIname = text;
+                m_ROI.GetComponent<ROI>().Name = text;
             });
             
 
@@ -133,7 +133,7 @@ namespace HBP.Module3D
         public void update_name(string name)
         {
             m_ROIUI.transform.Find("title input field").GetComponent<InputField>().text = name;
-            m_ROI.GetComponent<ROI>().m_ROIname = name;
+            m_ROI.GetComponent<ROI>().Name = name;
         }
 
 

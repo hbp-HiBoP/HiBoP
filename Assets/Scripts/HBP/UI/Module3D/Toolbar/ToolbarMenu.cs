@@ -91,6 +91,23 @@ namespace HBP.UI.Module3D {
             }
         }
 
+        [SerializeField, Candlelight.PropertyBackingField]
+        private ROIToolbar m_ROIToolbar;
+        /// <summary>
+        /// Toolbar for the scene settings
+        /// </summary>
+        public ROIToolbar ROIToolbar
+        {
+            get
+            {
+                return m_ROIToolbar;
+            }
+            set
+            {
+                m_ROIToolbar = value;
+            }
+        }
+
         /// <summary>
         /// Currently used toolbar
         /// </summary>
@@ -112,6 +129,7 @@ namespace HBP.UI.Module3D {
             m_IEEGSettingsToolbar.Initialize();
             m_TimelineToolbar.Initialize();
             m_SiteToolbar.Initialize();
+            m_ROIToolbar.Initialize();
 
             CurrentToolbar = m_SceneSettingsToolbar;
 
@@ -120,6 +138,7 @@ namespace HBP.UI.Module3D {
             m_IEEGSettingsToolbar.gameObject.SetActive(false);
             m_TimelineToolbar.gameObject.SetActive(false);
             m_SiteToolbar.gameObject.SetActive(false);
+            m_ROIToolbar.gameObject.SetActive(false);
         }
         #endregion
     }

@@ -9,6 +9,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine.Events;
+using System.Linq;
 
 namespace HBP.Module3D
 {
@@ -121,8 +122,55 @@ namespace HBP.Module3D
         public SiteRing SelectRing { get { return m_SelectRing; } }
 
         // ROI
-        protected ROI m_SelectedROI = null;   /**< selected ROI of the column */
-        public ROI SelectedROI { get { return m_SelectedROI;} }
+        [SerializeField]
+        protected Transform m_ROIParent;
+        protected List<ROI> m_ROIs = new List<ROI>();
+        public ReadOnlyCollection<ROI> ROIs
+        {
+            get
+            {
+                return new ReadOnlyCollection<ROI>(m_ROIs);
+            }
+        }
+        protected ROI m_SelectedROI = null;
+        public ROI SelectedROI
+        {
+            get
+            {
+                return m_SelectedROI;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    m_SelectedROI = null;
+                }
+                else
+                {
+                    if (m_SelectedROI != null)
+                    {
+                        m_SelectedROI.SetVisibility(false);
+                    }
+
+                    m_SelectedROI = value;
+                    m_SelectedROI.SetVisibility(true);
+                }
+                ApplicationState.Module3D.OnSelectROI.Invoke();
+            }
+        }
+        public int SelectedROIID
+        {
+            get
+            {
+                return m_ROIs.FindIndex((roi) => roi == SelectedROI);
+            }
+            set
+            {
+                SelectedROI = value == -1 ? null : m_ROIs[value];
+            }
+        }
+        [SerializeField]
+        private GameObject m_ROIPrefab;
 
         // generators
         public List<DLL.MRITextureCutGenerator> DLLMRITextureCutGenerators = null;
@@ -337,20 +385,6 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Update the ROI
-        /// </summary>
-        /// <param name="ROI"></param>
-        public void UpdateROI(ROI ROI)
-        {
-            if(m_SelectedROI != null)
-            {
-                m_SelectedROI.SetVisibility(false);
-            }
-
-            m_SelectedROI = ROI;
-            m_SelectedROI.SetVisibility(true);
-        }
-        /// <summary>
         /// Retrieve a string containing all the plots states
         /// </summary>
         /// <returns></returns>
@@ -529,6 +563,30 @@ namespace HBP.Module3D
         {
             Destroy(m_Views[lineID].gameObject);
             m_Views.RemoveAt(lineID);
+        }
+
+        public void AddROI()
+        {
+            GameObject roiGameObject = Instantiate(m_ROIPrefab, m_ROIParent);
+            m_ROIs.Add(roiGameObject.GetComponent<ROI>());
+            ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
+
+            SelectedROI = m_ROIs.Last();
+        }
+        public void RemoveSelectedROI()
+        {
+            Destroy(m_SelectedROI.gameObject);
+            m_ROIs.Remove(m_SelectedROI);
+            ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
+
+            if (m_ROIs.Count > 0)
+            {
+                SelectedROI = m_ROIs.Last();
+            }
+            else
+            {
+                SelectedROI = null;
+            }
         }
         /// <summary>
         /// 

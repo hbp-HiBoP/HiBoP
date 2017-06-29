@@ -129,6 +129,14 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<string> OnSaveRegionOfInterest = new GenericEvent<string>();
         /// <summary>
+        /// Event called when adding or removing a ROI
+        /// </summary>
+        public UnityEvent OnChangeNumberOfROI = new UnityEvent();
+        /// <summary>
+        /// Event called when selecting a ROI
+        /// </summary>
+        public UnityEvent OnSelectROI = new UnityEvent();
+        /// <summary>
         /// Event called when a visualization is added
         /// </summary>
         public GenericEvent<Data.Visualization.Visualization> OnAddVisualization = new GenericEvent<Data.Visualization.Visualization>();

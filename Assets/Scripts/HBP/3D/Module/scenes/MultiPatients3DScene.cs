@@ -350,47 +350,6 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Return true if the ROI mode is enabled (allow to switch mouse scroll effect between camera zoom and ROI size changes)
-        /// </summary>
-        /// <returns></returns>
-        public bool IsRegionOfInterestModeEnabled()
-        {
-            return SceneInformation.IsROICreationModeEnabled;
-        }
-        /// <summary>
-        /// TMP : DELETEME
-        /// </summary>
-        public void RemoveSelectedROIBubble()
-        {
-            if (SceneInformation.IsROICreationModeEnabled)
-            {
-                int idC = m_ColumnManager.SelectedColumnID;
-
-                Column3D col = m_ColumnManager.SelectedColumn;
-                int idBubble = col.SelectedROI.SelectedBubbleID;
-                if (idBubble != -1)
-                    RemoveBubbleEvent.Invoke(idC, idBubble);
-
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        public void EnableRegionOfInterestCreationMode()
-        {
-            SceneInformation.IsROICreationModeEnabled = true;
-            ColumnManager.UpdateROIVisibility(true);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        public void DisableRegionOfInterestCreationMode()
-        {
-            SceneInformation.IsROICreationModeEnabled = false;
-            ColumnManager.UpdateROIVisibility(false);
-        }
-        /// <summary>
         /// Send additionnal site info to hight level UI
         /// </summary>
         public override void SendAdditionalSiteInfoRequest(Site previousPlot = null) // TODO deporter dans c manager
@@ -461,17 +420,17 @@ namespace HBP.Module3D
         /// 
         /// </summary>
         /// <param name="idColumn"></param>
-        public void UpdateCurrentRegionOfInterest(int idColumn)
+        public void UpdateCurrentRegionOfInterest(Column3D column)
         {
             bool[] maskROI = new bool[m_ColumnManager.SitesList.Count];
 
             // update mask ROI
             for (int ii = 0; ii < maskROI.Length; ++ii)
-                maskROI[ii] = m_ColumnManager.Columns[idColumn].Sites[ii].Information.IsInROI;
+                maskROI[ii] = column.Sites[ii].Information.IsInROI;
 
-            m_ColumnManager.Columns[idColumn].SelectedROI.UpdateMask(m_ColumnManager.Columns[idColumn].RawElectrodes, maskROI);
-            for (int ii = 0; ii < m_ColumnManager.Columns[idColumn].Sites.Count; ++ii)
-                m_ColumnManager.Columns[idColumn].Sites[ii].Information.IsInROI = maskROI[ii];
+            column.SelectedROI.UpdateMask(column.RawElectrodes, maskROI);
+            for (int ii = 0; ii < column.Sites.Count; ++ii)
+                column.Sites[ii].Information.IsInROI = maskROI[ii];
 
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
         }
@@ -480,10 +439,10 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="idColumn"></param>
         /// <param name="roi"></param>
-        public void UpdateRegionOfInterest(int idColumn, ROI roi)
+        public void UpdateRegionOfInterest(Column3D column, ROI roi)
         {
-            m_ColumnManager.Columns[idColumn].UpdateROI(roi);
-            UpdateCurrentRegionOfInterest(idColumn);
+            column.SelectedROI = roi;
+            UpdateCurrentRegionOfInterest(column);
         }
         /// <summary>
         /// Return the string information of the current column ROI and plots states

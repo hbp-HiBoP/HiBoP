@@ -45,6 +45,12 @@ namespace HBP.UI.Module3D
         private Toggle m_SiteToggle;
 
         /// <summary>
+        /// ROI Toggle
+        /// </summary>
+        [SerializeField]
+        private Toggle m_ROIToggle;
+
+        /// <summary>
         /// Toggle group associated to the left menu toggles
         /// </summary>
         private ToggleGroup m_ToggleGroup;
@@ -65,6 +71,7 @@ namespace HBP.UI.Module3D
             m_Toolbars.Add(m_IEEGToggle, m_ToolbarMenu.IEEGSettingsToolbar);
             m_Toolbars.Add(m_TimelineToggle, m_ToolbarMenu.TimelineToolbar);
             m_Toolbars.Add(m_SiteToggle, m_ToolbarMenu.SiteToolbar);
+            m_Toolbars.Add(m_ROIToggle, m_ToolbarMenu.ROIToolbar);
 
             AddListeners();
         }
@@ -73,6 +80,14 @@ namespace HBP.UI.Module3D
         /// </summary>
         private void AddListeners()
         {
+            ApplicationState.Module3D.OnAddScene.AddListener((scene) =>
+            {
+                m_SceneToggle.isOn = true;
+            });
+            ApplicationState.Module3D.OnRemoveScene.AddListener((scene) =>
+            {
+                m_SceneToggle.isOn = true;
+            });
             m_SceneToggle.onValueChanged.AddListener((isOn) =>
             {
                 if (isOn)
@@ -108,6 +123,13 @@ namespace HBP.UI.Module3D
                     ChangeToolbar(m_SiteToggle);
                 }
             });
+            m_ROIToggle.onValueChanged.AddListener((isOn) =>
+            {
+                if (isOn)
+                {
+                    ChangeToolbar(m_ROIToggle);
+                }
+            });
         }
         /// <summary>
         /// Method to be called when changing the state of a toggle
@@ -115,10 +137,12 @@ namespace HBP.UI.Module3D
         /// <param name="triggeredToggle">Toggle which value changed</param>
         private void ChangeToolbar(Toggle triggeredToggle)
         {
+            m_ToolbarMenu.CurrentToolbar.HideToolbarCallback();
             Toolbar newlyActivatedToolbar = m_Toolbars[triggeredToggle];
             m_ToolbarMenu.CurrentToolbar.gameObject.SetActive(false);
             newlyActivatedToolbar.gameObject.SetActive(true);
             m_ToolbarMenu.CurrentToolbar = newlyActivatedToolbar;
+            m_ToolbarMenu.CurrentToolbar.ShowToolbarCallback();
         }
         #endregion
     }

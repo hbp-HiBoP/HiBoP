@@ -513,6 +513,22 @@ namespace HBP.Module3D
         /// </summary>
         public Color AmbientLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
+        /// <summary>
+        /// Is ROI creation mode activated ?
+        /// </summary>
+        public bool ROICreation
+        {
+            get
+            {
+                return SceneInformation.IsROICreationModeEnabled;
+            }
+            set
+            {
+                SceneInformation.IsROICreationModeEnabled = value;
+                ColumnManager.UpdateROIVisibility(value);
+            }
+        }
+
         [SerializeField]
         public GameObject m_CutPrefab;
         #endregion
@@ -2107,6 +2123,7 @@ namespace HBP.Module3D
                     }
                     else if (meshHit || cutHit)
                     {
+                        Debug.Log("yo");
                         Events.OnCreateROIBubble.Invoke(hit.point, m_ColumnManager.SelectedColumnID);
                         m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                     }

@@ -121,6 +121,20 @@ namespace HBP.UI.Module3D
             DefaultState();
             m_Tools.ForEach((t) => t.ListenerLock = false);
         }
+        /// <summary>
+        /// Called when showing this toolbar
+        /// </summary>
+        public virtual void ShowToolbarCallback()
+        {
+
+        }
+        /// <summary>
+        /// Called when hiding this toolbar
+        /// </summary>
+        public virtual void HideToolbarCallback()
+        {
+
+        }
         #endregion
     }
 }
