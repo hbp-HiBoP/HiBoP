@@ -309,7 +309,6 @@ namespace HBP.Module3D
             column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
             column.OnSelectColumn.AddListener((selectedColumn) =>
             {
-                Debug.Log("OnSelectColumn");
                 foreach (Column3D c in m_Columns)
                 {
                     if (c != selectedColumn)
@@ -318,13 +317,8 @@ namespace HBP.Module3D
                         foreach (View3D v in c.Views)
                         {
                             v.IsSelected = false;
-                            v.IsColumnSelected = false;
                         }
                     }
-                }
-                foreach (View3D v in selectedColumn.Views)
-                {
-                    v.IsColumnSelected = true;
                 }
                 OnSelectColumnManager.Invoke(this);
                 ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
@@ -370,7 +364,6 @@ namespace HBP.Module3D
             column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
             column.OnSelectColumn.AddListener((selectedColumn) =>
             {
-                Debug.Log("OnSelectColumn");
                 foreach (Column3D c in m_Columns)
                 {
                     if (c != selectedColumn)
@@ -379,13 +372,8 @@ namespace HBP.Module3D
                         foreach (View3D v in c.Views)
                         {
                             v.IsSelected = false;
-                            v.IsColumnSelected = false;
                         }
                     }
-                }
-                foreach (View3D v in selectedColumn.Views)
-                {
-                    v.IsColumnSelected = true;
                 }
                 OnSelectColumnManager.Invoke(this);
                 ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);

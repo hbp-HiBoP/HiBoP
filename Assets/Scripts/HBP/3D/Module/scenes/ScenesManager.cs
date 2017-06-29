@@ -107,7 +107,6 @@ namespace HBP.Module3D
             }));
             scene.Events.OnSelectScene.AddListener((selectedScene) =>
             {
-                Debug.Log("OnSelectScene (ScenesManager)");
                 foreach (Base3DScene s in m_Scenes)
                 {
                     if (s != selectedScene)
@@ -140,7 +139,6 @@ namespace HBP.Module3D
             }));
             scene.Events.OnSelectScene.AddListener((selectedScene) =>
             {
-                Debug.Log("OnSelectScene (ScenesManager)");
                 foreach (Base3DScene s in m_Scenes)
                 {
                     if (s != selectedScene)

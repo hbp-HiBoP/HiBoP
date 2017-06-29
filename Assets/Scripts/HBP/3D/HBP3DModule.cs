@@ -177,7 +177,6 @@ namespace HBP.Module3D
             });
             m_ScenesManager.OnSelectScene.AddListener((s) =>
             {
-                UnityEngine.Debug.Log("OnSelectScene (Module3D)");
                 OnSelectScene.Invoke(s);
             });
 

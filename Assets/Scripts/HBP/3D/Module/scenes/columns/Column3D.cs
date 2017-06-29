@@ -506,7 +506,6 @@ namespace HBP.Module3D
             view.Layer = Layer;
             view.OnSelectView.AddListener((selectedView) =>
             {
-                Debug.Log("OnSelectView");
                 foreach (View3D v in m_Views)
                 {
                     if (v != selectedView)
@@ -521,10 +520,6 @@ namespace HBP.Module3D
             {
                 OnMoveView.Invoke(view);
             });
-            if (IsSelected)
-            {
-                view.IsColumnSelected = true;
-            }
             m_Views.Add(view);
         }
         /// <summary>

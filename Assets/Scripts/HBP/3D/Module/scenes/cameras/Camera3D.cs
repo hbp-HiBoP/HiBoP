@@ -132,18 +132,6 @@ namespace HBP.Module3D
         }
         private Vector3 m_OriginalTarget;
         private Vector3 m_OriginalRotationEuler;
-        public Vector3 RotationEuler
-        {
-            get
-            {
-                return m_OriginalRotationEuler;
-            }
-            set
-            {
-                m_OriginalRotationEuler = value;
-                transform.eulerAngles = value;
-            }
-        }
 
         private Vector3[] m_XRotationCircleVertices = null;
         private Vector3[] m_YRotationCircleVertices = null;
@@ -246,6 +234,25 @@ namespace HBP.Module3D
         }
         private void Update()
         {
+            if (m_AssociatedScene.IsSelected)
+            {
+                if (m_AssociatedView.IsSelected)
+                {
+                    Camera.backgroundColor = ApplicationState.Theme.Color.ClickedViewColor;
+                }
+                else if (m_AssociatedColumn.IsSelected)
+                {
+                    Camera.backgroundColor = ApplicationState.Theme.Color.SelectedViewColor;
+                }
+                else
+                {
+                    Camera.backgroundColor = ApplicationState.Theme.Color.RegularViewColor;
+                }
+            }
+            else
+            {
+                Camera.backgroundColor = ApplicationState.Theme.Color.RegularViewColor;
+            }
             AutomaticCameraRotation();
         }
         /// <summary>

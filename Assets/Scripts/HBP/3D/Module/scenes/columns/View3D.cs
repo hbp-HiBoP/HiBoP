@@ -21,11 +21,6 @@ namespace HBP.Module3D
                 return m_Camera3D.Camera;
             }
         }
-        
-        /// <summary>
-        /// True if any view of the column this view belongs to is selected
-        /// </summary>
-        public bool IsColumnSelected { get; set; }
 
         private bool m_IsSelected = false;
         /// <summary>

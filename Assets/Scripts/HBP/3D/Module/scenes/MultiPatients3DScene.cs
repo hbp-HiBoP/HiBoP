@@ -595,7 +595,6 @@ namespace HBP.Module3D
             m_ColumnManager.Initialize(Cuts.Count);
             m_ColumnManager.OnSelectColumnManager.AddListener((cm) =>
             {
-                Debug.Log("OnSelectColumnManager");
                 IsSelected = true;
             });
 
