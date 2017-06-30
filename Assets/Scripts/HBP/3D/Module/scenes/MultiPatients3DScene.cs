@@ -168,8 +168,8 @@ namespace HBP.Module3D
 
             // cut the mesh
             List<DLL.Surface> cuts;
-            if (SceneInformation.MeshTypeToDisplay != SceneStatesInfo.MeshType.Inflated && m_Cuts.Count > 0)
-                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(m_Cuts.ToArray(), !SceneInformation.CutHolesEnabled));
+            if (SceneInformation.MeshTypeToDisplay != SceneStatesInfo.MeshType.Inflated && Cuts.Count > 0)
+                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled));
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)(SceneInformation.MeshToDisplay.Clone())};
 
@@ -208,7 +208,7 @@ namespace HBP.Module3D
                 m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
 
             // update cuts generators
-            for (int ii = 0; ii < m_Cuts.Count; ++ii)
+            for (int ii = 0; ii < Cuts.Count; ++ii)
             {
                 if (SceneInformation.MeshTypeToDisplay == SceneStatesInfo.MeshType.Inflated) // if inflated, there is not cuts
                 {
@@ -217,7 +217,7 @@ namespace HBP.Module3D
                 }
 
                 for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG.Count; ++jj)
-                    m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.DLLVolume, m_Cuts[ii]);
+                    m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.DLLVolume, Cuts[ii]);
 
                 m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii + 1]);
                 m_ColumnManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);

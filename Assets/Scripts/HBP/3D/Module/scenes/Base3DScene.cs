@@ -281,7 +281,17 @@ namespace HBP.Module3D
         /// <summary>
         /// Cuts planes list
         /// </summary>
-        public List<Cut> Cuts { get { return m_Cuts; } }
+        public List<Cut> Cuts
+        {
+            get
+            {
+                return m_Cuts;
+            }
+            private set
+            {
+                m_Cuts = value;
+            }
+        }
 
         /// <summary>
         /// Information about the scene
@@ -545,14 +555,14 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update");
 
             // TEMP : useless
-            for (int ii = 0; ii < m_Cuts.Count; ++ii)
-                m_Cuts[ii].RemoveFrontPlane = 0;
+            for (int ii = 0; ii < Cuts.Count; ++ii)
+                Cuts[ii].RemoveFrontPlane = 0;
 
             // check if we must perform new cuts of the brain            
             if (SceneInformation.CutMeshGeometryNeedsUpdate)
             {
                 SceneInformation.IsGeometryUpToDate = false;
-                ColumnManager.PlanesCutsCopy = m_Cuts;
+                ColumnManager.PlanesCutsCopy = Cuts;
 
                 UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
                 ComputeMeshesCut();
@@ -681,7 +691,7 @@ namespace HBP.Module3D
             bool allCuts = indexCut == -1;
 
             int[] columnsIndexes = allColumns ? Enumerable.Range(0, m_ColumnManager.Columns.Count).ToArray() : new int[1] { indexColumn };
-            int[] cutsIndexes = allCuts ? Enumerable.Range(0, m_Cuts.Count).ToArray() : new int[1] { indexCut };
+            int[] cutsIndexes = allCuts ? Enumerable.Range(0, Cuts.Count).ToArray() : new int[1] { indexCut };
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene compute_MRI_textures 0 create_MRI_texture ");
 
@@ -713,7 +723,7 @@ namespace HBP.Module3D
             bool allCuts = indexCut == -1;
 
             int[] columnsIndexes = allColumns ? Enumerable.Range(0, m_ColumnManager.Columns.Count).ToArray() : new int[1] { indexColumn };
-            int[] cutsIndexes = allCuts ? Enumerable.Range(0, m_Cuts.Count).ToArray() : new int[1] { indexCut };
+            int[] cutsIndexes = allCuts ? Enumerable.Range(0, Cuts.Count).ToArray() : new int[1] { indexCut };
 
             for (int ii = 0; ii < columnsIndexes.Length; ++ii)
             {
@@ -759,7 +769,7 @@ namespace HBP.Module3D
 
             if (!m_ColumnManager.ComputeSurfaceBrainUVWithIEEG((SceneInformation.MeshTypeToDisplay == SceneStatesInfo.MeshType.Inflated), column)) return;
 
-            for (int jj = 0; jj < m_Cuts.Count; ++jj)
+            for (int jj = 0; jj < Cuts.Count; ++jj)
             {
                 m_ColumnManager.ColorCutsTexturesWithIEEG(column, jj);
             }
@@ -797,7 +807,7 @@ namespace HBP.Module3D
             bool allCuts = indexCut == -1;
 
             int[] columnsIndexes = allColumns ? Enumerable.Range(0, m_ColumnManager.ColumnsFMRI.Count).ToArray() : new int[1] { indexColumn };
-            int[] cutsIndexes = allCuts ? Enumerable.Range(0, m_Cuts.Count).ToArray() : new int[1] { indexCut };
+            int[] cutsIndexes = allCuts ? Enumerable.Range(0, Cuts.Count).ToArray() : new int[1] { indexCut };
 
             for (int ii = 0; ii < columnsIndexes.Length; ++ii)
             {
@@ -824,7 +834,7 @@ namespace HBP.Module3D
             bool allCuts = indexCut == -1;
 
             int[] columnsIndexes = allColumns ? Enumerable.Range(0, m_ColumnManager.Columns.Count).ToArray() : new int[1] { indexColumn };
-            int[] cutsIndexes = allCuts ? Enumerable.Range(0, m_Cuts.Count).ToArray() : new int[1] { indexCut };
+            int[] cutsIndexes = allCuts ? Enumerable.Range(0, Cuts.Count).ToArray() : new int[1] { indexCut };
 
             for (int ii = 0; ii < columnsIndexes.Length; ++ii)
             {
@@ -874,7 +884,7 @@ namespace HBP.Module3D
                     break;
             }
 
-            foreach (Cut cut in m_Cuts)
+            foreach (Cut cut in Cuts)
             {
                 cut.OnUpdateGUITextures.Invoke(texturesToDisplay[cut.ID]);
             }
@@ -976,7 +986,7 @@ namespace HBP.Module3D
 
             // Update column number
             int newFMRIColumnNumber = m_ColumnManager.ColumnsFMRI.Count + 1;
-            m_ColumnManager.UpdateColumnsNumber(m_ColumnManager.ColumnsIEEG.Count, newFMRIColumnNumber, m_Cuts.Count);
+            m_ColumnManager.UpdateColumnsNumber(m_ColumnManager.ColumnsIEEG.Count, newFMRIColumnNumber, Cuts.Count);
 
             // Update label
             int newFMRIColumnID = newFMRIColumnNumber - 1;
@@ -1029,7 +1039,7 @@ namespace HBP.Module3D
             }
 
             // Update columns number
-            m_ColumnManager.UpdateColumnsNumber(m_ColumnManager.ColumnsIEEG.Count, m_ColumnManager.ColumnsFMRI.Count - 1, m_Cuts.Count);
+            m_ColumnManager.UpdateColumnsNumber(m_ColumnManager.ColumnsIEEG.Count, m_ColumnManager.ColumnsFMRI.Count - 1, Cuts.Count);
 
             // Update plots visibility
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
@@ -1258,7 +1268,7 @@ namespace HBP.Module3D
 
             // Add new cut
             Cut cut = new Cut(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
-            switch (m_Cuts.Count)
+            switch (Cuts.Count)
             {
                 case 0:
                     cut.Orientation = CutOrientation.Axial;
@@ -1285,18 +1295,18 @@ namespace HBP.Module3D
                     cut.Position = 0.5f;
                     break;
             }
-            m_Cuts.Add(cut);
+            Cuts.Add(cut);
 
             // Update IDs
-            for (int i = 0; i < m_Cuts.Count; i++)
+            for (int i = 0; i < Cuts.Count; i++)
             {
-                m_Cuts[i].ID = i;
+                Cuts[i].ID = i;
             }
 
             // Add new cut GameObject
             GameObject cutGameObject = Instantiate(m_CutPrefab);
             cutGameObject.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.CutMaterials[this];
-            cutGameObject.name = "cut_" + (m_Cuts.Count - 1);
+            cutGameObject.name = "cut_" + (Cuts.Count - 1);
             cutGameObject.transform.parent = m_DisplayedObjects.BrainCutMeshesParent.transform;
             cutGameObject.AddComponent<MeshCollider>();
             cutGameObject.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
@@ -1321,6 +1331,48 @@ namespace HBP.Module3D
             return cut;
         }
         /// <summary>
+        /// Instantiate a cut game object and update rendering
+        /// </summary>
+        /// <param name="cut"></param>
+        public void InstantiateCuts()
+        {
+            Cuts = m_Visualization.Configuration.Cuts;
+            foreach (Cut cut in m_Visualization.Configuration.Cuts)
+            {
+                // Check access
+                if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.AddNewPlane))
+                {
+                    Debug.LogError("-ERROR : Base3DScene::addNewPlane -> no acess for mode : " + m_ModesManager.CurrentModeName);
+                    return;
+                }
+
+                // Add new cut GameObject
+                GameObject cutGameObject = Instantiate(m_CutPrefab);
+                cutGameObject.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.CutMaterials[this];
+                cutGameObject.name = "cut_" + cut.ID;
+                cutGameObject.transform.parent = m_DisplayedObjects.BrainCutMeshesParent.transform;
+                cutGameObject.AddComponent<MeshCollider>();
+                cutGameObject.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
+                cutGameObject.transform.localPosition = Vector3.zero;
+                m_DisplayedObjects.BrainCutMeshes.Add(cutGameObject);
+                m_DisplayedObjects.BrainCutMeshes.Last().layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
+
+                // update columns manager
+                m_ColumnManager.UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
+
+                // update plots visibility
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+
+                SceneInformation.CutMeshGeometryNeedsUpdate = true;
+                SceneInformation.IsIEEGOutdated = true;
+
+                // Update mode
+                m_ModesManager.UpdateMode(Mode.FunctionsId.AddNewPlane);
+
+                UpdateCutPlane(cut);
+            }
+        }
+        /// <summary>
         /// Remove the last cut plane
         /// </summary>
         public void RemoveCutPlane(Cut cut)
@@ -1332,10 +1384,10 @@ namespace HBP.Module3D
                 return;
             }
 
-            m_Cuts.Remove(cut);
-            for (int i = 0; i < m_Cuts.Count; i++)
+            Cuts.Remove(cut);
+            for (int i = 0; i < Cuts.Count; i++)
             {
-                m_Cuts[i].ID = i;
+                Cuts[i].ID = i;
             }
 
             Destroy(m_DisplayedObjects.BrainCutMeshes[cut.ID]);
@@ -1653,8 +1705,12 @@ namespace HBP.Module3D
             ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
             UpdateGUITextures();
 
+            // Edge
             EdgeMode = m_Visualization.Configuration.EdgeMode;
+            // MRI Cal Values
             m_ColumnManager.OnUpdateMRICalValues.Invoke();
+            // Cuts
+            InstantiateCuts();
         }
         /// <summary>
         /// Update the data render corresponding to the column

@@ -1,10 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
+    [DataContract]
     public class Cut : Plane
     {
         #region Properties
@@ -14,11 +16,15 @@ namespace HBP.Module3D
         public const int DEFAULT_NUMBER_OF_CUTS = 500;
         public const float DEFAULT_POSITION = 0.5f;
 
+        [DataMember]
         public int ID { get; set; }
+        [DataMember]
         public CutOrientation Orientation { get; set; }
+        [DataMember]
         public bool Flip { get; set; }
         public int RemoveFrontPlane { get; set; }
         public int NumberOfCuts { get; set; }
+        [DataMember]
         public float Position { get; set; }
 
         public GenericEvent<Texture2D> OnUpdateGUITextures = new GenericEvent<Texture2D>();

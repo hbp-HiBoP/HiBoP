@@ -9,6 +9,7 @@
 
 // system
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 // unity
 using UnityEngine;
@@ -38,7 +39,7 @@ namespace HBP.Module3D
         #endregion
     }
 
-    [System.Serializable]
+    [System.Serializable, DataContract]
     /// <summary>
     /// A simple plane class using a normal and a point
     /// </summary>
@@ -46,7 +47,19 @@ namespace HBP.Module3D
     {
         #region Properties
         public Vector3 Point; /**< point on the plane */
-        public Vector3 Normal; /**< normal of the plane */
+        [DataMember(Name = "Normal")]
+        private SerializableVector3 m_Normal;
+        public Vector3 Normal
+        {
+            get
+            {
+                return m_Normal.ToVector3();
+            }
+            set
+            {
+                m_Normal = new SerializableVector3(value);
+            }
+        }
         #endregion
 
         #region Public Methods

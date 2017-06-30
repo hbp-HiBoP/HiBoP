@@ -129,7 +129,7 @@ namespace HBP.Module3D
             // cut the mesh
             List<DLL.Surface> cuts;
             if (Cuts.Count > 0)
-                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(m_Cuts.ToArray(), !SceneInformation.CutHolesEnabled));
+                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled));
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.MeshToDisplay.Clone() };
 
@@ -172,10 +172,10 @@ namespace HBP.Module3D
             
 
             // update cuts generators
-            for (int ii = 0; ii < m_Cuts.Count; ++ii)
+            for (int ii = 0; ii < Cuts.Count; ++ii)
             {
                 for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG.Count; ++jj)
-                    m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.DLLVolume, m_Cuts[ii]);                        
+                    m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.DLLVolume, Cuts[ii]);                        
 
                 m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii + 1]);
                 m_ColumnManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
@@ -197,7 +197,7 @@ namespace HBP.Module3D
             
 
             // enable cuts gameobject
-            for (int ii = 0; ii < m_Cuts.Count; ++ii)
+            for (int ii = 0; ii < Cuts.Count; ++ii)
                     m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true); 
 
             SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
@@ -401,7 +401,7 @@ namespace HBP.Module3D
             progress += LOADING_VOLUME_PROGRESS;
             onChangeProgress.Invoke(progress, 1.5f, "Loading volume");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadNiftiBrainVolume(Patient.Brain.PreoperativeMRI));
-            
+
             progress += LOADING_ELECTRODES_PROGRESS;
             onChangeProgress.Invoke(progress, 0.05f, "Loading electrodes");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSites(ptsFiles, namePatients));

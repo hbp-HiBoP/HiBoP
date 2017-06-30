@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Runtime.Serialization;
+using System.Collections.Generic;
 
 namespace HBP.Data.Visualization
 {
@@ -112,6 +113,23 @@ namespace HBP.Data.Visualization
             set
             {
                 m_MRICalMaxFactor = value;
+            }
+        }
+
+        [DataMember(Name = "Cuts")]
+        private List<Module3D.Cut> m_Cuts = new List<Module3D.Cut>();
+        /// <summary>
+        /// Cuts of the visualization
+        /// </summary>
+        public List<Module3D.Cut> Cuts
+        {
+            get
+            {
+                return m_Cuts;
+            }
+            set
+            {
+                m_Cuts = value;
             }
         }
     }

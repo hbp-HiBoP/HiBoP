@@ -69,6 +69,12 @@ namespace HBP.UI.Module3D
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
+            foreach (Cut cut in m_Scene.Cuts)
+            {
+                CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
+                controller.Initialize(m_Scene, cut);
+            }
+            m_AddCutButton.SetAsLastSibling();
         }
         public void AddNewCut()
         {
