@@ -431,7 +431,6 @@ namespace HBP.Module3D
             }
         }
         
-        private bool m_EdgeMode = false;
         /// <summary>
         /// Are the edges displayed ?
         /// </summary>
@@ -439,16 +438,16 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_EdgeMode;
+                return m_Visualization.Configuration.EdgeMode;
             }
             set
             {
-                m_EdgeMode = value;
+                m_Visualization.Configuration.EdgeMode = value;
                 foreach (Column3D column in m_ColumnManager.Columns)
                 {
                     foreach (View3D view in column.Views)
                     {
-                        view.EdgeMode = m_EdgeMode;
+                        view.EdgeMode = m_Visualization.Configuration.EdgeMode;
                     }
                 }
             }
@@ -534,48 +533,6 @@ namespace HBP.Module3D
         #endregion
 
         #region Private Methods
-        protected void Awake()
-        {         
-            int idScript = TimeExecution.ID;
-            TimeExecution.StartAwake(idScript, TimeExecution.ScriptsId.Base3DScene);
-            
-            m_DisplayedObjects = new DisplayedObjects3DView();
-            SceneInformation = new SceneStatesInfo();
-            m_ColumnManager = GetComponent<Column3DManager>();
-
-            // Init materials
-            SharedMaterials.Brain.AddSceneMaterials(this);
-
-            // set meshes layer
-            switch (Type)
-            {
-                case SceneType.SinglePatient:
-                    SceneInformation.MeshesLayerName = "Default";
-                    break;
-                case SceneType.MultiPatients:
-                    SceneInformation.MeshesLayerName = "Default";
-                    break;
-            }
-
-            // init modes            
-            m_ModesManager = transform.Find("Modes").gameObject.GetComponent<ModesManager>();
-            m_ModesManager.Initialize(this);
-            m_ModesManager.SendModeSpecifications.AddListener((specs) =>
-            {
-                Events.OnSendModeSpecifications.Invoke(specs);
-
-                // update scene visibility (useless)
-                //UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-SendModeSpecifications update_scene_items_visibility");
-                //    update_scene_items_visibility(specs.itemMaskDisplay[0], specs.itemMaskDisplay[1], specs.itemMaskDisplay[2]);
-                //UnityEngine.Profiling.Profiler.EndSample();
-            });
-            
-            AddListeners();
-            // init GO
-            InitializeSceneGameObjects();
-
-            TimeExecution.EndAwake(idScript, TimeExecution.ScriptsId.Base3DScene, gameObject);
-        }
         protected void Update()
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update: set_current_mode_specifications");
@@ -1119,14 +1076,51 @@ namespace HBP.Module3D
             m_Cuts = new List<Cut>();
             m_DisplayedObjects.BrainCutMeshes = new List<GameObject>();
 
-            UpdateBrainSurfaceColor(ColorType.BrainColor);
-            UpdateColormap(ColorType.MatLab, false);
-            UpdateBrainCutColor(ColorType.Default, true);
+            UpdateBrainSurfaceColor(m_ColumnManager.BrainColor);
+            UpdateColormap(m_ColumnManager.Colormap, false);
+            UpdateBrainCutColor(m_ColumnManager.BrainCutColor, true);
         }
         #endregion
 
         #region Public Methods
+        public void Initialize(Data.Visualization.Visualization visualization)
+        {
+            m_DisplayedObjects = new DisplayedObjects3DView();
+            SceneInformation = new SceneStatesInfo();
+            m_ColumnManager = GetComponent<Column3DManager>();
+            m_ColumnManager.LinkVisualization(visualization);
 
+            // Init materials
+            SharedMaterials.Brain.AddSceneMaterials(this);
+
+            // set meshes layer
+            switch (Type)
+            {
+                case SceneType.SinglePatient:
+                    SceneInformation.MeshesLayerName = "Default";
+                    break;
+                case SceneType.MultiPatients:
+                    SceneInformation.MeshesLayerName = "Default";
+                    break;
+            }
+
+            // init modes            
+            m_ModesManager = transform.Find("Modes").gameObject.GetComponent<ModesManager>();
+            m_ModesManager.Initialize(this);
+            m_ModesManager.SendModeSpecifications.AddListener((specs) =>
+            {
+                Events.OnSendModeSpecifications.Invoke(specs);
+
+                // update scene visibility (useless)
+                //UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-SendModeSpecifications update_scene_items_visibility");
+                //    update_scene_items_visibility(specs.itemMaskDisplay[0], specs.itemMaskDisplay[1], specs.itemMaskDisplay[2]);
+                //UnityEngine.Profiling.Profiler.EndSample();
+            });
+
+            AddListeners();
+            // init GO
+            InitializeSceneGameObjects();
+        }
         #region Display
         /// <summary>
         /// Update the IEEG colormap for this scene
@@ -1652,12 +1646,15 @@ namespace HBP.Module3D
             // Update Mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMaskPlot);
         }
-        public void SelectDefaultView()
+        public void FinalizeInitialization()
         {
             m_ColumnManager.Columns[0].Views[0].IsSelected = true;
             m_ModesManager.SetCurrentModeSpecifications(true);
             ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
             UpdateGUITextures();
+
+            EdgeMode = m_Visualization.Configuration.EdgeMode;
+            m_ColumnManager.OnUpdateMRICalValues.Invoke();
         }
         /// <summary>
         /// Update the data render corresponding to the column

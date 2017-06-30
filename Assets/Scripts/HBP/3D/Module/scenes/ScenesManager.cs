@@ -98,6 +98,7 @@ namespace HBP.Module3D
         {
             yield return Ninja.JumpToUnity;
             SinglePatient3DScene scene = Instantiate(SinglePatientScenePrefab, transform).GetComponent<SinglePatient3DScene>();
+            scene.Initialize(visualization);
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress, postMRI));
             ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
             // Add the listeners
@@ -118,7 +119,7 @@ namespace HBP.Module3D
             });
             // Add the scene to the list
             m_Scenes.Add(scene);
-            scene.SelectDefaultView();
+            scene.FinalizeInitialization();
             ApplicationState.Module3D.OnAddScene.Invoke(scene);
         }
         /// <summary>
@@ -130,6 +131,7 @@ namespace HBP.Module3D
         {
             yield return Ninja.JumpToUnity;
             MultiPatients3DScene scene = Instantiate(MultiPatientsScenePrefab, transform).GetComponent<MultiPatients3DScene>();
+            scene.Initialize(visualization);
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress));
             ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
             // Add the listeners
@@ -150,7 +152,7 @@ namespace HBP.Module3D
             });
             // Add the scene to the list
             m_Scenes.Add(scene);
-            scene.SelectDefaultView();
+            scene.FinalizeInitialization();
             ApplicationState.Module3D.OnAddScene.Invoke(scene);
         }
         #endregion

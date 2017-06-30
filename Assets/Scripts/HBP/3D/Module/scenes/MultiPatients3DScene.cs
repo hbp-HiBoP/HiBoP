@@ -92,22 +92,19 @@ namespace HBP.Module3D
         private const float LOADING_ELECTRODES_PROGRESS = 0.033f;
         private const float SETTING_TIMELINE_PROGRESS = 0.4f;
         #endregion
-
-        #region Private Methods
-        new void Awake()
+        
+        #region Public Methods
+        public new void Initialize(Data.Visualization.Visualization visualization)
         {
             int idScript = TimeExecution.ID;
             TimeExecution.StartAwake(idScript, TimeExecution.ScriptsId.MP3DScene);
 
-            base.Awake();
+            base.Initialize(visualization);
 
             m_MNIObjects = GetComponent<MNIObjects>();
-            
+
             TimeExecution.EndAwake(idScript, TimeExecution.ScriptsId.MP3DScene, gameObject);
         }
-        #endregion
-
-        #region Public Methods
         /// <summary>
         /// Update the meshes cuts
         /// </summary>

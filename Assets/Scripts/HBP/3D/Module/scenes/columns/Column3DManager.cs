@@ -78,6 +78,8 @@ namespace HBP.Module3D
             }
         }
 
+        private Data.Visualization.Visualization m_Visualization;
+
         public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
         /// <summary>
         /// Event called when adding a column
@@ -167,7 +169,6 @@ namespace HBP.Module3D
         public List<DLL.Surface> DLLSplittedWhiteMeshesList = null;
 
         // volume
-        private float m_MRICalMinFactor = 0.0f;
         /// <summary>
         /// MRI Cal Min Value
         /// </summary>
@@ -175,19 +176,18 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_MRICalMinFactor;
+                return m_Visualization.Configuration.MRICalMinFactor;
             }
             set
             {
-                if (m_MRICalMinFactor != value)
+                if (m_Visualization.Configuration.MRICalMinFactor != value)
                 {
-                    m_MRICalMinFactor = value;
+                    m_Visualization.Configuration.MRICalMinFactor = value;
                     OnUpdateMRICalValues.Invoke();
                 }
             }
         }
-
-        private float m_MRICalMaxFactor = 1.0f;
+        
         /// <summary>
         /// MRI Cal Max Value
         /// </summary>
@@ -195,13 +195,13 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_MRICalMaxFactor;
+                return m_Visualization.Configuration.MRICalMaxFactor;
             }
             set
             {
-                if (m_MRICalMaxFactor != value)
+                if (m_Visualization.Configuration.MRICalMaxFactor != value)
                 {
-                    m_MRICalMaxFactor = value;
+                    m_Visualization.Configuration.MRICalMaxFactor = value;
                     OnUpdateMRICalValues.Invoke();
                 }
             }
@@ -226,7 +226,6 @@ namespace HBP.Module3D
 
 
         // textures
-        private ColorType m_BrainColor = ColorType.BrainColor;
         /// <summary>
         /// Brain surface color
         /// </summary>
@@ -234,15 +233,14 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_BrainColor;
+                return m_Visualization.Configuration.BrainColor;
             }
             set
             {
-                m_BrainColor = value;
+                m_Visualization.Configuration.BrainColor = value;
             }
         }
-
-        private ColorType m_BrainCutColor = ColorType.Default;
+        
         /// <summary>
         /// Brain cut color
         /// </summary>
@@ -250,15 +248,14 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_BrainCutColor;
+                return m_Visualization.Configuration.BrainCutColor;
             }
             set
             {
-                m_BrainCutColor = value;
+                m_Visualization.Configuration.BrainCutColor = value;
             }
         }
-
-        private ColorType m_Colormap = ColorType.MatLab;
+        
         /// <summary>
         /// Colormap
         /// </summary>
@@ -266,11 +263,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Colormap;
+                return m_Visualization.Configuration.Colormap;
             }
             set
             {
-                m_Colormap = value;
+                m_Visualization.Configuration.Colormap = value;
                 DLL.Texture tex = DLL.Texture.Generate1DColorTexture(Colormap);
                 tex.UpdateTexture2D(BrainColorMapTexture);
             }
@@ -293,9 +290,6 @@ namespace HBP.Module3D
         #region Private Methods
         private void Awake()
         {
-            //Initialize(0);
-            //UpdateColumnsNumber(0, 0, 0);
-
             BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
             BrainColorTexture = Texture2Dutility.GenerateColorScheme();
         }
@@ -428,6 +422,10 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
+        public void LinkVisualization(Data.Visualization.Visualization visualization)
+        {
+            m_Visualization = visualization;
+        }
         /// <summary>
         /// Reset all data.
         /// </summary>
