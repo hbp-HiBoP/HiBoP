@@ -397,7 +397,7 @@ namespace HBP.Module3D
                             Site p = m_ColumnManager.ColumnsIEEG[ii].Sites[jj];
                             bool keep = (!p.Information.IsBlackListed && !p.Information.IsExcluded && !p.Information.IsMasked);
                             if (isROI)
-                                keep = keep && !p.Information.IsInROI;
+                                keep = keep && !p.Information.IsOutOfROI;
 
                             masksColumnsData[ii].Add(keep);
                         }
@@ -415,24 +415,6 @@ namespace HBP.Module3D
                 default:
                     break;
             }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="idColumn"></param>
-        public void UpdateCurrentRegionOfInterest(Column3D column)
-        {
-            bool[] maskROI = new bool[m_ColumnManager.SitesList.Count];
-
-            // update mask ROI
-            for (int ii = 0; ii < maskROI.Length; ++ii)
-                maskROI[ii] = column.Sites[ii].Information.IsInROI;
-
-            column.SelectedROI.UpdateMask(column.RawElectrodes, maskROI);
-            for (int ii = 0; ii < column.Sites.Count; ++ii)
-                column.Sites[ii].Information.IsInROI = maskROI[ii];
-
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
         }
         /// <summary>
         /// Update the ROI of a column from the interface
@@ -682,7 +664,7 @@ namespace HBP.Module3D
                             site.Information.IsBlackListed = false;
                             site.Information.IsHighlighted = false;
                             site.Information.IsExcluded = false;
-                            site.Information.IsInROI = false;
+                            site.Information.IsOutOfROI = false;
                             site.Information.IsMarked = false;
                             site.Information.IsMasked = false;
                             site.Information.PatientName = patientName;

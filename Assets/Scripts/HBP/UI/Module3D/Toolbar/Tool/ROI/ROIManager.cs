@@ -40,9 +40,21 @@ namespace HBP.UI.Module3D.Tools
                     m_ROISelector.options.Add(new Dropdown.OptionData(roi.Name));
                 }
             }
-            ListenerLock = true;
-            m_ROISelector.value = m_ROISelector.value;
-            ListenerLock = false;
+            m_ROISelector.RefreshShownValue();
+        }
+        public void UpdateVolumeDropdownOptions()
+        {
+            m_VolumeSelector.options.Clear();
+            ROI selectedROI = ApplicationState.Module3D.SelectedColumn.SelectedROI;
+            if (selectedROI)
+            {
+                for (int i = 0; i < selectedROI.Bubbles.Count; i++)
+                {
+                    Bubble bubble = selectedROI.Bubbles[i];
+                    m_VolumeSelector.options.Add(new Dropdown.OptionData("Sphere " + i + " (R=" + bubble.Radius.ToString("N1") + ")"));
+                }
+            }
+            m_VolumeSelector.RefreshShownValue();
         }
         #endregion
 
@@ -68,7 +80,24 @@ namespace HBP.UI.Module3D.Tools
                     m_ROIName.text = "";
                 }
                 UpdateInteractable();
+                UpdateVolumeDropdownOptions();
                 ListenerLock = false;
+            });
+            ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.AddListener(() =>
+            {
+                UpdateVolumeDropdownOptions();
+                UpdateInteractable();
+            });
+            ApplicationState.Module3D.OnSelectROIVolume.AddListener(() =>
+            {
+                ListenerLock = true;
+                m_VolumeSelector.value = ApplicationState.Module3D.SelectedColumn.SelectedROI.SelectedBubbleID;
+                UpdateInteractable();
+                ListenerLock = false;
+            });
+            ApplicationState.Module3D.OnChangeROIVolumeRadius.AddListener(() =>
+            {
+                UpdateVolumeDropdownOptions();
             });
             m_AddROI.onClick.AddListener(() =>
             {
@@ -95,16 +124,33 @@ namespace HBP.UI.Module3D.Tools
                 ApplicationState.Module3D.SelectedColumn.SelectedROI.Name = value;
                 UpdateROIDropdownOptions();
             });
+            m_VolumeSelector.onValueChanged.AddListener((value) =>
+            {
+                if (ListenerLock) return;
+
+                ApplicationState.Module3D.SelectedColumn.SelectedROI.SelectBubble(value);
+            });
+            m_RemoveVolume.onClick.AddListener(() =>
+            {
+                if (ListenerLock) return;
+
+                ApplicationState.Module3D.SelectedColumn.SelectedROI.RemoveSelectedBubble();
+            });
         }
         public override void DefaultState()
         {
             m_AddROI.interactable = false;
             m_RemoveROI.interactable = false;
+            m_RemoveROI.gameObject.SetActive(false);
             m_ROIName.interactable = false;
+            m_ROIName.gameObject.SetActive(false);
             m_ROIName.text = "";
             m_ROISelector.interactable = false;
+            m_ROISelector.gameObject.SetActive(false);
             m_VolumeSelector.interactable = false;
+            m_VolumeSelector.gameObject.SetActive(false);
             m_RemoveVolume.interactable = false;
+            m_RemoveVolume.gameObject.SetActive(false);
         }
         public override void UpdateInteractable()
         {

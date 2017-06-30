@@ -183,7 +183,15 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     public void OnScroll(PointerEventData data)
     {
         m_PointerDownLock = true;
-        m_View.ZoomCamera(data.scrollDelta.y);
+        ROI selectedROI = m_Column.SelectedROI;
+        if (m_Scene.SceneInformation.IsROICreationModeEnabled && selectedROI)
+        {
+            selectedROI.ChangeSelectedBubbleSize(data.scrollDelta.y);
+        }
+        else
+        {
+            m_View.ZoomCamera(data.scrollDelta.y);
+        }
     }
     public void OnRectTransformDimensionsChange()
     {

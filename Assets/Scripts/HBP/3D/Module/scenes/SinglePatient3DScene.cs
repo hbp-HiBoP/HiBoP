@@ -622,7 +622,7 @@ namespace HBP.Module3D
                             site.Information.IsBlackListed = false;
                             site.Information.IsHighlighted = false;
                             site.Information.IsExcluded = false;
-                            site.Information.IsInROI = false;
+                            site.Information.IsOutOfROI = false;
                             site.Information.IsMarked = false;
                             site.Information.IsMasked = false;
                             site.Information.PatientName = patientName;

@@ -133,9 +133,21 @@ namespace HBP.Module3D
         /// </summary>
         public UnityEvent OnChangeNumberOfROI = new UnityEvent();
         /// <summary>
+        /// Event called when adding or removing a bubble in a ROI
+        /// </summary>
+        public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
+        /// <summary>
         /// Event called when selecting a ROI
         /// </summary>
         public UnityEvent OnSelectROI = new UnityEvent();
+        /// <summary>
+        /// Event called when selecting a volume of a ROI
+        /// </summary>
+        public UnityEvent OnSelectROIVolume = new UnityEvent();
+        /// <summary>
+        /// Event called when changing the radius of a volume of a ROI
+        /// </summary>
+        public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
         /// <summary>
         /// Event called when a visualization is added
         /// </summary>
@@ -169,7 +181,18 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
         #endregion
-
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                UnityEngine.Debug.Log(SelectedColumn.SelectedSite.Information.IsBlackListed);
+                UnityEngine.Debug.Log(SelectedColumn.SelectedSite.Information.IsExcluded);
+                UnityEngine.Debug.Log(SelectedColumn.SelectedSite.Information.IsHighlighted);
+                UnityEngine.Debug.Log(SelectedColumn.SelectedSite.Information.IsOutOfROI);
+                UnityEngine.Debug.Log(SelectedColumn.SelectedSite.Information.IsMarked);
+                UnityEngine.Debug.Log(SelectedColumn.SelectedSite.Information.IsMasked);
+            }
+        }
         #region Private Methods
         void Awake()
         {

@@ -626,6 +626,22 @@ namespace HBP.Module3D
                 ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
                 UpdateGUITextures();
             });
+            ApplicationState.Module3D.OnChangeNumberOfROI.AddListener(() =>
+            {
+                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+            });
+            ApplicationState.Module3D.OnChangeROIVolumeRadius.AddListener(() =>
+            {
+                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+            });
+            ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.AddListener(() =>
+            {
+                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+            });
+            ApplicationState.Module3D.OnSelectROI.AddListener(() =>
+            {
+                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+            });
             m_ColumnManager.OnUpdateMRICalValues.AddListener(() =>
             {
                 if (!SceneInformation.IsGeometryUpToDate)
@@ -1550,7 +1566,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < column.Sites.Count; ++jj)
                             {
-                                if (!column.Sites[jj].Information.IsInROI)
+                                if (!column.Sites[jj].Information.IsOutOfROI)
                                     sitesID.Add(jj);
                             }
                         }
@@ -1559,7 +1575,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < column.Sites.Count; ++jj)
                             {
-                                if (column.Sites[jj].Information.IsInROI)
+                                if (column.Sites[jj].Information.IsOutOfROI)
                                     sitesID.Add(jj);
                             }
                         }
@@ -1963,6 +1979,33 @@ namespace HBP.Module3D
             Events.OnClickSite.Invoke(-1); // update menu
         }
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="idColumn"></param>
+        public void UpdateCurrentRegionOfInterest(Column3D column)
+        {
+            if (column.SelectedROI == null)
+            {
+                foreach (Site site in column.Sites)
+                {
+                    site.Information.IsOutOfROI = false;
+                }
+            }
+            else
+            {
+                bool[] maskROI = new bool[m_ColumnManager.SitesList.Count];
+
+                // update mask ROI
+                for (int ii = 0; ii < maskROI.Length; ++ii)
+                    maskROI[ii] = column.Sites[ii].Information.IsOutOfROI;
+
+                column.SelectedROI.UpdateMask(column.RawElectrodes, maskROI);
+                for (int ii = 0; ii < column.Sites.Count; ++ii)
+                    column.Sites[ii].Information.IsOutOfROI = maskROI[ii];
+            }
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+        }
+        /// <summary>
         /// Manage the mouse movments event in the scene
         /// </summary>
         /// <param name="ray"></param>
@@ -2113,19 +2156,26 @@ namespace HBP.Module3D
             {
                 if (SceneInformation.IsROICreationModeEnabled)
                 {
-                    if (roiHit)
+                    ROI selectedROI = m_ColumnManager.SelectedColumn.SelectedROI;
+                    if (selectedROI)
                     {
-                        if (m_ColumnManager.SelectedColumn.SelectedROI.CheckCollision(ray))
+                        if (roiHit)
                         {
-                            int bubbleID = m_ColumnManager.SelectedColumn.SelectedROI.CollidedClosestBubbleID(ray);
-                            Events.OnSelectROI.Invoke(m_ColumnManager.SelectedColumnID, bubbleID);
+                            if (m_ColumnManager.SelectedColumn.SelectedROI.CheckCollision(ray))
+                            {
+                                int bubbleID = m_ColumnManager.SelectedColumn.SelectedROI.CollidedClosestBubbleID(ray);
+                                selectedROI.SelectBubble(bubbleID);
+                            }
                         }
-                    }
-                    else if (meshHit || cutHit)
-                    {
-                        Debug.Log("yo");
-                        Events.OnCreateROIBubble.Invoke(hit.point, m_ColumnManager.SelectedColumnID);
-                        m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                        else if (meshHit || cutHit)
+                        {
+                            selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hit.point, 5.0f);
+                            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                        }
+                        else
+                        {
+                            selectedROI.UnselectBubble();
+                        }
                     }
                 }
                 else

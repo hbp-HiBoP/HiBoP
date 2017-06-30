@@ -10,6 +10,7 @@
 // system
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 
 // unity
@@ -41,7 +42,14 @@ namespace HBP.Module3D
         public int SelectedBubbleID { get; set; }
 
         private DLL.ROI m_DLLROI;
-        private List<GameObject> m_Bubbles = new List<GameObject>();
+        private List<Bubble> m_Bubbles = new List<Bubble>();
+        public ReadOnlyCollection<Bubble> Bubbles
+        {
+            get
+            {
+                return new ReadOnlyCollection<Bubble>(m_Bubbles);
+            }
+        }
 
         /// <summary>
         /// Number of bubbles in ROI
@@ -85,7 +93,7 @@ namespace HBP.Module3D
         {
             for (int ii = 0; ii < m_Bubbles.Count; ++ii)
             {
-                m_Bubbles[ii].SetActive(visibility);
+                m_Bubbles[ii].gameObject.SetActive(visibility);
             }
         }
         /// <summary>
@@ -97,7 +105,7 @@ namespace HBP.Module3D
             int inactiveLayer = LayerMask.NameToLayer("Inactive");
             for (int ii = 0; ii < m_Bubbles.Count; ++ii)
             {
-                m_Bubbles[ii].layer = (state ? m_Layer : inactiveLayer);
+                m_Bubbles[ii].gameObject.layer = (state ? m_Layer : inactiveLayer);
             }
         }
         /// <summary>
@@ -173,6 +181,7 @@ namespace HBP.Module3D
 
             m_Bubbles[SelectedBubbleID].GetComponent<Bubble>().Selected = false;
             SelectedBubbleID = -1;
+            ApplicationState.Module3D.OnSelectROIVolume.Invoke();
         }
         /// <summary>
         /// 
@@ -187,6 +196,7 @@ namespace HBP.Module3D
 
             m_Bubbles[idBubble].GetComponent<Bubble>().Selected = true;           
             SelectedBubbleID = idBubble;
+            ApplicationState.Module3D.OnSelectROIVolume.Invoke();
         }
         /// <summary>
         /// 
@@ -201,15 +211,19 @@ namespace HBP.Module3D
             GameObject newBubble = Instantiate(GlobalGOPreloaded.ROIBubble);
             newBubble.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROIBubble;
             newBubble.name = GObubbleName;
-            newBubble.transform.SetParent(transform);            
-            newBubble.GetComponent<Bubble>().Initialize(m_Layer, ray, position);
+            newBubble.transform.SetParent(transform);
+            Bubble bubble = newBubble.GetComponent<Bubble>();
+            bubble.Initialize(m_Layer, ray, position);
 
-            m_Bubbles.Add(newBubble);
+            m_Bubbles.Add(bubble);
 
             // DLL
             Vector3 positionBubble = position;
             positionBubble.x = -positionBubble.x;
             m_DLLROI.AddBubble(ray, positionBubble);
+
+            ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
+            SelectBubble(m_Bubbles.Count - 1);
         }
         /// <summary>
         /// 
@@ -223,11 +237,13 @@ namespace HBP.Module3D
                 SelectedBubbleID = -1;
 
             // remove the bubble
-            Destroy(m_Bubbles[idBubble]);
+            Destroy(m_Bubbles[idBubble].gameObject);
             m_Bubbles.RemoveAt(idBubble);
 
             // remove dll sphere
             m_DLLROI.RemoveBubble(idBubble);
+
+            ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
 
             // if not we removed the selected bubble, select instead the last one
             if (SelectedBubbleID == -1)
@@ -235,6 +251,10 @@ namespace HBP.Module3D
                 if(m_Bubbles.Count > 0)
                     SelectBubble(m_Bubbles.Count - 1);
             }
+        }
+        public void RemoveSelectedBubble()
+        {
+            RemoveBubble(SelectedBubbleID);
         }
         /// <summary>
         /// 
@@ -250,6 +270,12 @@ namespace HBP.Module3D
 
             // DLL
             m_DLLROI.UpdateBubble(idBubble, m_Bubbles[idBubble].GetComponent<Bubble>().Radius);
+
+            ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
+        }
+        public void ChangeSelectedBubbleSize(float direction)
+        {
+            ChangeBubbleSize(SelectedBubbleID, direction < 0 ? 0.9f : 1.1f);
         }
         /// <summary>
         /// 

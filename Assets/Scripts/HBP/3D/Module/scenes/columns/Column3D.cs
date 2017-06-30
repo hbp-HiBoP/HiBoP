@@ -430,7 +430,7 @@ namespace HBP.Module3D
                     sitesInROIPerPlot[ii].Add(new List<bool>(SitesGameObjects[ii][jj].Count));
                     for (int kk = 0; kk < SitesGameObjects[ii][jj].Count; ++kk, ++id)
                     {
-                        bool inROI = !Sites[id].Information.IsInROI;
+                        bool inROI = !Sites[id].Information.IsOutOfROI;
                         bool blackList = Sites[id].Information.IsBlackListed;
 
                         bool keep = inROI && !blackList;

@@ -405,7 +405,7 @@ namespace HBP.Module3D
             bool noROI = false; // (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles == 0);
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                m_RawElectrodes.UpdateMask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsInROI && !noROI)));
+                m_RawElectrodes.UpdateMask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsOutOfROI && !noROI)));
             }
         }
         /// <summary>
@@ -487,7 +487,7 @@ namespace HBP.Module3D
 
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                if (Sites[ii].Information.IsInROI || Sites[ii].Information.IsMasked)
+                if (Sites[ii].Information.IsOutOfROI || Sites[ii].Information.IsMasked)
                     continue;
 
                 float value = IEEGValuesBySiteID[ii][CurrentTimeLineID];
@@ -676,7 +676,7 @@ namespace HBP.Module3D
                         activity = Sites[ii].IsActive;
 
       
-                    if (Sites[ii].Information.IsMasked || Sites[ii].Information.IsInROI) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
+                    if (Sites[ii].Information.IsMasked || Sites[ii].Information.IsOutOfROI) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
                     {
                         if (activity)
                             Sites[ii].gameObject.SetActive(false);

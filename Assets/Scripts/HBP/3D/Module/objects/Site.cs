@@ -88,7 +88,7 @@ namespace HBP.Module3D
             IsMasked = info.IsMasked;
             IsExcluded = info.IsExcluded;
             IsBlackListed = info.IsBlackListed;
-            IsInROI = info.IsInROI;
+            IsOutOfROI = info.IsOutOfROI;
             IsHighlighted = info.IsHighlighted;
             IsMarked = info.IsMarked;
             GlobalID = info.GlobalID;
@@ -105,7 +105,7 @@ namespace HBP.Module3D
         public bool IsMasked { get; set; }     /**< is the site masked on the column ? */
         public bool IsExcluded { get; set; }        /**< is the site excluded ? */
         public bool IsBlackListed { get; set; }      /**< is the site blacklisted ? */
-        public bool IsInROI { get; set; }      /**< is the site in a ROI ? */
+        public bool IsOutOfROI { get; set; }      /**< is the site in a ROI ? */
         public bool IsHighlighted { get; set; }       /**< is the site highlighted ? */
         public bool IsMarked { get; set; }          /**< is the site marked ? */
 
