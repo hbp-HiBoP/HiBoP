@@ -16,11 +16,11 @@ namespace HBP.UI.Experience.Dataset
         {
             if (m_sortByName)
             {
-                m_objects.OrderByDescending(x => x.Name);
+                m_Objects.OrderByDescending(x => x.Name);
             }
             else
             {
-                m_objects.OrderBy(x => x.Name);
+                m_Objects.OrderBy(x => x.Name);
             }
             m_sortByName = !m_sortByName;
             ApplySort();
@@ -29,11 +29,11 @@ namespace HBP.UI.Experience.Dataset
         {
             if (m_sortByData)
             {
-                m_objects.OrderByDescending(x => x.Data.Count);
+                m_Objects.OrderByDescending(x => x.Data.Count);
             }
             else
             {
-                m_objects.OrderBy(x => x.Data.Count);
+                m_Objects.OrderBy(x => x.Data.Count);
             }
             m_sortByData = !m_sortByData;
             ApplySort();

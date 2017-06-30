@@ -15,11 +15,11 @@ namespace HBP.UI.Visualization
         {
             if (m_SortByName)
             {
-                m_objects.OrderByDescending(x => x.Name);
+                m_Objects.OrderByDescending(x => x.Name);
             }
             else
             {
-                m_objects.OrderBy(x => x.Name);
+                m_Objects.OrderBy(x => x.Name);
             }
             m_SortByName = !m_SortByName;
             ApplySort();
@@ -28,11 +28,11 @@ namespace HBP.UI.Visualization
         {
             if (m_SortByPatients)
             {
-                m_objects.OrderByDescending(x => x.Patients.Count);
+                m_Objects.OrderByDescending(x => x.Patients.Count);
             }
             else
             {
-                m_objects.OrderBy(x => x.Patients.Count);
+                m_Objects.OrderBy(x => x.Patients.Count);
             }
             m_SortByPatients = !m_SortByPatients;
             ApplySort();
@@ -41,11 +41,11 @@ namespace HBP.UI.Visualization
         {
             if (m_SortByColumns)
             {
-                m_objects.OrderByDescending(x => x.Columns.Count);
+                m_Objects.OrderByDescending(x => x.Columns.Count);
             }
             else
             {
-                m_objects.OrderBy(x => x.Columns.Count);
+                m_Objects.OrderBy(x => x.Columns.Count);
             }
             m_SortByColumns = !m_SortByColumns;
             ApplySort();

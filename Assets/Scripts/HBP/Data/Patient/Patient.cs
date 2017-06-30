@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using HBP.Data.Anatomy;
 
@@ -66,7 +66,6 @@ namespace HBP.Data
             Place = place;
             Date = date;
             Brain = brain;
-            Brain.Patient = this;
             ID = id;
         }
         /// <summary>
@@ -85,80 +84,18 @@ namespace HBP.Data
         /// <param name="path">Directory path which contains the patient informations.</param>
 		public Patient(string path) : this()
 		{
-            DirectoryInfo directory = new DirectoryInfo(path);
-            string[] directoryNameParts = directory.Name.Split(new char[1] { '_' },StringSplitOptions.RemoveEmptyEntries);
-			if(directoryNameParts.Length == 3)
-			{
-                int dateParsed; int.TryParse(directoryNameParts[1],out dateParsed) ;
-
+            if(IsPatientDirectory(path))
+            {
+                DirectoryInfo directory = new DirectoryInfo(path);
+                string[] directoryNameParts = directory.Name.Split(new char[1] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+                int dateParsed; int.TryParse(directoryNameParts[1], out dateParsed);
                 Place = directoryNameParts[0];
                 Date = dateParsed;
                 Name = directoryNameParts[2];
                 ID = directory.Name;
-
-                DirectoryInfo implantationDirectory = new DirectoryInfo(directory.FullName + Path.DirectorySeparatorChar + "implantation");
-                if(implantationDirectory.Exists)
-                {
-                    FileInfo implantationFile = new FileInfo(implantationDirectory.FullName + Path.DirectorySeparatorChar + directory.Name + ".pts");
-                    if(implantationFile.Exists)
-                    {
-                        Brain.PatientBasedImplantation = implantationFile.FullName;
-                    }
-                    FileInfo MNIimplantationFile = new FileInfo(implantationDirectory.FullName + Path.DirectorySeparatorChar + directory.Name + "_MNI.pts");
-                    if (MNIimplantationFile.Exists)
-                    {
-                        Brain.MNIBasedImplantation = MNIimplantationFile.FullName;
-                    }
-                }
-
-                DirectoryInfo t1mriDirectoy = new DirectoryInfo(path + Path.DirectorySeparatorChar + "t1mri");
-                if(t1mriDirectoy.Exists)
-                {
-                    DirectoryInfo[] preDirectories = t1mriDirectoy.GetDirectories("T1pre_*", SearchOption.TopDirectoryOnly);
-                    if(preDirectories.Length > 0)
-                    {
-                        DirectoryInfo preDirectory = preDirectories[0];
-                        FileInfo niiFile = new FileInfo(preDirectory.FullName + Path.DirectorySeparatorChar + directory.Name + ".nii");
-                        if(niiFile.Exists)
-                        {
-                            Brain.PreoperativeMRI = niiFile.FullName;
-                        }
-                        DirectoryInfo meshDirectory = new DirectoryInfo(preDirectory.FullName + Path.DirectorySeparatorChar + "default_analysis" + Path.DirectorySeparatorChar + "segmentation" + Path.DirectorySeparatorChar + "mesh");
-                        if(meshDirectory.Exists)
-                        {
-                            FileInfo leftHemiFile = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + directory.Name + "_Lhemi.gii");
-                            if(leftHemiFile.Exists)
-                            {
-                                Brain.LeftHemisphereGreyMatter = leftHemiFile.FullName;
-                            }
-                            FileInfo rightHemiFile = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + directory.Name + "_Rhemi.gii");
-                            if (rightHemiFile.Exists)
-                            {
-                                Brain.RightHemisphereGreyMatter = rightHemiFile.FullName;
-                            }
-                        }
-                        DirectoryInfo registrationDirectory = new DirectoryInfo(preDirectory.FullName + Path.DirectorySeparatorChar + "registration");
-                        if(registrationDirectory.Exists)
-                        {
-                            FileInfo transformFile = new FileInfo(registrationDirectory.FullName + Path.DirectorySeparatorChar + "RawT1-" + directory.Name + "_" + preDirectory.Name + "_TO_Scanner_Based.trm");
-                            if(transformFile.Exists)
-                            {
-                                Brain.PreoperativeBasedToScannerBasedTransformation = transformFile.FullName;
-                            }
-                        }
-                    }
-                    DirectoryInfo[] postDirectories = t1mriDirectoy.GetDirectories("T1post_*", SearchOption.TopDirectoryOnly);
-                    if(postDirectories.Length > 0)
-                    {
-                        DirectoryInfo postDirectory = postDirectories[0];
-                        FileInfo niiFile = new FileInfo(postDirectory.FullName + Path.DirectorySeparatorChar + directory.Name + ".nii");
-                        if(niiFile.Exists)
-                        {
-                            Brain.PostoperativeMRI = niiFile.FullName;
-                        }
-                    }
-                }
+                Brain = new Brain(path);
             }
+          
 		}
         /// <summary>
         /// Create a new patient instance with default values.
@@ -176,19 +113,21 @@ namespace HBP.Data
         /// <returns></returns>
         public static string[] GetPatientsDirectories(string path)
         {
-            List<string> patientDirectories = new List<string>();
-            if (Directory.Exists(path))
-            {
-                DirectoryInfo[] directories = new DirectoryInfo(path).GetDirectories();
-                foreach (DirectoryInfo directory in directories)
-                {
-                    if (directory.Name.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries).Length == 3)
-                    {
-                        patientDirectories.Add(directory.FullName);
-                    }
-                }
-            }
-            return patientDirectories.ToArray();
+            if (string.IsNullOrEmpty(path)) return new string[0];
+            DirectoryInfo directory = new DirectoryInfo(path);
+            if (!directory.Exists) return new string[0];
+            return (from dir in directory.GetDirectories() where IsPatientDirectory(dir.FullName) select dir.FullName).ToArray();
+        }
+        public static bool IsPatientDirectory(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return false;
+            DirectoryInfo directory = new DirectoryInfo(path);
+            if (!directory.Exists) return false;
+            string[] nameElements = directory.Name.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+            if (nameElements.Length != 3) return false;
+            DirectoryInfo[] directories = directory.GetDirectories();
+            if (!directories.Any((dir) => dir.Name == "implantation") || !directories.Any((dir) => dir.Name == "t1mri")) return false;
+            return true;
         }
         #endregion
 

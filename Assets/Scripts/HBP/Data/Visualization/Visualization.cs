@@ -45,9 +45,6 @@ namespace HBP.Data.Visualization
         [DataMember(Order = 2)]
         public string Name { get; set; }
 
-        [DataMember(Order =3)]
-        public Anatomy.ReferenceFrameType ReferenceFrame { get; set; }
-
         [DataMember(Name = "Patients", Order = 3)]
         IEnumerable<string> m_patientsID;
         List<Patient> m_patients;
@@ -92,10 +89,9 @@ namespace HBP.Data.Visualization
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
         /// <param name="id">Unique ID.</param>
-        public Visualization(string name, Anatomy.ReferenceFrameType referenceFrame, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id)
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id)
         {
             Name = name;
-            ReferenceFrame = referenceFrame;
             Columns = columns.ToList();
             SetPatients(patients);
             Configuration = new VisualizationConfiguration();
@@ -106,13 +102,13 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
-        public Visualization(string name, Anatomy.ReferenceFrameType referenceFrame, IEnumerable<Patient> patients, IEnumerable<Column> columns) : this(name, referenceFrame, patients, columns, Guid.NewGuid().ToString())
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns) : this(name, patients, columns, Guid.NewGuid().ToString())
         {
         }
         /// <summary>
         /// Create a new visualization instance with default value.
         /// </summary>
-        public Visualization() : this("Unknown", Anatomy.ReferenceFrameType.Patient, new Patient[0], new Column[0])
+        public Visualization() : this("Unknown", new Patient[0], new Column[0])
         {
 
         }
@@ -129,10 +125,6 @@ namespace HBP.Data.Visualization
             {
                 m_patients.Add(patient);
                 AddPatientConfiguration(patient);
-                if(m_patients.Count > 1)
-                {
-                    ReferenceFrame = Anatomy.ReferenceFrameType.MNI;
-                }
             }
         }
         /// <summary>
@@ -249,7 +241,7 @@ namespace HBP.Data.Visualization
         public object Clone()
         {
             Column[] columns = (from column in Columns select column.Clone() as Column).ToArray();
-            return new Visualization(Name, ReferenceFrame, Patients, columns, ID);
+            return new Visualization(Name, Patients, columns, ID);
 
         }
         /// <summary>
@@ -270,20 +262,21 @@ namespace HBP.Data.Visualization
         #region Private Methods
         void AddPatientConfiguration(Patient patient)
         {
-            foreach (Column column in Columns)
-            {
-                if (!column.Configuration.ConfigurationByPatient.ContainsKey(patient)) column.Configuration.ConfigurationByPatient.Add(patient, new PatientConfiguration(Configuration.Color, patient));
-                PatientConfiguration patientConfiguration = column.Configuration.ConfigurationByPatient[patient];
-                foreach (Anatomy.Electrode electrode in patient.Brain.Implantation.Electrodes)
-                {
-                    if (!patientConfiguration.ConfigurationByElectrode.ContainsKey(electrode)) patientConfiguration.ConfigurationByElectrode.Add(electrode, new ElectrodeConfiguration(patientConfiguration.Color, patient));
-                    ElectrodeConfiguration electrodeConfiguration = patientConfiguration.ConfigurationByElectrode[electrode];
-                    foreach (Anatomy.Site site in electrode.Sites)
-                    {
-                        if (!electrodeConfiguration.ConfigurationBySite.ContainsKey(site)) electrodeConfiguration.ConfigurationBySite.Add(site, new SiteConfiguration(electrodeConfiguration.Color));
-                    }
-                }
-            }
+            // TODO
+            //foreach (Column column in Columns)
+            //{
+            //    if (!column.Configuration.ConfigurationByPatient.ContainsKey(patient)) column.Configuration.ConfigurationByPatient.Add(patient, new PatientConfiguration(Configuration.Color, patient));
+            //    PatientConfiguration patientConfiguration = column.Configuration.ConfigurationByPatient[patient];
+            //    foreach (Anatomy.Electrode electrode in patient.Brain.Implantation.Electrodes)
+            //    {
+            //        if (!patientConfiguration.ConfigurationByElectrode.ContainsKey(electrode)) patientConfiguration.ConfigurationByElectrode.Add(electrode, new ElectrodeConfiguration(patientConfiguration.Color, patient));
+            //        ElectrodeConfiguration electrodeConfiguration = patientConfiguration.ConfigurationByElectrode[electrode];
+            //        foreach (Anatomy.Site site in electrode.Sites)
+            //        {
+            //            if (!electrodeConfiguration.ConfigurationBySite.ContainsKey(site)) electrodeConfiguration.ConfigurationBySite.Add(site, new SiteConfiguration(electrodeConfiguration.Color));
+            //        }
+            //    }
+            //}
         }
         void RemovePatientConfiguration(Patient patient)
         {

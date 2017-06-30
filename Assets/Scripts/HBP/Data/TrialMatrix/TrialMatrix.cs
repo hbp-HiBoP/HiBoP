@@ -92,8 +92,7 @@ namespace HBP.Data.TrialMatrix
             StandardizeBlocs(ref blocs);
 
             // Set properties
-            Patient patient = site.Electrode.Implantation.Brain.Patient;
-            Title = patient.Place + " " + patient.Date + " " + patient.Name + " " + site.Name + " " + dataInfo.Protocol.Name + " " + dataInfo.Name;
+            Title = dataInfo.Patient.Place + " " + dataInfo.Patient.Date + " " + dataInfo.Patient.Name + " " + site.Name + " " + dataInfo.Protocol.Name + " " + dataInfo.Name;
             Blocs = blocs;
             ValuesLimits = CalculateValueLimit(flatValues.ToArray());
             TimeLimitsByColumn = CalculateTimeLimitsByColumn(blocs);

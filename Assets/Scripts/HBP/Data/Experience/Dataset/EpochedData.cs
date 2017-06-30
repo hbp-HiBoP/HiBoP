@@ -35,7 +35,7 @@ namespace HBP.Data.Experience
             {
                 int firstIndex = index + sampleBeforeMainEvent;
                 int lastIndex = index + sampleAfterMainEvent;
-                if (firstIndex >= 0 && lastIndex < data.ValuesBySite[data.Patient.Brain.Implantation.Electrodes[0].Sites[0]].Length)
+                if (firstIndex >= 0 && lastIndex < data.ValuesBySite.Values.First().Length)
                 {
                     Dictionary<Protocol.Event, int> positionByEvent = new Dictionary<Protocol.Event, int>();
                     foreach (var item in indexByEvent)
@@ -48,7 +48,7 @@ namespace HBP.Data.Experience
                         positionByEvent.Add(item.Key, eventIndex);
                     }
 
-                    Dictionary<Anatomy.Site, float[]> valuesBySite = new Dictionary<Anatomy.Site, float[]>();
+                    Dictionary<string, float[]> valuesBySite = new Dictionary<string, float[]>();
                     foreach (var item in data.ValuesBySite)
                     {
                         float[] values = new float[lenght];

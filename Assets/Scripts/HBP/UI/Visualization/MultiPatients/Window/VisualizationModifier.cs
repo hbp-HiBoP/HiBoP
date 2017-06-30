@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using HBP.Data;
-using HBP.UI.Patient;
+using HBP.UI.Anatomy;
 using HBP.Data.Visualization;
 
 namespace HBP.UI.Visualization
@@ -21,7 +21,6 @@ namespace HBP.UI.Visualization
         ColumnModifier m_ColumnModifier;
         PatientList m_VisualizationPatientsList;
         PatientList m_ProjectPatientsList;
-        Dropdown m_ReferenceFrameDropdown;
         Button m_AddPatientButton, m_RemovePatientButton, m_AddGroupButton, m_SaveButton, m_SaveAsButton;
         #endregion
 
@@ -48,7 +47,6 @@ namespace HBP.UI.Visualization
             m_ProjectPatientsList.DeactivateObject(patientsToAdd);
             m_VisualizationPatientsList.Add(patientsToAdd);
             SelectColumn();
-            SetReferenceFrame(ItemTemp);
         }
         public void AddGroups(Group[] groups)
         {
@@ -67,7 +65,6 @@ namespace HBP.UI.Visualization
             m_ProjectPatientsList.DeactivateObject(patientsToAdd.ToArray());
             m_VisualizationPatientsList.Add(patientsToAdd.ToArray());
             SelectColumn();
-            SetReferenceFrame(ItemTemp);
         }
         public void OpenGroupSelection()
         {
@@ -75,7 +72,6 @@ namespace HBP.UI.Visualization
             Transform groupsSelectionTransform = Instantiate(m_GroupSelectionPrefab, GameObject.Find("Windows").transform).GetComponent<Transform>();
             groupsSelectionTransform.localPosition = Vector3.zero;
             GroupSelection groupSelection = groupsSelectionTransform.GetComponent<GroupSelection>();
-            Debug.Log(groupSelection);
             groupSelection.Open();
             groupSelection.AddGroupsEvent.AddListener((groups) => AddGroups(groups));
             groupSelection.CloseEvent.AddListener(() => OnCloseGroupSelection());
@@ -87,7 +83,6 @@ namespace HBP.UI.Visualization
             m_ProjectPatientsList.ActiveObject(patientsToRemove);
             m_VisualizationPatientsList.Remove(patientsToRemove);
             SelectColumn();
-            SetReferenceFrame(ItemTemp);
         }
         #endregion
 
@@ -100,7 +95,6 @@ namespace HBP.UI.Visualization
         {
             SetName(objectToDisplay);
             SetPatients(objectToDisplay);
-            SetReferenceFrame(objectToDisplay);
             SetTabs(objectToDisplay);
             SetColumns(objectToDisplay);
         }
@@ -110,7 +104,7 @@ namespace HBP.UI.Visualization
             if (ActiveToggles.Count > 0)
             {
                 Column l_column = ItemTemp.Columns[ActiveToggles[0].transform.GetSiblingIndex() - 1];
-                m_ColumnModifier.SetTab(l_column, ItemTemp.Patients.ToArray(), true);
+                m_ColumnModifier.SetTab(l_column, ItemTemp.Patients.ToArray());
             }
         }
         protected override void SetWindow()
@@ -123,7 +117,6 @@ namespace HBP.UI.Visualization
             m_VisualizationPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("PatientToDisplay").Find("Container").Find("Scrollable").GetComponent<PatientList>();
             m_ProjectPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("AllPatients").Find("Container").Find("Scrollable").GetComponent<PatientList>();
             m_GroupSelection = GetComponent<GroupSelection>();
-            m_ReferenceFrameDropdown = transform.Find("Content").Find("ReferenceFrame").Find("Dropdown").GetComponent<Dropdown>();
             m_AddPatientButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Add").GetComponent<Button>();
             m_RemovePatientButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Remove").GetComponent<Button>();
             m_AddGroupButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("AddGroup").GetComponent<Button>();
@@ -134,7 +127,6 @@ namespace HBP.UI.Visualization
             m_RemovePatientButton.interactable = interactable;
             m_AddGroupButton.interactable = interactable;
             m_NameInputField.interactable = interactable;
-            m_ReferenceFrameDropdown.interactable = interactable;
             m_SaveButton.interactable = interactable;
             m_SaveAsButton.interactable = interactable;
         }
@@ -153,14 +145,6 @@ namespace HBP.UI.Visualization
             m_VisualizationPatientsList.Display(objectToDisplay.Patients.ToArray());
             m_ProjectPatientsList.Display(ApplicationState.ProjectLoaded.Patients.ToArray(), ItemTemp.Patients.ToArray());
         }
-        protected void SetReferenceFrame(Data.Visualization.Visualization objectToDisplay)
-        {
-            List<Dropdown.OptionData> options = (from state in Enum.GetNames(typeof(Data.Anatomy.ReferenceFrameType)) select new Dropdown.OptionData(state)).ToList();
-            if (objectToDisplay.Patients.Count > 1) options.RemoveAll((option) => option.text == Data.Anatomy.ReferenceFrameType.Patient.ToString());
-            m_ReferenceFrameDropdown.options = options;
-            m_ReferenceFrameDropdown.value = options.FindIndex((option) => option.text == objectToDisplay.ReferenceFrame.ToString());
-            m_ReferenceFrameDropdown.onValueChanged.AddListener((value) => objectToDisplay.ReferenceFrame = (Data.Anatomy.ReferenceFrameType)value);
-        }
         protected void SetTabs(Data.Visualization.Visualization objectToDisplay)
         {
             m_TabGestion.OnSwapColumnsEvent.AddListener((c1, c2) => SwapColumns(c1, c2));
@@ -168,7 +152,6 @@ namespace HBP.UI.Visualization
         }
         protected void SetColumns(Data.Visualization.Visualization objectToDisplay)
         {
-            Debug.Log(objectToDisplay);
             // Columns.
             if (objectToDisplay.Columns.Count == 0)
             {

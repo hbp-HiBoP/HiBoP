@@ -113,8 +113,8 @@ namespace Tools.Unity.Lists
             GameObject l_gameObject = Instantiate(m_item);
             Transform l_transform = l_gameObject.transform;
             Set(l_transform,obj);
-            ListItemWithActions<T> l_item = l_transform.GetComponent<ListItemWithActions<T>>();
-            l_item.ActionEvent.AddListener((b, type) => ItemEvent(b, type));
+            ActionnableItem<T> l_item = l_transform.GetComponent<ActionnableItem<T>>();
+            l_item.Action.AddListener((b, type) => ItemEvent(b, type));
             l_transform.SetParent(GetContainer(l_item.Object));
             l_transform.localScale = new Vector3(1, 1, 1);
             l_transform.transform.localPosition = new Vector3(0, 0, 0);
@@ -136,8 +136,8 @@ namespace Tools.Unity.Lists
         }
         protected void Set(Transform item,T obj)
         {
-            ListItemWithActions<T> l_item = item.GetComponent<ListItemWithActions<T>>();
-            l_item.Set(obj,transform.GetComponentInParent<RectTransform>().rect);
+            ActionnableItem<T> l_item = item.GetComponent<ActionnableItem<T>>();
+            l_item.Object = obj;
         }
         protected T Get(Transform item)
         {
@@ -188,11 +188,11 @@ namespace Tools.Unity.Lists
                 {
                     Transform container = result.gameObject.transform;
                     Position newPosition = PositionFromIndex(container.GetSiblingIndex());
-                    ListItemWithActions<T> item = container.GetComponentInChildren<ListItemWithActions<T>>();
+                    ActionnableItem<T> item = container.GetComponentInChildren<ActionnableItem<T>>();
                     
                     if(item != null)
                     {
-                        T oldOBj = item.Get();
+                        T oldOBj = item.Object;
                         SetPosition(oldOBj, GetPosition(obj));
                         Get(oldOBj).SetParent(GetContainer(oldOBj));
                         UpdateObj(oldOBj);

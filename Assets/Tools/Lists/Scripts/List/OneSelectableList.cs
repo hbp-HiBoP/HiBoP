@@ -9,7 +9,7 @@ namespace Tools.Unity.Lists
         #region Properties
         ToggleGroup m_toggleGroup;
         #endregion
-        protected override void Set(T objectToSet, ListItem<T> listItem )
+        protected override void Set(T objectToSet, Item<T> listItem )
         {
             base.Set(objectToSet, listItem);
             listItem.GetComponent<Toggle>().group = m_toggleGroup;

@@ -20,11 +20,11 @@ namespace HBP.UI.Experience.Protocol
         {
             if (m_sortByName)
             {
-                m_objects.OrderByDescending(x => x.Name);
+                m_Objects.OrderByDescending(x => x.Name);
             }
             else
             {
-                m_objects.OrderBy(x => x.Name);
+                m_Objects.OrderBy(x => x.Name);
             }
             m_sortByName = !m_sortByName;
             ApplySort();
@@ -37,11 +37,11 @@ namespace HBP.UI.Experience.Protocol
         {
             if (m_sortByCode)
             {
-                m_objects.OrderByDescending(x => x.Codes.Min());
+                m_Objects.OrderByDescending(x => x.Codes.Min());
             }
             else
             {
-                m_objects.OrderBy(x => x.Codes.Min());
+                m_Objects.OrderBy(x => x.Codes.Min());
             }
             ApplySort();
         }

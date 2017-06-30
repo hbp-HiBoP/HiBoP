@@ -32,7 +32,7 @@ namespace HBP.Data.Visualization
         /// Configuration of the patient electrodes.
         /// </summary>
         [IgnoreDataMember]
-        public Dictionary<Electrode,ElectrodeConfiguration> ConfigurationByElectrode { get; set; }
+        public Dictionary<string,ElectrodeConfiguration> ConfigurationByElectrode { get; set; }
 
         [DataMember(Name = "Color")]
         SerializableColor m_Color;
@@ -43,21 +43,19 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public PatientConfiguration(Dictionary<Electrode,ElectrodeConfiguration> configurationByElectrode, Color color, Patient patient)
+        public PatientConfiguration(Dictionary<string,ElectrodeConfiguration> configurationByElectrode, Color color, Patient patient)
         {
             m_Patient = patient;
             ConfigurationByElectrode = configurationByElectrode;
             Color = color;
         }
-        public PatientConfiguration(Color color, Patient patient) : this(new Dictionary<Electrode, ElectrodeConfiguration>(), color, patient) { }
-        public PatientConfiguration(Patient patient) : this(new Dictionary<Electrode, ElectrodeConfiguration>(), new Color(), patient) { }
-        public PatientConfiguration() : this(new Patient()) { }
+        public PatientConfiguration() : this(new Dictionary<string, ElectrodeConfiguration>(),new Color(),new Patient()) { }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            Dictionary<Electrode, ElectrodeConfiguration> configurationByElectrodeClone = new Dictionary<Electrode, ElectrodeConfiguration>();
+            Dictionary<string, ElectrodeConfiguration> configurationByElectrodeClone = new Dictionary<string, ElectrodeConfiguration>();
             foreach (var item in ConfigurationByElectrode)
             {
                 configurationByElectrodeClone.Add(item.Key, item.Value.Clone() as ElectrodeConfiguration);
@@ -72,20 +70,12 @@ namespace HBP.Data.Visualization
         {
             m_Color = new SerializableColor(Color);
             m_PatientID = m_Patient.ID;
-            m_ConfigurationByElectrodeName = new Dictionary<string, ElectrodeConfiguration>();
-            foreach (var pair in ConfigurationByElectrode) m_ConfigurationByElectrodeName.Add(pair.Key.Name, pair.Value);
         }
         [OnDeserialized]
         void OnDeserialized(StreamingContext streamingContext)
         {
             Color = m_Color.ToColor();
             m_Patient = ApplicationState.ProjectLoaded.Patients.First((p) => p.ID == m_PatientID);
-            ConfigurationByElectrode = new Dictionary<Electrode, ElectrodeConfiguration>();
-            foreach (var pair in m_ConfigurationByElectrodeName)
-            {
-                Electrode electrode = m_Patient.Brain.Implantation.Electrodes.First((elec) => elec.Name == pair.Key);
-                ConfigurationByElectrode.Add(electrode, pair.Value);
-            }
         }
         #endregion
     }

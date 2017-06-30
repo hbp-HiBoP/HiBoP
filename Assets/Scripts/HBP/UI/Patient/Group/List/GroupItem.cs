@@ -2,9 +2,9 @@
 using UnityEngine.UI;
 using HBP.Data;
 
-namespace HBP.UI.Patient
+namespace HBP.UI.Anatomy
 {
-	public class GroupItem : Tools.Unity.Lists.ListItemWithActions<Group> 
+	public class GroupItem : Tools.Unity.Lists.ActionnableItem<Group> 
 	{
 		#region Attributs
 		[SerializeField]

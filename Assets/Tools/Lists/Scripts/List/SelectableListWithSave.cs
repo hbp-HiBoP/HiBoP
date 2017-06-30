@@ -6,7 +6,7 @@ namespace Tools.Unity.Lists
     {
         public override T[] Objects
         {
-            get { SaveAll(); return m_objects.ToArray(); }
+            get { SaveAll(); return m_Objects.ToArray(); }
         }
         public override T[] GetObjectsSelected()
         {
@@ -15,10 +15,10 @@ namespace Tools.Unity.Lists
         }
         public virtual void SaveAll()
         {
-            foreach(T i_object in m_objects)
+            foreach(T i_object in m_Objects)
             {
-                ListItemWithSave<T> l_listItemWithSave = m_objectsToItems[i_object] as ListItemWithSave<T>;
-                l_listItemWithSave.Save();
+                SavableItem<T> savableItem = m_ObjectsToItems[i_object] as SavableItem<T>;
+                savableItem.Save();
             }
         }
     }

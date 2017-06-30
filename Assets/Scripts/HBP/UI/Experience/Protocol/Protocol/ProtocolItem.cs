@@ -4,7 +4,7 @@ using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
-	public class ProtocolItem : Tools.Unity.Lists.ListItemWithActions<d.Protocol> 
+	public class ProtocolItem : Tools.Unity.Lists.ActionnableItem<d.Protocol> 
 	{
 		#region Attributs
 		[SerializeField]

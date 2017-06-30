@@ -11,11 +11,11 @@ namespace Tools.Unity.Lists
         #region Public Methods
         public virtual void ActivateAllObjects()
         {
-            ActiveObject(m_objects.ToArray());
+            ActiveObject(m_Objects.ToArray());
         }
         public virtual void DeactivateAllOjects()
         {
-            DeactivateObject(m_objects.ToArray());
+            DeactivateObject(m_Objects.ToArray());
         }
         public virtual void ActiveObject(T objectToActive)
         {
@@ -47,20 +47,20 @@ namespace Tools.Unity.Lists
         public virtual void Add(T objectToAdd, bool active)
         {
             Add(objectToAdd);
-            Get(objectToAdd).isInteractable = active;
+            (Get(objectToAdd) as SelectableItem<T>).Interactable = active;
         }
         #endregion
 
         #region Protected Methods
         protected virtual IEnumerator c_Display(T[] objectsToDisplay,T[] objectsDeactivated, bool update)
         {
-            IsWaiting = true;
-            while (IsDisplaying)
+            m_IsWaiting = true;
+            while (m_IsDisplaying)
             {
                 yield return null;
             }
-            IsWaiting = false;
-            IsDisplaying = true;
+            m_IsWaiting = false;
+            m_IsDisplaying = true;
             if (objectsToDisplay.Length == 0)
             {
                 yield return Ninja.JumpToUnity;
@@ -74,7 +74,7 @@ namespace Tools.Unity.Lists
                 List<T> m_objToUpdate = new List<T>();
 
                 // Find obj to remove.
-                foreach (T obj in m_objects)
+                foreach (T obj in m_Objects)
                 {
                     if (!objectsToDisplay.Contains(obj))
                     {
@@ -85,7 +85,7 @@ namespace Tools.Unity.Lists
                 // Find obj to add.
                 foreach (T obj in objectsToDisplay)
                 {
-                    if (!m_objects.Contains(obj))
+                    if (!m_Objects.Contains(obj))
                     {
                         m_objToAdd.Add(obj);
                     }
@@ -127,22 +127,22 @@ namespace Tools.Unity.Lists
                         UpdateObj(obj);
                         if (objectsDeactivated.Contains(obj))
                         {
-                            Get(obj).isInteractable = false;
+                            (Get(obj) as SelectableItem<T>).Interactable = false;
                         }
                         yield return Ninja.JumpBack;
                     }
                 }
             }
-            IsDisplaying = false;
+            m_IsDisplaying = false;
         }
 
         protected virtual IEnumerator SetObjectActive(T objectToSet, bool active)
         {
-            while (IsDisplaying || IsWaiting)
+            while (m_IsDisplaying || m_IsWaiting)
             {
                 yield return null;
             }
-            Get(objectToSet).isInteractable = active;
+            (Get(objectToSet) as SelectableItem<T>).Interactable = active;
         }
         #endregion
     }

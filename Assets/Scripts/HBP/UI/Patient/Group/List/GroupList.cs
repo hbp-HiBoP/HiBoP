@@ -1,7 +1,7 @@
 ﻿using HBP.Data;
 using System.Linq;
 
-namespace HBP.UI.Patient
+namespace HBP.UI.Anatomy
 {
     /// <summary>
     /// Manage group list
@@ -28,11 +28,11 @@ namespace HBP.UI.Patient
         {
             if (m_sortByName)
             {
-                m_objects = m_objects.OrderByDescending(x => x.Name).ToList();
+                m_Objects = m_Objects.OrderByDescending(x => x.Name).ToList();
             }
             else
             {
-                m_objects = m_objects.OrderBy(x => x.Name).ToList();
+                m_Objects = m_Objects.OrderBy(x => x.Name).ToList();
             }
             m_sortByName = !m_sortByName;
             ApplySort();
@@ -45,11 +45,11 @@ namespace HBP.UI.Patient
         {
             if (m_sortByPatients)
             {
-                m_objects = m_objects.OrderByDescending(x => x.Patients.Count).ToList();
+                m_Objects = m_Objects.OrderByDescending(x => x.Patients.Count).ToList();
             }
             else
             {
-                m_objects = m_objects.OrderBy(x => x.Patients.Count).ToList();
+                m_Objects = m_Objects.OrderBy(x => x.Patients.Count).ToList();
             }
             m_sortByPatients = !m_sortByPatients;
             ApplySort();

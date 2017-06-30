@@ -8,16 +8,16 @@ namespace HBP.Data.Localizer
 	{
         #region Properties
         public Dictionary<Experience.Protocol.Event, int> PositionByEvent;
-        public Dictionary<Anatomy.Site, float[]> ValuesBySite;
+        public Dictionary<string, float[]> ValuesBySite;
         #endregion
 
         #region Constructor
-        public Bloc(Dictionary<Experience.Protocol.Event,int> positionByEvent,Dictionary<Anatomy.Site,float[]> valuesBySite)
+        public Bloc(Dictionary<Experience.Protocol.Event,int> positionByEvent,Dictionary<string,float[]> valuesBySite)
 		{
             PositionByEvent = positionByEvent;
             ValuesBySite = valuesBySite;
 		}
-        public Bloc(): this (new Dictionary<Experience.Protocol.Event, int>(),new Dictionary<Anatomy.Site, float[]>())
+        public Bloc(): this (new Dictionary<Experience.Protocol.Event, int>(),new Dictionary<string, float[]>())
         {
         }
         #endregion
@@ -26,10 +26,8 @@ namespace HBP.Data.Localizer
         public static Bloc Average(Bloc[] blocs)
         {
             Bloc result = new Bloc();
-
-
             Dictionary<Experience.Protocol.Event, List<int>> positionsByEvent = new Dictionary<Experience.Protocol.Event, List<int>>();
-            Dictionary<Anatomy.Site, List<float>[]> valuesBySite = new Dictionary<Anatomy.Site, List<float>[]>();
+            Dictionary<string, List<float>[]> valuesBySite = new Dictionary<string, List<float>[]>();
             foreach (Bloc bloc in blocs)
             {
                 foreach (Experience.Protocol.Event evnt in bloc.PositionByEvent.Keys)
@@ -37,7 +35,7 @@ namespace HBP.Data.Localizer
                     if (!positionsByEvent.ContainsKey(evnt)) positionsByEvent.Add(evnt, new List<int>());
                     positionsByEvent[evnt].Add(bloc.PositionByEvent[evnt]);
                 }
-                foreach (Anatomy.Site site in bloc.ValuesBySite.Keys)
+                foreach (string site in bloc.ValuesBySite.Keys)
                 {
                     if (!valuesBySite.ContainsKey(site)) valuesBySite.Add(site, new List<float>[bloc.ValuesBySite[site].Length]);
                     for (int v = 0; v < valuesBySite[site].Length; v++)

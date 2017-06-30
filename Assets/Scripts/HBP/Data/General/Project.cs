@@ -145,7 +145,6 @@ namespace HBP.Data.General
         public void AddPatient(Patient patient)
         {
             m_Patients.Add(patient);
-            patient.Brain.LoadImplantationsAsyn();
         }
         public void AddPatient(IEnumerable<Patient> patients)
         {
@@ -169,7 +168,6 @@ namespace HBP.Data.General
                 visualization.RemovePatient(patient);
             }
             m_Patients.Remove(patient);
-            patient.Brain.UnloadImplantations();
         }
         public void RemovePatient(IEnumerable<Patient> patients)
         {
@@ -343,7 +341,6 @@ namespace HBP.Data.General
         public string GetProject(string path, string ID)
         {
             IEnumerable<string> projectsDirectories = GetProject(path);
-            UnityEngine.Debug.Log(projectsDirectories.ToArray().Length);
             foreach (var directoryPaths in projectsDirectories)
             {
                 ProjectInfo projectInfo = new ProjectInfo(directoryPaths);

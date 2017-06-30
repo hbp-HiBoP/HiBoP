@@ -6,7 +6,7 @@ using Tools.Unity;
 
 namespace HBP.UI.Experience.Protocol
 {
-	public class BlocItem : Tools.Unity.Lists.ListItemWithActions<Bloc> , IBeginDragHandler , IDragHandler, IEndDragHandler
+	public class BlocItem : Tools.Unity.Lists.ActionnableItem<Bloc> , IBeginDragHandler , IDragHandler, IEndDragHandler
 	{
 		#region Attributs
 
@@ -29,12 +29,12 @@ namespace HBP.UI.Experience.Protocol
 
 		public void OpenBlocModifier()
 		{
-            ActionEvent.Invoke(Object, 0);
+            Action.Invoke(Object, 0);
         }
 
         public void RemoveBloc()
 		{
-            ActionEvent.Invoke(Object, 1);
+            Action.Invoke(Object, 1);
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -57,7 +57,7 @@ namespace HBP.UI.Experience.Protocol
 
         public void OnEndDrag(PointerEventData eventData)
 		{
-            ActionEvent.Invoke(Object, 2);
+            Action.Invoke(Object, 2);
             GetComponent<LayoutElement>().ignoreLayout = false;
         }
 

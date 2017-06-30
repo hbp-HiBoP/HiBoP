@@ -1,10 +1,7 @@
 ﻿using System;
-using System.IO;
-using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Linq;
-using CielaSpike;
 
 namespace HBP.Data.Anatomy
 {
@@ -29,16 +26,11 @@ namespace HBP.Data.Anatomy
     public class Brain : ICloneable
     {
         #region Properties
-        public enum Error
-        {
-            LeftMeshEmpty, LeftMeshNotFound, LeftMeshWrongFile, RightMeshEmpty, RightMeshNotFound, RightMeshWrongFile, PreoperativeMRIEmpty, ImplantationEmpty
-        }
-
-        [DataMember] public Mesh[] Meshes { get; set; }
-        [DataMember] public MRI[] MRIs { get; set; }
-        [DataMember] public Connectivity[] Connectivities { get; set; }
-        [DataMember] public Implantation[] Implantations { get; set; }
-        [DataMember] public Transformation[] Transformations { get; set; }
+        [DataMember] public List<Mesh> Meshes { get; set; }
+        [DataMember] public List<MRI> MRIs { get; set; }
+        [DataMember] public List<Connectivity> Connectivities { get; set; }
+        [DataMember] public List<Implantation> Implantations { get; set; }
+        [DataMember] public List<Transformation> Transformations { get; set; }
         [DataMember] public Epilepsy Epilepsy { get; set; }
         //[IgnoreDataMember] public Patient Patient { get; set; }
         #endregion
@@ -46,116 +38,24 @@ namespace HBP.Data.Anatomy
         #region Constructors
         public Brain(IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Connectivity> connectivities, IEnumerable<Implantation> implantations, IEnumerable<Transformation> transformations, Epilepsy epilepsy)
         {
-            Meshes = meshes.ToArray();
-            this.MRIs = MRIs.ToArray();
-            Connectivities = connectivities.ToArray();
-            Implantations = implantations.ToArray();
-            Transformations = transformations.ToArray();
+            Meshes = meshes.ToList();
+            this.MRIs = MRIs.ToList();
+            Connectivities = connectivities.ToList();
+            Implantations = implantations.ToList();
+            Transformations = transformations.ToList();
             Epilepsy = epilepsy;
         }
         public Brain() : this(new Mesh[0], new MRI[0], new Connectivity[0], new Implantation[0], new Transformation[0], new Epilepsy()) { }
-        #endregion
-
-        #region Public Methods
-     
-        //public Error[] GetVisualizableErrors(ReferenceFrameType referenceFrame)
-        //{
-        //    List<Error> errors = new List<Error>();
-        //    switch (referenceFrame)
-        //    {
-        //        case ReferenceFrameType.Patient:
-        //            if (string.IsNullOrEmpty(LeftHemisphereGreyMatter)) errors.Add(Error.LeftMeshEmpty);
-        //            if (string.IsNullOrEmpty(RightHemisphereGreyMatter)) errors.Add(Error.RightMeshEmpty);
-        //            if (string.IsNullOrEmpty(PreoperativeMRI)) errors.Add(Error.PreoperativeMRIEmpty);
-        //            if (string.IsNullOrEmpty(PatientBasedImplantation)) errors.Add(Error.ImplantationEmpty);
-        //            if(!errors.Contains(Error.LeftMeshEmpty))
-        //            {
-                        
-        //            }
-        //            break;
-        //        case ReferenceFrameType.MNI:
-        //            if (string.IsNullOrEmpty(PreoperativeMRI)) errors.Add(Error.PreoperativeMRIEmpty);
-        //            if (string.IsNullOrEmpty(MNIBasedImplantation)) errors.Add(Error.ImplantationEmpty);
-        //            break;
-        //        default:
-        //            break;
-        //    }
-        //    return errors.ToArray();
-        //}
-        //public bool IsVisualizable(ReferenceFrameType referenceFrame)
-        //{
-        //    if (GetVisualizableErrors(referenceFrame).Length == 0) return true;
-        //    else return false;
-        //}
-        //public void LoadImplantations()
-        //{
-        //    Implantation.Load(PatientBasedImplantation, ReferenceFrameType.Patient);
-        //    Implantation.Load(MNIBasedImplantation, ReferenceFrameType.MNI);
-        //}
-        //public void LoadImplantationsAsyn()
-        //{
-        //    ApplicationState.CoroutineManager.Add(LoadAsyn());
-        //}
-        //public void UnloadImplantations()
-        //{
-        //    Implantation.Unload();
-        //}
-        #endregion
-
-        #region Private Methods
-        IEnumerator LoadAsyn()
+        public Brain(string path)
         {
-            yield return Ninja.JumpBack;
-            Implantation.Load(PatientBasedImplantation, ReferenceFrameType.Patient);
-            Implantation.Load(MNIBasedImplantation, ReferenceFrameType.MNI);
-            yield return Ninja.JumpToUnity;
-        }
-        Error[] GetMeshErrors()
-        {
-            List<Error> errors = new List<Error>();
-
-            //Left Mesh.
-            if (string.IsNullOrEmpty(LeftHemisphereGreyMatter))
-            {
-                errors.Add(Error.LeftMeshEmpty);
-            }
-            else
-            {
-                FileInfo leftMeshFileInfo = new FileInfo(LeftHemisphereGreyMatter);
-                if (!leftMeshFileInfo.Exists)
-                {
-                    errors.Add(Error.LeftMeshNotFound);
-                }
-                else
-                {
-                    if(leftMeshFileInfo.Extension != MESH_EXTENSION)
-                    {
-                        errors.Add(Error.LeftMeshWrongFile);
-                    }
-                }
-            }
-
-            //Right Mesh.
-            if (string.IsNullOrEmpty(RightHemisphereGreyMatter))
-            {
-                errors.Add(Error.RightMeshEmpty);
-            }
-            else
-            {
-                FileInfo rightMeshFileInfo = new FileInfo(RightHemisphereGreyMatter);
-                if (!rightMeshFileInfo.Exists)
-                {
-                    errors.Add(Error.RightMeshNotFound);
-                }
-                else
-                {
-                    if (rightMeshFileInfo.Extension != MESH_EXTENSION)
-                    {
-                        errors.Add(Error.RightMeshWrongFile);
-                    }
-                }
-            }
-            return errors.ToArray();
+            Meshes = Mesh.GetMeshes(path).ToList();
+            MRIs = MRI.GetMRIs(path).ToList();
+            Implantations = Implantation.GetImplantations(path).ToList();
+            //TODO.
+            Connectivities = new List<Connectivity>();
+            //TODO.
+            Transformations = new List<Transformation>();
+            //Transformations = Transformation.GetTransformations(path).ToList();
         }
         #endregion
 
@@ -166,15 +66,7 @@ namespace HBP.Data.Anatomy
         /// <returns>Object cloned.</returns>
         public object Clone()
         {
-            return new Brain(Epilepsy.Clone() as Epilepsy, LeftHemisphereGreyMatter, RightHemisphereGreyMatter, PreoperativeMRI, PostoperativeMRI, PatientBasedImplantation, MNIBasedImplantation, PreoperativeBasedToScannerBasedTransformation, SitesConnectivities);
-        }
-        #endregion
-        
-        #region Serialization
-        [OnDeserialized]
-        void OnDeserialized(StreamingContext context)
-        {
-            LoadImplantations();
+            return new Brain(Meshes,MRIs,Connectivities,Implantations,Transformations,Epilepsy);
         }
         #endregion
     }

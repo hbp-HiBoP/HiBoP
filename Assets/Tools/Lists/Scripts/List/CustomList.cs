@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,16 +13,14 @@ namespace Tools.Unity.Lists
     {
         #region Properties
         [SerializeField]
-        protected GameObject m_item;
+        protected GameObject[] m_Items;
 
-        protected List<T> m_objects = new List<T>();
-        protected Dictionary<T, ListItem<T>> m_objectsToItems = new Dictionary<T, ListItem<T>>();
-        public virtual T[] Objects { get { return m_objects.ToArray(); } }
+        protected List<T> m_Objects = new List<T>();
+        protected Dictionary<T, Item<T>> m_ObjectsToItems = new Dictionary<T, Item<T>>();
+        public virtual T[] Objects { get { return m_Objects.ToArray(); } }
 
-        protected bool IsDisplaying = false;
-        protected bool IsWaiting = false;
-
-
+        protected bool m_IsDisplaying = false;
+        protected bool m_IsWaiting = false;
         #endregion
 
         #region Public Methods
@@ -36,10 +35,10 @@ namespace Tools.Unity.Lists
         public virtual void Clear()
         {
             StopAllCoroutines();
-            IsDisplaying = false;
-            IsWaiting = false;
-            m_objects = new List<T>();
-            m_objectsToItems = new Dictionary<T, ListItem<T>>();
+            m_IsDisplaying = false;
+            m_IsWaiting = false;
+            m_Objects = new List<T>();
+            m_ObjectsToItems = new Dictionary<T, Item<T>>();
             for (int i = 0; i < transform.childCount; i++)
             {
                 Destroy(transform.GetChild(i).gameObject);
@@ -48,8 +47,8 @@ namespace Tools.Unity.Lists
         public virtual void Remove(T objectToRemove)
         {
             Destroy(Get(objectToRemove).gameObject);
-            m_objects.Remove(objectToRemove);
-            m_objectsToItems.Remove(objectToRemove);
+            m_Objects.Remove(objectToRemove);
+            m_ObjectsToItems.Remove(objectToRemove);
         }
         public virtual void Remove(T[] objectsToRemove)
         {
@@ -60,11 +59,10 @@ namespace Tools.Unity.Lists
         }
         public virtual void Add(T objectToAdd)
         {
-            Transform l_item = Instantiate(m_item).transform;
-            ListItem<T> l_listItem = l_item.GetComponent<ListItem<T>>();
-            l_item.SetParent(transform);
-            m_objects.Add(objectToAdd);
-            m_objectsToItems.Add(objectToAdd, l_listItem);
+            GameObject l_itemToInstantiate = m_Items.First((prefab) => prefab.GetComponent<Item<T>>().GetObjectType() == objectToAdd.GetType());
+            Item<T> l_listItem = Instantiate(l_itemToInstantiate, transform).GetComponent<Item<T>>();
+            m_Objects.Add(objectToAdd);
+            m_ObjectsToItems.Add(objectToAdd, l_listItem);
             Set(objectToAdd, l_listItem);
         }
         public virtual void Add(T[] objectsToAdd)
@@ -76,20 +74,21 @@ namespace Tools.Unity.Lists
         }
         public virtual void UpdateObj(T objectToUpdate)
         {
-            m_objectsToItems[objectToUpdate].Set(objectToUpdate,transform.parent.GetComponent<RectTransform>().rect);
+            Item<T> item = m_ObjectsToItems[objectToUpdate];
+            item.Object = objectToUpdate;
         }
         #endregion
 
         #region Protected Methods
         protected virtual IEnumerator c_Display(T[] objectsToDisplay, bool update)
         {
-            IsWaiting = true;
-            while (IsDisplaying)
+            m_IsWaiting = true;
+            while (m_IsDisplaying)
             {
                 yield return null;
             }
-            IsWaiting = false;
-            IsDisplaying = true;
+            m_IsWaiting = false;
+            m_IsDisplaying = true;
             if (objectsToDisplay.Length == 0)
             {
                 yield return Ninja.JumpToUnity;
@@ -103,7 +102,7 @@ namespace Tools.Unity.Lists
                 List<T> m_objToUpdate = new List<T>();
 
                 // Find obj to remove.
-                foreach (T obj in m_objects)
+                foreach (T obj in m_Objects)
                 {
                     if (!objectsToDisplay.Contains(obj))
                     {
@@ -152,23 +151,23 @@ namespace Tools.Unity.Lists
                     }
                 }
             }
-            IsDisplaying = false;
+            m_IsDisplaying = false;
         }
-        protected virtual void Set(T objectToSet,ListItem<T> listItem )
+        protected virtual void Set(T objectToSet,Item<T> listItem )
         {
-            listItem.Set(objectToSet, transform.parent.GetComponent<RectTransform>().rect);
+            listItem.Object = objectToSet;
         }
-        protected virtual ListItem<T> Get(T objectToGet)
+        protected virtual Item<T> Get(T objectToGet)
         {
-            ListItem<T> l_result = null;
-            m_objectsToItems.TryGetValue(objectToGet, out l_result);
+            Item<T> l_result = null;
+            m_ObjectsToItems.TryGetValue(objectToGet, out l_result);
             return l_result;
         }
         protected virtual void ApplySort()
         {
-            for (int i = 0; i < m_objects.Count; i++)
+            for (int i = 0; i < m_Objects.Count; i++)
             {
-                m_objectsToItems[m_objects[i]].transform.SetSiblingIndex(i);
+                m_ObjectsToItems[m_Objects[i]].transform.SetSiblingIndex(i);
             }
 
         }

@@ -15,7 +15,7 @@ namespace Tools.Unity.Lists
         public virtual T[] GetObjectsSelected()
         {
             List<T> l_objectsSelected = new List<T>();
-            foreach (T obj in m_objects)
+            foreach (T obj in m_Objects)
             {
                 if (isSelected(obj))
                 {
@@ -28,7 +28,7 @@ namespace Tools.Unity.Lists
         public virtual void SelectAllObjects()
         {
             isSelecting = true;
-            foreach (T obj in m_objects)
+            foreach (T obj in m_Objects)
             {
                 SelectObject(obj);
             }
@@ -38,7 +38,7 @@ namespace Tools.Unity.Lists
         public virtual void DeselectAllObjects()
         {
             isSelecting = true;
-            foreach (T obj in m_objects)
+            foreach (T obj in m_Objects)
             {
                 DeselectObject(obj);
             }
@@ -57,12 +57,11 @@ namespace Tools.Unity.Lists
         #endregion
 
         #region Protected Methods
-        protected override void Set(T objectToSet,ListItem<T> listItem)
+        protected override void Set(T objectToSet, Item<T> listItem)
         {
-            listItem.Set(objectToSet, transform.parent.GetComponent<RectTransform>().rect);
-            listItem.SelectEvent.AddListener(() => SelectEventInvoke());
+            base.Set(objectToSet, listItem);
+            (listItem as SelectableItem<T>).OnChangeSelected.AddListener(() => SelectEventInvoke());
         }
-
         void SelectEventInvoke()
         {
             if(!isSelecting)
@@ -70,15 +69,13 @@ namespace Tools.Unity.Lists
                 SelectEvent.Invoke();
             }
         }
-
         protected virtual bool isSelected(T objectToTest)
         {
-            return m_objectsToItems[objectToTest].isOn;
+            return (m_ObjectsToItems[objectToTest] as SelectableItem<T>).Selected;
         }
-
         protected virtual void SetSelect(T objectToSet, bool selected)
         {
-            m_objectsToItems[objectToSet].isOn = selected;
+            (m_ObjectsToItems[objectToSet] as SelectableItem<T>).Selected = selected;
         }
         #endregion
     }

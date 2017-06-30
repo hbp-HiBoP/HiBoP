@@ -4,7 +4,7 @@ using HBP.Data.Visualization;
 
 namespace HBP.UI.Visualization
 {
-    public class ColumnItem : Tools.Unity.Lists.ListItem<Column>
+    public class ColumnItem : Tools.Unity.Lists.Item<Column>
     {
         #region Attributs
         #region UI Elements
@@ -32,13 +32,6 @@ namespace HBP.UI.Visualization
         [SerializeField]
         Text m_bloc;
         #endregion
-        #endregion
-
-        #region public Methods
-        public override void Set(Column objectToSet, Rect rect)
-        {
-            Object = objectToSet;
-        }
         #endregion
 
         #region Private Methods

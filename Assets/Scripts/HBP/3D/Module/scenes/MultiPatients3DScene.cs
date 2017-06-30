@@ -272,7 +272,9 @@ namespace HBP.Module3D
             List<string> ptsFiles = new List<string>(Visualization.Patients.Count), namePatients = new List<string>(Visualization.Patients.Count);
             for (int ii = 0; ii < Visualization.Patients.Count; ++ii)
             {
-                ptsFiles.Add(Visualization.Patients[ii].Brain.MNIBasedImplantation);
+                //ptsFiles.Add(Visualization.Patients[ii].Brain.MNIBasedImplantation);
+                //TOCHECK
+                ptsFiles.Add(Visualization.Patients[ii].Brain.Implantations.Find((i) => i.Name == "MNI").Path);
                 namePatients.Add(Visualization.Patients[ii].Place + "_" + Visualization.Patients[ii].Date + "_" + Visualization.Patients[ii].Name);
             }
 

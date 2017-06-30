@@ -23,11 +23,11 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Site values.
         /// </summary>
-        public Dictionary<Site,float[]> ValuesBySite { get; set; }
+        public Dictionary<string,float[]> ValuesBySite { get; set; }
         /// <summary>
         /// Plot mask : \a True if masked and \a false otherwise.
         /// </summary>
-        public Dictionary<Site,bool> MaskBySite { get; set; }
+        public Dictionary<string,bool> MaskBySite { get; set; }
         /// <summary>
         /// POS file which containts plot anatomy informations.
         /// </summary>
@@ -46,7 +46,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new Data instance with default values.
         /// </summary>
-        public Data(): this(new Dictionary < Site, float[] >(), new Dictionary < Site, bool >(), new Localizer.POS(), 0, new Patient())
+        public Data(): this(new Dictionary < string, float[] >(), new Dictionary < string, bool >(), new Localizer.POS(), 0, new Patient())
         {
         }
         /// <summary>
@@ -57,7 +57,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="pos">POS file.</param>
         /// <param name="frequency">Values frequency.</param>
         /// <param name="patient">Patient.</param>
-        public Data(Dictionary<Site,float[]> valuesBySite, Dictionary<Site, bool> maskBySite, Localizer.POS pos, float frequency, Patient patient)
+        public Data(Dictionary<string,float[]> valuesBySite, Dictionary<string, bool> maskBySite, Localizer.POS pos, float frequency, Patient patient)
         {
             ValuesBySite = valuesBySite;
             MaskBySite = maskBySite;
@@ -74,21 +74,14 @@ namespace HBP.Data.Experience.Dataset
         {
             // Read Elan.
             Elan.ElanFile elanFile = new Elan.ElanFile(info.EEG,true);
-            foreach (Electrode electrode in info.Patient.Brain.Implantation.Electrodes)
+            Elan.Channel[] channels = elanFile.Channels;
+            foreach (var channel in channels)
             {
-                foreach (Site site in electrode.Sites)
+                Elan.Track track = elanFile.FindTrack(info.Measure, channel.Label);
+                if (track.Channel >= 0 && track.Measure >= 0)
                 {
-                    Elan.Track track = elanFile.FindTrack(info.Measure, site.Name);
-                    if (track.Channel < 0 || track.Measure < 0)
-                    {
-                        MaskBySite.Add(site, true);
-                        ValuesBySite.Add(site, new float[elanFile.EEG.SampleNumber]);
-                    }
-                    else
-                    {
-                        MaskBySite.Add(site, false);
-                        ValuesBySite.Add(site, elanFile.EEG.GetFloatData(track));
-                    }
+                    ValuesBySite.Add(channel.Label,elanFile.EEG.GetFloatData(track));
+                    MaskBySite.Add(channel.Label, false);
                 }
             }
             POS = new Localizer.POS(info.POS);

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="512"
+   height="512"
+   viewBox="0 0 512.00001 512.00001"
+   id="svg3886"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="Transformation.svg"
+   inkscape:export-filename="D:\UnityProjects\HBP\Assets\Sprites\3D Buttons\Transformation.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs3888" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="366.77033"
+     inkscape:cy="204.4599"
+     inkscape:document-units="px"
+     inkscape:current-layer="g4510"
+     showgrid="false"
+     units="px"
+     inkscape:window-width="1920"
+     inkscape:window-height="1137"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata3891">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-540.36216)">
+    <g
+       transform="matrix(0.99446169,-0.10509969,0.10509969,0.99446169,-55.71042,4.8549444)"
+       id="g4457">
+      <g
+         id="g4510">
+        <g
+           transform="matrix(0.80208364,0.08476821,-0.08476821,0.80208364,176.04287,140.80273)"
+           id="g4453">
+          <rect
+             style="opacity:1;fill:#0000c8;fill-opacity:1;stroke:none;stroke-width:10;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             id="rect4434"
+             width="450"
+             height="15"
+             x="6"
+             y="1031.3622" />
+          <rect
+             y="6"
+             x="-1046.3622"
+             height="15"
+             width="450"
+             id="rect4451"
+             style="opacity:1;fill:#0000c8;fill-opacity:1;stroke:none;stroke-width:10;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             transform="matrix(0,-1,1,0,0,0)" />
+        </g>
+        <rect
+           y="960.16309"
+           x="-166.44284"
+           height="12.098258"
+           width="362.94775"
+           id="rect4459"
+           style="opacity:1;fill:#c80000;fill-opacity:1;stroke:none;stroke-width:10;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           transform="matrix(0.96442001,-0.2643748,0.2643748,0.96442001,0,0)" />
+        <rect
+           transform="matrix(-0.2643748,-0.96442001,0.96442001,-0.2643748,0,0)"
+           style="opacity:1;fill:#c80000;fill-opacity:1;stroke:none;stroke-width:10;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect4461"
+           width="362.94775"
+           height="12.098258"
+           x="-972.26166"
+           y="-166.44284" />
+        <flowRoot
+           transform="matrix(1.6912167,0.17873625,-0.17873625,1.6912167,-19.115893,534.53374)"
+           style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#0000c8;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           id="flowRoot4463"
+           xml:space="preserve"><flowRegion
+             id="flowRegion4465"><rect
+               y="33.187695"
+               x="112.12693"
+               height="77.781746"
+               width="77.781746"
+               id="rect4467"
+               style="fill:#0000c8;fill-opacity:1" /></flowRegion><flowPara
+             id="flowPara4469">Y</flowPara></flowRoot>        <flowRoot
+           xml:space="preserve"
+           id="flowRoot4479"
+           style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#0000c8;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           transform="matrix(1.6912167,0.17873625,-0.17873625,1.6912167,227.8333,841.40456)"
+           inkscape:export-filename="D:\UnityProjects\HBP\Assets\Sprites\3D Buttons\flowRoot4479.png"
+           inkscape:export-xdpi="90"
+           inkscape:export-ydpi="90"><flowRegion
+             id="flowRegion4481"><rect
+               id="rect4483"
+               width="77.781746"
+               height="77.781746"
+               x="112.12693"
+               y="33.187695"
+               style="fill:#0000c8;fill-opacity:1" /></flowRegion><flowPara
+             id="flowPara4485">X</flowPara><flowPara
+             id="flowPara4487" /></flowRoot>        <flowRoot
+           transform="matrix(1.6912167,0.17873625,-0.17873625,1.6912167,182.61238,724.01214)"
+           style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#c80000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           id="flowRoot4489"
+           xml:space="preserve"><flowRegion
+             id="flowRegion4491"><rect
+               style="fill:#c80000;fill-opacity:1"
+               y="33.187695"
+               x="112.12693"
+               height="77.781746"
+               width="77.781746"
+               id="rect4493" /></flowRegion><flowPara
+             id="flowPara4495">X'</flowPara><flowPara
+             id="flowPara4497" /></flowRoot>        <flowRoot
+           xml:space="preserve"
+           id="flowRoot4499"
+           style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#c80000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           transform="matrix(1.6912167,0.17873625,-0.17873625,1.6912167,-154.85727,518.17914)"><flowRegion
+             id="flowRegion4501"><rect
+               style="fill:#c80000;fill-opacity:1"
+               id="rect4503"
+               width="77.781746"
+               height="77.781746"
+               x="112.12693"
+               y="33.187695" /></flowRegion><flowPara
+             id="flowPara4505">Y'</flowPara></flowRoot>      </g>
+    </g>
+  </g>
+</svg>

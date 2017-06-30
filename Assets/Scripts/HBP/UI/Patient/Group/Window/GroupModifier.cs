@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using System.Linq;
 using HBP.Data;
 
-namespace HBP.UI.Patient
+namespace HBP.UI.Anatomy
 {
 	/// <summary>
 	/// Display/Modify group.

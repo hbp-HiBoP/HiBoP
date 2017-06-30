@@ -311,7 +311,7 @@ namespace HBP.UI.Module3D
                 if(m_scene.Type == SceneType.MultiPatients)
                 {
                     Data.Patient patient = (m_scene as MultiPatients3DScene).Patients[m_idPatientToLoad];
-                    patientComplete = (patient.Brain.PreoperativeMRI.Length > 0) && (patient.Brain.RightHemisphereGreyMatter.Length > 0) && (patient.Brain.LeftHemisphereGreyMatter.Length > 0);
+                    //patientComplete = (patient.Brain.PreoperativeMRI.Length > 0) && (patient.Brain.RightHemisphereGreyMatter.Length > 0) && (patient.Brain.LeftHemisphereGreyMatter.Length > 0);
                 }
             }
 

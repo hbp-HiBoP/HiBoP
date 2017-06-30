@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using HBP.Data;
 
-namespace HBP.UI.Patient
+namespace HBP.UI.Anatomy
 {
     public class GroupGestion : ItemGestion<Group>
     {

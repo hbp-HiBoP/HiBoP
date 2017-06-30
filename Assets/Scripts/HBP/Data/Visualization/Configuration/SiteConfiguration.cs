@@ -66,8 +66,9 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public SiteConfiguration(bool isMasked, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked, Color color)
+        public SiteConfiguration(float[] values, bool isMasked, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked, Color color)
         {
+            Values = values;
             IsMasked = IsMasked;
             IsExcluded = isExcluded;
             IsBlacklisted = isBlacklisted;
@@ -75,14 +76,14 @@ namespace HBP.Data.Visualization
             IsMarked = isMarked;
             Color = color;
         }
-        public SiteConfiguration(Color color) : this(false, false, false, false, false, color) { }
+        public SiteConfiguration(Color color) : this(new float[0], false, false, false, false, false, color) { }
         public SiteConfiguration() : this(new Color()) { }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new SiteConfiguration(IsMasked, IsExcluded, IsBlacklisted, IsHighlighted, IsMarked, Color);
+            return new SiteConfiguration(Values,IsMasked, IsExcluded, IsBlacklisted, IsHighlighted, IsMarked, Color);
         }
         #endregion
 

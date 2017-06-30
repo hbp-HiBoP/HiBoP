@@ -2,7 +2,7 @@
 using HBP.Data;
 using UnityEngine.Events;
 
-namespace HBP.UI.Patient
+namespace HBP.UI.Anatomy
 {
     public class GroupSelection : Window
     {

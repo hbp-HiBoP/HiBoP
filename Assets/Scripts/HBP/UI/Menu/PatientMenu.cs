@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Patient
+namespace HBP.UI.Anatomy
 {
     public class PatientMenu : MonoBehaviour
     {

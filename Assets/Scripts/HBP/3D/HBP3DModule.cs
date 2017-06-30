@@ -266,17 +266,26 @@ namespace HBP.Module3D
         public bool AddVisualization(Data.Visualization.Visualization visualization)
         {
             bool result = false;
-            switch (visualization.ReferenceFrame)
+            if(visualization.Patients.Count > 1)
             {
-                case Data.Anatomy.ReferenceFrameType.Patient:
-                    result = SetSPVisualization(visualization);
-                    break;
-                case Data.Anatomy.ReferenceFrameType.MNI:
-                    result = SetMPVisualization(visualization);
-                    break;
-                default:
-                    break;
+                result = SetMPVisualization(visualization);
             }
+            else
+            {
+                result = SetSPVisualization(visualization);
+            }
+            // TOCHECK
+            //switch (visualization.ReferenceFrame)
+            //{
+            //    case Data.Anatomy.ReferenceFrameType.Patient:
+            //        result = SetSPVisualization(visualization);
+            //        break;
+            //    case Data.Anatomy.ReferenceFrameType.MNI:
+            //        result = SetMPVisualization(visualization);
+            //        break;
+            //    default:
+            //        break;
+            //}
             if (result)
             {
                 OnAddVisualization.Invoke(visualization);

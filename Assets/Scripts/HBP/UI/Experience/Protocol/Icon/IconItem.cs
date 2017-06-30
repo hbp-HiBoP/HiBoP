@@ -8,7 +8,7 @@ namespace HBP.UI.Experience.Protocol
     /// <summary>
     /// The script which manage the icon panel.
     /// </summary>
-    public class IconItem : Tools.Unity.Lists.ListItemWithSave<Icon>
+    public class IconItem : Tools.Unity.Lists.SavableItem<Icon>
     {
         #region Attributs
         /// <summary>
@@ -39,7 +39,7 @@ namespace HBP.UI.Experience.Protocol
         #region Public Methods
         protected override void SetObject(Icon icon)
         {
-            m_object = icon;
+            m_Object = icon;
             m_labelInputField.text = icon.Name;
             m_pathInputField.text = icon.IllustrationPath;
             m_minInputField.text = icon.Window.Start.ToString();

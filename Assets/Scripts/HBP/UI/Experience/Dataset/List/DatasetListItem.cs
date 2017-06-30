@@ -4,7 +4,7 @@ using d = HBP.Data.Experience.Dataset;
 
 namespace HBP.UI.Experience.Dataset
 {
-	public class DatasetListItem : Tools.Unity.Lists.ListItemWithActions<d.Dataset> 
+	public class DatasetListItem : Tools.Unity.Lists.ActionnableItem<d.Dataset> 
 	{
 		#region Attributs
         [SerializeField]

@@ -1,124 +1,109 @@
-﻿using d = HBP.Data.Experience.Dataset;
-using System.Linq;
+﻿using System.Linq;
 
 namespace HBP.UI.Experience.Dataset
 {
-    public class DataInfoList : Tools.Unity.Lists.SelectableListWithSave<d.DataInfo>
+    public class DataInfoList : Tools.Unity.Lists.SelectableListWithSave<HBP.Data.Experience.Dataset.DataInfo>
     {
         #region Attributs
-        bool m_sortByName = false;
-        bool m_sortByPatient = false;
-        bool m_sortByMeasure = false;
-        bool m_sortByEEG = false;
-        bool m_sortByPOS = false;
-        bool m_sortByProv = false;
-        bool m_sortBySP = false;
-        bool m_sortByMP = false;
+        bool m_SortByName = false;
+        bool m_SortByPatient = false;
+        bool m_SortByMeasure = false;
+        bool m_SortByEEG = false;
+        bool m_SortByPOS = false;
+        bool m_SortByProv = false;
+        bool m_SortByState = false;
         #endregion
 
         #region Public Methods
         public void SortByName()
         {
-            if (m_sortByName)
+            if (m_SortByName)
             {
-                m_objects.OrderByDescending((x) => x.Name);
+                m_Objects.OrderByDescending((x) => x.Name);
             }
             else
             {
-                m_objects.OrderBy((x) => x.Name);
+                m_Objects.OrderBy((x) => x.Name);
             }
-            m_sortByName = !m_sortByName;
+            m_SortByName = !m_SortByName;
             ApplySort();
         }
         public void SortByPatient()
         {
-            if (m_sortByPatient)
+            if (m_SortByPatient)
             {
-                m_objects.OrderByDescending((x) => x.Patient.Name);
+                m_Objects.OrderByDescending((x) => x.Patient.Name);
             }
             else
             {
-                m_objects.OrderBy((x) => x.Patient.Name);
+                m_Objects.OrderBy((x) => x.Patient.Name);
             }
-            m_sortByPatient = !m_sortByPatient;
+            m_SortByPatient = !m_SortByPatient;
             ApplySort();
         }
         public void SortByMeasure()
         {
-            if (m_sortByMeasure)
+            if (m_SortByMeasure)
             {
-                m_objects.OrderByDescending((x) => x.Protocol.Name);
+                m_Objects.OrderByDescending((x) => x.Protocol.Name);
             }
             else
             {
-                m_objects.OrderBy((x) => x.Protocol.Name);
+                m_Objects.OrderBy((x) => x.Protocol.Name);
             }
-            m_sortByMeasure = !m_sortByMeasure;
+            m_SortByMeasure = !m_SortByMeasure;
             ApplySort();
         }
         public void SortByEEG()
         {
-            if (m_sortByEEG)
+            if (m_SortByEEG)
             {
-                m_objects.OrderByDescending((x) => x.EEG);
+                m_Objects.OrderByDescending((x) => x.EEG);
             }
             else
             {
-                m_objects.OrderBy((x) => x.EEG);
+                m_Objects.OrderBy((x) => x.EEG);
             }
-            m_sortByEEG = !m_sortByEEG;
+            m_SortByEEG = !m_SortByEEG;
             ApplySort();
         }
         public void SortByPOS()
         {
-            if (m_sortByPOS)
+            if (m_SortByPOS)
             {
-                m_objects.OrderByDescending((x) => x.POS);
+                m_Objects.OrderByDescending((x) => x.POS);
             }
             else
             {
-                m_objects.OrderBy((x) => x.POS);
+                m_Objects.OrderBy((x) => x.POS);
             }
-            m_sortByPOS = !m_sortByPOS;
+            m_SortByPOS = !m_SortByPOS;
             ApplySort();
         }
         public void SortByProv()
         {
-            if (m_sortByProv)
+            if (m_SortByProv)
             {
-                m_objects.OrderByDescending((x) => x.Protocol.Name);
+                m_Objects.OrderByDescending((x) => x.Protocol.Name);
             }
             else
             {
-                m_objects.OrderBy((x) => x.Protocol.Name);
+                m_Objects.OrderBy((x) => x.Protocol.Name);
             }
-            m_sortByProv = !m_sortByProv;
+            m_SortByProv = !m_SortByProv;
             ApplySort();
         }
-        public void SortBySP()
+        public void SortByState()
         {
-            if (m_sortBySP)
+            if (m_SortByState)
             {
-                m_objects.OrderByDescending((x) => x.UsableInSinglePatient);
+                m_Objects.OrderByDescending((x) => x.isOk);
             }
             else
             {
-                m_objects.OrderBy((x) => x.UsableInSinglePatient);
+                m_Objects.OrderBy((x) => x.isOk);
             }
-            m_sortBySP = !m_sortBySP;
-            ApplySort();
-        }
-        public void SortByMP()
-        {
-            if (m_sortByMP)
-            {
-                m_objects.OrderByDescending((x) => x.UsableInMultiPatients);
-            }
-            else
-            {
-                m_objects.OrderBy((x) => x.UsableInMultiPatients);
-            }
-            m_sortByMP = !m_sortByMP;
+            m_SortByState = !m_SortByState;
             ApplySort();
         }
         #endregion

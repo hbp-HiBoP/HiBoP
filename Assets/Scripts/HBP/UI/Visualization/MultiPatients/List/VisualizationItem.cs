@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace HBP.UI.Visualization
 {
-    public class VisualizationItem : Tools.Unity.Lists.ListItemWithActions<Data.Visualization.Visualization>
+    public class VisualizationItem : Tools.Unity.Lists.ActionnableItem<Data.Visualization.Visualization>
     {
         #region Properties
         [SerializeField]

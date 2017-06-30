@@ -215,12 +215,18 @@ namespace HBP.Module3D
             transform.position = new Vector3(SPACE_BETWEEN_SCENES * GetComponentInParent<ScenesManager>().NumberOfScenesLoadedSinceStart, transform.position.y, transform.position.z);
 
             List<string> ptsFiles = new List<string>(), namePatients = new List<string>();
-            ptsFiles.Add(Patient.Brain.PatientBasedImplantation);
+            //ptsFiles.Add(Patient.Brain.PatientBasedImplantation);
+            //TOCHECK
+            ptsFiles.Add(Patient.Brain.Implantations.Find((i) => i.Name == "Patient").Path);
             namePatients.Add(Patient.Place + "_" + Patient.Date + "_" + Patient.Name);
 
             List<string> meshesFiles = new List<string>();
-            meshesFiles.Add(Patient.Brain.LeftHemisphereGreyMatter);
-            meshesFiles.Add(Patient.Brain.RightHemisphereGreyMatter);
+            //TOCHECK
+            //meshesFiles.Add(Patient.Brain.LeftHemisphereGreyMatter);
+            //meshesFiles.Add(Patient.Brain.RightHemisphereGreyMatter);
+            Data.Anatomy.LeftRightMesh greyMatterMesh = Patient.Brain.Meshes.Find((m) => m.Name == "Grey Matter") as Data.Anatomy.LeftRightMesh;
+            meshesFiles.Add(greyMatterMesh.LeftHemisphere);
+            meshesFiles.Add(greyMatterMesh.RightHemisphere);
 
             // reset columns
             m_ColumnManager.Initialize(m_Cuts.Count);
@@ -231,7 +237,9 @@ namespace HBP.Module3D
             });
 
             DLL.Transformation meshTransformation = new DLL.Transformation();
-            meshTransformation.Load(Patient.Brain.PreoperativeBasedToScannerBasedTransformation);
+            //meshTransformation.Load(Patient.Brain.PreoperativeBasedToScannerBasedTransformation);
+            Data.Anatomy.Transformation preoperativeBasedToScannerBasedTransformation = Patient.Brain.Transformations.Find((t) => t.Name.Contains("RawT1") && t.Name.Contains("T1pre") && t.Name.Contains("TO_Scanner_Based"));
+            meshTransformation.Load(preoperativeBasedToScannerBasedTransformation.Path);
             if (postIRM)
             {
                 // ...
@@ -239,11 +247,13 @@ namespace HBP.Module3D
 
 
             // load meshes
-            bool success = LoadBrainSurface(meshesFiles, Patient.Brain.PreoperativeBasedToScannerBasedTransformation);
+            bool success = LoadBrainSurface(meshesFiles, preoperativeBasedToScannerBasedTransformation.Path);
 
             // load volume
             if (success)
-                success = LoadNiftiBrainVolume(Patient.Brain.PreoperativeMRI);
+            {
+                success = LoadNiftiBrainVolume(Patient.Brain.MRIs.Find((m) => m.Name == "Preoperative").Path);
+            }
 
             // load electrodes
             if (success)
@@ -507,32 +517,32 @@ namespace HBP.Module3D
             // reset latencies
             m_ColumnManager.LatenciesFiles = new List<Latencies>();
             CCEPLabels = new List<string>();
-            //for (int ii = 0; ii < Patient.Brain.Connectivities.Count; ++ii)
-            {
-                Latencies latencies = null;
+            ////for (int ii = 0; ii < Patient.Brain.Connectivities.Count; ++ii)
+            //{
+            //    Latencies latencies = null;
 
                 
-                if(Patient.Brain.SitesConnectivities == "dummyPath" || Patient.Brain.SitesConnectivities == string.Empty)
-                {
-                    // generate dummy latencies
-                    latencies = m_ColumnManager.DLLLoadedRawSitesList.GenerateDummyLatencies();
-                }
-                else
-                {
-                    // load latency file
-                    latencies = m_ColumnManager.DLLLoadedRawSitesList.UpdateLatenciesWithFile(Patient.Brain.SitesConnectivities);// Connectivities[ii].Path);
-                }
+            //    if(Patient.Brain.SitesConnectivities == "dummyPath" || Patient.Brain.SitesConnectivities == string.Empty)
+            //    {
+            //        // generate dummy latencies
+            //        latencies = m_ColumnManager.DLLLoadedRawSitesList.GenerateDummyLatencies();
+            //    }
+            //    else
+            //    {
+            //        // load latency file
+            //        latencies = m_ColumnManager.DLLLoadedRawSitesList.UpdateLatenciesWithFile(Patient.Brain.SitesConnectivities);// Connectivities[ii].Path);
+            //    }
 
-                if(latencies != null)
-                {
-                    latencies.Name = Patient.Brain.SitesConnectivities; //Connectivities[ii].Label;
-                    m_ColumnManager.LatenciesFiles.Add(latencies);
-                    CCEPLabels.Add(latencies.Name);
-                }
+            //    if(latencies != null)
+            //    {
+            //        latencies.Name = Patient.Brain.SitesConnectivities; //Connectivities[ii].Label;
+            //        m_ColumnManager.LatenciesFiles.Add(latencies);
+            //        CCEPLabels.Add(latencies.Name);
+            //    }
 
-                //latencies = m_CM.DLLLoadedRawPlotsList.updateLatenciesWithFile("C:/Users/Florian/Desktop/amplitudes_latencies/amplitudes_latencies/SIEJO_amplitudes_latencies.txt");
+            //    //latencies = m_CM.DLLLoadedRawPlotsList.updateLatenciesWithFile("C:/Users/Florian/Desktop/amplitudes_latencies/amplitudes_latencies/SIEJO_amplitudes_latencies.txt");
 
-            }
+            //}
 
             m_ColumnManager.LatencyFilesDefined = true; //(Patient.Brain.Connectivities.Count > 0);
             OnUpdateLatencies.Invoke(CCEPLabels);

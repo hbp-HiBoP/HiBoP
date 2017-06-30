@@ -95,44 +95,20 @@ namespace HBP.Data.Visualization
 
         #region Public Methods
         /// <summary>
-        /// Load a data in the column.
-        /// </summary>
-        /// <param name="data"></param>
-        public void Load(Experience.Dataset.Data data)
-        {
-            Experience.EpochedData epochedData = new Experience.EpochedData(Bloc,data);
-            Localizer.Bloc bloc = Localizer.Bloc.Average(epochedData.Blocs);
-            foreach (Electrode electrode in data.Patient.Brain.Implantation.Electrodes)
-            {
-                foreach (Site site in electrode.Sites)
-                {
-                    SiteConfiguration siteConfiguration = Configuration.ConfigurationByPatient[data.Patient].ConfigurationByElectrode[electrode].ConfigurationBySite[site];
-                    siteConfiguration.IsMasked = data.MaskBySite[site];
-                    siteConfiguration.Values = bloc.ValuesBySite[site];
-                }
-            }
-            TimeLine = new Timeline(Bloc.DisplayInformations, new Event(Bloc.MainEvent.Name, bloc.PositionByEvent[Bloc.MainEvent]), (from evt in Bloc.SecondaryEvents select new Event(evt.Name, bloc.PositionByEvent[evt])).ToArray(), data.Frequency);
-            IconicScenario = new IconicScenario(Bloc, data.Frequency, TimeLine);
-        }
-        /// <summary>
         /// Load multiple data in the column.
         /// </summary>
         /// <param name="data"></param>
         public void Load(IEnumerable<Experience.Dataset.Data> data)
         {
             Dictionary<Experience.Dataset.Data, Localizer.Bloc> blocByData = new Dictionary<Experience.Dataset.Data, Localizer.Bloc>();
+            Dictionary<string, SiteConfiguration> siteConfigurationsByName = new Dictionary<string, SiteConfiguration>();
             foreach (var d in data)
             {
                 Experience.EpochedData epochedData = new Experience.EpochedData(Bloc, d);
                 blocByData.Add(d,Localizer.Bloc.Average(epochedData.Blocs));
-                foreach (Electrode electrode in d.Patient.Brain.Implantation.Electrodes)
+                foreach(var item in blocByData[d].ValuesBySite)
                 {
-                    foreach (Site site in electrode.Sites)
-                    {
-                        SiteConfiguration siteConfiguration = Configuration.ConfigurationByPatient[d.Patient].ConfigurationByElectrode[electrode].ConfigurationBySite[site];
-                        siteConfiguration.IsMasked = d.MaskBySite[site];
-                        siteConfiguration.Values = blocByData[d].ValuesBySite[site];
-                    }
+                    siteConfigurationsByName.Add(item.Key, new SiteConfiguration(item.Value,false,false,false,false,false,UnityEngine.Color.white));
                 }
             }
             TimeLine = new Timeline(Bloc.DisplayInformations, new Event(Bloc.MainEvent.Name, (int) Math.Round(blocByData.Values.Average((b) => b.PositionByEvent[Bloc.MainEvent]))), (from evt in Bloc.SecondaryEvents select new Event(evt.Name, (int) blocByData.Values.Average((b) => b.PositionByEvent[evt]))).ToArray(), data.Average((d) => d.Frequency));
@@ -145,7 +121,7 @@ namespace HBP.Data.Visualization
         /// <returns>\a True if is compatible and \a false otherwise.</returns>
         public bool IsCompatible(Patient patient)
         {
-            return Dataset.Data.Exists((dataInfo) => dataInfo.Name == DataLabel && dataInfo.Protocol == Protocol && dataInfo.Patient == patient && dataInfo.UsableInMultiPatients);
+            return Dataset.Data.Exists((dataInfo) => dataInfo.Name == DataLabel && dataInfo.Protocol == Protocol && dataInfo.Patient == patient && dataInfo.isOk);
         }
         /// <summary>
         /// Test if the visualisaation Column is compatible with some Patients.

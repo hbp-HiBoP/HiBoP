@@ -35,11 +35,11 @@ namespace HBP.UI.Experience.Protocol
         {
             if (m_sortByName)
             {
-                m_objects.OrderByDescending(x => x.Name);
+                m_Objects.OrderByDescending(x => x.Name);
             }
             else
             {
-                m_objects.OrderBy(x => x.Name);
+                m_Objects.OrderBy(x => x.Name);
             }
             m_sortByName = !m_sortByName;
             ApplySort();
@@ -52,11 +52,11 @@ namespace HBP.UI.Experience.Protocol
         {
             if (m_sortByPath)
             {
-                m_objects.OrderByDescending(x => x.IllustrationPath);
+                m_Objects.OrderByDescending(x => x.IllustrationPath);
             }
             else
             {
-                m_objects.OrderBy(x => x.IllustrationPath);
+                m_Objects.OrderBy(x => x.IllustrationPath);
             }
             m_sortByPath = !m_sortByPath;
             ApplySort();
@@ -69,11 +69,11 @@ namespace HBP.UI.Experience.Protocol
         {
             if (m_SortByMin)
             {
-                m_objects.OrderByDescending(x => x.Window.Start);
+                m_Objects.OrderByDescending(x => x.Window.Start);
             }
             else
             {
-                m_objects.OrderBy(x => x.Window.Start);
+                m_Objects.OrderBy(x => x.Window.Start);
             }
             m_SortByMin = !m_SortByMin;
             ApplySort();
@@ -86,11 +86,11 @@ namespace HBP.UI.Experience.Protocol
         {
             if (m_SortByMax)
             {
-                m_objects.OrderByDescending(x => x.Window.End);
+                m_Objects.OrderByDescending(x => x.Window.End);
             }
             else
             {
-                m_objects.OrderBy(x => x.Window.End);
+                m_Objects.OrderBy(x => x.Window.End);
             }
             m_SortByMax = !m_SortByMax;
             ApplySort();

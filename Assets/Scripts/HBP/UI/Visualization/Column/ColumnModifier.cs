@@ -12,496 +12,150 @@ namespace HBP.UI.Visualization
     public class ColumnModifier : MonoBehaviour
     {
         #region Properties
-        #region UI
-        [SerializeField]
-        Dropdown m_datasetCB;
-        [SerializeField]
-        Dropdown m_dataCB;
-        [SerializeField]
-        Dropdown m_protocolCB;
-        [SerializeField]
-        Dropdown m_blocCB;
-        #endregion
-        #region Data
-        Data.Patient[] Patients { get; set; }
+        [SerializeField] Dropdown m_DatasetDropdown;
+        [SerializeField] Dropdown m_DataLabelDropdown;
+        [SerializeField] Dropdown m_ProtocolDropdown;
+        [SerializeField] Dropdown m_BlocDropdown;
 
         Column m_Column;
-        Column Column
-        {
-            get
-            {
-                return m_Column;
-            }
-            set
-            {
-                m_Column = value;           
-                SetDatasetComboBox();
-                SetDataset(m_Column.Dataset);
-            }
-        }
-        #endregion
-        #region Others
-        List<Dataset> m_datasets = new List<Dataset>();
-        List<string> m_dataLabel = new List<string>();
-        List<DataInfo> m_dataInfo = new List<DataInfo>();
-        List<Protocol> m_protocols = new List<Protocol>();
-        List<Bloc> m_blocs = new List<Bloc>();
-        #endregion
+        Data.Patient[] m_Patients;
+
+        List<Dataset> m_Datasets = new List<Dataset>();
+        List<string> m_DataLabels = new List<string>();
+        List<DataInfo> m_DataInfos = new List<DataInfo>();
+        List<Protocol> m_Protocols = new List<Protocol>();
         #endregion
 
         #region Public Methods
-        #region General
         public void SetTab(Column column,Data.Patient[] patients)
         {
-            Patients = patients;
-            Column = column;
+            m_Patients = patients;
+            m_Column = column;
+            SetDatasetDropdown();
+            SetDataset(m_Column.Dataset);
         }
-        #endregion
-        #region OnChangeEvent()
         public void OnChangeDataset()
         {
-            if (m_datasets.Count > m_datasetCB.value)
-            {
-                Column.Dataset = m_datasets[m_datasetCB.value];
-            }
-            else
-            {
-                Column.Dataset = new Dataset();
-            }
-            SetDataComboBox();
-            SetDataInfo(Column.DataLabel);
+            m_Column.Dataset = m_Datasets[m_DatasetDropdown.value];
+            SetDataLabelDropdown();
+            SetDataLabel(m_Column.DataLabel);
         }
-        public void OnChangeDataComboBox()
+        public void OnChangeDataLabel()
         {
-            if (m_dataLabel.Count > m_dataCB.value)
-            {
-                Column.DataLabel = m_dataLabel[m_dataCB.value];
-            }
-            else
-            {
-                Column.DataLabel = string.Empty;
-            }
-            SetProtocolComboBox();
-            SetProtocol(Column.Protocol);
+            m_Column.DataLabel = m_DataLabels[m_DatasetDropdown.value];
+            SetProtocolDropdown();
+            SetProtocol(m_Column.Protocol);
         }
         public void OnChangeProtocol()
         {
-            if (m_protocols.Count > m_protocolCB.value)
-            {
-                Column.Protocol = m_protocols[m_protocolCB.value];
-            }
-            else
-            {
-                Column.Protocol = new Protocol();
-            }
-            SetBlocComboBox();
-            SetBloc(Column.Bloc);
+            m_Column.Protocol = m_Protocols[m_ProtocolDropdown.value];
+            SetBlocDropdown();
+            SetBloc(m_Column.Bloc);
         }
         public void OnChangeBloc()
         {
-            if (m_blocs.Count > m_blocCB.value)
-            {
-                Column.Bloc = m_blocs[m_blocCB.value];
-                Debug.Log(Column.Bloc.DisplayInformations.Name);
-            }
-            else
-            {
-                Column.Bloc = new Bloc();
-            }
+            m_Column.Bloc = m_Protocols[m_ProtocolDropdown.value].Blocs[m_BlocDropdown.value];
         }
-        #endregion
         #endregion
 
         #region Private Methods
-        #region Dataset
-        void SetDatasetComboBox()
+        void SetDatasetDropdown()
         {
-            Profiler.BeginSample("SetDataset");
-            Dataset[] l_dataset = ApplicationState.ProjectLoaded.Datasets.ToArray();
-            m_datasets = new List<Dataset>();
-
-            foreach (Dataset dataset in l_dataset)
+            m_Datasets = ApplicationState.ProjectLoaded.Datasets.ToList().FindAll((d) => m_Patients.All((p) => d.Data.Exists((i) => i.Patient == p && i.isOk)));
+            if (m_Datasets.Count > 0 && m_Patients.Length > 0)
             {
-                bool l_containsAllPatient = true;
-                foreach (Data.Patient patient in Patients)
-                {
-                    bool l_datasetContainsPatient = false;
-                    foreach (DataInfo i_dataInfo in dataset.Data)
-                    {
-                        if (i_dataInfo.Patient.Equals(patient))
-                        {
-                            l_datasetContainsPatient = true;
-                            break;
-                        }
-                    }
-                    if (!l_datasetContainsPatient)
-                    {
-                        l_containsAllPatient = false;
-                        break;
-                    }
-                }
-                if (l_containsAllPatient)
-                {
-                    m_datasets.Add(dataset);
-                }
+                m_DatasetDropdown.interactable = true;
+                m_DatasetDropdown.options = (from data in m_Datasets select new Dropdown.OptionData(data.Name, null)).ToList();
             }
-
-            if (m_datasets.Count != 0 && Patients.Length != 0)
-            {
-                m_datasetCB.interactable = true;
-                List<Dropdown.OptionData> l_datasetOptions = new List<Dropdown.OptionData>(m_datasets.Count);
-                for (int i = 0; i < m_datasets.Count; i++)
-                {
-                    l_datasetOptions.Add(new Dropdown.OptionData(m_datasets[i].Name, null));
-                }
-                m_datasetCB.options = l_datasetOptions;
-            }
-            else
-            {
-                DeactivateDatasetCB();
-            }
-            Profiler.EndSample();
+            else DeactivateDatasetDropdown();
         }
-        void DeactivateDatasetCB()
+        void DeactivateDatasetDropdown()
         {
-            List<Dropdown.OptionData> l_datasetOptions = new List<Dropdown.OptionData>(1);
-            l_datasetOptions.Add(new Dropdown.OptionData("", null));
-            m_datasetCB.interactable = false;
-            m_datasetCB.options = l_datasetOptions;
-            m_datasetCB.value = 0;
-            DeactivateDataInfoCB();
+            m_DatasetDropdown.interactable = false;
+            m_DatasetDropdown.options = new List<Dropdown.OptionData>() { new Dropdown.OptionData("", null) };
+            m_DatasetDropdown.value = 0;
+            DeactivateDataLabelDropdown();
         }
         void SetDataset(Dataset dataset)
         {
-            if(m_datasetCB.interactable)
-            {
-                bool l_found = false;
-                for (int i = 0; i < m_datasets.Count; i++)
-                {
-                    if (dataset == m_datasets[i])
-                    {
-                        m_datasetCB.value = i;
-                        l_found = true;
-                        break;
-                    }
-                }
-                if (!l_found) m_datasetCB.value = 0;
-                OnChangeDataset();
-            }
+            m_DatasetDropdown.value = Mathf.Max(0, m_Datasets.IndexOf(dataset));
+            OnChangeDataset();
         }
-        #endregion
-        #region ExperienceData
-        void SetDataComboBox()
+
+        void SetDataLabelDropdown()
         {
-            Dataset l_dataset = new Dataset();
-            if (m_datasets.Count > m_datasetCB.value)
+            m_DataLabels = (from data in m_Datasets[m_DatasetDropdown.value].Data.FindAll((d) => m_Patients.All((p) => m_Datasets[m_DatasetDropdown.value].Data.Exists((i) => i.Patient == p && i.isOk))) select data.Name).Distinct().ToList();
+            if (m_DataLabels.Count != 0 && m_DatasetDropdown.interactable)
             {
-                l_dataset = m_datasets[m_datasetCB.value];
+                m_DataLabelDropdown.interactable = true;
+                m_DataLabelDropdown.options = (from label in m_DataLabels select new Dropdown.OptionData(label,null)).ToList();
             }
-            List<string> l_dataInfoLabel = new List<string>();
-            List<string> l_dataInfoLabelToUse = new List<string>();
-            List<DataInfo> l_dataInfoToUse = new List<DataInfo>();
-            foreach (DataInfo i_dataInfo in l_dataset.Data)
-            {
-                i_dataInfo.U
-                if(SP)
-                {
-                    if(i_dataInfo.UsableInSinglePatient)
-                    {
-                        l_dataInfoToUse.Add(i_dataInfo);
-                    }
-                }
-                else
-                {
-                    if(i_dataInfo.UsableInMultiPatients)
-                    {
-                        l_dataInfoToUse.Add(i_dataInfo);
-                    }
-                }
-            }
-            foreach (DataInfo i_dataInfo in l_dataInfoToUse)
-            {
-                if (!l_dataInfoLabel.Contains(i_dataInfo.Name))
-                {
-                    l_dataInfoLabel.Add(i_dataInfo.Name);
-                }
-            }
-            foreach (string i_dataLabel in l_dataInfoLabel)
-            {
-                List<DataInfo> l_dataInfoForThisLabel = new List<DataInfo>();
-                foreach (DataInfo i_dataInfo in l_dataInfoToUse)
-                {
-                    if (i_dataInfo.Name == i_dataLabel) l_dataInfoForThisLabel.Add(i_dataInfo);
-                }
-
-                bool l_dataLabelContainsAllPatients = true;
-                foreach (Data.Patient patient in Patients)
-                {
-                    bool l_containsThisPatient = false;
-                    foreach (DataInfo i_dataInfo in l_dataInfoForThisLabel)
-                    {
-                        if (i_dataInfo.Patient.Equals(patient))
-                        {
-                            l_containsThisPatient = true;
-                            break;
-                        }
-                    }
-                    if (!l_containsThisPatient)
-                    {
-                        l_dataLabelContainsAllPatients = false;
-                        break;
-                    }
-                }
-                if (l_dataLabelContainsAllPatients)
-                {
-                    l_dataInfoLabelToUse.Add(i_dataLabel);
-                }
-            }
-            if (l_dataInfoLabelToUse.Count != 0 && m_datasetCB.interactable)
-            {
-                m_dataCB.interactable = true;
-                List<Dropdown.OptionData> l_dataInfoOptions = new List<Dropdown.OptionData>(l_dataInfoLabelToUse.Count);
-                for (int i = 0; i < l_dataInfoLabelToUse.Count; i++)
-                {
-                    l_dataInfoOptions.Add(new Dropdown.OptionData(l_dataInfoLabelToUse[i], null));
-                }
-                m_dataCB.options = l_dataInfoOptions;
-                m_dataLabel = l_dataInfoLabelToUse;
-            }
-            else
-            {
-                DeactivateDataInfoCB();
-            }
+            else DeactivateDataLabelDropdown();
         }
-
-        void DeactivateDataInfoCB()
+        void DeactivateDataLabelDropdown()
         {
-            List<Dropdown.OptionData> l_dataInfoOptions = new List<Dropdown.OptionData>(1);
-            m_dataLabel = new List<string>();
-            l_dataInfoOptions.Add(new Dropdown.OptionData("", null));
-            m_dataCB.interactable = false;
-            m_dataCB.options = l_dataInfoOptions;
-            m_dataCB.value = 0;
-            DeactivateProtocolCB();
+            m_DataLabelDropdown.interactable = false;
+            m_DataLabelDropdown.options = new List<Dropdown.OptionData>() { new Dropdown.OptionData("", null) };
+            m_DataLabelDropdown.value = 0;
+            DeactivateProtocolDropdown();
         }
-
-        void SetDataInfo(string dataInfo)
+        void SetDataLabel(string dataLabel)
         {
-            if(m_dataCB.interactable)
-            {
-                bool l_found = false;
-                int length = m_dataLabel.Count;
-                for (int i = 0; i < length; i++)
-                {
-                    if (dataInfo == m_dataLabel[i])
-                    {
-                        m_dataCB.value = i;
-                        l_found = true;
-                        break;
-                    }
-                }
-                if (!l_found) m_dataCB.value = 0;
-                OnChangeDataComboBox();
-            }
+            m_DataLabelDropdown.value = Mathf.Max(0,m_DataLabels.IndexOf(dataLabel));
+            OnChangeDataLabel();
         }
 
-        #endregion
-        #region Protocol
-        void SetProtocolComboBox()
+        void SetProtocolDropdown()
         {
-            Profiler.BeginSample("SetProtocolCB");
-            Dataset l_dataset = new Dataset();
-            if (m_datasets.Count > m_datasetCB.value)
+            m_Protocols = (from dataInfo in m_Datasets[m_DatasetDropdown.value].Data.FindAll((d) => d.Name == m_DataLabels[m_DataLabelDropdown.value] && m_Patients.Contains(d.Patient)) select dataInfo.Protocol).Distinct().ToList();
+            if(m_Protocols.Count > 0 && m_DataLabelDropdown.interactable)
             {
-                l_dataset = m_datasets[m_datasetCB.value];
+                m_ProtocolDropdown.interactable = true;
+                m_ProtocolDropdown.options = (from protocol in m_Protocols select new Dropdown.OptionData(protocol.Name,null)).ToList();
             }
-            string l_labelData = m_dataLabel[m_dataCB.value];
-            DataInfo[] l_dataInfo = l_dataset.Data.ToArray();
-
-            List<DataInfo> l_dataInfoToUse = new List<DataInfo>();
-            List<Protocol> l_possibleProtocol = new List<Protocol>();
-            List<Protocol> l_possibleProtocolToUse = new List<Protocol>();
-            foreach (DataInfo i_dataInfo in l_dataInfo)
-            {
-                if (i_dataInfo.Name == l_labelData)
-                {
-                    l_dataInfoToUse.Add(i_dataInfo);
-                    if (!l_possibleProtocol.Contains(i_dataInfo.Protocol))
-                    {
-                        l_possibleProtocol.Add(i_dataInfo.Protocol);
-                    }
-                }
-            }
-            m_dataInfo = l_dataInfoToUse;
-
-            foreach (Protocol protocol in l_possibleProtocol)
-            {
-                List<DataInfo> l_dataInfoWithThisProtocol = new List<DataInfo>();
-                foreach (DataInfo i_dataInfo in m_dataInfo)
-                {
-                    if (i_dataInfo.Protocol == protocol) l_dataInfoWithThisProtocol.Add(i_dataInfo);
-                }
-
-                bool l_protocolContainsAllPatients = true;
-                foreach (Data.Patient patient in Patients)
-                {
-                    bool l_containsThisPatient = false;
-                    foreach (DataInfo i_dataInfo in l_dataInfoWithThisProtocol)
-                    {
-                        if (i_dataInfo.Patient.Equals(patient))
-                        {
-                            l_containsThisPatient = true;
-                            break;
-                        }
-                    }
-                    if (!l_containsThisPatient)
-                    {
-                        l_protocolContainsAllPatients = false;
-                        break;
-                    }
-                }
-                if (l_protocolContainsAllPatients)
-                {
-                    l_possibleProtocolToUse.Add(protocol);
-                }
-            }
-
-            int l_nbProtocols = l_possibleProtocolToUse.Count;
-            if (l_nbProtocols != 0 && m_dataCB.interactable)
-            {
-                m_protocolCB.interactable = true;
-                List<Dropdown.OptionData> l_protocolsOptions = new List<Dropdown.OptionData>(l_nbProtocols);
-                for (int i = 0; i < l_nbProtocols; i++)
-                {
-                    l_protocolsOptions.Add(new Dropdown.OptionData(l_possibleProtocolToUse[i].Name, null));
-                }
-                m_protocolCB.options = l_protocolsOptions;
-                m_protocols = l_possibleProtocolToUse;
-            }
-            else
-            {
-                DeactivateProtocolCB();
-            }
-            Profiler.EndSample();
+            else DeactivateProtocolDropdown();
         }
-
-        void DeactivateProtocolCB()
+        void DeactivateProtocolDropdown()
         {
-            List<Dropdown.OptionData> l_protocolOptions = new List<Dropdown.OptionData>(1);
-            l_protocolOptions.Add(new Dropdown.OptionData("", null));
-            m_protocolCB.interactable = false;
-            m_protocolCB.options = l_protocolOptions;
-            m_protocolCB.value = 0;
-            DeactivateBlocCB();
+            m_ProtocolDropdown.interactable = false;
+            m_ProtocolDropdown.options = new List<Dropdown.OptionData>() { new Dropdown.OptionData("", null) };
+            m_ProtocolDropdown.value = 0;
+            DeactivateBlocDropdown();
         }
-
         void SetProtocol(Protocol protocol)
         {
-            if(m_protocolCB.interactable)
-            {
-                int length = m_protocols.Count;
-                bool l_found = false;
-                for (int i = 0; i < length; i++)
-                {
-                    if (m_protocols[i] == protocol)
-                    {
-                        m_protocolCB.value = i;
-                        l_found = true;
-                        break;
-                    }
-                }
-                if (!l_found) m_protocolCB.value = 0; OnChangeProtocol();
-            }
-        }
-        #endregion
-        #region Bloc
-        void SetBlocComboBox()
-        {
-            Profiler.BeginSample("SetBlocCB");
-            Protocol l_protocol = m_protocols[m_protocolCB.value];
-            int l_nbBlocs = l_protocol.Blocs.Count;
-            if (l_nbBlocs != 0 && m_protocolCB.interactable)
-            {
-                m_blocCB.interactable = true;
-                List<Dropdown.OptionData> l_blocsOptions = new List<Dropdown.OptionData>(l_nbBlocs);
-                for (int i = 0; i < l_nbBlocs; i++)
-                {
-                    l_blocsOptions.Add(new Dropdown.OptionData(l_protocol.Blocs[i].DisplayInformations.Name, null));
-                }
-                m_blocCB.options = l_blocsOptions;
-                m_blocs = l_protocol.Blocs.ToList();
-            }
-            else
-            {
-                DeactivateBlocCB();
-            }
-            Profiler.EndSample();
+            m_ProtocolDropdown.value = Mathf.Max(0, m_Protocols.IndexOf(protocol));
+            OnChangeProtocol();
         }
 
-        void DeactivateBlocCB()
+        void SetBlocDropdown()
         {
-            List<Dropdown.OptionData> l_blocOptions = new List<Dropdown.OptionData>(1);
-            l_blocOptions.Add(new Dropdown.OptionData("", null));
-            m_blocCB.interactable = false;
-            m_blocCB.options = l_blocOptions;
-            m_blocCB.value = 0;
+            if (m_Protocols[m_ProtocolDropdown.value].Blocs.Count > 0 && m_ProtocolDropdown.interactable)
+            {
+                m_BlocDropdown.interactable = true;
+                m_BlocDropdown.options = (from bloc in m_Protocols[m_ProtocolDropdown.value].Blocs select new Dropdown.OptionData(bloc.DisplayInformations.Name,null)).ToList();
+            }
+            else DeactivateBlocDropdown();
         }
-
+        void DeactivateBlocDropdown()
+        {
+            m_BlocDropdown.interactable = false;
+            m_BlocDropdown.options = new List<Dropdown.OptionData>() { new Dropdown.OptionData("", null) }; ;
+            m_BlocDropdown.value = 0;
+        }
         void SetBloc(Bloc bloc)
         {
-            if(m_blocCB.interactable)
-            {
-                int length = m_blocs.Count;
-                bool l_found = false;
-                for (int i = 0; i < length; i++)
-                {
-                    if (m_blocs[i].Equals(bloc))
-                    {
-                        m_blocCB.value = i;
-                        l_found = true;
-                        break;
-                    }
-                }
-                if (!l_found) m_blocCB.value = 0; OnChangeBloc();
-            }
+            m_BlocDropdown.value = Mathf.Max(0,m_Protocols[m_ProtocolDropdown.value].Blocs.IndexOf(bloc));
+            OnChangeBloc();
         }
 
-        void ApplyModification()
+        void ApplyModifications()
         {
-            if(m_datasets.Count > m_datasetCB.value)
-            {
-                Column.Dataset = m_datasets[m_datasetCB.value];
-            }
-            else
-            {
-                Column.Dataset = new Dataset();
-            }
-            if(m_dataLabel.Count > m_dataCB.value)
-            {
-                Column.DataLabel = m_dataLabel[m_dataCB.value];
-            }
-            else
-            {
-                Column.DataLabel = string.Empty;
-            }
-            if(m_protocols.Count > m_protocolCB.value)
-            {
-                Column.Protocol = m_protocols[m_protocolCB.value];
-            }
-            else
-            {
-                Column.Protocol = new Protocol();
-            }
-            if(m_blocs.Count > m_blocCB.value)
-            {
-                Column.Bloc = m_blocs[m_blocCB.value];
-            }
-            else
-            {
-                Column.Bloc = new Bloc();
-            }
+            m_Column.Dataset = m_Datasets[m_DatasetDropdown.value];
+            m_Column.DataLabel = m_DataLabels[m_DataLabelDropdown.value];
+            m_Column.Protocol = m_Protocols[m_ProtocolDropdown.value];
+            m_Column.Bloc = m_Column.Protocol.Blocs[m_BlocDropdown.value];
         }
-        #endregion
         #endregion
     }
 }

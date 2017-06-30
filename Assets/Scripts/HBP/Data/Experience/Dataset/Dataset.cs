@@ -57,7 +57,7 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public void UpdateDataStates()
         {
-            foreach (DataInfo dataInfo in Data) dataInfo.UpdateStates();
+            foreach (DataInfo dataInfo in Data) dataInfo.GetErrors();
         }
         #endregion
 

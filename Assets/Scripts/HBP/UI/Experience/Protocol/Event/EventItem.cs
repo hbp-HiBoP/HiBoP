@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
 {
-	public class EventItem : Tools.Unity.Lists.ListItemWithSave<Data.Experience.Protocol.Event> 
+	public class EventItem : Tools.Unity.Lists.SavableItem<Data.Experience.Protocol.Event> 
 	{
 		#region Attributs
 		[SerializeField]
@@ -15,9 +15,9 @@ namespace HBP.UI.Experience.Protocol
         #region Public Methods
         protected override void SetObject(Data.Experience.Protocol.Event eventToSet)
         {
-            m_object = eventToSet;
-            m_labelInputField.text = m_object.Name;
-            m_codeInputField.text = m_object.CodesString;
+            m_Object = eventToSet;
+            m_labelInputField.text = m_Object.Name;
+            m_codeInputField.text = m_Object.CodesString;
         }
         public override void Save()
         {

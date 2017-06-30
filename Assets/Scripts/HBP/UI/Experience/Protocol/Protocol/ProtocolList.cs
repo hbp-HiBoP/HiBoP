@@ -15,11 +15,11 @@ namespace HBP.UI.Experience.Protocol
         {
             if (m_sortByName)
             {
-                m_objects.OrderByDescending(x => x.Name);
+                m_Objects.OrderByDescending(x => x.Name);
             }
             else
             {
-                m_objects.OrderBy(x => x.Name);
+                m_Objects.OrderBy(x => x.Name);
             }
             m_sortByName = !m_sortByName;
             ApplySort();
@@ -28,11 +28,11 @@ namespace HBP.UI.Experience.Protocol
         {
             if (m_sortByBlocs)
             {
-                m_objects.OrderByDescending(x => x.Blocs.Count);
+                m_Objects.OrderByDescending(x => x.Blocs.Count);
             }
             else
             {
-                m_objects.OrderBy(x => x.Blocs.Count);
+                m_Objects.OrderBy(x => x.Blocs.Count);
             }
             m_sortByBlocs = !m_sortByBlocs;
             ApplySort();

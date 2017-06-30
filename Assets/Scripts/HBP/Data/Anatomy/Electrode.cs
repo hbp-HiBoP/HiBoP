@@ -25,7 +25,7 @@ namespace HBP.Data.Anatomy
         /// <summary>
         /// Sites of the electrode.
         /// </summary>
-        public Site[] Sites { get; set; }
+        public List<Site> Sites { get; set; }
         #endregion
 
         #region Constructor
@@ -37,18 +37,27 @@ namespace HBP.Data.Anatomy
         public Electrode(string name, IEnumerable<Site> sites)
         {
             Name = name;
-            Sites = sites.ToArray();
+            Sites = sites.ToList();
         }
         #endregion
 
         #region Public Static Methods
-        public static bool GenerateElectrodes(IEnumerable<Site> sites, out IEnumerable<Electrode> electrodes)
+        public static IEnumerable<Electrode> GetElectrodes(IEnumerable<Site> sites)
         {
-            electrodes = new List<Electrode>();
-            foreach (var site in sites)
+            List<Electrode> electrodes = new List<Electrode>();
+            foreach (Site site in sites)
             {
-
+                string electrodeName = FindElectrodeName(site);
+                if(electrodes.Exists((e) => e.Name == electrodeName))
+                {
+                    electrodes.Find((e) => e.Name == electrodeName).Sites.Add(site);
+                }
+                else
+                {
+                    electrodes.Add(new Electrode(electrodeName, new List<Site> { site }));
+                }
             }
+            return electrodes;
         }
         /// <summary>
         /// Find electrode name from a plot name.
