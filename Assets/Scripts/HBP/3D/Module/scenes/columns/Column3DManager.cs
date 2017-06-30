@@ -883,14 +883,9 @@ namespace HBP.Module3D
         /// <param name="visible"></param>
         public void UpdateROIVisibility(bool visible)
         {
-            // disable all ROI render
             for(int ii = 0; ii < m_Columns.Count; ++ii)
                 if (m_Columns[ii].SelectedROI != null)
-                    m_Columns[ii].SelectedROI.SetRenderingState(false);
-
-            if(SelectedColumn != null)
-                if(SelectedColumn.SelectedROI != null)
-                SelectedColumn.SelectedROI.SetRenderingState(visible);
+                    m_Columns[ii].SelectedROI.SetRenderingState(visible);
         }
         /// <summary>
         /// Update the visiblity of the plots for all columns

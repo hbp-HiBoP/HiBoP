@@ -13,12 +13,18 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.ROIManager m_ROIManager;
+        /// <summary>
+        /// Tool to copy all ROIs from a column to every others
+        /// </summary>
+        [SerializeField]
+        private Tools.ROICopy m_ROICopy;
         #endregion
 
         #region Private Methods
         protected override void AddTools()
         {
             m_Tools.Add(m_ROIManager);
+            m_Tools.Add(m_ROICopy);
         }
         #endregion
 

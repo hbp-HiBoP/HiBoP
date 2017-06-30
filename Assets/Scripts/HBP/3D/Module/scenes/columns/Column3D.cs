@@ -573,6 +573,16 @@ namespace HBP.Module3D
 
             SelectedROI = m_ROIs.Last();
         }
+        public void CopyROI(ROI roi)
+        {
+            AddROI();
+            ROI newROI = m_ROIs.Last();
+            newROI.Name = roi.Name;
+            foreach (Bubble bubble in roi.Bubbles)
+            {
+                newROI.AddBubble(Layer, "Bubble", bubble.Position, bubble.Radius);
+            }
+        }
         public void RemoveSelectedROI()
         {
             Destroy(m_SelectedROI.gameObject);

@@ -19,7 +19,14 @@ namespace HBP.Module3D
     {
         #region Properties
         private float m_MinRaySphere = 0.5f;    
-        private float m_MaxRaySphere = 100f;    
+        private float m_MaxRaySphere = 100f; 
+        public Vector3 Position
+        {
+            get
+            {
+                return transform.position;
+            }
+        }   
         private float m_Radius = 1f;
         public float Radius
         {

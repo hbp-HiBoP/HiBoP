@@ -49,7 +49,6 @@ namespace HBP.UI.Module3D
             base.AddListeners();
 
             m_IEEGGlobal.OnChangeValue.AddListener((value) => {
-                Debug.Log(value);
                 m_ThresholdIEEG.IsGlobal = value;
                 m_IEEGTransparency.IsGlobal = value;
                 m_IEEGSitesParameters.IsGlobal = value;
