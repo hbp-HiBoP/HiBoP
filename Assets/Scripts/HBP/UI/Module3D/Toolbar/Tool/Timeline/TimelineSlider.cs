@@ -70,15 +70,15 @@ namespace HBP.UI.Module3D.Tools
 
             GameObject mainEvent = Instantiate(m_MainEventPrefab, m_Events);
             RectTransform mainEventRectTransform = mainEvent.GetComponent<RectTransform>();
-            float mainEventPosition = (float)column.Column.TimeLine.MainEvent.Position / (column.Column.TimeLine.Lenght-1);
+            float mainEventPosition = (float)column.ColumnData.TimeLine.MainEvent.Position / (column.ColumnData.TimeLine.Lenght-1);
             mainEventRectTransform.anchorMin = new Vector2(mainEventPosition, mainEventRectTransform.anchorMin.y);
             mainEventRectTransform.anchorMax = new Vector2(mainEventPosition, mainEventRectTransform.anchorMax.y);
 
-            foreach (Data.Visualization.Event timelineEvent in column.Column.TimeLine.SecondaryEvents)
+            foreach (Data.Visualization.Event timelineEvent in column.ColumnData.TimeLine.SecondaryEvents)
             {
                 GameObject secondaryEvent = Instantiate(m_SecondaryEventPrefab, m_Events);
                 RectTransform secondaryEventRectTransform = secondaryEvent.GetComponent<RectTransform>();
-                float secondaryEventPosition = (float)timelineEvent.Position / (column.Column.TimeLine.Lenght - 1);
+                float secondaryEventPosition = (float)timelineEvent.Position / (column.ColumnData.TimeLine.Lenght - 1);
                 secondaryEventRectTransform.anchorMin = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMin.y);
                 secondaryEventRectTransform.anchorMax = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMax.y);
             }

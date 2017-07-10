@@ -33,7 +33,7 @@ namespace HBP.Module3D
             }
         }
         // data
-        public Data.Visualization.Column Column = null; /**< column data formalized by the unity main UI part */
+        public Data.Visualization.Column ColumnData = null; /**< column data formalized by the unity main UI part */
         
         // textures
         public List<Texture2D> BrainCutWithIEEGTextures     = null;
@@ -69,14 +69,14 @@ namespace HBP.Module3D
         {
             get
             {
-                return Column.TimeLine.Step * CurrentTimeLineID + MinTimeLine;
+                return ColumnData.TimeLine.Step * CurrentTimeLineID + MinTimeLine;
             }
         }
         public string TimeLineUnite
         {
             get
             {
-                return Column.TimeLine.Start.Unite;
+                return ColumnData.TimeLine.Start.Unite;
             }
         }
         public float SharedMinInf = 0f;
@@ -130,9 +130,10 @@ namespace HBP.Module3D
         /// </summary>
         public class IEEGDataParameters
         {
+            public Data.Visualization.Column ColumnData { get; set; }
+
             private const float MIN_INFLUENCE = 0.0f;
             private const float MAX_INFLUENCE = 50.0f;
-            private float m_MaximumInfluence = 15.0f;
             /// <summary>
             /// Maximum influence amplitude of a site
             /// </summary>
@@ -140,20 +141,19 @@ namespace HBP.Module3D
             {
                 get
                 {
-                    return m_MaximumInfluence;
+                    return ColumnData.Configuration.MaximumInfluence;
                 }
                 set
                 {
                     float val = Mathf.Clamp(value, MIN_INFLUENCE, MAX_INFLUENCE);
-                    if (m_MaximumInfluence != val)
+                    if (ColumnData.Configuration.MaximumInfluence != val)
                     {
-                        m_MaximumInfluence = val;
+                        ColumnData.Configuration.MaximumInfluence = val;
                         OnUpdateMaximumInfluence.Invoke();
                     }
                 }
             }
-
-            private float m_Gain = 1.0f;
+            
             /// <summary>
             /// Gain of the spheres representing the sites
             /// </summary>
@@ -161,13 +161,13 @@ namespace HBP.Module3D
             {
                 get
                 {
-                    return m_Gain;
+                    return ColumnData.Configuration.Gain;
                 }
                 set
                 {
-                    if (m_Gain != value)
+                    if (ColumnData.Configuration.Gain != value)
                     {
-                        m_Gain = value;
+                        ColumnData.Configuration.Gain = value;
                         OnUpdateGain.Invoke();
                     }
                 }
@@ -204,8 +204,7 @@ namespace HBP.Module3D
                     m_MaximumAmplitude = value;
                 }
             }
-
-            private float m_AlphaMin = 0.2f;
+            
             /// <summary>
             /// Minimum Alpha
             /// </summary>
@@ -213,13 +212,13 @@ namespace HBP.Module3D
             {
                 get
                 {
-                    return m_AlphaMin;
+                    return ColumnData.Configuration.Alpha;
                 }
                 set
                 {
-                    if (m_AlphaMin != value)
+                    if (ColumnData.Configuration.Alpha != value)
                     {
-                        m_AlphaMin = value;
+                        ColumnData.Configuration.Alpha = value;
                         OnUpdateAlphaValues.Invoke();
                     }
                 }
@@ -244,8 +243,7 @@ namespace HBP.Module3D
                     }
                 }
             }
-
-            private float m_SpanMin = -50.0f;
+            
             /// <summary>
             /// Span Min value
             /// </summary>
@@ -253,19 +251,18 @@ namespace HBP.Module3D
             {
                 get
                 {
-                    return m_SpanMin;
+                    return ColumnData.Configuration.SpanMin;
                 }
                 set
                 {
-                    if (m_SpanMin != value)
+                    if (ColumnData.Configuration.SpanMin != value)
                     {
-                        m_SpanMin = value;
+                        ColumnData.Configuration.SpanMin = value;
                         OnUpdateSpanValues.Invoke();
                     }
                 }
             }
-
-            private float m_Middle = 0.0f;
+            
             /// <summary>
             /// Middle value
             /// </summary>
@@ -273,19 +270,18 @@ namespace HBP.Module3D
             {
                 get
                 {
-                    return m_Middle;
+                    return ColumnData.Configuration.Middle;
                 }
                 set
                 {
-                    if (m_Middle != value)
+                    if (ColumnData.Configuration.Middle != value)
                     {
-                        m_Middle = value;
+                        ColumnData.Configuration.Middle = value;
                         OnUpdateSpanValues.Invoke();
                     }
                 }
             }
-
-            private float m_SpanMax = 50.0f;
+            
             /// <summary>
             /// Span Min value
             /// </summary>
@@ -293,13 +289,13 @@ namespace HBP.Module3D
             {
                 get
                 {
-                    return m_SpanMax;
+                    return ColumnData.Configuration.SpanMax;
                 }
                 set
                 {
-                    if (m_SpanMax != value)
+                    if (ColumnData.Configuration.SpanMax != value)
                     {
-                        m_SpanMax = value;
+                        ColumnData.Configuration.SpanMax = value;
                         OnUpdateSpanValues.Invoke();
                     }
                 }
@@ -422,22 +418,23 @@ namespace HBP.Module3D
         /// <param name="columnData"></param>
         public void SetColumnData(Data.Visualization.Column newColumnData)
         {
-            Column = newColumnData;
+            ColumnData = newColumnData;
+            m_IEEGParameters.ColumnData = newColumnData;
 
             MinTimeLine = newColumnData.TimeLine.Start.Value;
             MaxTimeLine = newColumnData.TimeLine.End.Value;
-            MaxTimeLineID = Column.TimeLine.Lenght - 1;
+            MaxTimeLineID = ColumnData.TimeLine.Lenght - 1;
 
             // update amplitudes sizes and values
             Dimensions = new int[3];
-            Dimensions[0] = Column.TimeLine.Lenght;
+            Dimensions[0] = ColumnData.TimeLine.Lenght;
             Dimensions[1] = 1;
             Dimensions[2] = Sites.Count;
 
             // Construct sites value array the old way, and set sites masks // maybe FIXME
             IEEGValuesBySiteID = new float[Dimensions[2]][];
             int siteID = 0;
-            foreach (var configurationPatient in Column.Configuration.ConfigurationByPatient)
+            foreach (var configurationPatient in ColumnData.Configuration.ConfigurationByPatient)
             {
                 foreach (var electrodeConfiguration in configurationPatient.Value.ConfigurationByElectrode)
                 {
@@ -468,10 +465,13 @@ namespace HBP.Module3D
                 }
             }
 
-            float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
-            IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
-            IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
-            IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
+            if (Mathf.Approximately(newColumnData.Configuration.SpanMin, 0.0f) && Mathf.Approximately(newColumnData.Configuration.Middle, 0.0f) && Mathf.Approximately(newColumnData.Configuration.SpanMax, 0.0f))
+            {
+                float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
+                IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
+                IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
+                IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
+            }
         }
         /// <summary>
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)

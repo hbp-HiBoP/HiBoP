@@ -36,7 +36,7 @@ namespace HBP.UI.Module3D
                 {
                     if (!scene.SceneInformation.IsGeneratorUpToDate) return;
 
-                    Data.Visualization.Icon icon = col.Column.IconicScenario.Icons.DefaultIfEmpty(null).FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
+                    Data.Visualization.Icon icon = col.ColumnData.IconicScenario.Icons.DefaultIfEmpty(null).FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
                     if (icon != m_CurrentIcon)
                     {
                         if (icon == null)

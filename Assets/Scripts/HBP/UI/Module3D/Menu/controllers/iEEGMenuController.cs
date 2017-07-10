@@ -231,7 +231,7 @@ namespace HBP.UI.Module3D
             m_.MaximumAmplitude = iEEGDataParams.MaximumAmplitude;
             string maxAmpStr = "" + m_.MaximumAmplitude;
             contentPanelT.Find("Max parent").Find("Max value text").GetComponent<Text>().text = (maxAmpStr.Length > 5) ? maxAmpStr.Substring(0, 5) : maxAmpStr;
-
+            
             Column3DIEEG.IEEGDataParameters alphaParams = new Column3DIEEG.IEEGDataParameters();
             alphaParams.AlphaMin = iEEGDataParams.AlphaMin;
             alphaParams.AlphaMax = iEEGDataParams.AlphaMax;
@@ -250,6 +250,7 @@ namespace HBP.UI.Module3D
             thresholdsParams.SpanMax = iEEGDataParams.SpanMax;
             //thresholdsParams.columnId = iEEGDataParams.columnId;
             update_UI_threshold_values(thresholdsParams);
+            
         }
 
         /// <summary>
@@ -497,7 +498,7 @@ namespace HBP.UI.Module3D
 
                 ((Column3DIEEG)m_scene.ColumnManager.SelectedColumn).IEEGParameters.MaximumInfluence = m_.MaximumInfluence;
             });
-
+            
             // set alpha to all 
             Button setAlphaForAllColsButton = contentPanelT.Find("set alpha for all columns parent").Find("set alpha for all columns button").GetComponent<Button>();
             setAlphaForAllColsButton.onClick.AddListener(delegate
