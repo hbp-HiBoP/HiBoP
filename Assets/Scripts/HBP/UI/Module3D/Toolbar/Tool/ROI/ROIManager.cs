@@ -48,9 +48,9 @@ namespace HBP.UI.Module3D.Tools
             ROI selectedROI = ApplicationState.Module3D.SelectedColumn.SelectedROI;
             if (selectedROI)
             {
-                for (int i = 0; i < selectedROI.Bubbles.Count; i++)
+                for (int i = 0; i < selectedROI.Spheres.Count; i++)
                 {
-                    Bubble bubble = selectedROI.Bubbles[i];
+                    Sphere bubble = selectedROI.Spheres[i];
                     m_VolumeSelector.options.Add(new Dropdown.OptionData("Sphere " + i + " (R=" + bubble.Radius.ToString("N1") + ")"));
                 }
             }

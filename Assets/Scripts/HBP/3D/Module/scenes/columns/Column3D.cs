@@ -578,7 +578,7 @@ namespace HBP.Module3D
             AddROI();
             ROI newROI = m_ROIs.Last();
             newROI.Name = roi.Name;
-            foreach (Bubble bubble in roi.Bubbles)
+            foreach (Sphere bubble in roi.Spheres)
             {
                 newROI.AddBubble(Layer, "Bubble", bubble.Position, bubble.Radius);
             }
@@ -597,22 +597,6 @@ namespace HBP.Module3D
             {
                 SelectedROI = null;
             }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionOfInterest"></param>
-        public void AddRegionOfInterest(Data.Visualization.RegionOfInterest regionOfInterest)
-        {
-
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionOfInterest"></param>
-        public void RemoveRegionOfInterest(Data.Visualization.RegionOfInterest regionOfInterest)
-        {
-
         }
         #endregion
     }

@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 // unity
 using UnityEngine;
@@ -21,10 +22,12 @@ namespace HBP.Module3D
     /// <summary>
     /// Define a ROI containing bubbles
     /// </summary>
+    [DataContract]
     public class ROI : MonoBehaviour
     {
         #region Properties
         public static string DEFAULT_ROI_NAME = "ROI";
+        [DataMember(Name = "Name")]
         private string m_Name = DEFAULT_ROI_NAME;
         public string Name
         {
@@ -42,12 +45,13 @@ namespace HBP.Module3D
         public int SelectedBubbleID { get; set; }
 
         private DLL.ROI m_DLLROI;
-        private List<Bubble> m_Bubbles = new List<Bubble>();
-        public ReadOnlyCollection<Bubble> Bubbles
+        [DataMember(Name = "Spheres")]
+        private List<Sphere> m_Spheres = new List<Sphere>();
+        public ReadOnlyCollection<Sphere> Spheres
         {
             get
             {
-                return new ReadOnlyCollection<Bubble>(m_Bubbles);
+                return new ReadOnlyCollection<Sphere>(m_Spheres);
             }
         }
 
@@ -58,9 +62,12 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Bubbles.Count;
+                return m_Spheres.Count;
             }
         }
+
+        [SerializeField]
+        private GameObject m_SpherePrefab;
         #endregion
 
         #region Private Methods
@@ -80,9 +87,9 @@ namespace HBP.Module3D
             m_DLLROI.Dispose();
 
             // Destroy each bubble gameobject
-            for (int ii = 0; ii < m_Bubbles.Count; ++ii)
+            for (int ii = 0; ii < m_Spheres.Count; ++ii)
             {
-                Destroy(m_Bubbles[ii]);
+                Destroy(m_Spheres[ii]);
             }
         }
         /// <summary>
@@ -91,9 +98,9 @@ namespace HBP.Module3D
         /// <param name="visibility"></param>
         public void SetVisibility(bool visibility)
         {
-            for (int ii = 0; ii < m_Bubbles.Count; ++ii)
+            for (int ii = 0; ii < m_Spheres.Count; ++ii)
             {
-                m_Bubbles[ii].gameObject.SetActive(visibility);
+                m_Spheres[ii].gameObject.SetActive(visibility);
             }
         }
         /// <summary>
@@ -103,9 +110,9 @@ namespace HBP.Module3D
         public void SetRenderingState(bool state)
         {
             int inactiveLayer = LayerMask.NameToLayer("Inactive");
-            for (int ii = 0; ii < m_Bubbles.Count; ++ii)
+            for (int ii = 0; ii < m_Spheres.Count; ++ii)
             {
-                m_Bubbles[ii].gameObject.layer = (state ? m_Layer : inactiveLayer);
+                m_Spheres[ii].gameObject.layer = (state ? m_Layer : inactiveLayer);
             }
         }
         /// <summary>
@@ -115,10 +122,10 @@ namespace HBP.Module3D
         /// <returns></returns>
         public bool CheckCollision(Ray ray)
         {
-            for (int ii = 0; ii < m_Bubbles.Count; ++ii)
+            for (int ii = 0; ii < m_Spheres.Count; ++ii)
             {
                 RaycastHit hitInfo;
-                if(m_Bubbles[ii].GetComponent<Bubble>().CheckCollision(ray, out hitInfo))
+                if(m_Spheres[ii].GetComponent<Sphere>().CheckCollision(ray, out hitInfo))
                     return true;
             }
 
@@ -144,10 +151,10 @@ namespace HBP.Module3D
             int minDistId = -1;
             float minDist = float.MaxValue;
 
-            for (int ii = 0; ii < m_Bubbles.Count; ++ii)
+            for (int ii = 0; ii < m_Spheres.Count; ++ii)
             {
                 RaycastHit hitInfo;
-                if (m_Bubbles[ii].GetComponent<Bubble>().CheckCollision(ray, out hitInfo))
+                if (m_Spheres[ii].GetComponent<Sphere>().CheckCollision(ray, out hitInfo))
                 {
                     collision = true;
 
@@ -176,10 +183,10 @@ namespace HBP.Module3D
         /// </summary>
         public void UnselectBubble()
         {
-            if (SelectedBubbleID == -1 || SelectedBubbleID > m_Bubbles.Count) // no sphere selected
+            if (SelectedBubbleID == -1 || SelectedBubbleID > m_Spheres.Count) // no sphere selected
                 return;
 
-            m_Bubbles[SelectedBubbleID].GetComponent<Bubble>().Selected = false;
+            m_Spheres[SelectedBubbleID].GetComponent<Sphere>().Selected = false;
             SelectedBubbleID = -1;
             ApplicationState.Module3D.OnSelectROIVolume.Invoke();
         }
@@ -189,12 +196,12 @@ namespace HBP.Module3D
         /// <param name="idBubble"></param>
         public void SelectBubble(int idBubble)
         {
-            if (idBubble < 0 || idBubble >= m_Bubbles.Count)
+            if (idBubble < 0 || idBubble >= m_Spheres.Count)
                 return;
 
             UnselectBubble();
 
-            m_Bubbles[idBubble].GetComponent<Bubble>().Selected = true;           
+            m_Spheres[idBubble].GetComponent<Sphere>().Selected = true;           
             SelectedBubbleID = idBubble;
             ApplicationState.Module3D.OnSelectROIVolume.Invoke();
         }
@@ -208,14 +215,14 @@ namespace HBP.Module3D
         public void AddBubble(string layer, string GObubbleName, Vector3 position, float ray)
         {
             m_Layer = LayerMask.NameToLayer(layer);
-            GameObject newBubble = Instantiate(GlobalGOPreloaded.ROIBubble);
+            GameObject newBubble = Instantiate(m_SpherePrefab);
             newBubble.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROIBubble;
             newBubble.name = GObubbleName;
             newBubble.transform.SetParent(transform);
-            Bubble bubble = newBubble.GetComponent<Bubble>();
+            Sphere bubble = newBubble.GetComponent<Sphere>();
             bubble.Initialize(m_Layer, ray, position);
 
-            m_Bubbles.Add(bubble);
+            m_Spheres.Add(bubble);
 
             // DLL
             Vector3 positionBubble = position;
@@ -223,7 +230,7 @@ namespace HBP.Module3D
             m_DLLROI.AddBubble(ray, positionBubble);
 
             ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
-            SelectBubble(m_Bubbles.Count - 1);
+            SelectBubble(m_Spheres.Count - 1);
         }
         /// <summary>
         /// 
@@ -237,8 +244,8 @@ namespace HBP.Module3D
                 SelectedBubbleID = -1;
 
             // remove the bubble
-            Destroy(m_Bubbles[idBubble].gameObject);
-            m_Bubbles.RemoveAt(idBubble);
+            Destroy(m_Spheres[idBubble].gameObject);
+            m_Spheres.RemoveAt(idBubble);
 
             // remove dll sphere
             m_DLLROI.RemoveBubble(idBubble);
@@ -248,8 +255,8 @@ namespace HBP.Module3D
             // if not we removed the selected bubble, select instead the last one
             if (SelectedBubbleID == -1)
             {
-                if(m_Bubbles.Count > 0)
-                    SelectBubble(m_Bubbles.Count - 1);
+                if(m_Spheres.Count > 0)
+                    SelectBubble(m_Spheres.Count - 1);
             }
         }
         public void RemoveSelectedBubble()
@@ -263,13 +270,13 @@ namespace HBP.Module3D
         /// <param name="coeff"></param>
         public void ChangeBubbleSize(int idBubble, float coeff)
         {
-            if (idBubble < 0 || idBubble >= m_Bubbles.Count)
+            if (idBubble < 0 || idBubble >= m_Spheres.Count)
                 return;
 
-            m_Bubbles[idBubble].GetComponent<Bubble>().Radius *= coeff;
+            m_Spheres[idBubble].GetComponent<Sphere>().Radius *= coeff;
 
             // DLL
-            m_DLLROI.UpdateBubble(idBubble, m_Bubbles[idBubble].GetComponent<Bubble>().Radius);
+            m_DLLROI.UpdateBubble(idBubble, m_Spheres[idBubble].GetComponent<Sphere>().Radius);
 
             ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
         }
@@ -282,9 +289,9 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="idBubble"></param>
         /// <returns></returns>
-        public Bubble GetBubbleByIndex(int idBubble)
+        public Sphere GetBubbleByIndex(int idBubble)
         {
-            return m_Bubbles[idBubble].GetComponent<Bubble>();
+            return m_Spheres[idBubble].GetComponent<Sphere>();
         }
         /// <summary>
         /// Return a string containing all bubbles infos of the ROI
@@ -293,10 +300,10 @@ namespace HBP.Module3D
         public string BubblesInformationIntoString()
         {
             string text = m_Name + "\n";
-            for (int ii = 0; ii< m_Bubbles.Count; ++ii)
+            for (int ii = 0; ii< m_Spheres.Count; ++ii)
             {
-                Vector3 pos = m_Bubbles[ii].transform.position;
-                text += ii + " " + m_Bubbles[ii].GetComponent<Bubble>().Radius + " " + pos.x + " " + pos.y + " " + pos.z + "\n";
+                Vector3 pos = m_Spheres[ii].transform.position;
+                text += ii + " " + m_Spheres[ii].GetComponent<Sphere>().Radius + " " + pos.x + " " + pos.y + " " + pos.z + "\n";
             }
 
             return text;

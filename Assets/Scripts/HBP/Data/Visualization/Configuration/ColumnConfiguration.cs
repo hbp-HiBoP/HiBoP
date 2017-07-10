@@ -32,7 +32,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Region of interest.
         /// </summary>
-        [DataMember]
+        //[DataMember]
         public List<RegionOfInterest> RegionOfInterest { get; set; }
 
         [DataMember(Name = "Site Gain")]
@@ -134,6 +134,23 @@ namespace HBP.Data.Visualization
             set
             {
                 m_SpanMax = value;
+            }
+        }
+
+        [DataMember(Name = "Regions of Interest")]
+        private List<Module3D.ROI> m_ROIs = new List<Module3D.ROI>();
+        /// <summary>
+        /// Regions of interest of this column
+        /// </summary>
+        public List<Module3D.ROI> ROIs
+        {
+            get
+            {
+                return m_ROIs;
+            }
+            set
+            {
+                m_ROIs = value;
             }
         }
         #endregion

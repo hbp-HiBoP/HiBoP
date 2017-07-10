@@ -164,7 +164,7 @@ namespace HBP.Module3D
             ROI currROI = ROIElemGo.GetComponent<ROIElement>().m_ROI.GetComponent<ROI>();
             for (int jj = 0; jj < currROI.NumberOfBubbles; ++jj)
             {
-                Bubble bubble = currROI.GetBubbleByIndex(jj);
+                Sphere bubble = currROI.GetBubbleByIndex(jj);
                 m_ROIList[m_ROIList.Count-1].GetComponent<ROIElement>().add_bubble(bubble.transform.position, bubble.Radius);                    
             }
 

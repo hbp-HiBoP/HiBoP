@@ -1,13 +1,15 @@
 ﻿
 
-/**
- * \file    Bubble.cs
- * \author  Lance Florian
- * \date    22/04/2016
- * \brief   Define Bubble
- */
+
 
 // unity
+using System.Runtime.Serialization;
+/**
+* \file    Bubble.cs
+* \author  Lance Florian
+* \date    22/04/2016
+* \brief   Define Bubble
+*/
 using UnityEngine;
 
 namespace HBP.Module3D
@@ -15,18 +17,27 @@ namespace HBP.Module3D
     /// <summary>
     /// Define a bubble used in ROI
     /// </summary>
-    public class Bubble : MonoBehaviour
+    [DataContract]
+    public class Sphere : MonoBehaviour
     {
         #region Properties
         private float m_MinRaySphere = 0.5f;    
-        private float m_MaxRaySphere = 100f; 
+        private float m_MaxRaySphere = 100f;
+        [DataMember(Name = "Position")]
+        private SerializableVector3 m_Position;
         public Vector3 Position
         {
             get
             {
-                return transform.position;
+                return m_Position.ToVector3();
             }
-        }   
+            private set
+            {
+                m_Position = new SerializableVector3(value);
+                transform.position = value;
+            }
+        }
+        [DataMember(Name = "Radius")]
         private float m_Radius = 1f;
         public float Radius
         {
@@ -78,9 +89,8 @@ namespace HBP.Module3D
         public void Initialize(int layer, float radius, Vector3 position)
         {
             gameObject.layer = layer;
-            transform.position = position;
-            m_Radius = radius;
-            transform.localScale = new Vector3(radius, radius, radius);
+            Position = position;
+            Radius = radius;
             gameObject.SetActive(true);
 
             // add mesh

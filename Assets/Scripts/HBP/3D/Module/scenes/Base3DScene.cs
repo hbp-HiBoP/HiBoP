@@ -1131,6 +1131,7 @@ namespace HBP.Module3D
             // init GO
             InitializeSceneGameObjects();
         }
+
         #region Display
         /// <summary>
         /// Update the IEEG colormap for this scene
@@ -1711,6 +1712,11 @@ namespace HBP.Module3D
             m_ColumnManager.OnUpdateMRICalValues.Invoke();
             // Cuts
             InstantiateCuts();
+            // ROIs
+            foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+            {
+                column.InitializeROIs();
+            }
         }
         /// <summary>
         /// Update the data render corresponding to the column
@@ -2174,7 +2180,7 @@ namespace HBP.Module3D
             bool cutHit = hit.transform.parent.gameObject.name == "Cuts";
             bool meshHit = hit.transform.parent.gameObject.name == "Brains" || hit.transform.parent.gameObject.name == "Erased Brains";
             bool siteHit = hit.collider.GetComponent<Site>() != null;
-            bool roiHit = hit.collider.GetComponent<Bubble>() != null;
+            bool roiHit = hit.collider.GetComponent<Sphere>() != null;
 
             if (siteHit)
             {

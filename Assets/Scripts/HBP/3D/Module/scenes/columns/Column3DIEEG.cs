@@ -755,6 +755,17 @@ namespace HBP.Module3D
                 DLLGUIBrainCutWithIEEGTextures[indexCut].UpdateTexture2D(GUIBrainCutWithIEEGTextures[indexCut]);
             }
         }
+        /// <summary>
+        /// Initialize the ROIs as saved in the column configuration
+        /// </summary>
+        public void InitializeROIs()
+        {
+            foreach (ROI roi in ColumnData.Configuration.ROIs)
+            {
+                CopyROI(roi);
+            }
+            ColumnData.Configuration.ROIs = m_ROIs;
+        }
         #endregion
 
         #region Coroutines
