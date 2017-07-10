@@ -15,6 +15,8 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Text m_Text;
 
+        public bool IsActive { get; set; }
+
         private Data.Visualization.Icon m_CurrentIcon;
         #endregion
 
@@ -24,6 +26,7 @@ namespace HBP.UI.Module3D
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
                 gameObject.SetActive(value);
+                IsActive = value;
             });
             if (column is Column3DFMRI)
             {
@@ -36,7 +39,8 @@ namespace HBP.UI.Module3D
                 {
                     if (!scene.SceneInformation.IsGeneratorUpToDate) return;
 
-                    Data.Visualization.Icon icon = col.ColumnData.IconicScenario.Icons.DefaultIfEmpty(null).FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
+                    List<Data.Visualization.Icon> icons = col.ColumnData.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
+                    Data.Visualization.Icon icon = icons.DefaultIfEmpty(null).FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
                     if (icon != m_CurrentIcon)
                     {
                         if (icon == null)

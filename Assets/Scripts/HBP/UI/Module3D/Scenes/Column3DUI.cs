@@ -11,6 +11,7 @@ namespace HBP.UI.Module3D
     public class Column3DUI : MonoBehaviour
     {
         #region Properties
+        private const int MINIMUM_SIZE_TO_DISPLAY_OVERLAY = 200;
         private Column3D m_Column;
         /// <summary>
         /// Associated logical column 3D
@@ -26,6 +27,10 @@ namespace HBP.UI.Module3D
         /// Parent resizable grid
         /// </summary>
         private ResizableGrid m_ParentGrid;
+        /// <summary>
+        /// Reference to this object's RectTransform
+        /// </summary>
+        private RectTransform m_RectTransform;
         /// <summary>
         /// GameObject to hide a minimized column
         /// </summary>
@@ -61,6 +66,7 @@ namespace HBP.UI.Module3D
         private void Awake()
         {
             m_ParentGrid = GetComponentInParent<ResizableGrid>();
+            m_RectTransform = GetComponent<RectTransform>();
         }
         private void Update()
         {
@@ -83,7 +89,24 @@ namespace HBP.UI.Module3D
         {
             if (!m_IsInitialized) return;
 
-            if (Mathf.Abs(GetComponent<RectTransform>().rect.width - m_ParentGrid.MinimumViewWidth) <= 0.9f)
+            // FIXME : maybe performance gain possible, or maybe this should be an option
+            if (m_Colormap.IsActive && m_TimeDisplay.IsActive && m_Icon.IsActive)
+            {
+                if (m_RectTransform.rect.width < MINIMUM_SIZE_TO_DISPLAY_OVERLAY)
+                {
+                    m_Colormap.gameObject.SetActive(false);
+                    m_TimeDisplay.gameObject.SetActive(false);
+                    m_Icon.gameObject.SetActive(false);
+                }
+                else
+                {
+                    m_Colormap.gameObject.SetActive(true);
+                    m_TimeDisplay.gameObject.SetActive(true);
+                    m_Icon.gameObject.SetActive(true);
+                }
+            }
+
+            if (Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= 0.9f)
             {
                 m_MinimizedGameObject.SetActive(true);
             }

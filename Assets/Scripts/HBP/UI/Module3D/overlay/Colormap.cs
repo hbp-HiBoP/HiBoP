@@ -28,6 +28,8 @@ namespace HBP.UI.Module3D
         public Sprite Colormap16;
         public Sprite Colormap17;
 
+        public bool IsActive { get; set; }
+
         /// <summary>
         /// Icon of the colormap display
         /// </summary>
@@ -88,6 +90,7 @@ namespace HBP.UI.Module3D
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
                 gameObject.SetActive(value);
+                IsActive = value;
             });
 
             scene.Events.OnChangeColormap.AddListener((color) => m_Icon.sprite = m_SpriteByColorType[color]);

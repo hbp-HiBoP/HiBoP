@@ -11,6 +11,8 @@ namespace HBP.UI.Module3D
         #region Properties
         [SerializeField]
         private Text m_Text;
+
+        public bool IsActive { get; set; }
         #endregion
 
         #region Public Methods
@@ -19,6 +21,7 @@ namespace HBP.UI.Module3D
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
                 gameObject.SetActive(value);
+                IsActive = value;
             });
 
             if (column is Column3DFMRI)
