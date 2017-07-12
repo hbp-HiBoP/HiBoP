@@ -3,7 +3,7 @@ using Tools.Unity.Lists;
 
 namespace HBP.UI.Anatomy
 {
-    public class MeshList : SelectableListWithSave<Mesh>
+    public class ImplantationList : SelectableListWithSave<Implantation>
     {
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
@@ -15,7 +13,10 @@ public class Tab : MonoBehaviour
    
     public void SetActive(bool active)
     {
-        if (active) OnOpen.Invoke();
-        else OnClose.Invoke();
+        if(gameObject.activeSelf != active)
+        {
+            if (active) OnOpen.Invoke();
+            else OnClose.Invoke();
+        }
     }
 }

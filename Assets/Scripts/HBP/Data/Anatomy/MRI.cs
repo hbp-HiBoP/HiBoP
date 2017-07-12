@@ -21,6 +21,7 @@ namespace HBP.Data.Anatomy
             Name = name;
             Path = path;
         }
+        public MRI() : this("New MRI", string.Empty) { }
         #endregion
 
         #region Public Methods

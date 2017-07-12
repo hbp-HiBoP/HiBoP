@@ -1,4 +1,5 @@
-﻿using HBP.Data.Anatomy;
+﻿using System;
+using HBP.Data.Anatomy;
 using UnityEngine;
 
 namespace HBP.UI.Anatomy
@@ -17,6 +18,10 @@ namespace HBP.UI.Anatomy
             LeftRightMesh mesh = Object as LeftRightMesh;
             mesh.LeftHemisphere = m_LeftFileSelector.File;
             mesh.RightHemisphere = m_RightFileSelector.File;
+        }
+        public override Type GetObjectType()
+        {
+            return typeof(LeftRightMesh);
         }
         #endregion
 

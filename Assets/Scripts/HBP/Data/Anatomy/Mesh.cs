@@ -7,11 +7,15 @@ using System.Runtime.Serialization;
 namespace HBP.Data.Anatomy
 {
     [DataContract]
-    public abstract class Mesh : ICloneable, ICopiable
+    public class Mesh : ICloneable, ICopiable
     {
         #region Properties
         public const string EXTENSION = ".gii";
-        [DataMember] public string Name { get; set; }
+        [DataMember(Order = 0)] public string Name { get; set; }
+        public virtual bool isUsable
+        {
+            get { return !string.IsNullOrEmpty(Name); }
+        }
         #endregion
 
         #region Constructor
@@ -24,7 +28,6 @@ namespace HBP.Data.Anatomy
         #region Public Methods
         public static Mesh[] GetMeshes(string path)
         {
-            //UnityEngine.Profiling.Profiler.BeginSample("GetMeshes");
             List<Mesh> meshes = new List<Mesh>();
             DirectoryInfo parent = new DirectoryInfo(path);
             DirectoryInfo t1mr1 = new DirectoryInfo(path + Path.DirectorySeparatorChar + "t1mri");
@@ -39,14 +42,19 @@ namespace HBP.Data.Anatomy
                 FileInfo whiteMatterRightHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Rwhite" + EXTENSION);
                 if (whiteMatterLeftHemisphere.Exists && whiteMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("White matter", whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName));
             }
-            //UnityEngine.Profiling.Profiler.EndSample();
             return meshes.ToArray();
         }
         #endregion
 
         #region Operators
-        public abstract object Clone();
-        public abstract void Copy(object copy);
+        public virtual object Clone()
+        {
+            return new Mesh(Name);
+        }
+        public virtual void Copy(object copy)
+        {
+            Name = (copy as Mesh).Name;
+        }
         #endregion
     }
 }

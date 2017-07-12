@@ -1,7 +1,4 @@
 ﻿using UnityEngine.UI;
-using System;
-using System.Collections.Generic;
-using HBP.Data.Anatomy;
 using UnityEngine;
 
 
@@ -10,14 +7,30 @@ namespace HBP.UI.Anatomy
     public class PatientModifier : ItemModifier<Data.Patient>
     {
         #region Properties
+        // General.
         [SerializeField] InputField m_NameInputField;
         [SerializeField] InputField m_PlaceInputField;
         [SerializeField] InputField m_DateInputField;
-        [SerializeField] Dropdown m_EpilepsyDropdown;
+
+        // Meshes.
+        [SerializeField] MeshGestion m_MeshGestion;
+        [SerializeField] MRIGestion m_MRIGestion;
+        [SerializeField] ImplantationGestion m_ImplantationGestion;
+
         [SerializeField] Button m_SaveButton;
         #endregion
 
+        #region Public Methods
+        #endregion
+
         #region Protected Methods
+        public override void Save()
+        {
+            m_MeshGestion.Save();
+            m_MRIGestion.Save();
+            m_ImplantationGestion.Save();
+            base.Save();
+        }
         protected override void SetFields(Data.Patient objectToDisplay)
         {
             // General.
@@ -33,15 +46,20 @@ namespace HBP.UI.Anatomy
             m_DateInputField.onValueChanged.RemoveAllListeners();
             m_DateInputField.onValueChanged.AddListener((value) => ItemTemp.Date = int.Parse(value));
 
-            List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
-            foreach (int value in Enum.GetValues(typeof(Epilepsy.EpilepsyType)))
-            {
-                options.Add(new Dropdown.OptionData(Epilepsy.GetFullEpilepsyName((Epilepsy.EpilepsyType) value)));
-            }
-            m_EpilepsyDropdown.options = options;
-            m_EpilepsyDropdown.value = (int) ItemTemp.Brain.Epilepsy.Type;
-            m_EpilepsyDropdown.onValueChanged.RemoveAllListeners();
-            m_EpilepsyDropdown.onValueChanged.AddListener((value) => ItemTemp.Brain.Epilepsy.Type = (Epilepsy.EpilepsyType) value);
+            m_MeshGestion.Set(objectToDisplay);
+            m_MeshGestion.SetActive(true);
+            m_MRIGestion.Set(objectToDisplay);
+            m_ImplantationGestion.Set(objectToDisplay);
+
+            //List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
+            //foreach (int value in Enum.GetValues(typeof(Epilepsy.EpilepsyType)))
+            //{
+            //    options.Add(new Dropdown.OptionData(Epilepsy.GetFullEpilepsyName((Epilepsy.EpilepsyType) value)));
+            //}
+            //m_EpilepsyDropdown.options = options;
+            //m_EpilepsyDropdown.value = (int) ItemTemp.Brain.Epilepsy.Type;
+            //m_EpilepsyDropdown.onValueChanged.RemoveAllListeners();
+            //m_EpilepsyDropdown.onValueChanged.AddListener((value) => ItemTemp.Brain.Epilepsy.Type = (Epilepsy.EpilepsyType) value);
         }
 
         protected override void SetWindow()
@@ -55,7 +73,12 @@ namespace HBP.UI.Anatomy
             m_DateInputField.interactable = interactable;
 
             // InputFile.
-            m_EpilepsyDropdown.interactable = interactable;
+            //m_EpilepsyDropdown.interactable = interactable;
+
+            // Meshes
+            m_MeshGestion.SetInteractable(interactable);
+            m_MRIGestion.SetInteractable(interactable);
+            m_ImplantationGestion.SetInteractable(interactable);
 
             // Buttons.
             m_SaveButton.interactable = interactable;

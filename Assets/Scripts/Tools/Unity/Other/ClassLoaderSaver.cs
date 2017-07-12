@@ -33,7 +33,7 @@ namespace Tools.Unity
             {
                 using (StreamReader streamReader = new StreamReader(path))
                 {
-                    result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd());
+                    result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
                 }
             }
             catch (Exception e)
@@ -68,8 +68,7 @@ namespace Tools.Unity
                 if(!overwrite) GenerateUniqueSavePath(ref path);
                 using (StreamWriter streamWriter = new StreamWriter(path))
                 {
-
-                    string json = JsonConvert.SerializeObject(instance,Formatting.Indented);
+                    string json = JsonConvert.SerializeObject(instance, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto, TypeNameAssemblyFormat = System.Runtime.Serialization.Formatters.FormatterAssemblyStyle.Simple });
                     streamWriter.Write(json);
                     streamWriter.Close();
                 }

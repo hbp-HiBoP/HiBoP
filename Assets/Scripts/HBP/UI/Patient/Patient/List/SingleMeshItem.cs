@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using HBP.Data.Anatomy;
+using System;
 
 namespace HBP.UI.Anatomy
 {
@@ -15,6 +16,10 @@ namespace HBP.UI.Anatomy
             base.Save();
             SingleMesh mesh = Object as SingleMesh;
             mesh.Path = m_MeshFileSelector.File;
+        }
+        public override Type GetObjectType()
+        {
+            return typeof(SingleMesh);
         }
         #endregion
 

@@ -1,4 +1,4 @@
-﻿
+﻿using System.IO;
 using System.Runtime.Serialization;
 
 namespace HBP.Data.Anatomy
@@ -7,7 +7,14 @@ namespace HBP.Data.Anatomy
     public class SingleMesh : Mesh
     {
         #region Properties
-        [DataMember] public string Path { get; set; }
+        [DataMember(Order = 1)] public string Path { get; set; }
+        public override bool isUsable
+        {
+            get
+            {
+                return base.isUsable && !string.IsNullOrEmpty(Path) && new FileInfo(Path).Extension == EXTENSION;
+            }
+        }
         #endregion
 
         #region Constructors
@@ -15,6 +22,7 @@ namespace HBP.Data.Anatomy
         {
             Path = path;
         }
+        public SingleMesh() : this("New mesh", string.Empty) { }
         #endregion
 
         #region Operators

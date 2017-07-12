@@ -49,7 +49,7 @@ namespace HBP.UI.Anatomy
                 yield return Ninja.JumpBack;
                 Data.Patient patient = new Data.Patient(patients[i]);
                 yield return Ninja.JumpToUnity;
-                databaseList.Add(patient, !Items.Contains(patient));
+                if (!Items.Contains(patient)) databaseList.Add(patient);
             }
         }
         protected override void SetWindow()

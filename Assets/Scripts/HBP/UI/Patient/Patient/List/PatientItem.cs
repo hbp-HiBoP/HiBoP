@@ -28,7 +28,7 @@ namespace HBP.UI.Anatomy
             m_PlaceText.text = objectToSet.Place;
             m_DateText.text = objectToSet.Date.ToString();
 
-            int nbMesh = objectToSet.Brain.Meshes.Count;
+            int nbMesh = objectToSet.Brain.Meshes.FindAll((m) => m.isUsable).Count;
             m_MeshText.text = nbMesh.ToString();
             if (nbMesh == 0) m_MeshText.color = m_disable_color;
             else m_MeshText.color = m_enable_color;
