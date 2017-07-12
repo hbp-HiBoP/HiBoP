@@ -181,18 +181,7 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
         #endregion
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                UnityEngine.Debug.Log(SelectedColumn.SelectedSite.Information.IsBlackListed);
-                UnityEngine.Debug.Log(SelectedColumn.SelectedSite.Information.IsExcluded);
-                UnityEngine.Debug.Log(SelectedColumn.SelectedSite.Information.IsHighlighted);
-                UnityEngine.Debug.Log(SelectedColumn.SelectedSite.Information.IsOutOfROI);
-                UnityEngine.Debug.Log(SelectedColumn.SelectedSite.Information.IsMarked);
-                UnityEngine.Debug.Log(SelectedColumn.SelectedSite.Information.IsMasked);
-            }
-        }
+
         #region Private Methods
         void Awake()
         {

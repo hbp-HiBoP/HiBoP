@@ -545,6 +545,11 @@ namespace HBP.Module3D
         #region Private Methods
         protected void Update()
         {
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                SceneInformation.HideBlacklistedSites = !SceneInformation.HideBlacklistedSites;
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            }
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update: set_current_mode_specifications");
             SetCurrentModeSpecifications();
             UnityEngine.Profiling.Profiler.EndSample();
@@ -617,7 +622,7 @@ namespace HBP.Module3D
                 SceneInformation.IsGeneratorUpToDate = false;
                 SceneInformation.IsIEEGOutdated = true;
 
-                { //TEST
+                { //TEST (maybe FIXME : delete this, the visual effect is not very good)
                   // recompute UV
                     for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
                         m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.DLLSplittedMeshesList[ii], m_ColumnManager.DLLVolume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
@@ -2036,6 +2041,14 @@ namespace HBP.Module3D
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             ApplicationState.Module3D.OnSelectSite.Invoke(null);
             Events.OnClickSite.Invoke(-1); // update menu
+        }
+        /// <summary>
+        /// Show / hide blacklisted sites
+        /// </summary>
+        public void UpdateBlacklistedSitesState(bool hideBlacklistedSites)
+        {
+            SceneInformation.HideBlacklistedSites = hideBlacklistedSites;
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
         }
         /// <summary>
         /// 

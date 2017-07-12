@@ -579,7 +579,6 @@ namespace HBP.Module3D
             Vector3 normalScale = new Vector3(1, 1, 1);
             MeshRenderer renderer = null;
             SiteType siteType;
-
             if (data.DisplayCCEPMode) // CCEP
             {
                 for (int ii = 0; ii < Sites.Count; ++ii)
@@ -692,6 +691,11 @@ namespace HBP.Module3D
                     {
                         Sites[ii].transform.localScale = normalScale;
                         siteType = SiteType.BlackListed;
+                        if (data.HideBlacklistedSites)
+                        {
+                            if (activity) Sites[ii].IsActive = false;
+                            continue;
+                        }
                     }
                     else if (Sites[ii].Information.IsExcluded) // excluded mask : plot is a little visible with another color, can be clicked
                     {

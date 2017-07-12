@@ -30,6 +30,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.SiteModifier m_SiteModifier;
+        /// <summary>
+        /// Show or hide blacklisted sites
+        /// </summary>
+        [SerializeField]
+        private Tools.BlacklistedSitesDisplay m_BlacklistedSitesDisplay;
         #endregion
 
         #region Private Methods
@@ -43,6 +48,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_CompareSite);
             m_Tools.Add(m_LoadPatient);
             m_Tools.Add(m_SiteModifier);
+            m_Tools.Add(m_BlacklistedSitesDisplay);
         }
         #endregion
     }
