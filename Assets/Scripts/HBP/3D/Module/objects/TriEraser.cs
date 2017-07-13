@@ -54,8 +54,8 @@ namespace HBP.Module3D
                 m_CurrentMode = value;
             }
         }
-        private float m_Degrees = 30f;
-        public float Degrees
+        private int m_Degrees = 30;
+        public int Degrees
         {
             get
             {

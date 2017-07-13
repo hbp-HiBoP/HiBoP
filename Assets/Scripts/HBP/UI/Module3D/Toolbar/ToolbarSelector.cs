@@ -51,6 +51,12 @@ namespace HBP.UI.Module3D
         private Toggle m_ROIToggle;
 
         /// <summary>
+        /// Triangle erasing Toggle
+        /// </summary>
+        [SerializeField]
+        private Toggle m_TriangleToggle;
+
+        /// <summary>
         /// Toggle group associated to the left menu toggles
         /// </summary>
         private ToggleGroup m_ToggleGroup;
@@ -72,6 +78,7 @@ namespace HBP.UI.Module3D
             m_Toolbars.Add(m_TimelineToggle, m_ToolbarMenu.TimelineToolbar);
             m_Toolbars.Add(m_SiteToggle, m_ToolbarMenu.SiteToolbar);
             m_Toolbars.Add(m_ROIToggle, m_ToolbarMenu.ROIToolbar);
+            m_Toolbars.Add(m_TriangleToggle, m_ToolbarMenu.TriangleToolbar);
 
             AddListeners();
         }
@@ -128,6 +135,13 @@ namespace HBP.UI.Module3D
                 if (isOn)
                 {
                     ChangeToolbar(m_ROIToggle);
+                }
+            });
+            m_TriangleToggle.onValueChanged.AddListener((isOn) =>
+            {
+                if (isOn)
+                {
+                    ChangeToolbar(m_TriangleToggle);
                 }
             });
         }

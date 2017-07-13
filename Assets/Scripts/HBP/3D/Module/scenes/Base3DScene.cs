@@ -414,7 +414,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Degrees limit when selecting a zone with the triangle eraser
         /// </summary>
-        public float TriangleErasingZoneDegrees
+        public int TriangleErasingZoneDegrees
         {
             get
             {

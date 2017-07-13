@@ -26,7 +26,7 @@ namespace HBP.UI.Module3D {
         [SerializeField, Candlelight.PropertyBackingField]
         private DisplaySettingsToolbar m_DisplaySettingsToolbar;
         /// <summary>
-        /// Toolbar for the scene settings
+        /// Toolbar for the display settings
         /// </summary>
         public DisplaySettingsToolbar DisplaySettingsToolbar
         {
@@ -43,7 +43,7 @@ namespace HBP.UI.Module3D {
         [SerializeField, Candlelight.PropertyBackingField]
         private IEEGSettingsToolbar m_IEEGSettingsToolbar;
         /// <summary>
-        /// Toolbar for the scene settings
+        /// Toolbar for the IEEG settings
         /// </summary>
         public IEEGSettingsToolbar IEEGSettingsToolbar
         {
@@ -60,7 +60,7 @@ namespace HBP.UI.Module3D {
         [SerializeField, Candlelight.PropertyBackingField]
         private TimelineToolbar m_TimelineToolbar;
         /// <summary>
-        /// Toolbar for the scene settings
+        /// Toolbar for the Timeline control
         /// </summary>
         public TimelineToolbar TimelineToolbar
         {
@@ -77,7 +77,7 @@ namespace HBP.UI.Module3D {
         [SerializeField, Candlelight.PropertyBackingField]
         private SiteToolbar m_SiteToolbar;
         /// <summary>
-        /// Toolbar for the scene settings
+        /// Toolbar for the sites settings
         /// </summary>
         public SiteToolbar SiteToolbar
         {
@@ -94,7 +94,7 @@ namespace HBP.UI.Module3D {
         [SerializeField, Candlelight.PropertyBackingField]
         private ROIToolbar m_ROIToolbar;
         /// <summary>
-        /// Toolbar for the scene settings
+        /// Toolbar for the regions of interest settings
         /// </summary>
         public ROIToolbar ROIToolbar
         {
@@ -105,6 +105,23 @@ namespace HBP.UI.Module3D {
             set
             {
                 m_ROIToolbar = value;
+            }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private TriangleErasingToolbar m_TriangleToolbar;
+        /// <summary>
+        /// Toolbar to erase triangles
+        /// </summary>
+        public TriangleErasingToolbar TriangleToolbar
+        {
+            get
+            {
+                return m_TriangleToolbar;
+            }
+            set
+            {
+                m_TriangleToolbar = value;
             }
         }
 
@@ -130,6 +147,7 @@ namespace HBP.UI.Module3D {
             m_TimelineToolbar.Initialize();
             m_SiteToolbar.Initialize();
             m_ROIToolbar.Initialize();
+            m_TriangleToolbar.Initialize();
 
             CurrentToolbar = m_SceneSettingsToolbar;
 
@@ -139,6 +157,7 @@ namespace HBP.UI.Module3D {
             m_TimelineToolbar.gameObject.SetActive(false);
             m_SiteToolbar.gameObject.SetActive(false);
             m_ROIToolbar.gameObject.SetActive(false);
+            m_TriangleToolbar.gameObject.SetActive(false);
         }
         #endregion
     }
