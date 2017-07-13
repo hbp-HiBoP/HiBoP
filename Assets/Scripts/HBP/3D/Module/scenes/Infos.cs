@@ -41,7 +41,7 @@ namespace HBP.Module3D
         public bool WhiteInflatedMeshesAvailables = false; /**< white inflated meshes are availables */
         // parameters
         public bool MarsAtlasModeEnabled = false;
-        public bool MarsAtlasParcelsLoaed = false;
+        public bool MarsAtlasParcelsLoaded = false;
         public bool CutHolesEnabled = false; /**< cuts holes are enabled */
         public int LastPlaneModifiedID = 0;
 

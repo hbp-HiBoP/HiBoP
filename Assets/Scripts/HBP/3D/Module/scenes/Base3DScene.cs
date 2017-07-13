@@ -261,6 +261,7 @@ namespace HBP.Module3D
         /// </summary>
         protected const int SPACE_BETWEEN_SCENES = 3000;
 
+        protected Data.Visualization.Visualization m_VisualizationData;
         protected Data.Visualization.Visualization m_Visualization;
         /// <summary>
         /// Visualization associated to this scene
@@ -545,11 +546,6 @@ namespace HBP.Module3D
         #region Private Methods
         protected void Update()
         {
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                SceneInformation.HideBlacklistedSites = !SceneInformation.HideBlacklistedSites;
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            }
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update: set_current_mode_specifications");
             SetCurrentModeSpecifications();
             UnityEngine.Profiling.Profiler.EndSample();
@@ -1103,7 +1099,11 @@ namespace HBP.Module3D
             m_DisplayedObjects = new DisplayedObjects3DView();
             SceneInformation = new SceneStatesInfo();
             m_ColumnManager = GetComponent<Column3DManager>();
-            m_ColumnManager.LinkVisualization(visualization);
+
+            m_VisualizationData = visualization;
+            Visualization = m_VisualizationData; // FIXME : replace by the following line when deep copy is implemented
+            //Visualization = visualization.Clone() as Data.Visualization.Visualization;
+            m_ColumnManager.Visualization = Visualization;
 
             // Init materials
             SharedMaterials.Brain.AddSceneMaterials(this);
@@ -1718,10 +1718,12 @@ namespace HBP.Module3D
             // Cuts
             InstantiateCuts();
             // ROIs
+            ROICreation = true;
             foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
             {
                 column.InitializeROIs();
             }
+            ROICreation = false;
         }
         /// <summary>
         /// Update the data render corresponding to the column
@@ -1809,21 +1811,10 @@ namespace HBP.Module3D
             if (!SceneInformation.MeshesLoaded || !SceneInformation.MRILoaded || SceneInformation.CollidersUpdated)
                 return;
 
-            // update splits colliders
-            for(int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
-            {
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh;
-            }
-
-            // update cuts colliders
-            for (int ii = 0; ii < m_DisplayedObjects.BrainCutMeshes.Count; ++ii)
-            {
-                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
-                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
-            }
-
+            UnityEngine.Profiling.Profiler.BeginSample("Update Meshes Colliders");
+            this.StartCoroutineAsync(c_UpdateMeshesColliders());
             SceneInformation.CollidersUpdated = true;
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Update the textures generator
@@ -2518,6 +2509,30 @@ namespace HBP.Module3D
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
 
             yield return SceneInformation.MRILoaded;
+        }
+        private IEnumerator c_UpdateMeshesColliders()
+        {
+            // update splits colliders
+            for (int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
+            {
+                yield return Ninja.JumpToUnity;
+                m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
+                //yield return Ninja.JumpBack;
+                //yield return Ninja.JumpToUnity;
+                m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh;
+                yield return Ninja.JumpBack;
+            }
+
+            // update cuts colliders
+            for (int ii = 0; ii < m_DisplayedObjects.BrainCutMeshes.Count; ++ii)
+            {
+                yield return Ninja.JumpToUnity;
+                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
+                //yield return Ninja.JumpBack;
+                //yield return Ninja.JumpToUnity;
+                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
+                yield return Ninja.JumpBack;
+            }
         }
         #endregion
     }

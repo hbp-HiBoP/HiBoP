@@ -38,20 +38,6 @@ namespace HBP.Module3D
                 return SceneType.MultiPatients;
             }
         }
-        /// <summary>
-        /// Visualization associated to this scene
-        /// </summary>
-        public new Data.Visualization.Visualization Visualization
-        {
-            get
-            {
-                return m_Visualization;
-            }
-            set
-            {
-                m_Visualization = value;
-            }
-        }
 
         /// <summary>
         /// MNI Objects
@@ -497,8 +483,7 @@ namespace HBP.Module3D
             float progress = 0.5f;
 
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
-
-            Visualization = visualization;
+            
             int sceneID = ApplicationState.Module3D.NumberOfScenesLoadedSinceStart;
             gameObject.name = "MultiPatients Scene (" + sceneID + ")";
             transform.position = new Vector3(SPACE_BETWEEN_SCENES * sceneID, transform.position.y, transform.position.z);

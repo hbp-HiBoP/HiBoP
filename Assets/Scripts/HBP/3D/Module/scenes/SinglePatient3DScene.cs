@@ -36,20 +36,6 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Visualization corresponding to this scenes
-        /// </summary>
-        public new Data.Visualization.Visualization Visualization
-        {
-            get
-            {
-                return m_Visualization;
-            }
-            set
-            {
-                m_Visualization = value;
-            }
-        }
-        /// <summary>
         /// Patient of this scene
         /// </summary>
         public Data.Patient Patient
@@ -367,8 +353,7 @@ namespace HBP.Module3D
             float progress = 0.5f;
 
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
-
-            Visualization = visualization;
+            
             int sceneID = ApplicationState.Module3D.NumberOfScenesLoadedSinceStart;
             gameObject.name = "SinglePatient Scene (" + sceneID + ")";
             transform.position = new Vector3(SPACE_BETWEEN_SCENES * sceneID, transform.position.y, transform.position.z);
@@ -510,7 +495,7 @@ namespace HBP.Module3D
                     m_ColumnManager.BothWhite.Add(m_ColumnManager.RWhite);
                     SceneInformation.WhiteMeshesAvailables = true;
 
-                    SceneInformation.MarsAtlasParcelsLoaed = leftParcelsLoaded && rightParcelsLoaded;
+                    SceneInformation.MarsAtlasParcelsLoaded = leftParcelsLoaded && rightParcelsLoaded;
                 }
             }
             else

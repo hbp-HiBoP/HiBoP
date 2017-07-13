@@ -78,7 +78,10 @@ namespace HBP.Module3D
             }
         }
 
-        private Data.Visualization.Visualization m_Visualization;
+        /// <summary>
+        /// Associated visualization
+        /// </summary>
+        public Data.Visualization.Visualization Visualization { get; set; }
 
         public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
         /// <summary>
@@ -176,13 +179,13 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Visualization.Configuration.MRICalMinFactor;
+                return Visualization.Configuration.MRICalMinFactor;
             }
             set
             {
-                if (m_Visualization.Configuration.MRICalMinFactor != value)
+                if (Visualization.Configuration.MRICalMinFactor != value)
                 {
-                    m_Visualization.Configuration.MRICalMinFactor = value;
+                    Visualization.Configuration.MRICalMinFactor = value;
                     OnUpdateMRICalValues.Invoke();
                 }
             }
@@ -195,13 +198,13 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Visualization.Configuration.MRICalMaxFactor;
+                return Visualization.Configuration.MRICalMaxFactor;
             }
             set
             {
-                if (m_Visualization.Configuration.MRICalMaxFactor != value)
+                if (Visualization.Configuration.MRICalMaxFactor != value)
                 {
-                    m_Visualization.Configuration.MRICalMaxFactor = value;
+                    Visualization.Configuration.MRICalMaxFactor = value;
                     OnUpdateMRICalValues.Invoke();
                 }
             }
@@ -233,11 +236,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Visualization.Configuration.BrainColor;
+                return Visualization.Configuration.BrainColor;
             }
             set
             {
-                m_Visualization.Configuration.BrainColor = value;
+                Visualization.Configuration.BrainColor = value;
             }
         }
         
@@ -248,11 +251,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Visualization.Configuration.BrainCutColor;
+                return Visualization.Configuration.BrainCutColor;
             }
             set
             {
-                m_Visualization.Configuration.BrainCutColor = value;
+                Visualization.Configuration.BrainCutColor = value;
             }
         }
         
@@ -263,11 +266,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Visualization.Configuration.Colormap;
+                return Visualization.Configuration.Colormap;
             }
             set
             {
-                m_Visualization.Configuration.Colormap = value;
+                Visualization.Configuration.Colormap = value;
                 DLL.Texture tex = DLL.Texture.Generate1DColorTexture(Colormap);
                 tex.UpdateTexture2D(BrainColorMapTexture);
             }
@@ -421,11 +424,7 @@ namespace HBP.Module3D
         }
         #endregion
 
-        #region Public Methods
-        public void LinkVisualization(Data.Visualization.Visualization visualization)
-        {
-            m_Visualization = visualization;
-        }
+        #region Public Method
         /// <summary>
         /// Reset all data.
         /// </summary>

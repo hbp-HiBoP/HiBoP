@@ -288,7 +288,7 @@ namespace HBP.UI.Module3D
             bool canRemoveView = ApplicationState.Module3D.SelectedScene.ColumnManager.ViewNumber > 1;
             bool canAddfMRI = ApplicationState.Module3D.SelectedScene.ColumnManager.Columns.Count < HBP3DModule.MAXIMUM_COLUMN_NUMBER;
             bool canRemoveFMRI = (ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsFMRI.Count > 0);
-            bool canUseMarsAtlas = ApplicationState.Module3D.SelectedScene.SceneInformation.WhiteMeshesAvailables && ApplicationState.Module3D.SelectedScene.SceneInformation.MarsAtlasParcelsLoaed;
+            bool canUseMarsAtlas = ApplicationState.Module3D.SelectedScene.SceneInformation.WhiteMeshesAvailables && ApplicationState.Module3D.SelectedScene.SceneInformation.MarsAtlasParcelsLoaded;
             //bool CcepVisible = m_IsSinglePatientScene && !ApplicationState.Module3D.SPScene.is_latency_mode_enabled();
             //bool iEegVisible = (!CcepVisible && m_IsSinglePatientScene);
             //bool isTriErasingEnabled = scene.is_tri_erasing_enabled();

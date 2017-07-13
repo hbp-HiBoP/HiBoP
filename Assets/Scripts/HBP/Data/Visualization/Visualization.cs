@@ -254,7 +254,6 @@ namespace HBP.Data.Visualization
         public object Clone()
         {
             return new Visualization(Name, ReferenceFrame, Patients, from column in Columns select column.Clone() as Column, ID);
-
         }
         /// <summary>
         /// Copy an instance in this instance.
