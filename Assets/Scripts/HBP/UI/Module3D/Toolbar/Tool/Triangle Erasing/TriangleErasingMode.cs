@@ -20,6 +20,14 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
+            ApplicationState.Module3D.OnModifyInvisiblePart.AddListener(() =>
+            {
+                if (ApplicationState.Module3D.SelectedScene)
+                {
+                    UpdateInteractable();
+                }
+            });
+
             m_Dropdown.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;

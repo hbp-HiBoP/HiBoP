@@ -180,6 +180,10 @@ namespace HBP.Module3D
         /// Event called when changing the selected site
         /// </summary>
         public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
+        /// <summary>
+        /// Event called when updating the invisible part of the brain (erasing triangles, reset ...)
+        /// </summary>
+        public UnityEvent OnModifyInvisiblePart = new UnityEvent();
         #endregion
 
         #region Private Methods

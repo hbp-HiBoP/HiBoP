@@ -389,6 +389,26 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
+        /// Can we cancel the last action ?
+        /// </summary>
+        public bool CanCancelLastTriangleErasingAction
+        {
+            get
+            {
+                return m_TriEraser.CanCancelLastAction;
+            }
+        }
+        /// <summary>
+        /// Does the brain mesh have invisible parts on ?
+        /// </summary>
+        public bool HasInvisibleTriangles
+        {
+            get
+            {
+                return m_TriEraser.MeshHasInvisibleTriangles;
+            }
+        }
+        /// <summary>
         /// Mode of the triangle eraser
         /// </summary>
         public TriEraser.Mode TriangleErasingMode
@@ -409,6 +429,8 @@ namespace HBP.Module3D
                         m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
                     m_TriEraser.CurrentMode = previousMode;
                 }
+
+                ApplicationState.Module3D.OnModifyInvisiblePart.Invoke();
             }
         }
         /// <summary>
@@ -1878,15 +1900,7 @@ namespace HBP.Module3D
                 GameObject invisibleBrainPart = Instantiate(GlobalGOPreloaded.InvisibleBrain);
                 invisibleBrainPart.name = "erased brain part " + ii;
                 invisibleBrainPart.transform.SetParent(transform.Find("Meshes").Find("Erased Brains"));
-                switch(Type)
-                {
-                    case SceneType.SinglePatient:
-                        invisibleBrainPart.layer = LayerMask.NameToLayer("Default");
-                        break;
-                    case SceneType.MultiPatients:
-                        invisibleBrainPart.layer = LayerMask.NameToLayer("Default");
-                        break;
-                }
+                invisibleBrainPart.layer = LayerMask.NameToLayer("Default");
                 invisibleBrainPart.AddComponent<MeshFilter>();
                 invisibleBrainPart.transform.localScale = new Vector3(-1, 1, 1);
                 invisibleBrainPart.transform.localPosition = new Vector3(0, 0, 0);
