@@ -18,7 +18,7 @@ namespace HBP.Module3D
     /// <summary>
     /// Define a tooltip to display extra info when cursor is moving on the gameobject
     /// </summary>
-    public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public class Tooltip_old : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         public string m_text = "";
         public float m_timeBeforeDisplay = 1f;
