@@ -8,13 +8,27 @@ namespace Tools.Unity
     public class TooltipManager : MonoBehaviour
     {
         #region Properties
+        public const float TIME_TO_DISPLAY = 1.0f;
+
+        private bool m_IsTooltipDisplayed = false;
         public bool IsTooltipDisplayed
         {
             get
             {
-                return m_Tooltip.gameObject.activeSelf;
+                return m_IsTooltipDisplayed;
             }
         }
+
+        private float m_TimeBeforeHiding = TIME_TO_DISPLAY;
+        private bool m_TooltipHasBeenDisplayedRecently = false;
+        public bool TooltipHasBeenDisplayedRecently
+        {
+            get
+            {
+                return m_TooltipHasBeenDisplayedRecently;
+            }
+        }
+
         /// <summary>
         /// Canvas on which the tooltip is displayed
         /// </summary>
@@ -33,7 +47,18 @@ namespace Tools.Unity
         #endregion
 
         #region Private Methods
-        private void ClampToCanvas() // FIXME : high cost of performance
+        private void Update()
+        {
+            if (!m_IsTooltipDisplayed)
+            {
+                m_TimeBeforeHiding -= Time.deltaTime;
+            }
+            if (m_TimeBeforeHiding < 0)
+            {
+                m_TooltipHasBeenDisplayedRecently = false;
+            }
+        }
+        private void ClampToCanvas()
         {
             Vector3 l_pos = m_Tooltip.localPosition;
             Vector3 l_minPosition = m_Canvas.rect.min - m_Tooltip.rect.min;
@@ -50,16 +75,21 @@ namespace Tools.Unity
         #endregion
 
         #region Public Methods
-        public void ShowTooltip(string text, Vector2 position)
+        public void ShowTooltip(string text, Vector3 position)
         {
             m_Tooltip.gameObject.SetActive(true);
             m_TextField.text = text;
-            m_Tooltip.anchoredPosition = position;
+            m_Tooltip.position = position;
             ClampToCanvas();
+
+            m_IsTooltipDisplayed = true;
+            m_TooltipHasBeenDisplayedRecently = true;
+            m_TimeBeforeHiding = TIME_TO_DISPLAY;
         }
         public void HideTooltip()
         {
             m_Tooltip.gameObject.SetActive(false);
+            m_IsTooltipDisplayed = false;
         }
         #endregion
     }

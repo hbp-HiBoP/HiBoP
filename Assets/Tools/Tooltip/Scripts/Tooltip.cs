@@ -18,7 +18,6 @@ namespace Tools.Unity
 
         private bool m_Entered = false;
         private float m_TimeSinceEntered = 0.0f;
-        private const float TIME_TO_DISPLAY = 1.0f;
         #endregion
 
         #region Private Methods
@@ -27,9 +26,9 @@ namespace Tools.Unity
             if (m_Entered)
             {
                 m_TimeSinceEntered += Time.deltaTime;
-                if (m_TimeSinceEntered > TIME_TO_DISPLAY && !ApplicationState.TooltipManager.IsTooltipDisplayed)
+                if ((m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY || ApplicationState.TooltipManager.TooltipHasBeenDisplayedRecently) && !ApplicationState.TooltipManager.IsTooltipDisplayed)
                 {
-                    ApplicationState.TooltipManager.ShowTooltip(m_Text, GetComponent<RectTransform>().position);
+                    ApplicationState.TooltipManager.ShowTooltip(m_Text, Input.mousePosition + new Vector3(0, -20, 0));
                 }
             }
         }
