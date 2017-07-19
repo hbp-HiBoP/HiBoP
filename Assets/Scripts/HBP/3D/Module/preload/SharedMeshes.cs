@@ -5,10 +5,6 @@
  * \brief Define SharedMeshes
  */
 
-// system
-using System;
-using System.Text;
-
 // unity
 using UnityEngine;
 
@@ -20,7 +16,7 @@ namespace HBP.Module3D
     public class SharedMeshes : MonoBehaviour
     {
         #region Properties
-        static public Mesh ROIBubble = null;
+        static public Mesh ROISphere = null;
         static public Mesh Site = null;
         static public Mesh HighlightedSite = null;
         static public Mesh SiteSelection = null;
@@ -33,7 +29,7 @@ namespace HBP.Module3D
         #region Private Methods
         void Awake()
         {
-            ROIBubble = Geometry.CreateSphereMesh(1f, 48, 32);
+            ROISphere = Geometry.CreateSphereMesh(1f, 48, 32);
             Site = Geometry.CreateSphereMesh(1, 12, 8);
             HighlightedSite = Geometry.CreateTube();// (3f);
             SiteSelection = Geometry.CreateTube();// (3f);

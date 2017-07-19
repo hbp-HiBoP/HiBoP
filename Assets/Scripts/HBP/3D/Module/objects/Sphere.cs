@@ -94,7 +94,7 @@ namespace HBP.Module3D
             gameObject.SetActive(true);
 
             // add mesh
-            gameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROIBubble;
+            gameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROISphere;
         }
         /// <summary>
         /// Check if a collision occurs with the input ray

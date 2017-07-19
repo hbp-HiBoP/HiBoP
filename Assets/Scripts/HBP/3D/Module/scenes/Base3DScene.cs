@@ -560,9 +560,15 @@ namespace HBP.Module3D
                 ColumnManager.UpdateROIVisibility(value);
             }
         }
-
+        
         [SerializeField]
-        public GameObject m_CutPrefab;
+        protected GameObject m_BrainPrefab;
+        [SerializeField]
+        protected GameObject m_InvisibleBrainPrefab;
+        [SerializeField]
+        protected GameObject m_CutPrefab;
+        [SerializeField]
+        protected GameObject m_SitePrefab;
         #endregion
 
         #region Private Methods
@@ -1097,6 +1103,9 @@ namespace HBP.Module3D
         /// </summary>
         protected void InitializeSceneGameObjects()
         {
+            // Mark brain mesh as dynamic
+            m_BrainPrefab.GetComponent<MeshFilter>().sharedMesh.MarkDynamic();
+
             // init parents 
             m_DisplayedObjects.SitesMeshesParent = transform.Find("Sites").gameObject;
             m_DisplayedObjects.BrainSurfaceMeshesParent = transform.Find("Meshes").Find("Brains").gameObject;
@@ -1526,7 +1535,7 @@ namespace HBP.Module3D
             m_DisplayedObjects.BrainSurfaceMeshes = new List<GameObject>(m_ColumnManager.MeshSplitNumber);
             for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
             {
-                m_DisplayedObjects.BrainSurfaceMeshes.Add(Instantiate(GlobalGOPreloaded.Brain));
+                m_DisplayedObjects.BrainSurfaceMeshes.Add(Instantiate(m_BrainPrefab));
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.BrainMaterials[this];
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].name = "brain_" + ii;
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.parent = m_DisplayedObjects.BrainSurfaceMeshesParent.transform;
@@ -1897,7 +1906,7 @@ namespace HBP.Module3D
             m_DisplayedObjects.InvisibleBrainSurfaceMeshes = new List<GameObject>(m_DisplayedObjects.BrainSurfaceMeshes.Count);
             for (int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
             {
-                GameObject invisibleBrainPart = Instantiate(GlobalGOPreloaded.InvisibleBrain);
+                GameObject invisibleBrainPart = Instantiate(m_InvisibleBrainPrefab);
                 invisibleBrainPart.name = "erased brain part " + ii;
                 invisibleBrainPart.transform.SetParent(transform.Find("Meshes").Find("Erased Brains"));
                 invisibleBrainPart.layer = LayerMask.NameToLayer("Default");

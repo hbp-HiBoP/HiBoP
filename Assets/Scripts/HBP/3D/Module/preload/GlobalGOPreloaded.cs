@@ -20,16 +20,6 @@ namespace HBP.Module3D
     /// </summary>
     public class GlobalGOPreloaded : MonoBehaviour
     {
-        public enum Cursors : int
-        {
-            normal, roiNew, roiSelect, triErasing
-        }; 
-
-        public Texture2D cursorTriErasing = null;
-        public Texture2D cursorRoiSelect = null;
-        public Texture2D cursorRoiNew = null;
-        public Texture2D cursorNormal = null;
-        
         static public GameObject ColormapDisplay = null;
         static public GameObject TimeDisplay = null;
         static public GameObject CutImageOverlay = null;
@@ -44,17 +34,12 @@ namespace HBP.Module3D
         static public GameObject fMRILeftMenu = null;
         static public GameObject SiteLeftMenu = null;
         static public GameObject SceneLeftMenu = null;
-        static public GameObject Site = null;
-        static public GameObject Brain = null;
-        static public GameObject SelectRing = null;
         static public GameObject Line = null;
         static public GameObject View = null;
         static public GameObject ScreenMessage = null;
         static public GameObject ScreenProgressBar = null;
         static public GameObject SinglePatientCamera = null;
         static public GameObject MultiPatientsCamera = null;
-
-        static public GameObject InvisibleBrain = null;
 
         void Awake()
         {
@@ -114,19 +99,6 @@ namespace HBP.Module3D
             globalLeftMenu = Instantiate(Resources.Load("Prefabs/ui/camera/Global left menu", typeof(GameObject))) as GameObject;
             InitializeGameObject(globalLeftMenu, "Global left menu");
 
-            // site
-            Site = Instantiate(Resources.Load("Prefabs/scene objects/Plot", typeof(GameObject))) as GameObject;
-            InitializeGameObject(Site, "Plot");
-
-            // Brain
-            Brain = Instantiate(Resources.Load("Prefabs/scene objects/Brain", typeof(GameObject))) as GameObject;
-            Brain.GetComponent<MeshFilter>().mesh.MarkDynamic();
-            InitializeGameObject(Brain, "Brain");
-
-            // Ring
-            SelectRing = Instantiate(Resources.Load("Prefabs/scene objects/Select ring", typeof(GameObject))) as GameObject;
-            InitializeGameObject(SelectRing, "Ring");
-
             // Line views panel
             Line = Instantiate(Resources.Load("Prefabs/ui/camera/Camera line views panel", typeof(GameObject))) as GameObject;
             InitializeGameObject(Line, "LineViews");
@@ -142,10 +114,6 @@ namespace HBP.Module3D
             // Screen progress bar panel
             ScreenProgressBar = Instantiate(Resources.Load("Prefabs/ui/overlay/progressbar", typeof(GameObject))) as GameObject;
             InitializeGameObject(ScreenProgressBar, "Screen Progress Bar");
-
-            // tri center position
-            InvisibleBrain = Instantiate(Resources.Load("Prefabs/scene objects/Invisible brain", typeof(GameObject))) as GameObject;
-            InitializeGameObject(InvisibleBrain, "Invisible brain part");
         }
 
         private void InitializeGameObject(GameObject baseGameObject, string objectName)

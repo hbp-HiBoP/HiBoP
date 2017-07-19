@@ -627,7 +627,7 @@ namespace HBP.Module3D
                             Vector3 invertedPosition = m_ColumnManager.DLLLoadedPatientsElectrodes.SitePosition(ii, jj, kk);
                             invertedPosition.x = -invertedPosition.x;
 
-                            GameObject siteGameObject = Instantiate(GlobalGOPreloaded.Site);
+                            GameObject siteGameObject = Instantiate(m_SitePrefab);
                             siteGameObject.name = m_ColumnManager.DLLLoadedPatientsElectrodes.SiteName(ii, jj, kk);
 
                             siteGameObject.transform.SetParent(m_ColumnManager.SitesElectrodesParent[ii][jj].transform);

@@ -216,7 +216,7 @@ namespace HBP.Module3D
         {
             m_Layer = LayerMask.NameToLayer(layer);
             GameObject newBubble = Instantiate(m_SpherePrefab);
-            newBubble.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROIBubble;
+            newBubble.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROISphere;
             newBubble.name = GObubbleName;
             newBubble.transform.SetParent(transform);
             Sphere bubble = newBubble.GetComponent<Sphere>();
