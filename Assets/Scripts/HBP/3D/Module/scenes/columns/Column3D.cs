@@ -67,6 +67,8 @@ namespace HBP.Module3D
         /// </summary>
         public bool IsRenderingUpToDate { get; set; }
 
+        private Transform m_CutsParent;
+
         public GameObject ViewPrefab;
         protected List<View3D> m_Views = new List<View3D>();
         public ReadOnlyCollection<View3D> Views
@@ -283,6 +285,20 @@ namespace HBP.Module3D
 
             // update rendering
             IsRenderingUpToDate = false;
+        }
+        public void InitializeColumnMeshes(GameObject sceneMeshes)
+        {
+            GameObject meshes = Instantiate(sceneMeshes, transform);
+            meshes.transform.localPosition = sceneMeshes.transform.localPosition;
+            meshes.name = sceneMeshes.name;
+            foreach (Transform parent in meshes.transform)
+            {
+                foreach (Transform mesh in parent)
+                {
+                    mesh.gameObject.layer = LayerMask.NameToLayer(Layer);
+                }
+            }
+            m_CutsParent = meshes.transform.Find("Cuts");
         }
         /// <summary>
         ///  Clean all allocated data

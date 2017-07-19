@@ -110,7 +110,9 @@ namespace HBP.Module3D
     public class DisplayedObjects3DView
     {
         // Parents objects
+        public GameObject MeshesParent = null;
         public GameObject BrainSurfaceMeshesParent = null;  /**< brain surface meshes parent of the scene */
+        public GameObject InvisibleBrainMeshesParent = null;
         public GameObject BrainCutMeshesParent = null;      /**< brain cut meshes parent of the scene */
         public GameObject SitesMeshesParent = null;         /**< sites meshes parent of the scene */
 

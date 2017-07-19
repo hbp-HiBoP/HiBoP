@@ -346,7 +346,8 @@ namespace HBP.Module3D
             progress += SETTING_TIMELINE_PROGRESS;
             onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetTimelineData());
-            
+
+            m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.MeshesParent);
             UpdateMeshesColliders();
             Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
         }

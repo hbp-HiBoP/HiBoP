@@ -1118,8 +1118,10 @@ namespace HBP.Module3D
             m_BrainPrefab.GetComponent<MeshFilter>().sharedMesh.MarkDynamic();
 
             // init parents 
+            m_DisplayedObjects.MeshesParent = transform.Find("Meshes").gameObject;
             m_DisplayedObjects.SitesMeshesParent = transform.Find("Sites").gameObject;
             m_DisplayedObjects.BrainSurfaceMeshesParent = transform.Find("Meshes").Find("Brains").gameObject;
+            m_DisplayedObjects.InvisibleBrainMeshesParent = transform.Find("Meshes").Find("Erased Brains").gameObject;
             m_DisplayedObjects.BrainCutMeshesParent = transform.Find("Meshes").Find("Cuts").gameObject;
 
             // init lights
@@ -1489,8 +1491,8 @@ namespace HBP.Module3D
             {
                 GameObject invisibleBrainPart = Instantiate(m_InvisibleBrainPrefab);
                 invisibleBrainPart.name = "erased brain part " + ii;
-                invisibleBrainPart.transform.SetParent(transform.Find("Meshes").Find("Erased Brains"));
-                invisibleBrainPart.layer = LayerMask.NameToLayer("Default");
+                invisibleBrainPart.transform.SetParent(m_DisplayedObjects.InvisibleBrainMeshesParent.transform);
+                invisibleBrainPart.layer = LayerMask.NameToLayer("Meshes");
                 invisibleBrainPart.AddComponent<MeshFilter>();
                 invisibleBrainPart.transform.localScale = new Vector3(-1, 1, 1);
                 invisibleBrainPart.transform.localPosition = new Vector3(0, 0, 0);
@@ -1620,15 +1622,7 @@ namespace HBP.Module3D
             SharedMaterials.Brain.AddSceneMaterials(this);
 
             // set meshes layer
-            switch (Type)
-            {
-                case SceneType.SinglePatient:
-                    SceneInformation.MeshesLayerName = "Default";
-                    break;
-                case SceneType.MultiPatients:
-                    SceneInformation.MeshesLayerName = "Default";
-                    break;
-            }
+            SceneInformation.MeshesLayerName = "Meshes";
 
             // init modes            
             m_ModesManager = transform.Find("Modes").gameObject.GetComponent<ModesManager>();

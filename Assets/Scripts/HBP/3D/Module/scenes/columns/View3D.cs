@@ -217,17 +217,8 @@ namespace HBP.Module3D
         {
             int layer = 0;
             layer |= 1 << LayerMask.NameToLayer(Layer);
-            switch (GetComponentInParent<Base3DScene>().Type)
-            {
-                case SceneType.SinglePatient:
-                    layer |= 1 << LayerMask.NameToLayer("Default");
-                    break;
-                case SceneType.MultiPatients:
-                    layer |= 1 << LayerMask.NameToLayer("Default");
-                    break;
-                default:
-                    break;
-            }
+            layer |= 1 << LayerMask.NameToLayer("Default");
+
             m_RegularCullingMask = layer;
             m_MinimizedCullingMask = 0;
 
@@ -256,9 +247,8 @@ namespace HBP.Module3D
         /// <param name="reference"></param>
         public void SynchronizeCamera(View3D reference)
         {
-            m_Camera3D.transform.position = reference.m_Camera3D.transform.position;
-            m_Camera3D.transform.rotation = reference.m_Camera3D.transform.rotation;
-            m_Camera3D.Target = reference.m_Camera3D.Target;
+            m_Camera3D.transform.localPosition = reference.m_Camera3D.transform.localPosition;
+            m_Camera3D.transform.localRotation = reference.m_Camera3D.transform.localRotation;
         }
         /// <summary>
         /// Set the viewport of the camera

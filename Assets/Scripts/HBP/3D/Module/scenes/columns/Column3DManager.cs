@@ -315,6 +315,7 @@ namespace HBP.Module3D
                 OnUpdateColumnTimelineID.Invoke(column);
             });
             m_Columns.Add(column);
+            column.transform.localPosition = new Vector3(0, HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * m_Columns.Count);
             OnAddColumn.Invoke();
         }
         /// <summary>
@@ -446,6 +447,13 @@ namespace HBP.Module3D
             else m_Columns = new List<Column3D>();
 
             ResetSplitsNumber(1);
+        }
+        public void InitializeColumnsMeshes(GameObject meshes)
+        {
+            foreach (Column3D column in m_Columns)
+            {
+                column.InitializeColumnMeshes(meshes);
+            }
         }
         /// <summary>
         /// Reset the number of meshes splits for the brain
