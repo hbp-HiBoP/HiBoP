@@ -18,45 +18,6 @@ namespace HBP.Module3D
     public class Column3DManager : MonoBehaviour
     {
         #region Properties
-        // mani (debug)
-        public Color[] ColorsSites = null;
-
-        public int SelectedPatientID = 0; /**< id of the selected patient for Multi patient scene */
-        public View3D SelectedView
-        {
-            get
-            {
-                foreach (Column3D column in Columns)
-                {
-                    foreach (View3D view in column.Views)
-                    {
-                        if (view.IsSelected)
-                        {
-                            return view;
-                        }
-                    }
-                }
-                return null;
-            }
-        }
-        public View3D ClickedView
-        {
-            get
-            {
-                foreach (Column3D column in Columns)
-                {
-                    foreach (View3D view in column.Views)
-                    {
-                        if (view.IsClicked)
-                        {
-                            return view;
-                        }
-                    }
-                }
-                return null;
-            }
-        }
-
         /// <summary>
         /// ID of the seleccted column
         /// </summary>
@@ -102,14 +63,23 @@ namespace HBP.Module3D
         public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
 
         List<Column3D> m_Columns = new List<Column3D>();
+        /// <summary>
+        /// Columns of the scene
+        /// </summary>
         public ReadOnlyCollection<Column3D> Columns { get { return m_Columns != null ? new ReadOnlyCollection<Column3D>(m_Columns) : new ReadOnlyCollection<Column3D>(new List<Column3D>(0)); } }
+        /// <summary>
+        /// IEEG Columns of the scene
+        /// </summary>
         public ReadOnlyCollection<Column3DIEEG> ColumnsIEEG { get { return m_Columns != null ? new ReadOnlyCollection<Column3DIEEG>((from column in m_Columns where column is Column3DIEEG select (Column3DIEEG)column).ToArray()) : new ReadOnlyCollection<Column3DIEEG>(new List<Column3DIEEG>(0)); } }
+        /// <summary>
+        /// FMRI Columns of the scene
+        /// </summary>
         public ReadOnlyCollection<Column3DFMRI> ColumnsFMRI { get { return m_Columns != null ? new ReadOnlyCollection<Column3DFMRI>((from column in m_Columns where column is Column3DFMRI select (Column3DFMRI)column).ToArray()) : new ReadOnlyCollection<Column3DFMRI>(new List<Column3DFMRI>(0)); } }
 
         /// <summary>
         /// Maximum number of view in a column
         /// </summary>
-        public int ViewNumber
+        public int ViewLineNumber
         {
             get
             {
@@ -125,7 +95,7 @@ namespace HBP.Module3D
             }
         }
 
-        // plots
+        // Sites
         public DLL.RawSiteList DLLLoadedRawSitesList = null;
         public DLL.PatientElectrodesList DLLLoadedPatientsElectrodes = null;
         public List<GameObject> SitesList = new List<GameObject>();
@@ -136,10 +106,6 @@ namespace HBP.Module3D
         public bool LatencyFilesDefined = false;
         public bool LatencyFileAvailable = false; /**< latency file is available */
         public List<Latencies> LatenciesFiles = new List<Latencies>(); /*< list of latency files */
-
-        // timelines 
-        public bool GlobalTimeline = true;  /**< is global timeline enabled */
-        public float CommonTimelineValue = 0f; /**< commmon value of the timelines */
 
         // textures
         public List<Vector2[]> UVNull = null;                   /**< null uv vectors */ // // new List<Vector2[]>(); 
@@ -931,7 +897,7 @@ namespace HBP.Module3D
             {
                 column.RemoveView(lineID);
             }
-            OnRemoveViewLine.Invoke(ViewNumber);
+            OnRemoveViewLine.Invoke(ViewLineNumber);
         }
         #endregion
     }

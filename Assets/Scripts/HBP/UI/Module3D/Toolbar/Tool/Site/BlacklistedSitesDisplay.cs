@@ -19,7 +19,7 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
-                ApplicationState.Module3D.SelectedScene.UpdateBlacklistedSitesState(isOn);
+                ApplicationState.Module3D.SelectedScene.HideBlacklistedSites = isOn;
             });
         }
         public override void DefaultState()

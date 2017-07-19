@@ -77,7 +77,11 @@ namespace HBP.Module3D
 
         public const int MAXIMUM_VIEW_NUMBER = 5;
         public const int MAXIMUM_COLUMN_NUMBER = 5;
-        
+        /// <summary>
+        /// Space between scenes in world space
+        /// </summary>
+        public const int SPACE_BETWEEN_SCENES_AND_COLUMNS = 3000;
+
         /// <summary>
         /// Number of scenes that have been loaded in this instance of HiBoP (to apply a unique ID to each scene)
         /// </summary>

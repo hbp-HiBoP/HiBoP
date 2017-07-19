@@ -256,11 +256,6 @@ namespace HBP.Module3D
             }
         }
 
-        /// <summary>
-        /// Space between scenes in world space
-        /// </summary>
-        protected const int SPACE_BETWEEN_SCENES = 3000;
-
         protected Data.Visualization.Visualization m_VisualizationData;
         protected Data.Visualization.Visualization m_Visualization;
         /// <summary>
@@ -367,6 +362,27 @@ namespace HBP.Module3D
             get
             {
                 return SceneInformation.DisplayCCEPMode;
+            }
+            set
+            {
+                SceneInformation.DisplayCCEPMode = value;
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                m_ModesManager.SetCurrentModeSpecifications(true);
+            }
+        }
+        /// <summary>
+        /// Are the blacklisted sites hidden ?
+        /// </summary>
+        public bool HideBlacklistedSites
+        {
+            get
+            {
+                return SceneInformation.HideBlacklistedSites;
+            }
+            set
+            {
+                SceneInformation.HideBlacklistedSites = value;
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             }
         }
 
@@ -578,16 +594,17 @@ namespace HBP.Module3D
             SetCurrentModeSpecifications();
             UnityEngine.Profiling.Profiler.EndSample();
 
-            if (m_ModesManager.CurrentModeID == Mode.ModesId.NoPathDefined)
-                return;
+            if (m_ModesManager.CurrentModeID == Mode.ModesId.NoPathDefined) return;
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update");
 
             // TEMP : useless
             for (int ii = 0; ii < Cuts.Count; ++ii)
+            {
                 Cuts[ii].RemoveFrontPlane = 0;
+            }
 
-            // check if we must perform new cuts of the brain            
+            // check if we must perform new cuts of the brain
             if (SceneInformation.CutMeshGeometryNeedsUpdate)
             {
                 SceneInformation.IsGeometryUpToDate = false;
@@ -596,16 +613,13 @@ namespace HBP.Module3D
                 UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
                 ComputeMeshesCut();
                 UnityEngine.Profiling.Profiler.EndSample();
+
                 UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_MRI_textures 1");
-
-                // create textures 
                 ComputeMRITextures();
-
-                ComputeFMRITextures(-1, -1);
+                ComputeFMRITextures();
+                UnityEngine.Profiling.Profiler.EndSample();
 
                 SceneInformation.IsGeometryUpToDate = true;
-
-                UnityEngine.Profiling.Profiler.EndSample();
             }
             UnityEngine.Profiling.Profiler.EndSample();
         }
@@ -790,6 +804,10 @@ namespace HBP.Module3D
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
+        /// <summary>
+        /// Compute IEEG textures for a specific column
+        /// </summary>
+        /// <param name="column"></param>
         private void ComputeIEEGTexturesOfColumn(Column3DIEEG column)
         {
             UnityEngine.Profiling.Profiler.BeginSample("compute_IEEG_textures");
@@ -1047,7 +1065,7 @@ namespace HBP.Module3D
             // Update camera
             Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
 
-            ComputeMRITextures(-1, -1);
+            ComputeMRITextures();
 
             Events.OnSendFMRIParameters.Invoke(fmriParams);
             ComputeFMRITextures(-1, -1);
@@ -1073,7 +1091,7 @@ namespace HBP.Module3D
             // Update plots visibility
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
-            ComputeMRITextures(-1, -1);
+            ComputeMRITextures();
             ComputeFMRITextures(-1, -1);
             UpdateGUITextures();
 
@@ -1084,18 +1102,11 @@ namespace HBP.Module3D
         /// </summary>
         private void ClickOnSiteCallback()
         {
-            if (m_ColumnManager.SelectedColumn.SelectedSiteID == -1) return;
-            if (SceneInformation.IsComparingSites)
+            if (m_ColumnManager.SelectedColumn.SelectedSiteID == -1 || SceneInformation.IsComparingSites) return;
+
+            if (((Column3DIEEG)m_ColumnManager.SelectedColumn).SendInformation)
             {
-                SceneInformation.IsComparingSites = false;
-                //SendAdditionalSiteInfoRequest(LAST_SELECTED_SITE); //FIXME : retrieve last selected site
-            }
-            else
-            {
-                if (((Column3DIEEG)m_ColumnManager.SelectedColumn).SendInformation)
-                {
-                    SendAdditionalSiteInfoRequest();
-                }
+                SendAdditionalSiteInfoRequest();
             }
         }
         /// <summary>
@@ -1125,48 +1136,6 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        public void Initialize(Data.Visualization.Visualization visualization)
-        {
-            m_DisplayedObjects = new DisplayedObjects3DView();
-            SceneInformation = new SceneStatesInfo();
-            m_ColumnManager = GetComponent<Column3DManager>();
-
-            m_VisualizationData = visualization;
-            Visualization = m_VisualizationData; // FIXME : replace by the following line when deep copy is implemented
-            //Visualization = visualization.Clone() as Data.Visualization.Visualization;
-            m_ColumnManager.Visualization = Visualization;
-
-            // Init materials
-            SharedMaterials.Brain.AddSceneMaterials(this);
-
-            // set meshes layer
-            switch (Type)
-            {
-                case SceneType.SinglePatient:
-                    SceneInformation.MeshesLayerName = "Default";
-                    break;
-                case SceneType.MultiPatients:
-                    SceneInformation.MeshesLayerName = "Default";
-                    break;
-            }
-
-            // init modes            
-            m_ModesManager = transform.Find("Modes").gameObject.GetComponent<ModesManager>();
-            m_ModesManager.Initialize(this);
-            m_ModesManager.SendModeSpecifications.AddListener((specs) =>
-            {
-                Events.OnSendModeSpecifications.Invoke(specs);
-
-                // update scene visibility (useless)
-                //UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-SendModeSpecifications update_scene_items_visibility");
-                //    update_scene_items_visibility(specs.itemMaskDisplay[0], specs.itemMaskDisplay[1], specs.itemMaskDisplay[2]);
-                //UnityEngine.Profiling.Profiler.EndSample();
-            });
-
-            AddListeners();
-            // init GO
-            InitializeSceneGameObjects();
-        }
 
         #region Display
         /// <summary>
@@ -1502,20 +1471,181 @@ namespace HBP.Module3D
         }
         #endregion
 
+        #region Triangle Erasing
         /// <summary>
-        /// Reset the gameobjects of the scene
+        /// Reset invisible brain and triangle eraser
         /// </summary>
-        public void ResetSceneGameObjects()
+        /// <param name="updateGO"></param>
+        public void ResetTriangleErasing(bool updateGO = true)
         {
-            // destroy meshes
+            // destroy previous GO
+            if (m_DisplayedObjects.InvisibleBrainSurfaceMeshes != null)
+                for (int ii = 0; ii < m_DisplayedObjects.InvisibleBrainSurfaceMeshes.Count; ++ii)
+                    Destroy(m_DisplayedObjects.InvisibleBrainSurfaceMeshes[ii]);
+
+            // create new GO
+            m_DisplayedObjects.InvisibleBrainSurfaceMeshes = new List<GameObject>(m_DisplayedObjects.BrainSurfaceMeshes.Count);
             for (int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
             {
-                Destroy(m_DisplayedObjects.BrainSurfaceMeshes[ii]);
+                GameObject invisibleBrainPart = Instantiate(m_InvisibleBrainPrefab);
+                invisibleBrainPart.name = "erased brain part " + ii;
+                invisibleBrainPart.transform.SetParent(transform.Find("Meshes").Find("Erased Brains"));
+                invisibleBrainPart.layer = LayerMask.NameToLayer("Default");
+                invisibleBrainPart.AddComponent<MeshFilter>();
+                invisibleBrainPart.transform.localScale = new Vector3(-1, 1, 1);
+                invisibleBrainPart.transform.localPosition = new Vector3(0, 0, 0);
+                invisibleBrainPart.SetActive(m_TriEraser.IsEnabled);
+                m_DisplayedObjects.InvisibleBrainSurfaceMeshes.Add(invisibleBrainPart);
             }
-            for (int ii = 0; ii < m_DisplayedObjects.BrainCutMeshes.Count; ++ii)
+
+            m_TriEraser.Reset(m_DisplayedObjects.InvisibleBrainSurfaceMeshes, m_ColumnManager.DLLCutsList[0], m_ColumnManager.DLLSplittedMeshesList);
+
+            if (updateGO)
+                for (int ii = 0; ii < m_ColumnManager.DLLSplittedMeshesList.Count; ++ii)
+                    m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+        }
+        /// <summary>
+        /// CTRL+Z on triangle eraser
+        /// </summary>
+        public void CancelLastTriangleErasingAction()
+        {
+            m_TriEraser.CancelLastAction();
+            for (int ii = 0; ii < m_ColumnManager.DLLSplittedMeshesList.Count; ++ii)
+                m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+        }
+        #endregion
+
+        #region FMRI
+        /// <summary>
+        /// Update the cal min value of the input FMRI column
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="columnId"> id of the FMRI columns</param>
+        public void UpdateFMRICalMin(float value, int columnId)
+        {
+            m_ColumnManager.ColumnsFMRI[columnId].CalMin = value;
+            ComputeFMRITextures(-1, -1);
+        }
+        /// <summary>
+        /// Update the cal max value of the input FMRI column
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="columnId"> id of the FMRI columns</param>
+        public void UpdateFMRICalMax(float value, int columnId)
+        {
+            m_ColumnManager.ColumnsFMRI[columnId].CalMax = value;
+            ComputeFMRITextures(-1, -1);
+        }
+        /// <summary>
+        /// Update the alpha value of the input FMRI column
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="columnId"> id of the FMRI columns</param>
+        public void UpdateFMRIAlpha(float value, int columnId)
+        {
+            m_ColumnManager.ColumnsFMRI[columnId].Alpha = value;
+            ComputeFMRITextures(-1, -1);
+        }
+        /// <summary>
+        /// Add a FMRI column to this scene
+        /// </summary>
+        /// <returns></returns>
+        public bool AddFMRIColumn()
+        {
+            string fMRIPath;
+            if (!LoadFMRIDialog(out fMRIPath)) return false;
+
+            string[] split = fMRIPath.Split(new Char[] { '/', '\\' });
+            string fMRILabel = split[split.Length - 1];
+
+            bool result = LoadFMRIColumn(fMRILabel);
+            if (!result)
             {
-                m_DisplayedObjects.BrainCutMeshes[ii].SetActive(false);
+                Debug.LogError("-ERROR : ScenesManager::addIRMF -> can't add IRMF column");
             }
+            else
+            {
+                Events.OnAddFMRIColumn.Invoke();
+            }
+            return result;
+        }
+        /// <summary>
+        /// Remove the last FMRI column from this scene
+        /// </summary>
+        public void RemoveLastFMRIColumn()
+        {
+            if (m_ColumnManager.ColumnsFMRI.Count > 0)
+            {
+                UnloadLastFMRIColumn();
+                Events.OnRemoveFMRIColumn.Invoke();
+            }
+        }
+        /// <summary>
+        /// Send FMRI parameters to menu via event
+        /// </summary>
+        public void SendFMRIParametersToMenu() // TODO / FIXME
+        {
+            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
+            {
+                FMRIDataParameters FMRIDataParams;
+                FMRIDataParams.alpha = m_ColumnManager.ColumnsFMRI[ii].Alpha;
+                FMRIDataParams.calMin = m_ColumnManager.ColumnsFMRI[ii].CalMin;
+                FMRIDataParams.calMax = m_ColumnManager.ColumnsFMRI[ii].CalMax;
+                FMRIDataParams.columnId = ii;
+
+                FMRIDataParams.calValues = m_ColumnManager.DLLVolumeFMriList[ii].ExtremeValues;
+                FMRIDataParams.singlePatient = Type == SceneType.SinglePatient;
+
+                Events.OnSendFMRIParameters.Invoke(FMRIDataParams);
+            }
+        }
+        #endregion
+
+        /// <summary>
+        /// Initialize the scene with the corresponding visualization
+        /// </summary>
+        /// <param name="visualization"></param>
+        public void Initialize(Data.Visualization.Visualization visualization)
+        {
+            m_DisplayedObjects = new DisplayedObjects3DView();
+            SceneInformation = new SceneStatesInfo();
+            m_ColumnManager = GetComponent<Column3DManager>();
+
+            m_VisualizationData = visualization;
+            Visualization = m_VisualizationData; // FIXME : replace by the following line when deep copy is implemented
+            //Visualization = visualization.Clone() as Data.Visualization.Visualization;
+            m_ColumnManager.Visualization = Visualization;
+
+            // Init materials
+            SharedMaterials.Brain.AddSceneMaterials(this);
+
+            // set meshes layer
+            switch (Type)
+            {
+                case SceneType.SinglePatient:
+                    SceneInformation.MeshesLayerName = "Default";
+                    break;
+                case SceneType.MultiPatients:
+                    SceneInformation.MeshesLayerName = "Default";
+                    break;
+            }
+
+            // init modes            
+            m_ModesManager = transform.Find("Modes").gameObject.GetComponent<ModesManager>();
+            m_ModesManager.Initialize(this);
+            m_ModesManager.SendModeSpecifications.AddListener((specs) =>
+            {
+                Events.OnSendModeSpecifications.Invoke(specs);
+
+                // update scene visibility (useless)
+                //UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-SendModeSpecifications update_scene_items_visibility");
+                //    update_scene_items_visibility(specs.itemMaskDisplay[0], specs.itemMaskDisplay[1], specs.itemMaskDisplay[2]);
+                //UnityEngine.Profiling.Profiler.EndSample();
+            });
+
+            AddListeners();
+            // init GO
+            InitializeSceneGameObjects();
         }
         /// <summary>
         /// Reset the number of splits of the brain mesh
@@ -1735,6 +1865,9 @@ namespace HBP.Module3D
             // Update Mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMaskPlot);
         }
+        /// <summary>
+        /// Set up the scene to display it properly (and load configurations)
+        /// </summary>
         public void FinalizeInitialization()
         {
             m_ColumnManager.Columns[0].Views[0].IsSelected = true;
@@ -1829,7 +1962,7 @@ namespace HBP.Module3D
                     UnityEngine.Profiling.Profiler.EndSample();
                 }
             }
-            
+
             UnityEngine.Profiling.Profiler.EndSample();
             //column.IsRenderingUpToDate = true; // FIXME : uncomment this when updating to multiple meshes
             return true;
@@ -1867,153 +2000,6 @@ namespace HBP.Module3D
 
             SceneInformation.IsGeneratorUpToDate = false;
             this.StartCoroutineAsync(c_ComputeGenerators());
-        }
-        /// <summary>
-        /// Update the displayed amplitudes on the brain and the cuts with the slider position.
-        /// </summary>
-        /// <param name="columnID"></param>
-        /// <param name="slider"></param>
-        /// <param name="globalTimeline"> if globaltime is true, update all columns with the same slider, else udapte only current selected column </param>
-        public void UpdateIEEGTimeline(int value, bool global)
-        {
-            if (global)
-            {
-                foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
-                {
-                    column.CurrentTimeLineID = value;
-                }
-            }
-            else
-            {
-                ((Column3DIEEG)m_ColumnManager.SelectedColumn).CurrentTimeLineID = value;
-            }
-
-            ComputeIEEGTextures();
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-        }
-        /// <summary>
-        /// Reset invisible brain and triangle eraser
-        /// </summary>
-        /// <param name="updateGO"></param>
-        public void ResetTriangleErasing(bool updateGO = true)
-        {
-            // destroy previous GO
-            if (m_DisplayedObjects.InvisibleBrainSurfaceMeshes != null)
-                for (int ii = 0; ii < m_DisplayedObjects.InvisibleBrainSurfaceMeshes.Count; ++ii)
-                    Destroy(m_DisplayedObjects.InvisibleBrainSurfaceMeshes[ii]);
-
-            // create new GO
-            m_DisplayedObjects.InvisibleBrainSurfaceMeshes = new List<GameObject>(m_DisplayedObjects.BrainSurfaceMeshes.Count);
-            for (int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
-            {
-                GameObject invisibleBrainPart = Instantiate(m_InvisibleBrainPrefab);
-                invisibleBrainPart.name = "erased brain part " + ii;
-                invisibleBrainPart.transform.SetParent(transform.Find("Meshes").Find("Erased Brains"));
-                invisibleBrainPart.layer = LayerMask.NameToLayer("Default");
-                invisibleBrainPart.AddComponent<MeshFilter>();
-                invisibleBrainPart.transform.localScale = new Vector3(-1, 1, 1);
-                invisibleBrainPart.transform.localPosition = new Vector3(0, 0, 0);
-                invisibleBrainPart.SetActive(m_TriEraser.IsEnabled);
-                m_DisplayedObjects.InvisibleBrainSurfaceMeshes.Add(invisibleBrainPart);
-            }
-
-            m_TriEraser.Reset(m_DisplayedObjects.InvisibleBrainSurfaceMeshes, m_ColumnManager.DLLCutsList[0], m_ColumnManager.DLLSplittedMeshesList);
-
-            if(updateGO)
-                for (int ii = 0; ii < m_ColumnManager.DLLSplittedMeshesList.Count; ++ii)
-                    m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
-        }
-        /// <summary>
-        /// CTRL+Z on triangle eraser
-        /// </summary>
-        public void CancelLastTriangleErasingAction()
-        {
-            m_TriEraser.CancelLastAction();
-            for (int ii = 0; ii < m_ColumnManager.DLLSplittedMeshesList.Count; ++ii)
-                m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
-        }
-        /// <summary>
-        /// Update the cal min value of the input FMRI column
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="columnId"> id of the FMRI columns</param>
-        public void UpdateFMRICalMin(float value, int columnId)
-        {
-            m_ColumnManager.ColumnsFMRI[columnId].CalMin = value;
-            ComputeFMRITextures(-1, -1);
-        }
-        /// <summary>
-        /// Update the cal max value of the input FMRI column
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="columnId"> id of the FMRI columns</param>
-        public void UpdateFMRICalMax(float value, int columnId)
-        {
-            m_ColumnManager.ColumnsFMRI[columnId].CalMax = value;
-            ComputeFMRITextures(-1, -1);
-        }
-        /// <summary>
-        /// Update the alpha value of the input FMRI column
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="columnId"> id of the FMRI columns</param>
-        public void UpdateFMRIAlpha(float value, int columnId)
-        {
-            m_ColumnManager.ColumnsFMRI[columnId].Alpha = value;
-            ComputeFMRITextures(-1, -1);
-        }
-        /// <summary>
-        /// Add a FMRI column to this scene
-        /// </summary>
-        /// <returns></returns>
-        public bool AddFMRIColumn()
-        {
-            string fMRIPath;
-            if (!LoadFMRIDialog(out fMRIPath)) return false;
-
-            string[] split = fMRIPath.Split(new Char[] { '/', '\\' });
-            string fMRILabel = split[split.Length - 1];
-
-            bool result = LoadFMRIColumn(fMRILabel);
-            if (!result)
-            {
-                Debug.LogError("-ERROR : ScenesManager::addIRMF -> can't add IRMF column");
-            }
-            else
-            {
-                Events.OnAddFMRIColumn.Invoke();
-            }
-            return result;
-        }
-        /// <summary>
-        /// Remove the last FMRI column from this scene
-        /// </summary>
-        public void RemoveLastFMRIColumn()
-        {
-            if (m_ColumnManager.ColumnsFMRI.Count > 0)
-            {
-                UnloadLastFMRIColumn();
-                Events.OnRemoveFMRIColumn.Invoke();
-            }
-        }
-        /// <summary>
-        /// Send FMRI parameters to menu via event
-        /// </summary>
-        public void SendFMRIParametersToMenu() // TODO / FIXME
-        {
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-            {
-                FMRIDataParameters FMRIDataParams;
-                FMRIDataParams.alpha = m_ColumnManager.ColumnsFMRI[ii].Alpha;
-                FMRIDataParams.calMin = m_ColumnManager.ColumnsFMRI[ii].CalMin;
-                FMRIDataParams.calMax = m_ColumnManager.ColumnsFMRI[ii].CalMax;
-                FMRIDataParams.columnId = ii;
-
-                FMRIDataParams.calValues = m_ColumnManager.DLLVolumeFMriList[ii].ExtremeValues; 
-                FMRIDataParams.singlePatient = Type == SceneType.SinglePatient;
-
-                Events.OnSendFMRIParameters.Invoke(FMRIDataParams);
-            }
         }
         /// <summary>
         /// Send an event for displaying a message on the scene screen
@@ -2055,14 +2041,6 @@ namespace HBP.Module3D
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             ApplicationState.Module3D.OnSelectSite.Invoke(null);
             Events.OnClickSite.Invoke(-1); // update menu
-        }
-        /// <summary>
-        /// Show / hide blacklisted sites
-        /// </summary>
-        public void UpdateBlacklistedSitesState(bool hideBlacklistedSites)
-        {
-            SceneInformation.HideBlacklistedSites = hideBlacklistedSites;
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
         }
         /// <summary>
         /// 

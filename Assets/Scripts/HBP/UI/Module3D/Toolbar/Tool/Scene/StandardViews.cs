@@ -24,11 +24,11 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
-                while (selectedScene.ColumnManager.ViewNumber > 3)
+                while (selectedScene.ColumnManager.ViewLineNumber > 3)
                 {
-                    selectedScene.ColumnManager.RemoveViewLine(selectedScene.ColumnManager.ViewNumber - 1);
+                    selectedScene.ColumnManager.RemoveViewLine(selectedScene.ColumnManager.ViewLineNumber - 1);
                 }
-                while (selectedScene.ColumnManager.ViewNumber < 3)
+                while (selectedScene.ColumnManager.ViewLineNumber < 3)
                 {
                     selectedScene.ColumnManager.AddViewLine();
                 }

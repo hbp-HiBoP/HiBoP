@@ -197,55 +197,6 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
-        /// Set the current plot to be selected in all the columns
-        /// </summary>
-        /// <param name="selectedSiteID"></param>
-        public void SelectSite(int selectedSiteID)
-        {
-            OnUpdateLatencies.Invoke(CCEPLabels);
-
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-            {
-                m_ColumnManager.ColumnsIEEG[ii].SelectedSiteID = selectedSiteID;
-                Events.OnClickSite.Invoke(ii);
-            }
-        }
-        /// <summary>
-        /// Update the columns masks of the scene
-        /// </summary>
-        /// <param name="blacklistMasks"></param>
-        /// <param name="excludedMasks"></param>
-        public void SetColumnSiteMask(List<List<bool>> blacklistMasks, List<List<bool>> excludedMasks, List<List<bool>> hightLightedMasks)
-        {
-            for(int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-            {
-                for (int jj = 0; jj < m_ColumnManager.SitesList.Count; ++jj)
-                {
-                    m_ColumnManager.ColumnsIEEG[ii].Sites[jj].Information.IsBlackListed = blacklistMasks[ii][jj];
-                    m_ColumnManager.ColumnsIEEG[ii].Sites[jj].Information.IsExcluded = excludedMasks[ii][jj];
-                    m_ColumnManager.ColumnsIEEG[ii].Sites[jj].Information.IsHighlighted = hightLightedMasks[ii][jj];
-                }
-            }
-
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-        }
-        /// <summary>
-        /// Update the display mode of the scene
-        /// </summary>
-        /// <param name="isCeepMode"></param>
-        public void SetCCEPDisplayMode(bool isCeepMode)
-        {
-            DisplayScreenMessage(isCeepMode ? "CCEP mode enabled" : "iEEG mode enabled", 1.5f, 150, 30);
-
-            SceneInformation.DisplayCCEPMode = isCeepMode;
-            //UpdateCutsInUI.Invoke(m_CM.getBrainCutTextureList(m_CM.idSelectedColumn, true, data_.generatorUpToDate, data_.displayLatenciesMode), m_CM.idSelectedColumn, m_CM.planesList.Count);
-
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
-            // force mode to update UI
-            m_ModesManager.SetCurrentModeSpecifications(true);
-        }
-        /// <summary>
         /// Define the current plot as the source
         /// </summary>
         public void SetCurrentSiteAsSource()
@@ -356,7 +307,7 @@ namespace HBP.Module3D
             
             int sceneID = ApplicationState.Module3D.NumberOfScenesLoadedSinceStart;
             gameObject.name = "SinglePatient Scene (" + sceneID + ")";
-            transform.position = new Vector3(SPACE_BETWEEN_SCENES * sceneID, transform.position.y, transform.position.z);
+            transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * sceneID, transform.position.y, transform.position.z);
 
             List<string> ptsFiles = new List<string>(), namePatients = new List<string>();
             ptsFiles.Add(Patient.Brain.PatientBasedImplantation);
@@ -395,8 +346,7 @@ namespace HBP.Module3D
             progress += SETTING_TIMELINE_PROGRESS;
             onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetTimelineData());
-
-            SelectSite(-1);
+            
             UpdateMeshesColliders();
             Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
         }

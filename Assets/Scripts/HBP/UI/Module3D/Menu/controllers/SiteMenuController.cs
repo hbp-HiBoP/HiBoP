@@ -304,6 +304,7 @@ namespace HBP.UI.Module3D
 
             // update selected patient
             bool patientComplete = true;
+            /*
             if (m_scene.ColumnManager.SelectedPatientID != -1)
             {
                 m_idPatientToLoad = m_scene.ColumnManager.SelectedPatientID;
@@ -314,7 +315,7 @@ namespace HBP.UI.Module3D
                     patientComplete = (patient.Brain.PreoperativeMRI.Length > 0) && (patient.Brain.RightCerebralHemisphereMesh.Length > 0) && (patient.Brain.LeftCerebralHemisphereMesh.Length > 0);
                 }
             }
-
+            */
             UpdateLastSelectedSite.Invoke(m_lastSiteSelected);
 
             Transform panel = transform.Find("panel");

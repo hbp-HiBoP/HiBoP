@@ -154,7 +154,7 @@ namespace HBP.UI.Module3D
             {
                 if (m_ChangeSceneLock) return;
 
-                ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.RemoveViewLine(ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.ViewNumber - 1);
+                ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.RemoveViewLine(ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.ViewLineNumber - 1);
                 UpdateInteractableButtons();
             });
             // fMRI.
@@ -284,8 +284,8 @@ namespace HBP.UI.Module3D
         /// </summary>
         void UpdateInteractableButtons()
         {
-            bool canAddView = ApplicationState.Module3D.SelectedScene.ColumnManager.ViewNumber < HBP3DModule.MAXIMUM_VIEW_NUMBER;
-            bool canRemoveView = ApplicationState.Module3D.SelectedScene.ColumnManager.ViewNumber > 1;
+            bool canAddView = ApplicationState.Module3D.SelectedScene.ColumnManager.ViewLineNumber < HBP3DModule.MAXIMUM_VIEW_NUMBER;
+            bool canRemoveView = ApplicationState.Module3D.SelectedScene.ColumnManager.ViewLineNumber > 1;
             bool canAddfMRI = ApplicationState.Module3D.SelectedScene.ColumnManager.Columns.Count < HBP3DModule.MAXIMUM_COLUMN_NUMBER;
             bool canRemoveFMRI = (ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsFMRI.Count > 0);
             bool canUseMarsAtlas = ApplicationState.Module3D.SelectedScene.SceneInformation.WhiteMeshesAvailables && ApplicationState.Module3D.SelectedScene.SceneInformation.MarsAtlasParcelsLoaded;

@@ -316,23 +316,6 @@ namespace HBP.Module3D
             */
         }
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="coeff"></param>
-        private void ChangeRegionOfInterestSize(float coeff)
-        {
-            int idC = m_ColumnManager.SelectedColumnID;
-            if (SceneInformation.IsROICreationModeEnabled) // ROI : change ROI size
-            {
-                ROI ROI = m_ColumnManager.Columns[idC].SelectedROI;
-                if (ROI != null)
-                {
-                    ChangeSizeBubbleEvent.Invoke(idC, ROI.SelectedBubbleID, (coeff < 0 ? 0.9f : 1.1f));
-                    m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-                }
-            }
-        }
-        /// <summary>
         /// Send additionnal site info to hight level UI
         /// </summary>
         public override void SendAdditionalSiteInfoRequest(Site previousPlot = null) // TODO deporter dans c manager
@@ -486,7 +469,7 @@ namespace HBP.Module3D
             
             int sceneID = ApplicationState.Module3D.NumberOfScenesLoadedSinceStart;
             gameObject.name = "MultiPatients Scene (" + sceneID + ")";
-            transform.position = new Vector3(SPACE_BETWEEN_SCENES * sceneID, transform.position.y, transform.position.z);
+            transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * sceneID, transform.position.y, transform.position.z);
 
             progress += LOADING_MESHES_PROGRESS;
             onChangeProgress.Invoke(progress, 0.05f, "Loading meshes");
