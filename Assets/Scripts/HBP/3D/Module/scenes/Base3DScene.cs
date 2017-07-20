@@ -675,7 +675,7 @@ namespace HBP.Module3D
                 
                 m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMiddle);
             });
-            m_ColumnManager.OnUpdateIEEGSpan.AddListener(() =>
+            m_ColumnManager.OnUpdateIEEGSpan.AddListener((column) =>
             {
                 if (!SceneInformation.IsGeometryUpToDate) return;
 
@@ -686,16 +686,16 @@ namespace HBP.Module3D
                 
                 m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMiddle);
             });
-            m_ColumnManager.OnUpdateIEEGAlpha.AddListener(() =>
+            m_ColumnManager.OnUpdateIEEGAlpha.AddListener((column) =>
             {
                 if (SceneInformation.IsGeometryUpToDate && !SceneInformation.IsIEEGOutdated)
-                    ComputeIEEGTextures(-1, -1, true, true, false);
+                    ComputeIEEGTexturesOfColumn(column);
             });
-            m_ColumnManager.OnUpdateIEEGGain.AddListener(() =>
+            m_ColumnManager.OnUpdateIEEGGain.AddListener((column) =>
             {
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             });
-            m_ColumnManager.OnUpdateIEEGMaximumInfluence.AddListener(() =>
+            m_ColumnManager.OnUpdateIEEGMaximumInfluence.AddListener((column) =>
             {
                 SceneInformation.IsGeneratorUpToDate = false;
                 SceneInformation.IsIEEGOutdated = true;
@@ -715,6 +715,7 @@ namespace HBP.Module3D
                     foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
                     {
                         column.IsLooping = false;
+                        column.IsRenderingUpToDate = false;
                     }
                 }
             });
@@ -790,8 +791,6 @@ namespace HBP.Module3D
                     currCol.UpdateSitesSizeAndColorForIEEG();
                     currCol.UpdateSitesRendering(SceneInformation, null);
                 }
-
-                ColumnManager.Columns[columnsIndexes[ii]].IsRenderingUpToDate = false;
             }
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("TEST-compute_IEEG_textures 1 compute_GUI_textures");
@@ -823,8 +822,6 @@ namespace HBP.Module3D
 
             column.UpdateSitesSizeAndColorForIEEG();
             column.UpdateSitesRendering(SceneInformation, null);
-
-            column.IsRenderingUpToDate = false;
 
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -1492,7 +1489,7 @@ namespace HBP.Module3D
                 GameObject invisibleBrainPart = Instantiate(m_InvisibleBrainPrefab);
                 invisibleBrainPart.name = "erased brain part " + ii;
                 invisibleBrainPart.transform.SetParent(m_DisplayedObjects.InvisibleBrainMeshesParent.transform);
-                invisibleBrainPart.layer = LayerMask.NameToLayer("Meshes");
+                invisibleBrainPart.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
                 invisibleBrainPart.AddComponent<MeshFilter>();
                 invisibleBrainPart.transform.localScale = new Vector3(-1, 1, 1);
                 invisibleBrainPart.transform.localPosition = new Vector3(0, 0, 0);
@@ -1622,7 +1619,8 @@ namespace HBP.Module3D
             SharedMaterials.Brain.AddSceneMaterials(this);
 
             // set meshes layer
-            SceneInformation.MeshesLayerName = "Meshes";
+            SceneInformation.MeshesLayerName = "Default";
+            SceneInformation.HiddenMeshesLayerName = "Hidden Meshes";
 
             // init modes            
             m_ModesManager = transform.Find("Modes").gameObject.GetComponent<ModesManager>();
@@ -1664,7 +1662,7 @@ namespace HBP.Module3D
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].name = "brain_" + ii;
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.parent = m_DisplayedObjects.BrainSurfaceMeshesParent.transform;
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.localPosition = Vector3.zero;
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
+                m_DisplayedObjects.BrainSurfaceMeshes[ii].layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].AddComponent<MeshCollider>();
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].SetActive(true);
             }
@@ -1890,12 +1888,10 @@ namespace HBP.Module3D
         /// <returns></returns>
         public bool UpdateColumnRendering(Column3D column)
         {
-            if (!SceneInformation.IsGeometryUpToDate || column.IsRenderingUpToDate)
+            if (!SceneInformation.IsGeometryUpToDate)
                 return false;
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender");
-
-            // TODO : un mesh pour chaque column
 
             // update cuts textures
             if ((SceneInformation.MeshTypeToDisplay != SceneStatesInfo.MeshType.Inflated))
@@ -1926,39 +1922,26 @@ namespace HBP.Module3D
                     }
                 }
             }
-
-            // update meshes splits UV
-            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
+            
+            if (!column.IsRenderingUpToDate)
             {
-                // uv 1 (main)
-                //go_.brainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv = m_CM.UVCoordinatesSplits[ii];
-
-                if (column.Type == Column3D.ColumnType.FMRI || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
+                for (int i = 0; i < column.BrainSurfaceMeshes.Count; i++)
                 {
-                    // uv 2 (alpha) 
-                    UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-UV2-Alpha");
-                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv2 = m_ColumnManager.UVNull[ii];
-                    UnityEngine.Profiling.Profiler.EndSample();
-                    // uv 3 (color map)
-                    UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-UV3-EEG");
-                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv3 = m_ColumnManager.UVNull[ii];
-                    UnityEngine.Profiling.Profiler.EndSample();
-                }
-                else
-                {
-                    // uv 2 (alpha)
-                    UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-UV2-Alpha");
-                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DIEEG)column).DLLBrainTextureGenerators[ii].AlphaUV;
-                    UnityEngine.Profiling.Profiler.EndSample();
-                    // uv 3 (color map)
-                    UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-UV3-EEG");
-                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DIEEG)column).DLLBrainTextureGenerators[ii].IEEGUV;
-                    UnityEngine.Profiling.Profiler.EndSample();
+                    if (column.Type == Column3D.ColumnType.FMRI || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
+                    {
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = m_ColumnManager.UVNull[i];
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = m_ColumnManager.UVNull[i];
+                    }
+                    else
+                    {
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = ((Column3DIEEG)column).DLLBrainTextureGenerators[i].AlphaUV;
+                        column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = ((Column3DIEEG)column).DLLBrainTextureGenerators[i].IEEGUV;
+                    }
                 }
             }
-
+            
             UnityEngine.Profiling.Profiler.EndSample();
-            //column.IsRenderingUpToDate = true; // FIXME : uncomment this when updating to multiple meshes
+            column.IsRenderingUpToDate = true;
             return true;
         }
         /// <summary>
@@ -2078,7 +2061,8 @@ namespace HBP.Module3D
 
             int layerMask = 0;
             layerMask |= 1 << LayerMask.NameToLayer(column.Layer);
-            layerMask |= 1 << LayerMask.NameToLayer("Default");
+            layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
+            layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
 
             RaycastHit hit;
             bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
@@ -2165,7 +2149,8 @@ namespace HBP.Module3D
 
             int layerMask = 0;
             layerMask |= 1 << LayerMask.NameToLayer(m_ColumnManager.SelectedColumn.Layer);
-            layerMask |= 1 << LayerMask.NameToLayer("Default");
+            layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
+            layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
 
             RaycastHit hit;
             bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);

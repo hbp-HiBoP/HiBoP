@@ -74,6 +74,7 @@ namespace HBP.Module3D
  
         // others                
         public string MeshesLayerName; /**< layer name of all the meshes of the scene */
+        public string HiddenMeshesLayerName;
         public bool HideBlacklistedSites = false;
 
         // work     

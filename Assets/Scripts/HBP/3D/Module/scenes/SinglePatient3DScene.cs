@@ -347,7 +347,7 @@ namespace HBP.Module3D
             onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetTimelineData());
 
-            m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.MeshesParent);
+            m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
             UpdateMeshesColliders();
             Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
         }

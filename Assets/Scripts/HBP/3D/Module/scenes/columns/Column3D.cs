@@ -62,12 +62,34 @@ namespace HBP.Module3D
             }
         }
 
+        private bool m_IsRenderingUpToDate = false;
         /// <summary>
         /// Does the column rendering need to be updated ?
         /// </summary>
-        public bool IsRenderingUpToDate { get; set; }
+        public bool IsRenderingUpToDate
+        {
+            get
+            {
+                return m_IsRenderingUpToDate;
+            }
+            set
+            {
+                m_IsRenderingUpToDate = value;
+            }
+        }
 
-        private Transform m_CutsParent;
+        [SerializeField]
+        private Transform m_BrainSurfaceMeshesParent;
+        [SerializeField]
+        private GameObject m_BrainPrefab;
+        private List<GameObject> m_BrainSurfaceMeshes = new List<GameObject>();
+        public List<GameObject> BrainSurfaceMeshes
+        {
+            get
+            {
+                return m_BrainSurfaceMeshes;
+            }
+        }
 
         public GameObject ViewPrefab;
         protected List<View3D> m_Views = new List<View3D>();
@@ -286,19 +308,29 @@ namespace HBP.Module3D
             // update rendering
             IsRenderingUpToDate = false;
         }
-        public void InitializeColumnMeshes(GameObject sceneMeshes)
+        public void InitializeColumnMeshes(GameObject brainMeshes)
         {
-            GameObject meshes = Instantiate(sceneMeshes, transform);
-            meshes.transform.localPosition = sceneMeshes.transform.localPosition;
-            meshes.name = sceneMeshes.name;
-            foreach (Transform parent in meshes.transform)
+            /*
+            BrainSurfaceMeshes = new List<GameObject>();
+            foreach (Transform meshPart in brainMeshes.transform)
             {
-                foreach (Transform mesh in parent)
-                {
-                    mesh.gameObject.layer = LayerMask.NameToLayer(Layer);
-                }
+                GameObject brainPart = Instantiate(m_BrainPrefab, m_BrainSurfaceMeshesParent);
+                brainPart.GetComponent<Renderer>().sharedMaterial = meshPart.GetComponent<Renderer>().sharedMaterial;
+                brainPart.name = meshPart.name;
+                brainPart.transform.localPosition = Vector3.zero;
+                brainPart.layer = LayerMask.NameToLayer(Layer);
+                brainPart.GetComponent<MeshFilter>().sharedMesh = meshPart.GetComponent<MeshFilter>().sharedMesh;
+                brainPart.SetActive(true);
+                BrainSurfaceMeshes.Add(brainPart);
             }
-            m_CutsParent = meshes.transform.Find("Cuts");
+            */
+            GameObject aaa = Instantiate(brainMeshes);
+            m_BrainSurfaceMeshes = new List<GameObject>();
+            foreach (Transform tr in aaa.transform)
+            {
+                tr.gameObject.layer = LayerMask.NameToLayer(Layer);
+                BrainSurfaceMeshes.Add(tr.gameObject);
+            }
         }
         /// <summary>
         ///  Clean all allocated data

@@ -245,10 +245,10 @@ namespace HBP.Module3D
         public Texture2D BrainColorMapTexture = null;
         public Texture2D BrainColorTexture = null;
 
-        public UnityEvent OnUpdateIEEGSpan = new UnityEvent();
-        public UnityEvent OnUpdateIEEGAlpha = new UnityEvent();
-        public UnityEvent OnUpdateIEEGGain = new UnityEvent();
-        public UnityEvent OnUpdateIEEGMaximumInfluence = new UnityEvent();
+        public GenericEvent<Column3DIEEG> OnUpdateIEEGSpan = new GenericEvent<Column3DIEEG>();
+        public GenericEvent<Column3DIEEG> OnUpdateIEEGAlpha = new GenericEvent<Column3DIEEG>();
+        public GenericEvent<Column3DIEEG> OnUpdateIEEGGain = new GenericEvent<Column3DIEEG>();
+        public GenericEvent<Column3DIEEG> OnUpdateIEEGMaximumInfluence = new GenericEvent<Column3DIEEG>();
         public GenericEvent<Column3DIEEG> OnUpdateColumnTimelineID = new GenericEvent<Column3DIEEG>();
 
         // Column 3D Prefabs
@@ -292,30 +292,31 @@ namespace HBP.Module3D
             });
             column.IEEGParameters.OnUpdateSpanValues.AddListener(() =>
             {
-                OnUpdateIEEGSpan.Invoke();
+                OnUpdateIEEGSpan.Invoke(column);
                 column.IsRenderingUpToDate = false;
             });
             column.IEEGParameters.OnUpdateAlphaValues.AddListener(() =>
             {
-                OnUpdateIEEGAlpha.Invoke();
+                OnUpdateIEEGAlpha.Invoke(column);
                 column.IsRenderingUpToDate = false;
             });
             column.IEEGParameters.OnUpdateGain.AddListener(() =>
             {
-                OnUpdateIEEGGain.Invoke();
+                OnUpdateIEEGGain.Invoke(column);
                 column.IsRenderingUpToDate = false;
             });
             column.IEEGParameters.OnUpdateMaximumInfluence.AddListener(() =>
             {
-                OnUpdateIEEGMaximumInfluence.Invoke();
+                OnUpdateIEEGMaximumInfluence.Invoke(column);
                 column.IsRenderingUpToDate = false;
             });
             column.OnUpdateCurrentTimelineID.AddListener(() =>
             {
                 OnUpdateColumnTimelineID.Invoke(column);
+                column.IsRenderingUpToDate = false;
             });
             m_Columns.Add(column);
-            column.transform.localPosition = new Vector3(0, HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * m_Columns.Count);
+            //column.transform.localPosition = new Vector3(0, HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * m_Columns.Count);
             OnAddColumn.Invoke();
         }
         /// <summary>
