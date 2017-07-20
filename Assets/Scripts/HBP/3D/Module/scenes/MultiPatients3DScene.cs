@@ -190,8 +190,7 @@ namespace HBP.Module3D
             ResetTriangleErasing(false);
 
             // update cut brain mesh object mesh filter
-            for (int ii = 0; ii < m_ColumnManager.DLLSplittedMeshesList.Count; ++ii)
-                m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+            UpdateMeshesFromDLL();
 
             // update cuts generators
             for (int ii = 0; ii < Cuts.Count; ++ii)

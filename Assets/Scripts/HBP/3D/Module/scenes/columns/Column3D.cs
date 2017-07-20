@@ -310,8 +310,7 @@ namespace HBP.Module3D
         }
         public void InitializeColumnMeshes(GameObject brainMeshes)
         {
-            /*
-            BrainSurfaceMeshes = new List<GameObject>();
+            m_BrainSurfaceMeshes = new List<GameObject>();
             foreach (Transform meshPart in brainMeshes.transform)
             {
                 GameObject brainPart = Instantiate(m_BrainPrefab, m_BrainSurfaceMeshesParent);
@@ -319,17 +318,16 @@ namespace HBP.Module3D
                 brainPart.name = meshPart.name;
                 brainPart.transform.localPosition = Vector3.zero;
                 brainPart.layer = LayerMask.NameToLayer(Layer);
-                brainPart.GetComponent<MeshFilter>().sharedMesh = meshPart.GetComponent<MeshFilter>().sharedMesh;
+                brainPart.GetComponent<MeshFilter>().mesh = meshPart.GetComponent<MeshFilter>().mesh;
                 brainPart.SetActive(true);
                 BrainSurfaceMeshes.Add(brainPart);
             }
-            */
-            GameObject aaa = Instantiate(brainMeshes);
-            m_BrainSurfaceMeshes = new List<GameObject>();
-            foreach (Transform tr in aaa.transform)
+        }
+        public void UpdateColumnMeshes(List<GameObject> brainMeshes)
+        {
+            for (int i = 0; i < brainMeshes.Count; i++)
             {
-                tr.gameObject.layer = LayerMask.NameToLayer(Layer);
-                BrainSurfaceMeshes.Add(tr.gameObject);
+                m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh = brainMeshes[i].GetComponent<MeshFilter>().mesh;
             }
         }
         /// <summary>

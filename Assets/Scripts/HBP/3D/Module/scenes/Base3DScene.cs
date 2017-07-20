@@ -441,8 +441,7 @@ namespace HBP.Module3D
                 if (value == TriEraser.Mode.Expand || value == TriEraser.Mode.Invert)
                 {
                     m_TriEraser.EraseTriangles(new Vector3(), new Vector3());
-                    for (int ii = 0; ii < m_ColumnManager.DLLSplittedMeshesList.Count; ++ii)
-                        m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                    UpdateMeshesFromDLL();
                     m_TriEraser.CurrentMode = previousMode;
                 }
 
@@ -666,8 +665,7 @@ namespace HBP.Module3D
                         m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.DLLSplittedMeshesList[ii], m_ColumnManager.DLLVolume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
 
                     // update brain mesh object mesh filter (TODO update only UV)
-                    for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
-                        m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                    UpdateMeshesFromDLL();
                 }
 
                 ComputeMRITextures();
@@ -1132,6 +1130,22 @@ namespace HBP.Module3D
             UpdateColormap(m_ColumnManager.Colormap, false);
             UpdateBrainCutColor(m_ColumnManager.BrainCutColor, true);
         }
+        /// <summary>
+        /// Update the surface meshes from the DLL
+        /// </summary>
+        protected void UpdateMeshesFromDLL()
+        {
+            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
+            {
+                m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+            }
+            UnityEngine.Profiling.Profiler.BeginSample("Update Columns Meshes");
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                column.UpdateColumnMeshes(m_DisplayedObjects.BrainSurfaceMeshes);
+            }
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
         #endregion
 
         #region Public Methods
@@ -1500,8 +1514,7 @@ namespace HBP.Module3D
             m_TriEraser.Reset(m_DisplayedObjects.InvisibleBrainSurfaceMeshes, m_ColumnManager.DLLCutsList[0], m_ColumnManager.DLLSplittedMeshesList);
 
             if (updateGO)
-                for (int ii = 0; ii < m_ColumnManager.DLLSplittedMeshesList.Count; ++ii)
-                    m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                UpdateMeshesFromDLL();
         }
         /// <summary>
         /// CTRL+Z on triangle eraser
@@ -1509,8 +1522,7 @@ namespace HBP.Module3D
         public void CancelLastTriangleErasingAction()
         {
             m_TriEraser.CancelLastAction();
-            for (int ii = 0; ii < m_ColumnManager.DLLSplittedMeshesList.Count; ++ii)
-                m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+            UpdateMeshesFromDLL();
         }
         #endregion
 
@@ -2228,10 +2240,7 @@ namespace HBP.Module3D
                         if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable)
                         {
                             m_TriEraser.EraseTriangles(ray.direction, hit.point);
-                            for (int i = 0; i < m_ColumnManager.DLLSplittedMeshesList.Count; i++)
-                            {
-                                m_ColumnManager.DLLSplittedMeshesList[i].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh);
-                            }
+                            UpdateMeshesFromDLL();
                         }
                     }
                 }
