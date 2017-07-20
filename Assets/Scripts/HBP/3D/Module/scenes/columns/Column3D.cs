@@ -308,17 +308,17 @@ namespace HBP.Module3D
             // update rendering
             IsRenderingUpToDate = false;
         }
-        public void InitializeColumnMeshes(GameObject brainMeshes)
+        public void InitializeColumnMeshes(GameObject brainMeshesParent)
         {
             m_BrainSurfaceMeshes = new List<GameObject>();
-            foreach (Transform meshPart in brainMeshes.transform)
+            foreach (Transform meshPart in brainMeshesParent.transform)
             {
                 GameObject brainPart = Instantiate(m_BrainPrefab, m_BrainSurfaceMeshesParent);
                 brainPart.GetComponent<Renderer>().sharedMaterial = meshPart.GetComponent<Renderer>().sharedMaterial;
                 brainPart.name = meshPart.name;
                 brainPart.transform.localPosition = Vector3.zero;
                 brainPart.layer = LayerMask.NameToLayer(Layer);
-                brainPart.GetComponent<MeshFilter>().mesh = meshPart.GetComponent<MeshFilter>().mesh;
+                brainPart.GetComponent<MeshFilter>().mesh = Instantiate(meshPart.GetComponent<MeshFilter>().mesh);
                 brainPart.SetActive(true);
                 BrainSurfaceMeshes.Add(brainPart);
             }
@@ -327,7 +327,8 @@ namespace HBP.Module3D
         {
             for (int i = 0; i < brainMeshes.Count; i++)
             {
-                m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh = brainMeshes[i].GetComponent<MeshFilter>().mesh;
+                DestroyImmediate(m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh);
+                m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMeshes[i].GetComponent<MeshFilter>().mesh);
             }
         }
         /// <summary>
