@@ -8,162 +8,130 @@ namespace HBP.UI.Anatomy
 	public class PatientList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Patient>
 	{
         #region Properties
-        bool m_sortByName, m_sortByPlace, m_sortByDate, m_sortByMesh, m_sortByMRI, m_sortByImplantation, m_sortByTransformation, m_sortByConnectivity;
+        enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate, Mesh, DescendingMesh, MRI, DescendingMRI, Implantation, DescendingImplantation, Transformation, DescendingTransformation, Connectivity, DescendingConnectivity }
+        OrderBy m_OrderBy = OrderBy.None;
         #endregion
 
         #region SortingMethods
         public void SortByName()
         {
-            if(!m_sortByName)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Name).ToList();
+                case OrderBy.Name:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingName;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Name;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Name).ToList();
-            }
-            m_sortByName = !m_sortByName;
-            m_sortByPlace = false;
-            m_sortByDate = false;
-            m_sortByMesh = false;
-            m_sortByMRI = false;
-            m_sortByImplantation = false;
-            m_sortByTransformation = false;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByPlace()
         {
-            if (!m_sortByPlace)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Place).ToList();
+                case OrderBy.Place:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Place).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingPlace;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Place).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Place;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Place).ToList();
-            }
-            m_sortByPlace = !m_sortByPlace;
-            m_sortByName = false;
-            m_sortByDate = false;
-            m_sortByMesh = false;
-            m_sortByMRI = false;
-            m_sortByImplantation = false;
-            m_sortByTransformation = false;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByDate()
         {
-            if (!m_sortByDate)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Date).ToList();
+                case OrderBy.Date:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Date).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingDate;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Date).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Date;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Date).ToList();
-            }
-            m_sortByDate = !m_sortByDate;
-            m_sortByPlace = false;
-            m_sortByName = false;
-            m_sortByMesh = false;
-            m_sortByMRI = false;
-            m_sortByImplantation = false;
-            m_sortByTransformation = false;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByMesh()
         {
-            if (!m_sortByMesh)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Brain.Meshes.Count).ToList();
+                case OrderBy.Mesh:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.Meshes.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingMesh;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Brain.Meshes.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Mesh;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Brain.Meshes.Count).ToList();
-            }
-            m_sortByMesh = !m_sortByMesh;
-            m_sortByPlace = false;
-            m_sortByDate = false;
-            m_sortByName = false;
-            m_sortByMRI = false;
-            m_sortByImplantation = false;
-            m_sortByTransformation = false;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByMRI()
         {
-            if (!m_sortByMRI)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Brain.MRIs.Count).ToList();
+                case OrderBy.MRI:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.MRIs.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingMRI;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Brain.MRIs.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.MRI;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Brain.MRIs.Count).ToList();
-            }
-            m_sortByMRI = !m_sortByMRI;
-            m_sortByPlace = false;
-            m_sortByDate = false;
-            m_sortByMesh = false;
-            m_sortByName = false;
-            m_sortByImplantation = false;
-            m_sortByTransformation = false;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByImplantation()
         {
-            if (!m_sortByImplantation)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Brain.Implantations.Count).ToList();
+                case OrderBy.Implantation:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.Implantations.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingImplantation;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Brain.Implantations.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Implantation;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Brain.Implantations.Count).ToList();
-            }
-            m_sortByImplantation = !m_sortByImplantation;
-            m_sortByPlace = false;
-            m_sortByDate = false;
-            m_sortByMesh = false;
-            m_sortByMRI = false;
-            m_sortByName = false;
-            m_sortByTransformation = false;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByTransformation()
         {
-            if (!m_sortByTransformation)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Brain.Transformations.Count).ToList();
+                case OrderBy.Transformation:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.Transformations.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingTransformation;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Brain.Transformations.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Transformation;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Brain.Transformations.Count).ToList();
-            }
-            m_sortByTransformation = !m_sortByTransformation;
-            m_sortByPlace = false;
-            m_sortByDate = false;
-            m_sortByMesh = false;
-            m_sortByMRI = false;
-            m_sortByImplantation = false;
-            m_sortByName = false;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByConnectivity()
         {
-            if (!m_sortByConnectivity)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Brain.Connectivities.Count).ToList();
+                case OrderBy.Connectivity:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.Connectivities.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingConnectivity;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Brain.Connectivities.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Connectivity;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Brain.Connectivities.Count).ToList();
-            }
-            m_sortByConnectivity = !m_sortByConnectivity;
-            m_sortByPlace = false;
-            m_sortByDate = false;
-            m_sortByMesh = false;
-            m_sortByMRI = false;
-            m_sortByImplantation = false;
-            m_sortByName = false;
-            m_sortByTransformation = false;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         #endregion
     }

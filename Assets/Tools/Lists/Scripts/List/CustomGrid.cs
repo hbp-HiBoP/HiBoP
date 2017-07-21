@@ -1,8 +1,8 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
+using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Tools.Unity.Lists
 {
@@ -11,21 +11,21 @@ namespace Tools.Unity.Lists
     {
         #region Properties
         [SerializeField]
-        protected GameObject m_item;
+        protected GameObject m_Item;
         [SerializeField]
-        protected GameObject m_container;
+        protected GameObject m_Container;
         [SerializeField]
-        int m_rowMax = 30;
+        int m_RowMax = 30;
         [SerializeField]
-        int m_colMax = 3;
+        int m_ColMax = 3;
 
-        protected List<T> m_objects = new List<T>();
-        protected List<Transform> m_items = new List<Transform>();
-        public virtual T[] Objects { get { return m_objects.ToArray(); } }
-        protected bool m_gridDisplayed = false;
+        protected System.Collections.Generic.List<T> m_Objects = new System.Collections.Generic.List<T>();
+        protected System.Collections.Generic.List<Transform> m_Items = new System.Collections.Generic.List<Transform>();
+        public virtual T[] Objects { get { return m_Objects.ToArray(); } }
+        protected bool m_GridDisplayed = false;
 
-        protected ActionEvent<T> m_actionEvent = new ActionEvent<T>{ };
-        public ActionEvent<T> ActionEvent { get { return m_actionEvent; } }
+        protected GenericEvent<T,int> m_OnAction = new GenericEvent<T, int> { };
+        public GenericEvent<T, int> OnAction { get { return m_OnAction; } }
 
         protected struct Position
         {
@@ -37,14 +37,14 @@ namespace Tools.Unity.Lists
         #region Public Methods
         public virtual void Display(T[] objectsToDisplay)
         {
-            if (!m_gridDisplayed) DisplayGrid();
+            if (!m_GridDisplayed) DisplayGrid();
 
-            List<T> m_objToAdd = new List<T>();
-            List<T> m_objToRemove = new List<T>();
-            List<T> m_objToUpdate = new List<T>();
+            System.Collections.Generic.List<T> m_objToAdd = new System.Collections.Generic.List<T>();
+            System.Collections.Generic.List<T> m_objToRemove = new System.Collections.Generic.List<T>();
+            System.Collections.Generic.List<T> m_objToUpdate = new System.Collections.Generic.List<T>();
 
             // Find obj to remove.
-            foreach (T obj in m_objects)
+            foreach (T obj in m_Objects)
             {
                 if (!objectsToDisplay.Contains(obj))
                 {
@@ -55,7 +55,7 @@ namespace Tools.Unity.Lists
             // Find obj to add.
             foreach (T obj in objectsToDisplay)
             {
-                if (!m_objects.Contains(obj))
+                if (!m_Objects.Contains(obj))
                 {
                     m_objToAdd.Add(obj);
                 }
@@ -85,8 +85,8 @@ namespace Tools.Unity.Lists
         }
         public virtual void Clear()
         {
-            m_gridDisplayed = false;
-            m_objects = new List<T>();
+            m_GridDisplayed = false;
+            m_Objects = new System.Collections.Generic.List<T>();
             for (int i = 0; i < transform.childCount; i++)
             {
                 Destroy(transform.GetChild(i).gameObject);
@@ -97,40 +97,40 @@ namespace Tools.Unity.Lists
         #region Protected Methods
         protected virtual void DisplayGrid()
         {
-            for (int r = 0; r < m_rowMax * m_colMax; r++)
+            for (int r = 0; r < m_RowMax * m_ColMax; r++)
             {
-                GameObject l_gameObject = Instantiate(m_container);
+                GameObject l_gameObject = Instantiate(m_Container);
                 ContainerItem l_containerItem = l_gameObject.GetComponent<ContainerItem>();
-                l_containerItem.ActionEvent.AddListener((index, i) => ContainerEvent(index));
+                l_containerItem.OnAction.AddListener((index, i) => ContainerEvent(index));
                 l_gameObject.transform.SetParent(transform);
                 l_gameObject.transform.localScale = new Vector3(1, 1, 1);
                 l_gameObject.transform.localPosition = new Vector3(0, 0, 0);
             }
-            m_gridDisplayed = true;
+            m_GridDisplayed = true;
         }
         protected virtual void Add(T obj)
         {
-            GameObject l_gameObject = Instantiate(m_item);
+            GameObject l_gameObject = Instantiate(m_Item);
             Transform l_transform = l_gameObject.transform;
             Set(l_transform,obj);
             ActionnableItem<T> l_item = l_transform.GetComponent<ActionnableItem<T>>();
-            l_item.Action.AddListener((b, type) => ItemEvent(b, type));
+            l_item.OnAction.AddListener((b, type) => ItemEvent(b, type));
             l_transform.SetParent(GetContainer(l_item.Object));
             l_transform.localScale = new Vector3(1, 1, 1);
             l_transform.transform.localPosition = new Vector3(0, 0, 0);
-            m_objects.Add(obj);
-            m_items.Add(l_transform);
+            m_Objects.Add(obj);
+            m_Items.Add(l_transform);
         }
         protected virtual void Remove(T obj)
         {
-            int index = m_objects.FindIndex(o => o.Equals(obj));
-            m_objects.Remove(obj);
-            Destroy(m_items[index].gameObject);
-            m_items.RemoveAt(index);
+            int index = m_Objects.FindIndex(o => o.Equals(obj));
+            m_Objects.Remove(obj);
+            Destroy(m_Items[index].gameObject);
+            m_Items.RemoveAt(index);
         }
         protected virtual void UpdateObj(T objectToUpdate)
         {
-            T oldObj = m_objects.Find(obj => obj.Equals(objectToUpdate));
+            T oldObj = m_Objects.Find(obj => obj.Equals(objectToUpdate));
             oldObj = objectToUpdate;
             Set(Get(oldObj), oldObj);
         }
@@ -141,30 +141,30 @@ namespace Tools.Unity.Lists
         }
         protected T Get(Transform item)
         {
-            return m_objects[m_items.FindIndex(t => t.Equals(item))];
+            return m_Objects[m_Items.FindIndex(t => t.Equals(item))];
         }
         protected Transform Get(T obj)
         {
-            return m_items[m_objects.FindIndex(t => obj.Equals(t))];
+            return m_Items[m_Objects.FindIndex(t => obj.Equals(t))];
         }
         protected virtual void OnRectTransformDimensionsChange()
         {
             GridLayoutGroup l_grid = GetComponent<GridLayoutGroup>();
             RectTransform l_rect = transform as RectTransform;
-            float width = l_rect.rect.width / m_colMax;
+            float width = l_rect.rect.width / m_ColMax;
             float height = width * 0.5f;
             l_grid.cellSize = new Vector2(width, height);
         }
         protected virtual Position PositionFromIndex(int index)
         {
             Position l_position;
-            l_position.Row = index / m_colMax + 1;
-            l_position.Col = index % m_colMax + 1;
+            l_position.Row = index / m_ColMax + 1;
+            l_position.Col = index % m_ColMax + 1;
             return l_position;
         }
         protected virtual int IndexFromPosition(Position position)
         {
-            return (position.Row - 1) * m_colMax + (position.Col - 1);
+            return (position.Row - 1) * m_ColMax + (position.Col - 1);
         }
         protected virtual Transform GetContainer(T obj)
         {
@@ -172,13 +172,13 @@ namespace Tools.Unity.Lists
         }
         protected virtual void ItemEvent(T obj, int type)
         {
-            ActionEvent.Invoke(obj, type);
+            OnAction.Invoke(obj, type);
             if (type == 1) Remove(obj);
             else if (type == 2) MoveObjToMousePosition(obj);
         }
         protected virtual void MoveObjToMousePosition(T obj)
         {
-            List<RaycastResult> l_raycastResult = new List<RaycastResult>();
+            System.Collections.Generic.List<RaycastResult> l_raycastResult = new System.Collections.Generic.List<RaycastResult>();
             PointerEventData eventData = new PointerEventData(EventSystem.current);
             eventData.position = Input.mousePosition;
             EventSystem.current.RaycastAll(eventData, l_raycastResult);
@@ -206,7 +206,7 @@ namespace Tools.Unity.Lists
         protected virtual void ContainerEvent(int i)
         {
             T obj = CreateObjAtPosition(PositionFromIndex(i));
-            ActionEvent.Invoke(obj,-1);
+            OnAction.Invoke(obj,-1);
         }
 
         protected abstract T CreateObjAtPosition(Position position);

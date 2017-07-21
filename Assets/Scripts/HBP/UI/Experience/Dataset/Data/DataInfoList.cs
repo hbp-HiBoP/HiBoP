@@ -5,106 +5,115 @@ namespace HBP.UI.Experience.Dataset
     public class DataInfoList : Tools.Unity.Lists.SelectableListWithSave<HBP.Data.Experience.Dataset.DataInfo>
     {
         #region Attributs
-        bool m_SortByName = false;
-        bool m_SortByPatient = false;
-        bool m_SortByMeasure = false;
-        bool m_SortByEEG = false;
-        bool m_SortByPOS = false;
-        bool m_SortByProv = false;
-        bool m_SortByState = false;
+        enum OrderBy { None, Name, DescendingName, Patient, DescendingPatient, Measure, DescendingMeasure, EEG, DescendingEEG, POS, DescendingPOS, Prov, DescendingProv, State, DescendingState }
+        OrderBy m_OrderBy = OrderBy.None;
         #endregion
 
         #region Public Methods
         public void SortByName()
         {
-            if (m_SortByName)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending((x) => x.Name);
+                case OrderBy.Name:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingName;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Name;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy((x) => x.Name);
-            }
-            m_SortByName = !m_SortByName;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByPatient()
         {
-            if (m_SortByPatient)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending((x) => x.Patient.Name);
+                case OrderBy.Patient:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Patient.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingPatient;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Patient.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Patient;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy((x) => x.Patient.Name);
-            }
-            m_SortByPatient = !m_SortByPatient;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByMeasure()
         {
-            if (m_SortByMeasure)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending((x) => x.Protocol.Name);
+                case OrderBy.Measure:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Measure).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingMeasure;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Measure).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Measure;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy((x) => x.Protocol.Name);
-            }
-            m_SortByMeasure = !m_SortByMeasure;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByEEG()
         {
-            if (m_SortByEEG)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending((x) => x.EEG);
+                case OrderBy.EEG:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.EEG).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingEEG;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.EEG).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.EEG;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy((x) => x.EEG);
-            }
-            m_SortByEEG = !m_SortByEEG;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByPOS()
         {
-            if (m_SortByPOS)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending((x) => x.POS);
+                case OrderBy.POS:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.POS).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingPOS;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.POS).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.POS;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy((x) => x.POS);
-            }
-            m_SortByPOS = !m_SortByPOS;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
-        public void SortByProv()
+        public void SortByProtocol()
         {
-            if (m_SortByProv)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending((x) => x.Protocol.Name);
+                case OrderBy.Prov:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Protocol).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingProv;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Protocol).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Prov;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy((x) => x.Protocol.Name);
-            }
-            m_SortByProv = !m_SortByProv;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByState()
         {
-            if (m_SortByState)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending((x) => x.isOk);
+                case OrderBy.State:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.isOk).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingState;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.isOk).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.State;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy((x) => x.isOk);
-            }
-            m_SortByState = !m_SortByState;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         #endregion
     }

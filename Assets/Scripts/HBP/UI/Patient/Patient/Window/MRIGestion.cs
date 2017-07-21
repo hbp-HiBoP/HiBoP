@@ -31,7 +31,7 @@ namespace HBP.UI.Anatomy
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
-            if(active) m_MRIList.Display(m_Patient.Brain.MRIs.ToArray());
+            if(active) m_MRIList.Objects = m_Patient.Brain.MRIs.ToArray();
         }
         public void AddMRI()
         {
@@ -41,7 +41,7 @@ namespace HBP.UI.Anatomy
         }
         public void RemoveMRI()
         {
-            m_MRIList.Remove(m_MRIList.GetObjectsSelected());
+            m_MRIList.Remove(m_MRIList.ObjectsSelected);
             m_Patient.Brain.MRIs = m_MRIList.Objects.ToList();
         }
         #endregion

@@ -29,7 +29,7 @@ namespace HBP.UI.Experience.Dataset
 		}
 		public void Remove()
 		{
-            d.DataInfo[] dataInfoToRemove = dataInfoList.GetObjectsSelected();
+            d.DataInfo[] dataInfoToRemove = dataInfoList.ObjectsSelected;
             ItemTemp.Data.Remove(dataInfoToRemove);
             dataInfoList.Remove(dataInfoToRemove);
 		}
@@ -40,7 +40,7 @@ namespace HBP.UI.Experience.Dataset
         {
             nameInputField.text = ItemTemp.Name;
             nameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
-            dataInfoList.Display(ItemTemp.Data.ToArray());           
+            dataInfoList.Objects = ItemTemp.Data.ToArray();           
         }
         protected override void SetWindow()
         {

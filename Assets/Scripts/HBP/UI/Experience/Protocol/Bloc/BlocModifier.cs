@@ -40,7 +40,7 @@ namespace HBP.UI.Experience.Protocol
         }
         public void RemoveSecondaryEvent()
 		{
-            d.Event[] eventsToRemove = eventList.GetObjectsSelected();
+            d.Event[] eventsToRemove = eventList.ObjectsSelected;
             foreach(d.Event e in eventsToRemove) ItemTemp.SecondaryEvents.Remove(e);
             eventList.Remove(eventsToRemove);
         }
@@ -52,7 +52,7 @@ namespace HBP.UI.Experience.Protocol
         }
         public void RemoveIcon()
         {
-            d.Icon[] iconsToRemove = iconList.GetObjectsSelected();
+            d.Icon[] iconsToRemove = iconList.ObjectsSelected;
             foreach(d.Icon i in iconsToRemove) ItemTemp.Scenario.Icons.Remove(i);
             iconList.Remove(iconsToRemove);
         }
@@ -88,8 +88,8 @@ namespace HBP.UI.Experience.Protocol
             mainEventCodesInputField.text = objectToDisplay.MainEvent.CodesString;
             mainEventCodesInputField.onEndEdit.AddListener((value) => ItemTemp.MainEvent.CodesString = value);
 
-            eventList.Display(ItemTemp.SecondaryEvents.ToArray());
-            iconList.Display(ItemTemp.Scenario.Icons.ToArray());
+            eventList.Objects = ItemTemp.SecondaryEvents.ToArray();
+            iconList.Objects = ItemTemp.Scenario.Icons.ToArray();
         }
         protected override void SetWindow()
         {

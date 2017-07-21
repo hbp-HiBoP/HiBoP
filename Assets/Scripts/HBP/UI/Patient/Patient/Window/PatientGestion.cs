@@ -25,13 +25,13 @@ namespace HBP.UI.Anatomy
         // Patient.
         public void Add()
         {
-            Data.Patient[] patientsToAdd = databaseList.GetObjectsSelected().DeepClone();
+            Data.Patient[] patientsToAdd = databaseList.ObjectsSelected.DeepClone();
             AddItem(patientsToAdd);
             databaseList.Remove(patientsToAdd);
         }
         public override void Remove()
         {
-            databaseList.Add(list.GetObjectsSelected());
+            databaseList.Add(list.ObjectsSelected);
             base.Remove();
         }
         #endregion
@@ -40,7 +40,7 @@ namespace HBP.UI.Anatomy
         IEnumerator c_DisplayDataBasePatients()
         {
             yield return Ninja.JumpToUnity;
-            databaseList.Clear();
+            databaseList.Objects = new Data.Patient[0];
             yield return Ninja.JumpBack;
 
             string[] patients = Data.Patient.GetPatientsDirectories(databaseFolderSelector.Folder);
@@ -57,14 +57,14 @@ namespace HBP.UI.Anatomy
             // Project list.
             list = transform.Find("Content").Find("Patients").Find("Project").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
             AddItem(ApplicationState.ProjectLoaded.Patients.ToArray());
-            (list as SelectableListWithItemAction<Data.Patient>).ActionEvent.AddListener((patient, i) => OpenModifier(patient, true));
+            (list as SelectableListWithItemAction<Data.Patient>).OnAction.AddListener((patient, i) => OpenModifier(patient, true));
 
             // Database list.            
             databaseFolderSelector = transform.Find("Content").Find("Patients").Find("Database").Find("FolderSelector").GetComponent<FolderSelector>();
             databaseFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayDataBasePatients()));
             databaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
             databaseList = transform.Find("Content").Find("Patients").Find("Database").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
-            databaseList.ActionEvent.AddListener((patient, i) => OpenModifier(patient, false));
+            databaseList.OnAction.AddListener((patient, i) => OpenModifier(patient, false));
         }
         #endregion
     }

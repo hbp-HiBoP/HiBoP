@@ -7,22 +7,30 @@ namespace HBP.UI.Experience.Protocol
 	{
 		#region Attributs
 		[SerializeField]
-		InputField m_labelInputField;
+		InputField m_LabelInputField;
 		[SerializeField]
-		InputField m_codeInputField;
+		InputField m_CodeInputField;
+        public override Data.Experience.Protocol.Event Object
+        {
+            get
+            {
+                return base.Object;
+            }
+
+            set
+            {
+                base.Object = value;
+                m_LabelInputField.text = m_Object.Name;
+                m_CodeInputField.text = m_Object.CodesString;
+            }
+        }
         #endregion
 
         #region Public Methods
-        protected override void SetObject(Data.Experience.Protocol.Event eventToSet)
-        {
-            m_Object = eventToSet;
-            m_labelInputField.text = m_Object.Name;
-            m_codeInputField.text = m_Object.CodesString;
-        }
         public override void Save()
         {
-            Object.Name = m_labelInputField.text;
-            Object.CodesString = m_codeInputField.text;
+            Object.Name = m_LabelInputField.text;
+            Object.CodesString = m_CodeInputField.text;
         }
 		#endregion
     }

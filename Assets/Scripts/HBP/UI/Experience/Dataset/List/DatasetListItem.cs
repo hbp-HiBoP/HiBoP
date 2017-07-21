@@ -8,16 +8,22 @@ namespace HBP.UI.Experience.Dataset
 	{
 		#region Attributs
         [SerializeField]
-        Text m_datasetDataNb;
+        Text m_DatasetDataNb;
         [SerializeField]
-		Text m_name;
-        #endregion
+		Text m_Name;
 
-        #region Private Methods
-        protected override void SetObject(d.Dataset dataset)
+        public override d.Dataset Object
         {
-            m_name.text = dataset.Name;
-            m_datasetDataNb.text = dataset.Data.Count.ToString();
+            get
+            {
+                return base.Object;
+            }
+            set
+            {
+                base.Object = value;
+                m_Name.text = value.Name;
+                m_DatasetDataNb.text = value.Data.Count.ToString();
+            }
         }
         #endregion
 	}

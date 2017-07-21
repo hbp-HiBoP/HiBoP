@@ -9,6 +9,28 @@ namespace HBP.UI.Anatomy
         #region Properties
         [SerializeField] Tools.Unity.FileSelector m_LeftFileSelector;
         [SerializeField] Tools.Unity.FileSelector m_RightFileSelector;
+        public override Data.Anatomy.Mesh Object
+        {
+            get
+            {
+                return base.Object;
+            }
+
+            set
+            {
+                base.Object = value;
+                LeftRightMesh mesh = value as LeftRightMesh;
+                m_LeftFileSelector.File = mesh.LeftHemisphere;
+                m_RightFileSelector.File = mesh.RightHemisphere;
+            }
+        }
+        public override Type Type
+        {
+            get
+            {
+                return typeof(LeftRightMesh);
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -18,20 +40,6 @@ namespace HBP.UI.Anatomy
             LeftRightMesh mesh = Object as LeftRightMesh;
             mesh.LeftHemisphere = m_LeftFileSelector.File;
             mesh.RightHemisphere = m_RightFileSelector.File;
-        }
-        public override Type GetObjectType()
-        {
-            return typeof(LeftRightMesh);
-        }
-        #endregion
-
-        #region Protected Methods
-        protected override void SetObject(Data.Anatomy.Mesh objectToSet)
-        {
-            base.SetObject(objectToSet);
-            LeftRightMesh mesh = Object as LeftRightMesh;
-            m_LeftFileSelector.File = mesh.LeftHemisphere;
-            m_RightFileSelector.File = mesh.RightHemisphere;
         }
         #endregion
     }

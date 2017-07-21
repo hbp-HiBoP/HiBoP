@@ -33,7 +33,7 @@ namespace HBP.UI.Anatomy
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
-            if(active) m_MeshList.Display(m_Patient.Brain.Meshes.ToArray());
+            if(active) m_MeshList.Objects = m_Patient.Brain.Meshes.ToArray();
         }
         public void AddSingleMesh()
         {
@@ -49,7 +49,7 @@ namespace HBP.UI.Anatomy
         }
         public void RemoveSelectedMeshes()
         {
-            m_MeshList.Remove(m_MeshList.GetObjectsSelected());
+            m_MeshList.Remove(m_MeshList.ObjectsSelected);
             m_Patient.Brain.Meshes = m_MeshList.Objects.ToList();
         }
         #endregion

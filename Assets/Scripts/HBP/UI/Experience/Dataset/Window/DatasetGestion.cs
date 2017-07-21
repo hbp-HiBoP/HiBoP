@@ -17,7 +17,7 @@ namespace HBP.UI.Experience.Dataset
         protected override void SetWindow()
 		{
             list = transform.Find("Content").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<DatasetList>();
-            (list as DatasetList).ActionEvent.AddListener((dataset, i) => OpenModifier(dataset,true));
+            (list as DatasetList).OnAction.AddListener((dataset, i) => OpenModifier(dataset,true));
             AddItem(ApplicationState.ProjectLoaded.Datasets.ToArray());
         }
         #endregion

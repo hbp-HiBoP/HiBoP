@@ -6,19 +6,23 @@ namespace HBP.UI.Experience.Protocol
 {
 	public class ProtocolItem : Tools.Unity.Lists.ActionnableItem<d.Protocol> 
 	{
-		#region Attributs
-		[SerializeField]
-		Text m_name;
-        [SerializeField]
-        Text m_blocs;
-		#endregion
-
-		#region Private Methods
-        protected override void SetObject(d.Protocol protocol)
+		#region Properties
+		[SerializeField] Text m_Name;
+        [SerializeField] Text m_Blocs;
+        public override d.Protocol Object
         {
-            m_name.text = Object.Name;
-            m_blocs.text = Object.Blocs.Count.ToString();
+            get
+            {
+                return base.Object;
+            }
+
+            set
+            {
+                base.Object = value;
+                m_Name.text = value.Name;
+                m_Blocs.text = value.Blocs.Count.ToString();
+            }
         }
-		#endregion
+        #endregion
 	}
 }

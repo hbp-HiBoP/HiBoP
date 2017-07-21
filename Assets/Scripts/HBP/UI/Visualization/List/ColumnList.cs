@@ -2,7 +2,7 @@
 
 namespace HBP.UI.Visualization
 {
-    public class ColumnList : Tools.Unity.Lists.CustomList<Column>
+    public class ColumnList : Tools.Unity.Lists.List<Column>
     {
     }
 }

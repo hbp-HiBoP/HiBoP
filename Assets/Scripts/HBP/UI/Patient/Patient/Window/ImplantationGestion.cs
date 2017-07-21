@@ -31,7 +31,7 @@ namespace HBP.UI.Anatomy
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
-            if(active) m_ImplantationList.Display(m_Patient.Brain.Implantations.ToArray());
+            if(active) m_ImplantationList.Objects = m_Patient.Brain.Implantations.ToArray();
         }
         public void AddImplantation()
         {
@@ -41,7 +41,7 @@ namespace HBP.UI.Anatomy
         }
         public void RemoveImplantation()
         {
-            m_ImplantationList.Remove(m_ImplantationList.GetObjectsSelected());
+            m_ImplantationList.Remove(m_ImplantationList.ObjectsSelected);
             m_Patient.Brain.Implantations = m_ImplantationList.Objects.ToList();
         }
         #endregion

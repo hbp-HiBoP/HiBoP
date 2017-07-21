@@ -5,95 +5,71 @@ namespace HBP.UI.Experience.Protocol
 {
     public class IconList : Tools.Unity.Lists.SelectableListWithSave<Icon>
     {
-        #region Attributs
-        /// <summary>
-        /// The name alphabetical sort.
-        /// </summary>
-        bool m_sortByName = false;
-
-        /// <summary>
-        /// The path sort.
-        /// </summary>
-        bool m_sortByPath = false;
-
-        /// <summary>
-        /// The Min Window sort.
-        /// </summary>
-        bool m_SortByMin = false;
-
-        /// <summary>
-        /// The Max Window sort.
-        /// </summary>
-        bool m_SortByMax = false;
+        #region Properties
+        enum OrderBy { None, Name, DescendingName, Path, DescendingPath, Start, DescendingStart, End, DescendingEnd}
+        OrderBy m_OrderBy = OrderBy.None;
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Sort the Icons by name.
-        /// </summary>
         public void SortByName()
         {
-            if (m_sortByName)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending(x => x.Name);
+                case OrderBy.Name:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingName;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Name;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy(x => x.Name);
-            }
-            m_sortByName = !m_sortByName;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
-
-        /// <summary>
-        /// Sort the Icons by path.
-        /// </summary>
 		public void SortByPath()
         {
-            if (m_sortByPath)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending(x => x.IllustrationPath);
+                case OrderBy.Path:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.IllustrationPath).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingPath;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.IllustrationPath).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Path;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy(x => x.IllustrationPath);
-            }
-            m_sortByPath = !m_sortByPath;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
-
-        /// <summary>
-        /// Sort the Icons by min window.
-        /// </summary>
         public void SortByStart()
         {
-            if (m_SortByMin)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending(x => x.Window.Start);
+                case OrderBy.Start:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Window.Start).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingStart;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Window.Start).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Start;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy(x => x.Window.Start);
-            }
-            m_SortByMin = !m_SortByMin;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
-
-        /// <summary>
-        /// Sort the Icons by max window.
-        /// </summary>
         public void SortByEnd()
         {
-            if (m_SortByMax)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending(x => x.Window.End);
+                case OrderBy.End:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Window.End).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingEnd;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Window.End).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.End;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy(x => x.Window.End);
-            }
-            m_SortByMax = !m_SortByMax;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         #endregion
     }

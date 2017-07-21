@@ -7,9 +7,9 @@ namespace HBP.UI.Experience.Protocol
 	/// </summary>
 	public class EventList : Tools.Unity.Lists.SelectableListWithSave<Data.Experience.Protocol.Event> 
 	{
-		#region Attributs
-        bool m_sortByName = false;
-        bool m_sortByCode = false;
+        #region Proterties
+        enum OrderBy { None, Name, DescendingName, Code, DescendingCode }
+        OrderBy m_OrderBy = OrderBy.None;
         #endregion
 
         #region Public Methods
@@ -18,16 +18,18 @@ namespace HBP.UI.Experience.Protocol
         /// </summary>
         public void SortByName()
         {
-            if (m_sortByName)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending(x => x.Name);
+                case OrderBy.Name:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingName;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Name;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy(x => x.Name);
-            }
-            m_sortByName = !m_sortByName;
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
 
         /// <summary>
@@ -35,15 +37,18 @@ namespace HBP.UI.Experience.Protocol
         /// </summary>
 		public void SortByCode()
         {
-            if (m_sortByCode)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending(x => x.Codes.Min());
+                case OrderBy.Code:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Codes.Min()).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingCode;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Codes.Min()).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Code;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy(x => x.Codes.Min());
-            }
-            ApplySort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         #endregion
     }

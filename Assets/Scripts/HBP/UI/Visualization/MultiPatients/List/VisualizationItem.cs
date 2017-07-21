@@ -7,26 +7,27 @@ namespace HBP.UI.Visualization
     public class VisualizationItem : Tools.Unity.Lists.ActionnableItem<Data.Visualization.Visualization>
     {
         #region Properties
-        [SerializeField]
-        private Text m_visualizationName;
-        [SerializeField]
-        private Text m_nbPatient;
-        [SerializeField]
-        private PatientNameList m_patientList;
-        [SerializeField]
-        private Text m_nbColumn;
-        [SerializeField]
-        private ColumnList m_columnList;
-        #endregion
-
-        #region Private Methods
-        protected override void SetObject(Data.Visualization.Visualization visualization)
+        [SerializeField] Text m_VisualizationName;
+        [SerializeField] Text m_NbPatient;
+        [SerializeField] PatientNameList m_PatientList;
+        [SerializeField] Text m_NbColumn;
+        [SerializeField] ColumnList m_ColumnList;
+        public override Data.Visualization.Visualization Object
         {
-            m_visualizationName.text = visualization.Name;
-            m_patientList.Display(visualization.Patients.ToArray());
-            m_nbPatient.text = visualization.Patients.Count.ToString();
-            m_columnList.Display(visualization.Columns.ToArray());
-            m_nbColumn.text = visualization.Columns.Count.ToString();
+            get
+            {
+                return base.Object;
+            }
+
+            set
+            {
+                base.Object = value;
+                m_VisualizationName.text = value.Name;
+                m_PatientList.Objects = value.Patients.ToArray();
+                m_NbPatient.text = value.Patients.Count.ToString();
+                m_ColumnList.Objects = value.Columns.ToArray();
+                m_NbColumn.text = value.Columns.Count.ToString();
+            }
         }
         #endregion
     }

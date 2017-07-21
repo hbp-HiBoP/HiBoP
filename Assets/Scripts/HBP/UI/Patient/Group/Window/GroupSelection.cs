@@ -14,7 +14,7 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public void AddGroupsSelected()
         {
-            AddGroupsEvent.Invoke(groupList.GetObjectsSelected());
+            AddGroupsEvent.Invoke(groupList.ObjectsSelected);
         }
         #endregion
 
@@ -22,7 +22,7 @@ namespace HBP.UI.Anatomy
         protected override void SetWindow()
         {
             groupList = transform.Find("Content").Find("Groups").Find("Scroll View").Find("Viewport").Find("Content").GetComponent<GroupList>();
-            groupList.Display(ApplicationState.ProjectLoaded.Groups.ToArray());
+            groupList.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
         }
         #endregion
     }

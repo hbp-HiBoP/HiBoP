@@ -8,6 +8,20 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
+        public override Data.Anatomy.Mesh Object
+        {
+            get
+            {
+                return base.Object;
+            }
+
+            set
+            {
+                base.Object = value;
+                m_NameInputField.text = value.Name;
+
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -17,11 +31,5 @@ namespace HBP.UI.Anatomy
         }
         #endregion
 
-        #region Protected Methods
-        protected override void SetObject(Data.Anatomy.Mesh objectToSet)
-        {
-            m_NameInputField.text = Object.Name;
-        }
-        #endregion
     }
 }

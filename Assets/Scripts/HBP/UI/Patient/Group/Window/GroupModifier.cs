@@ -22,17 +22,17 @@ namespace HBP.UI.Anatomy
 		#region Public Methods
 		public void AddPatients()
 		{
-            Data.Patient[] patients = projectPatientsList.GetObjectsSelected();
+            Patient[] patients = projectPatientsList.ObjectsSelected;
             ItemTemp.AddPatient(patients);
-            projectPatientsList.DeactivateObject(patients);
+            projectPatientsList.Remove(patients);
             groupPatientsList.Add(patients);
         }
         public void RemovePatients()
 		{
-            Data.Patient[] patients = groupPatientsList.GetObjectsSelected();
+            Data.Patient[] patients = groupPatientsList.ObjectsSelected;
             ItemTemp.RemovePatient(patients);
             groupPatientsList.Remove(patients);
-            projectPatientsList.ActiveObject(patients);
+            projectPatientsList.Add(patients);
         }
         public void OpenPatientModifier(Data.Patient patientToModify)
         {
@@ -54,11 +54,11 @@ namespace HBP.UI.Anatomy
         protected override void SetFields(Group objectToDisplay)
         {
             nameInputField.text = ItemTemp.Name;
-            projectPatientsList.Display(ApplicationState.ProjectLoaded.Patients.ToArray(), ItemTemp.Patients.ToArray());
-            groupPatientsList.Display(ItemTemp.Patients.ToArray());
+            projectPatientsList.Objects = (from p in ApplicationState.ProjectLoaded.Patients where !ItemTemp.Patients.Contains(p) select p).ToArray();
+            groupPatientsList.Objects = ItemTemp.Patients.ToArray();
             nameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
-            groupPatientsList.ActionEvent.AddListener((patient, i) => OpenPatientModifier(patient));
-            projectPatientsList.ActionEvent.AddListener((patient, i) => OpenPatientModifier(patient));
+            groupPatientsList.OnAction.AddListener((patient, i) => OpenPatientModifier(patient));
+            projectPatientsList.OnAction.AddListener((patient, i) => OpenPatientModifier(patient));
         }
         protected override void SetWindow()
         {
