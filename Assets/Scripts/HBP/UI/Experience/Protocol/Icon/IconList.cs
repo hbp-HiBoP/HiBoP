@@ -42,7 +42,7 @@ namespace HBP.UI.Experience.Protocol
                 m_Objects.OrderBy(x => x.Name);
             }
             m_sortByName = !m_sortByName;
-            ApplySort();
+            Sort();
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace HBP.UI.Experience.Protocol
                 m_Objects.OrderBy(x => x.IllustrationPath);
             }
             m_sortByPath = !m_sortByPath;
-            ApplySort();
+            Sort();
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace HBP.UI.Experience.Protocol
                 m_Objects.OrderBy(x => x.Window.Start);
             }
             m_SortByMin = !m_SortByMin;
-            ApplySort();
+            Sort();
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace HBP.UI.Experience.Protocol
                 m_Objects.OrderBy(x => x.Window.End);
             }
             m_SortByMax = !m_SortByMax;
-            ApplySort();
+            Sort();
         }
         #endregion
     }

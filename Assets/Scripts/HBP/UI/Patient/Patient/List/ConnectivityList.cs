@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace HBP.UI.Anatomy
 {
-    public class ImplantationList : SelectableListWithSave<Implantation>
+    public class ConnectivityList : SelectableListWithSave<Connectivity>
     {
         #region Properties
         bool m_SortByName, m_SortByPath;

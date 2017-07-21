@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,15 +8,13 @@ using CielaSpike;
 namespace Tools.Unity.Lists
 {
     [RequireComponent(typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter))]
-    public class CustomList<T> : MonoBehaviour
+    public class List<T> : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        protected GameObject[] m_Items;
+        [SerializeField] protected GameObject[] m_Prefabs;
 
-        protected List<T> m_Objects = new List<T>();
-        protected Dictionary<T, Item<T>> m_ObjectsToItems = new Dictionary<T, Item<T>>();
-        public virtual T[] Objects { get { return m_Objects.ToArray(); } }
+        protected SortedDictionary<T, Item<T>> m_ObjectsToItems = new SortedDictionary<T, Item<T>>();
+        public virtual T[] Objects { get { return m_ObjectsToItems.Keys.ToArray(); } }
 
         protected bool m_IsDisplaying = false;
         protected bool m_IsWaiting = false;
@@ -37,33 +34,23 @@ namespace Tools.Unity.Lists
             StopAllCoroutines();
             m_IsDisplaying = false;
             m_IsWaiting = false;
-            m_Objects = new List<T>();
-            m_ObjectsToItems = new Dictionary<T, Item<T>>();
-            for (int i = 0; i < transform.childCount; i++)
-            {
-                Destroy(transform.GetChild(i).gameObject);
-            }
+            foreach (var item in m_ObjectsToItems.Values) Destroy(item.gameObject);
+            m_ObjectsToItems = new SortedDictionary<T, Item<T>>();
         }
         public virtual void Remove(T objectToRemove)
         {
-            Destroy(Get(objectToRemove).gameObject);
-            m_Objects.Remove(objectToRemove);
+            Destroy(m_ObjectsToItems[objectToRemove].gameObject);
             m_ObjectsToItems.Remove(objectToRemove);
         }
         public virtual void Remove(T[] objectsToRemove)
         {
-            foreach(T obj in objectsToRemove)
-            {
-                Remove(obj);
-            }
+            foreach(T obj in objectsToRemove) Remove(obj);
         }
         public virtual void Add(T objectToAdd)
         {
-            GameObject l_itemToInstantiate = m_Items.First((prefab) => prefab.GetComponent<Item<T>>().GetObjectType() == objectToAdd.GetType());
-            Item<T> l_listItem = Instantiate(l_itemToInstantiate, transform).GetComponent<Item<T>>();
-            m_Objects.Add(objectToAdd);
-            m_ObjectsToItems.Add(objectToAdd, l_listItem);
-            Set(objectToAdd, l_listItem);
+            Item<T> item = Instantiate(m_Prefabs.First((prefab) => prefab.GetComponent<Item<T>>().Object.GetType() == objectToAdd.GetType()), transform).GetComponent<Item<T>>();
+            item.Object = objectToAdd;
+            m_ObjectsToItems.Add(objectToAdd, item);
         }
         public virtual void Add(T[] objectsToAdd)
         {
@@ -74,8 +61,7 @@ namespace Tools.Unity.Lists
         }
         public virtual void UpdateObj(T objectToUpdate)
         {
-            Item<T> item = m_ObjectsToItems[objectToUpdate];
-            item.Object = objectToUpdate;
+           m_ObjectsToItems[objectToUpdate].Object = objectToUpdate;
         }
         #endregion
 
@@ -97,9 +83,9 @@ namespace Tools.Unity.Lists
             }
             else
             {
-                List<T> m_objToAdd = new List<T>();
-                List<T> m_objToRemove = new List<T>();
-                List<T> m_objToUpdate = new List<T>();
+                System.Collections.Generic.List<T> m_objToAdd = new System.Collections.Generic.List<T>();
+                System.Collections.Generic.List<T> m_objToRemove = new System.Collections.Generic.List<T>();
+                System.Collections.Generic.List<T> m_objToUpdate = new System.Collections.Generic.List<T>();
 
                 // Find obj to remove.
                 foreach (T obj in m_Objects)
@@ -153,23 +139,9 @@ namespace Tools.Unity.Lists
             }
             m_IsDisplaying = false;
         }
-        protected virtual void Set(T objectToSet,Item<T> listItem )
+        protected virtual void Sort()
         {
-            listItem.Object = objectToSet;
-        }
-        protected virtual Item<T> Get(T objectToGet)
-        {
-            Item<T> l_result = null;
-            m_ObjectsToItems.TryGetValue(objectToGet, out l_result);
-            return l_result;
-        }
-        protected virtual void ApplySort()
-        {
-            for (int i = 0; i < m_Objects.Count; i++)
-            {
-                m_ObjectsToItems[m_Objects[i]].transform.SetSiblingIndex(i);
-            }
-
+            foreach (var elt in m_ObjectsToItems) elt.Value.transform.SetAsLastSibling();
         }
         #endregion
     }

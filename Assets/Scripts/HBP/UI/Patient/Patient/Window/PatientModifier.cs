@@ -16,6 +16,9 @@ namespace HBP.UI.Anatomy
         [SerializeField] MeshGestion m_MeshGestion;
         [SerializeField] MRIGestion m_MRIGestion;
         [SerializeField] ImplantationGestion m_ImplantationGestion;
+        [SerializeField] TransformationGestion m_TransformationGestion;
+        [SerializeField] ConnectivityGestion m_ConnectivityGestion;
+        [SerializeField] OthersGestion m_OthersGestion;
 
         [SerializeField] Button m_SaveButton;
         #endregion
@@ -29,6 +32,9 @@ namespace HBP.UI.Anatomy
             m_MeshGestion.Save();
             m_MRIGestion.Save();
             m_ImplantationGestion.Save();
+            m_TransformationGestion.Save();
+            m_ConnectivityGestion.Save();
+            m_OthersGestion.Save();
             base.Save();
         }
         protected override void SetFields(Data.Patient objectToDisplay)
@@ -50,16 +56,9 @@ namespace HBP.UI.Anatomy
             m_MeshGestion.SetActive(true);
             m_MRIGestion.Set(objectToDisplay);
             m_ImplantationGestion.Set(objectToDisplay);
-
-            //List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
-            //foreach (int value in Enum.GetValues(typeof(Epilepsy.EpilepsyType)))
-            //{
-            //    options.Add(new Dropdown.OptionData(Epilepsy.GetFullEpilepsyName((Epilepsy.EpilepsyType) value)));
-            //}
-            //m_EpilepsyDropdown.options = options;
-            //m_EpilepsyDropdown.value = (int) ItemTemp.Brain.Epilepsy.Type;
-            //m_EpilepsyDropdown.onValueChanged.RemoveAllListeners();
-            //m_EpilepsyDropdown.onValueChanged.AddListener((value) => ItemTemp.Brain.Epilepsy.Type = (Epilepsy.EpilepsyType) value);
+            m_TransformationGestion.Set(objectToDisplay);
+            m_ConnectivityGestion.Set(objectToDisplay);
+            m_OthersGestion.Set(objectToDisplay);
         }
 
         protected override void SetWindow()
@@ -67,20 +66,17 @@ namespace HBP.UI.Anatomy
         }
         protected override void SetInteractableFields(bool interactable)
         {
-            // InputField.
             m_NameInputField.interactable = interactable;
             m_PlaceInputField.interactable = interactable;
             m_DateInputField.interactable = interactable;
 
-            // InputFile.
-            //m_EpilepsyDropdown.interactable = interactable;
-
-            // Meshes
             m_MeshGestion.SetInteractable(interactable);
             m_MRIGestion.SetInteractable(interactable);
             m_ImplantationGestion.SetInteractable(interactable);
+            m_TransformationGestion.SetInteractable(interactable);
+            m_ConnectivityGestion.SetInteractable(interactable);
+            m_OthersGestion.SetInteractable(interactable);
 
-            // Buttons.
             m_SaveButton.interactable = interactable;
         }
         #endregion

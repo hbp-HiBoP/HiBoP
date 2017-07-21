@@ -23,7 +23,7 @@ namespace HBP.UI.Experience.Dataset
                 m_Objects.OrderBy(x => x.Name);
             }
             m_sortByName = !m_sortByName;
-            ApplySort();
+            Sort();
         }
         public void SortByData()
         {
@@ -36,7 +36,7 @@ namespace HBP.UI.Experience.Dataset
                 m_Objects.OrderBy(x => x.Data.Count);
             }
             m_sortByData = !m_sortByData;
-            ApplySort();
+            Sort();
         }
         #endregion
     }

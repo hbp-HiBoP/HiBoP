@@ -13,7 +13,7 @@ namespace HBP.UI
         protected GameObject modifierPrefab;
         protected ItemModifier<T> modifier;
         protected SelectableList<T> list;
-        private List<T> items = new List<T>();
+        private System.Collections.Generic.List<T> items = new System.Collections.Generic.List<T>();
         protected ReadOnlyCollection<T> Items
         {
             get { return new ReadOnlyCollection<T>(items); }
@@ -44,7 +44,7 @@ namespace HBP.UI
         protected virtual void OpenModifier(T item,bool interactable)
         {
             SetInteractable(false);
-            list.DeselectAllObjects();
+            list.DeselectAll();
             RectTransform obj = Instantiate(modifierPrefab).GetComponent<RectTransform>();
             obj.SetParent(GameObject.Find("Windows").transform);
             obj.localPosition = new Vector3(0, 0, 0);

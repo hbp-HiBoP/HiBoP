@@ -44,10 +44,10 @@ namespace Tools.Unity.Lists
             this.StartCoroutine(c_Display(objectsToDisplay, objectsDeactivated, true));
         }
 
-        public virtual void Add(T objectToAdd, bool active)
+        public virtual void Add(T objectToAdd, bool interactable)
         {
             Add(objectToAdd);
-            (Get(objectToAdd) as SelectableItem<T>).Interactable = active;
+            (Get(objectToAdd) as SelectableItem<T>).interactable = interactable;
         }
         #endregion
 
@@ -69,9 +69,9 @@ namespace Tools.Unity.Lists
             }
             else
             {
-                List<T> m_objToAdd = new List<T>();
-                List<T> m_objToRemove = new List<T>();
-                List<T> m_objToUpdate = new List<T>();
+                System.Collections.Generic.List<T> m_objToAdd = new System.Collections.Generic.List<T>();
+                System.Collections.Generic.List<T> m_objToRemove = new System.Collections.Generic.List<T>();
+                System.Collections.Generic.List<T> m_objToUpdate = new System.Collections.Generic.List<T>();
 
                 // Find obj to remove.
                 foreach (T obj in m_Objects)
@@ -127,7 +127,7 @@ namespace Tools.Unity.Lists
                         UpdateObj(obj);
                         if (objectsDeactivated.Contains(obj))
                         {
-                            (Get(obj) as SelectableItem<T>).Interactable = false;
+                            (Get(obj) as SelectableItem<T>).interactable = false;
                         }
                         yield return Ninja.JumpBack;
                     }
@@ -142,7 +142,7 @@ namespace Tools.Unity.Lists
             {
                 yield return null;
             }
-            (Get(objectToSet) as SelectableItem<T>).Interactable = active;
+            (Get(objectToSet) as SelectableItem<T>).interactable = active;
         }
         #endregion
     }

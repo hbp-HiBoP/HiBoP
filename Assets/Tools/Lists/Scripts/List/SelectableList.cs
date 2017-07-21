@@ -1,58 +1,32 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine.Events;
+using System.Linq;
 
 namespace Tools.Unity.Lists
 {
-    public class SelectableList<T> : CustomList<T>
+    public class SelectableList<T> : List<T>
     {
         #region Properties
-        protected SelectEvent selectEvent = new SelectEvent();
-        public SelectEvent SelectEvent { get { return selectEvent; } }
-        protected bool isSelecting;
+        protected new Dictionary<T, SelectableItem<T>> m_ObjectsToItems
+        {
+            get { return base.m_ObjectsToItems.ToDictionary((k) => k.Key, (v) => v.Value as SelectableItem<T>); }
+        } 
+        public GenericEvent<T,bool> OnChangeSelected { get; set; }
+        public T[]  SelectedObject
+        {
+            get { return m_Objects.Where((obj) => m_ObjectsToItems[obj].selected).ToArray(); }
+            set { foreach (var i in value) m_ObjectsToItems[i].selected = true; }
+        }
         #endregion
 
         #region Public Methods
-        public virtual T[] GetObjectsSelected()
+        public virtual void SelectAll()
         {
-            List<T> l_objectsSelected = new List<T>();
-            foreach (T obj in m_Objects)
-            {
-                if (isSelected(obj))
-                {
-                    l_objectsSelected.Add(obj);
-                }
-            }
-            return l_objectsSelected.ToArray();
+            foreach (var item in m_ObjectsToItems.Values) item.selected = true;
         }
-
-        public virtual void SelectAllObjects()
+        public virtual void DeselectAll()
         {
-            isSelecting = true;
-            foreach (T obj in m_Objects)
-            {
-                SelectObject(obj);
-            }
-            isSelecting = false;
-            SelectEventInvoke();
-        }
-        public virtual void DeselectAllObjects()
-        {
-            isSelecting = true;
-            foreach (T obj in m_Objects)
-            {
-                DeselectObject(obj);
-            }
-            isSelecting = false;
-            SelectEventInvoke();
-        }
-
-        public virtual void SelectObject(T objectToSelect)
-        {
-            SetSelect(objectToSelect, true);
-        }
-        public virtual void DeselectObject(T objectToDeselect)
-        {
-            SetSelect(objectToDeselect, false);
+            foreach (var item in m_ObjectsToItems.Values) item.selected = false;
         }
         #endregion
 
@@ -60,22 +34,8 @@ namespace Tools.Unity.Lists
         protected override void Set(T objectToSet, Item<T> listItem)
         {
             base.Set(objectToSet, listItem);
-            (listItem as SelectableItem<T>).OnChangeSelected.AddListener(() => SelectEventInvoke());
-        }
-        void SelectEventInvoke()
-        {
-            if(!isSelecting)
-            {
-                SelectEvent.Invoke();
-            }
-        }
-        protected virtual bool isSelected(T objectToTest)
-        {
-            return (m_ObjectsToItems[objectToTest] as SelectableItem<T>).Selected;
-        }
-        protected virtual void SetSelect(T objectToSet, bool selected)
-        {
-            (m_ObjectsToItems[objectToSet] as SelectableItem<T>).Selected = selected;
+
+            (listItem as SelectableItem<T>).OnChangeSelected.AddListener(() => m_OnSelectItem());
         }
         #endregion
     }

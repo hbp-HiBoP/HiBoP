@@ -6,23 +6,11 @@ namespace Tools.Unity.Lists
     {     
         #region Properties
         protected T m_Object;
-        public T Object
+        public virtual T Object
         {
             get { return m_Object; }
-            set { m_Object = value; SetObject(value); }
+            set { m_Object = value; }
         }
-        #endregion
-
-        #region Public Methods
-        public virtual System.Type GetObjectType()
-        {
-            return typeof(T);
-        }
-        #endregion
-
-        #region Abstract Methods
-        protected abstract void SetObject(T objectToSet);
-        
         #endregion
     }
 }

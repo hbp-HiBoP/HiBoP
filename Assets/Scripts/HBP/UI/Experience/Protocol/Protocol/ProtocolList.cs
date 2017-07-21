@@ -22,7 +22,7 @@ namespace HBP.UI.Experience.Protocol
                 m_Objects.OrderBy(x => x.Name);
             }
             m_sortByName = !m_sortByName;
-            ApplySort();
+            Sort();
         }
         public void SortByBlocs()
         {
@@ -35,7 +35,7 @@ namespace HBP.UI.Experience.Protocol
                 m_Objects.OrderBy(x => x.Blocs.Count);
             }
             m_sortByBlocs = !m_sortByBlocs;
-            ApplySort();
+            Sort();
         }
         #endregion
     }

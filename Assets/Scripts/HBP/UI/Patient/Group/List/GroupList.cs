@@ -35,7 +35,7 @@ namespace HBP.UI.Anatomy
                 m_Objects = m_Objects.OrderBy(x => x.Name).ToList();
             }
             m_sortByName = !m_sortByName;
-            ApplySort();
+            Sort();
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace HBP.UI.Anatomy
                 m_Objects = m_Objects.OrderBy(x => x.Patients.Count).ToList();
             }
             m_sortByPatients = !m_sortByPatients;
-            ApplySort();
+            Sort();
         }
         #endregion
     }

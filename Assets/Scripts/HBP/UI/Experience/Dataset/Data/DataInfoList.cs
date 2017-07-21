@@ -26,7 +26,7 @@ namespace HBP.UI.Experience.Dataset
                 m_Objects.OrderBy((x) => x.Name);
             }
             m_SortByName = !m_SortByName;
-            ApplySort();
+            Sort();
         }
         public void SortByPatient()
         {
@@ -39,7 +39,7 @@ namespace HBP.UI.Experience.Dataset
                 m_Objects.OrderBy((x) => x.Patient.Name);
             }
             m_SortByPatient = !m_SortByPatient;
-            ApplySort();
+            Sort();
         }
         public void SortByMeasure()
         {
@@ -52,7 +52,7 @@ namespace HBP.UI.Experience.Dataset
                 m_Objects.OrderBy((x) => x.Protocol.Name);
             }
             m_SortByMeasure = !m_SortByMeasure;
-            ApplySort();
+            Sort();
         }
         public void SortByEEG()
         {
@@ -65,7 +65,7 @@ namespace HBP.UI.Experience.Dataset
                 m_Objects.OrderBy((x) => x.EEG);
             }
             m_SortByEEG = !m_SortByEEG;
-            ApplySort();
+            Sort();
         }
         public void SortByPOS()
         {
@@ -78,7 +78,7 @@ namespace HBP.UI.Experience.Dataset
                 m_Objects.OrderBy((x) => x.POS);
             }
             m_SortByPOS = !m_SortByPOS;
-            ApplySort();
+            Sort();
         }
         public void SortByProv()
         {
@@ -91,7 +91,7 @@ namespace HBP.UI.Experience.Dataset
                 m_Objects.OrderBy((x) => x.Protocol.Name);
             }
             m_SortByProv = !m_SortByProv;
-            ApplySort();
+            Sort();
         }
         public void SortByState()
         {
@@ -104,7 +104,7 @@ namespace HBP.UI.Experience.Dataset
                 m_Objects.OrderBy((x) => x.isOk);
             }
             m_SortByState = !m_SortByState;
-            ApplySort();
+            Sort();
         }
         #endregion
     }

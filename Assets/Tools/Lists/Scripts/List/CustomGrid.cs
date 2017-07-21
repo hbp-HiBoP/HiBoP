@@ -19,8 +19,8 @@ namespace Tools.Unity.Lists
         [SerializeField]
         int m_colMax = 3;
 
-        protected List<T> m_objects = new List<T>();
-        protected List<Transform> m_items = new List<Transform>();
+        protected System.Collections.Generic.List<T> m_objects = new System.Collections.Generic.List<T>();
+        protected System.Collections.Generic.List<Transform> m_items = new System.Collections.Generic.List<Transform>();
         public virtual T[] Objects { get { return m_objects.ToArray(); } }
         protected bool m_gridDisplayed = false;
 
@@ -39,9 +39,9 @@ namespace Tools.Unity.Lists
         {
             if (!m_gridDisplayed) DisplayGrid();
 
-            List<T> m_objToAdd = new List<T>();
-            List<T> m_objToRemove = new List<T>();
-            List<T> m_objToUpdate = new List<T>();
+            System.Collections.Generic.List<T> m_objToAdd = new System.Collections.Generic.List<T>();
+            System.Collections.Generic.List<T> m_objToRemove = new System.Collections.Generic.List<T>();
+            System.Collections.Generic.List<T> m_objToUpdate = new System.Collections.Generic.List<T>();
 
             // Find obj to remove.
             foreach (T obj in m_objects)
@@ -86,7 +86,7 @@ namespace Tools.Unity.Lists
         public virtual void Clear()
         {
             m_gridDisplayed = false;
-            m_objects = new List<T>();
+            m_objects = new System.Collections.Generic.List<T>();
             for (int i = 0; i < transform.childCount; i++)
             {
                 Destroy(transform.GetChild(i).gameObject);
@@ -178,7 +178,7 @@ namespace Tools.Unity.Lists
         }
         protected virtual void MoveObjToMousePosition(T obj)
         {
-            List<RaycastResult> l_raycastResult = new List<RaycastResult>();
+            System.Collections.Generic.List<RaycastResult> l_raycastResult = new System.Collections.Generic.List<RaycastResult>();
             PointerEventData eventData = new PointerEventData(EventSystem.current);
             eventData.position = Input.mousePosition;
             EventSystem.current.RaycastAll(eventData, l_raycastResult);

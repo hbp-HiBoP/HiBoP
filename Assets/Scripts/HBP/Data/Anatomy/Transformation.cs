@@ -20,12 +20,12 @@ namespace HBP.Data.Anatomy
             Name = name;
             Path = path;
         }
+        public Transformation() : this("New transformation", string.Empty) { }
         #endregion
 
         #region Public Methods
         public static Transformation[] GetTransformations(string path)
         {
-            //UnityEngine.Profiling.Profiler.BeginSample("GetTransformations");
             List<Transformation> transformations = new List<Transformation>();
             DirectoryInfo directory = new DirectoryInfo(path);
             FileInfo[] transformationFileInfo = directory.GetFiles("*" + EXTENSION, SearchOption.AllDirectories);
@@ -33,7 +33,6 @@ namespace HBP.Data.Anatomy
             {
                 transformations.Add(new Transformation(file.Name, file.FullName));
             }
-            //UnityEngine.Profiling.Profiler.EndSample();
             return transformations.ToArray();
         }
         #endregion

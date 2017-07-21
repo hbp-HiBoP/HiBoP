@@ -8,6 +8,19 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] Tools.Unity.FileSelector m_MeshFileSelector;
+        public override bool interactable
+        {
+            get
+            {
+                return base.interactable;
+            }
+
+            set
+            {
+                base.interactable = value;
+                m_MeshFileSelector.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods

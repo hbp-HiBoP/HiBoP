@@ -31,7 +31,7 @@ namespace HBP.UI
             m_sortByProtocols = false;
             m_sortByDatasets = false;
             m_sortByVisualizations = false;
-            ApplySort();
+            Sort();
         }
         public void SortByPatients()
         {
@@ -49,7 +49,7 @@ namespace HBP.UI
             m_sortByProtocols = false;
             m_sortByDatasets = false;
             m_sortByVisualizations = false;
-            ApplySort();
+            Sort();
         }
         public void SortByGroups()
         {
@@ -67,7 +67,7 @@ namespace HBP.UI
             m_sortByProtocols = false;
             m_sortByDatasets = false;
             m_sortByVisualizations = false;
-            ApplySort();
+            Sort();
         }
         public void SortByProtocols()
         {
@@ -85,7 +85,7 @@ namespace HBP.UI
             m_sortByGroups = false;
             m_sortByDatasets = false;
             m_sortByVisualizations = false;
-            ApplySort();
+            Sort();
         }
         public void SortByDatasets()
         {
@@ -103,7 +103,7 @@ namespace HBP.UI
             m_sortByGroups = false;
             m_sortByProtocols = false;
             m_sortByVisualizations = false;
-            ApplySort();
+            Sort();
         }
         public void SortByVisualizations()
         {
@@ -120,7 +120,7 @@ namespace HBP.UI
             m_sortByPatients = false;
             m_sortByGroups = false;
             m_sortByDatasets = false;
-            ApplySort();
+            Sort();
         }
         #endregion
     }

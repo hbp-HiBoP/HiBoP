@@ -29,7 +29,7 @@ namespace HBP.UI.Anatomy
             m_sortByMRI = false;
             m_sortByImplantation = false;
             m_sortByTransformation = false;
-            ApplySort();
+            Sort();
         }
         public void SortByPlace()
         {
@@ -48,7 +48,7 @@ namespace HBP.UI.Anatomy
             m_sortByMRI = false;
             m_sortByImplantation = false;
             m_sortByTransformation = false;
-            ApplySort();
+            Sort();
         }
         public void SortByDate()
         {
@@ -67,7 +67,7 @@ namespace HBP.UI.Anatomy
             m_sortByMRI = false;
             m_sortByImplantation = false;
             m_sortByTransformation = false;
-            ApplySort();
+            Sort();
         }
         public void SortByMesh()
         {
@@ -86,7 +86,7 @@ namespace HBP.UI.Anatomy
             m_sortByMRI = false;
             m_sortByImplantation = false;
             m_sortByTransformation = false;
-            ApplySort();
+            Sort();
         }
         public void SortByMRI()
         {
@@ -105,7 +105,7 @@ namespace HBP.UI.Anatomy
             m_sortByName = false;
             m_sortByImplantation = false;
             m_sortByTransformation = false;
-            ApplySort();
+            Sort();
         }
         public void SortByImplantation()
         {
@@ -124,7 +124,7 @@ namespace HBP.UI.Anatomy
             m_sortByMRI = false;
             m_sortByName = false;
             m_sortByTransformation = false;
-            ApplySort();
+            Sort();
         }
         public void SortByTransformation()
         {
@@ -143,7 +143,7 @@ namespace HBP.UI.Anatomy
             m_sortByMRI = false;
             m_sortByImplantation = false;
             m_sortByName = false;
-            ApplySort();
+            Sort();
         }
         public void SortByConnectivity()
         {
@@ -163,7 +163,7 @@ namespace HBP.UI.Anatomy
             m_sortByImplantation = false;
             m_sortByName = false;
             m_sortByTransformation = false;
-            ApplySort();
+            Sort();
         }
         #endregion
     }

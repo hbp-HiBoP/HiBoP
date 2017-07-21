@@ -8,6 +8,19 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
+        public override bool interactable
+        {
+            get
+            {
+                return base.interactable;
+            }
+
+            set
+            {
+                base.interactable = value;
+                m_NameInputField.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods

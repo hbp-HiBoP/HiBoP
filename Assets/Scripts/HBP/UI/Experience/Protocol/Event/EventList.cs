@@ -27,7 +27,7 @@ namespace HBP.UI.Experience.Protocol
                 m_Objects.OrderBy(x => x.Name);
             }
             m_sortByName = !m_sortByName;
-            ApplySort();
+            Sort();
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace HBP.UI.Experience.Protocol
             {
                 m_Objects.OrderBy(x => x.Codes.Min());
             }
-            ApplySort();
+            Sort();
         }
         #endregion
     }

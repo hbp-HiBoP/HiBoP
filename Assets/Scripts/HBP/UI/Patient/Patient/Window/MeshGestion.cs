@@ -29,6 +29,7 @@ namespace HBP.UI.Anatomy
             m_AddSingleMeshButton.interactable = interactable;
             m_AddLeftRightMeshButton.interactable = interactable;
             m_RemoveMeshButton.interactable = interactable;
+            m_MeshList.interactable = interactable;
         }
         public void SetActive(bool active)
         {

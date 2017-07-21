@@ -8,36 +8,27 @@ namespace Tools.Unity.Lists
     public abstract class SelectableItem<T> : Item<T>
     {
         #region Properties
-        UnityEvent m_OnChangeSelected = new UnityEvent();
-        public UnityEvent OnChangeSelected
+        public GenericEvent<T, bool> onSelectionChanged { get; set; }
+        public virtual bool selected
         {
-            get { return m_OnChangeSelected; }
+            get { return GetComponent<Toggle>().isOn; }
+            set { GetComponent<Toggle>().isOn = value; }
         }
-        Toggle m_Toggle;
-        public bool Selected
+        public virtual bool interactable
         {
-            get { return m_Toggle.isOn; }
+            get { return GetComponent<Toggle>().interactable; }
+            set { GetComponent<Toggle>().interactable = value; }
+        }
+        public override T Object
+        {
+            get { return base.Object; }
             set
             {
-                if (Interactable)
-                {
-                    m_Toggle.isOn = value;
-                    OnChangeSelected.Invoke();
-                }
+                base.Object = value;
+                Toggle toggle = GetComponent<Toggle>();
+                toggle.onValueChanged.RemoveAllListeners();
+                toggle.onValueChanged.AddListener((isOn) => onSelectionChanged.Invoke(value, isOn));
             }
-        }
-        public bool Interactable
-        {
-            get { return m_Toggle.interactable; }
-            set { if (!value) Selected = false; m_Toggle.interactable = value; }
-        }
-        #endregion
-
-        #region Private Methods
-        private void Awake()
-        {
-            m_Toggle = GetComponent<Toggle>();
-            m_Toggle.onValueChanged.AddListener((value) => OnChangeSelected.Invoke());
         }
         #endregion
     }

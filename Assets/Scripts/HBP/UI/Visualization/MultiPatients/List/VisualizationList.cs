@@ -22,7 +22,7 @@ namespace HBP.UI.Visualization
                 m_Objects.OrderBy(x => x.Name);
             }
             m_SortByName = !m_SortByName;
-            ApplySort();
+            Sort();
         }
         public void SortByNbPatients()
         {
@@ -35,7 +35,7 @@ namespace HBP.UI.Visualization
                 m_Objects.OrderBy(x => x.Patients.Count);
             }
             m_SortByPatients = !m_SortByPatients;
-            ApplySort();
+            Sort();
         }
         public void SortByNbColumns()
         {
@@ -48,7 +48,7 @@ namespace HBP.UI.Visualization
                 m_Objects.OrderBy(x => x.Columns.Count);
             }
             m_SortByColumns = !m_SortByColumns;
-            ApplySort();
+            Sort();
         }
         #endregion
     }

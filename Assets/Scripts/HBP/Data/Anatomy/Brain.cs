@@ -55,6 +55,7 @@ namespace HBP.Data.Anatomy
             Connectivities = new List<Connectivity>();
             //TODO.
             Transformations = new List<Transformation>();
+            Epilepsy = new Epilepsy(Epilepsy.EpilepsyType.Unknown);
             //Transformations = Transformation.GetTransformations(path).ToList();
         }
         #endregion
