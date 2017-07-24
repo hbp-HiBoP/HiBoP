@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
-    public class Colormap : MonoBehaviour
+    public class Colormap : OverlayElement
     {
         #region Properties
         public Sprite Colormap0;
@@ -27,8 +27,6 @@ namespace HBP.UI.Module3D
         public Sprite Colormap15;
         public Sprite Colormap16;
         public Sprite Colormap17;
-
-        public bool IsActive { get; set; }
 
         /// <summary>
         /// Icon of the colormap display
@@ -85,11 +83,12 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public void Initialize(Base3DScene scene, Column3D column)
+        public void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
+            m_ColumnUI = columnUI;
+
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                gameObject.SetActive(value);
                 IsActive = value;
             });
 

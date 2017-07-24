@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
-    public class ColumnLabel : MonoBehaviour
+    public class ColumnLabel : OverlayElement
     {
         #region Properties
         [SerializeField]
@@ -14,8 +14,10 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public void Initialize(Base3DScene scene, Column3D column)
+        public void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
+            m_ColumnUI = columnUI;
+
             m_Text.text = column.Label;
         }
         #endregion

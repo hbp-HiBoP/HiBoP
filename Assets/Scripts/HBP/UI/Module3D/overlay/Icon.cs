@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
-    public class Icon : MonoBehaviour
+    public class Icon : OverlayElement
     {
         #region Properties
         [SerializeField]
@@ -15,22 +15,22 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Text m_Text;
 
-        public bool IsActive { get; set; }
-
         private Data.Visualization.Icon m_CurrentIcon;
         #endregion
 
         #region Public Methods
-        public void Initialize(Base3DScene scene, Column3D column)
+        public void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
+            m_ColumnUI = columnUI;
+
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                gameObject.SetActive(value);
                 IsActive = value;
             });
+
             if (column is Column3DFMRI)
             {
-                gameObject.SetActive(false);
+                IsActive = false;
             }
             else
             {
@@ -45,11 +45,11 @@ namespace HBP.UI.Module3D
                     {
                         if (icon == null)
                         {
-                            gameObject.SetActive(false);
+                            IsActive = false;
                         }
                         else
                         {
-                            gameObject.SetActive(true);
+                            IsActive = true;
                             Texture2D iconTexture = Texture2Dutility.GenerateIcon();
                             HBP.Module3D.DLL.Texture.Load(icon.IllustrationPath).UpdateTexture2D(iconTexture);
                             m_Image.sprite = Sprite.Create(iconTexture, new Rect(0, 0, iconTexture.width, iconTexture.height), new Vector2(0.5f, 0.5f));

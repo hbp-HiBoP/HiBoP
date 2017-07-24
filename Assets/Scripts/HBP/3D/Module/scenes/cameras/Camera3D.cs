@@ -179,8 +179,6 @@ namespace HBP.Module3D
         }
         private void Start()
         {
-            Camera.depth = m_AssociatedColumn.ID + m_AssociatedView.LineID * 0.1f; // Temp fix for rendering order // FIXME : remove when using multiple meshes per scene (one for each column)
-
             m_AssociatedScene.Events.OnModifyPlanesCuts.AddListener(() =>
             {
                 if (!m_AssociatedScene.SceneInformation.MRILoaded)

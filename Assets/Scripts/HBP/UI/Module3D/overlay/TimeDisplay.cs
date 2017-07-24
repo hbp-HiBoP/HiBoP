@@ -6,27 +6,26 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
-    public class TimeDisplay : MonoBehaviour
+    public class TimeDisplay : OverlayElement
     {
         #region Properties
         [SerializeField]
         private Text m_Text;
-
-        public bool IsActive { get; set; }
         #endregion
 
         #region Public Methods
-        public void Initialize(Base3DScene scene, Column3D column)
+        public void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
+            m_ColumnUI = columnUI;
+
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                gameObject.SetActive(value);
                 IsActive = value;
             });
 
             if (column is Column3DFMRI)
             {
-                gameObject.SetActive(false);
+                IsActive = false;
             }
             else
             {

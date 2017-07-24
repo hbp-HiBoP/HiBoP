@@ -60,6 +60,16 @@ namespace HBP.UI.Module3D
         /// Is the column initialized ?
         /// </summary>
         private bool m_IsInitialized = false;
+        /// <summary>
+        /// Does the column UI have enough space to display the overlay ?
+        /// </summary>
+        public bool HasEnoughSpaceForOverlay
+        {
+            get
+            {
+                return m_RectTransform.rect.width > MINIMUM_SIZE_TO_DISPLAY_OVERLAY;
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -82,6 +92,13 @@ namespace HBP.UI.Module3D
             Vector2 size = Vector2.Scale(transform.rect.size, transform.lossyScale);
             return new Rect((Vector2)transform.position - (size * 0.5f), size);
         }
+        private void UpdateOverlay()
+        {
+            m_Label.IsActive = m_Label.IsActive;
+            m_Colormap.IsActive = m_Colormap.IsActive;
+            m_TimeDisplay.IsActive = m_TimeDisplay.IsActive;
+            m_Icon.IsActive = m_Icon.IsActive;
+        }
         #endregion
 
         #region Public Methods
@@ -89,22 +106,7 @@ namespace HBP.UI.Module3D
         {
             if (!m_IsInitialized) return;
 
-            // FIXME : maybe performance gain possible, or maybe this should be an option
-            if (m_Colormap.IsActive && m_TimeDisplay.IsActive && m_Icon.IsActive)
-            {
-                if (m_RectTransform.rect.width < MINIMUM_SIZE_TO_DISPLAY_OVERLAY)
-                {
-                    m_Colormap.gameObject.SetActive(false);
-                    m_TimeDisplay.gameObject.SetActive(false);
-                    m_Icon.gameObject.SetActive(false);
-                }
-                else
-                {
-                    m_Colormap.gameObject.SetActive(true);
-                    m_TimeDisplay.gameObject.SetActive(true);
-                    m_Icon.gameObject.SetActive(true);
-                }
-            }
+            UpdateOverlay();
 
             if (Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= 0.9f)
             {
@@ -124,13 +126,14 @@ namespace HBP.UI.Module3D
             m_MinimizedGameObject = transform.Find("MinimizedImage").gameObject;
             m_MinimizedGameObject.GetComponentInChildren<Text>().text = m_Column.Label;
             m_MinimizedGameObject.SetActive(false);
-            m_Colormap.Initialize(scene, column);
-            m_Colormap.gameObject.SetActive(false);
-            m_TimeDisplay.Initialize(scene, column);
-            m_TimeDisplay.gameObject.SetActive(false);
-            m_Icon.Initialize(scene, column);
-            m_Icon.gameObject.SetActive(false);
-            m_Label.Initialize(scene, column);
+            m_Colormap.Initialize(scene, column, this);
+            m_Colormap.IsActive = false;
+            m_TimeDisplay.Initialize(scene, column, this);
+            m_TimeDisplay.IsActive = false;
+            m_Icon.Initialize(scene, column, this);
+            m_Icon.IsActive = false;
+            m_Label.Initialize(scene, column, this);
+            m_Label.IsActive = true;
             m_IsInitialized = true;
         }
         #endregion
