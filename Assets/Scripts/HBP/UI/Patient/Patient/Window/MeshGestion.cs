@@ -13,6 +13,22 @@ namespace HBP.UI.Anatomy
         [SerializeField] Button m_AddLeftRightMeshButton;
         [SerializeField] Button m_RemoveMeshButton;
         Data.Patient m_Patient;
+        bool m_Interactable;
+        public virtual bool interactable
+        {
+            get
+            {
+                return m_Interactable;
+            }
+            set
+            {
+                m_Interactable = value;
+                m_AddSingleMeshButton.interactable = value;
+                m_AddLeftRightMeshButton.interactable = value;
+                m_RemoveMeshButton.interactable = value;
+                m_MeshList.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -24,17 +40,10 @@ namespace HBP.UI.Anatomy
         {
             m_Patient = patient;
         }
-        public void SetInteractable(bool interactable)
-        {
-            m_AddSingleMeshButton.interactable = interactable;
-            m_AddLeftRightMeshButton.interactable = interactable;
-            m_RemoveMeshButton.interactable = interactable;
-            m_MeshList.interactable = interactable;
-        }
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
-            if(active) m_MeshList.Display(m_Patient.Brain.Meshes.ToArray());
+            if(active) m_MeshList.Objects = m_Patient.Brain.Meshes.ToArray();
         }
         public void AddSingleMesh()
         {
@@ -50,7 +59,7 @@ namespace HBP.UI.Anatomy
         }
         public void RemoveSelectedMeshes()
         {
-            m_MeshList.Remove(m_MeshList.GetObjectsSelected());
+            m_MeshList.Remove(m_MeshList.ObjectsSelected);
             m_Patient.Brain.Meshes = m_MeshList.Objects.ToList();
         }
         #endregion

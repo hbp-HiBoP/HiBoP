@@ -1,77 +1,73 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Data.Visualization;
-
 namespace HBP.UI.Visualization
 {
     public class ColumnItem : Tools.Unity.Lists.Item<Column>
     {
-        #region Attributs
-        #region UI Elements
+        #region Properties
         /// <summary>
         /// The experience.
         /// </summary>
-        [SerializeField]
-        Text m_experience;
-
+        [SerializeField] Text m_Experience;
         /// <summary>
         /// The data.
         /// </summary>
-        [SerializeField]
-        Text m_data;
-
+        [SerializeField] Text m_Data;
         /// <summary>
         /// The protocol.
         /// </summary>
-        [SerializeField]
-        Text m_protocol;
-
+        [SerializeField] Text m_Protocol;
         /// <summary>
         /// The bloc.
         /// </summary>
-        [SerializeField]
-        Text m_bloc;
-        #endregion
-        #endregion
-
-        #region Private Methods
-        protected override void SetObject(Column column)
+        [SerializeField] Text m_Bloc;
+        public override Column Object
         {
-            if (column == null || column.Dataset == null || column.Dataset.Name == null)
+            get
             {
-                m_experience.text = "";
-            }
-            else
-            {
-                m_experience.text = column.Dataset.Name;
+                return base.Object;
             }
 
-            if (column == null || column.Dataset == null || column.DataLabel == null)
+            set
             {
-                m_data.text = "";
-            }
-            else
-            {
-                m_data.text = column.DataLabel;
-            }
+                base.Object = value;
+                if (value == null || value.Dataset == null || value.Dataset.Name == null)
+                {
+                    m_Experience.text = "";
+                }
+                else
+                {
+                    m_Experience.text = value.Dataset.Name;
+                }
 
-            if (column == null || column.Dataset == null || column.Protocol.Name == null)
-            {
-                m_protocol.text = "";
-            }
-            else
-            {
-                m_protocol.text = column.Protocol.Name;
-            }
+                if (value == null || value.Dataset == null || value.DataLabel == null)
+                {
+                    m_Data.text = "";
+                }
+                else
+                {
+                    m_Data.text = value.DataLabel;
+                }
 
-            if (column == null || column.Dataset == null || column.Bloc.DisplayInformations.Name == null)
-            {
-                m_bloc.text = "";
-            }
+                if (value == null || value.Dataset == null || value.Protocol.Name == null)
+                {
+                    m_Protocol.text = "";
+                }
+                else
+                {
+                    m_Protocol.text = value.Protocol.Name;
+                }
 
-            else
-            {
-                m_bloc.text = column.Bloc.DisplayInformations.Name;
+                if (value == null || value.Dataset == null || value.Bloc.DisplayInformations.Name == null)
+                {
+                    m_Bloc.text = "";
+                }
+
+                else
+                {
+                    m_Bloc.text = value.Bloc.DisplayInformations.Name;
+                }
             }
         }
         #endregion

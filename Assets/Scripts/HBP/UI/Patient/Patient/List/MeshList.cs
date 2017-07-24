@@ -6,37 +6,40 @@ namespace HBP.UI.Anatomy
     public class MeshList : Tools.Unity.Lists.SelectableListWithSave<Data.Anatomy.Mesh>
     {
         #region Properties
-        bool m_SortByName, m_SortByType;
+        enum OrderBy { None, Name, DescendingName, Path, DescendingPath }
+        OrderBy m_OrderBy = OrderBy.None;
         #endregion
 
         #region SortingMethods
         public void SortByName()
         {
-            if (!m_SortByName)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Name).ToList();
+                case OrderBy.Name:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingName;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Name;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Name).ToList();
-            }
-            m_SortByName = !m_SortByName;
-            m_SortByType = false;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByType()
         {
-            if (!m_SortByType)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.GetType().ToString()).ToList();
+                case OrderBy.Name:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.GetType().ToString()).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingName;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.GetType().ToString()).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Name;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.GetType().ToString()).ToList();
-            }
-            m_SortByType = !m_SortByType;
-            m_SortByName = false;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         #endregion
     }

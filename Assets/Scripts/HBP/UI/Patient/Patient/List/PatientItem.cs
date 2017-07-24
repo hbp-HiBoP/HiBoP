@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Data;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Anatomy
@@ -14,45 +15,48 @@ namespace HBP.UI.Anatomy
 		[SerializeField] Text m_TransformationText;
 		[SerializeField] Text m_ImplantationText;
         [SerializeField] Text m_ConnectivityText;
-		[SerializeField] Color m_enable_color;
-        [SerializeField] Color m_disable_color;
-        #endregion
-
-        #region Private Methods
-        /// <summary>
-        /// Sets the text field of the patient panel.
-        /// </summary>
-        protected override void SetObject(Data.Patient objectToSet)
+		[SerializeField] Color m_Enable_color;
+        [SerializeField] Color m_Disable_color;
+        public override Patient Object
         {
-            m_NameText.text = objectToSet.Name;
-            m_PlaceText.text = objectToSet.Place;
-            m_DateText.text = objectToSet.Date.ToString();
+            get
+            {
+                return base.Object;
+            }
 
-            int nbMesh = objectToSet.Brain.Meshes.FindAll((m) => m.isUsable).Count;
-            m_MeshText.text = nbMesh.ToString();
-            if (nbMesh == 0) m_MeshText.color = m_disable_color;
-            else m_MeshText.color = m_enable_color;
+            set
+            {
+                base.Object = value;
+                m_NameText.text = value.Name;
+                m_PlaceText.text = value.Place;
+                m_DateText.text = value.Date.ToString();
 
-            int nbMRI = objectToSet.Brain.MRIs.Count;
-            m_MRIText.text = nbMRI.ToString();
-            if (nbMRI == 0) m_MRIText.color = m_disable_color;
-            else m_MRIText.color = m_enable_color;
+                int nbMesh = value.Brain.Meshes.FindAll((m) => m.isUsable).Count;
+                m_MeshText.text = nbMesh.ToString();
+                if (nbMesh == 0) m_MeshText.color = m_Disable_color;
+                else m_MeshText.color = m_Enable_color;
 
-            int nbImplantation = objectToSet.Brain.Implantations.Count;
-            m_ImplantationText.text = nbImplantation.ToString();
-            if (nbImplantation == 0) m_ImplantationText.color = m_disable_color;
-            else m_ImplantationText.color = m_enable_color;
+                int nbMRI = value.Brain.MRIs.FindAll((m) => m.isUsable).Count;
+                m_MRIText.text = nbMRI.ToString();
+                if (nbMRI == 0) m_MRIText.color = m_Disable_color;
+                else m_MRIText.color = m_Enable_color;
 
-            int nbTransformation = objectToSet.Brain.Transformations.Count;
-            m_TransformationText.text = nbTransformation.ToString();
-            if (nbTransformation == 0) m_TransformationText.color = m_disable_color;
-            else m_TransformationText.color = m_enable_color;
+                int nbImplantation = value.Brain.Implantations.FindAll((i) => i.isUsable).Count;
+                m_ImplantationText.text = nbImplantation.ToString();
+                if (nbImplantation == 0) m_ImplantationText.color = m_Disable_color;
+                else m_ImplantationText.color = m_Enable_color;
 
-            int nbConnectivity = objectToSet.Brain.Connectivities.Count;
-            m_ConnectivityText.text = nbConnectivity.ToString();
-            if (nbConnectivity == 0) m_ConnectivityText.color = m_disable_color;
-            else m_ConnectivityText.color = m_enable_color;
+                int nbTransformation = value.Brain.Transformations.FindAll(t => t.isUsable).Count;
+                m_TransformationText.text = nbTransformation.ToString();
+                if (nbTransformation == 0) m_TransformationText.color = m_Disable_color;
+                else m_TransformationText.color = m_Enable_color;
+
+                int nbConnectivity = value.Brain.Connectivities.FindAll(c => c.isUsable).Count;
+                m_ConnectivityText.text = nbConnectivity.ToString();
+                if (nbConnectivity == 0) m_ConnectivityText.color = m_Disable_color;
+                else m_ConnectivityText.color = m_Enable_color;
+            }
         }
-		#endregion
+        #endregion
 	}
 }

@@ -1,20 +1,22 @@
-﻿namespace Tools.Unity.Lists
+﻿using UnityEngine.Events;
+
+namespace Tools.Unity.Lists
 {
     public abstract class ActionnableItem<T> : SelectableItem<T>
     {
         #region Properties
-        protected ActionEvent<T> m_Action = new ActionEvent<T>();
-        public ActionEvent<T> Action { get { return m_Action; } }
+        protected GenericEvent<T, int> m_OnAction = new GenericEvent<T, int>();
+        public GenericEvent<T, int> OnAction { get { return m_OnAction; } }
         #endregion
 
         #region Public Methods
         public virtual void DoAction()
         {
-            m_Action.Invoke(Object, 0);
+            m_OnAction.Invoke(Object, 0);
         }
         public virtual void DoActionType(int i)
         {
-            m_Action.Invoke(Object,i);
+            m_OnAction.Invoke(Object,i);
         }
         #endregion
     }

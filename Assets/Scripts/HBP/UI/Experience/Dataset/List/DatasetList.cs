@@ -5,38 +5,41 @@ namespace HBP.UI.Experience.Dataset
 {
 	public class DatasetList : Tools.Unity.Lists.SelectableListWithItemAction<d.Dataset>
     {
-        #region Attributs
-        bool m_sortByName = false;
-        bool m_sortByData = false;
-
+        #region Properties
+        enum OrderBy { None, Name, DescendingName, Data, DescendingData }
+        OrderBy m_OrderBy = OrderBy.None;
         #endregion
 
         #region Public Methods
         public void SortByName()
         {
-            if (m_sortByName)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending(x => x.Name);
+                case OrderBy.Name:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingName;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Name;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy(x => x.Name);
-            }
-            m_sortByName = !m_sortByName;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByData()
         {
-            if (m_sortByData)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending(x => x.Data.Count);
+                case OrderBy.Data:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Data.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingData;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Data.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Data;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy(x => x.Data.Count);
-            }
-            m_sortByData = !m_sortByData;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         #endregion
     }

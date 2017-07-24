@@ -17,6 +17,10 @@ namespace HBP.Data.Anatomy
         [DataMember] public string Path { get; set; }
         [IgnoreDataMember] public List<Electrode> Electrodes { get; set; }
         [IgnoreDataMember] public Brain Brain { get; set; }
+        public virtual bool isUsable
+        {
+            get { return !string.IsNullOrEmpty(Name) && !string.IsNullOrEmpty(Path); }
+        }
         #endregion
 
         #region Constructor

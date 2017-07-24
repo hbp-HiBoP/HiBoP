@@ -1,25 +1,25 @@
-﻿using System.Linq;
-
-namespace Tools.Unity.Lists
+﻿namespace Tools.Unity.Lists
 {
     public abstract class SelectableListWithSave<T> : SelectableList<T>
     {
+        #region Properties
         public override T[] Objects
         {
-            get { SaveAll(); return m_Objects.ToArray(); }
+            get { SaveAll(); return base.Objects; }
+            set { base.Objects = value; }
         }
-        public override T[] GetObjectsSelected()
+        public override T[] ObjectsSelected
         {
-            SaveAll();
-            return base.GetObjectsSelected();
+            get { SaveAll(); return base.ObjectsSelected; }
+            set { base.ObjectsSelected = value; }
         }
+        #endregion
+
+        #region Public Methods
         public virtual void SaveAll()
         {
-            foreach(T i_object in m_Objects)
-            {
-                SavableItem<T> savableItem = m_ObjectsToItems[i_object] as SavableItem<T>;
-                savableItem.Save();
-            }
+            foreach (var couple in m_ObjectsToItems) (couple.Value as SavableItem<T>).Save();
         }
+        #endregion
     }
 }

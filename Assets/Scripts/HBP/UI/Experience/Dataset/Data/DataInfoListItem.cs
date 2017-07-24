@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine.UI;
 using Tools.Unity;
+using HBP.Data.Experience.Dataset;
 
 namespace HBP.UI.Experience.Dataset
 {
@@ -38,7 +39,42 @@ namespace HBP.UI.Experience.Dataset
 		/// <summary>
 		/// The state toggle.
 		/// </summary>
-		[SerializeField] Toggle m_StateToggle;
+		[SerializeField] Image m_IsOk;
+        [SerializeField] Color m_EnableColor;
+        [SerializeField] Color m_DisableColor;
+        public override DataInfo Object
+        {
+            get
+            {
+                return base.Object;
+            }
+
+            set
+            {
+                base.Object = value;
+                m_LabelInputField.text = value.Name;
+                m_LabelInputField.onValueChanged.AddListener((name) => { value.Name = name; m_Object.GetNameErrors(); SetColor(value.isOk); });
+
+                m_MeasureLabelInputField.text = value.Measure;
+                m_MeasureLabelInputField.onValueChanged.AddListener((measure) => { value.Measure = measure; m_Object.GetMeasureErrors(); SetColor(value.isOk); });
+
+                m_EEGFileSelector.File = value.EEG;
+                m_EEGFileSelector.onValueChanged.AddListener((eeg) => { value.EEG = eeg; m_Object.GetEEGErrors(); SetColor(value.isOk); });
+
+                m_POSFileSelector.File = value.POS;
+                m_POSFileSelector.onValueChanged.AddListener((pos) => { value.POS = pos; m_Object.GetPOSErrors(); SetColor(value.isOk); });
+
+                m_ProtocolDropdown.options = (from protocol in ApplicationState.ProjectLoaded.Protocols select new Dropdown.OptionData(protocol.Name, null)).ToList();
+                m_ProtocolDropdown.value = Mathf.Max(0, ApplicationState.ProjectLoaded.Protocols.IndexOf(value.Protocol));
+                m_ProtocolDropdown.onValueChanged.AddListener((protocol) => { value.Protocol = ApplicationState.ProjectLoaded.Protocols[protocol]; m_Object.GetProtocolErrors(); SetColor(value.isOk); });
+
+                m_PatientDropdown.options = (from patient in ApplicationState.ProjectLoaded.Patients select new Dropdown.OptionData(patient.Name, null)).ToList();
+                m_PatientDropdown.value = Mathf.Max(0, ApplicationState.ProjectLoaded.Patients.IndexOf(value.Patient));
+                m_PatientDropdown.onValueChanged.AddListener((patient) => { value.Patient = ApplicationState.ProjectLoaded.Patients[patient]; m_Object.GetPatientErrors(); SetColor(value.isOk); });
+
+                SetColor(value.isOk);
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -54,28 +90,16 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
-        protected override void SetObject(Data.Experience.Dataset.DataInfo dataInfo)
+        protected void SetColor(bool isOk)
         {
-            m_LabelInputField.text = dataInfo.Name;
-            m_LabelInputField.onValueChanged.AddListener((name) => { dataInfo.Name = name; m_StateToggle.isOn = dataInfo.isOk; });
-
-            m_MeasureLabelInputField.text = dataInfo.Measure;
-            m_MeasureLabelInputField.onValueChanged.AddListener((measure) => { dataInfo.Measure = measure; m_StateToggle.isOn = dataInfo.isOk; });
-
-            m_EEGFileSelector.File = dataInfo.EEG;
-            m_EEGFileSelector.onValueChanged.AddListener((eeg) => { dataInfo.EEG = eeg; m_StateToggle.isOn = dataInfo.isOk; });
-
-            m_POSFileSelector.File = dataInfo.POS;
-            m_POSFileSelector.onValueChanged.AddListener((pos) => { dataInfo.POS = pos; m_StateToggle.isOn = dataInfo.isOk; });
-
-            m_ProtocolDropdown.options = (from protocol in ApplicationState.ProjectLoaded.Protocols select new Dropdown.OptionData(protocol.Name, null)).ToList();
-            m_ProtocolDropdown.value = Mathf.Max(0, ApplicationState.ProjectLoaded.Protocols.IndexOf(dataInfo.Protocol));
-            m_ProtocolDropdown.onValueChanged.AddListener((protocol) => { dataInfo.Protocol = ApplicationState.ProjectLoaded.Protocols[protocol]; m_StateToggle.isOn = dataInfo.isOk; });
-
-            m_PatientDropdown.options = (from patient in ApplicationState.ProjectLoaded.Patients select new Dropdown.OptionData(patient.Name, null)).ToList();
-            m_PatientDropdown.value = Mathf.Max(0, ApplicationState.ProjectLoaded.Patients.IndexOf(dataInfo.Patient));
-            m_PatientDropdown.onValueChanged.AddListener((patient) => { dataInfo.Patient = ApplicationState.ProjectLoaded.Patients[patient]; m_StateToggle.isOn = dataInfo.isOk; });
-            m_StateToggle.isOn = dataInfo.isOk;
+            if(isOk)
+            {
+                m_IsOk.color = m_EnableColor;
+            }
+            else
+            {
+                m_IsOk.color = m_DisableColor;
+            }
         }
         #endregion
     }

@@ -16,8 +16,8 @@ namespace HBP.UI.Anatomy
         #region Protected Methods
         protected override void SetWindow()
         {
-            list = transform.Find("Content").Find("List").Find("List").Find("GameObject").Find("List").Find("Viewport").Find("Content").GetComponent<GroupList>();
-            (list as GroupList).ActionEvent.AddListener((item,i) => OpenModifier(item,true));
+            m_List = transform.Find("Content").Find("List").Find("List").Find("GameObject").Find("List").Find("Viewport").Find("Content").GetComponent<GroupList>();
+            (m_List as GroupList).OnAction.AddListener((item,i) => OpenModifier(item,true));
             AddItem(ApplicationState.ProjectLoaded.Groups.ToArray());
         }
         #endregion

@@ -1,5 +1,4 @@
 ﻿using UnityEngine.UI;
-using System.Linq;
 using d = HBP.Data.Experience.Dataset;
 
 namespace HBP.UI.Experience.Dataset
@@ -10,52 +9,53 @@ namespace HBP.UI.Experience.Dataset
 	public class DatasetModifier : ItemModifier<d.Dataset> 
 	{
 		#region Properties		
-		DataInfoList dataInfoList;
-		InputField nameInputField;
-        Button saveButton, createButton, removeButton;
+		DataInfoList m_DataInfoList;
+		InputField m_NameInputField;
+        Button m_SaveButton, m_CreateButton, m_RemoveButton;
         #endregion
 
         #region Public Methods
 		public override void Save()
         {
-            dataInfoList.SaveAll();
+            m_DataInfoList.SaveAll();
             base.Save();
 		}			
 		public void Create()
 		{
             d.DataInfo newDataInfo = new d.DataInfo();
 			ItemTemp.Data.Add(newDataInfo);
-            dataInfoList.Add(newDataInfo);
+            m_DataInfoList.Add(newDataInfo);
 		}
 		public void Remove()
 		{
-            d.DataInfo[] dataInfoToRemove = dataInfoList.GetObjectsSelected();
+            d.DataInfo[] dataInfoToRemove = m_DataInfoList.ObjectsSelected;
             ItemTemp.Data.Remove(dataInfoToRemove);
-            dataInfoList.Remove(dataInfoToRemove);
+            m_DataInfoList.Remove(dataInfoToRemove);
 		}
         #endregion
 
         #region Protected Methods
         protected override void SetFields(d.Dataset objectToDisplay)
         {
-            nameInputField.text = ItemTemp.Name;
-            nameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
-            dataInfoList.Display(ItemTemp.Data.ToArray());           
+            m_NameInputField.text = ItemTemp.Name;
+            m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
+            m_DataInfoList.Objects = ItemTemp.Data.ToArray();           
         }
         protected override void SetWindow()
         {
-            nameInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
-            dataInfoList = transform.Find("Content").Find("Data").Find("List").Find("List").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<DataInfoList>();
-            saveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
-            createButton = transform.Find("Content").Find("Data").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
-            removeButton = transform.Find("Content").Find("Data").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
+            m_NameInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
+            m_DataInfoList = transform.Find("Content").Find("Data").Find("List").Find("List").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<DataInfoList>();
+            m_SaveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
+            m_CreateButton = transform.Find("Content").Find("Data").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
+            m_RemoveButton = transform.Find("Content").Find("Data").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {
-            nameInputField.interactable = interactable;
-            saveButton.interactable = interactable;
-            createButton.interactable = interactable;
-            removeButton.interactable = interactable;
+            m_NameInputField.interactable = interactable;
+            m_SaveButton.interactable = interactable;
+            m_CreateButton.interactable = interactable;
+            m_RemoveButton.interactable = interactable;
+            m_DataInfoList.interactable = interactable;
         }
         #endregion
     }

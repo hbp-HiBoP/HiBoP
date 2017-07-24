@@ -18,7 +18,7 @@ namespace HBP.UI.Visualization
         }
         public void Display()
         {
-            FindObjectOfType<VisualizationLoader>().Load(list.GetObjectsSelected()[0]);
+            FindObjectOfType<VisualizationLoader>().Load(m_List.ObjectsSelected[0]);
             base.Close();
         }
         #endregion
@@ -27,14 +27,14 @@ namespace HBP.UI.Visualization
         protected override void SetWindow()
         {
             displayButton = transform.Find("Content").Find("Buttons").Find("Display").GetComponent<Button>();
-            list = transform.Find("Content").Find("MultiPatientsVisualizations").Find("List").Find("Viewport").Find("Content").GetComponent<VisualizationList>();
-            (list as VisualizationList).ActionEvent.AddListener((visu, type) => OpenModifier(visu,true));
-            (list as VisualizationList).SelectEvent.AddListener(() => SetDisplay());
+            m_List = transform.Find("Content").Find("MultiPatientsVisualizations").Find("List").Find("Viewport").Find("Content").GetComponent<VisualizationList>();
+            (m_List as VisualizationList).OnAction.AddListener((visu, type) => OpenModifier(visu,true));
+            (m_List as VisualizationList).OnSelectionChanged.AddListener((visu,selected) => SetDisplay());
             AddItem(ApplicationState.ProjectLoaded.Visualizations.ToArray());
         }
         void SetDisplay()
         {
-            Data.Visualization.Visualization[] visualizationsSelected = list.GetObjectsSelected();
+            Data.Visualization.Visualization[] visualizationsSelected = m_List.ObjectsSelected;
             displayButton.interactable = (visualizationsSelected.Length == 1 && visualizationsSelected[0].IsVisualizable);
         }
         #endregion

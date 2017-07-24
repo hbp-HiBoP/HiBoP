@@ -2,53 +2,58 @@
 
 namespace HBP.UI.Visualization
 {
-    public class VisualizationList : Tools.Unity.Lists.OneSelectableListWithItemActions<Data.Visualization.Visualization>
+    public class VisualizationList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Visualization.Visualization>
     {
         #region Properties
-        bool m_SortByName = false;
-        bool m_SortByPatients = false;
-        bool m_SortByColumns = false;
+        enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Columns, DescendingColumns }
+        OrderBy m_OrderBy = OrderBy.None;
         #endregion
 
         #region Public Methods
         public void SortByVisualizationName()
         {
-            if (m_SortByName)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending(x => x.Name);
+                case OrderBy.Name:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingName;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Name;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy(x => x.Name);
-            }
-            m_SortByName = !m_SortByName;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
-        public void SortByNbPatients()
+        public void SortByPatients()
         {
-            if (m_SortByPatients)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending(x => x.Patients.Count);
+                case OrderBy.Patients:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Patients.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingPatients;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Patients.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Patients;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy(x => x.Patients.Count);
-            }
-            m_SortByPatients = !m_SortByPatients;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
-        public void SortByNbColumns()
+        public void SortByColumns()
         {
-            if (m_SortByColumns)
+            switch (m_OrderBy)
             {
-                m_Objects.OrderByDescending(x => x.Columns.Count);
+                case OrderBy.Columns:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Patients.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingColumns;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Patients.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Columns;
+                    break;
             }
-            else
-            {
-                m_Objects.OrderBy(x => x.Columns.Count);
-            }
-            m_SortByColumns = !m_SortByColumns;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         #endregion
     }

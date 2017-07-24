@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 namespace Tools.Unity.Lists
 {
@@ -7,10 +8,10 @@ namespace Tools.Unity.Lists
 	public class ContainerItem : MonoBehaviour
 	{
 		#region Attributs
-        protected ActionEvent<int> m_action = new ActionEvent<int>();
-        public ActionEvent<int> ActionEvent { get { return m_action; } }
+        protected GenericEvent<int,int> m_OnAction = new GenericEvent<int,int>();
+        public GenericEvent<int,int> OnAction { get { return m_OnAction; } }
 
-        public bool isInteractable
+        public bool insteractable
         {
             get { return GetComponent<Button>().interactable; }
             set { GetComponent<Button>().interactable = value; }
@@ -19,8 +20,8 @@ namespace Tools.Unity.Lists
 
         #region Public Methods
         public void OnClick()
-        {
-            ActionEvent.Invoke(transform.GetSiblingIndex(),0);
+        {     
+            OnAction.Invoke(transform.GetSiblingIndex(),0);
         }
 		#endregion
 	}

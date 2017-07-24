@@ -4,35 +4,41 @@ using CielaSpike;
 using Tools.Unity;
 using Tools.Unity.Lists;
 using Tools.CSharp;
+using HBP.Data;
 
 namespace HBP.UI.Anatomy
 {
     public class PatientGestion : ItemGestion<Data.Patient>
     {
         #region Properties
-        FolderSelector databaseFolderSelector;
-        PatientList databaseList;
+        FolderSelector m_DatabaseFolderSelector;
+        PatientList m_DatabaseList;
         #endregion
 
         #region Public Methods
-        // General.
         public override void Save()
         {
             ApplicationState.ProjectLoaded.SetPatients(Items.ToArray());
             base.Save();
         }
-
-        // Patient.
         public void Add()
         {
-            Data.Patient[] patientsToAdd = databaseList.GetObjectsSelected().DeepClone();
+            Data.Patient[] patientsToAdd = m_DatabaseList.ObjectsSelected.DeepClone();
             AddItem(patientsToAdd);
-            databaseList.Remove(patientsToAdd);
+            m_List.Select(patientsToAdd);
+            m_DatabaseList.Remove(patientsToAdd);
         }
         public override void Remove()
         {
-            databaseList.Add(list.GetObjectsSelected());
+            m_DatabaseList.Add(m_List.ObjectsSelected);
+            m_DatabaseList.Select(m_List.ObjectsSelected);
             base.Remove();
+        }
+        public override void SetInteractable(bool interactable)
+        {
+            base.SetInteractable(interactable);
+            m_DatabaseFolderSelector.interactable = interactable;
+            m_DatabaseList.interactable = interactable;
         }
         #endregion
 
@@ -40,31 +46,32 @@ namespace HBP.UI.Anatomy
         IEnumerator c_DisplayDataBasePatients()
         {
             yield return Ninja.JumpToUnity;
-            databaseList.Clear();
+            m_DatabaseList.Objects = new Data.Patient[0];
             yield return Ninja.JumpBack;
 
-            string[] patients = Data.Patient.GetPatientsDirectories(databaseFolderSelector.Folder);
+            string[] patients = Data.Patient.GetPatientsDirectories(m_DatabaseFolderSelector.Folder);
             for (int i = 0; i < patients.Length; i++)
             {
                 yield return Ninja.JumpBack;
                 Data.Patient patient = new Data.Patient(patients[i]);
                 yield return Ninja.JumpToUnity;
-                if (!Items.Contains(patient)) databaseList.Add(patient);
+                if (!Items.Contains(patient)) m_DatabaseList.Add(patient);
             }
         }
         protected override void SetWindow()
         {
             // Project list.
-            list = transform.Find("Content").Find("Patients").Find("Project").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
+            m_List = transform.Find("Content").Find("Patients").Find("Project").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
             AddItem(ApplicationState.ProjectLoaded.Patients.ToArray());
-            (list as SelectableListWithItemAction<Data.Patient>).ActionEvent.AddListener((patient, i) => OpenModifier(patient, true));
+            (m_List as PatientList).OnAction.AddListener((patient, i) => OpenModifier(patient, true));
 
             // Database list.            
-            databaseFolderSelector = transform.Find("Content").Find("Patients").Find("Database").Find("FolderSelector").GetComponent<FolderSelector>();
-            databaseFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayDataBasePatients()));
-            databaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
-            databaseList = transform.Find("Content").Find("Patients").Find("Database").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
-            databaseList.ActionEvent.AddListener((patient, i) => OpenModifier(patient, false));
+            m_DatabaseFolderSelector = transform.Find("Content").Find("Patients").Find("Database").Find("FolderSelector").GetComponent<FolderSelector>();
+            m_DatabaseFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayDataBasePatients()));
+
+            m_DatabaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
+            m_DatabaseList = transform.Find("Content").Find("Patients").Find("Database").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
+            m_DatabaseList.OnAction.AddListener((patient, i) => OpenModifier(patient, false));
         }
         #endregion
     }

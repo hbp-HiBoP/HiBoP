@@ -12,6 +12,18 @@ namespace HBP.UI.Anatomy
         [SerializeField] Button m_AddMeshButton;
         [SerializeField] Button m_RemoveMeshButton;
         Data.Patient m_Patient;
+        bool m_Interactable;
+        public virtual bool interactable
+        {
+            get { return m_Interactable; }
+            set
+            {
+                m_Interactable = value;
+                m_AddMeshButton.interactable = interactable;
+                m_RemoveMeshButton.interactable = interactable;
+                m_MRIList.interactable = interactable;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -23,15 +35,10 @@ namespace HBP.UI.Anatomy
         {
             m_Patient = patient;
         }
-        public void SetInteractable(bool interactable)
-        {
-            m_AddMeshButton.interactable = interactable;
-            m_RemoveMeshButton.interactable = interactable;
-        }
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
-            if(active) m_MRIList.Display(m_Patient.Brain.MRIs.ToArray());
+            if(active) m_MRIList.Objects = m_Patient.Brain.MRIs.ToArray();
         }
         public void AddMRI()
         {
@@ -41,7 +48,7 @@ namespace HBP.UI.Anatomy
         }
         public void RemoveMRI()
         {
-            m_MRIList.Remove(m_MRIList.GetObjectsSelected());
+            m_MRIList.Remove(m_MRIList.ObjectsSelected);
             m_Patient.Brain.MRIs = m_MRIList.Objects.ToList();
         }
         #endregion

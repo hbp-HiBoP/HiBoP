@@ -70,12 +70,12 @@ namespace HBP.UI.Anatomy
             m_PlaceInputField.interactable = interactable;
             m_DateInputField.interactable = interactable;
 
-            m_MeshGestion.SetInteractable(interactable);
-            m_MRIGestion.SetInteractable(interactable);
-            m_ImplantationGestion.SetInteractable(interactable);
-            m_TransformationGestion.SetInteractable(interactable);
-            m_ConnectivityGestion.SetInteractable(interactable);
-            m_OthersGestion.SetInteractable(interactable);
+            m_MeshGestion.interactable = interactable;
+            m_MRIGestion.interactable = interactable;
+            m_ImplantationGestion.interactable = interactable;
+            m_TransformationGestion.interactable = interactable;
+            m_ConnectivityGestion.interactable = interactable;
+            m_OthersGestion.interactable =interactable;
 
             m_SaveButton.interactable = interactable;
         }

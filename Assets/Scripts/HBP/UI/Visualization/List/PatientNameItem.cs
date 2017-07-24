@@ -1,13 +1,24 @@
-﻿using UnityEngine;
+﻿using HBP.Data;
 
 namespace HBP.UI.Visualization
 {
     public class PatientNameItem : Tools.Unity.Lists.Item<Data.Patient>
     {
-        protected override void SetObject(Data.Patient objectToSet)
+        #region Properties
+        public override Patient Object
         {
-            GetComponentInChildren<UnityEngine.UI.Text>().text = objectToSet.Name;
+            get
+            {
+                return base.Object;
+            }
+            set
+            {
+                base.Object = value;
+                GetComponentInChildren<UnityEngine.UI.Text>().text = value.Name;
+
+            }
         }
+        #endregion
     }
 }
 

@@ -42,9 +42,9 @@ namespace HBP.UI.Visualization
         }
         public void AddPatients()
         {
-            Data.Patient[] patientsToAdd = m_ProjectPatientsList.GetObjectsSelected();
+            Data.Patient[] patientsToAdd = m_ProjectPatientsList.ObjectsSelected;
             ItemTemp.AddPatient(patientsToAdd);
-            m_ProjectPatientsList.DeactivateObject(patientsToAdd);
+            m_ProjectPatientsList.Remove(patientsToAdd);
             m_VisualizationPatientsList.Add(patientsToAdd);
             SelectColumn();
         }
@@ -62,7 +62,7 @@ namespace HBP.UI.Visualization
                 }
             }
             ItemTemp.AddPatient(patientsToAdd.ToArray());
-            m_ProjectPatientsList.DeactivateObject(patientsToAdd.ToArray());
+            m_ProjectPatientsList.Remove(patientsToAdd.ToArray());
             m_VisualizationPatientsList.Add(patientsToAdd.ToArray());
             SelectColumn();
         }
@@ -78,9 +78,9 @@ namespace HBP.UI.Visualization
         }
         public void RemovePatients()
         {
-            Data.Patient[] patientsToRemove = m_VisualizationPatientsList.GetObjectsSelected();
+            Data.Patient[] patientsToRemove = m_VisualizationPatientsList.ObjectsSelected;
             ItemTemp.RemovePatient(patientsToRemove);
-            m_ProjectPatientsList.ActiveObject(patientsToRemove);
+            m_ProjectPatientsList.Add(patientsToRemove);
             m_VisualizationPatientsList.Remove(patientsToRemove);
             SelectColumn();
         }
@@ -142,8 +142,8 @@ namespace HBP.UI.Visualization
         }
         protected void SetPatients(Data.Visualization.Visualization objectToDisplay)
         {
-            m_VisualizationPatientsList.Display(objectToDisplay.Patients.ToArray());
-            m_ProjectPatientsList.Display(ApplicationState.ProjectLoaded.Patients.ToArray(), ItemTemp.Patients.ToArray());
+            m_VisualizationPatientsList.Objects = objectToDisplay.Patients.ToArray();
+            m_ProjectPatientsList.Objects = (from p in ApplicationState.ProjectLoaded.Patients where !objectToDisplay.Patients.Contains(p) select p).ToArray();
         }
         protected void SetTabs(Data.Visualization.Visualization objectToDisplay)
         {

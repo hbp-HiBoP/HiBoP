@@ -13,6 +13,10 @@ namespace HBP.Data.Anatomy
         public const string EXTENSION = ".nii";
         [DataMember] public string Name { get; set; }
         [DataMember] public string Path { get; set; }
+        public virtual bool isUsable
+        {
+            get { return !string.IsNullOrEmpty(Name) && !string.IsNullOrEmpty(Path); }
+        }
         #endregion
 
         #region Constructor

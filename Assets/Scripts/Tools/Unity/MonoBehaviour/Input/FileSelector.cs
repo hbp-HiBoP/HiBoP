@@ -23,7 +23,6 @@ namespace Tools.Unity
                 string l_result = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { Extension }, Message, m_inputfield.text);
                 if (l_result != string.Empty)
                 {
-                    Debug.Log(l_result);
                     StringExtension.StandardizeToPath(ref l_result);
                     Debug.Log(l_result);
                     m_inputfield.text = l_result;

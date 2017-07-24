@@ -7,125 +7,116 @@ namespace HBP.UI.Experience.Protocol
 	public class BlocModifier : ItemModifier<d.Bloc> 
 	{
 		#region Properties
-		InputField nameInputField;
-		FileSelector imageFileSelector;
-		InputField sortInputField;
-		InputField windowMinInputField;
-		InputField windowMaxInputField;
-        InputField baseLineMinInputField;
-        InputField baseLineMaxInputField;
-		InputField mainEventLabelInputField;
-		InputField mainEventCodesInputField;
-		EventList eventList;
-        IconList iconList;
-		Button saveButton;
-		Button addEventButton;
-		Button removeEventButton;
-        Button addIconButton;
-        Button removeIconButton;
+		InputField m_NameInputField, m_SortInputField, m_WindowMinInputField, m_WindowMaxInputField, m_BaseLineMinInputField, m_BaseLineMaxInputField, m_MainEventLabelInputField, m_MainEventCodesInputField;
+		FileSelector m_ImageFileSelector;
+		EventList m_EventList;
+        IconList m_IconList;
+		Button m_SaveButton, m_AddEventButton, m_RemoveEventButton, m_AddIconButton, m_RemoveIconButton;
         #endregion
 
         #region Public Methods
         public override void Save()
         {
-            iconList.SaveAll();
-            eventList.SaveAll();
+            m_IconList.SaveAll();
+            m_EventList.SaveAll();
             base.Save();
         }
         public void AddSecondaryEvent()
 		{
             d.Event newEvent = new d.Event();
             ItemTemp.SecondaryEvents.Add(newEvent);
-            eventList.Add(newEvent);
+            m_EventList.Add(newEvent);
         }
         public void RemoveSecondaryEvent()
 		{
-            d.Event[] eventsToRemove = eventList.GetObjectsSelected();
+            d.Event[] eventsToRemove = m_EventList.ObjectsSelected;
             foreach(d.Event e in eventsToRemove) ItemTemp.SecondaryEvents.Remove(e);
-            eventList.Remove(eventsToRemove);
+            m_EventList.Remove(eventsToRemove);
         }
         public void AddIcon()
         {
             d.Icon newIcon = new d.Icon();
             ItemTemp.Scenario.Icons.Add(newIcon);
-            iconList.Add(newIcon);
+            m_IconList.Add(newIcon);
         }
         public void RemoveIcon()
         {
-            d.Icon[] iconsToRemove = iconList.GetObjectsSelected();
+            d.Icon[] iconsToRemove = m_IconList.ObjectsSelected;
             foreach(d.Icon i in iconsToRemove) ItemTemp.Scenario.Icons.Remove(i);
-            iconList.Remove(iconsToRemove);
+            m_IconList.Remove(iconsToRemove);
         }
         #endregion
 
         #region Private Methods
         protected override void SetFields(d.Bloc objectToDisplay)
         {
-            nameInputField.text = objectToDisplay.DisplayInformations.Name;
-            nameInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Name = value);
+            m_NameInputField.text = objectToDisplay.DisplayInformations.Name;
+            m_NameInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Name = value);
 
-            imageFileSelector.File = objectToDisplay.DisplayInformations.IllustrationPath;
-            imageFileSelector.onValueChanged.AddListener((value) => ItemTemp.DisplayInformations.IllustrationPath = value);
+            m_ImageFileSelector.File = objectToDisplay.DisplayInformations.IllustrationPath;
+            m_ImageFileSelector.onValueChanged.AddListener((value) => ItemTemp.DisplayInformations.IllustrationPath = value);
 
-            sortInputField.text = objectToDisplay.DisplayInformations.Sort;
-            sortInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Sort = value);
+            m_SortInputField.text = objectToDisplay.DisplayInformations.Sort;
+            m_SortInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Sort = value);
 
-            windowMinInputField.text = objectToDisplay.DisplayInformations.Window.Start.ToString();
-            windowMinInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Window = new Tools.CSharp.Window(float.Parse(value), ItemTemp.DisplayInformations.Window.End));
+            m_WindowMinInputField.text = objectToDisplay.DisplayInformations.Window.Start.ToString();
+            m_WindowMinInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Window = new Tools.CSharp.Window(float.Parse(value), ItemTemp.DisplayInformations.Window.End));
 
-            windowMaxInputField.text = objectToDisplay.DisplayInformations.Window.End.ToString();
-            windowMaxInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Window = new Tools.CSharp.Window(ItemTemp.DisplayInformations.Window.Start, float.Parse(value)));
+            m_WindowMaxInputField.text = objectToDisplay.DisplayInformations.Window.End.ToString();
+            m_WindowMaxInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Window = new Tools.CSharp.Window(ItemTemp.DisplayInformations.Window.Start, float.Parse(value)));
 
-            baseLineMinInputField.text = objectToDisplay.DisplayInformations.BaseLine.Start.ToString();
-            baseLineMinInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.BaseLine = new Tools.CSharp.Window(float.Parse(value),ItemTemp.DisplayInformations.BaseLine.End));
+            m_BaseLineMinInputField.text = objectToDisplay.DisplayInformations.BaseLine.Start.ToString();
+            m_BaseLineMinInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.BaseLine = new Tools.CSharp.Window(float.Parse(value),ItemTemp.DisplayInformations.BaseLine.End));
 
-            baseLineMaxInputField.text = objectToDisplay.DisplayInformations.BaseLine.End.ToString();
-            baseLineMaxInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.BaseLine = new Tools.CSharp.Window(ItemTemp.DisplayInformations.BaseLine.Start, float.Parse(value)));
+            m_BaseLineMaxInputField.text = objectToDisplay.DisplayInformations.BaseLine.End.ToString();
+            m_BaseLineMaxInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.BaseLine = new Tools.CSharp.Window(ItemTemp.DisplayInformations.BaseLine.Start, float.Parse(value)));
 
-            mainEventLabelInputField.text = objectToDisplay.MainEvent.Name;
-            mainEventLabelInputField.onEndEdit.AddListener((value) => ItemTemp.MainEvent.Name = value);
+            m_MainEventLabelInputField.text = objectToDisplay.MainEvent.Name;
+            m_MainEventLabelInputField.onEndEdit.AddListener((value) => ItemTemp.MainEvent.Name = value);
 
-            mainEventCodesInputField.text = objectToDisplay.MainEvent.CodesString;
-            mainEventCodesInputField.onEndEdit.AddListener((value) => ItemTemp.MainEvent.CodesString = value);
+            m_MainEventCodesInputField.text = objectToDisplay.MainEvent.CodesString;
+            m_MainEventCodesInputField.onEndEdit.AddListener((value) => ItemTemp.MainEvent.CodesString = value);
 
-            eventList.Display(ItemTemp.SecondaryEvents.ToArray());
-            iconList.Display(ItemTemp.Scenario.Icons.ToArray());
+            m_EventList.Objects = ItemTemp.SecondaryEvents.ToArray();
+            m_IconList.Objects = ItemTemp.Scenario.Icons.ToArray();
         }
         protected override void SetWindow()
         {
-            nameInputField = transform.Find("Content").Find("Display informations").Find("Name").Find("InputField").GetComponent<InputField>();
-            imageFileSelector = transform.Find("Content").Find("Display informations").Find("Image").Find("Illustration").Find("FileSelector").GetComponent<FileSelector>();
-            sortInputField = transform.Find("Content").Find("Display informations").Find("Sort").Find("InputField").GetComponent<InputField>();
-            windowMinInputField = transform.Find("Content").Find("Display informations").Find("Window").Find("Panel").Find("Min").Find("InputField").GetComponent<InputField>();
-            windowMaxInputField = transform.Find("Content").Find("Display informations").Find("Window").Find("Panel").Find("Max").Find("InputField").GetComponent<InputField>();
-            baseLineMinInputField = transform.Find("Content").Find("Display informations").Find("BaseLine").Find("Panel").Find("Min").Find("InputField").GetComponent<InputField>();
-            baseLineMaxInputField = transform.Find("Content").Find("Display informations").Find("BaseLine").Find("Panel").Find("Max").Find("InputField").GetComponent<InputField>();
-            mainEventLabelInputField = transform.Find("Content").Find("Main Event").Find("Label").Find("InputField").GetComponent<InputField>();
-            mainEventCodesInputField = transform.Find("Content").Find("Main Event").Find("Code").Find("InputField").GetComponent<InputField>();
-            eventList = transform.Find("Content").Find("Secondary Events").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<EventList>();
-            iconList = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<IconList>();
-            saveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
-            addEventButton = transform.Find("Content").Find("Secondary Events").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
-            removeEventButton = transform.Find("Content").Find("Secondary Events").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
-            addIconButton = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
-            removeIconButton = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
+            m_NameInputField = transform.Find("Content").Find("Display informations").Find("Name").Find("InputField").GetComponent<InputField>();
+            m_ImageFileSelector = transform.Find("Content").Find("Display informations").Find("Image").Find("Illustration").Find("FileSelector").GetComponent<FileSelector>();
+            m_SortInputField = transform.Find("Content").Find("Display informations").Find("Sort").Find("InputField").GetComponent<InputField>();
+            m_WindowMinInputField = transform.Find("Content").Find("Display informations").Find("Window").Find("Panel").Find("Min").Find("InputField").GetComponent<InputField>();
+            m_WindowMaxInputField = transform.Find("Content").Find("Display informations").Find("Window").Find("Panel").Find("Max").Find("InputField").GetComponent<InputField>();
+            m_BaseLineMinInputField = transform.Find("Content").Find("Display informations").Find("BaseLine").Find("Panel").Find("Min").Find("InputField").GetComponent<InputField>();
+            m_BaseLineMaxInputField = transform.Find("Content").Find("Display informations").Find("BaseLine").Find("Panel").Find("Max").Find("InputField").GetComponent<InputField>();
+            m_MainEventLabelInputField = transform.Find("Content").Find("Main Event").Find("Label").Find("InputField").GetComponent<InputField>();
+            m_MainEventCodesInputField = transform.Find("Content").Find("Main Event").Find("Code").Find("InputField").GetComponent<InputField>();
+            m_EventList = transform.Find("Content").Find("Secondary Events").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<EventList>();
+            m_IconList = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<IconList>();
+            m_SaveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
+            m_AddEventButton = transform.Find("Content").Find("Secondary Events").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
+            m_RemoveEventButton = transform.Find("Content").Find("Secondary Events").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
+            m_AddIconButton = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
+            m_RemoveIconButton = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {
-            nameInputField.interactable = interactable;
-            imageFileSelector.interactable = interactable;
-            sortInputField.interactable = interactable;
-            windowMinInputField.interactable = interactable;
-            windowMaxInputField.interactable = interactable;
-            baseLineMinInputField.interactable = interactable;
-            baseLineMaxInputField.interactable = interactable;
-            mainEventLabelInputField.interactable = interactable;
-            mainEventCodesInputField.interactable = interactable;
-            saveButton.interactable = interactable;
-            addEventButton.interactable = interactable;
-            removeEventButton.interactable = interactable;
-            addIconButton.interactable = interactable;
-            removeIconButton.interactable = interactable;
+            m_NameInputField.interactable = interactable;
+            m_ImageFileSelector.interactable = interactable;
+            m_SortInputField.interactable = interactable;
+            m_WindowMinInputField.interactable = interactable;
+            m_WindowMaxInputField.interactable = interactable;
+            m_BaseLineMinInputField.interactable = interactable;
+            m_BaseLineMaxInputField.interactable = interactable;
+            m_MainEventLabelInputField.interactable = interactable;
+            m_MainEventCodesInputField.interactable = interactable;
+            m_SaveButton.interactable = interactable;
+            m_AddEventButton.interactable = interactable;
+            m_RemoveEventButton.interactable = interactable;
+            m_AddIconButton.interactable = interactable;
+            m_RemoveIconButton.interactable = interactable;
+            m_IconList.interactable = interactable;
+            m_EventList.interactable = interactable;
         }
         #endregion
     }

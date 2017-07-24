@@ -10,6 +10,19 @@ namespace HBP.UI.Anatomy
         #region Properties
         [SerializeField] Dropdown m_EpilepsyDropdown;
         Data.Patient m_Patient;
+        bool m_Interactable;
+        public bool interactable
+        {
+            get
+            {
+                return m_Interactable;
+            }
+            set
+            {
+                m_Interactable = value;
+                m_EpilepsyDropdown.interactable = interactable;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -22,10 +35,6 @@ namespace HBP.UI.Anatomy
             m_Patient = patient;
             m_EpilepsyDropdown.options = (from type in System.Enum.GetNames(typeof(Epilepsy.EpilepsyType)) select new Dropdown.OptionData(type)).ToList();
             m_EpilepsyDropdown.value = (int) patient.Brain.Epilepsy.Type;
-        }
-        public void SetInteractable(bool interactable)
-        {
-            m_EpilepsyDropdown.interactable = interactable;
         }
         public void SetActive(bool active)
         {

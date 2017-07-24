@@ -12,31 +12,33 @@ namespace HBP.UI.Anatomy
 	{
         #region Properties
         [SerializeField]
-        GameObject patientModifierPrefab;
+        GameObject m_PatientModifierPrefab;
 
-        InputField nameInputField;
-        Button saveButton, addButton, removeButton;
-        PatientList groupPatientsList, projectPatientsList;
+        InputField m_NameInputField;
+        Button m_SaveButton, m_AddButton, m_RemoveButton;
+        PatientList m_GroupPatientsList, m_ProjectPatientsList;
 		#endregion
 
 		#region Public Methods
 		public void AddPatients()
 		{
-            Data.Patient[] patients = projectPatientsList.GetObjectsSelected();
+            Patient[] patients = m_ProjectPatientsList.ObjectsSelected;
             ItemTemp.AddPatient(patients);
-            projectPatientsList.DeactivateObject(patients);
-            groupPatientsList.Add(patients);
+            m_ProjectPatientsList.Remove(patients);
+            m_GroupPatientsList.Add(patients);
+            m_GroupPatientsList.Select(patients);
         }
         public void RemovePatients()
 		{
-            Data.Patient[] patients = groupPatientsList.GetObjectsSelected();
+            Data.Patient[] patients = m_GroupPatientsList.ObjectsSelected;
             ItemTemp.RemovePatient(patients);
-            groupPatientsList.Remove(patients);
-            projectPatientsList.ActiveObject(patients);
+            m_GroupPatientsList.Remove(patients);
+            m_ProjectPatientsList.Add(patients);
+            m_ProjectPatientsList.Select(patients);
         }
-        public void OpenPatientModifier(Data.Patient patientToModify)
+        public void OpenPatientModifier(Patient patientToModify)
         {
-            RectTransform obj = Instantiate(patientModifierPrefab).GetComponent<RectTransform>();
+            RectTransform obj = Instantiate(m_PatientModifierPrefab).GetComponent<RectTransform>();
             obj.SetParent(GameObject.Find("Windows").transform);
             obj.localPosition = new Vector3(0, 0, 0);
             PatientModifier patientModifier = obj.GetComponent<PatientModifier>();
@@ -53,28 +55,28 @@ namespace HBP.UI.Anatomy
         }
         protected override void SetFields(Group objectToDisplay)
         {
-            nameInputField.text = ItemTemp.Name;
-            projectPatientsList.Display(ApplicationState.ProjectLoaded.Patients.ToArray(), ItemTemp.Patients.ToArray());
-            groupPatientsList.Display(ItemTemp.Patients.ToArray());
-            nameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
-            groupPatientsList.ActionEvent.AddListener((patient, i) => OpenPatientModifier(patient));
-            projectPatientsList.ActionEvent.AddListener((patient, i) => OpenPatientModifier(patient));
+            m_NameInputField.text = ItemTemp.Name;
+            m_ProjectPatientsList.Objects = (from p in ApplicationState.ProjectLoaded.Patients where !ItemTemp.Patients.Contains(p) select p).ToArray();
+            m_GroupPatientsList.Objects = ItemTemp.Patients.ToArray();
+            m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
+            m_GroupPatientsList.OnAction.AddListener((patient, i) => OpenPatientModifier(patient));
+            m_ProjectPatientsList.OnAction.AddListener((patient, i) => OpenPatientModifier(patient));
         }
         protected override void SetWindow()
         {
-            nameInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
-            projectPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("ProjectPatients").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
-            groupPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("GroupPatients").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
-            saveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
-            addButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Add").GetComponent<Button>();
-            removeButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Remove").GetComponent<Button>();
+            m_NameInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
+            m_ProjectPatientsList = transform.Find("Content").Find("Patients").Find("Project").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
+            m_GroupPatientsList = transform.Find("Content").Find("Patients").Find("Group").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
+            m_SaveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
+            m_AddButton = transform.Find("Content").Find("Patients").Find("Buttons").Find("Add").GetComponent<Button>();
+            m_RemoveButton = transform.Find("Content").Find("Patients").Find("Buttons").Find("Remove").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {
-            nameInputField.interactable = interactable;
-            saveButton.interactable = interactable;
-            removeButton.interactable = interactable;
-            addButton.interactable = interactable;
+            m_NameInputField.interactable = interactable;
+            m_SaveButton.interactable = interactable;
+            m_RemoveButton.interactable = interactable;
+            m_AddButton.interactable = interactable;
         }
         #endregion
     }

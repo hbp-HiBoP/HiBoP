@@ -3,124 +3,103 @@ using System.Linq;
 
 namespace HBP.UI
 {
-    public class ProjectList : Tools.Unity.Lists.OneSelectableListWithItemActions<ProjectInfo>
+    public class ProjectList : Tools.Unity.Lists.SelectableListWithItemAction<ProjectInfo>
     {
         #region Properties
-        bool m_sortByName;
-        bool m_sortByPatients;
-        bool m_sortByGroups;
-        bool m_sortByProtocols;
-        bool m_sortByDatasets;
-        bool m_sortByVisualizations;
+        enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Groups, DescendingGroups, Protocols, DescendingProtocols, Datasets, DescendingDatasets, Visualizations, DescendingVisualizations }
+        OrderBy m_OrderBy = OrderBy.None;
         #endregion
 
         #region Public Methods
         public void SortByName()
         {
-            if (!m_sortByName)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Settings.Name).ToList();
+                case OrderBy.Name:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Settings.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingName;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Settings.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Name;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Settings.Name).ToList();
-            }
-            m_sortByName = !m_sortByName;
-            m_sortByPatients = false;
-            m_sortByGroups = false;
-            m_sortByProtocols = false;
-            m_sortByDatasets = false;
-            m_sortByVisualizations = false;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByPatients()
         {
-            if (!m_sortByPatients)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Patients).ToList();
+                case OrderBy.DescendingPatients:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Patients).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Patients;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Patients).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingPatients;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Patients).ToList();
-            }
-            m_sortByPatients = !m_sortByPatients;
-            m_sortByName = false;
-            m_sortByGroups = false;
-            m_sortByProtocols = false;
-            m_sortByDatasets = false;
-            m_sortByVisualizations = false;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByGroups()
         {
-            if (!m_sortByGroups)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Groups).ToList();
+                case OrderBy.DescendingGroups:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Groups).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Groups;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Groups).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingGroups;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Groups).ToList();
-            }
-            m_sortByGroups = !m_sortByGroups;
-            m_sortByName = false;
-            m_sortByPatients = false;
-            m_sortByProtocols = false;
-            m_sortByDatasets = false;
-            m_sortByVisualizations = false;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByProtocols()
         {
-            if (!m_sortByProtocols)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Protocols).ToList();
+                case OrderBy.DescendingProtocols:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Protocols).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Protocols;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Protocols).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingProtocols;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Protocols).ToList();
-            }
-            m_sortByProtocols = !m_sortByProtocols;
-            m_sortByName = false;
-            m_sortByPatients = false;
-            m_sortByGroups = false;
-            m_sortByDatasets = false;
-            m_sortByVisualizations = false;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByDatasets()
         {
-            if (!m_sortByDatasets)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Datasets).ToList();
+                case OrderBy.DescendingDatasets:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Datasets).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Datasets;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Datasets).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingDatasets;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Datasets).ToList();
-            }
-            m_sortByDatasets = !m_sortByDatasets;
-            m_sortByName = false;
-            m_sortByPatients = false;
-            m_sortByGroups = false;
-            m_sortByProtocols = false;
-            m_sortByVisualizations = false;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         public void SortByVisualizations()
         {
-            if (!m_sortByVisualizations)
+            switch (m_OrderBy)
             {
-                m_Objects = m_Objects.OrderByDescending(x => x.Visualizations).ToList();
+                case OrderBy.DescendingVisualizations:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Visualizations).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.Visualizations;
+                    break;
+                default:
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Visualizations).ToDictionary(k => k.Key, v => v.Value);
+                    m_OrderBy = OrderBy.DescendingVisualizations;
+                    break;
             }
-            else
-            {
-                m_Objects = m_Objects.OrderBy(x => x.Visualizations).ToList();
-            }
-            m_sortByVisualizations = !m_sortByVisualizations;
-            m_sortByName = false;
-            m_sortByPatients = false;
-            m_sortByGroups = false;
-            m_sortByDatasets = false;
-            Sort();
+            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
         }
         #endregion
     }

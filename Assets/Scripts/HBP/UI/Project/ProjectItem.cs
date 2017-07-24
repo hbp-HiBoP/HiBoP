@@ -9,7 +9,7 @@ namespace HBP.UI
 	/// </summary>
 	public class ProjectItem : Tools.Unity.Lists.ActionnableItem<ProjectInfo> 
 	{
-        #region UI
+        #region Properties
         /// <summary>
         /// The name textField.
         /// </summary>
@@ -34,18 +34,23 @@ namespace HBP.UI
         /// The number of visualizations textField.
         /// </summary>
         [SerializeField] Text m_VisualizationsText;
-        #endregion
-
-        #region Protected Methods
-        protected override void SetObject(ProjectInfo objectToSet)
+        public override ProjectInfo Object
         {
-            m_Object = objectToSet;
-            m_NameText.text = m_Object.Settings.Name;
-            m_PatientsText.text = m_Object.Patients.ToString();
-            m_GroupsText.text = m_Object.Groups.ToString();
-            m_ProtocolsText.text = m_Object.Protocols.ToString();
-            m_DatasetsText.text = m_Object.Datasets.ToString();
-            m_VisualizationsText.text = m_Object.Visualizations.ToString();
+            get
+            {
+                return base.Object;
+            }
+
+            set
+            {
+                base.Object = value;
+                m_NameText.text = value.Settings.Name;
+                m_PatientsText.text = value.Patients.ToString();
+                m_GroupsText.text = value.Groups.ToString();
+                m_ProtocolsText.text = value.Protocols.ToString();
+                m_DatasetsText.text = value.Datasets.ToString();
+                m_VisualizationsText.text = value.Visualizations.ToString();
+            }
         }
         #endregion
     }

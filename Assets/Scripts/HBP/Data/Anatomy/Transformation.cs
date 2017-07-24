@@ -12,6 +12,10 @@ namespace HBP.Data.Anatomy
         public const string EXTENSION = ".trm";
         [DataMember] public string Name { get; set; }
         [DataMember] public string Path { get; set; }
+        public virtual bool isUsable
+        {
+            get { return !string.IsNullOrEmpty(Name) && !string.IsNullOrEmpty(Path); }
+        }
         #endregion
 
         #region Constructors

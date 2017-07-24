@@ -9,8 +9,13 @@ namespace Tools.Unity.Lists
         public virtual T Object
         {
             get { return m_Object; }
-            set { m_Object = value; }
+            set { m_Object = value;}
         }
+        public virtual System.Type Type
+        {
+            get { return typeof(T); }
+        }
+        public virtual bool interactable { get; set; }
         #endregion
     }
 }

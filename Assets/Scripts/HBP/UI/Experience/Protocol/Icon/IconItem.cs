@@ -10,57 +10,47 @@ namespace HBP.UI.Experience.Protocol
     /// </summary>
     public class IconItem : Tools.Unity.Lists.SavableItem<Icon>
     {
-        #region Attributs
+        #region Properties
         /// <summary>
         /// The label inputField.
         /// </summary>
-        [SerializeField]
-        InputField m_labelInputField;
-
+        [SerializeField] InputField m_LabelInputField;
         /// <summary>
         /// The path inputField.
         /// </summary>
-        [SerializeField]
-        InputField m_pathInputField;
-
+        [SerializeField] Tools.Unity.FileSelector m_IllustrationFileSelector;
         /// <summary>
         /// The window min inputField.
         /// </summary>
-        [SerializeField]
-        InputField m_minInputField;
-
+        [SerializeField] InputField m_MinInputField;
         /// <summary>
         /// The window max inputField.
         /// </summary>
-        [SerializeField]
-        InputField m_maxInputField;
+        [SerializeField] InputField m_MaxInputField;
+        public override Icon Object
+        {
+            get
+            {
+                return base.Object;
+            }
+
+            set
+            {
+                base.Object = value;
+                m_LabelInputField.text = value.Name;
+                m_IllustrationFileSelector.File = value.IllustrationPath;
+                m_MinInputField.text = value.Window.Start.ToString();
+                m_MaxInputField.text = value.Window.End.ToString();
+            }
+        }
         #endregion
 
         #region Public Methods
-        protected override void SetObject(Icon icon)
-        {
-            m_Object = icon;
-            m_labelInputField.text = icon.Name;
-            m_pathInputField.text = icon.IllustrationPath;
-            m_minInputField.text = icon.Window.Start.ToString();
-            m_maxInputField.text = icon.Window.End.ToString();
-        }
-
         public override void Save()
         {
-            Object.Name = m_labelInputField.text;
-            Object.IllustrationPath = m_pathInputField.text;
-            Object.Window = new Tools.CSharp.Window(float.Parse(m_minInputField.text), float.Parse(m_maxInputField.text));
-        }
-
-        public void OpenIllustrationPath()
-        {
-            string l_resultStandalone = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "png", "jpg" }, "Please select the illustration of the Icon", m_pathInputField.text);
-            StringExtension.StandardizeToPath(ref l_resultStandalone);
-            if (l_resultStandalone != string.Empty)
-            {
-                m_pathInputField.text = l_resultStandalone;
-            }
+            Object.Name = m_LabelInputField.text;
+            Object.IllustrationPath = m_IllustrationFileSelector.File;
+            Object.Window = new Tools.CSharp.Window(float.Parse(m_MinInputField.text), float.Parse(m_MaxInputField.text));
         }
         #endregion
     }

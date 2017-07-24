@@ -12,6 +12,21 @@ namespace HBP.UI.Anatomy
         [SerializeField] Button m_AddConnectivity;
         [SerializeField] Button m_RemoveConnectivity;
         Data.Patient m_Patient;
+        bool m_Interactable;
+        public bool interactable
+        {
+            get
+            {
+                return m_Interactable;
+            }
+            set
+            {
+                m_Interactable = value;
+                m_AddConnectivity.interactable = interactable;
+                m_RemoveConnectivity.interactable = interactable;
+                m_ConnectivityList.interactable = interactable;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -23,15 +38,10 @@ namespace HBP.UI.Anatomy
         {
             m_Patient = patient;
         }
-        public void SetInteractable(bool interactable)
-        {
-            m_AddConnectivity.interactable = interactable;
-            m_RemoveConnectivity.interactable = interactable;
-        }
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
-            if (active) m_ConnectivityList.Display(m_Patient.Brain.Connectivities.ToArray());
+            if (active) m_ConnectivityList.Objects = m_Patient.Brain.Connectivities.ToArray();
         }
         public void AddConnectivity()
         {
@@ -41,7 +51,7 @@ namespace HBP.UI.Anatomy
         }
         public void RemoveConnectivity()
         {
-            m_ConnectivityList.Remove(m_ConnectivityList.GetObjectsSelected());
+            m_ConnectivityList.Remove(m_ConnectivityList.ObjectsSelected);
             m_Patient.Brain.Connectivities = m_ConnectivityList.Objects.ToList();
         }
         #endregion

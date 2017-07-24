@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Tools.Unity.Lists
@@ -8,27 +7,24 @@ namespace Tools.Unity.Lists
     public abstract class SelectableItem<T> : Item<T>
     {
         #region Properties
-        public GenericEvent<T, bool> onSelectionChanged { get; set; }
+        protected Toggle m_Toggle;
+        public virtual Toggle.ToggleEvent OnChangeSelected { get { return m_Toggle.onValueChanged; } }
         public virtual bool selected
         {
-            get { return GetComponent<Toggle>().isOn; }
-            set { GetComponent<Toggle>().isOn = value; }
+            get { return m_Toggle.isOn; }
+            set { m_Toggle.isOn = value; }
         }
-        public virtual bool interactable
+        public override bool interactable
         {
-            get { return GetComponent<Toggle>().interactable; }
-            set { GetComponent<Toggle>().interactable = value; }
+            get { return m_Toggle.interactable; }
+            set { m_Toggle.interactable = value; }
         }
-        public override T Object
+        #endregion
+
+        #region Private Methods
+        void Awake()
         {
-            get { return base.Object; }
-            set
-            {
-                base.Object = value;
-                Toggle toggle = GetComponent<Toggle>();
-                toggle.onValueChanged.RemoveAllListeners();
-                toggle.onValueChanged.AddListener((isOn) => onSelectionChanged.Invoke(value, isOn));
-            }
+            m_Toggle = GetComponent<Toggle>();
         }
         #endregion
     }

@@ -51,7 +51,7 @@ namespace HBP.UI.Experience.Protocol
             nameInputField.onEndEdit.AddListener((value) => ItemTemp.Name = value);
 
             blocGrid.Display(objectToDisplay.Blocs.ToArray());
-            blocGrid.ActionEvent.AddListener((bloc, i) => OnListEvent(bloc, i));
+            blocGrid.OnAction.AddListener((bloc, i) => OnListEvent(bloc, i));
         }
         protected override void SetWindow()
         {

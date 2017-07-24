@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Tools.Unity.Lists;
 
@@ -9,14 +8,13 @@ namespace HBP.UI
     public abstract class ItemGestion<T> : Window where T : ICloneable, ICopiable, new()
     {
         #region Properties
-        [SerializeField]
-        protected GameObject modifierPrefab;
-        protected ItemModifier<T> modifier;
-        protected SelectableList<T> list;
-        private System.Collections.Generic.List<T> items = new System.Collections.Generic.List<T>();
+        [SerializeField] protected GameObject m_ModifierPrefab;
+        protected ItemModifier<T> m_Modifier;
+        protected SelectableList<T> m_List;
+        private System.Collections.Generic.List<T> m_Items = new System.Collections.Generic.List<T>();
         protected ReadOnlyCollection<T> Items
         {
-            get { return new ReadOnlyCollection<T>(items); }
+            get { return new ReadOnlyCollection<T>(m_Items); }
         }
         #endregion
 
@@ -32,7 +30,7 @@ namespace HBP.UI
         }
         public virtual void Remove()
         {
-            T[] itemsToRemove = list.GetObjectsSelected();
+            T[] itemsToRemove = m_List.ObjectsSelected;
             foreach(T item in itemsToRemove)
             {
                 RemoveItem(item);
@@ -44,35 +42,35 @@ namespace HBP.UI
         protected virtual void OpenModifier(T item,bool interactable)
         {
             SetInteractable(false);
-            list.DeselectAll();
-            RectTransform obj = Instantiate(modifierPrefab).GetComponent<RectTransform>();
+            m_List.DeselectAll();
+            RectTransform obj = Instantiate(m_ModifierPrefab).GetComponent<RectTransform>();
             obj.SetParent(GameObject.Find("Windows").transform);
             obj.localPosition = new Vector3(0, 0, 0);
-            modifier = obj.GetComponent<ItemModifier<T>>();
-            modifier.Open(item, interactable);
-            modifier.CloseEvent.AddListener(() => OnCloseModifier());
-            modifier.SaveEvent.AddListener(() => OnSaveModifier());
+            m_Modifier = obj.GetComponent<ItemModifier<T>>();
+            m_Modifier.Open(item, interactable);
+            m_Modifier.CloseEvent.AddListener(() => OnCloseModifier());
+            m_Modifier.SaveEvent.AddListener(() => OnSaveModifier());
         }
         protected virtual void OnCloseModifier()
         {
             SetInteractable(true);
-            modifier = null;
+            m_Modifier = null;
         }
         protected virtual void OnSaveModifier()
         {
-            if(!Items.Contains(modifier.Item))
+            if(!Items.Contains(m_Modifier.Item))
             {
-                AddItem(modifier.Item);
+                AddItem(m_Modifier.Item);
             }
             else
             {
-                list.UpdateObj(modifier.Item);
+                m_List.UpdateObject(m_Modifier.Item);
             }
         }
         protected virtual void AddItem(T item)
         {
-            items.Add(item);
-            list.Add(item);
+            m_Items.Add(item);
+            m_List.Add(item);
         }
         protected virtual void AddItem(T[] items)
         {
@@ -83,8 +81,8 @@ namespace HBP.UI
         }
         protected virtual void RemoveItem(T item)
         {
-            items.Remove(item);
-            list.Remove(item);
+            m_Items.Remove(item);
+            m_List.Remove(item);
         }
         protected virtual void RemoveItem(T[] items)
         {
