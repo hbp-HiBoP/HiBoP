@@ -45,6 +45,12 @@ namespace Tools.Unity
             m_Entered = false;
             m_TimeSinceEntered = 0.0f;
         }
+        public void OnDestroy()
+        {
+            ApplicationState.TooltipManager.HideTooltip();
+            m_Entered = false;
+            m_TimeSinceEntered = 0.0f;
+        }
         #endregion
     }
 }

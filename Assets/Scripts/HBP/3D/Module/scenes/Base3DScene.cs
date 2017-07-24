@@ -658,7 +658,7 @@ namespace HBP.Module3D
 
                 SceneInformation.IsGeneratorUpToDate = false;
                 SceneInformation.IsIEEGOutdated = true;
-
+                /*
                 { //TEST (maybe FIXME : delete this, the visual effect is not very good)
                   // recompute UV
                     for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
@@ -667,7 +667,7 @@ namespace HBP.Module3D
                     // update brain mesh object mesh filter (TODO update only UV)
                     UpdateMeshesFromDLL();
                 }
-
+                */
                 ComputeMRITextures();
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                 

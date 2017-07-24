@@ -23,6 +23,7 @@ namespace HBP.Module3D
         #region Properties
         private float m_MinRaySphere = 0.5f;    
         private float m_MaxRaySphere = 100f;
+
         [DataMember(Name = "Position")]
         private SerializableVector3 m_Position;
         public Vector3 Position
@@ -37,8 +38,11 @@ namespace HBP.Module3D
                 transform.position = value;
             }
         }
+
+        private float m_RadiusPercentage = 0.0f;
+        private float m_TargetRadius = 5.0f;
         [DataMember(Name = "Radius")]
-        private float m_Radius = 1f;
+        private float m_Radius = 1.0f;
         public float Radius
         {
             get
@@ -55,8 +59,11 @@ namespace HBP.Module3D
                     m_Radius = m_MinRaySphere;
 
                 transform.localScale = new Vector3(m_Radius, m_Radius, m_Radius);
+
+                ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
             }
         }
+
         private bool m_Selected = false;
         public bool Selected
         {
@@ -79,6 +86,17 @@ namespace HBP.Module3D
         }
         #endregion
 
+        #region Private Methods
+        private void Update()
+        {
+            if (m_RadiusPercentage < 1.0f)
+            {
+                Radius = Mathf.SmoothStep(m_Radius, m_TargetRadius, m_RadiusPercentage);
+                m_RadiusPercentage += 2 * Time.deltaTime;
+            }
+        }
+        #endregion
+
         #region Public Methods
         /// <summary>
         /// Init the bubble
@@ -90,7 +108,7 @@ namespace HBP.Module3D
         {
             gameObject.layer = layer;
             Position = position;
-            Radius = radius;
+            m_TargetRadius = radius;
             gameObject.SetActive(true);
 
             // add mesh
