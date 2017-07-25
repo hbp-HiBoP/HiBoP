@@ -27,7 +27,6 @@ namespace HBP.UI.Module3D
                 m_IsActive = value;
                 if (m_ColumnUI.HasEnoughSpaceForOverlay && m_IsActive)
                 {
-                    Debug.Log("hey");
                     gameObject.SetActive(true);
                 }
                 else
