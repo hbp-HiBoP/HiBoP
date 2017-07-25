@@ -123,7 +123,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
                 m_Slider.value = selectedColumn.IEEGParameters.Gain;
-                m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString();
+                m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString("N2");
             }
         }
         #endregion
