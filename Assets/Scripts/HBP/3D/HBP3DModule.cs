@@ -153,14 +153,6 @@ namespace HBP.Module3D
         /// </summary>
         public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
         /// <summary>
-        /// Event called when a visualization is added
-        /// </summary>
-        public GenericEvent<Data.Visualization.Visualization> OnAddVisualization = new GenericEvent<Data.Visualization.Visualization>();
-        /// <summary>
-        /// Event called when a visualization is removed
-        /// </summary>
-        public GenericEvent<Data.Visualization.Visualization> OnRemoveVisualization = new GenericEvent<Data.Visualization.Visualization>();
-        /// <summary>
         /// Event called when a scene is added
         /// </summary>
         public GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
@@ -195,14 +187,6 @@ namespace HBP.Module3D
         {
             // Scene Manager
             m_ScenesManager = transform.GetComponentInChildren<ScenesManager>();
-            OnAddScene.AddListener((scene) =>
-            {
-                OnAddVisualization.Invoke(scene.Visualization);
-            });
-            OnRemoveScene.AddListener((scene) =>
-            {
-                OnRemoveVisualization.Invoke(scene.Visualization);
-            });
             m_ScenesManager.OnSelectScene.AddListener((s) =>
             {
                 OnSelectScene.Invoke(s);
@@ -248,7 +232,6 @@ namespace HBP.Module3D
         {
             Base3DScene scene = m_ScenesManager.Scenes.ToList().Find(s => s.Visualization == visualization);
             m_ScenesManager.RemoveScene(scene);
-            OnRemoveVisualization.Invoke(visualization);
         }
         #endregion
 
@@ -301,7 +284,6 @@ namespace HBP.Module3D
                 default:
                     break;
             }
-            OnAddVisualization.Invoke(visualization);
         }
         IEnumerator c_SetSinglePatientVisualization(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, bool postMRI = false)
         {

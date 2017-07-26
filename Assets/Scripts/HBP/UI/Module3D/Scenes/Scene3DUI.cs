@@ -27,13 +27,6 @@ namespace HBP.UI.Module3D
         private void Awake()
         {
             m_ResizableGrid = GetComponent<ResizableGrid>();
-            ApplicationState.Module3D.OnRemoveScene.AddListener((scene) =>
-            {
-                if (scene == m_Scene)
-                {
-                    Destroy(gameObject);
-                }
-            });
         }
         #endregion
 

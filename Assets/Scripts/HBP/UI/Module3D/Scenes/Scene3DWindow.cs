@@ -10,13 +10,10 @@ namespace HBP.UI.Module3D
     public class Scene3DWindow : MonoBehaviour
     {
         #region Properties
+        private Base3DScene m_Scene;
         public GameObject SceneUIPrefab;
         public GameObject CutUIPrefab;
         //public GameObject GraphsUIPrefab;
-        #endregion
-
-        #region Private Methods
-
         #endregion
 
         #region Public Methods
@@ -32,9 +29,17 @@ namespace HBP.UI.Module3D
             grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>().Initialize(scene);
             grid.AddColumn(null, CutUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
-            //grid.AddColumn();
+            //grid.AddColumn(null, GraphsUIPrefab);
             grid.VerticalHandlers[0].MagneticPosition = 0.9f;
             grid.VerticalHandlers[0].Position = 0.9f;
+
+            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            {
+                if (s == scene)
+                {
+                    Destroy(gameObject);
+                }
+            });
         }
         #endregion
     }
