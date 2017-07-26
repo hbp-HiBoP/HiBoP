@@ -54,7 +54,14 @@ namespace HBP.Module3D
             }
             set
             {
-                m_CurrentTimeLineID = value % (MaxTimeLineID + 1);
+                if (IsTimelineLooping)
+                {
+                    m_CurrentTimeLineID = (value % (MaxTimeLineID + 1) + (MaxTimeLineID + 1)) % (MaxTimeLineID + 1);
+                }
+                else
+                {
+                    m_CurrentTimeLineID = Mathf.Clamp(value, 0, MaxTimeLineID);
+                }
                 OnUpdateCurrentTimelineID.Invoke();
                 if (IsSelected)
                 {
@@ -81,47 +88,50 @@ namespace HBP.Module3D
         }
         public float SharedMinInf = 0f;
         public float SharedMaxInf = 0f;
-
-        private Coroutine m_LoopingCoroutine = null;
-
-        private bool m_IsLooping = false;
+        
         /// <summary>
         /// Is the column data looping ?
         /// </summary>
-        public bool IsLooping
+        public bool IsTimelineLooping { get; set; }
+
+        private float m_TimeSinceLastSample = 0.0f;
+        private bool m_IsTimelinePlaying = false;
+        /// <summary>
+        /// Is the timeline incrementing automatically ?
+        /// </summary>
+        public bool IsTimelinePlaying
         {
             get
             {
-                return m_IsLooping;
+                return m_IsTimelinePlaying;
             }
             set
             {
-                m_IsLooping = value;
-                if (m_IsLooping)
-                {
-                    m_LoopingCoroutine = this.StartCoroutineAsync(c_Loop());
-                }
-                else if (m_LoopingCoroutine != null)
-                {
-                    StopCoroutine(m_LoopingCoroutine);
-                    m_LoopingCoroutine = null;
-                }
+                m_IsTimelinePlaying = value;
+                m_TimeSinceLastSample = 0.0f;
             }
         }
 
-        private float m_LoopingSpeed = 0.25f;
+        private int m_TimelineStep = 1;
         /// <summary>
-        /// Looping speed
+        /// Timeline step
         /// </summary>
-        public float LoopingSpeed
+        public int TimelineStep
         {
             get
             {
-                return m_LoopingSpeed;
+                return m_TimelineStep;
             }
             set
             {
-                m_LoopingSpeed = value;
+                m_TimelineStep = value;
+            }
+        }
+        private float TimelineInterval
+        {
+            get
+            {
+                return 1.0f / m_TimelineStep;
             }
         }
 
@@ -347,6 +357,27 @@ namespace HBP.Module3D
 
         // events
         public UnityEvent OnUpdateCurrentTimelineID = new UnityEvent();
+        #endregion
+
+        #region Private Methods
+        private void Update()
+        {
+            if (IsTimelinePlaying)
+            {
+                m_TimeSinceLastSample += Time.deltaTime;
+                if (m_TimeSinceLastSample > TimelineInterval)
+                {
+                    CurrentTimeLineID++;
+                    m_TimeSinceLastSample = 0.0f;
+                    if (CurrentTimeLineID >= MaxTimeLineID && !IsTimelineLooping)
+                    {
+                        IsTimelinePlaying = false;
+                        CurrentTimeLineID = 0;
+                        ApplicationState.Module3D.OnStopTimelinePlay.Invoke();
+                    }
+                }
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -769,20 +800,6 @@ namespace HBP.Module3D
                 CopyROI(roi);
             }
             ColumnData.Configuration.ROIs = m_ROIs;
-        }
-        #endregion
-
-        #region Coroutines
-        private IEnumerator c_Loop()
-        {
-            while (m_IsLooping)
-            {
-                yield return Ninja.JumpToUnity;
-                CurrentTimeLineID++;
-                yield return Ninja.JumpBack;
-                yield return new WaitForSeconds(1.0f-m_LoopingSpeed);
-            }
-            CurrentTimeLineID = 0;
         }
         #endregion
     }

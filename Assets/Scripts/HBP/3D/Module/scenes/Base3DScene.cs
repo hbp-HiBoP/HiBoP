@@ -718,7 +718,9 @@ namespace HBP.Module3D
                 {
                     foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
                     {
-                        column.IsLooping = false;
+                        column.IsTimelineLooping = false;
+                        column.IsTimelinePlaying = false;
+                        column.CurrentTimeLineID = 0;
                         column.IsRenderingUpToDate = false;
                     }
                 }

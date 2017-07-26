@@ -18,14 +18,25 @@ namespace HBP.UI.Module3D.Tools
         [SerializeField]
         private InputField m_InputField;
 
-        private int m_Step = 1;
-        
+        private bool m_IsGlobal = false;
         /// <summary>
         /// Do we need to perform the actions on all columns ?
         /// </summary>
-        public bool IsGlobal { get; set; }
-
-        public GenericEvent<int> OnChangeValue = new GenericEvent<int>();
+        public bool IsGlobal
+        {
+            get
+            {
+                return m_IsGlobal;
+            }
+            set
+            {
+                m_IsGlobal = value;
+                if (m_IsGlobal)
+                {
+                    m_InputField.onEndEdit.Invoke(m_InputField.text);
+                }
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -46,7 +57,7 @@ namespace HBP.UI.Module3D.Tools
                 }
                 foreach (HBP.Module3D.Column3DIEEG column in columns)
                 {
-                    column.CurrentTimeLineID -= m_Step;
+                    column.CurrentTimeLineID -= column.TimelineStep;
                 }
             });
 
@@ -65,7 +76,7 @@ namespace HBP.UI.Module3D.Tools
                 }
                 foreach (HBP.Module3D.Column3DIEEG column in columns)
                 {
-                    column.CurrentTimeLineID += m_Step;
+                    column.CurrentTimeLineID += column.TimelineStep;
                 }
             });
 
@@ -74,18 +85,33 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 int val = 1;
+                int step = 1;
                 if (int.TryParse(value, out val))
                 {
-                    m_Step = val;
+                    step = val;
                     m_InputField.text = val.ToString();
                 }
                 else
                 {
-                    m_Step = 1;
+                    step = 1;
                     val = 1;
                     m_InputField.text = val.ToString();
                 }
-                OnChangeValue.Invoke(val);
+
+                List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
+                if (IsGlobal)
+                {
+                    columns = ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG.ToList();
+                }
+                else
+                {
+                    columns.Add((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
+                }
+
+                foreach (HBP.Module3D.Column3DIEEG column in columns)
+                {
+                    column.TimelineStep = step;
+                }
             });
         }
 
@@ -94,7 +120,6 @@ namespace HBP.UI.Module3D.Tools
             m_Minus.interactable = false;
             m_Plus.interactable = false;
             m_InputField.text = "1";
-            m_Step = 1;
             m_InputField.interactable = false;
         }
 
@@ -154,6 +179,10 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {
+            if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
+            {
+                m_InputField.text = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).TimelineStep.ToString();
+            }
         }
         #endregion
     }

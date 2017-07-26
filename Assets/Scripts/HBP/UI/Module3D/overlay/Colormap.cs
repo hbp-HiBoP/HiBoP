@@ -86,6 +86,7 @@ namespace HBP.UI.Module3D
         public void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
             m_ColumnUI = columnUI;
+            IsActive = false;
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {

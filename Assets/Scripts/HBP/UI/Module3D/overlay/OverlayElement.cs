@@ -12,7 +12,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         protected Column3DUI m_ColumnUI;
 
-        private bool m_IsActive = false;
+        protected bool m_IsActive = false;
         /// <summary>
         /// Is this overlay element active ?
         /// </summary>
@@ -25,13 +25,16 @@ namespace HBP.UI.Module3D
             set
             {
                 m_IsActive = value;
-                if (m_ColumnUI.HasEnoughSpaceForOverlay && m_IsActive)
+                if (m_IsActive != gameObject.activeSelf)
                 {
-                    gameObject.SetActive(true);
-                }
-                else
-                {
-                    gameObject.SetActive(false);
+                    if (m_ColumnUI.HasEnoughSpaceForOverlay && m_IsActive)
+                    {
+                        gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        gameObject.SetActive(false);
+                    }
                 }
             }
         }

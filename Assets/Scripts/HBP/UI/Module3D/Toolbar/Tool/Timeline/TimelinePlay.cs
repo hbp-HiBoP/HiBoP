@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class TimelineLoop : Tool
+    public class TimelinePlay : Tool
     {
         #region Properties
         [SerializeField]
@@ -38,6 +38,10 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
+            ApplicationState.Module3D.OnStopTimelinePlay.AddListener(() =>
+            {
+                UpdateStatus(Toolbar.UpdateToolbarType.Column);
+            });
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
                 if (ListenerLock) return;
@@ -54,7 +58,7 @@ namespace HBP.UI.Module3D.Tools
 
                 foreach (HBP.Module3D.Column3DIEEG column in columns)
                 {
-                    column.IsTimelineLooping = m_Toggle.isOn;
+                    column.IsTimelinePlaying = m_Toggle.isOn;
                 }
             });
         }
@@ -105,7 +109,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
             {
-                m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IsTimelineLooping;
+                m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IsTimelinePlaying;
             }
         }
         #endregion

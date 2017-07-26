@@ -180,6 +180,10 @@ namespace HBP.Module3D
         /// Event called when updating the invisible part of the brain (erasing triangles, reset ...)
         /// </summary>
         public UnityEvent OnModifyInvisiblePart = new UnityEvent();
+        /// <summary>
+        /// Event called when the timeline is stopped because it reached the end
+        /// </summary>
+        public UnityEvent OnStopTimelinePlay = new UnityEvent();
         #endregion
 
         #region Private Methods

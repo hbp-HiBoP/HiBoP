@@ -28,6 +28,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.TimelineStep m_TimelineStep;
+        /// <summary>
+        /// Timeline play
+        /// </summary>
+        [SerializeField]
+        private Tools.TimelinePlay m_TimelinePlay;
         #endregion
 
         #region Private Methods
@@ -37,6 +42,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_TimelineSlider);
             m_Tools.Add(m_TimelineGlobal);
             m_Tools.Add(m_TimelineStep);
+            m_Tools.Add(m_TimelinePlay);
         }
 
         protected override void AddListeners()
@@ -48,6 +54,7 @@ namespace HBP.UI.Module3D
                 m_TimelineLoop.IsGlobal = global;
                 m_TimelineSlider.IsGlobal = global;
                 m_TimelineStep.IsGlobal = global;
+                m_TimelinePlay.IsGlobal = global;
             });
         }
         #endregion

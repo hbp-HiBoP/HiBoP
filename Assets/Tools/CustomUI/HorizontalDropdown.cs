@@ -33,6 +33,9 @@ namespace UnityEngine.UI
         public override void OnPointerClick(PointerEventData eventData)
         {
             base.OnPointerClick(eventData);
+
+            if (!m_DropdownRectTransform) return;
+
             m_DropdownRectTransform.pivot = new Vector2(0, 1);
             m_DropdownRectTransform.position = new Vector3(m_RectTransform.position.x + m_RectTransform.rect.width / 2, m_RectTransform.position.y + m_RectTransform.rect.height / 2, m_DropdownRectTransform.position.z);
         }

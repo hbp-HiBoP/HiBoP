@@ -127,13 +127,9 @@ namespace HBP.UI.Module3D
             m_MinimizedGameObject.GetComponentInChildren<Text>().text = m_Column.Label;
             m_MinimizedGameObject.SetActive(false);
             m_Colormap.Initialize(scene, column, this);
-            m_Colormap.IsActive = false;
             m_TimeDisplay.Initialize(scene, column, this);
-            m_TimeDisplay.IsActive = false;
             m_Icon.Initialize(scene, column, this);
-            m_Icon.IsActive = false;
             m_Label.Initialize(scene, column, this);
-            m_Label.IsActive = true;
             m_IsInitialized = true;
         }
         #endregion
