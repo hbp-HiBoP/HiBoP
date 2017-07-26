@@ -143,9 +143,11 @@ namespace HBP.UI.Module3D
                 m_MidHandler.MinimumPosition = m_SpanMinFactor;
                 m_MidHandler.ClampPosition();
 
-                if (m_Initialized) ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SpanMin = val;
-
-                OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
+                if (m_Initialized)
+                {
+                    ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SpanMin = val;
+                    OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
+                }
             });
 
             m_MiddleInput.onEndEdit.AddListener((value) =>
@@ -161,9 +163,11 @@ namespace HBP.UI.Module3D
                 m_MaxHandler.MinimumPosition = m_MiddleFactor;
                 m_MaxHandler.ClampPosition();
 
-                if (m_Initialized) ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.Middle = val;
-
-                OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
+                if (m_Initialized)
+                {
+                    ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.Middle = val;
+                    OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
+                }
             });
 
             m_SpanMaxInput.onEndEdit.AddListener((value) =>
@@ -177,9 +181,11 @@ namespace HBP.UI.Module3D
                 m_MidHandler.MaximumPosition = m_SpanMaxFactor;
                 m_MidHandler.ClampPosition();
 
-                if (m_Initialized) ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SpanMax = val;
-
-                OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
+                if (m_Initialized)
+                {
+                    ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SpanMax = val;
+                    OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
+                }
             });
 
             m_MinHandler.OnChangePosition.AddListener(() =>
