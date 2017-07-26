@@ -26,8 +26,13 @@ namespace HBP.UI.Module3D
             m_Text.text = scene.Name;
             m_Button.onClick.AddListener(() =>
             {
-                ApplicationState.Module3D.RemoveVisualization(scene.Visualization);
+                ApplicationState.Module3D.RemoveScene(scene);
                 Destroy(gameObject);
+            });
+            m_Toggle.isOn = true;
+            m_Toggle.onValueChanged.AddListener((isOn) =>
+            {
+                scene.Events.OnChangeVisibleState.Invoke(isOn);
             });
         }
         #endregion

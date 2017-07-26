@@ -131,6 +131,10 @@ namespace HBP.Module3D
             /// Event called when a FMRI column is removed
             /// </summary>
             public UnityEvent OnRemoveFMRIColumn = new UnityEvent();
+            /// <summary>
+            /// Event called when showing or hiding the scene in the UI
+            /// </summary>
+            public GenericEvent<bool> OnChangeVisibleState = new GenericEvent<bool>();
 
             /// <summary>
             /// Event for updating cuts planes 
@@ -180,7 +184,9 @@ namespace HBP.Module3D
             /// Event called when clicking on a ROI
             /// </summary>
             public GenericEvent<int, int> OnSelectROI = new GenericEvent<int, int>();
-
+            /// <summary>
+            /// Event called when instantiating a ROI sphere
+            /// </summary>
             public GenericEvent<Vector3, int> OnCreateROIBubble = new GenericEvent<Vector3, int>();
 
             /// <summary>

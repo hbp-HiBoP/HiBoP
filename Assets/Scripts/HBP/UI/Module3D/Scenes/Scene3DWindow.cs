@@ -40,6 +40,10 @@ namespace HBP.UI.Module3D
                     Destroy(gameObject);
                 }
             });
+            scene.Events.OnChangeVisibleState.AddListener((value) =>
+            {
+                gameObject.SetActive(value);
+            });
         }
         #endregion
     }

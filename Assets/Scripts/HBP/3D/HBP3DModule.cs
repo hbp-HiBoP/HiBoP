@@ -233,6 +233,10 @@ namespace HBP.Module3D
             Base3DScene scene = m_ScenesManager.Scenes.ToList().Find(s => s.Visualization == visualization);
             m_ScenesManager.RemoveScene(scene);
         }
+        public void RemoveScene(Base3DScene scene)
+        {
+            m_ScenesManager.RemoveScene(scene);
+        }
         #endregion
 
         #region Coroutines
