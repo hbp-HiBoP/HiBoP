@@ -26,7 +26,7 @@ namespace Tools.Unity
             if (m_Entered)
             {
                 m_TimeSinceEntered += Time.deltaTime;
-                if ((m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY || ApplicationState.TooltipManager.TooltipHasBeenDisplayedRecently) && !ApplicationState.TooltipManager.IsTooltipDisplayed)
+                if ((m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY || (ApplicationState.TooltipManager.TooltipHasBeenDisplayedRecently && m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY/3)) && !ApplicationState.TooltipManager.IsTooltipDisplayed)
                 {
                     ApplicationState.TooltipManager.ShowTooltip(m_Text, Input.mousePosition + new Vector3(0, -20, 0));
                 }
