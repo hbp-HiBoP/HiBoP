@@ -28,14 +28,19 @@ namespace Tools.Unity
 
         private static string m_Tools = "tools/";
 
+        public static void DefaultBuild()
+        {
+            BuildProjectAndZipIt(@"D:/HBP/HiBoP_builds/");
+        }
         public static void BuildProjectAndZipIt(string buildsDirectory)
         {
             string buildName = string.Format("HiBoP_{0}_{1}_{2}", DateTime.Today.Year.ToString("d4"), DateTime.Today.Month.ToString("d2"), DateTime.Today.Day.ToString("d2"));
             string buildDirectory = buildsDirectory + buildName + "/";
-
+            
             BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
             buildPlayerOptions.locationPathName = buildDirectory + "HiBoP.exe";
             buildPlayerOptions.target = BuildTarget.StandaloneWindows64;
+            buildPlayerOptions.scenes = new string[] { "Assets/_Scenes/Main.unity" };
             BuildOptions buildOptions = BuildOptions.AllowDebugging | BuildOptions.ConnectWithProfiler | BuildOptions.Development;
             buildPlayerOptions.options = buildOptions;
             BuildPipeline.BuildPlayer(buildPlayerOptions);
