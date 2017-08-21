@@ -62,6 +62,7 @@ namespace HBP.UI.Module3D
         protected void OnChangeScene()
         {
             m_Tools.ForEach((t) => t.ListenerLock = true);
+            ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.RemoveAllListeners();
             ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.AddListener((mode) => UpdateInteractableButtons()); // maybe FIXME : problem with infinite number of listeners ?
             UpdateInteractableButtons();
             UpdateButtonsStatus(UpdateToolbarType.Scene);

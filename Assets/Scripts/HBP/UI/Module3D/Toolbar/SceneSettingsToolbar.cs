@@ -26,20 +26,30 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Tools.MarsAtlas m_MarsAtlas;
         /// <summary>
-        /// Add / remove views from the selected scene
+        /// Threshold MRI parameters
         /// </summary>
         [SerializeField]
-        private Tools.Views m_Views;
+        private Tools.ThresholdMRI m_ThresholdMRI;
         /// <summary>
-        /// Add / remove FMRI columns from the selected scene
+        /// Change IEEG colormap
         /// </summary>
         [SerializeField]
-        private Tools.FMRI m_FMRI;
+        private Tools.Colormap m_Colormap;
         /// <summary>
-        /// Set the scene to the standard views
+        /// Change brain surface color
         /// </summary>
         [SerializeField]
-        private Tools.StandardViews m_StandardViews;
+        private Tools.BrainColor m_BrainColor;
+        /// <summary>
+        /// Change brain cut color
+        /// </summary>
+        [SerializeField]
+        private Tools.CutColor m_CutColor;
+        /// <summary>
+        /// Show / hide edges
+        /// </summary>
+        [SerializeField]
+        private Tools.EdgeMode m_EdgeMode;
         #endregion
 
         #region Private Methods
@@ -52,9 +62,11 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_BrainMeshes);
             m_Tools.Add(m_BrainTypes);
             m_Tools.Add(m_MarsAtlas);
-            m_Tools.Add(m_Views);
-            m_Tools.Add(m_FMRI);
-            m_Tools.Add(m_StandardViews);
+            m_Tools.Add(m_Colormap);
+            m_Tools.Add(m_BrainColor);
+            m_Tools.Add(m_CutColor);
+            m_Tools.Add(m_EdgeMode);
+            m_Tools.Add(m_ThresholdMRI);
         }
         /// <summary>
         /// Add the listeners to the elements of the toolbar
@@ -71,21 +83,6 @@ namespace HBP.UI.Module3D
             m_MarsAtlas.OnChangeValue.AddListener((isOn) =>
             {
                 m_BrainTypes.ChangeMarsAtlasCallback(isOn);
-                UpdateInteractableButtons();
-            });
-
-            m_Views.OnClick.AddListener(() =>
-            {
-                UpdateInteractableButtons();
-            });
-
-            m_FMRI.OnClick.AddListener(() =>
-            {
-                UpdateInteractableButtons();
-            });
-
-            m_StandardViews.OnClick.AddListener(() =>
-            {
                 UpdateInteractableButtons();
             });
         }

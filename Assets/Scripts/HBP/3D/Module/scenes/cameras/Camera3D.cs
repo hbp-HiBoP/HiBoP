@@ -140,7 +140,7 @@ namespace HBP.Module3D
         private List<Vector3[]> m_PlanesCutsCirclesVertices = new List<Vector3[]>();
 
         // Rendering Settings
-        public AmbientMode AmbiantMode = AmbientMode.Flat;
+        public AmbientMode AmbientMode = AmbientMode.Flat;
         public float AmbientIntensity = 1;
         public Color AmbiantLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
@@ -213,7 +213,7 @@ namespace HBP.Module3D
         }
         private void OnPreCull()
         {
-            RenderSettings.ambientMode = AmbiantMode;
+            RenderSettings.ambientMode = AmbientMode;
             RenderSettings.ambientIntensity = AmbientIntensity;
             RenderSettings.skybox = null;
             RenderSettings.ambientLight = AmbiantLight;
