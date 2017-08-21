@@ -815,6 +815,8 @@ namespace HBP.Module3D
         /// <param name="column"></param>
         private void ComputeIEEGTexturesOfColumn(Column3DIEEG column)
         {
+            if (!SceneInformation.IsGeneratorUpToDate) return;
+
             UnityEngine.Profiling.Profiler.BeginSample("compute_IEEG_textures");
 
             UnityEngine.Profiling.Profiler.BeginSample("compute_IEEG_textures 0");
