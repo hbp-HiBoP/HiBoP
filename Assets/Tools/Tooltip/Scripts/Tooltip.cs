@@ -30,6 +30,10 @@ namespace Tools.Unity
                 {
                     ApplicationState.TooltipManager.ShowTooltip(m_Text, Input.mousePosition + new Vector3(0, -20, 0));
                 }
+                if (Input.GetAxis("Mouse X") !=0 && Input.GetAxis("Mouse Y") != 0)
+                {
+                    m_TimeSinceEntered = 0;
+                }
             }
         }
         #endregion
