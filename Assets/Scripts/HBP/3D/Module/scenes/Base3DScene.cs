@@ -110,7 +110,7 @@ namespace HBP.Module3D
     /// Class containing all the DLL data and the displayable Gameobjects of a 3D scene.
     /// </summary>
     [AddComponentMenu("Scenes/Base 3D Scene")]
-    public abstract class Base3DScene : MonoBehaviour
+    public abstract class Base3DScene : MonoBehaviour, IConfigurable
     {
         #region Events
         public class EventManager
@@ -261,8 +261,7 @@ namespace HBP.Module3D
                 return new ReadOnlyCollection<Data.Patient>(Visualization.Patients);
             }
         }
-
-        protected Data.Visualization.Visualization m_VisualizationData;
+        
         protected Data.Visualization.Visualization m_Visualization;
         /// <summary>
         /// Visualization associated to this scene
@@ -300,7 +299,8 @@ namespace HBP.Module3D
         /// </summary>
         public SceneStatesInfo SceneInformation { get; set; }
 
-        protected ModesManager m_ModesManager = null;
+        [SerializeField]
+        protected ModesManager m_ModesManager;
         /// <summary>
         /// Modes of the scene
         /// </summary>
@@ -321,7 +321,8 @@ namespace HBP.Module3D
             }
         }
 
-        protected Column3DManager m_ColumnManager = null;
+        [SerializeField]
+        protected Column3DManager m_ColumnManager;
         /// <summary>
         /// Column data manager
         /// </summary>
@@ -484,7 +485,8 @@ namespace HBP.Module3D
                 m_DisplayedObjects.BrainSurfaceMeshes[0].GetComponent<Renderer>().sharedMaterial.SetInt("_MarsAtlas", SceneInformation.MarsAtlasModeEnabled ? 1 : 0);
             }
         }
-        
+
+        public bool m_EdgeMode = false;
         /// <summary>
         /// Are the edges displayed ?
         /// </summary>
@@ -492,16 +494,16 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Visualization.Configuration.EdgeMode;
+                return m_EdgeMode;
             }
             set
             {
-                m_Visualization.Configuration.EdgeMode = value;
+                m_EdgeMode = value;
                 foreach (Column3D column in m_ColumnManager.Columns)
                 {
                     foreach (View3D view in column.Views)
                     {
-                        view.EdgeMode = m_Visualization.Configuration.EdgeMode;
+                        view.EdgeMode = m_EdgeMode;
                     }
                 }
             }
@@ -1360,48 +1362,6 @@ namespace HBP.Module3D
             return cut;
         }
         /// <summary>
-        /// Instantiate a cut game object and update rendering
-        /// </summary>
-        /// <param name="cut"></param>
-        public void InstantiateCuts()
-        {
-            Cuts = m_Visualization.Configuration.Cuts;
-            foreach (Cut cut in m_Visualization.Configuration.Cuts)
-            {
-                // Check access
-                if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.AddNewPlane))
-                {
-                    Debug.LogError("-ERROR : Base3DScene::addNewPlane -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                    return;
-                }
-
-                // Add new cut GameObject
-                GameObject cutGameObject = Instantiate(m_CutPrefab);
-                cutGameObject.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.CutMaterials[this];
-                cutGameObject.name = "cut_" + cut.ID;
-                cutGameObject.transform.parent = m_DisplayedObjects.BrainCutMeshesParent.transform;
-                cutGameObject.AddComponent<MeshCollider>();
-                cutGameObject.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
-                cutGameObject.transform.localPosition = Vector3.zero;
-                m_DisplayedObjects.BrainCutMeshes.Add(cutGameObject);
-                m_DisplayedObjects.BrainCutMeshes.Last().layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
-
-                // update columns manager
-                m_ColumnManager.UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
-
-                // update plots visibility
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
-                SceneInformation.CutMeshGeometryNeedsUpdate = true;
-                SceneInformation.IsIEEGOutdated = true;
-
-                // Update mode
-                m_ModesManager.UpdateMode(Mode.FunctionsId.AddNewPlane);
-
-                UpdateCutPlane(cut);
-            }
-        }
-        /// <summary>
         /// Remove the last cut plane
         /// </summary>
         public void RemoveCutPlane(Cut cut)
@@ -1622,6 +1582,7 @@ namespace HBP.Module3D
         }
         #endregion
 
+        #region Save/Load
         /// <summary>
         /// Initialize the scene with the corresponding visualization
         /// </summary>
@@ -1630,12 +1591,8 @@ namespace HBP.Module3D
         {
             m_DisplayedObjects = new DisplayedObjects3DView();
             SceneInformation = new SceneStatesInfo();
-            m_ColumnManager = GetComponent<Column3DManager>();
-
-            m_VisualizationData = visualization;
-            Visualization = m_VisualizationData; // FIXME : replace by the following line when deep copy is implemented
-            //Visualization = visualization.Clone() as Data.Visualization.Visualization;
-            m_ColumnManager.Visualization = Visualization;
+            
+            Visualization = visualization;
 
             // Init materials
             SharedMaterials.Brain.AddSceneMaterials(this);
@@ -1644,8 +1601,7 @@ namespace HBP.Module3D
             SceneInformation.MeshesLayerName = "Default";
             SceneInformation.HiddenMeshesLayerName = "Hidden Meshes";
 
-            // init modes            
-            m_ModesManager = transform.Find("Modes").gameObject.GetComponent<ModesManager>();
+            // init modes
             m_ModesManager.Initialize(this);
             m_ModesManager.SendModeSpecifications.AddListener((specs) =>
             {
@@ -1661,6 +1617,50 @@ namespace HBP.Module3D
             // init GO
             InitializeSceneGameObjects();
         }
+        /// <summary>
+        /// Set up the scene to display it properly (and load configurations)
+        /// </summary>
+        public void FinalizeInitialization()
+        {
+            m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
+            m_ModesManager.SetCurrentModeSpecifications(true);
+            ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
+            UpdateGUITextures();
+            LoadConfiguration();
+        }
+        /// <summary>
+        /// Load the visualization configuration from the loaded visualization
+        /// </summary>
+        public void LoadConfiguration()
+        {
+            UpdateBrainSurfaceColor(Visualization.Configuration.BrainColor);
+            UpdateBrainCutColor(Visualization.Configuration.BrainCutColor);
+            UpdateColormap(Visualization.Configuration.Colormap);
+            EdgeMode = Visualization.Configuration.EdgeMode;
+            m_ColumnManager.MRICalMinFactor = Visualization.Configuration.MRICalMinFactor;
+            m_ColumnManager.MRICalMaxFactor = Visualization.Configuration.MRICalMaxFactor;
+        }
+        /// <summary>
+        /// Save the current settings of this scene to the configuration of the linked visualization
+        /// </summary>
+        public void SaveConfiguration()
+        {
+            Visualization.Configuration.BrainColor = m_ColumnManager.BrainColor;
+            Visualization.Configuration.BrainCutColor = m_ColumnManager.BrainCutColor;
+            Visualization.Configuration.Colormap = m_ColumnManager.Colormap;
+            Visualization.Configuration.EdgeMode = EdgeMode;
+            Visualization.Configuration.MRICalMinFactor = m_ColumnManager.MRICalMinFactor;
+            Visualization.Configuration.MRICalMaxFactor = m_ColumnManager.MRICalMaxFactor;
+        }
+        /// <summary>
+        /// Reset the settings of the loaded scene
+        /// </summary>
+        public void ResetConfiguration()
+        {
+
+        }
+        #endregion
+
         /// <summary>
         /// Reset the number of splits of the brain mesh
         /// </summary>
@@ -1878,30 +1878,6 @@ namespace HBP.Module3D
 
             // Update Mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMaskPlot);
-        }
-        /// <summary>
-        /// Set up the scene to display it properly (and load configurations)
-        /// </summary>
-        public void FinalizeInitialization()
-        {
-            m_ColumnManager.Columns[0].Views[0].IsSelected = true;
-            m_ModesManager.SetCurrentModeSpecifications(true);
-            ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
-            UpdateGUITextures();
-
-            // Edge
-            EdgeMode = m_Visualization.Configuration.EdgeMode;
-            // MRI Cal Values
-            m_ColumnManager.OnUpdateMRICalValues.Invoke();
-            // Cuts
-            InstantiateCuts();
-            // ROIs
-            ROICreation = true;
-            foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
-            {
-                column.InitializeROIs();
-            }
-            ROICreation = false;
         }
         /// <summary>
         /// Update the data render corresponding to the column

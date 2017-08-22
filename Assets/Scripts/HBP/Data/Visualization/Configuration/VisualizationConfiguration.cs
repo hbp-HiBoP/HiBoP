@@ -115,7 +115,7 @@ namespace HBP.Data.Visualization
                 m_MRICalMaxFactor = value;
             }
         }
-
+        /*
         [DataMember(Name = "Cuts")]
         private List<Module3D.Cut> m_Cuts = new List<Module3D.Cut>();
         /// <summary>
@@ -132,5 +132,6 @@ namespace HBP.Data.Visualization
                 m_Cuts = value;
             }
         }
+        */
     }
 }

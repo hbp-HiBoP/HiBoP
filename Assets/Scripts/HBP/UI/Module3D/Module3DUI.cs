@@ -32,6 +32,13 @@ namespace HBP.UI.Module3D
                 m_SiteInfoDisplayer.transform.SetAsLastSibling();
             });
         }
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                ApplicationState.Module3D.SelectedScene.SaveConfiguration();
+            }
+        }
         #endregion
     }
 }

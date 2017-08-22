@@ -224,7 +224,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visualization"></param>
         /// <returns></returns>
-        public void LoadVisualization(Data.Visualization.Visualization visualization)
+        public void LoadScene(Data.Visualization.Visualization visualization)
         {
             this.StartCoroutineAsync(c_Load(visualization));
         }
@@ -232,11 +232,15 @@ namespace HBP.Module3D
         /// Remove a visualization and its associated scene
         /// </summary>
         /// <param name="visualization"></param>
-        public void RemoveVisualization(Data.Visualization.Visualization visualization)
+        public void RemoveScene(Data.Visualization.Visualization visualization)
         {
             Base3DScene scene = m_ScenesManager.Scenes.ToList().Find(s => s.Visualization == visualization);
             m_ScenesManager.RemoveScene(scene);
         }
+        /// <summary>
+        /// Remove a visualization and its associated scene
+        /// </summary>
+        /// <param name="visualization"></param>
         public void RemoveScene(Base3DScene scene)
         {
             m_ScenesManager.RemoveScene(scene);
@@ -304,7 +308,7 @@ namespace HBP.Module3D
                 OnRequestSiteInformation.Invoke(siteRequest);
             });
         }
-        private IEnumerator c_SetMultiPatientsVisualization(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
+        IEnumerator c_SetMultiPatientsVisualization(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
         {
             yield return Ninja.JumpToUnity;
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddMultiPatientsScene(visualization, onChangeProgress));

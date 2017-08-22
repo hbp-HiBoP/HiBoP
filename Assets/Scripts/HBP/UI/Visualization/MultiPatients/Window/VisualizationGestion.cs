@@ -18,7 +18,7 @@ namespace HBP.UI.Visualization
         }
         public void Display()
         {
-            ApplicationState.Module3D.LoadVisualization(list.GetObjectsSelected()[0]);
+            ApplicationState.Module3D.LoadScene(list.GetObjectsSelected()[0]);
             base.Close();
         }
         #endregion

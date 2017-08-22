@@ -22,7 +22,7 @@ namespace HBP.Module3D
     /// <summary>
     /// A 3D column view IEGG, containing all necessary data concerning a data column
     /// </summary>
-    public class Column3DIEEG : Column3D
+    public class Column3DIEEG : Column3D, IConfigurable
     {
         #region Properties
         public override ColumnType Type
@@ -144,6 +144,7 @@ namespace HBP.Module3D
 
             private const float MIN_INFLUENCE = 0.0f;
             private const float MAX_INFLUENCE = 50.0f;
+            private float m_MaximumInfluence = 15.0f;
             /// <summary>
             /// Maximum influence amplitude of a site
             /// </summary>
@@ -151,19 +152,20 @@ namespace HBP.Module3D
             {
                 get
                 {
-                    return ColumnData.Configuration.MaximumInfluence;
+                    return m_MaximumInfluence;
                 }
                 set
                 {
                     float val = Mathf.Clamp(value, MIN_INFLUENCE, MAX_INFLUENCE);
-                    if (ColumnData.Configuration.MaximumInfluence != val)
+                    if (m_MaximumInfluence != val)
                     {
-                        ColumnData.Configuration.MaximumInfluence = val;
+                        m_MaximumInfluence = val;
                         OnUpdateMaximumInfluence.Invoke();
                     }
                 }
             }
-            
+
+            private float m_Gain = 1.0f;
             /// <summary>
             /// Gain of the spheres representing the sites
             /// </summary>
@@ -171,13 +173,13 @@ namespace HBP.Module3D
             {
                 get
                 {
-                    return ColumnData.Configuration.Gain;
+                    return m_Gain;
                 }
                 set
                 {
-                    if (ColumnData.Configuration.Gain != value)
+                    if (m_Gain != value)
                     {
-                        ColumnData.Configuration.Gain = value;
+                        m_Gain = value;
                         OnUpdateGain.Invoke();
                     }
                 }
@@ -214,7 +216,8 @@ namespace HBP.Module3D
                     m_MaximumAmplitude = value;
                 }
             }
-            
+
+            private float m_AlphaMin = 0.2f;
             /// <summary>
             /// Minimum Alpha
             /// </summary>
@@ -222,13 +225,13 @@ namespace HBP.Module3D
             {
                 get
                 {
-                    return ColumnData.Configuration.Alpha;
+                    return m_AlphaMin;
                 }
                 set
                 {
-                    if (ColumnData.Configuration.Alpha != value)
+                    if (m_AlphaMin != value)
                     {
-                        ColumnData.Configuration.Alpha = value;
+                        m_AlphaMin = value;
                         OnUpdateAlphaValues.Invoke();
                     }
                 }
@@ -253,7 +256,8 @@ namespace HBP.Module3D
                     }
                 }
             }
-            
+
+            private float m_SpanMin = 0.0f;
             /// <summary>
             /// Span Min value
             /// </summary>
@@ -261,18 +265,19 @@ namespace HBP.Module3D
             {
                 get
                 {
-                    return ColumnData.Configuration.SpanMin;
+                    return m_SpanMin;
                 }
                 set
                 {
-                    if (ColumnData.Configuration.SpanMin != value)
+                    if (m_SpanMin != value)
                     {
-                        ColumnData.Configuration.SpanMin = value;
+                        m_SpanMin = value;
                         OnUpdateSpanValues.Invoke();
                     }
                 }
             }
-            
+
+            private float m_Middle = 0.0f;
             /// <summary>
             /// Middle value
             /// </summary>
@@ -280,18 +285,19 @@ namespace HBP.Module3D
             {
                 get
                 {
-                    return ColumnData.Configuration.Middle;
+                    return m_Middle;
                 }
                 set
                 {
-                    if (ColumnData.Configuration.Middle != value)
+                    if (m_Middle != value)
                     {
-                        ColumnData.Configuration.Middle = value;
+                        m_Middle = value;
                         OnUpdateSpanValues.Invoke();
                     }
                 }
             }
-            
+
+            private float m_SpanMax = 0.0f;
             /// <summary>
             /// Span Min value
             /// </summary>
@@ -299,13 +305,13 @@ namespace HBP.Module3D
             {
                 get
                 {
-                    return ColumnData.Configuration.SpanMax;
+                    return m_SpanMax;
                 }
                 set
                 {
-                    if (ColumnData.Configuration.SpanMax != value)
+                    if (m_SpanMax != value)
                     {
-                        ColumnData.Configuration.SpanMax = value;
+                        m_SpanMax = value;
                         OnUpdateSpanValues.Invoke();
                     }
                 }
@@ -425,6 +431,27 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
+        /// Load the visualization configuration from the loaded visualization
+        /// </summary>
+        public void LoadConfiguration()
+        {
+
+        }
+        /// <summary>
+        /// Save the current settings of this scene to the configuration of the linked visualization
+        /// </summary>
+        public void SaveConfiguration()
+        {
+
+        }
+        /// <summary>
+        /// Reset the settings of the loaded scene
+        /// </summary>
+        public void ResetConfiguration()
+        {
+
+        }
+        /// <summary>
         /// Update the site mask of the dll with all the masks
         /// </summary>
         public void UpdateDLLSitesMask()
@@ -496,7 +523,7 @@ namespace HBP.Module3D
                 }
             }
 
-            if (Mathf.Approximately(newColumnData.Configuration.SpanMin, 0.0f) && Mathf.Approximately(newColumnData.Configuration.Middle, 0.0f) && Mathf.Approximately(newColumnData.Configuration.SpanMax, 0.0f))
+            if (Mathf.Approximately(IEEGParameters.SpanMin, 0.0f) && Mathf.Approximately(IEEGParameters.Middle, 0.0f) && Mathf.Approximately(IEEGParameters.SpanMax, 0.0f))
             {
                 float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
                 IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
@@ -789,17 +816,6 @@ namespace HBP.Module3D
                 DLLGUIBrainCutWithIEEGTextures[indexCut].CopyAndRotate(DLLBrainCutWithIEEGTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
                 DLLGUIBrainCutWithIEEGTextures[indexCut].UpdateTexture2D(GUIBrainCutWithIEEGTextures[indexCut]);
             }
-        }
-        /// <summary>
-        /// Initialize the ROIs as saved in the column configuration
-        /// </summary>
-        public void InitializeROIs()
-        {
-            foreach (ROI roi in ColumnData.Configuration.ROIs)
-            {
-                CopyROI(roi);
-            }
-            ColumnData.Configuration.ROIs = m_ROIs;
         }
         #endregion
     }

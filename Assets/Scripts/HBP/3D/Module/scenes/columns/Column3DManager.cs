@@ -138,6 +138,7 @@ namespace HBP.Module3D
         public List<DLL.Surface> DLLSplittedWhiteMeshesList = null;
 
         // volume
+        private float m_MRICalMinFactor = 0.0f;
         /// <summary>
         /// MRI Cal Min Value
         /// </summary>
@@ -145,18 +146,19 @@ namespace HBP.Module3D
         {
             get
             {
-                return Visualization.Configuration.MRICalMinFactor;
+                return m_MRICalMinFactor;
             }
             set
             {
-                if (Visualization.Configuration.MRICalMinFactor != value)
+                if (m_MRICalMinFactor != value)
                 {
-                    Visualization.Configuration.MRICalMinFactor = value;
+                    m_MRICalMinFactor = value;
                     OnUpdateMRICalValues.Invoke();
                 }
             }
         }
-        
+
+        private float m_MRICalMaxFactor = 1.0f;
         /// <summary>
         /// MRI Cal Max Value
         /// </summary>
@@ -164,13 +166,13 @@ namespace HBP.Module3D
         {
             get
             {
-                return Visualization.Configuration.MRICalMaxFactor;
+                return m_MRICalMaxFactor;
             }
             set
             {
-                if (Visualization.Configuration.MRICalMaxFactor != value)
+                if (m_MRICalMaxFactor != value)
                 {
-                    Visualization.Configuration.MRICalMaxFactor = value;
+                    m_MRICalMaxFactor = value;
                     OnUpdateMRICalValues.Invoke();
                 }
             }
@@ -195,6 +197,7 @@ namespace HBP.Module3D
 
 
         // textures
+        private ColorType m_BrainColor = ColorType.BrainColor;
         /// <summary>
         /// Brain surface color
         /// </summary>
@@ -202,14 +205,15 @@ namespace HBP.Module3D
         {
             get
             {
-                return Visualization.Configuration.BrainColor;
+                return m_BrainColor;
             }
             set
             {
-                Visualization.Configuration.BrainColor = value;
+                m_BrainColor = value;
             }
         }
-        
+
+        private ColorType m_BrainCutColor = ColorType.Default;
         /// <summary>
         /// Brain cut color
         /// </summary>
@@ -217,14 +221,15 @@ namespace HBP.Module3D
         {
             get
             {
-                return Visualization.Configuration.BrainCutColor;
+                return m_BrainColor;
             }
             set
             {
-                Visualization.Configuration.BrainCutColor = value;
+                m_BrainColor = value;
             }
         }
-        
+
+        private ColorType m_Colormap = ColorType.MatLab;
         /// <summary>
         /// Colormap
         /// </summary>
@@ -232,11 +237,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return Visualization.Configuration.Colormap;
+                return m_Colormap;
             }
             set
             {
-                Visualization.Configuration.Colormap = value;
+                m_Colormap = value;
                 DLL.Texture tex = DLL.Texture.Generate1DColorTexture(Colormap);
                 tex.UpdateTexture2D(BrainColorMapTexture);
             }
