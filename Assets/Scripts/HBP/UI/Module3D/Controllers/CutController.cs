@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Tools.Unity.ResizableGrid;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
@@ -74,14 +75,18 @@ namespace HBP.UI.Module3D
                 CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
                 controller.Initialize(m_Scene, cut);
             }
+            m_AddCutButton.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                m_Scene.AddCutPlane();
+            });
             m_AddCutButton.SetAsLastSibling();
-        }
-        public void AddNewCut()
-        {
-            Cut cut = m_Scene.AddCutPlane();
-            CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
-            controller.Initialize(m_Scene, cut);
-            m_AddCutButton.SetAsLastSibling();
+
+            m_Scene.Events.OnAddCut.AddListener((cut) =>
+            {
+                CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
+                controller.Initialize(m_Scene, cut);
+                m_AddCutButton.SetAsLastSibling();
+            });
         }
         #endregion
     }

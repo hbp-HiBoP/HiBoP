@@ -39,27 +39,15 @@ namespace HBP.Module3D
         #endregion
     }
 
-    [System.Serializable, DataContract]
+    [System.Serializable]
     /// <summary>
     /// A simple plane class using a normal and a point
     /// </summary>
     public class Plane
     {
         #region Properties
-        public Vector3 Point; /**< point on the plane */
-        [DataMember(Name = "Normal")]
-        private SerializableVector3 m_Normal;
-        public Vector3 Normal
-        {
-            get
-            {
-                return m_Normal.ToVector3();
-            }
-            set
-            {
-                m_Normal = new SerializableVector3(value);
-            }
-        }
+        public Vector3 Point { get; set; }
+        public Vector3 Normal { get; set; }
         #endregion
 
         #region Public Methods
@@ -68,8 +56,8 @@ namespace HBP.Module3D
         /// </summary>
         public Plane()
         {
-            this.Point = new Vector3(0, 0, 0);
-            this.Normal = new Vector3(1, 0, 0);
+            Point = new Vector3(0, 0, 0);
+            Normal = new Vector3(1, 0, 0);
         }
         /// <summary>
         /// Plane constructor
@@ -78,8 +66,8 @@ namespace HBP.Module3D
         /// <param name="normal"></param>
         public Plane(Vector3 point, Vector3 normal)
         {
-            this.Point = point;
-            this.Normal = normal;
+            Point = point;
+            Normal = normal;
         }
         /// <summary>
         /// Convert to float array for DLL use

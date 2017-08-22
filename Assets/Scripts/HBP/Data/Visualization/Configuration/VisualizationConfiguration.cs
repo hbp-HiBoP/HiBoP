@@ -65,7 +65,7 @@ namespace HBP.Data.Visualization
             }
         }
 
-        [DataMember(Name = "Show Edges")]
+        [DataMember(Name = "Edges")]
         private bool m_EdgeMode = false;
         /// <summary>
         /// Show edges of the meshes
@@ -115,13 +115,13 @@ namespace HBP.Data.Visualization
                 m_MRICalMaxFactor = value;
             }
         }
-        /*
+
         [DataMember(Name = "Cuts")]
-        private List<Module3D.Cut> m_Cuts = new List<Module3D.Cut>();
+        private List<Cut> m_Cuts = new List<Cut>();
         /// <summary>
         /// Cuts of the visualization
         /// </summary>
-        public List<Module3D.Cut> Cuts
+        public List<Cut> Cuts
         {
             get
             {
@@ -132,6 +132,5 @@ namespace HBP.Data.Visualization
                 m_Cuts = value;
             }
         }
-        */
     }
 }

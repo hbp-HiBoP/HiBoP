@@ -148,6 +148,8 @@ namespace HBP.Module3D
             /// Event for updating the cuts images in the UI (params : textures, columnId, planeNb)
             /// </summary>
             public GenericEvent<List<Texture2D>, int, int> OnUpdateCutsInUI = new GenericEvent<List<Texture2D>, int, int>();
+
+            public GenericEvent<Cut> OnAddCut = new GenericEvent<Cut>();
             
             /// <summary>
             /// Event for sending IRMF data parameters to UI (params : IRMFDataParameters)
@@ -1357,6 +1359,7 @@ namespace HBP.Module3D
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.AddNewPlane);
 
+            Events.OnAddCut.Invoke(cut);
             UpdateCutPlane(cut);
 
             return cut;
@@ -1393,6 +1396,8 @@ namespace HBP.Module3D
 
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.RemoveLastPlane);
+
+            cut.OnRemoveCut.Invoke();
         }
         /// <summary>
         /// Update a cut plane
@@ -1451,6 +1456,8 @@ namespace HBP.Module3D
 
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdatePlane);
+
+            cut.OnUpdateCut.Invoke();
         }
         #endregion
 
@@ -1633,12 +1640,22 @@ namespace HBP.Module3D
         /// </summary>
         public void LoadConfiguration()
         {
+            ResetConfiguration();
             UpdateBrainSurfaceColor(Visualization.Configuration.BrainColor);
             UpdateBrainCutColor(Visualization.Configuration.BrainCutColor);
             UpdateColormap(Visualization.Configuration.Colormap);
             EdgeMode = Visualization.Configuration.EdgeMode;
             m_ColumnManager.MRICalMinFactor = Visualization.Configuration.MRICalMinFactor;
             m_ColumnManager.MRICalMaxFactor = Visualization.Configuration.MRICalMaxFactor;
+            foreach (Data.Visualization.Cut cut in Visualization.Configuration.Cuts)
+            {
+                Cut newCut = AddCutPlane();
+                newCut.Normal = cut.Normal.ToVector3();
+                newCut.Orientation = cut.Orientation;
+                newCut.Flip = cut.Flip;
+                newCut.Position = cut.Position;
+                UpdateCutPlane(newCut);
+            }
         }
         /// <summary>
         /// Save the current settings of this scene to the configuration of the linked visualization
@@ -1651,13 +1668,28 @@ namespace HBP.Module3D
             Visualization.Configuration.EdgeMode = EdgeMode;
             Visualization.Configuration.MRICalMinFactor = m_ColumnManager.MRICalMinFactor;
             Visualization.Configuration.MRICalMaxFactor = m_ColumnManager.MRICalMaxFactor;
+            List<Data.Visualization.Cut> cuts = new List<Data.Visualization.Cut>();
+            foreach (Cut cut in m_Cuts)
+            {
+                cuts.Add(new Data.Visualization.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
+            }
+            Visualization.Configuration.Cuts = cuts;
         }
         /// <summary>
         /// Reset the settings of the loaded scene
         /// </summary>
         public void ResetConfiguration()
         {
-
+            UpdateBrainSurfaceColor(ColorType.BrainColor);
+            UpdateBrainCutColor(ColorType.Default);
+            UpdateColormap(ColorType.MatLab);
+            EdgeMode = false;
+            m_ColumnManager.MRICalMinFactor = 0.0f;
+            m_ColumnManager.MRICalMaxFactor = 1.0f;
+            while (m_Cuts.Count > 0)
+            {
+                RemoveCutPlane(m_Cuts.Last());
+            }
         }
         #endregion
 

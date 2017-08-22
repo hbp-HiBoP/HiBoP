@@ -221,11 +221,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_BrainColor;
+                return m_BrainCutColor;
             }
             set
             {
-                m_BrainColor = value;
+                m_BrainCutColor = value;
             }
         }
 

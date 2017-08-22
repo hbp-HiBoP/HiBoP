@@ -38,6 +38,18 @@ namespace HBP.UI.Module3D
             {
                 ApplicationState.Module3D.SelectedScene.SaveConfiguration();
             }
+            if (Input.GetKeyDown(KeyCode.B))
+            {
+                ApplicationState.Module3D.SelectedScene.ResetConfiguration();
+            }
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                ApplicationState.Module3D.SelectedScene.LoadConfiguration();
+            }
+            if (Input.GetKeyDown(KeyCode.D))
+            {
+                ApplicationState.Module3D.SelectedScene.AddCutPlane();
+            }
         }
         #endregion
     }
