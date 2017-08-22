@@ -5,7 +5,7 @@
         /// <summary>
         /// Load the visualization configuration from the loaded visualization
         /// </summary>
-        void LoadConfiguration();
+        void LoadConfiguration(bool firstCall);
         /// <summary>
         /// Save the current settings of this scene to the configuration of the linked visualization
         /// </summary>

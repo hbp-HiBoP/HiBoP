@@ -433,23 +433,41 @@ namespace HBP.Module3D
         /// <summary>
         /// Load the visualization configuration from the loaded visualization
         /// </summary>
-        public void LoadConfiguration()
+        public void LoadConfiguration(bool firstCall = true)
         {
-
+            if (firstCall) ResetConfiguration();
+            IEEGParameters.Gain = ColumnData.Configuration.Gain;
+            IEEGParameters.MaximumInfluence = ColumnData.Configuration.MaximumInfluence;
+            IEEGParameters.AlphaMin = ColumnData.Configuration.Alpha;
+            IEEGParameters.SpanMin = ColumnData.Configuration.SpanMin;
+            IEEGParameters.Middle = ColumnData.Configuration.Middle;
+            IEEGParameters.SpanMax = ColumnData.Configuration.SpanMax;
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         /// <summary>
         /// Save the current settings of this scene to the configuration of the linked visualization
         /// </summary>
         public void SaveConfiguration()
         {
-
+            ColumnData.Configuration.Gain = IEEGParameters.Gain;
+            ColumnData.Configuration.MaximumInfluence = IEEGParameters.MaximumInfluence;
+            ColumnData.Configuration.Alpha = IEEGParameters.AlphaMin;
+            ColumnData.Configuration.SpanMin = IEEGParameters.SpanMin;
+            ColumnData.Configuration.Middle = IEEGParameters.Middle;
+            ColumnData.Configuration.SpanMax = IEEGParameters.SpanMax;
         }
         /// <summary>
         /// Reset the settings of the loaded scene
         /// </summary>
         public void ResetConfiguration()
         {
-
+            IEEGParameters.Gain = 1.0f;
+            IEEGParameters.MaximumInfluence = 15.0f;
+            IEEGParameters.AlphaMin = 0.2f;
+            float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
+            IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
+            IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
+            IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
         }
         /// <summary>
         /// Update the site mask of the dll with all the masks

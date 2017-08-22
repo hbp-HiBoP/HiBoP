@@ -41,6 +41,12 @@ namespace HBP.UI.Module3D
 
             ApplicationState.Module3D.OnSelectView.AddListener((column) => OnChangeView());
 
+            ApplicationState.Module3D.OnRequestUpdateInUI.AddListener(() =>
+            {
+                UpdateInteractableButtons();
+                UpdateButtonsStatus(UpdateToolbarType.Scene);
+            });
+
             foreach (Tools.Tool tool in m_Tools)
             {
                 tool.Initialize();

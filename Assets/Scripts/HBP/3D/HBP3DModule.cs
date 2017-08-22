@@ -184,6 +184,10 @@ namespace HBP.Module3D
         /// Event called when the timeline is stopped because it reached the end
         /// </summary>
         public UnityEvent OnStopTimelinePlay = new UnityEvent();
+        /// <summary>
+        /// Event called when requesting an update in the UI
+        /// </summary>
+        public UnityEvent OnRequestUpdateInUI = new UnityEvent();
         #endregion
 
         #region Private Methods

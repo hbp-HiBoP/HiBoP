@@ -1638,9 +1638,9 @@ namespace HBP.Module3D
         /// <summary>
         /// Load the visualization configuration from the loaded visualization
         /// </summary>
-        public void LoadConfiguration()
+        public void LoadConfiguration(bool firstCall = true)
         {
-            ResetConfiguration();
+            if (firstCall) ResetConfiguration();
             UpdateBrainSurfaceColor(Visualization.Configuration.BrainColor);
             UpdateBrainCutColor(Visualization.Configuration.BrainCutColor);
             UpdateColormap(Visualization.Configuration.Colormap);
@@ -1656,6 +1656,12 @@ namespace HBP.Module3D
                 newCut.Position = cut.Position;
                 UpdateCutPlane(newCut);
             }
+
+            foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+            {
+                column.LoadConfiguration(false);
+            }
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         /// <summary>
         /// Save the current settings of this scene to the configuration of the linked visualization
@@ -1674,6 +1680,11 @@ namespace HBP.Module3D
                 cuts.Add(new Data.Visualization.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
             }
             Visualization.Configuration.Cuts = cuts;
+
+            foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+            {
+                column.SaveConfiguration();
+            }
         }
         /// <summary>
         /// Reset the settings of the loaded scene
@@ -1689,6 +1700,11 @@ namespace HBP.Module3D
             while (m_Cuts.Count > 0)
             {
                 RemoveCutPlane(m_Cuts.Last());
+            }
+
+            foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+            {
+                column.ResetConfiguration();
             }
         }
         #endregion
