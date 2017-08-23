@@ -2,6 +2,7 @@
 using UnityEngine.Events;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityStandardAssets.ImageEffects;
 
 namespace HBP.Module3D
 {
@@ -166,6 +167,7 @@ namespace HBP.Module3D
             m_Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center + m_AssociatedView.transform.position;
             m_OriginalTarget = m_Target;
             transform.position = m_Target - transform.forward * m_StartDistance;
+            GetComponent<EdgeDetection>().enabled = m_AssociatedScene.EdgeMode;
 
             // rotation circles
             m_XRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);

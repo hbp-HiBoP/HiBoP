@@ -1648,6 +1648,7 @@ namespace HBP.Module3D
             EdgeMode = Visualization.Configuration.EdgeMode;
             m_ColumnManager.MRICalMinFactor = Visualization.Configuration.MRICalMinFactor;
             m_ColumnManager.MRICalMaxFactor = Visualization.Configuration.MRICalMaxFactor;
+
             foreach (Data.Visualization.Cut cut in Visualization.Configuration.Cuts)
             {
                 Cut newCut = AddCutPlane();
@@ -1657,12 +1658,27 @@ namespace HBP.Module3D
                 newCut.Position = cut.Position;
                 UpdateCutPlane(newCut);
             }
+            
+            for (int i = 0; i < Visualization.Configuration.Views.Count; i++)
+            {
+                Data.Visualization.View view = Visualization.Configuration.Views[i];
+                if (i != 0)
+                {
+                    m_ColumnManager.AddViewLine();
+                }
+                foreach (Column3D column in m_ColumnManager.Columns)
+                {
+                    column.Views.Last().SetCamera(view.Position.ToVector3(), view.Rotation.ToQuaternion());
+                }
+            }
+
             ROICreation = !ROICreation;
             foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
             {
                 column.LoadConfiguration(false);
             }
             ROICreation = !ROICreation;
+
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         /// <summary>
@@ -1677,12 +1693,20 @@ namespace HBP.Module3D
             Visualization.Configuration.EdgeMode = EdgeMode;
             Visualization.Configuration.MRICalMinFactor = m_ColumnManager.MRICalMinFactor;
             Visualization.Configuration.MRICalMaxFactor = m_ColumnManager.MRICalMaxFactor;
+
             List<Data.Visualization.Cut> cuts = new List<Data.Visualization.Cut>();
             foreach (Cut cut in m_Cuts)
             {
                 cuts.Add(new Data.Visualization.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
             }
             Visualization.Configuration.Cuts = cuts;
+
+            List<Data.Visualization.View> views = new List<Data.Visualization.View>();
+            foreach (View3D view in m_ColumnManager.Views)
+            {
+                views.Add(new Data.Visualization.View(view.LocalCameraPosition, view.LocalCameraRotation));
+            }
+            Visualization.Configuration.Views = views;
 
             foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
             {
@@ -1701,9 +1725,22 @@ namespace HBP.Module3D
             EdgeMode = false;
             m_ColumnManager.MRICalMinFactor = 0.0f;
             m_ColumnManager.MRICalMaxFactor = 1.0f;
+
             while (m_Cuts.Count > 0)
             {
                 RemoveCutPlane(m_Cuts.Last());
+            }
+
+            while (m_ColumnManager.Views.Count > 1)
+            {
+                m_ColumnManager.RemoveViewLine();
+            }
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                foreach (View3D view in column.Views)
+                {
+                    view.Default();
+                }
             }
 
             foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)

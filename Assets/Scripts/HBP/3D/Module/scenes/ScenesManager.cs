@@ -119,8 +119,8 @@ namespace HBP.Module3D
             });
             // Add the scene to the list
             m_Scenes.Add(scene);
-            scene.FinalizeInitialization();
             ApplicationState.Module3D.OnAddScene.Invoke(scene);
+            scene.FinalizeInitialization();
         }
         /// <summary>
         /// Add a new multi patients scene
@@ -152,8 +152,8 @@ namespace HBP.Module3D
             });
             // Add the scene to the list
             m_Scenes.Add(scene);
-            scene.FinalizeInitialization();
             ApplicationState.Module3D.OnAddScene.Invoke(scene);
+            scene.FinalizeInitialization();
         }
         #endregion
     }

@@ -177,6 +177,27 @@ namespace HBP.Module3D
             }
         }
 
+        /// <summary>
+        /// Target of the camera in the view reference
+        /// </summary>
+        public Quaternion LocalCameraRotation
+        {
+            get
+            {
+                return m_Camera3D.transform.localRotation;
+            }
+        }
+        /// <summary>
+        /// Target of the camera in the view reference
+        /// </summary>
+        public Vector3 LocalCameraPosition
+        {
+            get
+            {
+                return m_Camera3D.transform.localPosition;
+            }
+        }
+
         public bool DisplayRotationCircles
         {
             get
@@ -198,6 +219,8 @@ namespace HBP.Module3D
         /// </summary>
         private int m_RegularCullingMask;
 
+        private bool m_Initialized = false;
+
         /// <summary>
         /// Event called when we select this view
         /// </summary>
@@ -212,6 +235,7 @@ namespace HBP.Module3D
         private void Awake()
         {
             m_Camera3D = transform.GetComponentInChildren<Camera3D>();
+            Default();
         }
         private void Start()
         {
@@ -231,7 +255,11 @@ namespace HBP.Module3D
                 m_Camera3D.CullingMask = m_MinimizedCullingMask;
             }
 
-            Default();
+            if (!m_Initialized)
+            {
+                Default();
+                m_Initialized = false;
+            }
         }
         private void Update()
         {
@@ -286,6 +314,17 @@ namespace HBP.Module3D
         {
             m_Camera3D.Zoom(3*amount);
             OnMoveView.Invoke();
+        }
+        /// <summary>
+        /// Set camera settings
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="rotation"></param>
+        public void SetCamera(Vector3 position, Quaternion rotation)
+        {
+            m_Camera3D.transform.localPosition = position;
+            m_Camera3D.transform.localRotation = rotation;
+            m_Initialized = true;
         }
         /// <summary>
         /// Set the default state of the view

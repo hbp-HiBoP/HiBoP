@@ -39,11 +39,6 @@ namespace HBP.Module3D
             }
         }
 
-        /// <summary>
-        /// Associated visualization
-        /// </summary>
-        public Data.Visualization.Visualization Visualization { get; set; }
-
         public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
         /// <summary>
         /// Event called when adding a column
@@ -76,6 +71,14 @@ namespace HBP.Module3D
         /// </summary>
         public ReadOnlyCollection<Column3DFMRI> ColumnsFMRI { get { return m_Columns != null ? new ReadOnlyCollection<Column3DFMRI>((from column in m_Columns where column is Column3DFMRI select (Column3DFMRI)column).ToArray()) : new ReadOnlyCollection<Column3DFMRI>(new List<Column3DFMRI>(0)); } }
 
+        public ReadOnlyCollection<View3D> Views
+        {
+            get
+            {
+                if (m_Columns.Count == 0) return new ReadOnlyCollection<View3D>(new List<View3D>());
+                else return m_Columns[0].Views;
+            }
+        }
         /// <summary>
         /// Maximum number of view in a column
         /// </summary>
@@ -905,8 +908,9 @@ namespace HBP.Module3D
         /// Remove a view from every columns
         /// </summary>
         /// <param name="lineID">ID of the line of the view to be removed</param>
-        public void RemoveViewLine(int lineID)
+        public void RemoveViewLine(int lineID = -1)
         {
+            if (lineID == -1) lineID = Views.Count - 1;
             foreach (Column3D column in m_Columns)
             {
                 column.RemoveView(lineID);

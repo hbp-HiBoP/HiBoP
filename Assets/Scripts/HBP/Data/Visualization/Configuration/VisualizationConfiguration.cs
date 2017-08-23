@@ -149,5 +149,22 @@ namespace HBP.Data.Visualization
                 m_Cuts = value;
             }
         }
+
+        [DataMember(Name = "Views")]
+        private List<View> m_Views = new List<View>();
+        /// <summary>
+        /// Views of the visualization
+        /// </summary>
+        public List<View> Views
+        {
+            get
+            {
+                return m_Views;
+            }
+            set
+            {
+                m_Views = value;
+            }
+        }
     }
 }
