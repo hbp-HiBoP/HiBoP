@@ -17,31 +17,28 @@ namespace HBP.Module3D
     /// <summary>
     /// Define a bubble used in ROI
     /// </summary>
-    [DataContract]
     public class Sphere : MonoBehaviour
     {
         #region Properties
         private float m_MinRaySphere = 0.5f;    
         private float m_MaxRaySphere = 100f;
-
-        [DataMember(Name = "Position")]
-        private SerializableVector3 m_Position;
+        
+        private Vector3 m_Position;
         public Vector3 Position
         {
             get
             {
-                return m_Position.ToVector3();
+                return m_Position;
             }
             private set
             {
-                m_Position = new SerializableVector3(value);
+                m_Position = value;
                 transform.position = value;
             }
         }
 
         private float m_RadiusPercentage = 0.0f;
         private float m_TargetRadius = 5.0f;
-        [DataMember(Name = "Radius")]
         private float m_Radius = 1.0f;
         public float Radius
         {
@@ -123,6 +120,15 @@ namespace HBP.Module3D
         public bool CheckCollision(Ray ray, out RaycastHit hitInfo)
         {
             return GetComponent<SphereCollider>().Raycast(ray, out hitInfo, Mathf.Infinity);
+        }
+        /// <summary>
+        /// Start the growing animation 
+        /// </summary>
+        public void StartAnimation()
+        {
+            m_TargetRadius = Radius;
+            Radius = 1.0f;
+            m_RadiusPercentage = 0.0f;
         }
         #endregion
     }

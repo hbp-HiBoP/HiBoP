@@ -32,6 +32,9 @@ namespace HBP.UI.Module3D
                 m_SiteInfoDisplayer.transform.SetAsLastSibling();
             });
         }
+        /// <summary>
+        /// DELETEME : DEBUG
+        /// </summary>
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.A))
@@ -49,6 +52,10 @@ namespace HBP.UI.Module3D
             if (Input.GetKeyDown(KeyCode.D))
             {
                 ApplicationState.Module3D.SelectedScene.AddCutPlane();
+            }
+            if (Input.GetKey(KeyCode.W))
+            {
+                Debug.Log(Input.mouseScrollDelta);
             }
         }
         #endregion

@@ -179,6 +179,7 @@ namespace HBP.Module3D
 
                     m_SelectedROI = value;
                     m_SelectedROI.SetVisibility(true);
+                    m_SelectedROI.StartAnimation();
                 }
                 ApplicationState.Module3D.OnSelectROI.Invoke();
             }
@@ -613,18 +614,20 @@ namespace HBP.Module3D
             m_Views.RemoveAt(lineID);
         }
 
-        public void AddROI()
+        public ROI AddROI(string name = ROI.DEFAULT_ROI_NAME)
         {
             GameObject roiGameObject = Instantiate(m_ROIPrefab, m_ROIParent);
-            m_ROIs.Add(roiGameObject.GetComponent<ROI>());
+            ROI roi = roiGameObject.GetComponent<ROI>();
+            roi.Name = name;
+            m_ROIs.Add(roi);
             ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
-
             SelectedROI = m_ROIs.Last();
+
+            return roi;
         }
         public void CopyROI(ROI roi)
         {
-            AddROI();
-            ROI newROI = m_ROIs.Last();
+            ROI newROI = AddROI();
             newROI.Name = roi.Name;
             foreach (Sphere bubble in roi.Spheres)
             {

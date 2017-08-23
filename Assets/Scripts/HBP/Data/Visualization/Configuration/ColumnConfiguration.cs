@@ -32,8 +32,8 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Region of interest.
         /// </summary>
-        //[DataMember]
-        public List<RegionOfInterest> RegionOfInterest { get; set; }
+        [DataMember(Name = "Regions Of Interest")]
+        public List<RegionOfInterest> RegionsOfInterest { get; set; }
 
         [DataMember(Name = "Site Gain")]
         private float m_Gain = 1.0f;
@@ -136,30 +136,13 @@ namespace HBP.Data.Visualization
                 m_SpanMax = value;
             }
         }
-
-        [DataMember(Name = "Regions of Interest")]
-        private List<Module3D.ROI> m_ROIs = new List<Module3D.ROI>();
-        /// <summary>
-        /// Regions of interest of this column
-        /// </summary>
-        public List<Module3D.ROI> ROIs
-        {
-            get
-            {
-                return m_ROIs;
-            }
-            set
-            {
-                m_ROIs = value;
-            }
-        }
         #endregion
 
         #region Constructor
         public ColumnConfiguration(Dictionary<Patient,PatientConfiguration> configurationByPatient, IEnumerable<RegionOfInterest> regionOfInterest)
         {
             ConfigurationByPatient = configurationByPatient;
-            RegionOfInterest = regionOfInterest.ToList();
+            RegionsOfInterest = regionOfInterest.ToList();
         }
         public ColumnConfiguration() : this (new Dictionary<Patient, PatientConfiguration>(), new RegionOfInterest[0])
         { 
@@ -171,7 +154,7 @@ namespace HBP.Data.Visualization
         {
             Dictionary<Patient, PatientConfiguration> configurationByPatientClone = new Dictionary<Patient, PatientConfiguration>();
             foreach (var item in ConfigurationByPatient) configurationByPatientClone.Add(item.Key, item.Value.Clone() as PatientConfiguration);
-            return new ColumnConfiguration(configurationByPatientClone, from ROI in RegionOfInterest select ROI.Clone() as RegionOfInterest);
+            return new ColumnConfiguration(configurationByPatientClone, from ROI in RegionsOfInterest select ROI);
         }
         #endregion
 

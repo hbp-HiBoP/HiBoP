@@ -442,6 +442,14 @@ namespace HBP.Module3D
             IEEGParameters.SpanMin = ColumnData.Configuration.SpanMin;
             IEEGParameters.Middle = ColumnData.Configuration.Middle;
             IEEGParameters.SpanMax = ColumnData.Configuration.SpanMax;
+            foreach (Data.Visualization.RegionOfInterest roi in ColumnData.Configuration.RegionsOfInterest)
+            {
+                ROI newROI = AddROI(roi.Name);
+                foreach (Data.Visualization.Sphere sphere in roi.Spheres)
+                {
+                    newROI.AddBubble(Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
+                }
+            }
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         /// <summary>
@@ -455,6 +463,12 @@ namespace HBP.Module3D
             ColumnData.Configuration.SpanMin = IEEGParameters.SpanMin;
             ColumnData.Configuration.Middle = IEEGParameters.Middle;
             ColumnData.Configuration.SpanMax = IEEGParameters.SpanMax;
+            List<Data.Visualization.RegionOfInterest> rois = new List<Data.Visualization.RegionOfInterest>();
+            foreach (ROI roi in m_ROIs)
+            {
+                rois.Add(new Data.Visualization.RegionOfInterest(roi));
+            }
+            ColumnData.Configuration.RegionsOfInterest = rois;
         }
         /// <summary>
         /// Reset the settings of the loaded scene
@@ -468,6 +482,10 @@ namespace HBP.Module3D
             IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
             IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
             IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
+            while (m_ROIs.Count > 0)
+            {
+                RemoveSelectedROI();
+            }
         }
         /// <summary>
         /// Update the site mask of the dll with all the masks

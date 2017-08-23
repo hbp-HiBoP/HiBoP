@@ -22,12 +22,10 @@ namespace HBP.Module3D
     /// <summary>
     /// Define a ROI containing bubbles
     /// </summary>
-    [DataContract]
     public class ROI : MonoBehaviour
     {
         #region Properties
-        public static string DEFAULT_ROI_NAME = "ROI";
-        [DataMember(Name = "Name")]
+        public const string DEFAULT_ROI_NAME = "ROI";
         private string m_Name = DEFAULT_ROI_NAME;
         public string Name
         {
@@ -45,7 +43,6 @@ namespace HBP.Module3D
         public int SelectedBubbleID { get; set; }
 
         private DLL.ROI m_DLLROI;
-        [DataMember(Name = "Spheres")]
         private List<Sphere> m_Spheres = new List<Sphere>();
         public ReadOnlyCollection<Sphere> Spheres
         {
@@ -270,6 +267,7 @@ namespace HBP.Module3D
         /// <param name="coeff"></param>
         public void ChangeBubbleSize(int idBubble, float coeff)
         {
+            Debug.Log("changing bubble size");
             if (idBubble < 0 || idBubble >= m_Spheres.Count)
                 return;
 
@@ -305,6 +303,16 @@ namespace HBP.Module3D
             }
 
             return text;
+        }
+        /// <summary>
+        /// Start the growing animation
+        /// </summary>
+        public void StartAnimation()
+        {
+            foreach (Sphere sphere in Spheres)
+            {
+                sphere.StartAnimation();
+            }
         }
         #endregion
     }
