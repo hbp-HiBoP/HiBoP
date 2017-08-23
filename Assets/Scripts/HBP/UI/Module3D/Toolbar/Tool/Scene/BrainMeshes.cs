@@ -43,18 +43,32 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SceneStatesInfo.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
-                ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
-                OnChangeValue.Invoke(mesh);
+                if (m_Left.isOn || m_Right.isOn)
+                {
+                    SceneStatesInfo.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
+                    ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
+                    OnChangeValue.Invoke(mesh);
+                }
+                else
+                {
+                    m_Left.isOn = true;
+                }
             });
 
             m_Right.onValueChanged.AddListener((display) =>
             {
                 if (ListenerLock) return;
 
-                SceneStatesInfo.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
-                ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
-                OnChangeValue.Invoke(mesh);
+                if (m_Left.isOn || m_Right.isOn)
+                {
+                    SceneStatesInfo.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
+                    ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
+                    OnChangeValue.Invoke(mesh);
+                }
+                else
+                {
+                    m_Right.isOn = true;
+                }
             });
         }
         public override void DefaultState()

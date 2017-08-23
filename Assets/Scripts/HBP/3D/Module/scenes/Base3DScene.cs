@@ -668,7 +668,7 @@ namespace HBP.Module3D
 
                 SceneInformation.IsGeneratorUpToDate = false;
                 SceneInformation.IsIEEGOutdated = true;
-                /*
+
                 { //TEST (maybe FIXME : delete this, the visual effect is not very good)
                   // recompute UV
                     for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
@@ -677,7 +677,7 @@ namespace HBP.Module3D
                     // update brain mesh object mesh filter (TODO update only UV)
                     UpdateMeshesFromDLL();
                 }
-                */
+
                 ComputeMRITextures();
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                 
@@ -1644,6 +1644,7 @@ namespace HBP.Module3D
             UpdateBrainSurfaceColor(Visualization.Configuration.BrainColor);
             UpdateBrainCutColor(Visualization.Configuration.BrainCutColor);
             UpdateColormap(Visualization.Configuration.Colormap);
+            UpdateMeshPartToDisplay(Visualization.Configuration.MeshPart);
             EdgeMode = Visualization.Configuration.EdgeMode;
             m_ColumnManager.MRICalMinFactor = Visualization.Configuration.MRICalMinFactor;
             m_ColumnManager.MRICalMaxFactor = Visualization.Configuration.MRICalMaxFactor;
@@ -1656,11 +1657,12 @@ namespace HBP.Module3D
                 newCut.Position = cut.Position;
                 UpdateCutPlane(newCut);
             }
-
+            ROICreation = !ROICreation;
             foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
             {
                 column.LoadConfiguration(false);
             }
+            ROICreation = !ROICreation;
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         /// <summary>
@@ -1671,6 +1673,7 @@ namespace HBP.Module3D
             Visualization.Configuration.BrainColor = m_ColumnManager.BrainColor;
             Visualization.Configuration.BrainCutColor = m_ColumnManager.BrainCutColor;
             Visualization.Configuration.Colormap = m_ColumnManager.Colormap;
+            Visualization.Configuration.MeshPart = SceneInformation.MeshPartToDisplay;
             Visualization.Configuration.EdgeMode = EdgeMode;
             Visualization.Configuration.MRICalMinFactor = m_ColumnManager.MRICalMinFactor;
             Visualization.Configuration.MRICalMaxFactor = m_ColumnManager.MRICalMaxFactor;
@@ -1694,6 +1697,7 @@ namespace HBP.Module3D
             UpdateBrainSurfaceColor(ColorType.BrainColor);
             UpdateBrainCutColor(ColorType.Default);
             UpdateColormap(ColorType.MatLab);
+            UpdateMeshPartToDisplay(SceneStatesInfo.MeshPart.Both);
             EdgeMode = false;
             m_ColumnManager.MRICalMinFactor = 0.0f;
             m_ColumnManager.MRICalMaxFactor = 1.0f;

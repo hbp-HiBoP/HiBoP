@@ -161,6 +161,7 @@ namespace HBP.UI.Module3D
             m_Position.value = m_Cut.Position;
             m_Orientation.value = (int)m_Cut.Orientation;
             m_Flip.isOn = m_Cut.Flip;
+            m_Flip.gameObject.SetActive(m_Cut.Orientation != CutOrientation.Custom);
             m_CustomX.text = m_Cut.Normal.x.ToString();
             m_CustomY.text = m_Cut.Normal.y.ToString();
             m_CustomZ.text = m_Cut.Normal.z.ToString();

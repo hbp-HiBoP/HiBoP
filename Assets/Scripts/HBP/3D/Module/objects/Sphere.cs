@@ -55,6 +55,10 @@ namespace HBP.Module3D
                 if (m_Radius < m_MinRaySphere)
                     m_Radius = m_MinRaySphere;
 
+                if (m_RadiusPercentage >= 1.0f)
+                {
+                    m_TargetRadius = m_Radius;
+                }
                 transform.localScale = new Vector3(m_Radius, m_Radius, m_Radius);
 
                 ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
@@ -126,9 +130,8 @@ namespace HBP.Module3D
         /// </summary>
         public void StartAnimation()
         {
-            m_TargetRadius = Radius;
-            Radius = 1.0f;
             m_RadiusPercentage = 0.0f;
+            Radius = 1.0f;
         }
         #endregion
     }
