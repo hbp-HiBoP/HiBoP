@@ -2362,6 +2362,7 @@ namespace HBP.Module3D
             FinalizeGeneratorsComputing();
             ComputeIEEGTextures();
             loadingCircle.Close();
+            ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         private IEnumerator c_LoadIEEG(GenericEvent<float, float, string> onChangeProgress = null)
         {
