@@ -8,6 +8,7 @@ using HBP.Data.Experience.Protocol;
 using HBP.Data.General;
 using System.Linq;
 using UnityEngine.EventSystems;
+using T = Tools.Unity;
 
 namespace HBP.UI.Module3D
 {
@@ -37,22 +38,6 @@ namespace HBP.UI.Module3D
         /// </summary>
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                ApplicationState.Module3D.SelectedScene.SaveConfiguration();
-            }
-            if (Input.GetKeyDown(KeyCode.B))
-            {
-                ApplicationState.Module3D.SelectedScene.ResetConfiguration();
-            }
-            if (Input.GetKeyDown(KeyCode.C))
-            {
-                ApplicationState.Module3D.SelectedScene.LoadConfiguration();
-            }
-            if (Input.GetKeyDown(KeyCode.D))
-            {
-                ApplicationState.Module3D.SelectedScene.AddCutPlane();
-            }
             if (Input.GetKey(KeyCode.W))
             {
                 Debug.Log(Input.mouseScrollDelta);

@@ -4,8 +4,25 @@ using UnityEngine;
 
 namespace HBP.UI.Module3D {
     public class ToolbarMenu : MonoBehaviour {
-        
+
         #region Properties
+        [SerializeField, Candlelight.PropertyBackingField]
+        private ConfigurationToolbar m_ConfigurationToolbar;
+        /// <summary>
+        /// Toolbar for the scene settings
+        /// </summary>
+        public ConfigurationToolbar ConfigurationToolbar
+        {
+            get
+            {
+                return m_ConfigurationToolbar;
+            }
+            set
+            {
+                m_ConfigurationToolbar = value;
+            }
+        }
+
         [SerializeField, Candlelight.PropertyBackingField]
         private SceneSettingsToolbar m_SceneSettingsToolbar;
         /// <summary>
@@ -148,6 +165,7 @@ namespace HBP.UI.Module3D {
             m_SiteToolbar.Initialize();
             m_ROIToolbar.Initialize();
             m_TriangleToolbar.Initialize();
+            m_ConfigurationToolbar.Initialize();
 
             CurrentToolbar = m_SceneSettingsToolbar;
 
@@ -158,6 +176,7 @@ namespace HBP.UI.Module3D {
             m_SiteToolbar.gameObject.SetActive(false);
             m_ROIToolbar.gameObject.SetActive(false);
             m_TriangleToolbar.gameObject.SetActive(false);
+            m_ConfigurationToolbar.gameObject.SetActive(false);
         }
         #endregion
     }

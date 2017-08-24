@@ -15,6 +15,12 @@ namespace HBP.UI.Module3D
         private ToolbarMenu m_ToolbarMenu;
 
         /// <summary>
+        /// Scene configuration toggle
+        /// </summary>
+        [SerializeField]
+        private Toggle m_ConfigurationToggle;
+
+        /// <summary>
         /// Scene toggle
         /// </summary>
         [SerializeField]
@@ -72,6 +78,7 @@ namespace HBP.UI.Module3D
         {
             m_ToggleGroup = GetComponent<ToggleGroup>();
 
+            m_Toolbars.Add(m_ConfigurationToggle, m_ToolbarMenu.ConfigurationToolbar);
             m_Toolbars.Add(m_SceneToggle, m_ToolbarMenu.SceneSettingsToolbar);
             m_Toolbars.Add(m_DisplayToggle, m_ToolbarMenu.DisplaySettingsToolbar);
             m_Toolbars.Add(m_IEEGToggle, m_ToolbarMenu.IEEGSettingsToolbar);
@@ -94,6 +101,13 @@ namespace HBP.UI.Module3D
             ApplicationState.Module3D.OnRemoveScene.AddListener((scene) =>
             {
                 m_SceneToggle.isOn = true;
+            });
+            m_ConfigurationToggle.onValueChanged.AddListener((isOn) =>
+            {
+                if (isOn)
+                {
+                    ChangeToolbar(m_ConfigurationToggle);
+                }
             });
             m_SceneToggle.onValueChanged.AddListener((isOn) =>
             {
