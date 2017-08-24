@@ -146,9 +146,10 @@ namespace HBP.Module3D
         public Color AmbiantLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
         // post render
-        public Material m_PlaneMaterial = null;
+        [SerializeField]
+        private Material m_PlaneMaterial;
         private bool m_DisplayCutsCircles = false;
-        public double m_DisplayPlanesTimeRemaining;
+        private double m_DisplayPlanesTimeRemaining = 1;
         private double m_DisplayPlanesTimeStart = 0;
         private double m_DisplayPlanesTimer = 0;
         #endregion
@@ -191,6 +192,7 @@ namespace HBP.Module3D
                 {
                     Vector3 point = m_AssociatedScene.Cuts[ii].Point;
                     point.x *= -1;
+                    point += m_AssociatedView.transform.position;
                     Vector3 normal = m_AssociatedScene.Cuts[ii].Normal;
                     normal.x *= -1;
                     Quaternion q = Quaternion.FromToRotation(new Vector3(0, 0, 1), normal);
@@ -201,7 +203,6 @@ namespace HBP.Module3D
                         m_PlanesCutsCirclesVertices[ii][jj] += point;
                     }
                 }
-
                 m_DisplayPlanesTimeStart = (float)TimeExecution.GetWorldTime();
                 m_DisplayPlanesTimer = 0;
                 m_DisplayCutsCircles = true;
@@ -273,7 +274,7 @@ namespace HBP.Module3D
         /// </summary>
         public void DrawGL()
         {
-            if (!m_AssociatedView.IsSelected || m_AssociatedView.IsMinimized)
+            if (m_AssociatedView.IsMinimized)
                 return;
 
             if (m_DisplayCutsCircles)
@@ -282,7 +283,6 @@ namespace HBP.Module3D
                 if (m_DisplayPlanesTimeRemaining > m_DisplayPlanesTimer)
                 {
                     m_PlaneMaterial.SetPass(0);
-
                     {
                         int ii = m_AssociatedScene.SceneInformation.LastPlaneModifiedID;
                         for (int jj = 0; jj < m_PlanesCutsCirclesVertices[ii].Length; ++jj)
