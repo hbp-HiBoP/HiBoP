@@ -1640,7 +1640,7 @@ namespace HBP.Module3D
         /// </summary>
         public void LoadConfiguration(bool firstCall = true)
         {
-            if (firstCall) ResetConfiguration();
+            if (firstCall) ResetConfiguration(false);
             UpdateBrainSurfaceColor(Visualization.Configuration.BrainColor);
             UpdateBrainCutColor(Visualization.Configuration.BrainCutColor);
             UpdateColormap(Visualization.Configuration.Colormap);
@@ -1716,7 +1716,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Reset the settings of the loaded scene
         /// </summary>
-        public void ResetConfiguration()
+        public void ResetConfiguration(bool firstCall = true)
         {
             UpdateBrainSurfaceColor(ColorType.BrainColor);
             UpdateBrainCutColor(ColorType.Default);
@@ -1747,6 +1747,8 @@ namespace HBP.Module3D
             {
                 column.ResetConfiguration();
             }
+
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         #endregion
 

@@ -13,6 +13,6 @@
         /// <summary>
         /// Reset the settings of the loaded scene
         /// </summary>
-        void ResetConfiguration();
+        void ResetConfiguration(bool firstCall);
     }
 }

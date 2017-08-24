@@ -435,13 +435,23 @@ namespace HBP.Module3D
         /// </summary>
         public void LoadConfiguration(bool firstCall = true)
         {
-            if (firstCall) ResetConfiguration();
+            if (firstCall) ResetConfiguration(false);
             IEEGParameters.Gain = ColumnData.Configuration.Gain;
             IEEGParameters.MaximumInfluence = ColumnData.Configuration.MaximumInfluence;
             IEEGParameters.AlphaMin = ColumnData.Configuration.Alpha;
-            IEEGParameters.SpanMin = ColumnData.Configuration.SpanMin;
-            IEEGParameters.Middle = ColumnData.Configuration.Middle;
-            IEEGParameters.SpanMax = ColumnData.Configuration.SpanMax;
+            if (Mathf.Approximately(ColumnData.Configuration.SpanMin, 0.0f) && Mathf.Approximately(ColumnData.Configuration.Middle, 0.0f) && Mathf.Approximately(ColumnData.Configuration.SpanMax, 0.0f))
+            {
+                float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
+                IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
+                IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
+                IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
+            }
+            else
+            {
+                IEEGParameters.SpanMin = ColumnData.Configuration.SpanMin;
+                IEEGParameters.Middle = ColumnData.Configuration.Middle;
+                IEEGParameters.SpanMax = ColumnData.Configuration.SpanMax;
+            }
             foreach (Data.Visualization.RegionOfInterest roi in ColumnData.Configuration.RegionsOfInterest)
             {
                 ROI newROI = AddROI(roi.Name);
@@ -473,7 +483,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Reset the settings of the loaded scene
         /// </summary>
-        public void ResetConfiguration()
+        public void ResetConfiguration(bool firstCall = true)
         {
             IEEGParameters.Gain = 1.0f;
             IEEGParameters.MaximumInfluence = 15.0f;
@@ -486,6 +496,8 @@ namespace HBP.Module3D
             {
                 RemoveSelectedROI();
             }
+            
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         /// <summary>
         /// Update the site mask of the dll with all the masks
@@ -557,14 +569,6 @@ namespace HBP.Module3D
                     if (IEEGValuesBySiteID[jj][ii] < IEEGParameters.MinimumAmplitude)
                         IEEGParameters.MinimumAmplitude = IEEGValuesBySiteID[jj][ii];
                 }
-            }
-
-            if (Mathf.Approximately(IEEGParameters.SpanMin, 0.0f) && Mathf.Approximately(IEEGParameters.Middle, 0.0f) && Mathf.Approximately(IEEGParameters.SpanMax, 0.0f))
-            {
-                float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
-                IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
-                IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
-                IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
             }
         }
         /// <summary>
