@@ -50,6 +50,7 @@ namespace HBP.Module3D
         public bool GreyMeshesAvailables = false;    /**< hemi meshes are availables */
         public bool WhiteMeshesAvailables = false;    /**< white meshes are availables */
         public bool WhiteInflatedMeshesAvailables = false; /**< white inflated meshes are availables */
+        public bool IsSceneInitialized { get; set; }
         // parameters
         public bool MarsAtlasModeEnabled = false;
         public bool MarsAtlasParcelsLoaded = false;

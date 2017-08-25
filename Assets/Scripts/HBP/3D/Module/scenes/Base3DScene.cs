@@ -29,25 +29,9 @@ namespace HBP.Module3D
     /// </summary>
     public struct SiteRequest
     {
-        public bool spScene; /**< is a single patient scene ? */
-        public int idSite1; /**< id of the first site */
-        public int idSite2;  /**< id of second site */
-        public string idPatient; /**< id of the patient corresponding to the first site */
-        public string idPatient2;  /**< id of the patient corresponding to the second site*/
+        public Site site; // TODO : update with siteConfigurations
+        public Site site2;
         public List<List<bool>> maskColumn; /**< masks of the sites :  dim[0] = columnds data nb, dim[1] = sites nb.  if true : the site is not excluded/blacklisted/column masked and is in a ROI (if there is at least one ROI, if not ROI defined, all the plots are considered inside a ROI) */
-
-        public void display()
-        {
-            Debug.Log("plotRequest : " + spScene + " " + idSite1 + " " + idSite2 + " " + idPatient + " " + idPatient2 + " " + maskColumn.Count);
-            if (maskColumn.Count > 0)
-            {
-                Debug.Log("size1 : " + maskColumn[0].Count);
-                string mask = "";
-                for (int ii = 0; ii < maskColumn[0].Count; ++ii)
-                    mask += maskColumn[0][ii] + " ";
-                Debug.Log("-> mask : " + mask);
-            }
-        }
     }
 
     /// <summary>
@@ -599,6 +583,8 @@ namespace HBP.Module3D
         #region Private Methods
         protected void Update()
         {
+            if (!SceneInformation.IsSceneInitialized) return;
+
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update: set_current_mode_specifications");
             SetCurrentModeSpecifications();
             UnityEngine.Profiling.Profiler.EndSample();
@@ -1646,6 +1632,7 @@ namespace HBP.Module3D
             ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
             UpdateGUITextures();
             LoadConfiguration();
+            SceneInformation.IsSceneInitialized = true;
         }
         /// <summary>
         /// Load the visualization configuration from the loaded visualization
@@ -2121,6 +2108,35 @@ namespace HBP.Module3D
             Events.OnClickSite.Invoke(-1); // update menu
         }
         /// <summary>
+        /// Send additionnal site info to hight level UI
+        /// </summary>
+        public void SendAdditionalSiteInfoRequest(Site previousSite = null)
+        {
+            if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG)
+            {
+                Column3DIEEG column = (Column3DIEEG)m_ColumnManager.SelectedColumn;
+                if (column.SelectedSiteID != -1)
+                {
+                    List<List<bool>> masksColumnsData = new List<List<bool>>(m_ColumnManager.ColumnsIEEG.Count);
+                    for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
+                    {
+                        masksColumnsData.Add(new List<bool>(m_ColumnManager.ColumnsIEEG[ii].Sites.Count));
+                        for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG[ii].Sites.Count; ++jj)
+                        {
+                            Site s = m_ColumnManager.ColumnsIEEG[ii].Sites[jj];
+                            bool keep = (!s.Information.IsBlackListed && !s.Information.IsExcluded && !s.Information.IsMasked && !s.Information.IsOutOfROI);
+                            masksColumnsData[ii].Add(keep);
+                        }
+                    }
+                    SiteRequest request = new SiteRequest();
+                    request.site = column.SelectedSite;
+                    request.site2 = previousSite;
+                    request.maskColumn = masksColumnsData;
+                    Events.OnRequestSiteInformation.Invoke(request);
+                }
+            }
+        }
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="idColumn"></param>
@@ -2347,11 +2363,6 @@ namespace HBP.Module3D
         /// 
         /// </summary>
         public abstract void ComputeMeshesCut();
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="previousPlot"></param>
-        public abstract void SendAdditionalSiteInfoRequest(Site previousPlot = null);
         #endregion
 
         #region Coroutines

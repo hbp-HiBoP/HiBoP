@@ -232,46 +232,6 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Send additionnal plot info to hight level UI
-        /// </summary>
-        public override void SendAdditionalSiteInfoRequest(Site previousPlot = null) // TODO : deporter dans c manager
-        {
-            switch (m_ColumnManager.SelectedColumn.Type)
-            {
-                case Column3D.ColumnType.FMRI:
-                    return;
-                case Column3D.ColumnType.IEEG:
-                    if (m_ColumnManager.SelectedColumn.SelectedSiteID != -1)
-                    {
-                        List<List<bool>> masksColumnsData = new List<List<bool>>(m_ColumnManager.ColumnsIEEG.Count);
-                        for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-                        {
-                            masksColumnsData.Add(new List<bool>(m_ColumnManager.ColumnsIEEG[ii].Sites.Count));
-
-                            for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG[ii].Sites.Count; ++jj)
-                            {
-                                Site p = m_ColumnManager.ColumnsIEEG[ii].Sites[jj];
-                                bool keep = (!p.Information.IsBlackListed && !p.Information.IsExcluded && !p.Information.IsMasked);
-                                masksColumnsData[ii].Add(keep);
-                            }
-                        }
-
-                        SiteRequest request = new SiteRequest();
-                        request.spScene = true;
-                        request.idSite1 = m_ColumnManager.SelectedColumn.SelectedSiteID;
-                        request.idSite2 = (previousPlot == null) ? -1 : previousPlot.Information.SitePatientID;
-                        request.idPatient = Patient.ID;
-                        request.idPatient2 = Patient.ID;
-                        request.maskColumn = masksColumnsData;
-
-                        Events.OnRequestSiteInformation.Invoke(request);
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-        /// <summary>
         /// Update the id of the latency file
         /// </summary>
         /// <param name="id"></param>

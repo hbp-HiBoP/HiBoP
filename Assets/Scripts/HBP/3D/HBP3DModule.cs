@@ -296,6 +296,7 @@ namespace HBP.Module3D
             if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, string>();
             
             yield return Ninja.JumpToUnity;
+            visualization.ReferenceFrame = Data.Anatomy.ReferenceFrameType.MNI;
             switch (visualization.ReferenceFrame)
             {
                 case Data.Anatomy.ReferenceFrameType.Patient:

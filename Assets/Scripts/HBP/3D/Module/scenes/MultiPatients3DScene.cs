@@ -315,73 +315,6 @@ namespace HBP.Module3D
             */
         }
         /// <summary>
-        /// Send additionnal site info to hight level UI
-        /// </summary>
-        public override void SendAdditionalSiteInfoRequest(Site previousPlot = null) // TODO deporter dans c manager
-        {
-
-            switch (m_ColumnManager.SelectedColumn.Type)
-            {
-                case Column3D.ColumnType.FMRI:
-                    return;
-                case Column3D.ColumnType.IEEG:
-                    Column3DIEEG currIEEGCol = (Column3DIEEG)m_ColumnManager.SelectedColumn;
-
-                    if (currIEEGCol.SelectedSiteID == -1)
-                        return;
-
-                    string[] elements = m_ColumnManager.SitesList[currIEEGCol.SelectedSiteID].GetComponent<Site>().Information.FullName.Split('_');
-
-                    if (elements.Length < 3)
-                        return;
-
-                    int id = -1;
-                    for (int ii = 0; ii < Visualization.Patients.Count; ++ii)
-                    {
-                        if (Visualization.Patients[ii].Name == elements[2])
-                        {
-                            id = ii;
-                            break;
-                        }
-                    }
-
-                    if (id == -1)
-                    {
-                        // ERROR
-                        return;
-                    }
-
-                    List<List<bool>> masksColumnsData = new List<List<bool>>(m_ColumnManager.ColumnsIEEG.Count);
-                    for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-                    {
-                        masksColumnsData.Add(new List<bool>(m_ColumnManager.ColumnsIEEG[ii].Sites.Count));
-
-                        bool isROI = (m_ColumnManager.ColumnsIEEG[ii].SelectedROI.NumberOfBubbles > 0);
-                        for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG[ii].Sites.Count; ++jj)
-                        {
-                            Site p = m_ColumnManager.ColumnsIEEG[ii].Sites[jj];
-                            bool keep = (!p.Information.IsBlackListed && !p.Information.IsExcluded && !p.Information.IsMasked);
-                            if (isROI)
-                                keep = keep && !p.Information.IsOutOfROI;
-
-                            masksColumnsData[ii].Add(keep);
-                        }
-                    }
-
-                    SiteRequest request = new SiteRequest();
-                    request.spScene = false;
-                    request.idSite1 = currIEEGCol.SelectedSiteID;
-                    request.idSite2 = (previousPlot == null) ? -1 : previousPlot.Information.GlobalID;
-                    request.idPatient = Visualization.Patients[id].ID;
-                    request.idPatient2 = (previousPlot == null) ? "" : Visualization.Patients[previousPlot.Information.PatientID].ID;
-                    request.maskColumn = masksColumnsData;
-                    Events.OnRequestSiteInformation.Invoke(request);
-                    break;
-                default:
-                    break;
-            }
-        }
-        /// <summary>
         /// Update the ROI of a column from the interface
         /// </summary>
         /// <param name="idColumn"></param>
@@ -537,6 +470,7 @@ namespace HBP.Module3D
             onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetTimelineData());
 
+            m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
             // update scenes cameras
             Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
             DisplayScreenMessage("Multi Patients Scene loaded", 2.0f, 400, 80);
