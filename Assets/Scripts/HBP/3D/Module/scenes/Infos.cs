@@ -27,7 +27,18 @@ namespace HBP.Module3D
 
         #region Properties
         // state
-        public bool IsIEEGOutdated = true; /**< it true, the amplitudes may need to be updated (ROI, mask, geometry modifications) */
+        private bool m_IsIEEGOutdated = true;
+        public bool IsIEEGOutdated /**< it true, the amplitudes may need to be updated (ROI, mask, geometry modifications) */
+        {
+            get
+            {
+                return m_IsIEEGOutdated;
+            }
+            set
+            {
+                m_IsIEEGOutdated = value;
+            }
+        }
         public bool IsComparingSites = false; /**< if true, the next plot clicked will be used to be compared with the current one */
         public bool DisplayCCEPMode = false; // TEST
         public bool IsROICreationModeEnabled = false; /**< is the ROI creation mode enabled ? */

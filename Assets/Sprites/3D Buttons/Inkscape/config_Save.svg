@@ -27,7 +27,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="5.6568542"
-     inkscape:cx="62.783607"
+     inkscape:cx="30.52186"
      inkscape:cy="58.301238"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -56,37 +56,17 @@
      inkscape:groupmode="layer"
      inkscape:label="Calque 1">
     <path
-       style="fill:#feffff;fill-opacity:1;stroke:#000000;stroke-width:10.46929169;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 11.914969,15.103515 11.97403,119.88473 H 116.58999 V 22.523153 L 104.16851,8.7442425 11.950116,8.7779901 11.854662,32.77032"
-       id="path5044"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ccccccc" />
-    <rect
-       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:9.14036369;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect5048"
-       width="80.654671"
-       height="40.012806"
-       x="23.95467"
-       y="69.381233"
-       ry="2.7702873"
-       rx="2.8649004" />
+       style="fill:#feff61;fill-opacity:1;stroke:none;stroke-width:10.46929169;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 104.16797 8.7441406 L 11.949219 8.7773438 L 11.916016 17.429688 L 11.974609 119.88477 L 116.58984 119.88477 L 116.58984 22.523438 L 104.16797 8.7441406 z M 11.916016 17.429688 L 11.914062 15.103516 L 11.855469 32.769531 L 11.916016 17.429688 z M 71.695312 14.955078 L 86.283203 14.955078 C 87.185941 14.955078 87.914062 15.676283 87.914062 16.570312 L 87.914062 36.650391 C 87.914062 37.544421 87.185941 38.263672 86.283203 38.263672 L 71.695312 38.263672 C 70.792575 38.263672 70.066406 37.544421 70.066406 36.650391 L 70.066406 16.570312 C 70.066406 15.676283 70.792575 14.955078 71.695312 14.955078 z M 26.820312 69.380859 L 101.74414 69.380859 C 103.3313 69.380859 104.60937 70.617605 104.60938 72.152344 L 104.60938 106.62305 C 104.60938 108.15779 103.3313 109.39453 101.74414 109.39453 L 26.820312 109.39453 C 25.233158 109.39453 23.955078 108.15779 23.955078 106.62305 L 23.955078 72.152344 C 23.955078 70.617605 25.233158 69.380859 26.820312 69.380859 z "
+       id="path5044" />
     <rect
        style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:3.23949909;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect5050"
        width="60.217041"
        height="38.679077"
        x="34.280865"
-       y="12.401558"
+       y="6.4015579"
        rx="0.83629823"
        ry="0.83629823" />
-    <rect
-       rx="1.6294899"
-       ry="1.6137724"
-       y="16.955885"
-       x="70.066193"
-       height="23.308615"
-       width="17.846914"
-       id="rect5052"
-       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:3.28162527;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
   </g>
 </svg>

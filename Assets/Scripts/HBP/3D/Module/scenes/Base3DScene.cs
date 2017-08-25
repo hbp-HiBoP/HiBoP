@@ -661,6 +661,17 @@ namespace HBP.Module3D
             {
                 UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
             });
+            ApplicationState.Module3D.OnModifyInvisiblePart.AddListener(() =>
+            {
+                if (!SceneInformation.IsGeometryUpToDate) return;
+
+                SceneInformation.IsGeneratorUpToDate = false;
+                SceneInformation.IsIEEGOutdated = true;
+                UpdateGUITextures();
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+
+                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateIEEG);
+            });
             m_ColumnManager.OnUpdateMRICalValues.AddListener(() =>
             {
                 if (!SceneInformation.IsGeometryUpToDate)
@@ -681,7 +692,7 @@ namespace HBP.Module3D
                 ComputeMRITextures();
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                 
-                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMiddle);
+                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateIEEG);
             });
             m_ColumnManager.OnUpdateIEEGSpan.AddListener((column) =>
             {
@@ -692,7 +703,7 @@ namespace HBP.Module3D
                 UpdateGUITextures();
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                 
-                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMiddle);
+                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateIEEG);
             });
             m_ColumnManager.OnUpdateIEEGAlpha.AddListener((column) =>
             {
@@ -707,9 +718,10 @@ namespace HBP.Module3D
             {
                 SceneInformation.IsGeneratorUpToDate = false;
                 SceneInformation.IsIEEGOutdated = true;
+                UpdateGUITextures();
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                 
-                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMiddle);
+                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateIEEG);
             });
             m_ColumnManager.OnUpdateColumnTimelineID.AddListener((column) =>
             {
