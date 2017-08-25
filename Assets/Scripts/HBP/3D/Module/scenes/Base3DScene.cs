@@ -1680,7 +1680,7 @@ namespace HBP.Module3D
                 }
                 foreach (Column3D column in m_ColumnManager.Columns)
                 {
-                    column.Views.Last().SetCamera(view.Position.ToVector3(), view.Rotation.ToQuaternion());
+                    column.Views.Last().SetCamera(view.Position.ToVector3(), view.Rotation.ToQuaternion(), view.Target.ToVector3());
                 }
             }
 
@@ -1716,7 +1716,7 @@ namespace HBP.Module3D
             List<Data.Visualization.View> views = new List<Data.Visualization.View>();
             foreach (View3D view in m_ColumnManager.Views)
             {
-                views.Add(new Data.Visualization.View(view.LocalCameraPosition, view.LocalCameraRotation));
+                views.Add(new Data.Visualization.View(view.LocalCameraPosition, view.LocalCameraRotation, view.LocalCameraTarget));
             }
             Visualization.Configuration.Views = views;
 

@@ -13,13 +13,16 @@ namespace HBP.Data.Visualization
         public SerializableVector3 Position { get; set; }
         [DataMember]
         public SerializableQuaternion Rotation { get; set; }
+        [DataMember]
+        public SerializableVector3 Target { get; set; }
         #endregion
 
         #region Constructors
-        public View(Vector3 position, Quaternion rotation)
+        public View(Vector3 position, Quaternion rotation, Vector3 target)
         {
             Position = new SerializableVector3(position);
             Rotation = new SerializableQuaternion(rotation);
+            Target = new SerializableVector3(target);
         }
         #endregion
     }

@@ -178,7 +178,7 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        /// Target of the camera in the view reference
+        /// Rotation of the camera in the view reference
         /// </summary>
         public Quaternion LocalCameraRotation
         {
@@ -188,13 +188,23 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Target of the camera in the view reference
+        /// Position of the camera in the view reference
         /// </summary>
         public Vector3 LocalCameraPosition
         {
             get
             {
                 return m_Camera3D.transform.localPosition;
+            }
+        }
+        /// <summary>
+        /// Target of the camera in the view reference
+        /// </summary>
+        public Vector3 LocalCameraTarget
+        {
+            get
+            {
+                return m_Camera3D.LocalTarget;
             }
         }
 
@@ -258,7 +268,7 @@ namespace HBP.Module3D
             if (!m_Initialized)
             {
                 Default();
-                m_Initialized = false;
+                m_Initialized = true;
             }
         }
         private void Update()
@@ -320,10 +330,11 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="position"></param>
         /// <param name="rotation"></param>
-        public void SetCamera(Vector3 position, Quaternion rotation)
+        public void SetCamera(Vector3 position, Quaternion rotation, Vector3 target)
         {
             m_Camera3D.transform.localPosition = position;
             m_Camera3D.transform.localRotation = rotation;
+            m_Camera3D.Target = target;
             m_Initialized = true;
         }
         /// <summary>

@@ -120,11 +120,18 @@ namespace HBP.Module3D
         private float m_RotationCirclesRay = 300f;
 
         private Vector3 m_Target;
-        public Vector3 Target
+        public Vector3 LocalTarget
         {
             get
             {
                 return m_Target;
+            }
+        }
+        public Vector3 Target
+        {
+            get
+            {
+                return m_AssociatedView ? m_Target + m_AssociatedView.transform.position : m_Target;
             }
             set
             {
@@ -165,9 +172,9 @@ namespace HBP.Module3D
             transform.localEulerAngles = new Vector3(0, 100, 90);
             m_OriginalRotationEuler = transform.localEulerAngles;
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
-            m_Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center + m_AssociatedView.transform.position;
-            m_OriginalTarget = m_Target;
-            transform.position = m_Target - transform.forward * m_StartDistance;
+            Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center;
+            m_OriginalTarget = Target;
+            transform.position = Target - transform.forward * m_StartDistance;
             GetComponent<EdgeDetection>().enabled = m_AssociatedScene.EdgeMode;
 
             // rotation circles
@@ -211,7 +218,7 @@ namespace HBP.Module3D
             m_AssociatedScene.Events.OnUpdateCameraTarget.AddListener((target) =>
             {
                 m_OriginalTarget = target + m_AssociatedView.transform.position;
-                m_Target = target + m_AssociatedView.transform.position;
+                Target = target;
             });
         }
         private void OnPreCull()
@@ -312,14 +319,14 @@ namespace HBP.Module3D
                 //GL.PushMatrix();
                 m_XCircleMaterial.SetPass(0);
 
-                float currentDist = Vector3.Distance(transform.position, m_Target);
+                float currentDist = Vector3.Distance(transform.position, Target);
                 float scaleRatio = currentDist / m_MaxDistance;
 
                 for (int ii = 0; ii < m_XRotationCircleVertices.Length; ++ii)
                 {
                     GL.Begin(GL.LINES);
-                    GL.Vertex(m_Target + scaleRatio * m_XRotationCircleVertices[ii]);
-                    GL.Vertex(m_Target + scaleRatio * m_XRotationCircleVertices[(ii + 1) % m_XRotationCircleVertices.Length]);
+                    GL.Vertex(Target + scaleRatio * m_XRotationCircleVertices[ii]);
+                    GL.Vertex(Target + scaleRatio * m_XRotationCircleVertices[(ii + 1) % m_XRotationCircleVertices.Length]);
                     GL.End();
                 }
 
@@ -328,8 +335,8 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < m_YRotationCircleVertices.Length; ++ii)
                 {
                     GL.Begin(GL.LINES);
-                    GL.Vertex(m_Target + scaleRatio * m_YRotationCircleVertices[ii]);
-                    GL.Vertex(m_Target + scaleRatio * m_YRotationCircleVertices[(ii + 1) % m_YRotationCircleVertices.Length]);
+                    GL.Vertex(Target + scaleRatio * m_YRotationCircleVertices[ii]);
+                    GL.Vertex(Target + scaleRatio * m_YRotationCircleVertices[(ii + 1) % m_YRotationCircleVertices.Length]);
                     GL.End();
                 }
 
@@ -338,8 +345,8 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < m_ZRotationCircleVertices.Length; ++ii)
                 {
                     GL.Begin(GL.LINES);
-                    GL.Vertex(m_Target + scaleRatio * m_ZRotationCircleVertices[ii]);
-                    GL.Vertex(m_Target + scaleRatio * m_ZRotationCircleVertices[(ii + 1) % m_ZRotationCircleVertices.Length]);
+                    GL.Vertex(Target + scaleRatio * m_ZRotationCircleVertices[ii]);
+                    GL.Vertex(Target + scaleRatio * m_ZRotationCircleVertices[(ii + 1) % m_ZRotationCircleVertices.Length]);
                     GL.End();
                 }
             }
@@ -354,7 +361,7 @@ namespace HBP.Module3D
             Vector3 strafe = - transform.right * amount;
 
             transform.position = transform.position + strafe;
-            m_Target = m_Target + strafe;
+            Target = Target + strafe;
         }
         /// <summary>
         /// Strafe vertically the camera position and target with the same vector.
@@ -366,7 +373,7 @@ namespace HBP.Module3D
             Vector3 strafe = - transform.up * amount;
 
             transform.position = transform.position + strafe;
-            m_Target = m_Target + strafe;
+            Target = Target + strafe;
         }
         /// <summary>
         /// Turn horizontally around the camera target
@@ -375,11 +382,11 @@ namespace HBP.Module3D
         /// <param name="amount"></param>
         public void HorizontalRotation(float amount)
         {
-            Vector3 vecTargetPos_EyePos = transform.position - m_Target;
+            Vector3 vecTargetPos_EyePos = transform.position - Target;
             Quaternion rotation = Quaternion.AngleAxis(amount, transform.up);
 
-            transform.position = rotation * vecTargetPos_EyePos + m_Target;
-            transform.LookAt(m_Target, transform.up);
+            transform.position = rotation * vecTargetPos_EyePos + Target;
+            transform.LookAt(Target, transform.up);
         }
         /// <summary>
         /// Turn vertically around the camera target
@@ -388,11 +395,11 @@ namespace HBP.Module3D
         /// <param name="amount"></param>
         public void VerticalRotation(float amount)
         {
-            Vector3 vecTargetPos_EyePos = transform.position - m_Target;
+            Vector3 vecTargetPos_EyePos = transform.position - Target;
             Quaternion rotation = Quaternion.AngleAxis(-amount, transform.right);
 
-            transform.position = rotation * vecTargetPos_EyePos + m_Target;
-            transform.LookAt(m_Target, Vector3.Cross(m_Target - transform.position, transform.right));
+            transform.position = rotation * vecTargetPos_EyePos + Target;
+            transform.LookAt(Target, Vector3.Cross(Target - transform.position, transform.right));
         }
         /// <summary>
         /// Zoom towards target
@@ -400,18 +407,18 @@ namespace HBP.Module3D
         /// <param name="amount">Distance</param>
         public void Zoom(float amount)
         {
-            float distance = Vector3.Distance(transform.position, m_Target) - amount;
+            float distance = Vector3.Distance(transform.position, Target) - amount;
             if (distance > m_MinDistance && distance < m_MaxDistance)
             {
                 transform.position += transform.forward * amount;
             }
             else if (distance >= m_MaxDistance)
             {
-                transform.position = m_Target - transform.forward * m_MaxDistance;
+                transform.position = Target - transform.forward * m_MaxDistance;
             }
             else if (distance <= m_MinDistance)
             {
-                transform.position = m_Target - transform.forward * m_MinDistance;
+                transform.position = Target - transform.forward * m_MinDistance;
             }
         }
         /// <summary>
@@ -420,8 +427,8 @@ namespace HBP.Module3D
         public void ResetTarget()
         {
             transform.localEulerAngles = m_OriginalRotationEuler;
-            m_Target = m_OriginalTarget;
-            transform.position = m_Target - transform.forward * m_StartDistance;
+            Target = m_OriginalTarget;
+            transform.position = Target - transform.forward * m_StartDistance;
         }
         #endregion
     }
