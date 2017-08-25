@@ -73,10 +73,10 @@ namespace HBP.Module3D
         /// </summary>        
         public GenericEvent<Data.Visualization.Visualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.Visualization, Data.Patient>();
 
-        private const float LOADING_MESHES_PROGRESS = 0.034f;
-        private const float LOADING_COLUMNS_PROGRESS = 0.033f;
-        private const float LOADING_ELECTRODES_PROGRESS = 0.033f;
-        private const float SETTING_TIMELINE_PROGRESS = 0.4f;
+        private const float LOADING_MESHES_PROGRESS = 0.4f;
+        private const float LOADING_COLUMNS_PROGRESS = 0.015f;
+        private const float LOADING_ELECTRODES_PROGRESS = 0.015f;
+        private const float SETTING_TIMELINE_PROGRESS = 0.07f;
         #endregion
         
         #region Public Methods
@@ -404,7 +404,8 @@ namespace HBP.Module3D
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * sceneID, transform.position.y, transform.position.z);
 
             progress += LOADING_MESHES_PROGRESS;
-            onChangeProgress.Invoke(progress, 0.05f, "Loading meshes");
+            onChangeProgress.Invoke(progress, 4.0f, "Loading meshes");
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_MNIObjects.c_Load());
             yield return Ninja.JumpBack;
             // MNI meshes are preloaded
             SceneInformation.VolumeCenter = m_MNIObjects.IRM.Center;
