@@ -175,7 +175,10 @@ namespace HBP.Module3D
             Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center;
             m_OriginalTarget = Target;
             transform.position = Target - transform.forward * m_StartDistance;
+
             GetComponent<EdgeDetection>().enabled = m_AssociatedScene.EdgeMode;
+            AutomaticRotation = m_AssociatedScene.AutomaticRotation;
+            AutomaticRotationSpeed = m_AssociatedScene.AutomaticRotationSpeed;
 
             // rotation circles
             m_XRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);

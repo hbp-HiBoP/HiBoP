@@ -649,22 +649,11 @@ namespace HBP.Module3D
             });
             ApplicationState.Module3D.OnModifyInvisiblePart.AddListener(() =>
             {
-                if (!SceneInformation.IsGeometryUpToDate) return;
-
-                SceneInformation.IsGeneratorUpToDate = false;
-                SceneInformation.IsIEEGOutdated = true;
-                UpdateGUITextures();
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
-                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateIEEG);
+                ResetIEEG();
             });
             m_ColumnManager.OnUpdateMRICalValues.AddListener(() =>
             {
-                if (!SceneInformation.IsGeometryUpToDate)
-                    return;
-
-                SceneInformation.IsGeneratorUpToDate = false;
-                SceneInformation.IsIEEGOutdated = true;
+                if (!SceneInformation.IsGeometryUpToDate) return;
 
                 { //TEST (maybe FIXME : delete this, the visual effect is not very good)
                   // recompute UV
@@ -676,20 +665,11 @@ namespace HBP.Module3D
                 }
 
                 ComputeMRITextures();
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-                
-                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateIEEG);
+                ResetIEEG();
             });
             m_ColumnManager.OnUpdateIEEGSpan.AddListener((column) =>
             {
-                if (!SceneInformation.IsGeometryUpToDate) return;
-
-                SceneInformation.IsGeneratorUpToDate = false;
-                SceneInformation.IsIEEGOutdated = true;
-                UpdateGUITextures();
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-                
-                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateIEEG);
+                ResetIEEG();
             });
             m_ColumnManager.OnUpdateIEEGAlpha.AddListener((column) =>
             {
@@ -702,12 +682,7 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateIEEGMaximumInfluence.AddListener((column) =>
             {
-                SceneInformation.IsGeneratorUpToDate = false;
-                SceneInformation.IsIEEGOutdated = true;
-                UpdateGUITextures();
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-                
-                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateIEEG);
+                ResetIEEG();
             });
             m_ColumnManager.OnUpdateColumnTimelineID.AddListener((column) =>
             {
@@ -726,6 +701,7 @@ namespace HBP.Module3D
                         column.IsRenderingUpToDate = false;
                     }
                 }
+                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
             });
         }
         /// <summary>
@@ -1157,6 +1133,19 @@ namespace HBP.Module3D
                 column.UpdateColumnMeshes(m_DisplayedObjects.BrainSurfaceMeshes);
             }
             UnityEngine.Profiling.Profiler.EndSample();
+        }
+        /// <summary>
+        /// Function to be called everytime we want to reset IEEG
+        /// </summary>
+        protected void ResetIEEG()
+        {
+            if (!SceneInformation.IsGeometryUpToDate) return;
+            SceneInformation.IsGeneratorUpToDate = false;
+            SceneInformation.IsIEEGOutdated = true;
+            UpdateGUITextures();
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+
+            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetIEEG);
         }
         #endregion
 
@@ -1968,6 +1957,8 @@ namespace HBP.Module3D
 
             // Update Mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMaskPlot);
+
+            ResetIEEG();
         }
         /// <summary>
         /// Update the data render corresponding to the column
@@ -2161,7 +2152,7 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < column.Sites.Count; ++ii)
                     column.Sites[ii].Information.IsOutOfROI = maskROI[ii];
             }
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
         }
         /// <summary>
         /// Manage the mouse movments event in the scene

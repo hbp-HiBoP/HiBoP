@@ -260,7 +260,7 @@ namespace HBP.Module3D
                 case Mode.FunctionsId.DisableTriangleErasingMode:
                     SetMode(m_CurrentMode.mu_DisableTriangleErasingMode());
                     break;
-                case Mode.FunctionsId.UpdateIEEG:
+                case Mode.FunctionsId.ResetIEEG:
                     SetMode(m_CurrentMode.mu_UpdateMiddle());
                     break;
                 case Mode.FunctionsId.UpdateMaskPlot:
