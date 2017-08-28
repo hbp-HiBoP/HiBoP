@@ -142,7 +142,7 @@ namespace HBP.Module3D
             m_OriginalRotationEuler = transform.localEulerAngles;
             m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
             Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center;
-            m_OriginalTarget = Target;
+            m_OriginalTarget = LocalTarget;
             transform.position = Target - transform.forward * m_StartDistance;
 
             GetComponent<EdgeDetection>().enabled = m_AssociatedScene.EdgeMode;
@@ -189,7 +189,7 @@ namespace HBP.Module3D
 
             m_AssociatedScene.Events.OnUpdateCameraTarget.AddListener((target) =>
             {
-                m_OriginalTarget = target + m_AssociatedView.transform.position;
+                m_OriginalTarget = target;
                 Target = target;
             });
         }
@@ -234,11 +234,7 @@ namespace HBP.Module3D
                 Camera.backgroundColor = ApplicationState.Theme.Color.RegularViewColor;
             }
             AutomaticCameraRotation();
-
-            if (Input.GetKeyDown(KeyCode.C))
-            {
-                Type = (CameraControl)(1 - (int)Type);
-            }
+            Debug.Log(m_Target + " " + m_OriginalTarget + " " + Target);
         }
         /// <summary>
         /// Make the camera rotate automatically
