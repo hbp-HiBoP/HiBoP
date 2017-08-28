@@ -133,6 +133,23 @@ namespace HBP.Data.Visualization
             }
         }
 
+        [DataMember(Name = "Camera Type")]
+        private Module3D.CameraControl m_CameraType = Module3D.CameraControl.Trackball;
+        /// <summary>
+        /// Camera control type
+        /// </summary>
+        public Module3D.CameraControl CameraType
+        {
+            get
+            {
+                return m_CameraType;
+            }
+            set
+            {
+                m_CameraType = value;
+            }
+        }
+
         [DataMember(Name = "Cuts")]
         private List<Cut> m_Cuts = new List<Cut>();
         /// <summary>

@@ -1659,6 +1659,7 @@ namespace HBP.Module3D
             EdgeMode = Visualization.Configuration.EdgeMode;
             m_ColumnManager.MRICalMinFactor = Visualization.Configuration.MRICalMinFactor;
             m_ColumnManager.MRICalMaxFactor = Visualization.Configuration.MRICalMaxFactor;
+            CameraType = Visualization.Configuration.CameraType;
 
             foreach (Data.Visualization.Cut cut in Visualization.Configuration.Cuts)
             {
@@ -1704,6 +1705,7 @@ namespace HBP.Module3D
             Visualization.Configuration.EdgeMode = EdgeMode;
             Visualization.Configuration.MRICalMinFactor = m_ColumnManager.MRICalMinFactor;
             Visualization.Configuration.MRICalMaxFactor = m_ColumnManager.MRICalMaxFactor;
+            Visualization.Configuration.CameraType = CameraType;
 
             List<Data.Visualization.Cut> cuts = new List<Data.Visualization.Cut>();
             foreach (Cut cut in m_Cuts)
@@ -1736,6 +1738,7 @@ namespace HBP.Module3D
             EdgeMode = false;
             m_ColumnManager.MRICalMinFactor = 0.0f;
             m_ColumnManager.MRICalMaxFactor = 1.0f;
+            CameraType = CameraControl.Trackball;
 
             while (m_Cuts.Count > 0)
             {
