@@ -138,6 +138,21 @@ namespace HBP.Module3D
         }
 
         /// <summary>
+        /// Camera rotation type
+        /// </summary>
+        public CameraControl CameraType
+        {
+            get
+            {
+                return m_Camera3D.Type;
+            }
+            set
+            {
+                m_Camera3D.Type = value;
+            }
+        }
+
+        /// <summary>
         /// Layer of the view
         /// </summary>
         public string Layer { get; set; }
@@ -346,13 +361,14 @@ namespace HBP.Module3D
             switch (LineID)
             {
                 case 1:
+                    m_Camera3D.VerticalRotation(10);
                     m_Camera3D.HorizontalRotation(180);
-                    m_Camera3D.VerticalRotation(-20);
+                    m_Camera3D.VerticalRotation(-10);
                     break;
                 case 2:
                     m_Camera3D.VerticalRotation(10);
                     m_Camera3D.HorizontalRotation(-90);
-                    m_Camera3D.VerticalRotation(90);
+                    m_Camera3D.VerticalRotation(89); //maybe FIXME
                     break;
                 default:
                     break;

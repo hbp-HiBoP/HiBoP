@@ -261,6 +261,7 @@ namespace HBP.Module3D
         {
             yield return Ninja.JumpToUnity;
             float progress = 0.5f;
+            onChangeProgress.Invoke(progress, 0.0f, "");
 
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
             

@@ -541,6 +541,29 @@ namespace HBP.Module3D
             }
         }
 
+        private CameraControl m_CameraType = CameraControl.Trackball;
+        /// <summary>
+        /// Camera Control type
+        /// </summary>
+        public CameraControl CameraType
+        {
+            get
+            {
+                return m_CameraType;
+            }
+            set
+            {
+                m_CameraType = value;
+                foreach (Column3D column in m_ColumnManager.Columns)
+                {
+                    foreach (View3D view in column.Views)
+                    {
+                        view.CameraType = m_CameraType;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Ambient mode (rendering)
         /// </summary>

@@ -30,6 +30,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.StandardViews m_StandardViews;
+        /// <summary>
+        /// Set the camera control type
+        /// </summary>
+        [SerializeField]
+        private Tools.CameraTypes m_CameraTypes;
         #endregion
 
         #region Private Methods
@@ -43,6 +48,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_Views);
             m_Tools.Add(m_FMRI);
             m_Tools.Add(m_StandardViews);
+            m_Tools.Add(m_CameraTypes);
         }
         /// <summary>
         /// Add the listeners to the elements of the toolbar

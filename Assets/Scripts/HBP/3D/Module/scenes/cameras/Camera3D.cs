@@ -6,7 +6,7 @@ using UnityStandardAssets.ImageEffects;
 
 namespace HBP.Module3D
 {
-    public enum DisplayedItems { Meshes, Plots, ROI };
+    public enum CameraControl { Trackball, Orbital }
 
     public class Camera3D : MonoBehaviour
     {
@@ -19,7 +19,7 @@ namespace HBP.Module3D
         /// Camera component
         /// </summary>
         public Camera Camera { get; set; }
-
+        
         [SerializeField, Candlelight.PropertyBackingField]
         private int m_CullingMask;
         public int CullingMask
@@ -34,31 +34,7 @@ namespace HBP.Module3D
                 Camera.cullingMask = m_CullingMask;
             }
         }
-
-        [SerializeField, Candlelight.PropertyBackingField]
-        private float m_StartDistance = 250.0f;
-        public float StartDistance
-        {
-            get { return m_StartDistance; }
-            set { m_StartDistance = value; }
-        }
-
-        [SerializeField, Candlelight.PropertyBackingField]
-        private float m_Speed = 50.0f;
-        public float Speed
-        {
-            get { return m_Speed; }
-            set { m_Speed = value; }
-        }
-
-        [SerializeField, Candlelight.PropertyBackingField]
-        private float m_ZoomSpeed = 3.5f;
-        public float ZoomSpeed
-        {
-            get { return m_ZoomSpeed; }
-            set { m_ZoomSpeed = value; }
-        }
-
+        
         [SerializeField, Candlelight.PropertyBackingField]
         private float m_AutomaticRotationSpeed = 30.0f;
         public float AutomaticRotationSpeed
@@ -74,47 +50,40 @@ namespace HBP.Module3D
             get { return m_AutomaticRotation; }
             set { m_AutomaticRotation = value; }
         }
-
-        [SerializeField, Candlelight.PropertyBackingField]
+        
         private float m_MinDistance = 50.0f;
-        public float MinDistance
-        {
-            get { return m_MinDistance; }
-            set { m_MinDistance = value; }
-        }
-
-        [SerializeField, Candlelight.PropertyBackingField]
         private float m_MaxDistance = 750.0f;
-        public float MaxDistance
-        {
-            get { return m_MaxDistance; }
-            set { m_MaxDistance = value; }
-        }
+        private float m_StartDistance = 250.0f;
+        private float m_Distance { get { return Vector3.Distance(transform.position, Target); } }
 
+        private float m_Speed = 1.0f;
+        private float m_ZoomSpeed = 3.5f;
+
+        private Vector3 m_OrbitXRotationAxis = Vector3.forward;
         [SerializeField, Candlelight.PropertyBackingField]
         private Material m_XCircleMaterial;
-        public Material XCircleMaterial
-        {
-            get { return m_XCircleMaterial; }
-            set { m_XCircleMaterial = value; }
-        }
-
         [SerializeField, Candlelight.PropertyBackingField]
         private Material m_YCircleMaterial;
-        public Material YCircleMaterial
-        {
-            get { return m_YCircleMaterial; }
-            set { m_YCircleMaterial = value; }
-        }
-
         [SerializeField, Candlelight.PropertyBackingField]
         private Material m_ZCircleMaterial;
-        public Material ZCircleMaterial
+
+        private CameraControl m_Type = CameraControl.Trackball;
+        /// <summary>
+        /// Type of the rotation
+        /// </summary>
+        public CameraControl Type
         {
-            get { return m_ZCircleMaterial; }
-            set { m_ZCircleMaterial = value; }
+            get
+            {
+                return m_Type;
+            }
+            set
+            {
+                m_Type = value;
+                m_AssociatedView.Default();
+            }
         }
-        
+
         public bool DisplayRotationCircles { get; set; }
 
         private float m_RotationCirclesRay = 300f;
@@ -265,6 +234,11 @@ namespace HBP.Module3D
                 Camera.backgroundColor = ApplicationState.Theme.Color.RegularViewColor;
             }
             AutomaticCameraRotation();
+
+            if (Input.GetKeyDown(KeyCode.C))
+            {
+                Type = (CameraControl)(1 - (int)Type);
+            }
         }
         /// <summary>
         /// Make the camera rotate automatically
@@ -321,9 +295,8 @@ namespace HBP.Module3D
             {
                 //GL.PushMatrix();
                 m_XCircleMaterial.SetPass(0);
-
-                float currentDist = Vector3.Distance(transform.position, Target);
-                float scaleRatio = currentDist / m_MaxDistance;
+                
+                float scaleRatio = m_Distance / m_MaxDistance;
 
                 for (int ii = 0; ii < m_XRotationCircleVertices.Length; ++ii)
                 {
@@ -379,17 +352,30 @@ namespace HBP.Module3D
             Target = Target + strafe;
         }
         /// <summary>
+        /// Rotate the camera
+        /// </summary>
+        /// <param name="amountX"></param>
+        /// <param name="amountY"></param>
+        /// <summary>
         /// Turn horizontally around the camera target
         /// </summary>
         /// <param name="left"></param>
         /// <param name="amount"></param>
         public void HorizontalRotation(float amount)
         {
-            Vector3 vecTargetPos_EyePos = transform.position - Target;
-            Quaternion rotation = Quaternion.AngleAxis(amount, transform.up);
-
-            transform.position = rotation * vecTargetPos_EyePos + Target;
-            transform.LookAt(Target, transform.up);
+            switch (Type)
+            {
+                case CameraControl.Trackball:
+                    transform.RotateAround(Target, transform.up, amount);
+                    break;
+                case CameraControl.Orbital:
+                    int direction = Vector3.Dot(transform.up, Vector3.forward) > 0 ? 1 : -1;
+                    transform.RotateAround(Target, Vector3.forward, direction * amount);
+                    break;
+                default:
+                    transform.RotateAround(Target, transform.up, amount);
+                    break;
+            }
         }
         /// <summary>
         /// Turn vertically around the camera target
@@ -398,11 +384,7 @@ namespace HBP.Module3D
         /// <param name="amount"></param>
         public void VerticalRotation(float amount)
         {
-            Vector3 vecTargetPos_EyePos = transform.position - Target;
-            Quaternion rotation = Quaternion.AngleAxis(-amount, transform.right);
-
-            transform.position = rotation * vecTargetPos_EyePos + Target;
-            transform.LookAt(Target, Vector3.Cross(Target - transform.position, transform.right));
+            transform.RotateAround(Target, transform.right, -amount);
         }
         /// <summary>
         /// Zoom towards target
@@ -410,7 +392,7 @@ namespace HBP.Module3D
         /// <param name="amount">Distance</param>
         public void Zoom(float amount)
         {
-            float distance = Vector3.Distance(transform.position, Target) - amount;
+            float distance = m_Distance - amount;
             if (distance > m_MinDistance && distance < m_MaxDistance)
             {
                 transform.position += transform.forward * amount;
