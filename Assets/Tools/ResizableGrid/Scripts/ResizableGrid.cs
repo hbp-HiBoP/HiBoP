@@ -54,7 +54,7 @@ namespace Tools.Unity.ResizableGrid
         /// </summary>
         private const float MAGNETIC_THRESHOLD = 0.015f;
 
-        private const float MINIMUM_VIEW_HEIGHT_DEFAULT = 20.0f;
+        private const float MINIMUM_VIEW_HEIGHT_DEFAULT = 25.0f;
         private float m_MinimumViewHeight = MINIMUM_VIEW_HEIGHT_DEFAULT;
         /// <summary>
         /// Minimum height of a view
@@ -67,7 +67,7 @@ namespace Tools.Unity.ResizableGrid
             }
         }
 
-        private const float MINIMUM_VIEW_WIDTH_DEFAULT = 20.0f;
+        private const float MINIMUM_VIEW_WIDTH_DEFAULT = 25.0f;
         private float m_MinimumViewWidth = MINIMUM_VIEW_WIDTH_DEFAULT;
         /// <summary>
         /// Minimum width of a view

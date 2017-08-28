@@ -30,6 +30,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Reference to this object's RectTransform
         /// </summary>
+        [SerializeField]
         private RectTransform m_RectTransform;
         /// <summary>
         /// GameObject to hide a minimized column
@@ -76,11 +77,6 @@ namespace HBP.UI.Module3D
         private void Awake()
         {
             m_ParentGrid = GetComponentInParent<ResizableGrid>();
-            m_RectTransform = GetComponent<RectTransform>();
-        }
-        private void Update()
-        {
-            m_MinimizedGameObject.transform.SetAsLastSibling();
         }
         /// <summary>
         /// Get RectTransform screen coordinates

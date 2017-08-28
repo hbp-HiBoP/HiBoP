@@ -234,7 +234,6 @@ namespace HBP.Module3D
                 Camera.backgroundColor = ApplicationState.Theme.Color.RegularViewColor;
             }
             AutomaticCameraRotation();
-            Debug.Log(m_Target + " " + m_OriginalTarget + " " + Target);
         }
         /// <summary>
         /// Make the camera rotate automatically

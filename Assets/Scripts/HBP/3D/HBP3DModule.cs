@@ -220,13 +220,6 @@ namespace HBP.Module3D
         {
             ApplicationState.DLLDebugManager.clean();
         }
-        private void Update()
-        {
-            if(Input.GetKeyDown(KeyCode.A))
-            {
-                OnRequestUpdateInUI.Invoke();
-            }
-        } 
         #endregion
 
         #region Public Methods
