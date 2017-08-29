@@ -76,6 +76,14 @@ namespace HBP.UI.Module3D
                 return m_RectTransform.rect.width > MINIMUM_SIZE_TO_DISPLAY_OVERLAY;
             }
         }
+
+        public bool IsMinimized
+        {
+            get
+            {
+                return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= 0.9f;
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -108,15 +116,7 @@ namespace HBP.UI.Module3D
             if (!m_IsInitialized) return;
 
             UpdateOverlay();
-
-            if (Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= 0.9f)
-            {
-                m_MinimizedGameObject.SetActive(true);
-            }
-            else
-            {
-                m_MinimizedGameObject.SetActive(false);
-            }
+            m_MinimizedGameObject.SetActive(IsMinimized);
         }
         /// <summary>
         /// Initialize this column UI

@@ -10,7 +10,7 @@ namespace Tools.Unity
             if(filePath != string.Empty)
             {
                 FileInfo l_fileInfo = new FileInfo(filePath);
-                if (l_fileInfo.Exists && l_fileInfo.Extension == ".png")
+                if (l_fileInfo.Exists && (l_fileInfo.Extension == ".png" || l_fileInfo.Extension == ".jpg"))
                 {
                     return texture.LoadImage(File.ReadAllBytes(filePath));
                 }

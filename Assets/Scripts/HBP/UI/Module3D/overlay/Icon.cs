@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,6 +13,8 @@ namespace HBP.UI.Module3D
         #region Properties
         [SerializeField]
         private Image m_Image;
+        [SerializeField]
+        private RawImage m_RawImage;
         [SerializeField]
         private Text m_Text;
 
@@ -51,9 +54,11 @@ namespace HBP.UI.Module3D
                         else
                         {
                             IsActive = true;
-                            Texture2D iconTexture = Texture2Dutility.GenerateIcon();
-                            HBP.Module3D.DLL.Texture.Load(icon.IllustrationPath).UpdateTexture2D(iconTexture);
-                            m_Image.sprite = Sprite.Create(iconTexture, new Rect(0, 0, iconTexture.width, iconTexture.height), new Vector2(0.5f, 0.5f));
+                            Texture2D texture = new Texture2D(128, 128);
+                            if (texture.LoadPNG(icon.IllustrationPath)) //TODO : use texture loaded alongside visualization
+                            {
+                                m_RawImage.texture = texture;
+                            }
                             m_Text.text = icon.Label;
                         }
                     }
