@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HBP.Module3D;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,6 +18,17 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
+        public void Initialize(Column3DUI columnUI)
+        {
+            m_Expand.onClick.AddListener(() =>
+            {
+                columnUI.Expand();
+            });
+            m_Minimize.onClick.AddListener(() =>
+            {
+                columnUI.Minimize();
+            });
+        }
         public void OnPointerEnter(PointerEventData eventData)
         {
             m_Expand.gameObject.SetActive(true);

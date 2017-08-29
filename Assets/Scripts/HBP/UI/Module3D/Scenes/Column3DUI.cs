@@ -58,6 +58,11 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Icon m_Icon;
         /// <summary>
+        /// Column resizer
+        /// </summary>
+        [SerializeField]
+        private ColumnResizer m_Resizer;
+        /// <summary>
         /// Is the column initialized ?
         /// </summary>
         private bool m_IsInitialized = false;
@@ -126,7 +131,22 @@ namespace HBP.UI.Module3D
             m_TimeDisplay.Initialize(scene, column, this);
             m_Icon.Initialize(scene, column, this);
             m_Label.Initialize(scene, column, this);
+            m_Resizer.Initialize(this);
             m_IsInitialized = true;
+        }
+        /// <summary>
+        /// Expand this column
+        /// </summary>
+        public void Expand()
+        {
+            m_ParentGrid.Expand(GetComponent<Column>());
+        }
+        /// <summary>
+        /// Minimize this column
+        /// </summary>
+        public void Minimize()
+        {
+            m_ParentGrid.Minimize(GetComponent<Column>());
         }
         #endregion
     }

@@ -190,10 +190,13 @@ namespace Tools.Unity.ResizableGrid
         /// <summary>
         /// Change the position of the vertical handlers next to the selected handler to match order and width constraints
         /// </summary>
-        private void SetVerticalHandlersPosition()
+        private void SetVerticalHandlersPosition(int selectedHandlerID = -1)
         {
-            int selectedHandlerID = m_VerticalHandlers.FindIndex((handler) => { return handler.IsClicked; });
-            if (selectedHandlerID == -1) return;
+            if (selectedHandlerID == -1)
+            {
+                selectedHandlerID = m_VerticalHandlers.FindIndex((handler) => { return handler.IsClicked; });
+                if (selectedHandlerID == -1) return;
+            }
 
             for (int i = 0; i < m_VerticalHandlers.Count; i++)
             {
@@ -211,10 +214,13 @@ namespace Tools.Unity.ResizableGrid
         /// <summary>
         /// Change the position of the vertical handlers next to the selected handler to match order and height constraints
         /// </summary>
-        private void SetHorizontalHandlersPosition()
+        private void SetHorizontalHandlersPosition(int selectedHandlerID = -1)
         {
-            int selectedHandlerID = m_HorizontalHandlers.FindIndex((handler) => { return handler.IsClicked; });
-            if (selectedHandlerID == -1) return;
+            if (selectedHandlerID == -1)
+            {
+                selectedHandlerID = m_HorizontalHandlers.FindIndex((handler) => { return handler.IsClicked; });
+                if (selectedHandlerID == -1) return;
+            }
 
             for (int i = 0; i < m_HorizontalHandlers.Count; i++)
             {
@@ -459,6 +465,90 @@ namespace Tools.Unity.ResizableGrid
                 }
 
                 ChangeNumberOfElementsCallback();
+            }
+        }
+        public void SwapColumns(Column column1, Column column2)
+        {
+            int id1 = m_Columns.FindIndex((col) => col == column1);
+            int id2 = m_Columns.FindIndex((col) => col == column2);
+            if (id1 == -1 || id2 == -1) return;
+
+            int minID = Mathf.Min(id1, id2);
+            int maxID = Mathf.Max(id1, id2);
+            
+            List<float> widths = new List<float>();
+            for (int i = minID; i <= maxID; i++)
+            {
+                if (i == 0)
+                {
+                    widths.Add(m_VerticalHandlers[i].Position);
+                }
+                else if (i == m_VerticalHandlers.Count)
+                {
+                    widths.Add(1.0f - m_VerticalHandlers[i - 1].Position);
+                }
+                else
+                {
+                    widths.Add(m_VerticalHandlers[i].Position - m_VerticalHandlers[i - 1].Position);
+                }
+            }
+            float tmp = widths[0];
+            widths[0] = widths[widths.Count - 1];
+            widths[widths.Count - 1] = tmp;
+            for (int i = minID; i < maxID; i++)
+            {
+                if (i == 0)
+                {
+                    m_VerticalHandlers[i].Position = widths[i - minID];
+                }
+                else
+                {
+                    m_VerticalHandlers[i].Position = m_VerticalHandlers[i - 1].Position + widths[i - minID];
+                }
+            }
+
+            m_Columns[id1] = column2;
+            m_Columns[id2] = column1;
+
+            SetIndexOfTransforms();
+            UpdateNameOfGameObjects();
+            UpdateAnchors();
+        }
+        public void SetColumnAsLast(Column column)
+        {
+            m_Columns.Remove(column);
+            m_Columns.Add(column);
+
+            SetIndexOfTransforms();
+            UpdateNameOfGameObjects();
+            UpdateAnchors();
+        }
+        public void Expand(Column column)
+        {// TODO : change behaviour if column is already minimized
+            int id = m_Columns.IndexOf(column);
+            if (id != 0)
+            {
+                m_VerticalHandlers[id - 1].Position = 0.0f;
+                SetVerticalHandlersPosition(id - 1);
+            }
+            if (id != m_Columns.Count - 1)
+            {
+                m_VerticalHandlers[id].Position = 1.0f;
+                SetVerticalHandlersPosition(id);
+            }
+            SetHorizontalHandlersPosition();
+            UpdateAnchors();
+        }
+        public void Minimize(Column column)
+        {
+            int id = m_Columns.IndexOf(column);
+            if (id == 0)
+            {
+
+            }
+            else
+            {
+
             }
         }
         #endregion
