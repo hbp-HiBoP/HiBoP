@@ -467,6 +467,11 @@ namespace Tools.Unity.ResizableGrid
                 ChangeNumberOfElementsCallback();
             }
         }
+        /// <summary>
+        /// Swap two columns
+        /// </summary>
+        /// <param name="column1"></param>
+        /// <param name="column2"></param>
         public void SwapColumns(Column column1, Column column2)
         {
             int id1 = m_Columns.FindIndex((col) => col == column1);
@@ -514,15 +519,10 @@ namespace Tools.Unity.ResizableGrid
             UpdateNameOfGameObjects();
             UpdateAnchors();
         }
-        public void SetColumnAsLast(Column column)
-        {
-            m_Columns.Remove(column);
-            m_Columns.Add(column);
-
-            SetIndexOfTransforms();
-            UpdateNameOfGameObjects();
-            UpdateAnchors();
-        }
+        /// <summary>
+        /// Expand a column and minimize the others
+        /// </summary>
+        /// <param name="column"></param>
         public void Expand(Column column)
         {// TODO : change behaviour if column is already minimized
             int id = m_Columns.IndexOf(column);
@@ -536,19 +536,36 @@ namespace Tools.Unity.ResizableGrid
                 m_VerticalHandlers[id].Position = 1.0f;
                 SetVerticalHandlersPosition(id);
             }
-            SetHorizontalHandlersPosition();
             UpdateAnchors();
         }
+        /// <summary>
+        /// Minimize a column and put it at the end
+        /// </summary>
+        /// <param name="column"></param>
         public void Minimize(Column column)
         {
             int id = m_Columns.IndexOf(column);
             if (id == 0)
             {
-
+                m_VerticalHandlers.First().Position = 0.0f;
+            }
+            else if (id == m_Columns.Count - 1)
+            {
+                m_VerticalHandlers.Last().Position = 1.0f;
             }
             else
             {
+                float mid = (m_VerticalHandlers[id].Position + m_VerticalHandlers[id - 1].Position) / 2;
+                float rectWidth = GetComponent<RectTransform>().rect.width;
+                m_VerticalHandlers[id].Position = mid + (m_MinimumViewWidth / rectWidth) / 2;
+                m_VerticalHandlers[id - 1].Position = mid - (m_MinimumViewWidth / rectWidth) / 2;
+            }
+            while(true)
+            {
+                id = m_Columns.IndexOf(column);
+                if (id == m_Columns.Count - 1) break;
 
+                SwapColumns(m_Columns[id], m_Columns[id + 1]);
             }
         }
         #endregion
