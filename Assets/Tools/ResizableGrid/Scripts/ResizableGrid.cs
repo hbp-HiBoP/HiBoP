@@ -167,75 +167,6 @@ namespace Tools.Unity.ResizableGrid
             UpdateAnchors();
         }
         /// <summary>
-        /// Update the size and the position of the columns and the views in order to match the position of the handlers
-        /// </summary>
-        private void UpdateAnchors()
-        {
-            for (int i = 0; i < ColumnNumber; i++)
-            {
-                RectTransform column = m_Columns[i].GetComponent<RectTransform>();
-                column.anchorMin = new Vector2((i == 0) ? 0 : m_VerticalHandlers[i - 1].Position, column.anchorMin.y);
-                column.anchorMax = new Vector2((i == ColumnNumber - 1) ? 1 : m_VerticalHandlers[i].Position, column.anchorMax.y);
-                for (int j = 0; j < ViewNumber; j++)
-                {
-                    if (column.GetComponent<Column>().Views[j] != null)
-                    {
-                        RectTransform view = column.GetComponent<Column>().Views[j].GetComponent<RectTransform>();
-                        view.anchorMin = new Vector2(view.anchorMin.x, (j == ViewNumber - 1) ? 0 : m_HorizontalHandlers[j].Position);
-                        view.anchorMax = new Vector2(view.anchorMax.x, (j == 0) ? 1 : m_HorizontalHandlers[j - 1].Position);
-                    }
-                }
-            }
-        }
-        /// <summary>
-        /// Change the position of the vertical handlers next to the selected handler to match order and width constraints
-        /// </summary>
-        private void SetVerticalHandlersPosition(int selectedHandlerID = -1)
-        {
-            if (selectedHandlerID == -1)
-            {
-                selectedHandlerID = m_VerticalHandlers.FindIndex((handler) => { return handler.IsClicked; });
-                if (selectedHandlerID == -1) return;
-            }
-
-            for (int i = 0; i < m_VerticalHandlers.Count; i++)
-            {
-                float referencePosition = m_VerticalHandlers[selectedHandlerID].Position + (i - selectedHandlerID) * m_MinimumViewWidth / GetComponent<RectTransform>().rect.width;
-                if (i < selectedHandlerID)
-                {
-                    m_VerticalHandlers[i].Position = Mathf.Min(m_VerticalHandlers[i].Position, referencePosition);
-                }
-                else if (i > selectedHandlerID)
-                {
-                    m_VerticalHandlers[i].Position = Mathf.Max(m_VerticalHandlers[i].Position, referencePosition);
-                }
-            }
-        }
-        /// <summary>
-        /// Change the position of the vertical handlers next to the selected handler to match order and height constraints
-        /// </summary>
-        private void SetHorizontalHandlersPosition(int selectedHandlerID = -1)
-        {
-            if (selectedHandlerID == -1)
-            {
-                selectedHandlerID = m_HorizontalHandlers.FindIndex((handler) => { return handler.IsClicked; });
-                if (selectedHandlerID == -1) return;
-            }
-
-            for (int i = 0; i < m_HorizontalHandlers.Count; i++)
-            {
-                float referencePosition = m_HorizontalHandlers[selectedHandlerID].Position + (selectedHandlerID - i) * m_MinimumViewHeight / GetComponent<RectTransform>().rect.height;
-                if (i < selectedHandlerID)
-                {
-                    m_HorizontalHandlers[i].Position = Mathf.Max(m_HorizontalHandlers[i].Position, referencePosition);
-                }
-                else if (i > selectedHandlerID)
-                {
-                    m_HorizontalHandlers[i].Position = Mathf.Min(m_HorizontalHandlers[i].Position, referencePosition);
-                }
-            }
-        }
-        /// <summary>
         /// Update the position constraints on the handlers depending on the number of columns and views
         /// </summary>
         private void UpdateHandlersMinMaxPositions()
@@ -348,6 +279,75 @@ namespace Tools.Unity.ResizableGrid
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Update the size and the position of the columns and the views in order to match the position of the handlers
+        /// </summary>
+        public void UpdateAnchors()
+        {
+            for (int i = 0; i < ColumnNumber; i++)
+            {
+                RectTransform column = m_Columns[i].GetComponent<RectTransform>();
+                column.anchorMin = new Vector2((i == 0) ? 0 : m_VerticalHandlers[i - 1].Position, column.anchorMin.y);
+                column.anchorMax = new Vector2((i == ColumnNumber - 1) ? 1 : m_VerticalHandlers[i].Position, column.anchorMax.y);
+                for (int j = 0; j < ViewNumber; j++)
+                {
+                    if (column.GetComponent<Column>().Views[j] != null)
+                    {
+                        RectTransform view = column.GetComponent<Column>().Views[j].GetComponent<RectTransform>();
+                        view.anchorMin = new Vector2(view.anchorMin.x, (j == ViewNumber - 1) ? 0 : m_HorizontalHandlers[j].Position);
+                        view.anchorMax = new Vector2(view.anchorMax.x, (j == 0) ? 1 : m_HorizontalHandlers[j - 1].Position);
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// Change the position of the vertical handlers next to the selected handler to match order and width constraints
+        /// </summary>
+        public void SetVerticalHandlersPosition(int selectedHandlerID = -1)
+        {
+            if (selectedHandlerID == -1)
+            {
+                selectedHandlerID = m_VerticalHandlers.FindIndex((handler) => { return handler.IsClicked; });
+                if (selectedHandlerID == -1) return;
+            }
+
+            for (int i = 0; i < m_VerticalHandlers.Count; i++)
+            {
+                float referencePosition = m_VerticalHandlers[selectedHandlerID].Position + (i - selectedHandlerID) * m_MinimumViewWidth / GetComponent<RectTransform>().rect.width;
+                if (i < selectedHandlerID)
+                {
+                    m_VerticalHandlers[i].Position = Mathf.Min(m_VerticalHandlers[i].Position, referencePosition);
+                }
+                else if (i > selectedHandlerID)
+                {
+                    m_VerticalHandlers[i].Position = Mathf.Max(m_VerticalHandlers[i].Position, referencePosition);
+                }
+            }
+        }
+        /// <summary>
+        /// Change the position of the vertical handlers next to the selected handler to match order and height constraints
+        /// </summary>
+        public void SetHorizontalHandlersPosition(int selectedHandlerID = -1)
+        {
+            if (selectedHandlerID == -1)
+            {
+                selectedHandlerID = m_HorizontalHandlers.FindIndex((handler) => { return handler.IsClicked; });
+                if (selectedHandlerID == -1) return;
+            }
+
+            for (int i = 0; i < m_HorizontalHandlers.Count; i++)
+            {
+                float referencePosition = m_HorizontalHandlers[selectedHandlerID].Position + (selectedHandlerID - i) * m_MinimumViewHeight / GetComponent<RectTransform>().rect.height;
+                if (i < selectedHandlerID)
+                {
+                    m_HorizontalHandlers[i].Position = Mathf.Max(m_HorizontalHandlers[i].Position, referencePosition);
+                }
+                else if (i > selectedHandlerID)
+                {
+                    m_HorizontalHandlers[i].Position = Mathf.Min(m_HorizontalHandlers[i].Position, referencePosition);
+                }
+            }
+        }
         /// <summary>
         /// Add a column to the layout
         /// </summary>
@@ -518,55 +518,6 @@ namespace Tools.Unity.ResizableGrid
             SetIndexOfTransforms();
             UpdateNameOfGameObjects();
             UpdateAnchors();
-        }
-        /// <summary>
-        /// Expand a column and minimize the others
-        /// </summary>
-        /// <param name="column"></param>
-        public void Expand(Column column)
-        {// TODO : change behaviour if column is already minimized
-            int id = m_Columns.IndexOf(column);
-            if (id != 0)
-            {
-                m_VerticalHandlers[id - 1].Position = 0.0f;
-                SetVerticalHandlersPosition(id - 1);
-            }
-            if (id != m_Columns.Count - 1)
-            {
-                m_VerticalHandlers[id].Position = 1.0f;
-                SetVerticalHandlersPosition(id);
-            }
-            UpdateAnchors();
-        }
-        /// <summary>
-        /// Minimize a column and put it at the end
-        /// </summary>
-        /// <param name="column"></param>
-        public void Minimize(Column column)
-        {
-            int id = m_Columns.IndexOf(column);
-            if (id == 0)
-            {
-                m_VerticalHandlers.First().Position = 0.0f;
-            }
-            else if (id == m_Columns.Count - 1)
-            {
-                m_VerticalHandlers.Last().Position = 1.0f;
-            }
-            else
-            {
-                float mid = (m_VerticalHandlers[id].Position + m_VerticalHandlers[id - 1].Position) / 2;
-                float rectWidth = GetComponent<RectTransform>().rect.width;
-                m_VerticalHandlers[id].Position = mid + (m_MinimumViewWidth / rectWidth) / 2;
-                m_VerticalHandlers[id - 1].Position = mid - (m_MinimumViewWidth / rectWidth) / 2;
-            }
-            while(true)
-            {
-                id = m_Columns.IndexOf(column);
-                if (id == m_Columns.Count - 1) break;
-
-                SwapColumns(m_Columns[id], m_Columns[id + 1]);
-            }
         }
         #endregion
     }

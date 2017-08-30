@@ -169,6 +169,8 @@ namespace HBP.Module3D
             }
             set
             {
+                if (value.width == 0 || value.height == 0) return;
+
                 if (m_Camera3D.Camera.targetTexture)
                 {
                     m_Camera3D.Camera.targetTexture.Release();

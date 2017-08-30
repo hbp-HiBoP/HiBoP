@@ -1,6 +1,7 @@
 ﻿using HBP.Module3D;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Tools.Unity.ResizableGrid;
 using UnityEngine;
 using UnityEngine.Events;
@@ -139,14 +140,92 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void Expand()
         {
-            m_ParentGrid.Expand(GetComponent<Column>());
+            // TODO : change behaviour if column is already minimized
+            Column column = GetComponent<Column>();
+            int id = m_ParentGrid.Columns.IndexOf(column);
+            if (id != 0)
+            {
+                m_ParentGrid.VerticalHandlers[id - 1].Position = 0.0f;
+                m_ParentGrid.SetVerticalHandlersPosition(id - 1);
+            }
+            if (id != m_ParentGrid.Columns.Count - 1)
+            {
+                m_ParentGrid.VerticalHandlers[id].Position = 1.0f;
+                m_ParentGrid.SetVerticalHandlersPosition(id);
+            }
+            m_ParentGrid.UpdateAnchors();
         }
         /// <summary>
         /// Minimize this column
         /// </summary>
         public void Minimize()
         {
-            m_ParentGrid.Minimize(GetComponent<Column>());
+            if (IsMinimized) return;
+
+            Column column = GetComponent<Column>();
+            int id = m_ParentGrid.Columns.IndexOf(column);
+
+            float totalWidth = 0.0f, availableWidth = 1.0f;
+            List<float> widths = new List<float>();
+            for (int i = 0; i < m_ParentGrid.Columns.Count; i++)
+            {
+                Column3DUI col = m_ParentGrid.Columns[i].GetComponent<Column3DUI>();
+                if (!col.IsMinimized && col != this)
+                {
+                    if (i == 0)
+                    {
+                        totalWidth += m_ParentGrid.VerticalHandlers[i].Position;
+                        widths.Add(m_ParentGrid.VerticalHandlers[i].Position);
+                    }
+                    else if (i == m_ParentGrid.VerticalHandlers.Count)
+                    {
+                        totalWidth += (1.0f - m_ParentGrid.VerticalHandlers[i - 1].Position);
+                        widths.Add(1.0f - m_ParentGrid.VerticalHandlers[i - 1].Position);
+                    }
+                    else
+                    {
+                        totalWidth += (m_ParentGrid.VerticalHandlers[i].Position - m_ParentGrid.VerticalHandlers[i - 1].Position);
+                        widths.Add(m_ParentGrid.VerticalHandlers[i].Position - m_ParentGrid.VerticalHandlers[i - 1].Position);
+                    }
+                }
+                else
+                {
+                    availableWidth -= (m_ParentGrid.MinimumViewWidth / m_ParentGrid.GetComponent<RectTransform>().rect.width);
+                }
+            }
+            for (int i = 0; i < widths.Count; i++)
+            {
+                widths[i] /= totalWidth;
+                widths[i] *= availableWidth;
+            }
+
+            while (true)
+            {
+                id = m_ParentGrid.Columns.IndexOf(column);
+                if (id == m_ParentGrid.Columns.Count - 1) break;
+
+                m_ParentGrid.SwapColumns(m_ParentGrid.Columns[id], m_ParentGrid.Columns[id + 1]);
+            }
+
+            int widthIndex = 0;
+            for (int i = 0; i < m_ParentGrid.Columns.Count - 1; i++)
+            {
+                Column3DUI col = m_ParentGrid.Columns[i].GetComponent<Column3DUI>();
+                if (!col.IsMinimized && col != this)
+                {
+                    if (i == 0)
+                    {
+                        m_ParentGrid.VerticalHandlers[i].Position = widths[widthIndex];
+                    }
+                    else
+                    {
+                        m_ParentGrid.VerticalHandlers[i].Position = m_ParentGrid.VerticalHandlers[i - 1].Position + widths[widthIndex];
+                    }
+                    widthIndex++;
+                }
+                m_ParentGrid.SetVerticalHandlersPosition(i);
+            }
+            m_ParentGrid.UpdateAnchors();
         }
         #endregion
     }

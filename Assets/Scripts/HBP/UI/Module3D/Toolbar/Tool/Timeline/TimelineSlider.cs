@@ -66,8 +66,6 @@ namespace HBP.UI.Module3D.Tools
                 Destroy(timelineEvent.gameObject);
             }
 
-            RectTransform parentRectTransform = m_Events.GetComponent<RectTransform>();
-
             GameObject mainEvent = Instantiate(m_MainEventPrefab, m_Events);
             RectTransform mainEventRectTransform = mainEvent.GetComponent<RectTransform>();
             float mainEventPosition = (float)column.ColumnData.TimeLine.MainEvent.Position / (column.ColumnData.TimeLine.Lenght-1);
