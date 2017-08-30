@@ -24,10 +24,14 @@ namespace HBP.UI.Module3D
                 return m_Column;
             }
         }
+        private ResizableGrid m_ParentGrid;
         /// <summary>
         /// Parent resizable grid
         /// </summary>
-        private ResizableGrid m_ParentGrid;
+        public ResizableGrid ParentGrid
+        {
+            get { return m_ParentGrid; }
+        }
         /// <summary>
         /// Reference to this object's RectTransform
         /// </summary>
@@ -243,6 +247,25 @@ namespace HBP.UI.Module3D
                 if ((id == m_ParentGrid.Columns.Count - 1 && direction > 0) || (id == 0 && direction < 0) || id == goalID) break;
 
                 m_ParentGrid.SwapColumns(m_ParentGrid.Columns[id], m_ParentGrid.Columns[id + (int)Mathf.Sign(direction) * 1]);
+            }
+        }
+        /// <summary>
+        /// Swap this column with the hovered column
+        /// </summary>
+        public void SwapColumnWithHoveredColumn()
+        {
+            Vector3 mousePosition = Input.mousePosition;
+            foreach (Column column in m_ParentGrid.Columns)
+            {
+                Rect columnRect = RectTransformToScreenSpace(column.GetComponent<RectTransform>());
+                Debug.Log(columnRect);
+                Debug.Log(mousePosition);
+                if (mousePosition.x >= columnRect.x && mousePosition.x <= columnRect.x + columnRect.width &&
+                    mousePosition.y >= columnRect.y && mousePosition.y <= columnRect.y + columnRect.height)
+                {
+                    m_ParentGrid.SwapColumns(GetComponent<Column>(), column);
+                    return;
+                }
             }
         }
         #endregion

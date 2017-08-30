@@ -119,6 +119,10 @@ namespace HBP.Module3D
             /// Event called when showing or hiding the scene in the UI
             /// </summary>
             public GenericEvent<bool> OnChangeVisibleState = new GenericEvent<bool>();
+            /// <summary>
+            /// Event called when reseting the view positions in the UI
+            /// </summary>
+            public UnityEvent OnResetViewPositions = new UnityEvent();
 
             /// <summary>
             /// Event for updating cuts planes 

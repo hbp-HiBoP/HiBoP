@@ -349,6 +349,20 @@ namespace Tools.Unity.ResizableGrid
             }
         }
         /// <summary>
+        /// Reset the positions of the views
+        /// </summary>
+        public void ResetPositions()
+        {
+            ResetHandlersPosition();
+            SetIndexOfTransforms();
+            UpdateHandlersMinMaxPositions();
+            UpdateNameOfGameObjects();
+            SetVerticalHandlersPosition();
+            SetHorizontalHandlersPosition();
+            UpdateAnchors();
+        }
+
+        /// <summary>
         /// Add a column to the layout
         /// </summary>
         public void AddColumn()

@@ -31,6 +31,11 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Tools.StandardViews m_StandardViews;
         /// <summary>
+        /// Set the scene to the standard views
+        /// </summary>
+        [SerializeField]
+        private Tools.ResetViews m_ResetViews;
+        /// <summary>
         /// Set the camera control type
         /// </summary>
         [SerializeField]
@@ -48,6 +53,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_Views);
             m_Tools.Add(m_FMRI);
             m_Tools.Add(m_StandardViews);
+            m_Tools.Add(m_ResetViews);
             m_Tools.Add(m_CameraTypes);
         }
         /// <summary>

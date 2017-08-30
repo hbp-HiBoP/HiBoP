@@ -71,7 +71,7 @@ namespace HBP.UI.Module3D
                 m_ResizableGrid.AddViewLine();
                 for (int i = 0; i < m_ResizableGrid.Columns.Count; i++)
                 {
-                    m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(m_Scene, m_Scene.ColumnManager.Columns[i], m_Scene.ColumnManager.Columns[i].Views.Last());
+                    m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(m_Scene, m_ResizableGrid.Columns[i].GetComponent<Column3DUI>().Column, m_ResizableGrid.Columns[i].GetComponent<Column3DUI>().Column.Views.Last());
                 }
             });
             m_Scene.ColumnManager.OnRemoveViewLine.AddListener((lineID) =>
@@ -79,6 +79,12 @@ namespace HBP.UI.Module3D
                 if (!m_Scene) return;
 
                 m_ResizableGrid.RemoveViewLine(lineID);
+            });
+            m_Scene.Events.OnResetViewPositions.AddListener(() =>
+            {
+                if (!m_Scene) return;
+
+                m_ResizableGrid.ResetPositions();
             });
         }
         #endregion
