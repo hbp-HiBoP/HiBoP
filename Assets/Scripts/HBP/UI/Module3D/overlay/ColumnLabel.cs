@@ -11,6 +11,10 @@ namespace HBP.UI.Module3D
         #region Properties
         [SerializeField]
         private Text m_Text;
+        [SerializeField]
+        private Button m_Left;
+        [SerializeField]
+        private Button m_Right;
         #endregion
 
         #region Public Methods
@@ -20,6 +24,14 @@ namespace HBP.UI.Module3D
             IsActive = true;
 
             m_Text.text = column.Label;
+            m_Left.onClick.AddListener(() =>
+            {
+                columnUI.Move(-1);
+            });
+            m_Right.onClick.AddListener(() =>
+            {
+                columnUI.Move(+1);
+            });
         }
         #endregion
     }

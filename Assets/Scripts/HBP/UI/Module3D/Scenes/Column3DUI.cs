@@ -227,6 +227,24 @@ namespace HBP.UI.Module3D
             }
             m_ParentGrid.UpdateAnchors();
         }
+        /// <summary>
+        /// Move the column in a specific direction
+        /// </summary>
+        /// <param name="direction"></param>
+        public void Move(int direction)
+        {
+            Column column = GetComponent<Column>();
+            int id = m_ParentGrid.Columns.IndexOf(column);
+            int goalID = id + direction;
+
+            while (true)
+            {
+                id = m_ParentGrid.Columns.IndexOf(column);
+                if ((id == m_ParentGrid.Columns.Count - 1 && direction > 0) || (id == 0 && direction < 0) || id == goalID) break;
+
+                m_ParentGrid.SwapColumns(m_ParentGrid.Columns[id], m_ParentGrid.Columns[id + (int)Mathf.Sign(direction) * 1]);
+            }
+        }
         #endregion
     }
 }
