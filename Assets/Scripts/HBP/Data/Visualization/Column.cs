@@ -75,7 +75,8 @@ namespace HBP.Data.Visualization
         {
             get
             {
-                return "Data: " + DataLabel + ", Dataset: " + Dataset.Name + ", Protocol: " + Protocol.Name + ", Bloc: " + Bloc.DisplayInformations.Name;
+                return DataLabel + " | " + Dataset.Name + " | " + Protocol.Name + " | " + Bloc.DisplayInformations.Name;
+                //return "Data: " + DataLabel + ", Dataset: " + Dataset.Name + ", Protocol: " + Protocol.Name + ", Bloc: " + Bloc.DisplayInformations.Name;
             }
         }
         #endregion
