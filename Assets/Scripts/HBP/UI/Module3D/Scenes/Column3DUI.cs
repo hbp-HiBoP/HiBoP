@@ -147,17 +147,24 @@ namespace HBP.UI.Module3D
             // TODO : change behaviour if column is already minimized
             Column column = GetComponent<Column>();
             int id = m_ParentGrid.Columns.IndexOf(column);
-            if (id != 0)
+            if (IsMinimized)
             {
-                m_ParentGrid.VerticalHandlers[id - 1].Position = 0.0f;
-                m_ParentGrid.SetVerticalHandlersPosition(id - 1);
+
             }
-            if (id != m_ParentGrid.Columns.Count - 1)
+            else
             {
-                m_ParentGrid.VerticalHandlers[id].Position = 1.0f;
-                m_ParentGrid.SetVerticalHandlersPosition(id);
+                if (id != 0)
+                {
+                    m_ParentGrid.VerticalHandlers[id - 1].Position = 0.0f;
+                    m_ParentGrid.SetVerticalHandlersPosition(id - 1);
+                }
+                if (id != m_ParentGrid.Columns.Count - 1)
+                {
+                    m_ParentGrid.VerticalHandlers[id].Position = 1.0f;
+                    m_ParentGrid.SetVerticalHandlersPosition(id);
+                }
+                m_ParentGrid.UpdateAnchors();
             }
-            m_ParentGrid.UpdateAnchors();
         }
         /// <summary>
         /// Minimize this column
@@ -258,8 +265,6 @@ namespace HBP.UI.Module3D
             foreach (Column column in m_ParentGrid.Columns)
             {
                 Rect columnRect = RectTransformToScreenSpace(column.GetComponent<RectTransform>());
-                Debug.Log(columnRect);
-                Debug.Log(mousePosition);
                 if (mousePosition.x >= columnRect.x && mousePosition.x <= columnRect.x + columnRect.width &&
                     mousePosition.y >= columnRect.y && mousePosition.y <= columnRect.y + columnRect.height)
                 {

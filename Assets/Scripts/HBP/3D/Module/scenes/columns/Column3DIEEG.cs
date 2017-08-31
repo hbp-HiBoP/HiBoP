@@ -808,7 +808,7 @@ namespace HBP.Module3D
                     }
                     else // no mask and no amplitude computed : all plots have the same size and color
                     {
-                        Sites[ii].transform.localScale = normalScale;
+                        Sites[ii].transform.localScale = normalScale * IEEGParameters.Gain;
                         siteType = Sites[ii].Information.IsMarked ? SiteType.Marked : SiteType.Normal;
                     }
 
