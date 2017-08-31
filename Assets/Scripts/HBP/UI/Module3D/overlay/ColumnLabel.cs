@@ -12,6 +12,7 @@ namespace HBP.UI.Module3D
     public class ColumnLabel : OverlayElement, IPointerDownHandler, IPointerUpHandler
     {
         #region Properties
+        private RectTransform m_RectTransform;
         [SerializeField]
         private Text m_Text;
         [SerializeField]
@@ -19,12 +20,22 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Button m_Right;
 
+        private bool m_Initialized = false;
+
         [SerializeField]
         private GameObject m_ColumnImagePrefab;
         private GameObject m_CurrentImage;
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_RectTransform = GetComponent<RectTransform>();
+        }
+        private void Start()
+        {
+            m_Initialized = true;
+        }
         private void Update()
         {
             if (m_CurrentImage)
@@ -66,6 +77,24 @@ namespace HBP.UI.Module3D
             {
                 Destroy(m_CurrentImage);
                 m_ColumnUI.SwapColumnWithHoveredColumn();
+            }
+        }
+
+        public void OnRectTransformDimensionsChange()
+        {
+            if (!m_Initialized) return;
+
+            if (m_RectTransform.rect.width < 40)
+            {
+                m_Left.gameObject.SetActive(false);
+                m_Text.gameObject.SetActive(false);
+                m_Right.gameObject.SetActive(false);
+            }
+            else if (!m_Left.gameObject.activeSelf && !m_Right.gameObject.activeSelf && !m_Text.gameObject.activeSelf)
+            {
+                m_Left.gameObject.SetActive(true);
+                m_Text.gameObject.SetActive(true);
+                m_Right.gameObject.SetActive(true);
             }
         }
         #endregion

@@ -13,6 +13,7 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         private const int MINIMUM_SIZE_TO_DISPLAY_OVERLAY = 200;
+        private const float MINIMIZED_THRESHOLD = 10.0f;
         private Column3D m_Column;
         /// <summary>
         /// Associated logical column 3D
@@ -86,7 +87,7 @@ namespace HBP.UI.Module3D
         {
             get
             {
-                return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= 0.9f;
+                return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
             }
         }
         #endregion
@@ -144,12 +145,54 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void Expand()
         {
-            // TODO : change behaviour if column is already minimized
             Column column = GetComponent<Column>();
             int id = m_ParentGrid.Columns.IndexOf(column);
+            float minimizedWidth = (m_ParentGrid.MinimumViewWidth / m_ParentGrid.GetComponent<RectTransform>().rect.width);
             if (IsMinimized)
             {
-
+                float availableWidth = 1.0f;
+                int numberOfExpandedColumns = 0;
+                for (int i = 0; i < m_ParentGrid.Columns.Count; i++)
+                {
+                    Column3DUI col = m_ParentGrid.Columns[i].GetComponent<Column3DUI>();
+                    if (!col.IsMinimized || col == this)
+                    {
+                        numberOfExpandedColumns++;
+                    }
+                    else
+                    {
+                        availableWidth -= minimizedWidth;
+                    }
+                }
+                float width = availableWidth / numberOfExpandedColumns;
+                for (int i = 0; i < m_ParentGrid.Columns.Count - 1; i++)
+                {
+                    Column3DUI col = m_ParentGrid.Columns[i].GetComponent<Column3DUI>();
+                    if (!col.IsMinimized || col == this)
+                    {
+                        if (i == 0)
+                        {
+                            m_ParentGrid.VerticalHandlers[i].Position = width;
+                        }
+                        else
+                        {
+                            m_ParentGrid.VerticalHandlers[i].Position = m_ParentGrid.VerticalHandlers[i - 1].Position + width;
+                        }
+                    }
+                    else
+                    {
+                        if (i == 0)
+                        {
+                            m_ParentGrid.VerticalHandlers[i].Position = minimizedWidth;
+                        }
+                        else
+                        {
+                            m_ParentGrid.VerticalHandlers[i].Position = m_ParentGrid.VerticalHandlers[i - 1].Position + minimizedWidth;
+                        }
+                    }
+                    m_ParentGrid.SetVerticalHandlersPosition(i);
+                }
+                m_ParentGrid.UpdateAnchors();
             }
             else
             {
@@ -175,6 +218,7 @@ namespace HBP.UI.Module3D
 
             Column column = GetComponent<Column>();
             int id = m_ParentGrid.Columns.IndexOf(column);
+            float minimizedWidth = (m_ParentGrid.MinimumViewWidth / m_ParentGrid.GetComponent<RectTransform>().rect.width);
 
             float totalWidth = 0.0f, availableWidth = 1.0f;
             List<float> widths = new List<float>();
@@ -201,7 +245,7 @@ namespace HBP.UI.Module3D
                 }
                 else
                 {
-                    availableWidth -= (m_ParentGrid.MinimumViewWidth / m_ParentGrid.GetComponent<RectTransform>().rect.width);
+                    availableWidth -= minimizedWidth;
                 }
             }
             for (int i = 0; i < widths.Count; i++)
@@ -233,6 +277,17 @@ namespace HBP.UI.Module3D
                         m_ParentGrid.VerticalHandlers[i].Position = m_ParentGrid.VerticalHandlers[i - 1].Position + widths[widthIndex];
                     }
                     widthIndex++;
+                }
+                else
+                {
+                    if (i == 0)
+                    {
+                        m_ParentGrid.VerticalHandlers[i].Position = minimizedWidth;
+                    }
+                    else
+                    {
+                        m_ParentGrid.VerticalHandlers[i].Position = m_ParentGrid.VerticalHandlers[i - 1].Position + minimizedWidth;
+                    }
                 }
                 m_ParentGrid.SetVerticalHandlersPosition(i);
             }
