@@ -190,7 +190,7 @@ namespace HBP.Module3D
             {
                 m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(false);
                 m_idSelectedBubble = bubbleId;
-                m_ROI.GetComponent<ROI>().SelectBubble(m_idSelectedBubble);
+                m_ROI.GetComponent<ROI>().SelectSphere(m_idSelectedBubble);
                 m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(true);
             });
 
@@ -201,7 +201,7 @@ namespace HBP.Module3D
 
             // select the new created bubble            
             m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(true);
-            m_ROI.GetComponent<ROI>().SelectBubble(m_idSelectedBubble);
+            m_ROI.GetComponent<ROI>().SelectSphere(m_idSelectedBubble);
 
             // set the scrollbar down
             StartCoroutine("scrollbar_down");
@@ -268,7 +268,7 @@ namespace HBP.Module3D
             m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(false);
             m_idSelectedBubble = idBubble;
             m_bubblesUIList[m_idSelectedBubble].GetComponent<BubbleElement>().set_selected_state(true);
-            m_ROI.GetComponent<ROI>().SelectBubble(m_idSelectedBubble);
+            m_ROI.GetComponent<ROI>().SelectSphere(m_idSelectedBubble);
         }
 
         /// <summary>

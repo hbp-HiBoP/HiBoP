@@ -186,7 +186,14 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         ROI selectedROI = m_Column.SelectedROI;
         if (m_Scene.SceneInformation.IsROICreationModeEnabled && selectedROI)
         {
-            selectedROI.ChangeSelectedBubbleSize(data.scrollDelta.y);
+            if (selectedROI.SelectedSphereID != -1)
+            {
+                selectedROI.ChangeSelectedBubbleSize(data.scrollDelta.y);
+            }
+            else
+            {
+                m_View.ZoomCamera(data.scrollDelta.y);
+            }
         }
         else
         {

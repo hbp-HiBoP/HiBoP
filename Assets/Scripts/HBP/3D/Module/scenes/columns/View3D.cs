@@ -339,7 +339,7 @@ namespace HBP.Module3D
         /// <param name="amount">Distance</param>
         public void ZoomCamera(float amount)
         {
-            m_Camera3D.Zoom(3*amount);
+            m_Camera3D.Zoom(5*amount);
             OnMoveView.Invoke();
         }
         /// <summary>

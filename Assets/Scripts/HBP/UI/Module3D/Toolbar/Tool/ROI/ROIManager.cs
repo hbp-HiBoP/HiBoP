@@ -45,6 +45,7 @@ namespace HBP.UI.Module3D.Tools
         public void UpdateVolumeDropdownOptions()
         {
             m_VolumeSelector.options.Clear();
+            m_VolumeSelector.options.Add(new Dropdown.OptionData("None"));
             ROI selectedROI = ApplicationState.Module3D.SelectedColumn.SelectedROI;
             if (selectedROI)
             {
@@ -71,6 +72,10 @@ namespace HBP.UI.Module3D.Tools
             }
             UpdateInteractable();
             UpdateVolumeDropdownOptions();
+            if (roiID != -1)
+            {
+                m_VolumeSelector.value = ApplicationState.Module3D.SelectedColumn.SelectedROI.SelectedSphereID + 1;
+            }
             ListenerLock = false;
         }
         #endregion
@@ -95,7 +100,7 @@ namespace HBP.UI.Module3D.Tools
             ApplicationState.Module3D.OnSelectROIVolume.AddListener(() =>
             {
                 ListenerLock = true;
-                m_VolumeSelector.value = ApplicationState.Module3D.SelectedColumn.SelectedROI.SelectedBubbleID;
+                m_VolumeSelector.value = ApplicationState.Module3D.SelectedColumn.SelectedROI.SelectedSphereID + 1;
                 UpdateInteractable();
                 ListenerLock = false;
             });
@@ -132,13 +137,13 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedColumn.SelectedROI.SelectBubble(value);
+                ApplicationState.Module3D.SelectedColumn.SelectedROI.SelectSphere(value - 1);
             });
             m_RemoveVolume.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedColumn.SelectedROI.RemoveSelectedBubble();
+                ApplicationState.Module3D.SelectedColumn.SelectedROI.RemoveSelectedSphere();
             });
         }
         public override void DefaultState()

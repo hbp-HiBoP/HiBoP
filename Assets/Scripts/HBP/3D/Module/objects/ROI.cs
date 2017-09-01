@@ -40,7 +40,7 @@ namespace HBP.Module3D
         }
         private int m_Layer;
 
-        public int SelectedBubbleID { get; set; }
+        public int SelectedSphereID { get; set; }
 
         private DLL.ROI m_DLLROI;
         private List<Sphere> m_Spheres = new List<Sphere>();
@@ -71,6 +71,18 @@ namespace HBP.Module3D
         void Awake()
         {
             m_DLLROI = new DLL.ROI();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        private void UnselectSphere()
+        {
+            if (SelectedSphereID == -1 || SelectedSphereID > m_Spheres.Count) // no sphere selected
+                return;
+
+            m_Spheres[SelectedSphereID].GetComponent<Sphere>().Selected = false;
+            SelectedSphereID = -1;
+            ApplicationState.Module3D.OnSelectROIVolume.Invoke();
         }
         #endregion
 
@@ -178,28 +190,19 @@ namespace HBP.Module3D
         /// <summary>
         /// 
         /// </summary>
-        public void UnselectBubble()
+        /// <param name="sphereID"></param>
+        public void SelectSphere(int sphereID)
         {
-            if (SelectedBubbleID == -1 || SelectedBubbleID > m_Spheres.Count) // no sphere selected
+            if (sphereID >= m_Spheres.Count)
                 return;
 
-            m_Spheres[SelectedBubbleID].GetComponent<Sphere>().Selected = false;
-            SelectedBubbleID = -1;
-            ApplicationState.Module3D.OnSelectROIVolume.Invoke();
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="idBubble"></param>
-        public void SelectBubble(int idBubble)
-        {
-            if (idBubble < 0 || idBubble >= m_Spheres.Count)
-                return;
+            UnselectSphere();
 
-            UnselectBubble();
-
-            m_Spheres[idBubble].GetComponent<Sphere>().Selected = true;           
-            SelectedBubbleID = idBubble;
+            if (sphereID >= 0)
+            {
+                m_Spheres[sphereID].GetComponent<Sphere>().Selected = true;
+                SelectedSphereID = sphereID;
+            }
             ApplicationState.Module3D.OnSelectROIVolume.Invoke();
         }
         /// <summary>
@@ -227,7 +230,7 @@ namespace HBP.Module3D
             m_DLLROI.AddBubble(ray, positionBubble);
 
             ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
-            SelectBubble(m_Spheres.Count - 1);
+            SelectSphere(m_Spheres.Count - 1);
         }
         /// <summary>
         /// 
@@ -235,10 +238,10 @@ namespace HBP.Module3D
         /// <param name="idBubble"></param>
         public void RemoveBubble(int idBubble)
         {
-            if (SelectedBubbleID > idBubble)
-                SelectedBubbleID--;
-            else if(SelectedBubbleID == idBubble)
-                SelectedBubbleID = -1;
+            if (SelectedSphereID > idBubble)
+                SelectedSphereID--;
+            else if(SelectedSphereID == idBubble)
+                SelectedSphereID = -1;
 
             // remove the bubble
             Destroy(m_Spheres[idBubble].gameObject);
@@ -250,15 +253,15 @@ namespace HBP.Module3D
             ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
 
             // if not we removed the selected bubble, select instead the last one
-            if (SelectedBubbleID == -1)
+            if (SelectedSphereID == -1)
             {
                 if(m_Spheres.Count > 0)
-                    SelectBubble(m_Spheres.Count - 1);
+                    SelectSphere(m_Spheres.Count - 1);
             }
         }
-        public void RemoveSelectedBubble()
+        public void RemoveSelectedSphere()
         {
-            RemoveBubble(SelectedBubbleID);
+            RemoveBubble(SelectedSphereID);
         }
         /// <summary>
         /// 
@@ -278,7 +281,7 @@ namespace HBP.Module3D
         }
         public void ChangeSelectedBubbleSize(float direction)
         {
-            ChangeBubbleSize(SelectedBubbleID, direction < 0 ? 0.9f : 1.1f);
+            ChangeBubbleSize(SelectedSphereID, direction < 0 ? 0.9f : 1.1f);
         }
         /// <summary>
         /// 

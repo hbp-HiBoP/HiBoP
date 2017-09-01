@@ -2295,6 +2295,11 @@ namespace HBP.Module3D
             if (!isCollision)
             {
                 UnselectSite(m_ColumnManager.SelectedColumn);
+                ROI selectedROI = m_ColumnManager.SelectedColumn.SelectedROI;
+                if (selectedROI)
+                {
+                    selectedROI.SelectSphere(-1);
+                }
                 return;
             }
 
@@ -2345,7 +2350,7 @@ namespace HBP.Module3D
                             if (m_ColumnManager.SelectedColumn.SelectedROI.CheckCollision(ray))
                             {
                                 int bubbleID = m_ColumnManager.SelectedColumn.SelectedROI.CollidedClosestBubbleID(ray);
-                                selectedROI.SelectBubble(bubbleID);
+                                selectedROI.SelectSphere(bubbleID);
                             }
                         }
                         else if (meshHit || cutHit)
@@ -2355,7 +2360,7 @@ namespace HBP.Module3D
                         }
                         else
                         {
-                            selectedROI.UnselectBubble();
+                            selectedROI.SelectSphere(-1);
                         }
                     }
                 }
