@@ -5,7 +5,9 @@ using System.Linq;
 using Tools.Unity.ResizableGrid;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using System;
 
 namespace HBP.UI.Module3D
 {
@@ -82,12 +84,24 @@ namespace HBP.UI.Module3D
                 return m_RectTransform.rect.width > MINIMUM_SIZE_TO_DISPLAY_OVERLAY;
             }
         }
-
+        /// <summary>
+        /// Is the column minimzed ?
+        /// </summary>
         public bool IsMinimized
         {
             get
             {
                 return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
+            }
+        }
+
+        public bool IsHovered
+        {
+            get
+            {
+                Vector3 mousePosition = Input.mousePosition;
+                Rect columnRect = RectTransformToScreenSpace(GetComponent<RectTransform>());
+                return mousePosition.x >= columnRect.x && mousePosition.x <= columnRect.x + columnRect.width && mousePosition.y >= columnRect.y && mousePosition.y <= columnRect.y + columnRect.height;
             }
         }
         #endregion
@@ -316,12 +330,27 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void SwapColumnWithHoveredColumn()
         {
-            Vector3 mousePosition = Input.mousePosition;
+            foreach (VerticalHandler handler in m_ParentGrid.VerticalHandlers)
+            {
+                if (handler.IsHovered)
+                {
+                    Column column = GetComponent<Column>();
+                    int idColumn = m_ParentGrid.Columns.IndexOf(column);
+                    int idHandler = m_ParentGrid.VerticalHandlers.IndexOf(handler);
+                    if (idColumn < idHandler)
+                    {
+                        Move(idHandler - idColumn);
+                    }
+                    else if (idHandler < idColumn)
+                    {
+                        Move(idHandler - idColumn + 1);
+                    }
+                    return;
+                }
+            }
             foreach (Column column in m_ParentGrid.Columns)
             {
-                Rect columnRect = RectTransformToScreenSpace(column.GetComponent<RectTransform>());
-                if (mousePosition.x >= columnRect.x && mousePosition.x <= columnRect.x + columnRect.width &&
-                    mousePosition.y >= columnRect.y && mousePosition.y <= columnRect.y + columnRect.height)
+                if (column.GetComponent<Column3DUI>().IsHovered)
                 {
                     m_ParentGrid.SwapColumns(GetComponent<Column>(), column);
                     return;

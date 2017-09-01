@@ -47,6 +47,16 @@ namespace Tools.Unity.ResizableGrid
                 handler.anchorMax = new Vector2(m_Position, handler.anchorMax.y);
             }
         }
+
+        public bool IsHovered // FIXME : maybe create another VerticalHandlerUI class to put this method in
+        {
+            get
+            {
+                Vector3 mousePosition = Input.mousePosition;
+                Rect columnRect = RectTransformToScreenSpace(GetComponent<RectTransform>());
+                return mousePosition.x >= columnRect.x && mousePosition.x <= columnRect.x + columnRect.width && mousePosition.y >= columnRect.y && mousePosition.y <= columnRect.y + columnRect.height;
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -57,6 +67,16 @@ namespace Tools.Unity.ResizableGrid
             m_CursorHotSpot = new Vector2(11, 6);
             MinimumPosition = GetComponentInParent<ResizableGrid>().MinimumViewWidth / GetComponentInParent<ResizableGrid>().GetComponent<RectTransform>().rect.width;
             MaximumPosition = 1 - MinimumPosition;
+        }
+        /// <summary>
+        /// Get RectTransform screen coordinates
+        /// </summary>
+        /// <param name="transform">Rect Transform to get screen coordinates from</param>
+        /// <returns></returns>
+        private Rect RectTransformToScreenSpace(RectTransform transform) // FIXME : maybe create another VerticalHandlerUI class to put this method in
+        {
+            Vector2 size = Vector2.Scale(transform.rect.size, transform.lossyScale);
+            return new Rect((Vector2)transform.position - (size * 0.5f), size);
         }
         #endregion
 
