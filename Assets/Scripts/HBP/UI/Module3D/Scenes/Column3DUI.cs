@@ -27,6 +27,8 @@ namespace HBP.UI.Module3D
                 return m_Column;
             }
         }
+
+        private Column m_GridColumn;
         private ResizableGrid m_ParentGrid;
         /// <summary>
         /// Parent resizable grid
@@ -70,6 +72,14 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private ColumnResizer m_Resizer;
+        
+        [SerializeField]
+        private RectTransform m_Middle;
+        [SerializeField]
+        private RectTransform m_LeftBorder;
+        [SerializeField]
+        private RectTransform m_RightBorder;
+
         /// <summary>
         /// Is the column initialized ?
         /// </summary>
@@ -104,12 +114,31 @@ namespace HBP.UI.Module3D
                 return mousePosition.x >= columnRect.x && mousePosition.x <= columnRect.x + columnRect.width && mousePosition.y >= columnRect.y && mousePosition.y <= columnRect.y + columnRect.height;
             }
         }
+        public bool IsLeftBorderHovered
+        {
+            get
+            {
+                Vector3 mousePosition = Input.mousePosition;
+                Rect borderRect = RectTransformToScreenSpace(m_LeftBorder);
+                return mousePosition.x >= borderRect.x && mousePosition.x <= borderRect.x + borderRect.width && mousePosition.y >= borderRect.y && mousePosition.y <= borderRect.y + borderRect.height;
+            }
+        }
+        public bool IsRightBorderHovered
+        {
+            get
+            {
+                Vector3 mousePosition = Input.mousePosition;
+                Rect borderRect = RectTransformToScreenSpace(m_RightBorder);
+                return mousePosition.x >= borderRect.x && mousePosition.x <= borderRect.x + borderRect.width && mousePosition.y >= borderRect.y && mousePosition.y <= borderRect.y + borderRect.height;
+            }
+        }
         #endregion
 
         #region Private Methods
         private void Awake()
         {
             m_ParentGrid = GetComponentInParent<ResizableGrid>();
+            m_GridColumn = GetComponent<Column>();
         }
         /// <summary>
         /// Get RectTransform screen coordinates
@@ -159,8 +188,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void Expand()
         {
-            Column column = GetComponent<Column>();
-            int id = m_ParentGrid.Columns.IndexOf(column);
+            int id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
             float minimizedWidth = (m_ParentGrid.MinimumViewWidth / m_ParentGrid.GetComponent<RectTransform>().rect.width);
             if (IsMinimized)
             {
@@ -229,9 +257,8 @@ namespace HBP.UI.Module3D
         public void Minimize()
         {
             if (IsMinimized) return;
-
-            Column column = GetComponent<Column>();
-            int id = m_ParentGrid.Columns.IndexOf(column);
+            
+            int id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
             float minimizedWidth = (m_ParentGrid.MinimumViewWidth / m_ParentGrid.GetComponent<RectTransform>().rect.width);
 
             float totalWidth = 0.0f, availableWidth = 1.0f;
@@ -270,7 +297,7 @@ namespace HBP.UI.Module3D
 
             while (true)
             {
-                id = m_ParentGrid.Columns.IndexOf(column);
+                id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
                 if (id == m_ParentGrid.Columns.Count - 1) break;
 
                 m_ParentGrid.SwapColumns(m_ParentGrid.Columns[id], m_ParentGrid.Columns[id + 1]);
@@ -313,13 +340,12 @@ namespace HBP.UI.Module3D
         /// <param name="direction"></param>
         public void Move(int direction)
         {
-            Column column = GetComponent<Column>();
-            int id = m_ParentGrid.Columns.IndexOf(column);
+            int id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
             int goalID = id + direction;
 
             while (true)
             {
-                id = m_ParentGrid.Columns.IndexOf(column);
+                id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
                 if ((id == m_ParentGrid.Columns.Count - 1 && direction > 0) || (id == 0 && direction < 0) || id == goalID) break;
 
                 m_ParentGrid.SwapColumns(m_ParentGrid.Columns[id], m_ParentGrid.Columns[id + (int)Mathf.Sign(direction) * 1]);
@@ -330,32 +356,94 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void SwapColumnWithHoveredColumn()
         {
-            foreach (VerticalHandler handler in m_ParentGrid.VerticalHandlers)
-            {
-                if (handler.IsHovered)
-                {
-                    Column column = GetComponent<Column>();
-                    int idColumn = m_ParentGrid.Columns.IndexOf(column);
-                    int idHandler = m_ParentGrid.VerticalHandlers.IndexOf(handler);
-                    if (idColumn < idHandler)
-                    {
-                        Move(idHandler - idColumn);
-                    }
-                    else if (idHandler < idColumn)
-                    {
-                        Move(idHandler - idColumn + 1);
-                    }
-                    return;
-                }
-            }
             foreach (Column column in m_ParentGrid.Columns)
             {
-                if (column.GetComponent<Column3DUI>().IsHovered)
+                Column3DUI columnUI = column.GetComponent<Column3DUI>();
+                if (columnUI.IsHovered)
                 {
-                    m_ParentGrid.SwapColumns(GetComponent<Column>(), column);
+                    if (columnUI.IsLeftBorderHovered)
+                    {
+                        int id1 = m_ParentGrid.Columns.IndexOf(m_GridColumn);
+                        int id2 = m_ParentGrid.Columns.IndexOf(column);
+                        if (id1 > id2)
+                        {
+                            Move(id2 - id1);
+                        }
+                        else if (id2 > id1)
+                        {
+                            Move(id2 - id1 - 1);
+                        }
+                    }
+                    else if (columnUI.IsRightBorderHovered)
+                    {
+                        int id1 = m_ParentGrid.Columns.IndexOf(m_GridColumn);
+                        int id2 = m_ParentGrid.Columns.IndexOf(column);
+                        if (id1 > id2)
+                        {
+                            Move(id2 - id1 + 1);
+                        }
+                        else if (id2 > id1)
+                        {
+                            Move(id2 - id1);
+                        }
+                    }
+                    else
+                    {
+                        m_ParentGrid.SwapColumns(m_GridColumn, column);
+                    }
                     return;
                 }
             }
+        }
+        /// <summary>
+        /// Update the visibility of the border regarding the position of the cursor
+        /// </summary>
+        public void UpdateBorderVisibility(bool forceInactive = false)
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("border visibility");
+            int id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
+            if (forceInactive)
+            {
+                foreach (Column column in m_ParentGrid.Columns)
+                {
+                    Column3DUI columnUI = column.GetComponent<Column3DUI>();
+                    columnUI.m_Middle.gameObject.SetActive(false);
+                    columnUI.m_LeftBorder.gameObject.SetActive(false);
+                    columnUI.m_RightBorder.gameObject.SetActive(false);
+                }
+            }
+            else
+            {
+                foreach (Column column in m_ParentGrid.Columns)
+                {
+                    Column3DUI columnUI = column.GetComponent<Column3DUI>();
+                    int columnID = m_ParentGrid.Columns.IndexOf(column);
+                    if (columnUI == this) continue;
+
+                    bool columnHovered = columnUI.IsHovered;
+                    bool leftHovered = columnUI.IsLeftBorderHovered;
+                    bool rightHovered = columnUI.IsRightBorderHovered;
+                    if ((rightHovered || leftHovered))
+                    {
+                        columnUI.m_Middle.gameObject.SetActive(false);
+                        columnUI.m_LeftBorder.gameObject.SetActive(leftHovered && id != columnID - 1);
+                        columnUI.m_RightBorder.gameObject.SetActive(rightHovered && id != columnID + 1);
+                    }
+                    else if (columnUI.IsHovered)
+                    {
+                        columnUI.m_Middle.gameObject.SetActive(true);
+                        columnUI.m_LeftBorder.gameObject.SetActive(false);
+                        columnUI.m_RightBorder.gameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        columnUI.m_Middle.gameObject.SetActive(false);
+                        columnUI.m_LeftBorder.gameObject.SetActive(false);
+                        columnUI.m_RightBorder.gameObject.SetActive(false);
+                    }
+                }
+            }
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         #endregion
     }

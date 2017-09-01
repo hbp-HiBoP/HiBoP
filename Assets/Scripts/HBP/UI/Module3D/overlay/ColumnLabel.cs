@@ -9,7 +9,7 @@ using Tools.Unity.ResizableGrid;
 
 namespace HBP.UI.Module3D
 {
-    public class ColumnLabel : OverlayElement, IPointerDownHandler, IPointerUpHandler
+    public class ColumnLabel : OverlayElement, IPointerDownHandler, IPointerUpHandler, IDragHandler
     {
         #region Properties
         private RectTransform m_RectTransform;
@@ -77,7 +77,13 @@ namespace HBP.UI.Module3D
             {
                 Destroy(m_CurrentImage);
                 m_ColumnUI.SwapColumnWithHoveredColumn();
+                m_ColumnUI.UpdateBorderVisibility(true);
             }
+        }
+        
+        public void OnDrag(PointerEventData eventData)
+        {
+            m_ColumnUI.UpdateBorderVisibility();
         }
 
         public void OnRectTransformDimensionsChange()
