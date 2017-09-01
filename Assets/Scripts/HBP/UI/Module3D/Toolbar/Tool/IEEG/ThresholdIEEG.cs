@@ -12,18 +12,29 @@ namespace HBP.UI.Module3D.Tools
         #region Properties
         [SerializeField]
         private Button m_Button;
-
         [SerializeField]
         private Module3D.ThresholdIEEG m_ThresholdIEEG;
+        
+        public bool IsGlobal { get; set; }
 
         public GenericEvent<float, float, float> OnChangeValues = new GenericEvent<float, float, float>();
         #endregion
 
         #region Public Methods
-        public override void AddListeners()
+        public override void Initialize()
         {
+            m_ThresholdIEEG.Initialize();
             m_ThresholdIEEG.OnChangeValues.AddListener((min, mid, max) =>
             {
+                if (IsGlobal)
+                {
+                    foreach (HBP.Module3D.Column3DIEEG column in ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG)
+                    {
+                        column.IEEGParameters.SpanMin = min;
+                        column.IEEGParameters.Middle = mid;
+                        column.IEEGParameters.SpanMax = max;
+                    }
+                }
                 OnChangeValues.Invoke(min, mid, max);
             });
         }

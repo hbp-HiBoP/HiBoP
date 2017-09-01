@@ -9,6 +9,7 @@
 
 // system
 using System;
+using System.Collections;
 using System.Runtime.InteropServices;
 
 // unity
@@ -28,14 +29,14 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="pathTransfo"></param>
         /// <returns></returns>
-        public bool Load(string pathTransfo)
+        public IEnumerator c_Load(string pathTransfo)
         {
             bool fileLoaded = (load_Transformation3(_handle, pathTransfo) == 1);
             if (!fileLoaded)
             {
-                Debug.LogError("-ERROR : Transformation::load -> can't load file : " + pathTransfo);
+                throw new CanNotLoadTransformation(pathTransfo);
             }
-            return fileLoaded;
+            yield return fileLoaded;
         }
         #endregion
 

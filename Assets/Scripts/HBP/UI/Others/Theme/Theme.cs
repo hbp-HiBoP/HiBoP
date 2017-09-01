@@ -54,6 +54,11 @@ namespace HBP.UI.Theme
         public Color HeaderTitleLabel { get; set; }
         public Color DisableLabel { get; set; }
 
+        // Color sliders
+        public Color SliderBackground { get; set; }
+        public Color SliderFill { get; set; }
+        public Color SliderHandle { get; set; }
+
         // Color Module 3D
         public Color RegularViewColor { get; set; }
         public Color SelectedViewColor { get; set; }
@@ -147,6 +152,10 @@ namespace HBP.UI.Theme
             ContentGeneralButtonLabel = new Color(0, 0, 0, 255) / 255.0f;
             ContentOtherButtonLabel = new Color(255, 255, 255, 255) / 255.0f;
             DisableLabel = new Color(200, 50, 50, 255) / 255.0f;
+
+            SliderBackground = new Color(255, 255, 255, 255) / 255.0f;
+            SliderFill = new Color(255, 255, 255, 255) / 255.0f;
+            SliderHandle = new Color(170, 170, 170, 255) / 255.0f;
 
             RegularViewColor = new Color(212, 212, 212, 255) / 255.0f;
             SelectedViewColor = new Color(156, 187, 227, 255) / 255.0f;

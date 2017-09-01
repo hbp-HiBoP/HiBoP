@@ -38,7 +38,7 @@ namespace Tools.Unity.ResizableGrid
             set
             {
                 m_Position = Mathf.Clamp(value, MinimumPosition, MaximumPosition);
-                if (Mathf.Abs(m_Position - MagneticPosition) < MagneticThreshold)
+                if (Mathf.Abs(m_Position - MagneticPosition) < MagneticThreshold && IsClicked)
                 {
                     m_Position = MagneticPosition;
                 }

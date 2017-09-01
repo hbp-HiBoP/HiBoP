@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
+using System.Linq;
 
 public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler {
     #region Properties
@@ -45,6 +46,15 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     /// Lock to know whether a click triggered OnPointerDown event or not
     /// </summary>
     private bool m_PointerDownLock;
+
+    [SerializeField]
+    private Texture2D m_RotateCursor;
+    [SerializeField]
+    private Vector2 m_RotateCursorHotSpot;
+    [SerializeField]
+    private Texture2D m_StrafeCursor;
+    [SerializeField]
+    private Vector2 m_StrafeCursorHotSpot;
 
     private bool m_UsingRenderTexture;
     /// <summary>
@@ -109,8 +119,11 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     /// </summary>
     private void SendRayToScene()
     {
-        Ray ray = CursorToRay();
-        m_Scene.PassiveRaycastOnScene(ray, m_Column);
+        Ray ray;
+        if (CursorToRay(out ray))
+        {
+            m_Scene.PassiveRaycastOnScene(ray, m_Column);
+        }
     }
     #endregion
 
@@ -122,6 +135,22 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         if (Input.GetMouseButton(1) || Input.GetMouseButton(2))
         {
             m_View.DisplayRotationCircles = true;
+            if (Input.GetMouseButton(1))
+            {
+                Cursor.SetCursor(m_StrafeCursor, m_StrafeCursorHotSpot, CursorMode.Auto);
+            }
+            else
+            {
+                Cursor.SetCursor(m_RotateCursor, m_RotateCursorHotSpot, CursorMode.Auto);
+            }
+        }
+        else
+        {
+            Ray ray;
+            if (CursorToRay(out ray))
+            {
+                m_Scene.ClickOnScene(ray);
+            }
         }
     }
     public void OnDrag(PointerEventData data)
@@ -143,16 +172,33 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     public void OnEndDrag(PointerEventData data)
     {
         m_View.DisplayRotationCircles = false;
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
     }
     public void OnPointerUp(PointerEventData data)
     {
         m_PointerDownLock = false;
         m_View.DisplayRotationCircles = false;
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
     }
     public void OnScroll(PointerEventData data)
     {
         m_PointerDownLock = true;
-        m_View.ZoomCamera(data.scrollDelta.y);
+        ROI selectedROI = m_Column.SelectedROI;
+        if (m_Scene.SceneInformation.IsROICreationModeEnabled && selectedROI)
+        {
+            if (selectedROI.SelectedSphereID != -1)
+            {
+                selectedROI.ChangeSelectedBubbleSize(data.scrollDelta.y);
+            }
+            else
+            {
+                m_View.ZoomCamera(data.scrollDelta.y);
+            }
+        }
+        else
+        {
+            m_View.ZoomCamera(data.scrollDelta.y);
+        }
     }
     public void OnRectTransformDimensionsChange()
     {
@@ -228,29 +274,19 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         m_MinimizedGameObject.SetActive(false);
         m_IsInitialized = true;
     }
-    /*
     /// <summary>
-    /// Get ray from PointerEventData to the camera of the view
+    /// Create a ray corresponding to the mouse position in the viewport of the view
     /// </summary>
-    /// <param name="data">Pointer event data from OnPointerDown or similar</param>
-    /// <returns>Ray obtained from conversion</returns>
-    public Ray PointerToRay(PointerEventData data)
-    {
-        Vector2 localPosition = new Vector2();
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, data.position, null, out localPosition);
-        localPosition = new Vector2((localPosition.x / m_RectTransform.rect.width) + 0.5f, (localPosition.y / m_RectTransform.rect.height) + 0.5f);
-        Ray ray = m_View.Camera.ViewportPointToRay(localPosition);
-        return ray;
-    }
-    */
-    public Ray CursorToRay()
+    /// <param name="ray">Ray to be created</param>
+    /// <returns>True if the cursor is indeed in the view</returns>
+    public bool CursorToRay(out Ray ray)
     {
         Vector2 localPosition = new Vector2();
         Vector2 position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
         RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, position, null, out localPosition);
         localPosition = new Vector2((localPosition.x / m_RectTransform.rect.width) + 0.5f, (localPosition.y / m_RectTransform.rect.height) + 0.5f);
-        Ray ray = m_View.Camera.ViewportPointToRay(localPosition);
-        return ray;
+        ray = m_View.Camera.ViewportPointToRay(localPosition);
+        return localPosition.x >= 0 && localPosition.x <= 1 && localPosition.y >= 0 && localPosition.y <= 1;
     }
     #endregion
 }

@@ -97,7 +97,7 @@ namespace HBP.Module3D
                 if (idC == m_idColumn)
                 {
                     selected_ROI_element().add_bubble(position);
-                    m_mpScene.UpdateCurrentRegionOfInterest(idC);
+                    m_mpScene.UpdateCurrentRegionOfInterest(m_mpScene.ColumnManager.Columns[idC]);
                 }
             });
 
@@ -112,7 +112,7 @@ namespace HBP.Module3D
                 if (idC == m_idColumn)
                 {
                     selected_ROI_element().change_bubble_size(idB, coeff);
-                    m_mpScene.UpdateCurrentRegionOfInterest(idC);
+                    m_mpScene.UpdateCurrentRegionOfInterest(m_mpScene.ColumnManager.Columns[idC]);
                 }
             });
 
@@ -121,7 +121,7 @@ namespace HBP.Module3D
                 if (idC == m_idColumn)
                 {
                     selected_ROI_element().remove_bubble(idB);
-                    m_mpScene.UpdateCurrentRegionOfInterest(idC);
+                    m_mpScene.UpdateCurrentRegionOfInterest(m_mpScene.ColumnManager.Columns[idC]);
                 }
             });
 
@@ -164,7 +164,7 @@ namespace HBP.Module3D
             ROI currROI = ROIElemGo.GetComponent<ROIElement>().m_ROI.GetComponent<ROI>();
             for (int jj = 0; jj < currROI.NumberOfBubbles; ++jj)
             {
-                Bubble bubble = currROI.GetBubbleByIndex(jj);
+                Sphere bubble = currROI.GetBubbleByIndex(jj);
                 m_ROIList[m_ROIList.Count-1].GetComponent<ROIElement>().add_bubble(bubble.transform.position, bubble.Radius);                    
             }
 
@@ -188,7 +188,7 @@ namespace HBP.Module3D
             }
             
             // update the scene ROI
-            m_mpScene.UpdateCurrentRegionOfInterest(m_idColumn);
+            m_mpScene.UpdateCurrentRegionOfInterest(m_mpScene.ColumnManager.Columns[m_idColumn]);
 
             // update ROI name
             m_ROIList[m_ROIList.Count - 1].GetComponent<ROIElement>().update_name(ROIName);
@@ -220,7 +220,7 @@ namespace HBP.Module3D
 
             newROIElement.GetComponent<ROIElement>().m_closeBubbleEvent.AddListener(() =>
             {
-                m_mpScene.UpdateCurrentRegionOfInterest(m_idColumn);
+                m_mpScene.UpdateCurrentRegionOfInterest(m_mpScene.ColumnManager.Columns[m_idColumn]);
             });
 
             // set the scrollbar down
@@ -270,7 +270,7 @@ namespace HBP.Module3D
             }
 
             // update the scene with the new selected ROI
-            m_mpScene.UpdateRegionOfInterest(m_idColumn, selected_ROI_element().associated_ROI());
+            m_mpScene.UpdateRegionOfInterest(m_mpScene.ColumnManager.Columns[m_idColumn], selected_ROI_element().associated_ROI());
         }
 
         public ROIElement selected_ROI_element()

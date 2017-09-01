@@ -67,6 +67,18 @@ namespace HBP.Data.Visualization
         /// Iconic scenario which define the labels,images to display during the timeLine. 
         /// </summary>
         public IconicScenario IconicScenario { get; set; }
+
+        /// <summary>
+        /// Display label of the column
+        /// </summary>
+        public string DisplayLabel
+        {
+            get
+            {
+                return DataLabel + " | " + Dataset.Name + " | " + Protocol.Name + " | " + Bloc.DisplayInformations.Name;
+                //return "Data: " + DataLabel + ", Dataset: " + Dataset.Name + ", Protocol: " + Protocol.Name + ", Bloc: " + Bloc.DisplayInformations.Name;
+            }
+        }
         #endregion
 
         #region Constructors
@@ -111,6 +123,7 @@ namespace HBP.Data.Visualization
                     siteConfigurationsByID.Add(data.Patient.ID + "_" + item.Key, new SiteConfiguration(item.Value,false,false,false,false,false,UnityEngine.Color.white));
                 }
             }
+            Configuration.ConfigurationBySite = siteConfigurationsByID;
             TimeLine = new Timeline(Bloc.DisplayInformations, new Event(Bloc.MainEvent.Name, (int) Math.Round(blocByData.Values.Average((b) => b.PositionByEvent[Bloc.MainEvent]))), (from evt in Bloc.SecondaryEvents select new Event(evt.Name, (int) blocByData.Values.Average((b) => b.PositionByEvent[evt]))).ToArray(), columnData.Average((d) => d.Frequency));
             IconicScenario = new IconicScenario(Bloc, columnData.Average((d) => d.Frequency), TimeLine);
         }

@@ -16,7 +16,7 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Add the listener to this tool
         /// </summary>
-        public abstract void AddListeners();
+        public abstract void Initialize();
         /// <summary>
         /// Set the default state of this tool
         /// </summary>

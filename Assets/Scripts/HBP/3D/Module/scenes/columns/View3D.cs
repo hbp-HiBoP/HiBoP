@@ -21,11 +21,6 @@ namespace HBP.Module3D
                 return m_Camera3D.Camera;
             }
         }
-        
-        /// <summary>
-        /// True if any view of the column this view belongs to is selected
-        /// </summary>
-        public bool IsColumnSelected { get; set; }
 
         private bool m_IsSelected = false;
         /// <summary>
@@ -60,7 +55,10 @@ namespace HBP.Module3D
             set
             {
                 m_IsClicked = value;
-                IsSelected = value;
+                if (m_IsClicked)
+                {
+                    IsSelected = value;
+                }
             }
         }
 
@@ -140,6 +138,21 @@ namespace HBP.Module3D
         }
 
         /// <summary>
+        /// Camera rotation type
+        /// </summary>
+        public CameraControl CameraType
+        {
+            get
+            {
+                return m_Camera3D.Type;
+            }
+            set
+            {
+                m_Camera3D.Type = value;
+            }
+        }
+
+        /// <summary>
         /// Layer of the view
         /// </summary>
         public string Layer { get; set; }
@@ -156,6 +169,8 @@ namespace HBP.Module3D
             }
             set
             {
+                if (value.width == 0 || value.height == 0) return;
+
                 if (m_Camera3D.Camera.targetTexture)
                 {
                     m_Camera3D.Camera.targetTexture.Release();
@@ -176,6 +191,37 @@ namespace HBP.Module3D
             set
             {
                 m_Camera3D.Camera.aspect = value;
+            }
+        }
+
+        /// <summary>
+        /// Rotation of the camera in the view reference
+        /// </summary>
+        public Quaternion LocalCameraRotation
+        {
+            get
+            {
+                return m_Camera3D.transform.localRotation;
+            }
+        }
+        /// <summary>
+        /// Position of the camera in the view reference
+        /// </summary>
+        public Vector3 LocalCameraPosition
+        {
+            get
+            {
+                return m_Camera3D.transform.localPosition;
+            }
+        }
+        /// <summary>
+        /// Target of the camera in the view reference
+        /// </summary>
+        public Vector3 LocalCameraTarget
+        {
+            get
+            {
+                return m_Camera3D.LocalTarget;
             }
         }
 
@@ -200,6 +246,8 @@ namespace HBP.Module3D
         /// </summary>
         private int m_RegularCullingMask;
 
+        private bool m_Initialized = false;
+
         /// <summary>
         /// Event called when we select this view
         /// </summary>
@@ -214,22 +262,14 @@ namespace HBP.Module3D
         private void Awake()
         {
             m_Camera3D = transform.GetComponentInChildren<Camera3D>();
+            Default();
         }
         private void Start()
         {
             int layer = 0;
             layer |= 1 << LayerMask.NameToLayer(Layer);
-            switch (GetComponentInParent<Base3DScene>().Type)
-            {
-                case SceneType.SinglePatient:
-                    layer |= 1 << LayerMask.NameToLayer("Default");
-                    break;
-                case SceneType.MultiPatients:
-                    layer |= 1 << LayerMask.NameToLayer("Default");
-                    break;
-                default:
-                    break;
-            }
+            layer |= 1 << LayerMask.NameToLayer("Default");
+
             m_RegularCullingMask = layer;
             m_MinimizedCullingMask = 0;
 
@@ -241,10 +281,17 @@ namespace HBP.Module3D
             {
                 m_Camera3D.CullingMask = m_MinimizedCullingMask;
             }
+
+            if (!m_Initialized)
+            {
+                Default();
+                m_Initialized = true;
+            }
         }
         private void Update()
         {
-            m_Camera3D.Camera.backgroundColor = IsClicked ? ApplicationState.Theme.Color.ClickedViewColor : ((IsSelected || IsColumnSelected) ? ApplicationState.Theme.Color.SelectedViewColor : ApplicationState.Theme.Color.RegularViewColor);
+            //m_Camera3D.Camera.backgroundColor = IsClicked ? ApplicationState.Theme.Color.ClickedViewColor : ((IsSelected || IsColumnSelected) ? ApplicationState.Theme.Color.SelectedViewColor : ApplicationState.Theme.Color.RegularViewColor);
+            m_Camera3D.Camera.backgroundColor = IsSelected ? ApplicationState.Theme.Color.SelectedViewColor : ApplicationState.Theme.Color.RegularViewColor;
         }
         #endregion
 
@@ -255,9 +302,8 @@ namespace HBP.Module3D
         /// <param name="reference"></param>
         public void SynchronizeCamera(View3D reference)
         {
-            m_Camera3D.transform.position = reference.m_Camera3D.transform.position;
-            m_Camera3D.transform.rotation = reference.m_Camera3D.transform.rotation;
-            m_Camera3D.Target = reference.m_Camera3D.Target;
+            m_Camera3D.transform.localPosition = reference.m_Camera3D.transform.localPosition;
+            m_Camera3D.transform.localRotation = reference.m_Camera3D.transform.localRotation;
         }
         /// <summary>
         /// Set the viewport of the camera
@@ -293,8 +339,42 @@ namespace HBP.Module3D
         /// <param name="amount">Distance</param>
         public void ZoomCamera(float amount)
         {
-            m_Camera3D.Zoom(3*amount);
+            m_Camera3D.Zoom(5*amount);
             OnMoveView.Invoke();
+        }
+        /// <summary>
+        /// Set camera settings
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="rotation"></param>
+        public void SetCamera(Vector3 position, Quaternion rotation, Vector3 target)
+        {
+            m_Camera3D.transform.localPosition = position;
+            m_Camera3D.transform.localRotation = rotation;
+            m_Camera3D.Target = target;
+            m_Initialized = true;
+        }
+        /// <summary>
+        /// Set the default state of the view
+        /// </summary>
+        public void Default()
+        {
+            m_Camera3D.ResetTarget();
+            switch (LineID)
+            {
+                case 1:
+                    m_Camera3D.VerticalRotation(10);
+                    m_Camera3D.HorizontalRotation(180);
+                    m_Camera3D.VerticalRotation(-10);
+                    break;
+                case 2:
+                    m_Camera3D.VerticalRotation(10);
+                    m_Camera3D.HorizontalRotation(-90);
+                    m_Camera3D.VerticalRotation(89); //maybe FIXME
+                    break;
+                default:
+                    break;
+            }
         }
         #endregion
     }

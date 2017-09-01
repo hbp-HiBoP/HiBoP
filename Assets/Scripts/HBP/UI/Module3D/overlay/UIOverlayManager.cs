@@ -584,8 +584,9 @@ namespace HBP.UI.Module3D
         /// <param name="spScene"></param>
         public void update_time(Base3DScene scene)
         {
+            /*
             Column3DManager cm = scene.ColumnManager;
-            int time = cm.GlobalTimeline ? (int)cm.CommonTimelineValue : ((Column3DIEEG)cm.SelectedColumn).ColumnTimeLineID;
+            int time = cm.GlobalTimeline ? (int)cm.CommonTimelineValue : ((Column3DIEEG)cm.SelectedColumn).CurrentTimeLineID;
 
             switch (scene.Type)
             {
@@ -600,6 +601,7 @@ namespace HBP.UI.Module3D
                 default:
                     break;
             }
+            */
         }
 
         /// <summary>
@@ -618,14 +620,14 @@ namespace HBP.UI.Module3D
                 m_bothDisplaySiteInfoTransform.position = siteInfo.position;
                 m_bothDisplaySiteInfoTransform.Find("name text").GetComponent<Text>().text = siteInfo.name;
 
-                if (siteInfo.isFMRI)
+                if (siteInfo.mode == SiteInformationDisplayMode.FMRI)
                 {
                     m_bothDisplaySiteInfoTransform.Find("value text").GetComponent<Text>().text = "";
                     m_bothDisplaySiteInfoTransform.Find("latency text").GetComponent<Text>().text = "";
                     return;
                 }
 
-                if (siteInfo.displayLatencies)
+                if (siteInfo.mode == SiteInformationDisplayMode.CCEP)
                 {
                     m_bothDisplaySiteInfoTransform.Find("value text").GetComponent<Text>().text = "Height : " + siteInfo.height;
                     m_bothDisplaySiteInfoTransform.Find("latency text").GetComponent<Text>().text = "Latency : " + siteInfo.latency;

@@ -113,7 +113,7 @@ namespace HBP.UI.Module3D
             });
             contentPanelT.Find("selected site buttons").Find("unselect button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                m_scene.UnselectSite(m_columnId);
+                m_scene.UnselectSite(ApplicationState.Module3D.SelectedScene.ColumnManager.Columns[m_columnId]);
 
                 update_menu();
             });
@@ -186,8 +186,8 @@ namespace HBP.UI.Module3D
 
                 bool allColumns = contentPanelT.Find("Apply on parent").Find("all columns checkbox").GetComponent<Toggle>().isOn;
                 SiteAction action = exclude ? SiteAction.Exclude : (include ? SiteAction.Include : (highlight ? SiteAction.Highlight : (unhighlight ? SiteAction.Unhighlight : (marked ? SiteAction.Mark : SiteAction.Unmark))));
-                SiteFilter filter = selectedSite ? SiteFilter.Specific : (electrode ? SiteFilter.Electrode : (patient ? SiteFilter.Patient : (highlighted ? SiteFilter.Highlighted : (unhighlighted ? SiteFilter.Unhighlighted : (allSites ? SiteFilter.All : (inROI ? SiteFilter.InRegionOfInterest : (noInROI ? SiteFilter.OutOfRegionOfInterest : (nameSites ? SiteFilter.Name : (marsNameSites ? SiteFilter.MarsAtlas : SiteFilter.Broadman)))))))));
-                m_scene.UpdateSitesMasks(allColumns, m_lastSiteSelected.gameObject, action, filter, nameFilterStr);
+                SiteFilter filter = selectedSite ? SiteFilter.Site : (electrode ? SiteFilter.Electrode : (patient ? SiteFilter.Patient : (highlighted ? SiteFilter.Highlighted : (unhighlighted ? SiteFilter.Unhighlighted : (allSites ? SiteFilter.All : (inROI ? SiteFilter.InRegionOfInterest : (noInROI ? SiteFilter.OutOfRegionOfInterest : (nameSites ? SiteFilter.Name : (marsNameSites ? SiteFilter.MarsAtlas : SiteFilter.Broadman)))))))));
+                m_scene.UpdateSitesMasks(allColumns, action, filter, nameFilterStr);
             });
 
             switch(m_scene.Type)
@@ -237,13 +237,13 @@ namespace HBP.UI.Module3D
                         if (blackList.transform.Find("Text").GetComponent<Text>().text == "Blacklist site")
                         {
                             m_lastSiteSelected.Information.IsBlackListed = true;
-                            m_scene.UpdateSitesMasks(true, m_lastSiteSelected.gameObject, SiteAction.Blacklist, 0);
+                            m_scene.UpdateSitesMasks(true, SiteAction.Blacklist, 0);
                             blackList.transform.Find("Text").GetComponent<Text>().text = "Unblacklist site";
                         }
                         else
                         {
                             m_lastSiteSelected.Information.IsBlackListed = false;
-                            m_scene.UpdateSitesMasks(true, m_lastSiteSelected.gameObject, SiteAction.Unblacklist, 0);
+                            m_scene.UpdateSitesMasks(true, SiteAction.Unblacklist, 0);
                             blackList.transform.Find("Text").GetComponent<Text>().text = "Blacklist site";
                         }
                     });
@@ -304,6 +304,7 @@ namespace HBP.UI.Module3D
 
             // update selected patient
             bool patientComplete = true;
+            /*
             if (m_scene.ColumnManager.SelectedPatientID != -1)
             {
                 m_idPatientToLoad = m_scene.ColumnManager.SelectedPatientID;
@@ -314,7 +315,7 @@ namespace HBP.UI.Module3D
                     //patientComplete = (patient.Brain.PreoperativeMRI.Length > 0) && (patient.Brain.RightHemisphereGreyMatter.Length > 0) && (patient.Brain.LeftHemisphereGreyMatter.Length > 0);
                 }
             }
-
+            */
             UpdateLastSelectedSite.Invoke(m_lastSiteSelected);
 
             Transform panel = transform.Find("panel");

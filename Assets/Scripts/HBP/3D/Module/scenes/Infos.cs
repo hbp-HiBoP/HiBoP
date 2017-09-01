@@ -12,6 +12,7 @@ using System.Threading;
 
 // unity
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
@@ -26,7 +27,18 @@ namespace HBP.Module3D
 
         #region Properties
         // state
-        public bool IsIEEGOutdated = true; /**< it true, the amplitudes may need to be updated (ROI, mask, geometry modifications) */
+        private bool m_IsIEEGOutdated = true;
+        public bool IsIEEGOutdated /**< it true, the amplitudes may need to be updated (ROI, mask, geometry modifications) */
+        {
+            get
+            {
+                return m_IsIEEGOutdated;
+            }
+            set
+            {
+                m_IsIEEGOutdated = value;
+            }
+        }
         public bool IsComparingSites = false; /**< if true, the next plot clicked will be used to be compared with the current one */
         public bool DisplayCCEPMode = false; // TEST
         public bool IsROICreationModeEnabled = false; /**< is the ROI creation mode enabled ? */
@@ -38,9 +50,10 @@ namespace HBP.Module3D
         public bool GreyMeshesAvailables = false;    /**< hemi meshes are availables */
         public bool WhiteMeshesAvailables = false;    /**< white meshes are availables */
         public bool WhiteInflatedMeshesAvailables = false; /**< white inflated meshes are availables */
+        public bool IsSceneInitialized { get; set; }
         // parameters
         public bool MarsAtlasModeEnabled = false;
-        public bool MarsAtlasParcelsLoaed = false;
+        public bool MarsAtlasParcelsLoaded = false;
         public bool CutHolesEnabled = false; /**< cuts holes are enabled */
         public int LastPlaneModifiedID = 0;
 
@@ -54,13 +67,32 @@ namespace HBP.Module3D
         public bool CutMeshGeometryNeedsUpdate = true; /**< cut planes meshes must be updated */
 
         public bool IsGeometryUpToDate = false;
-        public bool IsGeneratorUpToDate = false;  /**< texture generator is up to date */
+        private bool m_IsGeneratorUpToDate = false;
+        public bool IsGeneratorUpToDate
+        {
+            get
+            {
+                return m_IsGeneratorUpToDate;
+            }
+            set
+            {
+                if (value != m_IsGeneratorUpToDate)
+                {
+                    m_IsGeneratorUpToDate = value;
+                    OnUpdateGeneratorState.Invoke(value);
+                }
+            }
+        }
  
         // others                
         public string MeshesLayerName; /**< layer name of all the meshes of the scene */
+        public string HiddenMeshesLayerName;
+        public bool HideBlacklistedSites = false;
 
         // work     
         public Vector3 VolumeCenter = new Vector3(0, 0, 0); /**< center of the loaded volume */
+
+        public GenericEvent<bool> OnUpdateGeneratorState = new GenericEvent<bool>();
         #endregion
 
         #region Public Methods
@@ -91,7 +123,9 @@ namespace HBP.Module3D
     public class DisplayedObjects3DView
     {
         // Parents objects
+        public GameObject MeshesParent = null;
         public GameObject BrainSurfaceMeshesParent = null;  /**< brain surface meshes parent of the scene */
+        public GameObject InvisibleBrainMeshesParent = null;
         public GameObject BrainCutMeshesParent = null;      /**< brain cut meshes parent of the scene */
         public GameObject SitesMeshesParent = null;         /**< sites meshes parent of the scene */
 

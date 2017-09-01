@@ -9,6 +9,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine.Events;
+using System.Linq;
+using System;
 
 namespace HBP.Module3D
 {
@@ -23,6 +25,7 @@ namespace HBP.Module3D
             FMRI, IEEG
         }
         public abstract ColumnType Type { get; }
+        public int ID { get; set; }
 
         [SerializeField, Candlelight.PropertyBackingField]
         protected string m_Label;
@@ -60,10 +63,34 @@ namespace HBP.Module3D
             }
         }
 
+        private bool m_IsRenderingUpToDate = false;
         /// <summary>
         /// Does the column rendering need to be updated ?
         /// </summary>
-        public bool IsRenderingUpToDate { get; set; }
+        public bool IsRenderingUpToDate
+        {
+            get
+            {
+                return m_IsRenderingUpToDate;
+            }
+            set
+            {
+                m_IsRenderingUpToDate = value;
+            }
+        }
+
+        [SerializeField]
+        private Transform m_BrainSurfaceMeshesParent;
+        [SerializeField]
+        private GameObject m_BrainPrefab;
+        private List<GameObject> m_BrainSurfaceMeshes = new List<GameObject>();
+        public List<GameObject> BrainSurfaceMeshes
+        {
+            get
+            {
+                return m_BrainSurfaceMeshes;
+            }
+        }
 
         public GameObject ViewPrefab;
         protected List<View3D> m_Views = new List<View3D>();
@@ -101,6 +128,7 @@ namespace HBP.Module3D
             get { return m_SelectedSiteID >= 0 ? Sites[m_SelectedSiteID] : null; }
             set { m_SelectedSiteID = Sites.FindIndex((site) => site == value); OnChangeSelectedSite.Invoke(value); }
         }
+        public int SelectedPatientID { get; set; }
         public GenericEvent<Site> OnChangeSelectedSite = new GenericEvent<Site>();
 
         protected DLL.RawSiteList m_RawElectrodes = null;  /**< raw format of the plots container dll */
@@ -119,8 +147,56 @@ namespace HBP.Module3D
         public SiteRing SelectRing { get { return m_SelectRing; } }
 
         // ROI
-        protected ROI m_SelectedROI = null;   /**< selected ROI of the column */
-        public ROI SelectedROI { get { return m_SelectedROI;} }
+        [SerializeField]
+        protected Transform m_ROIParent;
+        protected List<ROI> m_ROIs = new List<ROI>();
+        public ReadOnlyCollection<ROI> ROIs
+        {
+            get
+            {
+                return new ReadOnlyCollection<ROI>(m_ROIs);
+            }
+        }
+        protected ROI m_SelectedROI = null;
+        public ROI SelectedROI
+        {
+            get
+            {
+                return m_SelectedROI;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    m_SelectedROI = null;
+                }
+                else
+                {
+                    if (m_SelectedROI != null)
+                    {
+                        m_SelectedROI.SetVisibility(false);
+                    }
+
+                    m_SelectedROI = value;
+                    m_SelectedROI.SetVisibility(true);
+                    m_SelectedROI.StartAnimation();
+                }
+                ApplicationState.Module3D.OnSelectROI.Invoke();
+            }
+        }
+        public int SelectedROIID
+        {
+            get
+            {
+                return m_ROIs.FindIndex((roi) => roi == SelectedROI);
+            }
+            set
+            {
+                SelectedROI = value == -1 ? null : m_ROIs[value];
+            }
+        }
+        [SerializeField]
+        private GameObject m_ROIPrefab;
 
         // generators
         public List<DLL.MRITextureCutGenerator> DLLMRITextureCutGenerators = null;
@@ -136,7 +212,7 @@ namespace HBP.Module3D
         public Texture2D BrainColorSchemeTexture = null;        /**< brain colorscheme unity 2D texture  */
         public List<Texture2D> BrainCutTextures = null;         /**< list of cut textures */
         public List<Texture2D> GUIBrainCutTextures = null;      /**< list of GUI cut textures */
-
+        
         /// <summary>
         /// Event called when this column is selected
         /// </summary>
@@ -158,7 +234,7 @@ namespace HBP.Module3D
         public virtual void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             // scene
-            Layer = "C" + idColumn;
+            Layer = "Column" + idColumn;
 
             // select ring
             m_SelectRing = gameObject.GetComponentInChildren<SiteRing>();
@@ -233,6 +309,29 @@ namespace HBP.Module3D
 
             // update rendering
             IsRenderingUpToDate = false;
+        }
+        public void InitializeColumnMeshes(GameObject brainMeshesParent)
+        {
+            m_BrainSurfaceMeshes = new List<GameObject>();
+            foreach (Transform meshPart in brainMeshesParent.transform)
+            {
+                GameObject brainPart = Instantiate(m_BrainPrefab, m_BrainSurfaceMeshesParent);
+                brainPart.GetComponent<Renderer>().sharedMaterial = meshPart.GetComponent<Renderer>().sharedMaterial;
+                brainPart.name = meshPart.name;
+                brainPart.transform.localPosition = Vector3.zero;
+                brainPart.layer = LayerMask.NameToLayer(Layer);
+                brainPart.GetComponent<MeshFilter>().mesh = Instantiate(meshPart.GetComponent<MeshFilter>().mesh);
+                brainPart.SetActive(true);
+                BrainSurfaceMeshes.Add(brainPart);
+            }
+        }
+        public void UpdateColumnMeshes(List<GameObject> brainMeshes)
+        {
+            for (int i = 0; i < brainMeshes.Count; i++)
+            {
+                DestroyImmediate(m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh);
+                m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMeshes[i].GetComponent<MeshFilter>().mesh);
+            }
         }
         /// <summary>
         ///  Clean all allocated data
@@ -335,20 +434,6 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Update the ROI
-        /// </summary>
-        /// <param name="ROI"></param>
-        public void UpdateROI(ROI ROI)
-        {
-            if(m_SelectedROI != null)
-            {
-                m_SelectedROI.SetVisibility(false);
-            }
-
-            m_SelectedROI = ROI;
-            m_SelectedROI.SetVisibility(true);
-        }
-        /// <summary>
         /// Retrieve a string containing all the plots states
         /// </summary>
         /// <returns></returns>
@@ -394,7 +479,7 @@ namespace HBP.Module3D
                     sitesInROIPerPlot[ii].Add(new List<bool>(SitesGameObjects[ii][jj].Count));
                     for (int kk = 0; kk < SitesGameObjects[ii][jj].Count; ++kk, ++id)
                     {
-                        bool inROI = !Sites[id].Information.IsInROI;
+                        bool inROI = !Sites[id].Information.IsOutOfROI;
                         bool blackList = Sites[id].Information.IsBlackListed;
 
                         bool keep = inROI && !blackList;
@@ -504,7 +589,6 @@ namespace HBP.Module3D
             view.Layer = Layer;
             view.OnSelectView.AddListener((selectedView) =>
             {
-                Debug.Log("OnSelectView");
                 foreach (View3D v in m_Views)
                 {
                     if (v != selectedView)
@@ -519,10 +603,6 @@ namespace HBP.Module3D
             {
                 OnMoveView.Invoke(view);
             });
-            if (IsSelected)
-            {
-                view.IsColumnSelected = true;
-            }
             m_Views.Add(view);
         }
         /// <summary>
@@ -533,21 +613,41 @@ namespace HBP.Module3D
             Destroy(m_Views[lineID].gameObject);
             m_Views.RemoveAt(lineID);
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionOfInterest"></param>
-        public void AddRegionOfInterest(Data.Visualization.RegionOfInterest regionOfInterest)
-        {
 
+        public ROI AddROI(string name = ROI.DEFAULT_ROI_NAME)
+        {
+            GameObject roiGameObject = Instantiate(m_ROIPrefab, m_ROIParent);
+            ROI roi = roiGameObject.GetComponent<ROI>();
+            roi.Name = name;
+            m_ROIs.Add(roi);
+            ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
+            SelectedROI = m_ROIs.Last();
+
+            return roi;
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionOfInterest"></param>
-        public void RemoveRegionOfInterest(Data.Visualization.RegionOfInterest regionOfInterest)
+        public void CopyROI(ROI roi)
         {
+            ROI newROI = AddROI();
+            newROI.Name = roi.Name;
+            foreach (Sphere bubble in roi.Spheres)
+            {
+                newROI.AddBubble(Layer, "Bubble", bubble.Position, bubble.Radius);
+            }
+        }
+        public void RemoveSelectedROI()
+        {
+            Destroy(m_SelectedROI.gameObject);
+            m_ROIs.Remove(m_SelectedROI);
+            ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
 
+            if (m_ROIs.Count > 0)
+            {
+                SelectedROI = m_ROIs.Last();
+            }
+            else
+            {
+                SelectedROI = null;
+            }
         }
         #endregion
     }

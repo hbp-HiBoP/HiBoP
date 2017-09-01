@@ -17,6 +17,7 @@ using System.Runtime.InteropServices;
 
 // unity
 using UnityEngine;
+using System.IO;
 
 namespace HBP.Module3D.DLL
 {
@@ -77,7 +78,7 @@ namespace HBP.Module3D.DLL
         /// <returns> return an empty path if no directory has been choosen or if an error occurs </returns>
         public static string get_existing_directory_name(string message = "Select a directory", string defaultDir = "")
         {
-            string arguments = "FileDialog get_existing_directory_name +\"" + message + "\"";
+            string arguments = "FileDialog get_existing_directory_name +\"" + message + "\"  \"\" \"" + defaultDir + "\"";
             List<string> paths = launch_fileDialog_window(arguments);
             if (paths.Count > 0)
                 return paths[0];
@@ -102,6 +103,10 @@ namespace HBP.Module3D.DLL
             }
             if (filtersArray.Length == 0)
                 arguments += "*.txt)";
+            if (defaultDir != "")
+            {
+                defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
+            }
             arguments += "\" " + defaultDir;
 
             List<string> paths = launch_fileDialog_window(arguments);
@@ -128,6 +133,10 @@ namespace HBP.Module3D.DLL
             }
             if (filtersArray.Length == 0)
                 arguments += "*.txt)";
+            if (defaultDir != "")
+            {
+                defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
+            }
             arguments += "\" " + defaultDir;
 
             return  launch_fileDialog_window(arguments).ToArray();
@@ -150,6 +159,10 @@ namespace HBP.Module3D.DLL
             }
             if(filtersArray.Length == 0)
                 arguments += "*.txt)";
+            if (defaultDir != "")
+            {
+                defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
+            }
             arguments += "\" " + defaultDir;
 
             List<string> paths = launch_fileDialog_window(arguments);

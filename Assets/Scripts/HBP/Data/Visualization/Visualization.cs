@@ -182,6 +182,7 @@ namespace HBP.Data.Visualization
 
             float progress = 0.0f;
 
+            yield return Ninja.JumpToUnity;
             Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
             yield return Ninja.JumpToUnity;
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataToRead(progress, onChangeProgress,(value, progressValue) => { dataInfoByColumn = value; progress = progressValue; }));
@@ -245,7 +246,6 @@ namespace HBP.Data.Visualization
         {
             Column[] columns = (from column in Columns select column.Clone() as Column).ToArray();
             return new Visualization(Name, Patients, columns, ID);
-
         }
         /// <summary>
         /// Copy an instance in this instance.

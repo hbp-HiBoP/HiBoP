@@ -18,45 +18,6 @@ namespace HBP.Module3D
     public class Column3DManager : MonoBehaviour
     {
         #region Properties
-        // mani (debug)
-        public Color[] ColorsSites = null;
-
-        public int SelectedPatientID = 0; /**< id of the selected patient for Multi patient scene */
-        public View3D SelectedView
-        {
-            get
-            {
-                foreach (Column3D column in Columns)
-                {
-                    foreach (View3D view in column.Views)
-                    {
-                        if (view.IsSelected)
-                        {
-                            return view;
-                        }
-                    }
-                }
-                return null;
-            }
-        }
-        public View3D ClickedView
-        {
-            get
-            {
-                foreach (Column3D column in Columns)
-                {
-                    foreach (View3D view in column.Views)
-                    {
-                        if (view.IsClicked)
-                        {
-                            return view;
-                        }
-                    }
-                }
-                return null;
-            }
-        }
-
         /// <summary>
         /// ID of the seleccted column
         /// </summary>
@@ -97,14 +58,31 @@ namespace HBP.Module3D
         public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
 
         List<Column3D> m_Columns = new List<Column3D>();
+        /// <summary>
+        /// Columns of the scene
+        /// </summary>
         public ReadOnlyCollection<Column3D> Columns { get { return m_Columns != null ? new ReadOnlyCollection<Column3D>(m_Columns) : new ReadOnlyCollection<Column3D>(new List<Column3D>(0)); } }
+        /// <summary>
+        /// IEEG Columns of the scene
+        /// </summary>
         public ReadOnlyCollection<Column3DIEEG> ColumnsIEEG { get { return m_Columns != null ? new ReadOnlyCollection<Column3DIEEG>((from column in m_Columns where column is Column3DIEEG select (Column3DIEEG)column).ToArray()) : new ReadOnlyCollection<Column3DIEEG>(new List<Column3DIEEG>(0)); } }
+        /// <summary>
+        /// FMRI Columns of the scene
+        /// </summary>
         public ReadOnlyCollection<Column3DFMRI> ColumnsFMRI { get { return m_Columns != null ? new ReadOnlyCollection<Column3DFMRI>((from column in m_Columns where column is Column3DFMRI select (Column3DFMRI)column).ToArray()) : new ReadOnlyCollection<Column3DFMRI>(new List<Column3DFMRI>(0)); } }
 
+        public ReadOnlyCollection<View3D> Views
+        {
+            get
+            {
+                if (m_Columns.Count == 0) return new ReadOnlyCollection<View3D>(new List<View3D>());
+                else return m_Columns[0].Views;
+            }
+        }
         /// <summary>
         /// Maximum number of view in a column
         /// </summary>
-        public int ViewNumber
+        public int ViewLineNumber
         {
             get
             {
@@ -120,7 +98,7 @@ namespace HBP.Module3D
             }
         }
 
-        // plots
+        // Sites
         public DLL.RawSiteList DLLLoadedRawSitesList = null;
         public DLL.PatientElectrodesList DLLLoadedPatientsElectrodes = null;
         public List<GameObject> SitesList = new List<GameObject>();
@@ -131,10 +109,6 @@ namespace HBP.Module3D
         public bool LatencyFilesDefined = false;
         public bool LatencyFileAvailable = false; /**< latency file is available */
         public List<Latencies> LatenciesFiles = new List<Latencies>(); /*< list of latency files */
-
-        // timelines 
-        public bool GlobalTimeline = true;  /**< is global timeline enabled */
-        public float CommonTimelineValue = 0f; /**< commmon value of the timelines */
 
         // textures
         public List<Vector2[]> UVNull = null;                   /**< null uv vectors */ // // new List<Vector2[]>(); 
@@ -279,10 +253,11 @@ namespace HBP.Module3D
         public Texture2D BrainColorMapTexture = null;
         public Texture2D BrainColorTexture = null;
 
-        public UnityEvent OnUpdateIEEGSpan = new UnityEvent();
-        public UnityEvent OnUpdateIEEGAlpha = new UnityEvent();
-        public UnityEvent OnUpdateIEEGGain = new UnityEvent();
-        public UnityEvent OnUpdateIEEGMaximumInfluence = new UnityEvent();
+        public GenericEvent<Column3DIEEG> OnUpdateIEEGSpan = new GenericEvent<Column3DIEEG>();
+        public GenericEvent<Column3DIEEG> OnUpdateIEEGAlpha = new GenericEvent<Column3DIEEG>();
+        public GenericEvent<Column3DIEEG> OnUpdateIEEGGain = new GenericEvent<Column3DIEEG>();
+        public GenericEvent<Column3DIEEG> OnUpdateIEEGMaximumInfluence = new GenericEvent<Column3DIEEG>();
+        public GenericEvent<Column3DIEEG> OnUpdateColumnTimelineID = new GenericEvent<Column3DIEEG>();
 
         // Column 3D Prefabs
         public GameObject Column3DViewIEEGPrefab;
@@ -292,9 +267,6 @@ namespace HBP.Module3D
         #region Private Methods
         private void Awake()
         {
-            //Initialize(0);
-            //UpdateColumnsNumber(0, 0, 0);
-
             BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
             BrainColorTexture = Texture2Dutility.GenerateColorScheme();
         }
@@ -305,9 +277,9 @@ namespace HBP.Module3D
         {
             Column3DIEEG column = Instantiate(Column3DViewIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
             column.gameObject.name = "Column IEEG " + ColumnsIEEG.Count;
+            column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
             column.OnSelectColumn.AddListener((selectedColumn) =>
             {
-                Debug.Log("OnSelectColumn");
                 foreach (Column3D c in m_Columns)
                 {
                     if (c != selectedColumn)
@@ -316,13 +288,8 @@ namespace HBP.Module3D
                         foreach (View3D v in c.Views)
                         {
                             v.IsSelected = false;
-                            v.IsColumnSelected = false;
                         }
                     }
-                }
-                foreach (View3D v in selectedColumn.Views)
-                {
-                    v.IsColumnSelected = true;
                 }
                 OnSelectColumnManager.Invoke(this);
                 ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
@@ -333,25 +300,31 @@ namespace HBP.Module3D
             });
             column.IEEGParameters.OnUpdateSpanValues.AddListener(() =>
             {
-                OnUpdateIEEGSpan.Invoke();
+                OnUpdateIEEGSpan.Invoke(column);
                 column.IsRenderingUpToDate = false;
             });
             column.IEEGParameters.OnUpdateAlphaValues.AddListener(() =>
             {
-                OnUpdateIEEGAlpha.Invoke();
+                OnUpdateIEEGAlpha.Invoke(column);
                 column.IsRenderingUpToDate = false;
             });
             column.IEEGParameters.OnUpdateGain.AddListener(() =>
             {
-                OnUpdateIEEGGain.Invoke();
+                OnUpdateIEEGGain.Invoke(column);
                 column.IsRenderingUpToDate = false;
             });
             column.IEEGParameters.OnUpdateMaximumInfluence.AddListener(() =>
             {
-                OnUpdateIEEGMaximumInfluence.Invoke();
+                OnUpdateIEEGMaximumInfluence.Invoke(column);
+                column.IsRenderingUpToDate = false;
+            });
+            column.OnUpdateCurrentTimelineID.AddListener(() =>
+            {
+                OnUpdateColumnTimelineID.Invoke(column);
                 column.IsRenderingUpToDate = false;
             });
             m_Columns.Add(column);
+            //column.transform.localPosition = new Vector3(0, HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * m_Columns.Count);
             OnAddColumn.Invoke();
         }
         /// <summary>
@@ -361,9 +334,9 @@ namespace HBP.Module3D
         {
             Column3DFMRI column = Instantiate(Column3DViewFMRIPrefab, transform.Find("Columns")).GetComponent<Column3DFMRI>();
             column.gameObject.name = "Column FMRI " + ColumnsFMRI.Count;
+            column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
             column.OnSelectColumn.AddListener((selectedColumn) =>
             {
-                Debug.Log("OnSelectColumn");
                 foreach (Column3D c in m_Columns)
                 {
                     if (c != selectedColumn)
@@ -372,13 +345,8 @@ namespace HBP.Module3D
                         foreach (View3D v in c.Views)
                         {
                             v.IsSelected = false;
-                            v.IsColumnSelected = false;
                         }
                     }
-                }
-                foreach (View3D v in selectedColumn.Views)
-                {
-                    v.IsColumnSelected = true;
                 }
                 OnSelectColumnManager.Invoke(this);
                 ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
@@ -432,7 +400,7 @@ namespace HBP.Module3D
         }
         #endregion
 
-        #region Public Methods
+        #region Public Method
         /// <summary>
         /// Reset all data.
         /// </summary>
@@ -488,6 +456,13 @@ namespace HBP.Module3D
             else m_Columns = new List<Column3D>();
 
             ResetSplitsNumber(1);
+        }
+        public void InitializeColumnsMeshes(GameObject meshes)
+        {
+            foreach (Column3D column in m_Columns)
+            {
+                column.InitializeColumnMeshes(meshes);
+            }
         }
         /// <summary>
         /// Reset the number of meshes splits for the brain
@@ -814,9 +789,8 @@ namespace HBP.Module3D
         /// <param name="indexColumn"></param>
         /// <param name="indexCut"></param>
         /// <param name="thresholdInfluence"></param>
-        public void ColorCutsTexturesWithIEEG(int indexColumn, int indexCut)
-        {
-            Column3DIEEG column = ColumnsIEEG[indexColumn];            
+        public void ColorCutsTexturesWithIEEG(Column3DIEEG column, int indexCut)
+        {       
             DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[indexCut];        
             generator.FillTextureWithIEEG(column, column.DLLCutColorScheme, NotInBrainColor);
 
@@ -848,10 +822,10 @@ namespace HBP.Module3D
         /// <param name="thresholdInfluence"></param>
         /// <param name="alphaMin"></param>
         /// <param name="alphaMax"></param>
-        public bool ComputeSurfaceBrainUVWithIEEG(bool whiteInflatedMeshes, int indexColumn)
+        public bool ComputeSurfaceBrainUVWithIEEG(bool whiteInflatedMeshes, Column3DIEEG column)
         {
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
-                if(!ColumnsIEEG[indexColumn].DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(whiteInflatedMeshes ? DLLSplittedWhiteMeshesList[ii] : DLLSplittedMeshesList[ii], ColumnsIEEG[indexColumn]))
+                if(!column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(whiteInflatedMeshes ? DLLSplittedWhiteMeshesList[ii] : DLLSplittedMeshesList[ii], column))
                     return false;
 
             return true;
@@ -861,6 +835,25 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateAllColumnsSitesRendering(SceneStatesInfo data)
         {
+            // unselect blacklisted hidden sites
+            if (data.HideBlacklistedSites)
+            {
+                foreach (Column3D column in Columns)
+                {
+                    if (column.SelectedSite)
+                    {
+                        if (column.SelectedSite.Information.IsBlackListed)
+                        {
+                            column.SelectedSiteID = -1;
+                            if (column.IsSelected)
+                            {
+                                ApplicationState.Module3D.OnSelectSite.Invoke(null);
+                            }
+                        }
+                    }
+                }
+            }
+
             for (int ii = 0; ii < ColumnsIEEG.Count; ++ii)
             {
                 Latencies latencyFile = null;
@@ -874,20 +867,24 @@ namespace HBP.Module3D
             for (int ii = 0; ii < ColumnsFMRI.Count; ++ii)
                 ColumnsFMRI[ii].UpdateSitesVisibility(data);
         }
+        public void UpdateColumnIEEGSitesRendering(Column3DIEEG column, SceneStatesInfo data)
+        {
+            Latencies latencyFile = null;
+            if (column.CurrentLatencyFile != -1)
+                latencyFile = LatenciesFiles[column.CurrentLatencyFile];
+
+            column.UpdateSitesSizeAndColorForIEEG(); // TEST
+            column.UpdateSitesRendering(data, latencyFile);
+        }
         /// <summary>
         /// Update the visiblity of the ROI for all columns
         /// </summary>
         /// <param name="visible"></param>
         public void UpdateROIVisibility(bool visible)
         {
-            // disable all ROI render
             for(int ii = 0; ii < m_Columns.Count; ++ii)
                 if (m_Columns[ii].SelectedROI != null)
-                    m_Columns[ii].SelectedROI.SetRenderingState(false);
-
-            if(SelectedColumn != null)
-                if(SelectedColumn.SelectedROI != null)
-                SelectedColumn.SelectedROI.SetRenderingState(visible);
+                    m_Columns[ii].SelectedROI.SetRenderingState(visible);
         }
         /// <summary>
         /// Update the visiblity of the plots for all columns
@@ -912,13 +909,14 @@ namespace HBP.Module3D
         /// Remove a view from every columns
         /// </summary>
         /// <param name="lineID">ID of the line of the view to be removed</param>
-        public void RemoveViewLine(int lineID)
+        public void RemoveViewLine(int lineID = -1)
         {
+            if (lineID == -1) lineID = Views.Count - 1;
             foreach (Column3D column in m_Columns)
             {
                 column.RemoveView(lineID);
             }
-            OnRemoveViewLine.Invoke(ViewNumber);
+            OnRemoveViewLine.Invoke(ViewLineNumber);
         }
         #endregion
     }

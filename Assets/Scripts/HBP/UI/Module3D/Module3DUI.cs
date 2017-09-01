@@ -8,6 +8,7 @@ using HBP.Data.Experience.Protocol;
 using HBP.Data.General;
 using System.Linq;
 using UnityEngine.EventSystems;
+using T = Tools.Unity;
 
 namespace HBP.UI.Module3D
 {
@@ -31,6 +32,16 @@ namespace HBP.UI.Module3D
                 sceneWindow.Initialize(scene);
                 m_SiteInfoDisplayer.transform.SetAsLastSibling();
             });
+        }
+        /// <summary>
+        /// DELETEME : DEBUG
+        /// </summary>
+        private void Update()
+        {
+            if (Input.GetKey(KeyCode.W))
+            {
+                Debug.Log(Input.mouseScrollDelta);
+            }
         }
         #endregion
     }

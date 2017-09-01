@@ -2,10 +2,11 @@
 using UnityEngine.Events;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityStandardAssets.ImageEffects;
 
 namespace HBP.Module3D
 {
-    public enum DisplayedItems { Meshes, Plots, ROI };
+    public enum CameraControl { Trackball, Orbital }
 
     public class Camera3D : MonoBehaviour
     {
@@ -18,7 +19,7 @@ namespace HBP.Module3D
         /// Camera component
         /// </summary>
         public Camera Camera { get; set; }
-
+        
         [SerializeField, Candlelight.PropertyBackingField]
         private int m_CullingMask;
         public int CullingMask
@@ -33,31 +34,7 @@ namespace HBP.Module3D
                 Camera.cullingMask = m_CullingMask;
             }
         }
-
-        [SerializeField, Candlelight.PropertyBackingField]
-        private float m_StartDistance = 250.0f;
-        public float StartDistance
-        {
-            get { return m_StartDistance; }
-            set { m_StartDistance = value; }
-        }
-
-        [SerializeField, Candlelight.PropertyBackingField]
-        private float m_Speed = 50.0f;
-        public float Speed
-        {
-            get { return m_Speed; }
-            set { m_Speed = value; }
-        }
-
-        [SerializeField, Candlelight.PropertyBackingField]
-        private float m_ZoomSpeed = 3.5f;
-        public float ZoomSpeed
-        {
-            get { return m_ZoomSpeed; }
-            set { m_ZoomSpeed = value; }
-        }
-
+        
         [SerializeField, Candlelight.PropertyBackingField]
         private float m_AutomaticRotationSpeed = 30.0f;
         public float AutomaticRotationSpeed
@@ -73,57 +50,57 @@ namespace HBP.Module3D
             get { return m_AutomaticRotation; }
             set { m_AutomaticRotation = value; }
         }
-
-        [SerializeField, Candlelight.PropertyBackingField]
+        
         private float m_MinDistance = 50.0f;
-        public float MinDistance
-        {
-            get { return m_MinDistance; }
-            set { m_MinDistance = value; }
-        }
-
-        [SerializeField, Candlelight.PropertyBackingField]
         private float m_MaxDistance = 750.0f;
-        public float MaxDistance
-        {
-            get { return m_MaxDistance; }
-            set { m_MaxDistance = value; }
-        }
+        private float m_StartDistance = 250.0f;
+        private float m_Distance { get { return Vector3.Distance(transform.position, Target); } }
 
+        private float m_Speed = 1.0f;
+        private float m_ZoomSpeed = 3.5f;
+
+        private Vector3 m_OrbitXRotationAxis = Vector3.forward;
         [SerializeField, Candlelight.PropertyBackingField]
         private Material m_XCircleMaterial;
-        public Material XCircleMaterial
-        {
-            get { return m_XCircleMaterial; }
-            set { m_XCircleMaterial = value; }
-        }
-
         [SerializeField, Candlelight.PropertyBackingField]
         private Material m_YCircleMaterial;
-        public Material YCircleMaterial
-        {
-            get { return m_YCircleMaterial; }
-            set { m_YCircleMaterial = value; }
-        }
-
         [SerializeField, Candlelight.PropertyBackingField]
         private Material m_ZCircleMaterial;
-        public Material ZCircleMaterial
+
+        private CameraControl m_Type = CameraControl.Trackball;
+        /// <summary>
+        /// Type of the rotation
+        /// </summary>
+        public CameraControl Type
         {
-            get { return m_ZCircleMaterial; }
-            set { m_ZCircleMaterial = value; }
+            get
+            {
+                return m_Type;
+            }
+            set
+            {
+                m_Type = value;
+                m_AssociatedView.Default();
+            }
         }
-        
+
         public bool DisplayRotationCircles { get; set; }
 
         private float m_RotationCirclesRay = 300f;
 
         private Vector3 m_Target;
-        public Vector3 Target
+        public Vector3 LocalTarget
         {
             get
             {
                 return m_Target;
+            }
+        }
+        public Vector3 Target
+        {
+            get
+            {
+                return m_AssociatedView ? m_Target + m_AssociatedView.transform.position : m_Target;
             }
             set
             {
@@ -140,14 +117,15 @@ namespace HBP.Module3D
         private List<Vector3[]> m_PlanesCutsCirclesVertices = new List<Vector3[]>();
 
         // Rendering Settings
-        public AmbientMode AmbiantMode = AmbientMode.Flat;
+        public AmbientMode AmbientMode = AmbientMode.Flat;
         public float AmbientIntensity = 1;
         public Color AmbiantLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
         // post render
-        public Material m_PlaneMaterial = null;
+        [SerializeField]
+        private Material m_PlaneMaterial;
         private bool m_DisplayCutsCircles = false;
-        public double m_DisplayPlanesTimeRemaining;
+        private double m_DisplayPlanesTimeRemaining = 1;
         private double m_DisplayPlanesTimeStart = 0;
         private double m_DisplayPlanesTimer = 0;
         #endregion
@@ -156,14 +134,20 @@ namespace HBP.Module3D
         private void Awake()
         {
             Camera = GetComponent<Camera>();
-            m_OriginalRotationEuler = transform.localEulerAngles;
-            m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
             m_AssociatedScene = GetComponentInParent<Base3DScene>();
             m_AssociatedColumn = GetComponentInParent<Column3D>();
             m_AssociatedView = GetComponentInParent<View3D>();
-            m_Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center + m_AssociatedView.transform.position;
-            m_OriginalTarget = m_Target;
-            transform.position = m_Target - transform.forward * m_StartDistance;
+
+            transform.localEulerAngles = new Vector3(0, 100, 90);
+            m_OriginalRotationEuler = transform.localEulerAngles;
+            m_StartDistance = Mathf.Clamp(m_StartDistance, m_MinDistance, m_MaxDistance);
+            Target = m_AssociatedScene.ColumnManager.BothHemi.BoundingBox.Center;
+            m_OriginalTarget = LocalTarget;
+            transform.position = Target - transform.forward * m_StartDistance;
+
+            GetComponent<EdgeDetection>().enabled = m_AssociatedScene.EdgeMode;
+            AutomaticRotation = m_AssociatedScene.AutomaticRotation;
+            AutomaticRotationSpeed = m_AssociatedScene.AutomaticRotationSpeed;
 
             // rotation circles
             m_XRotationCircleVertices = Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), m_RotationCirclesRay, 150);
@@ -187,6 +171,7 @@ namespace HBP.Module3D
                 {
                     Vector3 point = m_AssociatedScene.Cuts[ii].Point;
                     point.x *= -1;
+                    point += m_AssociatedView.transform.position;
                     Vector3 normal = m_AssociatedScene.Cuts[ii].Normal;
                     normal.x *= -1;
                     Quaternion q = Quaternion.FromToRotation(new Vector3(0, 0, 1), normal);
@@ -197,7 +182,6 @@ namespace HBP.Module3D
                         m_PlanesCutsCirclesVertices[ii][jj] += point;
                     }
                 }
-
                 m_DisplayPlanesTimeStart = (float)TimeExecution.GetWorldTime();
                 m_DisplayPlanesTimer = 0;
                 m_DisplayCutsCircles = true;
@@ -206,12 +190,12 @@ namespace HBP.Module3D
             m_AssociatedScene.Events.OnUpdateCameraTarget.AddListener((target) =>
             {
                 m_OriginalTarget = target;
-                m_Target = target;
+                Target = target;
             });
         }
         private void OnPreCull()
         {
-            RenderSettings.ambientMode = AmbiantMode;
+            RenderSettings.ambientMode = AmbientMode;
             RenderSettings.ambientIntensity = AmbientIntensity;
             RenderSettings.skybox = null;
             RenderSettings.ambientLight = AmbiantLight;
@@ -230,6 +214,25 @@ namespace HBP.Module3D
         }
         private void Update()
         {
+            if (m_AssociatedScene.IsSelected)
+            {
+                if (m_AssociatedView.IsSelected)
+                {
+                    Camera.backgroundColor = ApplicationState.Theme.Color.ClickedViewColor;
+                }
+                else if (m_AssociatedColumn.IsSelected)
+                {
+                    Camera.backgroundColor = ApplicationState.Theme.Color.SelectedViewColor;
+                }
+                else
+                {
+                    Camera.backgroundColor = ApplicationState.Theme.Color.RegularViewColor;
+                }
+            }
+            else
+            {
+                Camera.backgroundColor = ApplicationState.Theme.Color.RegularViewColor;
+            }
             AutomaticCameraRotation();
         }
         /// <summary>
@@ -250,7 +253,7 @@ namespace HBP.Module3D
         /// </summary>
         public void DrawGL()
         {
-            if (!m_AssociatedView.IsSelected || m_AssociatedView.IsMinimized)
+            if (m_AssociatedView.IsMinimized)
                 return;
 
             if (m_DisplayCutsCircles)
@@ -259,7 +262,6 @@ namespace HBP.Module3D
                 if (m_DisplayPlanesTimeRemaining > m_DisplayPlanesTimer)
                 {
                     m_PlaneMaterial.SetPass(0);
-
                     {
                         int ii = m_AssociatedScene.SceneInformation.LastPlaneModifiedID;
                         for (int jj = 0; jj < m_PlanesCutsCirclesVertices[ii].Length; ++jj)
@@ -288,15 +290,14 @@ namespace HBP.Module3D
             {
                 //GL.PushMatrix();
                 m_XCircleMaterial.SetPass(0);
-
-                float currentDist = Vector3.Distance(transform.position, m_Target);
-                float scaleRatio = currentDist / m_MaxDistance;
+                
+                float scaleRatio = m_Distance / m_MaxDistance;
 
                 for (int ii = 0; ii < m_XRotationCircleVertices.Length; ++ii)
                 {
                     GL.Begin(GL.LINES);
-                    GL.Vertex(m_Target + scaleRatio * m_XRotationCircleVertices[ii]);
-                    GL.Vertex(m_Target + scaleRatio * m_XRotationCircleVertices[(ii + 1) % m_XRotationCircleVertices.Length]);
+                    GL.Vertex(Target + scaleRatio * m_XRotationCircleVertices[ii]);
+                    GL.Vertex(Target + scaleRatio * m_XRotationCircleVertices[(ii + 1) % m_XRotationCircleVertices.Length]);
                     GL.End();
                 }
 
@@ -305,8 +306,8 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < m_YRotationCircleVertices.Length; ++ii)
                 {
                     GL.Begin(GL.LINES);
-                    GL.Vertex(m_Target + scaleRatio * m_YRotationCircleVertices[ii]);
-                    GL.Vertex(m_Target + scaleRatio * m_YRotationCircleVertices[(ii + 1) % m_YRotationCircleVertices.Length]);
+                    GL.Vertex(Target + scaleRatio * m_YRotationCircleVertices[ii]);
+                    GL.Vertex(Target + scaleRatio * m_YRotationCircleVertices[(ii + 1) % m_YRotationCircleVertices.Length]);
                     GL.End();
                 }
 
@@ -315,8 +316,8 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < m_ZRotationCircleVertices.Length; ++ii)
                 {
                     GL.Begin(GL.LINES);
-                    GL.Vertex(m_Target + scaleRatio * m_ZRotationCircleVertices[ii]);
-                    GL.Vertex(m_Target + scaleRatio * m_ZRotationCircleVertices[(ii + 1) % m_ZRotationCircleVertices.Length]);
+                    GL.Vertex(Target + scaleRatio * m_ZRotationCircleVertices[ii]);
+                    GL.Vertex(Target + scaleRatio * m_ZRotationCircleVertices[(ii + 1) % m_ZRotationCircleVertices.Length]);
                     GL.End();
                 }
             }
@@ -331,7 +332,7 @@ namespace HBP.Module3D
             Vector3 strafe = - transform.right * amount;
 
             transform.position = transform.position + strafe;
-            m_Target = m_Target + strafe;
+            Target = Target + strafe;
         }
         /// <summary>
         /// Strafe vertically the camera position and target with the same vector.
@@ -343,8 +344,13 @@ namespace HBP.Module3D
             Vector3 strafe = - transform.up * amount;
 
             transform.position = transform.position + strafe;
-            m_Target = m_Target + strafe;
+            Target = Target + strafe;
         }
+        /// <summary>
+        /// Rotate the camera
+        /// </summary>
+        /// <param name="amountX"></param>
+        /// <param name="amountY"></param>
         /// <summary>
         /// Turn horizontally around the camera target
         /// </summary>
@@ -352,11 +358,19 @@ namespace HBP.Module3D
         /// <param name="amount"></param>
         public void HorizontalRotation(float amount)
         {
-            Vector3 vecTargetPos_EyePos = transform.position - m_Target;
-            Quaternion rotation = Quaternion.AngleAxis(amount, transform.up);
-
-            transform.position = rotation * vecTargetPos_EyePos + m_Target;
-            transform.LookAt(m_Target, transform.up);
+            switch (Type)
+            {
+                case CameraControl.Trackball:
+                    transform.RotateAround(Target, transform.up, amount);
+                    break;
+                case CameraControl.Orbital:
+                    int direction = Vector3.Dot(transform.up, Vector3.forward) > 0 ? 1 : -1;
+                    transform.RotateAround(Target, Vector3.forward, direction * amount);
+                    break;
+                default:
+                    transform.RotateAround(Target, transform.up, amount);
+                    break;
+            }
         }
         /// <summary>
         /// Turn vertically around the camera target
@@ -365,11 +379,7 @@ namespace HBP.Module3D
         /// <param name="amount"></param>
         public void VerticalRotation(float amount)
         {
-            Vector3 vecTargetPos_EyePos = transform.position - m_Target;
-            Quaternion rotation = Quaternion.AngleAxis(-amount, transform.right);
-
-            transform.position = rotation * vecTargetPos_EyePos + m_Target;
-            transform.LookAt(m_Target, Vector3.Cross(m_Target - transform.position, transform.right));
+            transform.RotateAround(Target, transform.right, -amount);
         }
         /// <summary>
         /// Zoom towards target
@@ -377,18 +387,18 @@ namespace HBP.Module3D
         /// <param name="amount">Distance</param>
         public void Zoom(float amount)
         {
-            float distance = Vector3.Distance(transform.position, m_Target) - amount;
+            float distance = m_Distance - amount;
             if (distance > m_MinDistance && distance < m_MaxDistance)
             {
                 transform.position += transform.forward * amount;
             }
             else if (distance >= m_MaxDistance)
             {
-                transform.position = m_Target - transform.forward * m_MaxDistance;
+                transform.position = Target - transform.forward * m_MaxDistance;
             }
             else if (distance <= m_MinDistance)
             {
-                transform.position = m_Target - transform.forward * m_MinDistance;
+                transform.position = Target - transform.forward * m_MinDistance;
             }
         }
         /// <summary>
@@ -397,8 +407,8 @@ namespace HBP.Module3D
         public void ResetTarget()
         {
             transform.localEulerAngles = m_OriginalRotationEuler;
-            m_Target = m_OriginalTarget;
-            transform.position = m_Target - transform.forward * m_StartDistance;
+            Target = m_OriginalTarget;
+            transform.position = Target - transform.forward * m_StartDistance;
         }
         #endregion
     }

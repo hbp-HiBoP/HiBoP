@@ -14,6 +14,9 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.UI.Module3D;
 using System.Linq;
+using System.Collections;
+using CielaSpike;
+using Tools.Unity;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -54,7 +57,11 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_ScenesManager.SelectedScene.ColumnManager.SelectedColumn;
+                if (m_ScenesManager.SelectedScene)
+                {
+                    return m_ScenesManager.SelectedScene.ColumnManager.SelectedColumn;
+                }
+                else return null;
             }
         }
         /// <summary>
@@ -70,6 +77,20 @@ namespace HBP.Module3D
 
         public const int MAXIMUM_VIEW_NUMBER = 5;
         public const int MAXIMUM_COLUMN_NUMBER = 5;
+        /// <summary>
+        /// Space between scenes in world space
+        /// </summary>
+        public const int SPACE_BETWEEN_SCENES_AND_COLUMNS = 3000;
+
+        /// <summary>
+        /// Number of scenes that have been loaded in this instance of HiBoP (to apply a unique ID to each scene)
+        /// </summary>
+        public int NumberOfScenesLoadedSinceStart { get; set; }
+
+        /// <summary>
+        /// Number of columns that have been instanciated in this instance of HiBoP (to apply a unique ID to each column)
+        /// </summary>
+        public int NumberOfColumnsSinceStart { get; set; }
 
         /// <summary>
         /// List of all the loaded visualizations
@@ -100,6 +121,10 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
         /// <summary>
+        /// Event called when changing the value of the timeline of the selected column
+        /// </summary>
+        public UnityEvent OnUpdateSelectedColumnTimeLineID = new UnityEvent();
+        /// <summary>
         /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
         /// </summary>   
         public GenericEvent<Data.Visualization.Visualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.Visualization, Data.Patient>();
@@ -108,13 +133,25 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<string> OnSaveRegionOfInterest = new GenericEvent<string>();
         /// <summary>
-        /// Event called when a visualization is added
+        /// Event called when adding or removing a ROI
         /// </summary>
-        public GenericEvent<Data.Visualization.Visualization> OnAddVisualization = new GenericEvent<Data.Visualization.Visualization>();
+        public UnityEvent OnChangeNumberOfROI = new UnityEvent();
         /// <summary>
-        /// Event called when a visualization is removed
+        /// Event called when adding or removing a bubble in a ROI
         /// </summary>
-        public GenericEvent<Data.Visualization.Visualization> OnRemoveVisualization = new GenericEvent<Data.Visualization.Visualization>();
+        public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
+        /// <summary>
+        /// Event called when selecting a ROI
+        /// </summary>
+        public UnityEvent OnSelectROI = new UnityEvent();
+        /// <summary>
+        /// Event called when selecting a volume of a ROI
+        /// </summary>
+        public UnityEvent OnSelectROIVolume = new UnityEvent();
+        /// <summary>
+        /// Event called when changing the radius of a volume of a ROI
+        /// </summary>
+        public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
         /// <summary>
         /// Event called when a scene is added
         /// </summary>
@@ -135,6 +172,22 @@ namespace HBP.Module3D
         /// Event called when changing the selected view
         /// </summary>
         public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
+        /// <summary>
+        /// Event called when changing the selected site
+        /// </summary>
+        public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
+        /// <summary>
+        /// Event called when updating the invisible part of the brain (erasing triangles, reset ...)
+        /// </summary>
+        public UnityEvent OnModifyInvisiblePart = new UnityEvent();
+        /// <summary>
+        /// Event called when the timeline is stopped because it reached the end
+        /// </summary>
+        public UnityEvent OnStopTimelinePlay = new UnityEvent();
+        /// <summary>
+        /// Event called when requesting an update in the UI
+        /// </summary>
+        public UnityEvent OnRequestUpdateInUI = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -142,17 +195,8 @@ namespace HBP.Module3D
         {
             // Scene Manager
             m_ScenesManager = transform.GetComponentInChildren<ScenesManager>();
-            OnAddScene.AddListener((scene) =>
-            {
-                OnAddVisualization.Invoke(scene.Visualization);
-            });
-            OnRemoveScene.AddListener((scene) =>
-            {
-                OnRemoveVisualization.Invoke(scene.Visualization);
-            });
             m_ScenesManager.OnSelectScene.AddListener((s) =>
             {
-                UnityEngine.Debug.Log("OnSelectScene (Module3D)");
                 OnSelectScene.Invoke(s);
             });
 
@@ -176,85 +220,6 @@ namespace HBP.Module3D
         {
             ApplicationState.DLLDebugManager.clean();
         }
-        /// <summary>
-        /// Load a single patient scene, load the UI and the data.
-        /// </summary>
-        /// <param name="visuDataSP"></param>
-        /// <returns>false if a loading error occurs, else true </returns>
-        private bool SetSPVisualization(Data.Visualization.Visualization visualization)
-        {
-            bool result = SetSinglePatientSceneData(visualization);
-            if (result)
-            {
-                // Add listeners to last added scene
-                SinglePatient3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as SinglePatient3DScene;
-                lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
-                {
-                    OnRequestSiteInformation.Invoke(siteRequest);
-                });
-            }
-            return result;
-        }
-        /// <summary>
-        /// Load a multi patients scene, load the UI and the data.
-        /// </summary>
-        /// <param name="visuDataMP"></param>
-        /// <returns>false if a loading error occurs, else true </returns>
-        private bool SetMPVisualization(Data.Visualization.Visualization visualization)
-        {
-            bool result = false;
-            if (MNIObjects.LoadingMutex.WaitOne(10000))
-            {
-                result = SetMultiPatientsSceneData(visualization);
-            }
-
-            if (!result)
-            {
-                UnityEngine.Debug.LogError("MNI loading data not finished.");
-            }
-            else
-            {
-                // Add listener to last added scene
-                MultiPatients3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as MultiPatients3DScene;
-                lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
-                {
-                    OnRequestSiteInformation.Invoke(siteRequest);
-                });
-                lastAddedScene.OnLoadSinglePatientSceneFromMultiPatientsScene.AddListener((visu, patient) =>
-                {
-                    OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(visu, patient);
-                });
-            }
-
-            return result;
-        }
-        /// <summary>
-        /// Load a new single patient scene
-        /// </summary>
-        /// <param name="visualization"></param>
-        /// <returns></returns>
-        private bool SetSinglePatientSceneData(Data.Visualization.Visualization visualization, bool postIRM = false)
-        {
-            bool success = m_ScenesManager.AddSinglePatientScene(visualization, postIRM);
-            if (!success)
-            {
-                UnityEngine.Debug.LogError("-ERROR : Failed to add single patient scene");
-            }
-            return success;
-        }
-        /// <summary>
-        /// Load a new multi patients scene
-        /// </summary>
-        /// <param name="data"></param>
-        private bool SetMultiPatientsSceneData(Data.Visualization.Visualization visualization)
-        {
-            bool success = m_ScenesManager.AddMultiPatientsScene(visualization);
-            if (!success)
-            {
-                UnityEngine.Debug.LogError("-ERROR : Failed to add multi patients scene");
-            }
-            return success;
-        }
         #endregion
 
         #region Public Methods
@@ -263,44 +228,102 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visualization"></param>
         /// <returns></returns>
-        public bool AddVisualization(Data.Visualization.Visualization visualization)
+        public void LoadScene(Data.Visualization.Visualization visualization)
         {
-            bool result = false;
-            if(visualization.Patients.Count > 1)
-            {
-                result = SetMPVisualization(visualization);
-            }
-            else
-            {
-                result = SetSPVisualization(visualization);
-            }
-            // TOCHECK
-            //switch (visualization.ReferenceFrame)
-            //{
-            //    case Data.Anatomy.ReferenceFrameType.Patient:
-            //        result = SetSPVisualization(visualization);
-            //        break;
-            //    case Data.Anatomy.ReferenceFrameType.MNI:
-            //        result = SetMPVisualization(visualization);
-            //        break;
-            //    default:
-            //        break;
-            //}
-            if (result)
-            {
-                OnAddVisualization.Invoke(visualization);
-            }
-            return result;
+            this.StartCoroutineAsync(c_Load(visualization));
         }
         /// <summary>
         /// Remove a visualization and its associated scene
         /// </summary>
         /// <param name="visualization"></param>
-        public void RemoveVisualization(Data.Visualization.Visualization visualization)
+        public void RemoveScene(Data.Visualization.Visualization visualization)
         {
             Base3DScene scene = m_ScenesManager.Scenes.ToList().Find(s => s.Visualization == visualization);
             m_ScenesManager.RemoveScene(scene);
-            OnRemoveVisualization.Invoke(visualization);
+        }
+        /// <summary>
+        /// Remove a visualization and its associated scene
+        /// </summary>
+        /// <param name="visualization"></param>
+        public void RemoveScene(Base3DScene scene)
+        {
+            m_ScenesManager.RemoveScene(scene);
+        }
+        #endregion
+
+        #region Coroutines
+        IEnumerator c_Load(Data.Visualization.Visualization visualization)
+        {
+            yield return Ninja.JumpToUnity;
+            LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
+            GenericEvent<float, float, string> OnChangeLoadingProgress = new GenericEvent<float, float, string>();
+            OnChangeLoadingProgress.AddListener((progress, time, message) => { loadingCircle.ChangePercentage(progress/2.0f, time, message); });
+            Task visualizationLoadingTask;
+            yield return this.StartCoroutineAsync(visualization.c_Load(OnChangeLoadingProgress), out visualizationLoadingTask);
+            switch (visualizationLoadingTask.State)
+            {
+                case TaskState.Done:
+                    yield return new WaitForSeconds(0.5f);
+                    break;
+                case TaskState.Error:
+                    Exception exception = visualizationLoadingTask.Exception;
+                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
+                    break;
+            }
+            Task sceneLoadingTask;
+            yield return this.StartCoroutineAsync(c_LoadScene(visualization, OnChangeLoadingProgress), out sceneLoadingTask);
+            switch (sceneLoadingTask.State)
+            {
+                case TaskState.Done:
+                    yield return new WaitForSeconds(0.5f);
+                    break;
+                case TaskState.Error:
+                    Exception exception = sceneLoadingTask.Exception;
+                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
+                    break;
+            }
+            loadingCircle.Close();
+        }
+        IEnumerator c_LoadScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress = null)
+        {
+            if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, string>();
+            
+            yield return Ninja.JumpToUnity;
+            if (visualization.Patients.Count == 1)
+            {
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetSinglePatientVisualization(visualization, onChangeProgress));
+            }
+            else
+            {
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetMultiPatientsVisualization(visualization, onChangeProgress));
+            }
+        }
+        IEnumerator c_SetSinglePatientVisualization(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, bool postMRI = false)
+        {
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddSinglePatientScene(visualization, onChangeProgress, postMRI));
+            // Add listeners to last added scene
+            SinglePatient3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as SinglePatient3DScene;
+            lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
+            {
+                OnRequestSiteInformation.Invoke(siteRequest);
+            });
+        }
+        IEnumerator c_SetMultiPatientsVisualization(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
+        {
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddMultiPatientsScene(visualization, onChangeProgress));
+            bool result = false;
+            // Add listener to last added scene
+            MultiPatients3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as MultiPatients3DScene;
+            lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
+            {
+                OnRequestSiteInformation.Invoke(siteRequest);
+            });
+            lastAddedScene.OnLoadSinglePatientSceneFromMultiPatientsScene.AddListener((visu, patient) =>
+            {
+                OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(visu, patient);
+            });
         }
         #endregion
     }

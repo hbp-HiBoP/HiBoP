@@ -11,35 +11,35 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         /// <summary>
-        /// Change IEEG colormap
-        /// </summary>
-        [SerializeField]
-        private Tools.Colormap m_Colormap;
-        /// <summary>
-        /// Change brain surface color
-        /// </summary>
-        [SerializeField]
-        private Tools.BrainColor m_BrainColor;
-        /// <summary>
-        /// Change brain cut color
-        /// </summary>
-        [SerializeField]
-        private Tools.CutColor m_CutColor;
-        /// <summary>
-        /// Show / hide edges
-        /// </summary>
-        [SerializeField]
-        private Tools.EdgeMode m_EdgeMode;
-        /// <summary>
         /// Handle automatic rotation
         /// </summary>
         [SerializeField]
         private Tools.AutoRotate m_AutoRotate;
         /// <summary>
-        /// Threshold MRI parameters
+        /// Add / remove views from the selected scene
         /// </summary>
         [SerializeField]
-        private Tools.ThresholdMRI m_ThresholdMRI;
+        private Tools.Views m_Views;
+        /// <summary>
+        /// Add / remove FMRI columns from the selected scene
+        /// </summary>
+        [SerializeField]
+        private Tools.FMRI m_FMRI;
+        /// <summary>
+        /// Set the scene to the standard views
+        /// </summary>
+        [SerializeField]
+        private Tools.StandardViews m_StandardViews;
+        /// <summary>
+        /// Set the scene to the standard views
+        /// </summary>
+        [SerializeField]
+        private Tools.ResetViews m_ResetViews;
+        /// <summary>
+        /// Set the camera control type
+        /// </summary>
+        [SerializeField]
+        private Tools.CameraTypes m_CameraTypes;
         #endregion
 
         #region Private Methods
@@ -49,12 +49,34 @@ namespace HBP.UI.Module3D
         /// <param name="parent">Transform of the toolbar</param>
         protected override void AddTools()
         {
-            m_Tools.Add(m_Colormap);
-            m_Tools.Add(m_BrainColor);
-            m_Tools.Add(m_CutColor);
-            m_Tools.Add(m_EdgeMode);
             m_Tools.Add(m_AutoRotate);
-            m_Tools.Add(m_ThresholdMRI);
+            m_Tools.Add(m_Views);
+            m_Tools.Add(m_FMRI);
+            m_Tools.Add(m_StandardViews);
+            m_Tools.Add(m_ResetViews);
+            m_Tools.Add(m_CameraTypes);
+        }
+        /// <summary>
+        /// Add the listeners to the elements of the toolbar
+        /// </summary>
+        protected override void AddListeners()
+        {
+            base.AddListeners();
+
+            m_Views.OnClick.AddListener(() =>
+            {
+                UpdateInteractableButtons();
+            });
+
+            m_FMRI.OnClick.AddListener(() =>
+            {
+                UpdateInteractableButtons();
+            });
+
+            m_StandardViews.OnClick.AddListener(() =>
+            {
+                UpdateInteractableButtons();
+            });
         }
         #endregion
     }

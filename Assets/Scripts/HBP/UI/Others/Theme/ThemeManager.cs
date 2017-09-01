@@ -29,6 +29,7 @@ namespace HBP.UI.Theme
             SetToggles(themeElements, theme);
             SetScrollbars(themeElements,theme);
             SetDropdowns(themeElements, theme);
+            SetSliders(themeElements, theme);
         }
 
         void SetBackgrounds(ThemeElement[] themeElements, Theme theme)
@@ -130,6 +131,11 @@ namespace HBP.UI.Theme
             IEnumerable<Dropdown> menuDropdowns = from element in themeElements where element.Type == ThemeElement.ElementType.MenuDropdown select element.GetComponent<Dropdown>();
             foreach (Dropdown dropdown in menuDropdowns) SetDropdown(dropdown, theme.Color.MenuDropdown);
         }
+        void SetSliders(ThemeElement[] themeElements, Theme theme)
+        {
+            IEnumerable<Slider> sliders = from element in themeElements where element.Type == ThemeElement.ElementType.Slider select element.GetComponent<Slider>();
+            foreach (Slider slider in sliders) SetSlider(slider, theme.Color.SliderBackground, theme.Color.SliderFill, theme.Color.SliderHandle);
+        }
 
         void SetButton(Button button, ColorBlock colorBlock)
         {
@@ -184,6 +190,15 @@ namespace HBP.UI.Theme
         void SetDropdown(Dropdown dropdown, ColorBlock colorBlock)
         {
             if(dropdown) dropdown.colors = colorBlock;
+        }
+        void SetSlider(Slider slider, Color background, Color fill, Color handle)
+        {
+            if (slider)
+            {
+                slider.transform.Find("Background").GetComponent<Image>().color = background;
+                slider.fillRect.GetComponent<Image>().color = fill;
+                slider.handleRect.GetComponent<Image>().color = handle;
+            }
         }
     }
 }

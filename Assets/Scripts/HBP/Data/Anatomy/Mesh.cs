@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 namespace HBP.Data.Anatomy
 {
     [DataContract]
-    public class Mesh : ICloneable, ICopiable
+    public abstract class Mesh : ICloneable, ICopiable
     {
         #region Properties
         public const string EXTENSION = ".gii";
@@ -16,6 +16,7 @@ namespace HBP.Data.Anatomy
         {
             get { return !string.IsNullOrEmpty(Name); }
         }
+        public abstract bool HasMarsAtlas { get; }
         #endregion
 
         #region Constructor
@@ -36,21 +37,18 @@ namespace HBP.Data.Anatomy
             {
                 FileInfo greyMatterLeftHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Lhemi" + EXTENSION);
                 FileInfo greyMatterRightHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Rhemi" + EXTENSION);
-                if(greyMatterLeftHemisphere.Exists && greyMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("Grey matter", greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName));
+                if(greyMatterLeftHemisphere.Exists && greyMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("Grey matter", greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName,string.Empty,string.Empty));
 
                 FileInfo whiteMatterLeftHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Lwhite" + EXTENSION);
                 FileInfo whiteMatterRightHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Rwhite" + EXTENSION);
-                if (whiteMatterLeftHemisphere.Exists && whiteMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("White matter", whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName));
+                if (whiteMatterLeftHemisphere.Exists && whiteMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("White matter", whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName,string.Empty,string.Empty));
             }
             return meshes.ToArray();
         }
         #endregion
 
         #region Operators
-        public virtual object Clone()
-        {
-            return new Mesh(Name);
-        }
+        public abstract object Clone();
         public virtual void Copy(object copy)
         {
             Name = (copy as Mesh).Name;

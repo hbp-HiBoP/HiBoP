@@ -36,27 +36,28 @@ public enum ColorType // For now, integers matter because of the link with the d
 } 
 public enum SiteFilter
 {
-    Specific,
-    Electrode,
-    Patient,
-    Highlighted,
-    Unhighlighted,
-    All,
-    InRegionOfInterest,
-    OutOfRegionOfInterest,
-    Name,
-    MarsAtlas,
-    Broadman
+    Site = 0,
+    Electrode = 1,
+    Patient = 2,
+    Highlighted = 3,
+    Unhighlighted = 4,
+    All = 5,
+    InRegionOfInterest = 6,
+    OutOfRegionOfInterest = 7,
+    Name = 8,
+    MarsAtlas = 9,
+    Broadman = 10
 }
 public enum SiteAction
 {
-    Include,
-    Exclude,
-    Blacklist,
-    Unblacklist,
-    Highlight,
-    Unhighlight,
-    Mark,
-    Unmark
+    Include = 0,
+    Exclude = 1,
+    Blacklist = 2,
+    Unblacklist = 3,
+    Highlight = 4,
+    Unhighlight = 5,
+    Mark = 6,
+    Unmark = 7
 }
 public enum CutOrientation { Axial = 0, Coronal = 1, Sagital = 2, Custom = 3 } // Same as above
+public enum SiteInformationDisplayMode { IEEG, FMRI, CCEP }

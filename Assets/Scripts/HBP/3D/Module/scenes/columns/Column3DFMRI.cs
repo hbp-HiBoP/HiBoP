@@ -147,7 +147,7 @@ namespace HBP.Module3D
                     activity = false;
                     siteType = Sites[ii].Information.IsMarked ? SiteType.Marked : SiteType.Normal;
                 }
-                else if (Sites[ii].Information.IsInROI) // ROI mask : plot is not visible, can't be clicked
+                else if (Sites[ii].Information.IsOutOfROI) // ROI mask : plot is not visible, can't be clicked
                 {
                     activity = false;
                     siteType = Sites[ii].Information.IsMarked ? SiteType.Marked : SiteType.Normal;

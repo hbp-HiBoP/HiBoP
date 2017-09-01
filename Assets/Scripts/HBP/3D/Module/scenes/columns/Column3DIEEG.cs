@@ -1,13 +1,16 @@
 ﻿
-/**
- * \file    Column3DViewIEEG.cs
- * \author  Lance Florian
- * \date    2015
- * \brief   Define Column3DViewIEEG class
- */
+
 
 // system
+using CielaSpike;
+/**
+* \file    Column3DViewIEEG.cs
+* \author  Lance Florian
+* \date    2015
+* \brief   Define Column3DViewIEEG class
+*/
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 // unity
@@ -19,7 +22,7 @@ namespace HBP.Module3D
     /// <summary>
     /// A 3D column view IEGG, containing all necessary data concerning a data column
     /// </summary>
-    public class Column3DIEEG : Column3D
+    public class Column3DIEEG : Column3D, IConfigurable
     {
         #region Properties
         public override ColumnType Type
@@ -30,7 +33,7 @@ namespace HBP.Module3D
             }
         }
         // data
-        public Data.Visualization.Column Column = null; /**< column data formalized by the unity main UI part */
+        public Data.Visualization.Column ColumnData = null; /**< column data formalized by the unity main UI part */
         
         // textures
         public List<Texture2D> BrainCutWithIEEGTextures     = null;
@@ -42,16 +45,103 @@ namespace HBP.Module3D
         // IEEG
         public bool SendInformation = true; /**< send info at each plot click ? */
         public bool UpdateIEEG; /**< amplitude needs to be updated ? */
-        public int ColumnTimeLineID = 0; /**< timeline column ID */
-        public int CurrentTimeLineID = 0; /**< curent timeline column ID */
+        private int m_CurrentTimeLineID = 0;
+        public int CurrentTimeLineID
+        {
+            get
+            {
+                return m_CurrentTimeLineID;
+            }
+            set
+            {
+                if (IsTimelineLooping)
+                {
+                    m_CurrentTimeLineID = (value % (MaxTimeLineID + 1) + (MaxTimeLineID + 1)) % (MaxTimeLineID + 1);
+                }
+                else
+                {
+                    m_CurrentTimeLineID = Mathf.Clamp(value, 0, MaxTimeLineID);
+                }
+                OnUpdateCurrentTimelineID.Invoke();
+                if (IsSelected)
+                {
+                    ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.Invoke();
+                }
+            }
+        }
+        public int MaxTimeLineID { get; set; }
+        public float MinTimeLine { get; set; }
+        public float MaxTimeLine { get; set; }
+        public float CurrentTimeLine
+        {
+            get
+            {
+                return ColumnData.TimeLine.Step * CurrentTimeLineID + MinTimeLine;
+            }
+        }
+        public string TimeLineUnite
+        {
+            get
+            {
+                return ColumnData.TimeLine.Start.Unite;
+            }
+        }
         public float SharedMinInf = 0f;
         public float SharedMaxInf = 0f;
+        
+        /// <summary>
+        /// Is the column data looping ?
+        /// </summary>
+        public bool IsTimelineLooping { get; set; }
+
+        private float m_TimeSinceLastSample = 0.0f;
+        private bool m_IsTimelinePlaying = false;
+        /// <summary>
+        /// Is the timeline incrementing automatically ?
+        /// </summary>
+        public bool IsTimelinePlaying
+        {
+            get
+            {
+                return m_IsTimelinePlaying;
+            }
+            set
+            {
+                m_IsTimelinePlaying = value;
+                m_TimeSinceLastSample = 0.0f;
+            }
+        }
+
+        private int m_TimelineStep = 1;
+        /// <summary>
+        /// Timeline step
+        /// </summary>
+        public int TimelineStep
+        {
+            get
+            {
+                return m_TimelineStep;
+            }
+            set
+            {
+                m_TimelineStep = value;
+            }
+        }
+        private float TimelineInterval
+        {
+            get
+            {
+                return 1.0f / m_TimelineStep;
+            }
+        }
 
         /// <summary>
         /// IEEG data of the column
         /// </summary>
         public class IEEGDataParameters
         {
+            public Data.Visualization.Column ColumnData { get; set; }
+
             private const float MIN_INFLUENCE = 0.0f;
             private const float MAX_INFLUENCE = 50.0f;
             private float m_MaximumInfluence = 15.0f;
@@ -167,7 +257,7 @@ namespace HBP.Module3D
                 }
             }
 
-            private float m_SpanMin = -50.0f;
+            private float m_SpanMin = 0.0f;
             /// <summary>
             /// Span Min value
             /// </summary>
@@ -207,7 +297,7 @@ namespace HBP.Module3D
                 }
             }
 
-            private float m_SpanMax = 50.0f;
+            private float m_SpanMax = 0.0f;
             /// <summary>
             /// Span Min value
             /// </summary>
@@ -270,6 +360,30 @@ namespace HBP.Module3D
         public bool SiteLatencyData = false; /**< latency data defined for the current selected plot */
         public int SourceSelectedID = -1; /**< id of the selected source */
         public int CurrentLatencyFile = -1; /**< id of the current latency file */
+
+        // events
+        public UnityEvent OnUpdateCurrentTimelineID = new UnityEvent();
+        #endregion
+
+        #region Private Methods
+        private void Update()
+        {
+            if (IsTimelinePlaying)
+            {
+                m_TimeSinceLastSample += Time.deltaTime;
+                if (m_TimeSinceLastSample > TimelineInterval)
+                {
+                    CurrentTimeLineID++;
+                    m_TimeSinceLastSample = 0.0f;
+                    if (CurrentTimeLineID >= MaxTimeLineID && !IsTimelineLooping)
+                    {
+                        IsTimelinePlaying = false;
+                        CurrentTimeLineID = 0;
+                        ApplicationState.Module3D.OnStopTimelinePlay.Invoke();
+                    }
+                }
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -317,6 +431,75 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
+        /// Load the visualization configuration from the loaded visualization
+        /// </summary>
+        public void LoadConfiguration(bool firstCall = true)
+        {
+            if (firstCall) ResetConfiguration(false);
+            IEEGParameters.Gain = ColumnData.Configuration.Gain;
+            IEEGParameters.MaximumInfluence = ColumnData.Configuration.MaximumInfluence;
+            IEEGParameters.AlphaMin = ColumnData.Configuration.Alpha;
+            if (Mathf.Approximately(ColumnData.Configuration.SpanMin, 0.0f) && Mathf.Approximately(ColumnData.Configuration.Middle, 0.0f) && Mathf.Approximately(ColumnData.Configuration.SpanMax, 0.0f))
+            {
+                float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
+                IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
+                IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
+                IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
+            }
+            else
+            {
+                IEEGParameters.SpanMin = ColumnData.Configuration.SpanMin;
+                IEEGParameters.Middle = ColumnData.Configuration.Middle;
+                IEEGParameters.SpanMax = ColumnData.Configuration.SpanMax;
+            }
+            foreach (Data.Visualization.RegionOfInterest roi in ColumnData.Configuration.RegionsOfInterest)
+            {
+                ROI newROI = AddROI(roi.Name);
+                foreach (Data.Visualization.Sphere sphere in roi.Spheres)
+                {
+                    newROI.AddBubble(Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
+                }
+            }
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+        }
+        /// <summary>
+        /// Save the current settings of this scene to the configuration of the linked visualization
+        /// </summary>
+        public void SaveConfiguration()
+        {
+            ColumnData.Configuration.Gain = IEEGParameters.Gain;
+            ColumnData.Configuration.MaximumInfluence = IEEGParameters.MaximumInfluence;
+            ColumnData.Configuration.Alpha = IEEGParameters.AlphaMin;
+            ColumnData.Configuration.SpanMin = IEEGParameters.SpanMin;
+            ColumnData.Configuration.Middle = IEEGParameters.Middle;
+            ColumnData.Configuration.SpanMax = IEEGParameters.SpanMax;
+            List<Data.Visualization.RegionOfInterest> rois = new List<Data.Visualization.RegionOfInterest>();
+            foreach (ROI roi in m_ROIs)
+            {
+                rois.Add(new Data.Visualization.RegionOfInterest(roi));
+            }
+            ColumnData.Configuration.RegionsOfInterest = rois;
+        }
+        /// <summary>
+        /// Reset the settings of the loaded scene
+        /// </summary>
+        public void ResetConfiguration(bool firstCall = true)
+        {
+            IEEGParameters.Gain = 1.0f;
+            IEEGParameters.MaximumInfluence = 15.0f;
+            IEEGParameters.AlphaMin = 0.2f;
+            float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
+            IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
+            IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
+            IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
+            while (m_ROIs.Count > 0)
+            {
+                RemoveSelectedROI();
+            }
+            
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+        }
+        /// <summary>
         /// Update the site mask of the dll with all the masks
         /// </summary>
         public void UpdateDLLSitesMask()
@@ -324,7 +507,7 @@ namespace HBP.Module3D
             bool noROI = false; // (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles == 0);
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                m_RawElectrodes.UpdateMask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsInROI && !noROI)));
+                m_RawElectrodes.UpdateMask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsOutOfROI && !noROI)));
             }
         }
         /// <summary>
@@ -341,29 +524,38 @@ namespace HBP.Module3D
         /// <param name="columnData"></param>
         public void SetColumnData(Data.Visualization.Column newColumnData)
         {
-            Column = newColumnData;
+            ColumnData = newColumnData;
+            m_IEEGParameters.ColumnData = newColumnData;
+
+            MinTimeLine = newColumnData.TimeLine.Start.Value;
+            MaxTimeLine = newColumnData.TimeLine.End.Value;
+            MaxTimeLineID = ColumnData.TimeLine.Lenght - 1;
 
             // update amplitudes sizes and values
             Dimensions = new int[3];
-            Dimensions[0] = Column.TimeLine.Lenght;
+            Dimensions[0] = ColumnData.TimeLine.Lenght;
             Dimensions[1] = 1;
             Dimensions[2] = Sites.Count;
 
             // Construct sites value array the old way, and set sites masks // maybe FIXME
             IEEGValuesBySiteID = new float[Dimensions[2]][];
             int siteID = 0;
-            //foreach (var configurationPatient in Column.Configuration.ConfigurationByPatient)
-            //{
-            //    foreach (var electrodeConfiguration in configurationPatient.Value.ConfigurationByElectrode)
-            //    {
-            //        foreach (var siteConfiguration in electrodeConfiguration.Value.ConfigurationBySite)
-            //        {
-            //            IEEGValuesBySiteID[siteID] = siteConfiguration.Value.Values;
-            //            Sites[siteID].Information.IsMasked = siteConfiguration.Value.IsMasked; // update mask
-            //            siteID++;
-            //        }
-            //    }
-            //}
+            foreach (Site site in Sites)
+            {
+                string correctedSiteID = site.Information.PatientName + "_" + site.name.ToUpper().Replace('p', '\'');
+                if (ColumnData.Configuration.ConfigurationBySite.ContainsKey(correctedSiteID))
+                {
+                    Data.Visualization.SiteConfiguration siteConfiguration = ColumnData.Configuration.ConfigurationBySite[correctedSiteID]; // FIXME (Automatic correction)
+                    IEEGValuesBySiteID[siteID] = siteConfiguration.Values;
+                    Sites[siteID].Information.IsMasked = siteConfiguration.IsMasked; // update mask
+                }
+                else
+                {
+                    IEEGValuesBySiteID[siteID] = new float[Dimensions[0]];
+                    Sites[siteID].Information.IsMasked = true; // update mask
+                }
+                siteID++;
+            }
             IEEGParameters.MinimumAmplitude = float.MaxValue;
             IEEGParameters.MaximumAmplitude = float.MinValue;
 
@@ -382,11 +574,6 @@ namespace HBP.Module3D
                         IEEGParameters.MinimumAmplitude = IEEGValuesBySiteID[jj][ii];
                 }
             }
-
-            float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
-            IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
-            IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
-            IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
         }
         /// <summary>
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
@@ -402,7 +589,7 @@ namespace HBP.Module3D
 
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                if (Sites[ii].Information.IsInROI || Sites[ii].Information.IsMasked)
+                if (Sites[ii].Information.IsOutOfROI || Sites[ii].Information.IsMasked)
                     continue;
 
                 float value = IEEGValuesBySiteID[ii][CurrentTimeLineID];
@@ -494,7 +681,6 @@ namespace HBP.Module3D
             Vector3 normalScale = new Vector3(1, 1, 1);
             MeshRenderer renderer = null;
             SiteType siteType;
-
             if (data.DisplayCCEPMode) // CCEP
             {
                 for (int ii = 0; ii < Sites.Count; ++ii)
@@ -591,7 +777,7 @@ namespace HBP.Module3D
                         activity = Sites[ii].IsActive;
 
       
-                    if (Sites[ii].Information.IsMasked || Sites[ii].Information.IsInROI) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
+                    if (Sites[ii].Information.IsMasked || Sites[ii].Information.IsOutOfROI) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
                     {
                         if (activity)
                             Sites[ii].gameObject.SetActive(false);
@@ -607,6 +793,11 @@ namespace HBP.Module3D
                     {
                         Sites[ii].transform.localScale = normalScale;
                         siteType = SiteType.BlackListed;
+                        if (data.HideBlacklistedSites)
+                        {
+                            if (activity) Sites[ii].IsActive = false;
+                            continue;
+                        }
                     }
                     else if (Sites[ii].Information.IsExcluded) // excluded mask : plot is a little visible with another color, can be clicked
                     {
@@ -621,7 +812,7 @@ namespace HBP.Module3D
                     }
                     else // no mask and no amplitude computed : all plots have the same size and color
                     {
-                        Sites[ii].transform.localScale = normalScale;
+                        Sites[ii].transform.localScale = normalScale * IEEGParameters.Gain;
                         siteType = Sites[ii].Information.IsMarked ? SiteType.Marked : SiteType.Normal;
                     }
 

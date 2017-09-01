@@ -96,7 +96,7 @@ namespace HBP.Module3D.Cam
             Vector2 scrollDelta = Input.mouseScrollDelta;
             if (scrollDelta.y != 0)
             {
-                if (!m_AssociatedScene.IsRegionOfInterestModeEnabled())
+                if (!m_AssociatedScene.ROICreation)
                 {
                     if (scrollDelta.y < 0)
                         MoveBackward(m_ZoomSpeed);

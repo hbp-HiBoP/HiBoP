@@ -11,6 +11,7 @@
 
 // system
 using System.Collections.Generic;
+using System.Linq;
 
 // unity
 using UnityEngine;
@@ -54,8 +55,8 @@ namespace HBP.Module3D
                 m_CurrentMode = value;
             }
         }
-        private float m_Degrees = 30f;
-        public float Degrees
+        private int m_Degrees = 30;
+        public int Degrees
         {
             get
             {
@@ -64,6 +65,15 @@ namespace HBP.Module3D
             set
             {
                 m_Degrees = value;
+            }
+        }
+
+        private bool m_CanCancelLastAction = false;
+        public bool CanCancelLastAction
+        {
+            get
+            {
+                return m_CanCancelLastAction;
             }
         }
 
@@ -83,6 +93,14 @@ namespace HBP.Module3D
             get
             {
                 return (m_CurrentMode != Mode.Expand) && (m_CurrentMode != Mode.Invert);
+            }
+        }
+        private bool m_MeshHasInvisibleTriangles = false;
+        public bool MeshHasInvisibleTriangles
+        {
+            get
+            {
+                return m_MeshHasInvisibleTriangles;
             }
         }
         #endregion
@@ -116,6 +134,10 @@ namespace HBP.Module3D
                 m_BrainMeshesSplittedDLL[ii].UpdateVisibilityMask(mask); // return an empty mesh
                 m_SplittedMasks.Add(mask);                
             }
+
+            m_CanCancelLastAction = false;
+            m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
+            ApplicationState.Module3D.OnModifyInvisiblePart.Invoke();
         }
         /// <summary>
         /// Erase triangles and update the invisible part mesh GO
@@ -158,6 +180,10 @@ namespace HBP.Module3D
                 DLL.Surface brainInvisibleMeshesDLL = m_BrainMeshesSplittedDLL[ii].UpdateVisibilityMask(newSplittedMasks[ii]);
                 brainInvisibleMeshesDLL.UpdateMeshFromDLL(m_BrainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
             }
+
+            m_CanCancelLastAction = true;
+            m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
+            ApplicationState.Module3D.OnModifyInvisiblePart.Invoke();
         }
         /// <summary>
         /// Cancel the last action and update the invisible part mesh GO
@@ -170,6 +196,10 @@ namespace HBP.Module3D
                 DLL.Surface brainInvisibleMeshesDLL = m_BrainMeshesSplittedDLL[ii].UpdateVisibilityMask(m_SplittedMasks[ii]);
                 brainInvisibleMeshesDLL.UpdateMeshFromDLL(m_BrainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
             }
+
+            m_CanCancelLastAction = false;
+            m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
+            ApplicationState.Module3D.OnModifyInvisiblePart.Invoke();
         }
         #endregion
     }

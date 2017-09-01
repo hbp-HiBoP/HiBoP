@@ -40,10 +40,16 @@ namespace HBP.UI.Module3D
             ApplicationState.Module3D.OnSelectColumn.AddListener((column) => OnChangeColumn());
 
             ApplicationState.Module3D.OnSelectView.AddListener((column) => OnChangeView());
-
+            
+            ApplicationState.Module3D.OnRequestUpdateInUI.AddListener(() =>
+            {
+                UpdateInteractableButtons();
+                UpdateButtonsStatus(UpdateToolbarType.Scene);
+            });
+            
             foreach (Tools.Tool tool in m_Tools)
             {
-                tool.AddListeners();
+                tool.Initialize();
             }
         }
         /// <summary>
@@ -62,6 +68,7 @@ namespace HBP.UI.Module3D
         protected void OnChangeScene()
         {
             m_Tools.ForEach((t) => t.ListenerLock = true);
+            //ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.RemoveAllListeners();
             ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.AddListener((mode) => UpdateInteractableButtons()); // maybe FIXME : problem with infinite number of listeners ?
             UpdateInteractableButtons();
             UpdateButtonsStatus(UpdateToolbarType.Scene);
@@ -120,6 +127,20 @@ namespace HBP.UI.Module3D
             AddListeners();
             DefaultState();
             m_Tools.ForEach((t) => t.ListenerLock = false);
+        }
+        /// <summary>
+        /// Called when showing this toolbar
+        /// </summary>
+        public virtual void ShowToolbarCallback()
+        {
+
+        }
+        /// <summary>
+        /// Called when hiding this toolbar
+        /// </summary>
+        public virtual void HideToolbarCallback()
+        {
+
         }
         #endregion
     }

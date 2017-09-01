@@ -13,18 +13,34 @@ namespace HBP.UI.Module3D.Tools
         [SerializeField]
         private Slider m_Slider;
 
+        public bool IsGlobal { get; set; }
+
         public GenericEvent<float> OnChangeValue = new GenericEvent<float>();
         #endregion
 
         #region Public Methods
-        public override void AddListeners()
+        private void Update()
+        {
+            //Debug.Log(IsGlobal);
+        }
+        public override void Initialize()
         {
             m_Slider.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
-                ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IEEGParameters.AlphaMin = value;
-                //((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.AlphaMax = value; // FIXME : Required / other value ?
+                if (IsGlobal)
+                {
+                    foreach (HBP.Module3D.Column3DIEEG column in ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG)
+                    {
+                        column.IEEGParameters.AlphaMin = value;
+                    }
+                }
+                else
+                {
+                    ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IEEGParameters.AlphaMin = value;
+                    //((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.AlphaMax = value; // FIXME : Required / other value ?
+                }
                 OnChangeValue.Invoke(value);
             });
         }

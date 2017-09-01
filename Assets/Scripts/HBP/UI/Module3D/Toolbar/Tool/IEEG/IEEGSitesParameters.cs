@@ -12,23 +12,34 @@ namespace HBP.UI.Module3D.Tools
         #region Properties
         [SerializeField]
         private Slider m_Slider;
-
         [SerializeField]
         private InputField m_InputField;
+
+        public bool IsGlobal { get; set; }
 
         public GenericEvent<float, float> OnValueChanged = new GenericEvent<float, float>();
         #endregion
 
         #region Public Methods
-        public override void AddListeners()
+        public override void Initialize()
         {
             m_Slider.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
-                HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
-                column.IEEGParameters.Gain = value;
-                OnValueChanged.Invoke(value, column.IEEGParameters.MaximumInfluence);
+                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
+                if (IsGlobal)
+                {
+                    foreach (HBP.Module3D.Column3DIEEG column in ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG)
+                    {
+                        column.IEEGParameters.Gain = value;
+                    }
+                }
+                else
+                {
+                    selectedColumn.IEEGParameters.Gain = value;
+                }
+                OnValueChanged.Invoke(value, selectedColumn.IEEGParameters.MaximumInfluence);
             });
 
             m_InputField.onEndEdit.AddListener((value) =>
@@ -36,10 +47,20 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 float val = float.Parse(value);
-                HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
-                column.IEEGParameters.MaximumInfluence = val;
-                m_InputField.text = column.IEEGParameters.MaximumInfluence.ToString("N2");
-                OnValueChanged.Invoke(column.IEEGParameters.Gain, val);
+                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
+                if (IsGlobal)
+                {
+                    foreach (HBP.Module3D.Column3DIEEG column in ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG)
+                    {
+                        column.IEEGParameters.MaximumInfluence = val;
+                    }
+                }
+                else
+                {
+                    selectedColumn.IEEGParameters.MaximumInfluence = val;
+                }
+                m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString("N2");
+                OnValueChanged.Invoke(selectedColumn.IEEGParameters.Gain, val);
             });
         }
 
@@ -102,7 +123,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
                 m_Slider.value = selectedColumn.IEEGParameters.Gain;
-                m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString();
+                m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString("N2");
             }
         }
         #endregion

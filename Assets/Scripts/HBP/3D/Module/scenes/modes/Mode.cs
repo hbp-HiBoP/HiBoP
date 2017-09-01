@@ -182,7 +182,7 @@ namespace HBP.Module3D
         {
             ResetGIIBrainSurfaceFile, ResetNIIBrainVolumeFile, ResetElectrodesFile, PreUpdateGenerators, PostUpdateGenerators,
             AddNewPlane, RemoveLastPlane, UpdatePlane, SetDisplayedMesh, SetTimelines, AnableTriangleErasingMode, DisableTriangleErasingMode, EnableROICreationMode, DisableROICreationMode,
-            UpdateMiddle, UpdateMaskPlot, AddFMRIColumn, RemoveLastFMRIColumn, ResetScene
+            ResetIEEG, UpdateMaskPlot, AddFMRIColumn, RemoveLastFMRIColumn, ResetScene
         }; /**< scene functions id */
         public enum UIOverlayId { PlanesController, TimelineController, IconsController, CutDisplayController, ColormapController, MinimizeController, TimeDisplayController }; /**< UI overlay elements */       
         private bool m_NeedsUpdate = true; /**< is the mode has to update it's specifications ? */

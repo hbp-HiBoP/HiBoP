@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -13,7 +14,7 @@ namespace HBP.Module3D
         public const int DEFAULT_REMOVE_FRONT_PLANE = 0;
         public const int DEFAULT_NUMBER_OF_CUTS = 500;
         public const float DEFAULT_POSITION = 0.5f;
-
+        
         public int ID { get; set; }
         public CutOrientation Orientation { get; set; }
         public bool Flip { get; set; }
@@ -22,6 +23,8 @@ namespace HBP.Module3D
         public float Position { get; set; }
 
         public GenericEvent<Texture2D> OnUpdateGUITextures = new GenericEvent<Texture2D>();
+        public UnityEvent OnUpdateCut = new UnityEvent();
+        public UnityEvent OnRemoveCut = new UnityEvent();
         #endregion
 
         #region Constructors

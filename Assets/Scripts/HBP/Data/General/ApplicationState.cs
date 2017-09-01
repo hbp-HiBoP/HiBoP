@@ -53,4 +53,9 @@ public static class ApplicationState
     /// Loading circle manager.
     /// </summary>
     public static LoadingManager LoadingManager { get; set; }
+
+    /// <summary>
+    /// Tooltip manager
+    /// </summary>
+    public static Tools.Unity.TooltipManager TooltipManager { get; set; }
 }

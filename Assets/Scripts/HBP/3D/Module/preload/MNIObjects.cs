@@ -14,7 +14,8 @@ using System.Threading;
 
 // unity
 using UnityEngine;
-
+using UnityEngine.Events;
+using CielaSpike;
 
 namespace HBP.Module3D
 {
@@ -43,6 +44,8 @@ namespace HBP.Module3D
 
         public DLL.NIFTI NII = null;
 
+        private string m_DataPath = "";
+
 #if UNITY_EDITOR_WIN
         private DLL.ReadMultiFilesBuffers readMulti = null;
 #endif
@@ -51,39 +54,7 @@ namespace HBP.Module3D
         #region Private Methods
         void Awake()
         {
-            int idScript = TimeExecution.ID;
-            TimeExecution.StartAwake(idScript, TimeExecution.ScriptsId.MNIObjects);
-
-            string dataDirPath = GlobalPaths.Data;
-        
-            int instanceID = GetInstanceID();
-            string nameGO = name;
-
-            string baseIRMDir = dataDirPath + "IRM/", baseMeshDir = dataDirPath + "Meshes/";
-            // IRM
-            NII = new DLL.NIFTI();
-            NII.LoadNIIFile(baseIRMDir + "ch256.nii");
-
-            List<string> filesPaths = new List<string>(9);
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Lhemi.obj");
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Rhemi.obj");
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Bhemi.obj");
-
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Lwhite.obj");
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Rwhite.obj");
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Bwhite.obj");
-
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Lwhite_inflated.obj");
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Rwhite_inflated.obj");
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Bwhite_inflated.obj");
-
-#if UNITY_EDITOR_WIN
-            readMulti = new DLL.ReadMultiFilesBuffers();
-            readMulti.ReadBuffersFiles(filesPaths, DLL.ReadMultiFilesBuffers.FilesTypes.MeshesObj);
-#endif
-            //Thread thread = new Thread(() => LoadData(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID));
-            //thread.Start();
-            LoadData(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID);
+            m_DataPath = GlobalPaths.Data;
         }
         /// <summary>
         /// 
@@ -93,7 +64,7 @@ namespace HBP.Module3D
         /// <param name="idScript"></param>
         /// <param name="GOName"></param>
         /// <param name="instanceID"></param>
-        void LoadData(string baseIRMDir, string baseMeshDir, int idScript, string GOName, int instanceID)
+        void LoadData(string baseIRMDir, string baseMeshDir, string GOName, int instanceID)
         {
             LoadingMutex.WaitOne();
             
@@ -157,7 +128,42 @@ namespace HBP.Module3D
 
 #endif
             LoadingMutex.ReleaseMutex();
-            TimeExecution.EndAwake(idScript, TimeExecution.ScriptsId.MNIObjects, GOName, instanceID);
+        }
+        #endregion
+
+        #region Coroutines
+        public IEnumerator c_Load()
+        {
+            yield return Ninja.JumpToUnity;
+            int instanceID = GetInstanceID();
+            string nameGO = name;
+            yield return Ninja.JumpBack;
+
+            string baseIRMDir = m_DataPath + "IRM/", baseMeshDir = m_DataPath + "Meshes/";
+            // IRM
+            NII = new DLL.NIFTI();
+            NII.LoadNIIFile(baseIRMDir + "ch256.nii");
+
+            List<string> filesPaths = new List<string>(9);
+            filesPaths.Add(baseMeshDir + "MNI_single_hight_Lhemi.obj");
+            filesPaths.Add(baseMeshDir + "MNI_single_hight_Rhemi.obj");
+            filesPaths.Add(baseMeshDir + "MNI_single_hight_Bhemi.obj");
+
+            filesPaths.Add(baseMeshDir + "MNI_single_hight_Lwhite.obj");
+            filesPaths.Add(baseMeshDir + "MNI_single_hight_Rwhite.obj");
+            filesPaths.Add(baseMeshDir + "MNI_single_hight_Bwhite.obj");
+
+            filesPaths.Add(baseMeshDir + "MNI_single_hight_Lwhite_inflated.obj");
+            filesPaths.Add(baseMeshDir + "MNI_single_hight_Rwhite_inflated.obj");
+            filesPaths.Add(baseMeshDir + "MNI_single_hight_Bwhite_inflated.obj");
+
+#if UNITY_EDITOR_WIN
+            readMulti = new DLL.ReadMultiFilesBuffers();
+            readMulti.ReadBuffersFiles(filesPaths, DLL.ReadMultiFilesBuffers.FilesTypes.MeshesObj);
+#endif
+            //Thread thread = new Thread(() => LoadData(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID));
+            //thread.Start();
+            LoadData(baseIRMDir, baseMeshDir, nameGO, instanceID);
         }
         #endregion
     }
