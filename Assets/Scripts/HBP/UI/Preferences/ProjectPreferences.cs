@@ -25,9 +25,9 @@ namespace HBP.UI.Settings
         #region Private Methods
         protected override void SetWindow()
         {
-            nameInputField = transform.Find("Content").Find("Name").GetComponentInChildren<InputField>();
+            nameInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
             patientsDatabaseFolderSelector = transform.Find("Content").Find("Location").Find("Patients").Find("FolderSelector").GetComponent<FolderSelector>();
-            localizerDatabaseFolderSelector = transform.Find("Content").Find("Location").Find("SEEG").Find("FolderSelector").GetComponent<FolderSelector>();
+            localizerDatabaseFolderSelector = transform.Find("Content").Find("Location").Find("Localizers").Find("FolderSelector").GetComponent<FolderSelector>();
 
             nameInputField.text = ApplicationState.ProjectLoaded.Settings.Name;
             patientsDatabaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;

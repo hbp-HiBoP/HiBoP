@@ -352,18 +352,18 @@ namespace HBP.Module3D
             // Construct sites value array the old way, and set sites masks // maybe FIXME
             IEEGValuesBySiteID = new float[Dimensions[2]][];
             int siteID = 0;
-            foreach (var configurationPatient in Column.Configuration.ConfigurationByPatient)
-            {
-                foreach (var electrodeConfiguration in configurationPatient.Value.ConfigurationByElectrode)
-                {
-                    foreach (var siteConfiguration in electrodeConfiguration.Value.ConfigurationBySite)
-                    {
-                        IEEGValuesBySiteID[siteID] = siteConfiguration.Value.Values;
-                        Sites[siteID].Information.IsMasked = siteConfiguration.Value.IsMasked; // update mask
-                        siteID++;
-                    }
-                }
-            }
+            //foreach (var configurationPatient in Column.Configuration.ConfigurationByPatient)
+            //{
+            //    foreach (var electrodeConfiguration in configurationPatient.Value.ConfigurationByElectrode)
+            //    {
+            //        foreach (var siteConfiguration in electrodeConfiguration.Value.ConfigurationBySite)
+            //        {
+            //            IEEGValuesBySiteID[siteID] = siteConfiguration.Value.Values;
+            //            Sites[siteID].Information.IsMasked = siteConfiguration.Value.IsMasked; // update mask
+            //            siteID++;
+            //        }
+            //    }
+            //}
             IEEGParameters.MinimumAmplitude = float.MaxValue;
             IEEGParameters.MaximumAmplitude = float.MinValue;
 

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using HBP.Data.General;
 using UnityEngine.UI;
+using HBP.UI.Anatomy;
 
 namespace HBP.UI
 {
@@ -10,30 +11,14 @@ namespace HBP.UI
 	public class ProjectItem : Tools.Unity.Lists.ActionnableItem<ProjectInfo> 
 	{
         #region Properties
-        /// <summary>
-        /// The name textField.
-        /// </summary>
         [SerializeField] Text m_NameText;
-        /// <summary>
-        /// The number of patients textField.
-        /// </summary>
+
         [SerializeField] Text m_PatientsText;
-        /// <summary>
-        /// The number of groups textField.
-        /// </summary>
         [SerializeField] Text m_GroupsText;
-        /// <summary>
-        /// The number of protocols textField.
-        /// </summary>
         [SerializeField] Text m_ProtocolsText;
-        /// <summary>
-        /// The number of experiences textField.
-        /// </summary>
         [SerializeField] Text m_DatasetsText;
-        /// <summary>
-        /// The number of visualizations textField.
-        /// </summary>
         [SerializeField] Text m_VisualizationsText;
+
         public override ProjectInfo Object
         {
             get
@@ -44,12 +29,28 @@ namespace HBP.UI
             set
             {
                 base.Object = value;
+
                 m_NameText.text = value.Settings.Name;
+
                 m_PatientsText.text = value.Patients.ToString();
+                if (value.Patients == 0) m_PatientsText.color = ApplicationState.Theme.Color.DisableLabel;
+                else m_PatientsText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+
                 m_GroupsText.text = value.Groups.ToString();
+                if (value.Groups == 0) m_GroupsText.color = ApplicationState.Theme.Color.DisableLabel;
+                else m_GroupsText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+
                 m_ProtocolsText.text = value.Protocols.ToString();
+                if (value.Protocols == 0) m_ProtocolsText.color = ApplicationState.Theme.Color.DisableLabel;
+                else m_ProtocolsText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+
                 m_DatasetsText.text = value.Datasets.ToString();
+                if (value.Datasets == 0) m_DatasetsText.color = ApplicationState.Theme.Color.DisableLabel;
+                else m_DatasetsText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+
                 m_VisualizationsText.text = value.Visualizations.ToString();
+                if (value.Visualizations == 0) m_VisualizationsText.color = ApplicationState.Theme.Color.DisableLabel;
+                else m_VisualizationsText.color = ApplicationState.Theme.Color.ContentNormalLabel;
             }
         }
         #endregion

@@ -61,7 +61,7 @@ namespace HBP.UI.Anatomy
         protected override void SetWindow()
         {
             // Project list.
-            m_List = transform.Find("Content").Find("Patients").Find("Project").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
+            m_List = transform.Find("Content").Find("Patients").Find("Project").Find("Display").Find("Viewport").Find("Content").GetComponent<PatientList>();
             AddItem(ApplicationState.ProjectLoaded.Patients.ToArray());
             (m_List as PatientList).OnAction.AddListener((patient, i) => OpenModifier(patient, true));
 
@@ -70,7 +70,7 @@ namespace HBP.UI.Anatomy
             m_DatabaseFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayDataBasePatients()));
 
             m_DatabaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
-            m_DatabaseList = transform.Find("Content").Find("Patients").Find("Database").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
+            m_DatabaseList = transform.Find("Content").Find("Patients").Find("Database").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<PatientList>();
             m_DatabaseList.OnAction.AddListener((patient, i) => OpenModifier(patient, false));
         }
         #endregion

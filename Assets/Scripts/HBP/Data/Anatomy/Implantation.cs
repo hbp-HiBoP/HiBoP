@@ -15,7 +15,7 @@ namespace HBP.Data.Anatomy
         public enum Error { None, PathIsNullOrEmpty, FileNotFound, WrongExtension, CannotReadFile, WrongFormat, CannotReadAllSites };
         [DataMember] public string Name { get; set; }
         [DataMember] public string Path { get; set; }
-        [IgnoreDataMember] public List<Electrode> Electrodes { get; set; }
+        [IgnoreDataMember] public List<Site> Sites { get; set; }
         [IgnoreDataMember] public Brain Brain { get; set; }
         public virtual bool isUsable
         {
@@ -28,7 +28,7 @@ namespace HBP.Data.Anatomy
         {
             Name = name;
             Path = path;
-            Electrodes = new List<Electrode>();
+            Sites = new List<Site>();
         }
         public Implantation() : this("New implantation", string.Empty)
         {
@@ -54,12 +54,12 @@ namespace HBP.Data.Anatomy
             if (!IsCorrect(lines)) return Error.WrongFormat;
             IEnumerable<Site> sites;
             if (!ReadSites(lines, out sites)) return Error.CannotReadAllSites;
-            Electrodes = Electrode.GetElectrodes(sites).ToList();
+            Sites = sites.ToList();
             return Error.None;
         }
         public void Unload()
         {
-            Electrodes = new List<Electrode>();
+            Sites = new List<Site>();
         }
         public static Implantation[] GetImplantations(string path)
         {
@@ -94,7 +94,7 @@ namespace HBP.Data.Anatomy
             foreach (var line in lines)
             {
                 Site site;
-                if (Site.ReadLine(line, out site))
+                if (Site.ReadLine(line,Brain.Patient, out site))
                 {
                     ok &= true;
                     (sites as List<Site>).Add(site);

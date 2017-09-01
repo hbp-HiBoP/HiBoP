@@ -1,22 +1,38 @@
 ﻿using HBP.Data;
 using UnityEngine;
 using UnityEngine.UI;
+using Tools.Unity.Lists;
+using System.Linq;
 
 namespace HBP.UI.Anatomy
 {
-	public class PatientItem : Tools.Unity.Lists.ActionnableItem<Data.Patient>
+	public class PatientItem : ActionnableItem<Data.Patient>
 	{
 		#region Properties
 		[SerializeField] Text m_NameText;		
 		[SerializeField] Text m_PlaceText;
 		[SerializeField] Text m_DateText;
+
 		[SerializeField] Text m_MeshText;
+        [SerializeField] Button m_MeshButton;
+        [SerializeField] LabelList m_MeshList;
+
 		[SerializeField] Text m_MRIText;
-		[SerializeField] Text m_TransformationText;
-		[SerializeField] Text m_ImplantationText;
+        [SerializeField] Button m_MRIButton;
+        [SerializeField] LabelList m_MRIList;
+
+        [SerializeField] Text m_ImplantationText;
+        [SerializeField] Button m_ImplantationButton;
+        [SerializeField] LabelList m_ImplantationList;
+
+        [SerializeField] Text m_TransformationText;
+        [SerializeField] Button m_TransformationButton;
+        [SerializeField] LabelList m_TransformationList;
+
         [SerializeField] Text m_ConnectivityText;
-		[SerializeField] Color m_Enable_color;
-        [SerializeField] Color m_Disable_color;
+        [SerializeField] Button m_ConnectivityButton;
+        [SerializeField] LabelList m_ConnectivityList;
+
         public override Patient Object
         {
             get
@@ -33,30 +49,95 @@ namespace HBP.UI.Anatomy
 
                 int nbMesh = value.Brain.Meshes.FindAll((m) => m.isUsable).Count;
                 m_MeshText.text = nbMesh.ToString();
-                if (nbMesh == 0) m_MeshText.color = m_Disable_color;
-                else m_MeshText.color = m_Enable_color;
+                if (nbMesh == 0)
+                {
+                    m_MeshText.color = ApplicationState.Theme.Color.DisableLabel;
+                    m_MeshButton.interactable = false;
+                }
+                else
+                {
+                    m_MeshText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                    m_MeshButton.interactable = true;
+                }
 
                 int nbMRI = value.Brain.MRIs.FindAll((m) => m.isUsable).Count;
                 m_MRIText.text = nbMRI.ToString();
-                if (nbMRI == 0) m_MRIText.color = m_Disable_color;
-                else m_MRIText.color = m_Enable_color;
+                if (nbMRI == 0)
+                {
+                    m_MRIText.color = ApplicationState.Theme.Color.DisableLabel;
+                    m_MRIButton.interactable = false;
+                }
+                else
+                {
+                    m_MRIText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                    m_MRIButton.interactable = true;
+                }
 
                 int nbImplantation = value.Brain.Implantations.FindAll((i) => i.isUsable).Count;
                 m_ImplantationText.text = nbImplantation.ToString();
-                if (nbImplantation == 0) m_ImplantationText.color = m_Disable_color;
-                else m_ImplantationText.color = m_Enable_color;
+                if (nbImplantation == 0)
+                {
+                    m_ImplantationText.color = ApplicationState.Theme.Color.DisableLabel;
+                    m_ImplantationButton.interactable = false;
+                }
+                else
+                {
+                    m_ImplantationText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                    m_ImplantationButton.interactable = true;
+                }
 
                 int nbTransformation = value.Brain.Transformations.FindAll(t => t.isUsable).Count;
                 m_TransformationText.text = nbTransformation.ToString();
-                if (nbTransformation == 0) m_TransformationText.color = m_Disable_color;
-                else m_TransformationText.color = m_Enable_color;
+                if (nbTransformation == 0)
+                {
+                    m_TransformationText.color = ApplicationState.Theme.Color.DisableLabel;
+                    m_TransformationButton.interactable = false;
+                }
+                else
+                {
+                    m_TransformationText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                    m_TransformationButton.interactable = true;
+                }
 
                 int nbConnectivity = value.Brain.Connectivities.FindAll(c => c.isUsable).Count;
                 m_ConnectivityText.text = nbConnectivity.ToString();
-                if (nbConnectivity == 0) m_ConnectivityText.color = m_Disable_color;
-                else m_ConnectivityText.color = m_Enable_color;
+                if (nbConnectivity == 0)
+                {
+                    m_ConnectivityText.color = ApplicationState.Theme.Color.DisableLabel;
+                    m_ConnectivityButton.interactable = false;
+                }
+                else
+                {
+                    m_ConnectivityText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                    m_ConnectivityButton.interactable = true;
+                }
             }
         }
         #endregion
-	}
+
+
+        #region Public Methods
+        public void SetMeshes()
+        {
+            m_MeshList.Objects = (from mesh in m_Object.Brain.Meshes where mesh.isUsable select mesh.Name).ToArray();
+            m_MeshButton.GetComponent<DropWindow>().ChangeWindowState();
+        }
+        public void SetMRIs()
+        {
+            m_MRIList.Objects = (from mri in m_Object.Brain.MRIs where mri.isUsable select mri.Name).ToArray();
+        }
+        public void SetTransformations()
+        {
+            m_TransformationList.Objects = (from transformation in m_Object.Brain.Transformations where transformation.isUsable select transformation.Name).ToArray();
+        }
+        public void SetImplantations()
+        {
+            m_ImplantationList.Objects = (from implantation in m_Object.Brain.Implantations where implantation.isUsable select implantation.Name).ToArray();
+        }
+        public void SetConnectivities()
+        {
+            m_ConnectivityList.Objects = (from connectivity in m_Object.Brain.Connectivities where connectivity.isUsable select connectivity.Name).ToArray();
+        }
+        #endregion
+    }
 }

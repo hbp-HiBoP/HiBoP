@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
+using System.Text;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -25,7 +26,8 @@ namespace HBP.Data.Experience.Dataset
     public class DataInfo : ICloneable
     {
         #region Properties
-        [DataMember] string m_Name;
+        [DataMember(Name = "Name")]
+        string m_Name;
         /// <summary>
         /// Name of the data.
         /// </summary>
@@ -35,19 +37,20 @@ namespace HBP.Data.Experience.Dataset
             set { m_Name = value; m_NameErrors = GetNameErrors(); }
         }
 
-        [DataMember(Name = "Patient")] string m_PatientID;
-        Patient m_Patient;
+        [DataMember(Name = "Patient")]
+        string m_Patient;
         /// <summary>
         /// Patient who has passed the experiment.
         /// </summary>
         ///
         public Patient Patient
         {
-            get { return m_Patient; }
-            set { m_Patient = value; m_PatientErrors = GetPatientErrors(); }
+            get { return ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_Patient); }
+            set { m_Patient = value.ID; m_PatientErrors = GetPatientErrors(); }
         }
 
-        [DataMember] string m_Measure;
+        [DataMember(Name = "Measure")]
+        string m_Measure;
         /// <summary>
         /// Name of the measure in the EEG file : "EGG data" by default.
         /// </summary>
@@ -57,7 +60,8 @@ namespace HBP.Data.Experience.Dataset
             set { m_Measure = value; m_MeasureErrors = GetMeasureErrors(); }
         }
 
-        [DataMember] string m_EEG;
+        [DataMember(Name = "EEG")]
+        string m_EEG;
         /// <summary>
         /// Path of the EEG file.
         /// </summary>
@@ -67,25 +71,26 @@ namespace HBP.Data.Experience.Dataset
             set { m_EEG = value; m_EEGErrors = GetEEGErrors(); }
         }
 
-        [DataMember] string m_POS;
+        [DataMember(Name = "POS")]
+        string m_POS;
         /// <summary>
         /// Path of the POS file.
         /// </summary>
-         public string POS
+        public string POS
         {
             get { return m_POS; }
             set { m_POS = value; m_POSErrors = GetPOSErrors(); }
         }
 
-        [DataMember(Name = "Protocol")] string m_ProtocolID;
-        Protocol.Protocol m_Protocol;
+        [DataMember(Name = "Protocol")]
+        string m_Protocol;
         /// <summary>
         /// Protocol used during the experiment.
         /// </summary>
         public Protocol.Protocol Protocol
         {
-            get { return m_Protocol; }
-            set { m_Protocol = value; m_ProtocolErrors = GetProtocolErrors(); }
+            get { return ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == m_Protocol); ; }
+            set { m_Protocol = value.ID; m_ProtocolErrors = GetProtocolErrors(); }
         }
          
         /// <summary>
@@ -94,15 +99,16 @@ namespace HBP.Data.Experience.Dataset
         public enum ErrorType
         {
             LabelEmpty, PatientEmpty, MeasureEmpty, EEGEmpty, POSEmpty, ProtocolEmpty, EEGFileNotExist, POSFileNotExist,
-            EEGFileNotAGoodFile, POSFileNotAGoodFile
+            EEGFileNotAGoodFile, EEGDoNotContainsMeasure, POSFileNotAGoodFile
         }
 
         ErrorType[] m_NameErrors;
         ErrorType[] m_MeasureErrors;
         ErrorType[] m_EEGErrors;
-        ErrorType[] m_POSErrors;
+        ErrorType[] m_POSErrors;  
         ErrorType[] m_PatientErrors;
         ErrorType[] m_ProtocolErrors;
+
         public bool isOk
         {
             get
@@ -121,7 +127,7 @@ namespace HBP.Data.Experience.Dataset
                 errors.AddRange(m_POSErrors);
                 errors.Add(m_PatientErrors);
                 errors.Add(m_ProtocolErrors);
-                return errors.ToArray();
+                return errors.Distinct().ToArray();
             }
         }
         #endregion
@@ -129,62 +135,101 @@ namespace HBP.Data.Experience.Dataset
         #region Public Methods
         public ErrorType[] GetErrors()
         {
-            List<ErrorType> errors = new List<ErrorType>();
-
-            m_NameErrors = GetNameErrors();
-            errors.AddRange(m_NameErrors);
-
-            m_MeasureErrors = GetMeasureErrors();
-            errors.AddRange(m_MeasureErrors);
-
-            m_PatientErrors = GetPatientErrors();
-            errors.AddRange(m_PatientErrors);
-
-            m_EEGErrors = GetEEGErrors();
-            errors.AddRange(m_EEGErrors);
-
-            m_POSErrors = GetPOSErrors();
-            errors.AddRange(m_POSErrors);
-
-            m_ProtocolErrors = GetProtocolErrors();
-            errors.AddRange(m_ProtocolErrors);
-            return errors.ToArray();
+            GetNameErrors();
+            GetPatientErrors();
+            GetMeasureErrors();
+            GetEEGErrors();
+            GetPOSErrors();
+            GetProtocolErrors();
+            return Errors;
         }
         public ErrorType[] GetNameErrors()
         {
             List<ErrorType> errors = new List<ErrorType>();
-            if (string.IsNullOrEmpty(Name)) errors.Add(ErrorType.LabelEmpty);
+            if(string.IsNullOrEmpty(Name)) errors.Add(ErrorType.LabelEmpty);
+            m_NameErrors = errors.ToArray();
             return errors.ToArray();
         }
         public ErrorType[] GetMeasureErrors()
         {
             List<ErrorType> errors = new List<ErrorType>();
-            if (string.IsNullOrEmpty(Measure)) errors.Add(ErrorType.MeasureEmpty);
+            if(string.IsNullOrEmpty(Measure)) errors.Add(ErrorType.MeasureEmpty);
+            if(m_EEGErrors != null && m_EEGErrors.Length == 0)
+            {
+                Elan.ElanFile elanFile = new Elan.ElanFile(EEG, false);
+                if (!elanFile.MeasureLabels.Contains(Measure))
+                {
+                    errors.Add(ErrorType.EEGDoNotContainsMeasure);
+                }
+            }
+            m_MeasureErrors = errors.ToArray();
             return errors.ToArray();
         }
         public ErrorType[] GetPatientErrors()
         {
             List<ErrorType> errors = new List<ErrorType>();
             if (Patient == null) errors.Add(ErrorType.PatientEmpty);
+            m_PatientErrors = errors.ToArray();
             return errors.ToArray();
         }
         public ErrorType[] GetEEGErrors()
         {
             List<ErrorType> errors = new List<ErrorType>();
             if (string.IsNullOrEmpty(EEG)) errors.Add(ErrorType.EEGEmpty);
+            else
+            {
+                FileInfo EEGFile = new FileInfo(EEG);
+                if (!EEGFile.Exists) errors.Add(ErrorType.EEGFileNotExist);
+                else
+                {
+                    if (EEGFile.Extension != Elan.EEG.EXTENSION) errors.Add(ErrorType.EEGFileNotAGoodFile);
+                    else
+                    {
+                        Elan.ElanFile elanFile = new Elan.ElanFile(EEGFile.FullName, false);
+                        if (!elanFile.MeasureLabels.Contains(Measure)) errors.Add(ErrorType.EEGDoNotContainsMeasure);
+                    }
+                }
+            }
+            m_EEGErrors = errors.ToArray();
             return errors.ToArray();
         }
         public ErrorType[] GetPOSErrors()
         {
             List<ErrorType> errors = new List<ErrorType>();
             if (string.IsNullOrEmpty(POS)) errors.Add(ErrorType.POSEmpty);
+            else
+            {
+                FileInfo POSFile = new FileInfo(POS);
+                if (!POSFile.Exists) errors.Add(ErrorType.POSFileNotExist);
+                else
+                {
+                    if (POSFile.Extension != Localizer.POS.EXTENSION) errors.Add(ErrorType.POSFileNotAGoodFile);
+                }
+            }
+            m_POSErrors = errors.ToArray();
             return errors.ToArray();
         }
         public ErrorType[] GetProtocolErrors()
         {
             List<ErrorType> errors = new List<ErrorType>();
             if (Protocol == null) errors.Add(ErrorType.ProtocolEmpty);
+            m_ProtocolErrors = errors.ToArray();
             return errors.ToArray();
+        }
+        public string GetErrorsMessage()
+        {
+            ErrorType[] errors = Errors;
+            StringBuilder stringBuilder = new StringBuilder();
+            if (errors.Length == 0) stringBuilder.Append("• No error detected.");
+            else
+            {
+                for (int i = 0; i < errors.Length - 1; i++)
+                {
+                    stringBuilder.AppendLine(GetErrorMessage(errors[i]));
+                }
+                stringBuilder.Append(GetErrorMessage(errors.Last()));
+            }
+            return stringBuilder.ToString();
         }
         #endregion
 
@@ -226,18 +271,49 @@ namespace HBP.Data.Experience.Dataset
         }
         #endregion
 
-        #region Serialization
-        [OnSerializing]
-        void OnSerializing()
+        #region Private Methods
+        string GetErrorMessage(ErrorType error)
         {
-            m_PatientID = Patient.ID;
-            m_ProtocolID = Protocol.ID;
-        }
-        [OnDeserialized]
-        void OnDeserialized()
-        {
-            Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID);
-            Protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID);
+            string message = string.Empty;
+            switch (error)
+            {
+                case ErrorType.LabelEmpty:
+                    message = "• The label field is empty.";
+                    break;
+                case ErrorType.PatientEmpty:
+                    message = "• The patient field is empty.";
+                    break;
+                case ErrorType.MeasureEmpty:
+                    message = "• The measure field is empty.";
+                    break;
+                case ErrorType.EEGEmpty:
+                    message = "• The EEG field is empty.";
+                    break;
+                case ErrorType.POSEmpty:
+                    message = "• The POS field is empty.";
+                    break;
+                case ErrorType.ProtocolEmpty:
+                    message = "• The protocol field is empty.";
+                    break;
+                case ErrorType.EEGFileNotExist:
+                    message = "• The EEG file does not exist.";
+                    break;
+                case ErrorType.POSFileNotExist:
+                    message = "• The POS file does not exist.";
+                    break;
+                case ErrorType.EEGFileNotAGoodFile:
+                    message = "• The EEG file is incorrect.";
+                    break;
+                case ErrorType.EEGDoNotContainsMeasure:
+                    message = "• The EEG file does not contains the measure.";
+                    break;
+                case ErrorType.POSFileNotAGoodFile:
+                    message = "• The EEG file is incorrect.";
+                    break;
+                default:
+                    break;
+            }
+            return message;
         }
         #endregion
     }

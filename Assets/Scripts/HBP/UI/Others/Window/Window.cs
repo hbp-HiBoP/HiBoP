@@ -3,12 +3,9 @@ using UnityEngine.Events;
 
 namespace HBP.UI
 {
-    [RequireComponent(typeof(Theme.WindowThemeGestion))]
     public abstract class Window : MonoBehaviour
     {
         #region Properties
-        Tools.Unity.Window.WindowGestion windowGestion;
-
         protected UnityEvent closeEvent = new UnityEvent { };
         public UnityEvent CloseEvent { get { return closeEvent; } }
 
@@ -27,19 +24,17 @@ namespace HBP.UI
         {
             CloseEvent.Invoke();
             Destroy(gameObject);        
-        }        
+        }
         public virtual void SetInteractable(bool interactable)
         {
-            windowGestion.Interactable = interactable;
+
         }
         #endregion
 
         #region Private Methods
         void SetActive(bool active)
         {
-            if (windowGestion == null) windowGestion = GetComponent<Tools.Unity.Window.WindowGestion>();
-            windowGestion.setActive(active);
-            windowGestion.Interactable = active;
+            gameObject.SetActive(active);
         }
         protected abstract void SetWindow();
         #endregion

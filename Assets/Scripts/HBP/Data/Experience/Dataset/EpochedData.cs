@@ -40,7 +40,7 @@ namespace HBP.Data.Experience
                     Dictionary<Protocol.Event, int> positionByEvent = new Dictionary<Protocol.Event, int>();
                     foreach (var item in indexByEvent)
                     {
-                        int eventIndex = item.Value.DefaultIfEmpty(-1).First((t) => (t >= firstIndex && t <= lastIndex));
+                        int eventIndex = item.Value.DefaultIfEmpty(-1).FirstOrDefault((t) => (t >= firstIndex && t <= lastIndex));
                         if(eventIndex != -1)
                         {
                             eventIndex -= firstIndex;

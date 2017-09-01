@@ -97,22 +97,22 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Load multiple data in the column.
         /// </summary>
-        /// <param name="data"></param>
-        public void Load(IEnumerable<Experience.Dataset.Data> data)
+        /// <param name="columnData"></param>
+        public void Load(IEnumerable<Experience.Dataset.Data> columnData)
         {
             Dictionary<Experience.Dataset.Data, Localizer.Bloc> blocByData = new Dictionary<Experience.Dataset.Data, Localizer.Bloc>();
-            Dictionary<string, SiteConfiguration> siteConfigurationsByName = new Dictionary<string, SiteConfiguration>();
-            foreach (var d in data)
+            Dictionary<string, SiteConfiguration> siteConfigurationsByID = new Dictionary<string, SiteConfiguration>();
+            foreach (Experience.Dataset.Data data in columnData)
             {
-                Experience.EpochedData epochedData = new Experience.EpochedData(Bloc, d);
-                blocByData.Add(d,Localizer.Bloc.Average(epochedData.Blocs));
-                foreach(var item in blocByData[d].ValuesBySite)
+                Experience.EpochedData epochedData = new Experience.EpochedData(Bloc, data);
+                blocByData.Add(data,Localizer.Bloc.Average(epochedData.Blocs));
+                foreach(var item in blocByData[data].ValuesBySite)
                 {
-                    siteConfigurationsByName.Add(item.Key, new SiteConfiguration(item.Value,false,false,false,false,false,UnityEngine.Color.white));
+                    siteConfigurationsByID.Add(data.Patient.ID + "_" + item.Key, new SiteConfiguration(item.Value,false,false,false,false,false,UnityEngine.Color.white));
                 }
             }
-            TimeLine = new Timeline(Bloc.DisplayInformations, new Event(Bloc.MainEvent.Name, (int) Math.Round(blocByData.Values.Average((b) => b.PositionByEvent[Bloc.MainEvent]))), (from evt in Bloc.SecondaryEvents select new Event(evt.Name, (int) blocByData.Values.Average((b) => b.PositionByEvent[evt]))).ToArray(), data.Average((d) => d.Frequency));
-            IconicScenario = new IconicScenario(Bloc, data.Average((d) => d.Frequency), TimeLine);
+            TimeLine = new Timeline(Bloc.DisplayInformations, new Event(Bloc.MainEvent.Name, (int) Math.Round(blocByData.Values.Average((b) => b.PositionByEvent[Bloc.MainEvent]))), (from evt in Bloc.SecondaryEvents select new Event(evt.Name, (int) blocByData.Values.Average((b) => b.PositionByEvent[evt]))).ToArray(), columnData.Average((d) => d.Frequency));
+            IconicScenario = new IconicScenario(Bloc, columnData.Average((d) => d.Frequency), TimeLine);
         }
         /// <summary>
         /// Test if the visualization Column is compatible with a Patient.
@@ -147,23 +147,9 @@ namespace HBP.Data.Visualization
         /// <param name="after">sample after</param>
         public void Standardize(int before,int after)
         {
-            UnityEngine.Debug.Log("Before : " + before);
-            UnityEngine.Debug.Log("After : " + after);
             int diffBefore = TimeLine.MainEvent.Position - before;
             int diffAfter = (TimeLine.Lenght - TimeLine.MainEvent.Position) - after;
-            UnityEngine.Debug.Log("DiffBefore : " + diffBefore);
-            UnityEngine.Debug.Log("DiffAfter : " + diffAfter);
             TimeLine.Resize(diffBefore, diffAfter);
-            //foreach(var patientConfiguration in Configuration.ConfigurationByPatient.Values)
-            //{
-            //    foreach(var electrodeConfiguration in patientConfiguration.ConfigurationByElectrode.Values)
-            //    {
-            //        foreach(var siteConfiguration in electrodeConfiguration.ConfigurationBySite.Values)
-            //        {
-            //            siteConfiguration.Values;
-            //        }
-            //    }
-            //}
         }
         #endregion
 

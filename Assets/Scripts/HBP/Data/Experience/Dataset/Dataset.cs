@@ -22,16 +22,19 @@ namespace HBP.Data.Experience.Dataset
 	{
         #region Attributs
         public const string EXTENSION = ".dataset";
+
         [DataMember]
         /// <summary>
         /// Unique ID of the dataset.
         /// </summary>
         public string ID { get; private set; }
+
         [DataMember]
         /// <summary>
         /// Name of the dataset.
         /// </summary>
 		public string Name { get; set; }
+
         [DataMember(Order = 3)]
         /// <summary>
         /// DataInfo of the dataset.

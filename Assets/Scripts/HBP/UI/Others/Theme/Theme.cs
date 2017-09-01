@@ -52,11 +52,16 @@ namespace HBP.UI.Theme
         public Color ContentGeneralButtonLabel { get; set; }
         public Color ContentOtherButtonLabel { get; set; }
         public Color HeaderTitleLabel { get; set; }
+        public Color DisableLabel { get; set; }
 
         // Color Module 3D
         public Color RegularViewColor { get; set; }
         public Color SelectedViewColor { get; set; }
         public Color ClickedViewColor { get; set; }
+
+        // Ok/NotOk
+        public Color Error { get; set; }
+        public Color OK { get; set; }
 
         public ThemeColor()
         {
@@ -140,12 +145,15 @@ namespace HBP.UI.Theme
             ContentNormalLabel = new Color(255, 255, 255, 255) / 255.0f;
             ContentTitleLabel = new Color(255, 255, 255, 255) / 255.0f;
             ContentGeneralButtonLabel = new Color(0, 0, 0, 255) / 255.0f;
-
             ContentOtherButtonLabel = new Color(255, 255, 255, 255) / 255.0f;
+            DisableLabel = new Color(200, 50, 50, 255) / 255.0f;
 
             RegularViewColor = new Color(212, 212, 212, 255) / 255.0f;
             SelectedViewColor = new Color(156, 187, 227, 255) / 255.0f;
             ClickedViewColor = new Color(95, 141, 227, 255) / 255.0f;
+
+            OK = new Color(50, 200, 50, 255) / 255.0f;
+            Error = new Color(200, 50, 50, 255) / 255.0f;
         }
     }
     public class ThemeFont

@@ -3,8 +3,8 @@ using UnityEngine.UI;
 
 namespace Tools.Unity.Window
 {
-	[RequireComponent (typeof (ResizeWindow))]
-	[RequireComponent (typeof (DragWindow))]
+	[RequireComponent (typeof (Resizer))]
+	[RequireComponent (typeof (Dragger))]
 	[RequireComponent (typeof (RectTransform))]
 	public class WindowGestion : MonoBehaviour 
 	{
@@ -14,8 +14,8 @@ namespace Tools.Unity.Window
 		private RectTransform m_parentRectTransform;
 
 		/* Resize and drag scripts */
-		private ResizeWindow m_resizeWindow;
-		private DragWindow m_dragWindow;
+		private Resizer m_resizeWindow;
+		private Dragger m_dragWindow;
 
 		/* Title of the window */
 		private Text m_title;
@@ -49,8 +49,8 @@ namespace Tools.Unity.Window
 		}
 		public void initialize()
 		{
-			m_resizeWindow = transform.GetComponent<ResizeWindow>();
-			m_dragWindow =transform.GetComponent<DragWindow>();
+			m_resizeWindow = transform.GetComponent<Resizer>();
+			m_dragWindow =transform.GetComponent<Dragger>();
 
 			initializeTitle();
 			initializeRectTransform();
@@ -62,8 +62,8 @@ namespace Tools.Unity.Window
 			Title = title;
 			Content = content;
 			MinimizePanelBar = minimizeBar;
-			m_resizeWindow = transform.GetComponent<ResizeWindow>();
-			m_dragWindow =transform.GetComponent<DragWindow>();
+			m_resizeWindow = transform.GetComponent<Resizer>();
+			m_dragWindow =transform.GetComponent<Dragger>();
 
 			initializeTitle();
 			initializeRectTransform();
@@ -154,7 +154,7 @@ namespace Tools.Unity.Window
 				m_lastOffsetMin = m_rectTransform.offsetMin;
 				m_lastOffsetMax = m_rectTransform.offsetMax;
 				m_rectTransform.SetParent(GameObject.Find("Minimize").transform);
-				transform.GetComponent<RectTransform>().sizeDelta = m_resizeWindow.MinimizeSizeWindow;
+				//transform.GetComponent<RectTransform>().sizeDelta = m_resizeWindow.MinimizeSizeWindow;
 				State = WindowState.Minimized;
 			}
 			else if(State == WindowState.Maximized)
@@ -181,28 +181,25 @@ namespace Tools.Unity.Window
 			if(windowState == WindowState.Normal)
 			{
 				transform.Find("Content").gameObject.SetActive(true);
-				m_dragWindow.DragEnabled = true;
-				m_resizeWindow.ResizeEnabled = true;
+				//m_resizeWindow.ResizeEnabled = true;
 			}
 			else if(windowState == WindowState.Minimized)
 			{
 				transform.Find("Content").gameObject.SetActive(false);
-				m_dragWindow.DragEnabled = false;
-				m_resizeWindow.ResizeEnabled = false;
+				//m_resizeWindow.ResizeEnabled = false;
 			}
 			else if(windowState == WindowState.Maximized)
 			{
 				transform.Find("Content").gameObject.SetActive(true);
-				m_dragWindow.DragEnabled = false;
-				m_resizeWindow.ResizeEnabled = false;
+				//m_resizeWindow.ResizeEnabled = false;
 			}
 			m_state = windowState;
 		}
 		private void calculateMinimumSize()
 		{
-			m_resizeWindow.MinimizeSizeWindow = new Vector2((float)m_title.font.fontSize*m_title.text.Length+100.0f,30.0f);
-			transform.GetComponent<LayoutElement>().minHeight = m_resizeWindow.MinimizeSizeWindow.y;
-			transform.GetComponent<LayoutElement>().minWidth = m_resizeWindow.MinimizeSizeWindow.x;
+			//m_resizeWindow.MinimizeSizeWindow = new Vector2((float)m_title.font.fontSize*m_title.text.Length+100.0f,30.0f);
+			//transform.GetComponent<LayoutElement>().minHeight = m_resizeWindow.MinimizeSizeWindow.y;
+			//transform.GetComponent<LayoutElement>().minWidth = m_resizeWindow.MinimizeSizeWindow.x;
 		}
 
 		private void showWindowInFirst()

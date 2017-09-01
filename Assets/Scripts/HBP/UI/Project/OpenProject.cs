@@ -30,8 +30,8 @@ namespace HBP.UI
         #region Private Methods
         protected override void SetWindow()
         {
-            m_LoadingButton = transform.Find("Content").Find("GeneralButtons").Find("Load").GetComponent<Button>();
-            m_ProjectList = transform.Find("Content").Find("Projects").Find("ProjectList").Find("List").Find("List").Find("Viewport").Find("Content").GetComponent<ProjectList>();
+            m_LoadingButton = transform.Find("Content").Find("Buttons").Find("Open").GetComponent<Button>();
+            m_ProjectList = transform.Find("Content").Find("Projects").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<ProjectList>();
             m_ProjectList.OnSelectionChanged.AddListener((projectInfo,selected) => m_LoadingButton.interactable = true);
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 

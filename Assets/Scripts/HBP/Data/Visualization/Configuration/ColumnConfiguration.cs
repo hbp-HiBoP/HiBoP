@@ -21,14 +21,9 @@ namespace HBP.Data.Visualization
     public class ColumnConfiguration : ICloneable
     {
         #region Properties
-        [DataMember(Name = "ConfigurationByPatient")]
-        Dictionary<string, PatientConfiguration> m_ConfigurationByPatientID;
-        [IgnoreDataMember]
-        /// <summary>
-        /// Configuration by patient.
-        /// </summary>
-        public Dictionary<Patient, PatientConfiguration> ConfigurationByPatient { get; set; }
-
+        [DataMember(Name = "ConfigurationBySite")]
+        public Dictionary<string, SiteConfiguration> ConfigurationBySite;
+        
         /// <summary>
         /// Region of interest.
         /// </summary>
@@ -37,12 +32,12 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructor
-        public ColumnConfiguration(Dictionary<Patient,PatientConfiguration> configurationByPatient, IEnumerable<RegionOfInterest> regionOfInterest)
+        public ColumnConfiguration(Dictionary<string,SiteConfiguration> configurationBySite, IEnumerable<RegionOfInterest> regionOfInterest)
         {
-            ConfigurationByPatient = configurationByPatient;
+            ConfigurationBySite = configurationBySite;
             RegionOfInterest = regionOfInterest.ToList();
         }
-        public ColumnConfiguration() : this (new Dictionary<Patient, PatientConfiguration>(), new RegionOfInterest[0])
+        public ColumnConfiguration() : this (new Dictionary<string, SiteConfiguration>(), new RegionOfInterest[0])
         { 
         }
         #endregion
@@ -50,34 +45,9 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public object Clone()
         {
-            Dictionary<Patient, PatientConfiguration> configurationByPatientClone = new Dictionary<Patient, PatientConfiguration>();
-            foreach (var item in ConfigurationByPatient) configurationByPatientClone.Add(item.Key, item.Value.Clone() as PatientConfiguration);
-            return new ColumnConfiguration(configurationByPatientClone, from ROI in RegionOfInterest select ROI.Clone() as RegionOfInterest);
-        }
-        #endregion
-
-        #region Serialization
-        [OnSerializing]
-        void OnSerializing(StreamingContext streamingContext)
-        {
-            m_ConfigurationByPatientID = new Dictionary<string, PatientConfiguration>();
-            foreach (var item in ConfigurationByPatient)
-            {
-                m_ConfigurationByPatientID.Add(item.Key.ID, item.Value);
-            }
-        }
-        [OnSerialized]
-        void OnSerialized(StreamingContext streamingContext)
-        {
-            m_ConfigurationByPatientID = null;
-        }
-        [OnDeserialized]
-        void OnDeserialized(StreamingContext streamingContext)
-        {
-            foreach (var item in m_ConfigurationByPatientID)
-            {
-                ConfigurationByPatient.Add(ApplicationState.ProjectLoaded.Patients.First((elmt) => elmt.ID == item.Key), item.Value);
-            }
+            Dictionary<string, SiteConfiguration> configurationBySiteClone = new Dictionary<string, SiteConfiguration>();
+            foreach (var item in ConfigurationBySite) configurationBySiteClone.Add(item.Key, item.Value.Clone() as SiteConfiguration);
+            return new ColumnConfiguration(configurationBySiteClone, from ROI in RegionOfInterest select ROI.Clone() as RegionOfInterest);
         }
         #endregion
     }

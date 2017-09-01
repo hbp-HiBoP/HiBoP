@@ -8,24 +8,24 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         GroupList groupList;
-        public AddGroupsEvent AddGroupsEvent = new AddGroupsEvent();
+        public GroupsSelected GroupsSelectedEvent = new GroupsSelected();
         #endregion
 
         #region Public Methods
         public void AddGroupsSelected()
         {
-            AddGroupsEvent.Invoke(groupList.ObjectsSelected);
+            GroupsSelectedEvent.Invoke(groupList.ObjectsSelected);
         }
         #endregion
 
         #region Private Methods
         protected override void SetWindow()
         {
-            groupList = transform.Find("Content").Find("Groups").Find("Scroll View").Find("Viewport").Find("Content").GetComponent<GroupList>();
+            groupList = transform.Find("Content").Find("Groups").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<GroupList>();
             groupList.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
         }
         #endregion
     }
 
-    public class AddGroupsEvent : UnityEvent<Group[]> { };
+    public class GroupsSelected : UnityEvent<Group[]> { };
 }

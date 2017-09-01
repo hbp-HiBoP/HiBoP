@@ -49,7 +49,7 @@ namespace HBP.UI.Settings
             defaultNameProjectInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
             defaultLocationProjectFolderSelector = transform.Find("Content").Find("Location").Find("Projects").Find("FolderSelector").GetComponent<FolderSelector>();
             defaultPatientDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("Patients").Find("FolderSelector").GetComponent<FolderSelector>();
-            defaultLocalizerDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("SEEG").Find("FolderSelector").GetComponent<FolderSelector>();
+            defaultLocalizerDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("Localizers").Find("FolderSelector").GetComponent<FolderSelector>();
             plotNameAutoCorrectionOption = transform.Find("Content").Find("EEG").Find("PlotNameAutomaticCorrection").GetComponentInChildren<Dropdown>();
             trialBaseLineOption = transform.Find("Content").Find("Trial Matrix").Find("BaseLine").GetComponentInChildren<Dropdown>();
             trialMatrixSmoothingOption = transform.Find("Content").Find("Trial Matrix").Find("TrialMatrixSmoothing").GetComponentInChildren<Dropdown>();

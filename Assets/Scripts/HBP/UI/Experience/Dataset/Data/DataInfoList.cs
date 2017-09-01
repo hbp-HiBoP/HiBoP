@@ -90,11 +90,11 @@ namespace HBP.UI.Experience.Dataset
             switch (m_OrderBy)
             {
                 case OrderBy.Prov:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Protocol).ToDictionary(k => k.Key, v => v.Value);
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Protocol.Name).ToDictionary(k => k.Key, v => v.Value);
                     m_OrderBy = OrderBy.DescendingProv;
                     break;
                 default:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Protocol).ToDictionary(k => k.Key, v => v.Value);
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Protocol.Name).ToDictionary(k => k.Key, v => v.Value);
                     m_OrderBy = OrderBy.Prov;
                     break;
             }

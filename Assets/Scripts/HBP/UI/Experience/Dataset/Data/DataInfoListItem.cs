@@ -40,8 +40,8 @@ namespace HBP.UI.Experience.Dataset
 		/// The state toggle.
 		/// </summary>
 		[SerializeField] Image m_IsOk;
-        [SerializeField] Color m_EnableColor;
-        [SerializeField] Color m_DisableColor;
+        [SerializeField] Text m_ErrorText;
+
         public override DataInfo Object
         {
             get
@@ -87,6 +87,10 @@ namespace HBP.UI.Experience.Dataset
             Object.Patient = ApplicationState.ProjectLoaded.Patients[m_PatientDropdown.value];
             Object.Protocol = ApplicationState.ProjectLoaded.Protocols[m_ProtocolDropdown.value];
         }
+        public void SetErrors()
+        {
+            m_ErrorText.text = Object.GetErrorsMessage();
+        }
         #endregion
 
         #region Protected Methods
@@ -94,13 +98,14 @@ namespace HBP.UI.Experience.Dataset
         {
             if(isOk)
             {
-                m_IsOk.color = m_EnableColor;
+                m_IsOk.color = ApplicationState.Theme.Color.OK;
             }
             else
             {
-                m_IsOk.color = m_DisableColor;
+                m_IsOk.color = ApplicationState.Theme.Color.Error;
             }
         }
+
         #endregion
     }
 }

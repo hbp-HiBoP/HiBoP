@@ -17,16 +17,14 @@ public class LoadingCircle : MonoBehaviour
         set
         {
             m_Progress = value;
-            int percentage = Mathf.FloorToInt(m_Progress * 100.0f);
-            int circles = percentage / 5;
-            transform.GetChild(1).GetComponent<Image>().fillAmount = circles * 0.05f;
-            string path = "BrainAnim" + System.IO.Path.DirectorySeparatorChar + percentage;
-            Sprite sprite = Resources.Load<Sprite>(path) as Sprite;
-            transform.GetChild(2).GetComponent<Image>().sprite = sprite;
         }
     }
 
+    float m_LastProgress;
     Coroutine m_TextCoroutine;
+    Coroutine m_ChangePercentageCoroutine;
+    bool m_ChangePercentageCoroutineIsRunning;
+    float m_EndPercentageCurrentCoroutine;
 
     string m_Text;
     public string Text
@@ -55,6 +53,11 @@ public class LoadingCircle : MonoBehaviour
     }
     public void ChangePercentage(float progress, float seconds, string message)
     {
+        if (m_ChangePercentageCoroutineIsRunning)
+        {
+            StopCoroutine(m_ChangePercentageCoroutine);
+            Progress = m_EndPercentageCurrentCoroutine;
+        }
         ChangePercentage(m_Progress, progress, seconds);
         Text = message;
     }
@@ -64,7 +67,8 @@ public class LoadingCircle : MonoBehaviour
         {
             if(seconds > 0)
             {
-                StartCoroutine(c_ChangePercentage(start, end, seconds));
+                m_EndPercentageCurrentCoroutine = end;
+                m_ChangePercentageCoroutine = StartCoroutine(c_ChangePercentage(start, end, seconds));
             }
             else
             {
@@ -92,21 +96,15 @@ public class LoadingCircle : MonoBehaviour
     #region Coroutines
     IEnumerator c_ChangePercentage(float start, float end, float seconds)
     {
-        float delay = 0.05f;
-        int max = Mathf.CeilToInt(seconds / delay);
-        float ratio = (end - start) / (max - 1);
-        for (int i = 0; i < max; i++)
+        m_ChangePercentageCoroutineIsRunning = true;
+        float actualTime = 0;
+        while(actualTime < seconds)
         {
-            if (i != (max - 1))
-            {
-                Progress = start + i * ratio;
-            }
-            else
-            {
-                Progress = end;
-            }
-            yield return new WaitForSeconds(delay);
+            actualTime += Time.deltaTime;
+            Progress = Mathf.Lerp(start, end, actualTime / seconds);
+            yield return new WaitForEndOfFrame();
         }
+        m_ChangePercentageCoroutineIsRunning = false;
     }
     IEnumerator c_Load()
     {
@@ -131,6 +129,20 @@ public class LoadingCircle : MonoBehaviour
     void LateUpdate()
     {
         if (!loading && transform.GetChild(0).GetChild(0).GetChild(0).gameObject.activeSelf) m_TextCoroutine = StartCoroutine(c_Load());
+    }
+
+    private void Update()
+    {
+        if(m_Progress != m_LastProgress)
+        {
+            int percentage = Mathf.FloorToInt(m_Progress * 100.0f);
+            int circles = percentage / 5;
+            transform.GetChild(1).GetComponent<Image>().fillAmount = circles * 0.05f;
+            string path = "BrainAnim" + System.IO.Path.DirectorySeparatorChar + percentage;
+            Sprite sprite = Resources.Load<Sprite>(path) as Sprite;
+            transform.GetChild(2).GetComponent<Image>().sprite = sprite;
+            m_LastProgress = m_Progress;
+        }
     }
     #endregion
 }

@@ -46,14 +46,17 @@ namespace HBP.Data.Visualization
         public string Name { get; set; }
 
         [DataMember(Name = "Patients", Order = 3)]
-        IEnumerable<string> m_patientsID;
-        List<Patient> m_patients;
+        List<string> m_patientsID;
         /// <summary>
         /// Patients of the Visualization.
         /// </summary>
         public ReadOnlyCollection<Patient> Patients
         {
-            get { return new ReadOnlyCollection<Patient>(m_patients); }
+            get
+            {
+                IEnumerable<Patient> patients = from patient in ApplicationState.ProjectLoaded.Patients where m_patientsID.Contains(patient.ID) select patient;
+                return new ReadOnlyCollection<Patient>(patients.ToArray());
+            }
         }
 
         /// <summary>
@@ -77,9 +80,9 @@ namespace HBP.Data.Visualization
         }
 
         const float FIND_FILES_TO_READ_PROGRESS = 0.025f;
-        const float READ_FILES_PROGRESS = 0.8f;
-        const float EPOCH_DATA_PROGRESS = 0.025f;
-        const float STANDARDIZE_COLUMNS_PROGRESS = 0.15f;
+        const float READ_FILES_PROGRESS = 0.6f;
+        const float LOAD_COLUMNS_PROGRESS = 0.3f;
+        const float STANDARDIZE_COLUMNS_PROGRESS = 0.075f;
         #endregion
 
         #region Constructors
@@ -121,11 +124,7 @@ namespace HBP.Data.Visualization
         /// <param name="patient">Patient to add.</param>
         public void AddPatient(Patient patient)
         {
-            if (!Patients.Contains(patient))
-            {
-                m_patients.Add(patient);
-                AddPatientConfiguration(patient);
-            }
+            if (!Patients.Contains(patient)) m_patientsID.Add(patient.ID);
         }
         /// <summary>
         /// Add patients to the visualization.
@@ -144,10 +143,7 @@ namespace HBP.Data.Visualization
         /// <param name="patient">Patient to remove.</param>
         public void RemovePatient(Patient patient)
         {
-            if (m_patients.Remove(patient))
-            {
-                RemovePatientConfiguration(patient);
-            }
+            m_patientsID.Remove(patient.ID);
         }
         /// <summary>
         /// Remove patients to the visualization.
@@ -163,8 +159,8 @@ namespace HBP.Data.Visualization
         /// <param name="patients">Patients to set in the visualization.</param>
         public void SetPatients(IEnumerable<Patient> patients)
         {
-            m_patients = new List<Patient>();
-            AddPatient(from patient in patients where !this.m_patients.Contains(patient) select patient);
+            m_patientsID = new List<string>();
+            AddPatient(from patient in patients where !m_patientsID.Contains(patient.ID) select patient);
         }
         /// <summary>
         /// Remove all patients in the visualization.
@@ -187,12 +183,19 @@ namespace HBP.Data.Visualization
             float progress = 0.0f;
 
             Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
-            yield return c_FindDataToRead(progress, onChangeProgress,(value, progressValue) => { dataInfoByColumn = value; progress = progressValue; });
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataToRead(progress, onChangeProgress,(value, progressValue) => { dataInfoByColumn = value; progress = progressValue; }));
+            yield return Ninja.JumpBack;
             Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo = (from dataInfos in dataInfoByColumn.Values from dataInfo in dataInfos select dataInfo).Distinct().ToDictionary(t => t, t => new Experience.Dataset.Data());
             Dictionary<Column, Experience.Dataset.Data[]> dataByColumn = new Dictionary<Column, Experience.Dataset.Data[]>();
-            yield return c_ReadData(dataInfoByColumn, dataByDataInfo, progress, onChangeProgress,(value, progressValue) => { dataByColumn = value; progress = progressValue; });
-            yield return c_LoadColumns(dataByColumn, progress, onChangeProgress,(value) => progress = value);
-            yield return c_StandardizeColumns(progress, onChangeProgress,(value) => progress = value);
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_ReadData(dataInfoByColumn, dataByDataInfo, progress, onChangeProgress,(value, progressValue) => { dataByColumn = value; progress = progressValue; }));
+            yield return Ninja.JumpBack;
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataByColumn, progress, onChangeProgress,(value) => progress = value));
+            yield return Ninja.JumpBack;
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_StandardizeColumns(progress, onChangeProgress,(value) => progress = value));
         }
         /// <summary>
         /// Unload the visualization.
@@ -260,34 +263,6 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Private Methods
-        void AddPatientConfiguration(Patient patient)
-        {
-            // TODO
-            //foreach (Column column in Columns)
-            //{
-            //    if (!column.Configuration.ConfigurationByPatient.ContainsKey(patient)) column.Configuration.ConfigurationByPatient.Add(patient, new PatientConfiguration(Configuration.Color, patient));
-            //    PatientConfiguration patientConfiguration = column.Configuration.ConfigurationByPatient[patient];
-            //    foreach (Anatomy.Electrode electrode in patient.Brain.Implantation.Electrodes)
-            //    {
-            //        if (!patientConfiguration.ConfigurationByElectrode.ContainsKey(electrode)) patientConfiguration.ConfigurationByElectrode.Add(electrode, new ElectrodeConfiguration(patientConfiguration.Color, patient));
-            //        ElectrodeConfiguration electrodeConfiguration = patientConfiguration.ConfigurationByElectrode[electrode];
-            //        foreach (Anatomy.Site site in electrode.Sites)
-            //        {
-            //            if (!electrodeConfiguration.ConfigurationBySite.ContainsKey(site)) electrodeConfiguration.ConfigurationBySite.Add(site, new SiteConfiguration(electrodeConfiguration.Color));
-            //        }
-            //    }
-            //}
-        }
-        void RemovePatientConfiguration(Patient patient)
-        {
-            foreach (Column column in Columns)
-            {
-                if(column.Configuration.ConfigurationByPatient.ContainsKey(patient))
-                {
-                    column.Configuration.ConfigurationByPatient.Remove(patient);
-                }
-            }
-        }
         IEnumerator c_FindDataToRead(float progress, GenericEvent<float, float, string> onChangeProgress, Action<Dictionary<Column, DataInfo[]>, float> outPut)
         {
             // Find files to read.
@@ -316,7 +291,6 @@ namespace HBP.Data.Visualization
                 }
                 catch(Exception exception)
                 {
-
                 }
             }
             outPut(dataInfoByColumn, progress);
@@ -325,7 +299,7 @@ namespace HBP.Data.Visualization
         {
             Stopwatch timer = new Stopwatch();
             float progressStep = READ_FILES_PROGRESS / (dataByDataInfo.Count);
-            float readingSpeed = 18000000;
+            float readingSpeed = 36000000;
             List<DataInfo> dataInfoToRead = dataByDataInfo.Keys.ToList();
             foreach (var dataInfo in dataInfoToRead)
             {
@@ -354,21 +328,23 @@ namespace HBP.Data.Visualization
                 // Calculate real reading speed.
                 float actualReadingTime = timer.ElapsedMilliseconds / 1000.0f;
                 readingSpeed = Mathf.Lerp(readingSpeed, fileToRead.Length / actualReadingTime, 0.5f);
+                timer.Reset();
             }
             Dictionary<Column, Experience.Dataset.Data[]> dataByColumn = dataInfoByColumn.ToDictionary(t => t.Key, t => (from dataInfo in t.Value select dataByDataInfo[dataInfo]).ToArray());
             outPut(dataByColumn, progress);
         }
         IEnumerator c_LoadColumns(Dictionary<Column, Experience.Dataset.Data[]> dataByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float> outPut)
         {
-            float progressStep = EPOCH_DATA_PROGRESS / Columns.Count;
+            float progressStep = LOAD_COLUMNS_PROGRESS / Columns.Count;
             foreach (Column column in Columns)
             {
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0, "Load column <color=blue>" + column.DataLabel + "</color>.");
+                onChangeProgress.Invoke(progress, 0.2f, "Load column <color=blue>" + column.DataLabel + "</color>.");
                 yield return Ninja.JumpBack;
                 column.Load(dataByColumn[column]);
             }
+            outPut(progress);
         }
         IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, string> onChangeProgress, Action<float> outPut)
         {
@@ -383,19 +359,6 @@ namespace HBP.Data.Visualization
                 yield return Ninja.JumpBack;
                 column.Standardize(maxBefore, maxAfter);
             }
-        }
-        #endregion
-
-        #region Serialization
-        [OnSerializing]
-        void OnSerializing(StreamingContext streamingContext)
-        {
-            m_patientsID = from patient in m_patients select patient.ID;
-        }
-        [OnDeserialized]
-        void OnDeserialized(StreamingContext streamingContext)
-        {
-            m_patients = ApplicationState.ProjectLoaded.Patients.Where((patient) => m_patientsID.Contains(patient.ID)).ToList();
         }
         #endregion
     }

@@ -34,7 +34,7 @@ namespace HBP.UI
             nameInputField = transform.Find("Content").Find("General").Find("Name").GetComponentInChildren<InputField>();
             projectFolderSelector = transform.Find("Content").Find("General").Find("Location").GetComponentInChildren<FolderSelector>();
             patientsDatabaseFolderSelector = transform.Find("Content").Find("Database").Find("Patients").GetComponentInChildren<FolderSelector>();
-            localizerDatabaseFolderSelector = transform.Find("Content").Find("Database").Find("Localizer").GetComponentInChildren<FolderSelector>();
+            localizerDatabaseFolderSelector = transform.Find("Content").Find("Database").Find("Localizers").GetComponentInChildren<FolderSelector>();
 
             nameInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
             projectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;

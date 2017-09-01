@@ -8,8 +8,8 @@ public class ThemeMenu
     public static void SetTheme()
     {
         Theme theme = new Theme();
-        WindowThemeGestion[] windowThemeGestions = Object.FindObjectsOfType<WindowThemeGestion>();
-        foreach (WindowThemeGestion windowThemeGestion in windowThemeGestions)
+        ThemeManager[] windowThemeGestions = Object.FindObjectsOfType<ThemeManager>();
+        foreach (ThemeManager windowThemeGestion in windowThemeGestions)
         {
             windowThemeGestion.Set(theme);
         }

@@ -32,7 +32,7 @@ namespace HBP.Data.Anatomy
         [DataMember] public List<Implantation> Implantations { get; set; }
         [DataMember] public List<Transformation> Transformations { get; set; }
         [DataMember] public Epilepsy Epilepsy { get; set; }
-        //[IgnoreDataMember] public Patient Patient { get; set; }
+        [IgnoreDataMember] public Patient Patient { get; set; }
         #endregion
 
         #region Constructors

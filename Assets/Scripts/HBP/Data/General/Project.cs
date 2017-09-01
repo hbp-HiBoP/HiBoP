@@ -363,12 +363,13 @@ namespace HBP.Data.General
             if (!IsProject(projectInfo.Path)) throw new DirectoryNotProjectException(projectInfo.Path); // Test if the directory is a project.
             DirectoryInfo projectDirectory = new DirectoryInfo(projectInfo.Path);
 
-            yield return c_LoadSettings(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_LoadPatients(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_LoadGroups(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_LoadProtocols(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_LoadDatasets(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_LoadVisualizations(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSettings(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadPatients(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadGroups(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadProtocols(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadDatasets(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadVisualizations(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
             
             yield return Ninja.JumpToUnity;
             OnChangeProgress.Invoke(1, 0, "Project succesfully loaded.");

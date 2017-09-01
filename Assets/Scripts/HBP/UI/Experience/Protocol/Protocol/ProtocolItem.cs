@@ -1,14 +1,19 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using d = HBP.Data.Experience.Protocol;
+using Tools.Unity.Lists;
+using System.Linq;
 
 namespace HBP.UI.Experience.Protocol
 {
-	public class ProtocolItem : Tools.Unity.Lists.ActionnableItem<d.Protocol> 
+	public class ProtocolItem : ActionnableItem<d.Protocol> 
 	{
 		#region Properties
-		[SerializeField] Text m_Name;
-        [SerializeField] Text m_Blocs;
+		[SerializeField] Text m_NameText;
+        [SerializeField] Text m_BlocsText;
+        [SerializeField] Button m_BlocsButton;
+        [SerializeField] LabelList m_BlocsList;
+
         public override d.Protocol Object
         {
             get
@@ -19,10 +24,29 @@ namespace HBP.UI.Experience.Protocol
             set
             {
                 base.Object = value;
-                m_Name.text = value.Name;
-                m_Blocs.text = value.Blocs.Count.ToString();
+                m_NameText.text = value.Name;
+
+                int nbBlocs = value.Blocs.Count;
+                m_BlocsText.text = nbBlocs.ToString();
+                if(nbBlocs == 0)
+                {
+                    m_BlocsText.color = ApplicationState.Theme.Color.DisableLabel;
+                    m_BlocsButton.interactable = false;
+                }
+                else
+                {
+                    m_BlocsText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                    m_BlocsButton.interactable = true;
+                }
             }
         }
         #endregion
-	}
+
+        #region Public Methods
+        public void SetBlocs()
+        {
+            m_BlocsList.Objects = (from bloc in m_Object.Blocs select bloc.DisplayInformations.Name).ToArray();
+        }
+        #endregion
+    }
 }

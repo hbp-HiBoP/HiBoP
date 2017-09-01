@@ -65,11 +65,11 @@ namespace HBP.UI.Anatomy
         protected override void SetWindow()
         {
             m_NameInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
-            m_ProjectPatientsList = transform.Find("Content").Find("Patients").Find("Project").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
-            m_GroupPatientsList = transform.Find("Content").Find("Patients").Find("Group").Find("List").Find("Viewport").Find("Content").GetComponent<PatientList>();
-            m_SaveButton = transform.Find("Content").Find("Buttons").Find("Save").GetComponent<Button>();
-            m_AddButton = transform.Find("Content").Find("Patients").Find("Buttons").Find("Add").GetComponent<Button>();
-            m_RemoveButton = transform.Find("Content").Find("Patients").Find("Buttons").Find("Remove").GetComponent<Button>();
+            m_ProjectPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("Project").Find("Display").Find("Viewport").Find("Content").GetComponent<PatientList>();
+            m_GroupPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("Group").Find("Display").Find("Viewport").Find("Content").GetComponent<PatientList>();
+            m_SaveButton = transform.Find("Content").Find("Buttons").Find("OK").GetComponent<Button>();
+            m_AddButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Add").GetComponent<Button>();
+            m_RemoveButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Remove").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {
