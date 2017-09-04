@@ -25,10 +25,6 @@ namespace HBP.UI.Anatomy
         [SerializeField] Button m_ImplantationButton;
         [SerializeField] LabelList m_ImplantationList;
 
-        [SerializeField] Text m_TransformationText;
-        [SerializeField] Button m_TransformationButton;
-        [SerializeField] LabelList m_TransformationList;
-
         [SerializeField] Text m_ConnectivityText;
         [SerializeField] Button m_ConnectivityButton;
         [SerializeField] LabelList m_ConnectivityList;
@@ -86,19 +82,6 @@ namespace HBP.UI.Anatomy
                     m_ImplantationButton.interactable = true;
                 }
 
-                int nbTransformation = value.Brain.Transformations.FindAll(t => t.isUsable).Count;
-                m_TransformationText.text = nbTransformation.ToString();
-                if (nbTransformation == 0)
-                {
-                    m_TransformationText.color = ApplicationState.Theme.Color.DisableLabel;
-                    m_TransformationButton.interactable = false;
-                }
-                else
-                {
-                    m_TransformationText.color = ApplicationState.Theme.Color.ContentNormalLabel;
-                    m_TransformationButton.interactable = true;
-                }
-
                 int nbConnectivity = value.Brain.Connectivities.FindAll(c => c.isUsable).Count;
                 m_ConnectivityText.text = nbConnectivity.ToString();
                 if (nbConnectivity == 0)
@@ -125,10 +108,6 @@ namespace HBP.UI.Anatomy
         public void SetMRIs()
         {
             m_MRIList.Objects = (from mri in m_Object.Brain.MRIs where mri.isUsable select mri.Name).ToArray();
-        }
-        public void SetTransformations()
-        {
-            m_TransformationList.Objects = (from transformation in m_Object.Brain.Transformations where transformation.isUsable select transformation.Name).ToArray();
         }
         public void SetImplantations()
         {

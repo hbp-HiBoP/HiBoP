@@ -23,7 +23,7 @@ namespace HBP.Data.Settings
 	{
         #region Properties
         public static string PATH = Directory.GetParent(Application.dataPath).FullName + Path.DirectorySeparatorChar + "GeneralSettings.txt";
-        public enum PlotNameCorrectionTypeEnum { None, Active }
+        public enum PlotNameCorrectionTypeEnum { Disable, Enable }
 
         /// <summary>
         /// Default project name.
@@ -74,7 +74,7 @@ namespace HBP.Data.Settings
         /// <summary>
         /// Create a new general settings instance with default values.
         /// </summary>
-        public GeneralSettings() : this("New project","","","",PlotNameCorrectionTypeEnum.Active,new TrialMatrixSettings())
+        public GeneralSettings() : this("New project","","","",PlotNameCorrectionTypeEnum.Enable,new TrialMatrixSettings())
         {
         }
         #endregion

@@ -9,6 +9,7 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] ImplantationList m_ImplantationList;
+        [SerializeField] Text m_ImplantationCounter;
         [SerializeField] Button m_AddButton;
         [SerializeField] Button m_RemoveButton;
         Data.Patient m_Patient;
@@ -34,6 +35,8 @@ namespace HBP.UI.Anatomy
         public void Set(Data.Patient patient)
         {
             m_Patient = patient;
+            m_ImplantationList.OnSelectionChanged.RemoveAllListeners();
+            m_ImplantationList.OnSelectionChanged.AddListener((mesh, i) => m_ImplantationCounter.text = m_ImplantationList.ObjectsSelected.Length.ToString());
         }
         public void SetActive(bool active)
         {

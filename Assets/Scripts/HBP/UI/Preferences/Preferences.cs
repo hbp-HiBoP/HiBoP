@@ -2,6 +2,8 @@
 using Tools.Unity;
 using HBP.Data.Settings;
 using System;
+using System.Text;
+using Tools.CSharp;
 
 namespace HBP.UI.Settings
 {
@@ -85,7 +87,7 @@ namespace HBP.UI.Settings
             trialMatrixSmoothingOption.ClearOptions();
             foreach (string i_type in l_typesSmoothing)
             {
-                trialMatrixSmoothingOption.options.Add(new Dropdown.OptionData(i_type));
+                trialMatrixSmoothingOption.options.Add(new Dropdown.OptionData(i_type.SplitPascalCase()));
             }
             trialMatrixSmoothingOption.value = (int)ApplicationState.GeneralSettings.TrialMatrixSettings.Smoothing;
             trialMatrixSmoothingOption.RefreshShownValue();
@@ -95,7 +97,7 @@ namespace HBP.UI.Settings
             blocFormatOption.onValueChanged.AddListener((i) => UpdateBlocFormat((TrialMatrixSettings.BlocFormatType)i));
             foreach (string i_type in typesBlocFormat)
             {
-                blocFormatOption.options.Add(new Dropdown.OptionData(i_type));
+                blocFormatOption.options.Add(new Dropdown.OptionData(i_type.SplitPascalCase()));
             }
             blocFormatOption.value = (int)ApplicationState.GeneralSettings.TrialMatrixSettings.BlocFormat;
             blocFormatOption.RefreshShownValue();

@@ -9,6 +9,7 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] MeshList m_MeshList;
+        [SerializeField] Text m_MeshCounter;
         [SerializeField] Button m_AddSingleMeshButton;
         [SerializeField] Button m_AddLeftRightMeshButton;
         [SerializeField] Button m_RemoveMeshButton;
@@ -39,11 +40,14 @@ namespace HBP.UI.Anatomy
         public void Set(Data.Patient patient)
         {
             m_Patient = patient;
+            m_MeshList.OnSelectionChanged.RemoveAllListeners();
+            m_MeshList.OnSelectionChanged.AddListener((mesh, i) => m_MeshCounter.text = m_MeshList.ObjectsSelected.Length.ToString());
         }
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
             if(active) m_MeshList.Objects = m_Patient.Brain.Meshes.ToArray();
+
         }
         public void AddSingleMesh()
         {

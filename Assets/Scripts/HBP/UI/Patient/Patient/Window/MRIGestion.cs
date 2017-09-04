@@ -9,6 +9,7 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] MRIList m_MRIList;
+        [SerializeField] Text m_MRICounter;
         [SerializeField] Button m_AddMeshButton;
         [SerializeField] Button m_RemoveMeshButton;
         Data.Patient m_Patient;
@@ -34,6 +35,8 @@ namespace HBP.UI.Anatomy
         public void Set(Data.Patient patient)
         {
             m_Patient = patient;
+            m_MRIList.OnSelectionChanged.RemoveAllListeners();
+            m_MRIList.OnSelectionChanged.AddListener((mesh, i) => m_MRICounter.text = m_MRIList.ObjectsSelected.Length.ToString());
         }
         public void SetActive(bool active)
         {

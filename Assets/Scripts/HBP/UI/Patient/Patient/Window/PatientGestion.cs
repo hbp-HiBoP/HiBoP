@@ -5,14 +5,17 @@ using Tools.Unity;
 using Tools.Unity.Lists;
 using Tools.CSharp;
 using HBP.Data;
+using UnityEngine.UI;
 
 namespace HBP.UI.Anatomy
 {
-    public class PatientGestion : ItemGestion<Data.Patient>
+    public class PatientGestion : ItemGestion<Patient>
     {
         #region Properties
         FolderSelector m_DatabaseFolderSelector;
         PatientList m_DatabaseList;
+        Text m_DatabaseCounter;
+        Text m_ProjectCounter;
         #endregion
 
         #region Public Methods
@@ -72,6 +75,12 @@ namespace HBP.UI.Anatomy
             m_DatabaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
             m_DatabaseList = transform.Find("Content").Find("Patients").Find("Database").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<PatientList>();
             m_DatabaseList.OnAction.AddListener((patient, i) => OpenModifier(patient, false));
+
+            m_DatabaseCounter = transform.Find("Content").Find("Patients").Find("Database").Find("List").Find("Database ItemSelected").Find("Counter").GetComponent<Text>();
+            m_ProjectCounter = transform.Find("Content").Find("Patients").Find("Project").Find("Project ItemSelected").Find("Counter").GetComponent<Text>();
+
+            m_List.OnSelectionChanged.AddListener((patient, i) => m_ProjectCounter.text = m_List.ObjectsSelected.Length.ToString());
+            m_DatabaseList.OnSelectionChanged.AddListener((patient, i) => m_DatabaseCounter.text = m_DatabaseList.ObjectsSelected.Length.ToString());
         }
         #endregion
     }

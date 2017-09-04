@@ -9,6 +9,7 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] ConnectivityList m_ConnectivityList;
+        [SerializeField] Text m_ConnectivityCounter;
         [SerializeField] Button m_AddConnectivity;
         [SerializeField] Button m_RemoveConnectivity;
         Data.Patient m_Patient;
@@ -37,6 +38,8 @@ namespace HBP.UI.Anatomy
         public void Set(Data.Patient patient)
         {
             m_Patient = patient;
+            m_ConnectivityList.OnSelectionChanged.RemoveAllListeners();
+            m_ConnectivityList.OnSelectionChanged.AddListener((mesh, i) => m_ConnectivityCounter.text = m_ConnectivityList.ObjectsSelected.Length.ToString());
         }
         public void SetActive(bool active)
         {
