@@ -271,33 +271,36 @@ namespace HBP.Module3D
             // reset columns
             m_ColumnManager.Initialize(m_Cuts.Count);
 
+            // Load Meshes
             Patient.Brain.Transformations.Add(new Data.Anatomy.Transformation("PreToScanner", @"\\10.69.111.22\intra\BrainVisaDB\Epilepsy\LYONNEURO_2014_THUv\t1mri\T1pre_2014-3-31\registration\RawT1-LYONNEURO_2014_THUv_T1pre_2014-3-31_TO_Scanner_Based.trm")); // FIXME
             float loadingMeshesProgress = LOADING_MESHES_PROGRESS / Patient.Brain.Meshes.Count;
             foreach (Data.Anatomy.Mesh mesh in Patient.Brain.Meshes)
             {
                 progress += loadingMeshesProgress;
-                onChangeProgress.Invoke(progress, 1.0f, "Loading Mesh: " + mesh.Name);
-                if (mesh.Name != "Grey matter") continue;
+                onChangeProgress.Invoke(progress, 1.5f, "Loading Mesh: " + mesh.Name);
                 yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, Patient.Brain.Transformations.Find(t => t.Name == "PreToScanner")));
             }
-            SceneInformation.MeshesLoaded = true;
+            GenerateSplit(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
             SceneInformation.GreyMeshesAvailables = true;
-            //SceneInformation.WhiteMeshesAvailables = true;
-            GenerateSplit(from mesh3D in m_ColumnManager.Meshes where mesh3D.IsLoaded select mesh3D.Both);
+            SceneInformation.WhiteMeshesAvailables = true;
 
+            // Load MRIs
             progress += LOADING_VOLUME_PROGRESS;
             onChangeProgress.Invoke(progress, 1.5f, "Loading MRI: ");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadNiftiBrainVolume(Patient.Brain.MRIs.Find((mri) => mri.Name == "Preoperative")));
 
+            // Load Sites
             progress += LOADING_ELECTRODES_PROGRESS;
             onChangeProgress.Invoke(progress, 0.05f, "Loading Implantation: ");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSites(visualization.Patients, "Patient"));
             SceneInformation.CutMeshGeometryNeedsUpdate = true;
 
+            // Set Timeline
             progress += SETTING_TIMELINE_PROGRESS;
             onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetTimelineData());
 
+            // Finalization
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
             UpdateMeshesColliders();
             Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
@@ -362,6 +365,7 @@ namespace HBP.Module3D
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetGIIBrainSurfaceFile);
             //##################
 
+            SceneInformation.MeshesLoaded = true;
             yield return true;
         }
         /// <summary>

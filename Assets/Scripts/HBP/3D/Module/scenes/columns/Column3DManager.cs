@@ -160,6 +160,14 @@ namespace HBP.Module3D
                 Meshes[0].SplittedMeshes = value;
             }
         }
+        //public DLL.Surface LHemi = new DLL.Surface();
+        //public DLL.Surface RHemi = new DLL.Surface();
+        //public DLL.Surface BothHemi = new DLL.Surface();
+        //public DLL.Surface LWhite = new DLL.Surface();
+        //public DLL.Surface RWhite = new DLL.Surface();
+        //public DLL.Surface BothWhite = new DLL.Surface();
+        //public List<DLL.Surface> DLLSplittedMeshesList;
+        //public List<DLL.Surface> DLLSplittedWhiteMeshesList;
         /****** END FIXME ******/
 
         public List<DLL.Surface> DLLCutsList = null;

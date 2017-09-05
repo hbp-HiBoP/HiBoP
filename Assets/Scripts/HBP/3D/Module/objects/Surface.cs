@@ -119,9 +119,12 @@ namespace HBP.Module3D.DLL
         /// <param name="transform">if true apply the transform </param>
         /// <param name="transformation">transform file associated to the GIFTI file </param>
         /// <returns>true if sucesse, else false</returns>
-        public bool LoadGIIFile(string gii, string transformation = "")
+        public bool LoadGIIFile(string gii, bool transform = false, string transformation = "")
         {
-            IsLoaded = load_GII_file_Surface(_handle, gii, (transformation.Length == 0) ? 1:0, transformation) == 1;
+            if (transformation.Length == 0)
+                transform = false;
+
+            IsLoaded = load_GII_file_Surface(_handle, gii, transform ? 1 : 0, transformation) == 1;
             if (!IsLoaded)
             {
                 Debug.LogError("-ERROR : Surface::loadGIIFile -> can't load GII file to surface : " + gii + " " + transformation);

@@ -37,7 +37,7 @@ namespace HBP.Module3D
         public SingleMesh3D(Data.Anatomy.SingleMesh mesh, Data.Anatomy.Transformation transformation)
         {
             Both = new DLL.Surface();
-            if (Both.LoadGIIFile(mesh.Path, transformation.Path))
+            if (Both.LoadGIIFile(mesh.Path, true, transformation.Path))
             {
                 Both.FlipTriangles();
                 Both.ComputeNormals();
@@ -58,7 +58,7 @@ namespace HBP.Module3D
         public LeftRightMesh3D(Data.Anatomy.LeftRightMesh mesh, Data.Anatomy.Transformation transformation)
         {
             Left = new DLL.Surface();
-            if (Left.LoadGIIFile(mesh.LeftHemisphere, transformation.Path))
+            if (Left.LoadGIIFile(mesh.LeftHemisphere, true, transformation.Path))
             {
                 Left.FlipTriangles();
                 Left.ComputeNormals();
@@ -66,7 +66,7 @@ namespace HBP.Module3D
             }
 
             Right = new DLL.Surface();
-            if (Right.LoadGIIFile(mesh.RightHemisphere, transformation.Path))
+            if (Right.LoadGIIFile(mesh.RightHemisphere, true, transformation.Path))
             {
                 Right.FlipTriangles();
                 Right.ComputeNormals();
