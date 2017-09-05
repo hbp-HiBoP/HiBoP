@@ -82,7 +82,7 @@ namespace HBP.UI.Module3D.Tools
                 m_Dropdown.options.Clear();
                 foreach (Mesh3D mesh in selectedScene.ColumnManager.Meshes)
                 {
-                    m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name[0].ToString(), m_BrainTypeSprite));
+                    m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString(), m_BrainTypeSprite));
                 }
                 m_Dropdown.value = selectedScene.ColumnManager.SelectedMeshID;
             }

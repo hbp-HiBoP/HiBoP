@@ -45,10 +45,6 @@ namespace HBP.Module3D
         public DLL.NIFTI NII = null;
 
         private string m_DataPath = "";
-
-#if UNITY_EDITOR_WIN
-        private DLL.ReadMultiFilesBuffers readMulti = null;
-#endif
         #endregion
 
         #region Private Methods
@@ -71,35 +67,13 @@ namespace HBP.Module3D
             IRM = new DLL.Volume();
             NII.ConvertToVolume(IRM);
 
-#if UNITY_EDITOR_WIN
-
-            readMulti.ParseMeshes();
-
-            List<DLL.Surface> meshes = readMulti.Meshes();
-            for (int ii = 0; ii < meshes.Count; ++ii)
-                meshes[ii].ComputeNormals();
-
-            LeftHemi = meshes[0];
-            RightHemi = meshes[1];
-            BothHemi = meshes[2];
-
-            LeftWhite = meshes[3];
-            RightWhite = meshes[4];
-            BothWhite = meshes[5];
-
-            LeftWhiteInflated = meshes[6];
-            RightWhiteInflated = meshes[7];
-            BothWhiteInflated = meshes[8];
-
-#else
-
             LeftHemi = new DLL.Surface();
             RightHemi = new DLL.Surface();
             BothHemi = new DLL.Surface();
             LeftHemi.LoadGIIFile(baseMeshDir + "MNI_single_hight_Lhemi.gii", true, baseMeshDir + "transfo_mni.trm"); LeftHemi.FlipTriangles();
             RightHemi.LoadGIIFile(baseMeshDir + "MNI_single_hight_Rhemi.gii", true, baseMeshDir + "transfo_mni.trm"); RightHemi.FlipTriangles();
             BothHemi = (DLL.Surface)LeftHemi.Clone();
-            BothHemi.Add(RightHemi);
+            BothHemi.Append(RightHemi);
             LeftHemi.ComputeNormals();
             RightHemi.ComputeNormals();
             BothHemi.ComputeNormals();
@@ -110,7 +84,7 @@ namespace HBP.Module3D
             LeftWhite.LoadGIIFile(baseMeshDir + "MNI_single_hight_Lwhite.gii", true, baseMeshDir + "transfo_mni.trm"); LeftWhite.FlipTriangles();
             RightWhite.LoadGIIFile(baseMeshDir + "MNI_single_hight_Rwhite.gii", true, baseMeshDir + "transfo_mni.trm"); RightWhite.FlipTriangles();
             BothWhite = (DLL.Surface)LeftWhite.Clone();
-            BothWhite.Add(RightWhite);
+            BothWhite.Append(RightWhite);
             LeftWhite.ComputeNormals();
             RightWhite.ComputeNormals();
             BothWhite.ComputeNormals();
@@ -121,12 +95,11 @@ namespace HBP.Module3D
             LeftWhiteInflated.LoadGIIFile(baseMeshDir + "MNI_single_hight_Lwhite_inflated.gii", true, baseMeshDir + "transfo_mni.trm"); LeftWhiteInflated.FlipTriangles();
             RightWhiteInflated.LoadGIIFile(baseMeshDir + "MNI_single_hight_Rwhite_inflated.gii", true, baseMeshDir + "transfo_mni.trm"); RightWhiteInflated.FlipTriangles();
             BothWhiteInflated = (DLL.Surface)LeftWhiteInflated.Clone();
-            BothWhiteInflated.Add(RightWhiteInflated);
+            BothWhiteInflated.Append(RightWhiteInflated);
             LeftWhiteInflated.ComputeNormals();
             RightWhiteInflated.ComputeNormals();
             BothWhiteInflated.ComputeNormals();
-
-#endif
+            
             LoadingMutex.ReleaseMutex();
         }
         #endregion
@@ -156,13 +129,7 @@ namespace HBP.Module3D
             filesPaths.Add(baseMeshDir + "MNI_single_hight_Lwhite_inflated.obj");
             filesPaths.Add(baseMeshDir + "MNI_single_hight_Rwhite_inflated.obj");
             filesPaths.Add(baseMeshDir + "MNI_single_hight_Bwhite_inflated.obj");
-
-#if UNITY_EDITOR_WIN
-            readMulti = new DLL.ReadMultiFilesBuffers();
-            readMulti.ReadBuffersFiles(filesPaths, DLL.ReadMultiFilesBuffers.FilesTypes.MeshesObj);
-#endif
-            //Thread thread = new Thread(() => LoadData(baseIRMDir, baseMeshDir, idScript, nameGO, instanceID));
-            //thread.Start();
+            
             LoadData(baseIRMDir, baseMeshDir, nameGO, instanceID);
         }
         #endregion

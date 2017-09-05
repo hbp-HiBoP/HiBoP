@@ -317,7 +317,13 @@ namespace HBP.Module3D
         /// Column data manager
         /// </summary>
         public Column3DManager ColumnManager { get { return m_ColumnManager; } }
-        
+
+        [SerializeField]
+        /// <summary>
+        /// MNI Objects
+        /// </summary>
+        protected MNIObjects m_MNIObjects = null;
+
         /// <summary>
         /// ID of the selected column of this scene
         /// </summary>

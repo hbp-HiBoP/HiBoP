@@ -261,14 +261,23 @@ namespace HBP.Module3D
             m_ColumnManager.Initialize(m_Cuts.Count);
 
             // Load Meshes
+            // Patient
             Patient.Brain.Transformations.Add(new Data.Anatomy.Transformation("PreToScanner", @"\\10.69.111.22\intra\BrainVisaDB\Epilepsy\LYONNEURO_2014_THUv\t1mri\T1pre_2014-3-31\registration\RawT1-LYONNEURO_2014_THUv_T1pre_2014-3-31_TO_Scanner_Based.trm")); // FIXME
-            float loadingMeshesProgress = LOADING_MESHES_PROGRESS / Patient.Brain.Meshes.Count;
+            float loadingMeshesProgress = (LOADING_MESHES_PROGRESS / 2) / Patient.Brain.Meshes.Count;
             foreach (Data.Anatomy.Mesh mesh in Patient.Brain.Meshes)
             {
                 progress += loadingMeshesProgress;
-                onChangeProgress.Invoke(progress, 1.5f, "Loading Mesh: " + mesh.Name);
+                onChangeProgress.Invoke(progress, 1.5f, "Loading Patient Mesh: " + mesh.Name);
                 yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, Patient.Brain.Transformations.Find(t => t.Name == "PreToScanner")));
             }
+            // MNI
+            progress += LOADING_MESHES_PROGRESS / 2;
+            onChangeProgress.Invoke(progress, 4.0f, "Loading MNI Meshes");
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_MNIObjects.c_Load());
+            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Grey Matter", m_MNIObjects.LeftHemi, m_MNIObjects.RightHemi, m_MNIObjects.BothHemi));
+            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI White Matter", m_MNIObjects.LeftWhite, m_MNIObjects.RightWhite, m_MNIObjects.BothWhite));
+            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Inflated", m_MNIObjects.LeftWhiteInflated, m_MNIObjects.RightWhiteInflated, m_MNIObjects.BothWhiteInflated));
+            // Finish
             GenerateSplit(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
             SceneInformation.GreyMeshesAvailables = true;
             SceneInformation.WhiteMeshesAvailables = true;

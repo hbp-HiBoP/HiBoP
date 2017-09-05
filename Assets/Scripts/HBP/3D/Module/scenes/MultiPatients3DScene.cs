@@ -39,10 +39,6 @@ namespace HBP.Module3D
             }
         }
 
-        /// <summary>
-        /// MNI Objects
-        /// </summary>
-        private MNIObjects m_MNIObjects = null;
 
         /// <summary>
         /// Event for sending a ROI associated to a column id (params : ROI, idColumn)
@@ -86,8 +82,6 @@ namespace HBP.Module3D
             TimeExecution.StartAwake(idScript, TimeExecution.ScriptsId.MP3DScene);
 
             base.Initialize(visualization);
-
-            m_MNIObjects = GetComponent<MNIObjects>();
 
             TimeExecution.EndAwake(idScript, TimeExecution.ScriptsId.MP3DScene, gameObject);
         }

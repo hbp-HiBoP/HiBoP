@@ -32,6 +32,7 @@ namespace HBP.Module3D
         {
             Name = mesh.Name;
         }
+        public Mesh3D() { }
         #endregion
     }
 
@@ -90,6 +91,13 @@ namespace HBP.Module3D
             {
                 Both = new DLL.Surface();
             }
+        }
+        public LeftRightMesh3D(string name, DLL.Surface left, DLL.Surface right, DLL.Surface both)
+        {
+            Name = name;
+            Left = left;
+            Right = right;
+            Both = both;
         }
         #endregion
     }
