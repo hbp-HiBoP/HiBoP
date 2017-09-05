@@ -8,17 +8,18 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
+        [SerializeField] Tools.Unity.FileSelector m_TransformationSelector;
         public override Data.Anatomy.Mesh Object
         {
             get
             {
                 return base.Object;
             }
-
             set
             {
                 base.Object = value;
                 m_NameInputField.text = value.Name;
+                m_TransformationSelector.File = value.Transformation;
             }
         }
         public override bool interactable
@@ -27,6 +28,7 @@ namespace HBP.UI.Anatomy
             {
                 base.interactable = value;
                 m_NameInputField.interactable = value;
+                m_TransformationSelector.interactable = value;
             }
         }
         #endregion
@@ -35,6 +37,7 @@ namespace HBP.UI.Anatomy
         public override void Save()
         {
             Object.Name = m_NameInputField.text;
+            Object.Transformation = m_TransformationSelector.File;
         }
         #endregion
 

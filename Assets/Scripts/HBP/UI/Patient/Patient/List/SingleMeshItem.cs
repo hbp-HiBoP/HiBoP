@@ -8,17 +8,19 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] Tools.Unity.FileSelector m_MeshFileSelector;
+        [SerializeField] Tools.Unity.FileSelector m_MarsAtlasFileSelector;
         public override Data.Anatomy.Mesh Object
         {
             get
             {
                 return base.Object;
             }
-
             set
             {
                 base.Object = value;
-                m_MeshFileSelector.File = (value as SingleMesh).Path;
+                SingleMesh singleMesh = value as SingleMesh;
+                m_MeshFileSelector.File = singleMesh.Path;
+                m_MarsAtlasFileSelector.File = singleMesh.MarsAtlasPath;
             }
         }
         public override Type Type
@@ -39,7 +41,7 @@ namespace HBP.UI.Anatomy
             {
                 base.interactable = value;
                 m_MeshFileSelector.interactable = value;
-                Debug.Log("tata");
+                m_MarsAtlasFileSelector.interactable = value;
             }
         }
         #endregion
@@ -50,6 +52,7 @@ namespace HBP.UI.Anatomy
             base.Save();
             SingleMesh mesh = Object as SingleMesh;
             mesh.Path = m_MeshFileSelector.File;
+            mesh.MarsAtlasPath = m_MarsAtlasFileSelector.File;
         }
         #endregion
     }

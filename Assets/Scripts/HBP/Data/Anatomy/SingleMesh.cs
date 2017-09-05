@@ -27,18 +27,18 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Constructors
-        public SingleMesh(string name,string path,string marsAtlasPath) : base(name)
+        public SingleMesh(string name, string transformation, string path,string marsAtlasPath) : base(name, transformation)
         {
             Path = path;
             MarsAtlasPath = marsAtlasPath;
         }
-        public SingleMesh() : this("New mesh", string.Empty, string.Empty) { }
+        public SingleMesh() : this("New mesh", string.Empty, string.Empty, string.Empty) { }
         #endregion
 
         #region Operators
         public override object Clone()
         {
-            return new SingleMesh(Name,Path,MarsAtlasPath);
+            return new SingleMesh(Name, Transformation, Path, MarsAtlasPath);
         }
         public override void Copy(object copy)
         {

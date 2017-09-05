@@ -29,21 +29,20 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Constructors
-        public LeftRightMesh(string name, string leftHemisphere, string rightHemisphere, string leftMarsAtlasHemisphere, string rightMarsAtlasHemisphere) : base(name)
+        public LeftRightMesh(string name, string transformation, string leftHemisphere, string rightHemisphere, string leftMarsAtlasHemisphere, string rightMarsAtlasHemisphere) : base(name, transformation)
         {
             LeftHemisphere = leftHemisphere;
             RightHemisphere = rightHemisphere;
             LeftMarsAtlasHemisphere = leftMarsAtlasHemisphere;
             RightMarsAtlasHemisphere = rightHemisphere;
         }
-        public LeftRightMesh():this("New mesh", string.Empty, string.Empty, string.Empty,string.Empty) { }
+        public LeftRightMesh():this("New mesh", string.Empty, string.Empty, string.Empty, string.Empty,string.Empty) { }
         #endregion
 
         #region Operators
         public override object Clone()
         {
-            return new LeftRightMesh(Name, LeftHemisphere, RightHemisphere,LeftMarsAtlasHemisphere,RightMarsAtlasHemisphere);
-
+            return new LeftRightMesh(Name,Transformation,LeftHemisphere, RightHemisphere,LeftMarsAtlasHemisphere,RightMarsAtlasHemisphere);
         }
         public override void Copy(object copy)
         {

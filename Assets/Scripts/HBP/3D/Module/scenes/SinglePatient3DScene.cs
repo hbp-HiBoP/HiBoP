@@ -262,13 +262,12 @@ namespace HBP.Module3D
 
             // Load Meshes
             // Patient
-            Patient.Brain.Transformations.Add(new Data.Anatomy.Transformation("PreToScanner", @"\\10.69.111.22\intra\BrainVisaDB\Epilepsy\LYONNEURO_2014_THUv\t1mri\T1pre_2014-3-31\registration\RawT1-LYONNEURO_2014_THUv_T1pre_2014-3-31_TO_Scanner_Based.trm")); // FIXME
             float loadingMeshesProgress = (LOADING_MESHES_PROGRESS / 2) / Patient.Brain.Meshes.Count;
             foreach (Data.Anatomy.Mesh mesh in Patient.Brain.Meshes)
             {
                 progress += loadingMeshesProgress;
                 onChangeProgress.Invoke(progress, 1.5f, "Loading Patient Mesh: " + mesh.Name);
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, Patient.Brain.Transformations.Find(t => t.Name == "PreToScanner")));
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh));
             }
             // MNI
             progress += LOADING_MESHES_PROGRESS / 2;
@@ -309,7 +308,7 @@ namespace HBP.Module3D
         /// <param name="pathGIIBrainFiles"></param>
         /// <param name="transformation"></param>
         /// <returns></returns>
-        private IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh, Data.Anatomy.Transformation transformation)
+        private IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh)
         {
             //####### CHECK ACESS
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetGIIBrainSurfaceFile))
@@ -323,12 +322,10 @@ namespace HBP.Module3D
             // checks parameters
             if (mesh == null) throw new EmptyFilePathException("GII");
             if (!mesh.isUsable) throw new EmptyFilePathException("GII"); // TODO CHANGE TO NOT USABLE
-            if (transformation == null) throw new EmptyFilePathException("Transform");
-            if (!transformation.isUsable) throw new EmptyFilePathException("Transform");
 
             if (mesh is Data.Anatomy.LeftRightMesh)
             {
-                LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh, transformation);
+                LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
                 
                 if (mesh3D.IsLoaded)
                 {
@@ -342,7 +339,7 @@ namespace HBP.Module3D
             }
             else if(mesh is Data.Anatomy.SingleMesh)
             {
-                SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh, transformation);
+                SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
 
                 if (mesh3D.IsLoaded)
                 {
