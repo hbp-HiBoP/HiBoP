@@ -130,45 +130,14 @@ namespace HBP.Module3D
         // surface 
         public List<Mesh3D> Meshes = new List<Mesh3D>();
         public int MeshSplitNumber { get; set; }
-
-        /****** FIXME ******/
-        public DLL.Surface LHemi { get { return ((LeftRightMesh3D)Meshes[0]).Left; } }
-        public DLL.Surface RHemi { get { return ((LeftRightMesh3D)Meshes[0]).Right; } }
-        public DLL.Surface BothHemi { get { return ((LeftRightMesh3D)Meshes[0]).Both; } }
-        public DLL.Surface LWhite { get { return ((LeftRightMesh3D)Meshes[1]).Left; } }
-        public DLL.Surface RWhite { get { return ((LeftRightMesh3D)Meshes[1]).Right; } }
-        public DLL.Surface BothWhite { get { return ((LeftRightMesh3D)Meshes[1]).Both; } }
-        public List<DLL.Surface> DLLSplittedMeshesList
+        public int SelectedMeshID { get; set; }
+        public Mesh3D SelectedMesh
         {
             get
             {
-                return Meshes[0].SplittedMeshes;
-            }
-            set
-            {
-                Meshes[0].SplittedMeshes = value;
+                return Meshes[SelectedMeshID];
             }
         }
-        public List<DLL.Surface> DLLSplittedWhiteMeshesList
-        {
-            get
-            {
-                return Meshes[0].SplittedMeshes;
-            }
-            set
-            {
-                Meshes[0].SplittedMeshes = value;
-            }
-        }
-        //public DLL.Surface LHemi = new DLL.Surface();
-        //public DLL.Surface RHemi = new DLL.Surface();
-        //public DLL.Surface BothHemi = new DLL.Surface();
-        //public DLL.Surface LWhite = new DLL.Surface();
-        //public DLL.Surface RWhite = new DLL.Surface();
-        //public DLL.Surface BothWhite = new DLL.Surface();
-        //public List<DLL.Surface> DLLSplittedMeshesList;
-        //public List<DLL.Surface> DLLSplittedWhiteMeshesList;
-        /****** END FIXME ******/
 
         public List<DLL.Surface> DLLCutsList = null;
 
@@ -495,8 +464,10 @@ namespace HBP.Module3D
         /// <param name="nbSplits"></param>
         public void ResetSplitsNumber(int nbSplits)
         {
-            DLLSplittedMeshesList = new List<DLL.Surface>(MeshSplitNumber);
-            DLLSplittedWhiteMeshesList = new List<DLL.Surface>(MeshSplitNumber);
+            foreach (Mesh3D mesh in Meshes)
+            {
+                mesh.SplittedMeshes = new List<DLL.Surface>(MeshSplitNumber);
+            }
 
             // uv coordinates
             UVCoordinatesSplits = new List<Vector2[]>(Enumerable.Repeat(new Vector2[0], MeshSplitNumber));
@@ -847,10 +818,10 @@ namespace HBP.Module3D
         /// <param name="thresholdInfluence"></param>
         /// <param name="alphaMin"></param>
         /// <param name="alphaMax"></param>
-        public bool ComputeSurfaceBrainUVWithIEEG(bool whiteInflatedMeshes, Column3DIEEG column)
+        public bool ComputeSurfaceBrainUVWithIEEG(Column3DIEEG column)
         {
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
-                if(!column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(whiteInflatedMeshes ? DLLSplittedWhiteMeshesList[ii] : DLLSplittedMeshesList[ii], column))
+                if(!column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(SelectedMesh.SplittedMeshes[ii], column))
                     return false;
 
             return true;

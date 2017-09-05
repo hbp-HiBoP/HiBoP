@@ -80,6 +80,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
+            bool isMeshLeftRight = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedMesh is LeftRightMesh3D;
             switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
             {
                 case Mode.ModesId.NoPathDefined:
@@ -87,20 +88,20 @@ namespace HBP.UI.Module3D.Tools
                     m_Right.interactable = false;
                     break;
                 case Mode.ModesId.MinPathDefined:
-                    m_Left.interactable = true;
-                    m_Right.interactable = true;
+                    m_Left.interactable = isMeshLeftRight;
+                    m_Right.interactable = isMeshLeftRight;
                     break;
                 case Mode.ModesId.AllPathDefined:
-                    m_Left.interactable = true;
-                    m_Right.interactable = true;
+                    m_Left.interactable = isMeshLeftRight;
+                    m_Right.interactable = isMeshLeftRight;
                     break;
                 case Mode.ModesId.ComputingAmplitudes:
                     m_Left.interactable = false;
                     m_Right.interactable = false;
                     break;
                 case Mode.ModesId.AmplitudesComputed:
-                    m_Left.interactable = true;
-                    m_Right.interactable = true;
+                    m_Left.interactable = isMeshLeftRight;
+                    m_Right.interactable = isMeshLeftRight;
                     break;
                 case Mode.ModesId.TriErasing:
                     m_Left.interactable = false;
@@ -111,8 +112,8 @@ namespace HBP.UI.Module3D.Tools
                     m_Right.interactable = false;
                     break;
                 case Mode.ModesId.AmpNeedUpdate:
-                    m_Left.interactable = true;
-                    m_Right.interactable = true;
+                    m_Left.interactable = isMeshLeftRight;
+                    m_Right.interactable = isMeshLeftRight;
                     break;
                 case Mode.ModesId.Error:
                     m_Left.interactable = false;
@@ -147,6 +148,15 @@ namespace HBP.UI.Module3D.Tools
                     default:
                         break;
                 }
+            }
+        }
+        public void ChangeBrainTypeCallback()
+        {
+            Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
+            if (!(selectedScene.ColumnManager.SelectedMesh is LeftRightMesh3D) && selectedScene.SceneInformation.MeshPartToDisplay != SceneStatesInfo.MeshPart.Both)
+            {
+                m_Left.isOn = true;
+                m_Right.isOn = true;
             }
         }
         #endregion

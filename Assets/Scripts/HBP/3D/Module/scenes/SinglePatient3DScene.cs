@@ -71,39 +71,28 @@ namespace HBP.Module3D
 
             // choose the mesh
             SceneInformation.MeshToDisplay = new DLL.Surface();
-            switch (SceneInformation.MeshTypeToDisplay)
+            if (m_ColumnManager.SelectedMesh is LeftRightMesh3D)
             {
-                case SceneStatesInfo.MeshType.Grey:
-                    switch (SceneInformation.MeshPartToDisplay)
-                    {
-                        case SceneStatesInfo.MeshPart.Both:
-                            SceneInformation.MeshToDisplay = m_ColumnManager.BothHemi;
-                            break;
-                        case SceneStatesInfo.MeshPart.Left:
-                            SceneInformation.MeshToDisplay = m_ColumnManager.LHemi;
-                            break;
-                        case SceneStatesInfo.MeshPart.Right:
-                            SceneInformation.MeshToDisplay = m_ColumnManager.RHemi;
-                            break;
-                    }
-                    break;
-                case SceneStatesInfo.MeshType.White:
-                    switch (SceneInformation.MeshPartToDisplay)
-                    {
-                        case SceneStatesInfo.MeshPart.Both:
-                            SceneInformation.MeshToDisplay = m_ColumnManager.BothWhite;
-                            break;
-                        case SceneStatesInfo.MeshPart.Left:
-                            SceneInformation.MeshToDisplay = m_ColumnManager.LWhite;
-                            break;
-                        case SceneStatesInfo.MeshPart.Right:
-                            SceneInformation.MeshToDisplay = m_ColumnManager.RWhite;
-                            break;
-                    }
-                    break;
-                case SceneStatesInfo.MeshType.Inflated:
-                    // ...
-                    break;
+                LeftRightMesh3D selectedMesh = (LeftRightMesh3D)m_ColumnManager.SelectedMesh;
+                switch (SceneInformation.MeshPartToDisplay)
+                {
+                    case SceneStatesInfo.MeshPart.Left:
+                        SceneInformation.MeshToDisplay = selectedMesh.Left;
+                        break;
+                    case SceneStatesInfo.MeshPart.Right:
+                        SceneInformation.MeshToDisplay = selectedMesh.Right;
+                        break;
+                    case SceneStatesInfo.MeshPart.Both:
+                        SceneInformation.MeshToDisplay = selectedMesh.Both;
+                        break;
+                    default:
+                        SceneInformation.MeshToDisplay = selectedMesh.Both;
+                        break;
+                }
+            }
+            else
+            {
+                SceneInformation.MeshToDisplay = m_ColumnManager.SelectedMesh.Both;
             }
 
             if (SceneInformation.MeshToDisplay == null) return;
@@ -131,7 +120,7 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 1 splitToSurfaces"); // 2%
 
             // split the cut mesh         
-            m_ColumnManager.DLLSplittedMeshesList = new List<DLL.Surface>(m_ColumnManager.DLLCutsList[0].SplitToSurfaces(m_ColumnManager.MeshSplitNumber));
+            m_ColumnManager.SelectedMesh.SplittedMeshes = new List<DLL.Surface>(m_ColumnManager.DLLCutsList[0].SplitToSurfaces(m_ColumnManager.MeshSplitNumber));
 
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 2 reset brain texture generator"); // 11%
@@ -139,8 +128,8 @@ namespace HBP.Module3D
             // reset brain texture generator
             for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
             {
-                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.DLLSplittedMeshesList[ii], m_ColumnManager.DLLVolume);
-                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.DLLSplittedMeshesList[ii], m_ColumnManager.DLLVolume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
+                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.DLLVolume);
+                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.DLLVolume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -303,7 +292,7 @@ namespace HBP.Module3D
             // Finalization
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
             UpdateMeshesColliders();
-            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
+            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
         }
         /// <summary>
         /// Reset the meshes of the scene with GII files

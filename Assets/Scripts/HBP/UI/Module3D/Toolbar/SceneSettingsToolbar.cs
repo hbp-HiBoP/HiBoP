@@ -77,12 +77,8 @@ namespace HBP.UI.Module3D
 
             m_BrainTypes.OnChangeValue.AddListener((type) =>
             {
-                m_MarsAtlas.ChangeBrainTypeCallback(type);
-            });
-
-            m_MarsAtlas.OnChangeValue.AddListener((isOn) =>
-            {
-                m_BrainTypes.ChangeMarsAtlasCallback(isOn);
+                m_MarsAtlas.ChangeBrainTypeCallback();
+                m_BrainMeshes.ChangeBrainTypeCallback();
                 UpdateInteractableButtons();
             });
         }

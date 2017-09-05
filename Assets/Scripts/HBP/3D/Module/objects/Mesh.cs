@@ -8,6 +8,7 @@ namespace HBP.Module3D
     public abstract class Mesh3D
     {
         #region Properties
+        public string Name { get; set; }
         public DLL.Surface Both { get; set; }
         public List<DLL.Surface> SplittedMeshes { get; set; }
         public bool IsLoaded
@@ -25,6 +26,13 @@ namespace HBP.Module3D
             }
         }
         #endregion
+
+        #region Constructors
+        public Mesh3D(Data.Anatomy.Mesh mesh)
+        {
+            Name = mesh.Name;
+        }
+        #endregion
     }
 
     public class SingleMesh3D : Mesh3D
@@ -34,7 +42,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
-        public SingleMesh3D(Data.Anatomy.SingleMesh mesh, Data.Anatomy.Transformation transformation)
+        public SingleMesh3D(Data.Anatomy.SingleMesh mesh, Data.Anatomy.Transformation transformation) : base(mesh)
         {
             Both = new DLL.Surface();
             if (Both.LoadGIIFile(mesh.Path, true, transformation.Path))
@@ -55,7 +63,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
-        public LeftRightMesh3D(Data.Anatomy.LeftRightMesh mesh, Data.Anatomy.Transformation transformation)
+        public LeftRightMesh3D(Data.Anatomy.LeftRightMesh mesh, Data.Anatomy.Transformation transformation) : base(mesh)
         {
             Left = new DLL.Surface();
             if (Left.LoadGIIFile(mesh.LeftHemisphere, true, transformation.Path))

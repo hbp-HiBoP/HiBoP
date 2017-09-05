@@ -685,7 +685,7 @@ namespace HBP.Module3D
                 { //TEST (maybe FIXME : delete this, the visual effect is not very good)
                   // recompute UV
                     for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
-                        m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.DLLSplittedMeshesList[ii], m_ColumnManager.DLLVolume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
+                        m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.DLLVolume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
 
                     // update brain mesh object mesh filter (TODO update only UV)
                     UpdateMeshesFromDLL();
@@ -739,9 +739,6 @@ namespace HBP.Module3D
         /// <param name="indexColumn"></param>
         private void ComputeMRITextures(int indexCut = -1, int indexColumn = -1)
         {
-            if (SceneInformation.MeshTypeToDisplay == SceneStatesInfo.MeshType.Inflated)
-                return;
-
             bool allColumns = indexColumn == -1;
             bool allCuts = indexCut == -1;
 
@@ -789,7 +786,7 @@ namespace HBP.Module3D
 
                 // brain surface
                 if (surface)
-                    if (!m_ColumnManager.ComputeSurfaceBrainUVWithIEEG((SceneInformation.MeshTypeToDisplay == SceneStatesInfo.MeshType.Inflated), m_ColumnManager.ColumnsIEEG[columnsIndexes[ii]]))
+                    if (!m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(m_ColumnManager.ColumnsIEEG[columnsIndexes[ii]]))
                         return;
 
                 // brain cuts
@@ -826,7 +823,7 @@ namespace HBP.Module3D
 
             UnityEngine.Profiling.Profiler.BeginSample("compute_IEEG_textures 0");
 
-            if (!m_ColumnManager.ComputeSurfaceBrainUVWithIEEG((SceneInformation.MeshTypeToDisplay == SceneStatesInfo.MeshType.Inflated), column)) return;
+            if (!m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(column)) return;
 
             for (int jj = 0; jj < Cuts.Count; ++jj)
             {
@@ -1073,7 +1070,7 @@ namespace HBP.Module3D
             m_ColumnManager.ColumnsFMRI[newFMRIColumnID].CalMax = fmriParams.calValues.computedCalMax;
 
             // Update camera
-            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
+            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
 
             ComputeMRITextures();
 
@@ -1152,7 +1149,7 @@ namespace HBP.Module3D
         {
             for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
             {
-                m_ColumnManager.DLLSplittedMeshesList[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_ColumnManager.SelectedMesh.SplittedMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
             UnityEngine.Profiling.Profiler.BeginSample("Update Columns Meshes");
             foreach (Column3D column in m_ColumnManager.Columns)
@@ -1272,7 +1269,7 @@ namespace HBP.Module3D
         /// Set the mesh type to be displayed in the scene
         /// </summary>
         /// <param name="meshTypeToDisplay"></param>
-        public void UpdateMeshTypeToDisplay(SceneStatesInfo.MeshType meshTypeToDisplay)
+        public void UpdateMeshToDisplay(int meshID)
         {
             // Check access
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetDisplayedMesh))
@@ -1282,21 +1279,8 @@ namespace HBP.Module3D
             }
 
             if (!SceneInformation.IsGeometryUpToDate) return;
-
-            switch (meshTypeToDisplay)
-            {
-                case SceneStatesInfo.MeshType.Grey:
-                    if (!SceneInformation.GreyMeshesAvailables) return;
-                    break;
-                case SceneStatesInfo.MeshType.White:
-                    if (!SceneInformation.WhiteMeshesAvailables) return;
-                    break;
-                case SceneStatesInfo.MeshType.Inflated:
-                    if (!SceneInformation.WhiteInflatedMeshesAvailables) return;
-                    break;
-            }
-
-            SceneInformation.MeshTypeToDisplay = meshTypeToDisplay;
+            
+            m_ColumnManager.SelectedMeshID = meshID;
             SceneInformation.CutMeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
@@ -1512,7 +1496,7 @@ namespace HBP.Module3D
                 m_DisplayedObjects.InvisibleBrainSurfaceMeshes.Add(invisibleBrainPart);
             }
 
-            m_TriEraser.Reset(m_DisplayedObjects.InvisibleBrainSurfaceMeshes, m_ColumnManager.DLLCutsList[0], m_ColumnManager.DLLSplittedMeshesList);
+            m_TriEraser.Reset(m_DisplayedObjects.InvisibleBrainSurfaceMeshes, m_ColumnManager.DLLCutsList[0], m_ColumnManager.SelectedMesh.SplittedMeshes);
 
             if (updateGO)
                 UpdateMeshesFromDLL();
@@ -2013,32 +1997,29 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender");
 
             // update cuts textures
-            if ((SceneInformation.MeshTypeToDisplay != SceneStatesInfo.MeshType.Inflated))
+            for (int ii = 0; ii < Cuts.Count; ++ii)
             {
-                for (int ii = 0; ii < Cuts.Count; ++ii)
+                switch (column.Type)
                 {
-                    switch (column.Type)
-                    {
-                        case Column3D.ColumnType.FMRI:
-                            m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = ((Column3DFMRI)column).BrainCutWithFMRITextures[ii];
-                            break;
-                        case Column3D.ColumnType.IEEG:
-                            if (!SceneInformation.IsGeneratorUpToDate)
-                            {
-                                UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-BrainCutTextures");
-                                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = column.BrainCutTextures[ii];
-                                UnityEngine.Profiling.Profiler.EndSample();
-                            }
-                            else
-                            {
-                                UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-BrainCutTexturesWithEEG");
-                                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = ((Column3DIEEG)column).BrainCutWithIEEGTextures[ii];
-                                UnityEngine.Profiling.Profiler.EndSample();
-                            }
-                            break;
-                        default:
-                            break;
-                    }
+                    case Column3D.ColumnType.FMRI:
+                        m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = ((Column3DFMRI)column).BrainCutWithFMRITextures[ii];
+                        break;
+                    case Column3D.ColumnType.IEEG:
+                        if (!SceneInformation.IsGeneratorUpToDate)
+                        {
+                            UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-BrainCutTextures");
+                            m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = column.BrainCutTextures[ii];
+                            UnityEngine.Profiling.Profiler.EndSample();
+                        }
+                        else
+                        {
+                            UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-BrainCutTexturesWithEEG");
+                            m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = ((Column3DIEEG)column).BrainCutWithIEEGTextures[ii];
+                            UnityEngine.Profiling.Profiler.EndSample();
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
             
@@ -2445,7 +2426,7 @@ namespace HBP.Module3D
             float offsetState = 1f / (2 * m_ColumnManager.ColumnsIEEG.Count);
 
             // Do your threaded task. DON'T use the Unity API here
-            if (SceneInformation.MeshTypeToDisplay != SceneStatesInfo.MeshType.Inflated)
+            if (true) // FIXME : if inflated go to else
             {
                 for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
                 {
@@ -2554,7 +2535,7 @@ namespace HBP.Module3D
                     // splits
                     for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                     {
-                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Reset(m_ColumnManager.DLLSplittedWhiteMeshesList[jj], m_ColumnManager.DLLVolume); // TODO : ?
+                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[jj], m_ColumnManager.DLLVolume); // TODO : ?
                         m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
 
                         if (!m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true))

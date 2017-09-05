@@ -98,63 +98,40 @@ namespace HBP.Module3D
         {
             // choose the mesh
             SceneInformation.MeshToDisplay = new DLL.Surface();
-            switch (SceneInformation.MeshTypeToDisplay)
+            if (m_ColumnManager.SelectedMesh is LeftRightMesh3D)
             {
-                case SceneStatesInfo.MeshType.Grey:
-                    switch (SceneInformation.MeshPartToDisplay)
-                    {
-                        case SceneStatesInfo.MeshPart.Both:
-                            SceneInformation.MeshToDisplay = m_MNIObjects.BothHemi;
-                            break;
-                        case SceneStatesInfo.MeshPart.Left:
-                            SceneInformation.MeshToDisplay = m_MNIObjects.LeftHemi;
-                            break;
-                        case SceneStatesInfo.MeshPart.Right:
-                            SceneInformation.MeshToDisplay = m_MNIObjects.RightHemi;
-                            break;
-                    }
-                    break;
-                case SceneStatesInfo.MeshType.White:
-                    switch (SceneInformation.MeshPartToDisplay)
-                    {
-                        case SceneStatesInfo.MeshPart.Both:
-                            SceneInformation.MeshToDisplay = m_MNIObjects.BothWhite;
-                            break;
-                        case SceneStatesInfo.MeshPart.Left:
-                            SceneInformation.MeshToDisplay = m_MNIObjects.LeftWhite;
-                            break;
-                        case SceneStatesInfo.MeshPart.Right:
-                            SceneInformation.MeshToDisplay = m_MNIObjects.RightWhite;
-                            break;
-                    }
-                    break;
-                case SceneStatesInfo.MeshType.Inflated:
-                    switch (SceneInformation.MeshPartToDisplay)
-                    {
-                        case SceneStatesInfo.MeshPart.Both:
-                            SceneInformation.MeshToDisplay = m_MNIObjects.BothWhiteInflated;
-                            break;
-                        case SceneStatesInfo.MeshPart.Left:
-                            SceneInformation.MeshToDisplay = m_MNIObjects.LeftWhiteInflated;
-                            break;
-                        case SceneStatesInfo.MeshPart.Right:
-                            SceneInformation.MeshToDisplay = m_MNIObjects.RightWhiteInflated;
-                            break;
-                    }
-                    break;
+                LeftRightMesh3D selectedMesh = (LeftRightMesh3D)m_ColumnManager.SelectedMesh;
+                switch (SceneInformation.MeshPartToDisplay)
+                {
+                    case SceneStatesInfo.MeshPart.Left:
+                        SceneInformation.MeshToDisplay = selectedMesh.Left;
+                        break;
+                    case SceneStatesInfo.MeshPart.Right:
+                        SceneInformation.MeshToDisplay = selectedMesh.Right;
+                        break;
+                    case SceneStatesInfo.MeshPart.Both:
+                        SceneInformation.MeshToDisplay = selectedMesh.Both;
+                        break;
+                    default:
+                        SceneInformation.MeshToDisplay = selectedMesh.Both;
+                        break;
+                }
+            }
+            else
+            {
+                SceneInformation.MeshToDisplay = m_ColumnManager.SelectedMesh.Both;
             }
 
             if (SceneInformation.MeshToDisplay == null) return;
-
-            if (SceneInformation.MeshTypeToDisplay == SceneStatesInfo.MeshType.Inflated)
-                m_ColumnManager.DLLSplittedWhiteMeshesList = new List<DLL.Surface>(SceneInformation.MeshToDisplay.SplitToSurfaces(m_ColumnManager.MeshSplitNumber));
+            
+            m_ColumnManager.SelectedMesh.SplittedMeshes = new List<DLL.Surface>(SceneInformation.MeshToDisplay.SplitToSurfaces(m_ColumnManager.MeshSplitNumber));
 
             // get the middle
             SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox.Center;
 
             // cut the mesh
             List<DLL.Surface> cuts;
-            if (SceneInformation.MeshTypeToDisplay != SceneStatesInfo.MeshType.Inflated && Cuts.Count > 0)
+            if (Cuts.Count > 0)
                 cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled));
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)(SceneInformation.MeshToDisplay.Clone())};
@@ -170,20 +147,20 @@ namespace HBP.Module3D
 
             // split the mesh
             List<DLL.Surface> splits = new List<DLL.Surface>(m_ColumnManager.DLLCutsList[0].SplitToSurfaces(m_ColumnManager.MeshSplitNumber));
-            if (m_ColumnManager.DLLSplittedMeshesList.Count != splits.Count)
-                m_ColumnManager.DLLSplittedMeshesList = splits;
+            if (m_ColumnManager.SelectedMesh.SplittedMeshes.Count != splits.Count)
+                m_ColumnManager.SelectedMesh.SplittedMeshes = splits;
             else
             {
                 // swap DLL pointer
                 for (int ii = 0; ii < splits.Count; ++ii)
-                    m_ColumnManager.DLLSplittedMeshesList[ii].SwapDLLHandle(splits[ii]);
+                    m_ColumnManager.SelectedMesh.SplittedMeshes[ii].SwapDLLHandle(splits[ii]);
             }
 
             // reset brain texture generator
-            for (int ii = 0; ii < m_ColumnManager.DLLSplittedMeshesList.Count; ++ii)
+            for (int ii = 0; ii < m_ColumnManager.SelectedMesh.SplittedMeshes.Count; ++ii)
             {
-                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.DLLSplittedMeshesList[ii], m_ColumnManager.DLLVolume);
-                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.DLLSplittedMeshesList[ii], m_ColumnManager.DLLVolume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
+                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.DLLVolume);
+                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.DLLVolume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
             }
 
             // reset tri eraser
@@ -195,12 +172,6 @@ namespace HBP.Module3D
             // update cuts generators
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
-                if (SceneInformation.MeshTypeToDisplay == SceneStatesInfo.MeshType.Inflated) // if inflated, there is not cuts
-                {
-                    m_DisplayedObjects.BrainCutMeshes[ii].SetActive(false);
-                    continue;
-                }
-
                 for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG.Count; ++jj)
                     m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.DLLVolume, Cuts[ii]);
 
@@ -233,86 +204,6 @@ namespace HBP.Module3D
         {
             OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(visualization, patient);
             ApplySceneCamerasToIndividualScene.Invoke();
-            /*
-            // retrieve patient plots nb
-            int nbPlotsSpPatient = m_Column3DViewManager.DLLLoadedPatientsElectrodes.patient_sites_nb(idPatientSelected);
-
-            // retrieve timeline size (time t)
-            int size = m_Column3DViewManager.ColumnsIEEG[0].columnData.Values[0].Length;
-           
-            // compute start value id
-            int startId = 0;
-            for (int ii = 0; ii < idPatientSelected; ++ii)
-                startId += m_Column3DViewManager.DLLLoadedPatientsElectrodes.patient_sites_nb(ii);
-
-            // create new column data
-            List<Data.Visualization.ColumnData> columnDataList = new List<Data.Visualization.ColumnData>(m_Column3DViewManager.ColumnsIEEG.Count);
-            for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
-            {
-                Data.Visualization.ColumnData columnData = new Data.Visualization.ColumnData();
-                columnData.Label = m_Column3DViewManager.ColumnsIEEG[ii].Label;
-
-                // copy iconic scenario reference
-                columnData.IconicScenario = m_Column3DViewManager.ColumnsIEEG[ii].columnData.IconicScenario;
-
-                // copy timeline reference
-                columnData.TimeLine = m_Column3DViewManager.ColumnsIEEG[ii].columnData.TimeLine;
-
-                // fill new mask
-                columnData.PlotMask = new bool[nbPlotsSpPatient];
-                for (int jj = 0; jj < nbPlotsSpPatient; ++jj)
-                {
-                    columnData.PlotMask[jj] = m_Column3DViewManager.ColumnsIEEG[ii].columnData.SiteMask[startId + jj];
-                }
-
-                // fill new values
-                List<float[]> spColumnValues = new List<float[]>(nbPlotsSpPatient);
-
-                for (int jj = 0; jj < nbPlotsSpPatient; ++jj)
-                {
-                    float[] valuesT = new float[size];
-                    for (int kk = 0; kk < valuesT.Length; ++kk)
-                    {
-                        valuesT[kk] = m_Column3DViewManager.ColumnsIEEG[ii].columnData.Values[startId + jj][kk];
-                    }
-
-                    spColumnValues.Add(valuesT);
-                }
-
-                columnData.Values = spColumnValues.ToArray();
-                columnDataList.Add(columnData);
-            }
-
-
-            // fill masks bo be send to sp
-            List<List<bool>> blackListMask = new List<List<bool>>(m_Column3DViewManager.ColumnsIEEG.Count);
-            List<List<bool>> excludedMask = new List<List<bool>>(m_Column3DViewManager.ColumnsIEEG.Count);
-            List<List<bool>> hightLightedMask = new List<List<bool>>(m_Column3DViewManager.ColumnsIEEG.Count);
-            for (int ii = 0; ii < m_Column3DViewManager.ColumnsIEEG.Count; ++ii)
-            {
-                blackListMask.Add(new List<bool>(nbPlotsSpPatient));
-                excludedMask.Add(new List<bool>(nbPlotsSpPatient));
-                hightLightedMask.Add(new List<bool>(nbPlotsSpPatient));
-                
-                for (int jj = 0; jj < nbPlotsSpPatient; ++jj)
-                {
-                    blackListMask[ii].Add(m_Column3DViewManager.ColumnsIEEG[ii].Sites[startId + jj].Information.IsBlackListed);
-                    excludedMask[ii].Add(m_Column3DViewManager.ColumnsIEEG[ii].Sites[startId + jj].Information.IsExcluded);
-                    hightLightedMask[ii].Add(m_Column3DViewManager.ColumnsIEEG[ii].Sites[startId + jj].Information.IsHighlighted);
-                }
-            }
-
-            bool success = StaticComponents.HBPMain.SetSinglePatientSceneData(Patients[idPatientSelected], columnDataList, idPlotSelected, blackListMask, excludedMask, hightLightedMask);
-            if(!success)
-            {
-                // TODO : reset SP scene
-            }
-
-            transform.parent.gameObject.GetComponent<ScenesManager>().setScenesVisibility(true, true);
-
-            // update sp cameras
-            ApplySceneCamerasToIndividualScene.Invoke();
-            */
         }
         /// <summary>
         /// Update the ROI of a column from the interface
@@ -473,7 +364,7 @@ namespace HBP.Module3D
 
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
             // update scenes cameras
-            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.BothHemi.BoundingBox.Center);
+            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
             DisplayScreenMessage("Multi Patients Scene loaded", 2.0f, 400, 80);
         }
         /// <summary>

@@ -24,7 +24,7 @@ namespace HBP.UI.Module3D
         #region Properties
 
         private ScenesRatioController m_scenesRatioController = null;
-        private ToolsMenu m_topPanelMenuController = null;
+        //private ToolsMenu m_topPanelMenuController = null;
         private ButtonsLeftMenuController m_buttonsLeftMenuController = null;
         #endregion
 
@@ -74,7 +74,7 @@ namespace HBP.UI.Module3D
                 default:
                     break;
             }
-            m_topPanelMenuController.UpdateByMode(mode);
+            //m_topPanelMenuController.UpdateByMode(mode);
             m_scenesRatioController.UpdateByMode(mode);            
         }
 
