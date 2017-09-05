@@ -54,9 +54,8 @@ namespace HBP.Module3D
         /// Event for asking the UI to update the latencies display on the plot menu (params : labels)
         /// </summary>
         public GenericEvent<List<string>> OnUpdateLatencies = new GenericEvent<List<string>>();
-
-        private const float LOADING_TRANSFORMATION_PROGRESS = 0.1f;
-        private const float LOADING_MESHES_PROGRESS = 0.4f;
+        
+        private const float LOADING_MESHES_PROGRESS = 0.5f;
         private const float LOADING_VOLUME_PROGRESS = 0.3f;
         private const float LOADING_ELECTRODES_PROGRESS = 0.1f;
         private const float SETTING_TIMELINE_PROGRESS = 0.2f;
@@ -269,34 +268,29 @@ namespace HBP.Module3D
             gameObject.name = "SinglePatient Scene (" + sceneID + ")";
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * sceneID, transform.position.y, transform.position.z);
 
-            List<string> ptsFiles = new List<string>(), namePatients = new List<string>();
-            //ptsFiles.Add(Patient.Brain.PatientBasedImplantation);
-            //TOCHECK
-            ptsFiles.Add(Patient.Brain.Implantations.Find((i) => i.Name == "Patient").Path);
-            namePatients.Add(Patient.Place + "_" + Patient.Date + "_" + Patient.Name);
-
             // reset columns
             m_ColumnManager.Initialize(m_Cuts.Count);
-            m_ColumnManager.OnSelectColumnManager.AddListener((cm) =>
-            {
-                IsSelected = true;
-            });
-            
-            progress += LOADING_TRANSFORMATION_PROGRESS;
-            onChangeProgress.Invoke(progress, 0.05f, "Loading Transformation");
-            
-            progress += LOADING_MESHES_PROGRESS;
-            onChangeProgress.Invoke(progress, 2.0f, "Loading meshes");
-            //yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(greyMatterMesh, Patient.Brain.Transformations[0])); //FIXME: PreoperativeBasedToScannerBasedTransformation
+
             Patient.Brain.Transformations.Add(new Data.Anatomy.Transformation("PreToScanner", @"\\10.69.111.22\intra\BrainVisaDB\Epilepsy\LYONNEURO_2014_THUv\t1mri\T1pre_2014-3-31\registration\RawT1-LYONNEURO_2014_THUv_T1pre_2014-3-31_TO_Scanner_Based.trm")); // FIXME
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(Patient.Brain.Meshes.Find((m) => m.Name == "Grey matter"), Patient.Brain.Transformations.Find(t => t.Name == "PreToScanner"))); //FIXME: PreoperativeBasedToScannerBasedTransformation
+            float loadingMeshesProgress = LOADING_MESHES_PROGRESS / Patient.Brain.Meshes.Count;
+            foreach (Data.Anatomy.Mesh mesh in Patient.Brain.Meshes)
+            {
+                progress += loadingMeshesProgress;
+                onChangeProgress.Invoke(progress, 1.0f, "Loading Mesh: " + mesh.Name);
+                if (mesh.Name != "Grey matter") continue;
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, Patient.Brain.Transformations.Find(t => t.Name == "PreToScanner")));
+            }
+            SceneInformation.MeshesLoaded = true;
+            SceneInformation.GreyMeshesAvailables = true;
+            //SceneInformation.WhiteMeshesAvailables = true;
+            GenerateSplit(from mesh3D in m_ColumnManager.Meshes where mesh3D.IsLoaded select mesh3D.Both);
 
             progress += LOADING_VOLUME_PROGRESS;
-            onChangeProgress.Invoke(progress, 1.5f, "Loading volume");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadNiftiBrainVolume(Patient.Brain.MRIs.Find((mri) => mri.Name == "Preoperative"))); //FIXME : PreoperativeMRI
+            onChangeProgress.Invoke(progress, 1.5f, "Loading MRI: ");
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadNiftiBrainVolume(Patient.Brain.MRIs.Find((mri) => mri.Name == "Preoperative")));
 
             progress += LOADING_ELECTRODES_PROGRESS;
-            onChangeProgress.Invoke(progress, 0.05f, "Loading electrodes");
+            onChangeProgress.Invoke(progress, 0.05f, "Loading Implantation: ");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSites(visualization.Patients, "Patient"));
             SceneInformation.CutMeshGeometryNeedsUpdate = true;
 
@@ -326,95 +320,37 @@ namespace HBP.Module3D
             SceneInformation.MeshesLoaded = false;
 
             // checks parameters
+            if (mesh == null) throw new EmptyFilePathException("GII");
             if (!mesh.isUsable) throw new EmptyFilePathException("GII"); // TODO CHANGE TO NOT USABLE
+            if (transformation == null) throw new EmptyFilePathException("Transform");
             if (!transformation.isUsable) throw new EmptyFilePathException("Transform");
 
-            DLL.Transformation transformationDLL = new DLL.Transformation(); /// UTILITE ???? TRANSFORMATION WTTTTTTTTTTTF ?
-            //yield return Ninja.JumpToUnity;
-            //yield return ApplicationState.CoroutineManager.StartCoroutineAsync(transformationDLL.c_Load(transformation.Path));
-            //yield return Ninja.JumpBack;
             if (mesh is Data.Anatomy.LeftRightMesh)
             {
-                Data.Anatomy.LeftRightMesh leftRightMesh = mesh as Data.Anatomy.LeftRightMesh;
-
-                // load left hemi
-                bool leftMeshLoaded = m_ColumnManager.LHemi.LoadGIIFile(leftRightMesh.LeftHemisphere, true, transformation.Path); // TODO : Re^place LHemi / LWhite etc by meshes arrays
-
-                bool leftMarsAtlasLoaded = false;
-
-                if (leftMeshLoaded)
+                LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh, transformation);
+                
+                if (mesh3D.IsLoaded)
                 {
-                    m_ColumnManager.LHemi.FlipTriangles();  // the transformation inverses one axis, so faces of the surface must be flipped (TODO : case with no transformation or no inverse axi transfo)
-                    m_ColumnManager.LHemi.ComputeNormals();
-
-                    leftMarsAtlasLoaded = m_ColumnManager.LHemi.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlasIndex, leftRightMesh.LeftMarsAtlasHemisphere);
-                }
-
-                // load right hemi
-                bool rightMeshLoaded = m_ColumnManager.RHemi.LoadGIIFile(leftRightMesh.RightHemisphere, true, transformation.Path); // TODO : Re^place LHemi / LWhite etc by meshes arrays
-                bool rightMarsAtlasLoaded = false;
-
-                if (rightMeshLoaded)
-                {
-                    m_ColumnManager.RHemi.FlipTriangles();  // the transformation inverses one axis, so faces of the surface must be flipped (TODO : case with no transformation or no inverse axi transfo)
-                    m_ColumnManager.RHemi.ComputeNormals();
-
-                    rightMarsAtlasLoaded = m_ColumnManager.RHemi.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlasIndex, leftRightMesh.RightMarsAtlasHemisphere);
-                }
-
-                // fusion
-                if (leftMeshLoaded && rightMeshLoaded)
-                {
-                    // copy left
-                    m_ColumnManager.BothHemi = (DLL.Surface)m_ColumnManager.LHemi.Clone();
-
-                    // add right
-                    m_ColumnManager.BothHemi.Add(m_ColumnManager.RHemi);
-                    SceneInformation.MeshesLoaded = true;
-
-                    // get the middle
-                    SceneInformation.MeshCenter = m_ColumnManager.BothHemi.BoundingBox.Center;
-
-                    //if (rightWhiteLoaded && leftWhiteLoaded)
-                    //{
-                    //    m_ColumnManager.BothWhite = (DLL.Surface)m_ColumnManager.LWhite.Clone();
-                    //    // add right
-                    //    m_ColumnManager.BothWhite.Add(m_ColumnManager.RWhite);
-                    //    SceneInformation.WhiteMeshesAvailables = true;
-
-                    //    SceneInformation.MarsAtlasParcelsLoaded = leftMarsAtlasLoaded && rightMarsAtlasLoaded;
-                    //}
+                    m_ColumnManager.Meshes.Add(mesh3D);
                 }
                 else
                 {
                     SceneInformation.MeshesLoaded = false;
-                    throw new CanNotLoadGIIFile(leftMeshLoaded, rightMeshLoaded);
+                    throw new CanNotLoadGIIFile(mesh3D.Left.IsLoaded, mesh3D.Right.IsLoaded);
                 }
             }
             else if(mesh is Data.Anatomy.SingleMesh)
             {
-                Data.Anatomy.SingleMesh singleMesh = mesh as Data.Anatomy.SingleMesh;
+                SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh, transformation);
 
-                // load both hemi
-                bool bothMeshLoaded = m_ColumnManager.BothHemi.LoadGIIFile(singleMesh.Path, true, transformation.Path); // TODO : Re^place LHemi / LWhite etc by meshes arrays
-                bool bothMarsAtlasLoaded = false;
-
-                if (bothMeshLoaded)
+                if (mesh3D.IsLoaded)
                 {
-                    m_ColumnManager.BothHemi.FlipTriangles();  // the transformation inverses one axis, so faces of the surface must be flipped (TODO : case with no transformation or no inverse axi transfo)
-                    m_ColumnManager.BothHemi.ComputeNormals();
-
-                    bothMarsAtlasLoaded = m_ColumnManager.BothHemi.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlasIndex, singleMesh.MarsAtlasPath);
-                    
-                    // get the middle
-                    SceneInformation.MeshCenter = m_ColumnManager.BothHemi.BoundingBox.Center;
-
-                    SceneInformation.MeshesLoaded = true;
+                    m_ColumnManager.Meshes.Add(mesh3D);
                 }
                 else
                 {
                     SceneInformation.MeshesLoaded = false;
-                    throw new CanNotLoadGIIFile(bothMeshLoaded, bothMeshLoaded);
+                    throw new CanNotLoadGIIFile(mesh3D.IsLoaded);
                 }
             }
             else
@@ -422,21 +358,11 @@ namespace HBP.Module3D
                 Debug.LogError("Mesh not handled.");
             }
 
-            if(SceneInformation.MeshesLoaded)
-            {
+            //####### UDPATE MODE
+            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetGIIBrainSurfaceFile);
+            //##################
 
-                yield return Ninja.JumpToUnity;
-                GenerateSplit(new DLL.Surface[] { m_ColumnManager.BothHemi });
-                yield return Ninja.JumpBack;
-
-                // set the transform as the mesh center
-                SceneInformation.GreyMeshesAvailables = true;
-
-                //####### UDPATE MODE
-                m_ModesManager.UpdateMode(Mode.FunctionsId.ResetGIIBrainSurfaceFile);
-                //##################
-            }
-            yield return SceneInformation.MeshesLoaded;
+            yield return true;
         }
         /// <summary>
         /// Reset all the sites with a new list of pts files

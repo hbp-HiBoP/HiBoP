@@ -30,6 +30,9 @@ namespace HBP.Module3D.DLL
 
         private int[] m_Sizes = new int[5];             /**< array for containing the sizes the mesh : */
 
+        public bool IsLoaded { get; private set; }
+        public bool IsMarsAtlasLoaded { get; private set; }
+
         /// <summary>
         /// Bounding Box of this surface
         /// </summary>
@@ -102,31 +105,28 @@ namespace HBP.Module3D.DLL
         /// <returns></returns>
         public bool LoadOBJFile(string pathObjFile)
         {
-            bool fileLoaded = load_OBJ_file_Surface(_handle, pathObjFile)==1;
-            if (!fileLoaded)
+            IsLoaded = load_OBJ_file_Surface(_handle, pathObjFile)==1;
+            if (!IsLoaded)
             {
                 Debug.LogError("-ERROR : Surface::loadObjFile -> can't load obj file to surface : " + pathObjFile);
             }
-            return fileLoaded;
+            return IsLoaded;
         }
         /// <summary>
         /// Initialize the surface by loading a GIFTI mesh file and applying the optional transform file
         /// </summary>
-        /// <param name="pathGIIFile">path of the GIFTI file </param>
+        /// <param name="gii">path of the GIFTI file </param>
         /// <param name="transform">if true apply the transform </param>
-        /// <param name="pathTransformFile">transform file associated to the GIFTI file </param>
+        /// <param name="transformation">transform file associated to the GIFTI file </param>
         /// <returns>true if sucesse, else false</returns>
-        public bool LoadGIIFile(string pathGIIFile, bool transform = false, string pathTransformFile = "")
+        public bool LoadGIIFile(string gii, string transformation = "")
         {
-            if (pathTransformFile.Length == 0)
-                transform = false;
-
-            bool fileLoaded = load_GII_file_Surface(_handle, pathGIIFile , transform?1:0, pathTransformFile) == 1;
-            if (!fileLoaded)
+            IsLoaded = load_GII_file_Surface(_handle, gii, (transformation.Length == 0) ? 1:0, transformation) == 1;
+            if (!IsLoaded)
             {
-                Debug.LogError("-ERROR : Surface::loadGIIFile -> can't load GII file to surface : " + pathGIIFile + " " + pathTransformFile);
+                Debug.LogError("-ERROR : Surface::loadGIIFile -> can't load GII file to surface : " + gii + " " + transformation);
             }
-            return fileLoaded;
+            return IsLoaded;
         }
         /// <summary>
         /// Initialize the surface by loading a TRI mesh file and applying the optional transform file
@@ -140,12 +140,12 @@ namespace HBP.Module3D.DLL
             if (pathTransformFile.Length == 0)
                 transform = false;
 
-            bool fileLoaded = load_TRI_file_Surface(_handle, pathTriFile, transform ? 1 : 0, pathTransformFile) == 1;
-            if (!fileLoaded)
+            IsLoaded = load_TRI_file_Surface(_handle, pathTriFile, transform ? 1 : 0, pathTransformFile) == 1;
+            if (!IsLoaded)
             {
                 Debug.LogError("-ERROR : Surface::loadTriFile -> can't load tri file to surface : " + pathTriFile);
             }
-            return fileLoaded;
+            return IsLoaded;
         }
         /// <summary>
         /// Define the mars atlas parcels gii file to be used for coloring the vertices
@@ -154,7 +154,8 @@ namespace HBP.Module3D.DLL
         /// <returns>false if no mars parcles files found</returns>
         public bool SearchMarsParcelFileAndUpdateColors(MarsAtlasIndex index, string pathMarsParcel)
         {
-            return seach_mars_parcel_file_and_update_colors_Surface(_handle, index.getHandle(), pathMarsParcel) == 1;
+            IsMarsAtlasLoaded = seach_mars_parcel_file_and_update_colors_Surface(_handle, index.getHandle(), pathMarsParcel) == 1;
+            return IsMarsAtlasLoaded;
         }
         /// <summary>
         /// Save surface to an obj (wawefront) file
@@ -287,9 +288,11 @@ namespace HBP.Module3D.DLL
         /// Merge the mesh with the input one
         /// </summary>
         /// <param name="surfaceToAdd"></param>
-        public void Add(Surface surfaceToAdd)
+        public void Append(Surface surfaceToAdd)
         {
             merge_Surface(_handle, surfaceToAdd.getHandle());
+            IsLoaded &= surfaceToAdd.IsLoaded;
+            IsMarsAtlasLoaded &= surfaceToAdd.IsMarsAtlasLoaded;
         }
         /// <summary>
         /// Return the computer offset for the input cut plane and the wanted number of cuts
@@ -469,7 +472,10 @@ namespace HBP.Module3D.DLL
         /// <returns></returns>
         public object Clone()
         {
-            return new Surface(this);
+            Surface clonedSurface = new Surface(this);
+            clonedSurface.IsLoaded = IsLoaded;
+            clonedSurface.IsMarsAtlasLoaded = IsMarsAtlasLoaded;
+            return clonedSurface;
         }
         #endregion
 

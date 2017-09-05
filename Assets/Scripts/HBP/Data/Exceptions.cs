@@ -349,6 +349,10 @@ public class CanNotLoadGIIFile : HBPException
     {
         Title = "Can not load GII file.";
     }
+    public CanNotLoadGIIFile(bool both) : base("Single: " + (both ? "OK" : "NOT OK"))
+    {
+        Title = "Can not load GII file.";
+    }
     public CanNotLoadGIIFile(string message, Exception inner) : base(message, inner) { }
     protected CanNotLoadGIIFile(
       System.Runtime.Serialization.SerializationInfo info,

@@ -128,17 +128,41 @@ namespace HBP.Module3D
         // niftii 
         public DLL.NIFTI DLLNii = null;
         // surface 
-        public int MeshSplitNumber = 1;
-        public DLL.Surface LHemi = null; /**< left hemi mesh */
-        public DLL.Surface RHemi = null; /**< right hemi mesh */
-        public DLL.Surface BothHemi = null; /**< fustion left/right hemi mesh */
-        public DLL.Surface LWhite = null; /**< left white mesh */
-        public DLL.Surface RWhite = null; /**< right white mesh */
-        public DLL.Surface BothWhite = null; /**< fustion left/right white mesh */
+        public List<Mesh3D> Meshes = new List<Mesh3D>();
+        public int MeshSplitNumber { get; set; }
+
+        /****** FIXME ******/
+        public DLL.Surface LHemi { get { return ((LeftRightMesh3D)Meshes[0]).Left; } }
+        public DLL.Surface RHemi { get { return ((LeftRightMesh3D)Meshes[0]).Right; } }
+        public DLL.Surface BothHemi { get { return ((LeftRightMesh3D)Meshes[0]).Both; } }
+        public DLL.Surface LWhite { get { return ((LeftRightMesh3D)Meshes[1]).Left; } }
+        public DLL.Surface RWhite { get { return ((LeftRightMesh3D)Meshes[1]).Right; } }
+        public DLL.Surface BothWhite { get { return ((LeftRightMesh3D)Meshes[1]).Both; } }
+        public List<DLL.Surface> DLLSplittedMeshesList
+        {
+            get
+            {
+                return Meshes[0].SplittedMeshes;
+            }
+            set
+            {
+                Meshes[0].SplittedMeshes = value;
+            }
+        }
+        public List<DLL.Surface> DLLSplittedWhiteMeshesList
+        {
+            get
+            {
+                return Meshes[0].SplittedMeshes;
+            }
+            set
+            {
+                Meshes[0].SplittedMeshes = value;
+            }
+        }
+        /****** END FIXME ******/
 
         public List<DLL.Surface> DLLCutsList = null;
-        public List<DLL.Surface> DLLSplittedMeshesList = null;
-        public List<DLL.Surface> DLLSplittedWhiteMeshesList = null;
 
         // volume
         private float m_MRICalMinFactor = 0.0f;
@@ -183,12 +207,7 @@ namespace HBP.Module3D
 
         public DLL.Volume DLLVolume = null;
         public List<DLL.Volume> DLLVolumeFMriList = null;
-
-        /// <summary>
-        /// Event called when changing the values of the MRI Cal Values
-        /// </summary>
-        public UnityEvent OnUpdateMRICalValues = new UnityEvent();
-
+        
         // planes
         public List<Cut> PlanesCutsCopy = new List<Cut>();
 
@@ -253,6 +272,10 @@ namespace HBP.Module3D
         public Texture2D BrainColorMapTexture = null;
         public Texture2D BrainColorTexture = null;
 
+        /// <summary>
+        /// Event called when changing the values of the MRI Cal Values
+        /// </summary>
+        public UnityEvent OnUpdateMRICalValues = new UnityEvent();
         public GenericEvent<Column3DIEEG> OnUpdateIEEGSpan = new GenericEvent<Column3DIEEG>();
         public GenericEvent<Column3DIEEG> OnUpdateIEEGAlpha = new GenericEvent<Column3DIEEG>();
         public GenericEvent<Column3DIEEG> OnUpdateIEEGGain = new GenericEvent<Column3DIEEG>();
@@ -411,12 +434,6 @@ namespace HBP.Module3D
             DLLNii = new DLL.NIFTI();
 
             // surfaces
-            LHemi = new DLL.Surface();
-            RHemi = new DLL.Surface();
-            LWhite = new DLL.Surface();
-            RWhite = new DLL.Surface();
-            BothHemi = new DLL.Surface();
-            BothWhite = new DLL.Surface();
             DLLCutsList = new List<DLL.Surface>();
 
             // volume
@@ -455,7 +472,7 @@ namespace HBP.Module3D
             }
             else m_Columns = new List<Column3D>();
 
-            ResetSplitsNumber(1);
+            //ResetSplitsNumber(1);
         }
         public void InitializeColumnsMeshes(GameObject meshes)
         {

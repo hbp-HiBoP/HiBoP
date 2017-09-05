@@ -1174,7 +1174,10 @@ namespace HBP.Module3D
 
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetIEEG);
         }
-
+        /// <summary>
+        /// Generate the split number regarding all meshes
+        /// </summary>
+        /// <param name="meshes"></param>
         protected void GenerateSplit(IEnumerable<DLL.Surface> meshes)
         {
             int maxVertices = (from mesh in meshes select mesh.NumberOfVertices).Max();
@@ -1629,20 +1632,20 @@ namespace HBP.Module3D
             SceneInformation.MeshesLayerName = "Default";
             SceneInformation.HiddenMeshesLayerName = "Hidden Meshes";
 
+
+            m_ColumnManager.OnSelectColumnManager.AddListener((cm) =>
+            {
+                IsSelected = true;
+            });
+
             // init modes
             m_ModesManager.Initialize(this);
             m_ModesManager.SendModeSpecifications.AddListener((specs) =>
             {
                 Events.OnSendModeSpecifications.Invoke(specs);
-
-                // update scene visibility (useless)
-                //UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-SendModeSpecifications update_scene_items_visibility");
-                //    update_scene_items_visibility(specs.itemMaskDisplay[0], specs.itemMaskDisplay[1], specs.itemMaskDisplay[2]);
-                //UnityEngine.Profiling.Profiler.EndSample();
             });
 
             AddListeners();
-            // init GO
             InitializeSceneGameObjects();
         }
         /// <summary>

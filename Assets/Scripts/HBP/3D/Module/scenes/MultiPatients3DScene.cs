@@ -73,10 +73,10 @@ namespace HBP.Module3D
         /// </summary>        
         public GenericEvent<Data.Visualization.Visualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.Visualization, Data.Patient>();
 
-        private const float LOADING_MESHES_PROGRESS = 0.4f;
-        private const float LOADING_COLUMNS_PROGRESS = 0.015f;
-        private const float LOADING_ELECTRODES_PROGRESS = 0.015f;
-        private const float SETTING_TIMELINE_PROGRESS = 0.07f;
+        private const float LOADING_MESHES_PROGRESS = 0.8f;
+        private const float LOADING_COLUMNS_PROGRESS = 0.03f;
+        private const float LOADING_ELECTRODES_PROGRESS = 0.03f;
+        private const float SETTING_TIMELINE_PROGRESS = 0.14f;
         #endregion
         
         #region Public Methods
@@ -395,7 +395,7 @@ namespace HBP.Module3D
         public IEnumerator c_Initialize(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
         {
             yield return Ninja.JumpToUnity;
-            float progress = 0.5f;
+            float progress = 1.0f;
             onChangeProgress.Invoke(progress, 0.0f, "");
 
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
@@ -435,10 +435,6 @@ namespace HBP.Module3D
             // reset columns
             m_ColumnManager.DLLVolume = null; // this object must no be reseted
             m_ColumnManager.Initialize(Cuts.Count);
-            m_ColumnManager.OnSelectColumnManager.AddListener((cm) =>
-            {
-                IsSelected = true;
-            });
 
             yield return Ninja.JumpBack;
             // retrieve MNI IRM volume
@@ -450,13 +446,14 @@ namespace HBP.Module3D
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
             //##################
 
+            // FIXME
             // set references in column manager
-            m_ColumnManager.BothHemi = m_MNIObjects.BothHemi;
-            m_ColumnManager.BothWhite = m_MNIObjects.BothWhite;
-            m_ColumnManager.LHemi = m_MNIObjects.LeftHemi;
-            m_ColumnManager.LWhite = m_MNIObjects.LeftWhite;
-            m_ColumnManager.RHemi = m_MNIObjects.RightHemi;
-            m_ColumnManager.RWhite = m_MNIObjects.RightWhite;
+            //m_ColumnManager.BothHemi = m_MNIObjects.BothHemi;
+            //m_ColumnManager.BothWhite = m_MNIObjects.BothWhite;
+            //m_ColumnManager.LHemi = m_MNIObjects.LeftHemi;
+            //m_ColumnManager.LWhite = m_MNIObjects.LeftWhite;
+            //m_ColumnManager.RHemi = m_MNIObjects.RightHemi;
+            //m_ColumnManager.RWhite = m_MNIObjects.RightWhite;
             m_ColumnManager.DLLNii = m_MNIObjects.NII;
 
             // reset electrodes
