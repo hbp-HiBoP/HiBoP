@@ -17,12 +17,21 @@ namespace HBP.Data.Anatomy
             get { return !string.IsNullOrEmpty(Name); }
         }
         public abstract bool HasMarsAtlas { get; }
+        public virtual bool HasTransformation
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(Transformation) && File.Exists(Transformation) && (new FileInfo(Transformation).Extension == Anatomy.Transformation.EXTENSION || new FileInfo(Transformation).Extension == ".txt");
+            }
+        }
+        [DataMember(Order = 5)] public string Transformation { get; set; }
         #endregion
 
         #region Constructor
-        public Mesh(string name)
+        public Mesh(string name, string transformation)
         {
             Name = name;
+            Transformation = transformation;
         }
         #endregion
 
@@ -37,11 +46,11 @@ namespace HBP.Data.Anatomy
             {
                 FileInfo greyMatterLeftHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Lhemi" + EXTENSION);
                 FileInfo greyMatterRightHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Rhemi" + EXTENSION);
-                if(greyMatterLeftHemisphere.Exists && greyMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("Grey matter", greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName,string.Empty,string.Empty));
+                if(greyMatterLeftHemisphere.Exists && greyMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("Grey matter", string.Empty, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName,string.Empty,string.Empty));
 
                 FileInfo whiteMatterLeftHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Lwhite" + EXTENSION);
                 FileInfo whiteMatterRightHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Rwhite" + EXTENSION);
-                if (whiteMatterLeftHemisphere.Exists && whiteMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("White matter", whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName,string.Empty,string.Empty));
+                if (whiteMatterLeftHemisphere.Exists && whiteMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("White matter", string.Empty, whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName,string.Empty,string.Empty));
             }
             return meshes.ToArray();
         }
@@ -51,7 +60,9 @@ namespace HBP.Data.Anatomy
         public abstract object Clone();
         public virtual void Copy(object copy)
         {
-            Name = (copy as Mesh).Name;
+            Mesh mesh = copy as Mesh;
+            Name = mesh.Name;
+            Transformation = mesh.Transformation;
         }
         #endregion
     }
