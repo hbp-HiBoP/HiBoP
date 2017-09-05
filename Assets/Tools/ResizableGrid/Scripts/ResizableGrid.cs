@@ -488,6 +488,8 @@ namespace Tools.Unity.ResizableGrid
         /// <param name="column2"></param>
         public void SwapColumns(Column column1, Column column2)
         {
+            if (m_Columns.Count < 2) return;
+
             int id1 = m_Columns.FindIndex((col) => col == column1);
             int id2 = m_Columns.FindIndex((col) => col == column2);
             if (id1 == -1 || id2 == -1) return;

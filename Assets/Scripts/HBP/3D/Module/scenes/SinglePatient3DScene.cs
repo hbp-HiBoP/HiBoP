@@ -288,6 +288,7 @@ namespace HBP.Module3D
             progress += LOADING_MESHES_PROGRESS;
             onChangeProgress.Invoke(progress, 2.0f, "Loading meshes");
             //yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(greyMatterMesh, Patient.Brain.Transformations[0])); //FIXME: PreoperativeBasedToScannerBasedTransformation
+            Patient.Brain.Transformations.Add(new Data.Anatomy.Transformation("PreToScanner", @"\\10.69.111.22\intra\BrainVisaDB\Epilepsy\LYONNEURO_2014_THUv\t1mri\T1pre_2014-3-31\registration\RawT1-LYONNEURO_2014_THUv_T1pre_2014-3-31_TO_Scanner_Based.trm")); // FIXME
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(Patient.Brain.Meshes.Find((m) => m.Name == "Grey matter"), Patient.Brain.Transformations.Find(t => t.Name == "PreToScanner"))); //FIXME: PreoperativeBasedToScannerBasedTransformation
 
             progress += LOADING_VOLUME_PROGRESS;
@@ -325,8 +326,8 @@ namespace HBP.Module3D
             SceneInformation.MeshesLoaded = false;
 
             // checks parameters
-            if(!mesh.isUsable) throw new EmptyFilePathException("GII"); // TODO CHANGE TO NOT USABLE
-            //if (!transformation.isUsable) throw new EmptyFilePathException("Transform");
+            if (!mesh.isUsable) throw new EmptyFilePathException("GII"); // TODO CHANGE TO NOT USABLE
+            if (!transformation.isUsable) throw new EmptyFilePathException("Transform");
 
             DLL.Transformation transformationDLL = new DLL.Transformation(); /// UTILITE ???? TRANSFORMATION WTTTTTTTTTTTF ?
             //yield return Ninja.JumpToUnity;
@@ -598,6 +599,7 @@ namespace HBP.Module3D
             //####### CHECK ACESS
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetTimelines))
             {
+                yield return Ninja.JumpToUnity;
                 throw new ModeAccessException(m_ModesManager.CurrentModeName);
             }
             //##################
