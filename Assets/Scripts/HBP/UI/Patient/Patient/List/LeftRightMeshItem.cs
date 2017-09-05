@@ -55,6 +55,8 @@ namespace HBP.UI.Anatomy
             LeftRightMesh mesh = Object as LeftRightMesh;
             mesh.LeftHemisphere = m_LeftFileSelector.File;
             mesh.RightHemisphere = m_RightFileSelector.File;
+            mesh.LeftMarsAtlasHemisphere = m_LeftMarsAtlasSelector.File;
+            mesh.RightMarsAtlasHemisphere = m_RightMarsAtlasSelector.File;
         }
         #endregion
     }

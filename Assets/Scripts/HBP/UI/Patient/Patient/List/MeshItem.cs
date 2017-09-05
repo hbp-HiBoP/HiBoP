@@ -19,7 +19,7 @@ namespace HBP.UI.Anatomy
             {
                 base.Object = value;
                 m_NameInputField.text = value.Name;
-                m_TransformationSelector.File = value.Name;
+                m_TransformationSelector.File = value.Transformation;
             }
         }
         public override bool interactable
