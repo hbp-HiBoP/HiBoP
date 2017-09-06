@@ -158,7 +158,7 @@ namespace HBP.UI.Module3D
             // compare site
             contentPanelT.Find("selected site buttons").Find("compare site button").GetComponent<Button>().onClick.AddListener(() =>
             {
-                m_scene.CompareSites();
+                //m_scene.CompareSites();
             });
 
             // apply
@@ -537,9 +537,9 @@ namespace HBP.UI.Module3D
             {
                 if (m_scene.ColumnManager.SelectedColumn.SelectedSite != null)
                 {
-                    if (m_scene.SceneInformation.IsComparingSites)
+                    if (true/*m_scene.SceneInformation.IsComparingSites*/)
                     {
-                        m_scene.SceneInformation.IsComparingSites = false;
+                        //m_scene.SceneInformation.IsComparingSites = false;
                         m_scene.DisplayScreenMessage("Compare : " + m_lastSiteSelected.name + " from col " + m_lastUpdatedColumn + "\n with " + m_scene.ColumnManager.SelectedColumn.SelectedSite.name + " from col " + idColumn, 5f, 250, 80);
                         m_scene.SendAdditionalSiteInfoRequest(m_lastSiteSelected);
                     }

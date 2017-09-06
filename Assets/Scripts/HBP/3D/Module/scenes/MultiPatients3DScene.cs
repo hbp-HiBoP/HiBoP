@@ -297,13 +297,7 @@ namespace HBP.Module3D
             // MNI meshes are preloaded
             SceneInformation.VolumeCenter = m_MNIObjects.IRM.Center;
             SceneInformation.MeshesLoaded = true;
-            SceneInformation.GreyMeshesAvailables = true;
-            SceneInformation.WhiteMeshesAvailables = true;
-            SceneInformation.WhiteInflatedMeshesAvailables = true;
             SceneInformation.IsROICreationModeEnabled = false;
-
-            // get the middle
-            SceneInformation.MeshCenter = m_MNIObjects.BothHemi.BoundingBox.Center;
 
             /// TODO
             List<string> ptsFiles = new List<string>(Visualization.Patients.Count), namePatients = new List<string>(Visualization.Patients.Count);
@@ -466,49 +460,6 @@ namespace HBP.Module3D
 
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetElectrodesFile);
-            //##################
-        }
-        /// <summary>
-        /// Define the timeline data with a patient list, a list of column data and the pts paths
-        /// </summary>
-        /// <param name="patientList"></param>
-        /// <param name="columnDataList"></param>
-        /// <param name="ptsPathFileList"></param>
-        private IEnumerator c_SetTimelineData()
-        {
-            //####### CHECK ACESS
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetTimelines))
-            {
-                throw new ModeAccessException(m_ModesManager.CurrentModeName);
-            }
-            //##################
-
-            yield return Ninja.JumpToUnity;
-            // update columns number
-            m_ColumnManager.UpdateColumnsNumber(Visualization.Columns.Count, 0, Cuts.Count);
-            yield return Ninja.JumpBack;
-
-            // update columns names
-            for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
-            {
-                m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].DisplayLabel;
-            }
-
-            yield return Ninja.JumpToUnity;
-            // set timelines
-            m_ColumnManager.SetTimelineData(Visualization.Patients.ToList(), Visualization.Columns);
-
-            // update plots visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            yield return Ninja.JumpBack;
-
-            // set flag
-            SceneInformation.TimelinesLoaded = true;
-
-            Events.OnAskRegionOfInterestUpdate.Invoke(-1);
-
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.SetTimelines);
             //##################
         }
         #endregion

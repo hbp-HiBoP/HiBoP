@@ -86,38 +86,56 @@ namespace HBP.UI.Module3D.Tools
                 case Mode.ModesId.NoPathDefined:
                     m_Left.interactable = false;
                     m_Right.interactable = false;
+                    m_Left.gameObject.SetActive(false);
+                    m_Right.gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.MinPathDefined:
                     m_Left.interactable = isMeshLeftRight;
                     m_Right.interactable = isMeshLeftRight;
+                    m_Left.gameObject.SetActive(isMeshLeftRight);
+                    m_Right.gameObject.SetActive(isMeshLeftRight);
                     break;
                 case Mode.ModesId.AllPathDefined:
                     m_Left.interactable = isMeshLeftRight;
                     m_Right.interactable = isMeshLeftRight;
+                    m_Left.gameObject.SetActive(isMeshLeftRight);
+                    m_Right.gameObject.SetActive(isMeshLeftRight);
                     break;
                 case Mode.ModesId.ComputingAmplitudes:
                     m_Left.interactable = false;
                     m_Right.interactable = false;
+                    m_Left.gameObject.SetActive(false);
+                    m_Right.gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.AmplitudesComputed:
                     m_Left.interactable = isMeshLeftRight;
                     m_Right.interactable = isMeshLeftRight;
+                    m_Left.gameObject.SetActive(isMeshLeftRight);
+                    m_Right.gameObject.SetActive(isMeshLeftRight);
                     break;
                 case Mode.ModesId.TriErasing:
                     m_Left.interactable = false;
                     m_Right.interactable = false;
+                    m_Left.gameObject.SetActive(false);
+                    m_Right.gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.ROICreation:
                     m_Left.interactable = false;
                     m_Right.interactable = false;
+                    m_Left.gameObject.SetActive(false);
+                    m_Right.gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.AmpNeedUpdate:
                     m_Left.interactable = isMeshLeftRight;
                     m_Right.interactable = isMeshLeftRight;
+                    m_Left.gameObject.SetActive(isMeshLeftRight);
+                    m_Right.gameObject.SetActive(isMeshLeftRight);
                     break;
                 case Mode.ModesId.Error:
                     m_Left.interactable = false;
                     m_Right.interactable = false;
+                    m_Left.gameObject.SetActive(false);
+                    m_Right.gameObject.SetActive(false);
                     break;
                 default:
                     break;

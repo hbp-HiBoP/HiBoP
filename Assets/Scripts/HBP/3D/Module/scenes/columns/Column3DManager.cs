@@ -658,24 +658,11 @@ namespace HBP.Module3D
                 Columns[ii].ResetColorSchemes(Colormap, BrainCutColor);
         }
         /// <summary>
-        /// Define the single patient and associated data
+        /// Set timeline data for all columns
         /// </summary>
         /// <param name="patient"></param>
         /// <param name="columnDataList"></param>
-        public void SetTimelineData(Data.Patient patient, List<Data.Visualization.Column> columnDataList)
-        {
-            for (int c = 0; c < ColumnsIEEG.Count; c++)
-            {
-                ColumnsIEEG[c].SetColumnData(columnDataList[c]);
-            }
-        }
-        /// <summary>
-        /// Define the mp patients list and associated data
-        /// </summary>
-        /// <param name="patientList"></param>
-        /// <param name="columnDataList"></param>
-        /// <param name="ptsPathFileList"></param>
-        public void SetTimelineData(List<Data.Patient> patientList, List<Data.Visualization.Column> columnDataList)
+        public void SetTimelineData(List<Data.Visualization.Column> columnDataList)
         {
             for (int c = 0; c < ColumnsIEEG.Count; c++)
             {

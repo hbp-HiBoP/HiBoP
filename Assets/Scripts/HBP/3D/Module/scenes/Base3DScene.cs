@@ -1115,7 +1115,7 @@ namespace HBP.Module3D
         /// </summary>
         private void ClickOnSiteCallback()
         {
-            if (m_ColumnManager.SelectedColumn.SelectedSiteID == -1 || SceneInformation.IsComparingSites) return;
+            if (m_ColumnManager.SelectedColumn.SelectedSiteID == -1) return;
 
             if (((Column3DIEEG)m_ColumnManager.SelectedColumn).SendInformation)
             {
@@ -2107,14 +2107,6 @@ namespace HBP.Module3D
             Events.OnDisplaySceneProgressBar.Invoke(duration, width, height, value);
         }
         /// <summary>
-        /// Begin the comparison between two sites
-        /// </summary>
-        public void CompareSites()
-        {
-            DisplayScreenMessage("Select site to compare ", 3f, 200, 40);
-            SceneInformation.IsComparingSites = true;
-        }
-        /// <summary>
         /// Unselect the site of the corresponding column
         /// </summary>
         /// <param name="columnId"></param>
@@ -2632,6 +2624,47 @@ namespace HBP.Module3D
             m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Grey Matter", m_MNIObjects.LeftHemi, m_MNIObjects.RightHemi, m_MNIObjects.BothHemi));
             m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI White Matter", m_MNIObjects.LeftWhite, m_MNIObjects.RightWhite, m_MNIObjects.BothWhite));
             m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Inflated", m_MNIObjects.LeftWhiteInflated, m_MNIObjects.RightWhiteInflated, m_MNIObjects.BothWhiteInflated));
+        }
+        /// <summary>
+        /// Define the timeline data with a patient and a list of column data
+        /// </summary>
+        /// <param name="patient"></param>
+        /// <param name="columnDataList"></param>
+        protected IEnumerator c_SetTimelineData()
+        {
+            //####### CHECK ACESS
+            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetTimelines))
+            {
+                yield return Ninja.JumpToUnity;
+                throw new ModeAccessException(m_ModesManager.CurrentModeName);
+            }
+            //##################
+
+            yield return Ninja.JumpToUnity;
+            // update columns number
+            m_ColumnManager.UpdateColumnsNumber(Visualization.Columns.Count, 0, Cuts.Count);
+            yield return Ninja.JumpBack;
+
+            // update columns names
+            for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
+            {
+                m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].DisplayLabel;
+            }
+
+            yield return Ninja.JumpToUnity;
+            // set timelines
+            m_ColumnManager.SetTimelineData(Visualization.Columns);
+
+            // update plots visibility
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            yield return Ninja.JumpBack;
+
+            // set flag
+            SceneInformation.TimelinesLoaded = true;
+
+            //####### UDPATE MODE
+            m_ModesManager.UpdateMode(Mode.FunctionsId.SetTimelines);
+            //##################
         }
         private IEnumerator c_UpdateMeshesColliders()
         {

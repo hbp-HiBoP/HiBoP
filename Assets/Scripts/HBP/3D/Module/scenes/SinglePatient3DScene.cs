@@ -275,8 +275,6 @@ namespace HBP.Module3D
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
             // Finish
             GenerateSplit(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
-            SceneInformation.GreyMeshesAvailables = true;
-            SceneInformation.WhiteMeshesAvailables = true;
 
             // Load MRIs
             progress += LOADING_VOLUME_PROGRESS;
@@ -509,47 +507,6 @@ namespace HBP.Module3D
 
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetElectrodesFile);
-            //##################
-        }
-        /// <summary>
-        /// Define the timeline data with a patient and a list of column data
-        /// </summary>
-        /// <param name="patient"></param>
-        /// <param name="columnDataList"></param>
-        private IEnumerator c_SetTimelineData()
-        {
-            //####### CHECK ACESS
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetTimelines))
-            {
-                yield return Ninja.JumpToUnity;
-                throw new ModeAccessException(m_ModesManager.CurrentModeName);
-            }
-            //##################
-
-            yield return Ninja.JumpToUnity;
-            // update columns number
-            m_ColumnManager.UpdateColumnsNumber(Visualization.Columns.Count, 0, Cuts.Count);
-            yield return Ninja.JumpBack;
-
-            // update columns names
-            for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
-            {
-                m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].DisplayLabel;
-            }
-
-            yield return Ninja.JumpToUnity;
-            // set timelines
-            m_ColumnManager.SetTimelineData(Patient, Visualization.Columns);
-
-            // update plots visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            yield return Ninja.JumpBack;
-
-            // set flag
-            SceneInformation.TimelinesLoaded = true;
-
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.SetTimelines);
             //##################
         }
         #endregion

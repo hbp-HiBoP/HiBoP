@@ -13,12 +13,6 @@ namespace HBP.UI.Module3D.Tools
         #region Properties
         [SerializeField]
         private Dropdown m_Dropdown;
-
-        [SerializeField]
-        /// <summary>
-        /// Sprite for the brain type icon
-        /// </summary>
-        private Sprite m_BrainTypeSprite;
         
         public GenericEvent<int> OnChangeValue = new GenericEvent<int>();
         #endregion
@@ -82,9 +76,10 @@ namespace HBP.UI.Module3D.Tools
                 m_Dropdown.options.Clear();
                 foreach (Mesh3D mesh in selectedScene.ColumnManager.Meshes)
                 {
-                    m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString(), m_BrainTypeSprite));
+                    m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString()));
                 }
                 m_Dropdown.value = selectedScene.ColumnManager.SelectedMeshID;
+                m_Dropdown.RefreshShownValue();
             }
         }
         #endregion

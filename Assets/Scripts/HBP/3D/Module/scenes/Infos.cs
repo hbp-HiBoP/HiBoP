@@ -38,7 +38,6 @@ namespace HBP.Module3D
                 m_IsIEEGOutdated = value;
             }
         }
-        public bool IsComparingSites = false; /**< if true, the next plot clicked will be used to be compared with the current one */
         public bool DisplayCCEPMode = false; // TEST
         public bool IsROICreationModeEnabled = false; /**< is the ROI creation mode enabled ? */
         public bool TimelinesLoaded = false; /**< timelines have been loaded */
@@ -46,13 +45,9 @@ namespace HBP.Module3D
         public bool MeshesLoaded = false;    /**< meshes have been loaded */
         public bool MRILoaded = false;    /**< volume has been loaded */
         public bool CollidersUpdated = false;/**< colluders are up to date */
-        public bool GreyMeshesAvailables = false;    /**< hemi meshes are availables */
-        public bool WhiteMeshesAvailables = false;    /**< white meshes are availables */
-        public bool WhiteInflatedMeshesAvailables = false; /**< white inflated meshes are availables */
         public bool IsSceneInitialized { get; set; }
         // parameters
         public bool MarsAtlasModeEnabled = false;
-        public bool MarsAtlasParcelsLoaded = false;
         public bool CutHolesEnabled = false; /**< cuts holes are enabled */
         public int LastPlaneModifiedID = 0;
 
@@ -104,9 +99,6 @@ namespace HBP.Module3D
             MeshesLoaded = false;
             MRILoaded = false; 
             CollidersUpdated = false;
-            GreyMeshesAvailables = false;
-            WhiteMeshesAvailables = false; 
-            WhiteInflatedMeshesAvailables = false;            
 
             // loop check  
             CutMeshGeometryNeedsUpdate = true;

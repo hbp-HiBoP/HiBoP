@@ -41,30 +41,39 @@ namespace HBP.UI.Module3D.Tools
             {
                 case Mode.ModesId.NoPathDefined:
                     m_Toggle.interactable = false;
+                    m_Toggle.gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.MinPathDefined:
                     m_Toggle.interactable = canUseMarsAtlas;
+                    m_Toggle.gameObject.SetActive(canUseMarsAtlas);
                     break;
                 case Mode.ModesId.AllPathDefined:
                     m_Toggle.interactable = canUseMarsAtlas;
+                    m_Toggle.gameObject.SetActive(canUseMarsAtlas);
                     break;
                 case Mode.ModesId.ComputingAmplitudes:
                     m_Toggle.interactable = false;
+                    m_Toggle.gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.AmplitudesComputed:
                     m_Toggle.interactable = canUseMarsAtlas;
+                    m_Toggle.gameObject.SetActive(canUseMarsAtlas);
                     break;
                 case Mode.ModesId.TriErasing:
                     m_Toggle.interactable = false;
+                    m_Toggle.gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.ROICreation:
                     m_Toggle.interactable = false;
+                    m_Toggle.gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.AmpNeedUpdate:
                     m_Toggle.interactable = canUseMarsAtlas;
+                    m_Toggle.gameObject.SetActive(canUseMarsAtlas);
                     break;
                 case Mode.ModesId.Error:
                     m_Toggle.interactable = false;
+                    m_Toggle.gameObject.SetActive(false);
                     break;
                 default:
                     break;

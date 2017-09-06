@@ -95,7 +95,6 @@ namespace HBP.UI.Module3D.Tools
                 if (!site)
                 {
                     m_Toggle.interactable = false;
-                    m_Toggle.isOn = false;
                     gameObject.SetActive(false);
                 }
                 else
@@ -103,6 +102,7 @@ namespace HBP.UI.Module3D.Tools
                     m_Toggle.interactable = true;
                     gameObject.SetActive(true);
                 }
+                m_Toggle.isOn = false;
             }
         }
         #endregion
