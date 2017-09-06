@@ -272,10 +272,7 @@ namespace HBP.Module3D
             // MNI
             progress += LOADING_MESHES_PROGRESS / 2;
             onChangeProgress.Invoke(progress, 4.0f, "Loading MNI Meshes");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_MNIObjects.c_Load());
-            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Grey Matter", m_MNIObjects.LeftHemi, m_MNIObjects.RightHemi, m_MNIObjects.BothHemi));
-            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI White Matter", m_MNIObjects.LeftWhite, m_MNIObjects.RightWhite, m_MNIObjects.BothWhite));
-            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Inflated", m_MNIObjects.LeftWhiteInflated, m_MNIObjects.RightWhiteInflated, m_MNIObjects.BothWhiteInflated));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
             // Finish
             GenerateSplit(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
             SceneInformation.GreyMeshesAvailables = true;

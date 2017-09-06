@@ -291,8 +291,9 @@ namespace HBP.Module3D
 
             progress += LOADING_MESHES_PROGRESS;
             onChangeProgress.Invoke(progress, 4.0f, "Loading meshes");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_MNIObjects.c_Load());
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
             yield return Ninja.JumpBack;
+
             // MNI meshes are preloaded
             SceneInformation.VolumeCenter = m_MNIObjects.IRM.Center;
             SceneInformation.MeshesLoaded = true;
@@ -333,12 +334,6 @@ namespace HBP.Module3D
 
             // FIXME
             // set references in column manager
-            //m_ColumnManager.BothHemi = m_MNIObjects.BothHemi;
-            //m_ColumnManager.BothWhite = m_MNIObjects.BothWhite;
-            //m_ColumnManager.LHemi = m_MNIObjects.LeftHemi;
-            //m_ColumnManager.LWhite = m_MNIObjects.LeftWhite;
-            //m_ColumnManager.RHemi = m_MNIObjects.RightHemi;
-            //m_ColumnManager.RWhite = m_MNIObjects.RightWhite;
             m_ColumnManager.DLLNii = m_MNIObjects.NII;
 
             // reset electrodes

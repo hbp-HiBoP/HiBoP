@@ -2620,6 +2620,19 @@ namespace HBP.Module3D
 
             yield return SceneInformation.MRILoaded;
         }
+        /// <summary>
+        /// Load MNI
+        /// </summary>
+        /// <returns></returns>
+        protected IEnumerator c_LoadMNIObjects()
+        {
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_MNIObjects.c_Load());
+            yield return Ninja.JumpBack;
+            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Grey Matter", m_MNIObjects.LeftHemi, m_MNIObjects.RightHemi, m_MNIObjects.BothHemi));
+            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI White Matter", m_MNIObjects.LeftWhite, m_MNIObjects.RightWhite, m_MNIObjects.BothWhite));
+            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Inflated", m_MNIObjects.LeftWhiteInflated, m_MNIObjects.RightWhiteInflated, m_MNIObjects.BothWhiteInflated));
+        }
         private IEnumerator c_UpdateMeshesColliders()
         {
             // update splits colliders
