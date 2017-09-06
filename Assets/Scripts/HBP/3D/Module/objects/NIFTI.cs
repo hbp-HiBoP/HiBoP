@@ -17,6 +17,10 @@ namespace HBP.Module3D.DLL
     /// </summary>
     public class NIFTI : CppDLLImportBase
     {
+        #region Properties
+        public bool IsLoaded { get; private set; }
+        #endregion
+
         #region Public Methods
         /// <summary>
         /// 
@@ -25,7 +29,8 @@ namespace HBP.Module3D.DLL
         /// <returns></returns>
         public bool LoadNIIFile(string pathNiftiFile)
         {
-            return (loadNiiFile_NIFTI(_handle, pathNiftiFile) == 1);
+            IsLoaded = (loadNiiFile_NIFTI(_handle, pathNiftiFile) == 1);
+            return IsLoaded;
         }
         /// <summary>
         /// 

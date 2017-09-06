@@ -56,7 +56,7 @@ namespace HBP.Module3D
         /// Event called when removing a line of views
         /// </summary>
         public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
-
+        
         List<Column3D> m_Columns = new List<Column3D>();
         /// <summary>
         /// Columns of the scene
@@ -124,10 +124,7 @@ namespace HBP.Module3D
         //  generator DLL
         public List<DLL.MRIGeometryCutGenerator> DLLMRIGeometryCutGeneratorList = null; /**< ... */        
         
-
-        // niftii 
-        public DLL.NIFTI DLLNii = null;
-        // surface 
+        // surface
         public List<Mesh3D> Meshes = new List<Mesh3D>();
         public int MeshSplitNumber { get; set; }
         public int SelectedMeshID { get; set; }
@@ -142,6 +139,16 @@ namespace HBP.Module3D
         public List<DLL.Surface> DLLCutsList = null;
 
         // volume
+        public List<MRI3D> MRIs = new List<MRI3D>();
+        public int SelectedMRIID { get; set; }
+        public MRI3D SelectedMRI
+        {
+            get
+            {
+                return MRIs[SelectedMRIID];
+            }
+        }
+
         private float m_MRICalMinFactor = 0.0f;
         /// <summary>
         /// MRI Cal Min Value
@@ -182,7 +189,6 @@ namespace HBP.Module3D
             }
         }
 
-        public DLL.Volume DLLVolume = null;
         public List<DLL.Volume> DLLVolumeFMriList = null;
         
         // planes
@@ -406,17 +412,8 @@ namespace HBP.Module3D
         /// </summary>
         public void Initialize(int cutPlanesNb)
         {
-            // init DLL objects
-            //      nii loader;
-            DLLNii = new DLL.NIFTI();
-
             // surfaces
             DLLCutsList = new List<DLL.Surface>();
-
-            // volume
-            if (DLLVolume != null)
-                DLLVolume.Dispose();
-            DLLVolume = new DLL.Volume();
 
             if (DLLVolumeFMriList != null)
                 for (int ii = 0; ii < DLLVolumeFMriList.Count; ++ii)
@@ -676,7 +673,7 @@ namespace HBP.Module3D
         public void CreateMRITexture(int indexCut, int indexColumn)
         {
             UnityEngine.Profiling.Profiler.BeginSample("create_MRI_texture");
-                Columns[indexColumn].CreateMRITexture(DLLMRIGeometryCutGeneratorList[indexCut], DLLVolume, indexCut, MRICalMinFactor, MRICalMaxFactor);
+                Columns[indexColumn].CreateMRITexture(DLLMRIGeometryCutGeneratorList[indexCut], SelectedMRI.Volume, indexCut, MRICalMinFactor, MRICalMaxFactor);
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>

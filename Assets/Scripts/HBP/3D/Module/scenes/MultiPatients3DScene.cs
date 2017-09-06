@@ -153,8 +153,8 @@ namespace HBP.Module3D
             // reset brain texture generator
             for (int ii = 0; ii < m_ColumnManager.SelectedMesh.SplittedMeshes.Count; ++ii)
             {
-                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.DLLVolume);
-                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.DLLVolume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
+                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume);
+                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
             }
 
             // reset tri eraser
@@ -167,7 +167,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
                 for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG.Count; ++jj)
-                    m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.DLLVolume, Cuts[ii]);
+                    m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
 
                 m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii + 1]);
                 m_ColumnManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
@@ -290,12 +290,12 @@ namespace HBP.Module3D
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * sceneID, transform.position.y, transform.position.z);
 
             progress += LOADING_MESHES_PROGRESS;
-            onChangeProgress.Invoke(progress, 4.0f, "Loading meshes");
+            onChangeProgress.Invoke(progress, 4.0f, "Loading MNI");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
             yield return Ninja.JumpBack;
 
             // MNI meshes are preloaded
-            SceneInformation.VolumeCenter = m_MNIObjects.IRM.Center;
+            SceneInformation.VolumeCenter = m_MNIObjects.MRI.Center;
             SceneInformation.MeshesLoaded = true;
             SceneInformation.IsROICreationModeEnabled = false;
 
@@ -313,22 +313,16 @@ namespace HBP.Module3D
             progress += LOADING_COLUMNS_PROGRESS;
             onChangeProgress.Invoke(progress, 0.05f, "Loading columns");
             // reset columns
-            m_ColumnManager.DLLVolume = null; // this object must no be reseted
             m_ColumnManager.Initialize(Cuts.Count);
 
             yield return Ninja.JumpBack;
             // retrieve MNI IRM volume
-            m_ColumnManager.DLLVolume = m_MNIObjects.IRM;
-            SceneInformation.VolumeCenter = m_ColumnManager.DLLVolume.Center;
+            SceneInformation.VolumeCenter = m_ColumnManager.SelectedMRI.Volume.Center;
             SceneInformation.MRILoaded = true;
 
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
             //##################
-
-            // FIXME
-            // set references in column manager
-            m_ColumnManager.DLLNii = m_MNIObjects.NII;
 
             // reset electrodes
             yield return Ninja.JumpToUnity;

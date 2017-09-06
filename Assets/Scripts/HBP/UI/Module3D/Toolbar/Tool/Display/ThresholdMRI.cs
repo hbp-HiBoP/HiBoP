@@ -73,7 +73,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (type == Toolbar.UpdateToolbarType.Scene)
             {
-                m_ThresholdMRI.UpdateMRICalValues(ApplicationState.Module3D.SelectedScene.ColumnManager.DLLVolume.ExtremeValues);
+                m_ThresholdMRI.UpdateMRICalValues(ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedMRI.Volume.ExtremeValues);
             }
         }
         #endregion

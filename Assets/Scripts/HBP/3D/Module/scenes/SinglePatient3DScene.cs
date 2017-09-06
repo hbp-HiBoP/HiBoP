@@ -54,8 +54,9 @@ namespace HBP.Module3D
         /// Event for asking the UI to update the latencies display on the plot menu (params : labels)
         /// </summary>
         public GenericEvent<List<string>> OnUpdateLatencies = new GenericEvent<List<string>>();
-        
-        private const float LOADING_MESHES_PROGRESS = 0.5f;
+
+        private const float LOADING_MNI = 0.15f;
+        private const float LOADING_MESHES_PROGRESS = 0.35f;
         private const float LOADING_VOLUME_PROGRESS = 0.3f;
         private const float LOADING_ELECTRODES_PROGRESS = 0.1f;
         private const float SETTING_TIMELINE_PROGRESS = 0.2f;
@@ -128,8 +129,8 @@ namespace HBP.Module3D
             // reset brain texture generator
             for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
             {
-                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.DLLVolume);
-                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.DLLVolume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
+                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume);
+                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -148,7 +149,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
                 for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG.Count; ++jj)
-                    m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.DLLVolume, Cuts[ii]);                        
+                    m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);                        
 
                 m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii + 1]);
                 m_ColumnManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
@@ -261,31 +262,35 @@ namespace HBP.Module3D
             m_ColumnManager.Initialize(m_Cuts.Count);
 
             // Load Meshes
-            // Patient
-            float loadingMeshesProgress = (LOADING_MESHES_PROGRESS / 2) / Patient.Brain.Meshes.Count;
+            float loadingMeshesProgress = LOADING_MESHES_PROGRESS / Patient.Brain.Meshes.Count;
             foreach (Data.Anatomy.Mesh mesh in Patient.Brain.Meshes)
             {
                 progress += loadingMeshesProgress;
-                onChangeProgress.Invoke(progress, 1.5f, "Loading Patient Mesh: " + mesh.Name);
+                onChangeProgress.Invoke(progress, 1.5f, "Loading Mesh: " + mesh.Name);
                 yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh));
             }
-            // MNI
-            progress += LOADING_MESHES_PROGRESS / 2;
-            onChangeProgress.Invoke(progress, 4.0f, "Loading MNI Meshes");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
-            // Finish
             GenerateSplit(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
 
             // Load MRIs
-            progress += LOADING_VOLUME_PROGRESS;
-            onChangeProgress.Invoke(progress, 1.5f, "Loading MRI: ");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadNiftiBrainVolume(Patient.Brain.MRIs.Find((mri) => mri.Name == "Preoperative")));
+            float loadingMRIProgress = LOADING_VOLUME_PROGRESS / Patient.Brain.MRIs.Count;
+            foreach (Data.Anatomy.MRI mri in Patient.Brain.MRIs)
+            {
+                progress += loadingMRIProgress;
+                onChangeProgress.Invoke(progress, 1.5f, "Loading MRI: " + mri.Name);
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri));
+            }
+            SceneInformation.VolumeCenter = m_ColumnManager.SelectedMRI.Volume.Center; //FIXME : update when changing MRI
 
             // Load Sites
             progress += LOADING_ELECTRODES_PROGRESS;
             onChangeProgress.Invoke(progress, 0.05f, "Loading Implantation: ");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSites(visualization.Patients, "Patient"));
             SceneInformation.CutMeshGeometryNeedsUpdate = true;
+
+            // Load MNI
+            progress += LOADING_MNI;
+            onChangeProgress.Invoke(progress, 2.0f, "Loading MNI objects");
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
 
             // Set Timeline
             progress += SETTING_TIMELINE_PROGRESS;

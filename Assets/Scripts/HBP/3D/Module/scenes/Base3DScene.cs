@@ -691,7 +691,7 @@ namespace HBP.Module3D
                 { //TEST (maybe FIXME : delete this, the visual effect is not very good)
                   // recompute UV
                     for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
-                        m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.DLLVolume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
+                        m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
 
                     // update brain mesh object mesh filter (TODO update only UV)
                     UpdateMeshesFromDLL();
@@ -1024,7 +1024,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         private bool LoadFMRIFile(string fMRIPath)
         {
-            if (m_ColumnManager.DLLNii.LoadNIIFile(fMRIPath))
+            if (m_ColumnManager.SelectedMRI.NII.LoadNIIFile(fMRIPath))
                 return true;
 
             Debug.LogError("-ERROR : Base3DScene::load_FMRI_file -> load NII file failed. " + fMRIPath);
@@ -1056,7 +1056,7 @@ namespace HBP.Module3D
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
             // Convert to volume            
-            m_ColumnManager.DLLNii.ConvertToVolume(m_ColumnManager.DLLVolumeFMriList[newFMRIColumnID]);
+            m_ColumnManager.SelectedMRI.NII.ConvertToVolume(m_ColumnManager.DLLVolumeFMriList[newFMRIColumnID]);
 
             if (Type == SceneType.SinglePatient)
                 Events.OnAskRegionOfInterestUpdate.Invoke(m_ColumnManager.ColumnsIEEG.Count + newFMRIColumnID);
@@ -1185,6 +1185,7 @@ namespace HBP.Module3D
         {
             int maxVertices = (from mesh in meshes select mesh.NumberOfVertices).Max();
             int splits = (maxVertices / 65000) + (((maxVertices % 60000) != 0) ? 3 : 2);
+            if (splits < 3) splits = 3;
             ResetSplitsNumber(splits);
         }
         #endregion
@@ -1441,7 +1442,7 @@ namespace HBP.Module3D
             else
             {
                 Plane plane = new Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
-                m_ColumnManager.DLLVolume.SetPlaneWithOrientation(plane, cut.Orientation, cut.Flip);
+                m_ColumnManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, cut.Flip);
                 cut.Normal = plane.Normal;
             }
 
@@ -2533,7 +2534,7 @@ namespace HBP.Module3D
                     // splits
                     for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                     {
-                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[jj], m_ColumnManager.DLLVolume); // TODO : ?
+                        m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[jj], m_ColumnManager.SelectedMRI.Volume); // TODO : ?
                         m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
 
                         if (!m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true))
@@ -2576,7 +2577,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="pathNIIBrainVolumeFile"></param>
         /// <returns></returns>
-        protected IEnumerator c_LoadNiftiBrainVolume(Data.Anatomy.MRI mri)
+        protected IEnumerator c_LoadBrainVolume(Data.Anatomy.MRI mri)
         {
             // Check access
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetNIIBrainVolumeFile))
@@ -2589,27 +2590,20 @@ namespace HBP.Module3D
             // checks parameter
             if (!mri.isUsable) throw new EmptyFilePathException("NII");
 
-            // load volume
-            bool loadingSuccess = m_ColumnManager.DLLNii.LoadNIIFile(mri.Path);
-            if (loadingSuccess)
+            MRI3D mri3D = new MRI3D(mri);
+            if (mri3D.IsLoaded)
             {
-                m_ColumnManager.DLLNii.ConvertToVolume(m_ColumnManager.DLLVolume);
-                SceneInformation.VolumeCenter = m_ColumnManager.DLLVolume.Center;
+                m_ColumnManager.MRIs.Add(mri3D);
             }
             else
             {
                 throw new CanNotLoadNIIFile(mri.Path);
             }
-
-            SceneInformation.MRILoaded = loadingSuccess;
-            Events.OnUpdatePlanes.Invoke();
-
-            // send cal values to the UI
-            Events.OnMRICalValuesUpdate.Invoke(m_ColumnManager.DLLVolume.ExtremeValues);
-
+            
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
 
+            SceneInformation.MRILoaded = true;
             yield return SceneInformation.MRILoaded;
         }
         /// <summary>
@@ -2624,6 +2618,7 @@ namespace HBP.Module3D
             m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Grey Matter", m_MNIObjects.LeftHemi, m_MNIObjects.RightHemi, m_MNIObjects.BothHemi));
             m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI White Matter", m_MNIObjects.LeftWhite, m_MNIObjects.RightWhite, m_MNIObjects.BothWhite));
             m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Inflated", m_MNIObjects.LeftWhiteInflated, m_MNIObjects.RightWhiteInflated, m_MNIObjects.BothWhiteInflated));
+            m_ColumnManager.MRIs.Add(new MRI3D("MNI", m_MNIObjects.NII, m_MNIObjects.MRI));
         }
         /// <summary>
         /// Define the timeline data with a patient and a list of column data

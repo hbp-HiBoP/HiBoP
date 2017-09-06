@@ -40,7 +40,7 @@ namespace HBP.Module3D
         public DLL.Surface BothWhiteInflated = null;
 
         // ch256.nii
-        public DLL.Volume IRM = null;
+        public DLL.Volume MRI = null;
 
         public DLL.NIFTI NII = null;
 
@@ -64,8 +64,8 @@ namespace HBP.Module3D
         {
             LoadingMutex.WaitOne();
             
-            IRM = new DLL.Volume();
-            NII.ConvertToVolume(IRM);
+            MRI = new DLL.Volume();
+            NII.ConvertToVolume(MRI);
 
             LeftHemi = new DLL.Surface();
             RightHemi = new DLL.Surface();
