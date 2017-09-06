@@ -1273,7 +1273,6 @@ namespace HBP.Module3D
                 return;
             }
 
-            Debug.Log(meshID + " " + SceneInformation.IsGeometryUpToDate);
             if (!SceneInformation.IsGeometryUpToDate) return;
 
             if (meshID == -1) meshID = 0;
@@ -1319,6 +1318,91 @@ namespace HBP.Module3D
 
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
+        }
+
+        public void UpdateSites()
+        {
+            // destroy previous electrodes gameobjects
+            for (int ii = 0; ii < m_ColumnManager.SitesList.Count; ++ii)
+            {
+                //Destroy(go_.PlotsList[ii].GetComponent<MeshFilter>().mesh); // now it's a shared mesh
+                Destroy(m_ColumnManager.SitesList[ii]);
+            }
+            m_ColumnManager.SitesList.Clear();
+
+
+            // destroy plots elecs/patients parents
+            for (int ii = 0; ii < m_ColumnManager.SitesPatientParent.Count; ++ii)
+            {
+                Destroy(m_ColumnManager.SitesPatientParent[ii]);
+                for (int jj = 0; jj < m_ColumnManager.SitesElectrodesParent[ii].Count; ++jj)
+                {
+                    Destroy(m_ColumnManager.SitesElectrodesParent[ii][jj]);
+                }
+
+            }
+            m_ColumnManager.SitesPatientParent.Clear();
+            m_ColumnManager.SitesElectrodesParent.Clear();
+
+            // TODO : Do this with the visualization data because everything is already read
+            if (SceneInformation.SitesLoaded)
+            {
+                int currPlotNb = 0;
+                for (int ii = 0; ii < m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfPatients; ++ii)
+                {
+                    int patientSiteID = 0;
+                    string patientID = m_ColumnManager.DLLLoadedPatientsElectrodes.PatientName(ii);
+
+                    // create plot patient parent
+                    m_ColumnManager.SitesPatientParent.Add(new GameObject("P" + ii + " - " + patientID));
+                    m_ColumnManager.SitesPatientParent[m_ColumnManager.SitesPatientParent.Count - 1].transform.SetParent(m_DisplayedObjects.SitesMeshesParent.transform);
+                    m_ColumnManager.SitesPatientParent[m_ColumnManager.SitesPatientParent.Count - 1].transform.localPosition = Vector3.zero;
+                    m_ColumnManager.SitesElectrodesParent.Add(new List<GameObject>(m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfElectrodesInPatient(ii)));
+
+                    for (int jj = 0; jj < m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfElectrodesInPatient(ii); ++jj)
+                    {
+                        // create plot electrode parent
+                        m_ColumnManager.SitesElectrodesParent[ii].Add(new GameObject(m_ColumnManager.DLLLoadedPatientsElectrodes.ElectrodeName(ii, jj)));
+                        m_ColumnManager.SitesElectrodesParent[ii][m_ColumnManager.SitesElectrodesParent[ii].Count - 1].transform.SetParent(m_ColumnManager.SitesPatientParent[ii].transform);
+                        m_ColumnManager.SitesElectrodesParent[ii][m_ColumnManager.SitesElectrodesParent[ii].Count - 1].transform.localPosition = Vector3.zero;
+
+                        for (int kk = 0; kk < m_ColumnManager.DLLLoadedPatientsElectrodes.NumberOfSitesInElectrode(ii, jj); ++kk)
+                        {
+                            Vector3 invertedPosition = m_ColumnManager.DLLLoadedPatientsElectrodes.SitePosition(ii, jj, kk);
+                            invertedPosition.x = -invertedPosition.x;
+
+                            GameObject siteGameObject = Instantiate(m_SitePrefab);
+                            siteGameObject.name = m_ColumnManager.DLLLoadedPatientsElectrodes.SiteName(ii, jj, kk);
+
+                            siteGameObject.transform.SetParent(m_ColumnManager.SitesElectrodesParent[ii][jj].transform);
+                            siteGameObject.transform.localPosition = invertedPosition;
+                            siteGameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
+
+                            siteGameObject.SetActive(true);
+                            siteGameObject.layer = LayerMask.NameToLayer("Inactive");
+
+                            Site site = siteGameObject.GetComponent<Site>();
+                            site.Information.SitePatientID = patientSiteID++;
+                            site.Information.PatientID = ii;
+                            site.Information.ElectrodeID = jj;
+                            site.Information.SiteID = kk;
+                            site.Information.GlobalID = currPlotNb++;
+                            site.Information.IsBlackListed = false;
+                            site.Information.IsHighlighted = false;
+                            site.Information.IsExcluded = false;
+                            site.Information.IsOutOfROI = false;
+                            site.Information.IsMarked = false;
+                            site.Information.IsMasked = false;
+                            site.Information.PatientName = patientID;
+                            site.Information.FullName = patientID + "_" + siteGameObject.name; // maybe FIXME
+                            site.Information.MarsAtlasIndex = m_ColumnManager.DLLLoadedPatientsElectrodes.MarsAtlasLabelOfSite(ii, jj, kk);
+                            site.IsActive = true;
+
+                            m_ColumnManager.SitesList.Add(siteGameObject);
+                        }
+                    }
+                }
+            }
         }
         #endregion
 
@@ -2652,6 +2736,76 @@ namespace HBP.Module3D
 
             SceneInformation.MRILoaded = true;
             yield return SceneInformation.MRILoaded;
+        }
+        /// <summary>
+        /// Reset all the sites with a new list of pts files
+        /// </summary>
+        /// <param name="pathsElectrodesPtsFile"></param>
+        /// <returns></returns>
+        protected IEnumerator c_LoadSites(IEnumerable<Data.Patient> patients, string implantationLabel)
+        {
+            //####### CHECK ACESS
+            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetElectrodesFile))
+            {
+                throw new ModeAccessException(m_ModesManager.CurrentModeName);
+            }
+            //##################
+
+            List<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((i) => i.Name == implantationLabel).Path).ToList();
+            List<string> patientIDs = (from patient in patients select patient.ID).ToList();
+
+            // load list of pts files
+            SceneInformation.SitesLoaded = m_ColumnManager.DLLLoadedPatientsElectrodes.LoadPTSFiles(ptsFiles, patientIDs, ApplicationState.Module3D.MarsAtlasIndex); // TODO (maybe) : replace with values from visualization
+
+            yield return Ninja.JumpToUnity;
+            UpdateSites();
+            yield return Ninja.JumpBack;
+            // reset selected plot
+            for (int ii = 0; ii < m_ColumnManager.Columns.Count; ++ii)
+            {
+                m_ColumnManager.Columns[ii].SelectedSiteID = -1;
+            }
+
+            // update latencies
+            m_ColumnManager.DLLLoadedRawSitesList = new DLL.RawSiteList();
+            m_ColumnManager.DLLLoadedPatientsElectrodes.ExtractRawSiteList(m_ColumnManager.DLLLoadedRawSitesList);
+
+
+            // FIXME : Something has been commented. See one of the first commits for more information
+            // reset latencies
+            //m_ColumnManager.LatenciesFiles = new List<Latencies>();
+            //CCEPLabels = new List<string>();
+            //for (int ii = 0; ii < Patient.Brain.Connectivities.Count; ++ii)
+            //{
+            //    Latencies latencies = null;
+            //    if (Patient.Brain.SitesConnectivities == "dummyPath" || Patient.Brain.SitesConnectivities == string.Empty)
+            //    {
+            //        // generate dummy latencies
+            //        latencies = m_ColumnManager.DLLLoadedRawSitesList.GenerateDummyLatencies();
+            //    }
+            //    else
+            //    {
+            //        // load latency file
+            //        latencies = m_ColumnManager.DLLLoadedRawSitesList.UpdateLatenciesWithFile(Patient.Brain.SitesConnectivities);// Connectivities[ii].Path);
+            //    }
+
+            //    if (latencies != null)
+            //    {
+            //        latencies.Name = Patient.Brain.SitesConnectivities; //Connectivities[ii].Label;
+            //        m_ColumnManager.LatenciesFiles.Add(latencies);
+            //        CCEPLabels.Add(latencies.Name);
+            //    }
+
+            //    //latencies = m_CM.DLLLoadedRawPlotsList.updateLatenciesWithFile("C:/Users/Florian/Desktop/amplitudes_latencies/amplitudes_latencies/SIEJO_amplitudes_latencies.txt");
+
+            //}
+
+            //m_ColumnManager.LatencyFilesDefined = false; //(Patient.Brain.Connectivities.Count > 0);
+            //OnUpdateLatencies.Invoke(CCEPLabels);
+
+            //####### UDPATE MODE
+            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetElectrodesFile);
+            //##################
         }
         /// <summary>
         /// Load MNI

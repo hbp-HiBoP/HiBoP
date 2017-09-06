@@ -511,14 +511,6 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Return the length of the timeline 
-        /// </summary>
-        /// <returns></returns>
-        public int TimelineLength()
-        {
-            return Dimensions[0];
-        }
-        /// <summary>
         /// Specify a new columnData to be associated with the columnd3DView
         /// </summary>
         /// <param name="columnData"></param>
