@@ -57,7 +57,7 @@ namespace HBP.Module3D
         public Vector3 MeshCenter = new Vector3(0, 0, 0); /**< center of the loaded mesh */
 
         // loop check        
-        public bool CutMeshGeometryNeedsUpdate = true; /**< cut planes meshes must be updated */
+        public bool MeshGeometryNeedsUpdate = true; /**< cut planes meshes must be updated */
 
         public bool IsGeometryUpToDate = false;
         private bool m_IsGeneratorUpToDate = false;
@@ -101,7 +101,7 @@ namespace HBP.Module3D
             CollidersUpdated = false;
 
             // loop check  
-            CutMeshGeometryNeedsUpdate = true;
+            MeshGeometryNeedsUpdate = true;
             IsGeneratorUpToDate = false;      
         }
         #endregion

@@ -82,6 +82,40 @@ namespace HBP.Data.Visualization
             }
         }
 
+        [DataMember(Name = "Mesh")]
+        private string m_MeshName = "Grey matter";
+        /// <summary>
+        /// Mesh part to display
+        /// </summary>
+        public string MeshName
+        {
+            get
+            {
+                return m_MeshName;
+            }
+            set
+            {
+                m_MeshName = value;
+            }
+        }
+
+        [DataMember(Name = "MRI")]
+        private string m_MRIName = "Preoperative";
+        /// <summary>
+        /// Mesh part to display
+        /// </summary>
+        public string MRIName
+        {
+            get
+            {
+                return m_MRIName;
+            }
+            set
+            {
+                m_MRIName = value;
+            }
+        }
+
         [DataMember(Name = "Edges")]
         private bool m_EdgeMode = false;
         /// <summary>

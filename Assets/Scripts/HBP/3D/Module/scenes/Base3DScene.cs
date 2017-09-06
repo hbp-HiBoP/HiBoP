@@ -348,7 +348,7 @@ namespace HBP.Module3D
                 if (!SceneInformation.MeshesLoaded || !SceneInformation.MRILoaded) return;
 
                 SceneInformation.CutHolesEnabled = value;
-                SceneInformation.CutMeshGeometryNeedsUpdate = true;
+                SceneInformation.MeshGeometryNeedsUpdate = true;
                 SceneInformation.IsIEEGOutdated = true;
                 foreach (Column3D column in m_ColumnManager.Columns)
                 {
@@ -633,21 +633,9 @@ namespace HBP.Module3D
             }
 
             // check if we must perform new cuts of the brain
-            if (SceneInformation.CutMeshGeometryNeedsUpdate)
+            if (SceneInformation.MeshGeometryNeedsUpdate)
             {
-                SceneInformation.IsGeometryUpToDate = false;
-                ColumnManager.PlanesCutsCopy = Cuts;
-
-                UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
-                ComputeMeshesCut();
-                UnityEngine.Profiling.Profiler.EndSample();
-
-                UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_MRI_textures 1");
-                ComputeMRITextures();
-                ComputeFMRITextures();
-                UnityEngine.Profiling.Profiler.EndSample();
-
-                SceneInformation.IsGeometryUpToDate = true;
+                UpdateGeometry();
             }
             UnityEngine.Profiling.Profiler.EndSample();
         }
@@ -1234,7 +1222,7 @@ namespace HBP.Module3D
             if (updateColors)
                 ColumnManager.ResetColors();
 
-            SceneInformation.CutMeshGeometryNeedsUpdate = true;
+            SceneInformation.MeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
             foreach (Column3D column in m_ColumnManager.Columns)
             {
@@ -1261,7 +1249,7 @@ namespace HBP.Module3D
             if (!SceneInformation.IsGeometryUpToDate) return;
 
             SceneInformation.MeshPartToDisplay = meshPartToDisplay;
-            SceneInformation.CutMeshGeometryNeedsUpdate = true;
+            SceneInformation.MeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
             //m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             foreach (Column3D column in m_ColumnManager.Columns)
@@ -1285,10 +1273,13 @@ namespace HBP.Module3D
                 return;
             }
 
+            Debug.Log(meshID + " " + SceneInformation.IsGeometryUpToDate);
             if (!SceneInformation.IsGeometryUpToDate) return;
-            
+
+            if (meshID == -1) meshID = 0;
+
             m_ColumnManager.SelectedMeshID = meshID;
-            SceneInformation.CutMeshGeometryNeedsUpdate = true;
+            SceneInformation.MeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             foreach (Column3D column in m_ColumnManager.Columns)
@@ -1299,7 +1290,10 @@ namespace HBP.Module3D
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
         }
-
+        /// <summary>
+        /// Set the MRI to be used
+        /// </summary>
+        /// <param name="mriID"></param>
         public void UpdateMRIToDisplay(int mriID)
         {
             // Check access
@@ -1311,9 +1305,11 @@ namespace HBP.Module3D
 
             if (!SceneInformation.IsGeometryUpToDate) return;
 
+            if (mriID == -1) mriID = 0;
+
             m_ColumnManager.SelectedMRIID = mriID;
             SceneInformation.VolumeCenter = m_ColumnManager.SelectedMRI.Volume.Center;
-            SceneInformation.CutMeshGeometryNeedsUpdate = true;
+            SceneInformation.MeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             foreach (Column3D column in m_ColumnManager.Columns)
@@ -1393,7 +1389,7 @@ namespace HBP.Module3D
             // update plots visibility
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
-            SceneInformation.CutMeshGeometryNeedsUpdate = true;
+            SceneInformation.MeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
 
             // Update mode
@@ -1431,7 +1427,7 @@ namespace HBP.Module3D
             // update plots visibility
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
-            SceneInformation.CutMeshGeometryNeedsUpdate = true;
+            SceneInformation.MeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
 
             // Update mode
@@ -1485,7 +1481,7 @@ namespace HBP.Module3D
 
             cut.Point = SceneInformation.MeshCenter + cut.Normal * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
 
-            SceneInformation.CutMeshGeometryNeedsUpdate = true;
+            SceneInformation.MeshGeometryNeedsUpdate = true;
             SceneInformation.IsIEEGOutdated = true;
 
             // update sites visibility
@@ -1671,10 +1667,9 @@ namespace HBP.Module3D
         {
             m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
             m_ModesManager.SetCurrentModeSpecifications(true);
-            UpdateMeshToDisplay(0);
-            UpdateMRIToDisplay(0);
             ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
             UpdateGUITextures();
+            UpdateGeometry();
             LoadConfiguration();
             SceneInformation.IsSceneInitialized = true;
         }
@@ -1688,6 +1683,8 @@ namespace HBP.Module3D
             UpdateBrainCutColor(Visualization.Configuration.BrainCutColor);
             UpdateColormap(Visualization.Configuration.Colormap);
             UpdateMeshPartToDisplay(Visualization.Configuration.MeshPart);
+            UpdateMeshToDisplay(m_ColumnManager.Meshes.FindIndex((m) => m.Name == Visualization.Configuration.MeshName));
+            UpdateMRIToDisplay(m_ColumnManager.MRIs.FindIndex((m) => m.Name == Visualization.Configuration.MRIName));
             EdgeMode = Visualization.Configuration.EdgeMode;
             m_ColumnManager.MRICalMinFactor = Visualization.Configuration.MRICalMinFactor;
             m_ColumnManager.MRICalMaxFactor = Visualization.Configuration.MRICalMaxFactor;
@@ -1734,6 +1731,8 @@ namespace HBP.Module3D
             Visualization.Configuration.BrainCutColor = m_ColumnManager.BrainCutColor;
             Visualization.Configuration.Colormap = m_ColumnManager.Colormap;
             Visualization.Configuration.MeshPart = SceneInformation.MeshPartToDisplay;
+            Visualization.Configuration.MeshName = m_ColumnManager.SelectedMesh.Name;
+            Visualization.Configuration.MRIName = m_ColumnManager.SelectedMRI.Name;
             Visualization.Configuration.EdgeMode = EdgeMode;
             Visualization.Configuration.MRICalMinFactor = m_ColumnManager.MRICalMinFactor;
             Visualization.Configuration.MRICalMaxFactor = m_ColumnManager.MRICalMaxFactor;
@@ -1767,6 +1766,8 @@ namespace HBP.Module3D
             UpdateBrainCutColor(ColorType.Default);
             UpdateColormap(ColorType.MatLab);
             UpdateMeshPartToDisplay(SceneStatesInfo.MeshPart.Both);
+            UpdateMeshToDisplay(0);
+            UpdateMRIToDisplay(0);
             EdgeMode = false;
             m_ColumnManager.MRICalMinFactor = 0.0f;
             m_ColumnManager.MRICalMaxFactor = 1.0f;
@@ -1834,6 +1835,25 @@ namespace HBP.Module3D
         public void SetCurrentModeSpecifications(bool force = false)
         {
             m_ModesManager.SetCurrentModeSpecifications(force);
+        }
+        /// <summary>
+        /// Update the mesh geometry
+        /// </summary>
+        public void UpdateGeometry()
+        {
+            SceneInformation.IsGeometryUpToDate = false;
+            ColumnManager.PlanesCutsCopy = Cuts;
+
+            UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
+            ComputeMeshesCut();
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_MRI_textures 1");
+            ComputeMRITextures();
+            ComputeFMRITextures();
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            SceneInformation.IsGeometryUpToDate = true;
         }
         /// <summary>
         /// Update the sites masks
@@ -2103,7 +2123,7 @@ namespace HBP.Module3D
                 return;
             }
 
-            if (SceneInformation.CutMeshGeometryNeedsUpdate || !SceneInformation.IsGeometryUpToDate) // if update cut plane is pending, cancel action
+            if (SceneInformation.MeshGeometryNeedsUpdate || !SceneInformation.IsGeometryUpToDate) // if update cut plane is pending, cancel action
                 return;
 
             // Update mode

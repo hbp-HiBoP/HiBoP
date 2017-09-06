@@ -183,7 +183,7 @@ namespace HBP.Module3D
             }
 
             SceneInformation.CollidersUpdated = false; // colliders are now longer up to date */
-            SceneInformation.CutMeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
+            SceneInformation.MeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
             SceneInformation.IsGeneratorUpToDate = false; // generator is not up to date anymore
 
             // update amplitude for all columns
@@ -331,7 +331,7 @@ namespace HBP.Module3D
             // define meshes splits nb
             ResetSplitsNumber(3);
             
-            SceneInformation.CutMeshGeometryNeedsUpdate = true;
+            SceneInformation.MeshGeometryNeedsUpdate = true;
 
             progress += SETTING_TIMELINE_PROGRESS;
             onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");

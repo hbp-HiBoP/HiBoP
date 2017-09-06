@@ -175,7 +175,7 @@ namespace HBP.Module3D
                     m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true); 
 
             SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
-            SceneInformation.CutMeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
+            SceneInformation.MeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
             SceneInformation.IsGeneratorUpToDate = false; // generator is not up to date anymore
 
             // update amplitude for all columns
@@ -279,13 +279,12 @@ namespace HBP.Module3D
                 onChangeProgress.Invoke(progress, 1.5f, "Loading MRI: " + mri.Name);
                 yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri));
             }
-            SceneInformation.VolumeCenter = m_ColumnManager.SelectedMRI.Volume.Center; //FIXME : update when changing MRI
 
             // Load Sites
             progress += LOADING_ELECTRODES_PROGRESS;
             onChangeProgress.Invoke(progress, 0.05f, "Loading Implantation: ");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSites(visualization.Patients, "Patient"));
-            SceneInformation.CutMeshGeometryNeedsUpdate = true;
+            SceneInformation.MeshGeometryNeedsUpdate = true;
 
             // Load MNI
             progress += LOADING_MNI;
