@@ -1299,6 +1299,31 @@ namespace HBP.Module3D
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
         }
+
+        public void UpdateMRIToDisplay(int mriID)
+        {
+            // Check access
+            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetDisplayedMesh))
+            {
+                Debug.LogError("-ERROR : Base3DScene::setDisplayedMesh -> no acess for mode : " + m_ModesManager.CurrentModeName);
+                return;
+            }
+
+            if (!SceneInformation.IsGeometryUpToDate) return;
+
+            m_ColumnManager.SelectedMRIID = mriID;
+            SceneInformation.VolumeCenter = m_ColumnManager.SelectedMRI.Volume.Center;
+            SceneInformation.CutMeshGeometryNeedsUpdate = true;
+            SceneInformation.IsIEEGOutdated = true;
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                column.IsRenderingUpToDate = false;
+            }
+
+            // Update mode
+            m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
+        }
         #endregion
 
         #region Cuts
@@ -1646,6 +1671,8 @@ namespace HBP.Module3D
         {
             m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
             m_ModesManager.SetCurrentModeSpecifications(true);
+            UpdateMeshToDisplay(0);
+            UpdateMRIToDisplay(0);
             ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
             UpdateGUITextures();
             LoadConfiguration();

@@ -21,6 +21,11 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Tools.BrainTypes m_BrainTypes;
         /// <summary>
+        /// Change brain type (grey, white, inflated)
+        /// </summary>
+        [SerializeField]
+        private Tools.MRITypes m_MRITypes;
+        /// <summary>
         /// Show / hide Mars Atlas
         /// </summary>
         [SerializeField]
@@ -61,6 +66,7 @@ namespace HBP.UI.Module3D
         {
             m_Tools.Add(m_BrainMeshes);
             m_Tools.Add(m_BrainTypes);
+            m_Tools.Add(m_MRITypes);
             m_Tools.Add(m_MarsAtlas);
             m_Tools.Add(m_Colormap);
             m_Tools.Add(m_BrainColor);
@@ -80,6 +86,10 @@ namespace HBP.UI.Module3D
                 m_MarsAtlas.ChangeBrainTypeCallback();
                 m_BrainMeshes.ChangeBrainTypeCallback();
                 UpdateInteractableButtons();
+            });
+            m_MRITypes.OnChangeValue.AddListener((type) =>
+            {
+                UpdateButtonsStatus(UpdateToolbarType.Scene);
             });
         }
         #endregion

@@ -295,7 +295,6 @@ namespace HBP.Module3D
             yield return Ninja.JumpBack;
 
             // MNI meshes are preloaded
-            SceneInformation.VolumeCenter = m_MNIObjects.MRI.Center;
             SceneInformation.MeshesLoaded = true;
             SceneInformation.IsROICreationModeEnabled = false;
 
@@ -317,7 +316,6 @@ namespace HBP.Module3D
 
             yield return Ninja.JumpBack;
             // retrieve MNI IRM volume
-            SceneInformation.VolumeCenter = m_ColumnManager.SelectedMRI.Volume.Center;
             SceneInformation.MRILoaded = true;
 
             //####### UDPATE MODE
