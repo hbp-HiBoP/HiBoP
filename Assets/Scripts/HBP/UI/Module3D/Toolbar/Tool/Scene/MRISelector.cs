@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class MRITypes : Tool
+    public class MRISelector : Tool
     {
         #region Properties
         [SerializeField]

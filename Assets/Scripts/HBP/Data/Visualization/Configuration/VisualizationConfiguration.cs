@@ -83,7 +83,7 @@ namespace HBP.Data.Visualization
         }
 
         [DataMember(Name = "Mesh")]
-        private string m_MeshName = "Grey matter";
+        private string m_MeshName = "";
         /// <summary>
         /// Mesh part to display
         /// </summary>
@@ -100,7 +100,7 @@ namespace HBP.Data.Visualization
         }
 
         [DataMember(Name = "MRI")]
-        private string m_MRIName = "Preoperative";
+        private string m_MRIName = "";
         /// <summary>
         /// Mesh part to display
         /// </summary>
@@ -113,6 +113,23 @@ namespace HBP.Data.Visualization
             set
             {
                 m_MRIName = value;
+            }
+        }
+
+        [DataMember(Name = "Implantation")]
+        private string m_ImplantationName = "";
+        /// <summary>
+        /// Mesh part to display
+        /// </summary>
+        public string ImplantationName
+        {
+            get
+            {
+                return m_ImplantationName;
+            }
+            set
+            {
+                m_ImplantationName = value;
             }
         }
 

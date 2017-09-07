@@ -19,12 +19,17 @@ namespace HBP.UI.Module3D
         /// Change brain type (grey, white, inflated)
         /// </summary>
         [SerializeField]
-        private Tools.BrainTypes m_BrainTypes;
+        private Tools.BrainSelector m_BrainSelector;
         /// <summary>
         /// Change brain type (grey, white, inflated)
         /// </summary>
         [SerializeField]
-        private Tools.MRITypes m_MRITypes;
+        private Tools.MRISelector m_MRISelector;
+        /// <summary>
+        /// Change brain type (grey, white, inflated)
+        /// </summary>
+        [SerializeField]
+        private Tools.ImplantationSelector m_ImplantationSelector;
         /// <summary>
         /// Show / hide Mars Atlas
         /// </summary>
@@ -65,8 +70,9 @@ namespace HBP.UI.Module3D
         protected override void AddTools()
         {
             m_Tools.Add(m_BrainMeshes);
-            m_Tools.Add(m_BrainTypes);
-            m_Tools.Add(m_MRITypes);
+            m_Tools.Add(m_BrainSelector);
+            m_Tools.Add(m_MRISelector);
+            m_Tools.Add(m_ImplantationSelector);
             m_Tools.Add(m_MarsAtlas);
             m_Tools.Add(m_Colormap);
             m_Tools.Add(m_BrainColor);
@@ -81,13 +87,13 @@ namespace HBP.UI.Module3D
         {
             base.AddListeners();
 
-            m_BrainTypes.OnChangeValue.AddListener((type) =>
+            m_BrainSelector.OnChangeValue.AddListener((type) =>
             {
                 m_MarsAtlas.ChangeBrainTypeCallback();
                 m_BrainMeshes.ChangeBrainTypeCallback();
                 UpdateInteractableButtons();
             });
-            m_MRITypes.OnChangeValue.AddListener((type) =>
+            m_MRISelector.OnChangeValue.AddListener((type) =>
             {
                 UpdateButtonsStatus(UpdateToolbarType.Scene);
             });

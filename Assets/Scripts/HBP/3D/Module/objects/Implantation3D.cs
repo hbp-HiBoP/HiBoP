@@ -8,14 +8,16 @@ namespace HBP.Module3D
     public class Implantation3D
     {
         #region Properties
+        public string Name { get; set; }
         public DLL.RawSiteList RawSiteList { get; set; }
         public DLL.PatientElectrodesList PatientElectrodesList { get; set; }
         public bool IsLoaded { get; set; }
         #endregion
 
         #region Constructors
-        public Implantation3D(IEnumerable<string> pts, IEnumerable<string> patientIDs)
+        public Implantation3D(string name, IEnumerable<string> pts, IEnumerable<string> patientIDs)
         {
+            Name = name;
             PatientElectrodesList = new DLL.PatientElectrodesList();
             RawSiteList = new DLL.RawSiteList();
             IsLoaded = PatientElectrodesList.LoadPTSFiles(pts.ToList(), patientIDs.ToList(), ApplicationState.Module3D.MarsAtlasIndex);

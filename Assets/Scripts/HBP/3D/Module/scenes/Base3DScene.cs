@@ -1347,7 +1347,7 @@ namespace HBP.Module3D
             m_ColumnManager.SitesPatientParent.Clear();
             m_ColumnManager.SitesElectrodesParent.Clear();
 
-            m_ColumnManager.SelectedImplantationID = implantationID;
+            m_ColumnManager.SelectedImplantationID = implantationID > 0 ? implantationID : 0;
             DLL.PatientElectrodesList electrodesList = m_ColumnManager.SelectedImplantation.PatientElectrodesList;
 
             if (SceneInformation.SitesLoaded)
@@ -1790,12 +1790,14 @@ namespace HBP.Module3D
             UpdateBrainCutColor(Visualization.Configuration.BrainCutColor);
             UpdateColormap(Visualization.Configuration.Colormap);
             UpdateMeshPartToDisplay(Visualization.Configuration.MeshPart);
-            UpdateMeshToDisplay(m_ColumnManager.Meshes.FindIndex((m) => m.Name == Visualization.Configuration.MeshName));
-            UpdateMRIToDisplay(m_ColumnManager.MRIs.FindIndex((m) => m.Name == Visualization.Configuration.MRIName));
             EdgeMode = Visualization.Configuration.EdgeMode;
             m_ColumnManager.MRICalMinFactor = Visualization.Configuration.MRICalMinFactor;
             m_ColumnManager.MRICalMaxFactor = Visualization.Configuration.MRICalMaxFactor;
             CameraType = Visualization.Configuration.CameraType;
+
+            if (!string.IsNullOrEmpty(Visualization.Configuration.MeshName)) UpdateMeshToDisplay(m_ColumnManager.Meshes.FindIndex((m) => m.Name == Visualization.Configuration.MeshName));
+            if (!string.IsNullOrEmpty(Visualization.Configuration.MRIName)) UpdateMRIToDisplay(m_ColumnManager.MRIs.FindIndex((m) => m.Name == Visualization.Configuration.MRIName));
+            if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) UpdateSites(m_ColumnManager.Implantations.FindIndex((i) => i.Name == Visualization.Configuration.ImplantationName));
 
             foreach (Data.Visualization.Cut cut in Visualization.Configuration.Cuts)
             {
@@ -1842,6 +1844,7 @@ namespace HBP.Module3D
             Visualization.Configuration.MeshPart = SceneInformation.MeshPartToDisplay;
             Visualization.Configuration.MeshName = m_ColumnManager.SelectedMesh.Name;
             Visualization.Configuration.MRIName = m_ColumnManager.SelectedMRI.Name;
+            Visualization.Configuration.ImplantationName = m_ColumnManager.SelectedImplantation.Name;
             Visualization.Configuration.EdgeMode = EdgeMode;
             Visualization.Configuration.MRICalMinFactor = m_ColumnManager.MRICalMinFactor;
             Visualization.Configuration.MRICalMaxFactor = m_ColumnManager.MRICalMaxFactor;
@@ -1875,12 +1878,26 @@ namespace HBP.Module3D
             UpdateBrainCutColor(ColorType.Default);
             UpdateColormap(ColorType.MatLab);
             UpdateMeshPartToDisplay(SceneStatesInfo.MeshPart.Both);
-            UpdateMeshToDisplay(0);
-            UpdateMRIToDisplay(0);
             EdgeMode = false;
             m_ColumnManager.MRICalMinFactor = 0.0f;
             m_ColumnManager.MRICalMaxFactor = 1.0f;
             CameraType = CameraControl.Trackball;
+
+            switch (Type)
+            {
+                case SceneType.SinglePatient:
+                    UpdateMeshToDisplay(m_ColumnManager.Meshes.FindIndex((m) => m.Name == "Grey matter"));
+                    UpdateMRIToDisplay(m_ColumnManager.MRIs.FindIndex((m) => m.Name == "Preoperative"));
+                    UpdateSites(m_ColumnManager.Implantations.FindIndex((i) => i.Name == "Patient"));
+                    break;
+                case SceneType.MultiPatients:
+                    UpdateMeshToDisplay(m_ColumnManager.Meshes.FindIndex((m) => m.Name == "MNI Grey matter"));
+                    UpdateMRIToDisplay(m_ColumnManager.MRIs.FindIndex((m) => m.Name == "MNI"));
+                    UpdateSites(m_ColumnManager.Implantations.FindIndex((i) => i.Name == "MNI"));
+                    break;
+                default:
+                    break;
+            }
 
             while (m_Cuts.Count > 0)
             {
@@ -2802,7 +2819,7 @@ namespace HBP.Module3D
                 List<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((i) => i.Name == implantationName).Path).ToList();
                 List<string> patientIDs = (from patient in patients select patient.ID).ToList();
 
-                Implantation3D implantation3D = new Implantation3D(ptsFiles, patientIDs);
+                Implantation3D implantation3D = new Implantation3D(implantationName, ptsFiles, patientIDs);
                 
                 if (implantation3D.IsLoaded)
                 {

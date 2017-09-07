@@ -8,12 +8,12 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
 {
-    public class BrainTypes : Tool
+    public class ImplantationSelector : Tool
     {
         #region Properties
         [SerializeField]
         private Dropdown m_Dropdown;
-        
+
         public GenericEvent<int> OnChangeValue = new GenericEvent<int>();
         #endregion
 
@@ -23,8 +23,8 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
-                
-                ApplicationState.Module3D.SelectedScene.UpdateMeshToDisplay(value);
+
+                ApplicationState.Module3D.SelectedScene.UpdateSites(value);
                 OnChangeValue.Invoke(value);
             });
         }
@@ -74,11 +74,11 @@ namespace HBP.UI.Module3D.Tools
             {
                 Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
                 m_Dropdown.options.Clear();
-                foreach (Mesh3D mesh in selectedScene.ColumnManager.Meshes)
+                foreach (Implantation3D implantation in selectedScene.ColumnManager.Implantations)
                 {
-                    m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString()));
+                    m_Dropdown.options.Add(new Dropdown.OptionData(implantation.Name));
                 }
-                m_Dropdown.value = selectedScene.ColumnManager.SelectedMeshID;
+                m_Dropdown.value = selectedScene.ColumnManager.SelectedImplantationID;
                 m_Dropdown.RefreshShownValue();
             }
         }
