@@ -25,12 +25,6 @@ namespace HBP.Data.Visualization
     {
         #region Properties
         /// <summary>
-        /// The site is masked ?
-        /// </summary>
-        [DataMember]
-        public bool IsMasked { get; set; }
-
-        /// <summary>
         /// The site is excluded ?
         /// </summary>
         [DataMember]
@@ -54,49 +48,34 @@ namespace HBP.Data.Visualization
         [DataMember]
         public bool IsMarked { get; set; }
 
-        [DataMember(Name = "Color")]
-        SerializableColor color;
-        /// <summary>
-        /// Color of the site.
-        /// </summary>
-        public Color Color { get ; set; }
-
         [IgnoreDataMember]
         public float[] Values { get; set; }
         #endregion
 
         #region Constructors
-        public SiteConfiguration(float[] values, bool isMasked, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked, Color color)
+        public SiteConfiguration(float[] values, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked)
         {
             Values = values;
-            IsMasked = isMasked;
             IsExcluded = isExcluded;
             IsBlacklisted = isBlacklisted;
             IsHighlighted = isHighlighted;
             IsMarked = isMarked;
-            Color = color;
         }
-        public SiteConfiguration(Color color) : this(new float[0], false, false, false, false, false, color) { }
+        public SiteConfiguration(Color color) : this(new float[0], false, false, false, false) { }
         public SiteConfiguration() : this(new Color()) { }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new SiteConfiguration(Values,IsMasked, IsExcluded, IsBlacklisted, IsHighlighted, IsMarked, Color);
+            return new SiteConfiguration(Values, IsExcluded, IsBlacklisted, IsHighlighted, IsMarked);
         }
-        #endregion
-
-        #region Serialization
-        [OnSerializing]
-        void OnSerializing(StreamingContext streamingContext)
+        public void LoadSerializedConfiguration(SiteConfiguration configuration)
         {
-            color = new SerializableColor(Color);
-        }
-        [OnDeserialized]
-        void OnDeserialized(StreamingContext streamingContext)
-        {
-            Color = color.ToColor();
+            IsBlacklisted = configuration.IsBlacklisted;
+            IsExcluded = configuration.IsExcluded;
+            IsHighlighted = configuration.IsHighlighted;
+            IsMarked = configuration.IsMarked;
         }
         #endregion
     }

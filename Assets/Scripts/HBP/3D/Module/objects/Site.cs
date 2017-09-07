@@ -1,13 +1,15 @@
 ﻿
 
-/**
- * \file    Site.cs
- * \author  Lance Florian
- * \date    2015
- * \brief   Define site related classes
- */
+
 
 // unity
+using System;
+/**
+* \file    Site.cs
+* \author  Lance Florian
+* \date    2015
+* \brief   Define site related classes
+*/
 using UnityEngine;
 
 namespace HBP.Module3D
@@ -125,7 +127,7 @@ namespace HBP.Module3D
     /// <summary>
     /// Class for defining informations about a plot
     /// </summary>
-    public class Site : MonoBehaviour
+    public class Site : MonoBehaviour, IConfigurable
     {
         #region Properties
         /// <summary>
@@ -154,12 +156,18 @@ namespace HBP.Module3D
         /// Information about this site
         /// </summary>
         public SiteInformation Information { get; set; }
+
+        /// <summary>
+        /// Configuration of this site
+        /// </summary>
+        public Data.Visualization.SiteConfiguration Configuration { get; set; }
         #endregion
 
         #region Private Methods
         private void Awake()
         {
             Information = new SiteInformation();
+            Configuration = new Data.Visualization.SiteConfiguration();
         }
         #endregion
 
@@ -210,6 +218,33 @@ namespace HBP.Module3D
             }
 
             return siteShaderInfo;
+        }
+
+        public void LoadConfiguration(bool firstCall = true)
+        {
+            if (firstCall) ResetConfiguration(false);
+            Information.IsBlackListed = Configuration.IsBlacklisted;
+            Information.IsExcluded = Configuration.IsExcluded;
+            Information.IsHighlighted = Configuration.IsHighlighted;
+            Information.IsMarked = Configuration.IsMarked;
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+        }
+
+        public void SaveConfiguration()
+        {
+            Configuration.IsBlacklisted = Information.IsBlackListed;
+            Configuration.IsExcluded = Information.IsExcluded;
+            Configuration.IsHighlighted = Information.IsHighlighted;
+            Configuration.IsMarked = Information.IsMarked;
+        }
+
+        public void ResetConfiguration(bool firstCall = true)
+        {
+            Information.IsBlackListed = false;
+            Information.IsExcluded = false;
+            Information.IsHighlighted = false;
+            Information.IsMarked = false;
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         #endregion
     }

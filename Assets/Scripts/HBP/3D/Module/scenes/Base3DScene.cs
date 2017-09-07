@@ -1319,16 +1319,12 @@ namespace HBP.Module3D
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
         }
-
+        /// <summary>
+        /// Update the gameobjects of the sites
+        /// </summary>
+        /// <param name="implantationID"></param>
         public void UpdateSites(int implantationID)
         {
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetDisplayedMesh))
-            {
-                Debug.LogError("-ERROR : Base3DScene::setDisplayedMesh -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return;
-            }
-
             // destroy previous electrodes gameobjects
             for (int ii = 0; ii < m_ColumnManager.SitesList.Count; ++ii)
             {
@@ -1430,9 +1426,6 @@ namespace HBP.Module3D
             {
                 column.IsRenderingUpToDate = false;
             }
-
-            // Update mode
-            m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
         }
         #endregion
 
@@ -1833,6 +1826,8 @@ namespace HBP.Module3D
                 column.LoadConfiguration(false);
             }
             ROICreation = !ROICreation;
+
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }

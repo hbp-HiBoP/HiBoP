@@ -460,6 +460,11 @@ namespace HBP.Module3D
                     newROI.AddBubble(Layer, "Bubble", sphere.Position.ToVector3(), sphere.Radius);
                 }
             }
+            foreach (Site site in Sites)
+            {
+                site.LoadConfiguration(false);
+            }
+
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         /// <summary>
@@ -479,6 +484,10 @@ namespace HBP.Module3D
                 rois.Add(new Data.Visualization.RegionOfInterest(roi));
             }
             ColumnData.Configuration.RegionsOfInterest = rois;
+            foreach (Site site in Sites)
+            {
+                site.SaveConfiguration();
+            }
         }
         /// <summary>
         /// Reset the settings of the loaded scene
@@ -496,7 +505,11 @@ namespace HBP.Module3D
             {
                 RemoveSelectedROI();
             }
-            
+            foreach (Site site in Sites)
+            {
+                site.ResetConfiguration(false);
+            }
+
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         /// <summary>
@@ -539,6 +552,7 @@ namespace HBP.Module3D
                     Data.Visualization.SiteConfiguration siteConfiguration = ColumnData.Configuration.ConfigurationBySite[correctedSiteID]; // FIXME (Automatic correction)
                     IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.Values;
                     site.Information.IsMasked = false; // update mask
+                    site.Configuration = siteConfiguration;
                 }
                 else
                 {

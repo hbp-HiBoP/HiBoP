@@ -120,7 +120,12 @@ namespace HBP.Data.Visualization
                 blocByData.Add(data,Localizer.Bloc.Average(epochedData.Blocs));
                 foreach(var item in blocByData[data].ValuesBySite)
                 {
-                    siteConfigurationsByID.Add(data.Patient.ID + "_" + item.Key, new SiteConfiguration(item.Value,false,false,false,false,false,UnityEngine.Color.white));
+                    string siteID = data.Patient.ID + "_" + item.Key;
+                    siteConfigurationsByID.Add(siteID, new SiteConfiguration(item.Value, false, false, false, false));
+                    if (Configuration.ConfigurationBySite.ContainsKey(siteID))
+                    {
+                        siteConfigurationsByID[siteID].LoadSerializedConfiguration(Configuration.ConfigurationBySite[siteID]);
+                    }
                 }
             }
             Configuration.ConfigurationBySite = siteConfigurationsByID;
