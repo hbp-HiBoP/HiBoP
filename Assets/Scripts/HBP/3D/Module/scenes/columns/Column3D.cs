@@ -141,6 +141,7 @@ namespace HBP.Module3D
         }
         public List<List<List<GameObject>>> SitesGameObjects = null; /**< plots GO list with order : patient/electrode/plot */
         public List<Site> Sites = null; /**< plots list */
+        public Dictionary<string, SiteInformation> SiteInformationByID = new Dictionary<string, SiteInformation>();
 
         // select plot
         protected SiteRing m_SelectRing = null;
@@ -239,42 +240,9 @@ namespace HBP.Module3D
             // select ring
             m_SelectRing = gameObject.GetComponentInChildren<SiteRing>();
             m_SelectRing.SetLayer(Layer);
-
-            // plots
-            m_RawElectrodes = new DLL.RawSiteList();
-            sites.ExtractRawSiteList(m_RawElectrodes);
-
-            GameObject patientPlotsParent = transform.Find("Sites").gameObject;
-
-            SitesGameObjects = new List<List<List<GameObject>>>(sitesPatientParent.Count);
-            Sites = new List<Site>(sites.TotalSitesNumber);
-            for (int ii = 0; ii < sitesPatientParent.Count; ++ii)
-            {
-                // instantiate patient plots
-                GameObject patientPlots = Instantiate(sitesPatientParent[ii]);
-                patientPlots.transform.SetParent(patientPlotsParent.transform);
-                patientPlots.transform.localPosition = Vector3.zero;
-                patientPlots.name = sitesPatientParent[ii].name;
-
-                SitesGameObjects.Add(new List<List<GameObject>>(patientPlots.transform.childCount));
-                for (int jj = 0; jj < patientPlots.transform.childCount; ++jj)
-                {
-                    int nbPlots = patientPlots.transform.GetChild(jj).childCount;
-
-                    SitesGameObjects[ii].Add(new List<GameObject>(nbPlots));
-                    for (int kk = 0; kk < nbPlots; ++kk)
-                    {
-                        SitesGameObjects[ii][jj].Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject);
-                        SitesGameObjects[ii][jj][kk].layer = LayerMask.NameToLayer(Layer);
-                        Sites.Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject.GetComponent<Site>());
-
-                        int id = Sites.Count - 1;
-                        Sites[id].Information = new SiteInformation(siteList[id].GetComponent<Site>().Information);
-                        Sites[id].IsActive = true;
-                    }
-                }
-            }
-
+            
+            // sites
+            UpdateSites(sites, sitesPatientParent, siteList);
 
             // generators dll
             DLLMRITextureCutGenerators = new List<DLL.MRITextureCutGenerator>(nbCuts);
@@ -310,6 +278,55 @@ namespace HBP.Module3D
             // update rendering
             IsRenderingUpToDate = false;
         }
+        public void UpdateSites(DLL.PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
+        {
+            GameObject patientPlotsParent = transform.Find("Sites").gameObject;
+            foreach (Transform patientSite in patientPlotsParent.transform)
+            {
+                Destroy(patientSite.gameObject);
+            }
+
+            m_RawElectrodes = new DLL.RawSiteList();
+            sites.ExtractRawSiteList(m_RawElectrodes);
+
+            SitesGameObjects = new List<List<List<GameObject>>>(sitesPatientParent.Count);
+            Sites = new List<Site>(sites.TotalSitesNumber);
+            for (int ii = 0; ii < sitesPatientParent.Count; ++ii)
+            {
+                // instantiate patient plots
+                GameObject patientPlots = Instantiate(sitesPatientParent[ii]);
+                patientPlots.transform.SetParent(patientPlotsParent.transform);
+                patientPlots.transform.localPosition = Vector3.zero;
+                patientPlots.name = sitesPatientParent[ii].name;
+
+                SitesGameObjects.Add(new List<List<GameObject>>(patientPlots.transform.childCount));
+                for (int jj = 0; jj < patientPlots.transform.childCount; ++jj)
+                {
+                    int nbPlots = patientPlots.transform.GetChild(jj).childCount;
+
+                    SitesGameObjects[ii].Add(new List<GameObject>(nbPlots));
+                    for (int kk = 0; kk < nbPlots; ++kk)
+                    {
+                        SitesGameObjects[ii][jj].Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject);
+                        SitesGameObjects[ii][jj][kk].layer = LayerMask.NameToLayer(Layer);
+                        Sites.Add(patientPlots.transform.GetChild(jj).GetChild(kk).gameObject.GetComponent<Site>());
+
+                        int id = Sites.Count - 1;
+                        Site baseSite = siteList[id].GetComponent<Site>();
+                        if (!SiteInformationByID.ContainsKey(baseSite.Information.FullName))
+                        {
+                            SiteInformationByID.Add(baseSite.Information.FullName, new SiteInformation(baseSite.Information));
+                        }
+                        Sites[id].Information = SiteInformationByID[baseSite.Information.FullName];
+                        Sites[id].IsActive = true;
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// Set the meshes for this column
+        /// </summary>
+        /// <param name="brainMeshesParent"></param>
         public void InitializeColumnMeshes(GameObject brainMeshesParent)
         {
             m_BrainSurfaceMeshes = new List<GameObject>();
@@ -325,6 +342,10 @@ namespace HBP.Module3D
                 BrainSurfaceMeshes.Add(brainPart);
             }
         }
+        /// <summary>
+        /// Update the meshes of this column
+        /// </summary>
+        /// <param name="brainMeshes"></param>
         public void UpdateColumnMeshes(List<GameObject> brainMeshes)
         {
             for (int i = 0; i < brainMeshes.Count; i++)

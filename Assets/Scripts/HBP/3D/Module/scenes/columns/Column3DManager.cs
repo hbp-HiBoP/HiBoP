@@ -99,11 +99,36 @@ namespace HBP.Module3D
         }
 
         // Sites
-        public DLL.RawSiteList DLLLoadedRawSitesList = null;
-        public DLL.PatientElectrodesList DLLLoadedPatientsElectrodes = null;
+        /// <summary>
+        /// List of the implantation3Ds of the scene
+        /// </summary>
+        public List<Implantation3D> Implantations = new List<Implantation3D>();
+        /// <summary>
+        /// Selected implantation3D ID
+        /// </summary>
+        public int SelectedImplantationID { get; set; }
+        /// <summary>
+        /// Selected implantation3D
+        /// </summary>
+        public Implantation3D SelectedImplantation
+        {
+            get
+            {
+                return Implantations[SelectedImplantationID];
+            }
+        }
+        /// <summary>
+        /// List of the site gameObjects
+        /// </summary>
         public List<GameObject> SitesList = new List<GameObject>();
-        public List<GameObject> SitesPatientParent = new List<GameObject>(); /**< plots patient parents of the scene */
-        public List<List<GameObject>> SitesElectrodesParent = new List<List<GameObject>>(); /**< plots electrodes parents of the scene */
+        /// <summary>
+        /// List of the patient gameObjects that contain sites
+        /// </summary>
+        public List<GameObject> SitesPatientParent = new List<GameObject>();
+        /// <summary>
+        /// List of the electrode gameObjects that contain sites
+        /// </summary>
+        public List<List<GameObject>> SitesElectrodesParent = new List<List<GameObject>>();
 
         // latency        
         public bool LatencyFilesDefined = false;
@@ -122,12 +147,24 @@ namespace HBP.Module3D
         public List<Texture2D> RightGUICutTextures = null;                  /**< list of rotated cut textures| */
 
         //  generator DLL
-        public List<DLL.MRIGeometryCutGenerator> DLLMRIGeometryCutGeneratorList = null; /**< ... */        
+        public List<DLL.MRIGeometryCutGenerator> DLLMRIGeometryCutGeneratorList = null;      
         
         // surface
+        /// <summary>
+        /// List of all the mesh3Ds of the scene
+        /// </summary>
         public List<Mesh3D> Meshes = new List<Mesh3D>();
+        /// <summary>
+        /// Number of splits of the meshes
+        /// </summary>
         public int MeshSplitNumber { get; set; }
+        /// <summary>
+        /// Selected mesh3D ID
+        /// </summary>
         public int SelectedMeshID { get; set; }
+        /// <summary>
+        /// Selected Mesh3D (Surface)
+        /// </summary>
         public Mesh3D SelectedMesh
         {
             get
@@ -135,12 +172,23 @@ namespace HBP.Module3D
                 return Meshes[SelectedMeshID];
             }
         }
-
+        /// <summary>
+        /// List of the surfaces for the cuts
+        /// </summary>
         public List<DLL.Surface> DLLCutsList = null;
 
         // volume
+        /// <summary>
+        /// List of the MRIs of the scene
+        /// </summary>
         public List<MRI3D> MRIs = new List<MRI3D>();
+        /// <summary>
+        /// Selected MRI3D ID
+        /// </summary>
         public int SelectedMRIID { get; set; }
+        /// <summary>
+        /// Selected MRI3D
+        /// </summary>
         public MRI3D SelectedMRI
         {
             get
@@ -420,9 +468,6 @@ namespace HBP.Module3D
                     DLLVolumeFMriList[ii].Dispose();
             DLLVolumeFMriList = new List<DLL.Volume>();
 
-            // electrodes
-            DLLLoadedPatientsElectrodes = new DLL.PatientElectrodesList();
-
             // cuts
             //  textures 2D            
             RightGUICutTextures = new List<Texture2D>(cutPlanesNb);
@@ -599,7 +644,7 @@ namespace HBP.Module3D
             {
                 for (int ii = 0; ii < nbIEEGColumns; ++ii)
                 {
-                    ColumnsIEEG[ii].Initialize(ii, nbCuts, DLLLoadedPatientsElectrodes, SitesPatientParent, SitesList);
+                    ColumnsIEEG[ii].Initialize(ii, nbCuts, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
                     ColumnsIEEG[ii].ResetSplitsNumber(MeshSplitNumber);
 
                     if (LatencyFilesDefined)
@@ -611,7 +656,7 @@ namespace HBP.Module3D
             if (diffIRMFColumns != 0)
             {
                 // update IRMF columns mask
-                bool[] maskColumnsOR = new bool[DLLLoadedPatientsElectrodes.TotalSitesNumber];
+                bool[] maskColumnsOR = new bool[SelectedImplantation.PatientElectrodesList.TotalSitesNumber];
                 for (int ii = 0; ii < SitesList.Count; ++ii)
                 {
                     bool mask = false;
@@ -634,7 +679,7 @@ namespace HBP.Module3D
                 
                 for (int ii = 0; ii < nbIRMFColumns; ++ii)
                 {
-                    ColumnsFMRI[ColumnsFMRI.Count - 1].Initialize(ColumnsIEEG.Count + ii, nbCuts, DLLLoadedPatientsElectrodes, SitesPatientParent, SitesList);
+                    ColumnsFMRI[ColumnsFMRI.Count - 1].Initialize(ColumnsIEEG.Count + ii, nbCuts, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
                     ColumnsFMRI[ColumnsFMRI.Count - 1].ResetSplitsNumber(MeshSplitNumber);
 
                     for (int jj = 0; jj < SitesList.Count; ++jj)
@@ -645,7 +690,7 @@ namespace HBP.Module3D
             }
 
 
-            CommonMask = new bool[DLLLoadedPatientsElectrodes.TotalSitesNumber];
+            CommonMask = new bool[SelectedImplantation.PatientElectrodesList.TotalSitesNumber];
 
             if (SelectedColumnID >= m_Columns.Count && SelectedColumnID > 0)
                 m_Columns.Last().IsSelected = true;

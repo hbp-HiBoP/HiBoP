@@ -69,7 +69,7 @@ namespace HBP.Data.Visualization
         public SiteConfiguration(float[] values, bool isMasked, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked, Color color)
         {
             Values = values;
-            IsMasked = IsMasked;
+            IsMasked = isMasked;
             IsExcluded = isExcluded;
             IsBlacklisted = isBlacklisted;
             IsHighlighted = isHighlighted;

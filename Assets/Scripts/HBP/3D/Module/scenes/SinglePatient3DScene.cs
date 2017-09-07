@@ -282,8 +282,8 @@ namespace HBP.Module3D
 
             // Load Sites
             progress += LOADING_ELECTRODES_PROGRESS;
-            onChangeProgress.Invoke(progress, 0.05f, "Loading Implantation: ");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSites(visualization.Patients, "Patient"));
+            onChangeProgress.Invoke(progress, 0.05f, "Loading Implantations");
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients));
             SceneInformation.MeshGeometryNeedsUpdate = true;
 
             // Load MNI

@@ -315,8 +315,8 @@ namespace HBP.Module3D
             // reset electrodes
             yield return Ninja.JumpToUnity;
             progress += LOADING_ELECTRODES_PROGRESS;
-            onChangeProgress.Invoke(progress, 0.05f, "Loading implantation");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSites(visualization.Patients, "MNI"));
+            onChangeProgress.Invoke(progress, 0.05f, "Loading implantations");
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients));
 
             // define meshes splits nb
             ResetSplitsNumber(3);

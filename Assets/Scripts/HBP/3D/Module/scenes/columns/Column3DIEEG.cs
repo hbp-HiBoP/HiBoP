@@ -531,22 +531,20 @@ namespace HBP.Module3D
 
             // Construct sites value array the old way, and set sites masks // maybe FIXME
             IEEGValuesBySiteID = new float[Dimensions[2]][];
-            int siteID = 0;
             foreach (Site site in Sites)
             {
-                string correctedSiteID = site.Information.PatientName + "_" + site.name.ToUpper().Replace('p', '\'');
+                string correctedSiteID = site.Information.PatientName + "_" + site.name.ToUpper().Replace('P', '\'');
                 if (ColumnData.Configuration.ConfigurationBySite.ContainsKey(correctedSiteID))
                 {
                     Data.Visualization.SiteConfiguration siteConfiguration = ColumnData.Configuration.ConfigurationBySite[correctedSiteID]; // FIXME (Automatic correction)
-                    IEEGValuesBySiteID[siteID] = siteConfiguration.Values;
-                    Sites[siteID].Information.IsMasked = siteConfiguration.IsMasked; // update mask
+                    IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.Values;
+                    site.Information.IsMasked = false; // update mask
                 }
                 else
                 {
-                    IEEGValuesBySiteID[siteID] = new float[Dimensions[0]];
-                    Sites[siteID].Information.IsMasked = true; // update mask
+                    IEEGValuesBySiteID[site.Information.GlobalID] = new float[Dimensions[0]];
+                    site.Information.IsMasked = true; // update mask
                 }
-                siteID++;
             }
             IEEGParameters.MinimumAmplitude = float.MaxValue;
             IEEGParameters.MaximumAmplitude = float.MinValue;

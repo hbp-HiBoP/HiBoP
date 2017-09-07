@@ -278,6 +278,8 @@ namespace HBP.Module3D
 
             // DLL
             m_DLLROI.UpdateBubble(idBubble, m_Spheres[idBubble].GetComponent<Sphere>().Radius);
+
+            ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
         }
         public void ChangeSelectedBubbleSize(float direction)
         {
