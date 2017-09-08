@@ -4,7 +4,8 @@ public class ThemeElement : MonoBehaviour
 {
     public enum ElementType { None, WindowBackground , WindowHeaderBackground, WindowHeaderTitle, WindowTitleBackground,
         WindowTitle, WindowLabel, WindowInputField, WindowFolderSelector, WindowGeneralButton, WindowOtherButton,
-        WindowToggle, WindowListBackground, WindowScrollbar , WindowDropdown, MenuToggle, MenuDropdown, MenuButton, Slider }
+        WindowToggle, WindowListBackground, WindowScrollbar , WindowDropdown, MenuToggle, MenuDropdown, MenuButton,
+        ToolbarSlider, ToolbarToggle, ToolbarButton, ToolbarBackground, ToolbarDropdownText, ToolbarDropdownImage, ToolbarInputField }
 
     [SerializeField]
     ElementType type;

@@ -49,6 +49,10 @@ namespace HBP.UI.Theme
             // Set List background.
             IEnumerable<Image> windowListBackgrounds = from element in themeElements where element.Type == ThemeElement.ElementType.WindowListBackground select element.GetComponent<Image>();
             foreach (Image image in windowListBackgrounds) SetImage(image, theme.Color.ListBackground);
+
+            // Set Toolbar background
+            IEnumerable<Image> toolbarBackgrounds = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarBackground select element.GetComponent<Image>();
+            foreach (Image image in toolbarBackgrounds) SetImage(image, theme.Color.ToolbarBackgroundColor);
         }
         void SetContentInputfields(ThemeElement[] themeElements, Theme theme)
         {
@@ -63,6 +67,10 @@ namespace HBP.UI.Theme
                 SetInputField(inputField, theme.Color.InputField);
                 SetButton(inputField.GetComponentInChildren<Button>(true), theme.Color.FolderSelectorButton);
             }
+
+            // Toolbar InputFields
+            IEnumerable<InputField> toolbarInputFields = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarInputField select element.GetComponent<InputField>();
+            foreach (InputField inputField in toolbarInputFields) SetInputField(inputField, theme.Color.ToolbarInputField);
         }
         void SetContentButtons(ThemeElement[] themeElements, Theme theme)
         {
@@ -92,6 +100,17 @@ namespace HBP.UI.Theme
                     SetText(text, theme.Color.ContentOtherButtonLabel, theme.Font.Menu);
                 }
             }
+
+            // Toolbar Buttons.
+            IEnumerable<Button> toolbarButtons = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarButton select element.GetComponent<Button>();
+            foreach (Button button in toolbarButtons)
+            {
+                SetButton(button, theme.Color.ToolbarButton);
+                foreach (var text in button.GetComponentsInChildren<Text>())
+                {
+                    SetText(text, theme.Color.ToolbarLabel, theme.Font.Toolbar);
+                }
+            }
         }
         void SetTexts(ThemeElement[] themeElements, Theme theme)
         {
@@ -115,6 +134,9 @@ namespace HBP.UI.Theme
 
             IEnumerable<Toggle> menuToggles = from element in themeElements where element.Type == ThemeElement.ElementType.MenuToggle select element.GetComponent<Toggle>();
             foreach (Toggle menuToggle in menuToggles) SetToggle(menuToggle, theme.Color.MenuToggle);
+
+            IEnumerable<Toggle> toolbarToggles = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarToggle select element.GetComponent<Toggle>();
+            foreach (Toggle toolbarToggle in toolbarToggles) SetToggle(toolbarToggle, theme.Color.ToolbarToggle, theme.Color.CheckMarkColor);
         }
         void SetScrollbars(ThemeElement[] themeElements, Theme theme)
         {
@@ -130,10 +152,16 @@ namespace HBP.UI.Theme
 
             IEnumerable<Dropdown> menuDropdowns = from element in themeElements where element.Type == ThemeElement.ElementType.MenuDropdown select element.GetComponent<Dropdown>();
             foreach (Dropdown dropdown in menuDropdowns) SetDropdown(dropdown, theme.Color.MenuDropdown);
+
+            IEnumerable<Dropdown> toolbarDropdownsText = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarDropdownText select element.GetComponent<Dropdown>();
+            foreach (Dropdown dropdown in toolbarDropdownsText) SetDropdown(dropdown, theme.Color.ToolbarDropdownText);
+
+            IEnumerable<Dropdown> toolbarDropdownsImage = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarDropdownImage select element.GetComponent<Dropdown>();
+            foreach (Dropdown dropdown in toolbarDropdownsImage) SetDropdown(dropdown, theme.Color.ToolbarDropdownImage);
         }
         void SetSliders(ThemeElement[] themeElements, Theme theme)
         {
-            IEnumerable<Slider> sliders = from element in themeElements where element.Type == ThemeElement.ElementType.Slider select element.GetComponent<Slider>();
+            IEnumerable<Slider> sliders = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarSlider select element.GetComponent<Slider>();
             foreach (Slider slider in sliders) SetSlider(slider, theme.Color.SliderBackground, theme.Color.SliderFill, theme.Color.SliderHandle);
         }
 
@@ -144,9 +172,17 @@ namespace HBP.UI.Theme
                 button.colors = colorBlock;
             }
         }
+        void SetToggle(Toggle toggle, ColorBlock colorBlock, Color color)
+        {
+            if (toggle)
+            {
+                toggle.colors = colorBlock;
+                toggle.graphic.color = color;
+            }
+        }
         void SetToggle(Toggle toggle, ColorBlock colorBlock)
         {
-           if(toggle) toggle.colors = colorBlock;
+            if (toggle) toggle.colors = colorBlock;
         }
         void SetImage(Image image,Color color)
         {

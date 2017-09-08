@@ -23,9 +23,11 @@ namespace HBP.UI.Theme
         public Color WindowBackground { get; set; }
         public Color WindowHeaderBackground { get; set; }
         public Color WindowContentTitleBackground { get; set; }
+        public Color ToolbarBackgroundColor { get; set; }
 
         // Color inputfield.
         public ColorBlock InputField { get; set; }
+        public ColorBlock ToolbarInputField { get; set; }
 
         // Color Lists.
         public Color ListBackground { get; set; }
@@ -37,14 +39,19 @@ namespace HBP.UI.Theme
         public ColorBlock OtherButton { get; set; }
         public ColorBlock FolderSelectorButton { get; set; }
         public ColorBlock MenuButton { get; set; }
+        public ColorBlock ToolbarButton { get; set; }
 
         // Color Toggle.
         public ColorBlock WindowToggle { get; set; }
         public ColorBlock MenuToggle { get; set; }
+        public ColorBlock ToolbarToggle { get; set; }
+        public Color CheckMarkColor { get; set; }
 
         // Color Dropdown.
         public ColorBlock WindowDropdown { get; set; }
         public ColorBlock MenuDropdown { get; set; }
+        public ColorBlock ToolbarDropdownText { get; set; }
+        public ColorBlock ToolbarDropdownImage { get; set; }
 
         // Color text.
         public Color ContentNormalLabel { get; set; }
@@ -53,13 +60,14 @@ namespace HBP.UI.Theme
         public Color ContentOtherButtonLabel { get; set; }
         public Color HeaderTitleLabel { get; set; }
         public Color DisableLabel { get; set; }
+        public Color ToolbarLabel { get; set; }
 
-        // Color sliders
+        // Color Toolbar Slider
         public Color SliderBackground { get; set; }
         public Color SliderFill { get; set; }
         public Color SliderHandle { get; set; }
 
-        // Color Module 3D
+        // Color 3D Views
         public Color RegularViewColor { get; set; }
         public Color SelectedViewColor { get; set; }
         public Color ClickedViewColor { get; set; }
@@ -80,6 +88,13 @@ namespace HBP.UI.Theme
             inputField.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
             inputField.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
             InputField = inputField;
+
+            ColorBlock toolbarInputField = ColorBlock.defaultColorBlock;
+            toolbarInputField.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+            toolbarInputField.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+            toolbarInputField.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+            toolbarInputField.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+            ToolbarInputField = toolbarInputField;
 
             ListBackground = new Color(80, 80, 80, 255) / 255.0f;
             ColorBlock scrollbar = ColorBlock.defaultColorBlock;
@@ -111,6 +126,13 @@ namespace HBP.UI.Theme
             menuButton.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
             MenuButton = menuButton;
 
+            ColorBlock toolbarButton = ColorBlock.defaultColorBlock;
+            toolbarButton.normalColor = new Color(40, 40, 40, 255) / 255.0f;
+            toolbarButton.highlightedColor = new Color(30, 30, 30, 255) / 255.0f;
+            toolbarButton.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
+            toolbarButton.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
+            ToolbarButton = toolbarButton;
+
             ColorBlock windowToggle = ColorBlock.defaultColorBlock;
             windowToggle.normalColor = new Color(65, 65, 65, 255) / 255.0f;
             windowToggle.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
@@ -124,6 +146,14 @@ namespace HBP.UI.Theme
             menuToggle.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
             menuToggle.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
             MenuToggle = menuToggle;
+            CheckMarkColor = new Color(59, 122, 194, 255) / 255.0f;
+
+            ColorBlock toolbarToggle = ColorBlock.defaultColorBlock;
+            toolbarToggle.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+            toolbarToggle.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+            toolbarToggle.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+            toolbarToggle.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+            ToolbarToggle = toolbarToggle;
 
             ColorBlock windowDropdown = ColorBlock.defaultColorBlock;
             windowDropdown.normalColor = new Color(65, 65, 65, 255) / 255.0f;
@@ -139,6 +169,20 @@ namespace HBP.UI.Theme
             menuDropdown.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
             MenuDropdown = menuDropdown;
 
+            ColorBlock toolbarDropdown = ColorBlock.defaultColorBlock;
+            toolbarDropdown.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+            toolbarDropdown.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+            toolbarDropdown.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+            toolbarDropdown.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+            ToolbarDropdownText = toolbarDropdown;
+
+            ColorBlock toolbarDropdownImage = ColorBlock.defaultColorBlock;
+            toolbarDropdownImage.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+            toolbarDropdownImage.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+            toolbarDropdownImage.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+            toolbarDropdownImage.disabledColor = new Color(60, 60, 60, 255) / 255.0f;
+            ToolbarDropdownImage = toolbarDropdownImage;
+
             ColorBlock folderSelectorButton = ColorBlock.defaultColorBlock;
             folderSelectorButton.normalColor = new Color(255, 255, 255, 255) / 255.0f;
             folderSelectorButton.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
@@ -152,10 +196,13 @@ namespace HBP.UI.Theme
             ContentGeneralButtonLabel = new Color(0, 0, 0, 255) / 255.0f;
             ContentOtherButtonLabel = new Color(255, 255, 255, 255) / 255.0f;
             DisableLabel = new Color(200, 50, 50, 255) / 255.0f;
+            ToolbarLabel = new Color(255, 255, 255, 255) / 255.0f;
 
             SliderBackground = new Color(255, 255, 255, 255) / 255.0f;
             SliderFill = new Color(255, 255, 255, 255) / 255.0f;
             SliderHandle = new Color(170, 170, 170, 255) / 255.0f;
+
+            ToolbarBackgroundColor = new Color(40, 40, 40, 255) / 255.0f;
 
             RegularViewColor = new Color(212, 212, 212, 255) / 255.0f;
             SelectedViewColor = new Color(156, 187, 227, 255) / 255.0f;
@@ -168,6 +215,7 @@ namespace HBP.UI.Theme
     public class ThemeFont
     {
         public FontData Menu { get; set; }
+        public FontData Toolbar { get; set; }
         public FontData WindowHeader { get; set; }
         public FontData WindowContentTitle { get; set; }
         public FontData WindowContentLabel { get; set; }
@@ -216,6 +264,13 @@ namespace HBP.UI.Theme
             WindowContentOtherButton.alignByGeometry = true;
             WindowContentOtherButton.alignment = TextAnchor.MiddleCenter;
             WindowContentOtherButton.fontStyle = FontStyle.Normal;
+
+            Toolbar = FontData.defaultFontData;
+            Toolbar.fontSize = 14;
+            Toolbar.font = Resources.Load<Font>("Fonts/Arial");
+            Toolbar.alignByGeometry = true;
+            Toolbar.alignment = TextAnchor.MiddleCenter;
+            Toolbar.fontStyle = FontStyle.Normal;
         }
     }
 }
