@@ -189,8 +189,10 @@ namespace HBP.Module3D
 
             m_AssociatedScene.Events.OnUpdateCameraTarget.AddListener((target) =>
             {
+                Vector3 translation = (target - m_OriginalTarget);
+                transform.localPosition += translation;
+                Target = m_Target + translation;
                 m_OriginalTarget = target;
-                Target = target;
             });
         }
         private void OnPreCull()
@@ -332,7 +334,7 @@ namespace HBP.Module3D
             Vector3 strafe = - transform.right * amount;
 
             transform.position = transform.position + strafe;
-            Target = Target + strafe;
+            m_Target = m_Target + strafe;
         }
         /// <summary>
         /// Strafe vertically the camera position and target with the same vector.
@@ -344,7 +346,7 @@ namespace HBP.Module3D
             Vector3 strafe = - transform.up * amount;
 
             transform.position = transform.position + strafe;
-            Target = Target + strafe;
+            m_Target = m_Target + strafe;
         }
         /// <summary>
         /// Rotate the camera
