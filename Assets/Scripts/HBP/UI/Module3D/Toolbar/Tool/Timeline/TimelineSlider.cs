@@ -49,16 +49,6 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Private Methods
-        private void Update()
-        {
-            HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
-            if (column)
-            {
-                ListenerLock = true;
-                m_Slider.value = column.CurrentTimeLineID; //FIXME : maybe event
-                ListenerLock = false;
-            }
-        }
         private void ShowEvents(HBP.Module3D.Column3DIEEG column)
         {
             foreach (Transform timelineEvent in m_Events)
@@ -106,8 +96,11 @@ namespace HBP.UI.Module3D.Tools
             });
             ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.AddListener(() =>
             {
+                ListenerLock = true;
                 HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn;
                 m_Current.text = selectedColumn.CurrentTimeLineID + " (" + selectedColumn.CurrentTimeLine.ToString("N2") + selectedColumn.TimeLineUnite + ")";
+                m_Slider.value = selectedColumn.CurrentTimeLineID;
+                ListenerLock = false;
             });
         }
 

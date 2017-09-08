@@ -19,10 +19,6 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Public Methods
-        private void Update()
-        {
-            //Debug.Log(IsGlobal);
-        }
         public override void Initialize()
         {
             m_Slider.onValueChanged.AddListener((value) =>

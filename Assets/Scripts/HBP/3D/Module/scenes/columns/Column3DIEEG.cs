@@ -586,8 +586,6 @@ namespace HBP.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("update_sites_size_and_color_arrays_for_IEEG");
 
-            if (IEEGValuesBySiteID == null) return; // FIXME : delete this when reading data
-
             float diffMin = IEEGParameters.SpanMin - IEEGParameters.Middle;
             float diffMax = IEEGParameters.SpanMax - IEEGParameters.Middle;
 

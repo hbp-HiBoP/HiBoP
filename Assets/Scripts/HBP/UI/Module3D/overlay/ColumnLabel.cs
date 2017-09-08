@@ -67,7 +67,7 @@ namespace HBP.UI.Module3D
             {
                 Destroy(m_CurrentImage);
             }
-            m_CurrentImage = Instantiate(m_ColumnImagePrefab, m_ColumnUI.ParentGrid.transform);// maybe FIXME
+            m_CurrentImage = Instantiate(m_ColumnImagePrefab, m_ColumnUI.ParentGrid.transform);
             m_CurrentImage.transform.Find("Label").GetComponent<Text>().text = m_ColumnUI.Column.Label;
         }
 

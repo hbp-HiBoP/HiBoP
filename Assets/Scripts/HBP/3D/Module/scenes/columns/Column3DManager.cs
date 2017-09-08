@@ -584,7 +584,7 @@ namespace HBP.Module3D
         /// <param name="nbIEEGColumns"></param>
         /// /// <param name="nbIRMFColumns"></param>
         /// <param name="nbCuts"></param>
-        public void UpdateColumnsNumber(int nbIEEGColumns, int nbIRMFColumns, int nbCuts) //FIXME : rework this function (make it disappear and only use add columns methods)
+        public void SetColumns(int nbIEEGColumns, int nbIRMFColumns, int nbCuts)
         {            
             // clean data columns if changes in data columns nb
             if (nbIEEGColumns != ColumnsIEEG.Count)

@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Linq;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 namespace HBP.UI.Module3D
 {
@@ -10,6 +11,7 @@ namespace HBP.UI.Module3D
         public enum UpdateToolbarType { Scene, Column, View }
 
         #region Properties
+        protected UnityAction<HBP.Module3D.Mode> m_ChangeModeAction;
         /// <summary>
         /// List of the tools of the toolbar
         /// </summary>
@@ -68,8 +70,9 @@ namespace HBP.UI.Module3D
         protected void OnChangeScene()
         {
             m_Tools.ForEach((t) => t.ListenerLock = true);
-            //ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.RemoveAllListeners();
-            ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.AddListener((mode) => UpdateInteractableButtons()); // maybe FIXME : problem with infinite number of listeners ?
+            if (m_ChangeModeAction != null) ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.RemoveListener(m_ChangeModeAction);
+            m_ChangeModeAction = new UnityAction<HBP.Module3D.Mode>((mode) => UpdateInteractableButtons());
+            ApplicationState.Module3D.SelectedScene.ModesManager.OnChangeMode.AddListener(m_ChangeModeAction);
             UpdateInteractableButtons();
             UpdateButtonsStatus(UpdateToolbarType.Scene);
             m_Tools.ForEach((t) => t.ListenerLock = false);
