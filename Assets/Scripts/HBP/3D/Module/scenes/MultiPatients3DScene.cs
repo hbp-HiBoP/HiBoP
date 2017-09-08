@@ -330,7 +330,6 @@ namespace HBP.Module3D
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
             // update scenes cameras
             Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
-            DisplayScreenMessage("Multi Patients Scene loaded", 2.0f, 400, 80);
         }
         #endregion
     }

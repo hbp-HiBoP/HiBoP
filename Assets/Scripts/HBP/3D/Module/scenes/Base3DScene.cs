@@ -1286,6 +1286,8 @@ namespace HBP.Module3D
                 column.IsRenderingUpToDate = false;
             }
 
+            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
+
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
         }

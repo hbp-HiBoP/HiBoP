@@ -58,51 +58,42 @@ namespace HBP.UI.Module3D.Tools
             {
                 case Mode.ModesId.NoPathDefined:
                     m_Toggle.interactable = false;
+                    gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.MinPathDefined:
                     m_Toggle.interactable = isSiteSelected;
+                    gameObject.SetActive(isSiteSelected);
                     break;
                 case Mode.ModesId.AllPathDefined:
                     m_Toggle.interactable = isSiteSelected;
+                    gameObject.SetActive(isSiteSelected);
                     break;
                 case Mode.ModesId.ComputingAmplitudes:
                     m_Toggle.interactable = false;
+                    gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.AmplitudesComputed:
                     m_Toggle.interactable = isSiteSelected;
+                    gameObject.SetActive(isSiteSelected);
                     break;
                 case Mode.ModesId.TriErasing:
                     m_Toggle.interactable = false;
+                    gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.ROICreation:
                     m_Toggle.interactable = false;
+                    gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.AmpNeedUpdate:
                     m_Toggle.interactable = isSiteSelected;
+                    gameObject.SetActive(isSiteSelected);
                     break;
                 case Mode.ModesId.Error:
                     m_Toggle.interactable = false;
+                    gameObject.SetActive(false);
                     break;
                 default:
                     break;
-            }
-        }
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
-        {
-            if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
-            {
-                Site site = ApplicationState.Module3D.SelectedColumn.SelectedSite;
-                if (!site)
-                {
-                    m_Toggle.interactable = false;
-                    gameObject.SetActive(false);
-                }
-                else
-                {
-                    m_Toggle.interactable = true;
-                    gameObject.SetActive(true);
-                }
-                m_Toggle.isOn = false;
             }
         }
         #endregion

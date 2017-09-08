@@ -128,7 +128,7 @@ namespace HBP.UI.Theme
 
             ColorBlock toolbarButton = ColorBlock.defaultColorBlock;
             toolbarButton.normalColor = new Color(40, 40, 40, 255) / 255.0f;
-            toolbarButton.highlightedColor = new Color(30, 30, 30, 255) / 255.0f;
+            toolbarButton.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
             toolbarButton.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
             toolbarButton.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
             ToolbarButton = toolbarButton;

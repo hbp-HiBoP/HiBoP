@@ -21,16 +21,7 @@ namespace HBP.UI.Module3D.Tools
         {
             ApplicationState.Module3D.OnSelectSite.AddListener((site) =>
             {
-                if (!site)
-                {
-                    m_Button.interactable = false;
-                    gameObject.SetActive(false);
-                }
-                else if (ApplicationState.Module3D.SelectedScene.Type == SceneType.MultiPatients)
-                {
-                    m_Button.interactable = true;
-                    gameObject.SetActive(true);
-                }
+                UpdateInteractable();
             });
 
             m_Button.onClick.AddListener(() =>
@@ -45,60 +36,47 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isSiteSelected = ApplicationState.Module3D.SelectedColumn.SelectedSite != null;
+            bool isInteractable = (ApplicationState.Module3D.SelectedColumn.SelectedSite != null) && (ApplicationState.Module3D.SelectedScene.Type == SceneType.MultiPatients);
             switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
             {
                 case Mode.ModesId.NoPathDefined:
                     m_Button.interactable = false;
+                    gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.MinPathDefined:
-                    m_Button.interactable = isSiteSelected;
+                    m_Button.interactable = isInteractable;
+                    gameObject.SetActive(isInteractable);
                     break;
                 case Mode.ModesId.AllPathDefined:
-                    m_Button.interactable = isSiteSelected;
+                    m_Button.interactable = isInteractable;
+                    gameObject.SetActive(isInteractable);
                     break;
                 case Mode.ModesId.ComputingAmplitudes:
                     m_Button.interactable = false;
+                    gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.AmplitudesComputed:
-                    m_Button.interactable = isSiteSelected;
+                    m_Button.interactable = isInteractable;
+                    gameObject.SetActive(isInteractable);
                     break;
                 case Mode.ModesId.TriErasing:
                     m_Button.interactable = false;
+                    gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.ROICreation:
                     m_Button.interactable = false;
+                    gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.AmpNeedUpdate:
-                    m_Button.interactable = isSiteSelected;
+                    m_Button.interactable = isInteractable;
+                    gameObject.SetActive(isInteractable);
                     break;
                 case Mode.ModesId.Error:
                     m_Button.interactable = false;
+                    gameObject.SetActive(false);
                     break;
                 default:
                     break;
-            }
-        }
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
-        {
-            if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
-            {
-                if (ApplicationState.Module3D.SelectedScene.Type != SceneType.MultiPatients)
-                {
-                    gameObject.SetActive(false);
-                    return;
-                }
-
-                gameObject.SetActive(true);
-                Site site = ApplicationState.Module3D.SelectedColumn.SelectedSite;
-                if (!site)
-                {
-                    m_Button.interactable = false;
-                }
-                else
-                {
-                    m_Button.interactable = true;
-                }
             }
         }
         #endregion
