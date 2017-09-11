@@ -65,6 +65,7 @@ namespace HBP.UI.Anatomy
         {
             m_MeshList.Remove(m_MeshList.ObjectsSelected);
             m_Patient.Brain.Meshes = m_MeshList.Objects.ToList();
+            m_MeshCounter.text = m_MeshList.ObjectsSelected.Count().ToString();
         }
         #endregion
     }

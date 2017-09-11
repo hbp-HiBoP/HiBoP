@@ -56,6 +56,7 @@ namespace HBP.UI.Anatomy
         {
             m_ConnectivityList.Remove(m_ConnectivityList.ObjectsSelected);
             m_Patient.Brain.Connectivities = m_ConnectivityList.Objects.ToList();
+            m_ConnectivityCounter.text = m_ConnectivityList.ObjectsSelected.Count().ToString();
         }
         #endregion
     }

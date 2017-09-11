@@ -53,6 +53,7 @@ namespace HBP.UI.Anatomy
         {
             m_MRIList.Remove(m_MRIList.ObjectsSelected);
             m_Patient.Brain.MRIs = m_MRIList.Objects.ToList();
+            m_MRICounter.text = m_MRIList.ObjectsSelected.Count().ToString();
         }
         #endregion
     }
