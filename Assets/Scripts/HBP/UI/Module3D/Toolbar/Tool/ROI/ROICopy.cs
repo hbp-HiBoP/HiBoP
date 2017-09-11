@@ -42,7 +42,6 @@ namespace HBP.UI.Module3D.Tools
         public override void DefaultState()
         {
             m_Button.interactable = false;
-            m_Button.gameObject.SetActive(false);
         }
         public override void UpdateInteractable()
         {
@@ -51,39 +50,30 @@ namespace HBP.UI.Module3D.Tools
             {
                 case Mode.ModesId.NoPathDefined:
                     m_Button.interactable = false;
-                    m_Button.gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.MinPathDefined:
                     m_Button.interactable = hasROI;
-                    m_Button.gameObject.SetActive(hasROI);
                     break;
                 case Mode.ModesId.AllPathDefined:
                     m_Button.interactable = hasROI;
-                    m_Button.gameObject.SetActive(hasROI);
                     break;
                 case Mode.ModesId.ComputingAmplitudes:
                     m_Button.interactable = false;
-                    m_Button.gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.AmplitudesComputed:
                     m_Button.interactable = hasROI;
-                    m_Button.gameObject.SetActive(hasROI);
                     break;
                 case Mode.ModesId.TriErasing:
                     m_Button.interactable = false;
-                    m_Button.gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.ROICreation:
                     m_Button.interactable = hasROI;
-                    m_Button.gameObject.SetActive(hasROI);
                     break;
                 case Mode.ModesId.AmpNeedUpdate:
                     m_Button.interactable = hasROI;
-                    m_Button.gameObject.SetActive(hasROI);
                     break;
                 case Mode.ModesId.Error:
                     m_Button.interactable = false;
-                    m_Button.gameObject.SetActive(false);
                     break;
                 default:
                     break;

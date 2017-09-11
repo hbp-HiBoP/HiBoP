@@ -343,6 +343,8 @@ namespace HBP.Data.Visualization
                 onChangeProgress.Invoke(progress, 0.2f, "Load column <color=blue>" + column.DataLabel + "</color>.");
                 yield return Ninja.JumpBack;
                 column.Load(dataByColumn[column]);
+                yield return Ninja.JumpToUnity;
+                column.IconicScenario.LoadIcons();
             }
             outPut(progress);
         }

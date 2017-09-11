@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Tools.Unity;
 
 namespace HBP.Data.Visualization
 {
@@ -57,6 +58,18 @@ namespace HBP.Data.Visualization
             set { endPosition = value; }
         }
 
+        private Texture2D m_Texture;
+        /// <summary>
+        /// Texture of the icon
+        /// </summary>
+        public Texture2D Texture
+        {
+            get
+            {
+                return m_Texture;
+            }
+        }
+
         /// <summary>
         /// Create a new icon instance.
         /// </summary>
@@ -76,6 +89,15 @@ namespace HBP.Data.Visualization
         /// </summary>
         public Icon() : this(new Experience.Protocol.Icon(),0.0f,new Timeline())
         {
+        }
+
+        /// <summary>
+        /// Load an icon
+        /// </summary>
+        public void Load()
+        {
+            m_Texture = new Texture2D(128, 128);
+            m_Texture.LoadPNG(IllustrationPath);
         }
     }
 }

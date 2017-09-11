@@ -25,13 +25,11 @@ namespace HBP.UI.Module3D.Tools
                 {
                     m_Toggle.interactable = false;
                     m_Toggle.isOn = false;
-                    gameObject.SetActive(false);
                     return;
                 }
                 else
                 {
                     m_Toggle.interactable = true;
-                    gameObject.SetActive(true);
                 }
 
                 if (m_Toggle.isOn)
@@ -58,39 +56,30 @@ namespace HBP.UI.Module3D.Tools
             {
                 case Mode.ModesId.NoPathDefined:
                     m_Toggle.interactable = false;
-                    gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.MinPathDefined:
                     m_Toggle.interactable = isSiteSelected;
-                    gameObject.SetActive(isSiteSelected);
                     break;
                 case Mode.ModesId.AllPathDefined:
                     m_Toggle.interactable = isSiteSelected;
-                    gameObject.SetActive(isSiteSelected);
                     break;
                 case Mode.ModesId.ComputingAmplitudes:
                     m_Toggle.interactable = false;
-                    gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.AmplitudesComputed:
                     m_Toggle.interactable = isSiteSelected;
-                    gameObject.SetActive(isSiteSelected);
                     break;
                 case Mode.ModesId.TriErasing:
                     m_Toggle.interactable = false;
-                    gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.ROICreation:
                     m_Toggle.interactable = false;
-                    gameObject.SetActive(false);
                     break;
                 case Mode.ModesId.AmpNeedUpdate:
                     m_Toggle.interactable = isSiteSelected;
-                    gameObject.SetActive(isSiteSelected);
                     break;
                 case Mode.ModesId.Error:
                     m_Toggle.interactable = false;
-                    gameObject.SetActive(false);
                     break;
                 default:
                     break;

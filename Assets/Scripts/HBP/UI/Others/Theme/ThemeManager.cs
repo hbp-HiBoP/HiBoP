@@ -231,9 +231,10 @@ namespace HBP.UI.Theme
         {
             if (slider)
             {
-                slider.transform.Find("Background").GetComponent<Image>().color = background;
-                slider.fillRect.GetComponent<Image>().color = fill;
-                slider.handleRect.GetComponent<Image>().color = handle;
+                Transform bg = slider.transform.Find("Background");
+                if (bg) bg.GetComponent<Image>().color = background;
+                if (slider.fillRect) slider.fillRect.GetComponent<Image>().color = fill;
+                if (slider.handleRect) slider.handleRect.GetComponent<Image>().color = handle;
             }
         }
     }
