@@ -19,6 +19,7 @@ namespace HBP.UI.Module3D
         private Text m_Text;
 
         private Data.Visualization.Icon m_CurrentIcon;
+        private List<Data.Visualization.Icon> m_Icons;
         #endregion
 
         #region Public Methods
@@ -39,14 +40,16 @@ namespace HBP.UI.Module3D
             else
             {
                 Column3DIEEG col = (Column3DIEEG)column;
+                m_Icons = col.ColumnData.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
+
                 col.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
                     if (!scene.SceneInformation.IsGeneratorUpToDate) return;
 
-                    List<Data.Visualization.Icon> icons = col.ColumnData.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
-                    Data.Visualization.Icon icon = icons.DefaultIfEmpty(null).FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
+                    Data.Visualization.Icon icon = m_Icons.DefaultIfEmpty(null).FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
                     if (icon != m_CurrentIcon)
                     {
+                        m_CurrentIcon = icon;
                         if (icon == null)
                         {
                             IsActive = false;
@@ -54,11 +57,7 @@ namespace HBP.UI.Module3D
                         else
                         {
                             IsActive = true;
-                            Texture2D texture = new Texture2D(128, 128);
-                            if (texture.LoadPNG(icon.IllustrationPath)) //TODO : use texture loaded alongside visualization
-                            {
-                                m_RawImage.texture = texture;
-                            }
+                            m_RawImage.texture = icon.Texture;
                             m_Text.text = icon.Label;
                         }
                     }

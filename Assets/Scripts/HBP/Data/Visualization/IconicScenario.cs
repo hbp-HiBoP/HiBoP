@@ -105,6 +105,16 @@ namespace HBP.Data.Visualization
                 icon.EndPosition += offset;
             }
         }
+        /// <summary>
+        /// Load the textures of the icons
+        /// </summary>
+        public void LoadIcons()
+        {
+            foreach (Icon icon in icons)
+            {
+                icon.Load();
+            }
+        }
         #endregion
     }
 }
