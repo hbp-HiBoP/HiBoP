@@ -180,7 +180,7 @@ namespace HBP.UI.Theme
             toolbarDropdownImage.normalColor = new Color(255, 255, 255, 255) / 255.0f;
             toolbarDropdownImage.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
             toolbarDropdownImage.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-            toolbarDropdownImage.disabledColor = new Color(60, 60, 60, 255) / 255.0f;
+            toolbarDropdownImage.normalColor = new Color(255, 255, 255, 255) / 255.0f;
             ToolbarDropdownImage = toolbarDropdownImage;
 
             ColorBlock folderSelectorButton = ColorBlock.defaultColorBlock;
