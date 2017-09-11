@@ -446,12 +446,6 @@ namespace HBP.Module3D
                 IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
                 IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
             }
-            else
-            {
-                IEEGParameters.SpanMin = ColumnData.Configuration.SpanMin;
-                IEEGParameters.Middle = ColumnData.Configuration.Middle;
-                IEEGParameters.SpanMax = ColumnData.Configuration.SpanMax;
-            }
             foreach (Data.Visualization.RegionOfInterest roi in ColumnData.Configuration.RegionsOfInterest)
             {
                 ROI newROI = AddROI(roi.Name);

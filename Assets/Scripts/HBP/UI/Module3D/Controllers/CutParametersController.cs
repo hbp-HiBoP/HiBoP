@@ -67,6 +67,8 @@ namespace HBP.UI.Module3D
             {
                 Destroy(m_Image.sprite);
                 m_Image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
+                m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
+                m_Image.sprite.texture.anisoLevel = 9;
             });
             cut.OnUpdateCut.AddListener(() =>
             {
