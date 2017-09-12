@@ -10,11 +10,22 @@ namespace Tools.Unity
     public class Tooltip : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
+        [SerializeField]
+        private string m_Text;
         /// <summary>
         /// Text to be displayed
         /// </summary>
-        [SerializeField]
-        private string m_Text;
+        public string Text
+        {
+            get
+            {
+                return m_Text;
+            }
+            set
+            {
+                m_Text = value;
+            }
+        }
 
         private bool m_Entered = false;
         private float m_TimeSinceEntered = 0.0f;
