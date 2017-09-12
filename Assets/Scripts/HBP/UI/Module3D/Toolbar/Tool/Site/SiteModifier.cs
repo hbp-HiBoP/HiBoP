@@ -58,7 +58,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void DefaultState()
         {
-            m_Button.interactable = true;
+            m_Button.interactable = false;
             m_Selector.value = 0;
             m_Selector.interactable = false;
             m_Filter.text = "";
@@ -76,6 +76,7 @@ namespace HBP.UI.Module3D.Tools
             switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
             {
                 case Mode.ModesId.NoPathDefined:
+                    m_Button.interactable = false;
                     m_Selector.interactable = false;
                     m_Filter.interactable = false;
                     m_Action.interactable = false;
@@ -83,6 +84,7 @@ namespace HBP.UI.Module3D.Tools
                     m_AllColumns.interactable = false;
                     break;
                 case Mode.ModesId.MinPathDefined:
+                    m_Button.interactable = true;
                     m_Selector.interactable = true;
                     m_Filter.interactable = true;
                     m_Action.interactable = true;
@@ -90,6 +92,7 @@ namespace HBP.UI.Module3D.Tools
                     m_AllColumns.interactable = true;
                     break;
                 case Mode.ModesId.AllPathDefined:
+                    m_Button.interactable = true;
                     m_Selector.interactable = true;
                     m_Filter.interactable = true;
                     m_Action.interactable = true;
@@ -97,6 +100,7 @@ namespace HBP.UI.Module3D.Tools
                     m_AllColumns.interactable = true;
                     break;
                 case Mode.ModesId.ComputingAmplitudes:
+                    m_Button.interactable = false;
                     m_Selector.interactable = false;
                     m_Filter.interactable = false;
                     m_Action.interactable = false;
@@ -104,6 +108,7 @@ namespace HBP.UI.Module3D.Tools
                     m_AllColumns.interactable = false;
                     break;
                 case Mode.ModesId.AmplitudesComputed:
+                    m_Button.interactable = true;
                     m_Selector.interactable = true;
                     m_Filter.interactable = true;
                     m_Action.interactable = true;
@@ -111,6 +116,7 @@ namespace HBP.UI.Module3D.Tools
                     m_AllColumns.interactable = true;
                     break;
                 case Mode.ModesId.TriErasing:
+                    m_Button.interactable = false;
                     m_Selector.interactable = false;
                     m_Filter.interactable = false;
                     m_Action.interactable = false;
@@ -118,6 +124,7 @@ namespace HBP.UI.Module3D.Tools
                     m_AllColumns.interactable = false;
                     break;
                 case Mode.ModesId.ROICreation:
+                    m_Button.interactable = false;
                     m_Selector.interactable = false;
                     m_Filter.interactable = false;
                     m_Action.interactable = false;
@@ -125,6 +132,7 @@ namespace HBP.UI.Module3D.Tools
                     m_AllColumns.interactable = false;
                     break;
                 case Mode.ModesId.AmpNeedUpdate:
+                    m_Button.interactable = true;
                     m_Selector.interactable = true;
                     m_Filter.interactable = true;
                     m_Action.interactable = true;
@@ -132,6 +140,7 @@ namespace HBP.UI.Module3D.Tools
                     m_AllColumns.interactable = true;
                     break;
                 case Mode.ModesId.Error:
+                    m_Button.interactable = false;
                     m_Selector.interactable = false;
                     m_Filter.interactable = false;
                     m_Action.interactable = false;

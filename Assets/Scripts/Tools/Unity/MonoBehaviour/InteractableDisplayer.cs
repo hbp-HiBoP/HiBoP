@@ -7,7 +7,7 @@ public class InteractableDisplayer : MonoBehaviour
 {
     #region Properties
     public Graphic[] Graphics;
-    public Color Color;
+    public Color Color = new Color(100, 100, 100, 255) / 255.0f;
 
     Dictionary<Graphic, Color> m_ColorByGraphic = new Dictionary<Graphic, Color>();
     Selectable m_Selectable;

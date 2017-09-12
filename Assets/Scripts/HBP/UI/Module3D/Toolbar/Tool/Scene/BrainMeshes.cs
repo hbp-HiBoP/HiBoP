@@ -16,7 +16,8 @@ namespace HBP.UI.Module3D.Tools
 
         [SerializeField]
         private Toggle m_Right;
-        
+
+        private bool m_IsMeshLeftRight;
         public GenericEvent<SceneStatesInfo.MeshPart> OnChangeValue = new GenericEvent<SceneStatesInfo.MeshPart>();
         #endregion
 
@@ -43,15 +44,24 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                if (m_Left.isOn || m_Right.isOn)
+                if (m_IsMeshLeftRight)
                 {
-                    SceneStatesInfo.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
-                    ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
-                    OnChangeValue.Invoke(mesh);
+                    if (m_Left.isOn || m_Right.isOn)
+                    {
+                        SceneStatesInfo.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
+                        ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
+                        OnChangeValue.Invoke(mesh);
+                    }
+                    else
+                    {
+                        m_Left.isOn = true;
+                    }
                 }
                 else
                 {
-                    m_Left.isOn = true;
+                    SceneStatesInfo.MeshPart mesh = GetMeshPart(true, true);
+                    ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
+                    OnChangeValue.Invoke(mesh);
                 }
             });
 
@@ -59,15 +69,24 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                if (m_Left.isOn || m_Right.isOn)
+                if (m_IsMeshLeftRight)
                 {
-                    SceneStatesInfo.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
-                    ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
-                    OnChangeValue.Invoke(mesh);
+                    if (m_Left.isOn || m_Right.isOn)
+                    {
+                        SceneStatesInfo.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
+                        ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
+                        OnChangeValue.Invoke(mesh);
+                    }
+                    else
+                    {
+                        m_Right.isOn = true;
+                    }
                 }
                 else
                 {
-                    m_Right.isOn = true;
+                    SceneStatesInfo.MeshPart mesh = GetMeshPart(true, true);
+                    ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
+                    OnChangeValue.Invoke(mesh);
                 }
             });
         }
@@ -153,10 +172,24 @@ namespace HBP.UI.Module3D.Tools
         public void ChangeBrainTypeCallback()
         {
             Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
-            if (!(selectedScene.ColumnManager.SelectedMesh is LeftRightMesh3D) && selectedScene.SceneInformation.MeshPartToDisplay != SceneStatesInfo.MeshPart.Both)
+            m_IsMeshLeftRight = selectedScene.ColumnManager.SelectedMesh is LeftRightMesh3D;
+            if (!m_IsMeshLeftRight)
             {
-                m_Left.isOn = true;
-                m_Right.isOn = true;
+                m_Left.isOn = false;
+                m_Right.isOn = false;
+            }
+            else
+            {
+                if (selectedScene.SceneInformation.MeshPartToDisplay == SceneStatesInfo.MeshPart.Both)
+                {
+                    m_Left.isOn = true;
+                    m_Right.isOn = true;
+                }
+                else
+                {
+                    m_Left.isOn = (selectedScene.SceneInformation.MeshPartToDisplay == SceneStatesInfo.MeshPart.Left);
+                    m_Right.isOn = (selectedScene.SceneInformation.MeshPartToDisplay == SceneStatesInfo.MeshPart.Right);
+                }
             }
         }
         #endregion
