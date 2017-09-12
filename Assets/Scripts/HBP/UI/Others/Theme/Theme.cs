@@ -180,7 +180,7 @@ namespace HBP.UI.Theme
             toolbarDropdownImage.normalColor = new Color(255, 255, 255, 255) / 255.0f;
             toolbarDropdownImage.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
             toolbarDropdownImage.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-            toolbarDropdownImage.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+            toolbarDropdownImage.disabledColor = new Color(255, 255, 255, 255) / 255.0f;
             ToolbarDropdownImage = toolbarDropdownImage;
 
             ColorBlock folderSelectorButton = ColorBlock.defaultColorBlock;
@@ -206,7 +206,7 @@ namespace HBP.UI.Theme
 
             RegularViewColor = new Color(212, 212, 212, 255) / 255.0f;
             SelectedViewColor = new Color(156, 187, 227, 255) / 255.0f;
-            ClickedViewColor = new Color(95, 141, 227, 255) / 255.0f;
+            ClickedViewColor = new Color(59, 122, 194, 255) / 255.0f;
 
             OK = new Color(50, 200, 50, 255) / 255.0f;
             Error = new Color(200, 50, 50, 255) / 255.0f;

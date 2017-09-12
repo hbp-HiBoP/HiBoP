@@ -39,6 +39,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private GameObject m_MinimizedGameObject;
+        private List<CutParametersController> m_CutParametersControllers = new List<CutParametersController>();
         private bool m_Initialized;
         #endregion
 
@@ -50,6 +51,28 @@ namespace HBP.UI.Module3D
         private void Start()
         {
             m_Initialized = true;
+        }
+        private void AddCutCallback(Cut cut)
+        {
+            CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
+            controller.Initialize(m_Scene, cut);
+            m_CutParametersControllers.Add(controller);
+            cut.OnRemoveCut.AddListener(() =>
+            {
+                m_CutParametersControllers.Remove(controller);
+            });
+            controller.OnOpenControls.AddListener(() =>
+            {
+                foreach (CutParametersController control in m_CutParametersControllers)
+                {
+                    if (control != controller)
+                    {
+                        control.CloseControls();
+                    }
+                }
+            });
+            controller.CloseControls();
+            m_AddCutButton.SetAsLastSibling();
         }
         #endregion
 
@@ -70,22 +93,19 @@ namespace HBP.UI.Module3D
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
-            foreach (Cut cut in m_Scene.Cuts)
-            {
-                CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
-                controller.Initialize(m_Scene, cut);
-            }
             m_AddCutButton.GetComponent<Button>().onClick.AddListener(() =>
             {
                 m_Scene.AddCutPlane();
+                m_CutParametersControllers.Last().OpenControls();
             });
-            m_AddCutButton.SetAsLastSibling();
 
+            foreach (Cut cut in m_Scene.Cuts)
+            {
+                AddCutCallback(cut);
+            }
             m_Scene.Events.OnAddCut.AddListener((cut) =>
             {
-                CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
-                controller.Initialize(m_Scene, cut);
-                m_AddCutButton.SetAsLastSibling();
+                AddCutCallback(cut);
             });
         }
         #endregion

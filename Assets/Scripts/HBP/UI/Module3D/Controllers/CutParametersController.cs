@@ -3,7 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using System;
+using UnityEngine.Events;
 
 namespace HBP.UI.Module3D
 {
@@ -12,6 +15,7 @@ namespace HBP.UI.Module3D
         #region Properties
         private Cut m_Cut;
         private bool m_IsUIUpdating = false;
+        public bool AreControlsOpen { get; set; }
 
         /// <summary>
         /// Image of the cut
@@ -58,6 +62,8 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private InputField m_CustomZ;
+
+        public UnityEvent OnOpenControls = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -68,10 +74,7 @@ namespace HBP.UI.Module3D
                 Destroy(m_Image.sprite);
                 m_Image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
                 m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
-<<<<<<< HEAD
-=======
                 m_Image.sprite.texture.anisoLevel = 9;
->>>>>>> 816820c62e820fa449db850047d07fbe2de94182
             });
             cut.OnUpdateCut.AddListener(() =>
             {
@@ -159,18 +162,43 @@ namespace HBP.UI.Module3D
                 }
                 scene.UpdateCutPlane(cut);
             });
+            m_Image.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                if (AreControlsOpen)
+                {
+                    CloseControls();
+                }
+                else
+                {
+                    OpenControls();
+                }
+            });
         }
         private void UpdateUI()
         {
             m_IsUIUpdating = true;
-            m_Position.value = m_Cut.Position;
-            m_Orientation.value = (int)m_Cut.Orientation;
-            m_Flip.isOn = m_Cut.Flip;
-            m_Flip.gameObject.SetActive(m_Cut.Orientation != CutOrientation.Custom);
-            m_CustomX.text = m_Cut.Normal.x.ToString();
-            m_CustomY.text = m_Cut.Normal.y.ToString();
-            m_CustomZ.text = m_Cut.Normal.z.ToString();
-            m_CustomValues.gameObject.SetActive(m_Cut.Orientation == CutOrientation.Custom);
+            if (AreControlsOpen)
+            {
+                m_Position.value = m_Cut.Position;
+                m_Orientation.value = (int)m_Cut.Orientation;
+                m_Flip.isOn = m_Cut.Flip;
+                m_CustomX.text = m_Cut.Normal.x.ToString();
+                m_CustomY.text = m_Cut.Normal.y.ToString();
+                m_CustomZ.text = m_Cut.Normal.z.ToString();
+                m_Remove.gameObject.SetActive(true);
+                m_Orientation.gameObject.SetActive(true);
+                m_Position.gameObject.SetActive(true);
+                m_Flip.gameObject.SetActive(m_Cut.Orientation != CutOrientation.Custom);
+                m_CustomValues.gameObject.SetActive(m_Cut.Orientation == CutOrientation.Custom);
+            }
+            else
+            {
+                m_Remove.gameObject.SetActive(false);
+                m_Orientation.gameObject.SetActive(false);
+                m_Position.gameObject.SetActive(false);
+                m_Flip.gameObject.SetActive(false);
+                m_CustomValues.gameObject.SetActive(false);
+            }
             m_IsUIUpdating = false;
         }
         #endregion
@@ -181,6 +209,17 @@ namespace HBP.UI.Module3D
             m_Cut = cut;
             UpdateUI();
             AddListeners(scene, cut);
+        }
+        public void OpenControls()
+        {
+            AreControlsOpen = true;
+            UpdateUI();
+            OnOpenControls.Invoke();
+        }
+        public void CloseControls()
+        {
+            AreControlsOpen = false;
+            UpdateUI();
         }
         #endregion
     }

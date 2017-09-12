@@ -119,7 +119,7 @@ namespace HBP.Module3D
         // Rendering Settings
         public AmbientMode AmbientMode = AmbientMode.Flat;
         public float AmbientIntensity = 1;
-        public Color AmbiantLight = new Color(0.2f, 0.2f, 0.2f, 1);
+        public Color AmbientLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
         // post render
         [SerializeField]
@@ -200,7 +200,7 @@ namespace HBP.Module3D
             RenderSettings.ambientMode = AmbientMode;
             RenderSettings.ambientIntensity = AmbientIntensity;
             RenderSettings.skybox = null;
-            RenderSettings.ambientLight = AmbiantLight;
+            RenderSettings.ambientLight = AmbientLight;
             m_AssociatedScene.DisplayedObjects.SharedDirectionalLight.transform.eulerAngles = transform.eulerAngles;
         }
         private void OnPreRender()
