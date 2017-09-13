@@ -89,7 +89,7 @@ namespace HBP.UI.Experience.Protocol
             m_WindowMaxInputField = transform.Find("Content").Find("Display informations").Find("Window").Find("Panel").Find("Max").Find("InputField").GetComponent<InputField>();
             m_BaseLineMinInputField = transform.Find("Content").Find("Display informations").Find("BaseLine").Find("Panel").Find("Min").Find("InputField").GetComponent<InputField>();
             m_BaseLineMaxInputField = transform.Find("Content").Find("Display informations").Find("BaseLine").Find("Panel").Find("Max").Find("InputField").GetComponent<InputField>();
-            m_MainEventLabelInputField = transform.Find("Content").Find("Main Event").Find("Label").Find("InputField").GetComponent<InputField>();
+            m_MainEventLabelInputField = transform.Find("Content").Find("Main Event").Find("Name").Find("InputField").GetComponent<InputField>();
             m_MainEventCodesInputField = transform.Find("Content").Find("Main Event").Find("Code").Find("InputField").GetComponent<InputField>();
             m_EventList = transform.Find("Content").Find("Secondary Events").Find("List").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<EventList>();
             m_IconList = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<IconList>();

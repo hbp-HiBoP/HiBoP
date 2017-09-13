@@ -1,16 +1,26 @@
 ﻿using System.Linq;
 using Tools.CSharp;
 using d = HBP.Data.Experience.Protocol;
+using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Protocol
 {
 	public class ProtocolGestion : ItemGestion<d.Protocol>
     {
-		#region Public Methods
-		public override void Save()
+        #region Properties
+        Text m_protocolsCounter;
+        #endregion
+
+        #region Public Methods
+        public override void Save()
 		{
             ApplicationState.ProjectLoaded.SetProtocols(Items.ToArray());
             base.Save();
+        }
+        public override void Remove()
+        {
+            base.Remove();
+            m_protocolsCounter.text = m_List.ObjectsSelected.Count().ToString();
         }
         public void Import()
         {
@@ -30,6 +40,9 @@ namespace HBP.UI.Experience.Protocol
             m_List = transform.Find("Content").Find("Protocols").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<ProtocolList>();
             (m_List as ProtocolList).OnAction.AddListener((item, i) => OpenModifier(item, true));
             AddItem(ApplicationState.ProjectLoaded.Protocols.ToArray());
+
+            m_protocolsCounter = transform.Find("Content").Find("Buttons").Find("ItemSelected").Find("Counter").GetComponent<Text>();
+            m_List.OnSelectionChanged.AddListener((g, b) => m_protocolsCounter.text = m_List.ObjectsSelected.Count().ToString());
         }
 		#endregion
 	}
