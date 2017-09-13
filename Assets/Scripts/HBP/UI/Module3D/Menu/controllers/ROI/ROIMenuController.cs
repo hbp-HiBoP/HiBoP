@@ -350,9 +350,9 @@ namespace HBP.Module3D
                         }
 
                         SiteInformation plot = new SiteInformation();
-                        plot.PatientName = patientsNames[patientsNames.Count - 1];
-                        plot.FullName = lineElems[0];
-                        plot.ElectrodeID = currE;
+                        //plot.PatientID = patientsNames[patientsNames.Count - 1];
+                        //plot.FullID = lineElems[0];
+                        plot.ElectrodeNumber = currE;
                         plot.IsExcluded = int.Parse(lineElems[1], CultureInfo.InvariantCulture.NumberFormat) == 1;
                         plot.IsBlackListed = int.Parse(lineElems[2], CultureInfo.InvariantCulture.NumberFormat) == 1;
                         plot.IsMasked = int.Parse(lineElems[3], CultureInfo.InvariantCulture.NumberFormat) == 1;

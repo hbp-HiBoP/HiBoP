@@ -313,11 +313,11 @@ namespace HBP.Module3D
 
                         int id = Sites.Count - 1;
                         Site baseSite = siteList[id].GetComponent<Site>();
-                        if (!SiteInformationByID.ContainsKey(baseSite.Information.FullName))
+                        if (!SiteInformationByID.ContainsKey(baseSite.Information.FullID))
                         {
-                            SiteInformationByID.Add(baseSite.Information.FullName, new SiteInformation(baseSite.Information));
+                            SiteInformationByID.Add(baseSite.Information.FullID, new SiteInformation(baseSite.Information));
                         }
-                        Sites[id].Information = SiteInformationByID[baseSite.Information.FullName];
+                        Sites[id].Information = SiteInformationByID[baseSite.Information.FullID];
                         Sites[id].IsActive = true;
                     }
                 }
@@ -464,7 +464,7 @@ namespace HBP.Module3D
             int id = 0;
             for(int ii = 0; ii < SitesGameObjects.Count; ++ii) // patients
             {
-                text += "n " + Sites[id].Information.PatientName + "\n";
+                text += "n " + Sites[id].Information.PatientID + "\n";
                 for (int jj = 0; jj < SitesGameObjects[ii].Count; ++jj) // electrodes
                 {
                     text += "e " + jj + "\n";
@@ -525,7 +525,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < SitesGameObjects.Count; ++ii) // patients
             {
                 if (sitesInROIPerPatient[ii])
-                    text += "n " + Sites[id].Information.PatientName + "\n";
+                    text += "n " + Sites[id].Information.PatientID + "\n";
 
                 for (int jj = 0; jj < SitesGameObjects[ii].Count; ++jj) // electrodes
                 {

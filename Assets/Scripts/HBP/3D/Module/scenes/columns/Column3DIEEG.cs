@@ -540,7 +540,7 @@ namespace HBP.Module3D
             IEEGValuesBySiteID = new float[Dimensions[2]][];
             foreach (Site site in Sites)
             {
-                string correctedSiteID = site.Information.PatientName + "_" + site.name.ToUpper().Replace('P', '\'');
+                string correctedSiteID = site.Information.PatientID + "_" + site.name.ToUpper().Replace('P', '\'');
                 if (ColumnData.Configuration.ConfigurationBySite.ContainsKey(correctedSiteID))
                 {
                     Data.Visualization.SiteConfiguration siteConfiguration = ColumnData.Configuration.ConfigurationBySite[correctedSiteID]; // FIXME (Automatic correction)

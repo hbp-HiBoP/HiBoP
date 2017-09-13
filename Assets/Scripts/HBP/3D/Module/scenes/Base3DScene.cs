@@ -39,28 +39,24 @@ namespace HBP.Module3D
     /// </summary>
     public class SiteInfo
     {
-        public SiteInfo(Site site, bool enabled, Vector3 position, SiteInformationDisplayMode mode = SiteInformationDisplayMode.IEEG, string name = "", string amplitude = "", string timeline = "", string height = "", string latency = "")
+        public SiteInfo(Site site, bool enabled, Vector3 position, SiteInformationDisplayMode mode = SiteInformationDisplayMode.IEEG, string amplitude = "", string height = "", string latency = "")
         {
-            this.site = site;
-            this.enabled = enabled;
-            this.position = position;
-            this.name = name;
-            this.amplitude = amplitude;
-            this.timeline = timeline;
-            this.height = height;
-            this.latency = latency;
-            this.mode = mode;
+            Site = site;
+            Enabled = enabled;
+            Position = position;
+            Amplitude = amplitude;
+            Height = height;
+            Latency = latency;
+            Mode = mode;
         }
 
-        public Site site = null;
-        public bool enabled;
-        public Vector3 position;
-        public string name;
-        public string amplitude;
-        public string height;
-        public string latency;
-        public string timeline;
-        public SiteInformationDisplayMode mode;
+        public Site Site { get; set; }
+        public bool Enabled { get; set; }
+        public Vector3 Position { get; set; }
+        public string Amplitude { get; set; }
+        public string Height { get; set; }
+        public string Latency { get; set; }
+        public SiteInformationDisplayMode Mode { get; set; }
     }
 
     /// <summary>
@@ -448,7 +444,7 @@ namespace HBP.Module3D
                     m_TriEraser.CurrentMode = previousMode;
                 }
 
-                ApplicationState.Module3D.OnModifyInvisiblePart.Invoke();
+                m_TriEraser.OnModifyInvisiblePart.Invoke();
             }
         }
         /// <summary>
@@ -644,6 +640,7 @@ namespace HBP.Module3D
         /// </summary>
         private void AddListeners()
         {
+            // There may be problems here FIXME
             ApplicationState.Module3D.OnSelectColumn.AddListener((column) =>
             {
                 // force mode to update UI
@@ -668,9 +665,10 @@ namespace HBP.Module3D
             {
                 UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
             });
-            ApplicationState.Module3D.OnModifyInvisiblePart.AddListener(() =>
+            m_TriEraser.OnModifyInvisiblePart.AddListener(() =>
             {
                 ResetIEEG();
+                ApplicationState.Module3D.OnModifyInvisiblePart.Invoke();
             });
             m_ColumnManager.OnUpdateMRICalValues.AddListener(() =>
             {
@@ -1359,6 +1357,7 @@ namespace HBP.Module3D
                 {
                     int patientSiteID = 0;
                     string patientID = electrodesList.PatientName(ii);
+                    Data.Patient patient = Visualization.Patients.First((p) => p.ID == patientID);
 
                     // create plot patient parent
                     m_ColumnManager.SitesPatientParent.Add(new GameObject("P" + ii + " - " + patientID));
@@ -1389,10 +1388,12 @@ namespace HBP.Module3D
                             siteGameObject.layer = LayerMask.NameToLayer("Inactive");
 
                             Site site = siteGameObject.GetComponent<Site>();
+                            site.Information.Patient = patient;
+                            site.Information.Name = siteGameObject.name;
                             site.Information.SitePatientID = patientSiteID++;
-                            site.Information.PatientID = ii;
-                            site.Information.ElectrodeID = jj;
-                            site.Information.SiteID = kk;
+                            site.Information.PatientNumber = ii;
+                            site.Information.ElectrodeNumber = jj;
+                            site.Information.SiteNumber = kk;
                             site.Information.GlobalID = currPlotNb++;
                             site.Information.IsBlackListed = false;
                             site.Information.IsHighlighted = false;
@@ -1400,8 +1401,6 @@ namespace HBP.Module3D
                             site.Information.IsOutOfROI = false;
                             site.Information.IsMarked = false;
                             site.Information.IsMasked = false;
-                            site.Information.PatientName = patientID;
-                            site.Information.FullName = patientID + "_" + siteGameObject.name; // FIXME : this correspond the the name in the PTS file, and not in the EEG file
                             site.Information.MarsAtlasIndex = electrodesList.MarsAtlasLabelOfSite(ii, jj, kk);
                             site.IsActive = true;
 
@@ -2096,7 +2095,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < column.Sites.Count; ++jj)
                             {
-                                if (column.Sites[jj].Information.FullName.ToLower().Contains(nameFilter.ToLower()))
+                                if (column.Sites[jj].Information.FullID.ToLower().Contains(nameFilter.ToLower()))
                                     sitesID.Add(jj);
                             }
                         }
@@ -2385,7 +2384,7 @@ namespace HBP.Module3D
             switch (column.Type)
             {
                 case Column3D.ColumnType.FMRI:
-                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.FMRI, site.Information.FullName));
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.FMRI));
                     break;
                 case Column3D.ColumnType.IEEG:
                     Column3DIEEG columnIEEG = column as Column3DIEEG;
@@ -2396,7 +2395,7 @@ namespace HBP.Module3D
                     {
                         amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
                     }
-                    string timeline = columnIEEG.CurrentTimeLineID.ToString() + " (" + columnIEEG.CurrentTimeLine.ToString("N2") + columnIEEG.TimeLineUnite + ")";
+                    bool amplitudesComputed = SceneInformation.IsGeneratorUpToDate;
                     switch (Type)
                     {
                         case SceneType.SinglePatient:
@@ -2429,10 +2428,10 @@ namespace HBP.Module3D
                                     }
                                 }
                             }
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? SiteInformationDisplayMode.CCEP : SiteInformationDisplayMode.IEEG, site.Information.FullName, "" + amplitude, timeline, height, latency));
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? SiteInformationDisplayMode.CCEP : amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.IEEGNoAmplitude, "" + amplitude, height, latency));
                             break;
                         case SceneType.MultiPatients:
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.IEEG, site.Information.FullName, "" + amplitude, timeline));
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.IEEGNoAmplitude, "" + amplitude));
                             break;
                         default:
                             break;
@@ -2478,7 +2477,7 @@ namespace HBP.Module3D
             {
                 Site site = hit.collider.gameObject.GetComponent<Site>();
                 m_ColumnManager.SelectedColumn.SelectedSiteID = site.Information.GlobalID;
-                m_ColumnManager.SelectedColumn.SelectedPatientID = site.Information.PatientID;
+                m_ColumnManager.SelectedColumn.SelectedPatientID = site.Information.PatientNumber;
                 if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG && Type == SceneType.SinglePatient)
                 {
                     Column3DIEEG columnIEEG = (Column3DIEEG)m_ColumnManager.SelectedColumn;

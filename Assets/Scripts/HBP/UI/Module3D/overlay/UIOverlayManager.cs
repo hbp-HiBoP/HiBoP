@@ -613,34 +613,34 @@ namespace HBP.UI.Module3D
         {
             string currentTime = get_time_of_timeline(spScene);
 
-            m_bothDisplaySiteInfoTransform.gameObject.SetActive(siteInfo.enabled);
+            m_bothDisplaySiteInfoTransform.gameObject.SetActive(siteInfo.Enabled);
 
-            if (siteInfo.enabled)
+            if (siteInfo.Enabled)
             {
-                m_bothDisplaySiteInfoTransform.position = siteInfo.position;
-                m_bothDisplaySiteInfoTransform.Find("name text").GetComponent<Text>().text = siteInfo.name;
+                m_bothDisplaySiteInfoTransform.position = siteInfo.Position;
+                //m_bothDisplaySiteInfoTransform.Find("name text").GetComponent<Text>().text = siteInfo.name;
 
-                if (siteInfo.mode == SiteInformationDisplayMode.FMRI)
+                if (siteInfo.Mode == SiteInformationDisplayMode.FMRI)
                 {
                     m_bothDisplaySiteInfoTransform.Find("value text").GetComponent<Text>().text = "";
                     m_bothDisplaySiteInfoTransform.Find("latency text").GetComponent<Text>().text = "";
                     return;
                 }
 
-                if (siteInfo.mode == SiteInformationDisplayMode.CCEP)
+                if (siteInfo.Mode == SiteInformationDisplayMode.CCEP)
                 {
-                    m_bothDisplaySiteInfoTransform.Find("value text").GetComponent<Text>().text = "Height : " + siteInfo.height;
-                    m_bothDisplaySiteInfoTransform.Find("latency text").GetComponent<Text>().text = "Latency : " + siteInfo.latency;
+                    m_bothDisplaySiteInfoTransform.Find("value text").GetComponent<Text>().text = "Height : " + siteInfo.Height;
+                    m_bothDisplaySiteInfoTransform.Find("latency text").GetComponent<Text>().text = "Latency : " + siteInfo.Latency;
                     return;
                 }
 
-                m_bothDisplaySiteInfoTransform.Find("value text").GetComponent<Text>().text = "iEEG : " + siteInfo.amplitude;
+                m_bothDisplaySiteInfoTransform.Find("value text").GetComponent<Text>().text = "iEEG : " + siteInfo.Amplitude;
                 m_bothDisplaySiteInfoTransform.Find("latency text").GetComponent<Text>().text = "Time : " + currentTime;
 
-                if (siteInfo.site != null)
+                if (siteInfo.Site != null)
                 {
-                    m_bothDisplaySiteInfoTransform.Find("mars atlas name text").GetComponent<Text>().text = "Mars atlas : " + (siteInfo.site.Information.MarsAtlasIndex == -1 ? "not found" : ApplicationState.Module3D.MarsAtlasIndex.FullName(siteInfo.site.Information.MarsAtlasIndex));
-                    m_bothDisplaySiteInfoTransform.Find("broadman name text").GetComponent<Text>().text = "Broadman : " + (siteInfo.site.Information.MarsAtlasIndex == -1 ? "not found" :  ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(siteInfo.site.Information.MarsAtlasIndex));
+                    m_bothDisplaySiteInfoTransform.Find("mars atlas name text").GetComponent<Text>().text = "Mars atlas : " + (siteInfo.Site.Information.MarsAtlasIndex == -1 ? "not found" : ApplicationState.Module3D.MarsAtlasIndex.FullName(siteInfo.Site.Information.MarsAtlasIndex));
+                    m_bothDisplaySiteInfoTransform.Find("broadman name text").GetComponent<Text>().text = "Broadman : " + (siteInfo.Site.Information.MarsAtlasIndex == -1 ? "not found" :  ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(siteInfo.Site.Information.MarsAtlasIndex));
                 }
             }
         }
