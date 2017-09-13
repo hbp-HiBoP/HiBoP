@@ -87,6 +87,8 @@ namespace HBP.Module3D
     {
         public SiteInformation(SiteInformation info)
         {
+            Patient = info.Patient;
+            Name = info.Name;
             IsMasked = info.IsMasked;
             IsExcluded = info.IsExcluded;
             IsBlackListed = info.IsBlackListed;
@@ -95,14 +97,15 @@ namespace HBP.Module3D
             IsMarked = info.IsMarked;
             GlobalID = info.GlobalID;
             SitePatientID = info.SitePatientID;
-            PatientID = info.PatientID;
-            ElectrodeID = info.ElectrodeID;
-            SiteID = info.SiteID;
+            PatientNumber = info.PatientNumber;
+            ElectrodeNumber = info.ElectrodeNumber;
+            SiteNumber = info.SiteNumber;
             MarsAtlasIndex = info.MarsAtlasIndex;
-            PatientName = info.PatientName;
-            FullName = info.FullName;
         }
         public SiteInformation() { }
+
+        public Data.Patient Patient { get; set; }
+        public string Name { get; set; }
 
         public bool IsMasked { get; set; }     /**< is the site masked on the column ? */
         public bool IsExcluded { get; set; }        /**< is the site excluded ? */
@@ -114,14 +117,33 @@ namespace HBP.Module3D
         public int GlobalID { get; set; }        /**< global site id (all patients) */
         public int SitePatientID { get; set; }    /**< site id of the patient */
 
-        public int PatientID { get; set; }       /**< patient id */
-        public int ElectrodeID { get; set; }     /**< electrode id of the patient */
-        public int SiteID { get; set; }        /**< site id of the electrode */
+        public int PatientNumber { get; set; }       /**< patient id */
+        public int ElectrodeNumber { get; set; }     /**< electrode id of the patient */
+        public int SiteNumber { get; set; }        /**< site id of the electrode */
 
         public int MarsAtlasIndex { get; set; }   /**< label (corresponding index) mars atlas */
 
-        public string PatientName { get; set; }   /**< patient name */
-        public string FullName { get; set; }      /**< site full name */
+        public string PatientID
+        {
+            get
+            {
+                return Patient.ID;
+            }
+        }
+        public string FullID
+        {
+            get
+            {
+                return Patient.ID + "_" + Name;
+            }
+        }
+        public string DisplayedName
+        {
+            get
+            {
+                return Patient.Place + " | " + Patient.Date + " | " + Patient.Name + " | " + Name;
+            }
+        }
     }
 
     /// <summary>

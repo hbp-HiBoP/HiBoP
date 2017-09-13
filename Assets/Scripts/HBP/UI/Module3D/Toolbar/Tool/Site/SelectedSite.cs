@@ -23,7 +23,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (site)
                 {
-                    m_Text.text = site.Information.FullName;
+                    m_Text.text = site.Information.DisplayedName;
                 }
                 else
                 {
@@ -44,7 +44,7 @@ namespace HBP.UI.Module3D.Tools
             if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
             {
                 Site site = ApplicationState.Module3D.SelectedColumn.SelectedSite;
-                m_Text.text = site ? site.Information.FullName : "No site selected";
+                m_Text.text = site ? site.Information.DisplayedName : "No site selected";
             }
         }
         #endregion

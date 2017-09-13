@@ -12,13 +12,19 @@ namespace HBP.UI.Module3D
         private SiteInformationDisplayMode m_CurrentMode = SiteInformationDisplayMode.IEEG;
 
         [SerializeField]
-        private Text m_FullName;
+        private Text m_SiteName;
+
+        [SerializeField]
+        private Text m_PatientName;
+
+        [SerializeField]
+        private Text m_PatientDate;
+
+        [SerializeField]
+        private Text m_PatientPlace;
 
         [SerializeField]
         private Text m_IEEG;
-
-        [SerializeField]
-        private Text m_Time;
 
         [SerializeField]
         private Text m_Height;
@@ -42,23 +48,28 @@ namespace HBP.UI.Module3D
         public void Initialize()
         {
             m_RectTransform = GetComponent<RectTransform>();
-            m_IEEG.gameObject.SetActive(true);
-            m_Time.gameObject.SetActive(true);
+            m_IEEG.gameObject.SetActive(false);
             m_Height.gameObject.SetActive(false);
             m_Latency.gameObject.SetActive(false);
             m_MarsAtlas.gameObject.SetActive(true);
             m_Broadman.gameObject.SetActive(true);
             ApplicationState.Module3D.OnDisplaySiteInformation.AddListener((siteInfo) =>
             {
-                SiteInformationDisplayMode mode = siteInfo.mode;
+                SiteInformationDisplayMode mode = siteInfo.Mode;
                 if (mode != m_CurrentMode)
                 {
                     m_CurrentMode = mode;
                     switch (mode)
                     {
+                        case SiteInformationDisplayMode.IEEGNoAmplitude:
+                            m_IEEG.gameObject.SetActive(false);
+                            m_Height.gameObject.SetActive(false);
+                            m_Latency.gameObject.SetActive(false);
+                            m_MarsAtlas.gameObject.SetActive(true);
+                            m_Broadman.gameObject.SetActive(true);
+                            break;
                         case SiteInformationDisplayMode.IEEG:
                             m_IEEG.gameObject.SetActive(true);
-                            m_Time.gameObject.SetActive(true);
                             m_Height.gameObject.SetActive(false);
                             m_Latency.gameObject.SetActive(false);
                             m_MarsAtlas.gameObject.SetActive(true);
@@ -66,7 +77,6 @@ namespace HBP.UI.Module3D
                             break;
                         case SiteInformationDisplayMode.FMRI:
                             m_IEEG.gameObject.SetActive(false);
-                            m_Time.gameObject.SetActive(false);
                             m_Height.gameObject.SetActive(false);
                             m_Latency.gameObject.SetActive(false);
                             m_MarsAtlas.gameObject.SetActive(false);
@@ -74,7 +84,6 @@ namespace HBP.UI.Module3D
                             break;
                         case SiteInformationDisplayMode.CCEP:
                             m_IEEG.gameObject.SetActive(false);
-                            m_Time.gameObject.SetActive(false);
                             m_Height.gameObject.SetActive(true);
                             m_Latency.gameObject.SetActive(true);
                             m_MarsAtlas.gameObject.SetActive(false);
@@ -84,24 +93,44 @@ namespace HBP.UI.Module3D
                             break;
                     }
                 }
-                gameObject.SetActive(siteInfo.enabled);
-                if (siteInfo.enabled)
+                gameObject.SetActive(siteInfo.Enabled);
+                if (siteInfo.Enabled)
                 {
-                    transform.position = siteInfo.position;
-                    m_FullName.text = siteInfo.name;
-                    if (siteInfo.mode == SiteInformationDisplayMode.CCEP)
+                    transform.position = siteInfo.Position;
+                    m_SiteName.text = siteInfo.Site.Information.Name;
+                    m_PatientDate.text = siteInfo.Site.Information.Patient.Date.ToString();
+                    m_PatientName.text = siteInfo.Site.Information.Patient.Name;
+                    m_PatientPlace.text = siteInfo.Site.Information.Patient.Place;
+                    if (siteInfo.Mode == SiteInformationDisplayMode.CCEP)
                     {
-                        m_Height.text = "Height: " + siteInfo.height;
-                        m_Latency.text = "Latency: " + siteInfo.latency;
+                        m_Height.text = "Height: " + siteInfo.Height;
+                        m_Latency.text = "Latency: " + siteInfo.Latency;
                     }
-                    else if (siteInfo.mode == SiteInformationDisplayMode.IEEG)
+                    else if (siteInfo.Mode == SiteInformationDisplayMode.IEEG || siteInfo.Mode == SiteInformationDisplayMode.IEEGNoAmplitude)
                     {
-                        m_IEEG.text = "IEEG: " + siteInfo.amplitude;
-                        m_Time.text = "Time: " + siteInfo.timeline;
-                        if (siteInfo.site)
+                        if (siteInfo.Mode == SiteInformationDisplayMode.IEEG) m_IEEG.text = "IEEG: " + siteInfo.Amplitude;
+                        if (siteInfo.Site)
                         {
-                            m_MarsAtlas.text = "Mars Atlas: " + ApplicationState.Module3D.MarsAtlasIndex.FullName(siteInfo.site.Information.MarsAtlasIndex);
-                            m_Broadman.text = "Broadman: " + ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(siteInfo.site.Information.MarsAtlasIndex);
+                            string marsAtlasText = ApplicationState.Module3D.MarsAtlasIndex.FullName(siteInfo.Site.Information.MarsAtlasIndex);
+                            if (marsAtlasText != "No_info" && marsAtlasText != "not found")
+                            {
+                                m_MarsAtlas.gameObject.SetActive(true);
+                                m_MarsAtlas.text = "Mars Atlas: " + marsAtlasText;
+                            }
+                            else
+                            {
+                                m_MarsAtlas.gameObject.SetActive(false);
+                            }
+                            string broadmanText = ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(siteInfo.Site.Information.MarsAtlasIndex);
+                            if (broadmanText != "No_info" && broadmanText != "not found")
+                            {
+                                m_Broadman.gameObject.SetActive(true);
+                                m_Broadman.text = "Broadman: " + broadmanText;
+                            }
+                            else
+                            {
+                                m_Broadman.gameObject.SetActive(false);
+                            }
                         }
                     }
                     ClampToCanvas();

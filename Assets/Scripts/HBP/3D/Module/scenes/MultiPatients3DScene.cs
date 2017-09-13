@@ -249,15 +249,15 @@ namespace HBP.Module3D
             {
                 for (int jj = 0; jj < plots.Count; ++jj) // patient
                 {
-                    if (patientsName[jj] != ColumnManager.Columns[idColumn].Sites[ii].Information.PatientName)
+                    if (patientsName[jj] != ColumnManager.Columns[idColumn].Sites[ii].Information.PatientID)
                         continue;                    
 
                     for (int kk = 0; kk < plots[jj].Count; kk++) // electrode
                     {
                         for(int ll = 0; ll < plots[jj][kk].Count; ll++) // plot
                         {
-                            string namePlot = plots[jj][kk][ll].PatientName + "_" + plots[jj][kk][ll].FullName;
-                            if (namePlot != ColumnManager.Columns[idColumn].Sites[ii].Information.FullName)
+                            string namePlot = plots[jj][kk][ll].PatientID + "_" + plots[jj][kk][ll].FullID;
+                            if (namePlot != ColumnManager.Columns[idColumn].Sites[ii].Information.FullID)
                                 continue;
 
                             ColumnManager.Columns[idColumn].Sites[ii].Information.IsExcluded = plots[jj][kk][ll].IsExcluded;
