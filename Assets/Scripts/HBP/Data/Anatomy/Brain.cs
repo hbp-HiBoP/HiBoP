@@ -30,33 +30,27 @@ namespace HBP.Data.Anatomy
         [DataMember] public List<MRI> MRIs { get; set; }
         [DataMember] public List<Connectivity> Connectivities { get; set; }
         [DataMember] public List<Implantation> Implantations { get; set; }
-        [DataMember] public List<Transformation> Transformations { get; set; }
         [DataMember] public Epilepsy Epilepsy { get; set; }
         [IgnoreDataMember] public Patient Patient { get; set; }
         #endregion
 
         #region Constructors
-        public Brain(IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Connectivity> connectivities, IEnumerable<Implantation> implantations, IEnumerable<Transformation> transformations, Epilepsy epilepsy)
+        public Brain(IEnumerable<Mesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Connectivity> connectivities, IEnumerable<Implantation> implantations, Epilepsy epilepsy)
         {
             Meshes = meshes.ToList();
             this.MRIs = MRIs.ToList();
             Connectivities = connectivities.ToList();
             Implantations = implantations.ToList();
-            Transformations = transformations.ToList();
             Epilepsy = epilepsy;
         }
-        public Brain() : this(new Mesh[0], new MRI[0], new Connectivity[0], new Implantation[0], new Transformation[0], new Epilepsy()) { }
+        public Brain() : this(new Mesh[0], new MRI[0], new Connectivity[0], new Implantation[0], new Epilepsy()) { }
         public Brain(string path)
         {
             Meshes = Mesh.GetMeshes(path).ToList();
             MRIs = MRI.GetMRIs(path).ToList();
             Implantations = Implantation.GetImplantations(path).ToList();
-            //TODO.
             Connectivities = new List<Connectivity>();
-            //TODO.
-            Transformations = new List<Transformation>();
             Epilepsy = new Epilepsy(Epilepsy.EpilepsyType.Unknown);
-            //Transformations = Transformation.GetTransformations(path).ToList();
         }
         #endregion
 
@@ -67,7 +61,7 @@ namespace HBP.Data.Anatomy
         /// <returns>Object cloned.</returns>
         public object Clone()
         {
-            return new Brain(Meshes,MRIs,Connectivities,Implantations,Transformations,Epilepsy);
+            return new Brain(Meshes,MRIs,Connectivities,Implantations,Epilepsy);
         }
         #endregion
     }

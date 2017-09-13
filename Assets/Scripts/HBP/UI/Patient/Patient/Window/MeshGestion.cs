@@ -46,8 +46,8 @@ namespace HBP.UI.Anatomy
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
-            if(active) m_MeshList.Objects = m_Patient.Brain.Meshes.ToArray();
-
+            if (active) m_MeshList.Objects = m_Patient.Brain.Meshes.ToArray();
+            else m_MeshList.SaveAll();
         }
         public void AddSingleMesh()
         {

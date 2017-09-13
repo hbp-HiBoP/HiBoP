@@ -41,16 +41,26 @@ namespace HBP.Data.Anatomy
             List<Mesh> meshes = new List<Mesh>();
             DirectoryInfo parent = new DirectoryInfo(path);
             DirectoryInfo t1mr1 = new DirectoryInfo(path + Path.DirectorySeparatorChar + "t1mri");
-            DirectoryInfo meshDirectory = new DirectoryInfo(t1mr1.GetDirectories("T1pre_*").First().FullName + Path.DirectorySeparatorChar + "default_analysis" + Path.DirectorySeparatorChar + "segmentation" + Path.DirectorySeparatorChar + "mesh");
+            DirectoryInfo preoperativeDirectory = new DirectoryInfo(t1mr1.GetDirectories("T1pre_*").First().FullName);
+            DirectoryInfo transformationsDirectory = new DirectoryInfo(preoperativeDirectory.FullName + Path.DirectorySeparatorChar + "registration");
+            FileInfo transformation = transformationsDirectory.GetFiles("RawT1-" + parent.Name + "_" + preoperativeDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
+            string transformationPath = string.Empty;
+            if (transformation != null && transformation.Exists) transformationPath = transformation.FullName;
+            DirectoryInfo meshDirectory = new DirectoryInfo(preoperativeDirectory.FullName + Path.DirectorySeparatorChar + "default_analysis" + Path.DirectorySeparatorChar + "segmentation" + Path.DirectorySeparatorChar + "mesh");
             if(meshDirectory.Exists)
             {
                 FileInfo greyMatterLeftHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Lhemi" + EXTENSION);
                 FileInfo greyMatterRightHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Rhemi" + EXTENSION);
-                if(greyMatterLeftHemisphere.Exists && greyMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("Grey matter", string.Empty, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName,string.Empty,string.Empty));
+                if(greyMatterLeftHemisphere.Exists && greyMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("Grey matter", transformationPath, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName,string.Empty,string.Empty));
 
                 FileInfo whiteMatterLeftHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Lwhite" + EXTENSION);
                 FileInfo whiteMatterRightHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Rwhite" + EXTENSION);
-                if (whiteMatterLeftHemisphere.Exists && whiteMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("White matter", string.Empty, whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName,string.Empty,string.Empty));
+                DirectoryInfo SurfaceAnalysisDirectory = new DirectoryInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + "surface_analysis");
+                FileInfo marsAtlasLeftHemisphere = new FileInfo(SurfaceAnalysisDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Lwhite_parcels_marsAtlas" + EXTENSION);
+                FileInfo marsAtlasRightHemisphere = new FileInfo(SurfaceAnalysisDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Rwhite_parcels_marsAtlas" + EXTENSION);
+                string marsAtlasLeftHemispherePath = marsAtlasLeftHemisphere.Exists ? marsAtlasLeftHemisphere.FullName : string.Empty;
+                string marsAtlasRightHemispherePath = marsAtlasRightHemisphere.Exists ? marsAtlasRightHemisphere.FullName : string.Empty;
+                if (whiteMatterLeftHemisphere.Exists && whiteMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("White matter", transformationPath, whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName, marsAtlasLeftHemispherePath, marsAtlasRightHemispherePath));
             }
             return meshes.ToArray();
         }

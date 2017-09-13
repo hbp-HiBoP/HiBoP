@@ -34,7 +34,7 @@ namespace HBP.Data.Anatomy
             LeftHemisphere = leftHemisphere;
             RightHemisphere = rightHemisphere;
             LeftMarsAtlasHemisphere = leftMarsAtlasHemisphere;
-            RightMarsAtlasHemisphere = rightHemisphere;
+            RightMarsAtlasHemisphere = rightMarsAtlasHemisphere;
         }
         public LeftRightMesh():this("New mesh", string.Empty, string.Empty, string.Empty, string.Empty,string.Empty) { }
         #endregion

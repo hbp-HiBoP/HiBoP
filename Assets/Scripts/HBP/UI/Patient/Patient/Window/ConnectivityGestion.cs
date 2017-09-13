@@ -45,6 +45,7 @@ namespace HBP.UI.Anatomy
         {
             gameObject.SetActive(active);
             if (active) m_ConnectivityList.Objects = m_Patient.Brain.Connectivities.ToArray();
+            else m_ConnectivityList.SaveAll();
         }
         public void AddConnectivity()
         {

@@ -17,16 +17,20 @@ namespace HBP.UI.Anatomy
         InputField m_NameInputField;
         Button m_SaveButton, m_AddButton, m_RemoveButton;
         PatientList m_GroupPatientsList, m_ProjectPatientsList;
-		#endregion
 
-		#region Public Methods
-		public void AddPatients()
+        Text m_projectPatientsCounter;
+        Text m_groupPatientsCounter;
+        #endregion
+
+        #region Public Methods
+        public void AddPatients()
 		{
             Patient[] patients = m_ProjectPatientsList.ObjectsSelected;
             ItemTemp.AddPatient(patients);
             m_ProjectPatientsList.Remove(patients);
             m_GroupPatientsList.Add(patients);
             m_GroupPatientsList.Select(patients);
+            m_projectPatientsCounter.text = m_ProjectPatientsList.ObjectsSelected.Length.ToString();
         }
         public void RemovePatients()
 		{
@@ -35,6 +39,7 @@ namespace HBP.UI.Anatomy
             m_GroupPatientsList.Remove(patients);
             m_ProjectPatientsList.Add(patients);
             m_ProjectPatientsList.Select(patients);
+            m_groupPatientsCounter.text = m_GroupPatientsList.ObjectsSelected.Length.ToString();
         }
         public void OpenPatientModifier(Patient patientToModify)
         {
@@ -70,6 +75,12 @@ namespace HBP.UI.Anatomy
             m_SaveButton = transform.Find("Content").Find("Buttons").Find("OK").GetComponent<Button>();
             m_AddButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Add").GetComponent<Button>();
             m_RemoveButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Remove").GetComponent<Button>();
+
+            m_projectPatientsCounter = transform.Find("Content").Find("Patients").Find("Lists").Find("Project").Find("ItemSelected").Find("Counter").GetComponent<Text>();
+            m_groupPatientsCounter = transform.Find("Content").Find("Patients").Find("Lists").Find("Group").Find("ItemSelected").Find("Counter").GetComponent<Text>();
+
+            m_ProjectPatientsList.OnSelectionChanged.AddListener((patient, i) => m_projectPatientsCounter.text = m_ProjectPatientsList.ObjectsSelected.Length.ToString());
+            m_GroupPatientsList.OnSelectionChanged.AddListener((patient, i) => m_groupPatientsCounter.text = m_GroupPatientsList.ObjectsSelected.Length.ToString());
         }
         protected override void SetInteractableFields(bool interactable)
         {
