@@ -15,6 +15,7 @@ using System.Linq;
 
 // unity
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
@@ -103,6 +104,8 @@ namespace HBP.Module3D
                 return m_MeshHasInvisibleTriangles;
             }
         }
+
+        public UnityEvent OnModifyInvisiblePart = new UnityEvent();
         #endregion
 
         #region Public Methods
@@ -137,7 +140,7 @@ namespace HBP.Module3D
 
             m_CanCancelLastAction = false;
             m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
-            ApplicationState.Module3D.OnModifyInvisiblePart.Invoke();
+            OnModifyInvisiblePart.Invoke();
         }
         /// <summary>
         /// Erase triangles and update the invisible part mesh GO
@@ -183,7 +186,7 @@ namespace HBP.Module3D
 
             m_CanCancelLastAction = true;
             m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
-            ApplicationState.Module3D.OnModifyInvisiblePart.Invoke();
+            OnModifyInvisiblePart.Invoke();
         }
         /// <summary>
         /// Cancel the last action and update the invisible part mesh GO
@@ -199,7 +202,7 @@ namespace HBP.Module3D
 
             m_CanCancelLastAction = false;
             m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
-            ApplicationState.Module3D.OnModifyInvisiblePart.Invoke();
+            OnModifyInvisiblePart.Invoke();
         }
         #endregion
     }

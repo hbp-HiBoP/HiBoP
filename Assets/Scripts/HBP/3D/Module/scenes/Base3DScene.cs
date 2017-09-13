@@ -444,7 +444,7 @@ namespace HBP.Module3D
                     m_TriEraser.CurrentMode = previousMode;
                 }
 
-                ApplicationState.Module3D.OnModifyInvisiblePart.Invoke();
+                m_TriEraser.OnModifyInvisiblePart.Invoke();
             }
         }
         /// <summary>
@@ -640,6 +640,7 @@ namespace HBP.Module3D
         /// </summary>
         private void AddListeners()
         {
+            // There may be problems here FIXME
             ApplicationState.Module3D.OnSelectColumn.AddListener((column) =>
             {
                 // force mode to update UI
@@ -664,9 +665,10 @@ namespace HBP.Module3D
             {
                 UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
             });
-            ApplicationState.Module3D.OnModifyInvisiblePart.AddListener(() =>
+            m_TriEraser.OnModifyInvisiblePart.AddListener(() =>
             {
                 ResetIEEG();
+                ApplicationState.Module3D.OnModifyInvisiblePart.Invoke();
             });
             m_ColumnManager.OnUpdateMRICalValues.AddListener(() =>
             {
