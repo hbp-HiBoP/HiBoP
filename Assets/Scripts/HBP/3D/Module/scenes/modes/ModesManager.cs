@@ -81,10 +81,6 @@ namespace HBP.Module3D
         {
             mode = transform.Find(nameMode).GetComponent<Mode>();
             mode.Initialize(scene);
-            mode.SendModeSpecifications.AddListener((UnityEngine.Events.UnityAction<ModeSpecifications>)((specs) =>
-            {
-                this.SendModeSpecifications.Invoke(specs);
-            }));
         }
         /// <summary>
         /// Set the current mode

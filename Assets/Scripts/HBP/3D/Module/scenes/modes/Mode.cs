@@ -231,7 +231,6 @@ namespace HBP.Module3D
             m_Specifications.Mode = GetComponent<Mode>();
             m_Specifications.ItemMaskDisplay = DisplayItems;
             m_Specifications.UIOverlayMask = UIOverlayMask;
-            SendModeSpecifications.Invoke(m_Specifications);
             m_NeedsUpdate = false;
         }
         /// <summary>

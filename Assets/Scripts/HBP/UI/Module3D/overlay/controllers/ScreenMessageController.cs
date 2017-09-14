@@ -111,49 +111,49 @@ namespace HBP.Module3D
             m_mpProgressBar = m_mpScreenProgressBar.GetComponent<ProgressBar>();
             m_mpProgressBar.init();
 
-            m_SinglePatientScene.Events.OnDisplaySceneMessage.AddListener((message, duration, width, height) =>
-            {
-                stop(true);
-                m_spScreenText.text = message;
-                m_spMDuration = duration;
-                m_spMessageSize = new Vector2(width, height);
+            //m_SinglePatientScene.Events.OnDisplaySceneMessage.AddListener((message, duration, width, height) =>
+            //{
+            //    stop(true);
+            //    m_spScreenText.text = message;
+            //    m_spMDuration = duration;
+            //    m_spMessageSize = new Vector2(width, height);
 
-                spMessageT = TimeExecution.GetWorldTime();
-                StartCoroutine(displayMessage(true));
-            });
+            //    spMessageT = TimeExecution.GetWorldTime();
+            //    StartCoroutine(displayMessage(true));
+            //});
 
-            m_SinglePatientScene.Events.OnDisplaySceneProgressBar.AddListener((duration, width, height, value) =>
-            {
-                stop(true, true);
-                m_spPDuration = duration;
-                m_spProgressBarSize = new Vector2(width, height);
-                m_spProgressBar.setProgessBarState(value);
+            //m_SinglePatientScene.Events.OnDisplaySceneProgressBar.AddListener((duration, width, height, value) =>
+            //{
+            //    stop(true, true);
+            //    m_spPDuration = duration;
+            //    m_spProgressBarSize = new Vector2(width, height);
+            //    m_spProgressBar.setProgessBarState(value);
 
-                spProgressBarT = TimeExecution.GetWorldTime();
-                StartCoroutine(displayProgress(true));
-            });
+            //    spProgressBarT = TimeExecution.GetWorldTime();
+            //    StartCoroutine(displayProgress(true));
+            //});
 
-            m_MultiPatientsScene.Events.OnDisplaySceneMessage.AddListener((message, duration, width, height) =>
-            {
-                stop(false);
-                m_mpScreenText.text = message;
-                m_mpMDuration = duration;
-                m_mpMessageSize = new Vector2(width, height);
+            //m_MultiPatientsScene.Events.OnDisplaySceneMessage.AddListener((message, duration, width, height) =>
+            //{
+            //    stop(false);
+            //    m_mpScreenText.text = message;
+            //    m_mpMDuration = duration;
+            //    m_mpMessageSize = new Vector2(width, height);
 
-                mpMessageT = TimeExecution.GetWorldTime();
-                StartCoroutine(displayMessage(false));
-            });
+            //    mpMessageT = TimeExecution.GetWorldTime();
+            //    StartCoroutine(displayMessage(false));
+            //});
 
-            m_MultiPatientsScene.Events.OnDisplaySceneProgressBar.AddListener((duration, width, height, value) =>
-            {
-                stop(false, true);
-                m_mpPDuration = duration;
-                m_mpProgressBarSize = new Vector2(width, height);
-                m_mpProgressBar.setProgessBarState(value);
+            //m_MultiPatientsScene.Events.OnDisplaySceneProgressBar.AddListener((duration, width, height, value) =>
+            //{
+            //    stop(false, true);
+            //    m_mpPDuration = duration;
+            //    m_mpProgressBarSize = new Vector2(width, height);
+            //    m_mpProgressBar.setProgessBarState(value);
 
-                mpProgressBarT = TimeExecution.GetWorldTime();
-                StartCoroutine(displayProgress(false));
-            });
+            //    mpProgressBarT = TimeExecution.GetWorldTime();
+            //    StartCoroutine(displayProgress(false));
+            //});
         }
 
         /// <summary>

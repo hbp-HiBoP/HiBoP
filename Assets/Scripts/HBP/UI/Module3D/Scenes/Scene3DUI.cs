@@ -80,7 +80,7 @@ namespace HBP.UI.Module3D
 
                 m_ResizableGrid.RemoveViewLine(lineID);
             });
-            m_Scene.Events.OnResetViewPositions.AddListener(() =>
+            m_Scene.OnResetViewPositions.AddListener(() =>
             {
                 if (!m_Scene) return;
 

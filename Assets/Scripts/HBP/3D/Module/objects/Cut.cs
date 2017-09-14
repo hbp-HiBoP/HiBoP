@@ -21,7 +21,9 @@ namespace HBP.Module3D
         public int RemoveFrontPlane { get; set; }
         public int NumberOfCuts { get; set; }
         public float Position { get; set; }
+        #endregion
 
+        #region Events
         public GenericEvent<Texture2D> OnUpdateGUITextures = new GenericEvent<Texture2D>();
         public UnityEvent OnUpdateCut = new UnityEvent();
         public UnityEvent OnRemoveCut = new UnityEvent();

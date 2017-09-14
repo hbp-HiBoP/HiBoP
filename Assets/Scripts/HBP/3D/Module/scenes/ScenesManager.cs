@@ -102,11 +102,7 @@ namespace HBP.Module3D
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress));
             ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
             // Add the listeners
-            scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
-            {
-                OnSendModeSpecifications.Invoke(specs);
-            }));
-            scene.Events.OnSelectScene.AddListener((selectedScene) =>
+            scene.OnSelectScene.AddListener((selectedScene) =>
             {
                 foreach (Base3DScene s in m_Scenes)
                 {
@@ -135,11 +131,7 @@ namespace HBP.Module3D
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress));
             ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
             // Add the listeners
-            scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
-            {
-                OnSendModeSpecifications.Invoke(specs);
-            }));
-            scene.Events.OnSelectScene.AddListener((selectedScene) =>
+            scene.OnSelectScene.AddListener((selectedScene) =>
             {
                 foreach (Base3DScene s in m_Scenes)
                 {

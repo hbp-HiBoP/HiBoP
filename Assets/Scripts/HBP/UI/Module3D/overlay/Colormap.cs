@@ -93,9 +93,9 @@ namespace HBP.UI.Module3D
                 IsActive = value;
             });
 
-            scene.Events.OnChangeColormap.AddListener((color) => m_Icon.sprite = m_SpriteByColorType[color]);
+            scene.OnChangeColormap.AddListener((color) => m_Icon.sprite = m_SpriteByColorType[color]);
 
-            scene.Events.OnSendColorMapValues.AddListener((min, mid, max, col) =>
+            scene.OnSendColorMapValues.AddListener((min, mid, max, col) =>
             {
                 if (col != column) return;
 

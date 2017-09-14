@@ -299,7 +299,7 @@ namespace HBP.Module3D
             // Finalization
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
             UpdateMeshesColliders();
-            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
+            OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
         }
         /// <summary>
         /// Reset the meshes of the scene with GII files

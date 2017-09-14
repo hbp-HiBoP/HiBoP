@@ -107,7 +107,9 @@ namespace HBP.Module3D
         /// Mars atlas index (to get name of mars atlas, broadman etc)
         /// </summary>
         public DLL.MarsAtlasIndex MarsAtlasIndex;
-        
+        #endregion
+
+        #region Events
         /// <summary>
         /// UI event for sending a plot info request to the outside UI (params : plotRequest)
         /// </summary>
