@@ -125,10 +125,6 @@ namespace HBP.Module3D
         /// </summary>   
         public GenericEvent<Data.Visualization.Visualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.Visualization, Data.Patient>();
         /// <summary>
-        /// Send the path of the saved ROI
-        /// </summary>
-        public GenericEvent<string> OnSaveRegionOfInterest = new GenericEvent<string>();
-        /// <summary>
         /// Event called when adding or removing a ROI
         /// </summary>
         public UnityEvent OnChangeNumberOfROI = new UnityEvent();

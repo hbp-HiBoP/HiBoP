@@ -307,6 +307,22 @@ namespace HBP.Module3D
         /// Event called when changing the values of the MRI Cal Values
         /// </summary>
         public UnityEvent OnUpdateMRICalValues = new UnityEvent();
+        /// <summary>
+        /// Event called when changing the number of ROIs of this scene
+        /// </summary>
+        public UnityEvent OnChangeNumberOfROI = new UnityEvent();
+        /// <summary>
+        /// Event called when changing the number of volumes in a ROI of this scene
+        /// </summary>
+        public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
+        /// <summary>
+        /// Event called when selecting a ROI in a column
+        /// </summary>
+        public UnityEvent OnSelectROI = new UnityEvent();
+        /// <summary>
+        /// Event called when changing the radius of a volume in a ROI
+        /// </summary>
+        public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
         public GenericEvent<Column3DIEEG> OnUpdateIEEGSpan = new GenericEvent<Column3DIEEG>();
         public GenericEvent<Column3DIEEG> OnUpdateIEEGAlpha = new GenericEvent<Column3DIEEG>();
         public GenericEvent<Column3DIEEG> OnUpdateIEEGGain = new GenericEvent<Column3DIEEG>();
@@ -376,6 +392,22 @@ namespace HBP.Module3D
             {
                 OnUpdateColumnTimelineID.Invoke(column);
                 column.IsRenderingUpToDate = false;
+            });
+            column.OnChangeNumberOfROI.AddListener(() =>
+            {
+                OnChangeNumberOfROI.Invoke();
+            });
+            column.OnChangeNumberOfVolumeInROI.AddListener(() =>
+            {
+                OnChangeNumberOfVolumeInROI.Invoke();
+            });
+            column.OnSelectROI.AddListener(() =>
+            {
+                OnSelectROI.Invoke();
+            });
+            column.OnChangeROIVolumeRadius.AddListener(() =>
+            {
+                OnChangeROIVolumeRadius.Invoke();
             });
             m_Columns.Add(column);
             //column.transform.localPosition = new Vector3(0, HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * m_Columns.Count);

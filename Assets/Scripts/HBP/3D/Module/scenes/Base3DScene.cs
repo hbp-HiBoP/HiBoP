@@ -640,31 +640,6 @@ namespace HBP.Module3D
         /// </summary>
         private void AddListeners()
         {
-            // There may be problems here FIXME
-            ApplicationState.Module3D.OnSelectColumn.AddListener((column) =>
-            {
-                // force mode to update UI
-                m_ModesManager.SetCurrentModeSpecifications(true);
-
-                ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
-                UpdateGUITextures();
-            });
-            ApplicationState.Module3D.OnChangeNumberOfROI.AddListener(() =>
-            {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
-            });
-            ApplicationState.Module3D.OnChangeROIVolumeRadius.AddListener(() =>
-            {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
-            });
-            ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.AddListener(() =>
-            {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
-            });
-            ApplicationState.Module3D.OnSelectROI.AddListener(() =>
-            {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
-            });
             m_TriEraser.OnModifyInvisiblePart.AddListener(() =>
             {
                 ResetIEEG();
@@ -707,6 +682,34 @@ namespace HBP.Module3D
             {
                 ComputeIEEGTexturesOfColumn(column);
                 m_ColumnManager.UpdateColumnIEEGSitesRendering(column, SceneInformation);
+            });
+            m_ColumnManager.OnChangeNumberOfROI.AddListener(() =>
+            {
+                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
+            });
+            m_ColumnManager.OnChangeNumberOfVolumeInROI.AddListener(() =>
+            {
+                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
+            });
+            m_ColumnManager.OnSelectROI.AddListener(() =>
+            {
+                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                ApplicationState.Module3D.OnSelectROI.Invoke();
+            });
+            m_ColumnManager.OnChangeROIVolumeRadius.AddListener(() =>
+            {
+                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
+            });
+            m_ColumnManager.OnSelectColumnManager.AddListener((columnManager) =>
+            {
+                // force mode to update UI
+                m_ModesManager.SetCurrentModeSpecifications(true);
+
+                ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
+                UpdateGUITextures();
             });
             SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {

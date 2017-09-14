@@ -182,7 +182,7 @@ namespace HBP.Module3D
                     m_SelectedROI.SetVisibility(true);
                     m_SelectedROI.StartAnimation();
                 }
-                ApplicationState.Module3D.OnSelectROI.Invoke();
+                OnSelectROI.Invoke();
             }
         }
         public int SelectedROIID
@@ -222,6 +222,22 @@ namespace HBP.Module3D
         /// Event called when a view is moved
         /// </summary>
         public GenericEvent<View3D> OnMoveView = new GenericEvent<View3D>();
+        /// <summary>
+        /// Event called when changing the number of ROIs of this column
+        /// </summary>
+        public UnityEvent OnChangeNumberOfROI = new UnityEvent();
+        /// <summary>
+        /// Event called when changing the number of volume in a ROI of this column
+        /// </summary>
+        public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
+        /// <summary>
+        /// Event called when selecting a ROI
+        /// </summary>
+        public UnityEvent OnSelectROI = new UnityEvent();
+        /// <summary>
+        /// Event called when changing the radius of a volume in a ROI
+        /// </summary>
+        public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
         #endregion
 
         #region Public Methods
@@ -640,8 +656,16 @@ namespace HBP.Module3D
             GameObject roiGameObject = Instantiate(m_ROIPrefab, m_ROIParent);
             ROI roi = roiGameObject.GetComponent<ROI>();
             roi.Name = name;
+            roi.OnChangeNumberOfVolumeInROI.AddListener(() =>
+            {
+                OnChangeNumberOfVolumeInROI.Invoke();
+            });
+            roi.OnChangeROIVolumeRadius.AddListener(() =>
+            {
+                OnChangeROIVolumeRadius.Invoke();
+            });
             m_ROIs.Add(roi);
-            ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
+            OnChangeNumberOfROI.Invoke();
             SelectedROI = m_ROIs.Last();
 
             return roi;
@@ -659,7 +683,7 @@ namespace HBP.Module3D
         {
             Destroy(m_SelectedROI.gameObject);
             m_ROIs.Remove(m_SelectedROI);
-            ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
+            OnChangeNumberOfROI.Invoke();
 
             if (m_ROIs.Count > 0)
             {
