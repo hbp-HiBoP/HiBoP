@@ -2317,7 +2317,7 @@ namespace HBP.Module3D
                     request.site = column.SelectedSite;
                     request.site2 = previousSite;
                     request.maskColumn = masksColumnsData;
-                    Events.OnRequestSiteInformation.Invoke(request);
+                    ApplicationState.Module3D.OnRequestSiteInformation.Invoke(request);
                 }
             }
         }

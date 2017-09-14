@@ -191,15 +191,6 @@ namespace HBP.Module3D
                 m_ColumnManager.ColumnsIEEG[ii].UpdateIEEG = true;
         }
         /// <summary>
-        /// Load a patient in the SP scene
-        /// </summary>
-        /// <param name="idPatientSelected"></param>
-        public void LoadPatientInSinglePatientScene(Data.Visualization.Visualization visualization, Data.Patient patient, int idPlotSelected)
-        {
-            OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(visualization, patient);
-            ApplySceneCamerasToIndividualScene.Invoke();
-        }
-        /// <summary>
         /// Update the ROI of a column from the interface
         /// </summary>
         /// <param name="idColumn"></param>

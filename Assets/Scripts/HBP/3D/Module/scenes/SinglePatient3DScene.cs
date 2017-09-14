@@ -246,7 +246,7 @@ namespace HBP.Module3D
         /// Reset the scene : reload meshes, IRM, plots, and regenerate textures
         /// </summary>
         /// <param name="patient"></param>
-        public IEnumerator c_Initialize(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, bool postIRM)
+        public IEnumerator c_Initialize(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
         {
             yield return Ninja.JumpToUnity;
             float progress = 1.0f;

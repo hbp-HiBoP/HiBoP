@@ -94,12 +94,12 @@ namespace HBP.Module3D
         /// <param name="visualization"></param>
         /// <param name="postMRI"></param>
         /// <returns></returns>
-        public IEnumerator c_AddSinglePatientScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, bool postMRI)
+        public IEnumerator c_AddSinglePatientScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
         {
             yield return Ninja.JumpToUnity;
             SinglePatient3DScene scene = Instantiate(SinglePatientScenePrefab, transform).GetComponent<SinglePatient3DScene>();
             scene.Initialize(visualization);
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress, postMRI));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress));
             ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
             // Add the listeners
             scene.Events.OnSendModeSpecifications.AddListener(((specs) =>

@@ -49,8 +49,8 @@ namespace HBP.Module3D
 
         // events
         public Events.ROISynchroEvent ROISynchroEvent = new Events.ROISynchroEvent(); /**< event for synchronizing the ROI of this columns with all others columns */
-        public NoParamEvent SaveROIEvent = new NoParamEvent(); /**< event for saving the ROI and the plots states of the current column */
-        public NoParamEvent LoadROIEvent = new NoParamEvent(); /**< event for loading the ROI and the plots states and add it in the current column */
+        public UnityEvent SaveROIEvent = new UnityEvent(); /**< event for saving the ROI and the plots states of the current column */
+        public UnityEvent LoadROIEvent = new UnityEvent(); /**< event for loading the ROI and the plots states and add it in the current column */
 
         public void init(int columnId, GameObject menu, MultiPatients3DScene mpScene, Transform parentMenu)
         {
