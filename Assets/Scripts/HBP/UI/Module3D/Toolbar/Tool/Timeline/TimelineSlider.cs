@@ -45,8 +45,6 @@ namespace HBP.UI.Module3D.Tools
                 }
             }
         }
-
-        public GenericEvent<int> OnChangeValue = new GenericEvent<int>();
         #endregion
 
         #region Private Methods
@@ -96,7 +94,6 @@ namespace HBP.UI.Module3D.Tools
                 {
                     ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).CurrentTimeLineID = val;
                 }
-                OnChangeValue.Invoke(val);
             });
             ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.AddListener(() =>
             {

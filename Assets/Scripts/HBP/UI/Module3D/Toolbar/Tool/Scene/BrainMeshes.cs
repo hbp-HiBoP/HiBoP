@@ -18,7 +18,6 @@ namespace HBP.UI.Module3D.Tools
         private Toggle m_Right;
 
         private bool m_IsMeshLeftRight;
-        public GenericEvent<SceneStatesInfo.MeshPart> OnChangeValue = new GenericEvent<SceneStatesInfo.MeshPart>();
         #endregion
 
         #region Private Methods
@@ -50,7 +49,6 @@ namespace HBP.UI.Module3D.Tools
                     {
                         SceneStatesInfo.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
                         ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
-                        OnChangeValue.Invoke(mesh);
                     }
                     else
                     {
@@ -61,7 +59,6 @@ namespace HBP.UI.Module3D.Tools
                 {
                     SceneStatesInfo.MeshPart mesh = GetMeshPart(true, true);
                     ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
-                    OnChangeValue.Invoke(mesh);
                 }
             });
 
@@ -75,7 +72,6 @@ namespace HBP.UI.Module3D.Tools
                     {
                         SceneStatesInfo.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
                         ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
-                        OnChangeValue.Invoke(mesh);
                     }
                     else
                     {
@@ -86,7 +82,6 @@ namespace HBP.UI.Module3D.Tools
                 {
                     SceneStatesInfo.MeshPart mesh = GetMeshPart(true, true);
                     ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
-                    OnChangeValue.Invoke(mesh);
                 }
             });
         }

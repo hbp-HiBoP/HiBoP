@@ -17,8 +17,6 @@ namespace HBP.UI.Module3D.Tools
         /// Correspondance between colormap dropdown options indices and color type
         /// </summary>
         private List<ColorType> m_ColormapIndices = new List<ColorType>() { ColorType.Grayscale, ColorType.Hot, ColorType.Winter, ColorType.Warm, ColorType.Surface, ColorType.Cool, ColorType.RedYellow, ColorType.BlueGreen, ColorType.ACTC, ColorType.Bone, ColorType.GEColor, ColorType.Gold, ColorType.XRain, ColorType.MatLab };
-
-        public GenericEvent<ColorType> OnChangeValue = new GenericEvent<ColorType>();
         #endregion
 
         #region Public Methods
@@ -28,7 +26,6 @@ namespace HBP.UI.Module3D.Tools
             {
                 ColorType color = m_ColormapIndices[value];
                 ApplicationState.Module3D.SelectedScene.UpdateColormap(color);
-                OnChangeValue.Invoke(color);
             });
         }
 

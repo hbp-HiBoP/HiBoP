@@ -24,8 +24,6 @@ namespace HBP.UI.Module3D.Tools
         private Toggle m_AllColumns;
         [SerializeField]
         private Button m_Apply;
-
-        public GenericEvent<Site> OnChangeValue = new GenericEvent<Site>();
         #endregion
 
         #region Public Methods

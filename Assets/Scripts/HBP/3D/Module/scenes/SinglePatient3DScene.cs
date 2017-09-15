@@ -50,11 +50,6 @@ namespace HBP.Module3D
         /// </summary>
         private List<string> CCEPLabels = null;
 
-        /// <summary>
-        /// Event for asking the UI to update the latencies display on the plot menu (params : labels)
-        /// </summary>
-        public GenericEvent<List<string>> OnUpdateLatencies = new GenericEvent<List<string>>();
-
         private const float LOADING_MNI = 0.15f;
         private const float LOADING_MESHES_PROGRESS = 0.35f;
         private const float LOADING_VOLUME_PROGRESS = 0.3f;
@@ -246,7 +241,7 @@ namespace HBP.Module3D
         /// Reset the scene : reload meshes, IRM, plots, and regenerate textures
         /// </summary>
         /// <param name="patient"></param>
-        public IEnumerator c_Initialize(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, bool postIRM)
+        public IEnumerator c_Initialize(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
         {
             yield return Ninja.JumpToUnity;
             float progress = 1.0f;
@@ -299,7 +294,7 @@ namespace HBP.Module3D
             // Finalization
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
             UpdateMeshesColliders();
-            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
+            OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
         }
         /// <summary>
         /// Reset the meshes of the scene with GII files

@@ -49,7 +49,7 @@ namespace HBP.UI.Module3D
         public void Initialize(ScenesManager scenesManager)
         {
             FindButtons();
-            scenesManager.OnChangeSelectedScene.AddListener((scene) => OnChangeScene(scene));
+            //scenesManager.OnChangeSelectedScene.AddListener((scene) => OnChangeScene(scene));
             m_globalButton.onClick.AddListener(() => m_GlobalMenuController.switch_UI_Visibility());
             OnChangeScene(scenesManager.SelectedScene);
         }

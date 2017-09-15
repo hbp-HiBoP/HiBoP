@@ -49,8 +49,8 @@ namespace HBP.Module3D
 
         // events
         public Events.ROISynchroEvent ROISynchroEvent = new Events.ROISynchroEvent(); /**< event for synchronizing the ROI of this columns with all others columns */
-        public NoParamEvent SaveROIEvent = new NoParamEvent(); /**< event for saving the ROI and the plots states of the current column */
-        public NoParamEvent LoadROIEvent = new NoParamEvent(); /**< event for loading the ROI and the plots states and add it in the current column */
+        public UnityEvent SaveROIEvent = new UnityEvent(); /**< event for saving the ROI and the plots states of the current column */
+        public UnityEvent LoadROIEvent = new UnityEvent(); /**< event for loading the ROI and the plots states and add it in the current column */
 
         public void init(int columnId, GameObject menu, MultiPatients3DScene mpScene, Transform parentMenu)
         {
@@ -92,38 +92,38 @@ namespace HBP.Module3D
             });
 
 
-            m_mpScene.CreateBubbleEvent.AddListener((position, idC) =>
-            {
-                if (idC == m_idColumn)
-                {
-                    selected_ROI_element().add_bubble(position);
-                    m_mpScene.UpdateCurrentRegionOfInterest(m_mpScene.ColumnManager.Columns[idC]);
-                }
-            });
+            //m_mpScene.CreateBubbleEvent.AddListener((position, idC) =>
+            //{
+            //    if (idC == m_idColumn)
+            //    {
+            //        selected_ROI_element().add_bubble(position);
+            //        m_mpScene.UpdateCurrentRegionOfInterest(m_mpScene.ColumnManager.Columns[idC]);
+            //    }
+            //});
 
-            m_mpScene.SelectBubbleEvent.AddListener((idC, idB) =>
-            {
-                if (idC == m_idColumn)
-                    selected_ROI_element().select_bubble(idB);
-            });
+            //m_mpScene.SelectBubbleEvent.AddListener((idC, idB) =>
+            //{
+            //    if (idC == m_idColumn)
+            //        selected_ROI_element().select_bubble(idB);
+            //});
 
-            m_mpScene.ChangeSizeBubbleEvent.AddListener((idC, idB, coeff) =>
-            {
-                if (idC == m_idColumn)
-                {
-                    selected_ROI_element().change_bubble_size(idB, coeff);
-                    m_mpScene.UpdateCurrentRegionOfInterest(m_mpScene.ColumnManager.Columns[idC]);
-                }
-            });
+            //m_mpScene.ChangeSizeBubbleEvent.AddListener((idC, idB, coeff) =>
+            //{
+            //    if (idC == m_idColumn)
+            //    {
+            //        selected_ROI_element().change_bubble_size(idB, coeff);
+            //        m_mpScene.UpdateCurrentRegionOfInterest(m_mpScene.ColumnManager.Columns[idC]);
+            //    }
+            //});
 
-            m_mpScene.RemoveBubbleEvent.AddListener((idC, idB) =>
-            {
-                if (idC == m_idColumn)
-                {
-                    selected_ROI_element().remove_bubble(idB);
-                    m_mpScene.UpdateCurrentRegionOfInterest(m_mpScene.ColumnManager.Columns[idC]);
-                }
-            });
+            //m_mpScene.RemoveBubbleEvent.AddListener((idC, idB) =>
+            //{
+            //    if (idC == m_idColumn)
+            //    {
+            //        selected_ROI_element().remove_bubble(idB);
+            //        m_mpScene.UpdateCurrentRegionOfInterest(m_mpScene.ColumnManager.Columns[idC]);
+            //    }
+            //});
 
             // init the parent of the column ROIs
             m_colROIListParent = new GameObject("Col " + columnId);

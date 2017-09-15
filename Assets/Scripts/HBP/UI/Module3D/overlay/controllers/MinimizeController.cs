@@ -16,6 +16,7 @@ using UnityEngine.UI;
 
 // hbp
 using HBP.Module3D.Cam;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
@@ -52,7 +53,7 @@ namespace HBP.Module3D
         private int m_currentMpColumnsNb;
 
         // events
-        public SendBoolValueEvent m_minimizeStateSwitchEvent = new SendBoolValueEvent(); /**< event indicating thaht a column minimized state has changed (bool : spScene) */
+        public GenericEvent<bool> m_minimizeStateSwitchEvent = new GenericEvent<bool>(); /**< event indicating thaht a column minimized state has changed (bool : spScene) */
 
 
         #endregion

@@ -16,6 +16,7 @@ using System.Runtime.Serialization;
 
 // unity
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
@@ -62,6 +63,9 @@ namespace HBP.Module3D
                 return m_Spheres.Count;
             }
         }
+
+        public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
+        public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
 
         [SerializeField]
         private GameObject m_SpherePrefab;
@@ -219,17 +223,20 @@ namespace HBP.Module3D
             newBubble.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROISphere;
             newBubble.name = GObubbleName;
             newBubble.transform.SetParent(transform);
-            Sphere bubble = newBubble.GetComponent<Sphere>();
-            bubble.Initialize(m_Layer, ray, position);
-
-            m_Spheres.Add(bubble);
+            Sphere sphere = newBubble.GetComponent<Sphere>();
+            sphere.Initialize(m_Layer, ray, position);
+            sphere.OnChangeROIVolumeRadius.AddListener(() =>
+            {
+                OnChangeROIVolumeRadius.Invoke();
+            });
+            m_Spheres.Add(sphere);
 
             // DLL
             Vector3 positionBubble = position;
             positionBubble.x = -positionBubble.x;
             m_DLLROI.AddBubble(ray, positionBubble);
 
-            ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
+            OnChangeNumberOfVolumeInROI.Invoke();
             SelectSphere(m_Spheres.Count - 1);
         }
         /// <summary>
@@ -250,7 +257,7 @@ namespace HBP.Module3D
             // remove dll sphere
             m_DLLROI.RemoveBubble(idBubble);
 
-            ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
+            OnChangeNumberOfVolumeInROI.Invoke();
 
             // if not we removed the selected bubble, select instead the last one
             if (SelectedSphereID == -1)
@@ -270,7 +277,6 @@ namespace HBP.Module3D
         /// <param name="coeff"></param>
         public void ChangeBubbleSize(int idBubble, float coeff)
         {
-            Debug.Log("changing bubble size");
             if (idBubble < 0 || idBubble >= m_Spheres.Count)
                 return;
 
@@ -279,7 +285,7 @@ namespace HBP.Module3D
             // DLL
             m_DLLROI.UpdateBubble(idBubble, m_Spheres[idBubble].GetComponent<Sphere>().Radius);
 
-            ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
+            OnChangeROIVolumeRadius.Invoke();
         }
         public void ChangeSelectedBubbleSize(float direction)
         {

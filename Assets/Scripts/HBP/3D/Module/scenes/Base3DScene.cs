@@ -92,114 +92,6 @@ namespace HBP.Module3D
     [AddComponentMenu("Scenes/Base 3D Scene")]
     public abstract class Base3DScene : MonoBehaviour, IConfigurable
     {
-        #region Events
-        public class EventManager
-        {
-            /// <summary>
-            /// Event called when this scene is selected
-            /// </summary>
-            public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
-            /// <summary>
-            /// Send the new selected id column to the UI (params : idColumn)
-            /// </summary>
-            public GenericEvent<int> OnSelectColumn = new GenericEvent<int>();
-            /// <summary>
-            /// Event called when a FMRI column is added
-            /// </summary>
-            public UnityEvent OnAddFMRIColumn = new UnityEvent();
-            /// <summary>
-            /// Event called when a FMRI column is removed
-            /// </summary>
-            public UnityEvent OnRemoveFMRIColumn = new UnityEvent();
-            /// <summary>
-            /// Event called when showing or hiding the scene in the UI
-            /// </summary>
-            public GenericEvent<bool> OnChangeVisibleState = new GenericEvent<bool>();
-            /// <summary>
-            /// Event called when reseting the view positions in the UI
-            /// </summary>
-            public UnityEvent OnResetViewPositions = new UnityEvent();
-
-            /// <summary>
-            /// Event for updating cuts planes 
-            /// </summary>
-            public UnityEvent OnUpdatePlanes = new UnityEvent();
-            /// <summary>
-            /// Event for updating the planes cuts display in the cameras
-            /// </summary>
-            public UnityEvent OnModifyPlanesCuts = new UnityEvent();
-            /// <summary>
-            /// Event for updating the cuts images in the UI (params : textures, columnId, planeNb)
-            /// </summary>
-            public GenericEvent<List<Texture2D>, int, int> OnUpdateCutsInUI = new GenericEvent<List<Texture2D>, int, int>();
-
-            public GenericEvent<Cut> OnAddCut = new GenericEvent<Cut>();
-            
-            /// <summary>
-            /// Event for sending IRMF data parameters to UI (params : IRMFDataParameters)
-            /// </summary>
-            public GenericEvent<FMRIDataParameters> OnSendFMRIParameters = new GenericEvent<FMRIDataParameters>();
-
-            /// <summary>
-            /// Event called when changing the colors of the colormap
-            /// </summary>
-            public GenericEvent<ColorType> OnChangeColormap = new GenericEvent<ColorType>();
-            /// <summary>
-            /// Event for colormap values associated to a column id (params : minValue, middle, maxValue, id)
-            /// </summary>
-            public GenericEvent<float, float, float, Column3D> OnSendColorMapValues = new GenericEvent<float, float, float, Column3D>();
-
-            /// <summary>
-            /// Event for sending info in order to display a message in a scene screen (params : message, duration, width, height)
-            /// </summary>
-            public GenericEvent<string, float, int, int> OnDisplaySceneMessage = new GenericEvent<string, float, int, int>();
-            /// <summary>
-            /// Event for sending info in order to display a loadingbar in a scene screen (params : duration, width, height, value)
-            /// </summary>
-            public GenericEvent<float, int, int, float> OnDisplaySceneProgressBar = new GenericEvent<float, int, int, float>();
-
-            /// <summary>
-            /// UI event for sending a plot info request to the outside UI (params : plotRequest)
-            /// </summary>
-            public GenericEvent<SiteRequest> OnRequestSiteInformation = new GenericEvent<SiteRequest>();
-            /// <summary>
-            /// Occurs when a plot is clicked in the scene (params : id of the column, if = -1 use the current selected column id)
-            /// </summary>
-            public GenericEvent<int> OnClickSite = new GenericEvent<int>();
-            /// <summary>
-            /// Event called when clicking on a ROI
-            /// </summary>
-            public GenericEvent<int, int> OnSelectROI = new GenericEvent<int, int>();
-            /// <summary>
-            /// Event called when instantiating a ROI sphere
-            /// </summary>
-            public GenericEvent<Vector3, int> OnCreateROIBubble = new GenericEvent<Vector3, int>();
-
-            /// <summary>
-            /// Event for updating time in the UI
-            /// </summary>
-            public UnityEvent OnUpdateTimeInUI = new UnityEvent();
-            /// <summary>
-            /// Ask the UI to udpate the ROI of all the scene columns
-            /// </summary>
-            public GenericEvent<int> OnAskRegionOfInterestUpdate = new GenericEvent<int>();
-            /// <summary>
-            /// Ask the camera manager to update the target for this scene
-            /// </summary>
-            public GenericEvent<Vector3> OnUpdateCameraTarget = new GenericEvent<Vector3>();
-            /// <summary>
-            /// Event for updating the IRM cal values in the UI
-            /// </summary>
-            public GenericEvent<MRICalValues> OnMRICalValuesUpdate = new GenericEvent<MRICalValues>();
-
-            /// <summary>
-            /// Event for sending mode specifications
-            /// </summary>
-            public GenericEvent<ModeSpecifications> OnSendModeSpecifications = new GenericEvent<ModeSpecifications>();
-        }
-        public EventManager Events = new EventManager();
-        #endregion
-
         #region Properties
         /// <summary>
         /// Name of the scene
@@ -232,7 +124,7 @@ namespace HBP.Module3D
                 m_IsSelected = value;
                 if (m_IsSelected && !wasSelected)
                 {
-                    Events.OnSelectScene.Invoke(this);
+                    OnSelectScene.Invoke(this);
                 }
             }
         }
@@ -609,6 +501,57 @@ namespace HBP.Module3D
         protected GameObject m_SitePrefab;
         #endregion
 
+        #region Events
+        /// <summary>
+        /// Event called when this scene is selected
+        /// </summary>
+        public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
+        /// <summary>
+        /// Event called when showing or hiding the scene in the UI
+        /// </summary>
+        public GenericEvent<bool> OnChangeVisibleState = new GenericEvent<bool>();
+        /// <summary>
+        /// Event called when reseting the view positions in the UI
+        /// </summary>
+        public UnityEvent OnResetViewPositions = new UnityEvent();
+
+        /// <summary>
+        /// Event for updating the planes cuts display in the cameras
+        /// </summary>
+        public UnityEvent OnModifyPlanesCuts = new UnityEvent();
+        /// <summary>
+        /// Event called when adding a cut to the scene
+        /// </summary>
+        public GenericEvent<Cut> OnAddCut = new GenericEvent<Cut>();
+
+        /// <summary>
+        /// Event called when changing the colors of the colormap
+        /// </summary>
+        public GenericEvent<ColorType> OnChangeColormap = new GenericEvent<ColorType>();
+        /// <summary>
+        /// Event for colormap values associated to a column id (params : minValue, middle, maxValue, id)
+        /// </summary>
+        public GenericEvent<float, float, float, Column3D> OnSendColorMapValues = new GenericEvent<float, float, float, Column3D>();
+
+        /// <summary>
+        /// Ask the camera manager to update the target for this scene
+        /// </summary>
+        public GenericEvent<Vector3> OnUpdateCameraTarget = new GenericEvent<Vector3>();
+
+        /// <summary>
+        /// Event called when a FMRI column is added
+        /// </summary>
+        public UnityEvent OnAddFMRIColumn = new UnityEvent();
+        /// <summary>
+        /// Event called when a FMRI column is removed
+        /// </summary>
+        public UnityEvent OnRemoveFMRIColumn = new UnityEvent();
+        /// <summary>
+        /// Event for sending IRMF data parameters to UI (params : IRMFDataParameters)
+        /// </summary>
+        public GenericEvent<FMRIDataParameters> OnSendFMRIParameters = new GenericEvent<FMRIDataParameters>();
+        #endregion
+
         #region Private Methods
         protected void Update()
         {
@@ -640,31 +583,6 @@ namespace HBP.Module3D
         /// </summary>
         private void AddListeners()
         {
-            // There may be problems here FIXME
-            ApplicationState.Module3D.OnSelectColumn.AddListener((column) =>
-            {
-                // force mode to update UI
-                m_ModesManager.SetCurrentModeSpecifications(true);
-
-                ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
-                UpdateGUITextures();
-            });
-            ApplicationState.Module3D.OnChangeNumberOfROI.AddListener(() =>
-            {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
-            });
-            ApplicationState.Module3D.OnChangeROIVolumeRadius.AddListener(() =>
-            {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
-            });
-            ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.AddListener(() =>
-            {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
-            });
-            ApplicationState.Module3D.OnSelectROI.AddListener(() =>
-            {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
-            });
             m_TriEraser.OnModifyInvisiblePart.AddListener(() =>
             {
                 ResetIEEG();
@@ -707,6 +625,36 @@ namespace HBP.Module3D
             {
                 ComputeIEEGTexturesOfColumn(column);
                 m_ColumnManager.UpdateColumnIEEGSitesRendering(column, SceneInformation);
+            });
+            m_ColumnManager.OnChangeNumberOfROI.AddListener(() =>
+            {
+                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
+            });
+            m_ColumnManager.OnChangeNumberOfVolumeInROI.AddListener(() =>
+            {
+                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
+            });
+            m_ColumnManager.OnSelectROI.AddListener(() =>
+            {
+                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                ApplicationState.Module3D.OnSelectROI.Invoke();
+            });
+            m_ColumnManager.OnChangeROIVolumeRadius.AddListener(() =>
+            {
+                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
+            });
+            m_ColumnManager.OnSelectColumnManager.AddListener((columnManager) =>
+            {
+                IsSelected = true;
+
+                // force mode to update UI
+                m_ModesManager.SetCurrentModeSpecifications(true);
+
+                ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
+                UpdateGUITextures();
             });
             SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
@@ -951,8 +899,8 @@ namespace HBP.Module3D
                 float minValue = -maxValue;
                 minValue += m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle;
                 maxValue += m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle;
-                Events.OnSendColorMapValues.Invoke(minValue, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle, maxValue, m_ColumnManager.ColumnsIEEG[ii]);
-                m_ColumnManager.ColumnsIEEG[ii].OnUpdateCurrentTimelineID.Invoke();
+                OnSendColorMapValues.Invoke(minValue, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle, maxValue, m_ColumnManager.ColumnsIEEG[ii]);
+                m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID = 0;
             }
 
             // amplitudes are not displayed yet
@@ -968,9 +916,6 @@ namespace HBP.Module3D
 
             // update plots visibility
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
-            DisplayScreenMessage("Computing finished !", 1f, 250, 40);
-            DisplayProgressbar(1f, 1f, 250, 40);
 
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.PostUpdateGenerators);
@@ -1044,8 +989,8 @@ namespace HBP.Module3D
             // Convert to volume            
             m_ColumnManager.SelectedMRI.NII.ConvertToVolume(m_ColumnManager.DLLVolumeFMriList[newFMRIColumnID]);
 
-            if (Type == SceneType.SinglePatient)
-                Events.OnAskRegionOfInterestUpdate.Invoke(m_ColumnManager.ColumnsIEEG.Count + newFMRIColumnID);
+            //if (Type == SceneType.SinglePatient)
+            //    Events.OnAskRegionOfInterestUpdate.Invoke(m_ColumnManager.ColumnsIEEG.Count + newFMRIColumnID);
 
             // send parameters to UI
             //IRMCalValues calValues = m_CM.DLLVolumeIRMFList[idCol].retrieveExtremeValues();
@@ -1062,11 +1007,11 @@ namespace HBP.Module3D
             m_ColumnManager.ColumnsFMRI[newFMRIColumnID].CalMax = fmriParams.calValues.computedCalMax;
 
             // Update camera
-            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
+            OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
 
             ComputeMRITextures();
 
-            Events.OnSendFMRIParameters.Invoke(fmriParams);
+            OnSendFMRIParameters.Invoke(fmriParams);
             ComputeFMRITextures(-1, -1);
 
             m_ModesManager.UpdateMode(Mode.FunctionsId.AddFMRIColumn);
@@ -1195,7 +1140,7 @@ namespace HBP.Module3D
             if (SceneInformation.IsGeometryUpToDate && !SceneInformation.IsIEEGOutdated)
                 ComputeIEEGTextures();
 
-            Events.OnChangeColormap.Invoke(color);
+            OnChangeColormap.Invoke(color);
         }
         /// <summary>
         /// Update the color of the surface of the brain for this scene
@@ -1284,7 +1229,7 @@ namespace HBP.Module3D
                 column.IsRenderingUpToDate = false;
             }
 
-            Events.OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
+            OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
 
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
@@ -1503,7 +1448,7 @@ namespace HBP.Module3D
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.AddNewPlane);
 
-            Events.OnAddCut.Invoke(cut);
+            OnAddCut.Invoke(cut);
             UpdateCutPlane(cut);
 
             return cut;
@@ -1596,7 +1541,7 @@ namespace HBP.Module3D
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
             // update cameras cuts display
-            Events.OnModifyPlanesCuts.Invoke();
+            OnModifyPlanesCuts.Invoke();
 
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdatePlane);
@@ -1697,7 +1642,7 @@ namespace HBP.Module3D
             }
             else
             {
-                Events.OnAddFMRIColumn.Invoke();
+                OnAddFMRIColumn.Invoke();
             }
             return result;
         }
@@ -1709,7 +1654,7 @@ namespace HBP.Module3D
             if (m_ColumnManager.ColumnsFMRI.Count > 0)
             {
                 UnloadLastFMRIColumn();
-                Events.OnRemoveFMRIColumn.Invoke();
+                OnRemoveFMRIColumn.Invoke();
             }
         }
         /// <summary>
@@ -1728,7 +1673,7 @@ namespace HBP.Module3D
                 FMRIDataParams.calValues = m_ColumnManager.DLLVolumeFMriList[ii].ExtremeValues;
                 FMRIDataParams.singlePatient = Type == SceneType.SinglePatient;
 
-                Events.OnSendFMRIParameters.Invoke(FMRIDataParams);
+                OnSendFMRIParameters.Invoke(FMRIDataParams);
             }
         }
         #endregion
@@ -1752,18 +1697,8 @@ namespace HBP.Module3D
             SceneInformation.MeshesLayerName = "Default";
             SceneInformation.HiddenMeshesLayerName = "Hidden Meshes";
 
-
-            m_ColumnManager.OnSelectColumnManager.AddListener((cm) =>
-            {
-                IsSelected = true;
-            });
-
             // init modes
             m_ModesManager.Initialize(this);
-            m_ModesManager.SendModeSpecifications.AddListener((specs) =>
-            {
-                Events.OnSendModeSpecifications.Invoke(specs);
-            });
 
             AddListeners();
             InitializeSceneGameObjects();
@@ -2260,28 +2195,6 @@ namespace HBP.Module3D
             this.StartCoroutineAsync(c_ComputeGenerators());
         }
         /// <summary>
-        /// Send an event for displaying a message on the scene screen
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="duration"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        public void DisplayScreenMessage(string message, float duration, int width, int height)
-        {
-            Events.OnDisplaySceneMessage.Invoke(message, duration, width , height);
-        }
-        /// <summary>
-        /// Send an event for displaying a progressbar on the scene screen
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="duration"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        public void DisplayProgressbar(float value, float duration, int width, int height)
-        {
-            Events.OnDisplaySceneProgressBar.Invoke(duration, width, height, value);
-        }
-        /// <summary>
         /// Unselect the site of the corresponding column
         /// </summary>
         /// <param name="columnId"></param>
@@ -2290,7 +2203,6 @@ namespace HBP.Module3D
             column.SelectedSiteID = -1; // unselect current site
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             ApplicationState.Module3D.OnSelectSite.Invoke(null);
-            Events.OnClickSite.Invoke(-1); // update menu
         }
         /// <summary>
         /// Send additionnal site info to hight level UI
@@ -2317,7 +2229,7 @@ namespace HBP.Module3D
                     request.site = column.SelectedSite;
                     request.site2 = previousSite;
                     request.maskColumn = masksColumnsData;
-                    Events.OnRequestSiteInformation.Invoke(request);
+                    ApplicationState.Module3D.OnRequestSiteInformation.Invoke(request);
                 }
             }
         }

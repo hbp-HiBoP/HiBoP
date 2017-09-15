@@ -16,8 +16,6 @@ namespace HBP.UI.Module3D.Tools
         private Module3D.ThresholdIEEG m_ThresholdIEEG;
         
         public bool IsGlobal { get; set; }
-
-        public GenericEvent<float, float, float> OnChangeValues = new GenericEvent<float, float, float>();
         #endregion
 
         #region Public Methods
@@ -35,7 +33,6 @@ namespace HBP.UI.Module3D.Tools
                         column.IEEGParameters.SpanMax = max;
                     }
                 }
-                OnChangeValues.Invoke(min, mid, max);
             });
         }
 

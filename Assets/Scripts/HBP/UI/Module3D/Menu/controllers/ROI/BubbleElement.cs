@@ -9,6 +9,7 @@
 
 // unity
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.Module3D
@@ -24,8 +25,8 @@ namespace HBP.Module3D
         public GameObject m_bubbleUI = null; /**< bubble UI gameobject */
 
         // events
-        public SendIntValueEvent SelectBubbleEvent = new SendIntValueEvent(); /**< event for selecting a bubble */
-        public SendIntValueEvent CloseBubbleEvent = new SendIntValueEvent(); /**< event for closing the bubble */
+        public GenericEvent<int> SelectBubbleEvent = new GenericEvent<int>(); /**< event for selecting a bubble */
+        public GenericEvent<int> CloseBubbleEvent = new GenericEvent<int>(); /**< event for closing the bubble */
 
         public void init(int idBubble, GameObject bubbleUI, Transform parentBubbleUI)
         {

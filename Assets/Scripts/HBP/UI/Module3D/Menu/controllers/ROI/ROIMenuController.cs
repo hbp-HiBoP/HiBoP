@@ -66,21 +66,21 @@ namespace HBP.Module3D
             add_menu();
 
 
-            m_scene.Events.OnAskRegionOfInterestUpdate.AddListener((idColumn) =>
-            {
-                if (idColumn == -1)
-                {
-                    for (int ii = 0; ii < m_columnROI.Count; ++ii)
-                    {
-                        m_columnROI[ii].GetComponent<ColumnROI>().set_selected_ROI(0);
-                    }
-                }
-                else
-                {
-                    m_columnROI[idColumn].GetComponent<ColumnROI>().set_selected_ROI(0);
-                }
+            //m_scene.Events.OnAskRegionOfInterestUpdate.AddListener((idColumn) =>
+            //{
+            //    if (idColumn == -1)
+            //    {
+            //        for (int ii = 0; ii < m_columnROI.Count; ++ii)
+            //        {
+            //            m_columnROI[ii].GetComponent<ColumnROI>().set_selected_ROI(0);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        m_columnROI[idColumn].GetComponent<ColumnROI>().set_selected_ROI(0);
+            //    }
 
-            });
+            //});
         }
 
         /// <summary>
@@ -112,20 +112,14 @@ namespace HBP.Module3D
                 string pathFile = save_ROI();
                 if (pathFile.Length == 0)
                 {
-                    m_scene.DisplayScreenMessage("ERROR during ROI saving !", 2f, 200, 80);
                     return;
                 }
-
-                m_scene.DisplayScreenMessage("ROI successfully saved.", 2f, 200, 80);
+                
                 ROISavedEvent.Invoke(pathFile);
             });
 
             newROICol.GetComponent<ColumnROI>().LoadROIEvent.AddListener(() =>
             {
-                if (load_ROI())
-                    m_scene.DisplayScreenMessage("ROI successfully loaded.", 2f, 200, 80);
-                else
-                    m_scene.DisplayScreenMessage("ERROR during ROI loading !", 2f, 200, 80);
             });
         }
 

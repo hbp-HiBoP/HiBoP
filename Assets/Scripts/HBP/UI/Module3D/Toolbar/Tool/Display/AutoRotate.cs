@@ -16,8 +16,6 @@ namespace HBP.UI.Module3D.Tools
         private Toggle m_Toggle;
         [SerializeField]
         private Slider m_Slider;
-
-        public GenericEvent<bool, float> OnChangeValue = new GenericEvent<bool, float>();
         #endregion
 
         #region Public Methods
@@ -28,7 +26,6 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 ApplicationState.Module3D.SelectedScene.AutomaticRotation = isOn;
-                OnChangeValue.Invoke(isOn, m_Slider.value);
             });
 
             m_Slider.onValueChanged.AddListener((value) =>
@@ -36,7 +33,6 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 ApplicationState.Module3D.SelectedScene.AutomaticRotationSpeed = value;
-                OnChangeValue.Invoke(m_Toggle.isOn, value);
             });
         }
 

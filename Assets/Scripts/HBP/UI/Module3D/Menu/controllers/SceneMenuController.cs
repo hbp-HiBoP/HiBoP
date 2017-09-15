@@ -284,10 +284,10 @@ namespace HBP.Module3D
             m_sceneMenu = generate_menu();
 
             // listeners
-            m_scene.Events.OnMRICalValuesUpdate.AddListener((IRMCalValues) =>
-            {
-                m_sceneMenu.GetComponent<SceneMenu>().updateUIValuesFromScene(IRMCalValues);
-            });
+            //m_scene.Events.OnMRICalValuesUpdate.AddListener((IRMCalValues) =>
+            //{
+            //    m_sceneMenu.GetComponent<SceneMenu>().updateUIValuesFromScene(IRMCalValues);
+            //});
         }
 
         private GameObject generate_menu()

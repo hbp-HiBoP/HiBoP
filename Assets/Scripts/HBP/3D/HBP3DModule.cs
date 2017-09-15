@@ -107,11 +107,9 @@ namespace HBP.Module3D
         /// Mars atlas index (to get name of mars atlas, broadman etc)
         /// </summary>
         public DLL.MarsAtlasIndex MarsAtlasIndex;
+        #endregion
 
-        /// <summary>
-        /// Event called when an IEGG column minimized state has changed (params : spScene, IEEGColumnsMinimizedStates)
-        /// </summary>
-        public GenericEvent<bool, List<bool>> OnMinimizeColumn = new GenericEvent<bool, List<bool>>();
+        #region Events
         /// <summary>
         /// UI event for sending a plot info request to the outside UI (params : plotRequest)
         /// </summary>
@@ -128,10 +126,6 @@ namespace HBP.Module3D
         /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
         /// </summary>   
         public GenericEvent<Data.Visualization.Visualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.Visualization, Data.Patient>();
-        /// <summary>
-        /// Send the path of the saved ROI
-        /// </summary>
-        public GenericEvent<string> OnSaveRegionOfInterest = new GenericEvent<string>();
         /// <summary>
         /// Event called when adding or removing a ROI
         /// </summary>
@@ -291,39 +285,12 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
             if (visualization.Patients.Count == 1)
             {
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetSinglePatientVisualization(visualization, onChangeProgress));
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddSinglePatientScene(visualization, onChangeProgress));
             }
             else
             {
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetMultiPatientsVisualization(visualization, onChangeProgress));
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddMultiPatientsScene(visualization, onChangeProgress));
             }
-        }
-        IEnumerator c_SetSinglePatientVisualization(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, bool postMRI = false)
-        {
-            yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddSinglePatientScene(visualization, onChangeProgress, postMRI));
-            // Add listeners to last added scene
-            SinglePatient3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as SinglePatient3DScene;
-            lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
-            {
-                OnRequestSiteInformation.Invoke(siteRequest);
-            });
-        }
-        IEnumerator c_SetMultiPatientsVisualization(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
-        {
-            yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddMultiPatientsScene(visualization, onChangeProgress));
-            bool result = false;
-            // Add listener to last added scene
-            MultiPatients3DScene lastAddedScene = m_ScenesManager.Scenes.Last() as MultiPatients3DScene;
-            lastAddedScene.Events.OnRequestSiteInformation.AddListener((siteRequest) =>
-            {
-                OnRequestSiteInformation.Invoke(siteRequest);
-            });
-            lastAddedScene.OnLoadSinglePatientSceneFromMultiPatientsScene.AddListener((visu, patient) =>
-            {
-                OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(visu, patient);
-            });
         }
         #endregion
     }

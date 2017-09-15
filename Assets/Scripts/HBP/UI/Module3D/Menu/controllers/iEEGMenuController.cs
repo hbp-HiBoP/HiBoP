@@ -778,10 +778,6 @@ namespace HBP.UI.Module3D
                         warnigsCols += "" + ii + " ";
                     }
                 }
-                if (displayWarning)
-                {
-                    m_scene.DisplayScreenMessage("Parameters truncated by min/max values for columns : " + warnigsCols, 2f, 300, 100);
-                }
 
             });
 

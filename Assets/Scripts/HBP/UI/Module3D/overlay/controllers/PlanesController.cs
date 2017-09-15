@@ -78,9 +78,9 @@ namespace HBP.Module3D
             removePlaneButton.onClick.AddListener(delegate { if (m_CurrentPlaneNumber > 0) { removePlane(); } });
 
             // updates planes after reloading volume 
-            m_Scene.Events.OnUpdatePlanes.AddListener(
-                    delegate { updateAllSceneCutPlanes(); }
-                );
+            //m_Scene.Events.OnUpdatePlanes.AddListener(
+            //        delegate { updateAllSceneCutPlanes(); }
+            //    );
 
             // add 3 planes
             //add_and_init_plane();

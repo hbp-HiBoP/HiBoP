@@ -11,6 +11,7 @@ using System.Runtime.Serialization;
 * \brief   Define Bubble
 */
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
@@ -61,7 +62,7 @@ namespace HBP.Module3D
                 }
                 transform.localScale = new Vector3(m_Radius, m_Radius, m_Radius);
 
-                ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
+                OnChangeROIVolumeRadius.Invoke();
             }
         }
 
@@ -85,6 +86,8 @@ namespace HBP.Module3D
                 }
             }
         }
+
+        public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
         #endregion
 
         #region Private Methods

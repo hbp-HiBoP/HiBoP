@@ -247,7 +247,9 @@ namespace HBP.Module3D
         private int m_RegularCullingMask;
 
         private bool m_Initialized = false;
+        #endregion
 
+        #region Events
         /// <summary>
         /// Event called when we select this view
         /// </summary>

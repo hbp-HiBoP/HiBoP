@@ -104,7 +104,9 @@ namespace HBP.Module3D
                 return m_MeshHasInvisibleTriangles;
             }
         }
+        #endregion
 
+        #region Events
         public UnityEvent OnModifyInvisiblePart = new UnityEvent();
         #endregion
 

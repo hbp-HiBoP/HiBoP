@@ -52,19 +52,6 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        /// Event called when the user selects another scene
-        /// </summary>
-        public GenericEvent<Base3DScene> OnChangeSelectedScene = new GenericEvent<Base3DScene>();
-        /// <summary>
-        /// Event called when the mode specifications are sent
-        /// </summary>
-        public GenericEvent<ModeSpecifications> OnSendModeSpecifications = new GenericEvent<ModeSpecifications>();
-        /// <summary>
-        /// Event called when the user selects a scene
-        /// </summary>
-        public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
-
-        /// <summary>
         /// Prefab corresponding to a single patient scene
         /// </summary>
         public GameObject SinglePatientScenePrefab;
@@ -72,6 +59,13 @@ namespace HBP.Module3D
         /// Prefab corresponding to a multi patient scene
         /// </summary>
         public GameObject MultiPatientsScenePrefab;
+        #endregion
+
+        #region Events
+        /// <summary>
+        /// Event called when the user selects a scene
+        /// </summary>
+        public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
         #endregion
 
         #region Public Methods
@@ -94,19 +88,15 @@ namespace HBP.Module3D
         /// <param name="visualization"></param>
         /// <param name="postMRI"></param>
         /// <returns></returns>
-        public IEnumerator c_AddSinglePatientScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, bool postMRI)
+        public IEnumerator c_AddSinglePatientScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
         {
             yield return Ninja.JumpToUnity;
             SinglePatient3DScene scene = Instantiate(SinglePatientScenePrefab, transform).GetComponent<SinglePatient3DScene>();
             scene.Initialize(visualization);
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress, postMRI));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress));
             ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
             // Add the listeners
-            scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
-            {
-                OnSendModeSpecifications.Invoke(specs);
-            }));
-            scene.Events.OnSelectScene.AddListener((selectedScene) =>
+            scene.OnSelectScene.AddListener((selectedScene) =>
             {
                 foreach (Base3DScene s in m_Scenes)
                 {
@@ -135,11 +125,7 @@ namespace HBP.Module3D
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress));
             ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
             // Add the listeners
-            scene.Events.OnSendModeSpecifications.AddListener(((specs) =>
-            {
-                OnSendModeSpecifications.Invoke(specs);
-            }));
-            scene.Events.OnSelectScene.AddListener((selectedScene) =>
+            scene.OnSelectScene.AddListener((selectedScene) =>
             {
                 foreach (Base3DScene s in m_Scenes)
                 {

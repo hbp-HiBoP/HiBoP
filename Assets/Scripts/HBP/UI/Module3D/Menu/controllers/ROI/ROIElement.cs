@@ -11,6 +11,7 @@ using System.Collections.Generic;
 
 // unity
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.Module3D
@@ -36,9 +37,9 @@ namespace HBP.Module3D
         public List<GameObject> m_bubblesUIList = new List<GameObject>(); /**< bubbles UI list */
 
         // events
-        public NoParamEvent m_closeBubbleEvent = new NoParamEvent(); /**< event for closing bubble */
-        public SendIntValueEvent m_closeROIEvent = new SendIntValueEvent(); /**< event for closing ROI */
-        public SendIntValueEvent m_selectROIEvent = new SendIntValueEvent(); /**< event for selecting a ROI */
+        public UnityEvent m_closeBubbleEvent = new UnityEvent(); /**< event for closing bubble */
+        public GenericEvent<int> m_closeROIEvent = new GenericEvent<int>(); /**< event for closing ROI */
+        public GenericEvent<int> m_selectROIEvent = new GenericEvent<int>(); /**< event for selecting a ROI */
 
         // scene
         MultiPatients3DScene m_mpScene = null;

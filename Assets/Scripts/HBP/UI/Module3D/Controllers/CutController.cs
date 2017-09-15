@@ -52,7 +52,7 @@ namespace HBP.UI.Module3D
         {
             m_Initialized = true;
         }
-        private void AddCutCallback(Cut cut)
+        private void AddCut(Cut cut)
         {
             CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
             controller.Initialize(m_Scene, cut);
@@ -101,11 +101,11 @@ namespace HBP.UI.Module3D
 
             foreach (Cut cut in m_Scene.Cuts)
             {
-                AddCutCallback(cut);
+                AddCut(cut);
             }
-            m_Scene.Events.OnAddCut.AddListener((cut) =>
+            m_Scene.OnAddCut.AddListener((cut) =>
             {
-                AddCutCallback(cut);
+                AddCut(cut);
             });
         }
         #endregion

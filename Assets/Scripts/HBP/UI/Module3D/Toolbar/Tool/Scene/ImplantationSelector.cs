@@ -13,8 +13,6 @@ namespace HBP.UI.Module3D.Tools
         #region Properties
         [SerializeField]
         private Dropdown m_Dropdown;
-
-        public GenericEvent<int> OnChangeValue = new GenericEvent<int>();
         #endregion
 
         #region Public Methods
@@ -25,7 +23,6 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 ApplicationState.Module3D.SelectedScene.UpdateSites(value);
-                OnChangeValue.Invoke(value);
             });
         }
         public override void DefaultState()

@@ -1,7 +1,4 @@
-﻿
-
-
-// system
+﻿// system
 using CielaSpike;
 /**
 * \file    Column3DViewIEEG.cs
@@ -360,8 +357,9 @@ namespace HBP.Module3D
         public bool SiteLatencyData = false; /**< latency data defined for the current selected plot */
         public int SourceSelectedID = -1; /**< id of the selected source */
         public int CurrentLatencyFile = -1; /**< id of the current latency file */
+        #endregion
 
-        // events
+        #region Events
         public UnityEvent OnUpdateCurrentTimelineID = new UnityEvent();
         #endregion
 

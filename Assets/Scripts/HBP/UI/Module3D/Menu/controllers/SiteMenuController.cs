@@ -123,31 +123,31 @@ namespace HBP.UI.Module3D
             {
                 case SceneType.SinglePatient:
                     SinglePatient3DScene SP3DScene = (SinglePatient3DScene)(m_scene);
-                    SP3DScene.OnUpdateLatencies.AddListener((labels) =>
-                    {
-                        labelCCEP = labels;
-                        update_CCEP();
-                    });
+                    //SP3DScene.OnUpdateLatencies.AddListener((labels) =>
+                    //{
+                    //    labelCCEP = labels;
+                    //    update_CCEP();
+                    //});
                     break;
                 case SceneType.MultiPatients:
                     break;
             }
 
             // click site  
-            m_scene.Events.OnClickSite.AddListener((idColumn) =>
-            {
-                if (idColumn == -1)
-                    idColumn = m_scene.ColumnManager.SelectedColumnID;
+            //m_scene.Events.OnClickSite.AddListener((idColumn) =>
+            //{
+            //    if (idColumn == -1)
+            //        idColumn = m_scene.ColumnManager.SelectedColumnID;
 
-                if (idColumn != m_columnId)
-                    return;
+            //    if (idColumn != m_columnId)
+            //        return;
 
-                if (m_scene.ColumnManager.Columns[idColumn].SelectedSiteID == -1)
-                    return;
+            //    if (m_scene.ColumnManager.Columns[idColumn].SelectedSiteID == -1)
+            //        return;
 
-                SiteInfoRequest.Invoke(m_columnId);
-                update_menu();
-            });
+            //    SiteInfoRequest.Invoke(m_columnId);
+            //    update_menu();
+            //});
 
             // toggle update info
             contentPanelT.Find("selected site buttons").Find("update infos toggle").GetComponent<Toggle>().onValueChanged.AddListener((value) =>
@@ -540,7 +540,6 @@ namespace HBP.UI.Module3D
                     if (true/*m_scene.SceneInformation.IsComparingSites*/)
                     {
                         //m_scene.SceneInformation.IsComparingSites = false;
-                        m_scene.DisplayScreenMessage("Compare : " + m_lastSiteSelected.name + " from col " + m_lastUpdatedColumn + "\n with " + m_scene.ColumnManager.SelectedColumn.SelectedSite.name + " from col " + idColumn, 5f, 250, 80);
                         m_scene.SendAdditionalSiteInfoRequest(m_lastSiteSelected);
                     }
                     else
