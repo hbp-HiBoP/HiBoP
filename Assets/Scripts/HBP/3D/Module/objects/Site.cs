@@ -89,13 +89,6 @@ namespace HBP.Module3D
         {
             Patient = info.Patient;
             Name = info.Name;
-            IsMasked = info.IsMasked;
-            IsExcluded = info.IsExcluded;
-            IsBlackListed = info.IsBlackListed;
-            IsOutOfROI = info.IsOutOfROI;
-            IsHighlighted = info.IsHighlighted;
-            IsMarked = info.IsMarked;
-            GlobalID = info.GlobalID;
             SitePatientID = info.SitePatientID;
             PatientNumber = info.PatientNumber;
             ElectrodeNumber = info.ElectrodeNumber;
@@ -106,13 +99,6 @@ namespace HBP.Module3D
 
         public Data.Patient Patient { get; set; }
         public string Name { get; set; }
-
-        public bool IsMasked { get; set; }     /**< is the site masked on the column ? */
-        public bool IsExcluded { get; set; }        /**< is the site excluded ? */
-        public bool IsBlackListed { get; set; }      /**< is the site blacklisted ? */
-        public bool IsOutOfROI { get; set; }      /**< is the site in a ROI ? */
-        public bool IsHighlighted { get; set; }       /**< is the site highlighted ? */
-        public bool IsMarked { get; set; }          /**< is the site marked ? */
 
         public int GlobalID { get; set; }        /**< global site id (all patients) */
         public int SitePatientID { get; set; }    /**< site id of the patient */
@@ -137,6 +123,13 @@ namespace HBP.Module3D
                 return Patient.ID + "_" + Name;
             }
         }
+        public string FullCorrectedID
+        {
+            get
+            {
+                return PatientID + "_" + Name.ToUpper().Replace('P', '\'');
+            }
+        }
         public string DisplayedName
         {
             get
@@ -144,6 +137,26 @@ namespace HBP.Module3D
                 return Patient.Place + " | " + Patient.Date + " | " + Patient.Name + " | " + Name;
             }
         }
+    }
+
+    public class SiteState
+    {
+        public SiteState(SiteState state)
+        {
+            IsMasked = state.IsMasked;
+            IsExcluded = state.IsExcluded;
+            IsBlackListed = state.IsBlackListed;
+            IsOutOfROI = state.IsOutOfROI;
+            IsHighlighted = state.IsHighlighted;
+            IsMarked = state.IsMarked;
+        }
+        public SiteState() { }
+        public bool IsMasked { get; set; }     /**< is the site masked on the column ? */
+        public bool IsExcluded { get; set; }        /**< is the site excluded ? */
+        public bool IsBlackListed { get; set; }      /**< is the site blacklisted ? */
+        public bool IsOutOfROI { get; set; }      /**< is the site in a ROI ? */
+        public bool IsHighlighted { get; set; }       /**< is the site highlighted ? */
+        public bool IsMarked { get; set; }          /**< is the site marked ? */
     }
 
     /// <summary>
@@ -180,6 +193,11 @@ namespace HBP.Module3D
         public SiteInformation Information { get; set; }
 
         /// <summary>
+        /// State of this site
+        /// </summary>
+        public SiteState State { get; set; }
+
+        /// <summary>
         /// Configuration of this site
         /// </summary>
         public Data.Visualization.SiteConfiguration Configuration { get; set; }
@@ -189,6 +207,7 @@ namespace HBP.Module3D
         private void Awake()
         {
             Information = new SiteInformation();
+            State = new SiteState();
             Configuration = new Data.Visualization.SiteConfiguration();
         }
         #endregion
@@ -245,27 +264,27 @@ namespace HBP.Module3D
         public void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration(false);
-            Information.IsBlackListed = Configuration.IsBlacklisted;
-            Information.IsExcluded = Configuration.IsExcluded;
-            Information.IsHighlighted = Configuration.IsHighlighted;
-            Information.IsMarked = Configuration.IsMarked;
+            State.IsBlackListed = Configuration.IsBlacklisted;
+            State.IsExcluded = Configuration.IsExcluded;
+            State.IsHighlighted = Configuration.IsHighlighted;
+            State.IsMarked = Configuration.IsMarked;
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
 
         public void SaveConfiguration()
         {
-            Configuration.IsBlacklisted = Information.IsBlackListed;
-            Configuration.IsExcluded = Information.IsExcluded;
-            Configuration.IsHighlighted = Information.IsHighlighted;
-            Configuration.IsMarked = Information.IsMarked;
+            Configuration.IsBlacklisted = State.IsBlackListed;
+            Configuration.IsExcluded = State.IsExcluded;
+            Configuration.IsHighlighted = State.IsHighlighted;
+            Configuration.IsMarked = State.IsMarked;
         }
 
         public void ResetConfiguration(bool firstCall = true)
         {
-            Information.IsBlackListed = false;
-            Information.IsExcluded = false;
-            Information.IsHighlighted = false;
-            Information.IsMarked = false;
+            State.IsBlackListed = false;
+            State.IsExcluded = false;
+            State.IsHighlighted = false;
+            State.IsMarked = false;
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         #endregion

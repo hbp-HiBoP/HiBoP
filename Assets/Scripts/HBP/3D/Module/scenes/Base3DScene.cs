@@ -1340,13 +1340,13 @@ namespace HBP.Module3D
                             site.Information.ElectrodeNumber = jj;
                             site.Information.SiteNumber = kk;
                             site.Information.GlobalID = currPlotNb++;
-                            site.Information.IsBlackListed = false;
-                            site.Information.IsHighlighted = false;
-                            site.Information.IsExcluded = false;
-                            site.Information.IsOutOfROI = false;
-                            site.Information.IsMarked = false;
-                            site.Information.IsMasked = false;
                             site.Information.MarsAtlasIndex = electrodesList.MarsAtlasLabelOfSite(ii, jj, kk);
+                            site.State.IsBlackListed = false;
+                            site.State.IsHighlighted = false;
+                            site.State.IsExcluded = false;
+                            site.State.IsOutOfROI = false;
+                            site.State.IsMarked = false;
+                            site.State.IsMasked = false;
                             site.IsActive = true;
 
                             m_ColumnManager.SitesList.Add(siteGameObject);
@@ -1986,7 +1986,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < column.Sites.Count; ++jj)
                             {                                
-                                if (column.Sites[jj].Information.IsHighlighted)
+                                if (column.Sites[jj].State.IsHighlighted)
                                     sitesID.Add(jj);
                             }
                         }
@@ -1995,7 +1995,7 @@ namespace HBP.Module3D
                         {                            
                             for (int jj = 0; jj < column.Sites.Count; ++jj)
                             {
-                                if (!column.Sites[jj].Information.IsHighlighted)
+                                if (!column.Sites[jj].State.IsHighlighted)
                                     sitesID.Add(jj);
                             }
                         }
@@ -2012,7 +2012,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < column.Sites.Count; ++jj)
                             {
-                                if (!column.Sites[jj].Information.IsOutOfROI)
+                                if (!column.Sites[jj].State.IsOutOfROI)
                                     sitesID.Add(jj);
                             }
                         }
@@ -2021,7 +2021,7 @@ namespace HBP.Module3D
                         {
                             for (int jj = 0; jj < column.Sites.Count; ++jj)
                             {
-                                if (column.Sites[jj].Information.IsOutOfROI)
+                                if (column.Sites[jj].State.IsOutOfROI)
                                     sitesID.Add(jj);
                             }
                         }
@@ -2064,28 +2064,28 @@ namespace HBP.Module3D
                     switch (action)
                     {
                         case SiteAction.Include:
-                            column.Sites[sitesID[ii]].Information.IsExcluded = false;
+                            column.Sites[sitesID[ii]].State.IsExcluded = false;
                             break;
                         case SiteAction.Exclude:
-                            column.Sites[sitesID[ii]].Information.IsExcluded = true;
+                            column.Sites[sitesID[ii]].State.IsExcluded = true;
                             break;
                         case SiteAction.Blacklist:
-                            column.Sites[sitesID[ii]].Information.IsBlackListed = true;
+                            column.Sites[sitesID[ii]].State.IsBlackListed = true;
                             break;
                         case SiteAction.Unblacklist:
-                            column.Sites[sitesID[ii]].Information.IsBlackListed = false;
+                            column.Sites[sitesID[ii]].State.IsBlackListed = false;
                             break;
                         case SiteAction.Highlight:
-                            column.Sites[sitesID[ii]].Information.IsHighlighted = true;
+                            column.Sites[sitesID[ii]].State.IsHighlighted = true;
                             break;
                         case SiteAction.Unhighlight:
-                            column.Sites[sitesID[ii]].Information.IsHighlighted = false;
+                            column.Sites[sitesID[ii]].State.IsHighlighted = false;
                             break;
                         case SiteAction.Mark:
-                            column.Sites[sitesID[ii]].Information.IsMarked = true;
+                            column.Sites[sitesID[ii]].State.IsMarked = true;
                             break;
                         case SiteAction.Unmark:
-                            column.Sites[sitesID[ii]].Information.IsMarked = false;
+                            column.Sites[sitesID[ii]].State.IsMarked = false;
                             break;
                         default:
                             break;
@@ -2221,7 +2221,7 @@ namespace HBP.Module3D
                         for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG[ii].Sites.Count; ++jj)
                         {
                             Site s = m_ColumnManager.ColumnsIEEG[ii].Sites[jj];
-                            bool keep = (!s.Information.IsBlackListed && !s.Information.IsExcluded && !s.Information.IsMasked && !s.Information.IsOutOfROI);
+                            bool keep = (!s.State.IsBlackListed && !s.State.IsExcluded && !s.State.IsMasked && !s.State.IsOutOfROI);
                             masksColumnsData[ii].Add(keep);
                         }
                     }
@@ -2243,7 +2243,7 @@ namespace HBP.Module3D
             {
                 foreach (Site site in column.Sites)
                 {
-                    site.Information.IsOutOfROI = false;
+                    site.State.IsOutOfROI = false;
                 }
             }
             else
@@ -2252,11 +2252,11 @@ namespace HBP.Module3D
 
                 // update mask ROI
                 for (int ii = 0; ii < maskROI.Length; ++ii)
-                    maskROI[ii] = column.Sites[ii].Information.IsOutOfROI;
+                    maskROI[ii] = column.Sites[ii].State.IsOutOfROI;
 
                 column.SelectedROI.UpdateMask(column.RawElectrodes, maskROI);
                 for (int ii = 0; ii < column.Sites.Count; ++ii)
-                    column.Sites[ii].Information.IsOutOfROI = maskROI[ii];
+                    column.Sites[ii].State.IsOutOfROI = maskROI[ii];
             }
             ResetIEEG();
         }

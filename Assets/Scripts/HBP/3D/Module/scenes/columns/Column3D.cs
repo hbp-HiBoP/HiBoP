@@ -140,7 +140,7 @@ namespace HBP.Module3D
         }
         public List<List<List<GameObject>>> SitesGameObjects = null; /**< plots GO list with order : patient/electrode/plot */
         public List<Site> Sites = null; /**< plots list */
-        public Dictionary<string, SiteInformation> SiteInformationByID = new Dictionary<string, SiteInformation>();
+        public Dictionary<string, SiteState> SiteStateBySiteID = new Dictionary<string, SiteState>();
 
         // select plot
         protected SiteRing m_SelectRing = null;
@@ -295,7 +295,7 @@ namespace HBP.Module3D
             // update rendering
             IsRenderingUpToDate = false;
         }
-        public void UpdateSites(DLL.PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
+        public virtual void UpdateSites(DLL.PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             GameObject patientPlotsParent = transform.Find("Sites").gameObject;
             foreach (Transform patientSite in patientPlotsParent.transform)
@@ -330,11 +330,12 @@ namespace HBP.Module3D
 
                         int id = Sites.Count - 1;
                         Site baseSite = siteList[id].GetComponent<Site>();
-                        if (!SiteInformationByID.ContainsKey(baseSite.Information.FullID))
+                        Sites[id].Information = baseSite.Information;
+                        if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullID))
                         {
-                            SiteInformationByID.Add(baseSite.Information.FullID, new SiteInformation(baseSite.Information));
+                            SiteStateBySiteID.Add(baseSite.Information.FullID, new SiteState(baseSite.State));
                         }
-                        Sites[id].Information = SiteInformationByID[baseSite.Information.FullID];
+                        Sites[id].State = SiteStateBySiteID[baseSite.Information.FullID];
                         Sites[id].IsActive = true;
                     }
                 }
@@ -489,7 +490,7 @@ namespace HBP.Module3D
                     {
                         string plotGOName = SitesGameObjects[ii][jj][kk].name;
                         string[] split = plotGOName.Split('_');
-                        text += split[split.Length - 1] + " " + (Sites[id].Information.IsExcluded ? 1 : 0) + " " + (Sites[id].Information.IsBlackListed ? 1 : 0 ) + " " + (Sites[id].Information.IsMasked ? 1 : 0) + " " + (Sites[id].Information.IsHighlighted? 1 : 0) + "\n";
+                        text += split[split.Length - 1] + " " + (Sites[id].State.IsExcluded ? 1 : 0) + " " + (Sites[id].State.IsBlackListed ? 1 : 0 ) + " " + (Sites[id].State.IsMasked ? 1 : 0) + " " + (Sites[id].State.IsHighlighted? 1 : 0) + "\n";
                     }
                 }
             }
@@ -517,8 +518,8 @@ namespace HBP.Module3D
                     sitesInROIPerPlot[ii].Add(new List<bool>(SitesGameObjects[ii][jj].Count));
                     for (int kk = 0; kk < SitesGameObjects[ii][jj].Count; ++kk, ++id)
                     {
-                        bool inROI = !Sites[id].Information.IsOutOfROI;
-                        bool blackList = Sites[id].Information.IsBlackListed;
+                        bool inROI = !Sites[id].State.IsOutOfROI;
+                        bool blackList = Sites[id].State.IsBlackListed;
 
                         bool keep = inROI && !blackList;
 
@@ -555,7 +556,7 @@ namespace HBP.Module3D
                         {
                             string plotGOName = SitesGameObjects[ii][jj][kk].name;
                             string[] split = plotGOName.Split('_');
-                            text += split[split.Length - 1] + " " + (Sites[id].Information.IsExcluded ? 1 : 0) + " " + (Sites[id].Information.IsBlackListed ? 1 : 0) + " " + (Sites[id].Information.IsMasked ? 1 : 0) + " " + (Sites[id].Information.IsHighlighted ? 1 : 0) + "\n";
+                            text += split[split.Length - 1] + " " + (Sites[id].State.IsExcluded ? 1 : 0) + " " + (Sites[id].State.IsBlackListed ? 1 : 0) + " " + (Sites[id].State.IsMasked ? 1 : 0) + " " + (Sites[id].State.IsHighlighted ? 1 : 0) + "\n";
                         }
                     }
                 }

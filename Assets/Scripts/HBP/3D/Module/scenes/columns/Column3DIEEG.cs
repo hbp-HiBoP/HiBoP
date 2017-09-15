@@ -13,6 +13,7 @@ using System.Linq;
 // unity
 using UnityEngine;
 using UnityEngine.Events;
+using HBP.Module3D.DLL;
 
 namespace HBP.Module3D
 {
@@ -31,12 +32,12 @@ namespace HBP.Module3D
         }
         // data
         public Data.Visualization.Column ColumnData = null; /**< column data formalized by the unity main UI part */
-        
+
         // textures
-        public List<Texture2D> BrainCutWithIEEGTextures     = null;
-        public List<Texture2D> GUIBrainCutWithIEEGTextures  = null;
-         
-        public List<DLL.Texture> DLLBrainCutWithIEEGTextures        = null;
+        public List<Texture2D> BrainCutWithIEEGTextures = null;
+        public List<Texture2D> GUIBrainCutWithIEEGTextures = null;
+
+        public List<DLL.Texture> DLLBrainCutWithIEEGTextures = null;
         public List<DLL.Texture> DLLGUIBrainCutWithIEEGTextures = null;
 
         // IEEG
@@ -85,7 +86,7 @@ namespace HBP.Module3D
         }
         public float SharedMinInf = 0f;
         public float SharedMaxInf = 0f;
-        
+
         /// <summary>
         /// Is the column data looping ?
         /// </summary>
@@ -344,7 +345,27 @@ namespace HBP.Module3D
         }
 
         //  amplitudes
-        public int[] Dimensions = new int[3]; /**< amplitudes array dimensions (dims[0] = size| dims[1] = 1 (legacy) | dims[2] = plots number ) */
+        public int TimelineLength
+        {
+            get
+            {
+                return ColumnData.TimeLine.Lenght;
+            }
+        }
+        public int SitesCount
+        {
+            get
+            {
+                return Sites.Count;
+            }
+        }
+        public int[] EEGDimensions
+        {
+            get
+            {
+                return new int[] { TimelineLength, 1, SitesCount };
+            }
+        }
         public float[] IEEGValues = new float[0]; /**< amplitudes 1D array (to be sent to the DLL) */
         public float[][] IEEGValuesBySiteID;
         //  plots
@@ -416,6 +437,10 @@ namespace HBP.Module3D
                 DLLBrainCutWithIEEGTextures.Add(new DLL.Texture());
                 DLLGUIBrainCutWithIEEGTextures.Add(new DLL.Texture());
             }
+        }
+        public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
+        {
+            base.UpdateSites(sites, sitesPatientParent, siteList);
 
             // plots
             ElectrodesSizeScale = new List<Vector3>(m_RawElectrodes.NumberOfSites);
@@ -427,6 +452,8 @@ namespace HBP.Module3D
                 ElectrodesSizeScale.Add(new Vector3(1, 1, 1));
                 ElectrodesPositiveColor.Add(true);
             }
+
+            SetEEGData();
         }
         /// <summary>
         /// Load the visualization configuration from the loaded visualization
@@ -512,7 +539,55 @@ namespace HBP.Module3D
             bool noROI = false; // (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles == 0);
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                m_RawElectrodes.UpdateMask(ii, (Sites[ii].Information.IsMasked || Sites[ii].Information.IsBlackListed || Sites[ii].Information.IsExcluded || (Sites[ii].Information.IsOutOfROI && !noROI)));
+                m_RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || Sites[ii].State.IsExcluded || (Sites[ii].State.IsOutOfROI && !noROI)));
+            }
+        }
+        /// <summary>
+        /// Set EED Data for each site
+        /// </summary>
+        public void SetEEGData()
+        {
+            if (ColumnData == null) return;
+
+            MinTimeLine = ColumnData.TimeLine.Start.Value;
+            MaxTimeLine = ColumnData.TimeLine.End.Value;
+            MaxTimeLineID = ColumnData.TimeLine.Lenght - 1;
+
+            // Construct sites value array the old way, and set sites masks // maybe FIXME
+            IEEGValuesBySiteID = new float[SitesCount][];
+            foreach (Site site in Sites)
+            {
+                if (ColumnData.Configuration.ConfigurationBySite.ContainsKey(site.Information.FullCorrectedID))
+                {
+                    Data.Visualization.SiteConfiguration siteConfiguration = ColumnData.Configuration.ConfigurationBySite[site.Information.FullCorrectedID]; // FIXME (Automatic correction)
+                    IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.Values;
+                    site.State.IsMasked = false; // update mask
+                    site.Configuration = siteConfiguration;
+                }
+                else
+                {
+                    IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
+                    site.State.IsMasked = true; // update mask
+                }
+            }
+
+            IEEGParameters.MinimumAmplitude = float.MaxValue;
+            IEEGParameters.MaximumAmplitude = float.MinValue;
+
+            IEEGValues = new float[TimelineLength * SitesCount];
+            for (int ii = 0; ii < TimelineLength; ++ii)
+            {
+                for (int jj = 0; jj < SitesCount; ++jj)
+                {
+                    IEEGValues[ii * SitesCount + jj] = IEEGValuesBySiteID[jj][ii];
+
+                    // update min/max values
+                    if (IEEGValuesBySiteID[jj][ii] > IEEGParameters.MaximumAmplitude)
+                        IEEGParameters.MaximumAmplitude = IEEGValuesBySiteID[jj][ii];
+
+                    if (IEEGValuesBySiteID[jj][ii] < IEEGParameters.MinimumAmplitude)
+                        IEEGParameters.MinimumAmplitude = IEEGValuesBySiteID[jj][ii];
+                }
             }
         }
         /// <summary>
@@ -523,53 +598,7 @@ namespace HBP.Module3D
         {
             ColumnData = newColumnData;
             m_IEEGParameters.ColumnData = newColumnData;
-
-            MinTimeLine = newColumnData.TimeLine.Start.Value;
-            MaxTimeLine = newColumnData.TimeLine.End.Value;
-            MaxTimeLineID = ColumnData.TimeLine.Lenght - 1;
-
-            // update amplitudes sizes and values
-            Dimensions = new int[3];
-            Dimensions[0] = ColumnData.TimeLine.Lenght;
-            Dimensions[1] = 1;
-            Dimensions[2] = Sites.Count;
-
-            // Construct sites value array the old way, and set sites masks // maybe FIXME
-            IEEGValuesBySiteID = new float[Dimensions[2]][];
-            foreach (Site site in Sites)
-            {
-                string correctedSiteID = site.Information.PatientID + "_" + site.name.ToUpper().Replace('P', '\'');
-                if (ColumnData.Configuration.ConfigurationBySite.ContainsKey(correctedSiteID))
-                {
-                    Data.Visualization.SiteConfiguration siteConfiguration = ColumnData.Configuration.ConfigurationBySite[correctedSiteID]; // FIXME (Automatic correction)
-                    IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.Values;
-                    site.Information.IsMasked = false; // update mask
-                    site.Configuration = siteConfiguration;
-                }
-                else
-                {
-                    IEEGValuesBySiteID[site.Information.GlobalID] = new float[Dimensions[0]];
-                    site.Information.IsMasked = true; // update mask
-                }
-            }
-            IEEGParameters.MinimumAmplitude = float.MaxValue;
-            IEEGParameters.MaximumAmplitude = float.MinValue;
-
-            IEEGValues = new float[Dimensions[0] * Dimensions[1] * Dimensions[2]];
-            for (int ii = 0; ii < Dimensions[0]; ++ii)
-            {
-                for (int jj = 0; jj < Dimensions[2]; ++jj)
-                {
-                    IEEGValues[ii * Dimensions[2] + jj] = IEEGValuesBySiteID[jj][ii];
-
-                    // update min/max values
-                    if (IEEGValuesBySiteID[jj][ii] > IEEGParameters.MaximumAmplitude)
-                        IEEGParameters.MaximumAmplitude = IEEGValuesBySiteID[jj][ii];
-
-                    if (IEEGValuesBySiteID[jj][ii] < IEEGParameters.MinimumAmplitude)
-                        IEEGParameters.MinimumAmplitude = IEEGValuesBySiteID[jj][ii];
-                }
-            }
+            SetEEGData();
         }
         /// <summary>
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
@@ -583,7 +612,7 @@ namespace HBP.Module3D
 
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                if (Sites[ii].Information.IsOutOfROI || Sites[ii].Information.IsMasked)
+                if (Sites[ii].State.IsOutOfROI || Sites[ii].State.IsMasked)
                     continue;
 
                 float value = IEEGValuesBySiteID[ii][CurrentTimeLineID];
@@ -682,16 +711,16 @@ namespace HBP.Module3D
                     //MaterialPropertyBlock props = new MaterialPropertyBlock();
 
                     bool activity = true;
-                    bool highlight = Sites[ii].Information.IsHighlighted;
+                    bool highlight = Sites[ii].State.IsHighlighted;
                     float customAlpha = -1f;
                     renderer = Sites[ii].GetComponent<MeshRenderer>();
 
-                    if (Sites[ii].Information.IsBlackListed) // blacklisted plot
+                    if (Sites[ii].State.IsBlackListed) // blacklisted plot
                     {
                         Sites[ii].transform.localScale = noScale;
                         siteType = SiteType.BlackListed;
                     }
-                    else if (Sites[ii].Information.IsExcluded) // excluded plot
+                    else if (Sites[ii].State.IsExcluded) // excluded plot
                     {
                         Sites[ii].transform.localScale = normalScale;
                         siteType = SiteType.Excluded;
@@ -718,7 +747,7 @@ namespace HBP.Module3D
                                 // set transparency
                                 customAlpha = latenciesFile.Transparencies[SourceSelectedID][ii] - 0.25f;
 
-                                if (Sites[ii].Information.IsHighlighted)
+                                if (Sites[ii].State.IsHighlighted)
                                     customAlpha = 1;
 
                                 // set size
@@ -735,7 +764,7 @@ namespace HBP.Module3D
                     else // no mask and no latency file available : all plots have the same size and color
                     {
                         Sites[ii].transform.localScale = normalScale;
-                        siteType = Sites[ii].Information.IsMarked ? SiteType.Marked : SiteType.Normal;
+                        siteType = Sites[ii].State.IsMarked ? SiteType.Marked : SiteType.Normal;
                     }
 
                     // select plot ring 
@@ -771,7 +800,7 @@ namespace HBP.Module3D
                         activity = Sites[ii].IsActive;
 
       
-                    if (Sites[ii].Information.IsMasked || Sites[ii].Information.IsOutOfROI) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
+                    if (Sites[ii].State.IsMasked || Sites[ii].State.IsOutOfROI) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
                     {
                         if (activity)
                             Sites[ii].gameObject.SetActive(false);
@@ -783,7 +812,7 @@ namespace HBP.Module3D
 
                     UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering -2 ");
 
-                    if (Sites[ii].Information.IsBlackListed) // blacklist mask : plot is barely visible with another color, can be clicked
+                    if (Sites[ii].State.IsBlackListed) // blacklist mask : plot is barely visible with another color, can be clicked
                     {
                         Sites[ii].transform.localScale = normalScale;
                         siteType = SiteType.BlackListed;
@@ -793,7 +822,7 @@ namespace HBP.Module3D
                             continue;
                         }
                     }
-                    else if (Sites[ii].Information.IsExcluded) // excluded mask : plot is a little visible with another color, can be clicked
+                    else if (Sites[ii].State.IsExcluded) // excluded mask : plot is a little visible with another color, can be clicked
                     {
                         Sites[ii].transform.localScale = normalScale;
                         siteType = SiteType.Excluded;
@@ -807,13 +836,13 @@ namespace HBP.Module3D
                     else // no mask and no amplitude computed : all plots have the same size and color
                     {
                         Sites[ii].transform.localScale = normalScale * IEEGParameters.Gain;
-                        siteType = Sites[ii].Information.IsMarked ? SiteType.Marked : SiteType.Normal;
+                        siteType = Sites[ii].State.IsMarked ? SiteType.Marked : SiteType.Normal;
                     }
 
                     UnityEngine.Profiling.Profiler.EndSample();
                     UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering -3 ");
 
-                    Sites[ii].GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(Sites[ii].Information.IsHighlighted, siteType);
+                    Sites[ii].GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(Sites[ii].State.IsHighlighted, siteType);
 
                     if (!activity)
                         Sites[ii].gameObject.SetActive(true);
