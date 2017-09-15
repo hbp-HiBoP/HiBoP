@@ -711,7 +711,7 @@ namespace HBP.Module3D
 
                     for (int jj = 0; jj < ColumnsIEEG.Count; ++jj)
                     {
-                        mask = mask || ColumnsIEEG[jj].Sites[ii].Information.IsMasked;
+                        mask = mask || ColumnsIEEG[jj].Sites[ii].State.IsMasked;
                     }
 
                     maskColumnsOR[ii] = mask;
@@ -721,7 +721,7 @@ namespace HBP.Module3D
                 {
                     for (int jj = 0; jj < SitesList.Count; ++jj)
                     {
-                        ColumnsFMRI[ii].Sites[jj].Information.IsMasked = maskColumnsOR[jj];
+                        ColumnsFMRI[ii].Sites[jj].State.IsMasked = maskColumnsOR[jj];
                     }
                 }
                 
@@ -732,7 +732,7 @@ namespace HBP.Module3D
 
                     for (int jj = 0; jj < SitesList.Count; ++jj)
                     {
-                        ColumnsFMRI[ColumnsFMRI.Count - 1].Sites[jj].Information.IsMasked = maskColumnsOR[jj];
+                        ColumnsFMRI[ColumnsFMRI.Count - 1].Sites[jj].State.IsMasked = maskColumnsOR[jj];
                     }
                 }
             }
@@ -915,7 +915,7 @@ namespace HBP.Module3D
                 {
                     if (column.SelectedSite)
                     {
-                        if (column.SelectedSite.Information.IsBlackListed)
+                        if (column.SelectedSite.State.IsBlackListed)
                         {
                             column.SelectedSiteID = -1;
                             if (column.IsSelected)

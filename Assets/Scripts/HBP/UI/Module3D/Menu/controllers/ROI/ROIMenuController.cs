@@ -343,22 +343,22 @@ namespace HBP.Module3D
                             return false;
                         }
 
-                        SiteInformation plot = new SiteInformation();
-                        //plot.PatientID = patientsNames[patientsNames.Count - 1];
-                        //plot.FullID = lineElems[0];
-                        plot.ElectrodeNumber = currE;
-                        plot.IsExcluded = int.Parse(lineElems[1], CultureInfo.InvariantCulture.NumberFormat) == 1;
-                        plot.IsBlackListed = int.Parse(lineElems[2], CultureInfo.InvariantCulture.NumberFormat) == 1;
-                        plot.IsMasked = int.Parse(lineElems[3], CultureInfo.InvariantCulture.NumberFormat) == 1;
-                        plot.IsHighlighted = int.Parse(lineElems[4], CultureInfo.InvariantCulture.NumberFormat) == 1;
+                        //SiteInformation plot = new SiteInformation();
+                        ////plot.PatientID = patientsNames[patientsNames.Count - 1];
+                        ////plot.FullID = lineElems[0];
+                        //plot.ElectrodeNumber = currE;
+                        //plot.IsExcluded = int.Parse(lineElems[1], CultureInfo.InvariantCulture.NumberFormat) == 1;
+                        //plot.IsBlackListed = int.Parse(lineElems[2], CultureInfo.InvariantCulture.NumberFormat) == 1;
+                        //plot.IsMasked = int.Parse(lineElems[3], CultureInfo.InvariantCulture.NumberFormat) == 1;
+                        //plot.IsHighlighted = int.Parse(lineElems[4], CultureInfo.InvariantCulture.NumberFormat) == 1;
 
-                        if (plot.IsExcluded || plot.IsBlackListed || plot.IsMasked || plot.IsHighlighted)
-                            electrodes[currP][currE].Add(plot);
+                        //if (plot.IsExcluded || plot.IsBlackListed || plot.IsMasked || plot.IsHighlighted)
+                        //    electrodes[currP][currE].Add(plot);
                     }
                 }
             }
 
-            m_scene.UpdateSitesMasks(m_currentROICol.m_idColumn, electrodes, patientsNames);
+            //m_scene.UpdateSitesMasks(m_currentROICol.m_idColumn, electrodes, patientsNames);
             m_columnROI[m_currentROICol.m_idColumn].GetComponent<ColumnROI>().add_ROI(positions, rays, nameROI);
 
             m_scene.SceneInformation.IsIEEGOutdated = true;

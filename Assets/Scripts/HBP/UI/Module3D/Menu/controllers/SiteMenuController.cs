@@ -236,13 +236,13 @@ namespace HBP.UI.Module3D
                     {
                         if (blackList.transform.Find("Text").GetComponent<Text>().text == "Blacklist site")
                         {
-                            m_lastSiteSelected.Information.IsBlackListed = true;
+                            m_lastSiteSelected.State.IsBlackListed = true;
                             m_scene.UpdateSitesMasks(true, SiteAction.Blacklist, 0);
                             blackList.transform.Find("Text").GetComponent<Text>().text = "Unblacklist site";
                         }
                         else
                         {
-                            m_lastSiteSelected.Information.IsBlackListed = false;
+                            m_lastSiteSelected.State.IsBlackListed = false;
                             m_scene.UpdateSitesMasks(true, SiteAction.Unblacklist, 0);
                             blackList.transform.Find("Text").GetComponent<Text>().text = "Blacklist site";
                         }
@@ -414,7 +414,7 @@ namespace HBP.UI.Module3D
                 case SceneType.MultiPatients:
                     if (m_scene.ColumnManager.SelectedColumn.SelectedSite != null)
                         panel.Find("MP only options parent").Find("blacklist button").Find("Text").GetComponent<Text>().text
-                            = m_scene.ColumnManager.SelectedColumn.SelectedSite.Information.IsBlackListed ? "Unblacklist site" : "Blacklist site";
+                            = m_scene.ColumnManager.SelectedColumn.SelectedSite.State.IsBlackListed ? "Unblacklist site" : "Blacklist site";
                     break;
             }
         }

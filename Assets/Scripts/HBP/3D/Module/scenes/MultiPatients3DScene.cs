@@ -194,15 +194,15 @@ namespace HBP.Module3D
         /// <param name="idColumn"></param>
         /// <param name="plots"></param>
         /// <param name="patientsName"></param>
-        public void UpdateSitesMasks(int idColumn, List<List<List<SiteInformation>>> plots, List<string> patientsName)
+        public void UpdateSitesMasks(int idColumn, List<List<List<Site>>> plots, List<string> patientsName)
         {
             // reset previous masks
             for (int ii = 0; ii < ColumnManager.Columns[idColumn].Sites.Count; ++ii)
             {
-                ColumnManager.Columns[idColumn].Sites[ii].Information.IsExcluded = false;
-                ColumnManager.Columns[idColumn].Sites[ii].Information.IsBlackListed = false;
-                ColumnManager.Columns[idColumn].Sites[ii].Information.IsHighlighted = false;
-                ColumnManager.Columns[idColumn].Sites[ii].Information.IsMasked = false;
+                ColumnManager.Columns[idColumn].Sites[ii].State.IsExcluded = false;
+                ColumnManager.Columns[idColumn].Sites[ii].State.IsBlackListed = false;
+                ColumnManager.Columns[idColumn].Sites[ii].State.IsHighlighted = false;
+                ColumnManager.Columns[idColumn].Sites[ii].State.IsMasked = false;
             }
 
             // update masks
@@ -217,14 +217,14 @@ namespace HBP.Module3D
                     {
                         for(int ll = 0; ll < plots[jj][kk].Count; ll++) // plot
                         {
-                            string namePlot = plots[jj][kk][ll].PatientID + "_" + plots[jj][kk][ll].FullID;
+                            string namePlot = plots[jj][kk][ll].Information.PatientID + "_" + plots[jj][kk][ll].Information.FullID;
                             if (namePlot != ColumnManager.Columns[idColumn].Sites[ii].Information.FullID)
                                 continue;
 
-                            ColumnManager.Columns[idColumn].Sites[ii].Information.IsExcluded = plots[jj][kk][ll].IsExcluded;
-                            ColumnManager.Columns[idColumn].Sites[ii].Information.IsBlackListed = plots[jj][kk][ll].IsBlackListed;
-                            ColumnManager.Columns[idColumn].Sites[ii].Information.IsHighlighted = plots[jj][kk][ll].IsHighlighted;
-                            ColumnManager.Columns[idColumn].Sites[ii].Information.IsMasked = plots[jj][kk][ll].IsMasked;
+                            ColumnManager.Columns[idColumn].Sites[ii].State.IsExcluded = plots[jj][kk][ll].State.IsExcluded;
+                            ColumnManager.Columns[idColumn].Sites[ii].State.IsBlackListed = plots[jj][kk][ll].State.IsBlackListed;
+                            ColumnManager.Columns[idColumn].Sites[ii].State.IsHighlighted = plots[jj][kk][ll].State.IsHighlighted;
+                            ColumnManager.Columns[idColumn].Sites[ii].State.IsMasked = plots[jj][kk][ll].State.IsMasked;
                         }
                     }
 
