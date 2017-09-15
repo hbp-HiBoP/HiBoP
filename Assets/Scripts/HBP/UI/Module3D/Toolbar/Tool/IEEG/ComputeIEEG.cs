@@ -12,8 +12,6 @@ namespace HBP.UI.Module3D.Tools
         #region Properties
         [SerializeField]
         private Button m_Button;
-
-        public UnityEvent OnClick = new UnityEvent();
         #endregion
 
         #region Public Methods
@@ -24,7 +22,6 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 ApplicationState.Module3D.SelectedScene.UpdateGenerators();
-                OnClick.Invoke();
             });
         }
         public override void DefaultState()

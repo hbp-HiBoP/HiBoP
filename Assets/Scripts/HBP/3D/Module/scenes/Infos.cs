@@ -84,7 +84,9 @@ namespace HBP.Module3D
 
         // work     
         public Vector3 VolumeCenter = new Vector3(0, 0, 0); /**< center of the loaded volume */
+        #endregion
 
+        #region Events
         public GenericEvent<bool> OnUpdateGeneratorState = new GenericEvent<bool>();
         #endregion
 

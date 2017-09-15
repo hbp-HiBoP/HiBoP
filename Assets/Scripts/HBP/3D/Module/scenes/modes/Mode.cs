@@ -195,11 +195,6 @@ namespace HBP.Module3D
         public List<bool> DisplayItems = null;  /**< items to be displayed in this mode  0 : meshes, 1 : plots, 2 : ROI */
 
         private ModeSpecifications m_Specifications = new ModeSpecifications();
-
-        /// <summary>
-        /// Event for sending mode specifications
-        /// </summary>
-        public GenericEvent<ModeSpecifications> SendModeSpecifications = new GenericEvent<ModeSpecifications>();
         #endregion
 
         #region Public Methods 

@@ -39,36 +39,6 @@ namespace HBP.Module3D
             }
         }
 
-
-        /// <summary>
-        /// Event for sending a ROI associated to a column id (params : ROI, idColumn)
-        /// </summary>
-        public GenericEvent<ROI, int> SendColumnROIEvent = new GenericEvent<ROI, int>();
-        /// <summary>
-        /// Event for creating a new bubble to a column id with a position  (params : position, idColumn)
-        /// </summary>
-        public GenericEvent<Vector3, int> CreateBubbleEvent = new GenericEvent<Vector3, int>();
-        /// <summary>
-        /// Event for selecting a bubble of a column (params : idColumn, idBubble)
-        /// </summary>
-        public GenericEvent<int, int> SelectBubbleEvent = new GenericEvent<int, int>();
-        /// <summary>
-        /// Event for changing the size of a bubble (params : idColumn, idBubble, size)
-        /// </summary>
-        public GenericEvent<int, int, float> ChangeSizeBubbleEvent = new GenericEvent<int, int, float>();
-        /// <summary>
-        /// Event for removing a bubble (params : idColumn, idBubble)
-        /// </summary>
-        public GenericEvent<int, int> RemoveBubbleEvent = new GenericEvent<int, int>();
-        /// <summary>
-        /// Ask the UI to update set the same cameras to the individual scene
-        /// </summary>
-        public UnityEvent ApplySceneCamerasToIndividualScene = new UnityEvent();
-        /// <summary>
-        /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
-        /// </summary>        
-        public GenericEvent<Data.Visualization.Visualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.Visualization, Data.Patient>();
-
         private const float LOADING_MESHES_PROGRESS = 0.8f;
         private const float LOADING_COLUMNS_PROGRESS = 0.03f;
         private const float LOADING_ELECTRODES_PROGRESS = 0.03f;

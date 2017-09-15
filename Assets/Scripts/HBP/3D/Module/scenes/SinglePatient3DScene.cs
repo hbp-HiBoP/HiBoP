@@ -50,11 +50,6 @@ namespace HBP.Module3D
         /// </summary>
         private List<string> CCEPLabels = null;
 
-        /// <summary>
-        /// Event for asking the UI to update the latencies display on the plot menu (params : labels)
-        /// </summary>
-        public GenericEvent<List<string>> OnUpdateLatencies = new GenericEvent<List<string>>();
-
         private const float LOADING_MNI = 0.15f;
         private const float LOADING_MESHES_PROGRESS = 0.35f;
         private const float LOADING_VOLUME_PROGRESS = 0.3f;

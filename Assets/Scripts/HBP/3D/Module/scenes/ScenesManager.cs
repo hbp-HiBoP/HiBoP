@@ -52,19 +52,6 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        /// Event called when the user selects another scene
-        /// </summary>
-        public GenericEvent<Base3DScene> OnChangeSelectedScene = new GenericEvent<Base3DScene>();
-        /// <summary>
-        /// Event called when the mode specifications are sent
-        /// </summary>
-        public GenericEvent<ModeSpecifications> OnSendModeSpecifications = new GenericEvent<ModeSpecifications>();
-        /// <summary>
-        /// Event called when the user selects a scene
-        /// </summary>
-        public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
-
-        /// <summary>
         /// Prefab corresponding to a single patient scene
         /// </summary>
         public GameObject SinglePatientScenePrefab;
@@ -72,6 +59,13 @@ namespace HBP.Module3D
         /// Prefab corresponding to a multi patient scene
         /// </summary>
         public GameObject MultiPatientsScenePrefab;
+        #endregion
+
+        #region Events
+        /// <summary>
+        /// Event called when the user selects a scene
+        /// </summary>
+        public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
         #endregion
 
         #region Public Methods

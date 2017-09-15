@@ -121,15 +121,14 @@ namespace HBP.Module3D
         public int SelectedSiteID
         {
             get { return m_SelectedSiteID; }
-            set { m_SelectedSiteID = value; OnChangeSelectedSite.Invoke(SelectedSite); }
+            set { m_SelectedSiteID = value; }
         }
         public Site SelectedSite
         {
             get { return m_SelectedSiteID >= 0 ? Sites[m_SelectedSiteID] : null; }
-            set { m_SelectedSiteID = Sites.FindIndex((site) => site == value); OnChangeSelectedSite.Invoke(value); }
+            set { m_SelectedSiteID = Sites.FindIndex((site) => site == value); }
         }
         public int SelectedPatientID { get; set; }
-        public GenericEvent<Site> OnChangeSelectedSite = new GenericEvent<Site>();
 
         protected DLL.RawSiteList m_RawElectrodes = null;  /**< raw format of the plots container dll */
         public DLL.RawSiteList RawElectrodes
@@ -213,7 +212,9 @@ namespace HBP.Module3D
         public Texture2D BrainColorSchemeTexture = null;        /**< brain colorscheme unity 2D texture  */
         public List<Texture2D> BrainCutTextures = null;         /**< list of cut textures */
         public List<Texture2D> GUIBrainCutTextures = null;      /**< list of GUI cut textures */
-        
+        #endregion
+
+        #region Events
         /// <summary>
         /// Event called when this column is selected
         /// </summary>

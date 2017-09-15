@@ -15,17 +15,12 @@ namespace HBP.UI.Module3D.Tools
 
         [SerializeField]
         private Module3D.ThresholdMRI m_ThresholdMRI;
-
-        public GenericEvent<float, float> OnChangeValues = new GenericEvent<float, float>();
         #endregion
 
         #region Public Methods
         public override void Initialize()
         {
-            m_ThresholdMRI.OnChangeValues.AddListener((min, max) =>
-            {
-                OnChangeValues.Invoke(min, max);
-            });
+
         }
 
         public override void DefaultState()

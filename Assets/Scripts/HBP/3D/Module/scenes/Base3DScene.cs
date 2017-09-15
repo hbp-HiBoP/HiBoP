@@ -648,6 +648,8 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnSelectColumnManager.AddListener((columnManager) =>
             {
+                IsSelected = true;
+
                 // force mode to update UI
                 m_ModesManager.SetCurrentModeSpecifications(true);
 
@@ -898,7 +900,7 @@ namespace HBP.Module3D
                 minValue += m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle;
                 maxValue += m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle;
                 OnSendColorMapValues.Invoke(minValue, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle, maxValue, m_ColumnManager.ColumnsIEEG[ii]);
-                m_ColumnManager.ColumnsIEEG[ii].OnUpdateCurrentTimelineID.Invoke();
+                m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID = 0;
             }
 
             // amplitudes are not displayed yet
@@ -1694,12 +1696,6 @@ namespace HBP.Module3D
             // set meshes layer
             SceneInformation.MeshesLayerName = "Default";
             SceneInformation.HiddenMeshesLayerName = "Hidden Meshes";
-
-
-            m_ColumnManager.OnSelectColumnManager.AddListener((cm) =>
-            {
-                IsSelected = true;
-            });
 
             // init modes
             m_ModesManager.Initialize(this);

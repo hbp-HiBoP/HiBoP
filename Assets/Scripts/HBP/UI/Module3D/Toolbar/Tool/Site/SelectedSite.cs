@@ -12,8 +12,6 @@ namespace HBP.UI.Module3D.Tools
         #region Properties
         [SerializeField]
         private Text m_Text;
-
-        public GenericEvent<Site> OnChangeValue = new GenericEvent<Site>();
         #endregion
 
         #region Public Methods

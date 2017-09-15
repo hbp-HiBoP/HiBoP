@@ -38,24 +38,6 @@ namespace HBP.Module3D
                 return m_Columns.Find((c) => c.IsSelected);
             }
         }
-
-        public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
-        /// <summary>
-        /// Event called when adding a column
-        /// </summary>
-        public UnityEvent OnAddColumn = new UnityEvent();
-        /// <summary>
-        /// Event called when removing a column
-        /// </summary>
-        public GenericEvent<Column3D> OnRemoveColumn = new GenericEvent<Column3D>();
-        /// <summary>
-        /// Event called when adding a line of views
-        /// </summary>
-        public UnityEvent OnAddViewLine = new UnityEvent();
-        /// <summary>
-        /// Event called when removing a line of views
-        /// </summary>
-        public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
         
         List<Column3D> m_Columns = new List<Column3D>();
         /// <summary>
@@ -303,6 +285,29 @@ namespace HBP.Module3D
         public Texture2D BrainColorMapTexture = null;
         public Texture2D BrainColorTexture = null;
 
+        // Column 3D Prefabs
+        public GameObject Column3DViewIEEGPrefab;
+        public GameObject Column3DViewFMRIPrefab;
+        #endregion
+
+        #region Events
+        public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
+        /// <summary>
+        /// Event called when adding a column
+        /// </summary>
+        public UnityEvent OnAddColumn = new UnityEvent();
+        /// <summary>
+        /// Event called when removing a column
+        /// </summary>
+        public GenericEvent<Column3D> OnRemoveColumn = new GenericEvent<Column3D>();
+        /// <summary>
+        /// Event called when adding a line of views
+        /// </summary>
+        public UnityEvent OnAddViewLine = new UnityEvent();
+        /// <summary>
+        /// Event called when removing a line of views
+        /// </summary>
+        public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
         /// <summary>
         /// Event called when changing the values of the MRI Cal Values
         /// </summary>
@@ -323,15 +328,26 @@ namespace HBP.Module3D
         /// Event called when changing the radius of a volume in a ROI
         /// </summary>
         public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
+        /// <summary>
+        /// Event called when changing the IEEG span values
+        /// </summary>
         public GenericEvent<Column3DIEEG> OnUpdateIEEGSpan = new GenericEvent<Column3DIEEG>();
+        /// <summary>
+        /// Event called when changing the transparency of the IEEG
+        /// </summary>
         public GenericEvent<Column3DIEEG> OnUpdateIEEGAlpha = new GenericEvent<Column3DIEEG>();
+        /// <summary>
+        /// Event called when changing the gain of the sphere representing the sites
+        /// </summary>
         public GenericEvent<Column3DIEEG> OnUpdateIEEGGain = new GenericEvent<Column3DIEEG>();
+        /// <summary>
+        /// Event called when changing the influence of each site on the texture
+        /// </summary>
         public GenericEvent<Column3DIEEG> OnUpdateIEEGMaximumInfluence = new GenericEvent<Column3DIEEG>();
+        /// <summary>
+        /// Event called when changing the timeline ID of a column
+        /// </summary>
         public GenericEvent<Column3DIEEG> OnUpdateColumnTimelineID = new GenericEvent<Column3DIEEG>();
-
-        // Column 3D Prefabs
-        public GameObject Column3DViewIEEGPrefab;
-        public GameObject Column3DViewFMRIPrefab;
         #endregion
 
         #region Private Methods

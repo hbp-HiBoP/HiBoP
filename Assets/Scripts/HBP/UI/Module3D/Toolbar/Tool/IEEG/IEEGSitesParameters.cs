@@ -16,8 +16,6 @@ namespace HBP.UI.Module3D.Tools
         private InputField m_InputField;
 
         public bool IsGlobal { get; set; }
-
-        public GenericEvent<float, float> OnValueChanged = new GenericEvent<float, float>();
         #endregion
 
         #region Public Methods
@@ -39,7 +37,6 @@ namespace HBP.UI.Module3D.Tools
                 {
                     selectedColumn.IEEGParameters.Gain = value;
                 }
-                OnValueChanged.Invoke(value, selectedColumn.IEEGParameters.MaximumInfluence);
             });
 
             m_InputField.onEndEdit.AddListener((value) =>
@@ -60,7 +57,6 @@ namespace HBP.UI.Module3D.Tools
                     selectedColumn.IEEGParameters.MaximumInfluence = val;
                 }
                 m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString("N2");
-                OnValueChanged.Invoke(selectedColumn.IEEGParameters.Gain, val);
             });
         }
 

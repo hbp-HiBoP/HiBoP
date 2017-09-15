@@ -17,8 +17,6 @@ namespace HBP.UI.Module3D.Tools
         /// Correspondance between brain color dropdown options indices and color type
         /// </summary>
         private List<ColorType> m_BrainColorIndices = new List<ColorType>() { ColorType.BrainColor, ColorType.Default, ColorType.White, ColorType.Grayscale, ColorType.SoftGrayscale };
-
-        public GenericEvent<ColorType> OnChangeValue = new GenericEvent<ColorType>();
         #endregion
 
         #region Public Methods
@@ -30,7 +28,6 @@ namespace HBP.UI.Module3D.Tools
 
                 ColorType color = m_BrainColorIndices[value];
                 ApplicationState.Module3D.SelectedScene.UpdateBrainSurfaceColor(color);
-                OnChangeValue.Invoke(color);
             });
         }
 

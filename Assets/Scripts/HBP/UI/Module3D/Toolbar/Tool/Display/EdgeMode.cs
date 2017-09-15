@@ -12,8 +12,6 @@ namespace HBP.UI.Module3D.Tools
         #region Properties
         [SerializeField]
         private Toggle m_Toggle;
-
-        public GenericEvent<bool> OnChangeValue = new GenericEvent<bool>();
         #endregion
 
         #region Public Methods
@@ -24,7 +22,6 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 ApplicationState.Module3D.SelectedScene.EdgeMode = isOn;
-                OnChangeValue.Invoke(isOn);
             });
         }
 

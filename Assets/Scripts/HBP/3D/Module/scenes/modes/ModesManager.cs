@@ -64,11 +64,6 @@ namespace HBP.Module3D
         private Mode m_MultiPatientsTriangleErasing = null;
         private Mode m_MultiPatientsAmpNeedUpdate = null;
         private Mode m_MultiPatientsErrorMode = null;
-
-        /// <summary>
-        /// Event for sending mode specifications
-        /// </summary>
-        public GenericEvent<ModeSpecifications> SendModeSpecifications = new GenericEvent<ModeSpecifications>();
         #endregion
 
         #region Private Methods
