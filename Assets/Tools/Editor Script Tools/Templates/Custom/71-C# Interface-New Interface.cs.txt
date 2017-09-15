@@ -1,0 +1,10 @@
+public interface ##NAME##
+{
+	#region Properties
+
+	#endregion
+
+	#region Public Methods
+
+	#endregion
+}

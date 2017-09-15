@@ -1,0 +1,21 @@
+using UnityEngine;
+
+public class ##NAME## : MonoBehaviour
+{
+	#region Properties
+
+	#endregion
+
+	#region Public Methods
+
+	#endregion
+
+	#region Private Methods
+	void Start()
+	{
+	}
+	void Update()
+	{
+	}
+	#endregion
+}
