@@ -103,7 +103,6 @@ namespace HBP.UI.Anatomy
         public void SetMeshes()
         {
             m_MeshList.Objects = (from mesh in m_Object.Brain.Meshes where mesh.isUsable select mesh.Name).ToArray();
-            m_MeshButton.GetComponent<DropWindow>().ChangeWindowState();
         }
         public void SetMRIs()
         {

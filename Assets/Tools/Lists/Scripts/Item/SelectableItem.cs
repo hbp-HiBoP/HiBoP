@@ -21,6 +21,13 @@ namespace Tools.Unity.Lists
         }
         #endregion
 
+        #region Public Methods
+        public void ChangeSelectionState()
+        {
+            selected = !selected;
+        }
+        #endregion
+
         #region Private Methods
         void Awake()
         {
