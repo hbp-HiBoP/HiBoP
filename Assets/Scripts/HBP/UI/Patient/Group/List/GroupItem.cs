@@ -33,12 +33,12 @@ namespace HBP.UI.Anatomy
                 m_PatientsText.text = nbPatients.ToString();
                 if (nbPatients == 0)
                 {
-                    m_PatientsText.color = ApplicationState.Theme.Color.DisableLabel;
+                    m_PatientsText.color = ApplicationState.Theme.General.Error;
                     m_PatientsButton.interactable = false;
                 }
                 else
                 {
-                    m_PatientsText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                    m_PatientsText.color = ApplicationState.Theme.Window.Content.Text.Color;
                     m_PatientsButton.interactable = true;
                 }
             }

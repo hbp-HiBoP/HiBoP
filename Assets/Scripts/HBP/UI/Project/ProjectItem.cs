@@ -33,24 +33,24 @@ namespace HBP.UI
                 m_NameText.text = value.Settings.Name;
 
                 m_PatientsText.text = value.Patients.ToString();
-                if (value.Patients == 0) m_PatientsText.color = ApplicationState.Theme.Color.DisableLabel;
-                else m_PatientsText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                if (value.Patients == 0) m_PatientsText.color = ApplicationState.Theme.General.Error;
+                else m_PatientsText.color = ApplicationState.Theme.Window.Content.Text.Color;
 
                 m_GroupsText.text = value.Groups.ToString();
-                if (value.Groups == 0) m_GroupsText.color = ApplicationState.Theme.Color.DisableLabel;
-                else m_GroupsText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                if (value.Groups == 0) m_GroupsText.color = ApplicationState.Theme.General.Error;
+                else m_GroupsText.color = ApplicationState.Theme.Window.Content.Text.Color;
 
                 m_ProtocolsText.text = value.Protocols.ToString();
-                if (value.Protocols == 0) m_ProtocolsText.color = ApplicationState.Theme.Color.DisableLabel;
-                else m_ProtocolsText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                if (value.Protocols == 0) m_ProtocolsText.color = ApplicationState.Theme.General.Error;
+                else m_ProtocolsText.color = ApplicationState.Theme.Window.Content.Text.Color;
 
                 m_DatasetsText.text = value.Datasets.ToString();
-                if (value.Datasets == 0) m_DatasetsText.color = ApplicationState.Theme.Color.DisableLabel;
-                else m_DatasetsText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                if (value.Datasets == 0) m_DatasetsText.color = ApplicationState.Theme.General.Error;
+                else m_DatasetsText.color = ApplicationState.Theme.Window.Content.Text.Color;
 
                 m_VisualizationsText.text = value.Visualizations.ToString();
-                if (value.Visualizations == 0) m_VisualizationsText.color = ApplicationState.Theme.Color.DisableLabel;
-                else m_VisualizationsText.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                if (value.Visualizations == 0) m_VisualizationsText.color = ApplicationState.Theme.General.Error;
+                else m_VisualizationsText.color = ApplicationState.Theme.Window.Content.Text.Color;
             }
         }
         #endregion

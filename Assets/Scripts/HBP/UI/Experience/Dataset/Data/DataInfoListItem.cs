@@ -98,11 +98,11 @@ namespace HBP.UI.Experience.Dataset
         {
             if(isOk)
             {
-                m_IsOk.color = ApplicationState.Theme.Color.OK;
+                m_IsOk.color = ApplicationState.Theme.General.OK;
             }
             else
             {
-                m_IsOk.color = ApplicationState.Theme.Color.Error;
+                m_IsOk.color = ApplicationState.Theme.General.Error;
             }
         }
 

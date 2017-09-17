@@ -18,16 +18,16 @@ public class SortingDisplayer : MonoBehaviour
             switch (value)
             {
                 case SortingType.None:
-                    m_AscendingImage.color = ApplicationState.Theme.Color.ContentNormalLabel;
-                    m_DescendingImage.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                    m_AscendingImage.color = ApplicationState.Theme.Window.Content.Text.Color;
+                    m_DescendingImage.color = ApplicationState.Theme.Window.Content.Text.Color;
                     break;
                 case SortingType.Ascending:
-                    m_AscendingImage.color = ApplicationState.Theme.Color.CheckMarkColor;
-                    m_DescendingImage.color = ApplicationState.Theme.Color.ContentNormalLabel;
+                    m_AscendingImage.color = ApplicationState.Theme.Window.Content.Toggle.Checkmark;
+                    m_DescendingImage.color = ApplicationState.Theme.Window.Content.Text.Color;
                     break;
                 case SortingType.Descending:
-                    m_AscendingImage.color = ApplicationState.Theme.Color.ContentNormalLabel;
-                    m_DescendingImage.color = ApplicationState.Theme.Color.CheckMarkColor;
+                    m_AscendingImage.color = ApplicationState.Theme.Window.Content.Text.Color;
+                    m_DescendingImage.color = ApplicationState.Theme.Window.Content.Toggle.Checkmark;
                     break;
             }
         }

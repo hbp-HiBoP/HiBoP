@@ -36,41 +36,33 @@ namespace HBP.UI.Theme
         {
             /// Window backgrounds.
             IEnumerable<Image> windowBackgrounds = from element in themeElements where element.Type == ThemeElement.ElementType.WindowBackground select element.GetComponent<Image>();
-            foreach (Image image in windowBackgrounds) SetImage(image, theme.Color.Background.Window);
+            foreach (Image image in windowBackgrounds) SetImage(image, theme.Window.Content.Background);
 
             // Header backgrounds.
             IEnumerable<Image> windowHeaderBackgrounds = from element in themeElements where element.Type == ThemeElement.ElementType.WindowHeaderBackground select element.GetComponent<Image>();
-            foreach (Image image in windowHeaderBackgrounds) SetImage(image, theme.Color.Background.Header);
+            foreach (Image image in windowHeaderBackgrounds) SetImage(image, theme.Window.Header.Background);
 
             // Content Title backgrounds.
             IEnumerable<Image> windowContentTitleBackgrounds = from element in themeElements where element.Type == ThemeElement.ElementType.WindowTitleBackground select element.GetComponent<Image>();
-            foreach (Image image in windowContentTitleBackgrounds) SetImage(image, theme.Color.Background.Title);
+            foreach (Image image in windowContentTitleBackgrounds) SetImage(image, theme.Window.Content.Title.Background);
 
             // Set List background.
             IEnumerable<Image> windowListBackgrounds = from element in themeElements where element.Type == ThemeElement.ElementType.WindowListBackground select element.GetComponent<Image>();
-            foreach (Image image in windowListBackgrounds) SetImage(image, theme.Color.Background.List);
+            foreach (Image image in windowListBackgrounds) SetImage(image, theme.Window.Content.List.Background);
 
             // Set Toolbar background
             IEnumerable<Image> toolbarBackgrounds = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarBackground select element.GetComponent<Image>();
-            foreach (Image image in toolbarBackgrounds) SetImage(image, theme.Color.Background.ToolsBar);
+            foreach (Image image in toolbarBackgrounds) SetImage(image, theme.Toolbar.Background);
         }
         void SetContentInputfields(ThemeElement[] themeElements, Theme theme)
         {
             /// Window InputFields.
             IEnumerable<InputField> windowInputFields = from element in themeElements where element.Type == ThemeElement.ElementType.WindowInputField select element.GetComponent<InputField>();
-            foreach (InputField inputField in windowInputFields) SetInputField(inputField, theme.Color.InputField.ColorBlock);
-
-            // Window FolderSelector.
-            IEnumerable<InputField> windowFolderSelectors = from element in themeElements where element.Type == ThemeElement.ElementType.WindowFolderSelector select element.GetComponent<InputField>();
-            foreach (InputField inputField in windowFolderSelectors)
-            {
-                SetInputField(inputField, theme.Color.InputField.ColorBlock);
-                SetButton(inputField.GetComponentInChildren<Button>(true), theme.Color.FolderSelectorButton.ColorBlock);
-            }
+            foreach (InputField inputField in windowInputFields) SetInputField(inputField, theme.Window.Content.Inputfield.ColorBlock);
 
             // Toolbar InputFields
             IEnumerable<InputField> toolbarInputFields = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarInputField select element.GetComponent<InputField>();
-            foreach (InputField inputField in toolbarInputFields) SetInputField(inputField, theme.Color.ToolbarInputField.ColorBlock);
+            foreach (InputField inputField in toolbarInputFields) SetInputField(inputField, theme.Toolbar.InputField.ColorBlock);
         }
         void SetContentButtons(ThemeElement[] themeElements, Theme theme)
         {
@@ -78,37 +70,37 @@ namespace HBP.UI.Theme
             IEnumerable<Button> generalButtons = from element in themeElements where element.Type == ThemeElement.ElementType.WindowGeneralButton select element.GetComponent<Button>();
             foreach (Button button in generalButtons)
             {
-                SetButton(button, theme.Color.GeneralButton.ColorBlock);
-                SetText(button.GetComponentInChildren<Text>(), theme.Color.ContentGeneralButtonLabel, theme.Font.WindowContentGeneralButton.FontData);
+                SetButton(button, theme.Window.Content.MainButton.ColorBlock);
+                SetText(button.GetComponentInChildren<Text>(), theme.Window.Content.MainButton.Text.Color, theme.Window.Content.MainButton.Text.Font);
             }
 
             // Content Buttons.
             IEnumerable<Button> otherButtons = from element in themeElements where element.Type == ThemeElement.ElementType.WindowOtherButton select element.GetComponent<Button>();
             foreach (Button button in otherButtons)
             {
-                SetButton(button, theme.Color.OtherButton.ColorBlock);
-                SetText(button.GetComponentInChildren<Text>(), theme.Color.ContentOtherButtonLabel, theme.Font.WindowContentOtherButton.FontData);
+                SetButton(button, theme.Window.Content.SecondaryButton.ColorBlock);
+                SetText(button.GetComponentInChildren<Text>(), theme.Window.Content.SecondaryButton.Text.Color, theme.Window.Content.SecondaryButton.Text.Font);
             }
 
             // Content Buttons.
-            IEnumerable<Button> menuButtons = from element in themeElements where element.Type == ThemeElement.ElementType.MenuButton select element.GetComponent<Button>();
-            foreach (Button button in menuButtons)
-            {
-                SetButton(button, theme.Menu.Button.ColorBlock);
-                foreach (var text in button.GetComponentsInChildren<Text>())
-                {
-                    SetText(text, theme.Color.ContentOtherButtonLabel, theme.Font.Menu.FontData);
-                }
-            }
+            //IEnumerable<Button> menuButtons = from element in themeElements where element.Type == ThemeElement.ElementType.MenuButton select element.GetComponent<Button>();
+            //foreach (Button button in menuButtons)
+            //{
+            //    SetButton(button, theme.Menu.Button.ColorBlock);
+            //    foreach (var text in button.GetComponentsInChildren<Text>())
+            //    {
+            //        SetText(text, theme.Color.ContentOtherButtonLabel, theme.Font.Menu.FontData);
+            //    }
+            //}
 
             // Toolbar Buttons.
             IEnumerable<Button> toolbarButtons = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarButton select element.GetComponent<Button>();
             foreach (Button button in toolbarButtons)
             {
-                SetButton(button, theme.Color.ToolbarButton.ColorBlock);
+                SetButton(button, theme.Toolbar.Button.ColorBlock);
                 foreach (var text in button.GetComponentsInChildren<Text>())
                 {
-                    SetText(text, theme.Color.ToolbarLabel, theme.Font.Toolbar.FontData);
+                    SetText(text, theme.Toolbar.Button.Text.Color, theme.Toolbar.Button.Text.Font);
                 }
             }
         }
@@ -116,53 +108,53 @@ namespace HBP.UI.Theme
         {
             // Set Header title.
             IEnumerable<Text> headerTitles = from element in themeElements where element.Type == ThemeElement.ElementType.WindowHeaderTitle select element.GetComponent<Text>();
-            foreach (Text headerTitle in headerTitles) SetText(headerTitle, theme.Color.HeaderTitleLabel,theme.Font.WindowHeader.FontData);
+            foreach (Text headerTitle in headerTitles) SetText(headerTitle, theme.Window.Header.Text.Color, theme.Window.Header.Text.Font);
 
             // Set content titles.
             IEnumerable<Text> contentTitles = from element in themeElements where element.Type == ThemeElement.ElementType.WindowTitle select element.GetComponent<Text>();
-            foreach (Text text in contentTitles) SetText(text, theme.Color.ContentTitleLabel, theme.Font.WindowContentTitle.FontData);
+            foreach (Text text in contentTitles) SetText(text, theme.Window.Content.Title.Text.Color, theme.Window.Content.Title.Text.Font);
 
             //Set content labels.
             IEnumerable<Text> contentLabels = from element in themeElements where element.Type == ThemeElement.ElementType.WindowLabel select element.GetComponent<Text>();
-            foreach (Text text in contentLabels) SetText(text, theme.Color.ContentNormalLabel, theme.Font.WindowContentLabel.FontData);
+            foreach (Text text in contentLabels) SetText(text, theme.Window.Content.Text.Color, theme.Window.Content.Text.Font);
         }
         void SetToggles(ThemeElement[] themeElements, Theme theme)
         {
             // Set Toggles.
             IEnumerable<Toggle> windowToggles = from element in themeElements where element.Type == ThemeElement.ElementType.WindowToggle select element.GetComponent<Toggle>();
-            foreach (Toggle windowToggle in windowToggles) SetToggle(windowToggle, theme.Color.WindowToggle.ColorBlock);
+            foreach (Toggle windowToggle in windowToggles) SetToggle(windowToggle, theme.Window.Content.Toggle.ColorBlock);
 
             IEnumerable<Toggle> menuToggles = from element in themeElements where element.Type == ThemeElement.ElementType.MenuToggle select element.GetComponent<Toggle>();
-            foreach (Toggle menuToggle in menuToggles) SetToggle(menuToggle, theme.Color.MenuToggle.ColorBlock);
+            foreach (Toggle menuToggle in menuToggles) SetToggle(menuToggle, theme.Menu.Toggle.ColorBlock);
 
             IEnumerable<Toggle> toolbarToggles = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarToggle select element.GetComponent<Toggle>();
-            foreach (Toggle toolbarToggle in toolbarToggles) SetToggle(toolbarToggle, theme.Color.ToolbarToggle.ColorBlock, theme.Color.CheckMarkColor);
+            foreach (Toggle toolbarToggle in toolbarToggles) SetToggle(toolbarToggle, theme.Toolbar.Toggle.ColorBlock, theme.Toolbar.Toggle.Checkmark);
         }
         void SetScrollbars(ThemeElement[] themeElements, Theme theme)
         {
             // Set Scrollbars.
             IEnumerable<Scrollbar> ScrollBars = from element in themeElements where element.Type == ThemeElement.ElementType.WindowScrollbar select element.GetComponent<Scrollbar>();
-            foreach (Scrollbar scrollbar in ScrollBars) SetScrollbar(scrollbar, theme.Color.Background.ScrollBar, theme.Color.Scrollbar.ColorBlock);
+            foreach (Scrollbar scrollbar in ScrollBars) SetScrollbar(scrollbar, theme.Window.Content.List.ScrollBar.Background, theme.Window.Content.List.ScrollBar.ColorBlock);
         }
         void SetDropdowns(ThemeElement[] themeElements, Theme theme)
         {
             // Set Dropdowns.
             IEnumerable<Dropdown> windowDropdowns = from element in themeElements where element.Type == ThemeElement.ElementType.WindowDropdown select element.GetComponent<Dropdown>();
-            foreach (Dropdown dropdown in windowDropdowns) SetDropdown(dropdown, theme.Color.WindowDropdown.ColorBlock);
+            foreach (Dropdown dropdown in windowDropdowns) SetDropdown(dropdown, theme.Window.Content.Dropdown.ColorBlock);
 
             IEnumerable<Dropdown> menuDropdowns = from element in themeElements where element.Type == ThemeElement.ElementType.MenuDropdown select element.GetComponent<Dropdown>();
-            foreach (Dropdown dropdown in menuDropdowns) SetDropdown(dropdown, theme.Color.MenuDropdown.ColorBlock);
+            foreach (Dropdown dropdown in menuDropdowns) SetDropdown(dropdown, theme.Menu.Dropdown.ColorBlock);
 
             IEnumerable<Dropdown> toolbarDropdownsText = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarDropdownText select element.GetComponent<Dropdown>();
-            foreach (Dropdown dropdown in toolbarDropdownsText) SetDropdown(dropdown, theme.Color.ToolbarDropdownText.ColorBlock);
+            foreach (Dropdown dropdown in toolbarDropdownsText) SetDropdown(dropdown, theme.Toolbar.DropdownText.ColorBlock);
 
             IEnumerable<Dropdown> toolbarDropdownsImage = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarDropdownImage select element.GetComponent<Dropdown>();
-            foreach (Dropdown dropdown in toolbarDropdownsImage) SetDropdown(dropdown, theme.Color.ToolbarDropdownImage.ColorBlock);
+            foreach (Dropdown dropdown in toolbarDropdownsImage) SetDropdown(dropdown, theme.Toolbar.DropdownImage.ColorBlock);
         }
         void SetSliders(ThemeElement[] themeElements, Theme theme)
         {
             IEnumerable<Slider> sliders = from element in themeElements where element.Type == ThemeElement.ElementType.ToolbarSlider select element.GetComponent<Slider>();
-            foreach (Slider slider in sliders) SetSlider(slider, theme.Color.SliderBackground, theme.Color.SliderFill, theme.Color.SliderHandle);
+            foreach (Slider slider in sliders) SetSlider(slider, theme.Toolbar.Slider.Background, theme.Toolbar.Slider.Fill, theme.Toolbar.Slider.Handle);
         }
 
         void SetButton(Button button, ColorBlock colorBlock)
