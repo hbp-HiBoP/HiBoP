@@ -75,6 +75,7 @@ namespace HBP.Module3D
         void Awake()
         {
             m_DLLROI = new DLL.ROI();
+            SelectedSphereID = -1;
         }
         /// <summary>
         /// 

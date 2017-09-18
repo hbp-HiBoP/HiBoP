@@ -21,7 +21,7 @@ namespace Tools.Unity
         "vccorlib140.dll",
         "vcomp140.dll",
         "vcruntime140.dll"
-    };
+        };
 
         private static string m_Data = "Assets/Data/";
         private static string m_DataBuild = "Data/";
@@ -32,7 +32,7 @@ namespace Tools.Unity
         {
             BuildProjectAndZipIt(@"D:/HBP/HiBoP_builds/");
         }
-        public static void BuildProjectAndZipIt(string buildsDirectory)
+        public static void BuildProjectAndZipIt(string buildsDirectory, bool development = true)
         {
             string buildName = string.Format("HiBoP_{0}_{1}_{2}", DateTime.Today.Year.ToString("d4"), DateTime.Today.Month.ToString("d2"), DateTime.Today.Day.ToString("d2"));
             string buildDirectory = buildsDirectory + buildName + "/";
@@ -41,7 +41,7 @@ namespace Tools.Unity
             buildPlayerOptions.locationPathName = buildDirectory + "HiBoP.exe";
             buildPlayerOptions.target = BuildTarget.StandaloneWindows64;
             buildPlayerOptions.scenes = new string[] { "Assets/_Scenes/Main.unity" };
-            BuildOptions buildOptions = BuildOptions.AllowDebugging | BuildOptions.ConnectWithProfiler | BuildOptions.Development;
+            BuildOptions buildOptions = development ? BuildOptions.AllowDebugging | BuildOptions.ConnectWithProfiler | BuildOptions.Development : BuildOptions.None;
             buildPlayerOptions.options = buildOptions;
             BuildPipeline.BuildPlayer(buildPlayerOptions);
 
@@ -72,10 +72,10 @@ namespace Tools.Unity
 
     public class HBPBuilderWindow : EditorWindow
     {
-        string buildDirectory = @"D:/HBP/HiBoP_builds/";
-        string information = "";
+        private string m_BuildDirectory = @"D:/HBP/HiBoP_builds/";
+        private bool m_DevelopmentBuild = true;
 
-        [MenuItem("Build/Development Build")]
+        [MenuItem("Tools/Build/Development Build")]
         public static void DevelopmentBuild()
         {
             HBPBuilderWindow window = (HBPBuilderWindow)GetWindow(typeof(HBPBuilderWindow));
@@ -86,19 +86,20 @@ namespace Tools.Unity
         {
             GUILayout.Label("HBP Builder", EditorStyles.boldLabel);
             GUILayout.BeginHorizontal();
-            buildDirectory = EditorGUILayout.TextField("Builds Directory", buildDirectory);
+            m_BuildDirectory = EditorGUILayout.TextField("Builds Directory", m_BuildDirectory);
             if (GUILayout.Button("Select"))
             {
-                buildDirectory = EditorUtility.OpenFolderPanel("Select the builds folder", buildDirectory, "");
+                m_BuildDirectory = EditorUtility.OpenFolderPanel("Select the builds folder", m_BuildDirectory, "");
             }
             GUILayout.EndHorizontal();
+            m_DevelopmentBuild = GUILayout.Toggle(m_DevelopmentBuild, "Development Build");
             if (GUILayout.Button("Build!"))
             {
-                if (buildDirectory[buildDirectory.Length - 1] != '/' && buildDirectory[buildDirectory.Length - 1] != '\\')
+                if (m_BuildDirectory[m_BuildDirectory.Length - 1] != '/' && m_BuildDirectory[m_BuildDirectory.Length - 1] != '\\')
                 {
-                    buildDirectory += '/';
+                    m_BuildDirectory += '/';
                 }
-                HBPBuilder.BuildProjectAndZipIt(buildDirectory);
+                HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild);
                 Close();
             }
         }

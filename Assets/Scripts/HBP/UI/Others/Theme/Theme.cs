@@ -299,7 +299,7 @@ namespace HBP.UI.Theme
                 SwapBackground = new Color(50, 50, 255, 150) / 255.0f;
 
                 Button.ColorBlock = ColorBlock.defaultColorBlock;
-                Button.ColorBlock.normalColor = new Color(60, 60, 60, 255) / 255.0f;
+                Button.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
                 Button.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
                 Button.ColorBlock.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
                 Button.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
