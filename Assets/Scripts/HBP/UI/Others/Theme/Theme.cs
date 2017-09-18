@@ -182,6 +182,7 @@ namespace HBP.UI.Theme
                 MainButton.Text.Font.alignment = TextAnchor.MiddleCenter;
                 MainButton.Text.Font.fontStyle = FontStyle.Bold;
                 MainButton.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                MainButton.ColorBlock = ColorBlock.defaultColorBlock;
                 MainButton.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
                 MainButton.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
                 MainButton.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
@@ -240,6 +241,7 @@ namespace HBP.UI.Theme
                 Toggle.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
                 Toggle.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
                 Toggle.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                Toggle.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
 
                 Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Text.Font = FontData.defaultFontData;
@@ -277,11 +279,68 @@ namespace HBP.UI.Theme
         [System.Serializable]
         public struct VisualizationTheme
         {
+            public Color Background;
+            public Color AlternativeBackground;
+            public Color SwapBackground;
+            public TextTheme Text;
+            public ButtonTheme Button;
+            public ToggleTheme Toggle;
+            public InputFieldTheme InputField;
+            public SliderTheme Slider;
+            public DropdownTheme Dropdown;
             public ViewTheme View;
 
             public void Initialize()
             {
                 View.Initialize();
+                
+                Background = new Color(40, 40, 40, 255) / 255.0f;
+                AlternativeBackground = new Color(60, 60, 60, 255) / 255.0f;
+                SwapBackground = new Color(50, 50, 255, 150) / 255.0f;
+
+                Button.ColorBlock = ColorBlock.defaultColorBlock;
+                Button.ColorBlock.normalColor = new Color(60, 60, 60, 255) / 255.0f;
+                Button.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Button.ColorBlock.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
+                Button.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                Button.Text.Font = FontData.defaultFontData;
+                Button.Text.Font.fontSize = 12;
+                Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Button.Text.Font.alignByGeometry = true;
+                Button.Text.Font.alignment = TextAnchor.MiddleCenter;
+                Button.Text.Font.fontStyle = FontStyle.Normal;
+                Button.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+
+                InputField.ColorBlock = ColorBlock.defaultColorBlock;
+                InputField.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                InputField.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                InputField.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                InputField.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+
+                Toggle.ColorBlock = ColorBlock.defaultColorBlock;
+                Toggle.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                Toggle.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Toggle.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Toggle.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                Toggle.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
+
+                Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                Text.Font = FontData.defaultFontData;
+                Text.Font.fontSize = 12;
+                Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Text.Font.alignByGeometry = true;
+                Text.Font.alignment = TextAnchor.MiddleCenter;
+                Text.Font.fontStyle = FontStyle.Normal;
+
+                Slider.Background = new Color(255, 255, 255, 255) / 255.0f;
+                Slider.Fill = new Color(255, 255, 255, 255) / 255.0f;
+                Slider.Handle = new Color(170, 170, 170, 255) / 255.0f;
+
+                Dropdown.ColorBlock = ColorBlock.defaultColorBlock;
+                Dropdown.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                Dropdown.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Dropdown.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Dropdown.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
             }
         }
         [System.Serializable]
