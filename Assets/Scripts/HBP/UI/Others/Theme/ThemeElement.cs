@@ -11,7 +11,7 @@ namespace HBP.UI.Theme
         public enum WindowEnum { Header, Content }
         public enum HeaderEnum { Background, Text }
         public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton }
-        public enum ToolbarEnum { Background, Text, Button, Toggle, Inputfield, Slider, DropdownText, DropdownImage }
+        public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, TimelineText, MainEvent, SecondaryEvent }
         public enum VisualizationEnum { Background, AlternativeBackground, Text, Button, Toggle, Inputfield, Slider, Dropdown }
 
         public bool IgnoreTheme;
@@ -127,8 +127,14 @@ namespace HBP.UI.Theme
                 case ToolbarEnum.Text:
                     SetText(GetComponent<Text>(), theme.Toolbar.Text);
                     break;
-                case ToolbarEnum.Button:
-                    SetButton(GetComponent<Button>(), theme.Toolbar.Button);
+                case ToolbarEnum.TimelineText:
+                    SetText(GetComponent<Text>(), theme.Toolbar.TimelineText);
+                    break;
+                case ToolbarEnum.ButtonImage:
+                    SetButton(GetComponent<Button>(), theme.Toolbar.ButtonImage);
+                    break;
+                case ToolbarEnum.ButtonText:
+                    SetButton(GetComponent<Button>(), theme.Toolbar.ButtonText);
                     break;
                 case ToolbarEnum.Toggle:
                     SetToggle(GetComponent<Toggle>(), theme.Toolbar.Toggle);
@@ -144,6 +150,12 @@ namespace HBP.UI.Theme
                     break;
                 case ToolbarEnum.DropdownImage:
                     SetDropdown(GetComponent<Dropdown>(), theme.Toolbar.DropdownImage);
+                    break;
+                case ToolbarEnum.MainEvent:
+                    SetImage(GetComponent<Image>(), theme.Toolbar.MainEvent);
+                    break;
+                case ToolbarEnum.SecondaryEvent:
+                    SetImage(GetComponent<Image>(), theme.Toolbar.SecondaryEvent);
                     break;
             }
         }
@@ -192,7 +204,14 @@ namespace HBP.UI.Theme
             if (button)
             {
                 button.colors = theme.ColorBlock;
-                foreach (Text text in button.GetComponentsInChildren<Text>()) SetText(text, theme.Text);
+                foreach (Transform child in button.transform)
+                {
+                    Text buttonText = child.GetComponent<Text>();
+                    if (buttonText)
+                    {
+                        SetText(buttonText, theme.Text);
+                    }
+                }
             }
         }
         void SetText(Text text, Theme.TextTheme theme)
@@ -201,7 +220,6 @@ namespace HBP.UI.Theme
             {
                 text.color = theme.Color;
                 text.alignByGeometry = theme.Font.alignByGeometry;
-                text.alignment = theme.Font.alignment;
                 text.resizeTextForBestFit = theme.Font.bestFit;
                 text.font = theme.Font.font;
                 text.fontSize = theme.Font.fontSize;

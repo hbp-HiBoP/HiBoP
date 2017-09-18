@@ -205,8 +205,12 @@ namespace HBP.UI.Theme
         public struct ToolbarTheme
         {
             public Color Background;
+            public Color MainEvent;
+            public Color SecondaryEvent;
             public TextTheme Text;
-            public ButtonTheme Button;
+            public TextTheme TimelineText;
+            public ButtonTheme ButtonImage;
+            public ButtonTheme ButtonText;
             public ToggleTheme Toggle;
             public InputFieldTheme InputField;
             public SliderTheme Slider;
@@ -216,24 +220,44 @@ namespace HBP.UI.Theme
             public void SetDefaultValues()
             {
                 Background = new Color(40, 40, 40, 255) / 255.0f;
-                Button.ColorBlock = ColorBlock.defaultColorBlock;
-                Button.ColorBlock.normalColor = new Color(40, 40, 40, 255) / 255.0f;
-                Button.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Button.ColorBlock.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
-                Button.ColorBlock.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
-                Button.Text.Font = FontData.defaultFontData;
-                Button.Text.Font.fontSize = 14;
-                Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
-                Button.Text.Font.alignByGeometry = true;
-                Button.Text.Font.alignment = TextAnchor.MiddleCenter;
-                Button.Text.Font.fontStyle = FontStyle.Normal;
-                Button.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                MainEvent = new Color(255, 0, 0, 150) / 255.0f;
+                SecondaryEvent = new Color(72, 0, 255, 150) / 255.0f;
+
+                ButtonImage.ColorBlock = ColorBlock.defaultColorBlock;
+                ButtonImage.ColorBlock.normalColor = new Color(40, 40, 40, 255) / 255.0f;
+                ButtonImage.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                ButtonImage.ColorBlock.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
+                ButtonImage.ColorBlock.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
+                ButtonImage.Text.Font = FontData.defaultFontData;
+                ButtonImage.Text.Font.fontSize = 14;
+                ButtonImage.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                ButtonImage.Text.Font.alignByGeometry = true;
+                ButtonImage.Text.Font.fontStyle = FontStyle.Normal;
+                ButtonImage.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+
+                ButtonText.ColorBlock = ColorBlock.defaultColorBlock;
+                ButtonText.ColorBlock.normalColor = new Color(40, 40, 40, 255) / 255.0f;
+                ButtonText.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                ButtonText.ColorBlock.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
+                ButtonText.ColorBlock.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
+                ButtonText.Text.Font = FontData.defaultFontData;
+                ButtonText.Text.Font.fontSize = 14;
+                ButtonText.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                ButtonText.Text.Font.alignByGeometry = true;
+                ButtonText.Text.Font.fontStyle = FontStyle.Normal;
+                ButtonText.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
 
                 InputField.ColorBlock = ColorBlock.defaultColorBlock;
                 InputField.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
                 InputField.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
                 InputField.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
                 InputField.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                InputField.Text.Font = FontData.defaultFontData;
+                InputField.Text.Font.fontSize = 14;
+                InputField.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                InputField.Text.Font.alignByGeometry = true;
+                InputField.Text.Font.fontStyle = FontStyle.Normal;
+                InputField.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
 
                 Toggle.ColorBlock = ColorBlock.defaultColorBlock;
                 Toggle.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
@@ -247,8 +271,14 @@ namespace HBP.UI.Theme
                 Text.Font.fontSize = 14;
                 Text.Font.font = Resources.Load<Font>("Fonts/Arial");
                 Text.Font.alignByGeometry = true;
-                Text.Font.alignment = TextAnchor.MiddleCenter;
                 Text.Font.fontStyle = FontStyle.Normal;
+
+                TimelineText.Color = new Color(50, 50, 50, 255) / 255.0f;
+                TimelineText.Font = FontData.defaultFontData;
+                TimelineText.Font.fontSize = 14;
+                TimelineText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                TimelineText.Font.alignByGeometry = true;
+                TimelineText.Font.fontStyle = FontStyle.Bold;
 
                 Slider.Background = new Color(255, 255, 255, 255) / 255.0f;
                 Slider.Fill = new Color(255, 255, 255, 255) / 255.0f;
