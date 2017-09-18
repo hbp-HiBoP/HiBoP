@@ -12,7 +12,7 @@ namespace HBP.UI.Theme
         public enum HeaderEnum { Background, Text }
         public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton }
         public enum ToolbarEnum { Background, Text, Button, Toggle, Inputfield, Slider, DropdownText, DropdownImage }
-        public enum VisualizationEnum { }
+        public enum VisualizationEnum { Background, AlternativeBackground, Text, Button, Toggle, Inputfield, Slider, Dropdown }
 
         public bool IgnoreTheme;
         public ZoneEnum Zone;
@@ -149,7 +149,33 @@ namespace HBP.UI.Theme
         }
         void SetVisualization(Theme theme)
         {
-
+            switch (Visualization)
+            {
+                case VisualizationEnum.Background:
+                    SetImage(GetComponent<Image>(), theme.Visualization.Background);
+                    break;
+                case VisualizationEnum.AlternativeBackground:
+                    SetImage(GetComponent<Image>(), theme.Visualization.Background);
+                    break;
+                case VisualizationEnum.Text:
+                    SetText(GetComponent<Text>(), theme.Visualization.Text);
+                    break;
+                case VisualizationEnum.Button:
+                    SetButton(GetComponent<Button>(), theme.Visualization.Button);
+                    break;
+                case VisualizationEnum.Toggle:
+                    SetToggle(GetComponent<Toggle>(), theme.Visualization.Toggle);
+                    break;
+                case VisualizationEnum.Inputfield:
+                    SetInputField(GetComponent<InputField>(), theme.Visualization.Inputfield);
+                    break;
+                case VisualizationEnum.Slider:
+                    SetSlider(GetComponent<Slider>(), theme.Visualization.Slider);
+                    break;
+                case VisualizationEnum.Dropdown:
+                    SetDropdown(GetComponent<Dropdown>(), theme.Visualization.Dropdown);
+                    break;
+            }
         }
 
         #region Tools
