@@ -59,7 +59,7 @@ namespace HBP.UI.Theme
                 Button.Text.Font.fontSize = 13;
                 Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
                 Button.Text.Font.alignByGeometry = true;
-                Text.Font.fontStyle = FontStyle.Normal;
+                Button.Text.Font.fontStyle = FontStyle.Normal;
 
                 Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Text.Font = FontData.defaultFontData;
@@ -221,6 +221,13 @@ namespace HBP.UI.Theme
                 Button.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
                 Button.ColorBlock.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
                 Button.ColorBlock.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
+                Button.Text.Font = FontData.defaultFontData;
+                Button.Text.Font.fontSize = 14;
+                Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Button.Text.Font.alignByGeometry = true;
+                Button.Text.Font.alignment = TextAnchor.MiddleCenter;
+                Button.Text.Font.fontStyle = FontStyle.Normal;
+                Button.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
 
                 InputField.ColorBlock = ColorBlock.defaultColorBlock;
                 InputField.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
@@ -253,10 +260,10 @@ namespace HBP.UI.Theme
                 DropdownText.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
 
                 DropdownImage.ColorBlock = ColorBlock.defaultColorBlock;
-                DropdownImage.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownImage.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownImage.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
                 DropdownImage.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                DropdownImage.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownImage.ColorBlock.disabledColor = new Color(255, 255, 255, 255) / 255.0f;
             }
         }
 
