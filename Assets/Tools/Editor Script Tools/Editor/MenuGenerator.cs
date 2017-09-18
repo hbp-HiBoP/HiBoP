@@ -44,7 +44,7 @@ namespace Tools.Unity
 
                 stringBuilder.AppendLine("    [MenuItem(\"Assets/Create/"+ prefix + menuName + "\",false,"+ order +")]");
                 stringBuilder.AppendLine("    private static void Menu" + i.ToString() + "() {");
-                stringBuilder.AppendLine("		CodeTemplates.CreateFromTemplate(\""  +initialName + "\",@\""+ templates[i].FullName+"\"); ");
+                stringBuilder.AppendLine("	  ScriptGenerator.CreateFromTemplate(\""  +initialName + "\",@\""+ templates[i].FullName+"\"); ");
                 stringBuilder.AppendLine("    }");
                 stringBuilder.AppendLine("");
             }

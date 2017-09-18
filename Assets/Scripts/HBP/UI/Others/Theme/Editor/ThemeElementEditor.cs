@@ -1,12 +1,52 @@
 ﻿using UnityEditor;
+using UnityEngine;
 
-[CustomEditor(typeof(ThemeElement))]
-public class ThemeElementEditor : Editor
+namespace HBP.UI.Theme
 {
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(ThemeElement))]
+    public class ThemeElementEditor : Editor
     {
-        ThemeElement themeElement = target as ThemeElement;
-        themeElement.Type = (ThemeElement.ElementType) EditorGUILayout.EnumPopup("Type", themeElement.Type) ;
-        themeElement.IgnoreTheme = EditorGUILayout.Toggle("Ignore Theme",themeElement.IgnoreTheme);
+        public override void OnInspectorGUI()
+        {
+            ThemeElement themeElement = target as ThemeElement;
+            themeElement.IgnoreTheme = EditorGUILayout.Toggle("Ignore Theme", themeElement.IgnoreTheme);
+            if (!themeElement.IgnoreTheme)
+            {
+                themeElement.Zone = (ThemeElement.ZoneEnum)EditorGUILayout.EnumPopup("Zone", themeElement.Zone);
+                switch (themeElement.Zone)
+                {
+                    case ThemeElement.ZoneEnum.General:
+                        break;
+                    case ThemeElement.ZoneEnum.Menu:
+                        themeElement.Menu = (ThemeElement.MenuEnum)EditorGUILayout.EnumPopup("Type", themeElement.Menu);
+                        break;
+                    case ThemeElement.ZoneEnum.Window:
+                        themeElement.Window = (ThemeElement.WindowEnum)EditorGUILayout.EnumPopup("Window", themeElement.Window);
+                        switch (themeElement.Window)
+                        {
+                            case ThemeElement.WindowEnum.Header:
+                                themeElement.Header = (ThemeElement.HeaderEnum)EditorGUILayout.EnumPopup("Type", themeElement.Header);
+                                break;
+                            case ThemeElement.WindowEnum.Content:
+                                themeElement.Content = (ThemeElement.ContentEnum)EditorGUILayout.EnumPopup("Type", themeElement.Content);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case ThemeElement.ZoneEnum.Toolbar:
+                        themeElement.Toolbar = (ThemeElement.ToolbarEnum)EditorGUILayout.EnumPopup("Type", themeElement.Toolbar);
+                        break;
+                    case ThemeElement.ZoneEnum.Visualization:
+                        break;
+                    default:
+                        break;
+                }
+                if (GUILayout.Button("Set"))
+                {
+                    themeElement.Set(ApplicationState.Theme);
+                }
+            }
+        }
     }
 }

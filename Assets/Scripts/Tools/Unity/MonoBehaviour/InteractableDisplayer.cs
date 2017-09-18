@@ -11,7 +11,7 @@ public class InteractableDisplayer : MonoBehaviour
 
     Dictionary<Graphic, Color> m_ColorByGraphic = new Dictionary<Graphic, Color>();
     Selectable m_Selectable;
-    ThemeElement m_ThemeElement;
+    HBP.UI.Theme.ThemeElement m_ThemeElement;
     bool m_LastState;
     #endregion
 
@@ -19,7 +19,7 @@ public class InteractableDisplayer : MonoBehaviour
     private void Awake()
     {
         m_Selectable = GetComponent<Selectable>();
-        m_ThemeElement = GetComponent<ThemeElement>();
+        m_ThemeElement = GetComponent<HBP.UI.Theme.ThemeElement>();
         UpdateColor(m_Selectable.interactable);
     }
 

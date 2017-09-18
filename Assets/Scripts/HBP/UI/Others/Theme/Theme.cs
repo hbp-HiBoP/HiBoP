@@ -12,13 +12,13 @@ namespace HBP.UI.Theme
         public ToolbarTheme Toolbar = new ToolbarTheme();
         public VisualizationTheme Visualization = new VisualizationTheme();
 
-        private void OnEnable()
+        public void SetDefaultValues()
         {
-            General.Initialize();
-            Menu.Initialize();
-            Window.Initialize();
-            Toolbar.Initialize();
-            Visualization.Initialize();
+            General.SetDefaultValues();
+            Menu.SetDefaultValues();
+            Window.SetDefaultValues();
+            Toolbar.SetDefaultValues();
+            Visualization.SetDefaultValues();
         }
 
         [System.Serializable]
@@ -28,7 +28,7 @@ namespace HBP.UI.Theme
             public Color OK = new Color();
             public Color NotInteractable = new Color();
 
-            public void Initialize()
+            public void SetDefaultValues()
             {
                 NotInteractable = new Color(100, 100, 100, 255) / 255.0f;
                 OK = new Color(50, 200, 50, 255) / 255.0f;
@@ -45,7 +45,7 @@ namespace HBP.UI.Theme
             public ToggleTheme Toggle;
             public DropdownTheme Dropdown;
 
-            public void Initialize()
+            public void SetDefaultValues()
             {
                 Background = new Color(40, 40, 40, 255) / 255.0f;
 
@@ -88,7 +88,7 @@ namespace HBP.UI.Theme
             public HeaderTheme Header;
             public ContentTheme Content;
 
-            public void Initialize()
+            public void SetDefaultValues()
             {
                 Header.Initialize();
                 Content.Initialize();
@@ -118,11 +118,11 @@ namespace HBP.UI.Theme
         {
             public Color Background;
             public TextTheme Text;
-            public ThemeBackgroundAndText Title;
+            public TitleTheme Title;
             public ToggleTheme Toggle;
             public DropdownTheme Dropdown;
             public InputFieldTheme Inputfield;
-            public ListTheme List;
+            public ScrollRectTheme ScrollRect;
             public ButtonTheme MainButton;
             public ButtonTheme SecondaryButton;
 
@@ -166,14 +166,13 @@ namespace HBP.UI.Theme
                 Inputfield.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
                 Inputfield.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
 
-                List.ScrollBar.ColorBlock = ColorBlock.defaultColorBlock;
-                List.ScrollBar.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                List.ScrollBar.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                List.ScrollBar.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                List.ScrollBar.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
-                List.ScrollBar.Background = new Color(40, 40, 40, 255) / 255.0f;
-                List.Background = new Color(80, 80, 80, 255) / 255.0f;
-
+                ScrollRect.Scrollbar.ColorBlock = ColorBlock.defaultColorBlock;
+                ScrollRect.Scrollbar.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                ScrollRect.Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
+                ScrollRect.Background = new Color(80, 80, 80, 255) / 255.0f;
 
                 MainButton.Text.Font = FontData.defaultFontData;
                 MainButton.Text.Font.fontSize = 14;
@@ -213,7 +212,7 @@ namespace HBP.UI.Theme
             public DropdownTheme DropdownText;
             public DropdownTheme DropdownImage;
 
-            public void Initialize()
+            public void SetDefaultValues()
             {
                 Background = new Color(40, 40, 40, 255) / 255.0f;
                 Button.ColorBlock = ColorBlock.defaultColorBlock;
@@ -269,7 +268,7 @@ namespace HBP.UI.Theme
 
         #region Structs
         [System.Serializable]
-        public struct ThemeBackgroundAndText
+        public struct TitleTheme
         {
             public Color Background;  
             public TextTheme Text;
@@ -279,7 +278,7 @@ namespace HBP.UI.Theme
         {
             public ViewTheme View;
 
-            public void Initialize()
+            public void SetDefaultValues()
             {
                 View.Initialize();
             }
@@ -330,10 +329,10 @@ namespace HBP.UI.Theme
             public ColorBlock ColorBlock;
         }
         [System.Serializable]
-        public struct ListTheme
+        public struct ScrollRectTheme
         {
             public Color Background;
-            public ScrollBarTheme ScrollBar;
+            public ScrollBarTheme Scrollbar;
         }
         [System.Serializable]
         public struct DropdownTheme
