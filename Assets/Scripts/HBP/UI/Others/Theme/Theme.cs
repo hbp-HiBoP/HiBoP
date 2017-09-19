@@ -360,10 +360,10 @@ namespace HBP.UI.Theme
                 DropdownImage.Template.Scrollbar.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
                 DropdownImage.Template.Scrollbar.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
                 DropdownImage.Item.ColorBlock = ColorBlock.defaultColorBlock;
-                DropdownImage.Item.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownImage.Item.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownImage.Item.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
                 DropdownImage.Item.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                DropdownImage.Item.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownImage.Item.ColorBlock.disabledColor = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownImage.Item.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
             }
         }
