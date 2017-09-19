@@ -38,13 +38,14 @@ namespace HBP.UI.Theme
                         themeElement.Toolbar = (ThemeElement.ToolbarEnum)EditorGUILayout.EnumPopup("Type", themeElement.Toolbar);
                         break;
                     case ThemeElement.ZoneEnum.Visualization:
+                        themeElement.Visualization = (ThemeElement.VisualizationEnum)EditorGUILayout.EnumPopup("Type", themeElement.Visualization);
                         break;
                     default:
                         break;
                 }
                 if (GUILayout.Button("Set"))
                 {
-                    themeElement.Set(ApplicationState.Theme);
+                    themeElement.Set((HBP.UI.Theme.Theme)Resources.Load("Themes/Dark"));
                 }
             }
         }

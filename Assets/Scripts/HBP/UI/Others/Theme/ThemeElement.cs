@@ -12,7 +12,7 @@ namespace HBP.UI.Theme
         public enum HeaderEnum { Background, Text }
         public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton }
         public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, TimelineText, MainEvent, SecondaryEvent, SecondaryText }
-        public enum VisualizationEnum { Background, AlternativeBackground, Text, Button, Toggle, Inputfield, Slider, Dropdown }
+        public enum VisualizationEnum { Background, SwapBackground, TransparentBackground, Text, SiteText, MarsAtlasText, BroadmanText, Button, Toggle, Inputfield, Slider, Dropdown, InvisibleButton }
 
         public bool IgnoreTheme;
         public ZoneEnum Zone;
@@ -169,14 +169,29 @@ namespace HBP.UI.Theme
                 case VisualizationEnum.Background:
                     SetImage(GetComponent<Image>(), theme.Visualization.Background);
                     break;
-                case VisualizationEnum.AlternativeBackground:
-                    SetImage(GetComponent<Image>(), theme.Visualization.Background);
+                case VisualizationEnum.SwapBackground:
+                    SetImage(GetComponent<Image>(), theme.Visualization.SwapBackground);
+                    break;
+                case VisualizationEnum.TransparentBackground:
+                    SetImage(GetComponent<Image>(), theme.Visualization.TransparentBackground);
                     break;
                 case VisualizationEnum.Text:
                     SetText(GetComponent<Text>(), theme.Visualization.Text);
                     break;
+                case VisualizationEnum.SiteText:
+                    SetText(GetComponent<Text>(), theme.Visualization.SiteText);
+                    break;
+                case VisualizationEnum.MarsAtlasText:
+                    SetText(GetComponent<Text>(), theme.Visualization.MarsAtlasText);
+                    break;
+                case VisualizationEnum.BroadmanText:
+                    SetText(GetComponent<Text>(), theme.Visualization.BroadmanText);
+                    break;
                 case VisualizationEnum.Button:
                     SetButton(GetComponent<Button>(), theme.Visualization.Button);
+                    break;
+                case VisualizationEnum.InvisibleButton:
+                    SetButton(GetComponent<Button>(), theme.Visualization.InvisibleButton);
                     break;
                 case VisualizationEnum.Toggle:
                     SetToggle(GetComponent<Toggle>(), theme.Visualization.Toggle);
@@ -240,6 +255,16 @@ namespace HBP.UI.Theme
             if (dropdown)
             {
                 dropdown.colors = theme.ColorBlock;
+                SetText(dropdown.captionText, theme.Text);
+                Transform arrow = dropdown.transform.Find("Arrow");
+                if (arrow) SetImage(arrow.GetComponent<Image>(), theme.ArrowColor);
+
+                if (dropdown.template)
+                {
+                    SetScrollRect(dropdown.template.GetComponent<ScrollRect>(), theme.Template);
+                    Toggle item = dropdown.template.Find("Viewport").Find("Content").Find("Item").GetComponent<Toggle>();
+                    SetToggle(item, theme.Item);
+                }
             }
         }
         void SetToggle(Toggle toggle, Theme.ToggleTheme theme)
@@ -248,6 +273,14 @@ namespace HBP.UI.Theme
             {
                 toggle.colors = theme.ColorBlock;
                 if(toggle.graphic) toggle.graphic.color = theme.Checkmark;
+                foreach (Transform child in toggle.transform)
+                {
+                    Text toggleText = child.GetComponent<Text>();
+                    if (toggleText)
+                    {
+                        SetText(toggleText, theme.Text);
+                    }
+                }
             }
         }
         void SetInputField(InputField inputField, Theme.InputFieldTheme theme)
@@ -262,7 +295,7 @@ namespace HBP.UI.Theme
         {
             if(scrollRect)
             {
-                SetImage(GetComponent<Image>(), theme.Background);
+                SetImage(scrollRect.GetComponent<Image>(), theme.Background);
                 SetScrollbar(scrollRect.verticalScrollbar,theme.Scrollbar);
                 SetScrollbar(scrollRect.horizontalScrollbar, theme.Scrollbar);
             }
@@ -272,8 +305,8 @@ namespace HBP.UI.Theme
             if (scrollbar)
             {
                 scrollbar.colors = theme.ColorBlock;
-                Image background = scrollbar.transform.Find("Background").GetComponent<Image>();
-                SetImage(background, theme.Background);
+                SetImage(scrollbar.GetComponent<Image>(), theme.Background);
+                SetImage(scrollbar.handleRect.GetComponent<Image>(), theme.Handle);
             }
         }
         void SetTitle(Image title, Theme.TitleTheme theme)
@@ -291,10 +324,9 @@ namespace HBP.UI.Theme
         {
             if (slider)
             {
-                Transform bg = slider.transform.Find("Background");
-                if (bg) bg.GetComponent<Image>().color = theme.Background;
-                if (slider.fillRect) slider.fillRect.GetComponent<Image>().color = theme.Fill;
-                if (slider.handleRect) slider.handleRect.GetComponent<Image>().color = theme.Handle;
+                SetImage(slider.transform.Find("Background").GetComponent<Image>(), theme.Background);
+                SetImage(slider.fillRect.GetComponent<Image>(), theme.Fill);
+                SetImage(slider.handleRect.GetComponent<Image>(), theme.Handle);
             }
         }
         #endregion
