@@ -27,12 +27,22 @@ namespace HBP.UI.Theme
             public Color Error = new Color();
             public Color OK = new Color();
             public Color NotInteractable = new Color();
+            public Color TooltipBackground;
+            public TextTheme TooltipText;
 
             public void SetDefaultValues()
             {
                 NotInteractable = new Color(100, 100, 100, 255) / 255.0f;
                 OK = new Color(50, 200, 50, 255) / 255.0f;
                 Error = new Color(200, 50, 50, 255) / 255.0f;
+
+                TooltipBackground = new Color(40, 40, 40, 255) / 255.0f;
+                TooltipText.Color = new Color(255, 255, 255, 255) / 255.0f;
+                TooltipText.Font = FontData.defaultFontData;
+                TooltipText.Font.fontSize = 12;
+                TooltipText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                TooltipText.Font.alignByGeometry = true;
+                TooltipText.Font.fontStyle = FontStyle.Normal;
             }
         }
 

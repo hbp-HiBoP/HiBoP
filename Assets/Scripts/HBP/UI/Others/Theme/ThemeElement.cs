@@ -7,6 +7,7 @@ namespace HBP.UI.Theme
     {
         #region Properties
         public enum ZoneEnum { General, Menu, Window, Toolbar, Visualization }
+        public enum GeneralEnum { Tooltip }
         public enum MenuEnum { Background, Button, Text, Dropdown, Toggle }
         public enum WindowEnum { Header, Content }
         public enum HeaderEnum { Background, Text }
@@ -16,6 +17,7 @@ namespace HBP.UI.Theme
 
         public bool IgnoreTheme;
         public ZoneEnum Zone;
+        public GeneralEnum General;
         public MenuEnum Menu;
         public WindowEnum Window;
         public HeaderEnum Header;
@@ -42,7 +44,16 @@ namespace HBP.UI.Theme
         #endregion
 
         #region Private Methods
-        void SetGeneral(Theme theme) { }
+        void SetGeneral(Theme theme)
+        {
+            switch (General)
+            {
+                case GeneralEnum.Tooltip:
+                    SetImage(GetComponent<Image>(), theme.General.TooltipBackground);
+                    SetText(GetComponentInChildren<Text>(), theme.General.TooltipText);
+                    break;
+            }
+        }
         void SetMenu(Theme theme)
         {
             switch (Menu)

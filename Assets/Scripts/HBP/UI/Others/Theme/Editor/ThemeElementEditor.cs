@@ -16,6 +16,7 @@ namespace HBP.UI.Theme
                 switch (themeElement.Zone)
                 {
                     case ThemeElement.ZoneEnum.General:
+                        themeElement.General = (ThemeElement.GeneralEnum)EditorGUILayout.EnumPopup("Type", themeElement.General);
                         break;
                     case ThemeElement.ZoneEnum.Menu:
                         themeElement.Menu = (ThemeElement.MenuEnum)EditorGUILayout.EnumPopup("Type", themeElement.Menu);
