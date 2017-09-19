@@ -208,6 +208,7 @@ namespace HBP.UI.Theme
             public Color MainEvent;
             public Color SecondaryEvent;
             public TextTheme Text;
+            public TextTheme SecondaryText;
             public TextTheme TimelineText;
             public ButtonTheme ButtonImage;
             public ButtonTheme ButtonText;
@@ -272,6 +273,13 @@ namespace HBP.UI.Theme
                 Text.Font.font = Resources.Load<Font>("Fonts/Arial");
                 Text.Font.alignByGeometry = true;
                 Text.Font.fontStyle = FontStyle.Normal;
+
+                SecondaryText.Color = new Color(126, 186, 255, 255) / 255.0f;
+                SecondaryText.Font = FontData.defaultFontData;
+                SecondaryText.Font.fontSize = 14;
+                SecondaryText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                SecondaryText.Font.alignByGeometry = true;
+                SecondaryText.Font.fontStyle = FontStyle.Normal;
 
                 TimelineText.Color = new Color(50, 50, 50, 255) / 255.0f;
                 TimelineText.Font = FontData.defaultFontData;
