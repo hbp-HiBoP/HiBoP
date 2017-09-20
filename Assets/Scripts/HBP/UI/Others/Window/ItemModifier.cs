@@ -10,14 +10,14 @@ namespace HBP.UI
         public T Item
         {
             get { return item; }
-            private set { item = value; ItemTemp = (T)item.Clone(); }
+            protected set { item = value; ItemTemp = (T)item.Clone(); }
         }
 
         protected T itemTemp;
         protected T ItemTemp
         {
             get { return itemTemp; }
-            set { itemTemp = value; SetFields(value); }
+            set { itemTemp = value; SetFields(itemTemp); }
         }
 
         protected UnityEvent saveEvent = new UnityEvent { };

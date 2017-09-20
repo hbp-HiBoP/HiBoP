@@ -12,10 +12,17 @@ namespace HBP.Data.Anatomy
         #region Properties
         public const string EXTENSION = ".nii";
         [DataMember] public string Name { get; set; }
-        [DataMember] public string Path { get; set; }
-        public virtual bool isUsable
+        [DataMember] public string File { get; set; }
+        public virtual bool Usable
         {
-            get { return !string.IsNullOrEmpty(Name) && !string.IsNullOrEmpty(Path); }
+            get { return !string.IsNullOrEmpty(Name) && HasMRI; }
+        }
+        public virtual bool HasMRI
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && (new FileInfo(File).Extension == EXTENSION);
+            }
         }
         #endregion
 
@@ -23,7 +30,7 @@ namespace HBP.Data.Anatomy
         public MRI(string name, string path)
         {
             Name = name;
-            Path = path;
+            File = path;
         }
         public MRI() : this("New MRI", string.Empty) { }
         #endregion
@@ -67,13 +74,13 @@ namespace HBP.Data.Anatomy
         #region Operators
         public object Clone()
         {
-            return new MRI(Name, Path);
+            return new MRI(Name, File);
         }
         public void Copy(object copy)
         {
             MRI mri = copy as MRI;
             Name = mri.Name;
-            Path = mri.Path;
+            File = mri.File;
         }
         #endregion
     }

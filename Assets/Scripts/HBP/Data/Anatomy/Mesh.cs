@@ -12,10 +12,12 @@ namespace HBP.Data.Anatomy
         #region Properties
         public const string EXTENSION = ".gii";
         [DataMember(Order = 0)] public string Name { get; set; }
-        public virtual bool isUsable
+        [DataMember] public string ID { get; set; }
+        public virtual bool Usable
         {
-            get { return !string.IsNullOrEmpty(Name); }
+            get { return !string.IsNullOrEmpty(Name) && HasMesh; }
         }
+        public abstract bool HasMesh { get; }
         public abstract bool HasMarsAtlas { get; }
         public virtual bool HasTransformation
         {
@@ -28,10 +30,14 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Constructor
-        public Mesh(string name, string transformation)
+        public Mesh(string name, string transformation, string ID)
         {
             Name = name;
             Transformation = transformation;
+            this.ID = ID;
+        }
+        public Mesh(string name, string transformation) : this(name,transformation, Guid.NewGuid().ToString())
+        {
         }
         #endregion
 
@@ -67,12 +73,68 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Operators
+        /// <summary>
+        /// Operator Equals.
+        /// </summary>
+        /// <param name="obj">Object to test.</param>
+        /// <returns>\a True if equals and \a false otherwise.</returns>
+        public override bool Equals(object obj)
+        {
+            Mesh mesh = obj as Mesh;
+            if (mesh != null && mesh.ID == ID)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        /// <summary>
+        /// Get hash code.
+        /// </summary>
+        /// <returns>HashCode.</returns>
+        public override int GetHashCode()
+        {
+            return this.ID.GetHashCode();
+        }
+        /// <summary>
+        /// Operator equals.
+        /// </summary>
+        /// <param name="a">First mesh to compare.</param>
+        /// <param name="b">Second mesh to compare.</param>
+        /// <returns>\a True if equals and \a false otherwise.</returns>
+        public static bool operator ==(Mesh a, Mesh b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+
+            if (((object)a == null) || ((object)b == null))
+            {
+                return false;
+            }
+
+            return a.Equals(b);
+        }
+        /// <summary>
+        /// Operator not equals.
+        /// </summary>
+        /// <param name="a">First mesh to compare.</param>
+        /// <param name="b">Second mesh to compare.</param>
+        /// <returns>\a True if not equals and \a false otherwise.</returns>
+        public static bool operator !=(Mesh a, Mesh b)
+        {
+            return !(a == b);
+        }
         public abstract object Clone();
         public virtual void Copy(object copy)
         {
             Mesh mesh = copy as Mesh;
             Name = mesh.Name;
             Transformation = mesh.Transformation;
+            ID = mesh.ID;
         }
         #endregion
     }

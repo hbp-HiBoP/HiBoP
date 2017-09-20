@@ -28,7 +28,7 @@ namespace HBP.UI.Module3D
             
             ApplicationState.Module3D.OnAddScene.AddListener((scene) =>
             {
-                Scene3DWindow sceneWindow = Instantiate(SceneWindowPrefab, transform).GetComponent<Scene3DWindow>();
+                Scene3DWindow sceneWindow = Instantiate(SceneWindowPrefab, transform).GetComponentInChildren<Scene3DWindow>();
                 sceneWindow.Initialize(scene);
                 m_SiteInfoDisplayer.transform.SetAsLastSibling();
             });

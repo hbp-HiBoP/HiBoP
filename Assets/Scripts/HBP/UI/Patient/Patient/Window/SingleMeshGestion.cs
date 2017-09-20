@@ -9,6 +9,18 @@ namespace HBP.UI.Anatomy
         #region Properties
         [SerializeField] FileSelector m_MeshFileSelector;
         [SerializeField] FileSelector m_MarsAtlasFileSelector;
+
+        bool m_interactable;
+        public bool interactable
+        {
+            get { return m_interactable; }
+            set
+            {
+                m_interactable = value;
+                m_MeshFileSelector.interactable = value;
+                m_MarsAtlasFileSelector.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -24,7 +36,7 @@ namespace HBP.UI.Anatomy
 
             m_MarsAtlasFileSelector.File = mesh.MarsAtlasPath;
             m_MarsAtlasFileSelector.onValueChanged.RemoveAllListeners();
-            m_MarsAtlasFileSelector.onValueChanged.AddListener((path) => mesh.MarsAtlasPath = path);
+            m_MarsAtlasFileSelector.onValueChanged.AddListener((marsAtlasPath) => mesh.MarsAtlasPath = marsAtlasPath);
         }
         #endregion
 

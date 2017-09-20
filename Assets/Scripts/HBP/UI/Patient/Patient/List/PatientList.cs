@@ -96,12 +96,12 @@ namespace HBP.UI.Anatomy
             switch (m_OrderBy)
             {
                 case OrderBy.DescendingMesh:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Brain.Meshes.FindAll(m => m.isUsable).Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Brain.Meshes.FindAll(m => m.Usable).Count).ToDictionary(k => k.Key, v => v.Value);
                     m_OrderBy = OrderBy.Mesh;
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 default:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.Meshes.FindAll(m => m.isUsable).Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.Meshes.FindAll(m => m.Usable).Count).ToDictionary(k => k.Key, v => v.Value);
                     m_OrderBy = OrderBy.DescendingMesh;
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -119,12 +119,12 @@ namespace HBP.UI.Anatomy
             switch (m_OrderBy)
             {
                 case OrderBy.DescendingMRI:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Brain.MRIs.FindAll(m => m.isUsable).Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Brain.MRIs.FindAll(m => m.Usable).Count).ToDictionary(k => k.Key, v => v.Value);
                     m_OrderBy = OrderBy.MRI;
                     m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 default:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.MRIs.FindAll(m => m.isUsable).Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.MRIs.FindAll(m => m.Usable).Count).ToDictionary(k => k.Key, v => v.Value);
                     m_OrderBy = OrderBy.DescendingMRI;
                     m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -142,12 +142,12 @@ namespace HBP.UI.Anatomy
             switch (m_OrderBy)
             {
                 case OrderBy.DescendingImplantation:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.Implantations.FindAll(i => i.isUsable).Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.Implantations.FindAll(i => i.Usable).Count).ToDictionary(k => k.Key, v => v.Value);
                     m_OrderBy = OrderBy.Implantation;
                     m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 default:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.Implantations.FindAll(i => i.isUsable).Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Brain.Implantations.FindAll(i => i.Usable).Count).ToDictionary(k => k.Key, v => v.Value);
                     m_OrderBy = OrderBy.DescendingImplantation;
                     m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

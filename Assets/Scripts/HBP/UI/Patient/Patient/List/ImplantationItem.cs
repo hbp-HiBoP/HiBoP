@@ -5,45 +5,26 @@ using HBP.Data.Anatomy;
 
 namespace HBP.UI.Anatomy
 {
-    public class ImplantationItem : SavableItem<Data.Anatomy.Implantation>
+    public class ImplantationItem : ActionnableItem<Implantation>
     {
         #region Properties
-        [SerializeField] InputField m_NameInputField;
-        [SerializeField] Tools.Unity.FileSelector m_FileSelector;
+        [SerializeField] Text m_NameInputField;
+        [SerializeField] Image m_ImplantationIcon;
+
         public override Implantation Object
         {
             get
             {
                 return base.Object;
             }
-
             set
             {
                 base.Object = value;
                 m_NameInputField.text = value.Name;
-                m_FileSelector.File = value.Path;
+                Color normalColor = Color.white;
+                Color notInteractableColor = ApplicationState.Theme.General.NotInteractable;
+                m_ImplantationIcon.color = value.HasImplantation ? normalColor : notInteractableColor;
             }
-        }
-        public override bool interactable
-        {
-            get
-            {
-                return base.interactable;
-            }
-            set
-            {
-                base.interactable = value;
-                m_NameInputField.interactable = value;
-                m_FileSelector.interactable = value;
-            }
-        }
-        #endregion
-
-        #region Public Methods
-        public override void Save()
-        {
-            Object.Name = m_NameInputField.text;
-            Object.Path = m_FileSelector.File;
         }
         #endregion
     }

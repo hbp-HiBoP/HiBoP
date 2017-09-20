@@ -2613,7 +2613,7 @@ namespace HBP.Module3D
             SceneInformation.MRILoaded = false;
 
             // checks parameter
-            if (!mri.isUsable) throw new EmptyFilePathException("NII");
+            if (!mri.Usable) throw new EmptyFilePathException("NII");
 
             MRI3D mri3D = new MRI3D(mri);
             if (mri3D.IsLoaded)
@@ -2622,7 +2622,7 @@ namespace HBP.Module3D
             }
             else
             {
-                throw new CanNotLoadNIIFile(mri.Path);
+                throw new CanNotLoadNIIFile(mri.File);
             }
             
             // Update mode
@@ -2668,7 +2668,7 @@ namespace HBP.Module3D
 
             foreach (string implantationName in commonImplantations)
             {
-                List<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((i) => i.Name == implantationName).Path).ToList();
+                List<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((i) => i.Name == implantationName).File).ToList();
                 List<string> patientIDs = (from patient in patients select patient.ID).ToList();
 
                 Implantation3D implantation3D = new Implantation3D(implantationName, ptsFiles, patientIDs);

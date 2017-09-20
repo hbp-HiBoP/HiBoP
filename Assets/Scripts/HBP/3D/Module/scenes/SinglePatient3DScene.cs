@@ -315,7 +315,7 @@ namespace HBP.Module3D
 
             // checks parameters
             if (mesh == null) throw new EmptyFilePathException("GII");
-            if (!mesh.isUsable) throw new EmptyFilePathException("GII"); // TODO CHANGE TO NOT USABLE
+            if (!mesh.Usable) throw new EmptyFilePathException("GII"); // TODO CHANGE TO NOT USABLE
 
             if (mesh is Data.Anatomy.LeftRightMesh)
             {

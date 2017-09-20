@@ -43,7 +43,7 @@ namespace HBP.UI.Anatomy
                 m_PlaceText.text = value.Place;
                 m_DateText.text = value.Date.ToString();
 
-                int nbMesh = value.Brain.Meshes.FindAll((m) => m.isUsable).Count;
+                int nbMesh = value.Brain.Meshes.FindAll((m) => m.Usable).Count;
                 m_MeshText.text = nbMesh.ToString();
                 if (nbMesh == 0)
                 {
@@ -56,7 +56,7 @@ namespace HBP.UI.Anatomy
                     m_MeshButton.interactable = true;
                 }
 
-                int nbMRI = value.Brain.MRIs.FindAll((m) => m.isUsable).Count;
+                int nbMRI = value.Brain.MRIs.FindAll((m) => m.Usable).Count;
                 m_MRIText.text = nbMRI.ToString();
                 if (nbMRI == 0)
                 {
@@ -69,7 +69,7 @@ namespace HBP.UI.Anatomy
                     m_MRIButton.interactable = true;
                 }
 
-                int nbImplantation = value.Brain.Implantations.FindAll((i) => i.isUsable).Count;
+                int nbImplantation = value.Brain.Implantations.FindAll((i) => i.Usable).Count;
                 m_ImplantationText.text = nbImplantation.ToString();
                 if (nbImplantation == 0)
                 {
@@ -102,15 +102,15 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public void SetMeshes()
         {
-            m_MeshList.Objects = (from mesh in m_Object.Brain.Meshes where mesh.isUsable select mesh.Name).ToArray();
+            m_MeshList.Objects = (from mesh in m_Object.Brain.Meshes where mesh.Usable select mesh.Name).ToArray();
         }
         public void SetMRIs()
         {
-            m_MRIList.Objects = (from mri in m_Object.Brain.MRIs where mri.isUsable select mri.Name).ToArray();
+            m_MRIList.Objects = (from mri in m_Object.Brain.MRIs where mri.Usable select mri.Name).ToArray();
         }
         public void SetImplantations()
         {
-            m_ImplantationList.Objects = (from implantation in m_Object.Brain.Implantations where implantation.isUsable select implantation.Name).ToArray();
+            m_ImplantationList.Objects = (from implantation in m_Object.Brain.Implantations where implantation.Usable select implantation.Name).ToArray();
         }
         public void SetConnectivities()
         {

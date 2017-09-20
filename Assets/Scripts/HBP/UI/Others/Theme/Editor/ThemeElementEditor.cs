@@ -29,6 +29,10 @@ namespace HBP.UI.Theme
                                 break;
                             case ThemeElement.WindowEnum.Content:
                                 themeElement.Content = (ThemeElement.ContentEnum)EditorGUILayout.EnumPopup("Type", themeElement.Content);
+                                if(themeElement.Content == ThemeElement.ContentEnum.Item)
+                                {
+                                    themeElement.Item = (ThemeElement.ItemEnum)EditorGUILayout.EnumPopup("Type", themeElement.Item);
+                                }
                                 break;
                             default:
                                 break;
@@ -44,7 +48,8 @@ namespace HBP.UI.Theme
                 }
                 if (GUILayout.Button("Set"))
                 {
-                    themeElement.Set(ApplicationState.Theme);
+                    Debug.Log("ici");
+                    themeElement.Set((Theme) Resources.Load("Themes/Dark"));
                 }
             }
         }

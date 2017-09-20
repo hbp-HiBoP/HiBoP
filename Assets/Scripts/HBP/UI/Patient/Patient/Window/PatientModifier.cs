@@ -1,6 +1,6 @@
 ﻿using UnityEngine.UI;
 using UnityEngine;
-
+using System;
 
 namespace HBP.UI.Anatomy
 {
@@ -16,7 +16,6 @@ namespace HBP.UI.Anatomy
         [SerializeField] MeshGestion m_MeshGestion;
         [SerializeField] MRIGestion m_MRIGestion;
         [SerializeField] ImplantationGestion m_ImplantationGestion;
-        //[SerializeField] TransformationGestion m_TransformationGestion;
         [SerializeField] ConnectivityGestion m_ConnectivityGestion;
         [SerializeField] OthersGestion m_OthersGestion;
 
@@ -32,7 +31,6 @@ namespace HBP.UI.Anatomy
             m_MeshGestion.Save();
             m_MRIGestion.Save();
             m_ImplantationGestion.Save();
-            //m_TransformationGestion.Save();
             m_ConnectivityGestion.Save();
             m_OthersGestion.Save();
             base.Save();
@@ -52,15 +50,13 @@ namespace HBP.UI.Anatomy
             m_DateInputField.onValueChanged.RemoveAllListeners();
             m_DateInputField.onValueChanged.AddListener((value) => ItemTemp.Date = int.Parse(value));
 
-            m_MeshGestion.Set(objectToDisplay);
+            m_MeshGestion.Set(ItemTemp);
             m_MeshGestion.SetActive(true);
             m_MRIGestion.Set(objectToDisplay);
             m_ImplantationGestion.Set(objectToDisplay);
-            //m_TransformationGestion.Set(objectToDisplay);
             m_ConnectivityGestion.Set(objectToDisplay);
             m_OthersGestion.Set(objectToDisplay);
         }
-
         protected override void SetWindow()
         {
         }
@@ -73,9 +69,8 @@ namespace HBP.UI.Anatomy
             m_MeshGestion.interactable = interactable;
             m_MRIGestion.interactable = interactable;
             m_ImplantationGestion.interactable = interactable;
-            //m_TransformationGestion.interactable = interactable;
             m_ConnectivityGestion.interactable = interactable;
-            m_OthersGestion.interactable =interactable;
+            m_OthersGestion.interactable = interactable;
 
             m_SaveButton.interactable = interactable;
         }

@@ -3,14 +3,16 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Theme
 {
+    [ExecuteInEditMode]
     public class ThemeElement : MonoBehaviour
     {
         #region Properties
         public enum ZoneEnum { General, Menu, Window, Toolbar, Visualization }
         public enum MenuEnum { Background, Button, Text, Dropdown, Toggle }
         public enum WindowEnum { Header, Content }
-        public enum HeaderEnum { Background, Text }
-        public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton }
+        public enum HeaderEnum { Background, Text, Button }
+        public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton, Item }
+        public enum ItemEnum { Text, Toggle, Button }
         public enum ToolbarEnum { Background, Text, Button, Toggle, Inputfield, Slider, DropdownText, DropdownImage }
         public enum VisualizationEnum { Background, AlternativeBackground, Text, Button, Toggle, Inputfield, Slider, Dropdown }
 
@@ -20,6 +22,7 @@ namespace HBP.UI.Theme
         public WindowEnum Window;
         public HeaderEnum Header;
         public ContentEnum Content;
+        public ItemEnum Item;
         public ToolbarEnum Toolbar;
         public VisualizationEnum Visualization;
         #endregion
@@ -82,6 +85,9 @@ namespace HBP.UI.Theme
                 case HeaderEnum.Text:
                     SetText(GetComponent<Text>(), theme.Window.Header.Text);
                     break;
+                case HeaderEnum.Button:
+                    SetButton(GetComponent<Button>(), theme.Window.Header.Button);
+                    break;
             }
         }
         void SetContent(Theme theme)
@@ -114,6 +120,23 @@ namespace HBP.UI.Theme
                     break;
                 case ContentEnum.SecondaryButton:
                     SetButton(GetComponent<Button>(), theme.Window.Content.SecondaryButton);
+                    break;
+                case ContentEnum.Item:
+                    SetItem(theme.Window.Content.Item);
+                    break;
+            }
+        }
+        void SetItem(Theme.ItemTheme theme)
+        {
+            switch (Item)
+            {
+                case ItemEnum.Toggle:
+                    SetToggle(GetComponent<Toggle>(), theme.Toggle);
+                    break;
+                case ItemEnum.Button:
+                    SetButton(GetComponent<Button>(), theme.Button);
+                    break;
+                default:
                     break;
             }
         }
@@ -184,7 +207,6 @@ namespace HBP.UI.Theme
             if (image)
             {
                 image.color = color;
-                image.SetAllDirty();
             }
         }
         void SetButton(Button button, Theme.ButtonTheme theme)
@@ -241,7 +263,7 @@ namespace HBP.UI.Theme
         {
             if(scrollRect)
             {
-                SetImage(GetComponent<Image>(), theme.Background);
+                SetImage(scrollRect.viewport.GetComponent<Image>(), theme.Background);
                 SetScrollbar(scrollRect.verticalScrollbar,theme.Scrollbar);
                 SetScrollbar(scrollRect.horizontalScrollbar, theme.Scrollbar);
             }

@@ -12,6 +12,20 @@ namespace HBP.UI.Anatomy
 
         [SerializeField] FileSelector m_LeftMarsAtlasFileSelector;
         [SerializeField] FileSelector m_RightMarsAtlasFileSelector;
+
+        bool m_interactable;
+        public bool interactable
+        {
+            get { return m_interactable; }
+            set
+            {
+                m_interactable = value;
+                m_LeftMeshFileSelector.interactable = value;
+                m_RightMeshFileSelector.interactable = value;
+                m_LeftMarsAtlasFileSelector.interactable = value;
+                m_RightMarsAtlasFileSelector.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -33,14 +47,10 @@ namespace HBP.UI.Anatomy
             m_LeftMarsAtlasFileSelector.onValueChanged.RemoveAllListeners();
             m_LeftMarsAtlasFileSelector.onValueChanged.AddListener((path) => mesh.LeftMarsAtlasHemisphere = path);
 
-            m_RightMarsAtlasFileSelector.File = mesh.LeftMarsAtlasHemisphere;
+            m_RightMarsAtlasFileSelector.File = mesh.RightMarsAtlasHemisphere;
             m_RightMarsAtlasFileSelector.onValueChanged.RemoveAllListeners();
             m_RightMarsAtlasFileSelector.onValueChanged.AddListener((path) => mesh.RightMarsAtlasHemisphere = path);
         }
-        #endregion
-
-        #region Private Methods
-
         #endregion
     }
 }

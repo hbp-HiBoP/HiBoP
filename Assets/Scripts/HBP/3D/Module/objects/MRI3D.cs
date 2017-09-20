@@ -25,7 +25,7 @@ namespace HBP.Module3D
             Name = mri.Name;
             NII = new DLL.NIFTI();
             Volume = new DLL.Volume();
-            if (NII.LoadNIIFile(mri.Path))
+            if (NII.LoadNIIFile(mri.File))
             {
                 NII.ConvertToVolume(Volume);
             }

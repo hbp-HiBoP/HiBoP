@@ -14,12 +14,19 @@ namespace HBP.Data.Anatomy
         public const string EXTENSION = ".pts";
         public enum Error { None, PathIsNullOrEmpty, FileNotFound, WrongExtension, CannotReadFile, WrongFormat, CannotReadAllSites };
         [DataMember] public string Name { get; set; }
-        [DataMember] public string Path { get; set; }
+        [DataMember] public string File { get; set; }
         [IgnoreDataMember] public List<Site> Sites { get; set; }
         [IgnoreDataMember] public Brain Brain { get; set; }
-        public virtual bool isUsable
+        public virtual bool Usable
         {
-            get { return !string.IsNullOrEmpty(Name) && !string.IsNullOrEmpty(Path); }
+            get { return !string.IsNullOrEmpty(Name) && HasImplantation; }
+        }
+        public virtual bool HasImplantation
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && (new FileInfo(File).Extension == EXTENSION);
+            }
         }
         #endregion
 
@@ -27,7 +34,7 @@ namespace HBP.Data.Anatomy
         public Implantation(string name, string path)
         {
             Name = name;
-            Path = path;
+            File = path;
             Sites = new List<Site>();
         }
         public Implantation() : this("New implantation", string.Empty)
@@ -38,14 +45,14 @@ namespace HBP.Data.Anatomy
         #region Public Methods
         public Error Load()
         {
-            if (string.IsNullOrEmpty(Path)) return Error.PathIsNullOrEmpty;
-            FileInfo fileInfo = new FileInfo(Path);
+            if (string.IsNullOrEmpty(File)) return Error.PathIsNullOrEmpty;
+            FileInfo fileInfo = new FileInfo(File);
             if (!fileInfo.Exists) return Error.FileNotFound;
             if (fileInfo.Extension != EXTENSION) return Error.WrongExtension;
             string[] lines = new string[0];
             try
             {
-                lines = File.ReadAllLines(fileInfo.FullName);
+                lines = System.IO.File.ReadAllLines(fileInfo.FullName);
             }
             catch
             {
@@ -111,13 +118,13 @@ namespace HBP.Data.Anatomy
         #region Operators
         public object Clone()
         {
-            return new Implantation(Name, Path);
+            return new Implantation(Name, File);
         }
         public void Copy(object copy)
         {
             Implantation implantation = copy as Implantation;
             Name = implantation.Name;
-            Path = implantation.Path;
+            File = implantation.File;
         }
         #endregion
     }

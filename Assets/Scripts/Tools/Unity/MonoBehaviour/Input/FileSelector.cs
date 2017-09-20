@@ -7,12 +7,9 @@ namespace Tools.Unity
     public class FileSelector : MonoBehaviour
     {
         #region Properties
-        InputField m_inputfield;
-        Button m_button;
-
-        public InputField.OnChangeEvent onValueChanged { get { return m_inputfield.onValueChanged; } }
-        public bool interactable { set { m_inputfield.interactable = value;  m_button.interactable = value; } }
-        public string File { get { return m_inputfield.text; } set { m_inputfield.text = value; } }
+        public InputField.OnChangeEvent onValueChanged { get { return GetComponent<InputField>().onValueChanged; } }
+        public bool interactable { set { GetComponent<InputField>().interactable = value; GetComponentInChildren<Button>().interactable = value; } }
+        public string File { get { return GetComponent<InputField>().text; } set { GetComponent<InputField>().text = value; } }
         public string Message;
         public string Extension;
         #endregion
@@ -20,21 +17,12 @@ namespace Tools.Unity
         #region Public Methods
         public void Open()
         {
-                string l_result = HBP.Module3D.DLL.QtGUI.GetExistingFileName(Extension.Split(','), Message, m_inputfield.text);
+                string l_result = HBP.Module3D.DLL.QtGUI.GetExistingFileName(Extension.Split(','), Message, GetComponent<InputField>().text);
                 if (l_result != string.Empty)
                 {
                     StringExtension.StandardizeToPath(ref l_result);
-                    Debug.Log(l_result);
-                    m_inputfield.text = l_result;
+                    GetComponent<InputField>().text = l_result;
                 }
-        }
-        #endregion
-
-        #region Private Methods
-        void Awake()
-        {
-            m_inputfield = GetComponent<InputField>();
-            m_button = GetComponentInChildren<Button>();
         }
         #endregion
     }

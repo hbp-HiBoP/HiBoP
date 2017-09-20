@@ -5,32 +5,26 @@ using HBP.Data.Anatomy;
 
 namespace HBP.UI.Anatomy
 {
-    public class ConnectivityItem : SavableItem<Data.Anatomy.Connectivity>
+    public class ConnectivityItem : ActionnableItem<Connectivity>
     {
         #region Properties
-        [SerializeField] InputField m_NameInputField;
-        [SerializeField] Tools.Unity.FileSelector m_FileSelector;
+        [SerializeField] Text m_NameInputField;
+        [SerializeField] Image m_ConnectivityIcon;
+
         public override Connectivity Object
         {
             get
             {
                 return base.Object;
             }
-
             set
             {
                 base.Object = value;
                 m_NameInputField.text = value.Name;
-                m_FileSelector.File = value.Path;
+                Color normalColor = Color.white;
+                Color notInteractableColor = ApplicationState.Theme.General.NotInteractable;
+                m_ConnectivityIcon.color = value.HasConnectivity ? normalColor : notInteractableColor;
             }
-        }
-        #endregion
-
-        #region Public Methods
-        public override void Save()
-        {
-            Object.Name = m_NameInputField.text;
-            Object.Path = m_FileSelector.File;
         }
         #endregion
     }

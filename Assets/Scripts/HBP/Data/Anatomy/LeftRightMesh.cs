@@ -12,11 +12,18 @@ namespace HBP.Data.Anatomy
         [DataMember(Order = 2)] public string RightHemisphere { get; set; }
         [DataMember(Order = 3)] public string LeftMarsAtlasHemisphere { get; set; }
         [DataMember(Order = 4)] public string RightMarsAtlasHemisphere { get; set; }
-        public override bool isUsable
+        public override bool Usable
         {
             get
             {
-                return base.isUsable && !string.IsNullOrEmpty(LeftHemisphere) && !string.IsNullOrEmpty(RightHemisphere) && File.Exists(LeftHemisphere) && File.Exists(RightHemisphere) && new FileInfo(LeftHemisphere).Extension == EXTENSION && new FileInfo(RightHemisphere).Extension == EXTENSION;
+                return base.Usable && HasMesh;
+            }
+        }
+        public override bool HasMesh
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(LeftHemisphere) && !string.IsNullOrEmpty(RightHemisphere) && File.Exists(LeftHemisphere) && File.Exists(RightHemisphere) && new FileInfo(LeftHemisphere).Extension == EXTENSION && new FileInfo(RightHemisphere).Extension == EXTENSION;
             }
         }
         public override bool HasMarsAtlas
@@ -29,6 +36,13 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Constructors
+        public LeftRightMesh(string name, string transformation, string ID, string leftHemisphere, string rightHemisphere, string leftMarsAtlasHemisphere, string rightMarsAtlasHemisphere) : base(name, transformation, ID)
+        {
+            LeftHemisphere = leftHemisphere;
+            RightHemisphere = rightHemisphere;
+            LeftMarsAtlasHemisphere = leftMarsAtlasHemisphere;
+            RightMarsAtlasHemisphere = rightMarsAtlasHemisphere;
+        }
         public LeftRightMesh(string name, string transformation, string leftHemisphere, string rightHemisphere, string leftMarsAtlasHemisphere, string rightMarsAtlasHemisphere) : base(name, transformation)
         {
             LeftHemisphere = leftHemisphere;
@@ -36,18 +50,19 @@ namespace HBP.Data.Anatomy
             LeftMarsAtlasHemisphere = leftMarsAtlasHemisphere;
             RightMarsAtlasHemisphere = rightMarsAtlasHemisphere;
         }
-        public LeftRightMesh():this("New mesh", string.Empty, string.Empty, string.Empty, string.Empty,string.Empty) { }
+        public LeftRightMesh():this("New mesh", string.Empty, Guid.NewGuid().ToString(), string.Empty, string.Empty, string.Empty,string.Empty) { }
         #endregion
 
         #region Operators
         public override object Clone()
         {
-            return new LeftRightMesh(Name,Transformation,LeftHemisphere, RightHemisphere,LeftMarsAtlasHemisphere,RightMarsAtlasHemisphere);
+            return new LeftRightMesh(Name,Transformation, ID, LeftHemisphere, RightHemisphere,LeftMarsAtlasHemisphere,RightMarsAtlasHemisphere);
         }
         public override void Copy(object copy)
         {
+            base.Copy(copy);
+
             LeftRightMesh mesh = copy as LeftRightMesh;
-            Name = mesh.Name;
             LeftHemisphere = mesh.LeftHemisphere;
             RightHemisphere = mesh.RightHemisphere;
             LeftMarsAtlasHemisphere = mesh.LeftMarsAtlasHemisphere;

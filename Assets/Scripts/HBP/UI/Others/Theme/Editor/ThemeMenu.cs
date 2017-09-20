@@ -9,7 +9,7 @@ public class ThemeMenu
     {
         foreach (ThemeElement element in Object.FindObjectsOfType<ThemeElement>())
         {
-            element.Set((HBP.UI.Theme.Theme)Resources.Load("Themes/Dark"));
+            element.Set((Theme)Resources.Load("Themes/Dark"));
         }
     }
 

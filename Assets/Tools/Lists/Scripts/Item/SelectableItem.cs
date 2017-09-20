@@ -7,17 +7,16 @@ namespace Tools.Unity.Lists
     public abstract class SelectableItem<T> : Item<T>
     {
         #region Properties
-        protected Toggle m_Toggle;
-        public virtual Toggle.ToggleEvent OnChangeSelected { get { return m_Toggle.onValueChanged; } }
+        public virtual Toggle.ToggleEvent OnChangeSelected { get { return GetComponent<Toggle>().onValueChanged; } }
         public virtual bool selected
         {
-            get { return m_Toggle.isOn; }
-            set { m_Toggle.isOn = value; }
+            get { return GetComponent<Toggle>().isOn; }
+            set { GetComponent<Toggle>().isOn = value; }
         }
         public override bool interactable
         {
-            get { return m_Toggle.interactable; }
-            set { m_Toggle.interactable = value; }
+            get { return GetComponent<Toggle>().interactable; }
+            set { GetComponent<Toggle>().interactable = value; }
         }
         #endregion
 
@@ -25,13 +24,6 @@ namespace Tools.Unity.Lists
         public void ChangeSelectionState()
         {
             selected = !selected;
-        }
-        #endregion
-
-        #region Private Methods
-        void Awake()
-        {
-            m_Toggle = GetComponent<Toggle>();
         }
         #endregion
     }

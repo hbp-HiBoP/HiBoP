@@ -4,11 +4,13 @@ using Tools.Unity.Lists;
 
 namespace HBP.UI.Anatomy
 {
-    public class MeshItem : SavableItem<Data.Anatomy.Mesh>
+    public class MeshItem : ActionnableItem<Data.Anatomy.Mesh>
     {
         #region Properties
-        [SerializeField] InputField m_NameInputField;
-        [SerializeField] Tools.Unity.FileSelector m_TransformationSelector;
+        [SerializeField] Text m_NameInputField;
+        [SerializeField] Image m_Mesh;
+        [SerializeField] Image m_MarsAtlas;
+        [SerializeField] Image m_Transformation;
         public override Data.Anatomy.Mesh Object
         {
             get
@@ -19,27 +21,14 @@ namespace HBP.UI.Anatomy
             {
                 base.Object = value;
                 m_NameInputField.text = value.Name;
-                m_TransformationSelector.File = value.Transformation;
-            }
-        }
-        public override bool interactable
-        {
-            set
-            {
-                base.interactable = value;
-                m_NameInputField.interactable = value;
-                m_TransformationSelector.interactable = value;
+                //Color normalColor = ApplicationState.Theme.Window.Content.Item.Text.Color;
+                Color normalColor = Color.white;
+                Color notInteractableColor = ApplicationState.Theme.General.NotInteractable;
+                m_Mesh.color = value.HasMesh ? normalColor : notInteractableColor;
+                m_MarsAtlas.color = value.HasMarsAtlas ? normalColor : notInteractableColor;
+                m_Transformation.color = value.HasTransformation ? normalColor : notInteractableColor;
             }
         }
         #endregion
-
-        #region Public Methods
-        public override void Save()
-        {
-            Object.Name = m_NameInputField.text;
-            Object.Transformation = m_TransformationSelector.File;
-        }
-        #endregion
-
     }
 }

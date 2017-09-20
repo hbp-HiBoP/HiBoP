@@ -41,7 +41,6 @@ namespace HBP.UI
         #region Protected Methods
         protected virtual void OpenModifier(T item,bool interactable)
         {
-            SetInteractable(false);
             m_List.DeselectAll();
             RectTransform obj = Instantiate(m_ModifierPrefab).GetComponent<RectTransform>();
             obj.SetParent(GameObject.Find("Windows").transform);

@@ -10,11 +10,11 @@ namespace HBP.Data.Anatomy
         #region Properties
         [DataMember(Order = 1)] public string Path { get; set; }
         [DataMember(Order = 2)] public string MarsAtlasPath { get; set; }
-        public override bool isUsable
+        public override bool HasMesh
         {
             get
             {
-                return base.isUsable && !string.IsNullOrEmpty(Path) && File.Exists(Path) && new FileInfo(Path).Extension == EXTENSION;
+                return !string.IsNullOrEmpty(Path) && File.Exists(Path) && new FileInfo(Path).Extension == EXTENSION;
             }
         }
         public override bool HasMarsAtlas
@@ -27,6 +27,11 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Constructors
+        public SingleMesh(string name, string transformation,string ID, string path, string marsAtlasPath) : base(name, transformation,ID)
+        {
+            Path = path;
+            MarsAtlasPath = marsAtlasPath;
+        }
         public SingleMesh(string name, string transformation, string path,string marsAtlasPath) : base(name, transformation)
         {
             Path = path;
@@ -38,12 +43,13 @@ namespace HBP.Data.Anatomy
         #region Operators
         public override object Clone()
         {
-            return new SingleMesh(Name, Transformation, Path, MarsAtlasPath);
+            return new SingleMesh(Name, Transformation, ID, Path, MarsAtlasPath);
         }
         public override void Copy(object copy)
         {
+            base.Copy(copy);
+
             SingleMesh mesh = copy as SingleMesh;
-            Name = mesh.Name;
             Path = mesh.Path;
             MarsAtlasPath = mesh.MarsAtlasPath;
         }

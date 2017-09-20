@@ -99,6 +99,7 @@ namespace HBP.UI.Theme
         {
             public Color Background;
             public TextTheme Text;
+            public ButtonTheme Button;
 
             public void Initialize()
             {
@@ -111,6 +112,19 @@ namespace HBP.UI.Theme
                 Text.Font.fontStyle = FontStyle.Bold;
 
                 Background = new Color(41, 41, 41, 255) / 255.0f;
+
+                Button.Text.Font = FontData.defaultFontData;
+                Button.Text.Font.fontSize = 14;
+                Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Button.Text.Font.alignByGeometry = true;
+                Button.Text.Font.alignment = TextAnchor.MiddleCenter;
+                Button.Text.Font.fontStyle = FontStyle.Bold;
+                Button.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                Button.ColorBlock = ColorBlock.defaultColorBlock;
+                Button.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                Button.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
+                Button.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                Button.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
             }
         }
         [System.Serializable]
@@ -125,6 +139,7 @@ namespace HBP.UI.Theme
             public ScrollRectTheme ScrollRect;
             public ButtonTheme MainButton;
             public ButtonTheme SecondaryButton;
+            public ItemTheme Item;
 
             public void Initialize()
             {
@@ -199,6 +214,8 @@ namespace HBP.UI.Theme
                 SecondaryButton.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
                 SecondaryButton.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
                 SecondaryButton.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+
+                Item.Initialize();
             }
         }
         [System.Serializable]
@@ -267,7 +284,44 @@ namespace HBP.UI.Theme
                 DropdownImage.ColorBlock.disabledColor = new Color(255, 255, 255, 255) / 255.0f;
             }
         }
+        [System.Serializable]
+        public struct ItemTheme
+        {
+            public TextTheme Text;
+            public ToggleTheme Toggle;
+            public ButtonTheme Button;
 
+            public void Initialize()
+            {
+                Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                Text.Font = FontData.defaultFontData;
+                Text.Font.fontSize = 14;
+                Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Text.Font.alignByGeometry = true;
+                Text.Font.alignment = TextAnchor.MiddleLeft;
+                Text.Font.fontStyle = FontStyle.Normal;
+
+                Toggle.ColorBlock = ColorBlock.defaultColorBlock;
+                Toggle.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                Toggle.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Toggle.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Toggle.ColorBlock.disabledColor = new Color(65, 65, 65, 255) / 255.0f;
+                Toggle.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
+
+                Button.Text.Font = FontData.defaultFontData;
+                Button.Text.Font.fontSize = 14;
+                Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Button.Text.Font.alignByGeometry = true;
+                Button.Text.Font.alignment = TextAnchor.MiddleCenter;
+                Button.Text.Font.fontStyle = FontStyle.Bold;
+                Button.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                Button.ColorBlock = ColorBlock.defaultColorBlock;
+                Button.ColorBlock.normalColor = new Color(255, 255, 255, 0) / 255.0f;
+                Button.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
+                Button.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                Button.ColorBlock.disabledColor = new Color(200, 200, 200, 0) / 255.0f;
+            }
+        }
         #region Structs
         [System.Serializable]
         public struct TitleTheme
