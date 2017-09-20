@@ -1,6 +1,4 @@
 ﻿
-
-
 Shader "Custom/MeshShader"
 {
 	Properties
@@ -12,7 +10,6 @@ Shader "Custom/MeshShader"
 		_Glossiness("Smoothness", Range(0,1)) = 0.5
 		_Metallic("Metallic", Range(0,1)) = 0.0
 		_MarsAtlas("Mars Atlas", int) = 0
-		_SinglePatient("Single patient", int) = 0
 	}
 
 	SubShader
@@ -20,14 +17,14 @@ Shader "Custom/MeshShader"
 		//Tags{ "RenderType" = "Transparent" }
 		Tags{ "RenderType" = "Opaque" }
 		//Tags{ "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType" = "Transparent" }
-		////LOD 200
+		//LOD 200
 
 
 		CGPROGRAM
 
 			// Physically based Standard lighting model, and enable shadows on all light types
 			//#pragma surface surf Standard fullforwardshadows alpha:blend decal:add 
-			#pragma surface surf Standard fullforwardshadows
+			#pragma surface surf Standard
 
 			// Use shader model 3.0 target, to get nicer looking lighting
 			#pragma target 3.0
@@ -46,11 +43,9 @@ Shader "Custom/MeshShader"
 			};
 
 			int _MarsAtlas;
-			int _SinglePatient;
 			half _Glossiness;
 			half _Metallic;
 			fixed4 _Color;
-
 
 			void surf(Input IN, inout SurfaceOutputStandard o)
 			{
@@ -62,32 +57,22 @@ Shader "Custom/MeshShader"
 				if (color > 1)
 					color = 1;
 								
-				fixed4 col;				
-				if (_SinglePatient)
+				fixed4 col;	
+				if (_MarsAtlas)
 				{
-					if (_MarsAtlas)
-					{
-						o.Albedo = IN.vertex_col.rgb;
-					}
-					else
-					{
-						col = (1 - color) * tex2D(_MainTex, IN.uv_MainTex.xy) + (color)* tex2D(_ColorTex, IN.uv3_ColorTex.xy);
-						col *= _Color;
-						o.Albedo = col.rgb;
-						o.Alpha = col.a;
-					}					
+					o.Albedo = IN.vertex_col.rgb;
 				}
 				else
 				{
 					col = (1 - color) * tex2D(_MainTex, IN.uv_MainTex.xy) + (color)* tex2D(_ColorTex, IN.uv3_ColorTex.xy);
 					col *= _Color;
 					o.Albedo = col.rgb;
-					o.Alpha = col.a;
-				}
+					o.Alpha = 0.f;
+				}	
 				
 				o.Metallic =  _Metallic;
 				o.Smoothness = _Glossiness;
-
+				
 			}
 
 		ENDCG

@@ -423,6 +423,16 @@ namespace HBP.Module3D.DLL
             surface._handle = _handle;
             _handle = buffer;
         }
+        /// <summary>
+        /// Simplify mesh
+        /// </summary>
+        /// <returns></returns>
+        public Surface Simplify()
+        {
+            Surface surface = new Surface(this);
+            simplify_mesh_Surface(surface.getHandle());
+            return surface;
+        }
         #endregion
 
         #region Memory Management
@@ -528,6 +538,8 @@ namespace HBP.Module3D.DLL
         static private extern void update_UV_Surface(HandleRef handleSurface, IntPtr uv);
         [DllImport("hbp_export", EntryPoint = "update_triangles_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_triangles_Surface(HandleRef handleSurface, IntPtr triangles);
+        [DllImport("hbp_export", EntryPoint = "simplify_mesh_Surface", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void simplify_mesh_Surface(HandleRef handleSurface);
 
         [DllImport("hbp_export", EntryPoint = "update_visiblity_mask_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_visiblity_mask_Surface(HandleRef handleSurface, HandleRef handleInvisiblePartSurface, int[] visibilityMask);
