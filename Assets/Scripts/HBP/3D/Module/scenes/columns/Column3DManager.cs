@@ -158,6 +158,16 @@ namespace HBP.Module3D
         /// List of the surfaces for the cuts
         /// </summary>
         public List<DLL.Surface> DLLCutsList = null;
+        /// <summary>
+        /// Selected mesh Both surface with a low number of vertices
+        /// </summary>
+        public DLL.Surface SimplifiedSelectedMeshSurface
+        {
+            get
+            {
+                return SelectedMesh.Both.Simplify();
+            }
+        }
 
         // volume
         /// <summary>

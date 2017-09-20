@@ -350,14 +350,17 @@ namespace HBP.Module3D
             m_BrainSurfaceMeshes = new List<GameObject>();
             foreach (Transform meshPart in brainMeshesParent.transform)
             {
-                GameObject brainPart = Instantiate(m_BrainPrefab, m_BrainSurfaceMeshesParent);
-                brainPart.GetComponent<Renderer>().sharedMaterial = meshPart.GetComponent<Renderer>().sharedMaterial;
-                brainPart.name = meshPart.name;
-                brainPart.transform.localPosition = Vector3.zero;
-                brainPart.layer = LayerMask.NameToLayer(Layer);
-                brainPart.GetComponent<MeshFilter>().mesh = Instantiate(meshPart.GetComponent<MeshFilter>().mesh);
-                brainPart.SetActive(true);
-                BrainSurfaceMeshes.Add(brainPart);
+                if (meshPart.GetComponent<MeshCollider>() == null || !Base3DScene.DBG_SIMPLIFY_MESH) // if the gameobject does not have mesh collider
+                {
+                    GameObject brainPart = Instantiate(m_BrainPrefab, m_BrainSurfaceMeshesParent);
+                    brainPart.GetComponent<Renderer>().sharedMaterial = meshPart.GetComponent<Renderer>().sharedMaterial;
+                    brainPart.name = meshPart.name;
+                    brainPart.transform.localPosition = Vector3.zero;
+                    brainPart.layer = LayerMask.NameToLayer(Layer);
+                    brainPart.GetComponent<MeshFilter>().mesh = Instantiate(meshPart.GetComponent<MeshFilter>().mesh);
+                    brainPart.SetActive(true);
+                    BrainSurfaceMeshes.Add(brainPart);
+                }
             }
         }
         /// <summary>
@@ -368,8 +371,11 @@ namespace HBP.Module3D
         {
             for (int i = 0; i < brainMeshes.Count; i++)
             {
-                DestroyImmediate(m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh);
-                m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMeshes[i].GetComponent<MeshFilter>().mesh);
+                if (brainMeshes[i].GetComponent<MeshCollider>() == null || !Base3DScene.DBG_SIMPLIFY_MESH) // if the gameobject does not have mesh collider
+                {
+                    DestroyImmediate(m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh);
+                    m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMeshes[i].GetComponent<MeshFilter>().mesh);
+                }
             }
         }
         /// <summary>
