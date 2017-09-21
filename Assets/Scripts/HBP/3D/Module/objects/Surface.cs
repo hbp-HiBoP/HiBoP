@@ -316,7 +316,7 @@ namespace HBP.Module3D.DLL
         /// <param name="normals"></param>
         /// <param name="uv"></param>
         /// <param name="triangles"></param>
-        public void UpdateMeshFromDLL(Mesh mesh, bool all = true, bool vertices = true, bool normals = true, bool uv = true, bool triangles = true)
+        public void UpdateMeshFromDLL(Mesh mesh, bool all = true, bool vertices = true, bool normals = true, bool uv = true, bool triangles = true, bool colors = true)
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-updateMeshMashall 1");
 
@@ -367,8 +367,7 @@ namespace HBP.Module3D.DLL
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("TEST-updateMeshMashall 4"); // heavy
 
-            if(all)
-                mesh.Clear();
+            mesh.Clear();
 
             if (all || vertices)
             {
@@ -378,14 +377,14 @@ namespace HBP.Module3D.DLL
             if(all || normals)
                 mesh.normals = m_Normals;
 
-            if (all || vertices)
+            if (all || colors)
             {
                 if (m_Colors.Length > 0)
                 {
                     mesh.colors = m_Colors;
                 }
             }
-
+            
             if (all || uv)
                 mesh.uv = m_UV;
 
@@ -430,7 +429,7 @@ namespace HBP.Module3D.DLL
         public Surface Simplify()
         {
             Surface surface = new Surface(this);
-            simplify_mesh_Surface(surface.getHandle());
+            simplify_mesh_Surface(surface.getHandle(), 10000);
             return surface;
         }
         #endregion
@@ -539,7 +538,7 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "update_triangles_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_triangles_Surface(HandleRef handleSurface, IntPtr triangles);
         [DllImport("hbp_export", EntryPoint = "simplify_mesh_Surface", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void simplify_mesh_Surface(HandleRef handleSurface);
+        static private extern void simplify_mesh_Surface(HandleRef handleSurface, int triangleCount);
 
         [DllImport("hbp_export", EntryPoint = "update_visiblity_mask_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_visiblity_mask_Surface(HandleRef handleSurface, HandleRef handleInvisiblePartSurface, int[] visibilityMask);

@@ -350,7 +350,7 @@ namespace HBP.Module3D
             m_BrainSurfaceMeshes = new List<GameObject>();
             foreach (Transform meshPart in brainMeshesParent.transform)
             {
-                if (meshPart.GetComponent<MeshCollider>() == null || !Base3DScene.DBG_SIMPLIFY_MESH) // if the gameobject does not have mesh collider
+                if (meshPart.GetComponent<MeshCollider>() == null || !HBP3DModule.UseSimplifiedColliders) // if the gameobject does not have mesh collider
                 {
                     GameObject brainPart = Instantiate(m_BrainPrefab, m_BrainSurfaceMeshesParent);
                     brainPart.GetComponent<Renderer>().sharedMaterial = meshPart.GetComponent<Renderer>().sharedMaterial;
@@ -371,7 +371,7 @@ namespace HBP.Module3D
         {
             for (int i = 0; i < brainMeshes.Count; i++)
             {
-                if (brainMeshes[i].GetComponent<MeshCollider>() == null || !Base3DScene.DBG_SIMPLIFY_MESH) // if the gameobject does not have mesh collider
+                if (brainMeshes[i].GetComponent<MeshCollider>() == null || !HBP3DModule.UseSimplifiedColliders) // if the gameobject does not have mesh collider
                 {
                     DestroyImmediate(m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh);
                     m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMeshes[i].GetComponent<MeshFilter>().mesh);
