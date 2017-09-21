@@ -51,14 +51,14 @@ namespace HBP.UI.Anatomy
         IEnumerator c_DisplayDataBasePatients()
         {
             yield return Ninja.JumpToUnity;
-            m_DatabaseList.Objects = new Data.Patient[0];
+            m_DatabaseList.Objects = new Patient[0];
             yield return Ninja.JumpBack;
 
-            string[] patients = Data.Patient.GetPatientsDirectories(m_DatabaseFolderSelector.Folder);
+            string[] patients = Patient.GetPatientsDirectories(m_DatabaseFolderSelector.Folder);
             for (int i = 0; i < patients.Length; i++)
             {
                 yield return Ninja.JumpBack;
-                Data.Patient patient = new Data.Patient(patients[i]);
+                Patient patient = new Patient(patients[i]);
                 yield return Ninja.JumpToUnity;
                 if (!Items.Contains(patient)) m_DatabaseList.Add(patient);
             }

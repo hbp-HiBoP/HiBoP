@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class Selector : MonoBehaviour
@@ -9,8 +10,15 @@ public class Selector : MonoBehaviour
     public bool Selected
     {
         get { return m_Selected; }
-        set { m_Selected = value; m_TargetGraphic.gameObject.SetActive(value); }
+        set
+        {
+            m_Selected = value;
+            m_TargetGraphic.gameObject.SetActive(value);
+            OnChangeValue.Invoke(value);
+            if(value) transform.SetAsLastSibling();
+        }
     }
+    public GenericEvent<bool> OnChangeValue = new GenericEvent<bool>();
 
     [SerializeField, Candlelight.PropertyBackingField]
     private Graphic m_TargetGraphic;
@@ -24,6 +32,11 @@ public class Selector : MonoBehaviour
     #region Private Methods
     void Start()
     {
+        FindObjectOfType<SelectionManager>().Add(this);
+    }
+    private void OnDestroy()
+    {
+        FindObjectOfType<SelectionManager>().Remove(this);
     }
     #endregion
 }
