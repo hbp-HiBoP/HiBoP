@@ -92,11 +92,6 @@ namespace HBP.Module3D
     [AddComponentMenu("Scenes/Base 3D Scene")]
     public abstract class Base3DScene : MonoBehaviour, IConfigurable
     {
-        /// <summary>
-        /// Used to debug the simplify mesh feature
-        /// </summary>
-        public static bool DBG_SIMPLIFY_MESH = false;
-
         #region Properties
         /// <summary>
         /// Name of the scene
@@ -495,7 +490,9 @@ namespace HBP.Module3D
                 ColumnManager.UpdateROIVisibility(value);
             }
         }
-        
+
+        private bool m_UpdatingColliders = false;
+
         [SerializeField]
         protected GameObject m_BrainPrefab;
         [SerializeField]
@@ -1890,10 +1887,10 @@ namespace HBP.Module3D
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.parent = m_DisplayedObjects.BrainSurfaceMeshesParent.transform;
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.localPosition = Vector3.zero;
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
-                if (!DBG_SIMPLIFY_MESH) m_DisplayedObjects.BrainSurfaceMeshes[ii].AddComponent<MeshCollider>();
+                if (!HBP3DModule.UseSimplifiedColliders) m_DisplayedObjects.BrainSurfaceMeshes[ii].AddComponent<MeshCollider>();
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].SetActive(true);
             }
-            if (DBG_SIMPLIFY_MESH)
+            if (HBP3DModule.UseSimplifiedColliders)
             {
                 // mesh collider
                 m_DisplayedObjects.BrainCollider = Instantiate(m_BrainPrefab);
@@ -2879,13 +2876,23 @@ namespace HBP.Module3D
         }
         private IEnumerator c_UpdateMeshesColliders()
         {
-            if (DBG_SIMPLIFY_MESH)
+            while(m_UpdatingColliders)
+            {
+                yield return new WaitForSeconds(0.05f);
+            }
+            m_UpdatingColliders = true;
+
+
+            if (HBP3DModule.UseSimplifiedColliders)
             {
                 // update mesh collider TODO : remove next section when this is finished
                 yield return Ninja.JumpToUnity;
                 Mesh colliderMesh = m_DisplayedObjects.BrainCollider.GetComponent<MeshCollider>().sharedMesh;
-                m_ColumnManager.SimplifiedSelectedMeshSurface.UpdateMeshFromDLL(colliderMesh);
                 m_DisplayedObjects.BrainCollider.GetComponent<MeshCollider>().sharedMesh = null;
+                yield return Ninja.JumpBack;
+                DLL.Surface surface = m_ColumnManager.DLLCutsList[0].Simplify();
+                yield return Ninja.JumpToUnity;
+                surface.UpdateMeshFromDLL(colliderMesh, false, true, false, false, true, false);
                 m_DisplayedObjects.BrainCollider.GetComponent<MeshCollider>().sharedMesh = colliderMesh;
                 yield return Ninja.JumpBack;
             }
@@ -2908,6 +2915,8 @@ namespace HBP.Module3D
                 m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
                 yield return Ninja.JumpBack;
             }
+
+            m_UpdatingColliders = false;
         }
         #endregion
     }
