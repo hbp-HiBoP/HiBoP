@@ -35,7 +35,9 @@ namespace HBP.UI.Module3D
             {
                 if (scene == ApplicationState.Module3D.SelectedScene)
                 {
+                    m_Tools.ForEach((t) => t.ListenerLock = true);
                     DefaultState();
+                    m_Tools.ForEach((t) => t.ListenerLock = false);
                 }
             });
 

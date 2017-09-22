@@ -141,6 +141,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (type == Toolbar.UpdateToolbarType.Scene)
             {
+                ChangeBrainTypeCallback();
                 switch (ApplicationState.Module3D.SelectedScene.SceneInformation.MeshPartToDisplay)
                 {
                     case SceneStatesInfo.MeshPart.Left:
