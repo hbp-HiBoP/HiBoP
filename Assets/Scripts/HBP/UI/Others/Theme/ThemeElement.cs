@@ -14,7 +14,7 @@ namespace HBP.UI.Theme
         public enum HeaderEnum { Background, Text, Button }
         public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton, Item }
         public enum ItemEnum { Text, Toggle, Button } 
-        public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, TimelineText, MainEvent, SecondaryEvent, SecondaryText }
+        public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, TimelineText, MainEvent, SecondaryEvent, SecondaryText, DropdownTextWithIcon }
         public enum VisualizationEnum { Background, SwapBackground, TransparentBackground, Text, SiteText, MarsAtlasText, BroadmanText, Button, Toggle, Inputfield, Slider, Dropdown, InvisibleButton }
 
         public bool IgnoreTheme;
@@ -184,6 +184,9 @@ namespace HBP.UI.Theme
                     break;
                 case ToolbarEnum.DropdownText:
                     SetDropdown(GetComponent<Dropdown>(), theme.Toolbar.DropdownText);
+                    break;
+                case ToolbarEnum.DropdownTextWithIcon:
+                    SetDropdown(GetComponent<Dropdown>(), theme.Toolbar.DropdownTextWithIcon);
                     break;
                 case ToolbarEnum.DropdownImage:
                     SetDropdown(GetComponent<Dropdown>(), theme.Toolbar.DropdownImage);

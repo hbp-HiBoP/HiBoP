@@ -244,6 +244,7 @@ namespace HBP.UI.Theme
             public SliderTheme Slider;
             public DropdownTheme DropdownText;
             public DropdownTheme DropdownImage;
+            public DropdownTheme DropdownTextWithIcon;
 
             public void SetDefaultValues()
             {
@@ -382,6 +383,38 @@ namespace HBP.UI.Theme
                 DropdownImage.Item.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
                 DropdownImage.Item.ColorBlock.disabledColor = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownImage.Item.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
+
+                DropdownTextWithIcon.ColorBlock = ColorBlock.defaultColorBlock;
+                DropdownTextWithIcon.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownTextWithIcon.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                DropdownTextWithIcon.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                DropdownTextWithIcon.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownTextWithIcon.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                DropdownTextWithIcon.Text.Font = FontData.defaultFontData;
+                DropdownTextWithIcon.Text.Font.fontSize = 14;
+                DropdownTextWithIcon.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                DropdownTextWithIcon.Text.Font.alignByGeometry = true;
+                DropdownTextWithIcon.Text.Font.fontStyle = FontStyle.Bold;
+                DropdownTextWithIcon.Template.Background = new Color(40, 40, 40, 255) / 255.0f;
+                DropdownTextWithIcon.Template.Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
+                DropdownTextWithIcon.Template.Scrollbar.Handle = new Color(59, 122, 194, 255) / 255.0f;
+                DropdownTextWithIcon.Template.Scrollbar.ColorBlock = ColorBlock.defaultColorBlock;
+                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
+                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
+                DropdownTextWithIcon.Item.ColorBlock = ColorBlock.defaultColorBlock;
+                DropdownTextWithIcon.Item.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownTextWithIcon.Item.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                DropdownTextWithIcon.Item.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                DropdownTextWithIcon.Item.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownTextWithIcon.Item.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
+                DropdownTextWithIcon.Item.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownTextWithIcon.Item.Text.Font = FontData.defaultFontData;
+                DropdownTextWithIcon.Item.Text.Font.fontSize = 14;
+                DropdownTextWithIcon.Item.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                DropdownTextWithIcon.Item.Text.Font.alignByGeometry = true;
+                DropdownTextWithIcon.Item.Text.Font.fontStyle = FontStyle.Normal;
             }
         }
 

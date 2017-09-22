@@ -12,7 +12,8 @@ namespace HBP.UI.Module3D.Tools
         #region Properties
         [SerializeField]
         private Dropdown m_Dropdown;
-
+        [SerializeField]
+        private RectTransform m_InputFieldParent;
         [SerializeField]
         private InputField m_InputField;
         #endregion
@@ -53,10 +54,12 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.value = 0;
             m_InputField.interactable = false;
             m_InputField.text = "30";
+            m_InputFieldParent.gameObject.SetActive(false);
         }
         public override void UpdateInteractable()
         {
             bool isZoneModeEnabled = ApplicationState.Module3D.SelectedScene.TriangleErasingMode == TriEraser.Mode.Zone;
+            m_InputFieldParent.gameObject.SetActive(isZoneModeEnabled);
             m_InputField.gameObject.SetActive(isZoneModeEnabled);
             switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
             {
@@ -109,10 +112,12 @@ namespace HBP.UI.Module3D.Tools
                 if (ApplicationState.Module3D.SelectedScene.TriangleErasingMode != TriEraser.Mode.Zone)
                 {
                     m_InputField.gameObject.SetActive(false);
+                    m_InputFieldParent.gameObject.SetActive(false);
                 }
                 else
                 {
                     m_InputField.gameObject.SetActive(true);
+                    m_InputFieldParent.gameObject.SetActive(true);
                 }
             }
         }
