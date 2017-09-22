@@ -47,6 +47,11 @@ namespace HBP.UI.Theme
         #endregion
 
         #region Private Methods
+        void Awake()
+        {
+            Set(ApplicationState.Theme);
+        }
+
         void SetGeneral(Theme theme)
         {
             switch (General)
