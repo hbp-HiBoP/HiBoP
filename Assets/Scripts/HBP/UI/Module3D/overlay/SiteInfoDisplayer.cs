@@ -13,28 +13,16 @@ namespace HBP.UI.Module3D
 
         [SerializeField]
         private Text m_SiteName;
-
         [SerializeField]
-        private Text m_PatientName;
-
-        [SerializeField]
-        private Text m_PatientDate;
-
-        [SerializeField]
-        private Text m_PatientPlace;
-
+        private Text m_Patient;
         [SerializeField]
         private Text m_IEEG;
-
         [SerializeField]
         private Text m_Height;
-
         [SerializeField]
         private Text m_Latency;
-
         [SerializeField]
         private Text m_MarsAtlas;
-
         [SerializeField]
         private Text m_Broadman;
 
@@ -96,11 +84,42 @@ namespace HBP.UI.Module3D
                 gameObject.SetActive(siteInfo.Enabled);
                 if (siteInfo.Enabled)
                 {
-                    transform.position = siteInfo.Position;
-                    m_SiteName.text = siteInfo.Site.Information.Name;
-                    m_PatientDate.text = siteInfo.Site.Information.Patient.Date.ToString();
-                    m_PatientName.text = siteInfo.Site.Information.Patient.Name;
-                    m_PatientPlace.text = siteInfo.Site.Information.Patient.Place;
+                    transform.position = siteInfo.Position + new Vector3(0, -20, 0);
+                    // Site name string
+                    string siteNameText = siteInfo.Site.Information.Name;
+                    bool isBlacklisted = siteInfo.Site.State.IsBlackListed, isExcluded = siteInfo.Site.State.IsExcluded, isHighlighted = siteInfo.Site.State.IsHighlighted, isMarked = siteInfo.Site.State.IsMarked;
+                    if (isBlacklisted || isExcluded || isHighlighted || isMarked)
+                    {
+                        siteNameText += " (";
+                        if (isBlacklisted)
+                        {
+                            siteNameText += "Blacklisted";
+                        }
+                        else if (isExcluded)
+                        {
+                            siteNameText += "Excluded";
+                        }
+                        else
+                        {
+                            if (isHighlighted && isMarked)
+                            {
+                                siteNameText += "Highlighted, Marked";
+                            }
+                            else if (isHighlighted)
+                            {
+                                siteNameText += "Highlighted";
+                            }
+                            else
+                            {
+                                siteNameText += "Marked";
+                            }
+                        }
+                        siteNameText += ")";
+                    }
+                    m_SiteName.text = siteNameText;
+                    // Site patient string
+                    m_Patient.text = siteInfo.Site.Information.Patient.Name + " (" + siteInfo.Site.Information.Patient.Place + " - " + siteInfo.Site.Information.Patient.Date.ToString() + ")";
+                    // Informations
                     if (siteInfo.Mode == SiteInformationDisplayMode.CCEP)
                     {
                         m_Height.text = "Height: " + siteInfo.Height;

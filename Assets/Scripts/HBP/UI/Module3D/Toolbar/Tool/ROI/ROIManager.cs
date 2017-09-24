@@ -15,6 +15,8 @@ namespace HBP.UI.Module3D.Tools
         [SerializeField]
         private Dropdown m_ROISelector;
         [SerializeField]
+        private RectTransform m_ROINameParent;
+        [SerializeField]
         private InputField m_ROIName;
         [SerializeField]
         private Button m_RemoveROI;
@@ -154,6 +156,7 @@ namespace HBP.UI.Module3D.Tools
             m_ROIName.interactable = false;
             m_ROIName.gameObject.SetActive(false);
             m_ROIName.text = "";
+            m_ROINameParent.gameObject.SetActive(false);
             m_ROISelector.interactable = false;
             m_ROISelector.gameObject.SetActive(false);
             m_VolumeSelector.interactable = false;
@@ -180,6 +183,7 @@ namespace HBP.UI.Module3D.Tools
                     m_RemoveVolume.interactable = false;
                     m_RemoveROI.gameObject.SetActive(false);
                     m_ROIName.gameObject.SetActive(false);
+                    m_ROINameParent.gameObject.SetActive(false);
                     m_ROISelector.gameObject.SetActive(false);
                     m_VolumeSelector.gameObject.SetActive(false);
                     m_RemoveVolume.gameObject.SetActive(false);
@@ -193,6 +197,7 @@ namespace HBP.UI.Module3D.Tools
                     m_RemoveVolume.interactable = hasVolume;
                     m_RemoveROI.gameObject.SetActive(hasROI);
                     m_ROIName.gameObject.SetActive(hasROI);
+                    m_ROINameParent.gameObject.SetActive(hasROI);
                     m_ROISelector.gameObject.SetActive(hasROI);
                     m_VolumeSelector.gameObject.SetActive(hasVolume);
                     m_RemoveVolume.gameObject.SetActive(hasVolume);
@@ -206,6 +211,7 @@ namespace HBP.UI.Module3D.Tools
                     m_RemoveVolume.interactable = hasVolume;
                     m_RemoveROI.gameObject.SetActive(hasROI);
                     m_ROIName.gameObject.SetActive(hasROI);
+                    m_ROINameParent.gameObject.SetActive(hasROI);
                     m_ROISelector.gameObject.SetActive(hasROI);
                     m_VolumeSelector.gameObject.SetActive(hasVolume);
                     m_RemoveVolume.gameObject.SetActive(hasVolume);
@@ -227,6 +233,7 @@ namespace HBP.UI.Module3D.Tools
                     m_RemoveVolume.interactable = hasVolume;
                     m_RemoveROI.gameObject.SetActive(hasROI);
                     m_ROIName.gameObject.SetActive(hasROI);
+                    m_ROINameParent.gameObject.SetActive(hasROI);
                     m_ROISelector.gameObject.SetActive(hasROI);
                     m_VolumeSelector.gameObject.SetActive(hasVolume);
                     m_RemoveVolume.gameObject.SetActive(hasVolume);
@@ -240,6 +247,7 @@ namespace HBP.UI.Module3D.Tools
                     m_RemoveVolume.interactable = false;
                     m_RemoveROI.gameObject.SetActive(false);
                     m_ROIName.gameObject.SetActive(false);
+                    m_ROINameParent.gameObject.SetActive(false);
                     m_ROISelector.gameObject.SetActive(false);
                     m_VolumeSelector.gameObject.SetActive(false);
                     m_RemoveVolume.gameObject.SetActive(false);
@@ -253,6 +261,7 @@ namespace HBP.UI.Module3D.Tools
                     m_RemoveVolume.interactable = hasVolume;
                     m_RemoveROI.gameObject.SetActive(hasROI);
                     m_ROIName.gameObject.SetActive(hasROI);
+                    m_ROINameParent.gameObject.SetActive(hasROI);
                     m_ROISelector.gameObject.SetActive(hasROI);
                     m_VolumeSelector.gameObject.SetActive(hasVolume);
                     m_RemoveVolume.gameObject.SetActive(hasVolume);
@@ -266,6 +275,7 @@ namespace HBP.UI.Module3D.Tools
                     m_RemoveVolume.interactable = hasVolume;
                     m_RemoveROI.gameObject.SetActive(hasROI);
                     m_ROIName.gameObject.SetActive(hasROI);
+                    m_ROINameParent.gameObject.SetActive(hasROI);
                     m_ROISelector.gameObject.SetActive(hasROI);
                     m_VolumeSelector.gameObject.SetActive(hasVolume);
                     m_RemoveVolume.gameObject.SetActive(hasVolume);
@@ -279,6 +289,7 @@ namespace HBP.UI.Module3D.Tools
                     m_RemoveVolume.interactable = false;
                     m_RemoveROI.gameObject.SetActive(false);
                     m_ROIName.gameObject.SetActive(false);
+                    m_ROINameParent.gameObject.SetActive(false);
                     m_ROISelector.gameObject.SetActive(false);
                     m_VolumeSelector.gameObject.SetActive(false);
                     m_RemoveVolume.gameObject.SetActive(false);
