@@ -49,7 +49,7 @@ namespace HBP.UI.Theme
         #region Private Methods
         void Awake()
         {
-            Set(ApplicationState.Theme);
+            //if (ApplicationState.Theme) Set(ApplicationState.Theme);
         }
 
         void SetGeneral(Theme theme)
