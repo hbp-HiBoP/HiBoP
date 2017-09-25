@@ -350,8 +350,6 @@ namespace HBP.UI.Theme
         {
             if (toggle)
             {
-                toggle.colors = theme.ColorBlock;
-                if(toggle.graphic) toggle.graphic.color = theme.Checkmark;
                 foreach (Transform child in toggle.transform)
                 {
                     Text text = child.GetComponent<Text>();
@@ -361,12 +359,14 @@ namespace HBP.UI.Theme
                         else SetText(text, theme.Disabled);
                     }
                     Image icon = child.GetComponent<Image>();
-                    if(icon)
+                    if (icon)
                     {
                         if (toggle.interactable) SetImage(icon, theme.Normal.Color);
                         else SetImage(icon, theme.Disabled.Color);
                     }
                 }
+                toggle.colors = theme.ColorBlock;
+                SetImage((Image)toggle.graphic, theme.Checkmark);
             }
         }
         void SetInputField(InputField inputField, Theme.InputFieldTheme theme)

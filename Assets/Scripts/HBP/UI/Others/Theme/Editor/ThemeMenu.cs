@@ -17,7 +17,6 @@ namespace HBP.UI.Theme
         {
             ThemeWindow window = (ThemeWindow)GetWindow(typeof(ThemeWindow));
             m_Themes = Resources.LoadAll<Theme>("Themes");
-            Debug.Log(m_Themes.Length);
             m_ThemeNames = (from theme in m_Themes select theme.name).ToArray();
             window.Show();
         }
