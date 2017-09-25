@@ -134,7 +134,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return Patient.Place + " | " + Patient.Date + " | " + Patient.Name + " | " + Name;
+                return Name + " (" + Patient.Name + " - " + Patient.Place + " - " + Patient.Date + ")";
             }
         }
     }
