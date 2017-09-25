@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HBP.UI.Theme
 {
@@ -16,6 +18,7 @@ namespace HBP.UI.Theme
         public enum ItemEnum { Text, Toggle, Button } 
         public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, TimelineText, MainEvent, SecondaryEvent, SecondaryText, DropdownTextWithIcon }
         public enum VisualizationEnum { Background, SwapBackground, TransparentBackground, Text, SiteText, MarsAtlasText, BroadmanText, Button, Toggle, Inputfield, Slider, Dropdown, InvisibleButton }
+        public enum EffectEnum { Children, RecursiveChildren, Custom, None}
 
         public bool IgnoreTheme;
         public ZoneEnum Zone;
@@ -27,6 +30,8 @@ namespace HBP.UI.Theme
         public ItemEnum Item;
         public ToolbarEnum Toolbar;
         public VisualizationEnum Visualization;
+        public EffectEnum Effect;
+        public Graphic[] Graphics;
         Selectable m_Selectable;
         bool m_LastState;
         Theme m_Theme;
@@ -54,11 +59,14 @@ namespace HBP.UI.Theme
         void Awake()
         {
             m_Selectable = GetComponent<Selectable>();
+            if(m_Selectable) m_LastState = m_Selectable.interactable;
+        }
+        private void OnEnable()
+        {
             if (Application.isPlaying)
             {
                 Set(ApplicationState.Theme);
             }
-
         }
         void Update()
         {
@@ -283,23 +291,17 @@ namespace HBP.UI.Theme
             if (button)
             {
                 button.colors = theme.ColorBlock;
-                foreach (Transform child in button.transform)
+                Text[] texts; Image[] icons;
+                FindContents(out texts, out icons);
+                foreach (Text text in texts)
                 {
-                    // Text.
-                    Text text = child.GetComponent<Text>();
-                    if (text)
-                    {
-                        if (button.interactable) SetText(text, theme.Normal);
-                        else SetText(text, theme.Disabled);
-                    }
-
-                    // Icon.
-                    Image icon = child.GetComponent<Image>();
-                    if(icon)
-                    {
-                        if (button.interactable) SetImage(icon, theme.Normal.Color);
-                        else SetImage(icon, theme.Disabled.Color);
-                    }
+                    if (button.interactable) SetText(text, theme.Text);
+                    else SetText(text, theme.DisabledText);
+                }
+                foreach (Image icon in icons)
+                {
+                    if (button.interactable) SetImage(icon, theme.Icon);
+                    else SetImage(icon, theme.DisabledIcon);
                 }
             }
         }
@@ -326,15 +328,33 @@ namespace HBP.UI.Theme
             if (dropdown)
             {
                 dropdown.colors = theme.ColorBlock;
+
+                Text[] texts; Image[] icons;
+                FindContents(out texts, out icons);
+                foreach (Text text in texts)
+                {
+                    if (dropdown.interactable) SetText(text, theme.Text);
+                    else SetText(text, theme.DisabledText);
+                }
+                foreach (Image icon in icons)
+                {
+                    if (dropdown.interactable) SetImage(icon, theme.Icon);
+                    else SetImage(icon, theme.DisabledIcon);
+                }
+
                 // Text.
-                if (dropdown.interactable) SetText(dropdown.captionText, theme.Normal);
-                else SetText(dropdown.captionText, theme.Disabled);
-                Transform arrow = dropdown.transform.Find("Arrow");
+                if (dropdown.interactable) SetText(dropdown.captionText, theme.Text);
+                else SetText(dropdown.captionText, theme.DisabledText);
+
+                // Icon.
+                if (dropdown.interactable) SetImage(dropdown.captionImage, theme.Icon);
+                else SetImage(dropdown.captionImage, theme.DisabledIcon);
 
                 // Arrow.
+                Transform arrow = dropdown.transform.Find("Arrow");
                 if (arrow)
                 {
-                    if (dropdown.interactable) SetImage(arrow.GetComponent<Image>(), theme.NormalArrow);
+                    if (dropdown.interactable) SetImage(arrow.GetComponent<Image>(), theme.Arrow);
                     else SetImage(arrow.GetComponent<Image>(), theme.DisabledArrow);
                 }
 
@@ -352,20 +372,18 @@ namespace HBP.UI.Theme
             {
                 toggle.colors = theme.ColorBlock;
                 if(toggle.graphic) toggle.graphic.color = theme.Checkmark;
-                foreach (Transform child in toggle.transform)
+
+                Text[] texts; Image[] icons;
+                FindContents(out texts, out icons);
+                foreach (Text text in texts)
                 {
-                    Text text = child.GetComponent<Text>();
-                    if (text)
-                    {
-                        if (toggle.interactable) SetText(text, theme.Normal);
-                        else SetText(text, theme.Disabled);
-                    }
-                    Image icon = child.GetComponent<Image>();
-                    if(icon)
-                    {
-                        if (toggle.interactable) SetImage(icon, theme.Normal.Color);
-                        else SetImage(icon, theme.Disabled.Color);
-                    }
+                    if (toggle.interactable) SetText(text, theme.Text);
+                    else SetText(text, theme.DisabledText);
+                }
+                foreach (Image icon in icons)
+                {
+                    if (toggle.interactable) SetImage(icon, theme.Icon);
+                    else SetImage(icon, theme.DisabledIcon);
                 }
             }
         }
@@ -373,10 +391,14 @@ namespace HBP.UI.Theme
         {
             if (inputField)
             {
+                Text[] texts; Image[] icons;
+                FindContents(out texts, out icons);
+                foreach (Text t in texts)
+                {
+                    if (inputField.interactable) SetText(t, theme.Text);
+                    else SetText(t, theme.DisabledText);
+                }
                 inputField.colors = theme.ColorBlock;
-                Text text = inputField.transform.Find("Text").GetComponent<Text>();
-                if (inputField.interactable) SetText(text, theme.Normal);
-                else SetText(text, theme.Disabled);
             }
         }
         void SetScrollRect(ScrollRect scrollRect, Theme.ScrollRectTheme theme )
@@ -424,6 +446,34 @@ namespace HBP.UI.Theme
                     SetImage(slider.transform.Find("Background").GetComponent<Image>(), theme.DisabledBackground);
                     SetImage(slider.fillRect.GetComponent<Image>(), theme.DisabledFill);
                 }
+            }
+        }
+        void FindContents(out Text[] texts,out Image[] icons)
+        {
+            texts = new Text[0]; icons = new Image[0];
+            switch (Effect)
+            {
+                case EffectEnum.Children:
+                    List<Text> textList = new List<Text>();
+                    List<Image> iconList = new List<Image>();
+                    foreach (Transform child in transform)
+                    {
+                        Text text = child.GetComponent<Text>();
+                        if (text) textList.Add(text);
+                        Image icon = child.GetComponent<Image>();
+                        if (icon) iconList.Add(icon);
+                    }
+                    texts = textList.ToArray();
+                    icons = iconList.ToArray();
+                    break;
+                case EffectEnum.RecursiveChildren:
+                    texts = GetComponentsInChildren<Text>(true);
+                    icons = GetComponentsInChildren<Image>(true);
+                    break;
+                case EffectEnum.Custom:
+                    texts = (from graphic in Graphics where graphic is Text select graphic as Text).ToArray();
+                    icons = (from graphic in Graphics where graphic is Image select graphic as Image).ToArray();
+                    break;
             }
         }
         #endregion

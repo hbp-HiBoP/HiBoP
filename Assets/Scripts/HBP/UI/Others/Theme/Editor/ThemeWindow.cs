@@ -37,6 +37,7 @@ namespace HBP.UI.Theme
 
         public static void SetTheme(Theme theme)
         {
+            ApplicationState.Theme = theme;
             foreach (ThemeElement element in FindObjectsOfType<ThemeElement>())
             {
                 element.Set(theme);
