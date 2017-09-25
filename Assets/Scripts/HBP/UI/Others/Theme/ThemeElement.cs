@@ -385,6 +385,8 @@ namespace HBP.UI.Theme
                     if (toggle.interactable) SetImage(icon, theme.Icon);
                     else SetImage(icon, theme.DisabledIcon);
                 }
+                toggle.colors = theme.ColorBlock;
+                SetImage((Image)toggle.graphic, theme.Checkmark);
             }
         }
         void SetInputField(InputField inputField, Theme.InputFieldTheme theme)
