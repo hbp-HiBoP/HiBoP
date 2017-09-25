@@ -27,11 +27,15 @@ namespace HBP.UI.Theme
         public ItemEnum Item;
         public ToolbarEnum Toolbar;
         public VisualizationEnum Visualization;
+        Selectable m_Selectable;
+        bool m_LastState;
+        Theme m_Theme;
         #endregion
 
         #region Public Methods
         public void Set(Theme theme)
         {
+            m_Theme = theme;
             if(!IgnoreTheme)
             {
                 switch (Zone)
@@ -49,7 +53,23 @@ namespace HBP.UI.Theme
         #region Private Methods
         void Awake()
         {
-            Set(ApplicationState.Theme);
+            m_Selectable = GetComponent<Selectable>();
+            if (Application.isPlaying)
+            {
+                Set(ApplicationState.Theme);
+            }
+
+        }
+        void Update()
+        {
+            if(m_Selectable)
+            {
+                if(m_Selectable.interactable != m_LastState)
+                {
+                    m_LastState = m_Selectable.interactable;
+                    Set(m_Theme);
+                }
+            }
         }
 
         void SetGeneral(Theme theme)
@@ -265,10 +285,20 @@ namespace HBP.UI.Theme
                 button.colors = theme.ColorBlock;
                 foreach (Transform child in button.transform)
                 {
-                    Text buttonText = child.GetComponent<Text>();
-                    if (buttonText)
+                    // Text.
+                    Text text = child.GetComponent<Text>();
+                    if (text)
                     {
-                        SetText(buttonText, theme.Text);
+                        if (button.interactable) SetText(text, theme.Normal);
+                        else SetText(text, theme.Disabled);
+                    }
+
+                    // Icon.
+                    Image icon = child.GetComponent<Image>();
+                    if(icon)
+                    {
+                        if (button.interactable) SetImage(icon, theme.Normal.Color);
+                        else SetImage(icon, theme.Disabled.Color);
                     }
                 }
             }
@@ -296,9 +326,17 @@ namespace HBP.UI.Theme
             if (dropdown)
             {
                 dropdown.colors = theme.ColorBlock;
-                SetText(dropdown.captionText, theme.Text);
+                // Text.
+                if (dropdown.interactable) SetText(dropdown.captionText, theme.Normal);
+                else SetText(dropdown.captionText, theme.Disabled);
                 Transform arrow = dropdown.transform.Find("Arrow");
-                if (arrow) SetImage(arrow.GetComponent<Image>(), theme.ArrowColor);
+
+                // Arrow.
+                if (arrow)
+                {
+                    if (dropdown.interactable) SetImage(arrow.GetComponent<Image>(), theme.NormalArrow);
+                    else SetImage(arrow.GetComponent<Image>(), theme.DisabledArrow);
+                }
 
                 if (dropdown.template)
                 {
@@ -316,10 +354,17 @@ namespace HBP.UI.Theme
                 if(toggle.graphic) toggle.graphic.color = theme.Checkmark;
                 foreach (Transform child in toggle.transform)
                 {
-                    Text toggleText = child.GetComponent<Text>();
-                    if (toggleText)
+                    Text text = child.GetComponent<Text>();
+                    if (text)
                     {
-                        SetText(toggleText, theme.Text);
+                        if (toggle.interactable) SetText(text, theme.Normal);
+                        else SetText(text, theme.Disabled);
+                    }
+                    Image icon = child.GetComponent<Image>();
+                    if(icon)
+                    {
+                        if (toggle.interactable) SetImage(icon, theme.Normal.Color);
+                        else SetImage(icon, theme.Disabled.Color);
                     }
                 }
             }
@@ -329,7 +374,9 @@ namespace HBP.UI.Theme
             if (inputField)
             {
                 inputField.colors = theme.ColorBlock;
-                SetText(inputField.transform.Find("Text").GetComponent<Text>(),theme.Text);
+                Text text = inputField.transform.Find("Text").GetComponent<Text>();
+                if (inputField.interactable) SetText(text, theme.Normal);
+                else SetText(text, theme.Disabled);
             }
         }
         void SetScrollRect(ScrollRect scrollRect, Theme.ScrollRectTheme theme )
@@ -366,9 +413,17 @@ namespace HBP.UI.Theme
         {
             if (slider)
             {
-                SetImage(slider.transform.Find("Background").GetComponent<Image>(), theme.Background);
-                SetImage(slider.fillRect.GetComponent<Image>(), theme.Fill);
-                SetImage(slider.handleRect.GetComponent<Image>(), theme.Handle);
+                slider.colors = theme.ColorBlock;
+                if(slider.interactable)
+                {
+                    SetImage(slider.transform.Find("Background").GetComponent<Image>(), theme.Background);
+                    SetImage(slider.fillRect.GetComponent<Image>(), theme.Fill);
+                }
+                else
+                {
+                    SetImage(slider.transform.Find("Background").GetComponent<Image>(), theme.DisabledBackground);
+                    SetImage(slider.fillRect.GetComponent<Image>(), theme.DisabledFill);
+                }
             }
         }
         #endregion
