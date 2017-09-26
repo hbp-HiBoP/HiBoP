@@ -16,7 +16,7 @@ namespace HBP.UI.Theme
         public enum HeaderEnum { Background, Text, Button }
         public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton, Item }
         public enum ItemEnum { Text, Toggle, Button } 
-        public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, TimelineText, MainEvent, SecondaryEvent, SecondaryText, DropdownTextWithIcon }
+        public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, ScrollRect, MainEvent, SecondaryEvent, SecondaryText, DropdownTextWithIcon }
         public enum VisualizationEnum { Background, SwapBackground, TransparentBackground, Text, SiteText, MarsAtlasText, BroadmanText, Button, Toggle, Inputfield, Slider, Dropdown, InvisibleButton }
         public enum EffectEnum { Children, RecursiveChildren, Custom, Self}
 
@@ -194,8 +194,8 @@ namespace HBP.UI.Theme
                 case ToolbarEnum.Text:
                     SetText(GetComponent<Text>(), theme.Toolbar.Text);
                     break;
-                case ToolbarEnum.TimelineText:
-                    SetText(GetComponent<Text>(), theme.Toolbar.TimelineText);
+                case ToolbarEnum.ScrollRect:
+                    SetScrollRect(GetComponent<ScrollRect>(), theme.Toolbar.ScrollRect);
                     break;
                 case ToolbarEnum.SecondaryText:
                     SetText(GetComponent<Text>(), theme.Toolbar.SecondaryText);
@@ -286,22 +286,25 @@ namespace HBP.UI.Theme
                 image.color = color;
             }
         }
-        void SetButton(Button button, Theme.ButtonTheme theme)
+        void SetButton(Button button, Theme.ButtonTheme theme, bool setByAnother = false)
         {
             if (button)
             {
                 button.colors = theme.ColorBlock;
-                Text[] texts; Image[] icons;
-                FindContents(out texts, out icons);
-                foreach (Text text in texts)
+                if (!setByAnother)
                 {
-                    if (button.interactable) SetText(text, theme.Text);
-                    else SetText(text, theme.DisabledText);
-                }
-                foreach (Image icon in icons)
-                {
-                    if (button.interactable) SetImage(icon, theme.Icon);
-                    else SetImage(icon, theme.DisabledIcon);
+                    Text[] texts; Image[] icons;
+                    FindContents(out texts, out icons);
+                    foreach (Text text in texts)
+                    {
+                        if (button.interactable) SetText(text, theme.Text);
+                        else SetText(text, theme.DisabledText);
+                    }
+                    foreach (Image icon in icons)
+                    {
+                        if (button.interactable) SetImage(icon, theme.Icon);
+                        else SetImage(icon, theme.DisabledIcon);
+                    }
                 }
             }
         }
@@ -323,23 +326,26 @@ namespace HBP.UI.Theme
                 text.verticalOverflow = theme.Font.verticalOverflow;
             }
         }
-        void SetDropdown(Dropdown dropdown, Theme.DropdownTheme theme)
+        void SetDropdown(Dropdown dropdown, Theme.DropdownTheme theme, bool setByAnother = false)
         {
             if (dropdown)
             {
                 dropdown.colors = theme.ColorBlock;
 
-                Text[] texts; Image[] icons;
-                FindContents(out texts, out icons);
-                foreach (Text text in texts)
+                if (!setByAnother)
                 {
-                    if (dropdown.interactable) SetText(text, theme.Text);
-                    else SetText(text, theme.DisabledText);
-                }
-                foreach (Image icon in icons)
-                {
-                    if (dropdown.interactable) SetImage(icon, theme.Icon);
-                    else SetImage(icon, theme.DisabledIcon);
+                    Text[] texts; Image[] icons;
+                    FindContents(out texts, out icons);
+                    foreach (Text text in texts)
+                    {
+                        if (dropdown.interactable) SetText(text, theme.Text);
+                        else SetText(text, theme.DisabledText);
+                    }
+                    foreach (Image icon in icons)
+                    {
+                        if (dropdown.interactable) SetImage(icon, theme.Icon);
+                        else SetImage(icon, theme.DisabledIcon);
+                    }
                 }
 
                 // Text.
@@ -362,48 +368,59 @@ namespace HBP.UI.Theme
                 {
                     SetScrollRect(dropdown.template.GetComponent<ScrollRect>(), theme.Template);
                     Toggle item = dropdown.template.Find("Viewport").Find("Content").Find("Item").GetComponent<Toggle>();
-                    SetToggle(item, theme.Item);
+                    SetToggle(item, theme.Item, true);
                 }
             }
         }
-        void SetToggle(Toggle toggle, Theme.ToggleTheme theme)
+        void SetToggle(Toggle toggle, Theme.ToggleTheme theme, bool setByAnother = false)
         {
             if (toggle)
             {
                 toggle.colors = theme.ColorBlock;
                 if(toggle.graphic) toggle.graphic.color = theme.Checkmark;
 
-                Text[] texts; Image[] icons;
-                FindContents(out texts, out icons);
-                foreach (Text text in texts)
+                if (!setByAnother)
                 {
-                    if (toggle.interactable) SetText(text, theme.Text);
-                    else SetText(text, theme.DisabledText);
-                }
-                foreach (Image icon in icons)
-                {
-                    if (toggle.interactable) SetImage(icon, theme.Icon);
-                    else SetImage(icon, theme.DisabledIcon);
+                    Text[] texts; Image[] icons;
+                    FindContents(out texts, out icons);
+                    foreach (Text text in texts)
+                    {
+                        if (toggle.interactable) SetText(text, theme.Text);
+                        else SetText(text, theme.DisabledText);
+                    }
+                    foreach (Image icon in icons)
+                    {
+                        if (toggle.interactable) SetImage(icon, theme.Icon);
+                        else SetImage(icon, theme.DisabledIcon);
+                    }
                 }
                 toggle.colors = theme.ColorBlock;
                 SetImage((Image)toggle.graphic, theme.Checkmark);
             }
         }
-        void SetInputField(InputField inputField, Theme.InputFieldTheme theme)
+        void SetInputField(InputField inputField, Theme.InputFieldTheme theme, bool setByAnother = false)
         {
             if (inputField)
             {
-                Text[] texts; Image[] icons;
-                FindContents(out texts, out icons);
-                foreach (Text t in texts)
+                if (!setByAnother)
                 {
-                    if (inputField.interactable) SetText(t, theme.Text);
-                    else SetText(t, theme.DisabledText);
+                    Text[] texts; Image[] icons;
+                    FindContents(out texts, out icons);
+                    foreach (Text t in texts)
+                    {
+                        if (inputField.interactable) SetText(t, theme.Text);
+                        else SetText(t, theme.DisabledText);
+                    }
+                    foreach (Image icon in icons)
+                    {
+                        if (inputField.interactable) SetImage(icon, theme.Icon);
+                        else SetImage(icon, theme.DisabledIcon);
+                    }
                 }
                 inputField.colors = theme.ColorBlock;
             }
         }
-        void SetScrollRect(ScrollRect scrollRect, Theme.ScrollRectTheme theme )
+        void SetScrollRect(ScrollRect scrollRect, Theme.ScrollRectTheme theme)
         {
             if(scrollRect)
             {
@@ -433,20 +450,37 @@ namespace HBP.UI.Theme
                 }
             }
         }
-        void SetSlider(Slider slider,Theme.SliderTheme theme)
+        void SetSlider(Slider slider,Theme.SliderTheme theme, bool setByAnother = false)
         {
             if (slider)
             {
                 slider.colors = theme.ColorBlock;
-                if(slider.interactable)
+
+                if (!setByAnother)
+                {
+                    Text[] texts; Image[] icons;
+                    FindContents(out texts, out icons);
+                    foreach (Text text in texts)
+                    {
+                        if (slider.interactable) SetText(text, theme.Text);
+                        else SetText(text, theme.DisabledText);
+                    }
+                    foreach (Image icon in icons)
+                    {
+                        if (slider.interactable) SetImage(icon, theme.Icon);
+                        else SetImage(icon, theme.DisabledIcon);
+                    }
+                }
+
+                if (slider.interactable)
                 {
                     SetImage(slider.transform.Find("Background").GetComponent<Image>(), theme.Background);
-                    SetImage(slider.fillRect.GetComponent<Image>(), theme.Fill);
+                    if (slider.fillRect) SetImage(slider.fillRect.GetComponent<Image>(), theme.Fill);
                 }
                 else
                 {
                     SetImage(slider.transform.Find("Background").GetComponent<Image>(), theme.DisabledBackground);
-                    SetImage(slider.fillRect.GetComponent<Image>(), theme.DisabledFill);
+                    if (slider.fillRect) SetImage(slider.fillRect.GetComponent<Image>(), theme.DisabledFill);
                 }
             }
         }
