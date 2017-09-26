@@ -59,7 +59,7 @@ namespace HBP.UI.Theme
             public void SetDefaultValues()
             {
                 Background = new Color(40, 40, 40, 255) / 255.0f;
-                SubMenuBackground = new Color(0, 0, 0, 255) / 255.0f;
+                SubMenuBackground = new Color(20, 20, 20, 255) / 255.0f;
 
                 Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Text.Font = FontData.defaultFontData;
