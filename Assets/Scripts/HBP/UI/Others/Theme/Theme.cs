@@ -703,6 +703,14 @@ namespace HBP.UI.Theme
                 Button.Text.Font.alignByGeometry = true;
                 Button.Text.Font.fontStyle = FontStyle.Normal;
                 Button.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                Button.DisabledText.Font = FontData.defaultFontData;
+                Button.DisabledText.Font.fontSize = 12;
+                Button.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Button.DisabledText.Font.alignByGeometry = true;
+                Button.DisabledText.Font.fontStyle = FontStyle.Normal;
+                Button.DisabledText.Color = new Color(100, 100, 100, 255) / 255.0f;
+                Button.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                Button.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
                 InvisibleButton.ColorBlock = ColorBlock.defaultColorBlock;
                 InvisibleButton.ColorBlock.normalColor = new Color(0, 0, 0, 150) / 255.0f;
@@ -727,6 +735,14 @@ namespace HBP.UI.Theme
                 Inputfield.Text.Font.alignByGeometry = true;
                 Inputfield.Text.Font.fontStyle = FontStyle.Normal;
                 Inputfield.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                Inputfield.DisabledText.Font = FontData.defaultFontData;
+                Inputfield.DisabledText.Font.fontSize = 14;
+                Inputfield.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Inputfield.DisabledText.Font.alignByGeometry = true;
+                Inputfield.DisabledText.Font.fontStyle = FontStyle.Normal;
+                Inputfield.DisabledText.Color = new Color(100, 100, 100, 255) / 255.0f;
+                Inputfield.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                Inputfield.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
                 Toggle.ColorBlock = ColorBlock.defaultColorBlock;
                 Toggle.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
@@ -740,6 +756,12 @@ namespace HBP.UI.Theme
                 Toggle.Text.Font.alignByGeometry = true;
                 Toggle.Text.Font.fontStyle = FontStyle.Normal;
                 Toggle.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                Toggle.DisabledText.Font = FontData.defaultFontData;
+                Toggle.DisabledText.Font.fontSize = 12;
+                Toggle.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Toggle.DisabledText.Font.alignByGeometry = true;
+                Toggle.DisabledText.Font.fontStyle = FontStyle.Normal;
+                Toggle.DisabledText.Color = new Color(100, 100, 100, 255) / 255.0f;
 
                 Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Text.Font = FontData.defaultFontData;
@@ -771,10 +793,27 @@ namespace HBP.UI.Theme
 
                 Slider.ColorBlock = ColorBlock.defaultColorBlock;
                 Slider.ColorBlock.normalColor = new Color(170, 170, 170, 255) / 255.0f;
+                Slider.ColorBlock.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
+                Slider.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                Slider.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 Slider.Background = new Color(255, 255, 255, 255) / 255.0f;
-                Slider.DisabledBackground = new Color(255, 255, 255, 255) / 255.0f;
+                Slider.DisabledBackground = new Color(100, 100, 100, 255) / 255.0f;
                 Slider.Fill = new Color(255, 255, 255, 255) / 255.0f;
-                Slider.DisabledFill = new Color(255, 255, 255, 255) / 255.0f;
+                Slider.DisabledFill = new Color(0, 0, 0, 0) / 255.0f;
+                Slider.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                Slider.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
+                Slider.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                Slider.Text.Font = FontData.defaultFontData;
+                Slider.Text.Font.fontSize = 14;
+                Slider.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Slider.Text.Font.alignByGeometry = true;
+                Slider.Text.Font.fontStyle = FontStyle.Bold;
+                Slider.DisabledText.Color = new Color(0, 0, 0, 0) / 255.0f;
+                Slider.DisabledText.Font = FontData.defaultFontData;
+                Slider.DisabledText.Font.fontSize = 14;
+                Slider.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Slider.DisabledText.Font.alignByGeometry = true;
+                Slider.DisabledText.Font.fontStyle = FontStyle.Normal;
 
                 Dropdown.ColorBlock = ColorBlock.defaultColorBlock;
                 Dropdown.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
@@ -787,11 +826,15 @@ namespace HBP.UI.Theme
                 Dropdown.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
                 Dropdown.Text.Font.alignByGeometry = true;
                 Dropdown.Text.Font.fontStyle = FontStyle.Normal;
+                Dropdown.DisabledText.Font = FontData.defaultFontData;
+                Dropdown.DisabledText.Font.fontSize = 14;
+                Dropdown.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Dropdown.DisabledText.Font.alignByGeometry = true;
+                Dropdown.DisabledText.Font.fontStyle = FontStyle.Normal;
+                Dropdown.DisabledText.Color = new Color(100, 100, 100, 255) / 255.0f;
                 Dropdown.Template.Background = new Color(40, 40, 40, 255) / 255.0f;
                 Dropdown.Template.Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
                 Dropdown.Template.Scrollbar.Handle = new Color(59, 122, 194, 255) / 255.0f;
-
-
                 Dropdown.Item.ColorBlock = ColorBlock.defaultColorBlock;
                 Dropdown.Item.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
                 Dropdown.Item.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
