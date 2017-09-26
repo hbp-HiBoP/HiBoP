@@ -54,7 +54,7 @@ namespace HBP.UI
                 yield return Ninja.JumpBack;
             }
             yield return Ninja.JumpToUnity;
-            m_ProjectList.SortByName();
+            m_ProjectList.SortByName(ProjectList.Sorting.Descending);
         }
         #endregion
     }
