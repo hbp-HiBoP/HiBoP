@@ -206,6 +206,22 @@ namespace HBP.UI.Theme
                 Toggle.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
                 Toggle.ColorBlock.disabledColor = new Color(65, 65, 65, 255) / 255.0f;
                 Toggle.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
+                Toggle.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                Toggle.Text.Font = FontData.defaultFontData;
+                Toggle.Text.Font.fontSize = 14;
+                Toggle.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Toggle.Text.Font.alignByGeometry = true;
+                Toggle.Text.Font.alignment = TextAnchor.MiddleLeft;
+                Toggle.Text.Font.fontStyle = FontStyle.Normal;
+                Toggle.DisabledText.Color = new Color(255, 255, 255, 255) / 255.0f;
+                Toggle.DisabledText.Font = FontData.defaultFontData;
+                Toggle.DisabledText.Font.fontSize = 14;
+                Toggle.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Toggle.DisabledText.Font.alignByGeometry = true;
+                Toggle.DisabledText.Font.alignment = TextAnchor.MiddleLeft;
+                Toggle.DisabledText.Font.fontStyle = FontStyle.Normal;
+                Toggle.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                Toggle.DisabledIcon = new Color(255, 255, 255, 255) / 255.0f;
 
                 Dropdown.ColorBlock = ColorBlock.defaultColorBlock;
                 Dropdown.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
@@ -621,9 +637,12 @@ namespace HBP.UI.Theme
             public TextTheme Text;
             public ToggleTheme Toggle;
             public ButtonTheme Button;
+            public Color Background;
 
             public void Initialize()
             {
+                Background = new Color(50, 50, 50, 255);
+
                 Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Text.Font = FontData.defaultFontData;
                 Text.Font.fontSize = 14;
