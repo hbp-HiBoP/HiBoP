@@ -16,7 +16,7 @@ namespace HBP.UI.Theme
         public enum HeaderEnum { Background, Text, Button }
         public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton, Item }
         public enum ItemEnum { Text, Toggle, Button } 
-        public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, TimelineText, MainEvent, SecondaryEvent, SecondaryText, DropdownTextWithIcon }
+        public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, ScrollRect, MainEvent, SecondaryEvent, SecondaryText, DropdownTextWithIcon }
         public enum VisualizationEnum { Background, SwapBackground, TransparentBackground, Text, SiteText, MarsAtlasText, BroadmanText, Button, Toggle, Inputfield, Slider, Dropdown, InvisibleButton }
         public enum EffectEnum { Children, RecursiveChildren, Custom, None}
 
@@ -194,8 +194,8 @@ namespace HBP.UI.Theme
                 case ToolbarEnum.Text:
                     SetText(GetComponent<Text>(), theme.Toolbar.Text);
                     break;
-                case ToolbarEnum.TimelineText:
-                    SetText(GetComponent<Text>(), theme.Toolbar.TimelineText);
+                case ToolbarEnum.ScrollRect:
+                    SetScrollRect(GetComponent<ScrollRect>(), theme.Toolbar.ScrollRect);
                     break;
                 case ToolbarEnum.SecondaryText:
                     SetText(GetComponent<Text>(), theme.Toolbar.SecondaryText);
@@ -420,7 +420,7 @@ namespace HBP.UI.Theme
                 inputField.colors = theme.ColorBlock;
             }
         }
-        void SetScrollRect(ScrollRect scrollRect, Theme.ScrollRectTheme theme )
+        void SetScrollRect(ScrollRect scrollRect, Theme.ScrollRectTheme theme)
         {
             if(scrollRect)
             {

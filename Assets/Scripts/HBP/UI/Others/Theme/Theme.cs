@@ -281,12 +281,22 @@ namespace HBP.UI.Theme
             public DropdownTheme DropdownText;
             public DropdownTheme DropdownImage;
             public DropdownTheme DropdownTextWithIcon;
+            public ScrollRectTheme ScrollRect;
 
             public void SetDefaultValues()
             {
                 Background = new Color(40, 40, 40, 255) / 255.0f;
                 MainEvent = new Color(255, 0, 0, 150) / 255.0f;
                 SecondaryEvent = new Color(72, 0, 255, 150) / 255.0f;
+
+                ScrollRect.Background = new Color(40, 40, 40, 255) / 255.0f;
+                ScrollRect.Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
+                ScrollRect.Scrollbar.Handle = new Color(59, 122, 194, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock = ColorBlock.defaultColorBlock;
+                ScrollRect.Scrollbar.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
 
                 ButtonImage.ColorBlock = ColorBlock.defaultColorBlock;
                 ButtonImage.ColorBlock.normalColor = new Color(40, 40, 40, 255) / 255.0f;
@@ -398,7 +408,7 @@ namespace HBP.UI.Theme
                 Slider.Background = new Color(255, 255, 255, 255) / 255.0f;
                 Slider.DisabledBackground = new Color(100, 100, 100, 255) / 255.0f;
                 Slider.Fill = new Color(255, 255, 255, 255) / 255.0f;
-                Slider.DisabledFill = new Color(100, 100, 100, 255) / 255.0f;
+                Slider.DisabledFill = new Color(0, 0, 0, 0) / 255.0f;
                 Slider.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 Slider.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
                 Slider.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
