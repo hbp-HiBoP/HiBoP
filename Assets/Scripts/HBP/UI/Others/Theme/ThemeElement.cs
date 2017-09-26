@@ -397,6 +397,21 @@ namespace HBP.UI.Theme
                         else SetImage(icon, theme.DisabledIcon);
                     }
                 }
+                else
+                {
+                    Text[] texts; Image[] icons;
+                    FindContents(out texts, out icons, toggle.transform);
+                    foreach (Text text in texts)
+                    {
+                        if (toggle.interactable) SetText(text, theme.Text);
+                        else SetText(text, theme.DisabledText);
+                    }
+                    foreach (Image icon in icons)
+                    {
+                        if (toggle.interactable) SetImage(icon, theme.Icon);
+                        else SetImage(icon, theme.DisabledIcon);
+                    }
+                }
                 toggle.colors = theme.ColorBlock;
                 SetImage((Image)toggle.graphic, theme.Checkmark);
             }
@@ -487,15 +502,16 @@ namespace HBP.UI.Theme
                 }
             }
         }
-        void FindContents(out Text[] texts,out Image[] icons)
+        void FindContents(out Text[] texts,out Image[] icons, Transform parent = null)
         {
             texts = new Text[0]; icons = new Image[0];
+            if (parent == null) parent = transform;
             switch (Effect)
             {
                 case EffectEnum.Children:
                     List<Text> textList = new List<Text>();
                     List<Image> iconList = new List<Image>();
-                    foreach (Transform child in transform)
+                    foreach (Transform child in parent)
                     {
                         Text text = child.GetComponent<Text>();
                         if (text) textList.Add(text);
@@ -506,8 +522,8 @@ namespace HBP.UI.Theme
                     icons = iconList.ToArray();
                     break;
                 case EffectEnum.RecursiveChildren:
-                    texts = GetComponentsInChildren<Text>(true);
-                    icons = GetComponentsInChildren<Image>(true);
+                    texts = parent.GetComponentsInChildren<Text>(true);
+                    icons = parent.GetComponentsInChildren<Image>(true);
                     break;
                 case EffectEnum.Custom:
                     texts = (from graphic in Graphics where graphic is Text select graphic as Text).ToArray();
