@@ -55,7 +55,7 @@ namespace HBP.UI.Theme
                                 EditorGUILayout.PropertyField(m_ContentProp, new GUIContent("Type"));
                                 if ((ThemeElement.ContentEnum) m_ContentProp.enumValueIndex == ThemeElement.ContentEnum.Item)
                                 {
-                                    EditorGUILayout.PropertyField(m_ContentProp, new GUIContent("Type"));
+                                    EditorGUILayout.PropertyField(m_ItemProp, new GUIContent("Type"));
                                 }
                                 break;
                         }

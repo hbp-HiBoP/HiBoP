@@ -53,6 +53,8 @@ namespace HBP.UI
                 m_ProjectList.Add(project);
                 yield return Ninja.JumpBack;
             }
+            yield return Ninja.JumpToUnity;
+            m_ProjectList.SortByName();
         }
         #endregion
     }

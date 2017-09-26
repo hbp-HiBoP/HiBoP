@@ -18,7 +18,7 @@ namespace HBP.UI.Theme
         public enum ItemEnum { Text, Toggle, Button } 
         public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, TimelineText, MainEvent, SecondaryEvent, SecondaryText, DropdownTextWithIcon }
         public enum VisualizationEnum { Background, SwapBackground, TransparentBackground, Text, SiteText, MarsAtlasText, BroadmanText, Button, Toggle, Inputfield, Slider, Dropdown, InvisibleButton }
-        public enum EffectEnum { Children, RecursiveChildren, Custom, None}
+        public enum EffectEnum { Children, RecursiveChildren, Custom, Self}
 
         public bool IgnoreTheme;
         public ZoneEnum Zone;
