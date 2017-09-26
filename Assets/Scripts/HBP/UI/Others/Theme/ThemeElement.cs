@@ -11,7 +11,7 @@ namespace HBP.UI.Theme
         #region Properties
         public enum ZoneEnum { General, Menu, Window, Toolbar, Visualization }
         public enum GeneralEnum { Tooltip }
-        public enum MenuEnum { Background, Button, Text, Dropdown, Toggle }
+        public enum MenuEnum { Background, Button, Text, Dropdown, Toggle, SubMenuBackground }
         public enum WindowEnum { Header, Content }
         public enum HeaderEnum { Background, Text, Button }
         public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton, Item }
@@ -96,6 +96,9 @@ namespace HBP.UI.Theme
             {
                 case MenuEnum.Background:
                     SetImage(GetComponent<Image>(), theme.Menu.Background);
+                    break;
+                case MenuEnum.SubMenuBackground:
+                    SetImage(GetComponent<Image>(), theme.Menu.SubMenuBackground);
                     break;
                 case MenuEnum.Button:
                     SetButton(GetComponent<Button>(), theme.Menu.Button);
