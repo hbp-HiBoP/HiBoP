@@ -15,7 +15,7 @@ namespace HBP.UI.Theme
         public enum WindowEnum { Header, Content }
         public enum HeaderEnum { Background, Text, Button }
         public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton, Item }
-        public enum ItemEnum { Background, Text, Toggle, Button } 
+        public enum ItemEnum { Background, Text, Toggle, Button, ContainerBloc, MainBloc, SecondaryBloc } 
         public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, ScrollRect, MainEvent, SecondaryEvent, SecondaryText, DropdownTextWithIcon }
         public enum VisualizationEnum { Background, SwapBackground, TransparentBackground, Text, SiteText, MarsAtlasText, BroadmanText, Button, Toggle, Inputfield, Slider, Dropdown, InvisibleButton }
         public enum EffectEnum { Children, RecursiveChildren, Custom, Self}
@@ -177,11 +177,26 @@ namespace HBP.UI.Theme
         {
             switch (Item)
             {
+                case ItemEnum.Text:
+                    SetText(GetComponent<Text>(), theme.Text);
+                    break;
+                case ItemEnum.Background:
+                    SetImage(GetComponent<Image>(), theme.Background);
+                    break;
                 case ItemEnum.Toggle:
                     SetToggle(GetComponent<Toggle>(), theme.Toggle);
                     break;
                 case ItemEnum.Button:
                     SetButton(GetComponent<Button>(), theme.Button);
+                    break;
+                case ItemEnum.ContainerBloc:
+                    SetButton(GetComponent<Button>(), theme.Bloc.Container);
+                    break;
+                case ItemEnum.MainBloc:
+                    SetButton(GetComponent<Button>(), theme.Bloc.MainBloc);
+                    break;
+                case ItemEnum.SecondaryBloc:
+                    SetButton(GetComponent<Button>(), theme.Bloc.SecondaryBloc);
                     break;
                 default:
                     break;
