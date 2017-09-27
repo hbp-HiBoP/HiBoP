@@ -15,7 +15,7 @@ namespace HBP.UI.Theme
         public enum WindowEnum { Header, Content }
         public enum HeaderEnum { Background, Text, Button }
         public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton, Item, FileSelector }
-        public enum ItemEnum { Background, Text, Toggle, Button } 
+        public enum ItemEnum { Background, Text, Toggle, Button, ContainerBloc, MainBloc, SecondaryBloc } 
         public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, ScrollRect, MainEvent, SecondaryEvent, SecondaryText, DropdownTextWithIcon }
         public enum VisualizationEnum { Background, SwapBackground, TransparentBackground, Text, SiteText, MarsAtlasText, BroadmanText, Button, Toggle, Inputfield, Slider, Dropdown, InvisibleButton }
         public enum EffectEnum { Children, RecursiveChildren, Custom, Self}
@@ -180,11 +180,26 @@ namespace HBP.UI.Theme
         {
             switch (Item)
             {
+                case ItemEnum.Text:
+                    SetText(GetComponent<Text>(), theme.Text);
+                    break;
+                case ItemEnum.Background:
+                    SetImage(GetComponent<Image>(), theme.Background);
+                    break;
                 case ItemEnum.Toggle:
                     SetToggle(GetComponent<Toggle>(), theme.Toggle);
                     break;
                 case ItemEnum.Button:
                     SetButton(GetComponent<Button>(), theme.Button);
+                    break;
+                case ItemEnum.ContainerBloc:
+                    SetButton(GetComponent<Button>(), theme.Bloc.Container);
+                    break;
+                case ItemEnum.MainBloc:
+                    SetButton(GetComponent<Button>(), theme.Bloc.MainBloc);
+                    break;
+                case ItemEnum.SecondaryBloc:
+                    SetButton(GetComponent<Button>(), theme.Bloc.SecondaryBloc);
                     break;
                 default:
                     break;
@@ -400,6 +415,21 @@ namespace HBP.UI.Theme
                         else SetImage(icon, theme.DisabledIcon);
                     }
                 }
+                else
+                {
+                    Text[] texts; Image[] icons;
+                    FindContents(out texts, out icons, toggle.transform);
+                    foreach (Text text in texts)
+                    {
+                        if (toggle.interactable) SetText(text, theme.Text);
+                        else SetText(text, theme.DisabledText);
+                    }
+                    foreach (Image icon in icons)
+                    {
+                        if (toggle.interactable) SetImage(icon, theme.Icon);
+                        else SetImage(icon, theme.DisabledIcon);
+                    }
+                }
                 toggle.colors = theme.ColorBlock;
                 SetImage((Image)toggle.graphic, theme.Checkmark);
             }
@@ -498,15 +528,17 @@ namespace HBP.UI.Theme
                 SetButton(fileSelector.GetComponentInChildren<Button>(),theme.Button,true);
             }
         }
-        void FindContents(out Text[] texts,out Image[] icons)
+        void FindContents(out Text[] texts,out Image[] icons, Transform parent = null)
         {
             texts = new Text[0]; icons = new Image[0];
+            Transform contentsParentTransform = parent;
+            if (parent == null) contentsParentTransform = transform;
             switch (Effect)
             {
                 case EffectEnum.Children:
                     List<Text> textList = new List<Text>();
                     List<Image> iconList = new List<Image>();
-                    foreach (Transform child in transform)
+                    foreach (Transform child in contentsParentTransform)
                     {
                         Text text = child.GetComponent<Text>();
                         if (text) textList.Add(text);
@@ -517,12 +549,15 @@ namespace HBP.UI.Theme
                     icons = iconList.ToArray();
                     break;
                 case EffectEnum.RecursiveChildren:
-                    texts = GetComponentsInChildren<Text>(true);
-                    icons = GetComponentsInChildren<Image>(true);
+                    texts = contentsParentTransform.GetComponentsInChildren<Text>(true);
+                    icons = contentsParentTransform.GetComponentsInChildren<Image>(true);
                     break;
                 case EffectEnum.Custom:
-                    texts = (from graphic in Graphics where graphic is Text select graphic as Text).ToArray();
-                    icons = (from graphic in Graphics where graphic is Image select graphic as Image).ToArray();
+                    if (!parent)
+                    {
+                        texts = (from graphic in Graphics where graphic is Text select graphic as Text).ToArray();
+                        icons = (from graphic in Graphics where graphic is Image select graphic as Image).ToArray();
+                    }
                     break;
             }
         }

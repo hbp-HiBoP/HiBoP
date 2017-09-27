@@ -6,6 +6,8 @@ public class SortingDisplayer : MonoBehaviour
     #region Properties
     [SerializeField] Image m_AscendingImage;
     [SerializeField] Image m_DescendingImage;
+    Color m_AscendingColor;
+    Color m_DescendingColor;
 
     public enum SortingType { None, Ascending, Descending }
     SortingType m_Sorting = SortingType.None;
@@ -18,19 +20,29 @@ public class SortingDisplayer : MonoBehaviour
             switch (value)
             {
                 case SortingType.None:
-                    m_AscendingImage.color = ApplicationState.Theme.Window.Content.Text.Color;
-                    m_DescendingImage.color = ApplicationState.Theme.Window.Content.Text.Color;
+                    m_AscendingImage.color = m_AscendingColor;
+                    m_DescendingImage.color = m_DescendingColor;
                     break;
                 case SortingType.Ascending:
+                    m_AscendingColor = m_AscendingImage.color;
                     m_AscendingImage.color = ApplicationState.Theme.Window.Content.Toggle.Checkmark;
-                    m_DescendingImage.color = ApplicationState.Theme.Window.Content.Text.Color;
+                    m_DescendingImage.color = m_DescendingColor;
                     break;
                 case SortingType.Descending:
-                    m_AscendingImage.color = ApplicationState.Theme.Window.Content.Text.Color;
+                    m_DescendingColor = m_DescendingImage.color;
+                    m_AscendingImage.color = m_AscendingColor;
                     m_DescendingImage.color = ApplicationState.Theme.Window.Content.Toggle.Checkmark;
                     break;
             }
         }
+    }
+    #endregion
+
+    #region Private Methods
+    void Awake()
+    {
+        m_AscendingColor = m_AscendingImage.color;
+        m_DescendingColor = m_DescendingImage.color;
     }
     #endregion
 }

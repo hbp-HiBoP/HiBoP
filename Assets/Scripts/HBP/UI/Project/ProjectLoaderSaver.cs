@@ -48,7 +48,6 @@ namespace HBP.UI
                     yield return new WaitForSeconds(0.5f);
                     ApplicationState.ProjectLoaded = project;
                     ApplicationState.ProjectLoadedLocation = Directory.GetParent(info.Path).FullName;
-                    // TODO
                     FindObjectOfType<MenuButtonState>().SetInteractables();
                     break;
                 case TaskState.Error:

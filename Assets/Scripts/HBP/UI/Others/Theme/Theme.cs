@@ -680,6 +680,7 @@ namespace HBP.UI.Theme
             public ToggleTheme Toggle;
             public ButtonTheme Button;
             public Color Background;
+            public BlocTheme Bloc;
 
             public void Initialize()
             {
@@ -718,16 +719,11 @@ namespace HBP.UI.Theme
                 Button.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
                 Button.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
                 Button.ColorBlock.disabledColor = new Color(200, 200, 200, 0) / 255.0f;
+
+                Bloc.Initialize();
             }
         }
 
-        #region Structs
-        [System.Serializable]
-        public struct TitleTheme
-        {
-            public Color Background;  
-            public TextTheme Text;
-        }
         [System.Serializable]
         public struct VisualizationTheme
         {
@@ -911,6 +907,13 @@ namespace HBP.UI.Theme
                 Dropdown.Item.Text.Font.fontStyle = FontStyle.Normal;
             }
         }
+        #region Structs
+        [System.Serializable]
+        public struct TitleTheme
+        {
+            public Color Background;  
+            public TextTheme Text;
+        }
         [System.Serializable]
         public struct ViewTheme
         {
@@ -1014,6 +1017,77 @@ namespace HBP.UI.Theme
         {
             public FontData FontData;
         }
-        #endregion
+
+        [System.Serializable]
+        public struct BlocTheme
+        {
+            public ButtonTheme Container;
+            public ButtonTheme MainBloc;
+            public ButtonTheme SecondaryBloc;
+
+            public void Initialize()
+            {
+                Container.ColorBlock = ColorBlock.defaultColorBlock;
+                Container.ColorBlock.normalColor = new Color(80, 80, 80, 255) / 255.0f;
+                Container.ColorBlock.highlightedColor = new Color(70, 70, 70, 255) / 255.0f;
+                Container.ColorBlock.pressedColor = new Color(50, 50, 50, 255) / 255.0f;
+                Container.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                Container.Text.Font = FontData.defaultFontData;
+                Container.Text.Font.fontSize = 26;
+                Container.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Container.Text.Font.alignByGeometry = true;
+                Container.Text.Font.fontStyle = FontStyle.Bold;
+                Container.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                Container.DisabledText.Font = FontData.defaultFontData;
+                Container.DisabledText.Font.fontSize = 26;
+                Container.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Container.DisabledText.Font.alignByGeometry = true;
+                Container.DisabledText.Font.fontStyle = FontStyle.Bold;
+                Container.DisabledText.Color = new Color(255, 255, 255, 255) / 255.0f;
+                Container.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                Container.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
+
+                MainBloc.ColorBlock = ColorBlock.defaultColorBlock;
+                MainBloc.ColorBlock.normalColor = new Color(0, 150, 0, 255) / 255.0f;
+                MainBloc.ColorBlock.highlightedColor = new Color(0, 140, 0, 255) / 255.0f;
+                MainBloc.ColorBlock.pressedColor = new Color(0, 120, 0, 255) / 255.0f;
+                MainBloc.ColorBlock.disabledColor = new Color(0, 0, 0, 255) / 255.0f;
+                MainBloc.Text.Font = FontData.defaultFontData;
+                MainBloc.Text.Font.fontSize = 26;
+                MainBloc.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                MainBloc.Text.Font.alignByGeometry = true;
+                MainBloc.Text.Font.fontStyle = FontStyle.Bold;
+                MainBloc.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                MainBloc.DisabledText.Font = FontData.defaultFontData;
+                MainBloc.DisabledText.Font.fontSize = 26;
+                MainBloc.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                MainBloc.DisabledText.Font.alignByGeometry = true;
+                MainBloc.DisabledText.Font.fontStyle = FontStyle.Bold;
+                MainBloc.DisabledText.Color = new Color(255, 255, 255, 255) / 255.0f;
+                MainBloc.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                MainBloc.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
+
+                SecondaryBloc.ColorBlock = ColorBlock.defaultColorBlock;
+                SecondaryBloc.ColorBlock.normalColor = new Color(150, 0, 0, 255) / 255.0f;
+                SecondaryBloc.ColorBlock.highlightedColor = new Color(140, 0, 0, 255) / 255.0f;
+                SecondaryBloc.ColorBlock.pressedColor = new Color(120, 0, 0, 255) / 255.0f;
+                SecondaryBloc.ColorBlock.disabledColor = new Color(150, 0, 0, 255) / 255.0f;
+                SecondaryBloc.Text.Font = FontData.defaultFontData;
+                SecondaryBloc.Text.Font.fontSize = 26;
+                SecondaryBloc.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                SecondaryBloc.Text.Font.alignByGeometry = true;
+                SecondaryBloc.Text.Font.fontStyle = FontStyle.Bold;
+                SecondaryBloc.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                SecondaryBloc.DisabledText.Font = FontData.defaultFontData;
+                SecondaryBloc.DisabledText.Font.fontSize = 26;
+                SecondaryBloc.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                SecondaryBloc.DisabledText.Font.alignByGeometry = true;
+                SecondaryBloc.DisabledText.Font.fontStyle = FontStyle.Bold;
+                SecondaryBloc.DisabledText.Color = new Color(255, 255, 255, 255) / 255.0f;
+                SecondaryBloc.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                SecondaryBloc.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
+            }
+        }
     }
+    #endregion
 }
