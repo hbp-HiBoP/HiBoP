@@ -520,13 +520,14 @@ namespace HBP.UI.Theme
         void FindContents(out Text[] texts,out Image[] icons, Transform parent = null)
         {
             texts = new Text[0]; icons = new Image[0];
-            if (parent == null) parent = transform;
+            Transform contentsParentTransform = parent;
+            if (parent == null) contentsParentTransform = transform;
             switch (Effect)
             {
                 case EffectEnum.Children:
                     List<Text> textList = new List<Text>();
                     List<Image> iconList = new List<Image>();
-                    foreach (Transform child in parent)
+                    foreach (Transform child in contentsParentTransform)
                     {
                         Text text = child.GetComponent<Text>();
                         if (text) textList.Add(text);
@@ -537,12 +538,15 @@ namespace HBP.UI.Theme
                     icons = iconList.ToArray();
                     break;
                 case EffectEnum.RecursiveChildren:
-                    texts = parent.GetComponentsInChildren<Text>(true);
-                    icons = parent.GetComponentsInChildren<Image>(true);
+                    texts = contentsParentTransform.GetComponentsInChildren<Text>(true);
+                    icons = contentsParentTransform.GetComponentsInChildren<Image>(true);
                     break;
                 case EffectEnum.Custom:
-                    texts = (from graphic in Graphics where graphic is Text select graphic as Text).ToArray();
-                    icons = (from graphic in Graphics where graphic is Image select graphic as Image).ToArray();
+                    if (!parent)
+                    {
+                        texts = (from graphic in Graphics where graphic is Text select graphic as Text).ToArray();
+                        icons = (from graphic in Graphics where graphic is Image select graphic as Image).ToArray();
+                    }
                     break;
             }
         }
