@@ -43,11 +43,12 @@ namespace HBP.UI.Anatomy
             m_ConnectivityList.OnAction.AddListener((implantation, i) => OpenModifier(implantation, interactable));
 
             m_ConnectivityList.Objects = m_Patient.Brain.Connectivities.ToArray();
-            m_ConnectivityList.SortByName();
+            m_ConnectivityList.SortByName(ConnectivityList.Sorting.Descending);
         }
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+            m_ConnectivityList.SortByName(ConnectivityList.Sorting.Descending);
         }
         public void AddConnectivity()
         {

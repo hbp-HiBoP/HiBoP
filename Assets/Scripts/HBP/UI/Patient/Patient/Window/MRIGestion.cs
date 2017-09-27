@@ -40,11 +40,12 @@ namespace HBP.UI.Anatomy
             m_MRIList.OnAction.AddListener((mesh, i) => OpenModifier(mesh, interactable));
 
             m_MRIList.Objects = m_Patient.Brain.MRIs.ToArray();
-            m_MRIList.SortByName();
+            m_MRIList.SortByName(MRIList.Sorting.Descending);
         }
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+            m_MRIList.SortByName(MRIList.Sorting.Descending);
         }
         public void AddMRI()
         {

@@ -49,7 +49,7 @@ namespace HBP.UI
                     ApplicationState.ProjectLoaded = project;
                     ApplicationState.ProjectLoadedLocation = Directory.GetParent(info.Path).FullName;
                     // TODO
-                    GameObject.FindGameObjectWithTag("Gestion").GetComponent<MenuButtonState>().SetInteractables();
+                    FindObjectOfType<MenuButtonState>().SetInteractables();
                     break;
                 case TaskState.Error:
                     Exception exception = loadingTask.Exception;

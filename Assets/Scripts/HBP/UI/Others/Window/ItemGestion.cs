@@ -21,7 +21,7 @@ namespace HBP.UI
         #region Public Methods
         public virtual void Save()
         {
-            GameObject.FindGameObjectWithTag("Gestion").GetComponent<MenuButtonState>().SetInteractables();
+            FindObjectOfType<MenuButtonState>().SetInteractables();
             Close();
         }
         public virtual void Create()

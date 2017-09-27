@@ -44,11 +44,12 @@ namespace HBP.UI.Anatomy
             m_MeshList.OnAction.AddListener((mesh, i) => OpenModifier(mesh, interactable));
 
             m_MeshList.Objects = m_Patient.Brain.Meshes.ToArray();
-            m_MeshList.SortByName();
+            m_MeshList.SortByName(MeshList.Sorting.Descending);
         }
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+            m_MeshList.SortByName(MeshList.Sorting.Descending);
         }
         public void AddMesh()
         {

@@ -45,7 +45,6 @@ namespace HBP.UI.Theme
                 TooltipText.Font.fontStyle = FontStyle.Normal;
             }
         }
-
         [System.Serializable]
         public struct MenuTheme
         {
@@ -183,7 +182,8 @@ namespace HBP.UI.Theme
             public TitleTheme Title;
             public ToggleTheme Toggle;
             public DropdownTheme Dropdown;
-            public InputFieldTheme Inputfield;
+            public InputFieldTheme InputField;
+            public FileSelectorTheme FileSelector;
             public ScrollRectTheme ScrollRect;
             public ButtonTheme MainButton;
             public ButtonTheme SecondaryButton;
@@ -288,25 +288,66 @@ namespace HBP.UI.Theme
                 Text.Font.alignment = TextAnchor.MiddleLeft;
                 Text.Font.fontStyle = FontStyle.Normal;
 
-                Inputfield.ColorBlock = ColorBlock.defaultColorBlock;
-                Inputfield.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                Inputfield.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Inputfield.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Inputfield.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
-                Inputfield.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
-                Inputfield.Text.Font = FontData.defaultFontData;
-                Inputfield.Text.Font.fontSize = 14;
-                Inputfield.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
-                Inputfield.Text.Font.alignByGeometry = true;
-                Inputfield.Text.Font.alignment = TextAnchor.MiddleLeft;
-                Inputfield.Text.Font.fontStyle = FontStyle.Normal;
-                Inputfield.DisabledText.Color = new Color(255, 255, 255, 255) / 255.0f;
-                Inputfield.DisabledText.Font = FontData.defaultFontData;
-                Inputfield.DisabledText.Font.fontSize = 14;
-                Inputfield.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
-                Inputfield.DisabledText.Font.alignByGeometry = true;
-                Inputfield.DisabledText.Font.alignment = TextAnchor.MiddleLeft;
-                Inputfield.DisabledText.Font.fontStyle = FontStyle.Normal;
+                FileSelector.InputField.ColorBlock = ColorBlock.defaultColorBlock;
+                FileSelector.InputField.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                FileSelector.InputField.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                FileSelector.InputField.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                FileSelector.InputField.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                FileSelector.InputField.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                FileSelector.InputField.Text.Font = FontData.defaultFontData;
+                FileSelector.InputField.Text.Font.fontSize = 14;
+                FileSelector.InputField.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                FileSelector.InputField.Text.Font.alignByGeometry = true;
+                FileSelector.InputField.Text.Font.alignment = TextAnchor.MiddleLeft;
+                FileSelector.InputField.Text.Font.fontStyle = FontStyle.Normal;
+                FileSelector.InputField.DisabledText.Color = new Color(255, 255, 255, 255) / 255.0f;
+                FileSelector.InputField.DisabledText.Font = FontData.defaultFontData;
+                FileSelector.InputField.DisabledText.Font.fontSize = 14;
+                FileSelector.InputField.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                FileSelector.InputField.DisabledText.Font.alignByGeometry = true;
+                FileSelector.InputField.DisabledText.Font.alignment = TextAnchor.MiddleLeft;
+                FileSelector.InputField.DisabledText.Font.fontStyle = FontStyle.Normal;
+                FileSelector.Button.Text.Font = FontData.defaultFontData;
+                FileSelector.Button.Text.Font.fontSize = 14;
+                FileSelector.Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                FileSelector.Button.Text.Font.alignByGeometry = true;
+                FileSelector.Button.Text.Font.alignment = TextAnchor.MiddleCenter;
+                FileSelector.Button.Text.Font.fontStyle = FontStyle.Bold;
+                FileSelector.Button.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                FileSelector.Button.DisabledText.Font = FontData.defaultFontData;
+                FileSelector.Button.DisabledText.Font.fontSize = 14;
+                FileSelector.Button.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                FileSelector.Button.DisabledText.Font.alignByGeometry = true;
+                FileSelector.Button.DisabledText.Font.alignment = TextAnchor.MiddleCenter;
+                FileSelector.Button.DisabledText.Font.fontStyle = FontStyle.Bold;
+                FileSelector.Button.DisabledText.Color = new Color(80, 80, 80, 255) / 255.0f;
+                FileSelector.Button.Icon = new Color(0, 0, 0, 255) / 255.0f;
+                FileSelector.Button.DisabledIcon = new Color(80, 80, 80, 255) / 255.0f;
+                FileSelector.Button.ColorBlock = ColorBlock.defaultColorBlock;
+                FileSelector.Button.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                FileSelector.Button.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
+                FileSelector.Button.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                FileSelector.Button.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
+
+                InputField.ColorBlock = ColorBlock.defaultColorBlock;
+                InputField.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                InputField.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                InputField.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                InputField.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                InputField.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                InputField.Text.Font = FontData.defaultFontData;
+                InputField.Text.Font.fontSize = 14;
+                InputField.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                InputField.Text.Font.alignByGeometry = true;
+                InputField.Text.Font.alignment = TextAnchor.MiddleLeft;
+                InputField.Text.Font.fontStyle = FontStyle.Normal;
+                InputField.DisabledText.Color = new Color(255, 255, 255, 255) / 255.0f;
+                InputField.DisabledText.Font = FontData.defaultFontData;
+                InputField.DisabledText.Font.fontSize = 14;
+                InputField.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                InputField.DisabledText.Font.alignByGeometry = true;
+                InputField.DisabledText.Font.alignment = TextAnchor.MiddleLeft;
+                InputField.DisabledText.Font.fontStyle = FontStyle.Normal;
 
                 ScrollRect.Scrollbar.ColorBlock = ColorBlock.defaultColorBlock;
                 ScrollRect.Scrollbar.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
@@ -632,7 +673,6 @@ namespace HBP.UI.Theme
                 DropdownTextWithIcon.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
             }
         }
-
         [System.Serializable]
         public struct ItemTheme
         {
@@ -680,6 +720,7 @@ namespace HBP.UI.Theme
                 Button.ColorBlock.disabledColor = new Color(200, 200, 200, 0) / 255.0f;
             }
         }
+
         #region Structs
         [System.Serializable]
         public struct TitleTheme
@@ -700,7 +741,7 @@ namespace HBP.UI.Theme
             public ButtonTheme Button;
             public ButtonTheme InvisibleButton;
             public ToggleTheme Toggle;
-            public InputFieldTheme Inputfield;
+            public InputFieldTheme InputField;
             public SliderTheme Slider;
             public DropdownTheme Dropdown;
             public ViewTheme View;
@@ -745,25 +786,25 @@ namespace HBP.UI.Theme
                 InvisibleButton.Text.Font.fontStyle = FontStyle.Normal;
                 InvisibleButton.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
 
-                Inputfield.ColorBlock = ColorBlock.defaultColorBlock;
-                Inputfield.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                Inputfield.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Inputfield.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Inputfield.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
-                Inputfield.Text.Font = FontData.defaultFontData;
-                Inputfield.Text.Font.fontSize = 12;
-                Inputfield.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
-                Inputfield.Text.Font.alignByGeometry = true;
-                Inputfield.Text.Font.fontStyle = FontStyle.Normal;
-                Inputfield.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
-                Inputfield.DisabledText.Font = FontData.defaultFontData;
-                Inputfield.DisabledText.Font.fontSize = 14;
-                Inputfield.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
-                Inputfield.DisabledText.Font.alignByGeometry = true;
-                Inputfield.DisabledText.Font.fontStyle = FontStyle.Normal;
-                Inputfield.DisabledText.Color = new Color(100, 100, 100, 255) / 255.0f;
-                Inputfield.Icon = new Color(255, 255, 255, 255) / 255.0f;
-                Inputfield.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
+                InputField.ColorBlock = ColorBlock.defaultColorBlock;
+                InputField.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                InputField.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                InputField.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                InputField.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                InputField.Text.Font = FontData.defaultFontData;
+                InputField.Text.Font.fontSize = 12;
+                InputField.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                InputField.Text.Font.alignByGeometry = true;
+                InputField.Text.Font.fontStyle = FontStyle.Normal;
+                InputField.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                InputField.DisabledText.Font = FontData.defaultFontData;
+                InputField.DisabledText.Font.fontSize = 14;
+                InputField.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                InputField.DisabledText.Font.alignByGeometry = true;
+                InputField.DisabledText.Font.fontStyle = FontStyle.Normal;
+                InputField.DisabledText.Color = new Color(100, 100, 100, 255) / 255.0f;
+                InputField.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                InputField.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
                 Toggle.ColorBlock = ColorBlock.defaultColorBlock;
                 Toggle.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
@@ -884,8 +925,6 @@ namespace HBP.UI.Theme
                 Clicked = new Color(59, 122, 194, 255) / 255.0f;
             }
         }
-
-        #region Structs
         [System.Serializable]
         public struct SliderTheme
         {
@@ -926,6 +965,12 @@ namespace HBP.UI.Theme
             public TextTheme DisabledText;
             public Color Icon;
             public Color DisabledIcon;
+        }
+        [System.Serializable]
+        public struct FileSelectorTheme
+        {
+            public InputFieldTheme InputField;
+            public ButtonTheme Button;
         }
         [System.Serializable]
         public struct ScrollBarTheme
@@ -969,7 +1014,6 @@ namespace HBP.UI.Theme
         {
             public FontData FontData;
         }
+        #endregion
     }
-    #endregion
-    #endregion
 }

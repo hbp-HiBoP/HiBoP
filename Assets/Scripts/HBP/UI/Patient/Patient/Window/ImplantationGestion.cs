@@ -40,11 +40,12 @@ namespace HBP.UI.Anatomy
             m_ImplantationList.OnAction.AddListener((implantation, i) => OpenModifier(implantation, interactable));
 
             m_ImplantationList.Objects = m_Patient.Brain.Implantations.ToArray();
-            m_ImplantationList.SortByName();
+            m_ImplantationList.SortByName(ImplantationList.Sorting.Descending);
         }
         public void SetActive(bool active)
         {
             gameObject.SetActive(active);
+            m_ImplantationList.SortByName(ImplantationList.Sorting.Descending);
         }
         public void AddImplantation()
         {

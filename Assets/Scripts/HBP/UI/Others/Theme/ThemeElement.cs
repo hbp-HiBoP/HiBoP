@@ -14,7 +14,7 @@ namespace HBP.UI.Theme
         public enum MenuEnum { Background, Button, Text, Dropdown, Toggle, SubMenuBackground }
         public enum WindowEnum { Header, Content }
         public enum HeaderEnum { Background, Text, Button }
-        public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton, Item }
+        public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton, Item, FileSelector }
         public enum ItemEnum { Background, Text, Toggle, Button } 
         public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, ScrollRect, MainEvent, SecondaryEvent, SecondaryText, DropdownTextWithIcon }
         public enum VisualizationEnum { Background, SwapBackground, TransparentBackground, Text, SiteText, MarsAtlasText, BroadmanText, Button, Toggle, Inputfield, Slider, Dropdown, InvisibleButton }
@@ -157,7 +157,7 @@ namespace HBP.UI.Theme
                     SetDropdown(GetComponent<Dropdown>(), theme.Window.Content.Dropdown);
                     break;
                 case ContentEnum.Inputfield:
-                    SetInputField(GetComponent<InputField>(), theme.Window.Content.Inputfield);
+                    SetInputField(GetComponent<InputField>(), theme.Window.Content.InputField);
                     break;
                 case ContentEnum.ScrollRect:
                     SetScrollRect(GetComponent<ScrollRect>(), theme.Window.Content.ScrollRect);
@@ -170,6 +170,9 @@ namespace HBP.UI.Theme
                     break;
                 case ContentEnum.Item:
                     SetItem(theme.Window.Content.Item);
+                    break;
+                case ContentEnum.FileSelector:
+                    SetFileSelector(GetComponent<InputField>(), theme.Window.Content.FileSelector);
                     break;
             }
         }
@@ -270,7 +273,7 @@ namespace HBP.UI.Theme
                     SetToggle(GetComponent<Toggle>(), theme.Visualization.Toggle);
                     break;
                 case VisualizationEnum.Inputfield:
-                    SetInputField(GetComponent<InputField>(), theme.Visualization.Inputfield);
+                    SetInputField(GetComponent<InputField>(), theme.Visualization.InputField);
                     break;
                 case VisualizationEnum.Slider:
                     SetSlider(GetComponent<Slider>(), theme.Visualization.Slider);
@@ -485,6 +488,14 @@ namespace HBP.UI.Theme
                     SetImage(slider.transform.Find("Background").GetComponent<Image>(), theme.DisabledBackground);
                     if (slider.fillRect) SetImage(slider.fillRect.GetComponent<Image>(), theme.DisabledFill);
                 }
+            }
+        }
+        void SetFileSelector(InputField fileSelector, Theme.FileSelectorTheme theme, bool setByAnother = false)
+        {
+            if (fileSelector)
+            {
+                SetInputField(fileSelector, theme.InputField,true);
+                SetButton(fileSelector.GetComponentInChildren<Button>(),theme.Button,true);
             }
         }
         void FindContents(out Text[] texts,out Image[] icons)
