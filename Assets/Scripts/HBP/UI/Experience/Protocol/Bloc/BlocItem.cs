@@ -15,10 +15,6 @@ namespace HBP.UI.Experience.Protocol
         Image m_Illustration;
         [SerializeField]
         Text m_Label;
-        [SerializeField]
-        Color m_HeaderColor;
-        [SerializeField]
-        Color m_BodyColor;
 
         public override Bloc Object
         {
@@ -32,9 +28,10 @@ namespace HBP.UI.Experience.Protocol
                 base.Object = value;
                 gameObject.name = value.DisplayInformations.Name;
                 m_Label.text = value.DisplayInformations.Name;
+                Theme.ThemeElement themeElement = GetComponent<Theme.ThemeElement>();
                 if (value.DisplayInformations.Position.Column == 1)
                 {
-                    m_Image.color = m_HeaderColor;
+                    themeElement.Item = Theme.ThemeElement.ItemEnum.MainBloc;
                     Texture2D l_texture = new Texture2D(0, 0);
                     if (l_texture.LoadPNG(value.DisplayInformations.IllustrationPath))
                     {
@@ -50,9 +47,10 @@ namespace HBP.UI.Experience.Protocol
                 }
                 else
                 {
-                    m_Image.color = m_BodyColor;
+                    themeElement.Item = Theme.ThemeElement.ItemEnum.SecondaryBloc;
                     m_Illustration.enabled = false;
                 }
+                themeElement.Set(ApplicationState.Theme);
             }
         }
         #endregion

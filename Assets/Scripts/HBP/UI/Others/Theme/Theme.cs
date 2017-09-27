@@ -999,10 +999,10 @@ namespace HBP.UI.Theme
                 Container.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
                 MainBloc.ColorBlock = ColorBlock.defaultColorBlock;
-                MainBloc.ColorBlock.normalColor = new Color(0, 80, 0, 255) / 255.0f;
-                MainBloc.ColorBlock.highlightedColor = new Color(0, 70, 0, 255) / 255.0f;
-                MainBloc.ColorBlock.pressedColor = new Color(0, 50, 0, 255) / 255.0f;
-                MainBloc.ColorBlock.disabledColor = new Color(0, 150, 0, 255) / 255.0f;
+                MainBloc.ColorBlock.normalColor = new Color(0, 150, 0, 255) / 255.0f;
+                MainBloc.ColorBlock.highlightedColor = new Color(0, 140, 0, 255) / 255.0f;
+                MainBloc.ColorBlock.pressedColor = new Color(0, 120, 0, 255) / 255.0f;
+                MainBloc.ColorBlock.disabledColor = new Color(0, 0, 0, 255) / 255.0f;
                 MainBloc.Text.Font = FontData.defaultFontData;
                 MainBloc.Text.Font.fontSize = 26;
                 MainBloc.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
@@ -1019,9 +1019,9 @@ namespace HBP.UI.Theme
                 MainBloc.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
                 SecondaryBloc.ColorBlock = ColorBlock.defaultColorBlock;
-                SecondaryBloc.ColorBlock.normalColor = new Color(80, 0, 0, 255) / 255.0f;
-                SecondaryBloc.ColorBlock.highlightedColor = new Color(70, 0, 0, 255) / 255.0f;
-                SecondaryBloc.ColorBlock.pressedColor = new Color(50, 0, 0, 255) / 255.0f;
+                SecondaryBloc.ColorBlock.normalColor = new Color(150, 0, 0, 255) / 255.0f;
+                SecondaryBloc.ColorBlock.highlightedColor = new Color(140, 0, 0, 255) / 255.0f;
+                SecondaryBloc.ColorBlock.pressedColor = new Color(120, 0, 0, 255) / 255.0f;
                 SecondaryBloc.ColorBlock.disabledColor = new Color(150, 0, 0, 255) / 255.0f;
                 SecondaryBloc.Text.Font = FontData.defaultFontData;
                 SecondaryBloc.Text.Font.fontSize = 26;
