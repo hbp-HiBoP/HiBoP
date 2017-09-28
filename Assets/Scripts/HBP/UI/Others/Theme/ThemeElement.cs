@@ -10,7 +10,7 @@ namespace HBP.UI.Theme
     {
         #region Properties
         public enum ZoneEnum { General, Menu, Window, Toolbar, Visualization }
-        public enum GeneralEnum { Tooltip }
+        public enum GeneralEnum { Tooltip, Background, LoadingCircle }
         public enum MenuEnum { Background, Button, Text, Dropdown, Toggle, SubMenuBackground }
         public enum WindowEnum { Header, Content }
         public enum HeaderEnum { Background, Text, Button }
@@ -87,6 +87,16 @@ namespace HBP.UI.Theme
                 case GeneralEnum.Tooltip:
                     SetImage(GetComponent<Image>(), theme.General.TooltipBackground);
                     SetText(GetComponentInChildren<Text>(), theme.General.TooltipText);
+                    break;
+                case GeneralEnum.Background:
+                    SetImage(GetComponent<Image>(), theme.General.Background);
+                    break;
+                case GeneralEnum.LoadingCircle:
+                    SetImage(GetComponent<Image>(), theme.General.LoadingCircle.Circle);
+                    SetImage(transform.Find("Fill").GetComponent<Image>(), theme.General.LoadingCircle.Fill);
+                    SetImage(transform.Find("Fill").Find("BackGround").GetComponent<Image>(), theme.General.LoadingCircle.Background);
+                    SetText(transform.Find("Informations").Find("information").GetComponent<Text>(), theme.General.LoadingCircle.Text);
+                    SetText(transform.Find("Informations").Find("information").Find("LoadingEffect").GetComponent<Text>(), theme.General.LoadingCircle.Text);
                     break;
             }
         }
