@@ -323,6 +323,8 @@ namespace HBP.UI.Theme
                 FileSelector.InputField.DisabledText.Font.alignByGeometry = true;
                 FileSelector.InputField.DisabledText.Font.alignment = TextAnchor.MiddleLeft;
                 FileSelector.InputField.DisabledText.Font.fontStyle = FontStyle.Normal;
+                FileSelector.InputField.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                FileSelector.InputField.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
                 FileSelector.Button.Text.Font = FontData.defaultFontData;
                 FileSelector.Button.Text.Font.fontSize = 14;
                 FileSelector.Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
@@ -337,7 +339,7 @@ namespace HBP.UI.Theme
                 FileSelector.Button.DisabledText.Font.alignment = TextAnchor.MiddleCenter;
                 FileSelector.Button.DisabledText.Font.fontStyle = FontStyle.Bold;
                 FileSelector.Button.DisabledText.Color = new Color(80, 80, 80, 255) / 255.0f;
-                FileSelector.Button.Icon = new Color(0, 0, 0, 255) / 255.0f;
+                FileSelector.Button.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 FileSelector.Button.DisabledIcon = new Color(80, 80, 80, 255) / 255.0f;
                 FileSelector.Button.ColorBlock = ColorBlock.defaultColorBlock;
                 FileSelector.Button.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
@@ -700,7 +702,7 @@ namespace HBP.UI.Theme
 
             public void Initialize()
             {
-                Background = new Color(50, 50, 50, 255);
+                Background = new Color(50, 50, 50, 255) / 255.0f;
 
                 Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Text.Font = FontData.defaultFontData;
@@ -731,9 +733,9 @@ namespace HBP.UI.Theme
                 Button.Text.Font.fontStyle = FontStyle.Bold;
                 Button.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Button.ColorBlock = ColorBlock.defaultColorBlock;
-                Button.ColorBlock.normalColor = new Color(255, 255, 255, 0) / 255.0f;
-                Button.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
-                Button.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                Button.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                Button.ColorBlock.highlightedColor = new Color(0, 0, 0, 100) / 255.0f;
+                Button.ColorBlock.pressedColor = new Color(0, 0, 0, 120) / 255.0f;
                 Button.ColorBlock.disabledColor = new Color(200, 200, 200, 0) / 255.0f;
 
                 Bloc.Initialize();
