@@ -34,7 +34,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.RemoveViewLine(ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.ViewLineNumber - 1);
+                ApplicationState.Module3D.ScenesManager.SelectedScene.ColumnManager.RemoveViewLine();
                 OnClick.Invoke();
             });
         }
