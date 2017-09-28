@@ -18,7 +18,7 @@ namespace HBP.UI.Visualization
         }
         public void Display()
         {
-            ApplicationState.Module3D.LoadScene(m_List.ObjectsSelected.First());
+            ApplicationState.Module3D.LoadScenes(m_List.ObjectsSelected);
             base.Close();
         }
         #endregion
@@ -35,7 +35,7 @@ namespace HBP.UI.Visualization
         void SetDisplay()
         {
             Data.Visualization.Visualization[] visualizationsSelected = m_List.ObjectsSelected;
-            displayButton.interactable = (visualizationsSelected.Length == 1 && visualizationsSelected[0].IsVisualizable);
+            displayButton.interactable = (visualizationsSelected.Length > 0 && visualizationsSelected.All(v => v.IsVisualizable));
         }
         #endregion
     }
