@@ -10,7 +10,7 @@ namespace HBP.UI.Theme
     {
         #region Properties
         public enum ZoneEnum { General, Menu, Window, Toolbar, Visualization }
-        public enum GeneralEnum { Tooltip, Background, LoadingCircle }
+        public enum GeneralEnum { Tooltip, Background, LoadingCircle, DialogBox }
         public enum MenuEnum { Background, Button, Text, Dropdown, Toggle, SubMenuBackground }
         public enum WindowEnum { Header, Content }
         public enum HeaderEnum { Background, Text, Button }
@@ -92,11 +92,10 @@ namespace HBP.UI.Theme
                     SetImage(GetComponent<Image>(), theme.General.Background);
                     break;
                 case GeneralEnum.LoadingCircle:
-                    SetImage(GetComponent<Image>(), theme.General.LoadingCircle.Circle);
-                    SetImage(transform.Find("Fill").GetComponent<Image>(), theme.General.LoadingCircle.Fill);
-                    SetImage(transform.Find("Fill").Find("BackGround").GetComponent<Image>(), theme.General.LoadingCircle.Background);
-                    SetText(transform.Find("Informations").Find("information").GetComponent<Text>(), theme.General.LoadingCircle.Text);
-                    SetText(transform.Find("Informations").Find("information").Find("LoadingEffect").GetComponent<Text>(), theme.General.LoadingCircle.Text);
+                    SetLoadingCircle(theme.General.LoadingCircle, transform);
+                    break;
+                case GeneralEnum.DialogBox:
+                    SetDialogBox(theme.General.DialogBox, transform);
                     break;
             }
         }
@@ -544,6 +543,21 @@ namespace HBP.UI.Theme
                 SetInputField(fileSelector, theme.InputField, false);
                 SetButton(fileSelector.GetComponentInChildren<Button>(),theme.Button,true);
             }
+        }
+        void SetLoadingCircle(Theme.LoadingCircleTheme theme, Transform loadingCircle)
+        {
+            SetImage(loadingCircle.GetComponent<Image>(), theme.Circle);
+            SetImage(loadingCircle.Find("Fill").GetComponent<Image>(), theme.Fill);
+            SetImage(loadingCircle.Find("Fill").Find("BackGround").GetComponent<Image>(), theme.Background);
+            SetText(loadingCircle.Find("Informations").Find("information").GetComponent<Text>(), theme.Text);
+            SetText(loadingCircle.Find("Informations").Find("information").Find("LoadingEffect").GetComponent<Text>(), theme.Text);
+        }
+        void SetDialogBox(Theme.DialogBoxTheme theme, Transform dialogBox)
+        {
+            SetImage(dialogBox.Find("Window").GetComponent<Image>(), theme.Background);
+            SetText(dialogBox.Find("Window").Find("Corps").Find("Text").Find("Title").GetComponent<Text>(), theme.Title);
+            SetText(dialogBox.Find("Window").Find("Corps").Find("Text").Find("Message").GetComponent<Text>(), theme.Text);
+            SetButton(dialogBox.Find("Window").Find("Buttons").Find("Button").GetComponent<Button>(), theme.Button);
         }
         void FindContents(out Text[] texts,out Image[] icons, Transform parent = null, bool forceRecursiveChildren = false)
         {

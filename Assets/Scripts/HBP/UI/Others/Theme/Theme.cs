@@ -31,6 +31,7 @@ namespace HBP.UI.Theme
             public TextTheme TooltipText;
             public Color Background = new Color();
             public LoadingCircleTheme LoadingCircle;
+            public DialogBoxTheme DialogBox;
 
             public void SetDefaultValues()
             {
@@ -56,6 +57,8 @@ namespace HBP.UI.Theme
                 LoadingCircle.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
                 LoadingCircle.Text.Font.alignByGeometry = true;
                 LoadingCircle.Text.Font.fontStyle = FontStyle.Normal;
+
+                DialogBox.Initialize();
             }
         }
         [System.Serializable]
@@ -1106,6 +1109,55 @@ namespace HBP.UI.Theme
             public Color Circle;
             public Color Fill;
             public TextTheme Text;
+        }
+        [System.Serializable]
+        public struct DialogBoxTheme
+        {
+            public Color Background;
+            public TextTheme Title;
+            public TextTheme Text;
+            public ButtonTheme Button;
+
+            public void Initialize()
+            {
+                Background = new Color(40, 40, 40, 255) / 255.0f;
+
+                Title.Color = new Color(255, 255, 255, 255) / 255.0f;
+                Title.Font = FontData.defaultFontData;
+                Title.Font.fontSize = 14;
+                Title.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Title.Font.alignByGeometry = false;
+                Title.Font.fontStyle = FontStyle.Bold;
+
+                Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                Text.Font = FontData.defaultFontData;
+                Text.Font.fontSize = 14;
+                Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Text.Font.alignByGeometry = false;
+                Text.Font.fontStyle = FontStyle.Normal;
+
+                Button.Text.Font = FontData.defaultFontData;
+                Button.Text.Font.fontSize = 14;
+                Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Button.Text.Font.alignByGeometry = true;
+                Button.Text.Font.alignment = TextAnchor.MiddleCenter;
+                Button.Text.Font.fontStyle = FontStyle.Bold;
+                Button.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                Button.DisabledText.Font = FontData.defaultFontData;
+                Button.DisabledText.Font.fontSize = 14;
+                Button.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Button.DisabledText.Font.alignByGeometry = true;
+                Button.DisabledText.Font.alignment = TextAnchor.MiddleCenter;
+                Button.DisabledText.Font.fontStyle = FontStyle.Bold;
+                Button.DisabledText.Color = new Color(80, 80, 80, 255) / 255.0f;
+                Button.Icon = new Color(0, 0, 0, 255) / 255.0f;
+                Button.DisabledIcon = new Color(80, 80, 80, 255) / 255.0f;
+                Button.ColorBlock = ColorBlock.defaultColorBlock;
+                Button.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                Button.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
+                Button.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                Button.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
+            }
         }
     }
     #endregion
