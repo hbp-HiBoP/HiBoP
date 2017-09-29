@@ -29,12 +29,16 @@ namespace HBP.UI.Theme
             public Color NotInteractable = new Color();
             public Color TooltipBackground;
             public TextTheme TooltipText;
+            public Color Background = new Color();
+            public LoadingCircleTheme LoadingCircle;
+            public DialogBoxTheme DialogBox;
 
             public void SetDefaultValues()
             {
                 NotInteractable = new Color(100, 100, 100, 255) / 255.0f;
                 OK = new Color(50, 200, 50, 255) / 255.0f;
                 Error = new Color(200, 50, 50, 255) / 255.0f;
+                Background = new Color(20, 20, 20, 255) / 255.0f;
 
                 TooltipBackground = new Color(40, 40, 40, 255) / 255.0f;
                 TooltipText.Color = new Color(255, 255, 255, 255) / 255.0f;
@@ -43,6 +47,18 @@ namespace HBP.UI.Theme
                 TooltipText.Font.font = Resources.Load<Font>("Fonts/Arial");
                 TooltipText.Font.alignByGeometry = true;
                 TooltipText.Font.fontStyle = FontStyle.Normal;
+
+                LoadingCircle.Background = new Color(40, 40, 40, 255) / 255.0f;
+                LoadingCircle.Circle = new Color(60, 60, 60, 255) / 255.0f;
+                LoadingCircle.Fill = new Color(59, 122, 194, 255) / 255.0f;
+                LoadingCircle.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                LoadingCircle.Text.Font = FontData.defaultFontData;
+                LoadingCircle.Text.Font.fontSize = 14;
+                LoadingCircle.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                LoadingCircle.Text.Font.alignByGeometry = true;
+                LoadingCircle.Text.Font.fontStyle = FontStyle.Normal;
+
+                DialogBox.Initialize();
             }
         }
         [System.Serializable]
@@ -307,6 +323,8 @@ namespace HBP.UI.Theme
                 FileSelector.InputField.DisabledText.Font.alignByGeometry = true;
                 FileSelector.InputField.DisabledText.Font.alignment = TextAnchor.MiddleLeft;
                 FileSelector.InputField.DisabledText.Font.fontStyle = FontStyle.Normal;
+                FileSelector.InputField.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                FileSelector.InputField.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
                 FileSelector.Button.Text.Font = FontData.defaultFontData;
                 FileSelector.Button.Text.Font.fontSize = 14;
                 FileSelector.Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
@@ -321,7 +339,7 @@ namespace HBP.UI.Theme
                 FileSelector.Button.DisabledText.Font.alignment = TextAnchor.MiddleCenter;
                 FileSelector.Button.DisabledText.Font.fontStyle = FontStyle.Bold;
                 FileSelector.Button.DisabledText.Color = new Color(80, 80, 80, 255) / 255.0f;
-                FileSelector.Button.Icon = new Color(0, 0, 0, 255) / 255.0f;
+                FileSelector.Button.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 FileSelector.Button.DisabledIcon = new Color(80, 80, 80, 255) / 255.0f;
                 FileSelector.Button.ColorBlock = ColorBlock.defaultColorBlock;
                 FileSelector.Button.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
@@ -715,15 +733,14 @@ namespace HBP.UI.Theme
                 Button.Text.Font.fontStyle = FontStyle.Bold;
                 Button.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Button.ColorBlock = ColorBlock.defaultColorBlock;
-                Button.ColorBlock.normalColor = new Color(255, 255, 255, 0) / 255.0f;
-                Button.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
-                Button.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                Button.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                Button.ColorBlock.highlightedColor = new Color(0, 0, 0, 100) / 255.0f;
+                Button.ColorBlock.pressedColor = new Color(0, 0, 0, 120) / 255.0f;
                 Button.ColorBlock.disabledColor = new Color(200, 200, 200, 0) / 255.0f;
 
                 Bloc.Initialize();
             }
         }
-
         [System.Serializable]
         public struct VisualizationTheme
         {
@@ -794,7 +811,7 @@ namespace HBP.UI.Theme
                 InputField.Text.Font.fontStyle = FontStyle.Normal;
                 InputField.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 InputField.DisabledText.Font = FontData.defaultFontData;
-                InputField.DisabledText.Font.fontSize = 14;
+                InputField.DisabledText.Font.fontSize = 12;
                 InputField.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
                 InputField.DisabledText.Font.alignByGeometry = true;
                 InputField.DisabledText.Font.fontStyle = FontStyle.Normal;
@@ -862,7 +879,7 @@ namespace HBP.UI.Theme
                 Slider.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
                 Slider.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
                 Slider.Text.Font = FontData.defaultFontData;
-                Slider.Text.Font.fontSize = 14;
+                Slider.Text.Font.fontSize = 12;
                 Slider.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
                 Slider.Text.Font.alignByGeometry = true;
                 Slider.Text.Font.fontStyle = FontStyle.Bold;
@@ -880,12 +897,12 @@ namespace HBP.UI.Theme
                 Dropdown.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 Dropdown.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Dropdown.Text.Font = FontData.defaultFontData;
-                Dropdown.Text.Font.fontSize = 14;
+                Dropdown.Text.Font.fontSize = 12;
                 Dropdown.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
                 Dropdown.Text.Font.alignByGeometry = true;
                 Dropdown.Text.Font.fontStyle = FontStyle.Normal;
                 Dropdown.DisabledText.Font = FontData.defaultFontData;
-                Dropdown.DisabledText.Font.fontSize = 14;
+                Dropdown.DisabledText.Font.fontSize = 12;
                 Dropdown.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
                 Dropdown.DisabledText.Font.alignByGeometry = true;
                 Dropdown.DisabledText.Font.fontStyle = FontStyle.Normal;
@@ -901,7 +918,7 @@ namespace HBP.UI.Theme
                 Dropdown.Item.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
                 Dropdown.Item.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Dropdown.Item.Text.Font = FontData.defaultFontData;
-                Dropdown.Item.Text.Font.fontSize = 14;
+                Dropdown.Item.Text.Font.fontSize = 12;
                 Dropdown.Item.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
                 Dropdown.Item.Text.Font.alignByGeometry = true;
                 Dropdown.Item.Text.Font.fontStyle = FontStyle.Normal;
@@ -1017,7 +1034,6 @@ namespace HBP.UI.Theme
         {
             public FontData FontData;
         }
-
         [System.Serializable]
         public struct BlocTheme
         {
@@ -1086,6 +1102,63 @@ namespace HBP.UI.Theme
                 SecondaryBloc.DisabledText.Color = new Color(255, 255, 255, 255) / 255.0f;
                 SecondaryBloc.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 SecondaryBloc.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
+            }
+        }
+        [System.Serializable]
+        public struct LoadingCircleTheme
+        {
+            public Color Background;
+            public Color Circle;
+            public Color Fill;
+            public TextTheme Text;
+        }
+        [System.Serializable]
+        public struct DialogBoxTheme
+        {
+            public Color Background;
+            public TextTheme Title;
+            public TextTheme Text;
+            public ButtonTheme Button;
+
+            public void Initialize()
+            {
+                Background = new Color(40, 40, 40, 255) / 255.0f;
+
+                Title.Color = new Color(255, 255, 255, 255) / 255.0f;
+                Title.Font = FontData.defaultFontData;
+                Title.Font.fontSize = 14;
+                Title.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Title.Font.alignByGeometry = false;
+                Title.Font.fontStyle = FontStyle.Bold;
+
+                Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                Text.Font = FontData.defaultFontData;
+                Text.Font.fontSize = 14;
+                Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Text.Font.alignByGeometry = false;
+                Text.Font.fontStyle = FontStyle.Normal;
+
+                Button.Text.Font = FontData.defaultFontData;
+                Button.Text.Font.fontSize = 14;
+                Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Button.Text.Font.alignByGeometry = true;
+                Button.Text.Font.alignment = TextAnchor.MiddleCenter;
+                Button.Text.Font.fontStyle = FontStyle.Bold;
+                Button.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                Button.DisabledText.Font = FontData.defaultFontData;
+                Button.DisabledText.Font.fontSize = 14;
+                Button.DisabledText.Font.font = Resources.Load<Font>("Fonts/Arial");
+                Button.DisabledText.Font.alignByGeometry = true;
+                Button.DisabledText.Font.alignment = TextAnchor.MiddleCenter;
+                Button.DisabledText.Font.fontStyle = FontStyle.Bold;
+                Button.DisabledText.Color = new Color(80, 80, 80, 255) / 255.0f;
+                Button.Icon = new Color(0, 0, 0, 255) / 255.0f;
+                Button.DisabledIcon = new Color(80, 80, 80, 255) / 255.0f;
+                Button.ColorBlock = ColorBlock.defaultColorBlock;
+                Button.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                Button.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
+                Button.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                Button.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
             }
         }
     }
