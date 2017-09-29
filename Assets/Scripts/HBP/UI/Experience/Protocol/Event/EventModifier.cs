@@ -32,6 +32,7 @@ namespace HBP.UI.Experience.Protocol
             m_TypeDropdown.RefreshShownValue();
             m_TypeDropdown.onValueChanged.RemoveAllListeners();
             m_TypeDropdown.onValueChanged.AddListener((i) => ItemTemp.Type = (d.Event.TypeEnum)i);
+            if (objectToDisplay.Type == d.Event.TypeEnum.Main) m_TypeDropdown.interactable = false;
         }
 
         protected override void SetInteractableFields(bool interactable)

@@ -23,23 +23,27 @@ namespace HBP.UI.Experience.Protocol
         {
             base.Save();
         }
-        public void AddSecondaryEvent()
+        public void AddEvent()
 		{
-            d.Event newEvent = new d.Event("Event", new int[0] ,d.Event.TypeEnum.Secondary);
-            ItemTemp.Events.Add(newEvent);
-            m_EventList.Add(newEvent);
+            d.Event newEvent = new d.Event("Event", new int[] { 0 } ,d.Event.TypeEnum.Secondary);
+            OpenEventModifier(newEvent);
         }
-        public void RemoveSecondaryEvent()
+        public void RemoveEvent()
 		{
             d.Event[] eventsToRemove = m_EventList.ObjectsSelected;
-            foreach(d.Event e in eventsToRemove) ItemTemp.Events.Remove(e);
-            m_EventList.Remove(eventsToRemove);
+            foreach (d.Event e in eventsToRemove)
+            {
+                if (e.Type == d.Event.TypeEnum.Secondary)
+                {
+                    ItemTemp.Events.Remove(e);
+                    m_EventList.Remove(e);
+                }
+            }
         }
         public void AddIcon()
         {
-            d.Icon newIcon = new d.Icon();
-            ItemTemp.Scenario.Icons.Add(newIcon);
-            m_IconList.Add(newIcon);
+            d.Icon newIcon = new d.Icon("Icon","",new Vector2(ItemTemp.DisplayInformations.Window.Start,ItemTemp.DisplayInformations.Window.End));
+            OpenIconModifier(newIcon);
         }
         public void RemoveIcon()
         {
@@ -61,6 +65,7 @@ namespace HBP.UI.Experience.Protocol
         }
         protected void OnSaveEventModifier(EventModifier eventModifier)
         {
+            // Save
             if (!ItemTemp.Events.Contains(eventModifier.Item))
             {
                 ItemTemp.Events.Add(eventModifier.Item);
@@ -69,6 +74,20 @@ namespace HBP.UI.Experience.Protocol
             else
             {
                 m_EventList.UpdateObject(eventModifier.Item);
+            }
+
+            if(eventModifier.Item.Type == d.Event.TypeEnum.Main)
+            {
+                d.Event e = ItemTemp.Events.Find((ev) => ev.Type == d.Event.TypeEnum.Main && ev != eventModifier.Item);
+                if (e != null)
+                {
+                    e.Type = d.Event.TypeEnum.Secondary;
+                    m_EventList.UpdateObject(e);
+                }
+            }
+            else
+            {
+
             }
         }
         protected void OpenIconModifier(d.Icon icon)

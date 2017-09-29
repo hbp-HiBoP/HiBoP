@@ -12,6 +12,7 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField] Text m_NameText;
+        [SerializeField] Image m_ImageIcon;
         [SerializeField] Image m_IllustrationImage;
         [SerializeField] Text m_MinText;
         [SerializeField] Text m_MaxText;
@@ -26,6 +27,7 @@ namespace HBP.UI.Experience.Protocol
             {
                 base.Object = value;
                 m_NameText.text = value.Name;
+                m_ImageIcon.sprite = value.Image;
                 m_IllustrationImage.sprite = value.Image;
                 m_MinText.text = value.Window.Start.ToString();
                 m_MaxText.text = value.Window.End.ToString();
