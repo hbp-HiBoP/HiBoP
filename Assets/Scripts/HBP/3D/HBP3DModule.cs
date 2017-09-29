@@ -227,9 +227,9 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="visualization"></param>
         /// <returns></returns>
-        public void LoadScene(Data.Visualization.Visualization visualization)
+        public void LoadScenes(IEnumerable<Data.Visualization.Visualization> visualizations)
         {
-            this.StartCoroutineAsync(c_Load(visualization));
+            this.StartCoroutineAsync(c_Load(visualizations));
         }
         /// <summary>
         /// Remove a visualization and its associated scene
@@ -251,37 +251,40 @@ namespace HBP.Module3D
         #endregion
 
         #region Coroutines
-        IEnumerator c_Load(Data.Visualization.Visualization visualization)
+        IEnumerator c_Load(IEnumerable<Data.Visualization.Visualization> visualizations)
         {
-            yield return Ninja.JumpToUnity;
-            LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
-            GenericEvent<float, float, string> OnChangeLoadingProgress = new GenericEvent<float, float, string>();
-            OnChangeLoadingProgress.AddListener((progress, time, message) => { loadingCircle.ChangePercentage(progress/2.0f, time, message); });
-            Task visualizationLoadingTask;
-            yield return this.StartCoroutineAsync(visualization.c_Load(OnChangeLoadingProgress), out visualizationLoadingTask);
-            switch (visualizationLoadingTask.State)
+            foreach (Data.Visualization.Visualization visualization in visualizations)
             {
-                case TaskState.Done:
-                    yield return new WaitForSeconds(0.5f);
-                    break;
-                case TaskState.Error:
-                    Exception exception = visualizationLoadingTask.Exception;
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
-                    break;
+                yield return Ninja.JumpToUnity;
+                LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
+                GenericEvent<float, float, string> OnChangeLoadingProgress = new GenericEvent<float, float, string>();
+                OnChangeLoadingProgress.AddListener((progress, time, message) => { loadingCircle.ChangePercentage(progress / 2.0f, time, message); });
+                Task visualizationLoadingTask;
+                yield return this.StartCoroutineAsync(visualization.c_Load(OnChangeLoadingProgress), out visualizationLoadingTask);
+                switch (visualizationLoadingTask.State)
+                {
+                    case TaskState.Done:
+                        yield return new WaitForSeconds(0.5f);
+                        break;
+                    case TaskState.Error:
+                        Exception exception = visualizationLoadingTask.Exception;
+                        ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
+                        break;
+                }
+                Task sceneLoadingTask;
+                yield return this.StartCoroutineAsync(c_LoadScene(visualization, OnChangeLoadingProgress), out sceneLoadingTask);
+                switch (sceneLoadingTask.State)
+                {
+                    case TaskState.Done:
+                        yield return new WaitForSeconds(0.5f);
+                        break;
+                    case TaskState.Error:
+                        Exception exception = sceneLoadingTask.Exception;
+                        ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
+                        break;
+                }
+                loadingCircle.Close();
             }
-            Task sceneLoadingTask;
-            yield return this.StartCoroutineAsync(c_LoadScene(visualization, OnChangeLoadingProgress), out sceneLoadingTask);
-            switch (sceneLoadingTask.State)
-            {
-                case TaskState.Done:
-                    yield return new WaitForSeconds(0.5f);
-                    break;
-                case TaskState.Error:
-                    Exception exception = sceneLoadingTask.Exception;
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
-                    break;
-            }
-            loadingCircle.Close();
         }
         IEnumerator c_LoadScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress = null)
         {
@@ -306,7 +309,7 @@ namespace HBP.Module3D
         [MenuItem("Before building/Copy data to build directory")]
         static void CoptyDataToBuildDirectory()
         {
-            string buildDataPath = Module3D.DLL.QtGUI.get_existing_directory_name("Select Build directory where data will be copied");
+            string buildDataPath = Module3D.DLL.QtGUI.GetExistingDirectoryName("Select Build directory where data will be copied");
             if (buildDataPath.Length > 0)
             {
                 FileUtil.DeleteFileOrDirectory(buildDataPath + "/Data");

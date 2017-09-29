@@ -26,7 +26,7 @@ namespace HBP.UI.Module3D.Tools
                 Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
                 while (selectedScene.ColumnManager.ViewLineNumber > 3)
                 {
-                    selectedScene.ColumnManager.RemoveViewLine(selectedScene.ColumnManager.ViewLineNumber - 1);
+                    selectedScene.ColumnManager.RemoveViewLine();
                 }
                 while (selectedScene.ColumnManager.ViewLineNumber < 3)
                 {

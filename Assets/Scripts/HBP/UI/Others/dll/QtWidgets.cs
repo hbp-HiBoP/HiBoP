@@ -74,11 +74,11 @@ namespace HBP.Module3D.DLL
         /// Open a qt file dialog and return the path of an existing directory.
         /// </summary>
         /// <param name="message"> message to be displayed in top of the file dialog </param>
-        /// <param name="defaultDir"> default directory of the file dialog </param>
+        /// <param name="directoryPath"> default directory of the file dialog </param>
         /// <returns> return an empty path if no directory has been choosen or if an error occurs </returns>
-        public static string get_existing_directory_name(string message = "Select a directory", string defaultDir = "")
+        public static string GetExistingDirectoryName(string message = "Select a directory", string directoryPath = "")
         {
-            string arguments = "FileDialog get_existing_directory_name +\"" + message + "\"  \"\" \"" + defaultDir + "\"";
+            string arguments = "FileDialog get_existing_directory_name +\"" + message + "\"  \"\" \"" + directoryPath + "\"";
             List<string> paths = launch_fileDialog_window(arguments);
             if (paths.Count > 0)
                 return paths[0];
@@ -91,9 +91,9 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="filtersArray"> extension filters of the files of be displayed in the file dialog (ex: filtersArray[0] = "txt", filtersArray[1] = "png" ...) </param>
         /// <param name="message">  message to be displayed in top of the file dialog  </param>
-        /// <param name="defaultDir"> default directory of the file dialog </param>
+        /// <param name="filePath"> default directory of the file dialog </param>
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
-        public static string GetExistingFileName(string[] filtersArray = null, string message = "Select a file", string defaultDir = "")
+        public static string GetExistingFileName(string[] filtersArray = null, string message = "Select a file", string filePath = "")
         {
             string arguments = "FileDialog get_existing_file_name +\"" + message + "\" \"Files (";
             for (int ii = 0; ii < filtersArray.Length; ++ii)
@@ -103,11 +103,8 @@ namespace HBP.Module3D.DLL
             }
             if (filtersArray.Length == 0)
                 arguments += "*.txt)";
-            if (defaultDir != "")
-            {
-                defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
-            }
-            arguments += "\" " + defaultDir;
+
+            arguments += "\" " + filePath;
 
             List<string> paths = launch_fileDialog_window(arguments);
             if (paths.Count > 0)
@@ -121,9 +118,9 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="filtersArray">  extension filters of the files of be displayed in the file dialog (ex: filtersArray[0] = "txt", filtersArray[1] = "png" ...) </param>
         /// <param name="message"> message to be displayed in top of the file dialog </param>
-        /// <param name="defaultDir"> default directory of the file dialog </param>
+        /// <param name="filePath"> default directory of the file dialog </param>
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
-        public static string[] get_existing_file_names(string[] filtersArray = null, string message = "Select files", string defaultDir = "")
+        public static string[] GetExistingFileNames(string[] filtersArray = null, string message = "Select files", string filePath = "")
         {
             string arguments = "FileDialog get_existing_file_names +\"" + message + "\" \"Files (";
             for (int ii = 0; ii < filtersArray.Length; ++ii)
@@ -133,11 +130,8 @@ namespace HBP.Module3D.DLL
             }
             if (filtersArray.Length == 0)
                 arguments += "*.txt)";
-            if (defaultDir != "")
-            {
-                defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
-            }
-            arguments += "\" " + defaultDir;
+
+            arguments += "\" " + filePath;
 
             return  launch_fileDialog_window(arguments).ToArray();
         }
@@ -147,9 +141,9 @@ namespace HBP.Module3D.DLL
         /// </summary>
         /// <param name="filtersArray"> extension filters of the files of be displayed in the file dialog (ex: filtersArray[0] = "txt", filtersArray[1] = "png" ...) </param>
         /// <param name="message">  message to be displayed in top of the file dialog  </param>
-        /// <param name="defaultDir"> default directory of the file dialog </param>
+        /// <param name="filePath"> default directory of the file dialog </param>
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
-        public static string get_saved_file_name(string[] filtersArray = null, string message = "Save to", string defaultDir = "")
+        public static string GetSavedFileName(string[] filtersArray = null, string message = "Save to", string filePath = "")
         {
             string arguments = "FileDialog get_saved_file_name +\"" + message + "\" \"Files (";
             for (int ii = 0; ii < filtersArray.Length; ++ii)
@@ -159,11 +153,8 @@ namespace HBP.Module3D.DLL
             }
             if(filtersArray.Length == 0)
                 arguments += "*.txt)";
-            if (defaultDir != "")
-            {
-                defaultDir = defaultDir.Replace(Path.GetFileName(defaultDir), "");
-            }
-            arguments += "\" " + defaultDir;
+
+            arguments += "\" " + filePath;
 
             List<string> paths = launch_fileDialog_window(arguments);
             if (paths.Count > 0)

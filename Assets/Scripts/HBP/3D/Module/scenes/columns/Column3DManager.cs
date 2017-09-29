@@ -985,11 +985,17 @@ namespace HBP.Module3D
         public void RemoveViewLine(int lineID = -1)
         {
             if (lineID == -1) lineID = Views.Count - 1;
+            bool wasSelected = false;
             foreach (Column3D column in m_Columns)
             {
+                wasSelected |= column.Views[lineID].IsSelected;
                 column.RemoveView(lineID);
             }
             OnRemoveViewLine.Invoke(ViewLineNumber);
+            if (wasSelected)
+            {
+                SelectedColumn.Views.First().IsSelected = true;
+            }
         }
         #endregion
     }

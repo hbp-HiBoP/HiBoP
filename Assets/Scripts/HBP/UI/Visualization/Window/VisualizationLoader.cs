@@ -47,7 +47,7 @@ namespace HBP.UI.Visualization
                     break;
             }
             loadingCircle.Close();
-            ApplicationState.Module3D.LoadScene(visualization);
+            //ApplicationState.Module3D.LoadScenes(visualization);
         }
         #endregion
     }
