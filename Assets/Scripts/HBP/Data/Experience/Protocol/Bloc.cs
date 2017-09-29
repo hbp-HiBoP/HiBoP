@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using Tools.CSharp;
 
 namespace HBP.Data.Experience.Protocol
@@ -19,7 +20,7 @@ namespace HBP.Data.Experience.Protocol
     *     - Iconic scenario.
     *     - Unique ID.
     */
-	public class Bloc : ICloneable, ICopiable
+    public class Bloc : ICloneable, ICopiable
 	{
         #region Properties
         /// <summary>
@@ -33,11 +34,15 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Main event of the bloc.
         /// </summary>
-        public Event MainEvent { get; set; }
+        public Event MainEvent { get { return Events.First((e) => e.Type == Event.TypeEnum.Main); } }
         /// <summary>
         /// Secondary events of the bloc.
         /// </summary>
-        public List<Event> SecondaryEvents { get; set; }
+        public ReadOnlyCollection<Event> SecondaryEvents { get { return new ReadOnlyCollection<Event>(Events.FindAll((e) => e.Type == Event.TypeEnum.Secondary)); } }
+        /// <summary>
+        /// Events of the bloc.
+        /// </summary>
+        public List<Event> Events { get; set; }
         /// <summary>
         /// Iconic scenario of the bloc.
         /// </summary>
@@ -49,15 +54,13 @@ namespace HBP.Data.Experience.Protocol
         /// Create a new bloc instance.
         /// </summary>
         /// <param name="displayInformations">Display informations.</param>
-        /// <param name="mainEvent">Main event of the bloc.</param>
-        /// <param name="secondaryEvents">Secondary events of the bloc.</param>
+        /// <param name="secondaryEvents">Events of the bloc.</param>
         /// <param name="scenario">Iconic scenario of the bloc.</param>
         /// <param name="id">Unique ID of the bloc.</param>
-        public Bloc(DisplayInformations displayInformations, Event mainEvent, List<Event> secondaryEvents, Scenario scenario, string id)
+        public Bloc(DisplayInformations displayInformations, List<Event> events, Scenario scenario, string id)
         {
             DisplayInformations = displayInformations;
-            MainEvent = mainEvent;
-            SecondaryEvents = secondaryEvents;
+            Events = events;
             Scenario = scenario;
             ID = id;
         }
@@ -65,26 +68,22 @@ namespace HBP.Data.Experience.Protocol
         /// Create a new bloc instance with a unique ID.
         /// </summary>
         /// <param name="displayInformations">Display informations.</param>
-        /// <param name="mainEvent">Main event of the bloc.</param>
-        /// <param name="secondaryEvents">Secondary events of the bloc.</param>
+        /// <param name="events">Events of the bloc.</param>
         /// <param name="scenario">Iconic scenario of the bloc.</param>
-        public Bloc(DisplayInformations displayInformations, Event mainEvent, List<Event> secondaryEvents, Scenario scenario) : this(displayInformations, mainEvent, secondaryEvents, scenario,Guid.NewGuid().ToString())
+        public Bloc(DisplayInformations displayInformations, List<Event> events, Scenario scenario) : this(displayInformations, events, scenario,Guid.NewGuid().ToString())
         {
         }
         /// <summary>
         /// Create a new bloc instance with display informations and default other values.
         /// </summary>
         /// <param name="displayInformations">Display informations.</param>
-        /// <param name="mainEvent">Main event of the bloc.</param>
-        /// <param name="secondaryEvents">Secondary events of the bloc.</param>
-        /// <param name="scenario">Iconic scenario of the bloc.</param>
-        public Bloc(DisplayInformations displayInformations) : this(displayInformations, new Event(), new List<Event>(), new Scenario())
+        public Bloc(DisplayInformations displayInformations) : this(displayInformations, new List<Event>() { new Event("Main Event", new int[0], Event.TypeEnum.Main) }, new Scenario())
         {
         }
         /// <summary>
         /// Create a new bloc instance with default values.
         /// </summary>
-        public Bloc() : this(new DisplayInformations(),new Event(), new List<Event>(), new Scenario())
+        public Bloc() : this(new DisplayInformations())
 		{
 		}
         #endregion
@@ -98,8 +97,7 @@ namespace HBP.Data.Experience.Protocol
         {
             Bloc protocol = copy as Bloc;
             DisplayInformations = protocol.DisplayInformations;
-            MainEvent = protocol.MainEvent;
-            SecondaryEvents = protocol.SecondaryEvents;
+            Events = protocol.Events;
             Scenario = protocol.Scenario;
             ID = protocol.ID;
         }
@@ -109,7 +107,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>object cloned.</returns>
         public object Clone()
         {
-            return new Bloc(DisplayInformations.Clone() as DisplayInformations, MainEvent.Clone() as Event, SecondaryEvents.ToArray().DeepClone().ToList() , Scenario.Clone() as Scenario, ID.Clone() as string);
+            return new Bloc(DisplayInformations.Clone() as DisplayInformations, Events.ToArray().DeepClone().ToList() , Scenario.Clone() as Scenario, ID.Clone() as string);
         }
         /// <summary>
         /// Operator Equals.
@@ -125,7 +123,7 @@ namespace HBP.Data.Experience.Protocol
             }
             else
             {
-                return DisplayInformations == p.DisplayInformations && MainEvent == p.MainEvent && Scenario == p.Scenario && System.Linq.Enumerable.SequenceEqual(SecondaryEvents, p.SecondaryEvents); 
+                return DisplayInformations == p.DisplayInformations && Scenario == p.Scenario && Enumerable.SequenceEqual(Events, p.Events); 
             }
         }
         /// <summary>

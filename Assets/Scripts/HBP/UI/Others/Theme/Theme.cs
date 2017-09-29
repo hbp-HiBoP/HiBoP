@@ -684,7 +684,7 @@ namespace HBP.UI.Theme
 
             public void Initialize()
             {
-                Background = new Color(50, 50, 50, 255);
+                Background = new Color(50, 50, 50, 255) / 255.0f;
 
                 Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Text.Font = FontData.defaultFontData;

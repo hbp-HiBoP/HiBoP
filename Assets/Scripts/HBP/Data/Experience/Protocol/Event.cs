@@ -17,7 +17,7 @@ namespace HBP.Data.Experience.Protocol
     *     - \a Codes ( Put '_' between codes in the UI).
     */
     [DataContract]
-	public class Event : ICloneable
+	public class Event : ICloneable, ICopiable
 	{
         #region Properties
         /** Code separator. */
@@ -30,6 +30,11 @@ namespace HBP.Data.Experience.Protocol
         /** Codes of the event. */
         [DataMember]
 		public List<int> Codes { get; set; }
+
+        public enum TypeEnum { Main, Secondary}
+        [DataMember]
+        /** Type of the event. */
+        public TypeEnum Type { get; set; }
 
         /** Codes of the event in a string with code separate with '_'. */
         [IgnoreDataMember]
@@ -46,15 +51,16 @@ namespace HBP.Data.Experience.Protocol
         /// </summary>
         /// <param name="label">Label of the event.</param>
         /// <param name="codes">Codes of the event.</param>
-        public Event(string label, int[] codes)
+        public Event(string label, int[] codes, TypeEnum type)
         {
             Name = label;
             Codes = codes.ToList();
+            Type = type;
         }
         /// <summary>
         /// Create a new instance with a empty label and no codes.
         /// </summary>
-        public Event() : this(string.Empty,new int[0])
+        public Event() : this(string.Empty,new int[0],TypeEnum.Main)
 		{
 		}
         #endregion
@@ -106,7 +112,15 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>Event cloned.</returns>
         public object Clone()
         {
-            return new Event(Name.Clone() as string, Codes.ToArray().Clone() as int[]);
+            return new Event(Name.Clone() as string, Codes.ToArray().Clone() as int[], Type);
+        }
+
+        public void Copy(object copy)
+        {
+            Event e = copy as Event;
+            Name = e.Name;
+            Codes = e.Codes;
+            Type = e.Type;
         }
         #endregion
     }
