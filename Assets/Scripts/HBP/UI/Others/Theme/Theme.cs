@@ -699,6 +699,7 @@ namespace HBP.UI.Theme
             public ButtonTheme Button;
             public Color Background;
             public BlocTheme Bloc;
+            public ScrollBarTheme Scrollbar;
 
             public void Initialize()
             {
@@ -737,6 +738,13 @@ namespace HBP.UI.Theme
                 Button.ColorBlock.highlightedColor = new Color(0, 0, 0, 100) / 255.0f;
                 Button.ColorBlock.pressedColor = new Color(0, 0, 0, 120) / 255.0f;
                 Button.ColorBlock.disabledColor = new Color(200, 200, 200, 0) / 255.0f;
+
+                Scrollbar.ColorBlock = ColorBlock.defaultColorBlock;
+                Scrollbar.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                Scrollbar.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Scrollbar.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Scrollbar.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
 
                 Bloc.Initialize();
             }
