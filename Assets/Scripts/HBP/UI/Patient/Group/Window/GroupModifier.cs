@@ -65,7 +65,9 @@ namespace HBP.UI.Anatomy
             m_GroupPatientsList.Objects = ItemTemp.Patients.ToArray();
             m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
             m_GroupPatientsList.OnAction.AddListener((patient, i) => OpenPatientModifier(patient));
+            m_GroupPatientsList.SortByName(PatientList.Sorting.Descending);
             m_ProjectPatientsList.OnAction.AddListener((patient, i) => OpenPatientModifier(patient));
+            m_ProjectPatientsList.SortByName(PatientList.Sorting.Descending);
         }
         protected override void SetWindow()
         {

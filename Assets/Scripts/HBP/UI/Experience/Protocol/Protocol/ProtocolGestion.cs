@@ -32,6 +32,11 @@ namespace HBP.UI.Experience.Protocol
                 AddItem(protocol);
             }
         }
+        public override void Open()
+        {
+            base.Open();
+            (m_List as ProtocolList).SortByName(ProtocolList.Sorting.Descending);
+        }
         #endregion
 
         #region Private Methods
