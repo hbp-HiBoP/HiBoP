@@ -1,5 +1,6 @@
-﻿using UnityEngine.UI;
-   using d = HBP.Data.Experience.Dataset;
+﻿using UnityEngine;
+using UnityEngine.UI;
+using d = HBP.Data.Experience.Dataset;
 
 namespace HBP.UI.Experience.Dataset
 {
@@ -12,19 +13,13 @@ namespace HBP.UI.Experience.Dataset
 		DataInfoList m_DataInfoList;
 		InputField m_NameInputField;
         Button m_SaveButton, m_CreateButton, m_RemoveButton;
+        [SerializeField] GameObject m_DataInfoModifierPrefab;
         #endregion
 
-        #region Public Methods
-		public override void Save()
-        {
-            m_DataInfoList.SaveAll();
-            base.Save();
-		}			
-		public void Create()
+        #region Public Methods			
+		public void Add()
 		{
-            d.DataInfo newDataInfo = new d.DataInfo();
-			ItemTemp.Data.Add(newDataInfo);
-            m_DataInfoList.Add(newDataInfo);
+            OpenDataInfoModifier(new d.DataInfo());
 		}
 		public void Remove()
 		{
@@ -35,11 +30,34 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Protected Methods
+        protected void OpenDataInfoModifier(d.DataInfo dataInfo)
+        {
+            RectTransform obj = Instantiate(m_DataInfoModifierPrefab).GetComponent<RectTransform>();
+            obj.SetParent(GameObject.Find("Windows").transform);
+            obj.localPosition = new Vector3(0, 0, 0);
+            DataInfoModifier dataInfoModifier = obj.GetComponent<DataInfoModifier>();
+            dataInfoModifier.Open(dataInfo, true);
+            dataInfoModifier.SaveEvent.AddListener(() => OnSaveEventModifier(dataInfoModifier));
+        }
+        protected void OnSaveEventModifier(DataInfoModifier eventModifier)
+        {
+            // Save
+            if (!ItemTemp.Data.Contains(eventModifier.Item))
+            {
+                ItemTemp.Data.Add(eventModifier.Item);
+                m_DataInfoList.Add(eventModifier.Item);
+            }
+            else
+            {
+                m_DataInfoList.UpdateObject(eventModifier.Item);
+            }
+        }
         protected override void SetFields(d.Dataset objectToDisplay)
         {
             m_NameInputField.text = ItemTemp.Name;
             m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
-            m_DataInfoList.Objects = ItemTemp.Data.ToArray();           
+            m_DataInfoList.Objects = ItemTemp.Data.ToArray();
+            m_DataInfoList.SortByName(DataInfoList.Sorting.Descending);
         }
         protected override void SetWindow()
         {

@@ -19,10 +19,6 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public override void Save()
-        {
-            base.Save();
-        }
         public void AddEvent()
 		{
             d.Event newEvent = new d.Event("Event", new int[] { 0 } ,d.Event.TypeEnum.Secondary);

@@ -23,7 +23,7 @@ namespace HBP.Data.Experience.Dataset
     *     - Protocol.
     */
     [DataContract]
-    public class DataInfo : ICloneable
+    public class DataInfo : ICloneable, ICopiable
     {
         #region Properties
         [DataMember(Name = "Name")]
@@ -268,6 +268,16 @@ namespace HBP.Data.Experience.Dataset
         public object Clone()
         {
             return new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, EEG.Clone() as string, POS.Clone() as string, Protocol.Clone() as Protocol.Protocol);
+        }
+        public void Copy(object copy)
+        {
+            DataInfo dataInfo = copy as DataInfo;
+            Name = dataInfo.Name;
+            Patient = dataInfo.Patient;
+            Protocol = dataInfo.Protocol;
+            Measure = dataInfo.Measure;
+            EEG = dataInfo.EEG;
+            POS = dataInfo.POS;
         }
         #endregion
 

@@ -1,16 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Test : MonoBehaviour
 {
-    public HBP.UI.Experience.Protocol.BlocModifier m_BlocModifier;
+    public HBP.UI.Experience.Dataset.DataInfoModifier m_DataInfoModifier;
 
 	// Use this for initialization
 	void Start ()
     {
-        HBP.Data.Experience.Protocol.DisplayInformations displayInformations = new HBP.Data.Experience.Protocol.DisplayInformations(0, 0, "Test", "", "C0L1", new Vector2(-200, 200), new Vector2(-200, 0));
-        HBP.Data.Experience.Protocol.Bloc bloc = new HBP.Data.Experience.Protocol.Bloc(displayInformations);
-        m_BlocModifier.Open(bloc, true);
+        HBP.Data.Experience.Dataset.DataInfo dataInfo = new HBP.Data.Experience.Dataset.DataInfo("Name",new HBP.Data.Patient(),"Measure","EEG","POS",new HBP.Data.Experience.Protocol.Protocol());
+        m_DataInfoModifier.Open(dataInfo, true);
 	}
 }
