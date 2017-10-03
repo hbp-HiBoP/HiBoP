@@ -42,6 +42,7 @@ namespace Tools.Unity.ResizableGrid
                 {
                     m_Position = MagneticPosition;
                 }
+                m_Position = RoundAtPrecision(m_Position, 1 / Screen.height);
                 RectTransform handler = GetComponent<RectTransform>();
                 handler.anchorMin = new Vector2(handler.anchorMin.x, m_Position);
                 handler.anchorMax = new Vector2(handler.anchorMax.x, m_Position);

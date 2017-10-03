@@ -10,7 +10,7 @@ namespace Tools.Unity.ResizableGrid
         /// <summary>
         /// Minimum position of the handler
         /// </summary>
-        public float MinimumPosition { get; set; }
+        public float MinimumPosition { get; set; } // NaN BUG FIXME
         /// <summary>
         /// Maximum position of the handler
         /// </summary>
@@ -42,6 +42,7 @@ namespace Tools.Unity.ResizableGrid
                 {
                     m_Position = MagneticPosition;
                 }
+                m_Position = RoundAtPrecision(m_Position, 2 / m_ResizableGrid.GetComponent<RectTransform>().rect.width);
                 RectTransform handler = GetComponent<RectTransform>();
                 handler.anchorMin = new Vector2(m_Position, handler.anchorMin.y);
                 handler.anchorMax = new Vector2(m_Position, handler.anchorMax.y);

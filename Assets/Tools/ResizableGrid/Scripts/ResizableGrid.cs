@@ -8,6 +8,8 @@ namespace Tools.Unity.ResizableGrid
     public class ResizableGrid : MonoBehaviour
     {
         #region Properties
+        private RectTransform m_RectTransform;
+
         private List<Column> m_Columns = new List<Column>();
         /// <summary>
         /// Columns of the layout
@@ -157,6 +159,10 @@ namespace Tools.Unity.ResizableGrid
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_RectTransform = GetComponent<RectTransform>();
+        }
         private void OnRectTransformDimensionsChange()
         {
             m_MinimumViewHeight = Mathf.Min(MINIMUM_VIEW_HEIGHT_DEFAULT, GetComponent<RectTransform>().rect.height / ViewNumber);

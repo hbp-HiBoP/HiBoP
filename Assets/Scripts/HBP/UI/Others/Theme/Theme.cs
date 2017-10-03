@@ -756,6 +756,7 @@ namespace HBP.UI.Theme
             public Color Background;
             public Color SwapBackground;
             public Color TransparentBackground;
+            public Color Border;
             public TextTheme Text;
             public TextTheme SiteText;
             public TextTheme MarsAtlasText;
@@ -775,6 +776,7 @@ namespace HBP.UI.Theme
                 Background = new Color(50, 50, 50, 255) / 255.0f;
                 SwapBackground = new Color(50, 50, 255, 150) / 255.0f;
                 TransparentBackground = new Color(50, 50, 50, 150) / 255.0f;
+                Border = new Color(0, 0, 0, 255) / 255.0f;
 
                 Button.ColorBlock = ColorBlock.defaultColorBlock;
                 Button.ColorBlock.normalColor = new Color(0, 0, 0, 150) / 255.0f;

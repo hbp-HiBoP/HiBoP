@@ -37,6 +37,11 @@ namespace Tools.Unity.ResizableGrid
         {
             m_ResizableGrid = GetComponentInParent<ResizableGrid>();
         }
+        protected float RoundAtPrecision(float number, float precision)
+        {
+            if (precision > 1.0f || precision < 0.0f) return number;
+            return precision * Mathf.Round(number / precision);
+        }
         #endregion
 
         #region Public Methods

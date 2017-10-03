@@ -17,7 +17,7 @@ namespace HBP.UI.Theme
         public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton, Item, FileSelector }
         public enum ItemEnum { Background, Text, Toggle, Button, ContainerBloc, MainBloc, SecondaryBloc, Scrollbar } 
         public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, ScrollRect, MainEvent, SecondaryEvent, SecondaryText, DropdownTextWithIcon }
-        public enum VisualizationEnum { Background, SwapBackground, TransparentBackground, Text, SiteText, MarsAtlasText, BroadmanText, Button, Toggle, Inputfield, Slider, Dropdown, InvisibleButton }
+        public enum VisualizationEnum { Background, SwapBackground, TransparentBackground, Text, SiteText, MarsAtlasText, BroadmanText, Button, Toggle, Inputfield, Slider, Dropdown, InvisibleButton, Border }
         public enum EffectEnum { Children, RecursiveChildren, Custom, Self}
 
         public bool IgnoreTheme;
@@ -307,6 +307,9 @@ namespace HBP.UI.Theme
                     break;
                 case VisualizationEnum.Dropdown:
                     SetDropdown(GetComponent<Dropdown>(), theme.Visualization.Dropdown);
+                    break;
+                case VisualizationEnum.Border:
+                    SetImage(GetComponent<Image>(), theme.Visualization.Border);
                     break;
             }
         }
