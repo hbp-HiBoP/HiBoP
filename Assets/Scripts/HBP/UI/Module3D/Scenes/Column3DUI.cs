@@ -189,7 +189,7 @@ namespace HBP.UI.Module3D
         public void Expand()
         {
             int id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
-            float minimizedWidth = (m_ParentGrid.MinimumViewWidth / m_ParentGrid.GetComponent<RectTransform>().rect.width);
+            float minimizedWidth = (m_ParentGrid.MinimumViewWidth / m_ParentGrid.RectTransform.rect.width);
             if (IsMinimized)
             {
                 float availableWidth = 1.0f;
@@ -259,7 +259,7 @@ namespace HBP.UI.Module3D
             if (IsMinimized) return;
             
             int id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
-            float minimizedWidth = (m_ParentGrid.MinimumViewWidth / m_ParentGrid.GetComponent<RectTransform>().rect.width);
+            float minimizedWidth = (m_ParentGrid.MinimumViewWidth / m_ParentGrid.RectTransform.rect.width);
 
             float totalWidth = 0.0f, availableWidth = 1.0f;
             List<float> widths = new List<float>();

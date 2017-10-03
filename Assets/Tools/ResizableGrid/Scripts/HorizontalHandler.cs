@@ -56,7 +56,7 @@ namespace Tools.Unity.ResizableGrid
             Initialize();
             m_Cursor = Resources.Load("Cursor/horizontal") as Texture2D;
             m_CursorHotSpot = new Vector2(4, 13);
-            MinimumPosition = GetComponentInParent<ResizableGrid>().MinimumViewHeight / GetComponentInParent<ResizableGrid>().GetComponent<RectTransform>().rect.height;
+            MinimumPosition = m_ResizableGrid.MinimumViewHeight / m_ResizableGrid.RectTransform.rect.height;
             MaximumPosition = 1 - MinimumPosition;
         }
         #endregion
@@ -69,8 +69,8 @@ namespace Tools.Unity.ResizableGrid
         public override void OnDrag(PointerEventData data)
         {
             Vector2 localPosition = new Vector2(0, 0);
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(GetComponentInParent<ResizableGrid>().GetComponent<RectTransform>(), data.position, null, out localPosition);
-            Position = (localPosition.y / GetComponentInParent<ResizableGrid>().GetComponent<RectTransform>().rect.height) + 0.5f;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_ResizableGrid.RectTransform, data.position, null, out localPosition);
+            Position = (localPosition.y / m_ResizableGrid.RectTransform.rect.height) + 0.5f;
             OnChangePosition.Invoke();
         }
         #endregion
