@@ -552,6 +552,7 @@ namespace HBP.UI.Theme
             SetImage(loadingCircle.GetComponent<Image>(), theme.Circle);
             SetImage(loadingCircle.Find("Fill").GetComponent<Image>(), theme.Fill);
             SetImage(loadingCircle.Find("Fill").Find("BackGround").GetComponent<Image>(), theme.Background);
+            SetImage(loadingCircle.Find("Informations").GetComponent<Image>(), theme.Background);
             SetText(loadingCircle.Find("Informations").Find("information").GetComponent<Text>(), theme.Text);
             SetText(loadingCircle.Find("Informations").Find("information").Find("LoadingEffect").GetComponent<Text>(), theme.Text);
         }

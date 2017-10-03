@@ -9,21 +9,22 @@ namespace HBP.UI.Experience.Protocol
         enum OrderBy { None, Name, DescendingName, Blocs, DescendingBlocs }
         OrderBy m_OrderBy = OrderBy.None;
 
+        public enum Sorting { Ascending, Descending }
         public SortingDisplayer m_NameSortingDisplayer;
         public SortingDisplayer m_BlocsSortingDisplayer;
         #endregion
 
         #region Public Methods
-        public void SortByName()
+        public void SortByName(Sorting sorting)
         {
-            switch (m_OrderBy)
+            switch (sorting)
             {
-                case OrderBy.DescendingName:
+                case Sorting.Ascending:
                     m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
                     m_OrderBy = OrderBy.Name;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
-                default:
+                case Sorting.Descending:
                     m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
                     m_OrderBy = OrderBy.DescendingName;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
@@ -32,16 +33,24 @@ namespace HBP.UI.Experience.Protocol
             foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
             m_BlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
-        public void SortByBlocs()
+        public void SortByName()
         {
             switch (m_OrderBy)
             {
-                case OrderBy.DescendingBlocs:
+                case OrderBy.DescendingName: SortByName(Sorting.Ascending); break;
+                default: SortByName(Sorting.Descending); break;
+            }
+        }
+        public void SortByBlocs(Sorting sorting)
+        {
+            switch (sorting)
+            {
+                case Sorting.Ascending:
                     m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Blocs.Count).ToDictionary(k => k.Key, v => v.Value);
                     m_OrderBy = OrderBy.Blocs;
                     m_BlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
-                default:
+                case Sorting.Descending:
                     m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Blocs.Count).ToDictionary(k => k.Key, v => v.Value);
                     m_OrderBy = OrderBy.DescendingBlocs;
                     m_BlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
@@ -49,6 +58,14 @@ namespace HBP.UI.Experience.Protocol
             }
             foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        }
+        public void SortByBlocs()
+        {
+            switch (m_OrderBy)
+            {
+                case OrderBy.DescendingBlocs: SortByBlocs(Sorting.Ascending); break;
+                default: SortByBlocs(Sorting.Descending); break;
+            }
         }
         #endregion
     }

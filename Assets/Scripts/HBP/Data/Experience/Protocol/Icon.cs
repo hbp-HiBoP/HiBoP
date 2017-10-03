@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using Tools.CSharp;
+using Tools.Unity;
 
 namespace HBP.Data.Experience.Protocol
 {
@@ -16,7 +17,7 @@ namespace HBP.Data.Experience.Protocol
     *     - \a Illustration \a path.
     *     - \a Window.
     */
-    public class Icon : ICloneable
+    public class Icon : ICloneable, ICopiable
     {
         #region Properties
         /// <summary>
@@ -28,6 +29,19 @@ namespace HBP.Data.Experience.Protocol
         /// Icon illustration path.
         /// </summary>
         public string IllustrationPath { get; set; }
+
+        Sprite m_Image;
+        public Sprite Image
+        {
+            get
+            {
+                if(!m_Image)
+                {
+                    m_Image = SpriteExtension.Load(IllustrationPath);
+                }
+                return m_Image;
+            }
+        }
 
         /// <summary>
         /// Icon window.
@@ -64,6 +78,14 @@ namespace HBP.Data.Experience.Protocol
         public object Clone()
         {
             return new Icon(Name.Clone() as string, IllustrationPath.Clone() as string, new Vector2(Window.Start, Window.End));
+        }
+
+        public void Copy(object copy)
+        {
+            Icon icon = copy as Icon;
+            Name = icon.Name;
+            IllustrationPath = icon.IllustrationPath;
+            Window = icon.Window;
         }
         #endregion
     }

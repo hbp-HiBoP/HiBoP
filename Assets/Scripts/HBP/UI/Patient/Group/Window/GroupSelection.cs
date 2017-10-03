@@ -23,6 +23,7 @@ namespace HBP.UI.Anatomy
         {
             groupList = transform.Find("Content").Find("Groups").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<GroupList>();
             groupList.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
+            groupList.SortByName(GroupList.Sorting.Descending);
         }
         #endregion
     }

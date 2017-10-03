@@ -745,6 +745,7 @@ namespace HBP.UI.Theme
                 Scrollbar.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
                 Scrollbar.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
                 Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
+                Scrollbar.Handle = new Color(255, 255, 255, 255) / 255.0f;
 
                 Bloc.Initialize();
             }

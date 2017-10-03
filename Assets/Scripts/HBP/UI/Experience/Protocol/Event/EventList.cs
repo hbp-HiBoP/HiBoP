@@ -5,7 +5,7 @@ namespace HBP.UI.Experience.Protocol
 	/// <summary>
 	/// The scripts which manage the event list.
 	/// </summary>
-	public class EventList : Tools.Unity.Lists.SelectableListWithSave<Data.Experience.Protocol.Event> 
+	public class EventList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Experience.Protocol.Event> 
 	{
         #region Proterties
         enum OrderBy { None, Name, DescendingName, Code, DescendingCode }

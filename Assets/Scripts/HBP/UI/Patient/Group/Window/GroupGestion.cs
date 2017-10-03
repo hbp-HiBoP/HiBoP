@@ -21,6 +21,11 @@ namespace HBP.UI.Anatomy
             base.Remove();
             m_groupCounter.text = m_List.ObjectsSelected.Count().ToString();
         }
+        public override void Open()
+        {
+            base.Open();
+            (m_List as GroupList).SortByName(GroupList.Sorting.Descending);
+        }
         #endregion
 
         #region Protected Methods

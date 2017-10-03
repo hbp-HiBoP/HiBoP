@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class IconList : Tools.Unity.Lists.SelectableListWithSave<Icon>
+    public class IconList : Tools.Unity.Lists.SelectableListWithItemAction<Icon>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Path, DescendingPath, Start, DescendingStart, End, DescendingEnd}
@@ -12,7 +12,7 @@ namespace HBP.UI.Experience.Protocol
         public SortingDisplayer m_NameSortingDisplayer;
         public SortingDisplayer m_IllustrationSortingDisplayer;
         public SortingDisplayer m_StartSortingDisplayer;
-        public SortingDisplayer m_EndSortingDisplayer;
+        //public SortingDisplayer m_EndSortingDisplayer;
         #endregion
 
         #region Public Methods
@@ -34,7 +34,7 @@ namespace HBP.UI.Experience.Protocol
             foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
             m_IllustrationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            //m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
 
 		public void SortByPath()
@@ -55,7 +55,7 @@ namespace HBP.UI.Experience.Protocol
             foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            //m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByStart()
         {
@@ -75,28 +75,28 @@ namespace HBP.UI.Experience.Protocol
             foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IllustrationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            //m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
-        public void SortByEnd()
-        {
-            switch (m_OrderBy)
-            {
-                case OrderBy.DescendingEnd:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Window.End).ToDictionary(k => k.Key, v => v.Value);
-                    m_OrderBy = OrderBy.End;
-                    m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-                    break;
-                default:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Window.End).ToDictionary(k => k.Key, v => v.Value);
-                    m_OrderBy = OrderBy.DescendingEnd;
-                    m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-                    break;
-            }
-            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
-            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_IllustrationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_StartSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        }
+        //public void SortByEnd()
+        //{
+        //    switch (m_OrderBy)
+        //    {
+        //        case OrderBy.DescendingEnd:
+        //            m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Window.End).ToDictionary(k => k.Key, v => v.Value);
+        //            m_OrderBy = OrderBy.End;
+        //            m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+        //            break;
+        //        default:
+        //            m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Window.End).ToDictionary(k => k.Key, v => v.Value);
+        //            m_OrderBy = OrderBy.DescendingEnd;
+        //            m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+        //            break;
+        //    }
+        //    foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
+        //    m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        //    m_IllustrationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        //    m_StartSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        //}
         #endregion
     }
 }
