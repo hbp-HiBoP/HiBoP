@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using Tools.CSharp;
+using System.Runtime.Serialization;
 
 namespace HBP.Data.Experience.Protocol
 {
@@ -17,6 +18,7 @@ namespace HBP.Data.Experience.Protocol
     *     - \a Label.
     *     - \a Blocs.
     */
+    [DataContract]
 	public class Protocol : ICloneable,ICopiable
     {
         #region Properties
@@ -24,14 +26,17 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Unique ID.
         /// </summary>
+        [DataMember]
         public string ID { get; set; }
         /// <summary>
         /// Name of the protocol.
         /// </summary>
+        [DataMember]
         public string Name { get; set; }
         /// <summary>
         /// Blocs of the protocol.
         /// </summary>
+        [DataMember]
         public List<Bloc> Blocs { get; set; }
         #endregion
 

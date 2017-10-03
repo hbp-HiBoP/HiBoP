@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.Serialization;
 using Tools.CSharp;
 
 namespace HBP.Data.Experience.Protocol
@@ -20,16 +21,19 @@ namespace HBP.Data.Experience.Protocol
     *     - Iconic scenario.
     *     - Unique ID.
     */
+    [DataContract]
     public class Bloc : ICloneable, ICopiable
 	{
         #region Properties
         /// <summary>
         /// Unique ID.
         /// </summary>
+        [DataMember]
         public string ID { get; set; }
         /// <summary>
         /// Display informations of the bloc.
         /// </summary>
+        [DataMember]
         public DisplayInformations DisplayInformations { get; set; }
         /// <summary>
         /// Main event of the bloc.
@@ -42,10 +46,12 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Events of the bloc.
         /// </summary>
+        [DataMember]
         public List<Event> Events { get; set; }
         /// <summary>
         /// Iconic scenario of the bloc.
         /// </summary>
+        [DataMember]
         public Scenario Scenario { get; set; }
         #endregion
 
@@ -77,7 +83,7 @@ namespace HBP.Data.Experience.Protocol
         /// Create a new bloc instance with display informations and default other values.
         /// </summary>
         /// <param name="displayInformations">Display informations.</param>
-        public Bloc(DisplayInformations displayInformations) : this(displayInformations, new List<Event>() { new Event("Main Event", new int[0], Event.TypeEnum.Main) }, new Scenario())
+        public Bloc(DisplayInformations displayInformations) : this(displayInformations, new List<Event>(), new Scenario())
         {
         }
         /// <summary>
