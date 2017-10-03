@@ -24,6 +24,7 @@ namespace HBP.UI.Experience.Protocol
         }
         protected void OpenBlocModifier(d.Bloc bloc)
         {
+            if(bloc.MainEvent == null) bloc.Events.Add(new d.Event("Main", new int[0], d.Event.TypeEnum.Main));
             RectTransform obj = Instantiate(blocModifierPrefab).GetComponent<RectTransform>();
             obj.SetParent(GameObject.Find("Windows").transform);
             obj.localPosition = new Vector3(0, 0, 0);

@@ -83,7 +83,7 @@ namespace HBP.UI
             yield return c_Save(path);
             yield return Ninja.JumpToUnity;
             // TODO
-            GameObject.FindGameObjectWithTag("Gestion").GetComponent<MenuButtonState>().SetInteractables();
+            GameObject.FindObjectOfType<MenuButtonState>().SetInteractables();
         }
         #endregion
     }
