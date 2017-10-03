@@ -2,6 +2,7 @@
 using System;
 using Tools.CSharp;
 using Tools.Unity;
+using System.Runtime.Serialization;
 
 namespace HBP.Data.Experience.Protocol
 {
@@ -17,17 +18,20 @@ namespace HBP.Data.Experience.Protocol
     *     - \a Illustration \a path.
     *     - \a Window.
     */
+    [DataContract]
     public class Icon : ICloneable, ICopiable
     {
         #region Properties
         /// <summary>
         /// Icon name.
         /// </summary>
+        [DataMember]
         public string Name { get; set; }
 
         /// <summary>
         /// Icon illustration path.
         /// </summary>
+        [DataMember]
         public string IllustrationPath { get; set; }
 
         Sprite m_Image;
@@ -46,6 +50,7 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Icon window.
         /// </summary>
+        [DataMember]
         public Window Window { get; set; }
         #endregion
 
