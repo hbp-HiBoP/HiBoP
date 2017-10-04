@@ -38,7 +38,7 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Main event of the bloc.
         /// </summary>
-        public Event MainEvent { get { return Events.First((e) => e.Type == Event.TypeEnum.Main); } }
+        public Event MainEvent { get { return Events.FirstOrDefault((e) => e.Type == Event.TypeEnum.Main); } }
         /// <summary>
         /// Secondary events of the bloc.
         /// </summary>

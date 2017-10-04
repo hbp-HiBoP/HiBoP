@@ -57,7 +57,7 @@ namespace HBP.UI.Visualization
         #region Private Methods
         void SetDatasetDropdown()
         {
-            m_Datasets = ApplicationState.ProjectLoaded.Datasets.ToList().FindAll((d) => m_Patients.All((p) => d.Data.Exists((i) => i.Patient == p && i.isOk)));
+            m_Datasets = ApplicationState.ProjectLoaded.Datasets.ToList().FindAll((d) => m_Patients.All((p) => d.Data.ToList().Exists((i) => i.Patient == p && i.isOk)));
             if (m_Datasets.Count > 0 && m_Patients.Length > 0)
             {
                 m_DatasetDropdown.interactable = true;
@@ -81,7 +81,7 @@ namespace HBP.UI.Visualization
 
         void SetDataLabelDropdown()
         {
-            m_DataLabels = (from data in m_Datasets[m_DatasetDropdown.value].Data.FindAll((d) => m_Patients.All((p) => m_Datasets[m_DatasetDropdown.value].Data.Exists((i) => i.Patient == p && i.isOk))) select data.Name).Distinct().ToList();
+            m_DataLabels = (from data in m_Datasets[m_DatasetDropdown.value].Data.Where((d) => m_Patients.All((p) => m_Datasets[m_DatasetDropdown.value].Data.Any((i) => i.Patient == p && i.isOk))) select data.Name).Distinct().ToList();
             if (m_DataLabels.Count != 0 && m_DatasetDropdown.interactable)
             {
                 m_DataLabelDropdown.interactable = true;
@@ -105,14 +105,15 @@ namespace HBP.UI.Visualization
 
         void SetProtocolDropdown()
         {
-            m_Protocols = (from dataInfo in m_Datasets[m_DatasetDropdown.value].Data.FindAll((d) => d.Name == m_DataLabels[m_DataLabelDropdown.value] && m_Patients.Contains(d.Patient)) select dataInfo.Protocol).Distinct().ToList();
-            if(m_Protocols.Count > 0 && m_DataLabelDropdown.interactable)
-            {
-                m_ProtocolDropdown.interactable = true;
-                m_ProtocolDropdown.options = (from protocol in m_Protocols select new Dropdown.OptionData(protocol.Name,null)).ToList();
-                SetProtocol(m_Column.Protocol);
-            }
-            else DeactivateProtocolDropdown();
+            // TODO
+            //m_Protocols = (from dataInfo in m_Datasets[m_DatasetDropdown.value].Data.ToList().FindAll((d) => d.Name == m_DataLabels[m_DataLabelDropdown.value] && m_Patients.Contains(d.Patient)) select dataInfo.Protocol).Distinct().ToList();
+            //if(m_Protocols.Count > 0 && m_DataLabelDropdown.interactable)
+            //{
+            //    m_ProtocolDropdown.interactable = true;
+            //    m_ProtocolDropdown.options = (from protocol in m_Protocols select new Dropdown.OptionData(protocol.Name,null)).ToList();
+            //    SetProtocol(m_Column.Protocol);
+            //}
+            //else DeactivateProtocolDropdown();
         }
         void DeactivateProtocolDropdown()
         {

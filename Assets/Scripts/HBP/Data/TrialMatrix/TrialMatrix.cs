@@ -55,7 +55,7 @@ namespace HBP.Data.TrialMatrix
         #endregion
 
         #region Constructor
-        public TrialMatrix(DataInfo dataInfo, Site site)
+        public TrialMatrix(Protocol protocol, DataInfo dataInfo, Site site)
         {
             // Read ElanFile and POSFile.
             Elan.ElanFile elanFile = new Elan.ElanFile(dataInfo.EEG);
@@ -68,10 +68,10 @@ namespace HBP.Data.TrialMatrix
             float[] dataReaded = elanFile.EEG.GetFloatData(trackToRead);
 
             // Epoch Data.
-            Bloc[] blocs = new Bloc[dataInfo.Protocol.Blocs.Count];
+            Bloc[] blocs = new Bloc[protocol.Blocs.Count];
             for (int i = 0; i < blocs.Length; i++)
             {
-                blocs[i] = new Bloc(dataInfo.Protocol.Blocs[i], POSFile, dataReaded, samplingFrequency);
+                blocs[i] = new Bloc(protocol.Blocs[i], POSFile, dataReaded, samplingFrequency);
             }
 
             // Standardize bloc by BaseLine.
@@ -92,11 +92,11 @@ namespace HBP.Data.TrialMatrix
             StandardizeBlocs(ref blocs);
 
             // Set properties
-            Title = dataInfo.Patient.Place + " " + dataInfo.Patient.Date + " " + dataInfo.Patient.Name + " " + site.Name + " " + dataInfo.Protocol.Name + " " + dataInfo.Name;
+            Title = dataInfo.Patient.Place + " " + dataInfo.Patient.Date + " " + dataInfo.Patient.Name + " " + site.Name + " " + protocol.Name + " " + dataInfo.Name;
             Blocs = blocs;
             ValuesLimits = CalculateValueLimit(flatValues.ToArray());
             TimeLimitsByColumn = CalculateTimeLimitsByColumn(blocs);
-            Protocol = dataInfo.Protocol;
+            Protocol = protocol;
         }
         #endregion
 

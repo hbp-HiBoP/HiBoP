@@ -5,13 +5,12 @@ namespace HBP.UI.Experience.Dataset
     public class DataInfoList : Tools.Unity.Lists.SelectableListWithItemAction<Data.Experience.Dataset.DataInfo>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Patient, DescendingPatient, Protocol, DescendingProtocol, State, DescendingState }
+        enum OrderBy { None, Name, DescendingName, Patient, DescendingPatient, State, DescendingState }
         OrderBy m_OrderBy = OrderBy.None;
         
         public enum Sorting { Ascending, Descending}
         public SortingDisplayer m_NameSortingDisplayer;
         public SortingDisplayer m_PatientSortingDisplayer;
-        public SortingDisplayer m_ProvSortingDisplayer;
         public SortingDisplayer m_StateSortingDisplayer;
         #endregion
 
@@ -33,7 +32,6 @@ namespace HBP.UI.Experience.Dataset
             }
             foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ProvSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByName()
@@ -61,7 +59,6 @@ namespace HBP.UI.Experience.Dataset
             }
             foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ProvSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByPatient()
@@ -70,34 +67,6 @@ namespace HBP.UI.Experience.Dataset
             {
                 case OrderBy.DescendingPatient: SortByPatient(Sorting.Ascending); break;
                 default: SortByPatient(Sorting.Descending); break;
-            }
-        }
-        public void SortByProtocol(Sorting sorting)
-        {
-            switch (sorting)
-            {
-                case Sorting.Ascending:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Protocol.Name).ToDictionary(k => k.Key, v => v.Value);
-                    m_OrderBy = OrderBy.Protocol;
-                    m_ProvSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-                    break;
-                case Sorting.Descending:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Protocol.Name).ToDictionary(k => k.Key, v => v.Value);
-                    m_OrderBy = OrderBy.DescendingProtocol;
-                    m_ProvSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-                    break;
-            }
-            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
-            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        }
-        public void SortByProtocol()
-        {
-            switch (m_OrderBy)
-            {
-                case OrderBy.DescendingProtocol: SortByProtocol(Sorting.Ascending); break;
-                default: SortByProtocol(Sorting.Descending); break;
             }
         }
         public void SortByState(Sorting sorting)
@@ -118,7 +87,6 @@ namespace HBP.UI.Experience.Dataset
             foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ProvSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByState()
         {

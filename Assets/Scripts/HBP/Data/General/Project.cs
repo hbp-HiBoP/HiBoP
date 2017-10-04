@@ -161,7 +161,7 @@ namespace HBP.Data.General
             }
             foreach (Dataset dataset in m_Datasets)
             {
-                dataset.Data.Remove(from info in dataset.Data where info.Patient == patient select info);
+                dataset.RemoveData(from data in dataset.Data where data.Patient == patient select data);
             }
             foreach(Visualization.Visualization visualization in m_Visualizations)
             {
@@ -223,10 +223,7 @@ namespace HBP.Data.General
         }
         public void RemoveProtocol(Protocol protocol)
         {
-            foreach (Dataset dataset in m_Datasets)
-            {
-                dataset.Data.Remove(from info in dataset.Data where info.Protocol == protocol select info);
-            }
+            m_Datasets.RemoveAll((d) => d.Protocol == protocol);
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
                 visualization.Columns.Remove((from column in visualization.Columns where column.Protocol == protocol select column).ToArray());

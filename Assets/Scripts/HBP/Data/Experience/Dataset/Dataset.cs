@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
+using UnityEngine.Events;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -23,44 +25,106 @@ namespace HBP.Data.Experience.Dataset
         #region Attributs
         public const string EXTENSION = ".dataset";
 
-        [DataMember]
         /// <summary>
         /// Unique ID of the dataset.
         /// </summary>
-        public string ID { get; private set; }
+        [DataMember] public string ID { get; private set; }
 
-        [DataMember]
         /// <summary>
         /// Name of the dataset.
         /// </summary>
-		public string Name { get; set; }
+        [DataMember] public string Name { get; set; }
 
-        [DataMember(Order = 3)]
+        [DataMember(Name = "Protocol")] string m_ProtocolID;
+        /// <summary>
+        /// Protocol used during the experiment.
+        /// </summary>
+        public Protocol.Protocol Protocol
+        {
+            get
+            {
+                return ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID);
+            }
+            set
+            {
+                m_ProtocolID = value.ID;
+                if(m_Data != null)
+                {
+                    foreach (var data in m_Data) data.GetPOSErrors(Protocol);
+                }
+            }
+        }
+
+        Dictionary<DataInfo, UnityAction> m_ActionByDataInfo;
+        [DataMember(Order = 3,Name = "Data")] List<DataInfo> m_Data;
         /// <summary>
         /// DataInfo of the dataset.
         /// </summary>
-        public List<DataInfo> Data { get; set; }
+        public DataInfo[] Data
+        {
+            get
+            {
+                return m_Data.ToArray();
+            }
+        }
         #endregion
 
         #region Constructor
-        public Dataset(string name, DataInfo[] data,string id)
+        public Dataset(string name,Protocol.Protocol protocol, DataInfo[] data,string id)
         {
             Name = name;
-            Data = new List<DataInfo>(data);
+            Protocol = protocol;
+            SetData(data);
             ID = id;
         }
-        public Dataset() : this(string.Empty,new DataInfo[0], Guid.NewGuid().ToString())
+        public Dataset() : this("New dataset", ApplicationState.ProjectLoaded.Protocols.First(), new DataInfo[0], Guid.NewGuid().ToString())
 		{
         }
         #endregion
 
         #region Public Methods
+        public bool AddData(DataInfo data)
+        {
+            if (!m_Data.Contains(data))
+            {
+                m_Data.Add(data);
+                UnityAction action = new UnityAction(() => { data.GetPOSErrors(Protocol); });
+                m_ActionByDataInfo.Add(data, action);
+                data.OnPOSChanged.AddListener(action);
+                return true;
+            }
+            else return false;
+        }
+        public bool AddData(IEnumerable<DataInfo> data)
+        {
+            return data.All((d) => AddData(d));
+        }
+        public bool RemoveData(DataInfo data)
+        {
+            if (m_Data.Contains(data))
+            {
+                m_Data.Remove(data);
+                data.OnPOSChanged.RemoveListener(m_ActionByDataInfo[data]);
+                return true;
+            }
+            else return false;
+        }
+        public bool RemoveData(IEnumerable<DataInfo> data)
+        {
+            return data.All((d) => RemoveData(d));
+        }
+        public bool SetData(IEnumerable<DataInfo> data)
+        {
+            m_Data = new List<DataInfo>();
+            m_ActionByDataInfo = new Dictionary<DataInfo, UnityAction>();
+            return data.All((d) => AddData(d));
+        }
         /// <summary>
         /// UpdateDataStates.
         /// </summary>
         public void UpdateDataStates()
         {
-            foreach (DataInfo dataInfo in Data) dataInfo.GetErrors();
+            foreach (DataInfo dataInfo in Data) dataInfo.GetErrors(Protocol);
         }
         #endregion
 
@@ -71,7 +135,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance</returns>
         public object Clone()
         {
-            return new Dataset(Name,Data.ToArray().Clone() as DataInfo[], ID);
+            return new Dataset(Name ,Protocol ,Data.Clone() as DataInfo[], ID);
         }
         /// <summary>
         /// Copy this a instance to this instance.
@@ -81,8 +145,9 @@ namespace HBP.Data.Experience.Dataset
         {
             Dataset dataset = copy as Dataset;
             Name = dataset.Name;
+            Protocol = dataset.Protocol;
             ID = dataset.ID;
-            Data = dataset.Data.ToList();
+            SetData(dataset.Data);
         }
         /// <summary>
         /// Operator Equals.
@@ -138,6 +203,29 @@ namespace HBP.Data.Experience.Dataset
         public static bool operator !=(Dataset a, Dataset b)
         {
             return !(a == b);
+        }
+        #endregion
+
+        #region Serialization
+        [OnDeserialized()]
+        void SetListeners(StreamingContext context)
+        {
+            foreach (var data in m_Data)
+            {
+                UnityAction action = new UnityAction(() => data.GetPOSErrors(Protocol));
+                m_ActionByDataInfo.Add(data, action);
+                data.OnPOSChanged.AddListener(action);
+            }
+        }
+        #endregion
+
+        #region Struct
+        public struct Resume
+        {
+            public enum StateEnum { OK, Warning, Error }
+            public string Label;
+            public int Number;
+            public StateEnum State;
         }
         #endregion
     }

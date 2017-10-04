@@ -139,7 +139,7 @@ namespace HBP.Data.Visualization
         /// <returns>\a True if is compatible and \a false otherwise.</returns>
         public bool IsCompatible(Patient patient)
         {
-            return Dataset.Data.Exists((dataInfo) => dataInfo.Name == DataLabel && dataInfo.Protocol == Protocol && dataInfo.Patient == patient && dataInfo.isOk);
+            return Dataset.Data.Any((data) => data.Name == DataLabel && data.Patient == patient && data.isOk);
         }
         /// <summary>
         /// Test if the visualisaation Column is compatible with some Patients.

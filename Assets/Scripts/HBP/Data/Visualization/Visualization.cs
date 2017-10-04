@@ -223,7 +223,7 @@ namespace HBP.Data.Visualization
         /// <returns>DataInfo of the column.</returns>
         public IEnumerable<DataInfo> GetDataInfo(Column column)
         {
-            return column.Dataset.Data.FindAll((data) => (column.DataLabel == data.Name && Patients.Contains(data.Patient) && column.Protocol == data.Protocol && data.Protocol.Blocs.Contains(column.Bloc)));
+            return column.Dataset.Data.Where((data) => (column.DataLabel == data.Name && Patients.Contains(data.Patient)));
         }
         /// <summary>
         /// Get the DataInfo used by the column for a specific Patient.

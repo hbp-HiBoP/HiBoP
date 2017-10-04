@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
+using UnityEngine.Events;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -79,41 +80,30 @@ namespace HBP.Data.Experience.Dataset
         public string POS
         {
             get { return m_POS; }
-            set { m_POS = value; m_POSErrors = GetPOSErrors(); }
+            set { m_POS = value; m_POSErrors = new ErrorType[0]; OnPOSChanged.Invoke(); }
         }
-
-        [DataMember(Name = "Protocol")]
-        string m_Protocol;
-        /// <summary>
-        /// Protocol used during the experiment.
-        /// </summary>
-        public Protocol.Protocol Protocol
-        {
-            get { return ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == m_Protocol); ; }
-            set { m_Protocol = value.ID; m_ProtocolErrors = GetProtocolErrors(); }
-        }
+        public UnityEvent OnPOSChanged { get; set; }
          
         /// <summary>
         /// Error type of the DataInfo.
         /// </summary>
         public enum ErrorType
         {
-            LabelEmpty, PatientEmpty, MeasureEmpty, EEGEmpty, POSEmpty, ProtocolEmpty, EEGFileNotExist, POSFileNotExist,
+            LabelEmpty, PatientEmpty, MeasureEmpty, EEGEmpty, POSEmpty, EEGFileNotExist, POSFileNotExist,
             EEGFileNotAGoodFile, EEGDoNotContainsMeasure, POSFileNotAGoodFile
         }
 
         ErrorType[] m_NameErrors;
+        ErrorType[] m_PatientErrors;
         ErrorType[] m_MeasureErrors;
         ErrorType[] m_EEGErrors;
-        ErrorType[] m_POSErrors;  
-        ErrorType[] m_PatientErrors;
-        ErrorType[] m_ProtocolErrors;
+        ErrorType[] m_POSErrors;
 
         public bool isOk
         {
             get
             {
-                return m_NameErrors.Length == 0 && m_MeasureErrors.Length == 0 && m_EEGErrors.Length == 0 && m_POSErrors.Length == 0 && m_PatientErrors.Length == 0 && m_ProtocolErrors.Length == 0;
+                return Errors.Length == 0;
             }
         }
         public ErrorType[] Errors
@@ -126,21 +116,19 @@ namespace HBP.Data.Experience.Dataset
                 errors.AddRange(m_EEGErrors);
                 errors.AddRange(m_POSErrors);
                 errors.Add(m_PatientErrors);
-                errors.Add(m_ProtocolErrors);
                 return errors.Distinct().ToArray();
             }
         }
         #endregion
 
         #region Public Methods
-        public ErrorType[] GetErrors()
+        public ErrorType[] GetErrors(Protocol.Protocol protocol)
         {
             GetNameErrors();
             GetPatientErrors();
             GetMeasureErrors();
             GetEEGErrors();
-            GetPOSErrors();
-            GetProtocolErrors();
+            GetPOSErrors(protocol);
             return Errors;
         }
         public ErrorType[] GetNameErrors()
@@ -175,14 +163,26 @@ namespace HBP.Data.Experience.Dataset
         public ErrorType[] GetEEGErrors()
         {
             List<ErrorType> errors = new List<ErrorType>();
-            if (string.IsNullOrEmpty(EEG)) errors.Add(ErrorType.EEGEmpty);
+            if (string.IsNullOrEmpty(EEG))
+            {
+                errors.Add(ErrorType.EEGEmpty);
+                return errors.ToArray();
+            }
             else
             {
                 FileInfo EEGFile = new FileInfo(EEG);
-                if (!EEGFile.Exists) errors.Add(ErrorType.EEGFileNotExist);
+                if (!EEGFile.Exists)
+                {
+                    errors.Add(ErrorType.EEGFileNotExist);
+                    return errors.ToArray();
+                }
                 else
                 {
-                    if (EEGFile.Extension != Elan.EEG.EXTENSION) errors.Add(ErrorType.EEGFileNotAGoodFile);
+                    if (EEGFile.Extension != Elan.EEG.EXTENSION)
+                    {
+                        errors.Add(ErrorType.EEGFileNotAGoodFile);
+                        return errors.ToArray();
+                    }
                     else
                     {
                         Elan.ElanFile elanFile = new Elan.ElanFile(EEGFile.FullName, false);
@@ -193,7 +193,7 @@ namespace HBP.Data.Experience.Dataset
             m_EEGErrors = errors.ToArray();
             return errors.ToArray();
         }
-        public ErrorType[] GetPOSErrors()
+        public ErrorType[] GetPOSErrors(Protocol.Protocol protocol)
         {
             List<ErrorType> errors = new List<ErrorType>();
             if (string.IsNullOrEmpty(POS)) errors.Add(ErrorType.POSEmpty);
@@ -207,13 +207,6 @@ namespace HBP.Data.Experience.Dataset
                 }
             }
             m_POSErrors = errors.ToArray();
-            return errors.ToArray();
-        }
-        public ErrorType[] GetProtocolErrors()
-        {
-            List<ErrorType> errors = new List<ErrorType>();
-            if (Protocol == null) errors.Add(ErrorType.ProtocolEmpty);
-            m_ProtocolErrors = errors.ToArray();
             return errors.ToArray();
         }
         public string GetErrorsMessage()
@@ -242,20 +235,19 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="measure">Name of the measure in the EEG file.</param>
         /// <param name="eeg">EEG file path.</param>
         /// <param name="pos">POS file path.</param>
-        /// <param name="protocol">Protocol used for the experiment.</param>
-        public DataInfo(string name, Patient patient, string measure, string eeg, string pos, Protocol.Protocol protocol)
+        public DataInfo(string name, Patient patient, string measure, string eeg, string pos)
         {
+            OnPOSChanged = new UnityEvent();
             Name = name;
             Patient = patient;
             Measure = measure;
             EEG = eeg;
             POS = pos;
-            Protocol = protocol;
         }
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public DataInfo() : this("Data", ApplicationState.ProjectLoaded.Patients.FirstOrDefault(),"EEG data", string.Empty, string.Empty,ApplicationState.ProjectLoaded.Protocols.FirstOrDefault())
+        public DataInfo() : this("Data", ApplicationState.ProjectLoaded.Patients.FirstOrDefault(),"EEG data", string.Empty, string.Empty)
         {
         }
         #endregion
@@ -267,14 +259,15 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            return new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, EEG.Clone() as string, POS.Clone() as string, Protocol.Clone() as Protocol.Protocol);
+            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, EEG.Clone() as string, POS.Clone() as string);
+            dataInfo.OnPOSChanged = OnPOSChanged;
+            return dataInfo;
         }
         public void Copy(object copy)
         {
             DataInfo dataInfo = copy as DataInfo;
             Name = dataInfo.Name;
             Patient = dataInfo.Patient;
-            Protocol = dataInfo.Protocol;
             Measure = dataInfo.Measure;
             EEG = dataInfo.EEG;
             POS = dataInfo.POS;
@@ -302,9 +295,6 @@ namespace HBP.Data.Experience.Dataset
                 case ErrorType.POSEmpty:
                     message = "• The POS field is empty.";
                     break;
-                case ErrorType.ProtocolEmpty:
-                    message = "• The protocol field is empty.";
-                    break;
                 case ErrorType.EEGFileNotExist:
                     message = "• The EEG file does not exist.";
                     break;
@@ -317,7 +307,7 @@ namespace HBP.Data.Experience.Dataset
                 case ErrorType.EEGDoNotContainsMeasure:
                     message = "• The EEG file does not contains the measure.";
                     break;
-                case ErrorType.POSFileNotAGoodFile:
+                case ErrorType.POSFileNotAGoodFile:  
                     message = "• The EEG file is incorrect.";
                     break;
                 default:

@@ -12,7 +12,6 @@ namespace HBP.UI.Experience.Dataset
         #region Properties
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_PatientText;
-        [SerializeField] Text m_ProtocolText;
 		[SerializeField] Image m_StateImage;
         [SerializeField] Text m_ErrorText;
 
@@ -22,13 +21,11 @@ namespace HBP.UI.Experience.Dataset
             {
                 return base.Object;
             }
-
             set
             {
                 base.Object = value;
                 m_NameText.text = value.Name;
                 m_PatientText.text = value.Patient.Name;
-                m_ProtocolText.text = value.Protocol.Name;
                 m_ErrorText.text = Object.GetErrorsMessage();
                 m_StateImage.color = value.isOk ? ApplicationState.Theme.General.OK : ApplicationState.Theme.General.Error;
             }

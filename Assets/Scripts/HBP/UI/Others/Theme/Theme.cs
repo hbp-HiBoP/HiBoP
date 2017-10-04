@@ -25,6 +25,7 @@ namespace HBP.UI.Theme
         public class GeneralTheme
         {
             public Color Error = new Color();
+            public Color Warning = new Color();
             public Color OK = new Color();
             public Color NotInteractable = new Color();
             public Color TooltipBackground;
@@ -37,6 +38,7 @@ namespace HBP.UI.Theme
             {
                 NotInteractable = new Color(100, 100, 100, 255) / 255.0f;
                 OK = new Color(50, 200, 50, 255) / 255.0f;
+                Warning = new Color(200, 200, 50, 255) / 255.0f;
                 Error = new Color(200, 50, 50, 255) / 255.0f;
                 Background = new Color(20, 20, 20, 255) / 255.0f;
 
