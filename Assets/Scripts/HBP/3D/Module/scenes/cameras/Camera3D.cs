@@ -57,9 +57,8 @@ namespace HBP.Module3D
         private float m_Distance { get { return Vector3.Distance(transform.position, Target); } }
 
         private float m_Speed = 1.0f;
-        private float m_ZoomSpeed = 3.5f;
+        private float m_ZoomSpeed = 1.0f;
 
-        private Vector3 m_OrbitXRotationAxis = Vector3.forward;
         [SerializeField, Candlelight.PropertyBackingField]
         private Material m_XCircleMaterial;
         [SerializeField, Candlelight.PropertyBackingField]
@@ -331,7 +330,7 @@ namespace HBP.Module3D
         /// <param name="amount"></param>
         public void HorizontalStrafe(float amount)
         {
-            Vector3 strafe = - transform.right * amount;
+            Vector3 strafe = - transform.right * amount * m_Speed;
 
             transform.position = transform.position + strafe;
             m_Target = m_Target + strafe;
@@ -343,7 +342,7 @@ namespace HBP.Module3D
         /// <param name="amount"></param>
         public void VerticalStrafe(float amount)
         {
-            Vector3 strafe = - transform.up * amount;
+            Vector3 strafe = - transform.up * amount * m_Speed;
 
             transform.position = transform.position + strafe;
             m_Target = m_Target + strafe;
@@ -363,14 +362,14 @@ namespace HBP.Module3D
             switch (Type)
             {
                 case CameraControl.Trackball:
-                    transform.RotateAround(Target, transform.up, amount);
+                    transform.RotateAround(Target, transform.up, amount * m_Speed);
                     break;
                 case CameraControl.Orbital:
                     int direction = Vector3.Dot(transform.up, Vector3.forward) > 0 ? 1 : -1;
-                    transform.RotateAround(Target, Vector3.forward, direction * amount);
+                    transform.RotateAround(Target, Vector3.forward, direction * amount * m_Speed);
                     break;
                 default:
-                    transform.RotateAround(Target, transform.up, amount);
+                    transform.RotateAround(Target, transform.up, amount * m_Speed);
                     break;
             }
         }
@@ -381,7 +380,7 @@ namespace HBP.Module3D
         /// <param name="amount"></param>
         public void VerticalRotation(float amount)
         {
-            transform.RotateAround(Target, transform.right, -amount);
+            transform.RotateAround(Target, transform.right, -amount * m_Speed);
         }
         /// <summary>
         /// Zoom towards target
@@ -389,10 +388,10 @@ namespace HBP.Module3D
         /// <param name="amount">Distance</param>
         public void Zoom(float amount)
         {
-            float distance = m_Distance - amount;
+            float distance = m_Distance - amount * m_ZoomSpeed;
             if (distance > m_MinDistance && distance < m_MaxDistance)
             {
-                transform.position += transform.forward * amount;
+                transform.position += transform.forward * amount * m_ZoomSpeed;
             }
             else if (distance >= m_MaxDistance)
             {

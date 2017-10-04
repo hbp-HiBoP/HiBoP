@@ -8,6 +8,18 @@ namespace Tools.Unity.ResizableGrid
     public class ResizableGrid : MonoBehaviour
     {
         #region Properties
+        private RectTransform m_RectTransform;
+        /// <summary>
+        /// ResizableGrid's RectTransform
+        /// </summary>
+        public RectTransform RectTransform
+        {
+            get
+            {
+                return m_RectTransform;
+            }
+        }
+
         private List<Column> m_Columns = new List<Column>();
         /// <summary>
         /// Columns of the layout
@@ -157,10 +169,14 @@ namespace Tools.Unity.ResizableGrid
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_RectTransform = GetComponent<RectTransform>();
+        }
         private void OnRectTransformDimensionsChange()
         {
-            m_MinimumViewHeight = Mathf.Min(MINIMUM_VIEW_HEIGHT_DEFAULT, GetComponent<RectTransform>().rect.height / ViewNumber);
-            m_MinimumViewWidth = Mathf.Min(MINIMUM_VIEW_WIDTH_DEFAULT, GetComponent<RectTransform>().rect.width / ColumnNumber);
+            m_MinimumViewHeight = Mathf.Min(MINIMUM_VIEW_HEIGHT_DEFAULT, m_RectTransform.rect.height / ViewNumber);
+            m_MinimumViewWidth = Mathf.Min(MINIMUM_VIEW_WIDTH_DEFAULT, m_RectTransform.rect.width / ColumnNumber);
             UpdateHandlersMinMaxPositions();
             SetVerticalHandlersPosition();
             SetHorizontalHandlersPosition();
@@ -173,13 +189,13 @@ namespace Tools.Unity.ResizableGrid
         {
             for (int i = 0; i < VerticalHandlerNumber; i++)
             {
-                m_VerticalHandlers[i].MinimumPosition = (i + 1) * (m_MinimumViewWidth / GetComponent<RectTransform>().rect.width);
-                m_VerticalHandlers[i].MaximumPosition = 1 - (VerticalHandlerNumber - i) * (m_MinimumViewWidth / GetComponent<RectTransform>().rect.width);
+                m_VerticalHandlers[i].MinimumPosition = (i + 1) * (m_MinimumViewWidth / m_RectTransform.rect.width);
+                m_VerticalHandlers[i].MaximumPosition = 1 - (VerticalHandlerNumber - i) * (m_MinimumViewWidth / m_RectTransform.rect.width);
             }
             for (int i = 0; i < HorizontalHandlerNumber; i++)
             {
-                m_HorizontalHandlers[i].MinimumPosition = (HorizontalHandlerNumber - i) * (m_MinimumViewHeight / GetComponent<RectTransform>().rect.height);
-                m_HorizontalHandlers[i].MaximumPosition = 1 - (i + 1) * (m_MinimumViewHeight / GetComponent<RectTransform>().rect.height);
+                m_HorizontalHandlers[i].MinimumPosition = (HorizontalHandlerNumber - i) * (m_MinimumViewHeight / m_RectTransform.rect.height);
+                m_HorizontalHandlers[i].MaximumPosition = 1 - (i + 1) * (m_MinimumViewHeight / m_RectTransform.rect.height);
             }
             // Update position with new boundaries (call to setter)
             m_VerticalHandlers.ForEach((h) => h.Position = h.Position);
@@ -313,7 +329,7 @@ namespace Tools.Unity.ResizableGrid
 
             for (int i = 0; i < m_VerticalHandlers.Count; i++)
             {
-                float referencePosition = m_VerticalHandlers[selectedHandlerID].Position + (i - selectedHandlerID) * m_MinimumViewWidth / GetComponent<RectTransform>().rect.width;
+                float referencePosition = m_VerticalHandlers[selectedHandlerID].Position + (i - selectedHandlerID) * m_MinimumViewWidth / m_RectTransform.rect.width;
                 if (i < selectedHandlerID)
                 {
                     m_VerticalHandlers[i].Position = Mathf.Min(m_VerticalHandlers[i].Position, referencePosition);
@@ -337,7 +353,7 @@ namespace Tools.Unity.ResizableGrid
 
             for (int i = 0; i < m_HorizontalHandlers.Count; i++)
             {
-                float referencePosition = m_HorizontalHandlers[selectedHandlerID].Position + (selectedHandlerID - i) * m_MinimumViewHeight / GetComponent<RectTransform>().rect.height;
+                float referencePosition = m_HorizontalHandlers[selectedHandlerID].Position + (selectedHandlerID - i) * m_MinimumViewHeight / m_RectTransform.rect.height;
                 if (i < selectedHandlerID)
                 {
                     m_HorizontalHandlers[i].Position = Mathf.Max(m_HorizontalHandlers[i].Position, referencePosition);
