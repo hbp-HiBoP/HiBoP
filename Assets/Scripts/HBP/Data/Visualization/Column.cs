@@ -36,7 +36,7 @@ namespace HBP.Data.Visualization
         /// Data label of the column.
         /// </summary>
         [DataMember(Name = "Label")]
-        public string DataLabel { get; set; }
+        public string Data { get; set; }
 
         [DataMember(Name = "Protocol")]
         private string protocolID;
@@ -75,7 +75,7 @@ namespace HBP.Data.Visualization
         {
             get
             {
-                return DataLabel + " | " + Dataset.Name + " | " + Protocol.Name + " | " + Bloc.DisplayInformations.Name;
+                return Data + " | " + Dataset.Name + " | " + Protocol.Name + " | " + Bloc.DisplayInformations.Name;
                 //return "Data: " + DataLabel + ", Dataset: " + Dataset.Name + ", Protocol: " + Protocol.Name + ", Bloc: " + Bloc.DisplayInformations.Name;
             }
         }
@@ -94,7 +94,7 @@ namespace HBP.Data.Visualization
             Dataset = dataset;
             Protocol = protocol;
             Bloc = bloc;
-            DataLabel = dataLabel;
+            Data = dataLabel;
             Configuration = configuration;
         }
         /// <summary>
@@ -139,7 +139,7 @@ namespace HBP.Data.Visualization
         /// <returns>\a True if is compatible and \a false otherwise.</returns>
         public bool IsCompatible(Patient patient)
         {
-            return Dataset.Data.Any((data) => data.Name == DataLabel && data.Patient == patient && data.isOk);
+            return Dataset.Data.Any((data) => data.Name == Data && data.Patient == patient && data.isOk);
         }
         /// <summary>
         /// Test if the visualisaation Column is compatible with some Patients.
@@ -178,7 +178,7 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            return new Column(Dataset.Clone() as Dataset, DataLabel.Clone() as string, Protocol.Clone() as Protocol, Bloc.Clone() as Bloc, Configuration.Clone() as ColumnConfiguration);
+            return new Column(Dataset.Clone() as Dataset, Data.Clone() as string, Protocol.Clone() as Protocol, Bloc.Clone() as Bloc, Configuration.Clone() as ColumnConfiguration);
         }
         #endregion
 

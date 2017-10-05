@@ -58,15 +58,15 @@ namespace HBP.Data.Visualization
             set { endPosition = value; }
         }
 
-        private Texture2D m_Texture;
+        private Sprite m_Illustration;
         /// <summary>
         /// Texture of the icon
         /// </summary>
-        public Texture2D Texture
+        public Sprite Illustration
         {
             get
             {
-                return m_Texture;
+                return m_Illustration;
             }
         }
 
@@ -96,8 +96,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         public void Load()
         {
-            m_Texture = new Texture2D(128, 128);
-            m_Texture.LoadPNG(IllustrationPath);
+            m_Illustration = SpriteExtension.Load(IllustrationPath);
         }
     }
 }

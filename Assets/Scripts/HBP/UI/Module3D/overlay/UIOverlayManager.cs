@@ -490,7 +490,7 @@ namespace HBP.UI.Module3D
                 // update names
                 for (int ii = 0; ii < nbColumns; ++ii)
                 {
-                    update_columns_name(type, ii, columnsData[ii].DataLabel);
+                    update_columns_name(type, ii, columnsData[ii].Data);
                 }
             }
         }

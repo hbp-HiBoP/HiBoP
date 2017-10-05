@@ -223,7 +223,7 @@ namespace HBP.Data.Visualization
         /// <returns>DataInfo of the column.</returns>
         public IEnumerable<DataInfo> GetDataInfo(Column column)
         {
-            return column.Dataset.Data.Where((data) => (column.DataLabel == data.Name && Patients.Contains(data.Patient)));
+            return column.Dataset.Data.Where((data) => (column.Data == data.Name && Patients.Contains(data.Patient)));
         }
         /// <summary>
         /// Get the DataInfo used by the column for a specific Patient.
@@ -284,7 +284,7 @@ namespace HBP.Data.Visualization
                     {
                         if (!dataInfoForThisColumn.Exists((dataInfo) => dataInfo.Patient == patient))
                         {
-                            throw new CannotFindDataInfoException(patient.ID, column.DataLabel);
+                            throw new CannotFindDataInfoException(patient.ID, column.Data);
                         }
                     }
                     dataInfoByColumn.Add(column, GetDataInfo(column).ToArray());
@@ -340,7 +340,7 @@ namespace HBP.Data.Visualization
             {
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0.2f, "Load column <color=blue>" + column.DataLabel + "</color>.");
+                onChangeProgress.Invoke(progress, 0.2f, "Load column <color=blue>" + column.Data + "</color>.");
                 yield return Ninja.JumpBack;
                 column.Load(dataByColumn[column]);
                 yield return Ninja.JumpToUnity;
@@ -357,7 +357,7 @@ namespace HBP.Data.Visualization
             {
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.DataLabel + "</color>.");
+                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.Data + "</color>.");
                 yield return Ninja.JumpBack;
                 column.Standardize(maxBefore, maxAfter);
             }

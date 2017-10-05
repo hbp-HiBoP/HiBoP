@@ -69,7 +69,7 @@ namespace HBP.UI.Visualization
 
         public void SetColumns()
         {
-            m_ColumnsList.Objects = (from column in m_Object.Columns select (column.DataLabel + " " + column.Protocol + " " + column.Bloc)).ToArray();
+            m_ColumnsList.Objects = (from column in m_Object.Columns select (column.Data + " " + column.Protocol + " " + column.Bloc)).ToArray();
         }
         #endregion
     }

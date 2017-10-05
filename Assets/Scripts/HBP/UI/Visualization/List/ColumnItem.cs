@@ -41,13 +41,13 @@ namespace HBP.UI.Visualization
                     m_Experience.text = value.Dataset.Name;
                 }
 
-                if (value == null || value.Dataset == null || value.DataLabel == null)
+                if (value == null || value.Dataset == null || value.Data == null)
                 {
                     m_Data.text = "";
                 }
                 else
                 {
-                    m_Data.text = value.DataLabel;
+                    m_Data.text = value.Data;
                 }
 
                 if (value == null || value.Dataset == null || value.Protocol.Name == null)

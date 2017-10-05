@@ -57,7 +57,7 @@ namespace HBP.UI.Module3D
                         else
                         {
                             IsActive = true;
-                            m_RawImage.texture = icon.Texture;
+                            m_Image.sprite = icon.Illustration;
                             m_Text.text = icon.Label;
                         }
                     }
