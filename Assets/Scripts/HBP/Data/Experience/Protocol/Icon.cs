@@ -41,7 +41,8 @@ namespace HBP.Data.Experience.Protocol
             {
                 if(!m_Image)
                 {
-                    m_Image = SpriteExtension.Load(IllustrationPath);
+                    Sprite sprite;
+                    if (SpriteExtension.LoadSpriteFromFile(out sprite, IllustrationPath)) m_Image = sprite;
                 }
                 return m_Image;
             }

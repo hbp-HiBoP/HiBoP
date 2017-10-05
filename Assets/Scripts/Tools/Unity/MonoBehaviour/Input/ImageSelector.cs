@@ -57,8 +57,8 @@ namespace Tools.Unity
         }
         void LoadImage(string path)
         {
-            Sprite sprite = SpriteExtension.Load(path);
-            if (sprite) m_Image.sprite = sprite;
+            Sprite sprite;
+            if (SpriteExtension.LoadSpriteFromFile(out sprite, path)) m_Image.sprite = sprite;
             else m_Image.sprite = m_Icon;
         }
         #endregion

@@ -96,7 +96,8 @@ namespace HBP.Data.Visualization
         /// </summary>
         public void Load()
         {
-            m_Illustration = SpriteExtension.Load(IllustrationPath);
+            Sprite sprite;
+            if (SpriteExtension.LoadSpriteFromFile(out sprite, IllustrationPath)) m_Illustration = sprite;
         }
     }
 }

@@ -25,18 +25,30 @@ namespace HBP.UI.Module3D
             set
             {
                 m_IsActive = value;
-                if (m_IsActive != gameObject.activeSelf)
-                {
-                    if (m_ColumnUI.HasEnoughSpaceForOverlay && m_IsActive)
-                    {
-                        gameObject.SetActive(true);
-                    }
-                    else
-                    {
-                        gameObject.SetActive(false);
-                    }
-                }
+                HandleEnoughSpace();
+                //if (m_IsActive != gameObject.activeSelf)
+                //{
+                //    if (m_ColumnUI.HasEnoughSpaceForOverlay && m_IsActive)
+                //    {
+                //        gameObject.SetActive(true);
+                //    }
+                //    else
+                //    {
+                //        gameObject.SetActive(false);
+                //    }
+                //}
             }
+        }
+        #endregion
+
+        #region Public Methods
+        public void HandleEnoughSpace()
+        {
+            SetActive(m_ColumnUI.HasEnoughSpaceForOverlay && m_IsActive);
+        }
+        void SetActive(bool active)
+        {
+            if (active != gameObject.activeSelf) gameObject.SetActive(active);
         }
         #endregion
     }

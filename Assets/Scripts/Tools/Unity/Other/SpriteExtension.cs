@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using UnityEngine;
+using System.Drawing;
 
 namespace Tools.Unity
 {
@@ -8,23 +9,34 @@ namespace Tools.Unity
     {
         static string[] EXTENSIONS = new string[] { "png", "jpg" };
 
-        public static Sprite Load(string path)
+        public static bool LoadSpriteFromFile(out Sprite sprite, string path)
         {
-            Sprite result = null;
+            sprite = new Sprite();
+            Texture2D texture;
+            if (LoadTexture2DFromFile(out texture, path))
+            {
+                sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+                return true;
+            }
+            else return false;
+        }
+
+        public static bool LoadTexture2DFromFile(out Texture2D texture, string path)
+        {
+            texture = new Texture2D(0, 0);
             if (!string.IsNullOrEmpty(path))
             {
                 FileInfo fileInfo = new FileInfo(path);
                 if (fileInfo.Exists && (EXTENSIONS.Contains(fileInfo.Extension.Substring(1))))
                 {
                     byte[] bytes = File.ReadAllBytes(path);
-                    Texture2D texture = new Texture2D(512, 512);
-                    if (texture.LoadImage(bytes))
-                    {
-                        result = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-                    }
+                    Image image = Image.FromFile(path);
+                    texture = new Texture2D(image.Width, image.Height);
+                    return texture.LoadImage(bytes);
                 }
+                else return false;
             }
-            return result;
+            else return false;
         }
     }
 }

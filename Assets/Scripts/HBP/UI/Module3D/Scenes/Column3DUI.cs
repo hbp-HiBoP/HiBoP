@@ -152,10 +152,10 @@ namespace HBP.UI.Module3D
         }
         private void UpdateOverlay()
         {
-            m_Label.IsActive = m_Label.IsActive;
-            m_Colormap.IsActive = m_Colormap.IsActive;
-            m_TimeDisplay.IsActive = m_TimeDisplay.IsActive;
-            m_Icon.IsActive = m_Icon.IsActive;
+            //m_Label.HandleEnoughSpace();
+            m_Colormap.HandleEnoughSpace();
+            m_TimeDisplay.HandleEnoughSpace();
+            m_Icon.HandleEnoughSpace();
         }
         #endregion
 

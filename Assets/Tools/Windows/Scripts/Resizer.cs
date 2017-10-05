@@ -133,15 +133,18 @@ namespace Tools.Unity.Window
         #endregion
 
         #region Private Methods
+        private void Clamp()
+        {
+        }
         void Resize(Vector2 resize, Vector2 sides)
         {
             float w = resize.x;
             float h = resize.y;
-            if(resize.x < 0)
+            if(resize.x <= 0)
             {
                 w = Mathf.Sign(resize.x) * Mathf.Min(m_RectTransform.rect.width - m_LayoutElement.minWidth, -resize.x);
             }
-            if (resize.y < 0)
+            if (resize.y <= 0)
             {
                 h = Mathf.Sign(resize.y) * Mathf.Min(m_RectTransform.rect.height - m_LayoutElement.minHeight, -resize.y);
             }
