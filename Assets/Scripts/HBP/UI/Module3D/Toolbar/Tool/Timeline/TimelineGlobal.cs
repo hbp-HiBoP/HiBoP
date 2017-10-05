@@ -29,8 +29,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void DefaultState()
         {
-            m_Toggle.isOn = false;
-            m_Toggle.interactable = false;
+
         }
 
         public override void UpdateInteractable()
