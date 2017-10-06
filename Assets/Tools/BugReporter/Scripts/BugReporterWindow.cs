@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -38,8 +39,23 @@ namespace Tools.Unity
         {
             m_SubmitButton.onClick.AddListener(() =>
             {
-                SendMail();
-                OnCloseWindow.Invoke(true);
+                try
+                {
+                    SendMail();
+                    OnCloseWindow.Invoke(true);
+                }
+                catch (Exception e)
+                {
+                    OnCloseWindow.Invoke(false);
+                    if (e is SmtpException)
+                    {
+                        ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "The report could not be sent", "Please check your internet connection and try again.");
+                    }
+                    else
+                    {
+                        ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.Source, e.Message);
+                    }
+                }
             });
             m_CancelButton.onClick.AddListener(() =>
             {
@@ -56,8 +72,37 @@ namespace Tools.Unity
             mail.From = new MailAddress("hibophelp@gmail.com", "Bug Reporter");
             mail.To.Add("hibophelp@gmail.com");
             mail.Subject = "BUGREPORT " + DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-            mail.Body = m_ReporterName.text + " " + m_MailAdress.text + "\n\n" + m_Description.text;
-            
+
+            StringBuilder bodyBuilder = new StringBuilder();
+            bodyBuilder.AppendFormat
+            (
+                "{0} {1} {2} {3}\n{4}, {5}, {6}x {7}\n{8}x{9} {10}dpi FullScreen {11}, {12}, {13} vmem: {14} Max Texture: {15}\n",
+                SystemInfo.deviceModel,
+                SystemInfo.deviceName,
+                SystemInfo.deviceType,
+                SystemInfo.deviceUniqueIdentifier,
+
+                SystemInfo.operatingSystem,
+                SystemInfo.systemMemorySize,
+                SystemInfo.processorCount,
+                SystemInfo.processorType,
+
+                Screen.currentResolution.width,
+                Screen.currentResolution.height,
+                Screen.dpi,
+                Screen.fullScreen,
+                SystemInfo.graphicsDeviceName,
+                SystemInfo.graphicsDeviceVendor,
+                SystemInfo.graphicsMemorySize,
+                SystemInfo.maxTextureSize
+            );
+            bodyBuilder.AppendLine(" ");
+            bodyBuilder.AppendLine(m_ReporterName.text);
+            bodyBuilder.AppendLine(m_MailAdress.text);
+            bodyBuilder.AppendLine(" ");
+            bodyBuilder.AppendLine(m_Description.text);
+            mail.Body = bodyBuilder.ToString();
+
             string logFile = "./HiBoP_Data/output_log.txt";
             if (File.Exists(logFile)) // windows only; TODO : multi support
             {
