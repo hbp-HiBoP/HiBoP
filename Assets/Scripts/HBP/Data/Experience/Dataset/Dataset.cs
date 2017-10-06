@@ -35,7 +35,7 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         [DataMember] public string Name { get; set; }
 
-        [DataMember(Name = "Protocol")] string m_ProtocolID;
+        [DataMember(Name = "Protocol",Order = 3)] string m_ProtocolID;
         /// <summary>
         /// Protocol used during the experiment.
         /// </summary>
@@ -56,7 +56,7 @@ namespace HBP.Data.Experience.Dataset
         }
 
         Dictionary<DataInfo, UnityAction> m_ActionByDataInfo;
-        [DataMember(Order = 3,Name = "Data")] List<DataInfo> m_Data;
+        [DataMember(Order = 4,Name = "Data")] List<DataInfo> m_Data;
         /// <summary>
         /// DataInfo of the dataset.
         /// </summary>
