@@ -34,7 +34,7 @@ namespace HBP.Data.Experience.Dataset
         /// Name of the dataset.
         /// </summary>
         [DataMember] public string Name { get; set; }
-
+        
         [DataMember(Name = "Protocol", Order = 3)] string m_ProtocolID;
         /// <summary>
         /// Protocol used during the experiment.

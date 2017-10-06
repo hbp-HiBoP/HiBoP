@@ -41,6 +41,11 @@ namespace HBP.UI.Experience.Dataset
             DataInfoModifier dataInfoModifier = obj.GetComponent<DataInfoModifier>();
             dataInfoModifier.Open(dataInfo, true);
             dataInfoModifier.SaveEvent.AddListener(() => OnSaveDataInfoModifier(dataInfoModifier));
+            dataInfoModifier.CanSaveEvent.AddListener(() => OnCanSave(dataInfoModifier));
+        }
+        protected void OnCanSave(DataInfoModifier eventModifier)
+        {
+            eventModifier.CanSave = !ItemTemp.Data.Any((d) => d.Name == eventModifier.ItemTemp.Name && d.Patient == eventModifier.ItemTemp.Patient);
         }
         protected void OnSaveDataInfoModifier(DataInfoModifier eventModifier)
         {

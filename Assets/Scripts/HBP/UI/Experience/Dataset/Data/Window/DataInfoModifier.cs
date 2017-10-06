@@ -4,12 +4,16 @@ using Tools.Unity;
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine.Events;
 
 namespace HBP.UI.Experience.Dataset
 {
     public class DataInfoModifier : ItemModifier<d.DataInfo>
     {
         #region Properties
+        public UnityEvent CanSaveEvent { get; set; }
+        public bool CanSave { get; set; }
+        public new d.DataInfo ItemTemp { get { return itemTemp; } }
         InputField m_NameInputField, m_MeasureInputField;
         Dropdown m_PatientDropdown;
         FileSelector m_EEGFileSelector, m_POSFileSelector;
@@ -17,6 +21,12 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Private Methods
+        public override void Save()
+        {
+            CanSaveEvent.Invoke();
+            if (CanSave) base.Save();
+            else ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, "Data already exists", "A data for this patient with the same name already exists.");
+        }
         protected override void SetFields(d.DataInfo objectToDisplay)
         {
             // Name.
@@ -57,6 +67,8 @@ namespace HBP.UI.Experience.Dataset
         }
         protected override void SetWindow()
         {
+            CanSaveEvent = new UnityEvent();
+
             Transform general = transform.Find("Content").Find("General");
             m_NameInputField = general.Find("Name").GetComponentInChildren<InputField>();
             m_PatientDropdown = general.Find("Patient").GetComponentInChildren<Dropdown>();
@@ -68,7 +80,7 @@ namespace HBP.UI.Experience.Dataset
         }
         void SetPosFile()
         {
-            if(!ItemTemp.Errors.Contains(d.DataInfo.ErrorType.EEGEmpty) && !ItemTemp.Errors.Contains(d.DataInfo.ErrorType.EEGFileNotExist) && !ItemTemp.Errors.Contains(d.DataInfo.ErrorType.EEGFileNotAGoodFile))
+            if(!itemTemp.Errors.Contains(d.DataInfo.ErrorType.EEGEmpty) && !itemTemp.Errors.Contains(d.DataInfo.ErrorType.EEGFileNotExist) && !itemTemp.Errors.Contains(d.DataInfo.ErrorType.EEGFileNotAGoodFile))
             {
                 m_POSFileSelector.DefaultDirectory = ItemTemp.EEG;
             }
