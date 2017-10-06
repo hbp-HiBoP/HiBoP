@@ -20,6 +20,17 @@ public static class ApplicationState
     public static string ProjectLoadedLocation { get; set; }
 
     /// <summary>
+    /// Full path to the loaded project
+    /// </summary>
+    public static string ProjectLoadedPath
+    {
+        get
+        {
+            return ProjectLoadedLocation + System.IO.Path.DirectorySeparatorChar + ProjectLoaded.Settings.Name;
+        }
+    }
+
+    /// <summary>
     /// General settings of the application.
     /// </summary>
     public static HBP.Data.Settings.GeneralSettings GeneralSettings { get; set; }
