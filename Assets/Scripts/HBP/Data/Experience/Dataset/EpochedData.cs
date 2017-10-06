@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -21,44 +20,27 @@ namespace HBP.Data.Experience
         #region Constructors
         public EpochedData(Protocol.Bloc bloc, Dataset.Data data)
         {
-            Dictionary<Protocol.Event, int[]> indexByEvent = new Dictionary<Protocol.Event, int[]>();
-            indexByEvent.Add(bloc.MainEvent, data.POS.GetSamples(bloc.MainEvent.Codes).ToArray());
-            foreach (Protocol.Event evnt in bloc.SecondaryEvents) indexByEvent.Add(evnt, data.POS.GetSamples(evnt.Codes).ToArray());
+            // Find index for all the events of the blocs.
+            Dictionary<Protocol.Event, int[]> indexByEvent = FindIndexByEvent(bloc.Events, data.POS);
 
-            // Calcul the size of a bloc and initialize bloc list
-            int sampleAfterMainEvent = Mathf.FloorToInt((bloc.DisplayInformations.Window.End) * 0.001f * data.Frequency);
-            int sampleBeforeMainEvent = Mathf.CeilToInt((bloc.DisplayInformations.Window.Start) * 0.001f * data.Frequency);
-            int lenght = sampleAfterMainEvent - sampleBeforeMainEvent;
-            List<Localizer.Bloc> blocs = new List<Localizer.Bloc>();
+            // Calcul number of samples before and after the main event.
+            int numberOfSamplesBeforeMainEvent, numberOfSamplesAfterMainEvent;
+            CalculateNumberOfSamples(bloc.DisplayInformations.Window, data.Frequency, out numberOfSamplesBeforeMainEvent, out numberOfSamplesAfterMainEvent);
 
-            foreach (int index in indexByEvent[bloc.MainEvent])
-            {
-                int firstIndex = index + sampleBeforeMainEvent;
-                int lastIndex = index + sampleAfterMainEvent;
-                if (firstIndex >= 0 && lastIndex < data.ValuesBySite.Values.First().Length)
-                {
-                    Dictionary<Protocol.Event, int> positionByEvent = new Dictionary<Protocol.Event, int>();
-                    foreach (var item in indexByEvent)
-                    {
-                        int eventIndex = item.Value.DefaultIfEmpty(-1).FirstOrDefault((t) => (t >= firstIndex && t <= lastIndex));
-                        if(eventIndex != -1)
-                        {
-                            eventIndex -= firstIndex;
-                        }
-                        positionByEvent.Add(item.Key, eventIndex);
-                    }
+            // Generate blocs.
+            Blocs = (from index in indexByEvent[bloc.MainEvent] where (index + numberOfSamplesBeforeMainEvent >= 0 && index + numberOfSamplesAfterMainEvent < data.ValuesBySite.Values.First().Length)select new Localizer.Bloc(index + numberOfSamplesBeforeMainEvent, index + numberOfSamplesAfterMainEvent, indexByEvent, data)).ToArray();
+        }
+        #endregion
 
-                    Dictionary<string, float[]> valuesBySite = new Dictionary<string, float[]>();
-                    foreach (var item in data.ValuesBySite)
-                    {
-                        float[] values = new float[lenght];
-                        Array.Copy(item.Value, firstIndex, values, 0, lenght);
-                        valuesBySite.Add(item.Key, values);
-                    }
-                    blocs.Add(new Localizer.Bloc(positionByEvent, valuesBySite));
-                }
-            }
-            Blocs = blocs.ToArray();
+        #region Private Methods
+        Dictionary<Protocol.Event,int[]> FindIndexByEvent(IEnumerable<Protocol.Event> events, Localizer.POS pos)
+        {
+            return (from e in events select new KeyValuePair<Protocol.Event, int[]>(e, pos.GetSamples(e.Codes).ToArray())).ToDictionary((pair) => pair.Key, (k) => k.Value);
+        }
+        void CalculateNumberOfSamples(Tools.CSharp.Window window, float frequency, out int numberOfSamplesBeforeMainEvent, out int numberOfSamplesAfterMainEvent)
+        {
+            numberOfSamplesBeforeMainEvent = Mathf.CeilToInt((window.Start) * 0.001f * frequency);
+            numberOfSamplesAfterMainEvent = Mathf.FloorToInt((window.End) * 0.001f * frequency);
         }
         #endregion
     }
