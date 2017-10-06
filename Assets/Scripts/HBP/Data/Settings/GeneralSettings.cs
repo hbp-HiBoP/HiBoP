@@ -24,6 +24,7 @@ namespace HBP.Data.Settings
         #region Properties
         public static string PATH = Directory.GetParent(Application.dataPath).FullName + Path.DirectorySeparatorChar + "GeneralSettings.txt";
         public enum PlotNameCorrectionTypeEnum { Disable, Enable }
+        public enum AveragingMode { Mean , Median }
 
         /// <summary>
         /// Default project name.
@@ -45,6 +46,14 @@ namespace HBP.Data.Settings
         /// Active or Deactive the plot name automatic correction (cast, p/' , etc...)
         /// </summary>
         public PlotNameCorrectionTypeEnum PlotNameAutomaticCorrectionType { get; set; }
+        /// <summary>
+        /// Bloc event position averaging.
+        /// </summary>
+        public AveragingMode EventPositionAveraging { get; set; }
+        /// <summary>
+        /// Bloc value averaging.
+        /// </summary>
+        public AveragingMode ValueAveraging { get; set; }
         /// <summary>
         /// Settings of the trial matrix.
         /// </summary>

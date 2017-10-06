@@ -14,14 +14,14 @@ namespace HBP.Data.Experience.Protocol
     * 
     * \details Class which define a event in a protocol which contains :
     *     - \a Label.
-    *     - \a Codes ( Put '_' between codes in the UI).
+    *     - \a Codes ( Put ',' between codes in the UI).
     */
     [DataContract]
 	public class Event : ICloneable, ICopiable
 	{
         #region Properties
         /** Code separator. */
-        private const char SEPARATOR = '_';
+        private const char SEPARATOR = ',';
 
         /** Name of the code. */
         [DataMember]
@@ -36,7 +36,7 @@ namespace HBP.Data.Experience.Protocol
         /** Type of the event. */
         public TypeEnum Type { get; set; }
 
-        /** Codes of the event in a string with code separate with '_'. */
+        /** Codes of the event in a string with code separate with ','. */
         [IgnoreDataMember]
         public string CodesString
         {

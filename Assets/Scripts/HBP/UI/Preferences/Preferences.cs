@@ -18,6 +18,8 @@ namespace HBP.UI.Settings
         FolderSelector defaultPatientDatabaseLocationFolderSelector;
         FolderSelector defaultLocalizerDatabaseLocationFolderSelector;
         Dropdown trialBaseLineOption;
+        Dropdown eventPositionAveragingOption;
+        Dropdown valueAveragingOption;
         Dropdown plotNameAutoCorrectionOption;
         Dropdown trialMatrixSmoothingOption;
         Dropdown blocFormatOption;
@@ -39,6 +41,8 @@ namespace HBP.UI.Settings
             ApplicationState.GeneralSettings.TrialMatrixSettings.ConstantLineHeight = int.Parse(constantLineInputField.text);
             ApplicationState.GeneralSettings.TrialMatrixSettings.LineHeightByWidth = float.Parse(LineRatioInputField.text);
             ApplicationState.GeneralSettings.TrialMatrixSettings.HeightByWidth = float.Parse(BlocRatioInputField.text);
+            ApplicationState.GeneralSettings.EventPositionAveraging = (GeneralSettings.AveragingMode) eventPositionAveragingOption.value;
+            ApplicationState.GeneralSettings.ValueAveraging = (GeneralSettings.AveragingMode) valueAveragingOption.value;
             ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH,true);
             base.Close();
         }
@@ -58,6 +62,9 @@ namespace HBP.UI.Settings
             constantLineInputField = transform.Find("Content").Find("Trial Matrix").Find("ConstantLine").GetComponentInChildren<InputField>(true);
             LineRatioInputField = transform.Find("Content").Find("Trial Matrix").Find("LineRatio").GetComponentInChildren<InputField>(true);
             BlocRatioInputField = transform.Find("Content").Find("Trial Matrix").Find("BlocRatio").GetComponentInChildren<InputField>(true);
+
+            eventPositionAveragingOption = transform.Find("Content").Find("Averaging").Find("EventPositionAveraging").GetComponentInChildren<Dropdown>();
+            valueAveragingOption = transform.Find("Content").Find("Averaging").Find("ValueAveraging").GetComponentInChildren<Dropdown>();
 
             defaultNameProjectInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
             defaultLocationProjectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
@@ -103,6 +110,19 @@ namespace HBP.UI.Settings
             constantLineInputField.text = ApplicationState.GeneralSettings.TrialMatrixSettings.ConstantLineHeight.ToString();
             LineRatioInputField.text = ApplicationState.GeneralSettings.TrialMatrixSettings.LineHeightByWidth.ToString();
             BlocRatioInputField.text = ApplicationState.GeneralSettings.TrialMatrixSettings.HeightByWidth.ToString();
+
+            string[] l_averaging = Enum.GetNames(typeof(GeneralSettings.AveragingMode));
+            eventPositionAveragingOption.ClearOptions();
+            valueAveragingOption.ClearOptions();
+            foreach (string i_type in l_averaging)
+            {
+                eventPositionAveragingOption.options.Add(new Dropdown.OptionData(i_type));
+                valueAveragingOption.options.Add(new Dropdown.OptionData(i_type));
+            }
+            eventPositionAveragingOption.value = (int)ApplicationState.GeneralSettings.EventPositionAveraging;
+            eventPositionAveragingOption.RefreshShownValue();
+            valueAveragingOption.value = (int)ApplicationState.GeneralSettings.ValueAveraging;
+            valueAveragingOption.RefreshShownValue();
         }
 
         void UpdateBlocFormat(TrialMatrixSettings.BlocFormatType blocFormat)
