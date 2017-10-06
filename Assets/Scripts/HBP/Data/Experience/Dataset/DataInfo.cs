@@ -90,7 +90,7 @@ namespace HBP.Data.Experience.Dataset
         public enum ErrorType
         {
             LabelEmpty, PatientEmpty, MeasureEmpty, EEGEmpty, POSEmpty, EEGFileNotExist, POSFileNotExist,
-            EEGFileNotAGoodFile, EEGDoNotContainsMeasure, POSFileNotAGoodFile
+            EEGFileNotAGoodFile, EEGDoNotContainsMeasure, POSFileNotAGoodFile, POSNotCompatible
         }
 
         ErrorType[] m_NameErrors;
@@ -204,6 +204,11 @@ namespace HBP.Data.Experience.Dataset
                 else
                 {
                     if (POSFile.Extension != Localizer.POS.EXTENSION) errors.Add(ErrorType.POSFileNotAGoodFile);
+                    else
+                    {
+                        Localizer.POS pos = new Localizer.POS(POS);
+                        if (!pos.IsCompatible(protocol)) errors.Add(ErrorType.POSNotCompatible);
+                    }
                 }
             }
             m_POSErrors = errors.ToArray();
@@ -309,6 +314,9 @@ namespace HBP.Data.Experience.Dataset
                     break;
                 case ErrorType.POSFileNotAGoodFile:  
                     message = "• The EEG file is incorrect.";
+                    break;
+                case ErrorType.POSNotCompatible:
+                    message = "• The POS file is not compatible with the protocol.";
                     break;
                 default:
                     break;

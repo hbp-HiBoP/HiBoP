@@ -73,6 +73,10 @@ namespace HBP.Data.Localizer
             string[] elements = line.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
             return elements.Length == 3 && int.TryParse(elements[0], out sample) && int.TryParse(elements[1], out code);
         }
+        public bool IsCompatible(Experience.Protocol.Protocol protocol)
+        {
+            return protocol.Blocs.All(bloc => bloc.MainEvent.Codes.Any(code => IndexSampleByCode.ContainsKey(code)));
+        }
         #endregion
     }
 }
