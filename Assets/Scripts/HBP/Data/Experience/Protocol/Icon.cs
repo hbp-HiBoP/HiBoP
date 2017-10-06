@@ -3,6 +3,7 @@ using System;
 using Tools.CSharp;
 using Tools.Unity;
 using System.Runtime.Serialization;
+using System.IO;
 
 namespace HBP.Data.Experience.Protocol
 {
@@ -28,11 +29,38 @@ namespace HBP.Data.Experience.Protocol
         [DataMember]
         public string Name { get; set; }
 
+        [DataMember(Name = "IllustrationPath")]
+        private string m_IllustrationPath = "";
         /// <summary>
         /// Icon illustration path.
         /// </summary>
-        [DataMember]
-        public string IllustrationPath { get; set; }
+        [IgnoreDataMember]
+        public string IllustrationPath
+        {
+            get
+            {
+                if (m_IllustrationPath.StartsWith("."))
+                {
+                    string localPath = m_IllustrationPath.Remove(0, 1);
+                    return ApplicationState.ProjectLoadedPath + localPath;
+                }
+                else
+                {
+                    return m_IllustrationPath;
+                }
+            }
+            set
+            {
+                if (m_IllustrationPath.StartsWith(ApplicationState.ProjectLoadedPath))
+                {
+                    m_IllustrationPath = "." + value.Remove(0, ApplicationState.ProjectLoadedPath.Length);
+                }
+                else
+                {
+                    m_IllustrationPath = value;
+                }
+            }
+        }
 
         Sprite m_Image;
         public Sprite Image

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using Tools.CSharp;
 using System;
+using System.Runtime.Serialization;
 
 namespace HBP.Data.Experience.Protocol
 {
@@ -20,32 +21,71 @@ namespace HBP.Data.Experience.Protocol
     *     - Window.
     *     - BaseLine.
     */
+    [DataContract]
     public class DisplayInformations : ICloneable
     {
         #region Properties
         /// <summary>
         /// Name of the bloc.
         /// </summary>
+        [DataMember]
         public string Name { get; set; }
+
         /// <summary>
         /// Position of the bloc.
         /// </summary>
+        [DataMember]
         public BlocPosition Position { get; set; }
+
+        [DataMember(Name = "IllustrationPath")]
+        private string m_IllustrationPath = "";
         /// <summary>
-        /// Illustration path of the bloc.
+        /// Icon illustration path.
         /// </summary>
-        public string IllustrationPath { get; set; }
+        [IgnoreDataMember]
+        public string IllustrationPath
+        {
+            get
+            {
+                if (m_IllustrationPath.StartsWith("."))
+                {
+                    string localPath = m_IllustrationPath.Remove(0, 1);
+                    return ApplicationState.ProjectLoadedPath + localPath;
+                }
+                else
+                {
+                    return m_IllustrationPath;
+                }
+            }
+            set
+            {
+                if (m_IllustrationPath.StartsWith(ApplicationState.ProjectLoadedPath))
+                {
+                    m_IllustrationPath = "." + value.Remove(0, ApplicationState.ProjectLoadedPath.Length);
+                }
+                else
+                {
+                    m_IllustrationPath = value;
+                }
+            }
+        }
+
         /// <summary>
         /// Sort lines of the bloc.
         /// </summary>
+        [DataMember]
         public string Sort { get; set;}
+
         /// <summary>
         /// Window of the bloc (\a x : time before main event in ms. \a y : time after main event in ms.)
         /// </summary>
+        [DataMember]
         public Window Window { get; set; }
+
         /// <summary>
         /// BaseLine of the bloc (\a x : start of the baseline in ms. \a y : end of the baseline in ms.)
         /// </summary>
+        [DataMember]
         public Window BaseLine { get; set; }
         #endregion
 

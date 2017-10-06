@@ -397,7 +397,8 @@ namespace HBP.Data.General
             yield return c_SaveGroups(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
             yield return c_SaveProtocols(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
             yield return c_SaveDatasets(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_SaveVisualizations(projectDirectory, progress, progressStep, OnChangeProgress, outPut);      
+            yield return c_SaveVisualizations(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            CopyIcons(oldProjectDirectory + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Icons", projectDirectory.FullName + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Icons");
 
             // Deleting old directories.
             yield return Ninja.JumpToUnity;
@@ -703,6 +704,24 @@ namespace HBP.Data.General
                 progress += progressStep;
             }
             outPut(progress);
+        }
+        void CopyIcons(string oldIconsDirectoryPath, string newIconsDirectoryPath)
+        {
+            DirectoryInfo oldIconsDirectory = new DirectoryInfo(oldIconsDirectoryPath);
+
+            if (!Directory.Exists(newIconsDirectoryPath))
+            {
+                Directory.CreateDirectory(newIconsDirectoryPath);
+            }
+
+            if (!oldIconsDirectory.Exists) return;
+
+            FileInfo[] icons = oldIconsDirectory.GetFiles();
+            foreach (FileInfo icon in icons)
+            {
+                string newIconPath = Path.Combine(newIconsDirectoryPath, icon.Name);
+                icon.CopyTo(newIconPath, true);
+            }
         }
         #endregion
     }
