@@ -9,20 +9,6 @@ namespace Tools.Unity
 {
     public class HBPBuilder : MonoBehaviour
     {
-        private static List<string> m_DLLs = new List<string> {
-        "concrt140.dll",
-        "hbp_export.dll",
-        "msvcp140.dll",
-        "opencv_core320.dll",
-        "opencv_highgui320.dll",
-        "opencv_imgcodecs320.dll",
-        "opencv_imgproc320.dll",
-        "ucrtbase.dll",
-        "vccorlib140.dll",
-        "vcomp140.dll",
-        "vcruntime140.dll"
-        };
-
         private static string m_Data = "Assets/Data/";
         private static string m_DataBuild = "Data/";
 
@@ -39,7 +25,7 @@ namespace Tools.Unity
             
             BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
             buildPlayerOptions.locationPathName = buildDirectory + "HiBoP.exe";
-            buildPlayerOptions.target = BuildTarget.StandaloneWindows64;
+            buildPlayerOptions.target = BuildTarget.StandaloneWindows64; // TODO : allow to change this through editor window
             buildPlayerOptions.scenes = new string[] { "Assets/_Scenes/Main.unity" };
             BuildOptions buildOptions = development ? BuildOptions.AllowDebugging | BuildOptions.ConnectWithProfiler | BuildOptions.Development : BuildOptions.None;
             buildPlayerOptions.options = buildOptions;
@@ -47,11 +33,19 @@ namespace Tools.Unity
 
             string projectPath = Application.dataPath;
             projectPath = projectPath.Remove(projectPath.Length - 6);
-            foreach (string dll in m_DLLs)
+
+            if (buildPlayerOptions.target == BuildTarget.StandaloneWindows64)
             {
-                File.Copy(projectPath + dll, buildDirectory + dll, true);
+                CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "windows/"), new DirectoryInfo(buildDirectory + m_Tools));
             }
-            CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools), new DirectoryInfo(buildDirectory + m_Tools));
+            else if (buildPlayerOptions.target == BuildTarget.StandaloneLinux64)
+            {
+                CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "linux/"), new DirectoryInfo(buildDirectory + m_Tools));
+            }
+            else if (buildPlayerOptions.target == BuildTarget.StandaloneOSXIntel64)
+            {
+                CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "macosx/"), new DirectoryInfo(buildDirectory + m_Tools));
+            }
             CopyFilesRecursively(new DirectoryInfo(projectPath + m_Data), new DirectoryInfo(buildDirectory + m_DataBuild));
 
             using (ZipFile zip = new ZipFile())

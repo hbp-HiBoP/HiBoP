@@ -38,6 +38,9 @@ namespace HBP.Module3D.DLL
 
         private static List<string> launch_fileDialog_window(string argumentsFileDialogs)
         {
+#if UNITY_EDITOR
+            string filePath = Application.dataPath + "/../tools/windows/HiBoP_Tools.exe";
+#else
             string filePath = Application.dataPath + "/../tools/HiBoP_Tools.exe";
             if (Application.platform == RuntimePlatform.OSXPlayer)
             {
@@ -49,7 +52,7 @@ namespace HBP.Module3D.DLL
                 filePath = Application.dataPath + "/../tools/HiBoP_Tools";
                 UnityEngine.Debug.Log(filePath);
             }
-
+#endif
             Process proc = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -189,6 +192,6 @@ namespace HBP.Module3D.DLL
             return proc.ExitCode;
         }
 
-        #endregion
+#endregion
     }
 }
