@@ -46,8 +46,8 @@ namespace HBP.Module3D.DLL
             }
             else if(Application.platform == RuntimePlatform.LinuxPlayer)
             {
-                filePath = Application.dataPath + "/../HiBoP_Tools";
-                UnityEngine.Debug.LogError(filePath);
+                filePath = Application.dataPath + "/../tools/HiBoP_Tools";
+                UnityEngine.Debug.Log(filePath);
             }
 
             Process proc = new Process

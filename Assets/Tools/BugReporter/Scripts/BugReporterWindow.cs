@@ -103,8 +103,23 @@ namespace Tools.Unity
             bodyBuilder.AppendLine(m_Description.text);
             mail.Body = bodyBuilder.ToString();
 
-            string logFile = "./HiBoP_Data/output_log.txt";
-            if (File.Exists(logFile)) // windows only; TODO : multi support
+            string logFile = "";
+            switch (Application.platform)
+            {
+                case RuntimePlatform.OSXPlayer:
+                    logFile = "~/Library/Logs/Unity/Player.log";
+                    break;
+                case RuntimePlatform.WindowsPlayer:
+                    logFile = "./HiBoP_Data/output_log.txt";
+                    break;
+                case RuntimePlatform.LinuxPlayer:
+                    logFile = "~/.config/unity3d/CRNL/HiBoP/Player.log";
+                    break;
+                default:
+                    logFile = "./HiBoP_Data/output_log.txt";
+                    break;
+            }
+            if (File.Exists(logFile))
             {
                 string copiedLogFile = "./HiBoP_Data/log.txt";
                 File.Copy(logFile, copiedLogFile, true);
