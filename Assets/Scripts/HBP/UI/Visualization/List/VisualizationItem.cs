@@ -35,12 +35,12 @@ namespace HBP.UI.Visualization
                 m_PatientsText.text = nbPatients.ToString();
                 if (nbPatients == 0)
                 {
-                    m_PatientsText.color = ApplicationState.Theme.General.Error;
+                    m_PatientsText.color = ApplicationState.GeneralSettings.Theme.General.Error;
                     m_PatientsButton.interactable = false;
                 }
                 else
                 {
-                    m_PatientsText.color = ApplicationState.Theme.Window.Content.Text.Color;
+                    m_PatientsText.color = ApplicationState.GeneralSettings.Theme.Window.Content.Text.Color;
                     m_PatientsButton.interactable = true;
                 }
 
@@ -49,12 +49,12 @@ namespace HBP.UI.Visualization
                 m_ColumnsText.text = nbColumns.ToString();
                 if (nbColumns == 0)
                 {
-                    m_ColumnsText.color = ApplicationState.Theme.General.Error;
+                    m_ColumnsText.color = ApplicationState.GeneralSettings.Theme.General.Error;
                     m_ColumnsButton.interactable = false;
                 }
                 else
                 {
-                    m_ColumnsText.color = ApplicationState.Theme.Window.Content.Text.Color;
+                    m_ColumnsText.color = ApplicationState.GeneralSettings.Theme.Window.Content.Text.Color;
                     m_ColumnsButton.interactable = true;
                 }
             }

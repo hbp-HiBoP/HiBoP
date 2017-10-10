@@ -25,9 +25,9 @@ namespace HBP.UI.Experience.Dataset
                 m_NumberText.text = value.Number.ToString();
                 switch (value.State)
                 {
-                    case Data.Experience.Dataset.Dataset.Resume.StateEnum.OK: m_StateImage.color = ApplicationState.Theme.General.OK; break;
-                    case Data.Experience.Dataset.Dataset.Resume.StateEnum.Warning: m_StateImage.color = ApplicationState.Theme.General.Warning; break;
-                    case Data.Experience.Dataset.Dataset.Resume.StateEnum.Error: m_StateImage.color = ApplicationState.Theme.General.Error; break;
+                    case Data.Experience.Dataset.Dataset.Resume.StateEnum.OK: m_StateImage.color = ApplicationState.GeneralSettings.Theme.General.OK; break;
+                    case Data.Experience.Dataset.Dataset.Resume.StateEnum.Warning: m_StateImage.color = ApplicationState.GeneralSettings.Theme.General.Warning; break;
+                    case Data.Experience.Dataset.Dataset.Resume.StateEnum.Error: m_StateImage.color = ApplicationState.GeneralSettings.Theme.General.Error; break;
                 }
             }
         }

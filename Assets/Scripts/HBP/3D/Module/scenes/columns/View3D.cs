@@ -290,11 +290,6 @@ namespace HBP.Module3D
                 m_Initialized = true;
             }
         }
-        private void Update()
-        {
-            //m_Camera3D.Camera.backgroundColor = IsClicked ? ApplicationState.Theme.Color.ClickedViewColor : ((IsSelected || IsColumnSelected) ? ApplicationState.Theme.Color.SelectedViewColor : ApplicationState.Theme.Color.RegularViewColor);
-            m_Camera3D.Camera.backgroundColor = IsSelected ? ApplicationState.Theme.Visualization.View.Selected : ApplicationState.Theme.Visualization.View.Normal;
-        }
         #endregion
 
         #region Public Methods

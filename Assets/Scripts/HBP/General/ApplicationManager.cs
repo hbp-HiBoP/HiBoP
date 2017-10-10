@@ -10,7 +10,6 @@ public class ApplicationManager : MonoBehaviour
         ApplicationState.ProjectLoadedLocation = string.Empty;
         ApplicationState.GeneralSettings = ClassLoaderSaver.LoadFromJson<GeneralSettings>(GeneralSettings.PATH);
         ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH, true);
-        ApplicationState.Theme = (HBP.UI.Theme.Theme) Resources.Load("Themes/Dark");
         ApplicationState.CoroutineManager = FindObjectOfType<CoroutineManager>();
         ApplicationState.Module3D = FindObjectOfType<HBP.Module3D.HBP3DModule>();
         ApplicationState.DLLDebugManager = FindObjectOfType<HBP.Module3D.DLL.DLLDebugManager>();

@@ -36,11 +36,6 @@ public static class ApplicationState
     public static HBP.Data.Settings.GeneralSettings GeneralSettings { get; set; }
 
     /// <summary>
-    /// Theme of the application.
-    /// </summary>
-    public static HBP.UI.Theme.Theme Theme { get; set; }
-
-    /// <summary>
     /// Coroutine manager.
     /// </summary>
     public static CoroutineManager CoroutineManager { get; set; }

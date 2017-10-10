@@ -30,12 +30,12 @@ namespace HBP.UI.Experience.Protocol
                 m_BlocsText.text = nbBlocs.ToString();
                 if(nbBlocs == 0)
                 {
-                    m_BlocsText.color = ApplicationState.Theme.General.Error;
+                    m_BlocsText.color = ApplicationState.GeneralSettings.Theme.General.Error;
                     m_BlocsButton.interactable = false;
                 }
                 else
                 {
-                    m_BlocsText.color = ApplicationState.Theme.Window.Content.Text.Color;
+                    m_BlocsText.color = ApplicationState.GeneralSettings.Theme.Window.Content.Text.Color;
                     m_BlocsButton.interactable = true;
                 }
             }

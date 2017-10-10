@@ -65,7 +65,7 @@ namespace HBP.UI.Theme
         {
             if (Application.isPlaying)
             {
-                Set(ApplicationState.Theme);
+                Set(ApplicationState.GeneralSettings.Theme);
             }
         }
         void Update()

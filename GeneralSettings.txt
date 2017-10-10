@@ -13,5 +13,6 @@
     "ConstantLineHeight": 3,
     "LineHeightByWidth": 0.005,
     "HeightByWidth": 0.5625
-  }
+  },
+  "Theme": "Dark"
 }

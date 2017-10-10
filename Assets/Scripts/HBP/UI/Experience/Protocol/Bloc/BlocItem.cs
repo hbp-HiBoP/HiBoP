@@ -50,7 +50,7 @@ namespace HBP.UI.Experience.Protocol
                     themeElement.Item = Theme.ThemeElement.ItemEnum.SecondaryBloc;
                     m_Illustration.enabled = false;
                 }
-                themeElement.Set(ApplicationState.Theme);
+                themeElement.Set(ApplicationState.GeneralSettings.Theme);
             }
         }
         #endregion

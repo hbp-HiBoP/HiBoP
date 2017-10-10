@@ -33,12 +33,12 @@ namespace HBP.UI.Experience.Dataset
                 m_DataInfosText.text = nbData.ToString();
                 if(nbData == 0)
                 {
-                    m_DataInfosText.color = ApplicationState.Theme.General.Error;
+                    m_DataInfosText.color = ApplicationState.GeneralSettings.Theme.General.Error;
                     m_DataInfosButton.interactable = false;
                 }
                 else
                 {
-                    m_DataInfosText.color = ApplicationState.Theme.Window.Content.Text.Color;
+                    m_DataInfosText.color = ApplicationState.GeneralSettings.Theme.Window.Content.Text.Color;
                     m_DataInfosButton.interactable = true;
                 }
                 SetResumes();

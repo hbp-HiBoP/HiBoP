@@ -22,7 +22,7 @@ namespace HBP.UI.Anatomy
                 base.Object = value;
                 m_NameInputField.text = value.Name;
                 Color normalColor = Color.white;
-                Color notInteractableColor = ApplicationState.Theme.General.NotInteractable;
+                Color notInteractableColor = ApplicationState.GeneralSettings.Theme.General.NotInteractable;
                 m_ImplantationIcon.color = value.HasImplantation ? normalColor : notInteractableColor;
             }
         }

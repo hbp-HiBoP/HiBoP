@@ -36,11 +36,8 @@ namespace HBP.UI.Theme
 
         public static void SetTheme(Theme theme)
         {
-            ApplicationState.Theme = theme;
-            foreach (ThemeElement element in FindObjectsOfType<ThemeElement>())
-            {
-                element.Set(theme);
-            }
+            ApplicationState.GeneralSettings.ThemeName = theme.name;
+            Theme.UpdateThemeElements(theme);
         }
 
         [MenuItem("Assets/Initialize Theme", false, 100)]

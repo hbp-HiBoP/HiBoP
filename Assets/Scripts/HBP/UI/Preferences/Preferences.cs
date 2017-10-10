@@ -2,6 +2,7 @@
 using Tools.Unity;
 using HBP.Data.Settings;
 using System;
+using System.Linq;
 using System.Text;
 using Tools.CSharp;
 
@@ -23,6 +24,7 @@ namespace HBP.UI.Settings
         Dropdown plotNameAutoCorrectionOption;
         Dropdown trialMatrixSmoothingOption;
         Dropdown blocFormatOption;
+        Dropdown m_ThemeSelector;
         #endregion
 
         #region Public Methods
@@ -43,8 +45,14 @@ namespace HBP.UI.Settings
             ApplicationState.GeneralSettings.TrialMatrixSettings.HeightByWidth = float.Parse(BlocRatioInputField.text);
             ApplicationState.GeneralSettings.EventPositionAveraging = (GeneralSettings.AveragingMode) eventPositionAveragingOption.value;
             ApplicationState.GeneralSettings.ValueAveraging = (GeneralSettings.AveragingMode) valueAveragingOption.value;
+            ApplicationState.GeneralSettings.ThemeName = m_ThemeSelector.options[m_ThemeSelector.value].text;
             ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH,true);
+            Close();
+        }
+        public override void Close()
+        {
             base.Close();
+            Theme.Theme.UpdateThemeElements(ApplicationState.GeneralSettings.Theme);
         }
         #endregion
 
@@ -65,6 +73,7 @@ namespace HBP.UI.Settings
 
             eventPositionAveragingOption = transform.Find("Content").Find("Averaging").Find("EventPositionAveraging").GetComponentInChildren<Dropdown>();
             valueAveragingOption = transform.Find("Content").Find("Averaging").Find("ValueAveraging").GetComponentInChildren<Dropdown>();
+            m_ThemeSelector = transform.Find("Content").Find("Display").Find("Theme").GetComponentInChildren<Dropdown>();
 
             defaultNameProjectInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
             defaultLocationProjectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
@@ -123,6 +132,20 @@ namespace HBP.UI.Settings
             eventPositionAveragingOption.RefreshShownValue();
             valueAveragingOption.value = (int)ApplicationState.GeneralSettings.ValueAveraging;
             valueAveragingOption.RefreshShownValue();
+
+            m_ThemeSelector.ClearOptions();
+            m_ThemeSelector.onValueChanged.AddListener((t) =>
+            {
+                Theme.Theme theme = ApplicationState.GeneralSettings.Themes[t];
+                Theme.Theme.UpdateThemeElements(theme);
+            });
+            foreach (Theme.Theme theme in ApplicationState.GeneralSettings.Themes)
+            {
+                m_ThemeSelector.options.Add(new Dropdown.OptionData(theme.name));
+            }
+            int themeID = m_ThemeSelector.options.FindIndex((o) => o.text == ApplicationState.GeneralSettings.ThemeName);
+            m_ThemeSelector.value = themeID != -1 ? themeID : 0;
+            m_ThemeSelector.RefreshShownValue();
         }
 
         void UpdateBlocFormat(TrialMatrixSettings.BlocFormatType blocFormat)

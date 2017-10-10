@@ -30,12 +30,12 @@ namespace HBP.UI.Experience.Protocol
                 m_CodeList.Objects = (from code in m_Object.Codes select code.ToString()).ToArray();
                 if (nbCode == 0)
                 {
-                    m_CodeText.color = ApplicationState.Theme.General.Error;
+                    m_CodeText.color = ApplicationState.GeneralSettings.Theme.General.Error;
                     m_CodeButton.interactable = false;
                 }
                 else
                 {
-                    m_CodeText.color = ApplicationState.Theme.Window.Content.Item.Text.Color;
+                    m_CodeText.color = ApplicationState.GeneralSettings.Theme.Window.Content.Item.Text.Color;
                     m_CodeButton.interactable = true;
                 }
                 switch (m_Object.Type)

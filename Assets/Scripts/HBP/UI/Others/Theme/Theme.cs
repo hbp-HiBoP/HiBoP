@@ -12,6 +12,14 @@ namespace HBP.UI.Theme
         public ToolbarTheme Toolbar = new ToolbarTheme();
         public VisualizationTheme Visualization = new VisualizationTheme();
 
+        public static void UpdateThemeElements(Theme theme)
+        {
+            foreach (ThemeElement element in FindObjectsOfType<ThemeElement>())
+            {
+                element.Set(theme);
+            }
+        }
+
         public void SetDefaultValues()
         {
             General.SetDefaultValues();

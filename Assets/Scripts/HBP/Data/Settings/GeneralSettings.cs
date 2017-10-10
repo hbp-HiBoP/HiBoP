@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.IO;
+using System.Runtime.Serialization;
+using System.Linq;
 
 namespace HBP.Data.Settings
 {
@@ -19,45 +21,108 @@ namespace HBP.Data.Settings
     *     - Option : Smoothing type of the trial matrix.
     *     - Option : BaseLine of the trial matrix.
     */
-	public class GeneralSettings
-	{
+    [DataContract]
+    public class GeneralSettings
+    {
         #region Properties
         public static string PATH = Directory.GetParent(Application.dataPath).FullName + Path.DirectorySeparatorChar + "GeneralSettings.txt";
         public enum PlotNameCorrectionTypeEnum { Disable, Enable }
-        public enum AveragingMode { Mean , Median }
+        public enum AveragingMode { Mean, Median }
+        public UI.Theme.Theme[] Themes;
 
         /// <summary>
         /// Default project name.
         /// </summary>
+        [DataMember]
         public string DefaultProjectName { get; set; }
         /// <summary>
         /// Default project location.
         /// </summary>
+        [DataMember]
         public string DefaultProjectLocation { get; set; }
         /// <summary>
         /// Default patient database location.
         /// </summary>
+        [DataMember]
         public string DefaultPatientDatabaseLocation { get; set; }
         /// <summary>
         /// Default localizer database location.
         /// </summary>
+        [DataMember]
         public string DefaultLocalizerDatabaseLocation { get; set; }
         /// <summary>
         /// Active or Deactive the plot name automatic correction (cast, p/' , etc...)
         /// </summary>
+        [DataMember]
         public PlotNameCorrectionTypeEnum PlotNameAutomaticCorrectionType { get; set; }
         /// <summary>
         /// Bloc event position averaging.
         /// </summary>
+        [DataMember]
         public AveragingMode EventPositionAveraging { get; set; }
         /// <summary>
         /// Bloc value averaging.
         /// </summary>
+        [DataMember]
         public AveragingMode ValueAveraging { get; set; }
         /// <summary>
         /// Settings of the trial matrix.
         /// </summary>
+        [DataMember]
         public TrialMatrixSettings TrialMatrixSettings { get; set; }
+
+        [IgnoreDataMember]
+        private string m_ThemeName;
+        /// <summary>
+        /// Name of the used theme.
+        /// </summary>
+        [DataMember(Name = "Theme")]
+        public string ThemeName
+        {
+            get
+            {
+                return m_ThemeName;
+            }
+            set
+            {
+                m_ThemeName = value;
+                if (Themes.Length == 0)
+                {
+                    UI.Theme.Theme defaultTheme = new UI.Theme.Theme();
+                    defaultTheme.SetDefaultValues();
+                    m_Theme = defaultTheme;
+                }
+                else
+                {
+                    UI.Theme.Theme theme = Themes.FirstOrDefault((t) => t.name == ThemeName);
+                    if (theme)
+                    {
+                        m_Theme = theme;
+                    }
+                    else
+                    {
+                        UI.Theme.Theme defaultTheme = new UI.Theme.Theme();
+                        defaultTheme.SetDefaultValues();
+                        m_Theme = defaultTheme;
+                    }
+                }
+                UI.Theme.Theme.UpdateThemeElements(m_Theme);
+            }
+        }
+
+        [IgnoreDataMember]
+        private UI.Theme.Theme m_Theme;
+        /// <summary>
+        /// Used theme.
+        /// </summary>
+        [IgnoreDataMember]
+        public UI.Theme.Theme Theme
+        {
+            get
+            {
+                return m_Theme;
+            }
+        }
         #endregion
 
         #region Constructor
@@ -71,7 +136,7 @@ namespace HBP.Data.Settings
         /// <param name="plotNameAutomaticCorrectionType">Plot name automatic correction.</param>
         /// <param name="trialMatrixSmoothingType">Trial maltrix smoothing.</param>
         /// <param name="baseLineType">Trial matrix baseline.</param>
-        public GeneralSettings(string projectDefaultName,string defaultProjectLocation, string defaultPatientDatabseLocation, string defaultLocalizerDatabaseLocation, PlotNameCorrectionTypeEnum plotNameAutomaticCorrectionType,TrialMatrixSettings trialMatrixSettings)
+        public GeneralSettings(string projectDefaultName,string defaultProjectLocation, string defaultPatientDatabseLocation, string defaultLocalizerDatabaseLocation, PlotNameCorrectionTypeEnum plotNameAutomaticCorrectionType,TrialMatrixSettings trialMatrixSettings, string themeName)
         {
             DefaultProjectName = projectDefaultName;
             DefaultProjectLocation = defaultProjectLocation;
@@ -79,11 +144,14 @@ namespace HBP.Data.Settings
             DefaultLocalizerDatabaseLocation = defaultLocalizerDatabaseLocation;
             PlotNameAutomaticCorrectionType = plotNameAutomaticCorrectionType;
             TrialMatrixSettings = trialMatrixSettings;
+            // TODO : include all themes in a specific folder
+            Themes = Resources.LoadAll<UI.Theme.Theme>("Themes");
+            ThemeName = themeName;
         }
         /// <summary>
         /// Create a new general settings instance with default values.
         /// </summary>
-        public GeneralSettings() : this("New project","","","",PlotNameCorrectionTypeEnum.Enable,new TrialMatrixSettings())
+        public GeneralSettings() : this("New project","","","",PlotNameCorrectionTypeEnum.Enable,new TrialMatrixSettings(), "")
         {
         }
         #endregion
