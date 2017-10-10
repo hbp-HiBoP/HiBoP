@@ -83,9 +83,9 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
+        public override void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
-            m_ColumnUI = columnUI;
+            base.Initialize(scene, column, columnUI);
             IsActive = false;
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>

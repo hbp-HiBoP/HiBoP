@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using HBP.Module3D;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,6 +12,9 @@ namespace HBP.UI.Module3D
         /// Associated Column3DUI
         /// </summary>
         protected Column3DUI m_ColumnUI;
+
+        private RectTransform m_RectTransform;
+        private float m_InitialAnchoredY;
 
         protected bool m_IsActive = false;
         /// <summary>
@@ -26,17 +30,6 @@ namespace HBP.UI.Module3D
             {
                 m_IsActive = value;
                 HandleEnoughSpace();
-                //if (m_IsActive != gameObject.activeSelf)
-                //{
-                //    if (m_ColumnUI.HasEnoughSpaceForOverlay && m_IsActive)
-                //    {
-                //        gameObject.SetActive(true);
-                //    }
-                //    else
-                //    {
-                //        gameObject.SetActive(false);
-                //    }
-                //}
             }
         }
         #endregion
@@ -46,6 +39,19 @@ namespace HBP.UI.Module3D
         {
             SetActive(m_ColumnUI.HasEnoughSpaceForOverlay && m_IsActive);
         }
+        public virtual void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
+        {
+            m_ColumnUI = columnUI;
+            m_RectTransform = GetComponent<RectTransform>();
+            m_InitialAnchoredY = m_RectTransform.anchoredPosition.y;
+        }
+        public void SetOverlayOffset(float offset)
+        {
+            m_RectTransform.anchoredPosition = new Vector2(m_RectTransform.anchoredPosition.x, m_InitialAnchoredY + offset);
+        }
+        #endregion
+
+        #region Private Methods
         void SetActive(bool active)
         {
             if (active != gameObject.activeSelf) gameObject.SetActive(active);

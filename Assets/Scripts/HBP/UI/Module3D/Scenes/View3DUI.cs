@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 using System.Linq;
+using UnityEngine.Events;
 
 public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler {
     #region Properties
@@ -73,6 +74,24 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             OnRectTransformDimensionsChange();
         }
     }
+
+    /// <summary>
+    /// Returns true if the view is minimized but the column is not
+    /// </summary>
+    public bool IsViewMinimizedAndColumnNotMinimized
+    {
+        get
+        {
+            return (Mathf.Abs(m_RectTransform.rect.height - ParentGrid.MinimumViewHeight) <= 0.9f) && !(Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= 0.9f);
+        }
+    }
+    #endregion
+
+    #region Events
+    /// <summary>
+    /// Event called when changing the minimized state of the view
+    /// </summary>
+    public UnityEvent OnChangeViewSize = new UnityEvent();
     #endregion
 
     #region Private Methods
@@ -245,6 +264,8 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             Rect viewport = RectTransformToScreenSpace(m_RectTransform);
             m_View.SetViewport(viewport.x, viewport.y, viewport.width, viewport.height);
         }
+
+        OnChangeViewSize.Invoke();
     }
     /// <summary>
     /// Initialize this view
