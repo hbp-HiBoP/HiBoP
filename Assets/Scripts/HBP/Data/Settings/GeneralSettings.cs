@@ -28,7 +28,18 @@ namespace HBP.Data.Settings
         public static string PATH = Directory.GetParent(Application.dataPath).FullName + Path.DirectorySeparatorChar + "GeneralSettings.txt";
         public enum PlotNameCorrectionTypeEnum { Disable, Enable }
         public enum AveragingMode { Mean, Median }
-        public UI.Theme.Theme[] Themes;
+
+        private UI.Theme.Theme[] m_Themes;
+        /// <summary>
+        /// List of the themes.
+        /// </summary>
+        public UI.Theme.Theme[] Themes
+        {
+            get
+            {
+                return m_Themes;
+            }
+        }
 
         /// <summary>
         /// Default project name.
@@ -145,7 +156,7 @@ namespace HBP.Data.Settings
             PlotNameAutomaticCorrectionType = plotNameAutomaticCorrectionType;
             TrialMatrixSettings = trialMatrixSettings;
             // TODO : include all themes in a specific folder
-            Themes = Resources.LoadAll<UI.Theme.Theme>("Themes");
+            m_Themes = Resources.LoadAll<UI.Theme.Theme>("Themes");
             ThemeName = themeName;
         }
         /// <summary>

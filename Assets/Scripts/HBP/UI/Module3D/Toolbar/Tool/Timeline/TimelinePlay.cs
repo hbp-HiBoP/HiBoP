@@ -40,7 +40,9 @@ namespace HBP.UI.Module3D.Tools
         {
             ApplicationState.Module3D.OnStopTimelinePlay.AddListener(() =>
             {
+                ListenerLock = true;
                 UpdateStatus(Toolbar.UpdateToolbarType.Column);
+                ListenerLock = false;
             });
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
