@@ -12,7 +12,6 @@ namespace HBP.UI.Module3D
     public class ColumnLabel : OverlayElement, IPointerDownHandler, IPointerUpHandler, IDragHandler
     {
         #region Properties
-        private RectTransform m_RectTransform;
         [SerializeField]
         private Text m_Text;
         [SerializeField]
@@ -28,10 +27,6 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            m_RectTransform = GetComponent<RectTransform>();
-        }
         private void Start()
         {
             m_Initialized = true;

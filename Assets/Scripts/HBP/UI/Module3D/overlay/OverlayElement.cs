@@ -13,7 +13,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         protected Column3DUI m_ColumnUI;
 
-        private RectTransform m_RectTransform;
+        protected RectTransform m_RectTransform;
         private float m_InitialAnchoredY;
 
         protected bool m_IsActive = false;
