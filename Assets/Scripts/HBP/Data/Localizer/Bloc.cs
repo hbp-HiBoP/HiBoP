@@ -20,7 +20,7 @@ namespace HBP.Data.Localizer
 		}
         public Bloc(int firstIndex, int lastIndex, Dictionary<Experience.Protocol.Event, int[]> indexByEvent, Experience.Dataset.Data data)
         {
-            int lenght = lastIndex - firstIndex;
+            int lenght = lastIndex - firstIndex + 1;
             Dictionary<Experience.Protocol.Event, int> positionByEvent = new Dictionary<Experience.Protocol.Event, int>();
             foreach (var pair in indexByEvent)
             {

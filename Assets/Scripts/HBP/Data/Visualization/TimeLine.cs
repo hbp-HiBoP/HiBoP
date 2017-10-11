@@ -103,7 +103,7 @@
 		{
             int start = UnityEngine.Mathf.CeilToInt((displayInformations.Window.Start) * 0.001f * frequency);
             int end = UnityEngine.Mathf.FloorToInt((displayInformations.Window.End) * 0.001f * frequency);
-            Lenght = end - start;
+            Lenght = end - start + 1;
             Step = 1000 / frequency;
             Start = new Limit(displayInformations.Window.Start, start * Step, "ms",0);
             End = new Limit(displayInformations.Window.End, end * Step, "ms",(Lenght-1));
