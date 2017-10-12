@@ -10,6 +10,7 @@
     * \details Event of the timeLine which contains:
     *   - \a Label.
     *   - \a Position.
+    *   - \a Attendance rate.
     */
     public class Event
     {
@@ -17,22 +18,17 @@
         /// <summary>
         /// Event label.
         /// </summary>
-        string label;
-        public string Label
-        {
-            get { return label; }
-            set { label = value; }
-        }
+        public string Label { get; set; }
 
         /// <summary>
         /// Event position in the timeline.
         /// </summary>
-        int position;
-        public int Position
-        {
-            get { return position; }
-            set { position = value; }
-        }
+        public int Position { get; set; }
+
+        /// <summary>
+        /// Event attendance rate.
+        /// </summary>
+        public float AttendanceRate { get; set; }
         #endregion
 
         #region Constructor
@@ -41,10 +37,12 @@
         /// </summary>
         /// <param name="label">Event label.</param>
         /// <param name="position">Event position.</param>
-        public Event(string label, int position)
+        /// <param name="attendanceRate">Event attendance rate.</param>
+        public Event(string label, int position, float attendanceRate = 1f)
         {
-            this.label = label;
-            this.position = position;
+            Label = label;
+            Position = position;
+            AttendanceRate = attendanceRate;
         }
         /// <summary>
         /// Create a new Event instance with default values.

@@ -5,6 +5,9 @@ using System.Runtime.Serialization;
 using HBP.Data.Anatomy;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
+using UnityEngine;
+using Tools.CSharp;
+
 
 namespace HBP.Data.Visualization
 {
@@ -112,13 +115,14 @@ namespace HBP.Data.Visualization
         /// <param name="columnData"></param>
         public void Load(IEnumerable<Experience.Dataset.Data> columnData)
         {
-            Dictionary<Experience.Dataset.Data, Localizer.Bloc> blocByData = new Dictionary<Experience.Dataset.Data, Localizer.Bloc>();
+            List<Localizer.Bloc> blocs = new List<Localizer.Bloc>();
             Dictionary<string, SiteConfiguration> siteConfigurationsByID = new Dictionary<string, SiteConfiguration>();
             foreach (Experience.Dataset.Data data in columnData)
             {
                 Experience.EpochedData epochedData = new Experience.EpochedData(Bloc, data);
-                blocByData.Add(data,Localizer.Bloc.Average(epochedData.Blocs));
-                foreach(var item in blocByData[data].ValuesBySite)
+                Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs);
+                blocs.AddRange(epochedData.Blocs);
+                foreach(var item in averagedBloc.ValuesBySite)
                 {
                     string siteID = data.Patient.ID + "_" + item.Key;
                     siteConfigurationsByID.Add(siteID, new SiteConfiguration(item.Value, false, false, false, false));
@@ -128,9 +132,33 @@ namespace HBP.Data.Visualization
                     }
                 }
             }
+            if(!columnData.All((c) => c.Frequency == columnData.First().Frequency)) throw new HBPException("Data do not have the same frequency.");
             Configuration.ConfigurationBySite = siteConfigurationsByID;
-            TimeLine = new Timeline(Bloc.DisplayInformations, new Event(Bloc.MainEvent.Name, (int) Math.Round(blocByData.Values.Average((b) => b.PositionByEvent[Bloc.MainEvent]))), (from evt in Bloc.SecondaryEvents select new Event(evt.Name, (int) blocByData.Values.Average((b) => b.PositionByEvent[evt]))).ToArray(), columnData.Average((d) => d.Frequency));
-            IconicScenario = new IconicScenario(Bloc, columnData.Average((d) => d.Frequency), TimeLine);
+            Event mainEvent = new Event();
+            Event[] secondaryEvents = new Event[Bloc.SecondaryEvents.Count];
+            switch (ApplicationState.GeneralSettings.EventPositionAveraging)
+            {
+                case Settings.GeneralSettings.AveragingMode.Mean:
+                    mainEvent = new Event(Bloc.MainEvent.Name,(int) (from bloc in blocs select bloc.PositionByEvent[Bloc.MainEvent]).ToList().Average());
+                    for (int i = 0; i < secondaryEvents.Length; i++)
+                    {
+                        List<Localizer.Bloc> blocWhereEventFound = (from bloc in blocs where bloc.PositionByEvent[Bloc.SecondaryEvents[i]] >= 0 select bloc).ToList();
+                        float rate = (float) blocWhereEventFound.Count / blocs.Count;
+                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name,(int) (from bloc in blocWhereEventFound select bloc.PositionByEvent[Bloc.SecondaryEvents[i]]).ToList().Average(), rate);
+                    }
+                    break;
+                case Settings.GeneralSettings.AveragingMode.Median:
+                    mainEvent = new Event(Bloc.MainEvent.Name, (from bloc in blocs select bloc.PositionByEvent[Bloc.MainEvent]).ToList().Median());
+                    for (int i = 0; i < secondaryEvents.Length; i++)
+                    {
+                        List<Localizer.Bloc> blocWhereEventFound = (from bloc in blocs where bloc.PositionByEvent[Bloc.SecondaryEvents[i]] >= 0 select bloc).ToList();
+                        float rate = (float)blocWhereEventFound.Count / blocs.Count;
+                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name, (int)(from bloc in blocWhereEventFound select bloc.PositionByEvent[Bloc.SecondaryEvents[i]]).ToList().Median(), rate);
+                    }
+                    break;
+            }
+            TimeLine = new Timeline(Bloc.DisplayInformations, mainEvent, secondaryEvents, columnData.First().Frequency);
+            IconicScenario = new IconicScenario(Bloc, columnData.First().Frequency , TimeLine);
         }
         /// <summary>
         /// Test if the visualization Column is compatible with a Patient.
