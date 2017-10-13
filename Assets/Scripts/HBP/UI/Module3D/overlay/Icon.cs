@@ -14,10 +14,9 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Image m_Image;
         [SerializeField]
-        private RawImage m_RawImage;
-        [SerializeField]
         private Text m_Text;
 
+        private Sprite m_DefaultSprite;
         private Data.Visualization.Icon m_CurrentIcon;
         private List<Data.Visualization.Icon> m_Icons;
         #endregion
@@ -27,6 +26,7 @@ namespace HBP.UI.Module3D
         {
             base.Initialize(scene, column, columnUI);
             IsActive = false;
+            m_DefaultSprite = m_Image.sprite;
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
@@ -50,9 +50,10 @@ namespace HBP.UI.Module3D
                     if (icon != m_CurrentIcon)
                     {
                         m_CurrentIcon = icon;
-                        if (icon == null)
+                        if (icon == null || icon.Illustration == null)
                         {
                             IsActive = false;
+                            m_Image.sprite = m_DefaultSprite;
                         }
                         else
                         {
