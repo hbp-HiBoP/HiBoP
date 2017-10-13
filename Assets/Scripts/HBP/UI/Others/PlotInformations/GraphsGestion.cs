@@ -13,262 +13,134 @@ namespace HBP.UI.Graph
     [RequireComponent(typeof(ZoneResizer))]
     public class GraphsGestion : MonoBehaviour
     {
-        //#region Properties
-        //// Trial matrix
-        //TrialMatrixList m_TrialMatrixList;
-        //Dictionary<Protocol, Vector2> m_LimitsByProtocol = new Dictionary<Protocol, Vector2>();
-        //Dictionary<Protocol, Data.TrialMatrix.TrialMatrix[]> m_TrialMatrixByProtocol = new Dictionary<Protocol, Data.TrialMatrix.TrialMatrix[]>();
-        //bool m_LineSelectable = false;
+        #region Properties
+        Base3DScene m_Scene;
+        public Base3DScene Scene
+        {
+            get { return m_Scene; }
+            set
+            {
+                m_Scene = value;
+                m_Scene.OnRequestSiteInformation.AddListener(OnRequestSiteInformation);
+                m_Scene.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumns);
+            }
+        }
 
-        //// Curves
-        //GraphGestion m_GraphGestion;
+        // Trial matrix
+        [SerializeField] TrialMatrixList m_TrialMatrixList;
+        Dictionary<Protocol, Vector2> m_LimitsByProtocol = new Dictionary<Protocol, Vector2>();
+        Dictionary<Protocol, Data.TrialMatrix.TrialMatrix[]> m_TrialMatrixByProtocol = new Dictionary<Protocol, Data.TrialMatrix.TrialMatrix[]>();
+        bool m_LineSelectable = false;
+
+        // Curves
+        //[SerializeField] GraphGestion m_GraphGestion;
         //Color[] m_Colors = new Color[7] { Color.blue, Color.red, Color.green, Color.cyan, Color.grey, Color.magenta, Color.yellow };
         //Curve[][] m_Curves = new Curve[0][];
         //Curve[] m_ROIcurves = new Curve[0];
 
-        //// Plots
-        //Data.Anatomy.Site[] m_sites;
-        //bool[][] maskPlots;
+        // Plots
+        Site[] m_Sites;
 
-        //// Columns
-        //Column[] columns
-        //{
-        //    get
-        //    {
-        //        switch(type)
-        //        {
-        //            default:
-        //                return new Column[0];
-        //            case TypeEnum.Single:
-        //                return VisualizationLoaded.SP_Visualization.Columns.ToArray();
-        //            case TypeEnum.Multi:
-        //                return VisualizationLoaded.MP_Visualization.Columns.ToArray(); 
-        //        }
-        //    }
-        //}
-        //bool[] maskColumns
-        //{
-        //    get
-        //    {
-        //        switch (type)
-        //        {
-        //            default:
-        //                return new bool[0];
-        //            case TypeEnum.Single:
-        //                return VisualizationLoaded.SP_Columns;
-        //            case TypeEnum.Multi:
-        //                return VisualizationLoaded.MP_Columns;
-        //        }
-        //    }
-        //}
+        // Type
+        [SerializeField] ZoneResizer m_ZoneResizer;
+        #endregion
 
-        //// Type
-        //ZoneResizer zoneResizer;
-        //enum TypeEnum { None, Single, Multi };
-        //TypeEnum type = TypeEnum.None;
-        //TypeEnum Type
-        //{
-        //    get
-        //    {
-        //        return type;
-        //    }
-        //    set
-        //    {
-        //        switch (value)
-        //        {
-        //            case TypeEnum.None:
-        //                zoneResizer.Ratio = 1.0f;
-        //                break;
-        //            case TypeEnum.Single:
-        //                if(type == TypeEnum.None) zoneResizer.Ratio = 0.5f;
-        //                break;
-        //            case TypeEnum.Multi:
-        //                if (type == TypeEnum.None) zoneResizer.Ratio = 0.5f;
-        //                break;
-        //        }
-        //        type = value;
-        //    }
-        //}
-        //#endregion
+        #region Handlers Methods
+        public void OnSelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc, bool additive)
+        {
+            if (m_LineSelectable)
+            {
+                foreach (TrialMatrix.TrialMatrix trial in m_TrialMatrixList.TrialMatrix)
+                {
+                    trial.SelectLines(lines, bloc, additive);
+                }
+                //GenerateCurves();
+                //DisplayCurves();
+            }
+        }
+        void OnRequestSiteInformation(IEnumerable<Site> sites)
+        {
+            m_Sites = sites.ToArray();
+            m_LineSelectable = sites.All((s) => s.Information.Patient == sites.FirstOrDefault().Information.Patient);
 
-        //#region Initialize
-        //void Awake()
-        //{
-        //    m_TrialMatrixList = transform.FindChild("TrialZone").FindChild("TrialMatrix").FindChild("Viewport").FindChild("Content").GetComponent<TrialMatrixList>();
-        //    m_GraphGestion = transform.FindChild("Graph").GetComponent<GraphGestion>();
-        //    zoneResizer = transform.parent.GetComponent<ZoneResizer>();
-        //    AddListerners();
-        //    Type = TypeEnum.None;
-        //}
-        //void AddListerners()
-        //{
-        //    HBP3DModule command;
-        //    command = FindObjectOfType<HBP3DModule>();
-        //    command.OnRequestSiteInformation.AddListener((plotResquest) => OnDisplayPlots(plotResquest));
-        //    command.OnMinimizeColumn.AddListener((sp, columns) => OnMinimizeColumns());
-        //}
-        //#endregion
+            GenerateTrialMatrix();
+            DisplayTrialMatrix();
+            //GenerateCurves();
+            //DisplayCurves();
+        }
+        void OnMinimizeColumns()
+        {
+            DisplayTrialMatrix();
+            //GenerateCurves();
+            //DisplayCurves();
+        }
+        #endregion
 
-        //#region Handlers Methods
-        //public void OnSelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc, bool additive)
-        //{
-        //    if(m_LineSelectable)
-        //    {
-        //        foreach (TrialMatrix.TrialMatrix trial in m_TrialMatrixList.TrialMatrix)
-        //        {
-        //            trial.SelectLines(lines, bloc, additive);
-        //        }
-        //        GenerateCurves();
-        //        DisplayCurves();
-        //    }  
-        //}
-        //void OnDisplayPlots(SiteRequest siteRequest)
-        //{
-        //    // Declare plots.
-        //    List<Data.Anatomy.Site> sitesToDisplay = new List<Data.Anatomy.Site>();
-        //    bool[][] l_plotsUsed = siteRequest.maskColumn.Select(a => a.ToArray()).ToArray();
+        #region Private Methods
+        // Trial matrix
+        void GenerateTrialMatrix()
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("GenerateTrialMatrix()");
 
-        //    // Read plots.
-        //    if (siteRequest.spScene)
-        //    {
-        //        if(VisualizationLoaded.SP_VisualizationData != null)
-        //        {
-        //            if (siteRequest.idSite1 > 0 && siteRequest.idSite1 < VisualizationLoaded.SP_VisualizationData.PlotsID.Count)
-        //            {
-        //                sitesToDisplay.Add(VisualizationLoaded.SP_VisualizationData.PlotsID[siteRequest.idSite1]);
-        //            }
-        //            if (siteRequest.idSite2 > 0 && siteRequest.idSite2 < VisualizationLoaded.SP_VisualizationData.PlotsID.Count)
-        //            {
-        //                sitesToDisplay.Add(VisualizationLoaded.SP_VisualizationData.PlotsID[siteRequest.idSite2]);
-        //            }
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if(VisualizationLoaded.MP_VisualizationData != null)
-        //        {
-        //            if (siteRequest.idSite1 > 0 && siteRequest.idSite1 < VisualizationLoaded.MP_VisualizationData.PlotsID.Count)
-        //            {
-        //                sitesToDisplay.Add(VisualizationLoaded.MP_VisualizationData.PlotsID[siteRequest.idSite1]);
-        //            }
-        //            if (siteRequest.idSite2 > 0 && siteRequest.idSite2 < VisualizationLoaded.MP_VisualizationData.PlotsID.Count)
-        //            {
-        //                sitesToDisplay.Add(VisualizationLoaded.MP_VisualizationData.PlotsID[siteRequest.idSite2]);
-        //            }
-        //        }
-        //    }
-        //    ComparePlots(sitesToDisplay.ToArray(), l_plotsUsed, siteRequest.spScene);
-        //}
-        //void OnMinimizeColumns()
-        //{
-        //    if(Type != TypeEnum.None)
-        //    {
-        //        DisplayTrialMatrix();
-        //        GenerateCurves();
-        //        DisplayCurves();
-        //    }
-        //}
-        //#endregion
+            // Save value
+            UnityEngine.Profiling.Profiler.BeginSample("Save value");
+            m_LimitsByProtocol = new Dictionary<Protocol, Vector2>();
+            foreach (TrialMatrix.TrialMatrix trialMatrix in m_TrialMatrixList.TrialMatrix)
+            {
+                m_LimitsByProtocol[trialMatrix.Data.Protocol] = trialMatrix.Limits;
+            }
+            UnityEngine.Profiling.Profiler.EndSample();
 
-        //#region Private Methods
-        //// General
-        //void ComparePlots(Data.Anatomy.Site[] sitesToCompare, bool[][] sitesUsed, bool sp)
-        //{
-        //    m_sites = sitesToCompare;
-        //    maskPlots = sitesUsed;
-        //    m_LineSelectable = IsSamePatient(sitesToCompare);
-        //    if (sp) Type = TypeEnum.Single;
-        //    else Type = TypeEnum.Multi;
+            // Find protocols to display
+            UnityEngine.Profiling.Profiler.BeginSample("Find Protocols");
+            IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Protocol).Distinct();
+            UnityEngine.Profiling.Profiler.EndSample();
 
-        //    GenerateTrialMatrix();
-        //    DisplayTrialMatrix();
-        //    GenerateCurves();
-        //    DisplayCurves();
-        //}
-        //bool IsSamePatient(Data.Anatomy.Site[] sites)
-        //{
-        //    bool isSamePatients = true;
-        //    if (sites.Length > 0)
-        //    {
-        //        Data.Patient patient = sites[0].Electrode.Implantation.Brain.Patient;
-        //        foreach (Data.Anatomy.Site site in sites)
-        //        {
-        //            if (patient != site.Electrode.Implantation.Brain.Patient)
-        //            {
-        //                isSamePatients = false;
-        //                break;
-        //            }
-        //        }
-        //    }
-        //    return isSamePatients;
-        //}
+            // Generate trialMatrix and create the dictionary
+            UnityEngine.Profiling.Profiler.BeginSample("Generate");
+            Dictionary<Protocol, Data.TrialMatrix.TrialMatrix[]> trialMatrixByProtocol = new Dictionary<Protocol, Data.TrialMatrix.TrialMatrix[]>();
+            foreach (Protocol protocol in protocols)
+            {
+                UnityEngine.Profiling.Profiler.BeginSample("new TrialMatrix array");
+                Column column = Scene.ColumnManager.ColumnsIEEG.First(c => c.ColumnData.Protocol == protocol).ColumnData;
+                Data.TrialMatrix.TrialMatrix[] trialMatrixData = new Data.TrialMatrix.TrialMatrix[m_Sites.Length];
+                UnityEngine.Profiling.Profiler.EndSample();
 
-        //// Trial matrix
-        //void GenerateTrialMatrix()
-        //{
-        //    UnityEngine.Profiling.Profiler.BeginSample("GenerateTrialMatrix()");
-        //    // Save value
-        //    m_LimitsByProtocol = new Dictionary<Protocol, Vector2>();
-        //    foreach (TrialMatrix.TrialMatrix trialMatrix in m_TrialMatrixList.TrialMatrix)
-        //    {
-        //        m_LimitsByProtocol[trialMatrix.Data.Protocol] = trialMatrix.Limits;
-        //    }
+                UnityEngine.Profiling.Profiler.BeginSample("Find DataInfoBySite");
+                Dictionary<Site, DataInfo> dataInfoBySite = m_Sites.ToDictionary(s => s, s => Scene.Visualization.GetDataInfo(s.Information.Patient, column));
+                IEnumerable<DataInfo> dataInfoToRead = dataInfoBySite.Values.Distinct();
+                UnityEngine.Profiling.Profiler.EndSample();
 
-        //    // Find protocols to display
-        //    List<Protocol> protocols = new List<Protocol>();
-        //    foreach (Column column in columns)
-        //    {
-        //        if (!protocols.Contains(column.Protocol))
-        //        {
-        //            protocols.Add(column.Protocol);
-        //        }
-        //    }
+                UnityEngine.Profiling.Profiler.BeginSample("GetData from Manager");
+                Dictionary<Data.Experience.Dataset.DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>> epochedBlocsByProtocolBlocByDataInfo = new Dictionary<Data.Experience.Dataset.DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>>();
+                foreach (var data in dataInfoToRead)
+                {
+                    Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]> epochedBlocsByProtocolBloc = new Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>();
+                    foreach (var bloc in protocol.Blocs)
+                    {
+                        epochedBlocsByProtocolBloc.Add(bloc,DataManager.GetData(data,bloc).Blocs);
+                    }
+                    epochedBlocsByProtocolBlocByDataInfo.Add(data, epochedBlocsByProtocolBloc);
+                }
+                UnityEngine.Profiling.Profiler.EndSample();
 
-        //    // Generate trialMatrix and create the dictionary
-        //    Dictionary<Protocol, Data.TrialMatrix.TrialMatrix[]> trialMatrixByProtocol = new Dictionary<Protocol, Data.TrialMatrix.TrialMatrix[]>();
-        //    foreach (Protocol protocol in protocols)
-        //    {
-        //        Column column = columns.First(t => t.Protocol == protocol);
-        //        Data.TrialMatrix.TrialMatrix[] trialMatrixData = new Data.TrialMatrix.TrialMatrix[m_sites.Length];
-        //        for (int i = 0; i < m_sites.Length; i++)
-        //        {
-        //            DataInfo dataInfo;
-        //            switch (Type)
-        //            {
-        //                case TypeEnum.Single: dataInfo = VisualizationLoaded.SP_Visualization.GetDataInfo(column)[0]; break;
-        //                case TypeEnum.Multi: dataInfo = VisualizationLoaded.MP_Visualization.GetDataInfo(m_sites[i].Electrode.Implantation.Brain.Patient, column); break;
-        //                default: dataInfo = new DataInfo(); break;
-        //            }
-        //            trialMatrixData[i] = new Data.TrialMatrix.TrialMatrix(dataInfo, m_sites[i]);
-        //        }
-        //        trialMatrixByProtocol.Add(protocol, trialMatrixData);
-        //    }
-        //    this.m_TrialMatrixByProtocol = trialMatrixByProtocol;
-        //    UnityEngine.Profiling.Profiler.EndSample();
-        //}
-        //void DisplayTrialMatrix()
-        //{
-        //    UnityEngine.Profiling.Profiler.BeginSample("DisplayTrialMatrix()");
-        //    List<Protocol> protocols = new List<Protocol>();
-        //    for (int c = 0; c < columns.Length; c++)
-        //    {
-        //        if(!maskColumns[c])
-        //        {
-        //            Protocol protocol = columns[c].Protocol;
-        //            if(!protocols.Contains(protocol))
-        //            {
-        //                protocols.Add(protocol);
-        //            }
-        //        }
-        //    }
-        //    Data.TrialMatrix.TrialMatrix[][] trialMatrix = new Data.TrialMatrix.TrialMatrix[protocols.Count][];
-        //    for (int p = 0; p < protocols.Count; p++)
-        //    {
-        //        trialMatrix[p] = m_TrialMatrixByProtocol[protocols[p]];
-        //    }
-        //    m_TrialMatrixList.Set(trialMatrix);
-        //    UnityEngine.Profiling.Profiler.EndSample();
-        //}
+                UnityEngine.Profiling.Profiler.BeginSample("new TrialMatrix");
+                for (int i = 0; i < m_Sites.Length; i++) trialMatrixData[i] = new Data.TrialMatrix.TrialMatrix(protocol, dataInfoBySite[m_Sites[i]], epochedBlocsByProtocolBlocByDataInfo[dataInfoBySite[m_Sites[i]]], m_Sites[i]);
+                trialMatrixByProtocol.Add(protocol, trialMatrixData);
+                UnityEngine.Profiling.Profiler.EndSample();
+            }
+            this.m_TrialMatrixByProtocol = trialMatrixByProtocol;
+            UnityEngine.Profiling.Profiler.EndSample();
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+        void DisplayTrialMatrix()
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("DisplayTrialMatrix()");
+            IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG where !column.IsMinimized select column.ColumnData.Protocol).Distinct();
+            Data.TrialMatrix.TrialMatrix[][] trialMatrix = m_TrialMatrixByProtocol.Where(m => protocols.Contains(m.Key)).Select(m => m.Value).ToArray();
+            m_TrialMatrixList.Set(trialMatrix);
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
 
         //// Curves
         //void GenerateCurves()
@@ -281,7 +153,7 @@ namespace HBP.UI.Graph
         //    // PlotCurves
         //    for (int c = 0; c < maskColumns.Length; c++)
         //    {
-        //        if(!maskColumns[c])
+        //        if (!maskColumns[c])
         //        {
         //            Color mainColor = m_Colors[c];
         //            Color[] secondariesColor = new Color[2];
@@ -306,7 +178,7 @@ namespace HBP.UI.Graph
         //            // Initialize Curves.
         //            List<Curve> curvesInThisColumn = new List<Curve>();
 
-        //            for (int p = 0; p < m_sites.Length; p++)
+        //            for (int p = 0; p < m_Sites.Length; p++)
         //            {
         //                // Find bloc to read.
         //                Data.TrialMatrix.TrialMatrix trialMatrixData = m_TrialMatrixByProtocol[columns[c].Protocol][p];
@@ -356,7 +228,7 @@ namespace HBP.UI.Graph
         //                    }
 
         //                    //Create curve
-        //                    curvesInThisColumn.Add(new CurveWithShape("C" + (c + 1) + " " + m_sites[p].Name, 2, secondariesColor[p], points, standardDeviations, Tools.Unity.Graph.Point.Style.Round, true));
+        //                    curvesInThisColumn.Add(new CurveWithShape("C" + (c + 1) + " " + m_Sites[p].Name, 2, secondariesColor[p], points, standardDeviations, Tools.Unity.Graph.Point.Style.Round, true));
         //                }
         //                else if (bloc.SelectedLines.Length == 1)
         //                {
@@ -374,7 +246,7 @@ namespace HBP.UI.Graph
         //                    }
 
         //                    //Create curve
-        //                    curvesInThisColumn.Add(new Curve("C" + (c + 1) + " " + m_sites[p].Name, 2, secondariesColor[p], points, Tools.Unity.Graph.Point.Style.Round, true));
+        //                    curvesInThisColumn.Add(new Curve("C" + (c + 1) + " " + m_Sites[p].Name, 2, secondariesColor[p], points, Tools.Unity.Graph.Point.Style.Round, true));
         //                }
         //                else
         //                {
@@ -391,9 +263,9 @@ namespace HBP.UI.Graph
         //                {
         //                    float l_sum = 0;
         //                    int l_nbPlots = 0;
-        //                    for (int plot = 0; plot < maskPlots[c].Length; plot++)
+        //                    for (int plot = 0; plot < m_MaskPlots[c].Length; plot++)
         //                    {
-        //                        if (maskPlots[c][plot])
+        //                        if (m_MaskPlots[c][plot])
         //                        {
         //                            l_nbPlots++;
         //                            l_sum += VisualizationLoaded.MP_VisualizationData.Columns[c].Values[plot][i];
@@ -413,7 +285,7 @@ namespace HBP.UI.Graph
         //                }
         //                ROIcurves[c] = new Curve("C" + (c + 1) + " ROI", 4, mainColor, l_points, Tools.Unity.Graph.Point.Style.Round, true);
         //            }
-        //        }         
+        //        }
         //    }
         //    this.m_ROIcurves = ROIcurves;
         //    this.m_Curves = curves;
@@ -425,10 +297,10 @@ namespace HBP.UI.Graph
         //    List<Curve> curves = new List<Curve>();
         //    for (int c = 0; c < maskColumns.Length; c++)
         //    {
-        //        if(!maskColumns[c])
+        //        if (!maskColumns[c])
         //        {
         //            curves.AddRange(this.m_Curves[c]);
-        //            if(Type == TypeEnum.Multi)
+        //            if (Type == TypeEnum.Multi)
         //            {
         //                curves.Add(m_ROIcurves[c]);
         //            }
@@ -437,6 +309,6 @@ namespace HBP.UI.Graph
         //    m_GraphGestion.Set(curves.ToArray());
         //    UnityEngine.Profiling.Profiler.EndSample();
         //}
-        //#endregion
+        #endregion
     }
 }

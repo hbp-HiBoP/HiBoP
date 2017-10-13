@@ -1,26 +1,31 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Tools.CSharp;
 
 namespace HBP.Data.Localizer
 {
     public class Bloc
-	{
+    {
         #region Properties
         public Dictionary<Experience.Protocol.Event, int> PositionByEvent;
         public Dictionary<string, float[]> ValuesBySite;
+        public Dictionary<string, float[]> BaseLineValuesBySite;
+        public Dictionary<string, float[]> NormalizedValuesBySite;
         #endregion
 
         #region Constructor
-        public Bloc(Dictionary<Experience.Protocol.Event,int> positionByEvent,Dictionary<string,float[]> valuesBySite)
+        public Bloc(Dictionary<Experience.Protocol.Event, int> positionByEvent, Dictionary<string, float[]> valuesBySite, Dictionary<string, float[]> baseLineValuesBySite)
 		{
             PositionByEvent = positionByEvent;
             ValuesBySite = valuesBySite;
-		}
-        public Bloc(int firstIndex, int lastIndex, Dictionary<Experience.Protocol.Event, int[]> indexByEvent, Experience.Dataset.Data data)
+            BaseLineValuesBySite = baseLineValuesBySite;
+        }
+        public Bloc(int firstIndex, int lastIndex, int baseLineFirstIndex, int baseLineLastIndex, Dictionary<Experience.Protocol.Event, int[]> indexByEvent, Experience.Dataset.Data data)
         {
             int lenght = lastIndex - firstIndex + 1;
+            int baseLineLenght = baseLineLastIndex - baseLineFirstIndex + 1;
             Dictionary<Experience.Protocol.Event, int> positionByEvent = new Dictionary<Experience.Protocol.Event, int>();
             foreach (var pair in indexByEvent)
             {
@@ -41,9 +46,41 @@ namespace HBP.Data.Localizer
                 valuesBySite.Add(pair.Key, values);
             }
             ValuesBySite = valuesBySite;
+
+            Dictionary<string, float[]> baseLineValuesBySite = new Dictionary<string, float[]>();
+            foreach (var pair in data.ValuesBySite)
+            {
+                float[] values = new float[baseLineLenght];
+                Array.Copy(pair.Value, baseLineFirstIndex, values, 0, baseLineLenght);
+                baseLineValuesBySite.Add(pair.Key, values);
+            }
+            BaseLineValuesBySite = baseLineValuesBySite;
         }
-        public Bloc(): this (new Dictionary<Experience.Protocol.Event, int>(),new Dictionary<string, float[]>())
+        public Bloc(): this (new Dictionary<Experience.Protocol.Event, int>(),new Dictionary<string, float[]>(), new Dictionary<string, float[]>())
         {
+        }
+        #endregion
+
+        #region Public Methods
+        public void Normalize(float average, float standardDeviation, string siteToNormalize = "")
+        {
+            NormalizedValuesBySite = new Dictionary<string, float[]>();
+            if (string.IsNullOrEmpty(siteToNormalize))
+            {
+                NormalizedValuesBySite = (from site in ValuesBySite.Keys select new KeyValuePair<string, float[]>(site, (from value in ValuesBySite[site] select (value - average) / standardDeviation).ToArray())).ToDictionary(p => p.Key, p => p.Value);
+            }
+            else
+            {
+                float[] normalizedValues = (from value in ValuesBySite[siteToNormalize] select (value - average) / standardDeviation).ToArray();
+                if (NormalizedValuesBySite.ContainsKey(siteToNormalize))
+                {
+                    NormalizedValuesBySite[siteToNormalize] = normalizedValues;
+                }
+                else
+                {
+                    NormalizedValuesBySite.Add(siteToNormalize, normalizedValues);
+                }
+            }
         }
         #endregion
 
@@ -52,7 +89,7 @@ namespace HBP.Data.Localizer
         {
             Dictionary<Experience.Protocol.Event, List<int>> positionsByEvent = new Dictionary<Experience.Protocol.Event, List<int>>();
             Dictionary<string, List<float>[]> valuesBySite = new Dictionary<string, List<float>[]>();
-
+            Dictionary<string, List<float>[]> baseLineValuesBySite = new Dictionary<string, List<float>[]>();
             foreach (Bloc bloc in blocs)
             {
                 foreach (Experience.Protocol.Event _event in bloc.PositionByEvent.Keys)
@@ -68,6 +105,14 @@ namespace HBP.Data.Localizer
                         if (valuesBySite[site][v] == null) valuesBySite[site][v] = new List<float>();
                         valuesBySite[site][v].Add(bloc.ValuesBySite[site][v]);
                     }
+
+                    if (!baseLineValuesBySite.ContainsKey(site)) baseLineValuesBySite.Add(site, new List<float>[bloc.BaseLineValuesBySite[site].Length]);
+                    for (int v = 0; v < baseLineValuesBySite[site].Length; v++)
+                    {
+                        if (baseLineValuesBySite[site][v] == null) baseLineValuesBySite[site][v] = new List<float>();
+                        baseLineValuesBySite[site][v].Add(bloc.BaseLineValuesBySite[site][v]);
+                    }
+
                 }
             }
 
@@ -85,13 +130,15 @@ namespace HBP.Data.Localizer
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:
                     foreach (var item in valuesBySite) result.ValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
+                    foreach (var item in baseLineValuesBySite) result.BaseLineValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
                     break;
                 case Settings.GeneralSettings.AveragingMode.Median:
                     foreach (var item in valuesBySite) result.ValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
+                    foreach (var item in baseLineValuesBySite) result.BaseLineValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
                     break;
             }
             return result;		
 		}
-		#endregion
-	}
+        #endregion
+    }
 } 

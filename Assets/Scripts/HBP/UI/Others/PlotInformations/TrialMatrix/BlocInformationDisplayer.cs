@@ -65,8 +65,8 @@ namespace HBP.UI.TrialMatrix
             mousePosition = new Vector2(mousePosition.x / parentRectTransform.rect.width, mousePosition.y / parentRectTransform.rect.height);
             mousePosition = new Vector2(Mathf.Clamp01(mousePosition.x), Mathf.Clamp01(mousePosition.y));
             line = Mathf.FloorToInt(mousePosition.y * data.Lines.Length);
-            int l_instant = Mathf.FloorToInt(mousePosition.x * data.Lines[0].DataWithCorrection.Length);
-            latency = data.PBloc.DisplayInformations.Window.Start + mousePosition.x * (data.PBloc.DisplayInformations.Window.End - data.PBloc.DisplayInformations.Window.Start);
+            int l_instant = Mathf.FloorToInt(mousePosition.x * data.Lines[0].NormalizedValues.Length);
+            latency = data.ProtocolBloc.DisplayInformations.Window.Start + mousePosition.x * (data.ProtocolBloc.DisplayInformations.Window.End - data.ProtocolBloc.DisplayInformations.Window.Start);
             if(line >= data.Lines.Length)
             {
                 line = data.Lines.Length-1;
@@ -75,15 +75,15 @@ namespace HBP.UI.TrialMatrix
             {
                 line = 0;
             }
-            if(l_instant >= data.Lines[line].DataWithCorrection.Length)
+            if(l_instant >= data.Lines[line].NormalizedValues.Length)
             {
-                l_instant = data.Lines[line].DataWithCorrection.Length-1;
+                l_instant = data.Lines[line].NormalizedValues.Length-1;
             }
             else if(l_instant < 0)
             {
                 l_instant = 0;
             }
-            value = data.Lines[line].DataWithCorrection[l_instant];
+            value = data.Lines[line].NormalizedValues[l_instant];
         }
 
         void CheckSide()

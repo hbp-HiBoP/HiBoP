@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using System.IO;
 using System.Collections.Generic;
 using d = HBP.Data.TrialMatrix;
+using UnityEngine.Profiling;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -24,19 +25,24 @@ namespace HBP.UI.TrialMatrix
         #region Public Methods
         public void Set(d.Bloc[] blocs,int max,Texture2D colorMap,Vector2 limits)
         {
+            Profiler.BeginSample("A");
             //Set illustration/label
             if (blocs.Length > 0)
             {
                 SetIllustration(blocs[0]);
             }
+            Profiler.EndSample();
 
             //Add blocs
+            Profiler.BeginSample("B");
             foreach (d.Bloc bloc in blocs)
             {
                 AddBloc(bloc, colorMap,limits);
             }
+            Profiler.EndSample();
 
-            if(blocs.Length < max)
+            Profiler.BeginSample("C");
+            if (blocs.Length < max)
             {
                 int blocEmptyToAdd = max - blocs.Length;
                 for (int i = 0; i < blocEmptyToAdd; i++)
@@ -44,13 +50,14 @@ namespace HBP.UI.TrialMatrix
                     AddEmpty();
                 }
             }
+            Profiler.EndSample();
         }
 
         public void SelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc,bool additive)
         {
             foreach(Bloc l_bloc in blocs)
             {
-                if(l_bloc.Data.PBloc == bloc)
+                if(l_bloc.Data.ProtocolBloc == bloc)
                 {
                     l_bloc.SelectLines(lines,additive);
                 }
@@ -68,7 +75,7 @@ namespace HBP.UI.TrialMatrix
 
         void SetIllustration(d.Bloc bloc)
         {
-            string l_illustrationPath = bloc.PBloc.DisplayInformations.IllustrationPath;
+            string l_illustrationPath = bloc.ProtocolBloc.DisplayInformations.IllustrationPath;
             if(l_illustrationPath != string.Empty)
             {
                 FileInfo l_file = new FileInfo(l_illustrationPath);
@@ -84,14 +91,14 @@ namespace HBP.UI.TrialMatrix
                 {
                     label.gameObject.SetActive(true);
                     illustration.gameObject.SetActive(false);
-                    label.text = bloc.PBloc.DisplayInformations.Name;
+                    label.text = bloc.ProtocolBloc.DisplayInformations.Name;
                 }
             }
             else
             {
                 label.gameObject.SetActive(true);
                 illustration.gameObject.SetActive(false);
-                label.text = bloc.PBloc.DisplayInformations.Name;
+                label.text = bloc.ProtocolBloc.DisplayInformations.Name;
             }
         }
 

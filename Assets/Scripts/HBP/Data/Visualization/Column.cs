@@ -113,18 +113,23 @@ namespace HBP.Data.Visualization
         /// Load multiple data in the column.
         /// </summary>
         /// <param name="columnData"></param>
-        public void Load(IEnumerable<Experience.Dataset.Data> columnData)
+        public void Load(IEnumerable<DataInfo> columnData)
         {
+            // FIXME
+            float frequency = 0;
+
             List<Localizer.Bloc> blocs = new List<Localizer.Bloc>();
             Dictionary<string, SiteConfiguration> siteConfigurationsByID = new Dictionary<string, SiteConfiguration>();
-            foreach (Experience.Dataset.Data data in columnData)
+            foreach (Experience.Dataset.DataInfo dataInfo in columnData)
             {
-                Experience.EpochedData epochedData = new Experience.EpochedData(Bloc, data);
+                HBP.Data.Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
+                //FIXME
+                frequency = epochedData.Frequency;
                 Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs);
                 blocs.AddRange(epochedData.Blocs);
                 foreach(var item in averagedBloc.ValuesBySite)
                 {
-                    string siteID = data.Patient.ID + "_" + item.Key;
+                    string siteID = item.Key;
                     siteConfigurationsByID.Add(siteID, new SiteConfiguration(item.Value, false, false, false, false));
                     if (Configuration.ConfigurationBySite.ContainsKey(siteID))
                     {
@@ -132,7 +137,6 @@ namespace HBP.Data.Visualization
                     }
                 }
             }
-            if(!columnData.All((c) => c.Frequency == columnData.First().Frequency)) throw new HBPException("Data do not have the same frequency.");
             Configuration.ConfigurationBySite = siteConfigurationsByID;
             Event mainEvent = new Event();
             Event[] secondaryEvents = new Event[Bloc.SecondaryEvents.Count];
@@ -157,8 +161,8 @@ namespace HBP.Data.Visualization
                     }
                     break;
             }
-            TimeLine = new Timeline(Bloc.DisplayInformations, mainEvent, secondaryEvents, columnData.First().Frequency);
-            IconicScenario = new IconicScenario(Bloc, columnData.First().Frequency , TimeLine);
+            TimeLine = new Timeline(Bloc.DisplayInformations, mainEvent, secondaryEvents, frequency);
+            IconicScenario = new IconicScenario(Bloc, frequency, TimeLine);
         }
         /// <summary>
         /// Test if the visualization Column is compatible with a Patient.

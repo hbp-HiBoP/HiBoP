@@ -4,6 +4,7 @@ using UnityEngine.EventSystems;
 using HBP.Data.Settings;
 using System.Collections.Generic;
 using d = HBP.Data.TrialMatrix;
+using UnityEngine.Profiling;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -38,12 +39,26 @@ namespace HBP.UI.TrialMatrix
         {
             data = bloc;
             this.colorMap = colorMap;
-            gameObject.name = bloc.PBloc.DisplayInformations.Name + " | " + "Bloc n°" + bloc.PBloc.DisplayInformations.Position.Column;
+            gameObject.name = bloc.ProtocolBloc.DisplayInformations.Name + " | " + "Bloc n°" + bloc.ProtocolBloc.DisplayInformations.Position.Column;
+            Profiler.BeginSample("A");
             blocInformationsDisplayer.Set(bloc);
+            Profiler.EndSample();
+
+            Profiler.BeginSample("B");
             SetSize();
+            Profiler.EndSample();
+
+            Profiler.BeginSample("C");
             SetTexture(bloc, colorMap, limits);
+            Profiler.EndSample();
+
+            Profiler.BeginSample("D");
             GenerateMainEventIndicator(bloc);
+            Profiler.EndSample();
+
+            Profiler.BeginSample("E");
             GenerateSecondaryIndicator(bloc);
+            Profiler.EndSample();
         }
         public void UpdateLimits(Vector2 limits)
         {
@@ -107,11 +122,11 @@ namespace HBP.UI.TrialMatrix
                     int[] linesClicked = new int[1] { beginDragLine };
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
-                        SendMessageSelectLines(linesClicked, data.PBloc, true);
+                        SendMessageSelectLines(linesClicked, data.ProtocolBloc, true);
                     }
                     else
                     {
-                        SendMessageSelectLines(linesClicked, data.PBloc, false);
+                        SendMessageSelectLines(linesClicked, data.ProtocolBloc, false);
                     }
                 }
             }
@@ -123,7 +138,7 @@ namespace HBP.UI.TrialMatrix
                 {
                     array[i] = i;
                 }
-                SendMessageSelectLines(array, data.PBloc, false);
+                SendMessageSelectLines(array, data.ProtocolBloc, false);
             }
         }
         public void OnBeginDrag()
@@ -151,12 +166,12 @@ namespace HBP.UI.TrialMatrix
             }
             if(Input.GetKey(KeyCode.LeftShift))
             {
-                SendMessageSelectLines(linesSelected.ToArray(), data.PBloc, true);
+                SendMessageSelectLines(linesSelected.ToArray(), data.ProtocolBloc, true);
 
             }
             else
             {
-                SendMessageSelectLines(linesSelected.ToArray(), data.PBloc, false);
+                SendMessageSelectLines(linesSelected.ToArray(), data.ProtocolBloc, false);
             }
             onDrag = false;
         }
@@ -181,11 +196,11 @@ namespace HBP.UI.TrialMatrix
                 }
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
-                    SendMessageSelectLines(l_linesToSelect.ToArray(), data.PBloc, true);
+                    SendMessageSelectLines(l_linesToSelect.ToArray(), data.ProtocolBloc, true);
                 }
                 else
                 {
-                    SendMessageSelectLines(l_linesToSelect.ToArray(), data.PBloc, false);
+                    SendMessageSelectLines(l_linesToSelect.ToArray(), data.ProtocolBloc, false);
                 }
             }
         }
@@ -222,18 +237,24 @@ namespace HBP.UI.TrialMatrix
         }
         void SetTexture(d.Bloc bloc,Texture2D colorMap,Vector2 limits)
         {
+            Profiler.BeginSample("A");
             float[,] lines = ExtractDataFromLines(bloc.Lines);
+            Profiler.EndSample();
+
+            Profiler.BeginSample("B");
             switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Smoothing)
             {
                 case TrialMatrixSettings.SmoothingType.None: break;
                 case TrialMatrixSettings.SmoothingType.Line: lines = SmoothLines(lines,5); break;
             }
+            Profiler.EndSample();
 
+            Profiler.BeginSample("C");
             Texture2D texture = GenerateTexture(lines, limits, colorMap);
-
             texture.mipMapBias = -5;
             texture.wrapMode = TextureWrapMode.Clamp;
             GetComponent<RawImage>().texture = texture;
+            Profiler.EndSample();
         }
         Texture2D GenerateTexture(float[,] lines,Vector2 limits,Texture2D colorMap)
         {
@@ -294,14 +315,14 @@ namespace HBP.UI.TrialMatrix
         }
         float[,] ExtractDataFromLines(d.Line[] lines)
         {
-            float[,] result = new float[lines[0].DataWithCorrection.Length,lines.Length];
+            float[,] result = new float[lines[0].NormalizedValues.Length,lines.Length];
             int width = result.GetLength(0);
             int height = result.GetLength(1);
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
-                    result[x, y] = lines[y].DataWithCorrection[x];
+                    result[x, y] = lines[y].NormalizedValues[x];
                 }
             }
             return result;
@@ -320,8 +341,8 @@ namespace HBP.UI.TrialMatrix
             Image image = mainEvent.AddComponent<Image>();
             RectTransform rect = mainEvent.GetComponent<RectTransform>();
             rect.SetParent(transform.GetChild(0));
-            float X = (float)bloc.Lines[0].Main.Position / bloc.Lines[0].DataWithCorrection.Length;
-            float Xstep = 0.5f / bloc.Lines[0].DataWithCorrection.Length;
+            float X = (float)bloc.Lines[0].Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent] / bloc.Lines[0].NormalizedValues.Length;
+            float Xstep = 0.5f / bloc.Lines[0].NormalizedValues.Length;
             rect.pivot = new Vector2(0, 0);
             rect.anchorMin = new Vector2(X, 0f);
             rect.anchorMax = new Vector2(X+ Xstep, 1f);
@@ -333,18 +354,18 @@ namespace HBP.UI.TrialMatrix
         {
             for (int l = 0; l < bloc.Lines.Length; l++)
             {
-                for (int e = 0; e < bloc.Lines[l].Secondaries.Length; e++)
+                foreach (var secondaryEvent in bloc.ProtocolBloc.SecondaryEvents)
                 {
-                    int position = bloc.Lines[l].Secondaries[e].Position;
+                    int position = bloc.Lines[l].Bloc.PositionByEvent[secondaryEvent];
                     if (position > -1)
                     {
                         GameObject mainEvent = new GameObject();
-                        mainEvent.name = "Secondary event n°" + e + " line n°" + l;
+                        mainEvent.name = secondaryEvent.Name + " - " + l;
                         Image image = mainEvent.AddComponent<Image>();
                         RectTransform rect = mainEvent.GetComponent<RectTransform>();
                         rect.SetParent(transform.GetChild(0));
-                        float X = (float)position / bloc.Lines[l].DataWithCorrection.Length;
-                        float Xstep = 0.5f / bloc.Lines[l].DataWithCorrection.Length;
+                        float X = (float)position / bloc.Lines[l].NormalizedValues.Length;
+                        float Xstep = 0.5f / bloc.Lines[l].NormalizedValues.Length;
                         float Y = (float)l / bloc.Lines.Length;
                         float Ystep = 1.0f / bloc.Lines.Length;
                         rect.pivot = new Vector2(0, 0);

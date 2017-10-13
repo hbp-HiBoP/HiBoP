@@ -16,5 +16,6 @@ public class ApplicationManager : MonoBehaviour
         ApplicationState.DialogBoxManager = FindObjectOfType<DialogBoxManager>();
         ApplicationState.LoadingManager = FindObjectOfType<LoadingManager>();
         ApplicationState.TooltipManager = FindObjectOfType<TooltipManager>();
+        ApplicationState.MemoryManager = FindObjectOfType<MemoryManager>();
     }
 }

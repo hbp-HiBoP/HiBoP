@@ -20,20 +20,11 @@ using UnityEngine.Rendering;
 using System.Collections;
 using CielaSpike;
 using Tools.Unity;
+using HBP.Data.Visualization;
 
 namespace HBP.Module3D
 {
     #region Struct
-    /// <summary>
-    /// Plot request to be send to the outside UI
-    /// </summary>
-    public struct SiteRequest
-    {
-        public Site site; // TODO : update with siteConfigurations
-        public Site site2;
-        public List<List<bool>> maskColumn; /**< masks of the sites :  dim[0] = columnds data nb, dim[1] = sites nb.  if true : the site is not excluded/blacklisted/column masked and is in a ROI (if there is at least one ROI, if not ROI defined, all the plots are considered inside a ROI) */
-    }
-
     /// <summary>
     /// Site info to be send to the UI
     /// </summary>
@@ -552,6 +543,13 @@ namespace HBP.Module3D
         /// Event for sending IRMF data parameters to UI (params : IRMFDataParameters)
         /// </summary>
         public GenericEvent<FMRIDataParameters> OnSendFMRIParameters = new GenericEvent<FMRIDataParameters>();
+
+        // TODO
+        public UnityEvent OnChangeColumnMinimizedState = new UnityEvent();
+        /// <summary>
+        /// Event called when site is clicked to dipslay additionnal infomation.
+        /// </summary>
+        public GenericEvent<IEnumerable<Site>> OnRequestSiteInformation = new GenericEvent<IEnumerable<Site>>();
         #endregion
 
         #region Private Methods
@@ -647,6 +645,10 @@ namespace HBP.Module3D
             {
                 UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
                 ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
+            });
+            m_ColumnManager.OnChangeColumnMinimizedState.AddListener(() =>
+            {
+                OnChangeColumnMinimizedState.Invoke();
             });
             m_ColumnManager.OnSelectColumnManager.AddListener((columnManager) =>
             {
@@ -2348,22 +2350,21 @@ namespace HBP.Module3D
                 Column3DIEEG column = (Column3DIEEG)m_ColumnManager.SelectedColumn;
                 if (column.SelectedSiteID != -1)
                 {
-                    List<List<bool>> masksColumnsData = new List<List<bool>>(m_ColumnManager.ColumnsIEEG.Count);
-                    for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-                    {
-                        masksColumnsData.Add(new List<bool>(m_ColumnManager.ColumnsIEEG[ii].Sites.Count));
-                        for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG[ii].Sites.Count; ++jj)
-                        {
-                            Site s = m_ColumnManager.ColumnsIEEG[ii].Sites[jj];
-                            bool keep = (!s.State.IsBlackListed && !s.State.IsExcluded && !s.State.IsMasked && !s.State.IsOutOfROI);
-                            masksColumnsData[ii].Add(keep);
-                        }
-                    }
-                    SiteRequest request = new SiteRequest();
-                    request.site = column.SelectedSite;
-                    request.site2 = previousSite;
-                    request.maskColumn = masksColumnsData;
-                    ApplicationState.Module3D.OnRequestSiteInformation.Invoke(request);
+                    //List<List<bool>> masksColumnsData = new List<List<bool>>(m_ColumnManager.ColumnsIEEG.Count);
+                    //for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
+                    //{
+                    //    masksColumnsData.Add(new List<bool>(m_ColumnManager.ColumnsIEEG[ii].Sites.Count));
+                    //    for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG[ii].Sites.Count; ++jj)
+                    //    {
+                    //        Site s = m_ColumnManager.ColumnsIEEG[ii].Sites[jj];
+                    //        bool keep = (!s.State.IsBlackListed && !s.State.IsExcluded && !s.State.IsMasked && !s.State.IsOutOfROI);
+                    //        masksColumnsData[ii].Add(keep);
+                    //    }
+                    //}
+                    List<Site> sites = new List<Site>();
+                    sites.Add(column.SelectedSite);
+                    if (previousSite != null) sites.Add(previousSite);
+                    OnRequestSiteInformation.Invoke(sites);
                 }
             }
         }

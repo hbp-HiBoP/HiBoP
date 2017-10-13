@@ -348,6 +348,10 @@ namespace HBP.Module3D
         /// Event called when changing the timeline ID of a column
         /// </summary>
         public GenericEvent<Column3DIEEG> OnUpdateColumnTimelineID = new GenericEvent<Column3DIEEG>();
+        /// <summary>
+        /// Event called when minimizing a column
+        /// </summary>
+        public UnityEvent OnChangeColumnMinimizedState = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -425,6 +429,10 @@ namespace HBP.Module3D
             {
                 OnChangeROIVolumeRadius.Invoke();
             });
+            column.OnChangeMinimizedState.AddListener(() =>
+            {
+                OnChangeColumnMinimizedState.Invoke();
+            });
             m_Columns.Add(column);
             //column.transform.localPosition = new Vector3(0, HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * m_Columns.Count);
             OnAddColumn.Invoke();
@@ -452,6 +460,10 @@ namespace HBP.Module3D
                 }
                 OnSelectColumnManager.Invoke(this);
                 ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
+            });
+            column.OnChangeMinimizedState.AddListener(() =>
+            {
+                OnChangeColumnMinimizedState.Invoke();
             });
             m_Columns.Add(column);
             OnAddColumn.Invoke();

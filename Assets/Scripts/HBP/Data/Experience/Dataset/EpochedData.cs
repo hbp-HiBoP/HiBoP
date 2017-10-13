@@ -14,6 +14,7 @@ namespace HBP.Data.Experience
     public class EpochedData
     {
         #region Properties
+        public float Frequency { get; set; }
         public Localizer.Bloc[] Blocs { get; set; }
         #endregion
 
@@ -25,10 +26,13 @@ namespace HBP.Data.Experience
 
             // Calcul number of samples before and after the main event.
             int numberOfSamplesBeforeMainEvent, numberOfSamplesAfterMainEvent;
+            int baselineNumberOfSamplesBeforeMainEvent, baselineNumberOfSamplesAfterMainEvent;
             CalculateNumberOfSamples(bloc.DisplayInformations.Window, data.Frequency, out numberOfSamplesBeforeMainEvent, out numberOfSamplesAfterMainEvent);
+            CalculateNumberOfSamples(bloc.DisplayInformations.BaseLine, data.Frequency, out baselineNumberOfSamplesBeforeMainEvent, out baselineNumberOfSamplesAfterMainEvent);
 
             // Generate blocs.
-            Blocs = (from index in indexByEvent[bloc.MainEvent] where (index + numberOfSamplesBeforeMainEvent >= 0 && index + numberOfSamplesAfterMainEvent < data.ValuesBySite.Values.First().Length)select new Localizer.Bloc(index + numberOfSamplesBeforeMainEvent, index + numberOfSamplesAfterMainEvent, indexByEvent, data)).ToArray();
+            Blocs = (from index in indexByEvent[bloc.MainEvent] where (index + numberOfSamplesBeforeMainEvent >= 0 && index + numberOfSamplesAfterMainEvent < data.ValuesBySite.Values.First().Length)select new Localizer.Bloc(index + numberOfSamplesBeforeMainEvent, index + numberOfSamplesAfterMainEvent, index + baselineNumberOfSamplesBeforeMainEvent, index + baselineNumberOfSamplesAfterMainEvent, indexByEvent, data)).ToArray();
+            Frequency = data.Frequency;
         }
         #endregion
 

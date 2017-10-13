@@ -8,7 +8,7 @@
   "ValueAveraging": 0,
   "TrialMatrixSettings": {
     "Smoothing": 1,
-    "Baseline": 3,
+    "Baseline": 0,
     "BlocFormat": 1,
     "ConstantLineHeight": 3,
     "LineHeightByWidth": 0.005,

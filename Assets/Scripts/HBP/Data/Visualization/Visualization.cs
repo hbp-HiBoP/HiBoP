@@ -80,8 +80,7 @@ namespace HBP.Data.Visualization
         }
 
         const float FIND_FILES_TO_READ_PROGRESS = 0.025f;
-        const float READ_FILES_PROGRESS = 0.6f;
-        const float LOAD_COLUMNS_PROGRESS = 0.3f;
+        const float LOAD_COLUMNS_PROGRESS = 0.9f;
         const float STANDARDIZE_COLUMNS_PROGRESS = 0.075f;
         #endregion
 
@@ -182,28 +181,22 @@ namespace HBP.Data.Visualization
 
             float progress = 0.0f;
 
-            yield return Ninja.JumpToUnity;
+            // Find dataInfo.
             Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
             yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataToRead(progress, onChangeProgress,(value, progressValue) => { dataInfoByColumn = value; progress = progressValue; }));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataInfoToRead(progress, onChangeProgress,(value, progressValue) => { dataInfoByColumn = value; progress = progressValue; }));
             yield return Ninja.JumpBack;
+
+            // Load Columns.
             Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo = (from dataInfos in dataInfoByColumn.Values from dataInfo in dataInfos select dataInfo).Distinct().ToDictionary(t => t, t => new Experience.Dataset.Data());
             Dictionary<Column, Experience.Dataset.Data[]> dataByColumn = new Dictionary<Column, Experience.Dataset.Data[]>();
             yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_ReadData(dataInfoByColumn, dataByDataInfo, progress, onChangeProgress,(value, progressValue) => { dataByColumn = value; progress = progressValue; }));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataInfoByColumn, progress, onChangeProgress,(value) => progress = value));
             yield return Ninja.JumpBack;
-            yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataByColumn, progress, onChangeProgress,(value) => progress = value));
-            yield return Ninja.JumpBack;
+
+            // Standardize Columns.
             yield return Ninja.JumpToUnity;
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_StandardizeColumns(progress, onChangeProgress,(value) => progress = value));
-        }
-        /// <summary>
-        /// Unload the visualization.
-        /// </summary>
-        public void Unload()
-        {
-            foreach (Column column in Columns) column.Unload();
         }
         /// <summary>
         /// Swap two columns by index.
@@ -263,7 +256,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Private Methods
-        IEnumerator c_FindDataToRead(float progress, GenericEvent<float, float, string> onChangeProgress, Action<Dictionary<Column, DataInfo[]>, float> outPut)
+        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, string> onChangeProgress, Action<Dictionary<Column, DataInfo[]>, float> outPut)
         {
             // Find files to read.
             Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
@@ -295,54 +288,16 @@ namespace HBP.Data.Visualization
             }
             outPut(dataInfoByColumn, progress);
         }
-        IEnumerator c_ReadData(Dictionary<Column, DataInfo[]> dataInfoByColumn, Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo, float progress, GenericEvent<float, float, string> onChangeProgress, Action<Dictionary<Column, Experience.Dataset.Data[]>, float> outPut)
-        {
-            Stopwatch timer = new Stopwatch();
-            float progressStep = READ_FILES_PROGRESS / (dataByDataInfo.Count);
-            float readingSpeed = 36000000;
-            List<DataInfo> dataInfoToRead = dataByDataInfo.Keys.ToList();
-            foreach (var dataInfo in dataInfoToRead)
-            {
-                // Find file to read informations.
-                FileInfo fileToRead = new FileInfo(dataInfo.EEG);
-                float assumedReadingTime = fileToRead.Length / readingSpeed;
-
-                // Update progressBar
-                progress += progressStep;
-                yield return Ninja.JumpToUnity;
-                onChangeProgress.Invoke(progress, assumedReadingTime, "Reading" + fileToRead.Name);
-                yield return Ninja.JumpBack;
-
-                // Read Data.
-                try
-                {
-                    timer.Start();
-                    dataByDataInfo[dataInfo] = new Experience.Dataset.Data(dataInfo);
-                    timer.Stop();
-                }
-                catch (Exception exception)
-                {
-                    throw (exception);
-                }
-
-                // Calculate real reading speed.
-                float actualReadingTime = timer.ElapsedMilliseconds / 1000.0f;
-                readingSpeed = Mathf.Lerp(readingSpeed, fileToRead.Length / actualReadingTime, 0.5f);
-                timer.Reset();
-            }
-            Dictionary<Column, Experience.Dataset.Data[]> dataByColumn = dataInfoByColumn.ToDictionary(t => t.Key, t => (from dataInfo in t.Value select dataByDataInfo[dataInfo]).ToArray());
-            outPut(dataByColumn, progress);
-        }
-        IEnumerator c_LoadColumns(Dictionary<Column, Experience.Dataset.Data[]> dataByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadColumns(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float> outPut)
         {
             float progressStep = LOAD_COLUMNS_PROGRESS / Columns.Count;
             foreach (Column column in Columns)
             {
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0.2f, "Load column <color=blue>" + column.Data + "</color>.");
+                onChangeProgress.Invoke(progress, 0.5f, "Load column <color=blue>" + column.Data + "</color>.");
                 yield return Ninja.JumpBack;
-                column.Load(dataByColumn[column]);
+                column.Load(dataInfoByColumn[column]);
                 yield return Ninja.JumpToUnity;
                 column.IconicScenario.LoadIcons();
             }
