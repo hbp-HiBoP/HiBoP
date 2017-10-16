@@ -26,10 +26,7 @@ namespace HBP.Data.TrialMatrix
             Bloc[] trialMatrixBlocs = (from bloc in protocol.Blocs select new Bloc(bloc, blocsByProtocolBloc[bloc] , site)).ToArray();
             UnityEngine.Profiling.Profiler.EndSample();
 
-            // Standardize bloc by BaseLine.
-            UnityEngine.Profiling.Profiler.BeginSample("normalize");
-            Normalize(trialMatrixBlocs,site);
-            UnityEngine.Profiling.Profiler.EndSample();
+            Normalize(trialMatrixBlocs, site);
 
             // Calculate values limits.
             UnityEngine.Profiling.Profiler.BeginSample("calculate values");
@@ -76,79 +73,13 @@ namespace HBP.Data.TrialMatrix
         }
         void Normalize(Bloc[] blocs, Module3D.Site site)
         {
-            float average = 0;
-            float standardDeviation = 1;
-            UnityEngine.Profiling.Profiler.BeginSample("Averaging");
-            switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Baseline)
-            {
-                case Settings.TrialMatrixSettings.BaselineType.None:
-                    foreach (Bloc b in blocs)
-                    {
-                        foreach (Line l in b.Lines)
-                        {
-                            average = 0;
-                            standardDeviation = 1;
-                            l.Bloc.Normalize(average, standardDeviation, site.Information.FullCorrectedID);
-                        }
-                    }
-                    break;
-                case Settings.TrialMatrixSettings.BaselineType.Line:
-                    foreach (Bloc b in blocs)
-                    {
-                        foreach (Line l in b.Lines)
-                        {
-                            average = MathfExtension.Average(l.Bloc.BaseLineValuesBySite[site.Information.FullCorrectedID]);
-                            standardDeviation = MathfExtension.StandardDeviation(l.Bloc.BaseLineValuesBySite[site.Information.FullCorrectedID]);
-                            l.Bloc.Normalize(average, standardDeviation, site.Information.FullCorrectedID);
-                        }
-                    }
-                    break;
-                case Settings.TrialMatrixSettings.BaselineType.Bloc:
-                    foreach (Bloc b in blocs)
-                    {
-                        List<float> l_blocBaseLine = new List<float>();
-                        foreach (Line l in b.Lines)
-                        {
-                            l_blocBaseLine.AddRange(l.Bloc.BaseLineValuesBySite[site.Information.FullCorrectedID]);
-                        }
-                        average = MathfExtension.Average(l_blocBaseLine.ToArray());
-                        standardDeviation = MathfExtension.StandardDeviation(l_blocBaseLine.ToArray());
-                        foreach (Line l in b.Lines)
-                        {
-                            l.Bloc.Normalize(average, standardDeviation, site.Information.FullCorrectedID);
-                        }
-                    }
-                    break;
-                case Settings.TrialMatrixSettings.BaselineType.Protocol:
-                    List<float> protocol = new List<float>();
-                    foreach (Bloc b in blocs)
-                    {
-                        foreach (Line l in b.Lines)
-                        {
-                            protocol.AddRange(l.Bloc.BaseLineValuesBySite[site.Information.FullCorrectedID]);
-                        }
-                    }
-                    average = MathfExtension.Average(protocol.ToArray());
-                    standardDeviation = MathfExtension.StandardDeviation(protocol.ToArray());
-                    foreach (Bloc b in blocs)
-                    {
-                        foreach (Line l in b.Lines)
-                        {
-                            l.Bloc.Normalize(average, standardDeviation, site.Information.FullCorrectedID);
-                        }
-                    }
-                    break;
-            }
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("Update values");
-            foreach (Bloc bloc in blocs.ToArray())
+            foreach (Bloc bloc in blocs)
             {
                 foreach (Line line in bloc.Lines)
                 {
                     line.UpdateValues();
                 }
             }
-            UnityEngine.Profiling.Profiler.EndSample();
         }
         Vector2[] CalculateTimeLimitsByColumn(Bloc[] blocs)
         {

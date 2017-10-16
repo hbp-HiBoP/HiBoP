@@ -18,6 +18,104 @@ public static class DataManager
         if (!m_DataByRequest.ContainsKey(request)) Load(request.DataInfo);
         return m_DataByRequest[request];
     }
+    public static void NormalizeData()
+    {
+        float average = 0;
+        float standardDeviation = 1;
+        switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Baseline)
+        {
+            case HBP.Data.Settings.TrialMatrixSettings.BaselineType.None:
+                foreach (var epochedData in m_DataByRequest.Values)
+                {
+                    foreach (var bloc in epochedData.Blocs)
+                    {
+                        bloc.Normalize(average, standardDeviation);
+                    }
+                }
+                break;
+            case HBP.Data.Settings.TrialMatrixSettings.BaselineType.Line:
+                foreach (var epochedData in m_DataByRequest.Values)
+                {
+                    foreach (var bloc in epochedData.Blocs)
+                    {
+                        foreach (var pair in bloc.BaseLineValuesBySite)
+                        {
+                            average = MathfExtension.Average(pair.Value);
+                            standardDeviation = MathfExtension.StandardDeviation(pair.Value);
+                            bloc.Normalize(average, standardDeviation, pair.Key);
+                        }
+                    }
+                }
+                break;
+            case HBP.Data.Settings.TrialMatrixSettings.BaselineType.Bloc:
+                foreach (var epochedData in m_DataByRequest.Values)
+                {
+                    Dictionary<string, List<float>> baselineBySite = new Dictionary<string, List<float>>();
+                    Dictionary<string, float> averageBySite = new Dictionary<string, float>();
+                    Dictionary<string, float> standardDeviationBySite = new Dictionary<string, float>();
+                    foreach (var line in epochedData.Blocs)
+                    {
+                        foreach (var site in line.BaseLineValuesBySite.Keys)
+                        {
+                            if (!baselineBySite.ContainsKey(site)) baselineBySite[site] = new List<float>();
+                            baselineBySite[site].AddRange(line.BaseLineValuesBySite[site]);
+                        }
+                    }
+                    foreach (var site in baselineBySite.Keys)
+                    {
+                        averageBySite[site] = MathfExtension.Average(baselineBySite[site].ToArray());
+                        standardDeviationBySite[site] = MathfExtension.StandardDeviation(baselineBySite[site].ToArray());
+                    }
+                    foreach (var line in epochedData.Blocs)
+                    {
+                        foreach (var site in line.ValuesBySite.Keys)
+                        {
+                            line.Normalize(averageBySite[site], standardDeviationBySite[site], site);
+                        }
+                    }
+                }
+                break;
+            case HBP.Data.Settings.TrialMatrixSettings.BaselineType.Protocol:
+                DataInfo[] dataInfo = (from request in m_DataByRequest.Keys select request.DataInfo).Distinct().ToArray();
+                foreach (var data in dataInfo)
+                {
+                    Protocol protocol = ApplicationState.ProjectLoaded.Datasets.First((d) => d.Data.Contains(data)).Protocol;
+                    Dictionary<string, List<float>> baselineBySite = new Dictionary<string, List<float>>();
+                    Dictionary<string, float> averageBySite = new Dictionary<string, float>();
+                    Dictionary<string, float> standardDeviationBySite = new Dictionary<string, float>();
+
+                    foreach (var bloc in protocol.Blocs)
+                    {
+                        EpochedData epochedData = m_DataByRequest[new DataRequest(data, bloc)];
+                        foreach (var line in epochedData.Blocs)
+                        {
+                            foreach (var site in line.BaseLineValuesBySite.Keys)
+                            {
+                                if (!baselineBySite.ContainsKey(site)) baselineBySite[site] = new List<float>();
+                                baselineBySite[site].AddRange(line.BaseLineValuesBySite[site]);
+                            }
+                        }
+                    }
+                    foreach (var site in baselineBySite.Keys)
+                    {
+                        averageBySite[site] = MathfExtension.Average(baselineBySite[site].ToArray());
+                        standardDeviationBySite[site] = MathfExtension.StandardDeviation(baselineBySite[site].ToArray());
+                    }
+                    foreach (var bloc in protocol.Blocs)
+                    {
+                        EpochedData epochedData = m_DataByRequest[new DataRequest(data, bloc)];
+                        foreach (var line in epochedData.Blocs)
+                        {
+                            foreach (var site in line.BaseLineValuesBySite.Keys)
+                            {
+                                line.Normalize(averageBySite[site], standardDeviationBySite[site], site);
+                            }
+                        }
+                    }
+                }
+                break;
+        }
+    }
     #endregion
 
     #region Private Methods
@@ -30,88 +128,15 @@ public static class DataManager
             m_DataByRequest.Add(new DataRequest(dataInfo,bloc),new EpochedData(bloc, data));
         }
     }
-    //static void NormalizeData()
-    //{
-    //    float average = 0;
-    //    float standardDeviation = 1;
-    //    switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Baseline)
-    //    {
-    //        case HBP.Data.Settings.TrialMatrixSettings.BaselineType.None:
-    //            foreach (var epochedData in m_DataByRequest.Values)
-    //            {
-    //                foreach (var bloc in epochedData.Blocs)
-    //                {
-    //                    bloc.Normalize(average, standardDeviation);
-    //                }
-    //            }
-    //            break;
-    //        case HBP.Data.Settings.TrialMatrixSettings.BaselineType.Line:
-    //            foreach (var epochedData in m_DataByRequest.Values)
-    //            {
-    //                foreach (var bloc in epochedData.Blocs)
-    //                {
-    //                    foreach (var pair in bloc.BaseLineValuesBySite)
-    //                    {
-    //                        average = MathfExtension.Average(pair.Value);
-    //                        standardDeviation = MathfExtension.StandardDeviation(pair.Value);
-    //                        bloc.Normalize(average, standardDeviation);
-    //                    }
-    //                }
-    //            }
-    //            break;
-    //        case HBP.Data.Settings.TrialMatrixSettings.BaselineType.Bloc:
-    //            foreach (var epochedData in m_DataByRequest.Values)
-    //            {
-    //                foreach (var bloc in epochedData.Blocs)
-    //                {
-    //                    List<float> baseLine = new List<float>();
-    //                    foreach (var value in bloc.BaseLineValuesBySite.Values)
-    //                    {
-    //                        baseLine.AddRange(value);
-    //                    }
-    //                    average = MathfExtension.Average(baseLine.ToArray());
-    //                    standardDeviation = MathfExtension.StandardDeviation(baseLine.ToArray());
-    //                    bloc.Normalize(average, standardDeviation);
-    //                }
-    //            }
-    //            break;
-    //        case HBP.Data.Settings.TrialMatrixSettings.BaselineType.Protocol:
-    //            List<float> protocol = new List<float>();
-    //            foreach (Bloc b in blocs)
-    //            {
-    //                foreach (Line l in b.Lines)
-    //                {
-    //                    protocol.AddRange(l.Bloc.BaseLineValuesBySite[site.Information.FullCorrectedID]);
-    //                }
-    //            }
-    //            average = MathfExtension.Average(protocol.ToArray());
-    //            standardDeviation = MathfExtension.StandardDeviation(protocol.ToArray());
-    //            foreach (Bloc b in blocs)
-    //            {
-    //                foreach (Line l in b.Lines)
-    //                {
-    //                    l.Bloc.Normalize(average, standardDeviation);
-    //                }
-    //            }
-    //            break;
-    //    }
-    //    foreach (Bloc bloc in blocs.ToArray())
-    //    {
-    //        foreach (Line line in bloc.Lines)
-    //        {
-    //            line.UpdateValues();
-    //        }
-    //    }
-    //}
     #endregion
 
     #region Private struct
     struct DataRequest
     {
-        public HBP.Data.Experience.Dataset.DataInfo DataInfo;
-        public HBP.Data.Experience.Protocol.Bloc Bloc;
+        public DataInfo DataInfo;
+        public Bloc Bloc;
 
-        public DataRequest(HBP.Data.Experience.Dataset.DataInfo dataInfo, HBP.Data.Experience.Protocol.Bloc bloc)
+        public DataRequest(DataInfo dataInfo, Bloc bloc)
         {
             DataInfo = dataInfo;
             Bloc = bloc;

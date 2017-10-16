@@ -21,6 +21,7 @@ namespace HBP.Data.Localizer
             PositionByEvent = positionByEvent;
             ValuesBySite = valuesBySite;
             BaseLineValuesBySite = baseLineValuesBySite;
+            NormalizedValuesBySite = new Dictionary<string, float[]>();
         }
         public Bloc(int firstIndex, int lastIndex, int baseLineFirstIndex, int baseLineLastIndex, Dictionary<Experience.Protocol.Event, int[]> indexByEvent, Experience.Dataset.Data data)
         {
@@ -55,6 +56,7 @@ namespace HBP.Data.Localizer
                 baseLineValuesBySite.Add(pair.Key, values);
             }
             BaseLineValuesBySite = baseLineValuesBySite;
+            NormalizedValuesBySite = new Dictionary<string, float[]>();
         }
         public Bloc(): this (new Dictionary<Experience.Protocol.Event, int>(),new Dictionary<string, float[]>(), new Dictionary<string, float[]>())
         {
@@ -64,22 +66,13 @@ namespace HBP.Data.Localizer
         #region Public Methods
         public void Normalize(float average, float standardDeviation, string siteToNormalize = "")
         {
-            NormalizedValuesBySite = new Dictionary<string, float[]>();
             if (string.IsNullOrEmpty(siteToNormalize))
             {
                 NormalizedValuesBySite = (from site in ValuesBySite.Keys select new KeyValuePair<string, float[]>(site, (from value in ValuesBySite[site] select (value - average) / standardDeviation).ToArray())).ToDictionary(p => p.Key, p => p.Value);
             }
             else
             {
-                float[] normalizedValues = (from value in ValuesBySite[siteToNormalize] select (value - average) / standardDeviation).ToArray();
-                if (NormalizedValuesBySite.ContainsKey(siteToNormalize))
-                {
-                    NormalizedValuesBySite[siteToNormalize] = normalizedValues;
-                }
-                else
-                {
-                    NormalizedValuesBySite.Add(siteToNormalize, normalizedValues);
-                }
+                NormalizedValuesBySite[siteToNormalize] = (from value in ValuesBySite[siteToNormalize] select (value - average) / standardDeviation).ToArray();
             }
         }
         #endregion

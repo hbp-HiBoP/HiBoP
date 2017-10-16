@@ -120,9 +120,9 @@ namespace HBP.Data.Visualization
 
             List<Localizer.Bloc> blocs = new List<Localizer.Bloc>();
             Dictionary<string, SiteConfiguration> siteConfigurationsByID = new Dictionary<string, SiteConfiguration>();
-            foreach (Experience.Dataset.DataInfo dataInfo in columnData)
+            foreach (DataInfo dataInfo in columnData)
             {
-                HBP.Data.Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
+                Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
                 //FIXME
                 frequency = epochedData.Frequency;
                 Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs);
@@ -137,6 +137,7 @@ namespace HBP.Data.Visualization
                     }
                 }
             }
+            DataManager.NormalizeData();
             Configuration.ConfigurationBySite = siteConfigurationsByID;
             Event mainEvent = new Event();
             Event[] secondaryEvents = new Event[Bloc.SecondaryEvents.Count];
