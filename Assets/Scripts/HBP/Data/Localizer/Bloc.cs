@@ -83,6 +83,7 @@ namespace HBP.Data.Localizer
             Dictionary<Experience.Protocol.Event, List<int>> positionsByEvent = new Dictionary<Experience.Protocol.Event, List<int>>();
             Dictionary<string, List<float>[]> valuesBySite = new Dictionary<string, List<float>[]>();
             Dictionary<string, List<float>[]> baseLineValuesBySite = new Dictionary<string, List<float>[]>();
+            Dictionary<string, List<float>[]> normalizedValuesBySite = new Dictionary<string, List<float>[]>();
             foreach (Bloc bloc in blocs)
             {
                 foreach (Experience.Protocol.Event _event in bloc.PositionByEvent.Keys)
@@ -106,6 +107,12 @@ namespace HBP.Data.Localizer
                         baseLineValuesBySite[site][v].Add(bloc.BaseLineValuesBySite[site][v]);
                     }
 
+                    if (!normalizedValuesBySite.ContainsKey(site)) normalizedValuesBySite.Add(site, new List<float>[bloc.NormalizedValuesBySite[site].Length]);
+                    for (int v = 0; v < normalizedValuesBySite[site].Length; v++)
+                    {
+                        if (normalizedValuesBySite[site][v] == null) normalizedValuesBySite[site][v] = new List<float>();
+                        normalizedValuesBySite[site][v].Add(bloc.NormalizedValuesBySite[site][v]);
+                    }
                 }
             }
 
@@ -124,10 +131,12 @@ namespace HBP.Data.Localizer
                 case Settings.GeneralSettings.AveragingMode.Mean:
                     foreach (var item in valuesBySite) result.ValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
                     foreach (var item in baseLineValuesBySite) result.BaseLineValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
+                    foreach (var item in normalizedValuesBySite) result.NormalizedValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
                     break;
                 case Settings.GeneralSettings.AveragingMode.Median:
                     foreach (var item in valuesBySite) result.ValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
                     foreach (var item in baseLineValuesBySite) result.BaseLineValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
+                    foreach (var item in normalizedValuesBySite) result.NormalizedValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
                     break;
             }
             return result;		

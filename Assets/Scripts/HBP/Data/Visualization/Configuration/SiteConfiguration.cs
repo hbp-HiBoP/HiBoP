@@ -50,25 +50,28 @@ namespace HBP.Data.Visualization
 
         [IgnoreDataMember]
         public float[] Values { get; set; }
+        [IgnoreDataMember]
+        public float[] NormalizedValues { get; set; }
         #endregion
 
         #region Constructors
-        public SiteConfiguration(float[] values, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked)
+        public SiteConfiguration(float[] values,float[] normalizedValues, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked)
         {
             Values = values;
+            NormalizedValues = values;
             IsExcluded = isExcluded;
             IsBlacklisted = isBlacklisted;
             IsHighlighted = isHighlighted;
             IsMarked = isMarked;
         }
-        public SiteConfiguration(Color color) : this(new float[0], false, false, false, false) { }
+        public SiteConfiguration(Color color) : this(new float[0],new float[0], false, false, false, false) { }
         public SiteConfiguration() : this(new Color()) { }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new SiteConfiguration(Values, IsExcluded, IsBlacklisted, IsHighlighted, IsMarked);
+            return new SiteConfiguration(Values, NormalizedValues, IsExcluded, IsBlacklisted, IsHighlighted, IsMarked);
         }
         public void LoadSerializedConfiguration(SiteConfiguration configuration)
         {

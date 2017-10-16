@@ -6,7 +6,7 @@ using HBP.UI.TrialMatrix;
 using HBP.Data.Visualization;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
-using Tools.Unity.Graph.Data;
+using Tools.Unity.Graph;
 
 namespace HBP.UI.Graph
 {
@@ -29,14 +29,14 @@ namespace HBP.UI.Graph
         // Trial matrix
         [SerializeField] TrialMatrixList m_TrialMatrixList;
         Dictionary<Protocol, Vector2> m_LimitsByProtocol = new Dictionary<Protocol, Vector2>();
-        Dictionary<Protocol, Data.TrialMatrix.TrialMatrix[]> m_TrialMatrixByProtocol = new Dictionary<Protocol, Data.TrialMatrix.TrialMatrix[]>();
+        Dictionary<Protocol, Dictionary<Site,Data.TrialMatrix.TrialMatrix>> m_TrialMatrixByProtocolBySite = new Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>>();
         bool m_LineSelectable = false;
 
         // Curves
-        //[SerializeField] GraphGestion m_GraphGestion;
-        //Color[] m_Colors = new Color[7] { Color.blue, Color.red, Color.green, Color.cyan, Color.grey, Color.magenta, Color.yellow };
-        //Curve[][] m_Curves = new Curve[0][];
-        //Curve[] m_ROIcurves = new Curve[0];
+        [SerializeField] Tools.Unity.Graph.Graph m_Graph;
+        Color[] m_Colors = new Color[7] { Color.blue, Color.red, Color.green, Color.cyan, Color.grey, Color.magenta, Color.yellow };
+        Dictionary<Column, Dictionary<Site, CurveData>> m_CurveBySiteAndColumn = new Dictionary<Column, Dictionary<Site, CurveData>>();
+        Dictionary<Column, CurveData> m_ROICurvebyColumn = new Dictionary<Column, CurveData>();
 
         // Plots
         Site[] m_Sites;
@@ -54,8 +54,8 @@ namespace HBP.UI.Graph
                 {
                     trial.SelectLines(lines, bloc, additive);
                 }
-                //GenerateCurves();
-                //DisplayCurves();
+                GenerateCurves();
+                DisplayCurves();
             }
         }
         void OnRequestSiteInformation(IEnumerable<Site> sites)
@@ -65,14 +65,13 @@ namespace HBP.UI.Graph
 
             GenerateTrialMatrix();
             DisplayTrialMatrix();
-            //GenerateCurves();
-            //DisplayCurves();
+            GenerateCurves();
+            DisplayCurves();
         }
         void OnMinimizeColumns()
         {
             DisplayTrialMatrix();
-            //GenerateCurves();
-            //DisplayCurves();
+            DisplayCurves();
         }
         #endregion
 
@@ -98,12 +97,12 @@ namespace HBP.UI.Graph
 
             // Generate trialMatrix and create the dictionary
             UnityEngine.Profiling.Profiler.BeginSample("Generate");
-            Dictionary<Protocol, Data.TrialMatrix.TrialMatrix[]> trialMatrixByProtocol = new Dictionary<Protocol, Data.TrialMatrix.TrialMatrix[]>();
+            Dictionary<Protocol, Dictionary<Site,Data.TrialMatrix.TrialMatrix>> trialMatrixByProtocol = new Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>>();
             foreach (Protocol protocol in protocols)
             {
                 UnityEngine.Profiling.Profiler.BeginSample("new TrialMatrix array");
                 Column column = Scene.ColumnManager.ColumnsIEEG.First(c => c.ColumnData.Protocol == protocol).ColumnData;
-                Data.TrialMatrix.TrialMatrix[] trialMatrixData = new Data.TrialMatrix.TrialMatrix[m_Sites.Length];
+                Dictionary<Site,Data.TrialMatrix.TrialMatrix> trialMatrixData = new Dictionary<Site,Data.TrialMatrix.TrialMatrix>();
                 UnityEngine.Profiling.Profiler.EndSample();
 
                 UnityEngine.Profiling.Profiler.BeginSample("Find DataInfoBySite");
@@ -112,7 +111,7 @@ namespace HBP.UI.Graph
                 UnityEngine.Profiling.Profiler.EndSample();
 
                 UnityEngine.Profiling.Profiler.BeginSample("GetData from Manager");
-                Dictionary<Data.Experience.Dataset.DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>> epochedBlocsByProtocolBlocByDataInfo = new Dictionary<Data.Experience.Dataset.DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>>();
+                Dictionary<Data.Experience.Dataset.DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>> epochedBlocsByProtocolBlocByDataInfo = new Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>>();
                 foreach (var data in dataInfoToRead)
                 {
                     Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]> epochedBlocsByProtocolBloc = new Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>();
@@ -125,11 +124,14 @@ namespace HBP.UI.Graph
                 UnityEngine.Profiling.Profiler.EndSample();
 
                 UnityEngine.Profiling.Profiler.BeginSample("new TrialMatrix");
-                for (int i = 0; i < m_Sites.Length; i++) trialMatrixData[i] = new Data.TrialMatrix.TrialMatrix(protocol, dataInfoBySite[m_Sites[i]], epochedBlocsByProtocolBlocByDataInfo[dataInfoBySite[m_Sites[i]]], m_Sites[i]);
+                foreach (var site in m_Sites)
+                {
+                   trialMatrixData[site] = new Data.TrialMatrix.TrialMatrix(protocol, dataInfoBySite[site], epochedBlocsByProtocolBlocByDataInfo[dataInfoBySite[site]], site);
+                }
                 trialMatrixByProtocol.Add(protocol, trialMatrixData);
                 UnityEngine.Profiling.Profiler.EndSample();
             }
-            this.m_TrialMatrixByProtocol = trialMatrixByProtocol;
+            m_TrialMatrixByProtocolBySite = trialMatrixByProtocol;
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.EndSample();
         }
@@ -137,178 +139,152 @@ namespace HBP.UI.Graph
         {
             UnityEngine.Profiling.Profiler.BeginSample("DisplayTrialMatrix()");
             IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG where !column.IsMinimized select column.ColumnData.Protocol).Distinct();
-            Data.TrialMatrix.TrialMatrix[][] trialMatrix = m_TrialMatrixByProtocol.Where(m => protocols.Contains(m.Key)).Select(m => m.Value).ToArray();
+            Data.TrialMatrix.TrialMatrix[][] trialMatrix = m_TrialMatrixByProtocolBySite.Where(m => protocols.Contains(m.Key)).Select(m => m.Value.Values.ToArray()).ToArray();
             m_TrialMatrixList.Set(trialMatrix);
             UnityEngine.Profiling.Profiler.EndSample();
         }
+        // Curves
+        void GenerateCurves()
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("GenerateCurve()");
 
-        //// Curves
-        //void GenerateCurves()
-        //{
-        //    UnityEngine.Profiling.Profiler.BeginSample("GenerateCurve()");
-        //    // Curves
-        //    Curve[][] curves = new Curve[maskColumns.Length][];
-        //    Curve[] ROIcurves = new Curve[maskColumns.Length];
+            for (int c = 0; c < m_Scene.ColumnManager.ColumnsIEEG.Count; c++)
+            {
+                Column column = m_Scene.ColumnManager.ColumnsIEEG[c].ColumnData;
+                m_CurveBySiteAndColumn[column] = new Dictionary<Site, CurveData>();
+                Dictionary<Site, CurveData> curveBySite = new Dictionary<Site, CurveData>();
+                foreach (var site in m_Sites)
+                {
+                    Data.TrialMatrix.TrialMatrix trialMatrixData = m_TrialMatrixByProtocolBySite[column.Protocol][site];
+                    TrialMatrix.TrialMatrix trialMatrix = m_TrialMatrixList.TrialMatrix.First((t) => t.Data == trialMatrixData);
+                    TrialMatrix.Bloc trialMatrixBloc = new TrialMatrix.Bloc();
+                    foreach (var line in trialMatrix.Lines)
+                    {
+                        foreach (var bloc in line.Blocs)
+                        {
+                            if (bloc.Data.ProtocolBloc == column.Bloc)
+                            {
+                                trialMatrixBloc = bloc;
+                                goto Found;
+                            }
+                        }
+                    }
+                    Found:
+                    Data.TrialMatrix.Line[] linesToRead = trialMatrixBloc.Data.GetLines(trialMatrixBloc.SelectedLines);
+                    float[] data = new float[linesToRead.First().NormalizedValues.Length];
+                    if (linesToRead.Length > 1)
+                    {
+                        // Shape
+                        float[] standardDeviations = new float[data.Length];
+                        for (int i = 0; i < data.Length; i++)
+                        {
+                            List<float> l_dataList = new List<float>();
+                            for (int l = 0; l < linesToRead.Length; l++)
+                            {
+                                l_dataList.Add(linesToRead[l].NormalizedValues[i]);
+                            }
 
-        //    // PlotCurves
-        //    for (int c = 0; c < maskColumns.Length; c++)
-        //    {
-        //        if (!maskColumns[c])
-        //        {
-        //            Color mainColor = m_Colors[c];
-        //            Color[] secondariesColor = new Color[2];
-        //            secondariesColor[0] = mainColor;
-        //            secondariesColor[1] = mainColor + 0.5f * new Color(1, 1, 1);
+                            //Find selectedLines
+                            data[i] = Tools.CSharp.MathfExtension.Average(l_dataList.ToArray());
+                            standardDeviations[i] = Tools.CSharp.MathfExtension.SEM(l_dataList.ToArray());
+                        }
+                       
+                        // Generate points.
+                        int pMin = column.TimeLine.Start.Position;
+                        int pMax = column.TimeLine.End.Position;
+                        float min = column.TimeLine.Start.Value;
+                        float max = column.TimeLine.End.Value;
+                        int lenght = pMax + 1 - pMin;
+                        Vector2[] points = new Vector2[lenght];
+                        for (int i = 0; i < lenght ; i++)
+                        {
+                            int index = pMin + i;
+                            float absciss = min + ((max - min) * (index - pMin) / (pMax - pMin));
+                            points[i] = new Vector2(absciss, data[index]);
+                        }
 
-        //            // Read timeLine
-        //            Timeline timeLine;
-        //            switch (Type)
-        //            {
-        //                case TypeEnum.Single:
-        //                    timeLine = VisualizationLoaded.SP_VisualizationData.Columns[c].TimeLine;
-        //                    break;
-        //                case TypeEnum.Multi:
-        //                    timeLine = VisualizationLoaded.MP_VisualizationData.Columns[c].TimeLine;
-        //                    break;
-        //                default:
-        //                    timeLine = new Timeline();
-        //                    break;
-        //            }
+                        m_CurveBySiteAndColumn[column][site] = new ShapedCurveData("C" + (c + 1) + " " + site.Information.Name, points, standardDeviations, m_Colors[c]);
+                    }
+                    else if (linesToRead.Length == 1)
+                    {
+                        // Normal
+                        data = trialMatrixBloc.Data.Lines[trialMatrixBloc.SelectedLines[0]].NormalizedValues;
 
-        //            // Initialize Curves.
-        //            List<Curve> curvesInThisColumn = new List<Curve>();
+                        // Generate points.
+                        int pMin = column.TimeLine.Start.Position;
+                        int pMax = column.TimeLine.End.Position;
+                        float min = column.TimeLine.Start.Value;
+                        float max = column.TimeLine.End.Value;
+                        int lenght = pMax + 1 - pMin;
+                        Vector2[] points = new Vector2[lenght];
+                        for (int i = 0; i < lenght; i++)
+                        {
+                            int index = pMin + i;
+                            float absciss = min + ((max - min) * (index - pMin) / (pMax - pMin));
+                            points[i] = new Vector2(absciss, data[index]);
+                        }
 
-        //            for (int p = 0; p < m_Sites.Length; p++)
-        //            {
-        //                // Find bloc to read.
-        //                Data.TrialMatrix.TrialMatrix trialMatrixData = m_TrialMatrixByProtocol[columns[c].Protocol][p];
-        //                TrialMatrix.TrialMatrix trialMatrix = System.Array.Find(m_TrialMatrixList.TrialMatrix, t => t.Data == trialMatrixData);
-        //                TrialMatrix.Bloc bloc = null;
-        //                foreach (Line line in trialMatrix.Lines)
-        //                {
-        //                    foreach (TrialMatrix.Bloc blocInTheLine in line.Blocs)
-        //                    {
-        //                        if ((Type == TypeEnum.Single && blocInTheLine.Data.PBloc == VisualizationLoaded.SP_Visualization.Columns[c].Bloc) || (Type == TypeEnum.Multi && blocInTheLine.Data.PBloc == VisualizationLoaded.MP_Visualization.Columns[c].Bloc))
-        //                        {
-        //                            bloc = blocInTheLine;
-        //                            break;
-        //                        }
-        //                    }
-        //                }
+                        //Create curve
+                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, points, m_Colors[c]);
+                    }
+                    else continue;
+                }
+                // ROI
+                if (m_Scene.ColumnManager.ColumnsIEEG[c].ROIs.Count > 0)
+                {
+                    Site[] sites = (from site in m_Scene.ColumnManager.ColumnsIEEG[c].Sites where !site.State.IsOutOfROI && !site.State.IsExcluded && !site.State.IsBlackListed && !site.State.IsMasked select site).ToArray();
+                    float[] ROIdata = new float[sites.First().Configuration.Values.Length];
+                    for (int i = 0; i < ROIdata.Length; i++)
+                    {
+                        List<float> sum = new List<float>(sites.Length);
+                        foreach (var site in sites)
+                        {
+                            sum.Add(site.Configuration.NormalizedValues[i]);
+                        }
+                        ROIdata[i] = Tools.CSharp.MathfExtension.Average(sum.ToArray());
+                    }
 
-        //                // Read and average data.
-        //                Data.TrialMatrix.Line[] linesToRead = bloc.Data.GetLines(bloc.SelectedLines);
-        //                float[] data = new float[bloc.Data.Lines[0].Data.Length];
-        //                if (bloc.SelectedLines.Length > 1)
-        //                {
-        //                    float[] standardDeviations = new float[data.Length];
-        //                    for (int i = 0; i < data.Length; i++)
-        //                    {
-        //                        List<float> l_dataList = new List<float>();
-        //                        for (int l = 0; l < linesToRead.Length; l++)
-        //                        {
-        //                            l_dataList.Add(linesToRead[l].Data[i]);
-        //                        }
 
-        //                        //Find selectedLines
-        //                        data[i] = Tools.CSharp.MathfExtension.Average(l_dataList.ToArray());
-        //                        standardDeviations[i] = Tools.CSharp.MathfExtension.SEM(l_dataList.ToArray());
-        //                    }
-
-        //                    // Generate points.
-        //                    int pMin = timeLine.Start.Position;
-        //                    int pMax = timeLine.End.Position;
-        //                    float min = timeLine.Start.Value;
-        //                    float max = timeLine.End.Value;
-        //                    Vector2[] points = new Vector2[pMax + 1 - pMin];
-        //                    for (int i = pMin; i <= pMax; i++)
-        //                    {
-        //                        float absciss = min + ((max - min) * (i - pMin) / (pMax - pMin));
-        //                        points[i] = new Vector2(absciss, data[i]);
-        //                    }
-
-        //                    //Create curve
-        //                    curvesInThisColumn.Add(new CurveWithShape("C" + (c + 1) + " " + m_Sites[p].Name, 2, secondariesColor[p], points, standardDeviations, Tools.Unity.Graph.Point.Style.Round, true));
-        //                }
-        //                else if (bloc.SelectedLines.Length == 1)
-        //                {
-        //                    data = bloc.Data.Lines[bloc.SelectedLines[0]].Data;
-        //                    // Generate points.
-        //                    int pMin = timeLine.Start.Position;
-        //                    int pMax = timeLine.End.Position;
-        //                    float min = timeLine.Start.Value;
-        //                    float max = timeLine.End.Value;
-        //                    Vector2[] points = new Vector2[pMax + 1 - pMin];
-        //                    for (int i = pMin; i <= pMax; i++)
-        //                    {
-        //                        float absciss = min + ((max - min) * (i - pMin) / (pMax - pMin));
-        //                        points[i] = new Vector2(absciss, data[i]);
-        //                    }
-
-        //                    //Create curve
-        //                    curvesInThisColumn.Add(new Curve("C" + (c + 1) + " " + m_Sites[p].Name, 2, secondariesColor[p], points, Tools.Unity.Graph.Point.Style.Round, true));
-        //                }
-        //                else
-        //                {
-        //                    continue;
-        //                }
-        //            }
-        //            curves[c] = curvesInThisColumn.ToArray();
-
-        //            // ROI
-        //            if (Type == TypeEnum.Multi)
-        //            {
-        //                float[] l_ROIColumnData = new float[VisualizationLoaded.MP_VisualizationData.Columns[c].Values[0].Length];
-        //                for (int i = 0; i < l_ROIColumnData.Length; i++)
-        //                {
-        //                    float l_sum = 0;
-        //                    int l_nbPlots = 0;
-        //                    for (int plot = 0; plot < m_MaskPlots[c].Length; plot++)
-        //                    {
-        //                        if (m_MaskPlots[c][plot])
-        //                        {
-        //                            l_nbPlots++;
-        //                            l_sum += VisualizationLoaded.MP_VisualizationData.Columns[c].Values[plot][i];
-        //                        }
-        //                    }
-        //                    l_ROIColumnData[i] = l_sum / l_nbPlots;
-        //                }
-        //                int pMin = timeLine.Start.Position;
-        //                int pMax = timeLine.End.Position;
-        //                float min = timeLine.Start.Value;
-        //                float max = timeLine.End.Value;
-        //                Vector2[] l_points = new Vector2[pMax - pMin];
-        //                for (int p = pMin; p < pMax; p++)
-        //                {
-        //                    float absciss = min + ((max - min) * (p - pMin) / (pMax - 1 - pMin));
-        //                    l_points[p] = new Vector2(absciss, l_ROIColumnData[p]);
-        //                }
-        //                ROIcurves[c] = new Curve("C" + (c + 1) + " ROI", 4, mainColor, l_points, Tools.Unity.Graph.Point.Style.Round, true);
-        //            }
-        //        }
-        //    }
-        //    this.m_ROIcurves = ROIcurves;
-        //    this.m_Curves = curves;
-        //    UnityEngine.Profiling.Profiler.EndSample();
-        //}
-        //void DisplayCurves()
-        //{
-        //    UnityEngine.Profiling.Profiler.BeginSample("DisplayCurves()");
-        //    List<Curve> curves = new List<Curve>();
-        //    for (int c = 0; c < maskColumns.Length; c++)
-        //    {
-        //        if (!maskColumns[c])
-        //        {
-        //            curves.AddRange(this.m_Curves[c]);
-        //            if (Type == TypeEnum.Multi)
-        //            {
-        //                curves.Add(m_ROIcurves[c]);
-        //            }
-        //        }
-        //    }
-        //    m_GraphGestion.Set(curves.ToArray());
-        //    UnityEngine.Profiling.Profiler.EndSample();
-        //}
+                    // Generate points.
+                    int pMin = column.TimeLine.Start.Position;
+                    int pMax = column.TimeLine.End.Position;
+                    float min = column.TimeLine.Start.Value;
+                    float max = column.TimeLine.End.Value;
+                    int lenght = pMax + 1 - pMin;
+                    Vector2[] points = new Vector2[lenght];
+                    for (int i = 0; i < lenght; i++)
+                    {
+                        int index = pMin + i;
+                        float absciss = min + ((max - min) * (index - pMin) / (pMax - pMin));
+                        points[i] = new Vector2(absciss, ROIdata[index]);
+                    }
+                    m_ROICurvebyColumn[column] = new CurveData("C" + (c + 1) + " " + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, points, m_Colors[c]);
+                }
+            }
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+        void DisplayCurves()
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("DisplayCurves()");
+            List<CurveData> curvesToDisplay = new List<CurveData>();
+            foreach (var column in m_Scene.ColumnManager.ColumnsIEEG)
+            {
+                if(column.IsSelected)
+                {
+                    foreach (var site in m_Sites)
+                    {
+                        curvesToDisplay.Add(m_CurveBySiteAndColumn[column.ColumnData][site]);
+                    }
+                    if(m_ROICurvebyColumn.ContainsKey(column.ColumnData))
+                    {
+                        curvesToDisplay.Add(m_ROICurvebyColumn[column.ColumnData]);
+                    }
+                }
+            }
+            GraphData graphData = new GraphData("EEG", "Time(ms)", "Activity(mV)", Color.black, Color.white, curvesToDisplay.ToArray());
+            m_Graph.Plot(graphData);
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
         #endregion
     }
 }
