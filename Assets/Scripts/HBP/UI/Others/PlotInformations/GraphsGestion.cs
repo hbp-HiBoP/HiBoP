@@ -26,14 +26,35 @@ namespace HBP.UI.Graph
             }
         }
 
+        // Minimize handling
+        public const float MINIMIZED_THRESHOLD = 100.0f;
+        bool m_RectTransformChanged;
+        [SerializeField]
+        RectTransform m_RectTransform;
+        [SerializeField]
+        GameObject m_MinimizedGameObject;
+        Tools.Unity.ResizableGrid.ResizableGrid m_ParentGrid;
+        /// <summary>
+        /// Is the column minimzed ?
+        /// </summary>
+        public bool IsMinimized
+        {
+            get
+            {
+                return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
+            }
+        }
+
         // Trial matrix
-        [SerializeField] TrialMatrixList m_TrialMatrixList;
+        [SerializeField]
+        TrialMatrixList m_TrialMatrixList;
         Dictionary<Protocol, Vector2> m_LimitsByProtocol = new Dictionary<Protocol, Vector2>();
-        Dictionary<Protocol, Dictionary<Site,Data.TrialMatrix.TrialMatrix>> m_TrialMatrixByProtocolBySite = new Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>>();
+        Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>> m_TrialMatrixByProtocolBySite = new Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>>();
         bool m_LineSelectable = false;
 
         // Curves
-        [SerializeField] Tools.Unity.Graph.Graph m_Graph;
+        [SerializeField]
+        Tools.Unity.Graph.Graph m_Graph;
         Color[] m_Colors = new Color[7] { Color.blue, Color.red, Color.green, Color.cyan, Color.grey, Color.magenta, Color.yellow };
         Dictionary<Column, Dictionary<Site, CurveData>> m_CurveBySiteAndColumn = new Dictionary<Column, Dictionary<Site, CurveData>>();
         Dictionary<Column, CurveData> m_ROICurvebyColumn = new Dictionary<Column, CurveData>();
@@ -42,7 +63,8 @@ namespace HBP.UI.Graph
         Site[] m_Sites;
 
         // Type
-        [SerializeField] ZoneResizer m_ZoneResizer;
+        [SerializeField]
+        ZoneResizer m_ZoneResizer;
         #endregion
 
         #region Handlers Methods
@@ -76,6 +98,14 @@ namespace HBP.UI.Graph
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_ParentGrid = GetComponentInParent<Tools.Unity.ResizableGrid.ResizableGrid>();
+        }
+        private void Update()
+        {
+            if (m_RectTransformChanged) m_MinimizedGameObject.SetActive(IsMinimized);
+        }
         // Trial matrix
         void GenerateTrialMatrix()
         {
@@ -97,12 +127,12 @@ namespace HBP.UI.Graph
 
             // Generate trialMatrix and create the dictionary
             UnityEngine.Profiling.Profiler.BeginSample("Generate");
-            Dictionary<Protocol, Dictionary<Site,Data.TrialMatrix.TrialMatrix>> trialMatrixByProtocol = new Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>>();
+            Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>> trialMatrixByProtocol = new Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>>();
             foreach (Protocol protocol in protocols)
             {
                 UnityEngine.Profiling.Profiler.BeginSample("new TrialMatrix array");
                 Column column = Scene.ColumnManager.ColumnsIEEG.First(c => c.ColumnData.Protocol == protocol).ColumnData;
-                Dictionary<Site,Data.TrialMatrix.TrialMatrix> trialMatrixData = new Dictionary<Site,Data.TrialMatrix.TrialMatrix>();
+                Dictionary<Site, Data.TrialMatrix.TrialMatrix> trialMatrixData = new Dictionary<Site, Data.TrialMatrix.TrialMatrix>();
                 UnityEngine.Profiling.Profiler.EndSample();
 
                 UnityEngine.Profiling.Profiler.BeginSample("Find DataInfoBySite");
@@ -117,7 +147,7 @@ namespace HBP.UI.Graph
                     Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]> epochedBlocsByProtocolBloc = new Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>();
                     foreach (var bloc in protocol.Blocs)
                     {
-                        epochedBlocsByProtocolBloc.Add(bloc,DataManager.GetData(data,bloc).Blocs);
+                        epochedBlocsByProtocolBloc.Add(bloc, DataManager.GetData(data, bloc).Blocs);
                     }
                     epochedBlocsByProtocolBlocByDataInfo.Add(data, epochedBlocsByProtocolBloc);
                 }
@@ -126,7 +156,7 @@ namespace HBP.UI.Graph
                 UnityEngine.Profiling.Profiler.BeginSample("new TrialMatrix");
                 foreach (var site in m_Sites)
                 {
-                   trialMatrixData[site] = new Data.TrialMatrix.TrialMatrix(protocol, dataInfoBySite[site], epochedBlocsByProtocolBlocByDataInfo[dataInfoBySite[site]], site);
+                    trialMatrixData[site] = new Data.TrialMatrix.TrialMatrix(protocol, dataInfoBySite[site], epochedBlocsByProtocolBlocByDataInfo[dataInfoBySite[site]], site);
                 }
                 trialMatrixByProtocol.Add(protocol, trialMatrixData);
                 UnityEngine.Profiling.Profiler.EndSample();
@@ -188,7 +218,7 @@ namespace HBP.UI.Graph
                             data[i] = Tools.CSharp.MathfExtension.Average(l_dataList.ToArray());
                             standardDeviations[i] = Tools.CSharp.MathfExtension.SEM(l_dataList.ToArray());
                         }
-                       
+
                         // Generate points.
                         int pMin = column.TimeLine.Start.Position;
                         int pMax = column.TimeLine.End.Position;
@@ -196,7 +226,7 @@ namespace HBP.UI.Graph
                         float max = column.TimeLine.End.Value;
                         int lenght = pMax + 1 - pMin;
                         Vector2[] points = new Vector2[lenght];
-                        for (int i = 0; i < lenght ; i++)
+                        for (int i = 0; i < lenght; i++)
                         {
                             int index = pMin + i;
                             float absciss = min + ((max - min) * (index - pMin) / (pMax - pMin));
@@ -269,13 +299,13 @@ namespace HBP.UI.Graph
             List<CurveData> curvesToDisplay = new List<CurveData>();
             foreach (var column in m_Scene.ColumnManager.ColumnsIEEG)
             {
-                if(column.IsSelected)
+                if (column.IsSelected)
                 {
                     foreach (var site in m_Sites)
                     {
                         curvesToDisplay.Add(m_CurveBySiteAndColumn[column.ColumnData][site]);
                     }
-                    if(m_ROICurvebyColumn.ContainsKey(column.ColumnData))
+                    if (m_ROICurvebyColumn.ContainsKey(column.ColumnData))
                     {
                         curvesToDisplay.Add(m_ROICurvebyColumn[column.ColumnData]);
                     }
@@ -284,6 +314,13 @@ namespace HBP.UI.Graph
             GraphData graphData = new GraphData("EEG", "Time(ms)", "Activity(mV)", Color.black, Color.white, curvesToDisplay.ToArray());
             m_Graph.Plot(graphData);
             UnityEngine.Profiling.Profiler.EndSample();
+        }
+        #endregion
+
+        #region Public Methods
+        public void OnRectTransformDimensionsChange()
+        {
+            m_RectTransformChanged = true;
         }
         #endregion
     }
