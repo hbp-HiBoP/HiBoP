@@ -37,10 +37,10 @@ namespace Tools.Unity.Graph
         {
             m_AbscissaLabel.text = abscissa;
             m_OrdinateLabel.text = ordinate;
-            m_xmin.text = limits.AbscissaMin.ToString();
-            m_xmax.text = limits.AbscissaMax.ToString();
-            m_ymin.text = limits.OrdinateMin.ToString();
-            m_ymax.text = limits.OrdinateMax.ToString();
+            m_xmin.text = limits.AbscissaMin.ToString("N2");
+            m_xmax.text = limits.AbscissaMax.ToString("N2");
+            m_ymin.text = limits.OrdinateMin.ToString("N2");
+            m_ymax.text = limits.OrdinateMax.ToString("N2");
             m_AutoButton.onClick.RemoveAllListeners();
             m_AutoButton.onClick.AddListener(() => OnAutoLimits.Invoke());
         }

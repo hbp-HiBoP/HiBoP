@@ -30,7 +30,8 @@ namespace HBP.UI.Module3D
             grid.AddColumn(null, CutUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
             grid.AddColumn(null, GraphsUIPrefab);
-            grid.Columns.Last().Views.Last().GetComponent<Graph.GraphsGestion>().Scene = scene;
+            Graph.GraphsGestion graphsGestion = grid.Columns.Last().Views.Last().GetComponent<Graph.GraphsGestion>();
+            graphsGestion.Scene = scene;
             grid.VerticalHandlers[0].MagneticPosition = 0.9f;
             grid.VerticalHandlers[0].Position = 0.9f;
             grid.VerticalHandlers[1].MagneticPosition = 0.5f;
@@ -46,6 +47,12 @@ namespace HBP.UI.Module3D
             scene.OnChangeVisibleState.AddListener((value) =>
             {
                 gameObject.SetActive(value);
+            });
+            graphsGestion.OnOpenGraphsWindow.AddListener(() =>
+            {
+                grid.VerticalHandlers[1].Position = grid.VerticalHandlers[1].MagneticPosition;
+                grid.SetVerticalHandlersPosition(1);
+                grid.UpdateAnchors();
             });
         }
         #endregion

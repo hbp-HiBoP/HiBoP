@@ -188,7 +188,7 @@ namespace HBP.UI.TrialMatrix
                 int newLine;
                 for (int i = 0; i < l_lines.Length; i++)
                 {
-                    newLine = l_lines[i] + delta;
+                    newLine = (((l_lines[i] + delta) % Data.Lines.Length) + Data.Lines.Length) % Data.Lines.Length;
                     if (newLine >= 0 && newLine < Data.Lines.Length)
                     {
                         l_linesToSelect.Add(newLine);

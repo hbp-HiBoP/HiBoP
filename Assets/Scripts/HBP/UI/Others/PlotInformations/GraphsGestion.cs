@@ -7,6 +7,7 @@ using HBP.Data.Visualization;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 using Tools.Unity.Graph;
+using UnityEngine.Events;
 
 namespace HBP.UI.Graph
 {
@@ -27,7 +28,7 @@ namespace HBP.UI.Graph
         }
 
         // Minimize handling
-        public const float MINIMIZED_THRESHOLD = 100.0f;
+        public const float MINIMIZED_THRESHOLD = 200.0f;
         bool m_RectTransformChanged;
         [SerializeField]
         RectTransform m_RectTransform;
@@ -44,6 +45,7 @@ namespace HBP.UI.Graph
                 return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
             }
         }
+        public UnityEvent OnOpenGraphsWindow = new UnityEvent();
 
         // Trial matrix
         [SerializeField]
@@ -82,6 +84,8 @@ namespace HBP.UI.Graph
         }
         void OnRequestSiteInformation(IEnumerable<Site> sites)
         {
+            if (IsMinimized) OnOpenGraphsWindow.Invoke();
+
             m_Sites = sites.ToArray();
             m_LineSelectable = sites.All((s) => s.Information.Patient == sites.FirstOrDefault().Information.Patient);
 
@@ -201,7 +205,7 @@ namespace HBP.UI.Graph
                     }
                     Found:
                     Data.TrialMatrix.Line[] linesToRead = trialMatrixBloc.Data.GetLines(trialMatrixBloc.SelectedLines);
-                    float[] data = new float[linesToRead.First().NormalizedValues.Length];
+                    float[] data = new float[linesToRead.Length > 0 ? linesToRead.First().NormalizedValues.Length : 0];
                     if (linesToRead.Length > 1)
                     {
                         // Shape
@@ -274,7 +278,6 @@ namespace HBP.UI.Graph
                         ROIdata[i] = Tools.CSharp.MathfExtension.Average(sum.ToArray());
                     }
 
-
                     // Generate points.
                     int pMin = column.TimeLine.Start.Position;
                     int pMax = column.TimeLine.End.Position;
@@ -303,7 +306,10 @@ namespace HBP.UI.Graph
                 {
                     foreach (var site in m_Sites)
                     {
-                        curvesToDisplay.Add(m_CurveBySiteAndColumn[column.ColumnData][site]);
+                        if (m_CurveBySiteAndColumn[column.ColumnData].ContainsKey(site))
+                        {
+                            curvesToDisplay.Add(m_CurveBySiteAndColumn[column.ColumnData][site]);
+                        }
                     }
                     if (m_ROICurvebyColumn.ContainsKey(column.ColumnData))
                     {
