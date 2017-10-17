@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using d = HBP.Data.TrialMatrix;
+using UnityEngine.Profiling;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -47,37 +48,46 @@ namespace HBP.UI.TrialMatrix
             title.text = trialMatrix.Title;
 
             //Organize array
-            d.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.PBloc.DisplayInformations.Position.Row).ThenBy(t => t.PBloc.DisplayInformations.Position.Column).ToArray();
+            Profiler.BeginSample("A");
+            d.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.ProtocolBloc.DisplayInformations.Position.Row).ThenBy(t => t.ProtocolBloc.DisplayInformations.Position.Column).ToArray();
+            Profiler.EndSample();
 
             // Set Legends
+            Profiler.BeginSample("B");
             SetLegends(trialMatrix.ValuesLimits, trialMatrix.TimeLimitsByColumn);
+            Profiler.EndSample();
+
 
             //Separate blocs by line
-            d.Bloc[][] l_lines = new d.Bloc[l_blocs[l_blocs.Length - 1].PBloc.DisplayInformations.Position.Row][];
+            Profiler.BeginSample("C");
+            d.Bloc[][] l_lines = new d.Bloc[l_blocs[l_blocs.Length - 1].ProtocolBloc.DisplayInformations.Position.Row][];
             int l_blocsByRow = 0;
             for (int i = 0; i < l_lines.Length; i++)
             {
-                l_lines[i] = System.Array.FindAll(l_blocs, x => x.PBloc.DisplayInformations.Position.Row == i + 1);
+                l_lines[i] = System.Array.FindAll(l_blocs, x => x.ProtocolBloc.DisplayInformations.Position.Row == i + 1);
                 if (l_blocsByRow < l_lines.Length) l_blocsByRow = l_lines.Length;
             }
 
             int maxBlocByRow = 0;
             foreach (d.Bloc[] line in l_lines)
             {
-                int max = line[line.Length - 1].PBloc.DisplayInformations.Position.Column;
+                int max = line[line.Length - 1].ProtocolBloc.DisplayInformations.Position.Column;
                 if (max > maxBlocByRow)
                 {
                     maxBlocByRow = max;
                 }
             }
+            Profiler.EndSample();
 
             //Generate Line
+            Profiler.BeginSample("D");
             for (int i = 0; i < l_lines.Length; i++)
             {
                 AddLine(l_lines[i], maxBlocByRow, colorMap, trialMatrix.ValuesLimits);
             }
             SelectAllLines();
             valuesLegend.onUpdateLimits.AddListener((l) => UpdateLimites(l));
+            Profiler.EndSample();
         }
         public void SelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc,bool additive)
         {
@@ -95,7 +105,7 @@ namespace HBP.UI.TrialMatrix
                 {
                     linesSelected[i] = i;
                 }
-                SelectLines(linesSelected, bloc.PBloc, true);
+                SelectLines(linesSelected, bloc.ProtocolBloc, true);
             }
         }
         #endregion

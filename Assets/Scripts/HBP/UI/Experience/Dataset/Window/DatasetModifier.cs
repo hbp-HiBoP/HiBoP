@@ -45,7 +45,7 @@ namespace HBP.UI.Experience.Dataset
         }
         protected void OnCanSave(DataInfoModifier eventModifier)
         {
-            eventModifier.CanSave = !ItemTemp.Data.Any((d) => d.Name == eventModifier.ItemTemp.Name && d.Patient == eventModifier.ItemTemp.Patient);
+            eventModifier.CanSave = !ItemTemp.Data.Any((d) => d.Name == eventModifier.ItemTemp.Name && d.Patient == eventModifier.ItemTemp.Patient && d != eventModifier.Item);
         }
         protected void OnSaveDataInfoModifier(DataInfoModifier eventModifier)
         {

@@ -116,10 +116,6 @@ namespace HBP.Module3D
 
         #region Events
         /// <summary>
-        /// UI event for sending a plot info request to the outside UI (params : plotRequest)
-        /// </summary>
-        public GenericEvent<SiteRequest> OnRequestSiteInformation = new GenericEvent<SiteRequest>();
-        /// <summary>
         /// Event called when hovering a site to display its information
         /// </summary>
         public GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();

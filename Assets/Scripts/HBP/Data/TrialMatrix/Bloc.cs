@@ -1,48 +1,36 @@
-﻿namespace HBP.Data.TrialMatrix
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace HBP.Data.TrialMatrix
 {
     public class Bloc
     {
         #region Properties
-        Experience.Protocol.Bloc m_pbloc;
         /// <summary>
         /// Bloc to display
         /// </summary>
-        public Experience.Protocol.Bloc PBloc
-        {
-            get { return m_pbloc;  }
-            set { m_pbloc = value; }
-        }
+        public Experience.Protocol.Bloc ProtocolBloc { get; set; }
 
-        Line[] m_lines;
         /// <summary>
         /// Lines of the bloc.
         /// </summary>
-        public Line[] Lines
-        {
-            get
-            {
-                return m_lines;
-            }
-            set
-            {
-                m_lines = value;
-            }
-        }
+        public Line[] Lines { get; set; }
+
+        public int SpacesBefore { get; set; }
+        public int SpacesAfter { get; set; }
         #endregion
 
         #region Constructor
-        public Bloc(Experience.Protocol.Bloc pbloc,Line[] lines)
+        public Bloc(Experience.Protocol.Bloc protocolBloc,Line[] lines)
         {
-            PBloc = pbloc;
+            ProtocolBloc = protocolBloc;
             Lines = lines;
         }
-
-        public Bloc(Experience.Protocol.Bloc bloc, Localizer.POS pos, float[] data, float frequency)
+        public Bloc(Experience.Protocol.Bloc protocolBloc, IEnumerable<Localizer.Bloc> blocs, Module3D.Site site)
         {
-            PBloc = bloc;
-            Lines = Line.MakeLines(bloc, pos, data, frequency);
+            ProtocolBloc = protocolBloc;
+            Lines = Line.MakeLines(protocolBloc, blocs, site).ToArray();
         }
-
         public Bloc() : this(new Experience.Protocol.Bloc(),new Line[0])
         {
         }
@@ -54,7 +42,7 @@
             Line[] result = new Line[lines.Length];
             for (int i = 0; i < lines.Length; i++)
             {
-                result[i] = m_lines[lines[i]];
+                result[i] = Lines[lines[i]];
             }
             return result;
         }

@@ -11,267 +11,98 @@ namespace HBP.Data.TrialMatrix
     public class TrialMatrix
     {
         #region Properties
-        string title;
-        public string Title
-        {
-            get { return title; }
-            set { title = value; }
-        }
-
-        Bloc[] blocs;
-        public Bloc[] Blocs
-        {
-            get { return blocs; }
-            set { blocs = value; }
-        }
-
-        int nbColumns;
-        public int NbColumns
-        {
-            get { return nbColumns; }
-             set { nbColumns = value; }
-        }
-
-        Vector2 valuesLimits;
-        public Vector2 ValuesLimits
-        {
-            get { return valuesLimits; }
-             set { valuesLimits = value; }
-        }
-
-        Protocol protocol;
-        public Protocol Protocol
-        {
-            get { return protocol; }
-            set { protocol = value; }
-        }
-
-        Vector2[] timeLimitsByColumn;
-        public Vector2[] TimeLimitsByColumn
-        {
-            get { return timeLimitsByColumn; }
-            set { timeLimitsByColumn = value; }
-        }
+        public string Title { get; set; }
+        public Bloc[] Blocs { get; set; }
+        public Vector2 ValuesLimits { get; set; }
+        public Protocol Protocol { get; set; }
+        public Vector2[] TimeLimitsByColumn { get; set; }
         #endregion
 
         #region Constructor
-        public TrialMatrix(Protocol protocol, DataInfo dataInfo, Site site)
+        public TrialMatrix(Protocol protocol, DataInfo dataInfo, Dictionary<Experience.Protocol.Bloc,Localizer.Bloc[]> blocsByProtocolBloc, Module3D.Site site)
         {
-            // Read ElanFile and POSFile.
-            Elan.ElanFile elanFile = new Elan.ElanFile(dataInfo.EEG);
-            Localizer.POS POSFile = new Localizer.POS(dataInfo.POS);
-            float samplingFrequency = elanFile.EEG.SamplingFrequency;
+            // Genreate blocs.
+            UnityEngine.Profiling.Profiler.BeginSample("Generate blocs");
+            Bloc[] trialMatrixBlocs = (from bloc in protocol.Blocs select new Bloc(bloc, blocsByProtocolBloc[bloc] , site)).ToArray();
+            UnityEngine.Profiling.Profiler.EndSample();
 
-            // Read Data.
-            Elan.Track trackToRead = elanFile.FindTrack(dataInfo.Measure, site.Name);
-            elanFile.ReadChannel(trackToRead);
-            float[] dataReaded = elanFile.EEG.GetFloatData(trackToRead);
-
-            // Epoch Data.
-            Bloc[] blocs = new Bloc[protocol.Blocs.Count];
-            for (int i = 0; i < blocs.Length; i++)
-            {
-                blocs[i] = new Bloc(protocol.Blocs[i], POSFile, dataReaded, samplingFrequency);
-            }
-
-            // Standardize bloc by BaseLine.
-            StandardizeLinesByBaseLine(ref blocs);
+            Normalize(trialMatrixBlocs, site);
 
             // Calculate values limits.
-            List<float> flatValues = new List<float>();
-            foreach (Bloc bloc in blocs)
-            {
-                foreach (Line line in bloc.Lines)
-                {
-                    flatValues.AddRange(line.DataWithCorrection);
-                }
-            }
+            UnityEngine.Profiling.Profiler.BeginSample("calculate values");
+            List<float> values = new List<float>();
+            foreach (Bloc bloc in trialMatrixBlocs) foreach (Line line in bloc.Lines) values.AddRange(line.Bloc.NormalizedValuesBySite[site.Information.FullCorrectedID]);
+            ValuesLimits = CalculateValueLimit(values.ToArray());
+            UnityEngine.Profiling.Profiler.EndSample();
 
             //Standardize Blocs
-            NbColumns = CalculateNbColumn(blocs);
-            StandardizeBlocs(ref blocs);
+            UnityEngine.Profiling.Profiler.BeginSample("standardize blocs");
+            Standardize(trialMatrixBlocs, site);
+            UnityEngine.Profiling.Profiler.EndSample();
 
             // Set properties
-            Title = dataInfo.Patient.Place + " " + dataInfo.Patient.Date + " " + dataInfo.Patient.Name + " " + site.Name + " " + protocol.Name + " " + dataInfo.Name;
-            Blocs = blocs;
-            ValuesLimits = CalculateValueLimit(flatValues.ToArray());
-            TimeLimitsByColumn = CalculateTimeLimitsByColumn(blocs);
+            UnityEngine.Profiling.Profiler.BeginSample("set properties");
+            Title = dataInfo.Patient.Place + " " + dataInfo.Patient.Date + " " + dataInfo.Patient.Name + " " + site.Information.Name + " " + protocol.Name + " " + dataInfo.Name;
+            Blocs = trialMatrixBlocs.ToArray();
+            TimeLimitsByColumn = CalculateTimeLimitsByColumn(trialMatrixBlocs);
             Protocol = protocol;
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         #endregion
 
         #region Private Method
-
-        void StandardizeBlocs(ref Bloc[] blocs)
+        void Standardize(Bloc[] blocs, Module3D.Site site)
         {
             // Initiate index.
-            int[] beforeByColumns = new int[NbColumns];
-            int[] afterByColumns = new int[NbColumns];
-            for (int i = 0; i < NbColumns; i++)
+            int columnNumber = (from bloc in blocs select bloc.ProtocolBloc.DisplayInformations.Position.Column).Max();
+            int[] beforeByColumns = new int[columnNumber];
+            int[] afterByColumns = new int[columnNumber];
+            for (int c = 0; c < columnNumber; c++)
             {
-                beforeByColumns[i] = int.MinValue;
-                afterByColumns[i] = int.MinValue;
-            }
-
-            // Find min and max index.
-            foreach(Bloc bloc in blocs)
-            {
-                int before = bloc.Lines[0].Main.Position;
-                int after = bloc.Lines[0].Data.Length - before;
-                int col = bloc.PBloc.DisplayInformations.Position.Column - 1;
-                if (before > beforeByColumns[col])
-                {
-                    beforeByColumns[col] = before;
-                }
-                if(after > afterByColumns[col])
-                {
-                    afterByColumns[col] = after;
-                }
+                beforeByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.DisplayInformations.Position.Column - 1 == c) select bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
+                afterByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.DisplayInformations.Position.Column - 1 == c) select bloc.Lines.First().Bloc.ValuesBySite.First().Value.Length - bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
             }
 
             // Standardize blocs
             foreach (Bloc bloc in blocs)
             {
-                int col = bloc.PBloc.DisplayInformations.Position.Column - 1;
-                int lenght = beforeByColumns[col] + afterByColumns[col];
-                int min = beforeByColumns[col] - bloc.Lines[0].Main.Position;
-                int max = bloc.Lines[0].Data.Length + min - 1;
-                foreach (Line line in bloc.Lines)
-                {    
-                    float[] l_data = new float[lenght];
-                    for (int i = 0; i < l_data.Length; i++)
-                    {
-                        if((i < min) || (i > max))
-                        {
-                            l_data[i] = float.NaN;
-                        }
-                        else
-                        {
-                            l_data[i] = line.Data[i - min];
-                        }
-                    }
-                    line.Data = l_data;
-                    line.Main.Position += min;
-                    foreach(Event e in line.Secondaries)
-                    {
-                        e.Position += min;
-                    }
-                }
+                int col = bloc.ProtocolBloc.DisplayInformations.Position.Column - 1;
+                bloc.SpacesBefore = beforeByColumns[col] - bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent];
+                bloc.SpacesAfter = afterByColumns[col] - (bloc.Lines.First().Bloc.ValuesBySite.First().Value.Length - bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]);
             }
         }
-
-        void StandardizeLinesByBaseLine(ref Bloc[] blocs)
+        void Normalize(Bloc[] blocs, Module3D.Site site)
         {
-            float average = 0;
-            float standardDeviation = 1;
-            switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Baseline)
+            foreach (Bloc bloc in blocs)
             {
-                case Settings.TrialMatrixSettings.BaselineType.None:
-                    foreach (Bloc b in blocs)
-                    {
-                        foreach (Line l in b.Lines)
-                        {
-                            average = 0;
-                            standardDeviation = 1;
-                            l.CorrectionByBaseLine(average, standardDeviation);
-                        }
-                    }
-                    break;
-                case Settings.TrialMatrixSettings.BaselineType.Line:
-                    foreach (Bloc b in blocs)
-                    {
-                        foreach (Line l in b.Lines)
-                        {
-                            average = Tools.CSharp.MathfExtension.Average(l.BaseLine);
-                            standardDeviation = Tools.CSharp.MathfExtension.StandardDeviation(l.BaseLine);
-                            l.CorrectionByBaseLine(average, standardDeviation);
-                        }
-                    }
-                    break;
-                case Settings.TrialMatrixSettings.BaselineType.Bloc:
-                    foreach (Bloc b in blocs)
-                    {
-                        List<float> l_blocBaseLine = new List<float>();
-                        foreach (Line l in b.Lines)
-                        {
-                            l_blocBaseLine.AddRange(l.BaseLine);
-                        }
-                        average = Tools.CSharp.MathfExtension.Average(l_blocBaseLine.ToArray());
-                        standardDeviation = Tools.CSharp.MathfExtension.StandardDeviation(l_blocBaseLine.ToArray());
-                        foreach (Line l in b.Lines)
-                        {
-                            l.CorrectionByBaseLine(average, standardDeviation);
-                        }
-                    }
-                    break;
-                case Settings.TrialMatrixSettings.BaselineType.Protocol:
-                    List<float> protocol = new List<float>();
-                    foreach (Bloc b in blocs)
-                    {
-                        foreach (Line l in b.Lines)
-                        {
-                            protocol.AddRange(l.BaseLine);
-                        }
-                    }
-                    average = Tools.CSharp.MathfExtension.Average(protocol.ToArray());
-                    standardDeviation = Tools.CSharp.MathfExtension.StandardDeviation(protocol.ToArray());
-                    foreach (Bloc b in blocs)
-                    {
-                        foreach (Line l in b.Lines)
-                        {
-                            l.CorrectionByBaseLine(average, standardDeviation);
-                        }
-                    }
-                    break;
+                foreach (Line line in bloc.Lines)
+                {
+                    line.UpdateValues();
+                }
             }
         }
         Vector2[] CalculateTimeLimitsByColumn(Bloc[] blocs)
         {
-            Vector2[] l_limits = new Vector2[NbColumns];
-            for (int i = 0; i < NbColumns; i++)
+            int columnNumber = (from bloc in blocs select bloc.ProtocolBloc.DisplayInformations.Position.Column).Max();
+            Vector2[] limits = new Vector2[columnNumber];
+            for (int i = 0; i < columnNumber; i++)
             {
-                l_limits[i] = new Vector2(float.MaxValue, float.MinValue);
+                IEnumerable<Bloc> blocsInColumn = blocs.Where((b) => b.ProtocolBloc.DisplayInformations.Position.Column - 1 == i);
+                limits[i] = new Vector2(blocsInColumn.Min((b) => b.ProtocolBloc.DisplayInformations.Window.Start), blocsInColumn.Max((b) => b.ProtocolBloc.DisplayInformations.Window.End));
             }
-            foreach(Bloc bloc in blocs)
-            {
-                Window window = bloc.PBloc.DisplayInformations.Window;
-                int col = bloc.PBloc.DisplayInformations.Position.Column - 1;
-                if(l_limits[col].x > window.Start)
-                {
-                    l_limits[col].x = window.Start;
-                }
-                if (l_limits[col].y < window.End)
-                {
-                    l_limits[col].y = window.End;
-                }
-            }
-            return l_limits;
+            return limits;
         }
-        Vector2 CalculateValueLimit(float[] values)
+        Vector2 CalculateValueLimit(IEnumerable<float> values)
         {
-            float moyenne = values.Average();
-            float somme = 0;
-            int length = values.Length;
-            for (int i = 0; i < length; i++)
+            float mean = values.Average();
+            float sum = 0;
+            foreach (float value in values)
             {
-                float delta = values[i] - moyenne;
-                somme += delta * delta;
+                float delta = value - mean;
+                sum += Mathf.Pow(delta, 2);
             }
-            float l_standarDeviation = Mathf.Sqrt(somme / (values.Length - 1));
-            return new Vector2(moyenne - 1.96f * Mathf.Abs(l_standarDeviation), moyenne + 1.96f * Mathf.Abs(l_standarDeviation));
-        }
-        int CalculateNbColumn(Bloc[] blocs)
-        {
-            // Find nbColumn
-            int l_nbColumn = 0;
-            foreach (Bloc bloc in blocs)
-            {
-                if (l_nbColumn < bloc.PBloc.DisplayInformations.Position.Column)
-                {
-                    l_nbColumn = bloc.PBloc.DisplayInformations.Position.Column;
-                }
-            }
-            return l_nbColumn;
+            float standardDeviation = Mathf.Sqrt(sum / (values.Count() - 1));
+            return new Vector2(mean - 1.96f * Mathf.Abs(standardDeviation), mean + 1.96f * Mathf.Abs(standardDeviation));
         }
         #endregion
     }

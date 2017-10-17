@@ -13,7 +13,7 @@ namespace HBP.UI.Module3D
         private Base3DScene m_Scene;
         public GameObject SceneUIPrefab;
         public GameObject CutUIPrefab;
-        //public GameObject GraphsUIPrefab;
+        public GameObject GraphsUIPrefab;
         #endregion
 
         #region Public Methods
@@ -29,9 +29,12 @@ namespace HBP.UI.Module3D
             grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>().Initialize(scene);
             grid.AddColumn(null, CutUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
-            //grid.AddColumn(null, GraphsUIPrefab);
+            grid.AddColumn(null, GraphsUIPrefab);
+            grid.Columns.Last().Views.Last().GetComponent<Graph.GraphsGestion>().Scene = scene;
             grid.VerticalHandlers[0].MagneticPosition = 0.9f;
             grid.VerticalHandlers[0].Position = 0.9f;
+            grid.VerticalHandlers[1].MagneticPosition = 0.5f;
+            grid.VerticalHandlers[1].Position = 1.0f;
 
             ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {

@@ -61,7 +61,7 @@ namespace HBP.UI.Module3D.Tools
             float mainEventPosition = (float)mainEventData.Position / (column.ColumnData.TimeLine.Lenght-1);
             mainEventRectTransform.anchorMin = new Vector2(mainEventPosition, mainEventRectTransform.anchorMin.y);
             mainEventRectTransform.anchorMax = new Vector2(mainEventPosition, mainEventRectTransform.anchorMax.y);
-            mainEvent.GetComponent<Tooltip>().Text = "Main Event: " + mainEventData.Label + " | " + mainEventData.Position + " (" + (column.ColumnData.TimeLine.Step * mainEventData.Position + column.MinTimeLine).ToString("N2") + column.TimeLineUnite + ")";
+            mainEvent.GetComponent<Tooltip>().Text = mainEventData.Label + " | " + mainEventData.Position + " (" + (column.ColumnData.TimeLine.Step * mainEventData.Position + column.MinTimeLine).ToString("N2") + column.TimeLineUnite + ")";
 
             foreach (Data.Visualization.Event timelineEvent in column.ColumnData.TimeLine.SecondaryEvents)
             {
@@ -70,7 +70,7 @@ namespace HBP.UI.Module3D.Tools
                 float secondaryEventPosition = (float)timelineEvent.Position / (column.ColumnData.TimeLine.Lenght - 1);
                 secondaryEventRectTransform.anchorMin = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMin.y);
                 secondaryEventRectTransform.anchorMax = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMax.y);
-                secondaryEvent.GetComponent<Tooltip>().Text = "Secondary Event: " + timelineEvent.Label + " | " + timelineEvent.Position + " (" + (column.ColumnData.TimeLine.Step * timelineEvent.Position + column.MinTimeLine).ToString("N2") + column.TimeLineUnite + ")";
+                secondaryEvent.GetComponent<Tooltip>().Text = timelineEvent.Label + " | " + timelineEvent.Position + " (" + (column.ColumnData.TimeLine.Step * timelineEvent.Position + column.MinTimeLine).ToString("N2") + column.TimeLineUnite + ")" + " | " + (timelineEvent.AttendanceRate * 100).ToString("N2") +"%";
             }
         }
         #endregion

@@ -63,6 +63,23 @@ namespace HBP.Module3D
             }
         }
 
+        private bool m_IsMinimized;
+        public bool IsMinimized
+        {
+            get
+            {
+                return m_IsMinimized;
+            }
+            set
+            {
+                if (m_IsMinimized != value)
+                {
+                    m_IsMinimized = value;
+                    OnChangeMinimizedState.Invoke();
+                }
+            }
+        }
+
         private bool m_IsRenderingUpToDate = false;
         /// <summary>
         /// Does the column rendering need to be updated ?
@@ -239,6 +256,10 @@ namespace HBP.Module3D
         /// Event called when changing the radius of a volume in a ROI
         /// </summary>
         public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
+        /// <summary>
+        /// Event called when minimizing a column
+        /// </summary>
+        public UnityEvent OnChangeMinimizedState = new UnityEvent();
         #endregion
 
         #region Public Methods

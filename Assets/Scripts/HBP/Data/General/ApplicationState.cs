@@ -64,4 +64,9 @@ public static class ApplicationState
     /// Tooltip manager
     /// </summary>
     public static Tools.Unity.TooltipManager TooltipManager { get; set; }
+
+    /// <summary>
+    /// Memory manager.
+    /// </summary>
+    public static  Tools.Unity.MemoryManager MemoryManager { get; set; }
 }
