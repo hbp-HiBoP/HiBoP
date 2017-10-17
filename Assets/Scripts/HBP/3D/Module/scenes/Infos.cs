@@ -46,6 +46,7 @@ namespace HBP.Module3D
         public bool MRILoaded = false;    /**< volume has been loaded */
         public bool CollidersUpdated = false;/**< colluders are up to date */
         public bool IsSceneInitialized { get; set; }
+        public bool IsSceneDisplayed { get; set; }
         // parameters
         public bool MarsAtlasModeEnabled = false;
         public bool CutHolesEnabled = false; /**< cuts holes are enabled */

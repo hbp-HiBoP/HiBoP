@@ -80,10 +80,7 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private RectTransform m_RightBorder;
 
-        /// <summary>
-        /// Is the column initialized ?
-        /// </summary>
-        private bool m_IsInitialized = false;
+        private bool m_RectTransformChanged;
         /// <summary>
         /// Does the column UI have enough space to display the overlay ?
         /// </summary>
@@ -140,6 +137,15 @@ namespace HBP.UI.Module3D
             m_ParentGrid = GetComponentInParent<ResizableGrid>();
             m_GridColumn = GetComponent<Column>();
         }
+        private void Update()
+        {
+            if (m_RectTransformChanged)
+            {
+                UpdateOverlay();
+                m_MinimizedGameObject.SetActive(IsMinimized);
+                m_RectTransformChanged = false;
+            }
+        }
         /// <summary>
         /// Get RectTransform screen coordinates
         /// </summary>
@@ -152,7 +158,6 @@ namespace HBP.UI.Module3D
         }
         private void UpdateOverlay()
         {
-            //m_Label.HandleEnoughSpace();
             m_Colormap.HandleEnoughSpace();
             m_TimeDisplay.HandleEnoughSpace();
             m_Icon.HandleEnoughSpace();
@@ -162,10 +167,7 @@ namespace HBP.UI.Module3D
         #region Public Methods
         public void OnRectTransformDimensionsChange()
         {
-            if (!m_IsInitialized) return;
-
-            UpdateOverlay();
-            m_MinimizedGameObject.SetActive(IsMinimized);
+            m_RectTransformChanged = true;
         }
         /// <summary>
         /// Initialize this column UI
@@ -183,8 +185,6 @@ namespace HBP.UI.Module3D
             m_Icon.Initialize(scene, column, this);
             m_Label.Initialize(scene, column, this);
             m_Resizer.Initialize(scene, column, this);
-
-            m_IsInitialized = true;
         }
         /// <summary>
         /// Expand this column

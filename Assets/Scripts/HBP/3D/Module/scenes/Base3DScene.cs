@@ -577,6 +577,12 @@ namespace HBP.Module3D
                 UpdateGeometry();
             }
             UnityEngine.Profiling.Profiler.EndSample();
+
+            if (!SceneInformation.IsSceneDisplayed)
+            {
+                OnChangeVisibleState.Invoke(true);
+                SceneInformation.IsSceneDisplayed = true;
+            }
         }
         /// <summary>
         /// Add every listeners required for the scene

@@ -108,7 +108,11 @@ namespace HBP.UI.Graph
         }
         private void Update()
         {
-            if (m_RectTransformChanged) m_MinimizedGameObject.SetActive(IsMinimized);
+            if (m_RectTransformChanged)
+            {
+                m_MinimizedGameObject.SetActive(IsMinimized);
+                m_RectTransformChanged = false;
+            }
         }
         // Trial matrix
         void GenerateTrialMatrix()
