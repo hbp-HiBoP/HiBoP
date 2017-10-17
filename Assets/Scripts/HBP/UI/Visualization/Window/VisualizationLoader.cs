@@ -17,11 +17,6 @@ namespace HBP.UI.Visualization
         #endregion
 
         #region Private Methods
-        void Awake()
-        {
-            // TODO
-            ApplicationState.Module3D.OnLoadSinglePatientSceneFromMultiPatientsScene.AddListener((visualization, patient) => LoadSPSceneFromMP(visualization, patient));
-        }
         void LoadSPSceneFromMP(Data.Visualization.Visualization visualization, Data.Patient patient)
         {
             // TODO

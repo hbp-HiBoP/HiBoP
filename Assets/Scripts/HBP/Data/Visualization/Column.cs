@@ -215,7 +215,7 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            return new Column(Dataset.Clone() as Dataset, Data.Clone() as string, Protocol.Clone() as Protocol, Bloc.Clone() as Bloc, Configuration.Clone() as ColumnConfiguration);
+            return new Column(Dataset, Data, Protocol, Bloc, Configuration.Clone() as ColumnConfiguration);
         }
         #endregion
 

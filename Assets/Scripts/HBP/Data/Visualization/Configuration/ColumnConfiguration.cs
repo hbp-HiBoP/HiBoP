@@ -147,9 +147,18 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public object Clone()
         {
+            ColumnConfiguration configuration = new ColumnConfiguration();
             Dictionary<string, SiteConfiguration> configurationBySiteClone = new Dictionary<string, SiteConfiguration>();
             foreach (var item in ConfigurationBySite) configurationBySiteClone.Add(item.Key, item.Value.Clone() as SiteConfiguration);
-            return new ColumnConfiguration(configurationBySiteClone, from ROI in RegionsOfInterest select ROI);
+            configuration.ConfigurationBySite = configurationBySiteClone;
+            configuration.RegionsOfInterest = (from ROI in RegionsOfInterest select ROI).ToList();
+            configuration.Gain = Gain;
+            configuration.MaximumInfluence = MaximumInfluence;
+            configuration.Alpha = Alpha;
+            configuration.SpanMin = SpanMin;
+            configuration.Middle = Middle;
+            configuration.SpanMax = SpanMax;
+            return configuration;
         }
         #endregion
     }

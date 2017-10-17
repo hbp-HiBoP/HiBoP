@@ -34,16 +34,6 @@ namespace HBP.UI.Module3D
                 sceneWindow.gameObject.SetActive(false);
             });
         }
-        /// <summary>
-        /// DELETEME : DEBUG
-        /// </summary>
-        private void Update()
-        {
-            if (Input.GetKey(KeyCode.W))
-            {
-                Debug.Log(Input.mouseScrollDelta);
-            }
-        }
         #endregion
     }
 }
