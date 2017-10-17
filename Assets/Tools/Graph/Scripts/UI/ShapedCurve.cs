@@ -22,17 +22,10 @@ namespace Tools.Unity.Graph
             shapeRenderer.ShapeThickness = shapes;
             shapeRenderer.color = new Color(data.Color.r, data.Color.g, data.Color.b, 0.3f);
         }
-        #endregion
-
-        #region Private Methods
-        protected override void SetFields()
+        public override void SetFields()
         {
             base.SetFields();
             shapeRenderer = GetComponentInChildren<UIShapeRenderer>();
-        }
-        void Awake()
-        {
-            SetFields();
         }
         #endregion
     }

@@ -25,19 +25,12 @@ namespace Tools.Unity.Graph
             lineRenderer.Points = positions;
             lineRenderer.color = data.Color;
         }
-        #endregion
-
-        #region Private Methods
-        protected virtual void SetFields()
+        public virtual void SetFields()
         {
             curveRect = transform as RectTransform;
             curveRect.offsetMin = Vector2.zero;
             curveRect.offsetMax = Vector2.zero;
             lineRenderer = GetComponentInChildren<UILineRenderer>();
-        }
-        void Awake()
-        {
-            SetFields();
         }
         #endregion
     }

@@ -136,6 +136,7 @@ namespace HBP.UI.TrialMatrix
         void AddLine(d.Bloc[] blocsInLine,int max,Texture2D colorMap,Vector2 limits)
         {
             Line lines = (Instantiate(linePrefab, linesRect) as GameObject).GetComponent<Line>();
+            lines.Initialize();
             lines.Set(blocsInLine,max, colorMap,limits);
             this.lines.Add(lines);
         }
