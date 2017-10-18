@@ -57,7 +57,6 @@ namespace HBP.UI.TrialMatrix
             SetLegends(trialMatrix.ValuesLimits, trialMatrix.TimeLimitsByColumn);
             Profiler.EndSample();
 
-
             //Separate blocs by line
             Profiler.BeginSample("C");
             d.Bloc[][] l_lines = new d.Bloc[l_blocs[l_blocs.Length - 1].ProtocolBloc.DisplayInformations.Position.Row][];
@@ -142,8 +141,12 @@ namespace HBP.UI.TrialMatrix
         }
         void SetLegends(Vector2 valueslimits,Vector2[] timeLimitsByColumn)
         {
+            Profiler.BeginSample("set values");
             valuesLegend.Set(colorMap, valueslimits,5);
+            Profiler.EndSample();
+            Profiler.BeginSample("set time");
             timeLegend.Set(timeLimitsByColumn);
+            Profiler.EndSample();
         }
         #endregion
     }
