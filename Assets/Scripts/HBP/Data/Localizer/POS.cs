@@ -2,6 +2,7 @@
 using System.Linq;
 using System.IO;
 using System.Collections.Generic;
+using Eppy;
 
 namespace HBP.Data.Localizer
 {
@@ -33,7 +34,7 @@ namespace HBP.Data.Localizer
             if(!posFile.Exists) throw new FileNotFoundException();
             if (posFile.Extension != EXTENSION) throw new Exception("Wrong extension");
 
-            Dictionary<int, List<Tuple<int,int>>> indexByCode = new Dictionary<int, List<Tuple<int,int>>();
+            Dictionary<int, List<Tuple<int,int>>> indexByCode = new Dictionary<int, List<Tuple<int,int>>>();
             int code, index, state;
             foreach (string line in File.ReadAllLines(path))
             {
@@ -51,10 +52,9 @@ namespace HBP.Data.Localizer
             FileInfo posFile = new FileInfo(path);
             if (posFile.Extension != EXTENSION) throw new Exception("Wrong extension");
 
-            IEnumerable<Tuple<int, int>> indexAndCode = from pair in m_IndexByCode from index in pair.Value select new Tuple<int, int>(index, pair.Key);
-            IEnumerable<Tuple<int, int>> notUsedIndexAndCode = from pair in m_NotUsedIndexAndStateByCode from index in pair.Value select new Tuple<int, int>(index, pair.Key);
-            IOrderedEnumerable<Tuple<int,int>> sortedIndexAndCode = indexAndCode.Concat(notUsedIndexAndCode).OrderBy((tuple) => tuple.Object1);
-            IEnumerable<string> lines = sortedIndexAndCode.Select((tuple) => GenerateLine(tuple.Object2, tuple.Object1));
+            IEnumerable<Tuple<int,int,int>> lineInfo = from pair in m_IndexByCode from tuple in pair.Value select new Tuple<int, int,int>(pair.Key,tuple.Object1,tuple.Object2);
+            IOrderedEnumerable<Tuple<int,int,int>> sortedIndexAndCode = lineInfo.OrderBy((tuple) => tuple.Item2);
+            IEnumerable<string> lines = sortedIndexAndCode.Select((tuple) => GenerateLine(tuple.Item1, tuple.Item2, tuple.Item3));
             using (StreamWriter streamWriter = new StreamWriter(posFile.FullName))
             {
                 foreach (var line in lines) streamWriter.WriteLine(line);
@@ -83,9 +83,9 @@ namespace HBP.Data.Localizer
             bool format = elements.Length == 3;
             return parsing && format;
         }
-        static string GenerateLine(int code,int index)
+        static string GenerateLine(int code,int index, int state)
         {
-            return index + "\t" + code + "\t" + 0.ToString();
+            return index + "\t" + code + "\t" + state;
         }
         #endregion
     }

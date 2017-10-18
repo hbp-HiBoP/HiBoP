@@ -197,8 +197,6 @@ namespace HBP.Data.Visualization
             yield return Ninja.JumpBack;
 
             // Load Columns.
-            Dictionary<DataInfo, Experience.Dataset.Data> dataByDataInfo = (from dataInfos in dataInfoByColumn.Values from dataInfo in dataInfos select dataInfo).Distinct().ToDictionary(t => t, t => new Experience.Dataset.Data());
-            Dictionary<Column, Experience.Dataset.Data[]> dataByColumn = new Dictionary<Column, Experience.Dataset.Data[]>();
             yield return Ninja.JumpToUnity;
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataInfoByColumn, progress, onChangeProgress,(value) => progress = value));
             yield return Ninja.JumpBack;
@@ -321,7 +319,7 @@ namespace HBP.Data.Visualization
             {
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.Data + "</color>.");
+                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.DisplayLabel + "</color>.");
                 yield return Ninja.JumpBack;
                 column.Standardize(maxBefore, maxAfter);
             }

@@ -129,7 +129,7 @@ namespace HBP.Data.Experience.Protocol
             }
             else
             {
-                return DisplayInformations == p.DisplayInformations && Scenario == p.Scenario && Enumerable.SequenceEqual(Events, p.Events); 
+                return ID == p.ID; 
             }
         }
         /// <summary>
@@ -138,7 +138,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>HashCode.</returns>
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            return ID.GetHashCode();
         }
         /// <summary>
         /// Operator equals.
