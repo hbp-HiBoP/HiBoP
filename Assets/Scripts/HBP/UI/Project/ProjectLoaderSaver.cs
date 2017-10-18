@@ -18,6 +18,7 @@ namespace HBP.UI
         }
         public void Save(string path)
         {
+            ApplicationState.Module3D.SaveConfigurations();
             this.StartCoroutineAsync(c_Save(path));
         }
         public void Save()

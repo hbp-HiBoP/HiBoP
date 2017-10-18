@@ -9,7 +9,8 @@ using System;
 using System.Linq;
 using UnityEngine.Events;
 
-public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler {
+public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler
+{
     #region Properties
     /// <summary>
     /// Associated logical scene 3D
@@ -31,10 +32,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     /// GameObject to hide a minimized view
     /// </summary>
     private GameObject m_MinimizedGameObject;
-    /// <summary>
-    /// Is the view initialized ?
-    /// </summary>
-    private bool m_IsInitialized = false;
     /// <summary>
     /// Render camera texture
     /// </summary>
@@ -85,6 +82,8 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             return (Mathf.Abs(m_RectTransform.rect.height - ParentGrid.MinimumViewHeight) <= 0.9f) && !(Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= 0.9f);
         }
     }
+    
+    private bool m_RectTransformChanged = false;
     #endregion
 
     #region Events
@@ -104,6 +103,54 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     }
     private void Update()
     {
+        if (m_RectTransformChanged)
+        {
+
+            if (Mathf.Abs(m_RectTransform.rect.height - ParentGrid.MinimumViewHeight) <= 0.9f)
+            {
+                if (Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= 0.9f)
+                {
+                    m_MinimizedGameObject.SetActive(false);
+                }
+                else
+                {
+                    m_MinimizedGameObject.SetActive(true);
+                }
+                m_View.IsMinimized = true;
+            }
+            else if (Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= 0.9f)
+            {
+                m_View.IsMinimized = true;
+            }
+            else
+            {
+                m_MinimizedGameObject.SetActive(false);
+                m_View.IsMinimized = false;
+            }
+
+            if (m_UsingRenderTexture)
+            {
+                UnityEngine.Profiling.Profiler.BeginSample("RenderTexture");
+                if (m_RectTransform.rect.width <= 0 || m_RectTransform.rect.height <= 0) // If the user drags too fast and width or height are negative or zero, do not continue;
+                {
+                    return;
+                }
+                RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
+                renderTexture.antiAliasing = 1;
+                m_View.TargetTexture = renderTexture;
+                m_View.Aspect = m_RectTransform.rect.width / m_RectTransform.rect.height;
+                m_RawImage.texture = m_View.TargetTexture;
+                UnityEngine.Profiling.Profiler.EndSample();
+            }
+            else
+            {
+                Rect viewport = RectTransformToScreenSpace(m_RectTransform);
+                m_View.SetViewport(viewport.x, viewport.y, viewport.width, viewport.height);
+            }
+
+            OnChangeViewSize.Invoke();
+            m_RectTransformChanged = false;
+        }
         DeselectView();
         SendRayToScene();
     }
@@ -221,51 +268,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     }
     public void OnRectTransformDimensionsChange()
     {
-        if (!m_IsInitialized) return; // if not initialized, don't do anything
-
-        if (Mathf.Abs(m_RectTransform.rect.height - ParentGrid.MinimumViewHeight) <= 0.9f)
-        {
-            if (Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= 0.9f)
-            {
-                m_MinimizedGameObject.SetActive(false);
-            }
-            else
-            {
-                m_MinimizedGameObject.SetActive(true);
-            }
-            m_View.IsMinimized = true;
-        }
-        else if (Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= 0.9f)
-        {
-            m_View.IsMinimized = true;
-        }
-        else
-        {
-            m_MinimizedGameObject.SetActive(false);
-            m_View.IsMinimized = false;
-        }
-        
-        if (m_UsingRenderTexture)
-        {
-            UnityEngine.Profiling.Profiler.BeginSample("RenderTexture");
-            if (m_RectTransform.rect.width <= 0 || m_RectTransform.rect.height <= 0) // If the user drags too fast and width or height are negative or zero, do not continue;
-            {
-                return;
-            }
-            RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
-            renderTexture.antiAliasing = 1;
-            m_View.TargetTexture = renderTexture;
-            m_View.Aspect = m_RectTransform.rect.width / m_RectTransform.rect.height;
-            m_RawImage.texture = m_View.TargetTexture;
-            UnityEngine.Profiling.Profiler.EndSample();
-        }
-        else
-        {
-            Rect viewport = RectTransformToScreenSpace(m_RectTransform);
-            m_View.SetViewport(viewport.x, viewport.y, viewport.width, viewport.height);
-        }
-
-        OnChangeViewSize.Invoke();
+        m_RectTransformChanged = true;
     }
     /// <summary>
     /// Initialize this view
@@ -293,7 +296,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         m_MinimizedGameObject = transform.Find("MinimizedImage").gameObject;
         m_MinimizedGameObject.GetComponentInChildren<Text>().text = "View " + view.LineID;
         m_MinimizedGameObject.SetActive(false);
-        m_IsInitialized = true;
     }
     /// <summary>
     /// Create a ray corresponding to the mouse position in the viewport of the view

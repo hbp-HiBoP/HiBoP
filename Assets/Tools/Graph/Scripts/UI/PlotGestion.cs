@@ -106,11 +106,13 @@ namespace Tools.Unity.Graph
             if (curveData is ShapedCurveData)
             {
                 curve = Instantiate(ShapedCurvePrefab, transform.Find("Curves")).GetComponent<ShapedCurve>();
+                curve.SetFields();
                 (curve as ShapedCurve).Plot(curveData as ShapedCurveData, limits, ratio);
             }
             else
             {
                 curve = Instantiate(CurvePrefab, transform.Find("Curves")).GetComponent<Curve>();
+                curve.SetFields();
                 curve.Plot(curveData, limits, ratio);
             }
             curvesDisplayed.Add(curve);

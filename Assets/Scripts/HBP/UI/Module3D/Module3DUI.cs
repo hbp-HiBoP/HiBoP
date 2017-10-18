@@ -31,17 +31,8 @@ namespace HBP.UI.Module3D
                 Scene3DWindow sceneWindow = Instantiate(SceneWindowPrefab, transform).GetComponentInChildren<Scene3DWindow>();
                 sceneWindow.Initialize(scene);
                 m_SiteInfoDisplayer.transform.SetAsLastSibling();
+                sceneWindow.gameObject.SetActive(false);
             });
-        }
-        /// <summary>
-        /// DELETEME : DEBUG
-        /// </summary>
-        private void Update()
-        {
-            if (Input.GetKey(KeyCode.W))
-            {
-                Debug.Log(Input.mouseScrollDelta);
-            }
         }
         #endregion
     }

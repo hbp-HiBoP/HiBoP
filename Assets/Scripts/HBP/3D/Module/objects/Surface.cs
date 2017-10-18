@@ -426,10 +426,10 @@ namespace HBP.Module3D.DLL
         /// Simplify mesh
         /// </summary>
         /// <returns></returns>
-        public Surface Simplify()
+        public Surface Simplify(int numberOfTriangles = 10000)
         {
             Surface surface = new Surface(this);
-            simplify_mesh_Surface(surface.getHandle(), 10000);
+            simplify_mesh_Surface(surface.getHandle(), numberOfTriangles);
             return surface;
         }
         #endregion
@@ -463,6 +463,8 @@ namespace HBP.Module3D.DLL
             m_UV = new Vector2[other.m_UV.Length];
             other.m_UV.CopyTo(m_UV, 0);
 
+            IsLoaded = other.IsLoaded;
+            IsMarsAtlasLoaded = other.IsLoaded;
         }
         /// <summary>
         /// Allocate DLL memory

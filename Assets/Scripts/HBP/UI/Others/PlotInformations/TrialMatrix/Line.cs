@@ -63,16 +63,16 @@ namespace HBP.UI.TrialMatrix
                 }
             }
         }
-        #endregion
 
-        #region Private Methods
-        void Awake()
+        public void Initialize()
         {
             rect = transform.Find("Blocs").GetComponent<RectTransform>();
             label = transform.Find("Title").Find("Label").GetComponent<Text>();
             illustration = transform.Find("Title").Find("Image").GetComponent<Image>();
         }
+        #endregion
 
+        #region Private Methods
         void SetIllustration(d.Bloc bloc)
         {
             string l_illustrationPath = bloc.ProtocolBloc.DisplayInformations.IllustrationPath;

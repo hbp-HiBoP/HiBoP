@@ -57,7 +57,6 @@ namespace HBP.UI.TrialMatrix
             SetLegends(trialMatrix.ValuesLimits, trialMatrix.TimeLimitsByColumn);
             Profiler.EndSample();
 
-
             //Separate blocs by line
             Profiler.BeginSample("C");
             d.Bloc[][] l_lines = new d.Bloc[l_blocs[l_blocs.Length - 1].ProtocolBloc.DisplayInformations.Position.Row][];
@@ -136,13 +135,18 @@ namespace HBP.UI.TrialMatrix
         void AddLine(d.Bloc[] blocsInLine,int max,Texture2D colorMap,Vector2 limits)
         {
             Line lines = (Instantiate(linePrefab, linesRect) as GameObject).GetComponent<Line>();
+            lines.Initialize();
             lines.Set(blocsInLine,max, colorMap,limits);
             this.lines.Add(lines);
         }
         void SetLegends(Vector2 valueslimits,Vector2[] timeLimitsByColumn)
         {
+            Profiler.BeginSample("set values");
             valuesLegend.Set(colorMap, valueslimits,5);
+            Profiler.EndSample();
+            Profiler.BeginSample("set time");
             timeLegend.Set(timeLimitsByColumn);
+            Profiler.EndSample();
         }
         #endregion
     }

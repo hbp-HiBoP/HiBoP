@@ -91,13 +91,22 @@ namespace HBP.Data.Visualization
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
         /// <param name="id">Unique ID.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id)
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id, VisualizationConfiguration configuration)
         {
             Name = name;
             Columns = columns.ToList();
             SetPatients(patients);
-            Configuration = new VisualizationConfiguration();
+            Configuration = configuration;
             ID = id;
+        }
+        /// <summary>
+        /// Create a new visualization instance.
+        /// </summary>
+        /// <param name="name">Name of the visualization.</param>
+        /// <param name="columns">Columns of the visualization.</param>
+        /// <param name="id">Unique ID.</param>
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id) : this(name, patients, columns, id, new VisualizationConfiguration())
+        {
         }
         /// <summary>
         /// Create a new visualization instance.
@@ -238,7 +247,7 @@ namespace HBP.Data.Visualization
         public object Clone()
         {
             Column[] columns = (from column in Columns select column.Clone() as Column).ToArray();
-            return new Visualization(Name, Patients, columns, ID);
+            return new Visualization(Name, Patients, columns, ID, Configuration.Clone());
         }
         /// <summary>
         /// Copy an instance in this instance.
@@ -295,7 +304,7 @@ namespace HBP.Data.Visualization
             {
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0.5f, "Load column <color=blue>" + column.Data + "</color>.");
+                onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.DisplayLabel + "</color>.");
                 yield return Ninja.JumpBack;
                 column.Load(dataInfoByColumn[column]);
                 yield return Ninja.JumpToUnity;

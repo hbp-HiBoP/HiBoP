@@ -115,6 +115,7 @@ namespace Tools.Unity.Graph
             Curves = curves;
             Limits = limits;
             m_PlotGestion.Plot(curves, Limits, onlyUpdate);
+            m_InformationsGestion.UpdateWindowValues();
         }
         #endregion
     }

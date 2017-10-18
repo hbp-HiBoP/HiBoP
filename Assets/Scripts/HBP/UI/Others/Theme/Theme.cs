@@ -65,7 +65,7 @@ namespace HBP.UI.Theme
                 LoadingCircle.Text.Font = FontData.defaultFontData;
                 LoadingCircle.Text.Font.fontSize = 14;
                 LoadingCircle.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
-                LoadingCircle.Text.Font.alignByGeometry = true;
+                LoadingCircle.Text.Font.alignByGeometry = false;
                 LoadingCircle.Text.Font.fontStyle = FontStyle.Normal;
 
                 DialogBox.Initialize();

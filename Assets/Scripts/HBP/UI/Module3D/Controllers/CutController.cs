@@ -40,7 +40,7 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private GameObject m_MinimizedGameObject;
         private List<CutParametersController> m_CutParametersControllers = new List<CutParametersController>();
-        private bool m_Initialized;
+        private bool m_RectTransformChanged;
         #endregion
 
         #region Private Methods
@@ -48,9 +48,20 @@ namespace HBP.UI.Module3D
         {
             m_ParentGrid = GetComponentInParent<ResizableGrid>();
         }
-        private void Start()
+        private void Update()
         {
-            m_Initialized = true;
+            if (m_RectTransformChanged)
+            {
+                if (GetComponent<RectTransform>().rect.width < 3 * m_ParentGrid.MinimumViewWidth)
+                {
+                    m_MinimizedGameObject.SetActive(true);
+                }
+                else
+                {
+                    m_MinimizedGameObject.SetActive(false);
+                }
+                m_RectTransformChanged = false;
+            }
         }
         private void AddCut(Cut cut)
         {
@@ -79,16 +90,7 @@ namespace HBP.UI.Module3D
         #region Public Methods
         public void OnRectTransformDimensionsChange()
         {
-            if (!m_Initialized) return;
-
-            if (GetComponent<RectTransform>().rect.width < 3 * m_ParentGrid.MinimumViewWidth)
-            {
-                m_MinimizedGameObject.SetActive(true);
-            }
-            else
-            {
-                m_MinimizedGameObject.SetActive(false);
-            }
+            m_RectTransformChanged = true;
         }
         public void Initialize(Base3DScene scene)
         {

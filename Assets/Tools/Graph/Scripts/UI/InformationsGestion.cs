@@ -53,6 +53,10 @@ namespace Tools.Unity.Graph
             abscissa.SetColor(color);
             ordinate.SetColor(color);
         }
+        public void UpdateWindowValues()
+        {
+            windowInputGestion.SetFields(abscissa.Label, ordinate.Label, limits);
+        }
         #endregion
 
         #region Private Methods

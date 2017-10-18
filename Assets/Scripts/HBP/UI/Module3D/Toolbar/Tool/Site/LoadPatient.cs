@@ -27,7 +27,7 @@ namespace HBP.UI.Module3D.Tools
             m_Button.onClick.AddListener(() =>
             {
                 Base3DScene scene = ApplicationState.Module3D.SelectedScene;
-                ApplicationState.Module3D.OnLoadSinglePatientSceneFromMultiPatientsScene.Invoke(scene.Visualization, scene.Patients[scene.ColumnManager.SelectedColumn.SelectedPatientID]);
+                ApplicationState.Module3D.LoadSinglePatientSceneFromMultiPatientScene(scene.Visualization, scene.Patients[scene.ColumnManager.SelectedColumn.SelectedPatientID]);
             });
         }
         public override void DefaultState()

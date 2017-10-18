@@ -19,7 +19,7 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Button m_Right;
 
-        private bool m_Initialized = false;
+        private bool m_RectTransformChanged;
 
         [SerializeField]
         private GameObject m_ColumnImagePrefab;
@@ -27,12 +27,24 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        private void Start()
-        {
-            m_Initialized = true;
-        }
         private void Update()
         {
+            if (m_RectTransformChanged)
+            {
+                if (m_RectTransform.rect.width < 40)
+                {
+                    m_Left.gameObject.SetActive(false);
+                    m_Text.gameObject.SetActive(false);
+                    m_Right.gameObject.SetActive(false);
+                }
+                else if (!m_Left.gameObject.activeSelf && !m_Right.gameObject.activeSelf && !m_Text.gameObject.activeSelf)
+                {
+                    m_Left.gameObject.SetActive(true);
+                    m_Text.gameObject.SetActive(true);
+                    m_Right.gameObject.SetActive(true);
+                }
+                m_RectTransformChanged = false;
+            }
             if (m_CurrentImage)
             {
                 m_CurrentImage.transform.position = Input.mousePosition;
@@ -83,20 +95,7 @@ namespace HBP.UI.Module3D
 
         public void OnRectTransformDimensionsChange()
         {
-            if (!m_Initialized) return;
-
-            if (m_RectTransform.rect.width < 40)
-            {
-                m_Left.gameObject.SetActive(false);
-                m_Text.gameObject.SetActive(false);
-                m_Right.gameObject.SetActive(false);
-            }
-            else if (!m_Left.gameObject.activeSelf && !m_Right.gameObject.activeSelf && !m_Text.gameObject.activeSelf)
-            {
-                m_Left.gameObject.SetActive(true);
-                m_Text.gameObject.SetActive(true);
-                m_Right.gameObject.SetActive(true);
-            }
+            m_RectTransformChanged = true;
         }
         #endregion
     }

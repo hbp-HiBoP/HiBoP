@@ -1,19 +1,13 @@
 ﻿using UnityEngine;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
+using System;
 
 namespace HBP.Data.Visualization
 {
     [DataContract]
     public class VisualizationConfiguration
     {
-        [DataMember(Name = "Color")]
-        SerializableColor color;
-        /// <summary>
-        /// Color of the visualization.
-        /// </summary>
-        public Color Color { get; set; }
-
         [DataMember(Name = "Brain Color")]
         private ColorType m_BrainColor = ColorType.BrainColor;
         /// <summary>
@@ -233,6 +227,33 @@ namespace HBP.Data.Visualization
             {
                 m_Views = value;
             }
+        }
+
+        public VisualizationConfiguration Clone()
+        {
+            VisualizationConfiguration configuration = new VisualizationConfiguration();
+            configuration.BrainColor = BrainColor;
+            configuration.BrainCutColor = BrainCutColor;
+            configuration.Colormap = Colormap;
+            configuration.MeshPart = MeshPart;
+            configuration.MeshName = MeshName;
+            configuration.MRIName = MRIName;
+            configuration.ImplantationName = ImplantationName;
+            configuration.EdgeMode = EdgeMode;
+            configuration.MRICalMinFactor = MRICalMinFactor;
+            configuration.MRICalMaxFactor = MRICalMaxFactor;
+            configuration.CameraType = CameraType;
+            configuration.Cuts = new List<Cut>();
+            foreach (Cut cut in Cuts)
+            {
+                configuration.Cuts.Add(new Cut(cut.Normal.ToVector3(), cut.Orientation, cut.Flip, cut.Position));
+            }
+            configuration.Views = new List<View>();
+            foreach (View view in Views)
+            {
+                configuration.Views.Add(new View(view.Position.ToVector3(), view.Rotation.ToQuaternion(), view.Target.ToVector3()));
+            }
+            return configuration;
         }
     }
 }

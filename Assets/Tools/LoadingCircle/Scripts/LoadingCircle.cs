@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class LoadingCircle : MonoBehaviour
 {
     #region Properties
-    [SerializeField]
+    [SerializeField, HideInInspector]
     float m_Progress;
     public float Progress
     {
@@ -37,12 +37,17 @@ public class LoadingCircle : MonoBehaviour
         {
             StopCoroutine(m_TextCoroutine);
             loading = false;
-            transform.GetChild(0).GetChild(0).GetComponent<Text>().text = value;
-            transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<Text>().text = "";
+            m_InformationText.text = value;
+            m_LoadingEffectText.text = "";
             m_Text = value;
         }
     }
     bool loading;
+
+    [SerializeField]
+    Text m_LoadingEffectText;
+    [SerializeField]
+    Text m_InformationText;
     #endregion
 
     #region Public Methods
@@ -109,17 +114,13 @@ public class LoadingCircle : MonoBehaviour
     IEnumerator c_Load()
     {
         loading = true;
-        Text loadingEffect = transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<Text>();
-        Text information = transform.GetChild(0).GetChild(0).GetComponent<Text>();
-
-        loadingEffect.rectTransform.localPosition = new Vector2(information.rectTransform.rect.width / 2.0f + 1, 0);
-        loadingEffect.text = "";
+        m_LoadingEffectText.text = "";
         yield return new WaitForSeconds(0.25f);
-        loadingEffect.text = ".";
+        m_LoadingEffectText.text = ".";
         yield return new WaitForSeconds(0.25f);
-        loadingEffect.text = "..";
+        m_LoadingEffectText.text = "..";
         yield return new WaitForSeconds(0.25f);
-        loadingEffect.text = "...";
+        m_LoadingEffectText.text = "...";
         yield return new WaitForSeconds(0.25f);
         loading = false;
     }
@@ -128,7 +129,7 @@ public class LoadingCircle : MonoBehaviour
     #region Private Methods
     void LateUpdate()
     {
-        if (!loading && transform.GetChild(0).GetChild(0).GetChild(0).gameObject.activeSelf) m_TextCoroutine = StartCoroutine(c_Load());
+        if (!loading && m_LoadingEffectText.gameObject.activeSelf) m_TextCoroutine = StartCoroutine(c_Load());
     }
 
     private void Update()

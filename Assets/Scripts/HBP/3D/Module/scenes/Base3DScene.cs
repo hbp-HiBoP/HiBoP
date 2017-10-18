@@ -131,11 +131,11 @@ namespace HBP.Module3D
             }
         }
         
-        protected Data.Visualization.Visualization m_Visualization;
+        protected Visualization m_Visualization;
         /// <summary>
         /// Visualization associated to this scene
         /// </summary>
-        public virtual Data.Visualization.Visualization Visualization
+        public virtual Visualization Visualization
         {
             get
             {
@@ -577,6 +577,12 @@ namespace HBP.Module3D
                 UpdateGeometry();
             }
             UnityEngine.Profiling.Profiler.EndSample();
+
+            if (!SceneInformation.IsSceneDisplayed)
+            {
+                OnChangeVisibleState.Invoke(true);
+                SceneInformation.IsSceneDisplayed = true;
+            }
         }
         /// <summary>
         /// Add every listeners required for the scene
@@ -1237,6 +1243,11 @@ namespace HBP.Module3D
 
             // Update mode
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
+
+            foreach (var cut in m_Cuts)
+            {
+                UpdateCutPlane(cut);
+            }
         }
         /// <summary>
         /// Set the MRI to be used
@@ -1751,7 +1762,7 @@ namespace HBP.Module3D
             
             for (int i = 0; i < Visualization.Configuration.Views.Count; i++)
             {
-                Data.Visualization.View view = Visualization.Configuration.Views[i];
+                View view = Visualization.Configuration.Views[i];
                 if (i != 0)
                 {
                     m_ColumnManager.AddViewLine();
@@ -1768,6 +1779,11 @@ namespace HBP.Module3D
                 column.LoadConfiguration(false);
             }
             ROICreation = !ROICreation;
+
+            foreach (var cut in m_Cuts)
+            {
+                UpdateCutPlane(cut);
+            }
 
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
@@ -1797,10 +1813,10 @@ namespace HBP.Module3D
             }
             Visualization.Configuration.Cuts = cuts;
 
-            List<Data.Visualization.View> views = new List<Data.Visualization.View>();
+            List<View> views = new List<View>();
             foreach (View3D view in m_ColumnManager.Views)
             {
-                views.Add(new Data.Visualization.View(view.LocalCameraPosition, view.LocalCameraRotation, view.LocalCameraTarget));
+                views.Add(new View(view.LocalCameraPosition, view.LocalCameraRotation, view.LocalCameraTarget));
             }
             Visualization.Configuration.Views = views;
 

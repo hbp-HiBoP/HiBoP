@@ -244,6 +244,54 @@ namespace HBP.Module3D
         {
             m_ScenesManager.RemoveScene(scene);
         }
+        /// <summary>
+        /// Load a visualization with a reference visualization and a patient
+        /// </summary>
+        /// <param name="visualization"></param>
+        /// <param name="patient"></param>
+        public void LoadSinglePatientSceneFromMultiPatientScene(Data.Visualization.Visualization visualization, Data.Patient patient)
+        {
+            m_ScenesManager.Scenes.First(s => s.Visualization == visualization).SaveConfiguration();
+            Data.Visualization.Visualization visualizationToLoad = visualization.Clone() as Data.Visualization.Visualization;
+            visualizationToLoad.Name = patient.Name;
+            visualizationToLoad.RemoveAllPatients();
+            visualizationToLoad.AddPatient(patient);
+            if (patient.Brain.Meshes.First(m => m.Name == "Grey matter") != null)
+            {
+                visualizationToLoad.Configuration.MeshName = "Grey matter";
+            }
+            else if (patient.Brain.Meshes.Count > 0)
+            {
+                visualizationToLoad.Configuration.MeshName = patient.Brain.Meshes.First().Name;
+            }
+            if (patient.Brain.MRIs.First(m => m.Name == "Preoperative") != null)
+            {
+                visualizationToLoad.Configuration.MRIName = "Preoperative";
+            }
+            else if (patient.Brain.MRIs.Count > 0)
+            {
+                visualizationToLoad.Configuration.MRIName = patient.Brain.MRIs.First().Name;
+            }
+            if (patient.Brain.Implantations.First(m => m.Name == "Patient") != null)
+            {
+                visualizationToLoad.Configuration.ImplantationName = "Patient";
+            }
+            else if (patient.Brain.Implantations.Count > 0)
+            {
+                visualizationToLoad.Configuration.ImplantationName = patient.Brain.Implantations.First().Name;
+            }
+            LoadScenes(new Data.Visualization.Visualization[] { visualizationToLoad });
+        }
+        /// <summary>
+        /// Save all the configurations of the scene
+        /// </summary>
+        public void SaveConfigurations()
+        {
+            foreach (var scene in m_ScenesManager.Scenes)
+            {
+                scene.SaveConfiguration();
+            }
+        }
         #endregion
 
         #region Coroutines
