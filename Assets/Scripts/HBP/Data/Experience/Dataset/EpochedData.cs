@@ -39,7 +39,7 @@ namespace HBP.Data.Experience
         #region Private Methods
         Dictionary<Protocol.Event,int[]> FindIndexByEvent(IEnumerable<Protocol.Event> events, Localizer.POS pos)
         {
-            return (from e in events select new KeyValuePair<Protocol.Event, int[]>(e, pos.GetSamples(e.Codes).ToArray())).ToDictionary((pair) => pair.Key, (k) => k.Value);
+            return (from e in events select new KeyValuePair<Protocol.Event, int[]>(e, pos.GetIndexes(e.Codes).ToArray())).ToDictionary((pair) => pair.Key, (k) => k.Value);
         }
         void CalculateNumberOfSamples(Tools.CSharp.Window window, float frequency, out int numberOfSamplesBeforeMainEvent, out int numberOfSamplesAfterMainEvent)
         {

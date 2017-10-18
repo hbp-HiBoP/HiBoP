@@ -130,7 +130,7 @@ namespace HBP.Data.Visualization
                 Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
                 //FIXME
                 frequency = epochedData.Frequency;
-                Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs);
+                Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs,ApplicationState.GeneralSettings.ValueAveraging, ApplicationState.GeneralSettings.EventPositionAveraging);
                 blocs.AddRange(epochedData.Blocs);
                 foreach (var site in averagedBloc.ValuesBySite.Keys)
                 {
