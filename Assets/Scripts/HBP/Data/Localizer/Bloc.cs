@@ -10,18 +10,18 @@ namespace HBP.Data.Localizer
     {
         #region Properties
         public Dictionary<Experience.Protocol.Event, int> PositionByEvent;
-        public Dictionary<string, float[]> ValuesBySite;
-        public Dictionary<string, float[]> BaseLineValuesBySite;
-        public Dictionary<string, float[]> NormalizedValuesBySite;
+        public Dictionary<string, float[]> ValuesBySite { get; set; }
+        public Dictionary<string, float[]> BaseLineValuesBySite { get; set; }
+        public Dictionary<string, float[]> NormalizedValuesBySite { get; set; }
         #endregion
 
         #region Constructor
-        public Bloc(Dictionary<Experience.Protocol.Event, int> positionByEvent, Dictionary<string, float[]> valuesBySite, Dictionary<string, float[]> baseLineValuesBySite)
+        public Bloc(Dictionary<Experience.Protocol.Event, int> positionByEvent, Dictionary<string, float[]> valuesBySite, Dictionary<string, float[]> baseLineValuesBySite,Dictionary<string,float[]> normalizedValuesBySite)
 		{
             PositionByEvent = positionByEvent;
             ValuesBySite = valuesBySite;
             BaseLineValuesBySite = baseLineValuesBySite;
-            NormalizedValuesBySite = new Dictionary<string, float[]>();
+            NormalizedValuesBySite = normalizedValuesBySite;
         }
         public Bloc(int firstIndex, int lastIndex, int baseLineFirstIndex, int baseLineLastIndex, Dictionary<Experience.Protocol.Event, int[]> indexByEvent, Experience.Dataset.Data data)
         {
@@ -58,7 +58,7 @@ namespace HBP.Data.Localizer
             BaseLineValuesBySite = baseLineValuesBySite;
             NormalizedValuesBySite = new Dictionary<string, float[]>();
         }
-        public Bloc(): this (new Dictionary<Experience.Protocol.Event, int>(),new Dictionary<string, float[]>(), new Dictionary<string, float[]>())
+        public Bloc(): this (new Dictionary<Experience.Protocol.Event, int>(),new Dictionary<string, float[]>(), new Dictionary<string, float[]>(), new Dictionary<string, float[]>())
         {
         }
         #endregion
@@ -78,7 +78,7 @@ namespace HBP.Data.Localizer
         #endregion
 
         #region Public static Methods
-        public static Bloc Average(Bloc[] blocs)
+        public static Bloc Average(Bloc[] blocs, Settings.GeneralSettings.AveragingMode valueAveragingMode, Settings.GeneralSettings.AveragingMode eventPositionAveragingMode )
         {
             Dictionary<Experience.Protocol.Event, List<int>> positionsByEvent = new Dictionary<Experience.Protocol.Event, List<int>>();
             Dictionary<string, List<float>[]> valuesBySite = new Dictionary<string, List<float>[]>();
@@ -117,7 +117,7 @@ namespace HBP.Data.Localizer
             }
 
             Bloc result = new Bloc();
-            switch (ApplicationState.GeneralSettings.EventPositionAveraging)
+            switch (eventPositionAveragingMode)
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:
                     foreach (var item in positionsByEvent) result.PositionByEvent.Add(item.Key, UnityEngine.Mathf.RoundToInt((float) item.Value.Average()));
@@ -126,7 +126,7 @@ namespace HBP.Data.Localizer
                     foreach (var item in positionsByEvent) result.PositionByEvent.Add(item.Key, item.Value.Median());
                     break;
             }
-            switch (ApplicationState.GeneralSettings.ValueAveraging)
+            switch (valueAveragingMode)
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:
                     foreach (var item in valuesBySite) result.ValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
