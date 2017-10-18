@@ -149,7 +149,7 @@ namespace HBP.UI.Graph
                 UnityEngine.Profiling.Profiler.EndSample();
 
                 UnityEngine.Profiling.Profiler.BeginSample("GetData from Manager");
-                Dictionary<Data.Experience.Dataset.DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>> epochedBlocsByProtocolBlocByDataInfo = new Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>>();
+                Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>> epochedBlocsByProtocolBlocByDataInfo = new Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>>();
                 foreach (var data in dataInfoToRead)
                 {
                     Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]> epochedBlocsByProtocolBloc = new Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>();
@@ -190,7 +190,6 @@ namespace HBP.UI.Graph
             {
                 Column column = m_Scene.ColumnManager.ColumnsIEEG[c].ColumnData;
                 m_CurveBySiteAndColumn[column] = new Dictionary<Site, CurveData>();
-                Dictionary<Site, CurveData> curveBySite = new Dictionary<Site, CurveData>();
                 foreach (var site in m_Sites)
                 {
                     Data.TrialMatrix.TrialMatrix trialMatrixData = m_TrialMatrixByProtocolBySite[column.Protocol][site];
@@ -306,7 +305,7 @@ namespace HBP.UI.Graph
             List<CurveData> curvesToDisplay = new List<CurveData>();
             foreach (var column in m_Scene.ColumnManager.ColumnsIEEG)
             {
-                if (column.IsSelected)
+                if (!column.IsMinimized)
                 {
                     foreach (var site in m_Sites)
                     {

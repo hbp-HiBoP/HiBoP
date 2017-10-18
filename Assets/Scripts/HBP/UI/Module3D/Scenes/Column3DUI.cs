@@ -143,6 +143,7 @@ namespace HBP.UI.Module3D
             {
                 UpdateOverlay();
                 m_MinimizedGameObject.SetActive(IsMinimized);
+                m_Column.IsMinimized = IsMinimized;
                 m_RectTransformChanged = false;
             }
         }
