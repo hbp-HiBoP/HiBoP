@@ -26,7 +26,14 @@ public static class ApplicationState
     {
         get
         {
-            return ProjectLoadedLocation + System.IO.Path.DirectorySeparatorChar + ProjectLoaded.Settings.Name;
+            if(ProjectLoaded == null || string.IsNullOrEmpty(ProjectLoadedLocation))
+            {
+                return ".";
+            }
+            else
+            {
+                return ProjectLoadedLocation + System.IO.Path.DirectorySeparatorChar + ProjectLoaded.Settings.Name;
+            }
         }
     }
 

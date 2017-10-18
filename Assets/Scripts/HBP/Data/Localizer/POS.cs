@@ -9,20 +9,20 @@ namespace HBP.Data.Localizer
 	{
         #region Properties
         public const string EXTENSION = ".pos";
-        Dictionary<int, List<int>> m_IndexByCode;
-        Dictionary<int, List<int>> m_NotUsedIndexByCode;
+        Dictionary<int, List<Tuple<int,int>>> m_IndexByCode;
 		#endregion
 
 		#region Constructor
-        public POS(Dictionary<int,List<int>> indexByCode)
+        public POS(Dictionary<int,List<Tuple<int,int>>> indexByCode)
         {
             m_IndexByCode = indexByCode;
         }
 		public POS(string path)
 		{
-            m_IndexByCode = Load(path).m_IndexByCode;
+            POS pos = Load(path);
+            m_IndexByCode = pos.m_IndexByCode;
 		}
-        public POS() : this(new Dictionary<int, List<int>>()) { }
+        public POS() : this(new Dictionary<int, List<Tuple<int,int>>>()) { }
         #endregion
 
         #region Public Methods
@@ -33,14 +33,14 @@ namespace HBP.Data.Localizer
             if(!posFile.Exists) throw new FileNotFoundException();
             if (posFile.Extension != EXTENSION) throw new Exception("Wrong extension");
 
-            Dictionary<int, List<int>> indexByCode = new Dictionary<int, List<int>>();
-            int code, index;
+            Dictionary<int, List<Tuple<int,int>>> indexByCode = new Dictionary<int, List<Tuple<int,int>>();
+            int code, index, state;
             foreach (string line in File.ReadAllLines(path))
             {
-                if (ReadLine(line, out code, out index))
+                if (ReadLine(line, out code, out index, out state))
                 {
-                    if (!indexByCode.ContainsKey(code)) indexByCode[code] = new List<int>();
-                    indexByCode[code].Add(index);
+                    if (!indexByCode.ContainsKey(code)) indexByCode[code] = new List<Tuple<int,int>>();
+                    indexByCode[code].Add(new Tuple<int, int>(index,state));
                 }
             }
             return new POS(indexByCode);
@@ -51,13 +51,13 @@ namespace HBP.Data.Localizer
             FileInfo posFile = new FileInfo(path);
             if (posFile.Extension != EXTENSION) throw new Exception("Wrong extension");
 
-            IOrderedEnumerable<Tuple<int,int>> indexAndCode = (from pair in m_IndexByCode from index in pair.Value select new Tuple<int,int>(index,pair.Key)).OrderBy((tuple) => tuple.Object1);
+            IEnumerable<Tuple<int, int>> indexAndCode = from pair in m_IndexByCode from index in pair.Value select new Tuple<int, int>(index, pair.Key);
+            IEnumerable<Tuple<int, int>> notUsedIndexAndCode = from pair in m_NotUsedIndexAndStateByCode from index in pair.Value select new Tuple<int, int>(index, pair.Key);
+            IOrderedEnumerable<Tuple<int,int>> sortedIndexAndCode = indexAndCode.Concat(notUsedIndexAndCode).OrderBy((tuple) => tuple.Object1);
+            IEnumerable<string> lines = sortedIndexAndCode.Select((tuple) => GenerateLine(tuple.Object2, tuple.Object1));
             using (StreamWriter streamWriter = new StreamWriter(posFile.FullName))
             {
-                foreach (Tuple<int,int> pair in indexAndCode)
-                {
-                    streamWriter.WriteLine(GenerateLine(pair.Object2, pair.Object1));
-                }
+                foreach (var line in lines) streamWriter.WriteLine(line);
             }
         }
 		public IEnumerable<int> GetIndexes(IEnumerable<int> codes)
@@ -66,7 +66,7 @@ namespace HBP.Data.Localizer
         }
 		public IEnumerable<int> GetIndexes(int code)
 		{
-            return m_IndexByCode.ContainsKey(code) ? m_IndexByCode[code] : new List<int>();
+            return m_IndexByCode.ContainsKey(code) ? from tuple in m_IndexByCode[code] where tuple.Object2 == 0 select tuple.Object1 : new List<int>();
 		}
         public bool IsCompatible(Experience.Protocol.Protocol protocol)
         {
@@ -75,15 +75,17 @@ namespace HBP.Data.Localizer
         #endregion
 
         #region Private Methods
-        static bool ReadLine(string line, out int code, out int index)
+        static bool ReadLine(string line, out int code, out int index,out int state)
         {
-            int state; code = -1; index = -1;
+            state = int.MinValue; code = int.MinValue; index = int.MinValue;
             string[] elements = line.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            return elements.Length == 3 && int.TryParse(elements[0], out index) && int.TryParse(elements[1], out code) && int.TryParse(elements[2], out state) && state == 0;
+            bool parsing = int.TryParse(elements[0], out index) && int.TryParse(elements[1], out code) && int.TryParse(elements[2], out state);
+            bool format = elements.Length == 3;
+            return parsing && format;
         }
         static string GenerateLine(int code,int index)
         {
-            return index + '\t' + code + '\t' + 0.ToString();
+            return index + "\t" + code + "\t" + 0.ToString();
         }
         #endregion
     }
