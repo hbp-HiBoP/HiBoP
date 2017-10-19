@@ -129,6 +129,6 @@ namespace HBP.Module3D
         public List<GameObject> BrainSurfaceMeshes = new List<GameObject>();  /**< brain surface meshes of the scene */
         public List<GameObject> BrainCutMeshes = null;      /**< brain cut meshes of the scene */
         public List<GameObject> InvisibleBrainSurfaceMeshes = null;
-        public GameObject BrainCollider;
+        public GameObject SimplifiedBrain;
     }
 }

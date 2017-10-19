@@ -81,6 +81,14 @@ namespace HBP.UI.Module3D
                         control.CloseControls();
                     }
                 }
+                if (!m_Scene.CuttingEdge) m_Scene.CuttingEdge = true;
+            });
+            controller.OnCloseControls.AddListener(() =>
+            {
+                if (m_CutParametersControllers.All(c => !c.AreControlsOpen))
+                {
+                    m_Scene.CuttingEdge = false;
+                }
             });
             controller.CloseControls();
             m_AddCutButton.SetAsLastSibling();

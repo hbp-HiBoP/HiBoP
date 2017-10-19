@@ -78,7 +78,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Using simplified colliders allows better performances but colliders are not precise
         /// </summary>
-        public static bool UseSimplifiedColliders = true;
+        public static bool UseSimplifiedMeshes = true;
 
         public const int MAXIMUM_VIEW_NUMBER = 5;
         public const int MAXIMUM_COLUMN_NUMBER = 5;

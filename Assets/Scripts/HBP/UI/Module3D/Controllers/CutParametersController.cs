@@ -62,8 +62,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private InputField m_CustomZ;
+        #endregion
 
+        #region Events
         public UnityEvent OnOpenControls = new UnityEvent();
+        public UnityEvent OnCloseControls = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -221,6 +224,7 @@ namespace HBP.UI.Module3D
         {
             AreControlsOpen = false;
             UpdateUI();
+            OnCloseControls.Invoke();
         }
         #endregion
     }
