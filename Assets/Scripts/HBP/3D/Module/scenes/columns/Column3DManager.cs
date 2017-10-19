@@ -939,6 +939,22 @@ namespace HBP.Module3D
                 }
             }
 
+            // unselect out of ROI site
+            foreach (Column3D column in Columns)
+            {
+                if (column.SelectedSite)
+                {
+                    if (column.SelectedSite.State.IsOutOfROI)
+                    {
+                        column.SelectedSiteID = -1;
+                        if (column.IsSelected)
+                        {
+                            ApplicationState.Module3D.OnSelectSite.Invoke(null);
+                        }
+                    }
+                }
+            }
+
             for (int ii = 0; ii < ColumnsIEEG.Count; ++ii)
             {
                 Latencies latencyFile = null;

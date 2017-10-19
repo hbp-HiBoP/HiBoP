@@ -544,12 +544,15 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<FMRIDataParameters> OnSendFMRIParameters = new GenericEvent<FMRIDataParameters>();
 
-        // TODO
         public UnityEvent OnChangeColumnMinimizedState = new UnityEvent();
         /// <summary>
         /// Event called when site is clicked to dipslay additionnal infomation.
         /// </summary>
         public GenericEvent<IEnumerable<Site>> OnRequestSiteInformation = new GenericEvent<IEnumerable<Site>>();
+        /// <summary>
+        /// Event called when updating a ROI
+        /// </summary>
+        public UnityEvent OnUpdateROI = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -2410,6 +2413,7 @@ namespace HBP.Module3D
                     column.Sites[ii].State.IsOutOfROI = maskROI[ii];
             }
             ResetIEEG();
+            OnUpdateROI.Invoke();
         }
         /// <summary>
         /// Manage the mouse movments event in the scene
