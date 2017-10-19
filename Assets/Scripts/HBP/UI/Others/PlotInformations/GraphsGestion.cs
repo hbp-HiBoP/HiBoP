@@ -24,6 +24,7 @@ namespace HBP.UI.Graph
                 m_Scene = value;
                 m_Scene.OnRequestSiteInformation.AddListener(OnRequestSiteInformation);
                 m_Scene.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumns);
+                m_Scene.OnUpdateROI.AddListener(OnUpdateROI);
             }
         }
 
@@ -62,7 +63,7 @@ namespace HBP.UI.Graph
         Dictionary<Column, CurveData> m_ROICurvebyColumn = new Dictionary<Column, CurveData>();
 
         // Plots
-        Site[] m_Sites;
+        Site[] m_Sites = new Site[0];
 
         // Type
         [SerializeField]
@@ -97,6 +98,11 @@ namespace HBP.UI.Graph
         void OnMinimizeColumns()
         {
             DisplayTrialMatrix();
+            DisplayCurves();
+        }
+        void OnUpdateROI()
+        {
+            GenerateCurves();
             DisplayCurves();
         }
         #endregion
@@ -185,7 +191,8 @@ namespace HBP.UI.Graph
         void GenerateCurves()
         {
             UnityEngine.Profiling.Profiler.BeginSample("GenerateCurve()");
-
+            m_CurveBySiteAndColumn.Clear();
+            m_ROICurvebyColumn.Clear();
             for (int c = 0; c < m_Scene.ColumnManager.ColumnsIEEG.Count; c++)
             {
                 Column column = m_Scene.ColumnManager.ColumnsIEEG[c].ColumnData;
@@ -267,34 +274,37 @@ namespace HBP.UI.Graph
                     else continue;
                 }
                 // ROI
-                if (m_Scene.ColumnManager.ColumnsIEEG[c].ROIs.Count > 0)
+                if (m_Scene.ColumnManager.ColumnsIEEG[c].ROIs.Count > 0 && m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI != null)
                 {
                     Site[] sites = (from site in m_Scene.ColumnManager.ColumnsIEEG[c].Sites where !site.State.IsOutOfROI && !site.State.IsExcluded && !site.State.IsBlackListed && !site.State.IsMasked select site).ToArray();
-                    float[] ROIdata = new float[sites.First().Configuration.Values.Length];
-                    for (int i = 0; i < ROIdata.Length; i++)
+                    if (sites.Length > 0)
                     {
-                        List<float> sum = new List<float>(sites.Length);
-                        foreach (var site in sites)
+                        float[] ROIdata = new float[sites.First().Configuration.Values.Length];
+                        for (int i = 0; i < ROIdata.Length; i++)
                         {
-                            sum.Add(site.Configuration.NormalizedValues[i]);
+                            List<float> sum = new List<float>(sites.Length);
+                            foreach (var site in sites)
+                            {
+                                sum.Add(site.Configuration.NormalizedValues[i]);
+                            }
+                            ROIdata[i] = Tools.CSharp.MathfExtension.Average(sum.ToArray());
                         }
-                        ROIdata[i] = Tools.CSharp.MathfExtension.Average(sum.ToArray());
-                    }
 
-                    // Generate points.
-                    int pMin = column.TimeLine.Start.Position;
-                    int pMax = column.TimeLine.End.Position;
-                    float min = column.TimeLine.Start.Value;
-                    float max = column.TimeLine.End.Value;
-                    int lenght = pMax + 1 - pMin;
-                    Vector2[] points = new Vector2[lenght];
-                    for (int i = 0; i < lenght; i++)
-                    {
-                        int index = pMin + i;
-                        float absciss = min + ((max - min) * (index - pMin) / (pMax - pMin));
-                        points[i] = new Vector2(absciss, ROIdata[index]);
+                        // Generate points.
+                        int pMin = column.TimeLine.Start.Position;
+                        int pMax = column.TimeLine.End.Position;
+                        float min = column.TimeLine.Start.Value;
+                        float max = column.TimeLine.End.Value;
+                        int lenght = pMax + 1 - pMin;
+                        Vector2[] points = new Vector2[lenght];
+                        for (int i = 0; i < lenght; i++)
+                        {
+                            int index = pMin + i;
+                            float absciss = min + ((max - min) * (index - pMin) / (pMax - pMin));
+                            points[i] = new Vector2(absciss, ROIdata[index]);
+                        }
+                        m_ROICurvebyColumn[column] = new CurveData("C" + (c + 1) + " " + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, points, m_Colors[c]);
                     }
-                    m_ROICurvebyColumn[column] = new CurveData("C" + (c + 1) + " " + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, points, m_Colors[c]);
                 }
             }
             UnityEngine.Profiling.Profiler.EndSample();
@@ -320,8 +330,11 @@ namespace HBP.UI.Graph
                     }
                 }
             }
-            GraphData graphData = new GraphData("EEG", "Time(ms)", "Activity(mV)", Color.black, Color.white, curvesToDisplay.ToArray());
-            m_Graph.Plot(graphData);
+            if (curvesToDisplay.Count > 0)
+            {
+                GraphData graphData = new GraphData("EEG", "Time(ms)", "Activity(mV)", Color.black, Color.white, curvesToDisplay.ToArray());
+                m_Graph.Plot(graphData);
+            }
             UnityEngine.Profiling.Profiler.EndSample();
         }
         #endregion
