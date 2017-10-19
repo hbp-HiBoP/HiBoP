@@ -5,85 +5,78 @@ using UnityEngine.UI;
 public class VerticalUIFitter : MonoBehaviour, ILayoutSelfController
 {
     #region Properties
-    DrivenRectTransformTracker tracker;
-    RectTransform rectTransform;
-    RectTransform parentRectTransform;
+    [SerializeField,HideInInspector]
+    DrivenRectTransformTracker m_tracker = new DrivenRectTransformTracker();
+    [SerializeField, HideInInspector]
+    RectTransform m_rectTransform;
+    [SerializeField, HideInInspector]
+    RectTransform m_parentRectTransform;
 
-    public enum RotationEnum { Left, Right };
-    RotationEnum m_rotation;
-    public RotationEnum Rotation
+    [SerializeField, Candlelight.PropertyBackingField]
+    private DirectionEnum m_direction;
+    public DirectionEnum direction
     {
         get
         {
-            return m_rotation;
+            return m_direction;
         }
         set
         {
-            m_rotation = value;
-            SetRotation();
+            m_direction = value;
+            UpdateRectTransform();
         }
     }
+    public enum DirectionEnum { BotToTop, TopToBot };
     #endregion
 
     #region Public Methods
     public void SetLayoutHorizontal()
     {
-        rectTransform.sizeDelta = new Vector2(parentRectTransform.rect.height,rectTransform.sizeDelta.y);
+        UpdateRectTransform();
     }
     public void SetLayoutVertical()
     {
-        rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, parentRectTransform.rect.width);
-        rectTransform.anchoredPosition = Vector2.zero;
-    }
-
-    #endregion
-
-    #region Events
-    void OnEnable()
-    {
-        rectTransform = GetComponent<RectTransform>();
-        parentRectTransform = transform.parent.GetComponent<RectTransform>();
-        tracker.Add(this, rectTransform, DrivenTransformProperties.All);
-        rectTransform.pivot = new Vector2(0, 1);
-        SetRotation();
-    }
-    void OnDisable()
-    {
-        tracker.Clear();
-    }
-    void OnTransformParentChanged()
-    {
-        parentRectTransform = transform.parent.GetComponent<RectTransform>();
+        UpdateRectTransform();
     }
     #endregion
 
     #region Private Methods
-    void Update()
+    void Awake()
     {
-        if(parentRectTransform.hasChanged)
-        {
-            SetLayoutHorizontal();
-            SetLayoutVertical();
-        }
+        m_rectTransform = GetComponent<RectTransform>();
+        m_parentRectTransform = transform.parent.GetComponent<RectTransform>();
+        UpdateRectTransform();
     }
-    void SetRotation()
+    void OnEnable()
     {
-        if (isActiveAndEnabled)
+        m_tracker.Add(this, m_rectTransform, DrivenTransformProperties.All);
+    }
+    void OnDisable()
+    {
+        m_tracker.Clear();
+    }
+    void OnTransformParentChanged()
+    {
+        m_parentRectTransform = transform.parent.GetComponent<RectTransform>();
+    }
+    void UpdateRectTransform()
+    {
+        switch (m_direction)
         {
-            switch (m_rotation)
-            {
-                case RotationEnum.Left:
-                    rectTransform.localRotation = Quaternion.AngleAxis(90, Vector3.forward);
-                    rectTransform.anchorMin = Vector2.zero;
-                    rectTransform.anchorMax = Vector2.zero;
-                    break;
-                case RotationEnum.Right:
-                    rectTransform.localRotation = Quaternion.AngleAxis(-90, Vector3.forward);
-                    rectTransform.anchorMin = Vector2.one;
-                    rectTransform.anchorMax = Vector2.one;
-                    break;
-            }
+            case DirectionEnum.BotToTop:
+                m_rectTransform.localRotation = Quaternion.AngleAxis(90, Vector3.forward);
+                m_rectTransform.anchorMin = Vector2.zero;
+                m_rectTransform.anchorMax = Vector2.zero;
+                break;
+            case DirectionEnum.TopToBot:
+                m_rectTransform.localRotation = Quaternion.AngleAxis(-90, Vector3.forward);
+                m_rectTransform.anchorMin = Vector2.one;
+                m_rectTransform.anchorMax = Vector2.one;
+                break;
         }
+        m_rectTransform.localScale = Vector3.one;
+        m_rectTransform.pivot = new Vector2(0, 1);
+        m_rectTransform.sizeDelta = new Vector2(m_parentRectTransform.rect.height, m_parentRectTransform.rect.width);
     }
     #endregion
 }
