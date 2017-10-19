@@ -109,6 +109,7 @@ namespace HBP.Module3D
         {
             yield return Ninja.JumpToUnity;
             int instanceID = GetInstanceID();
+            string nameGO = name;
             yield return Ninja.JumpBack;
 
             string baseIRMDir = m_DataPath + "IRM/", baseMeshDir = m_DataPath + "Meshes/";
@@ -129,7 +130,7 @@ namespace HBP.Module3D
             filesPaths.Add(baseMeshDir + "MNI_single_hight_Rwhite_inflated.obj");
             filesPaths.Add(baseMeshDir + "MNI_single_hight_Bwhite_inflated.obj");
             
-            LoadData(baseIRMDir, baseMeshDir, name, instanceID);
+            LoadData(baseIRMDir, baseMeshDir, nameGO, instanceID);
         }
         #endregion
     }
