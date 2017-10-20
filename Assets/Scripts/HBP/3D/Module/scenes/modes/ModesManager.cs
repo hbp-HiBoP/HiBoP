@@ -266,7 +266,9 @@ namespace HBP.Module3D
                 case Mode.FunctionsId.ResetScene:
                     SetMode(m_CurrentMode.mu_ResetScene());
                     break;
-
+                case Mode.FunctionsId.UpdateGeometry:
+                    SetMode(m_CurrentMode.mu_UpdateGeometry());
+                    break;
             }
 
             m_CurrentMode.UpdateMode();

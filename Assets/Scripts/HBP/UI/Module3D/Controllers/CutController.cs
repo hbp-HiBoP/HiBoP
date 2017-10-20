@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Tools.Unity.ResizableGrid;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
@@ -19,6 +20,10 @@ namespace HBP.UI.Module3D
         /// Displayed UI view
         /// </summary>
         private ResizableGrid m_ParentGrid;
+        /// <summary>
+        /// Recttransform
+        /// </summary>
+        private RectTransform m_RectTransform;
         /// <summary>
         /// Content of the ScrollView
         /// </summary>
@@ -47,6 +52,7 @@ namespace HBP.UI.Module3D
         private void Awake()
         {
             m_ParentGrid = GetComponentInParent<ResizableGrid>();
+            m_RectTransform = GetComponent<RectTransform>();
         }
         private void Update()
         {
@@ -62,6 +68,19 @@ namespace HBP.UI.Module3D
                 }
                 m_RectTransformChanged = false;
             }
+            //if (Input.GetMouseButtonDown(0) && m_CutParametersControllers.Any(c => c.AreControlsOpen))
+            //{
+            //    Rect rect = RectTransformToScreenSpace(m_Content);
+            //    Vector3 mousePosition = Input.mousePosition;
+            //    //Debug.Log(mousePosition.x + ">=" + rect.x + "&&" + mousePosition.x + "<=" + (rect.x + rect.width).ToString() + "&&" + mousePosition.y + ">=" + rect.y + "&&" + mousePosition.y + "<=" + (rect.y + rect.height).ToString() + !(mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height));
+            //    if (!(mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height))
+            //    {
+            //        foreach (CutParametersController control in m_CutParametersControllers)
+            //        {
+            //            control.CloseControls();
+            //        }
+            //    }
+            //}
         }
         private void AddCut(Cut cut)
         {
@@ -71,6 +90,7 @@ namespace HBP.UI.Module3D
             cut.OnRemoveCut.AddListener(() =>
             {
                 m_CutParametersControllers.Remove(controller);
+                m_Scene.CuttingMesh = false;
             });
             controller.OnOpenControls.AddListener(() =>
             {
@@ -81,17 +101,27 @@ namespace HBP.UI.Module3D
                         control.CloseControls();
                     }
                 }
-                if (!m_Scene.CuttingEdge) m_Scene.CuttingEdge = true;
+                if (!m_Scene.CuttingMesh) m_Scene.CuttingMesh = true;
             });
             controller.OnCloseControls.AddListener(() =>
             {
                 if (m_CutParametersControllers.All(c => !c.AreControlsOpen))
                 {
-                    m_Scene.CuttingEdge = false;
+                    m_Scene.CuttingMesh = false;
                 }
             });
             controller.CloseControls();
             m_AddCutButton.SetAsLastSibling();
+        }
+        /// <summary>
+        /// Get RectTransform screen coordinates
+        /// </summary>
+        /// <param name="transform">Rect Transform to get screen coordinates from</param>
+        /// <returns></returns>
+        private Rect RectTransformToScreenSpace(RectTransform transform)
+        {
+            Vector2 size = Vector2.Scale(transform.rect.size, transform.lossyScale);
+            return new Rect((Vector2)transform.position - (size * 0.5f), size);
         }
         #endregion
 

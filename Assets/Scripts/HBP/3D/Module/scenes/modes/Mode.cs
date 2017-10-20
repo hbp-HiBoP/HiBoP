@@ -182,7 +182,7 @@ namespace HBP.Module3D
         {
             ResetGIIBrainSurfaceFile, ResetNIIBrainVolumeFile, ResetElectrodesFile, PreUpdateGenerators, PostUpdateGenerators,
             AddNewPlane, RemoveLastPlane, UpdatePlane, SetDisplayedMesh, SetTimelines, AnableTriangleErasingMode, DisableTriangleErasingMode, EnableROICreationMode, DisableROICreationMode,
-            ResetIEEG, UpdateMaskPlot, AddFMRIColumn, RemoveLastFMRIColumn, ResetScene
+            ResetIEEG, UpdateMaskPlot, AddFMRIColumn, RemoveLastFMRIColumn, ResetScene, UpdateGeometry
         }; /**< scene functions id */
         public enum UIOverlayId { PlanesController, TimelineController, IconsController, CutDisplayController, ColormapController, MinimizeController, TimeDisplayController }; /**< UI overlay elements */       
         private bool m_NeedsUpdate = true; /**< is the mode has to update it's specifications ? */
@@ -457,7 +457,7 @@ namespace HBP.Module3D
         /// 
         /// </summary>
         /// <returns></returns>
-        public Mode.ModesId mu_EnableTriangleErasingMode()
+        public ModesId mu_EnableTriangleErasingMode()
         {
             // TODO : needs work
 
@@ -480,7 +480,7 @@ namespace HBP.Module3D
         /// 
         /// </summary>
         /// <returns></returns>
-        public Mode.ModesId mu_DisableTriangleErasingMode()
+        public ModesId mu_DisableTriangleErasingMode()
         {
             // TODO : needs work
 
@@ -518,9 +518,25 @@ namespace HBP.Module3D
         /// Reset to start mode
         /// </summary>
         /// <returns></returns>
-        public Mode.ModesId mu_ResetScene()
+        public ModesId mu_ResetScene()
         {
             return Mode.ModesId.NoPathDefined;
+        }
+        /// <summary>
+        /// Update the mesh geometry
+        /// </summary>
+        /// <returns></returns>
+        public ModesId mu_UpdateGeometry()
+        {
+            if (ID == Mode.ModesId.NoPathDefined || ID == Mode.ModesId.MinPathDefined || ID == Mode.ModesId.AllPathDefined)
+            {
+                return ID;
+            }
+            if ((ID == Mode.ModesId.AmplitudesComputed) || (ID == Mode.ModesId.AmpNeedUpdate))
+            {
+                return Mode.ModesId.AllPathDefined;
+            }
+            return Mode.ModesId.Error;
         }
         #endregion
     }
