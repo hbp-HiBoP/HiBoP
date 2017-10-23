@@ -518,6 +518,8 @@ namespace HBP.Module3D
         [SerializeField]
         protected GameObject m_BrainPrefab;
         [SerializeField]
+        protected GameObject m_SimplifiedBrainPrefab;
+        [SerializeField]
         protected GameObject m_InvisibleBrainPrefab;
         [SerializeField]
         protected GameObject m_CutPrefab;
@@ -1282,10 +1284,6 @@ namespace HBP.Module3D
             {
                 UpdateCutPlane(cut);
             }
-
-            UnityEngine.Profiling.Profiler.BeginSample("Simplifying Brain");
-            m_ColumnManager.SimplifiedBrainSurface = m_ColumnManager.SelectedMesh.Both.Simplify(); // Maybe FIXME : coroutine (~800ms)
-            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Set the MRI to be used
@@ -1736,7 +1734,7 @@ namespace HBP.Module3D
         /// Initialize the scene with the corresponding visualization
         /// </summary>
         /// <param name="visualization"></param>
-        public void Initialize(Data.Visualization.Visualization visualization)
+        public void Initialize(Visualization visualization)
         {
             m_DisplayedObjects = new DisplayedObjects3DView();
             SceneInformation = new SceneStatesInfo();
@@ -1949,9 +1947,9 @@ namespace HBP.Module3D
             if (HBP3DModule.UseSimplifiedMeshes)
             {
                 // mesh collider
-                m_DisplayedObjects.SimplifiedBrain = Instantiate(m_BrainPrefab);
-                m_DisplayedObjects.SimplifiedBrain.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.BrainMaterials[this];
-                m_DisplayedObjects.SimplifiedBrain.transform.name = "brain_collider";
+                m_DisplayedObjects.SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab);
+                m_DisplayedObjects.SimplifiedBrain.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.SimplifiedBrainMaterials[this];
+                m_DisplayedObjects.SimplifiedBrain.transform.name = "brain_simplified";
                 m_DisplayedObjects.SimplifiedBrain.transform.parent = m_DisplayedObjects.BrainSurfaceMeshesParent.transform;
                 m_DisplayedObjects.SimplifiedBrain.transform.localPosition = Vector3.zero;
                 m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
@@ -2084,13 +2082,13 @@ namespace HBP.Module3D
         }
         public void ComputeSimplifyMeshCut()
         {
-            if (m_ColumnManager.SimplifiedBrainSurface == null) return;
+            if (m_ColumnManager.SelectedMesh.SimplifiedBoth == null) return;
             // cut the mesh
             List<DLL.Surface> cuts;
             if (Cuts.Count > 0)
-                cuts = new List<DLL.Surface>(m_ColumnManager.SimplifiedBrainSurface.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled)); //Maybe FIXME : do not allow holes
+                cuts = new List<DLL.Surface>(m_ColumnManager.SelectedMesh.SimplifiedBoth.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled)); //Maybe FIXME : do not allow holes
             else
-                cuts = new List<DLL.Surface>() { (DLL.Surface)m_ColumnManager.SimplifiedBrainSurface.Clone() };
+                cuts = new List<DLL.Surface>() { (DLL.Surface)m_ColumnManager.SelectedMesh.SimplifiedBoth.Clone() };
 
             if (m_ColumnManager.DLLCutsList.Count != cuts.Count)
                 m_ColumnManager.DLLCutsList = cuts;
@@ -3005,11 +3003,8 @@ namespace HBP.Module3D
                     // update mesh collider TODO : remove next section when this is finished
                     yield return Ninja.JumpToUnity;
                     Mesh colliderMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh;
+                    m_ColumnManager.SelectedMesh.SimplifiedBoth.UpdateMeshFromDLL(colliderMesh, false, true, false, false, true, false);
                     m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
-                    yield return Ninja.JumpBack;
-                    DLL.Surface surface = m_ColumnManager.DLLCutsList[0].Simplify();
-                    yield return Ninja.JumpToUnity;
-                    surface.UpdateMeshFromDLL(colliderMesh, false, true, false, false, true, false);
                     m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = colliderMesh;
                     yield return Ninja.JumpBack;
                 }

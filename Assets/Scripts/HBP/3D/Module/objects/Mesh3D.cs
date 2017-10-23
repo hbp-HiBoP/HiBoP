@@ -10,6 +10,7 @@ namespace HBP.Module3D
         #region Properties
         public string Name { get; set; }
         public DLL.Surface Both { get; set; }
+        public DLL.Surface SimplifiedBoth { get; set; }
         public List<DLL.Surface> SplittedMeshes { get; set; }
         public bool IsLoaded
         {
@@ -51,6 +52,7 @@ namespace HBP.Module3D
                 Both.FlipTriangles();
                 Both.ComputeNormals();
                 Both.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlasIndex, mesh.MarsAtlasPath);
+                SimplifiedBoth = Both.Simplify();
             }
         }
         #endregion
@@ -86,6 +88,7 @@ namespace HBP.Module3D
             {
                 Both = (DLL.Surface)Left.Clone();
                 Both.Append(Right);
+                SimplifiedBoth = Both.Simplify();
             }
             else
             {
@@ -98,6 +101,7 @@ namespace HBP.Module3D
             Left = left;
             Right = right;
             Both = both;
+            SimplifiedBoth = both.Simplify();
         }
         #endregion
     }

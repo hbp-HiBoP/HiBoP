@@ -19,6 +19,7 @@ namespace HBP.Module3D
         public struct Brain
         {
             public static Dictionary<Base3DScene, Material> BrainMaterials = new Dictionary<Base3DScene, Material>();
+            public static Dictionary<Base3DScene, Material> SimplifiedBrainMaterials = new Dictionary<Base3DScene, Material>();
             public static Dictionary<Base3DScene, Material> CutMaterials = new Dictionary<Base3DScene, Material>();
 
             public static void Initialize()
@@ -35,7 +36,7 @@ namespace HBP.Module3D
 
             public static void AddSceneMaterials(Base3DScene scene)
             {
-                Material brainMaterial = null, cutMaterial = null;
+                Material brainMaterial = null, cutMaterial = null, simplifiedBrainMaterial = null;
                 switch (scene.Type) // Distinction is useful in the shader in order to show mars atlases in sp
                 {
                     case SceneType.SinglePatient:
@@ -49,6 +50,7 @@ namespace HBP.Module3D
                     default:
                         break;
                 }
+                simplifiedBrainMaterial = Instantiate(Resources.Load("Materials/Brain/Simplified", typeof(Material))) as Material;
                 if (!BrainMaterials.ContainsKey(scene))
                 {
                     BrainMaterials.Add(scene, brainMaterial);
@@ -65,6 +67,14 @@ namespace HBP.Module3D
                 {
                     CutMaterials[scene] = cutMaterial;
                 }
+                if (!SimplifiedBrainMaterials.ContainsKey(scene))
+                {
+                    SimplifiedBrainMaterials.Add(scene, simplifiedBrainMaterial);
+                }
+                else
+                {
+                    SimplifiedBrainMaterials[scene] = simplifiedBrainMaterial;
+                }
             }
 
             public static void RemoveSceneMaterials(Base3DScene scene)
@@ -73,6 +83,8 @@ namespace HBP.Module3D
                 BrainMaterials.Remove(scene);
                 Destroy(CutMaterials[scene]);
                 CutMaterials.Remove(scene);
+                Destroy(SimplifiedBrainMaterials[scene]);
+                SimplifiedBrainMaterials.Remove(scene);
             }
         }
 

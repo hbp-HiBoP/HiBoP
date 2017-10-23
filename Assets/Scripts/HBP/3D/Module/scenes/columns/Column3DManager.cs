@@ -155,10 +155,6 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Simplified brain surface (for cuts)
-        /// </summary>
-        public DLL.Surface SimplifiedBrainSurface { get; set; }
-        /// <summary>
         /// List of the surfaces for the cuts
         /// </summary>
         public List<DLL.Surface> DLLCutsList = null;
