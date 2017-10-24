@@ -39,7 +39,7 @@ namespace HBP.UI.TrialMatrix
         {
             data = bloc;
             this.colorMap = colorMap;
-            gameObject.name = bloc.ProtocolBloc.DisplayInformations.Name + " | " + "Bloc n°" + bloc.ProtocolBloc.DisplayInformations.Position.Column;
+            gameObject.name = bloc.ProtocolBloc.Name + " | " + "Bloc n°" + bloc.ProtocolBloc.Position.Column;
             Profiler.BeginSample("A");
             blocInformationsDisplayer.Set(bloc);
             Profiler.EndSample();

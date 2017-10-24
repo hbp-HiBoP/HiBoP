@@ -54,19 +54,19 @@ namespace HBP.Data.TrialMatrix
         void Standardize(Bloc[] blocs, Module3D.Site site)
         {
             // Initiate index.
-            int columnNumber = (from bloc in blocs select bloc.ProtocolBloc.DisplayInformations.Position.Column).Max();
+            int columnNumber = (from bloc in blocs select bloc.ProtocolBloc.Position.Column).Max();
             int[] beforeByColumns = new int[columnNumber];
             int[] afterByColumns = new int[columnNumber];
             for (int c = 0; c < columnNumber; c++)
             {
-                beforeByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.DisplayInformations.Position.Column - 1 == c) select bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
-                afterByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.DisplayInformations.Position.Column - 1 == c) select bloc.Lines.First().Bloc.ValuesBySite.First().Value.Length - bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
+                beforeByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.Position.Column - 1 == c) select bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
+                afterByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.Position.Column - 1 == c) select bloc.Lines.First().Bloc.ValuesBySite.First().Value.Length - bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
             }
 
             // Standardize blocs
             foreach (Bloc bloc in blocs)
             {
-                int col = bloc.ProtocolBloc.DisplayInformations.Position.Column - 1;
+                int col = bloc.ProtocolBloc.Position.Column - 1;
                 bloc.SpacesBefore = beforeByColumns[col] - bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent];
                 bloc.SpacesAfter = afterByColumns[col] - (bloc.Lines.First().Bloc.ValuesBySite.First().Value.Length - bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]);
             }
@@ -83,12 +83,12 @@ namespace HBP.Data.TrialMatrix
         }
         Vector2[] CalculateTimeLimitsByColumn(Bloc[] blocs)
         {
-            int columnNumber = (from bloc in blocs select bloc.ProtocolBloc.DisplayInformations.Position.Column).Max();
+            int columnNumber = (from bloc in blocs select bloc.ProtocolBloc.Position.Column).Max();
             Vector2[] limits = new Vector2[columnNumber];
             for (int i = 0; i < columnNumber; i++)
             {
-                IEnumerable<Bloc> blocsInColumn = blocs.Where((b) => b.ProtocolBloc.DisplayInformations.Position.Column - 1 == i);
-                limits[i] = new Vector2(blocsInColumn.Min((b) => b.ProtocolBloc.DisplayInformations.Window.Start), blocsInColumn.Max((b) => b.ProtocolBloc.DisplayInformations.Window.End));
+                IEnumerable<Bloc> blocsInColumn = blocs.Where((b) => b.ProtocolBloc.Position.Column - 1 == i);
+                limits[i] = new Vector2(blocsInColumn.Min((b) => b.ProtocolBloc.Window.Start), blocsInColumn.Max((b) => b.ProtocolBloc.Window.End));
             }
             return limits;
         }

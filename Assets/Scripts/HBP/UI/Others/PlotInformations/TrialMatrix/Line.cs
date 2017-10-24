@@ -75,7 +75,7 @@ namespace HBP.UI.TrialMatrix
         #region Private Methods
         void SetIllustration(d.Bloc bloc)
         {
-            string l_illustrationPath = bloc.ProtocolBloc.DisplayInformations.IllustrationPath;
+            string l_illustrationPath = bloc.ProtocolBloc.IllustrationPath;
             if(l_illustrationPath != string.Empty)
             {
                 FileInfo l_file = new FileInfo(l_illustrationPath);
@@ -91,14 +91,14 @@ namespace HBP.UI.TrialMatrix
                 {
                     label.gameObject.SetActive(true);
                     illustration.gameObject.SetActive(false);
-                    label.text = bloc.ProtocolBloc.DisplayInformations.Name;
+                    label.text = bloc.ProtocolBloc.Name;
                 }
             }
             else
             {
                 label.gameObject.SetActive(true);
                 illustration.gameObject.SetActive(false);
-                label.text = bloc.ProtocolBloc.DisplayInformations.Name;
+                label.text = bloc.ProtocolBloc.Name;
             }
         }
 

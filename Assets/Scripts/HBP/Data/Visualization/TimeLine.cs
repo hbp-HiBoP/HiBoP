@@ -1,4 +1,6 @@
-﻿namespace HBP.Data.Visualization
+﻿using Tools.CSharp;
+
+namespace HBP.Data.Visualization
 {
     /**
     * \class TimeLine
@@ -99,21 +101,21 @@
         /// <param name="mainEvent">Main Event.</param>
         /// <param name="secondaryEvents">Secondary Events.</param>
         /// <param name="frequency">Frequency of the data.</param>
-		public Timeline(Experience.Protocol.DisplayInformations displayInformations, Event mainEvent, Event[] secondaryEvents, float frequency)
+		public Timeline(Window window, Event mainEvent, Event[] secondaryEvents, float frequency)
 		{
-            int start = UnityEngine.Mathf.CeilToInt((displayInformations.Window.Start) * 0.001f * frequency);
-            int end = UnityEngine.Mathf.FloorToInt((displayInformations.Window.End) * 0.001f * frequency);
+            int start = UnityEngine.Mathf.CeilToInt(window.Start * 0.001f * frequency);
+            int end = UnityEngine.Mathf.FloorToInt(window.End * 0.001f * frequency);
             Lenght = end - start + 1;
             Step = 1000 / frequency;
-            Start = new Limit(displayInformations.Window.Start, start * Step, "ms",0);
-            End = new Limit(displayInformations.Window.End, end * Step, "ms",(Lenght-1));
+            Start = new Limit(window.Start, start * Step, "ms",0);
+            End = new Limit(window.End, end * Step, "ms",(Lenght-1));
             MainEvent = mainEvent;
             SecondaryEvents = secondaryEvents;
         }
         /// <summary>
         /// Create a new TimeLine instance with default values.
         /// </summary>
-        public Timeline() : this(new Experience.Protocol.DisplayInformations(),new Event(),new Event[0],0.0F)
+        public Timeline() : this(new Window() , new Event(),new Event[0],0.0F)
         {
         }
         #endregion

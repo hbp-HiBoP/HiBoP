@@ -115,7 +115,7 @@ namespace HBP.Data.Experience.Dataset
                 errors.AddRange(m_MeasureErrors);
                 errors.AddRange(m_EEGErrors);
                 errors.AddRange(m_POSErrors);
-                errors.Add(m_PatientErrors);
+                errors.AddRange(m_PatientErrors);
                 return errors.Distinct().ToArray();
             }
         }

@@ -81,7 +81,7 @@ namespace HBP.UI.Visualization
             if (m_Column.Protocol.Blocs.Count > 0 && m_ProtocolDropdown.interactable)
             {
                 m_BlocDropdown.interactable = true;
-                m_BlocDropdown.options = (from bloc in m_Column.Protocol.Blocs select new Dropdown.OptionData(bloc.DisplayInformations.Name, null)).ToList();
+                m_BlocDropdown.options = (from bloc in m_Column.Protocol.Blocs select new Dropdown.OptionData(bloc.Name, null)).ToList();
                 SetBloc(m_Column.Bloc);
             }
             else DeactivateBlocDropdown();

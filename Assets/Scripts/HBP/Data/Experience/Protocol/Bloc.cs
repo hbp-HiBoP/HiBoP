@@ -28,13 +28,57 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Unique ID.
         /// </summary>
-        [DataMember]
-        public string ID { get; set; }
+        [DataMember] public string ID { get; set; }
         /// <summary>
-        /// Display informations of the bloc.
+        /// Name of the bloc.
         /// </summary>
-        [DataMember]
-        public DisplayInformations DisplayInformations { get; set; }
+        [DataMember] public string Name { get; set; }
+        /// <summary>
+        /// Position of the bloc.
+        /// </summary>
+        [DataMember] public Position Position { get; set; }
+        [DataMember(Name = "IllustrationPath")] string m_IllustrationPath = "";
+        /// <summary>
+        /// illustration path.
+        /// </summary>
+        [IgnoreDataMember] public string IllustrationPath
+        {
+            get
+            {
+                if (m_IllustrationPath.StartsWith("."))
+                {
+                    string localPath = m_IllustrationPath.Remove(0, 1);
+                    return ApplicationState.ProjectLoadedPath + localPath;
+                }
+                else
+                {
+                    return m_IllustrationPath;
+                }
+            }
+            set
+            {
+                if (m_IllustrationPath.StartsWith(ApplicationState.ProjectLoadedPath))
+                {
+                    m_IllustrationPath = "." + value.Remove(0, ApplicationState.ProjectLoadedPath.Length);
+                }
+                else
+                {
+                    m_IllustrationPath = value;
+                }
+            }
+        }
+        /// <summary>
+        /// Sort lines of the bloc.
+        /// </summary>
+        [DataMember] public string Sort { get; set; }
+        /// <summary>
+        /// Window of the bloc (\a x : time before main event in ms. \a y : time after main event in ms.)
+        /// </summary>
+        [DataMember] public Window Window { get; set; }
+        /// <summary>
+        /// Baseline of the bloc (\a x : start of the Baseline in ms. \a y : end of the Baseline in ms.)
+        /// </summary>
+        [DataMember] public Window Baseline { get; set; }
         /// <summary>
         /// Main event of the bloc.
         /// </summary>
@@ -46,13 +90,11 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Events of the bloc.
         /// </summary>
-        [DataMember]
-        public List<Event> Events { get; set; }
+        [DataMember] public List<Event> Events { get; set; }
         /// <summary>
         /// Iconic scenario of the bloc.
         /// </summary>
-        [DataMember]
-        public Scenario Scenario { get; set; }
+        [DataMember] public Scenario Scenario { get; set; }
         #endregion
 
         #region Constructors
@@ -63,12 +105,17 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="secondaryEvents">Events of the bloc.</param>
         /// <param name="scenario">Iconic scenario of the bloc.</param>
         /// <param name="id">Unique ID of the bloc.</param>
-        public Bloc(DisplayInformations displayInformations, List<Event> events, Scenario scenario, string id)
+        public Bloc(string name, Position position, string illustrationPath, string sort, Window window, Window baseline, List<Event> events, Scenario scenario, string id)
         {
-            DisplayInformations = displayInformations;
+            ID = id;
+            Name = name;
+            Position = position;
+            IllustrationPath = illustrationPath;
+            Sort = sort;
+            Window = window;
+            Baseline = baseline;
             Events = events;
             Scenario = scenario;
-            ID = id;
         }
         /// <summary>
         /// Create a new bloc instance with a unique ID.
@@ -76,20 +123,17 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="displayInformations">Display informations.</param>
         /// <param name="events">Events of the bloc.</param>
         /// <param name="scenario">Iconic scenario of the bloc.</param>
-        public Bloc(DisplayInformations displayInformations, List<Event> events, Scenario scenario) : this(displayInformations, events, scenario,Guid.NewGuid().ToString())
+        public Bloc(string name, Position position, string illustrationPath, string sort, Window window, Window Baseline, List<Event> events, Scenario scenario) : this(name,position,illustrationPath,sort,window,Baseline, events, scenario,Guid.NewGuid().ToString())
         {
         }
-        /// <summary>
-        /// Create a new bloc instance with display informations and default other values.
-        /// </summary>
-        /// <param name="displayInformations">Display informations.</param>
-        public Bloc(DisplayInformations displayInformations) : this(displayInformations, new List<Event>(), new Scenario())
+        public Bloc(Position position) : this ("New bloc",position,"","",new Window(),new Window(),new List<Event>(),new Scenario())
         {
+
         }
         /// <summary>
         /// Create a new bloc instance with default values.
         /// </summary>
-        public Bloc() : this(new DisplayInformations())
+        public Bloc() : this(string.Empty, new Position(), string.Empty, string.Empty, new Window(), new Window(), new List<Event>(), new Scenario())
 		{
 		}
         #endregion
@@ -101,11 +145,16 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="copy">instance to copy.</param>
         public void Copy(object copy)
         {
-            Bloc protocol = copy as Bloc;
-            DisplayInformations = protocol.DisplayInformations;
-            Events = protocol.Events;
-            Scenario = protocol.Scenario;
-            ID = protocol.ID;
+            Bloc bloc = copy as Bloc;
+            ID = bloc.ID;
+            Name = bloc.Name;
+            Position = bloc.Position;
+            IllustrationPath = bloc.IllustrationPath;
+            Sort = bloc.Sort;
+            Window = bloc.Window;
+            Baseline = bloc.Baseline;
+            Events = bloc.Events;
+            Scenario = bloc.Scenario;
         }
         /// <summary>
         /// Clone the instance.
@@ -113,7 +162,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>object cloned.</returns>
         public object Clone()
         {
-            return new Bloc(DisplayInformations.Clone() as DisplayInformations, Events.ToArray().DeepClone().ToList() , Scenario.Clone() as Scenario, ID.Clone() as string);
+            return new Bloc(Name, Position, IllustrationPath, Sort, Window, Baseline, Events.ToArray().DeepClone().ToList() , Scenario.Clone() as Scenario, ID.Clone() as string);
         }
         /// <summary>
         /// Operator Equals.

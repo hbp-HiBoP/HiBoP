@@ -8,7 +8,7 @@ namespace HBP.UI.Experience.Protocol
 	public class BlocModifier : ItemModifier<d.Bloc> 
 	{
 		#region Properties
-		InputField m_NameInputField, m_SortInputField, m_WindowMinInputField, m_WindowMaxInputField, m_BaseLineMinInputField, m_BaseLineMaxInputField;
+		InputField m_NameInputField, m_SortInputField, m_WindowMinInputField, m_WindowMaxInputField, m_BaselineMinInputField, m_BaselineMaxInputField;
 		ImageSelector m_ImageFileSelector;
 		EventList m_EventList;
         IconList m_IconList;
@@ -38,7 +38,7 @@ namespace HBP.UI.Experience.Protocol
         }
         public void AddIcon()
         {
-            d.Icon newIcon = new d.Icon("Icon","",new Vector2(ItemTemp.DisplayInformations.Window.Start,ItemTemp.DisplayInformations.Window.End));
+            d.Icon newIcon = new d.Icon("Icon","",new Vector2(ItemTemp.Window.Start,ItemTemp.Window.End));
             OpenIconModifier(newIcon);
         }
         public void RemoveIcon()
@@ -109,26 +109,26 @@ namespace HBP.UI.Experience.Protocol
         }
         protected override void SetFields(d.Bloc objectToDisplay)
         {
-            m_NameInputField.text = objectToDisplay.DisplayInformations.Name;
-            m_NameInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Name = value);
+            m_NameInputField.text = objectToDisplay.Name;
+            m_NameInputField.onEndEdit.AddListener((value) => ItemTemp.Name = value);
 
-            m_ImageFileSelector.Path = objectToDisplay.DisplayInformations.IllustrationPath;
-            m_ImageFileSelector.onValueChanged.AddListener(() => ItemTemp.DisplayInformations.IllustrationPath = m_ImageFileSelector.Path);
+            m_ImageFileSelector.Path = objectToDisplay.IllustrationPath;
+            m_ImageFileSelector.onValueChanged.AddListener(() => ItemTemp.IllustrationPath = m_ImageFileSelector.Path);
 
-            m_SortInputField.text = objectToDisplay.DisplayInformations.Sort;
-            m_SortInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Sort = value);
+            m_SortInputField.text = objectToDisplay.Sort;
+            m_SortInputField.onEndEdit.AddListener((value) => ItemTemp.Sort = value);
 
-            m_WindowMinInputField.text = objectToDisplay.DisplayInformations.Window.Start.ToString();
-            m_WindowMinInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Window = new Tools.CSharp.Window(float.Parse(value), ItemTemp.DisplayInformations.Window.End));
+            m_WindowMinInputField.text = objectToDisplay.Window.Start.ToString();
+            m_WindowMinInputField.onEndEdit.AddListener((value) => ItemTemp.Window = new Tools.CSharp.Window(float.Parse(value), ItemTemp.Window.End));
 
-            m_WindowMaxInputField.text = objectToDisplay.DisplayInformations.Window.End.ToString();
-            m_WindowMaxInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.Window = new Tools.CSharp.Window(ItemTemp.DisplayInformations.Window.Start, float.Parse(value)));
+            m_WindowMaxInputField.text = objectToDisplay.Window.End.ToString();
+            m_WindowMaxInputField.onEndEdit.AddListener((value) => ItemTemp.Window = new Tools.CSharp.Window(ItemTemp.Window.Start, float.Parse(value)));
 
-            m_BaseLineMinInputField.text = objectToDisplay.DisplayInformations.BaseLine.Start.ToString();
-            m_BaseLineMinInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.BaseLine = new Tools.CSharp.Window(float.Parse(value),ItemTemp.DisplayInformations.BaseLine.End));
+            m_BaselineMinInputField.text = objectToDisplay.Baseline.Start.ToString();
+            m_BaselineMinInputField.onEndEdit.AddListener((value) => ItemTemp.Baseline = new Tools.CSharp.Window(float.Parse(value),ItemTemp.Baseline.End));
 
-            m_BaseLineMaxInputField.text = objectToDisplay.DisplayInformations.BaseLine.End.ToString();
-            m_BaseLineMaxInputField.onEndEdit.AddListener((value) => ItemTemp.DisplayInformations.BaseLine = new Tools.CSharp.Window(ItemTemp.DisplayInformations.BaseLine.Start, float.Parse(value)));
+            m_BaselineMaxInputField.text = objectToDisplay.Baseline.End.ToString();
+            m_BaselineMaxInputField.onEndEdit.AddListener((value) => ItemTemp.Baseline = new Tools.CSharp.Window(ItemTemp.Baseline.Start, float.Parse(value)));
 
             m_EventList.Objects = ItemTemp.Events.ToArray();
             m_EventList.OnAction.AddListener((e, i) => OpenEventModifier(e));
@@ -143,8 +143,8 @@ namespace HBP.UI.Experience.Protocol
             m_SortInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Sort").GetComponentInChildren<InputField>();
             m_WindowMinInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Window").Find("Panel").Find("Min").GetComponentInChildren<InputField>();
             m_WindowMaxInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Window").Find("Panel").Find("Max").GetComponentInChildren<InputField>();
-            m_BaseLineMinInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("BaseLine").Find("Panel").Find("Min").GetComponentInChildren<InputField>();
-            m_BaseLineMaxInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("BaseLine").Find("Panel").Find("Max").GetComponentInChildren<InputField>();
+            m_BaselineMinInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Baseline").Find("Panel").Find("Min").GetComponentInChildren<InputField>();
+            m_BaselineMaxInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Baseline").Find("Panel").Find("Max").GetComponentInChildren<InputField>();
 
             // Events.
             m_EventList = transform.Find("Content").Find("Events").Find("List").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<EventList>();
@@ -167,8 +167,8 @@ namespace HBP.UI.Experience.Protocol
             m_SortInputField.interactable = interactable;
             m_WindowMinInputField.interactable = interactable;
             m_WindowMaxInputField.interactable = interactable;
-            m_BaseLineMinInputField.interactable = interactable;
-            m_BaseLineMaxInputField.interactable = interactable;
+            m_BaselineMinInputField.interactable = interactable;
+            m_BaselineMaxInputField.interactable = interactable;
             m_ImageFileSelector.interactable = interactable;
             m_SaveButton.interactable = interactable;
             m_AddEventButton.interactable = interactable;

@@ -36,7 +36,7 @@ namespace HBP.Data.TrialMatrix
         #region Private Methods
         static IOrderedEnumerable<Line> SortLines(Experience.Protocol.Bloc bloc, IEnumerable<Line> lines)
         {
-            string l_sort = bloc.DisplayInformations.Sort;
+            string l_sort = bloc.Sort;
             string[] l_sortCommands = l_sort.SplitInParts(2).ToArray();
             IOrderedEnumerable<Line> l_linesSorted = lines.OrderBy(x => 1);
             for (int i = 0; i < l_sortCommands.Length; i++)

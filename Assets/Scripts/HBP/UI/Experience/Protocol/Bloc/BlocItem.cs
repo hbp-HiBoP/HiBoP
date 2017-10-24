@@ -26,14 +26,14 @@ namespace HBP.UI.Experience.Protocol
             set
             {
                 base.Object = value;
-                gameObject.name = value.DisplayInformations.Name;
-                m_Label.text = value.DisplayInformations.Name;
+                gameObject.name = value.Name;
+                m_Label.text = value.Name;
                 Theme.ThemeElement themeElement = GetComponent<Theme.ThemeElement>();
-                if (value.DisplayInformations.Position.Column == 1)
+                if (value.Position.Column == 1)
                 {
                     themeElement.Item = Theme.ThemeElement.ItemEnum.MainBloc;
                     Texture2D l_texture = new Texture2D(0, 0);
-                    if (l_texture.LoadPNG(value.DisplayInformations.IllustrationPath))
+                    if (l_texture.LoadPNG(value.IllustrationPath))
                     {
                         m_Illustration.sprite = Sprite.Create(l_texture, new Rect(0, 0, l_texture.width, l_texture.height), new Vector2(0.5f, 0.5f));
                         m_Illustration.enabled = true;

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.ObjectModel;
 using Tools.Unity.Lists;
+using System.Collections.Generic;
 
 namespace HBP.UI
 {
@@ -71,7 +72,7 @@ namespace HBP.UI
             m_Items.Add(item);
             m_List.Add(item);
         }
-        protected virtual void AddItem(T[] items)
+        protected virtual void AddItem(IEnumerable<T> items)
         {
             foreach(T item in items)
             {
@@ -83,7 +84,7 @@ namespace HBP.UI
             m_Items.Remove(item);
             m_List.Remove(item);
         }
-        protected virtual void RemoveItem(T[] items)
+        protected virtual void RemoveItem(IEnumerable<T> items)
         {
             foreach(T item in items)
             {

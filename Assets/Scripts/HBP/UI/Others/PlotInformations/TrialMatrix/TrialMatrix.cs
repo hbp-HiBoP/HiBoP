@@ -49,7 +49,7 @@ namespace HBP.UI.TrialMatrix
 
             //Organize array
             Profiler.BeginSample("A");
-            d.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.ProtocolBloc.DisplayInformations.Position.Row).ThenBy(t => t.ProtocolBloc.DisplayInformations.Position.Column).ToArray();
+            d.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.ProtocolBloc.Position.Row).ThenBy(t => t.ProtocolBloc.Position.Column).ToArray();
             Profiler.EndSample();
 
             // Set Legends
@@ -59,18 +59,18 @@ namespace HBP.UI.TrialMatrix
 
             //Separate blocs by line
             Profiler.BeginSample("C");
-            d.Bloc[][] l_lines = new d.Bloc[l_blocs[l_blocs.Length - 1].ProtocolBloc.DisplayInformations.Position.Row][];
+            d.Bloc[][] l_lines = new d.Bloc[l_blocs[l_blocs.Length - 1].ProtocolBloc.Position.Row][];
             int l_blocsByRow = 0;
             for (int i = 0; i < l_lines.Length; i++)
             {
-                l_lines[i] = System.Array.FindAll(l_blocs, x => x.ProtocolBloc.DisplayInformations.Position.Row == i + 1);
+                l_lines[i] = System.Array.FindAll(l_blocs, x => x.ProtocolBloc.Position.Row == i + 1);
                 if (l_blocsByRow < l_lines.Length) l_blocsByRow = l_lines.Length;
             }
 
             int maxBlocByRow = 0;
             foreach (d.Bloc[] line in l_lines)
             {
-                int max = line[line.Length - 1].ProtocolBloc.DisplayInformations.Position.Column;
+                int max = line[line.Length - 1].ProtocolBloc.Position.Column;
                 if (max > maxBlocByRow)
                 {
                     maxBlocByRow = max;

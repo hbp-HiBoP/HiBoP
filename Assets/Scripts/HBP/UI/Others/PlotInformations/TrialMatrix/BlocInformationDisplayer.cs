@@ -66,7 +66,7 @@ namespace HBP.UI.TrialMatrix
             mousePosition = new Vector2(Mathf.Clamp01(mousePosition.x), Mathf.Clamp01(mousePosition.y));
             line = Mathf.FloorToInt(mousePosition.y * data.Lines.Length);
             int l_instant = Mathf.FloorToInt(mousePosition.x * data.Lines[0].NormalizedValues.Length);
-            latency = data.ProtocolBloc.DisplayInformations.Window.Start + mousePosition.x * (data.ProtocolBloc.DisplayInformations.Window.End - data.ProtocolBloc.DisplayInformations.Window.Start);
+            latency = data.ProtocolBloc.Window.Start + mousePosition.x * (data.ProtocolBloc.Window.End - data.ProtocolBloc.Window.Start);
             if(line >= data.Lines.Length)
             {
                 line = data.Lines.Length-1;

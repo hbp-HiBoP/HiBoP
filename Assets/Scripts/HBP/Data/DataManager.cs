@@ -38,7 +38,7 @@ public static class DataManager
                 {
                     foreach (var bloc in epochedData.Blocs)
                     {
-                        foreach (var pair in bloc.BaseLineValuesBySite)
+                        foreach (var pair in bloc.BaselineValuesBySite)
                         {
                             average = MathfExtension.Average(pair.Value);
                             standardDeviation = MathfExtension.StandardDeviation(pair.Value);
@@ -50,21 +50,21 @@ public static class DataManager
             case HBP.Data.Settings.TrialMatrixSettings.BaselineType.Bloc:
                 foreach (var epochedData in m_DataByRequest.Values)
                 {
-                    Dictionary<string, List<float>> baselineBySite = new Dictionary<string, List<float>>();
+                    Dictionary<string, List<float>> BaselineBySite = new Dictionary<string, List<float>>();
                     Dictionary<string, float> averageBySite = new Dictionary<string, float>();
                     Dictionary<string, float> standardDeviationBySite = new Dictionary<string, float>();
                     foreach (var line in epochedData.Blocs)
                     {
-                        foreach (var site in line.BaseLineValuesBySite.Keys)
+                        foreach (var site in line.BaselineValuesBySite.Keys)
                         {
-                            if (!baselineBySite.ContainsKey(site)) baselineBySite[site] = new List<float>();
-                            baselineBySite[site].AddRange(line.BaseLineValuesBySite[site]);
+                            if (!BaselineBySite.ContainsKey(site)) BaselineBySite[site] = new List<float>();
+                            BaselineBySite[site].AddRange(line.BaselineValuesBySite[site]);
                         }
                     }
-                    foreach (var site in baselineBySite.Keys)
+                    foreach (var site in BaselineBySite.Keys)
                     {
-                        averageBySite[site] = MathfExtension.Average(baselineBySite[site].ToArray());
-                        standardDeviationBySite[site] = MathfExtension.StandardDeviation(baselineBySite[site].ToArray());
+                        averageBySite[site] = MathfExtension.Average(BaselineBySite[site].ToArray());
+                        standardDeviationBySite[site] = MathfExtension.StandardDeviation(BaselineBySite[site].ToArray());
                     }
                     foreach (var line in epochedData.Blocs)
                     {
@@ -80,7 +80,7 @@ public static class DataManager
                 foreach (var data in dataInfo)
                 {
                     Protocol protocol = ApplicationState.ProjectLoaded.Datasets.First((d) => d.Data.Contains(data)).Protocol;
-                    Dictionary<string, List<float>> baselineBySite = new Dictionary<string, List<float>>();
+                    Dictionary<string, List<float>> BaselineBySite = new Dictionary<string, List<float>>();
                     Dictionary<string, float> averageBySite = new Dictionary<string, float>();
                     Dictionary<string, float> standardDeviationBySite = new Dictionary<string, float>();
 
@@ -89,24 +89,24 @@ public static class DataManager
                         EpochedData epochedData = m_DataByRequest[new DataRequest(data, bloc)];
                         foreach (var line in epochedData.Blocs)
                         {
-                            foreach (var site in line.BaseLineValuesBySite.Keys)
+                            foreach (var site in line.BaselineValuesBySite.Keys)
                             {
-                                if (!baselineBySite.ContainsKey(site)) baselineBySite[site] = new List<float>();
-                                baselineBySite[site].AddRange(line.BaseLineValuesBySite[site]);
+                                if (!BaselineBySite.ContainsKey(site)) BaselineBySite[site] = new List<float>();
+                                BaselineBySite[site].AddRange(line.BaselineValuesBySite[site]);
                             }
                         }
                     }
-                    foreach (var site in baselineBySite.Keys)
+                    foreach (var site in BaselineBySite.Keys)
                     {
-                        averageBySite[site] = MathfExtension.Average(baselineBySite[site].ToArray());
-                        standardDeviationBySite[site] = MathfExtension.StandardDeviation(baselineBySite[site].ToArray());
+                        averageBySite[site] = MathfExtension.Average(BaselineBySite[site].ToArray());
+                        standardDeviationBySite[site] = MathfExtension.StandardDeviation(BaselineBySite[site].ToArray());
                     }
                     foreach (var bloc in protocol.Blocs)
                     {
                         EpochedData epochedData = m_DataByRequest[new DataRequest(data, bloc)];
                         foreach (var line in epochedData.Blocs)
                         {
-                            foreach (var site in line.BaseLineValuesBySite.Keys)
+                            foreach (var site in line.BaselineValuesBySite.Keys)
                             {
                                 line.Normalize(averageBySite[site], standardDeviationBySite[site], site);
                             }
