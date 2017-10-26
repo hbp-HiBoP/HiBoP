@@ -339,7 +339,7 @@ namespace HBP.UI.Module3D
             switch(m_scene.Type)
             {
                 case SceneType.SinglePatient:
-                    bool activeCCEP = m_scene.ColumnManager.LatencyFileAvailable && m_scene.SceneInformation.DisplayCCEPMode;
+                    bool activeCCEP = /*m_scene.ColumnManager.LatencyFileAvailable &&*/ m_scene.SceneInformation.DisplayCCEPMode;
                     Button setSiteAsSourceButton = panel.Find("CCEP parent").Find("site source parent").Find("set site as source button").GetComponent<Button>();
                     Button undefineSourceButton = panel.Find("CCEP parent").Find("undefine source parent").Find("undefine source button").GetComponent<Button>();
                     Text dataLatencyText = panel.Find("CCEP parent").Find("latency data text").GetComponent<Text>();

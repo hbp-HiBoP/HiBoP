@@ -270,7 +270,7 @@ namespace HBP.Module3D
             }
 
             // update the scene with the new selected ROI
-            m_mpScene.UpdateRegionOfInterest(m_mpScene.ColumnManager.Columns[m_idColumn], selected_ROI_element().associated_ROI());
+            //m_mpScene.UpdateRegionOfInterest(m_mpScene.ColumnManager.Columns[m_idColumn], selected_ROI_element().associated_ROI());
         }
 
         public ROIElement selected_ROI_element()

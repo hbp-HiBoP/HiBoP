@@ -9,9 +9,12 @@ namespace HBP.Module3D
     {
         #region Properties
         public string Name { get; set; }
-        public DLL.RawSiteList RawSiteList { get; set; }
         public DLL.PatientElectrodesList PatientElectrodesList { get; set; }
         public bool IsLoaded { get; set; }
+
+        public bool AreLatenciesLoaded { get; set; }
+        public DLL.RawSiteList RawSiteList { get; set; }
+        public List<Latencies> Latencies { get; set; }
         #endregion
 
         #region Constructors
@@ -19,41 +22,23 @@ namespace HBP.Module3D
         {
             Name = name;
             PatientElectrodesList = new DLL.PatientElectrodesList();
-            RawSiteList = new DLL.RawSiteList();
             IsLoaded = PatientElectrodesList.LoadPTSFiles(pts.ToList(), patientIDs.ToList(), ApplicationState.Module3D.MarsAtlasIndex);
+        }
+        #endregion
+
+        #region Public Methods
+        public void LoadLatencies(Data.Patient patient)
+        {
+            RawSiteList = new DLL.RawSiteList();
             PatientElectrodesList.ExtractRawSiteList(RawSiteList);
-
-            // FIXME : Something has been commented. See one of the first commits for more information
-            // reset latencies
-            //m_ColumnManager.LatenciesFiles = new List<Latencies>();
-            //CCEPLabels = new List<string>();
-            //for (int ii = 0; ii < Patient.Brain.Connectivities.Count; ++ii)
-            //{
-            //    Latencies latencies = null;
-            //    if (Patient.Brain.SitesConnectivities == "dummyPath" || Patient.Brain.SitesConnectivities == string.Empty)
-            //    {
-            //        // generate dummy latencies
-            //        latencies = m_ColumnManager.DLLLoadedRawSitesList.GenerateDummyLatencies();
-            //    }
-            //    else
-            //    {
-            //        // load latency file
-            //        latencies = m_ColumnManager.DLLLoadedRawSitesList.UpdateLatenciesWithFile(Patient.Brain.SitesConnectivities);// Connectivities[ii].Path);
-            //    }
-
-            //    if (latencies != null)
-            //    {
-            //        latencies.Name = Patient.Brain.SitesConnectivities; //Connectivities[ii].Label;
-            //        m_ColumnManager.LatenciesFiles.Add(latencies);
-            //        CCEPLabels.Add(latencies.Name);
-            //    }
-
-            //    //latencies = m_CM.DLLLoadedRawPlotsList.updateLatenciesWithFile("C:/Users/Florian/Desktop/amplitudes_latencies/amplitudes_latencies/SIEJO_amplitudes_latencies.txt");
-
-            //}
-
-            //m_ColumnManager.LatencyFilesDefined = false; //(Patient.Brain.Connectivities.Count > 0);
-            //OnUpdateLatencies.Invoke(CCEPLabels);
+            foreach (Data.Anatomy.Connectivity connectivity in patient.Brain.Connectivities)
+            {
+                if (!connectivity.isUsable) continue;
+                Latencies latencies = connectivity.HasConnectivity ? RawSiteList.UpdateLatenciesWithFile(connectivity.File) : RawSiteList.GenerateDummyLatencies();
+                latencies.Name = connectivity.Name;
+                Latencies.Add(latencies);
+                AreLatenciesLoaded = true;
+            }
         }
         #endregion
     }

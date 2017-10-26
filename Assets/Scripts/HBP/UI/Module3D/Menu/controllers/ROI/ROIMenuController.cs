@@ -241,9 +241,9 @@ namespace HBP.Module3D
             if (ROIPath.Length == 0) // no path selected
                 return "";
 
-            File.WriteAllText(ROIPath, m_scene.GetCurrentColumnRegionOfInterestAndSitesStatesIntoString(), Encoding.UTF8);
+            //File.WriteAllText(ROIPath, m_scene.GetCurrentColumnRegionOfInterestAndSitesStatesIntoString(), Encoding.UTF8);
             string[] parts = ROIPath.Split('.');
-            File.WriteAllText(parts[0] + ".sites", m_scene.GetSitesInRegionOfInterestIntoString(), Encoding.UTF8);
+            //File.WriteAllText(parts[0] + ".sites", m_scene.GetSitesInRegionOfInterestIntoString(), Encoding.UTF8);
 
             return ROIPath;
         }

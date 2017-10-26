@@ -112,11 +112,6 @@ namespace HBP.Module3D
         /// </summary>
         public List<List<GameObject>> SitesElectrodesParent = new List<List<GameObject>>();
 
-        // latency        
-        public bool LatencyFilesDefined = false;
-        public bool LatencyFileAvailable = false; /**< latency file is available */
-        public List<Latencies> LatenciesFiles = new List<Latencies>(); /*< list of latency files */
-
         // textures
         public List<Vector2[]> UVNull = null;                   /**< null uv vectors */ // // new List<Vector2[]>(); 
         public Color NotInBrainColor = Color.black;
@@ -706,9 +701,6 @@ namespace HBP.Module3D
                 {
                     ColumnsIEEG[ii].Initialize(ii, nbCuts, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
                     ColumnsIEEG[ii].ResetSplitsNumber(MeshSplitNumber);
-
-                    if (LatencyFilesDefined)
-                        ColumnsIEEG[ii].CurrentLatencyFile = 0;
                 }
             }
 
@@ -959,7 +951,7 @@ namespace HBP.Module3D
             {
                 Latencies latencyFile = null;
                 if (ColumnsIEEG[ii].CurrentLatencyFile != -1)
-                    latencyFile = LatenciesFiles[ColumnsIEEG[ii].CurrentLatencyFile];
+                    latencyFile = SelectedImplantation.Latencies[ColumnsIEEG[ii].CurrentLatencyFile];
 
                 ColumnsIEEG[ii].UpdateSitesSizeAndColorForIEEG(); // TEST
                 ColumnsIEEG[ii].UpdateSitesRendering(data, latencyFile);
@@ -972,7 +964,7 @@ namespace HBP.Module3D
         {
             Latencies latencyFile = null;
             if (column.CurrentLatencyFile != -1)
-                latencyFile = LatenciesFiles[column.CurrentLatencyFile];
+                latencyFile = SelectedImplantation.Latencies[column.CurrentLatencyFile];
 
             column.UpdateSitesSizeAndColorForIEEG(); // TEST
             column.UpdateSitesRendering(data, latencyFile);

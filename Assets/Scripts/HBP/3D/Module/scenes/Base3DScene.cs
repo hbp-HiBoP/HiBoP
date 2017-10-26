@@ -2563,7 +2563,7 @@ namespace HBP.Module3D
                             string latency = "none", height = "none";
                             if (columnIEEG.CurrentLatencyFile != -1)
                             {
-                                Latencies latencyFile = m_ColumnManager.LatenciesFiles[columnIEEG.CurrentLatencyFile];
+                                Latencies latencyFile = m_ColumnManager.SelectedImplantation.Latencies[columnIEEG.CurrentLatencyFile];
 
                                 if (columnIEEG.SourceSelectedID == -1) // no source selected
                                 {
@@ -2642,20 +2642,19 @@ namespace HBP.Module3D
                 if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG && Type == SceneType.SinglePatient)
                 {
                     Column3DIEEG columnIEEG = (Column3DIEEG)m_ColumnManager.SelectedColumn;
-                    m_ColumnManager.LatencyFileAvailable = (columnIEEG.CurrentLatencyFile != -1);
                     columnIEEG.SourceDefined = false;
                     columnIEEG.IsSiteASource = false;
                     columnIEEG.SiteLatencyData = false;
-                    if (m_ColumnManager.LatencyFileAvailable)
+                    if (columnIEEG.CurrentLatencyFile != -1)
                     {
                         columnIEEG.SourceDefined = (columnIEEG.SourceSelectedID != -1);
-                        if (m_ColumnManager.LatenciesFiles[columnIEEG.CurrentLatencyFile].IsSiteASource(columnIEEG.SelectedSiteID))
+                        if (m_ColumnManager.SelectedImplantation.Latencies[columnIEEG.CurrentLatencyFile].IsSiteASource(columnIEEG.SelectedSiteID))
                         {
                             columnIEEG.IsSiteASource = true;
                         }
                         if (columnIEEG.SourceDefined)
                         {
-                            columnIEEG.SiteLatencyData = m_ColumnManager.LatenciesFiles[columnIEEG.CurrentLatencyFile].IsSiteResponsiveForSource(columnIEEG.SelectedSiteID, columnIEEG.SourceSelectedID);
+                            columnIEEG.SiteLatencyData = m_ColumnManager.SelectedImplantation.Latencies[columnIEEG.CurrentLatencyFile].IsSiteResponsiveForSource(columnIEEG.SelectedSiteID, columnIEEG.SourceSelectedID);
                         }
                     }
                 }
@@ -2918,6 +2917,11 @@ namespace HBP.Module3D
                 if (implantation3D.IsLoaded)
                 {
                     m_ColumnManager.Implantations.Add(implantation3D);
+                    if (Type == SceneType.SinglePatient)
+                    {
+                        SinglePatient3DScene scene = this as SinglePatient3DScene;
+                        implantation3D.LoadLatencies(scene.Patient);
+                    }
                 }
                 else
                 {
