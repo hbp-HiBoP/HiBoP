@@ -248,6 +248,16 @@ namespace HBP.Module3D
             set
             {
                 SceneInformation.DisplayCCEPMode = value;
+                if (value)
+                {
+                    foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+                    {
+                        if (column.CurrentLatencyFile == -1)
+                        {
+                            column.CurrentLatencyFile = 0;
+                        }
+                    }
+                }
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                 m_ModesManager.SetCurrentModeSpecifications(true);
             }
@@ -2348,6 +2358,13 @@ namespace HBP.Module3D
             m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMaskPlot);
 
             ResetIEEG();
+        }
+        /// <summary>
+        /// Update the sites rendering of all columns
+        /// </summary>
+        public void UpdateSitesRendering()
+        {
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
         }
         /// <summary>
         /// Update the data render corresponding to the column

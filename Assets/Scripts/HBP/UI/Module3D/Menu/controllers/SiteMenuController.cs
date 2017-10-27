@@ -200,7 +200,7 @@ namespace HBP.UI.Module3D
                     defineSourceButton.onClick.AddListener(
                         delegate
                         {
-                            ((SinglePatient3DScene)m_scene).SetCurrentSiteAsSource();
+                            //((SinglePatient3DScene)m_scene).SetCurrentSiteAsSource();
                             latencyDataText.text = "Current site is the source.";
                             defineSourceButton.interactable = false;
                             undefineSourceButton.interactable = true;
@@ -209,7 +209,7 @@ namespace HBP.UI.Module3D
                     undefineSourceButton.onClick.AddListener(
                         delegate
                         {
-                            ((SinglePatient3DScene)m_scene).UndefineCurrentSource();
+                            //((SinglePatient3DScene)m_scene).UndefineCurrentSource();
 
                             if (latencyDataText.text == "Current site is the source.")
                             {
@@ -447,7 +447,7 @@ namespace HBP.UI.Module3D
                 latencyButton.GetComponent<LatencyButton>().init(jj);
                 latencyButton.GetComponent<LatencyButton>().ChooseLatencyFile.AddListener((id) =>
                 {
-                    ((SinglePatient3DScene)m_scene).UpdateCurrentLatencyFile(id);
+                    //((SinglePatient3DScene)m_scene).UpdateCurrentLatencyFile(id);
                     update_menu();
                 });
                 latencyButton.SetActive(true);

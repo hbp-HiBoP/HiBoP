@@ -138,12 +138,12 @@ namespace HBP.Module3D
         public int SelectedSiteID
         {
             get { return m_SelectedSiteID; }
-            set { m_SelectedSiteID = value; }
+            set { m_SelectedSiteID = value; ApplicationState.Module3D.OnRequestUpdateInUI.Invoke(); }
         }
         public Site SelectedSite
         {
             get { return m_SelectedSiteID >= 0 ? Sites[m_SelectedSiteID] : null; }
-            set { m_SelectedSiteID = Sites.FindIndex((site) => site == value); }
+            set { m_SelectedSiteID = Sites.FindIndex((site) => site == value); ApplicationState.Module3D.OnRequestUpdateInUI.Invoke(); }
         }
         public int SelectedPatientID { get; set; }
 

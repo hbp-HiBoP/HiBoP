@@ -15,7 +15,7 @@ namespace Tools.Unity
         #region Public Methods
         public static void CreateFromTemplate(string initialName, string templatePath)
         {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0,ScriptableObject.CreateInstance<DoCreateScriptFile>(),initialName,scriptIcon,templatePath);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateScriptFile>(), initialName, scriptIcon, templatePath);
         }
         #endregion
 
@@ -31,9 +31,9 @@ namespace Tools.Unity
             return fileName.Replace(" ", string.Empty);
         }
         internal static Object CreateScript(string pathName, string templatePath, bool header = true)
-		{
+        {
             // Assets Info
-			string newFilePath = Path.GetFullPath (pathName);
+            string newFilePath = Path.GetFullPath (pathName);
 			string fileNameWithoutExtension = Path.GetFileNameWithoutExtension (pathName);
 			string className = NormalizeClassName(fileNameWithoutExtension);
 

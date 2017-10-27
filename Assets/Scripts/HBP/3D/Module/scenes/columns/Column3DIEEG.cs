@@ -889,6 +889,15 @@ namespace HBP.Module3D
                 DLLGUIBrainCutWithIEEGTextures[indexCut].UpdateTexture2D(GUIBrainCutWithIEEGTextures[indexCut]);
             }
         }
+
+        public void SetCurrentSiteAsSource()
+        {
+            SourceSelectedID = SelectedSiteID;
+        }
+        public void UndefineSource()
+        {
+            SourceSelectedID = -1;
+        }
         #endregion
     }
 }

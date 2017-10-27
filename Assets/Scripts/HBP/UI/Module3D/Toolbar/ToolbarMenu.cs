@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace HBP.UI.Module3D {
-    public class ToolbarMenu : MonoBehaviour {
-
+namespace HBP.UI.Module3D
+{
+    public class ToolbarMenu : MonoBehaviour
+    {
         #region Properties
         [SerializeField, Candlelight.PropertyBackingField]
         private ConfigurationToolbar m_ConfigurationToolbar;
@@ -107,6 +108,23 @@ namespace HBP.UI.Module3D {
                 m_SiteToolbar = value;
             }
         }
+        
+        [SerializeField, Candlelight.PropertyBackingField]
+        private CCEPToolbar m_CCEPToolbar;
+        /// <summary>
+        /// Toolbar for the sites settings
+        /// </summary>
+        public CCEPToolbar CCEPToolbar
+        {
+            get
+            {
+                return m_CCEPToolbar;
+            }
+            set
+            {
+                m_CCEPToolbar = value;
+            }
+        }
 
         [SerializeField, Candlelight.PropertyBackingField]
         private ROIToolbar m_ROIToolbar;
@@ -166,6 +184,7 @@ namespace HBP.UI.Module3D {
             m_ROIToolbar.Initialize();
             m_TriangleToolbar.Initialize();
             m_ConfigurationToolbar.Initialize();
+            m_CCEPToolbar.Initialize();
 
             CurrentToolbar = m_SceneSettingsToolbar;
 
@@ -177,6 +196,7 @@ namespace HBP.UI.Module3D {
             m_ROIToolbar.gameObject.SetActive(false);
             m_TriangleToolbar.gameObject.SetActive(false);
             m_ConfigurationToolbar.gameObject.SetActive(false);
+            m_CCEPToolbar.gameObject.SetActive(false);
         }
         #endregion
     }
