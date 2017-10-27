@@ -8,7 +8,7 @@ namespace HBP.Data.Anatomy
     public class Connectivity : ICloneable, ICopiable
     {
         #region Properties
-        const string EXTENSION = "";
+        const string EXTENSION = ".txt";
         [DataMember] public string Name { get; set; }
         [DataMember] public string File { get; set; }
         public virtual bool isUsable

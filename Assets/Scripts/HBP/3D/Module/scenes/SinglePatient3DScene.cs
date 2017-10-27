@@ -56,7 +56,7 @@ namespace HBP.Module3D
         private const float LOADING_ELECTRODES_PROGRESS = 0.1f;
         private const float SETTING_TIMELINE_PROGRESS = 0.2f;
         #endregion
-
+        
         #region Public Methods
         /// <summary>
         /// Define the current plot as the source

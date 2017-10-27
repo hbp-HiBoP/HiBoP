@@ -368,14 +368,13 @@ namespace HBP.Module3D
         }
         public float[] IEEGValues = new float[0]; /**< amplitudes 1D array (to be sent to the DLL) */
         public float[][] IEEGValuesBySiteID;
+
         //  plots
-        public List<Vector3> ElectrodesSizeScale = null;  /**< scale of the plots of this column */
-        public List<bool> ElectrodesPositiveColor = null; /**< is positive color ? */
+        private List<Vector3> m_ElectrodesSizeScale = null;  /**< scale of the plots of this column */
+        private List<bool> m_ElectrodesPositiveColor = null; /**< is positive color ? */
 
         // latencies
-        public bool SourceDefined = false; /**< a source has been defined */
-        public bool IsSiteASource = false; /**< current selected plot is a source */
-        public bool SiteLatencyData = false; /**< latency data defined for the current selected plot */
+        public bool SourceDefined { get { return SourceSelectedID != -1; } }
         public int SourceSelectedID = -1; /**< id of the selected source */
         public int CurrentLatencyFile = -1; /**< id of the current latency file */
         #endregion
@@ -443,14 +442,14 @@ namespace HBP.Module3D
             base.UpdateSites(sites, sitesPatientParent, siteList);
 
             // plots
-            ElectrodesSizeScale = new List<Vector3>(m_RawElectrodes.NumberOfSites);
-            ElectrodesPositiveColor = new List<bool>(m_RawElectrodes.NumberOfSites);
+            m_ElectrodesSizeScale = new List<Vector3>(m_RawElectrodes.NumberOfSites);
+            m_ElectrodesPositiveColor = new List<bool>(m_RawElectrodes.NumberOfSites);
 
             // masks
             for (int ii = 0; ii < m_RawElectrodes.NumberOfSites; ii++)
             {
-                ElectrodesSizeScale.Add(new Vector3(1, 1, 1));
-                ElectrodesPositiveColor.Add(true);
+                m_ElectrodesSizeScale.Add(new Vector3(1, 1, 1));
+                m_ElectrodesPositiveColor.Add(true);
             }
 
             SetEEGData();
@@ -631,16 +630,16 @@ namespace HBP.Module3D
 
                 if (value < 0)
                 {
-                    ElectrodesPositiveColor[ii] = false;
+                    m_ElectrodesPositiveColor[ii] = false;
                     value = 0.5f + 2 * (value / diffMin);                    
                 }
                 else
                 {
-                    ElectrodesPositiveColor[ii] = true;
+                    m_ElectrodesPositiveColor[ii] = true;
                     value = 0.5f + 2 * (value / diffMax);
                 }
 
-                ElectrodesSizeScale[ii] = new Vector3(value, value, value);
+                m_ElectrodesSizeScale[ii] = new Vector3(value, value, value);
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -835,9 +834,9 @@ namespace HBP.Module3D
                     }
                     else if (data.IsGeneratorUpToDate)
                     {
-                        Sites[ii].transform.localScale = ElectrodesSizeScale[ii] * IEEGParameters.Gain;
+                        Sites[ii].transform.localScale = m_ElectrodesSizeScale[ii] * IEEGParameters.Gain;
                         //  plot size (collider and shape) and color are updated with the current timeline amplitude   
-                        siteType = ElectrodesPositiveColor[ii] ? SiteType.Positive : SiteType.Negative;
+                        siteType = m_ElectrodesPositiveColor[ii] ? SiteType.Positive : SiteType.Negative;
                     }
                     else // no mask and no amplitude computed : all plots have the same size and color
                     {

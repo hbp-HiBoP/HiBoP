@@ -29,6 +29,7 @@ namespace HBP.Module3D
         #region Public Methods
         public void LoadLatencies(Data.Patient patient)
         {
+            Latencies = new List<Module3D.Latencies>();
             RawSiteList = new DLL.RawSiteList();
             PatientElectrodesList.ExtractRawSiteList(RawSiteList);
             foreach (Data.Anatomy.Connectivity connectivity in patient.Brain.Connectivities)

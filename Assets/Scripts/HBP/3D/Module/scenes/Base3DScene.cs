@@ -2639,25 +2639,6 @@ namespace HBP.Module3D
                 Site site = hit.collider.gameObject.GetComponent<Site>();
                 m_ColumnManager.SelectedColumn.SelectedSiteID = site.Information.GlobalID;
                 m_ColumnManager.SelectedColumn.SelectedPatientID = site.Information.PatientNumber;
-                if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG && Type == SceneType.SinglePatient)
-                {
-                    Column3DIEEG columnIEEG = (Column3DIEEG)m_ColumnManager.SelectedColumn;
-                    columnIEEG.SourceDefined = false;
-                    columnIEEG.IsSiteASource = false;
-                    columnIEEG.SiteLatencyData = false;
-                    if (columnIEEG.CurrentLatencyFile != -1)
-                    {
-                        columnIEEG.SourceDefined = (columnIEEG.SourceSelectedID != -1);
-                        if (m_ColumnManager.SelectedImplantation.Latencies[columnIEEG.CurrentLatencyFile].IsSiteASource(columnIEEG.SelectedSiteID))
-                        {
-                            columnIEEG.IsSiteASource = true;
-                        }
-                        if (columnIEEG.SourceDefined)
-                        {
-                            columnIEEG.SiteLatencyData = m_ColumnManager.SelectedImplantation.Latencies[columnIEEG.CurrentLatencyFile].IsSiteResponsiveForSource(columnIEEG.SelectedSiteID, columnIEEG.SourceSelectedID);
-                        }
-                    }
-                }
                 ClickOnSiteCallback();
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                 ApplicationState.Module3D.OnSelectSite.Invoke(site);

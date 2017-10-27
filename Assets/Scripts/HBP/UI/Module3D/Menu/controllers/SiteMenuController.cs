@@ -375,7 +375,7 @@ namespace HBP.UI.Module3D
 
                             if (IEEGCol.SourceDefined)
                             {
-                                if (IEEGCol.IsSiteASource)
+                                if (m_scene.ColumnManager.SelectedImplantation.Latencies[IEEGCol.CurrentLatencyFile].IsSiteASource(IEEGCol.SourceSelectedID))
                                 {
                                     dataLatencyText.text = "Site is the current \ndefined source.";
                                     setSiteAsSourceButton.interactable = false;
@@ -383,7 +383,7 @@ namespace HBP.UI.Module3D
                                 }
                                 else
                                 {
-                                    if (IEEGCol.SiteLatencyData)
+                                    if (m_scene.ColumnManager.SelectedImplantation.Latencies[IEEGCol.CurrentLatencyFile].IsSiteResponsiveForSource(IEEGCol.SelectedSiteID, IEEGCol.SourceSelectedID))
                                     {
                                         dataLatencyText.text = "Latency data available\n for this site.";
                                         setSiteAsSourceButton.interactable &= true;
@@ -393,7 +393,7 @@ namespace HBP.UI.Module3D
                             }
                             else
                             {
-                                if (IEEGCol.IsSiteASource)
+                                if (m_scene.ColumnManager.SelectedImplantation.Latencies[IEEGCol.CurrentLatencyFile].IsSiteASource(IEEGCol.SourceSelectedID))
                                 {
                                     dataLatencyText.text = "Site is a source.";
                                     setSiteAsSourceButton.interactable &= true;
