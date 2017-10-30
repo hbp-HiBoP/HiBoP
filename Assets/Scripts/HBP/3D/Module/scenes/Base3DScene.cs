@@ -2979,37 +2979,42 @@ namespace HBP.Module3D
                 yield return new WaitForSeconds(0.05f);
             }
             m_UpdatingColliders = true;
-            if (!m_CuttingMesh)
+            if (HBP3DModule.UseSimplifiedMeshes)
             {
-                if (HBP3DModule.UseSimplifiedMeshes)
-                {
-                    // update mesh collider TODO : remove next section when this is finished
-                    yield return Ninja.JumpToUnity;
-                    Mesh colliderMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh;
-                    m_ColumnManager.SelectedMesh.SimplifiedBoth.UpdateMeshFromDLL(colliderMesh, false, true, false, false, true, false);
-                    m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
-                    m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = colliderMesh;
-                    yield return Ninja.JumpBack;
-                }
+                // update mesh collider TODO : remove next section when this is finished
+                yield return Ninja.JumpToUnity;
+                Mesh colliderMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh;
+                yield return Ninja.JumpBack;
+                // cut the simplified mesh
+                List<DLL.Surface> cuts;
+                if (Cuts.Count > 0)
+                    cuts = new List<DLL.Surface>(m_ColumnManager.SelectedMesh.SimplifiedBoth.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled)); //Maybe FIXME : do not allow holes
                 else
-                {
-                    // update splits colliders
-                    for (int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
-                    {
-                        yield return Ninja.JumpToUnity;
-                        m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
-                        m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh;
-                        yield return Ninja.JumpBack;
-                    }
-                }
-                // update cuts colliders
-                for (int ii = 0; ii < m_DisplayedObjects.BrainCutMeshes.Count; ++ii)
+                    cuts = new List<DLL.Surface>() { (DLL.Surface)m_ColumnManager.SelectedMesh.SimplifiedBoth.Clone() };
+                yield return Ninja.JumpToUnity;
+                cuts[0].UpdateMeshFromDLL(colliderMesh, false, true, false, false, true, false);
+                m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
+                m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = colliderMesh;
+                yield return Ninja.JumpBack;
+            }
+            else
+            {
+                // update splits colliders
+                for (int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
                 {
                     yield return Ninja.JumpToUnity;
-                    m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
-                    m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
+                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
+                    m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh;
                     yield return Ninja.JumpBack;
                 }
+            }
+            // update cuts colliders
+            for (int ii = 0; ii < m_DisplayedObjects.BrainCutMeshes.Count; ++ii)
+            {
+                yield return Ninja.JumpToUnity;
+                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
+                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
+                yield return Ninja.JumpBack;
             }
             m_UpdatingColliders = false;
         }

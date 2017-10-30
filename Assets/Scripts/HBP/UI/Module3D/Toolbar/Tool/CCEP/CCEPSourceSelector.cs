@@ -55,7 +55,7 @@ namespace HBP.UI.Module3D.Tools
             bool isCCEP = scene.IsLatencyModeEnabled && (column.CurrentLatencyFile != -1);
             bool isSourceDefined = column.SourceDefined;
             bool isSiteSelected = column.SelectedSite != null;
-            if (isSiteSelected)
+            if (isSiteSelected && column.CurrentLatencyFile != -1)
             {
                 isSiteSelected &= scene.ColumnManager.SelectedImplantation.Latencies[column.CurrentLatencyFile].IsSiteASource(column.SelectedSiteID);
             }
