@@ -2120,14 +2120,6 @@ namespace HBP.Module3D
                 m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii + 1]);
                 m_ColumnManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
-            /*
-            // create null uv2/uv3 arrays
-            m_ColumnManager.UVNull = new List<Vector2[]>(m_ColumnManager.MeshSplitNumber);
-            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
-            {
-                m_ColumnManager.UVNull.Add(new Vector2[m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
-                Extensions.ArrayExtensions.Fill(m_ColumnManager.UVNull[ii], new Vector2(0.01f, 1f));
-            }*/
 
             // enable cuts gameobject
             for (int ii = 0; ii < Cuts.Count; ++ii)
@@ -2475,22 +2467,11 @@ namespace HBP.Module3D
         /// </summary>
         public void SendAdditionalSiteInfoRequest(Site previousSite = null)
         {
-            if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG)
+            if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG && !IsLatencyModeEnabled)
             {
                 Column3DIEEG column = (Column3DIEEG)m_ColumnManager.SelectedColumn;
                 if (column.SelectedSiteID != -1)
                 {
-                    //List<List<bool>> masksColumnsData = new List<List<bool>>(m_ColumnManager.ColumnsIEEG.Count);
-                    //for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-                    //{
-                    //    masksColumnsData.Add(new List<bool>(m_ColumnManager.ColumnsIEEG[ii].Sites.Count));
-                    //    for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG[ii].Sites.Count; ++jj)
-                    //    {
-                    //        Site s = m_ColumnManager.ColumnsIEEG[ii].Sites[jj];
-                    //        bool keep = (!s.State.IsBlackListed && !s.State.IsExcluded && !s.State.IsMasked && !s.State.IsOutOfROI);
-                    //        masksColumnsData[ii].Add(keep);
-                    //    }
-                    //}
                     List<Site> sites = new List<Site>();
                     sites.Add(column.SelectedSite);
                     if (previousSite != null) sites.Add(previousSite);

@@ -912,31 +912,13 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateAllColumnsSitesRendering(SceneStatesInfo data)
         {
-            // unselect blacklisted hidden sites
-            if (data.HideBlacklistedSites)
-            {
-                foreach (Column3D column in Columns)
-                {
-                    if (column.SelectedSite)
-                    {
-                        if (column.SelectedSite.State.IsBlackListed)
-                        {
-                            column.SelectedSiteID = -1;
-                            if (column.IsSelected)
-                            {
-                                ApplicationState.Module3D.OnSelectSite.Invoke(null);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // unselect out of ROI site
-            foreach (Column3D column in Columns)
+            foreach (Column3D column in Columns) // unselect hidden sites
             {
                 if (column.SelectedSite)
                 {
-                    if (column.SelectedSite.State.IsOutOfROI)
+                    if ((column.SelectedSite.State.IsBlackListed && data.HideBlacklistedSites) ||
+                        (column.SelectedSite.State.IsOutOfROI) ||
+                        (column.SelectedSite.State.IsMasked && !data.DisplayCCEPMode))
                     {
                         column.SelectedSiteID = -1;
                         if (column.IsSelected)

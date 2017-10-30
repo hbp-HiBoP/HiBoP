@@ -50,9 +50,15 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isCCEP = ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled && (((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).CurrentLatencyFile != -1);
-            bool isSourceDefined = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).SourceDefined;
-            bool isSiteSelected = ApplicationState.Module3D.SelectedColumn.SelectedSite != null;
+            HBP.Module3D.Base3DScene scene = ApplicationState.Module3D.SelectedScene;
+            HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn;
+            bool isCCEP = scene.IsLatencyModeEnabled && (column.CurrentLatencyFile != -1);
+            bool isSourceDefined = column.SourceDefined;
+            bool isSiteSelected = column.SelectedSite != null;
+            if (isSiteSelected)
+            {
+                isSiteSelected &= scene.ColumnManager.SelectedImplantation.Latencies[column.CurrentLatencyFile].IsSiteASource(column.SelectedSiteID);
+            }
             switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentModeID)
             {
                 case HBP.Module3D.Mode.ModesId.NoPathDefined:
