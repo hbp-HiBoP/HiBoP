@@ -78,8 +78,8 @@ namespace HBP.Data.Visualization
         {
             get
             {
-                return Data + " | " + Dataset.Name + " | " + Protocol.Name + " | " + Bloc.DisplayInformations.Name;
-                //return "Data: " + DataLabel + ", Dataset: " + Dataset.Name + ", Protocol: " + Protocol.Name + ", Bloc: " + Bloc.DisplayInformations.Name;
+                return Data + " | " + Dataset.Name + " | " + Protocol.Name + " | " + Bloc.Name;
+                //return "Data: " + DataLabel + ", Dataset: " + Dataset.Name + ", Protocol: " + Protocol.Name + ", Bloc: " + Bloc.Name;
             }
         }
         #endregion
@@ -166,7 +166,7 @@ namespace HBP.Data.Visualization
                     }
                     break;
             }
-            TimeLine = new Timeline(Bloc.DisplayInformations, mainEvent, secondaryEvents, frequency);
+            TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents, frequency);
             IconicScenario = new IconicScenario(Bloc, frequency, TimeLine);
         }
         /// <summary>

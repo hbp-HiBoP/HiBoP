@@ -1,4 +1,5 @@
 ﻿using HBP.Data.Experience.Protocol;
+using Tools.CSharp;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -6,20 +7,15 @@ namespace HBP.UI.Experience.Protocol
 	{
         protected override Position GetPosition(Bloc obj)
         {
-            Position l_position;
-            l_position.Row = obj.DisplayInformations.Position.Row ;
-            l_position.Col = obj.DisplayInformations.Position.Column;
-            return l_position;
+            return obj.Position;
         }
-
         protected override void SetPosition(Bloc obj, Position position)
         {
-            obj.DisplayInformations.Position = new Tools.CSharp.BlocPosition(position.Row, position.Col);
+            obj.Position = position;
         }
-
         protected override Bloc CreateObjAtPosition(Position position)
         {
-            return new Bloc(new DisplayInformations(position.Row, position.Col));
+            return new Bloc(position);
         }
     }
 }

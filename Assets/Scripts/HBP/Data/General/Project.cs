@@ -226,7 +226,7 @@ namespace HBP.Data.General
             m_Datasets.RemoveAll((d) => d.Protocol == protocol);
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
-                visualization.Columns.Remove((from column in visualization.Columns where column.Protocol == protocol select column).ToArray());
+                visualization.Columns.RemoveAll((column) => column.Protocol == protocol);
             }
             m_Protocols.Remove(protocol);
         }
@@ -259,7 +259,7 @@ namespace HBP.Data.General
         {
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
-                visualization.Columns.Remove((from column in visualization.Columns where column.Dataset == dataset select column).ToArray());
+                visualization.Columns.RemoveAll((column) => column.Dataset == dataset);
             }
             m_Datasets.Remove(dataset);
         }

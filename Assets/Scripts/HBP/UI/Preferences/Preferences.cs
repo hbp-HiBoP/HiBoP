@@ -16,7 +16,7 @@ namespace HBP.UI.Settings
         FolderSelector defaultLocationProjectFolderSelector;
         FolderSelector defaultPatientDatabaseLocationFolderSelector;
         FolderSelector defaultLocalizerDatabaseLocationFolderSelector;
-        Dropdown trialBaseLineOption;
+        Dropdown trialBaselineOption;
         Dropdown eventPositionAveragingOption;
         Dropdown valueAveragingOption;
         Dropdown plotNameAutoCorrectionOption;
@@ -35,7 +35,7 @@ namespace HBP.UI.Settings
             ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType = (GeneralSettings.PlotNameCorrectionTypeEnum) plotNameAutoCorrectionOption.value;
             TrialMatrixSettings trialMatrixSettings = ApplicationState.GeneralSettings.TrialMatrixSettings;
             trialMatrixSettings.Smoothing = (TrialMatrixSettings.SmoothingType) trialMatrixSmoothingOption.value;
-            trialMatrixSettings.Baseline = (TrialMatrixSettings.BaselineType) trialBaseLineOption.value;
+            trialMatrixSettings.Baseline = (TrialMatrixSettings.BaselineType) trialBaselineOption.value;
             trialMatrixSettings.BlocFormat = (TrialMatrixSettings.BlocFormatType) blocFormatOption.value;
             ApplicationState.GeneralSettings.TrialMatrixSettings = trialMatrixSettings;
             ApplicationState.GeneralSettings.TrialMatrixSettings.ConstantLineHeight = int.Parse(constantLineInputField.text);
@@ -62,7 +62,7 @@ namespace HBP.UI.Settings
             defaultPatientDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("Patients").Find("FolderSelector").GetComponent<FolderSelector>();
             defaultLocalizerDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("Localizers").Find("FolderSelector").GetComponentInChildren<FolderSelector>();
             plotNameAutoCorrectionOption = transform.Find("Content").Find("EEG").Find("PlotNameAutomaticCorrection").GetComponentInChildren<Dropdown>();
-            trialBaseLineOption = transform.Find("Content").Find("Trial Matrix").Find("BaseLine").GetComponentInChildren<Dropdown>();
+            trialBaselineOption = transform.Find("Content").Find("Trial Matrix").Find("Baseline").GetComponentInChildren<Dropdown>();
             trialMatrixSmoothingOption = transform.Find("Content").Find("Trial Matrix").Find("TrialMatrixSmoothing").GetComponentInChildren<Dropdown>();
             blocFormatOption = transform.Find("Content").Find("Trial Matrix").Find("BlocFormat").GetComponentInChildren<Dropdown>();
             constantLineInputField = transform.Find("Content").Find("Trial Matrix").Find("ConstantLine").GetComponentInChildren<InputField>(true);
@@ -78,14 +78,14 @@ namespace HBP.UI.Settings
             defaultPatientDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
             defaultLocalizerDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
 
-            string[] l_typesBaseLine = Enum.GetNames(typeof(TrialMatrixSettings.BaselineType));
-            trialBaseLineOption.ClearOptions();
-            foreach (string i_type in l_typesBaseLine)
+            string[] l_typesBaseline = Enum.GetNames(typeof(TrialMatrixSettings.BaselineType));
+            trialBaselineOption.ClearOptions();
+            foreach (string i_type in l_typesBaseline)
             {
-                trialBaseLineOption.options.Add(new Dropdown.OptionData(i_type));
+                trialBaselineOption.options.Add(new Dropdown.OptionData(i_type));
             }
-            trialBaseLineOption.value = (int)ApplicationState.GeneralSettings.TrialMatrixSettings.Baseline;
-            trialBaseLineOption.RefreshShownValue();
+            trialBaselineOption.value = (int)ApplicationState.GeneralSettings.TrialMatrixSettings.Baseline;
+            trialBaselineOption.RefreshShownValue();
 
             string[] l_typesPlotName = Enum.GetNames(typeof(GeneralSettings.PlotNameCorrectionTypeEnum));
             plotNameAutoCorrectionOption.ClearOptions();

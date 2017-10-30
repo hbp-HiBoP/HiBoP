@@ -64,6 +64,21 @@ namespace Tools.CSharp
             array.Sort();
             return array[Mathf.CeilToInt(array.Count / 2)];
         }
-
+        public static Vector2 Quantile(this float[] floats, float percentage)
+        {
+            if ((percentage > 1) || (percentage < 0))
+            {
+                return Vector2.zero;
+            }
+            else
+            {
+                int l_length = floats.Length;
+                float l_minRatio = (1 - percentage) / 2.0f;
+                float l_maxRatio = l_minRatio + percentage;
+                int minValue = Mathf.CeilToInt(l_length * l_minRatio);
+                int maxValue = Mathf.CeilToInt(l_length * l_maxRatio);
+                return new Vector2(floats[minValue], floats[maxValue - 1]);
+            }
+        }
     }
 }

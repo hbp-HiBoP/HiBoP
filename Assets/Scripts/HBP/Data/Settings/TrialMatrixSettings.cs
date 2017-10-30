@@ -12,7 +12,7 @@
         /// </summary>
         public SmoothingType Smoothing { get; set; }
         /// <summary>
-        /// Type of baseLine matrix.
+        /// Type of Baseline matrix.
         /// </summary>
         public BaselineType Baseline { get; set; }
         /// <summary>
@@ -44,15 +44,15 @@
         /// Create a new trial matrix settings instance.
         /// </summary>
         /// <param name="smoothing">Smoothing type.</param>
-        /// <param name="baseline">Baseline type.</param>
+        /// <param name="Baseline">Baseline type.</param>
         /// <param name="blocformat">Blocformat type.</param>
         /// <param name="constantLineHeight">Constant height of a line in a trial matrix.</param>
         /// <param name="lineHeightByWidth">Ratio height by width of a line in a trial matrix.</param>
         /// <param name="heightByWidth">Ratio height by width of a bloc in a trial matrix.</param>
-        public TrialMatrixSettings(SmoothingType smoothing = SmoothingType.Line,BaselineType baseline = BaselineType.Protocol,BlocFormatType blocformat = BlocFormatType.LineRatio,int constantLineHeight = 3,float lineHeightByWidth = 0.05f,float heightByWidth = 9.0f/16.0f)
+        public TrialMatrixSettings(SmoothingType smoothing = SmoothingType.Line,BaselineType Baseline = BaselineType.Protocol,BlocFormatType blocformat = BlocFormatType.LineRatio,int constantLineHeight = 3,float lineHeightByWidth = 0.05f,float heightByWidth = 9.0f/16.0f)
         {
             Smoothing = smoothing;
-            Baseline = baseline;
+            Baseline = Baseline;
             BlocFormat = blocformat;
             ConstantLineHeight = constantLineHeight;
             LineHeightByWidth = lineHeightByWidth;

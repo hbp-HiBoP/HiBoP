@@ -19,7 +19,7 @@ namespace HBP.Data.Settings
     *     - default localisation of the localizer database.
     *     - Option : Plot name automatic correction.
     *     - Option : Smoothing type of the trial matrix.
-    *     - Option : BaseLine of the trial matrix.
+    *     - Option : Baseline of the trial matrix.
     */
     [DataContract]
     public class GeneralSettings
@@ -146,7 +146,7 @@ namespace HBP.Data.Settings
         /// <param name="defaultLocalizerDatabaseLocation">Default localizer database location.</param>
         /// <param name="plotNameAutomaticCorrectionType">Plot name automatic correction.</param>
         /// <param name="trialMatrixSmoothingType">Trial maltrix smoothing.</param>
-        /// <param name="baseLineType">Trial matrix baseline.</param>
+        /// <param name="BaselineType">Trial matrix Baseline.</param>
         public GeneralSettings(string projectDefaultName,string defaultProjectLocation, string defaultPatientDatabseLocation, string defaultLocalizerDatabaseLocation, PlotNameCorrectionTypeEnum plotNameAutomaticCorrectionType,TrialMatrixSettings trialMatrixSettings, string themeName)
         {
             DefaultProjectName = projectDefaultName;

@@ -6,6 +6,7 @@ using Tools.Unity.Lists;
 using Tools.CSharp;
 using HBP.Data;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 namespace HBP.UI.Anatomy
 {
@@ -26,7 +27,7 @@ namespace HBP.UI.Anatomy
         }
         public void Add()
         {
-            Data.Patient[] patientsToAdd = m_DatabaseList.ObjectsSelected.DeepClone();
+            IEnumerable<Patient> patientsToAdd = m_DatabaseList.ObjectsSelected.DeepClone();
             AddItem(patientsToAdd);
             m_List.Select(patientsToAdd);
             m_DatabaseList.Remove(patientsToAdd);

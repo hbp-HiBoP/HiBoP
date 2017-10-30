@@ -59,14 +59,14 @@ namespace HBP.UI.Visualization
                     m_Protocol.text = value.Protocol.Name;
                 }
 
-                if (value == null || value.Dataset == null || value.Bloc.DisplayInformations.Name == null)
+                if (value == null || value.Dataset == null || value.Bloc.Name == null)
                 {
                     m_Bloc.text = "";
                 }
 
                 else
                 {
-                    m_Bloc.text = value.Bloc.DisplayInformations.Name;
+                    m_Bloc.text = value.Bloc.Name;
                 }
             }
         }

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -26,12 +27,6 @@ namespace Tools.Unity.Lists
 
         protected GenericEvent<T,int> m_OnAction = new GenericEvent<T, int> { };
         public GenericEvent<T, int> OnAction { get { return m_OnAction; } }
-
-        protected struct Position
-        {
-            public int Row;
-            public int Col;
-        }
         #endregion
 
         #region Public Methods
@@ -157,14 +152,11 @@ namespace Tools.Unity.Lists
         }
         protected virtual Position PositionFromIndex(int index)
         {
-            Position l_position;
-            l_position.Row = index / m_ColMax + 1;
-            l_position.Col = index % m_ColMax + 1;
-            return l_position;
+            return new Position(index / m_ColMax + 1, index % m_ColMax + 1);
         }
         protected virtual int IndexFromPosition(Position position)
         {
-            return (position.Row - 1) * m_ColMax + (position.Col - 1);
+            return (position.Row - 1) * m_ColMax + (position.Column - 1);
         }
         protected virtual Transform GetContainer(T obj)
         {
