@@ -21,7 +21,7 @@ namespace Tools.Unity
             BuildProjectAndZipIt(@"D:/HBP/HiBoP_builds/", false, BuildTarget.StandaloneOSXIntel64);
         }
 
-        public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target) // FIXME : some libraries are not copied in linux
+        public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target) // FIXME : some libraries are not copied in linux .so.X.X.X
         {
             string buildName = string.Format("HiBoP_{0}_{1}_{2}", DateTime.Today.Year.ToString("d4"), DateTime.Today.Month.ToString("d2"), DateTime.Today.Day.ToString("d2"));
             switch (target)
@@ -55,7 +55,7 @@ namespace Tools.Unity
             BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
             buildPlayerOptions.locationPathName = buildDirectory + hibopName;
             buildPlayerOptions.target = target;
-            buildPlayerOptions.scenes = new string[] { "Assets/_Scenes/Main.unity" };
+            buildPlayerOptions.scenes = new string[] { "Assets/_Scenes/HiBoP.unity" };
             BuildOptions buildOptions = development ? BuildOptions.AllowDebugging | BuildOptions.ConnectWithProfiler | BuildOptions.Development : BuildOptions.None;
             buildPlayerOptions.options = buildOptions;
             BuildPipeline.BuildPlayer(buildPlayerOptions);
@@ -76,12 +76,13 @@ namespace Tools.Unity
                     break;
             }
             CopyFilesRecursively(new DirectoryInfo(projectPath + m_Data), new DirectoryInfo(buildDirectory + m_DataBuild));
-
+            /*
             using (ZipFile zip = new ZipFile())
             {
                 zip.AddDirectory(buildDirectory, "");
                 zip.Save(buildsDirectory + buildName + ".zip");
             }
+            */
         }
 
         public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target)

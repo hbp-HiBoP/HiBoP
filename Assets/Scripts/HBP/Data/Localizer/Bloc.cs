@@ -47,14 +47,14 @@ namespace HBP.Data.Localizer
             }
             ValuesBySite = valuesBySite;
 
-            Dictionary<string, float[]> BaselineValuesBySite = new Dictionary<string, float[]>();
+            Dictionary<string, float[]> baselineValuesBySite = new Dictionary<string, float[]>();
             foreach (var pair in data.ValuesBySite)
             {
                 float[] values = new float[BaselineLenght];
                 Array.Copy(pair.Value, BaselineFirstIndex, values, 0, BaselineLenght);
-                BaselineValuesBySite.Add(pair.Key, values);
+                baselineValuesBySite.Add(pair.Key, values);
             }
-            BaselineValuesBySite = BaselineValuesBySite;
+            BaselineValuesBySite = baselineValuesBySite;
             NormalizedValuesBySite = new Dictionary<string, float[]>();
         }
         public Bloc(): this (new Dictionary<Experience.Protocol.Event, int>(),new Dictionary<string, float[]>(), new Dictionary<string, float[]>(), new Dictionary<string, float[]>())
@@ -81,7 +81,7 @@ namespace HBP.Data.Localizer
         {
             Dictionary<Experience.Protocol.Event, List<int>> positionsByEvent = new Dictionary<Experience.Protocol.Event, List<int>>();
             Dictionary<string, List<float>[]> valuesBySite = new Dictionary<string, List<float>[]>();
-            Dictionary<string, List<float>[]> BaselineValuesBySite = new Dictionary<string, List<float>[]>();
+            Dictionary<string, List<float>[]> baselineValuesBySite = new Dictionary<string, List<float>[]>();
             Dictionary<string, List<float>[]> normalizedValuesBySite = new Dictionary<string, List<float>[]>();
             foreach (Bloc bloc in blocs)
             {
@@ -99,11 +99,11 @@ namespace HBP.Data.Localizer
                         valuesBySite[site][v].Add(bloc.ValuesBySite[site][v]);
                     }
 
-                    if (!BaselineValuesBySite.ContainsKey(site)) BaselineValuesBySite.Add(site, new List<float>[bloc.BaselineValuesBySite[site].Length]);
-                    for (int v = 0; v < BaselineValuesBySite[site].Length; v++)
+                    if (!baselineValuesBySite.ContainsKey(site)) baselineValuesBySite.Add(site, new List<float>[bloc.BaselineValuesBySite[site].Length]);
+                    for (int v = 0; v < baselineValuesBySite[site].Length; v++)
                     {
-                        if (BaselineValuesBySite[site][v] == null) BaselineValuesBySite[site][v] = new List<float>();
-                        BaselineValuesBySite[site][v].Add(bloc.BaselineValuesBySite[site][v]);
+                        if (baselineValuesBySite[site][v] == null) baselineValuesBySite[site][v] = new List<float>();
+                        baselineValuesBySite[site][v].Add(bloc.BaselineValuesBySite[site][v]);
                     }
 
                     if (!normalizedValuesBySite.ContainsKey(site)) normalizedValuesBySite.Add(site, new List<float>[bloc.NormalizedValuesBySite[site].Length]);
@@ -129,12 +129,12 @@ namespace HBP.Data.Localizer
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:
                     foreach (var item in valuesBySite) result.ValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
-                    foreach (var item in BaselineValuesBySite) result.BaselineValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
+                    foreach (var item in baselineValuesBySite) result.BaselineValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
                     foreach (var item in normalizedValuesBySite) result.NormalizedValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
                     break;
                 case Settings.GeneralSettings.AveragingMode.Median:
                     foreach (var item in valuesBySite) result.ValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
-                    foreach (var item in BaselineValuesBySite) result.BaselineValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
+                    foreach (var item in baselineValuesBySite) result.BaselineValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
                     foreach (var item in normalizedValuesBySite) result.NormalizedValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
                     break;
             }
