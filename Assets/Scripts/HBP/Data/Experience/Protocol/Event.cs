@@ -126,7 +126,8 @@ namespace HBP.Data.Experience.Protocol
         public override bool Equals(object obj)
         {
             Event _event = obj as Event;
-            return Name == _event.Name && Codes.SequenceEqual(_event.Codes) && Type == _event.Type;
+            if (_event == null) return false;
+            else return Name == _event.Name && Codes.SequenceEqual(_event.Codes) && Type == _event.Type;
         }
         /// <summary>
         /// Get hash code.
