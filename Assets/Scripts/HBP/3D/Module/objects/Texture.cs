@@ -276,7 +276,7 @@ namespace HBP.Module3D
                 {
                     texture.Resize(m_TextureSize[1], m_TextureSize[0]);
                     Pixels2 = texture.GetPixels32(0);
-                    pixelsHandle2.Free();
+                    if (pixelsHandle2.IsAllocated) pixelsHandle2.Free();
                     pixelsHandle2 = GCHandle.Alloc(Pixels2, GCHandleType.Pinned);
                     m_IsPinned = true;
                 }

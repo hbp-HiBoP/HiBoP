@@ -945,7 +945,6 @@ namespace HBP.UI.Theme
                 Dropdown.Item.Text.Font.fontStyle = FontStyle.Normal;
             }
         }
-        #region Structs
         [System.Serializable]
         public struct TitleTheme
         {
@@ -1183,5 +1182,4 @@ namespace HBP.UI.Theme
             }
         }
     }
-    #endregion
 }

@@ -327,21 +327,21 @@ namespace HBP.Module3D.DLL
 
                 if (m_Vertices.Length != m_Sizes[0] || m_Vertices.Length == 0)
                 {
-                    m_verticesHandle.Free();
+                    if (m_verticesHandle.IsAllocated) m_verticesHandle.Free();
                     m_Vertices = new Vector3[m_Sizes[0]];
                     m_verticesHandle = GCHandle.Alloc(m_Vertices, GCHandleType.Pinned);
                 }
 
                 if (m_Normals.Length != m_Sizes[2] || m_Normals.Length == 0)
                 {
-                    m_normalsHandle.Free();
+                    if (m_normalsHandle.IsAllocated) m_normalsHandle.Free();
                     m_Normals = new Vector3[m_Sizes[2]];
                     m_normalsHandle = GCHandle.Alloc(m_Normals, GCHandleType.Pinned);
                 }
 
                 if (m_UV.Length != m_Sizes[3] || m_UV.Length == 0)
                 {
-                    m_uvHandle.Free();
+                    if (m_uvHandle.IsAllocated) m_uvHandle.Free();
                     m_UV = new Vector2[m_Sizes[3]];
                     m_uvHandle = GCHandle.Alloc(m_UV, GCHandleType.Pinned);
                 }
@@ -349,14 +349,14 @@ namespace HBP.Module3D.DLL
                 int nbTri = (m_Sizes[1] * 3);
                 if (m_TriangleID.Length != nbTri || m_TriangleID.Length == 0)
                 {
-                    m_triIdHandle.Free();
+                    if (m_triIdHandle.IsAllocated) m_triIdHandle.Free();
                     m_TriangleID = new int[nbTri];
                     m_triIdHandle = GCHandle.Alloc(m_TriangleID, GCHandleType.Pinned);
                 }
 
                 if (m_Colors.Length != m_Sizes[4] || m_Colors.Length == 0)
                 {
-                    m_colorHandle.Free();
+                    if (m_colorHandle.IsAllocated) m_colorHandle.Free();
                     m_Colors = new Color[m_Sizes[4]];
                     m_colorHandle = GCHandle.Alloc(m_Colors, GCHandleType.Pinned);
                 }

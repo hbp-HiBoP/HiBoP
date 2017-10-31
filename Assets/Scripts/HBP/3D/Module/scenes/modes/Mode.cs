@@ -31,7 +31,6 @@ namespace HBP.Module3D
         SerializedProperty UIOverlayMask;
         SerializedProperty DisplayItems;
 
-
         bool showFunctions = true;
         bool showUIOverlay = true;
         bool showDisplayItems = true;
@@ -81,7 +80,7 @@ namespace HBP.Module3D
                 }
             }
 
-            int nbDisplayItems= Enum.GetNames(typeof(Cam.DisplayedItems)).Length;
+            int nbDisplayItems = 0;// Enum.GetNames(typeof(Cam.DisplayedItems)).Length;
 
             if (DisplayItems.arraySize != nbDisplayItems)
             {
@@ -140,7 +139,7 @@ namespace HBP.Module3D
                 {
                     EditorGUILayout.BeginHorizontal();
                     EditorGUIUtility.labelWidth = 70;
-                    EditorGUILayout.LabelField(Enum.GetNames(typeof(Cam.DisplayedItems))[ii]);
+                    //EditorGUILayout.LabelField(Enum.GetNames(typeof(Cam.DisplayedItems))[ii]);
                     EditorGUILayout.PropertyField(DisplayItems.GetArrayElementAtIndex(ii), new GUIContent("display : "), true);
                     EditorGUILayout.EndHorizontal();
 

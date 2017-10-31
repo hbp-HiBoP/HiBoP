@@ -11,7 +11,7 @@ namespace HBP.Data.Localizer
         #region Properties
         public const string EXTENSION = ".pos";
         Dictionary<int, List<Tuple<int,int>>> m_IndexByCode;
-		#endregion
+        #endregion
 
 		#region Constructor
         public POS(Dictionary<int,List<Tuple<int,int>>> indexByCode)
