@@ -30,16 +30,17 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
+            bool isCCEP = ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled;
             switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
             {
                 case Mode.ModesId.NoPathDefined:
                     m_Button.interactable = false;
                     break;
                 case Mode.ModesId.MinPathDefined:
-                    m_Button.interactable = true;
+                    m_Button.interactable = !isCCEP;
                     break;
                 case Mode.ModesId.AllPathDefined:
-                    m_Button.interactable = true;
+                    m_Button.interactable = !isCCEP;
                     break;
                 case Mode.ModesId.ComputingAmplitudes:
                     m_Button.interactable = false;
@@ -54,7 +55,7 @@ namespace HBP.UI.Module3D.Tools
                     m_Button.interactable = false;
                     break;
                 case Mode.ModesId.AmpNeedUpdate:
-                    m_Button.interactable = true;
+                    m_Button.interactable = !isCCEP;
                     break;
                 case Mode.ModesId.Error:
                     m_Button.interactable = false;

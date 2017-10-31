@@ -260,6 +260,8 @@ namespace HBP.Module3D
                 }
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                 m_ModesManager.SetCurrentModeSpecifications(true);
+                ResetIEEG();
+                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
             }
         }
         /// <summary>
