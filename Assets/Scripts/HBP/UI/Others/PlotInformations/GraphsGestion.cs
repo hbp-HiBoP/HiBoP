@@ -58,7 +58,7 @@ namespace HBP.UI.Graph
         // Curves
         [SerializeField]
         Tools.Unity.Graph.Graph m_Graph;
-        Color[] m_Colors = new Color[7] { Color.blue, Color.red, Color.green, Color.cyan, Color.grey, Color.magenta, Color.yellow };
+        List<Color> m_Colors = new List<Color> { Color.blue, Color.red, Color.green, Color.cyan, Color.grey, Color.magenta, Color.yellow };
         Dictionary<Column, Dictionary<Site, CurveData>> m_CurveBySiteAndColumn = new Dictionary<Column, Dictionary<Site, CurveData>>();
         Dictionary<Column, CurveData> m_ROICurvebyColumn = new Dictionary<Column, CurveData>();
 
@@ -247,7 +247,7 @@ namespace HBP.UI.Graph
                             points[i] = new Vector2(absciss, data[index]);
                         }
 
-                        m_CurveBySiteAndColumn[column][site] = new ShapedCurveData("C" + (c + 1) + " " + site.Information.Name, points, standardDeviations, m_Colors[c]);
+                        m_CurveBySiteAndColumn[column][site] = new ShapedCurveData("C" + (c + 1) + " " + site.Information.Name, points, standardDeviations, GetCurveColor(c));
                     }
                     else if (linesToRead.Length == 1)
                     {
@@ -269,7 +269,7 @@ namespace HBP.UI.Graph
                         }
 
                         //Create curve
-                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, points, m_Colors[c]);
+                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, points, GetCurveColor(c));
                     }
                     else continue;
                 }
@@ -303,7 +303,7 @@ namespace HBP.UI.Graph
                             float absciss = min + ((max - min) * (index - pMin) / (pMax - pMin));
                             points[i] = new Vector2(absciss, ROIdata[index]);
                         }
-                        m_ROICurvebyColumn[column] = new CurveData("C" + (c + 1) + " " + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, points, m_Colors[c]);
+                        m_ROICurvebyColumn[column] = new CurveData("C" + (c + 1) + " " + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, points, GetCurveColor(c));
                     }
                 }
             }
@@ -336,6 +336,15 @@ namespace HBP.UI.Graph
                 m_Graph.Plot(graphData);
             }
             UnityEngine.Profiling.Profiler.EndSample();
+        }
+        Color GetCurveColor(int index)
+        {
+            if (index >= m_Colors.Count)
+            {
+                Color color = new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f);
+                m_Colors.Add(color);
+            }
+            return m_Colors[index];
         }
         #endregion
 
