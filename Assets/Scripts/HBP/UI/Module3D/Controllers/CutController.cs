@@ -68,19 +68,19 @@ namespace HBP.UI.Module3D
                 }
                 m_RectTransformChanged = false;
             }
-            //if (Input.GetMouseButtonDown(0) && m_CutParametersControllers.Any(c => c.AreControlsOpen))
-            //{
-            //    Rect rect = RectTransformToScreenSpace(m_Content);
-            //    Vector3 mousePosition = Input.mousePosition;
-            //    //Debug.Log(mousePosition.x + ">=" + rect.x + "&&" + mousePosition.x + "<=" + (rect.x + rect.width).ToString() + "&&" + mousePosition.y + ">=" + rect.y + "&&" + mousePosition.y + "<=" + (rect.y + rect.height).ToString() + !(mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height));
-            //    if (!(mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height))
-            //    {
-            //        foreach (CutParametersController control in m_CutParametersControllers)
-            //        {
-            //            control.CloseControls();
-            //        }
-            //    }
-            //}
+            if (Input.GetMouseButtonDown(0) && m_CutParametersControllers.Any(c => c.AreControlsOpen))
+            {
+                Rect rect = RectTransformToScreenSpace(m_RectTransform);
+                Vector3 mousePosition = Input.mousePosition;
+                //Debug.Log(mousePosition.x + ">=" + rect.x + "&&" + mousePosition.x + "<=" + (rect.x + rect.width).ToString() + "&&" + mousePosition.y + ">=" + rect.y + "&&" + mousePosition.y + "<=" + (rect.y + rect.height).ToString() + !(mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height));
+                if (!(mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height))
+                {
+                    foreach (CutParametersController control in m_CutParametersControllers)
+                    {
+                        control.CloseControls();
+                    }
+                }
+            }
         }
         private void AddCut(Cut cut)
         {

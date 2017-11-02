@@ -2730,7 +2730,6 @@ namespace HBP.Module3D
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)m_ColumnManager.DLLCommonBrainTextureGeneratorList[jj].Clone();
                 }
             }
-            float offsetState = 1f / (2 * m_ColumnManager.ColumnsIEEG.Count);
 
             // Do your threaded task
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
