@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityStandardAssets.ImageEffects;
+using Tools.Unity;
 
 namespace HBP.Module3D
 {
@@ -176,6 +177,31 @@ namespace HBP.Module3D
                     m_Camera3D.Camera.targetTexture.Release();
                 }
                 m_Camera3D.Camera.targetTexture = value;
+            }
+        }
+
+        public Texture2D ScreenshotTexture
+        {
+            get
+            {
+                // Save old parameters
+                RenderTexture currentRenderTexture = m_Camera3D.Camera.targetTexture;
+                float currentAspect = m_Camera3D.Camera.aspect;
+                Color currentBackground = m_Camera3D.Camera.backgroundColor;
+                // Get texture
+                RenderTexture screenshotRenderTexture = new RenderTexture(2048, 2048, 24);
+                screenshotRenderTexture.antiAliasing = 1;
+                m_Camera3D.Camera.targetTexture = screenshotRenderTexture;
+                m_Camera3D.Camera.aspect = 1.0f;
+                m_Camera3D.Camera.backgroundColor = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+                m_Camera3D.Camera.Render();
+                Texture2D texture = m_Camera3D.Camera.targetTexture.ToTexture2D();
+                // Restore old parameters
+                m_Camera3D.Camera.targetTexture = currentRenderTexture;
+                m_Camera3D.Camera.aspect = currentAspect;
+                m_Camera3D.Camera.backgroundColor = currentBackground;
+                screenshotRenderTexture.Release();
+                return texture;
             }
         }
 

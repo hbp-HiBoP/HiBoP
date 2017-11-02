@@ -598,6 +598,10 @@ namespace HBP.Module3D
         /// Event called when updating a ROI
         /// </summary>
         public UnityEvent OnUpdateROI = new UnityEvent();
+        /// <summary>
+        /// Event called when requesting a screenshot of the scene
+        /// </summary>
+        public GenericEvent<bool> OnRequestScreenshot = new GenericEvent<bool>();
         #endregion
 
         #region Private Methods

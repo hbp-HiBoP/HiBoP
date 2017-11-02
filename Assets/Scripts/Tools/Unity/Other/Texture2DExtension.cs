@@ -52,5 +52,19 @@ namespace Tools.Unity
             l_texture.Apply();
             return l_texture;
         }
+
+        public static Texture2D ScreenRectToTexture(Rect rect)
+        {
+            Texture2D texture = new Texture2D((int)rect.width, (int)rect.height);
+            texture.ReadPixels(rect, 0, 0);
+            texture.Apply();
+            return texture;
+        }
+
+        public static void SaveToPNG(this Texture2D texture, string path)
+        {
+            byte[] pngBytes = texture.EncodeToPNG();
+            File.WriteAllBytes(path, pngBytes);
+        }
     }
 }

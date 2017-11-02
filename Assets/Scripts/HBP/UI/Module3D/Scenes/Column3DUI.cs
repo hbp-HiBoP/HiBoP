@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Tools.Unity;
 using Tools.Unity.ResizableGrid;
 using UnityEngine;
 using UnityEngine.Events;
@@ -107,7 +108,7 @@ namespace HBP.UI.Module3D
             get
             {
                 Vector3 mousePosition = Input.mousePosition;
-                Rect columnRect = RectTransformToScreenSpace(GetComponent<RectTransform>());
+                Rect columnRect = GetComponent<RectTransform>().ToScreenSpace();
                 return mousePosition.x >= columnRect.x && mousePosition.x <= columnRect.x + columnRect.width && mousePosition.y >= columnRect.y && mousePosition.y <= columnRect.y + columnRect.height;
             }
         }
@@ -116,7 +117,7 @@ namespace HBP.UI.Module3D
             get
             {
                 Vector3 mousePosition = Input.mousePosition;
-                Rect borderRect = RectTransformToScreenSpace(m_LeftBorder);
+                Rect borderRect = m_LeftBorder.ToScreenSpace();
                 return mousePosition.x >= borderRect.x && mousePosition.x <= borderRect.x + borderRect.width && mousePosition.y >= borderRect.y && mousePosition.y <= borderRect.y + borderRect.height;
             }
         }
@@ -125,7 +126,7 @@ namespace HBP.UI.Module3D
             get
             {
                 Vector3 mousePosition = Input.mousePosition;
-                Rect borderRect = RectTransformToScreenSpace(m_RightBorder);
+                Rect borderRect = m_RightBorder.ToScreenSpace();
                 return mousePosition.x >= borderRect.x && mousePosition.x <= borderRect.x + borderRect.width && mousePosition.y >= borderRect.y && mousePosition.y <= borderRect.y + borderRect.height;
             }
         }
@@ -146,16 +147,6 @@ namespace HBP.UI.Module3D
                 m_Column.IsMinimized = IsMinimized;
                 m_RectTransformChanged = false;
             }
-        }
-        /// <summary>
-        /// Get RectTransform screen coordinates
-        /// </summary>
-        /// <param name="transform">Rect Transform to get screen coordinates from</param>
-        /// <returns></returns>
-        private Rect RectTransformToScreenSpace(RectTransform transform)
-        {
-            Vector2 size = Vector2.Scale(transform.rect.size, transform.lossyScale);
-            return new Rect((Vector2)transform.position - (size * 0.5f), size);
         }
         private void UpdateOverlay()
         {

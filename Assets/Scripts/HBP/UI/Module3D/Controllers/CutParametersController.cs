@@ -16,6 +16,7 @@ namespace HBP.UI.Module3D
         private Cut m_Cut;
         private bool m_IsUIUpdating = false;
         public bool AreControlsOpen { get; set; }
+        public Texture2D Texture { get { return m_Image.sprite.texture; } }
 
         /// <summary>
         /// Image of the cut

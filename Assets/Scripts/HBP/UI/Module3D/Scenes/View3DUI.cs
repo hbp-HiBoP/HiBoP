@@ -1,5 +1,6 @@
 ﻿using HBP.Module3D;
 using Tools.Unity.ResizableGrid;
+using Tools.Unity;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -144,7 +145,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             }
             else
             {
-                Rect viewport = RectTransformToScreenSpace(m_RectTransform);
+                Rect viewport = m_RectTransform.ToScreenSpace();
                 m_View.SetViewport(viewport.x, viewport.y, viewport.width, viewport.height);
             }
 
@@ -153,16 +154,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         }
         DeselectView();
         SendRayToScene();
-    }
-    /// <summary>
-    /// Get RectTransform screen coordinates
-    /// </summary>
-    /// <param name="transform">Rect Transform to get screen coordinates from</param>
-    /// <returns></returns>
-    private Rect RectTransformToScreenSpace(RectTransform transform)
-    {
-        Vector2 size = Vector2.Scale(transform.rect.size, transform.lossyScale);
-        return new Rect((Vector2)transform.position - (size * 0.5f), size);
     }
     /// <summary>
     /// Handles mouse events
@@ -281,7 +272,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         
         if (!m_UsingRenderTexture)
         {
-            Rect viewport = RectTransformToScreenSpace(m_RectTransform);
+            Rect viewport = m_RectTransform.ToScreenSpace();
             m_View.SetViewport(viewport.x, viewport.y, viewport.width, viewport.height);
         }
         else

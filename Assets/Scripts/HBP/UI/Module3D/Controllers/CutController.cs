@@ -6,6 +6,7 @@ using Tools.Unity.ResizableGrid;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Tools.Unity;
 
 namespace HBP.UI.Module3D
 {
@@ -46,6 +47,7 @@ namespace HBP.UI.Module3D
         private GameObject m_MinimizedGameObject;
         private List<CutParametersController> m_CutParametersControllers = new List<CutParametersController>();
         private bool m_RectTransformChanged;
+        public Texture2D[] CutTextures { get { return (from cutParameterController in m_CutParametersControllers select cutParameterController.Texture).ToArray(); } }
         #endregion
 
         #region Private Methods
@@ -70,7 +72,7 @@ namespace HBP.UI.Module3D
             }
             if (Input.GetMouseButtonDown(0) && m_CutParametersControllers.Any(c => c.AreControlsOpen))
             {
-                Rect rect = RectTransformToScreenSpace(m_RectTransform);
+                Rect rect = m_RectTransform.ToScreenSpace();
                 Vector3 mousePosition = Input.mousePosition;
                 if (!(mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height))
                 {
@@ -111,16 +113,6 @@ namespace HBP.UI.Module3D
             });
             controller.CloseControls();
             m_AddCutButton.SetAsLastSibling();
-        }
-        /// <summary>
-        /// Get RectTransform screen coordinates
-        /// </summary>
-        /// <param name="transform">Rect Transform to get screen coordinates from</param>
-        /// <returns></returns>
-        private Rect RectTransformToScreenSpace(RectTransform transform)
-        {
-            Vector2 size = Vector2.Scale(transform.rect.size, transform.lossyScale);
-            return new Rect((Vector2)transform.position - (size * 0.5f), size);
         }
         #endregion
 

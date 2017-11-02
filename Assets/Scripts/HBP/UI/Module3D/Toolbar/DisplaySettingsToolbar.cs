@@ -45,6 +45,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.CameraTypes m_CameraTypes;
+        /// <summary>
+        /// Take a screenshot of the selected scene
+        /// </summary>
+        [SerializeField]
+        private Tools.Screenshot m_Screenshot;
         #endregion
 
         #region Private Methods
@@ -61,6 +66,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_DefaultView);
             m_Tools.Add(m_ResetViews);
             m_Tools.Add(m_CameraTypes);
+            m_Tools.Add(m_Screenshot);
         }
         /// <summary>
         /// Add the listeners to the elements of the toolbar
