@@ -46,7 +46,7 @@ namespace HBP.UI.Module3D.Tools
             });
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
-                if (ListenerLock) return;
+                if (ListenerLock || ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG) return;
 
                 List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
                 if (IsGlobal)
@@ -111,7 +111,14 @@ namespace HBP.UI.Module3D.Tools
         {
             if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
             {
-                m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IsTimelinePlaying;
+                if (ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG)
+                {
+                    m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IsTimelinePlaying;
+                }
+                else
+                {
+                    m_Toggle.isOn = false;
+                }
             }
         }
         #endregion

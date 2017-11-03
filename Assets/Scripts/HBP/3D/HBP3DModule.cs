@@ -81,7 +81,7 @@ namespace HBP.Module3D
         public static bool UseSimplifiedMeshes = true;
 
         public const int MAXIMUM_VIEW_NUMBER = 5;
-        public const int MAXIMUM_COLUMN_NUMBER = 5;
+        public const int MAXIMUM_COLUMN_NUMBER = 8;
         /// <summary>
         /// Space between scenes in world space
         /// </summary>

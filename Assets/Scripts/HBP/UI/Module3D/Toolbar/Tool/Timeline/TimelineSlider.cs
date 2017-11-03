@@ -80,7 +80,7 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Slider.onValueChanged.AddListener((value) =>
             {
-                if (ListenerLock) return;
+                if (ListenerLock || ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG) return;
 
                 int val = (int)value;
                 if (IsGlobal)
@@ -154,13 +154,23 @@ namespace HBP.UI.Module3D.Tools
         {
             if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
             {
-                HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
-                m_Slider.value = column.CurrentTimeLineID;
-                m_Slider.maxValue = column.MaxTimeLineID;
-                m_Min.text = column.MinTimeLine.ToString("N2") + column.TimeLineUnite;
-                m_Max.text = column.MaxTimeLine.ToString("N2") + column.TimeLineUnite;
-                m_Current.text = column.CurrentTimeLineID + " (" + column.CurrentTimeLine.ToString("N2") + column.TimeLineUnite + ")";
-                ShowEvents(column);
+                if (ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
+                {
+                    HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
+                    m_Slider.value = column.CurrentTimeLineID;
+                    m_Slider.maxValue = column.MaxTimeLineID;
+                    m_Min.text = column.MinTimeLine.ToString("N2") + column.TimeLineUnite;
+                    m_Max.text = column.MaxTimeLine.ToString("N2") + column.TimeLineUnite;
+                    m_Current.text = column.CurrentTimeLineID + " (" + column.CurrentTimeLine.ToString("N2") + column.TimeLineUnite + ")";
+                    ShowEvents(column);
+                }
+                else
+                {
+                    m_Min.text = "Min";
+                    m_Max.text = "Max";
+                    m_Current.text = "Current Time";
+                    m_Slider.value = 0;
+                }
             }
         }
         #endregion

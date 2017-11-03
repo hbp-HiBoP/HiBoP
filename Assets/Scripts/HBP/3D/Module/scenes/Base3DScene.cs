@@ -781,7 +781,7 @@ namespace HBP.Module3D
 
             for (int ii = 0; ii < columnsIndexes.Length; ++ii)
             {
-                if (ColumnManager.Columns[columnsIndexes[ii]].Type == Column3D.ColumnType.FMRI)
+                if (ColumnManager.Columns[columnsIndexes[ii]].Type != Column3D.ColumnType.IEEG)
                     return;
 
                 Column3DIEEG currCol = (Column3DIEEG)ColumnManager.Columns[columnsIndexes[ii]];
@@ -1017,7 +1017,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         private bool LoadFMRIFile(string fMRIPath)
         {
-            if (m_ColumnManager.SelectedMRI.NII.LoadNIIFile(fMRIPath))
+            if (m_ColumnManager.SelectedMRI.NII.LoadNIIFile(fMRIPath)) // FIXME : create new array
                 return true;
 
             Debug.LogError("-ERROR : Base3DScene::load_FMRI_file -> load NII file failed. " + fMRIPath);
@@ -1108,7 +1108,7 @@ namespace HBP.Module3D
         /// </summary>
         private void ClickOnSiteCallback()
         {
-            if (m_ColumnManager.SelectedColumn.SelectedSiteID == -1) return;
+            if (m_ColumnManager.SelectedColumn.SelectedSiteID == -1 || m_ColumnManager.SelectedColumn.Type != Column3D.ColumnType.IEEG) return;
 
             if (((Column3DIEEG)m_ColumnManager.SelectedColumn).SendInformation)
             {

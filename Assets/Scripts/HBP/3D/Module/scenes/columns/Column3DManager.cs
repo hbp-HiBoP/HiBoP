@@ -429,7 +429,6 @@ namespace HBP.Module3D
                 OnChangeColumnMinimizedState.Invoke();
             });
             m_Columns.Add(column);
-            //column.transform.localPosition = new Vector3(0, HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * m_Columns.Count);
             OnAddColumn.Invoke();
         }
         /// <summary>
@@ -720,23 +719,15 @@ namespace HBP.Module3D
 
                     maskColumnsOR[ii] = mask;
                 }
-
-                for (int ii = 0; ii < ColumnsFMRI.Count; ++ii)
-                {
-                    for (int jj = 0; jj < SitesList.Count; ++jj)
-                    {
-                        ColumnsFMRI[ii].Sites[jj].State.IsMasked = maskColumnsOR[jj];
-                    }
-                }
                 
                 for (int ii = 0; ii < nbIRMFColumns; ++ii)
                 {
-                    ColumnsFMRI[ColumnsFMRI.Count - 1].Initialize(ColumnsIEEG.Count + ii, nbCuts, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
-                    ColumnsFMRI[ColumnsFMRI.Count - 1].ResetSplitsNumber(MeshSplitNumber);
+                    ColumnsFMRI[ii].Initialize(ColumnsIEEG.Count + ii, nbCuts, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
+                    ColumnsFMRI[ii].ResetSplitsNumber(MeshSplitNumber);
 
                     for (int jj = 0; jj < SitesList.Count; ++jj)
                     {
-                        ColumnsFMRI[ColumnsFMRI.Count - 1].Sites[jj].State.IsMasked = maskColumnsOR[jj];
+                        ColumnsFMRI[ii].Sites[jj].State.IsMasked = maskColumnsOR[jj];
                     }
                 }
             }

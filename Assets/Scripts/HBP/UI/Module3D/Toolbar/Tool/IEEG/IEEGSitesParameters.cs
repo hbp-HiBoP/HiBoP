@@ -23,7 +23,7 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Slider.onValueChanged.AddListener((value) =>
             {
-                if (ListenerLock) return;
+                if (ListenerLock || ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG) return;
 
                 HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
                 if (IsGlobal)
@@ -41,7 +41,7 @@ namespace HBP.UI.Module3D.Tools
 
             m_InputField.onEndEdit.AddListener((value) =>
             {
-                if (ListenerLock) return;
+                if (ListenerLock || ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG) return;
 
                 float val = float.Parse(value);
                 HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
@@ -117,9 +117,17 @@ namespace HBP.UI.Module3D.Tools
         {
             if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
             {
-                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
-                m_Slider.value = selectedColumn.IEEGParameters.Gain;
-                m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString("N2");
+                if (ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
+                {
+                    HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
+                    m_Slider.value = selectedColumn.IEEGParameters.Gain;
+                    m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString("N2");
+                }
+                else
+                {
+                    m_Slider.value = 0.5f;
+                    m_InputField.text = "15.00";
+                }
             }
         }
         #endregion
