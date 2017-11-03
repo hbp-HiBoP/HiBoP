@@ -629,6 +629,8 @@ namespace HBP.UI.Theme
                 DropdownText.Item.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
                 DropdownText.Item.Text.Font.alignByGeometry = true;
                 DropdownText.Item.Text.Font.fontStyle = FontStyle.Normal;
+                DropdownText.Item.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownText.Item.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
                 DropdownText.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownText.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
@@ -657,6 +659,8 @@ namespace HBP.UI.Theme
                 DropdownImage.Item.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
                 DropdownImage.Item.ColorBlock.disabledColor = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownImage.Item.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
+                DropdownImage.Item.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownImage.Item.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
                 DropdownImage.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownImage.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
@@ -691,12 +695,14 @@ namespace HBP.UI.Theme
                 DropdownTextWithIcon.Item.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
                 DropdownTextWithIcon.Item.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 DropdownTextWithIcon.Item.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
-                DropdownTextWithIcon.Item.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownTextWithIcon.Item.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
                 DropdownTextWithIcon.Item.Text.Font = FontData.defaultFontData;
                 DropdownTextWithIcon.Item.Text.Font.fontSize = 14;
                 DropdownTextWithIcon.Item.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
                 DropdownTextWithIcon.Item.Text.Font.alignByGeometry = true;
-                DropdownTextWithIcon.Item.Text.Font.fontStyle = FontStyle.Normal;
+                DropdownTextWithIcon.Item.Text.Font.fontStyle = FontStyle.Bold;
+                DropdownTextWithIcon.Item.Icon = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownTextWithIcon.Item.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
                 DropdownTextWithIcon.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownTextWithIcon.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
             }
