@@ -64,7 +64,7 @@ namespace Tools.Unity.ResizableGrid
         /// <summary>
         /// Threshold for the magntic attraction of the handlers
         /// </summary>
-        private const float MAGNETIC_THRESHOLD = 0.015f;
+        private const float MAGNETIC_THRESHOLD = 0.020f;
 
         private const float MINIMUM_VIEW_HEIGHT_DEFAULT = 25.0f;
         private float m_MinimumViewHeight = MINIMUM_VIEW_HEIGHT_DEFAULT;
