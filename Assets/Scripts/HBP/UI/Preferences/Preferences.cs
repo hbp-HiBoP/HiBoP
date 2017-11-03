@@ -23,6 +23,7 @@ namespace HBP.UI.Settings
         Dropdown trialMatrixSmoothingOption;
         Dropdown blocFormatOption;
         Dropdown m_ThemeSelector;
+        Dropdown m_CutLines;
         #endregion
 
         #region Public Methods
@@ -44,6 +45,7 @@ namespace HBP.UI.Settings
             ApplicationState.GeneralSettings.EventPositionAveraging = (GeneralSettings.AveragingMode) eventPositionAveragingOption.value;
             ApplicationState.GeneralSettings.ValueAveraging = (GeneralSettings.AveragingMode) valueAveragingOption.value;
             ApplicationState.GeneralSettings.ThemeName = m_ThemeSelector.options[m_ThemeSelector.value].text;
+            ApplicationState.GeneralSettings.ShowCutLines = m_CutLines.value == 0 ? true : false;
             ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH,true);
             Close();
         }
@@ -72,6 +74,7 @@ namespace HBP.UI.Settings
             eventPositionAveragingOption = transform.Find("Content").Find("Averaging").Find("EventPositionAveraging").GetComponentInChildren<Dropdown>();
             valueAveragingOption = transform.Find("Content").Find("Averaging").Find("ValueAveraging").GetComponentInChildren<Dropdown>();
             m_ThemeSelector = transform.Find("Content").Find("Display").Find("Theme").GetComponentInChildren<Dropdown>();
+            m_CutLines = transform.Find("Content").Find("Display").Find("Cut lines").GetComponentInChildren<Dropdown>();
 
             defaultNameProjectInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
             defaultLocationProjectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
@@ -144,6 +147,12 @@ namespace HBP.UI.Settings
             int themeID = m_ThemeSelector.options.FindIndex((o) => o.text == ApplicationState.GeneralSettings.ThemeName);
             m_ThemeSelector.value = themeID != -1 ? themeID : 0;
             m_ThemeSelector.RefreshShownValue();
+
+            m_CutLines.ClearOptions();
+            m_CutLines.options.Add(new Dropdown.OptionData("Show"));
+            m_CutLines.options.Add(new Dropdown.OptionData("Hide"));
+            m_CutLines.value = ApplicationState.GeneralSettings.ShowCutLines ? 0 : 1;
+            m_CutLines.RefreshShownValue();
         }
 
         void UpdateBlocFormat(TrialMatrixSettings.BlocFormatType blocFormat)

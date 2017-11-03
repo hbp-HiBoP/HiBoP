@@ -800,7 +800,7 @@ namespace HBP.Module3D
                     break;
             }
 
-            Columns[indexColumn].CreateGUIMRITexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom");            
+            Columns[indexColumn].CreateGUIMRITexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom" && ApplicationState.GeneralSettings.ShowCutLines);            
         }
         /// <summary>
         /// 
@@ -829,7 +829,7 @@ namespace HBP.Module3D
                     break;
             }
 
-            ((Column3DIEEG)Columns[indexColumn]).CreateGUIIEEGTexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom");
+            ((Column3DIEEG)Columns[indexColumn]).CreateGUIIEEGTexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom" && ApplicationState.GeneralSettings.ShowCutLines);
         }
         /// <summary>
         /// 
@@ -858,7 +858,7 @@ namespace HBP.Module3D
                     break;
             }
 
-            ((Column3DFMRI)Columns[indexColumn]).CreateGUIFMRITexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom");
+            ((Column3DFMRI)Columns[indexColumn]).CreateGUIFMRITexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom" && ApplicationState.GeneralSettings.ShowCutLines);
         }
         /// <summary>
         /// 

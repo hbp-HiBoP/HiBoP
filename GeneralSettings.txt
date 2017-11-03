@@ -14,5 +14,6 @@
     "LineHeightByWidth": 0.005,
     "HeightByWidth": 0.5625
   },
-  "Theme": "Dark"
+  "Theme": "Dark",
+  "ShowCutLines": true
 }

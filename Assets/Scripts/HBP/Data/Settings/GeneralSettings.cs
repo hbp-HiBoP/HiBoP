@@ -121,6 +121,12 @@ namespace HBP.Data.Settings
             }
         }
 
+        /// <summary>
+        /// Display the cut lines on the cuts
+        /// </summary>
+        [DataMember]
+        public bool ShowCutLines { get; set; }
+
         [IgnoreDataMember]
         private UI.Theme.Theme m_Theme;
         /// <summary>
