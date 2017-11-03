@@ -86,6 +86,7 @@ namespace HBP.UI.TrialMatrix
                     l_texture.LoadImage(l_bytes);
                     illustration.sprite = Sprite.Create(l_texture, new Rect(0, 0, l_texture.width, l_texture.height), new Vector2(0.5f, 0.5f));
                     illustration.gameObject.SetActive(true);
+                    label.gameObject.SetActive(false);
                 }
                 else
                 {

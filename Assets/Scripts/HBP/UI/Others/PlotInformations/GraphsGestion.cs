@@ -97,7 +97,6 @@ namespace HBP.UI.Graph
         }
         void OnMinimizeColumns()
         {
-            DisplayTrialMatrix();
             DisplayCurves();
         }
         void OnUpdateROI()
