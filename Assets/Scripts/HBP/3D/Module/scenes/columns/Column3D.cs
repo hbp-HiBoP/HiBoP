@@ -22,7 +22,7 @@ namespace HBP.Module3D
         #region Properties
         public enum ColumnType
         {
-            FMRI, IEEG
+            Base, FMRI, IEEG
         }
         public abstract ColumnType Type { get; }
         public int ID { get; set; }

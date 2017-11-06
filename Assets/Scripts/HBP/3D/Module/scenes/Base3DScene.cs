@@ -2953,7 +2953,8 @@ namespace HBP.Module3D
 
             yield return Ninja.JumpToUnity;
             // update columns number
-            m_ColumnManager.SetColumns(Visualization.Columns.Count, 0, Cuts.Count);
+            m_ColumnManager.InitializeColumns(Column3D.ColumnType.IEEG, Visualization.Columns.Count);
+            //m_ColumnManager.SetColumns(Visualization.Columns.Count, 0, Cuts.Count);
             yield return Ninja.JumpBack;
 
             // update columns names
@@ -2962,17 +2963,13 @@ namespace HBP.Module3D
                 m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].DisplayLabel;
             }
 
-            yield return Ninja.JumpToUnity;
             // set timelines
             m_ColumnManager.SetTimelineData(Visualization.Columns);
-
-            // update plots visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            yield return Ninja.JumpBack;
 
             // set flag
             SceneInformation.TimelinesLoaded = true;
 
+            yield return Ninja.JumpToUnity;
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.SetTimelines);
             //##################

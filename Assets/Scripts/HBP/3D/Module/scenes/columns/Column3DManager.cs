@@ -222,9 +222,6 @@ namespace HBP.Module3D
         // UV coordinates
         public List<Vector2[]> UVCoordinatesSplits = null; // uv coordinates for each brain mesh split
 
-        //
-        public bool[] CommonMask = null;
-
 
         // textures
         private ColorType m_BrainColor = ColorType.BrainColor;
@@ -428,6 +425,8 @@ namespace HBP.Module3D
             {
                 OnChangeColumnMinimizedState.Invoke();
             });
+            column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
+            column.ResetSplitsNumber(MeshSplitNumber);
             m_Columns.Add(column);
             OnAddColumn.Invoke();
         }
@@ -436,6 +435,7 @@ namespace HBP.Module3D
         /// </summary>
         private void AddFMRIColumn()
         {
+            DLLVolumeFMriList.Add(new DLL.Volume());
             Column3DFMRI column = Instantiate(Column3DViewFMRIPrefab, transform.Find("Columns")).GetComponent<Column3DFMRI>();
             column.gameObject.name = "Column FMRI " + ColumnsFMRI.Count;
             column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
@@ -459,6 +459,8 @@ namespace HBP.Module3D
             {
                 OnChangeColumnMinimizedState.Invoke();
             });
+            column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
+            column.ResetSplitsNumber(MeshSplitNumber);
             m_Columns.Add(column);
             OnAddColumn.Invoke();
         }
@@ -676,7 +678,6 @@ namespace HBP.Module3D
                 for (int ii = 0; ii < -diffIRMFColumns; ++ii)
                 {
                     // add column
-                    DLLVolumeFMriList.Add(new DLL.Volume());
                     AddFMRIColumn();
                 }
             }
@@ -732,15 +733,35 @@ namespace HBP.Module3D
                 }
             }
 
-
-            CommonMask = new bool[SelectedImplantation.PatientElectrodesList.TotalSitesNumber];
-
             if (SelectedColumnID >= m_Columns.Count && SelectedColumnID > 0)
                 m_Columns.Last().IsSelected = true;
 
 
             for (int ii = 0; ii < m_Columns.Count; ++ii)
                 Columns[ii].ResetColorSchemes(Colormap, BrainCutColor);
+        }
+        public void InitializeColumns(Column3D.ColumnType type, int number)
+        {
+            switch (type)
+            {
+                case Column3D.ColumnType.Base:
+                    // TODO
+                    break;
+                case Column3D.ColumnType.FMRI:
+                    for (int i = 0; i < number; i++)
+                    {
+                        AddFMRIColumn();
+                    }
+                    break;
+                case Column3D.ColumnType.IEEG:
+                    for (int i = 0; i < number; i++)
+                    {
+                        AddIEEGColumn();
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
         /// <summary>
         /// Set timeline data for all columns
