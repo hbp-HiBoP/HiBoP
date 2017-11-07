@@ -466,6 +466,9 @@ namespace HBP.Module3D
         }
 
         private bool m_CuttingMesh;
+        /// <summary>
+        /// Are we cutting the mesh of this scene ?
+        /// </summary>
         public bool CuttingMesh
         {
             get
@@ -475,24 +478,7 @@ namespace HBP.Module3D
             set
             {
                 m_CuttingMesh = value;
-                if (m_CuttingMesh)
-                {
-                    SceneInformation.MeshGeometryNeedsUpdate = true;
-                    foreach (Column3D column in m_ColumnManager.Columns)
-                    {
-                        column.ChangeMeshesLayer(LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName));
-                    }
-                    m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
-                }
-                else
-                {
-                    SceneInformation.MeshGeometryNeedsUpdate = true;
-                    foreach (Column3D column in m_ColumnManager.Columns)
-                    {
-                        column.ChangeMeshesLayer(LayerMask.NameToLayer(column.Layer));
-                    }
-                    m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
-                }
+                SceneInformation.MeshGeometryNeedsUpdate = true;
             }
         }
 
@@ -2102,6 +2088,14 @@ namespace HBP.Module3D
                 m_ColumnManager.ColumnsIEEG[ii].UpdateIEEG = true;
 
             UnityEngine.Profiling.Profiler.EndSample();
+            
+            UnityEngine.Profiling.Profiler.BeginSample("Changing layers");
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                column.ChangeMeshesLayer(LayerMask.NameToLayer(column.Layer));
+            }
+            m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         public void ComputeSimplifyMeshCut()
         {
@@ -2143,6 +2137,14 @@ namespace HBP.Module3D
             // update amplitude for all columns
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
                 m_ColumnManager.ColumnsIEEG[ii].UpdateIEEG = true;
+
+            UnityEngine.Profiling.Profiler.BeginSample("Changing layers");
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                column.ChangeMeshesLayer(LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName));
+            }
+            m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
+            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Set UI screen space/overlays layers mask settings corresponding to the current mode of the scene
