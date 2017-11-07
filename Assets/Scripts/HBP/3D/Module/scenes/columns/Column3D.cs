@@ -17,14 +17,20 @@ namespace HBP.Module3D
     /// <summary>
     /// Column 3D view base class
     /// </summary>
-    public abstract class Column3D : MonoBehaviour
+    public class Column3D : MonoBehaviour
     {
         #region Properties
         public enum ColumnType
         {
             Base, FMRI, IEEG
         }
-        public abstract ColumnType Type { get; }
+        public virtual ColumnType Type
+        {
+            get
+            {
+                return ColumnType.Base;
+            }
+        }
         public int ID { get; set; }
 
         [SerializeField, Candlelight.PropertyBackingField]
@@ -229,6 +235,12 @@ namespace HBP.Module3D
         public Texture2D BrainColorSchemeTexture = null;        /**< brain colorscheme unity 2D texture  */
         public List<Texture2D> BrainCutTextures = null;         /**< list of cut textures */
         public List<Texture2D> GUIBrainCutTextures = null;      /**< list of GUI cut textures */
+
+            
+        // latencies
+        public bool SourceDefined { get { return SourceSelectedID != -1; } }
+        public int SourceSelectedID = -1; /**< id of the selected source */
+        public int CurrentLatencyFile = -1; /**< id of the current latency file */
         #endregion
 
         #region Events
@@ -507,6 +519,171 @@ namespace HBP.Module3D
                 Sites[ii].gameObject.layer = LayerMask.NameToLayer(layer);
             }
         }
+        public virtual void UpdateSitesRendering(SceneStatesInfo data, Latencies latenciesFile)
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering");
+
+            Vector3 noScale = new Vector3(0, 0, 0);
+            Vector3 normalScale = new Vector3(1, 1, 1);
+            MeshRenderer renderer = null;
+            SiteType siteType;
+            if (data.DisplayCCEPMode) // CCEP
+            {
+                for (int ii = 0; ii < Sites.Count; ++ii)
+                {
+                    //MaterialPropertyBlock props = new MaterialPropertyBlock();
+
+                    bool activity = true;
+                    bool highlight = Sites[ii].State.IsHighlighted;
+                    float customAlpha = -1f;
+                    renderer = Sites[ii].GetComponent<MeshRenderer>();
+
+                    if (Sites[ii].State.IsBlackListed) // blacklisted plot
+                    {
+                        Sites[ii].transform.localScale = noScale;
+                        siteType = SiteType.BlackListed;
+                    }
+                    else if (Sites[ii].State.IsExcluded) // excluded plot
+                    {
+                        Sites[ii].transform.localScale = normalScale;
+                        siteType = SiteType.Excluded;
+                    }
+                    else if (latenciesFile != null) // latency file available
+                    {
+                        if (SourceSelectedID == -1) // no source selected
+                        {
+                            Sites[ii].transform.localScale = normalScale;
+                            siteType = latenciesFile.IsSiteASource(ii) ? SiteType.Source : SiteType.NotASource;
+                        }
+                        else // source selected
+                        {
+                            if (ii == SourceSelectedID)
+                            {
+                                Sites[ii].transform.localScale = normalScale;
+                                siteType = SiteType.Source;
+                            }
+                            else if (latenciesFile.IsSiteResponsiveForSource(ii, SourceSelectedID)) // data available
+                            {
+                                // set color
+                                siteType = (latenciesFile.PositiveHeight[SourceSelectedID][ii]) ? SiteType.NonePos : SiteType.NoneNeg;
+
+                                // set transparency
+                                customAlpha = latenciesFile.Transparencies[SourceSelectedID][ii] - 0.25f;
+
+                                if (Sites[ii].State.IsHighlighted)
+                                    customAlpha = 1;
+
+                                // set size
+                                float size = latenciesFile.Sizes[SourceSelectedID][ii];
+                                Sites[ii].transform.localScale = new Vector3(size, size, size);
+                            }
+                            else // no data available
+                            {
+                                Sites[ii].transform.localScale = normalScale;
+                                siteType = SiteType.NoLatencyData;
+                            }
+                        }
+                    }
+                    else // no mask and no latency file available : all plots have the same size and color
+                    {
+                        Sites[ii].transform.localScale = normalScale;
+                        siteType = Sites[ii].State.IsMarked ? SiteType.Marked : SiteType.Normal;
+                    }
+
+                    // select plot ring 
+                    if (ii == SelectedSiteID)
+                        m_SelectRing.SetSelectedSite(Sites[ii], Sites[ii].transform.localScale);
+
+                    Material siteMaterial = SharedMaterials.SiteSharedMaterial(highlight, siteType);
+                    if (customAlpha > 0f)
+                    {
+                        Color col = siteMaterial.color;
+                        col.a = customAlpha;
+                        siteMaterial.color = col;
+                    }
+
+                    renderer.sharedMaterial = siteMaterial;
+                    Sites[ii].gameObject.SetActive(activity);
+                }
+            }
+            else // iEEG
+            {
+                UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering -1 ");
+
+
+                for (int ii = 0; ii < Sites.Count; ++ii)
+                {
+                    bool activity;
+                    if (!Sites[ii].IsInitialized)
+                    {
+                        Sites[ii].IsInitialized = true;
+                        activity = Sites[ii].gameObject.activeSelf;
+                    }
+                    else
+                        activity = Sites[ii].IsActive;
+
+
+                    if (Sites[ii].State.IsMasked || Sites[ii].State.IsOutOfROI) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
+                    {
+                        if (activity)
+                            Sites[ii].gameObject.SetActive(false);
+
+                        Sites[ii].IsActive = false;
+                        continue;
+                    }
+
+
+                    UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering -2 ");
+
+                    if (Sites[ii].State.IsBlackListed) // blacklist mask : plot is barely visible with another color, can be clicked
+                    {
+                        Sites[ii].transform.localScale = normalScale;
+                        siteType = SiteType.BlackListed;
+                        if (data.HideBlacklistedSites)
+                        {
+                            if (activity) Sites[ii].IsActive = false;
+                            continue;
+                        }
+                    }
+                    else if (Sites[ii].State.IsExcluded) // excluded mask : plot is a little visible with another color, can be clicked
+                    {
+                        Sites[ii].transform.localScale = normalScale;
+                        siteType = SiteType.Excluded;
+                    }
+                    else // no mask and no amplitude computed : all plots have the same size and color
+                    {
+                        Sites[ii].transform.localScale = normalScale;
+                        siteType = Sites[ii].State.IsMarked ? SiteType.Marked : SiteType.Normal;
+                    }
+
+                    UnityEngine.Profiling.Profiler.EndSample();
+                    UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering -3 ");
+
+                    Sites[ii].GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(Sites[ii].State.IsHighlighted, siteType);
+
+                    if (!activity)
+                        Sites[ii].gameObject.SetActive(true);
+
+                    Sites[ii].IsActive = true;
+
+                    UnityEngine.Profiling.Profiler.EndSample();
+                }
+
+                // select plot ring 
+                if (SelectedSiteID >= 0 && SelectedSiteID < Sites.Count)
+                    m_SelectRing.SetSelectedSite(Sites[SelectedSiteID], Sites[SelectedSiteID].transform.localScale);
+
+
+                UnityEngine.Profiling.Profiler.EndSample();
+            }
+
+            if (SelectedSiteID == -1)
+            {
+                m_SelectRing.SetSelectedSite(null, new Vector3(0, 0, 0));
+            }
+
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
         /// <summary>
         /// Retrieve a string containing all the plots states
         /// </summary>
@@ -730,6 +907,15 @@ namespace HBP.Module3D
             {
                 SelectedROI = null;
             }
+        }
+
+        public void SetCurrentSiteAsSource()
+        {
+            SourceSelectedID = SelectedSiteID;
+        }
+        public void UndefineSource()
+        {
+            SourceSelectedID = -1;
         }
         #endregion
     }

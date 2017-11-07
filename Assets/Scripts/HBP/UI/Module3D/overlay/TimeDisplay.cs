@@ -24,17 +24,23 @@ namespace HBP.UI.Module3D
                 IsActive = value;
             });
 
-            if (column is Column3DFMRI)
+            switch (column.Type)
             {
-                IsActive = false;
-            }
-            else
-            {
-                Column3DIEEG col = (Column3DIEEG)column;
-                col.OnUpdateCurrentTimelineID.AddListener(() =>
-                {
-                    m_Text.text = col.CurrentTimeLineID.ToString() + " (" + col.CurrentTimeLine.ToString("N2") + col.TimeLineUnite + ")";
-                });
+                case Column3D.ColumnType.Base:
+                    IsActive = false;
+                    break;
+                case Column3D.ColumnType.FMRI:
+                    IsActive = false;
+                    break;
+                case Column3D.ColumnType.IEEG:
+                    Column3DIEEG col = (Column3DIEEG)column;
+                    col.OnUpdateCurrentTimelineID.AddListener(() =>
+                    {
+                        m_Text.text = col.CurrentTimeLineID.ToString() + " (" + col.CurrentTimeLine.ToString("N2") + col.TimeLineUnite + ")";
+                    });
+                    break;
+                default:
+                    break;
             }
         }
         #endregion

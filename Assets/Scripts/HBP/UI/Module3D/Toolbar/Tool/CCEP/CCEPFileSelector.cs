@@ -19,9 +19,9 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Dropdown.onValueChanged.AddListener((value) =>
             {
-                if (ListenerLock || ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG) return;
+                if (ListenerLock) return;
 
-                ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).CurrentLatencyFile = value;
+                ApplicationState.Module3D.SelectedColumn.CurrentLatencyFile = value;
                 ApplicationState.Module3D.SelectedScene.UpdateSitesRendering();
             });
         }
@@ -73,15 +73,12 @@ namespace HBP.UI.Module3D.Tools
             if (type == Toolbar.UpdateToolbarType.Column)
             {
                 m_Dropdown.options.Clear();
-                if (ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
+                foreach (HBP.Module3D.Latencies latencies in ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedImplantation.Latencies)
                 {
-                    foreach (HBP.Module3D.Latencies latencies in ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedImplantation.Latencies)
-                    {
-                        m_Dropdown.options.Add(new Dropdown.OptionData(latencies.Name));
-                    }
-                    m_Dropdown.value = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).CurrentLatencyFile != -1 ? ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).CurrentLatencyFile : 0;
-                    m_Dropdown.RefreshShownValue();
+                    m_Dropdown.options.Add(new Dropdown.OptionData(latencies.Name));
                 }
+                m_Dropdown.value = ApplicationState.Module3D.SelectedColumn.CurrentLatencyFile != -1 ? ApplicationState.Module3D.SelectedColumn.CurrentLatencyFile : 0;
+                m_Dropdown.RefreshShownValue();
             }
         }
         #endregion

@@ -33,36 +33,42 @@ namespace HBP.UI.Module3D
                 IsActive = value;
             });
 
-            if (column is Column3DFMRI)
+            switch (column.Type)
             {
-                IsActive = false;
-            }
-            else
-            {
-                Column3DIEEG col = (Column3DIEEG)column;
-                m_Icons = col.ColumnData.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
+                case Column3D.ColumnType.Base:
+                    IsActive = false;
+                    break;
+                case Column3D.ColumnType.FMRI:
+                    IsActive = false;
+                    break;
+                case Column3D.ColumnType.IEEG:
+                    Column3DIEEG col = (Column3DIEEG)column;
+                    m_Icons = col.ColumnData.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
 
-                col.OnUpdateCurrentTimelineID.AddListener(() =>
-                {
-                    if (!scene.SceneInformation.IsGeneratorUpToDate) return;
-
-                    Data.Visualization.Icon icon = m_Icons.DefaultIfEmpty(null).FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
-                    if (icon != m_CurrentIcon)
+                    col.OnUpdateCurrentTimelineID.AddListener(() =>
                     {
-                        m_CurrentIcon = icon;
-                        if (icon == null || icon.Illustration == null)
+                        if (!scene.SceneInformation.IsGeneratorUpToDate) return;
+
+                        Data.Visualization.Icon icon = m_Icons.DefaultIfEmpty(null).FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
+                        if (icon != m_CurrentIcon)
                         {
-                            IsActive = false;
-                            m_Image.sprite = m_DefaultSprite;
+                            m_CurrentIcon = icon;
+                            if (icon == null || icon.Illustration == null)
+                            {
+                                IsActive = false;
+                                m_Image.sprite = m_DefaultSprite;
+                            }
+                            else
+                            {
+                                IsActive = true;
+                                m_Image.sprite = icon.Illustration;
+                                m_Text.text = icon.Label;
+                            }
                         }
-                        else
-                        {
-                            IsActive = true;
-                            m_Image.sprite = icon.Illustration;
-                            m_Text.text = icon.Label;
-                        }
-                    }
-                });
+                    });
+                    break;
+                default:
+                    break;
             }
         }
         #endregion

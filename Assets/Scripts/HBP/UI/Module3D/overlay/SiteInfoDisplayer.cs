@@ -49,7 +49,7 @@ namespace HBP.UI.Module3D
                     m_CurrentMode = mode;
                     switch (mode)
                     {
-                        case SiteInformationDisplayMode.IEEGNoAmplitude:
+                        case SiteInformationDisplayMode.Anatomy:
                             m_IEEG.gameObject.SetActive(false);
                             m_Height.gameObject.SetActive(false);
                             m_Latency.gameObject.SetActive(false);
@@ -125,7 +125,7 @@ namespace HBP.UI.Module3D
                         m_Height.text = "Height: " + siteInfo.Height;
                         m_Latency.text = "Latency: " + siteInfo.Latency;
                     }
-                    else if (siteInfo.Mode == SiteInformationDisplayMode.IEEG || siteInfo.Mode == SiteInformationDisplayMode.IEEGNoAmplitude)
+                    else if (siteInfo.Mode == SiteInformationDisplayMode.IEEG || siteInfo.Mode == SiteInformationDisplayMode.Anatomy)
                     {
                         if (siteInfo.Mode == SiteInformationDisplayMode.IEEG) m_IEEG.text = "IEEG: " + siteInfo.Amplitude;
                         if (siteInfo.Site)

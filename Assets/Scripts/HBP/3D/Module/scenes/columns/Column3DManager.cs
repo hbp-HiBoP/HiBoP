@@ -278,8 +278,12 @@ namespace HBP.Module3D
         public Texture2D BrainColorTexture = null;
 
         // Column 3D Prefabs
-        public GameObject Column3DViewIEEGPrefab;
-        public GameObject Column3DViewFMRIPrefab;
+        [SerializeField]
+        private GameObject m_Column3DPrefab;
+        [SerializeField]
+        private GameObject m_Column3DIEEGPrefab;
+        [SerializeField]
+        private GameObject m_Column3DFMRIPrefab;
         #endregion
 
         #region Events
@@ -352,12 +356,62 @@ namespace HBP.Module3D
             BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
             BrainColorTexture = Texture2Dutility.GenerateColorScheme();
         }
+        private void AddBaseColumn()
+        {
+            Column3D column = Instantiate(m_Column3DPrefab, transform.Find("Columns")).GetComponent<Column3D>();
+            column.gameObject.name = "Column " + Columns.Count;
+            column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
+            column.OnSelectColumn.AddListener((selectedColumn) =>
+            {
+                foreach (Column3D c in m_Columns)
+                {
+                    if (c != selectedColumn)
+                    {
+                        c.IsSelected = false;
+                        foreach (View3D v in c.Views)
+                        {
+                            v.IsSelected = false;
+                        }
+                    }
+                }
+                OnSelectColumnManager.Invoke(this);
+                ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
+            });
+            column.OnMoveView.AddListener((view) =>
+            {
+                SynchronizeViewsToReferenceView(view);
+            });
+            column.OnChangeNumberOfROI.AddListener(() =>
+            {
+                OnChangeNumberOfROI.Invoke();
+            });
+            column.OnChangeNumberOfVolumeInROI.AddListener(() =>
+            {
+                OnChangeNumberOfVolumeInROI.Invoke();
+            });
+            column.OnSelectROI.AddListener(() =>
+            {
+                OnSelectROI.Invoke();
+            });
+            column.OnChangeROIVolumeRadius.AddListener(() =>
+            {
+                OnChangeROIVolumeRadius.Invoke();
+            });
+            column.OnChangeMinimizedState.AddListener(() =>
+            {
+                OnChangeColumnMinimizedState.Invoke();
+            });
+            column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
+            column.ResetSplitsNumber(MeshSplitNumber);
+            m_Columns.Add(column);
+            OnAddColumn.Invoke();
+        }
         /// <summary>
         /// Add a IEEG column to this scene
         /// </summary>
         private void AddIEEGColumn()
         {
-            Column3DIEEG column = Instantiate(Column3DViewIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
+            Column3DIEEG column = Instantiate(m_Column3DIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
             column.gameObject.name = "Column IEEG " + ColumnsIEEG.Count;
             column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
             column.OnSelectColumn.AddListener((selectedColumn) =>
@@ -436,7 +490,7 @@ namespace HBP.Module3D
         private void AddFMRIColumn()
         {
             DLLVolumeFMriList.Add(new DLL.Volume());
-            Column3DFMRI column = Instantiate(Column3DViewFMRIPrefab, transform.Find("Columns")).GetComponent<Column3DFMRI>();
+            Column3DFMRI column = Instantiate(m_Column3DFMRIPrefab, transform.Find("Columns")).GetComponent<Column3DFMRI>();
             column.gameObject.name = "Column FMRI " + ColumnsFMRI.Count;
             column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
             column.OnSelectColumn.AddListener((selectedColumn) =>
@@ -483,7 +537,7 @@ namespace HBP.Module3D
         /// </summary>
         private void RemoveFMRIColumn()
         {
-            if (ColumnsIEEG.Count > 0)
+            if (ColumnsFMRI.Count > 0)
             {
                 Column3DFMRI column = ColumnsFMRI[ColumnsFMRI.Count - 1];
                 int columnID = m_Columns.IndexOf(column);
@@ -635,117 +689,19 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Update the number of columns and set the number of cut planes for each ones
+        /// Initialize the columns for this scene
         /// </summary>
-        /// <param name="nbIEEGColumns"></param>
-        /// /// <param name="nbIRMFColumns"></param>
-        /// <param name="nbCuts"></param>
-        public void SetColumns(int nbIEEGColumns, int nbIRMFColumns, int nbCuts)
-        {            
-            // clean data columns if changes in data columns nb
-            if (nbIEEGColumns != ColumnsIEEG.Count)
-            {
-                foreach (var column in ColumnsIEEG) column.Clear();
-            }
-
-            // clean IRMF columns if changes in IRMF columns nb
-            if (nbIRMFColumns != ColumnsFMRI.Count)
-            {
-                foreach (var column in ColumnsFMRI) column.Clear();
-            }
-
-            // resize the data GO list            
-            int diffIEEGColumns = ColumnsIEEG.Count - nbIEEGColumns;
-            if (diffIEEGColumns < 0)
-            {
-                for (int ii = 0; ii < -diffIEEGColumns; ++ii)
-                {
-                    AddIEEGColumn();
-                }
-            }
-            else if (diffIEEGColumns > 0)
-            {
-                for (int ii = 0; ii < diffIEEGColumns; ++ii)
-                {
-                    RemoveIEEGColumn();
-                }
-            }
-
-            // resize the IRMF GO list      
-            int diffIRMFColumns = ColumnsFMRI.Count - nbIRMFColumns;
-            if (diffIRMFColumns < 0)
-            {
-                for (int ii = 0; ii < -diffIRMFColumns; ++ii)
-                {
-                    // add column
-                    AddFMRIColumn();
-                }
-            }
-            else if (diffIRMFColumns > 0)
-            {
-                for (int ii = 0; ii < diffIRMFColumns; ++ii)
-                {
-                    // destroy column
-                    int idColumn = ColumnsFMRI.Count - 1;
-                    RemoveFMRIColumn();
-
-                    DLLVolumeFMriList[idColumn].Dispose();
-                    DLLVolumeFMriList.RemoveAt(idColumn);
-                }
-            }
-
-            // init new columns IEEG            
-            if (diffIEEGColumns != 0)
-            {
-                for (int ii = 0; ii < nbIEEGColumns; ++ii)
-                {
-                    ColumnsIEEG[ii].Initialize(ii, nbCuts, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
-                    ColumnsIEEG[ii].ResetSplitsNumber(MeshSplitNumber);
-                }
-            }
-
-            // init new columns IRMF
-            if (diffIRMFColumns != 0)
-            {
-                // update IRMF columns mask
-                bool[] maskColumnsOR = new bool[SelectedImplantation.PatientElectrodesList.TotalSitesNumber];
-                for (int ii = 0; ii < SitesList.Count; ++ii)
-                {
-                    bool mask = false;
-
-                    for (int jj = 0; jj < ColumnsIEEG.Count; ++jj)
-                    {
-                        mask = mask || ColumnsIEEG[jj].Sites[ii].State.IsMasked;
-                    }
-
-                    maskColumnsOR[ii] = mask;
-                }
-                
-                for (int ii = 0; ii < nbIRMFColumns; ++ii)
-                {
-                    ColumnsFMRI[ii].Initialize(ColumnsIEEG.Count + ii, nbCuts, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
-                    ColumnsFMRI[ii].ResetSplitsNumber(MeshSplitNumber);
-
-                    for (int jj = 0; jj < SitesList.Count; ++jj)
-                    {
-                        ColumnsFMRI[ii].Sites[jj].State.IsMasked = maskColumnsOR[jj];
-                    }
-                }
-            }
-
-            if (SelectedColumnID >= m_Columns.Count && SelectedColumnID > 0)
-                m_Columns.Last().IsSelected = true;
-
-
-            for (int ii = 0; ii < m_Columns.Count; ++ii)
-                Columns[ii].ResetColorSchemes(Colormap, BrainCutColor);
-        }
+        /// <param name="type"></param>
+        /// <param name="number"></param>
         public void InitializeColumns(Column3D.ColumnType type, int number)
         {
             switch (type)
             {
                 case Column3D.ColumnType.Base:
-                    // TODO
+                    for (int i = 0; i < number; i++)
+                    {
+                        AddBaseColumn();
+                    }
                     break;
                 case Column3D.ColumnType.FMRI:
                     for (int i = 0; i < number; i++)
@@ -941,18 +897,29 @@ namespace HBP.Module3D
                 }
             }
 
-            for (int ii = 0; ii < ColumnsIEEG.Count; ++ii)
+            foreach (Column3D column in Columns)
             {
                 Latencies latencyFile = null;
-                if (ColumnsIEEG[ii].CurrentLatencyFile != -1)
-                    latencyFile = SelectedImplantation.Latencies[ColumnsIEEG[ii].CurrentLatencyFile];
-
-                ColumnsIEEG[ii].UpdateSitesSizeAndColorForIEEG(); // TEST
-                ColumnsIEEG[ii].UpdateSitesRendering(data, latencyFile);
+                if (column.CurrentLatencyFile != -1)
+                {
+                    latencyFile = SelectedImplantation.Latencies[column.CurrentLatencyFile];
+                }
+                switch (column.Type)
+                {
+                    case Column3D.ColumnType.Base:
+                        column.UpdateSitesRendering(data, latencyFile);
+                        break;
+                    case Column3D.ColumnType.FMRI:
+                        ((Column3DFMRI)column).UpdateSitesVisibility(data);
+                        break;
+                    case Column3D.ColumnType.IEEG:
+                        ((Column3DIEEG)column).UpdateSitesSizeAndColorForIEEG();
+                        ((Column3DIEEG)column).UpdateSitesRendering(data, latencyFile);
+                        break;
+                    default:
+                        break;
+                }
             }
-
-            for (int ii = 0; ii < ColumnsFMRI.Count; ++ii)
-                ColumnsFMRI[ii].UpdateSitesVisibility(data);
         }
         public void UpdateColumnIEEGSitesRendering(Column3DIEEG column, SceneStatesInfo data)
         {

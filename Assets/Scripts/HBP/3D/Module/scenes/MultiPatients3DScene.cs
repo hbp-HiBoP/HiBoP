@@ -98,7 +98,7 @@ namespace HBP.Module3D
 
             progress += SETTING_TIMELINE_PROGRESS;
             onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetTimelineData());
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetEEGData());
 
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
             // update scenes cameras

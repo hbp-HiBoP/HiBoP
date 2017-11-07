@@ -106,11 +106,15 @@ namespace HBP.Module3D
             progress += LOADING_MNI;
             onChangeProgress.Invoke(progress, 2.0f, "Loading MNI objects");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
-
+            
             // Set Timeline
             progress += SETTING_TIMELINE_PROGRESS;
             onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetTimelineData());
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetEEGData());
+            
+            // TMP : to debug anatomy scene
+            //m_ColumnManager.InitializeColumns(Column3D.ColumnType.Base, 1);
+            //m_ColumnManager.Columns.Last().Label = Patient.Name + " (" + Patient.Place + " - " + Patient.Date + ")";
 
             // Finalization
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);

@@ -250,7 +250,7 @@ namespace HBP.Module3D
                 SceneInformation.DisplayCCEPMode = value;
                 if (value)
                 {
-                    foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+                    foreach (Column3D column in m_ColumnManager.Columns)
                     {
                         if (column.CurrentLatencyFile == -1)
                         {
@@ -782,14 +782,14 @@ namespace HBP.Module3D
             for (int ii = 0; ii < columnsIndexes.Length; ++ii)
             {
                 if (ColumnManager.Columns[columnsIndexes[ii]].Type != Column3D.ColumnType.IEEG)
-                    return;
+                    continue;
 
                 Column3DIEEG currCol = (Column3DIEEG)ColumnManager.Columns[columnsIndexes[ii]];
 
                 // brain surface
                 if (surface)
                     if (!m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(m_ColumnManager.ColumnsIEEG[columnsIndexes[ii]]))
-                        return;
+                        continue;
 
                 // brain cuts
                 if (cuts)
@@ -900,6 +900,9 @@ namespace HBP.Module3D
                 {
                     switch (currCol.Type)
                     {
+                        case Column3D.ColumnType.Base:
+                            m_ColumnManager.CreateGUIMRITexture(cutsIndexes[jj], columnsIndexes[ii]);
+                            break;
                         case Column3D.ColumnType.FMRI:
                             m_ColumnManager.CreateGUIFMRITexture(cutsIndexes[jj], columnsIndexes[ii]);
                             break;
@@ -927,6 +930,9 @@ namespace HBP.Module3D
             List<Texture2D> texturesToDisplay = null;
             switch (currCol.Type)
             {
+                case Column3D.ColumnType.Base:
+                    texturesToDisplay = currCol.GUIBrainCutTextures;
+                    break;
                 case Column3D.ColumnType.FMRI:
                     texturesToDisplay = ((Column3DFMRI)currCol).GUIBrainCutWithFMRITextures;
                     break;
@@ -1039,7 +1045,7 @@ namespace HBP.Module3D
 
             // Update column number
             int newFMRIColumnNumber = m_ColumnManager.ColumnsFMRI.Count + 1;
-            m_ColumnManager.SetColumns(m_ColumnManager.ColumnsIEEG.Count, newFMRIColumnNumber, Cuts.Count);
+            //m_ColumnManager.SetColumns(m_ColumnManager.ColumnsIEEG.Count, newFMRIColumnNumber, Cuts.Count);
 
             // Update label
             int newFMRIColumnID = newFMRIColumnNumber - 1;
@@ -1092,7 +1098,7 @@ namespace HBP.Module3D
             }
 
             // Update columns number
-            m_ColumnManager.SetColumns(m_ColumnManager.ColumnsIEEG.Count, m_ColumnManager.ColumnsFMRI.Count - 1, Cuts.Count);
+            //m_ColumnManager.SetColumns(m_ColumnManager.ColumnsIEEG.Count, m_ColumnManager.ColumnsFMRI.Count - 1, Cuts.Count);
 
             // Update plots visibility
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
@@ -1108,11 +1114,14 @@ namespace HBP.Module3D
         /// </summary>
         private void ClickOnSiteCallback()
         {
-            if (m_ColumnManager.SelectedColumn.SelectedSiteID == -1 || m_ColumnManager.SelectedColumn.Type != Column3D.ColumnType.IEEG) return;
+            if (m_ColumnManager.SelectedColumn.SelectedSiteID == -1) return;
 
-            if (((Column3DIEEG)m_ColumnManager.SelectedColumn).SendInformation)
+            if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG)
             {
-                SendAdditionalSiteInfoRequest();
+                if (((Column3DIEEG)m_ColumnManager.SelectedColumn).SendInformation)
+                {
+                    SendAdditionalSiteInfoRequest();
+                }
             }
         }
         /// <summary>
@@ -1421,7 +1430,7 @@ namespace HBP.Module3D
                     }
                 }
             }
-            foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
+            foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.UpdateSites(m_ColumnManager.SelectedImplantation.PatientElectrodesList, m_ColumnManager.SitesPatientParent, m_ColumnManager.SitesList);
                 UpdateCurrentRegionOfInterest(column);
@@ -2060,9 +2069,7 @@ namespace HBP.Module3D
             // update cuts generators
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
-                for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG.Count; ++jj)
-                    m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
-
+                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
                 m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii + 1]);
                 m_ColumnManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
@@ -2120,9 +2127,7 @@ namespace HBP.Module3D
             // update cuts generators
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
-                for (int jj = 0; jj < m_ColumnManager.ColumnsIEEG.Count; ++jj)
-                    m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
-
+                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
                 m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii + 1]);
                 m_ColumnManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
@@ -2381,6 +2386,9 @@ namespace HBP.Module3D
             {
                 switch (column.Type)
                 {
+                    case Column3D.ColumnType.Base:
+                        m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = column.BrainCutTextures[ii];
+                        break;
                     case Column3D.ColumnType.FMRI:
                         m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = ((Column3DFMRI)column).BrainCutWithFMRITextures[ii];
                         break;
@@ -2407,7 +2415,7 @@ namespace HBP.Module3D
             {
                 for (int i = 0; i < column.BrainSurfaceMeshes.Count; i++)
                 {
-                    if (column.Type == Column3D.ColumnType.FMRI || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
+                    if (column.Type != Column3D.ColumnType.IEEG || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
                     {
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = m_ColumnManager.UVNull[i];
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = m_ColumnManager.UVNull[i];
@@ -2548,6 +2556,9 @@ namespace HBP.Module3D
 
             switch (column.Type)
             {
+                case Column3D.ColumnType.Base:
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.Anatomy));
+                    break;
                 case Column3D.ColumnType.FMRI:
                     ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.FMRI));
                     break;
@@ -2593,10 +2604,10 @@ namespace HBP.Module3D
                                     }
                                 }
                             }
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? SiteInformationDisplayMode.CCEP : amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.IEEGNoAmplitude, "" + amplitude, height, latency));
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? SiteInformationDisplayMode.CCEP : amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.Anatomy, "" + amplitude, height, latency));
                             break;
                         case SceneType.MultiPatients:
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.IEEGNoAmplitude, "" + amplitude));
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.Anatomy, "" + amplitude));
                             break;
                         default:
                             break;
@@ -2941,7 +2952,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="patient"></param>
         /// <param name="columnDataList"></param>
-        protected IEnumerator c_SetTimelineData()
+        protected IEnumerator c_SetEEGData()
         {
             //####### CHECK ACESS
             if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetTimelines))
@@ -2954,7 +2965,6 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
             // update columns number
             m_ColumnManager.InitializeColumns(Column3D.ColumnType.IEEG, Visualization.Columns.Count);
-            //m_ColumnManager.SetColumns(Visualization.Columns.Count, 0, Cuts.Count);
             yield return Ninja.JumpBack;
 
             // update columns names

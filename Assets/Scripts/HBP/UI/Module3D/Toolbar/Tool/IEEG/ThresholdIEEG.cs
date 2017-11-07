@@ -43,22 +43,23 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
+            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG;
             switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentModeID)
             {
                 case HBP.Module3D.Mode.ModesId.NoPathDefined:
                     m_Button.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.MinPathDefined:
-                    m_Button.interactable = true;
+                    m_Button.interactable = isColumnIEEG;
                     break;
                 case HBP.Module3D.Mode.ModesId.AllPathDefined:
-                    m_Button.interactable = true;
+                    m_Button.interactable = isColumnIEEG;
                     break;
                 case HBP.Module3D.Mode.ModesId.ComputingAmplitudes:
                     m_Button.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.AmplitudesComputed:
-                    m_Button.interactable = true;
+                    m_Button.interactable = isColumnIEEG;
                     break;
                 case HBP.Module3D.Mode.ModesId.TriErasing:
                     m_Button.interactable = false;
@@ -67,7 +68,7 @@ namespace HBP.UI.Module3D.Tools
                     m_Button.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.AmpNeedUpdate:
-                    m_Button.interactable = true;
+                    m_Button.interactable = isColumnIEEG;
                     break;
                 case HBP.Module3D.Mode.ModesId.Error:
                     m_Button.interactable = false;
@@ -82,7 +83,7 @@ namespace HBP.UI.Module3D.Tools
             if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
             {
                 HBP.Module3D.Column3D selectedColumn = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
-                if (selectedColumn is HBP.Module3D.Column3DIEEG)
+                if (selectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
                 {
                     m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DIEEG)selectedColumn).IEEGParameters);
                 }

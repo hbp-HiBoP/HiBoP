@@ -23,18 +23,19 @@ namespace HBP.UI.Module3D.Tools
         {
             m_SetSource.onClick.AddListener(() =>
             {
-                if (ListenerLock || ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG) return;
+                if (ListenerLock) return;
 
-                ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).SetCurrentSiteAsSource();
+                HBP.Module3D.Column3D column = ApplicationState.Module3D.SelectedColumn;
+                column.SetCurrentSiteAsSource();
                 ApplicationState.Module3D.SelectedScene.UpdateSitesRendering();
-                m_Text.text = ApplicationState.Module3D.SelectedColumn.Sites[((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).SourceSelectedID].Information.Name;
+                m_Text.text = column.Sites[column.SourceSelectedID].Information.Name;
                 UpdateInteractable();
             });
             m_UnsetSource.onClick.AddListener(() =>
             {
-                if (ListenerLock || ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG) return;
+                if (ListenerLock) return;
 
-                ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).UndefineSource();
+                ApplicationState.Module3D.SelectedColumn.UndefineSource();
                 ApplicationState.Module3D.SelectedScene.UpdateSitesRendering();
                 m_Text.text = "None";
                 UpdateInteractable();
@@ -51,17 +52,14 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             bool isCCEP = false, isSourceDefined = false, isSiteSelected = false;
-            if (ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
+            HBP.Module3D.Base3DScene scene = ApplicationState.Module3D.SelectedScene;
+            HBP.Module3D.Column3D column = ApplicationState.Module3D.SelectedColumn;
+            isCCEP = scene.IsLatencyModeEnabled && (column.CurrentLatencyFile != -1);
+            isSourceDefined = column.SourceDefined;
+            isSiteSelected = column.SelectedSite != null;
+            if (isSiteSelected && column.CurrentLatencyFile != -1)
             {
-                HBP.Module3D.Base3DScene scene = ApplicationState.Module3D.SelectedScene;
-                HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn;
-                isCCEP = scene.IsLatencyModeEnabled && (column.CurrentLatencyFile != -1);
-                isSourceDefined = column.SourceDefined;
-                isSiteSelected = column.SelectedSite != null;
-                if (isSiteSelected && column.CurrentLatencyFile != -1)
-                {
-                    isSiteSelected &= scene.ColumnManager.SelectedImplantation.Latencies[column.CurrentLatencyFile].IsSiteASource(column.SelectedSiteID);
-                }
+                isSiteSelected &= scene.ColumnManager.SelectedImplantation.Latencies[column.CurrentLatencyFile].IsSiteASource(column.SelectedSiteID);
             }
             switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentModeID)
             {
@@ -111,16 +109,9 @@ namespace HBP.UI.Module3D.Tools
             if (type == Toolbar.UpdateToolbarType.Column)
             {
                 HBP.Module3D.Column3D column = ApplicationState.Module3D.SelectedColumn;
-                if (column.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
+                if (column.SourceDefined)
                 {
-                    if (((HBP.Module3D.Column3DIEEG)column).SourceDefined)
-                    {
-                        m_Text.text = column.Sites[((HBP.Module3D.Column3DIEEG)column).SourceSelectedID].Information.Name;
-                    }
-                    else
-                    {
-                        m_Text.text = "None";
-                    }
+                    m_Text.text = column.Sites[column.SourceSelectedID].Information.Name;
                 }
                 else
                 {

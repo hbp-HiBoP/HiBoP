@@ -372,11 +372,6 @@ namespace HBP.Module3D
         //  plots
         private List<Vector3> m_ElectrodesSizeScale = null;  /**< scale of the plots of this column */
         private List<bool> m_ElectrodesPositiveColor = null; /**< is positive color ? */
-
-        // latencies
-        public bool SourceDefined { get { return SourceSelectedID != -1; } }
-        public int SourceSelectedID = -1; /**< id of the selected source */
-        public int CurrentLatencyFile = -1; /**< id of the current latency file */
         #endregion
 
         #region Events
@@ -701,7 +696,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Update the plots rendering (iEEG or CCEP)
         /// </summary>
-        public void UpdateSitesRendering(SceneStatesInfo data, Latencies latenciesFile)
+        public override void UpdateSitesRendering(SceneStatesInfo data, Latencies latenciesFile)
         {
             UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering");
 
@@ -871,7 +866,6 @@ namespace HBP.Module3D
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
-
         }
         /// <summary>
         /// 
@@ -888,15 +882,6 @@ namespace HBP.Module3D
                 DLLGUIBrainCutWithIEEGTextures[indexCut].CopyAndRotate(DLLBrainCutWithIEEGTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
                 DLLGUIBrainCutWithIEEGTextures[indexCut].UpdateTexture2D(GUIBrainCutWithIEEGTextures[indexCut]);
             }
-        }
-
-        public void SetCurrentSiteAsSource()
-        {
-            SourceSelectedID = SelectedSiteID;
-        }
-        public void UndefineSource()
-        {
-            SourceSelectedID = -1;
         }
         #endregion
     }

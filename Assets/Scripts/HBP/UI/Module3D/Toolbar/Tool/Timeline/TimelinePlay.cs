@@ -46,7 +46,7 @@ namespace HBP.UI.Module3D.Tools
             });
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
-                if (ListenerLock || ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG) return;
+                if (ListenerLock) return;
 
                 List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
                 if (IsGlobal)
@@ -73,6 +73,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
+            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG;
             switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentModeID)
             {
                 case HBP.Module3D.Mode.ModesId.NoPathDefined:
@@ -88,7 +89,7 @@ namespace HBP.UI.Module3D.Tools
                     m_Toggle.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.AmplitudesComputed:
-                    m_Toggle.interactable = true;
+                    m_Toggle.interactable = isColumnIEEG;
                     break;
                 case HBP.Module3D.Mode.ModesId.TriErasing:
                     m_Toggle.interactable = false;
@@ -111,7 +112,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
             {
-                if (ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG)
+                if (ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
                 {
                     m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IsTimelinePlaying;
                 }

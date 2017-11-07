@@ -44,7 +44,7 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Minus.onClick.AddListener(() =>
             {
-                if (ListenerLock || ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG) return;
+                if (ListenerLock) return;
 
                 List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
                 if (IsGlobal)
@@ -63,7 +63,7 @@ namespace HBP.UI.Module3D.Tools
 
             m_Plus.onClick.AddListener(() =>
             {
-                if (ListenerLock || ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG) return;
+                if (ListenerLock) return;
 
                 List<HBP.Module3D.Column3DIEEG> columns = new List<HBP.Module3D.Column3DIEEG>();
                 if (IsGlobal)
@@ -82,7 +82,7 @@ namespace HBP.UI.Module3D.Tools
 
             m_InputField.onEndEdit.AddListener((value) =>
             {
-                if (ListenerLock || ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.IEEG) return;
+                if (ListenerLock) return;
 
                 int val = 1;
                 int step = 1;
@@ -125,6 +125,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
+            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG;
             switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentModeID)
             {
                 case HBP.Module3D.Mode.ModesId.NoPathDefined:
@@ -148,9 +149,9 @@ namespace HBP.UI.Module3D.Tools
                     m_Plus.interactable = false;
                     break;
                 case HBP.Module3D.Mode.ModesId.AmplitudesComputed:
-                    m_Minus.interactable = true;
-                    m_InputField.interactable = true;
-                    m_Plus.interactable = true;
+                    m_Minus.interactable = isColumnIEEG;
+                    m_InputField.interactable = isColumnIEEG;
+                    m_Plus.interactable = isColumnIEEG;
                     break;
                 case HBP.Module3D.Mode.ModesId.TriErasing:
                     m_Minus.interactable = false;
