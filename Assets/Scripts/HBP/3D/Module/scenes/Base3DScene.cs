@@ -2117,6 +2117,7 @@ namespace HBP.Module3D
             }
 
             m_ColumnManager.DLLCutsList[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
+            m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh.RecalculateNormals();
 
             // update cuts generators
             for (int ii = 0; ii < Cuts.Count; ++ii)

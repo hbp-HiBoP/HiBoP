@@ -10,14 +10,17 @@ Shader "Custom/SimplifiedMeshShader"
 
 		CGPROGRAM
 
-		#pragma surface surf SimpleLambert
+		#pragma surface surf CustomLight
 
-		half4 LightingSimpleLambert(SurfaceOutput s, half3 lightDir, half atten)
+		half4 LightingCustomLight(SurfaceOutput s, half3 lightDir, half3 viewDir, half atten)
 		{
-			half NdotL = dot(s.Normal, lightDir);
-			half diff = NdotL * 0.5 + 0.5;
+			half3 h = normalize(lightDir + viewDir);
+			half diff = max(0, dot(s.Normal, h) * 0.7 + 0.3);
+			float nh = max(0, dot(s.Normal, viewDir));
+			float spec = pow(nh, 70.0);
+
 			half4 c;
-			c.rgb = s.Albedo * _LightColor0.rgb * (diff * atten);
+			c.rgb = (s.Albedo * _LightColor0.rgb * diff + _LightColor0.rgb * spec) * atten;
 			c.a = s.Alpha;
 			return c;
 		}
