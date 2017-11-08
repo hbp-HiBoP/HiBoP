@@ -54,7 +54,7 @@ namespace HBP.UI.Module3D.Tools
             bool isCCEP = false, isSourceDefined = false, isSiteSelected = false;
             HBP.Module3D.Base3DScene scene = ApplicationState.Module3D.SelectedScene;
             HBP.Module3D.Column3D column = ApplicationState.Module3D.SelectedColumn;
-            isCCEP = scene.IsLatencyModeEnabled && (column.CurrentLatencyFile != -1);
+            isCCEP = scene.IsLatencyModeEnabled && (column.CurrentLatencyFile != -1) && ApplicationState.Module3D.SelectedScene.Type == SceneType.SinglePatient;
             isSourceDefined = column.SourceDefined;
             isSiteSelected = column.SelectedSite != null;
             if (isSiteSelected && column.CurrentLatencyFile != -1)

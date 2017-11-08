@@ -2937,12 +2937,11 @@ namespace HBP.Module3D
         /// <returns></returns>
         protected IEnumerator c_LoadMNIObjects()
         {
-            yield return Ninja.JumpBack;
             yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.Loaded; });
-            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Grey Matter", ApplicationState.Module3D.MNIObjects.LeftHemi, ApplicationState.Module3D.MNIObjects.RightHemi, ApplicationState.Module3D.MNIObjects.BothHemi));
-            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI White Matter", ApplicationState.Module3D.MNIObjects.LeftWhite, ApplicationState.Module3D.MNIObjects.RightWhite, ApplicationState.Module3D.MNIObjects.BothWhite));
-            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Inflated", ApplicationState.Module3D.MNIObjects.LeftWhiteInflated, ApplicationState.Module3D.MNIObjects.RightWhiteInflated, ApplicationState.Module3D.MNIObjects.BothWhiteInflated));
-            m_ColumnManager.MRIs.Add(new MRI3D("MNI", ApplicationState.Module3D.MNIObjects.NII, ApplicationState.Module3D.MNIObjects.MRI));
+            m_ColumnManager.Meshes.Add(ApplicationState.Module3D.MNIObjects.GreyMatter);
+            m_ColumnManager.Meshes.Add(ApplicationState.Module3D.MNIObjects.WhiteMatter);
+            m_ColumnManager.Meshes.Add(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter);
+            m_ColumnManager.MRIs.Add(ApplicationState.Module3D.MNIObjects.MRI);
         }
         /// <summary>
         /// Define the timeline data with a patient and a list of column data

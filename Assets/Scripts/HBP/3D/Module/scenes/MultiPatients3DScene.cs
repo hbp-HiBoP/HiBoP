@@ -39,10 +39,10 @@ namespace HBP.Module3D
             }
         }
 
-        private const float LOADING_MESHES_PROGRESS = 0.8f;
-        private const float LOADING_COLUMNS_PROGRESS = 0.03f;
-        private const float LOADING_ELECTRODES_PROGRESS = 0.03f;
-        private const float SETTING_TIMELINE_PROGRESS = 0.14f;
+        private const float LOADING_MESHES_PROGRESS = 0.10f;
+        private const float LOADING_COLUMNS_PROGRESS = 0.10f;
+        private const float LOADING_ELECTRODES_PROGRESS = 0.10f;
+        private const float SETTING_TIMELINE_PROGRESS = 0.70f;
         #endregion
 
         #region Coroutines
@@ -63,7 +63,7 @@ namespace HBP.Module3D
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * sceneID, transform.position.y, transform.position.z);
 
             progress += LOADING_MESHES_PROGRESS;
-            onChangeProgress.Invoke(progress, 4.0f, "Loading MNI");
+            onChangeProgress.Invoke(progress, 0.05f, "Loading MNI");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
             yield return Ninja.JumpBack;
 

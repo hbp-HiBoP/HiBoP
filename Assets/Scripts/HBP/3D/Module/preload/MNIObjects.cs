@@ -27,22 +27,24 @@ namespace HBP.Module3D
         #region Properties
         public static Mutex LoadingMutex = new Mutex();
 
-        public DLL.Surface LeftHemi = null;
-        public DLL.Surface RightHemi = null;
-        public DLL.Surface BothHemi = null;
+        private DLL.Surface m_LeftHemi = null;
+        private DLL.Surface m_RightHemi = null;
+        private DLL.Surface m_BothHemi = null;
+        public LeftRightMesh3D GreyMatter { get; private set; }
 
-        public DLL.Surface LeftWhite = null;
-        public DLL.Surface RightWhite = null;
-        public DLL.Surface BothWhite = null;
+        private DLL.Surface m_LeftWhite = null;
+        private DLL.Surface m_RightWhite = null;
+        private DLL.Surface m_BothWhite = null;
+        public LeftRightMesh3D WhiteMatter { get; private set; }
 
-        public DLL.Surface LeftWhiteInflated = null;
-        public DLL.Surface RightWhiteInflated = null;
-        public DLL.Surface BothWhiteInflated = null;
+        private DLL.Surface m_LeftWhiteInflated = null;
+        private DLL.Surface m_RightWhiteInflated = null;
+        private DLL.Surface m_BothWhiteInflated = null;
+        public LeftRightMesh3D InflatedWhiteMatter { get; private set; }
 
-        // ch256.nii
-        public DLL.Volume MRI = null;
-
-        public DLL.NIFTI NII = null;
+        private DLL.Volume m_Volume = null;
+        private DLL.NIFTI m_NII = null;
+        public MRI3D MRI { get; private set; }
 
         private string m_DataPath = "";
 
@@ -66,43 +68,49 @@ namespace HBP.Module3D
         void LoadData(string baseIRMDir, string baseMeshDir, string GOName, int instanceID)
         {
             LoadingMutex.WaitOne();
-            
-            MRI = new DLL.Volume();
-            NII.ConvertToVolume(MRI);
 
-            LeftHemi = new DLL.Surface();
-            RightHemi = new DLL.Surface();
-            BothHemi = new DLL.Surface();
-            LeftHemi.LoadGIIFile(baseMeshDir + "MNI_single_hight_Lhemi.gii", true, baseMeshDir + "transfo_mni.trm"); LeftHemi.FlipTriangles();
-            RightHemi.LoadGIIFile(baseMeshDir + "MNI_single_hight_Rhemi.gii", true, baseMeshDir + "transfo_mni.trm"); RightHemi.FlipTriangles();
-            BothHemi = (DLL.Surface)LeftHemi.Clone();
-            BothHemi.Append(RightHemi);
-            LeftHemi.ComputeNormals();
-            RightHemi.ComputeNormals();
-            BothHemi.ComputeNormals();
+            m_NII = new DLL.NIFTI();
+            m_NII.LoadNIIFile(baseIRMDir + "MNI.nii");
+            m_Volume = new DLL.Volume();
+            m_NII.ConvertToVolume(m_Volume);
+            MRI = new MRI3D("MNI", m_NII, m_Volume);
 
-            LeftWhite = new DLL.Surface();
-            RightWhite = new DLL.Surface();
-            BothWhite = new DLL.Surface();
-            LeftWhite.LoadGIIFile(baseMeshDir + "MNI_single_hight_Lwhite.gii", true, baseMeshDir + "transfo_mni.trm"); LeftWhite.FlipTriangles();
-            RightWhite.LoadGIIFile(baseMeshDir + "MNI_single_hight_Rwhite.gii", true, baseMeshDir + "transfo_mni.trm"); RightWhite.FlipTriangles();
-            BothWhite = (DLL.Surface)LeftWhite.Clone();
-            BothWhite.Append(RightWhite);
-            LeftWhite.ComputeNormals();
-            RightWhite.ComputeNormals();
-            BothWhite.ComputeNormals();
+            m_LeftHemi = new DLL.Surface();
+            m_RightHemi = new DLL.Surface();
+            m_BothHemi = new DLL.Surface();
+            m_LeftHemi.LoadGIIFile(baseMeshDir + "MNI_single_hight_Lhemi.gii", true, baseMeshDir + "transfo_mni.trm"); m_LeftHemi.FlipTriangles();
+            m_RightHemi.LoadGIIFile(baseMeshDir + "MNI_single_hight_Rhemi.gii", true, baseMeshDir + "transfo_mni.trm"); m_RightHemi.FlipTriangles();
+            m_BothHemi = (DLL.Surface)m_LeftHemi.Clone();
+            m_BothHemi.Append(m_RightHemi);
+            m_LeftHemi.ComputeNormals();
+            m_RightHemi.ComputeNormals();
+            m_BothHemi.ComputeNormals();
+            GreyMatter = new LeftRightMesh3D("MNI Grey Matter", m_LeftHemi, m_RightHemi, m_BothHemi);
 
-            LeftWhiteInflated = new DLL.Surface();
-            RightWhiteInflated = new DLL.Surface();
-            BothWhiteInflated = new DLL.Surface();
-            LeftWhiteInflated.LoadGIIFile(baseMeshDir + "MNI_single_hight_Lwhite_inflated.gii", true, baseMeshDir + "transfo_mni.trm"); LeftWhiteInflated.FlipTriangles();
-            RightWhiteInflated.LoadGIIFile(baseMeshDir + "MNI_single_hight_Rwhite_inflated.gii", true, baseMeshDir + "transfo_mni.trm"); RightWhiteInflated.FlipTriangles();
-            BothWhiteInflated = (DLL.Surface)LeftWhiteInflated.Clone();
-            BothWhiteInflated.Append(RightWhiteInflated);
-            LeftWhiteInflated.ComputeNormals();
-            RightWhiteInflated.ComputeNormals();
-            BothWhiteInflated.ComputeNormals();
-            
+            m_LeftWhite = new DLL.Surface();
+            m_RightWhite = new DLL.Surface();
+            m_BothWhite = new DLL.Surface();
+            m_LeftWhite.LoadGIIFile(baseMeshDir + "MNI_single_hight_Lwhite.gii", true, baseMeshDir + "transfo_mni.trm"); m_LeftWhite.FlipTriangles();
+            m_RightWhite.LoadGIIFile(baseMeshDir + "MNI_single_hight_Rwhite.gii", true, baseMeshDir + "transfo_mni.trm"); m_RightWhite.FlipTriangles();
+            m_BothWhite = (DLL.Surface)m_LeftWhite.Clone();
+            m_BothWhite.Append(m_RightWhite);
+            m_LeftWhite.ComputeNormals();
+            m_RightWhite.ComputeNormals();
+            m_BothWhite.ComputeNormals();
+            WhiteMatter = new LeftRightMesh3D("MNI White Matter", m_LeftWhite, m_RightWhite, m_BothWhite);
+
+            m_LeftWhiteInflated = new DLL.Surface();
+            m_RightWhiteInflated = new DLL.Surface();
+            m_BothWhiteInflated = new DLL.Surface();
+            m_LeftWhiteInflated.LoadGIIFile(baseMeshDir + "MNI_single_hight_Lwhite_inflated.gii", true, baseMeshDir + "transfo_mni.trm"); m_LeftWhiteInflated.FlipTriangles();
+            m_RightWhiteInflated.LoadGIIFile(baseMeshDir + "MNI_single_hight_Rwhite_inflated.gii", true, baseMeshDir + "transfo_mni.trm"); m_RightWhiteInflated.FlipTriangles();
+            m_BothWhiteInflated = (DLL.Surface)m_LeftWhiteInflated.Clone();
+            m_BothWhiteInflated.Append(m_RightWhiteInflated);
+            m_LeftWhiteInflated.ComputeNormals();
+            m_RightWhiteInflated.ComputeNormals();
+            m_BothWhiteInflated.ComputeNormals();
+            InflatedWhiteMatter = new LeftRightMesh3D("MNI Inflated", m_LeftWhiteInflated, m_RightWhiteInflated, m_BothWhiteInflated);
+
             LoadingMutex.ReleaseMutex();
         }
         #endregion
@@ -114,30 +122,10 @@ namespace HBP.Module3D
             int instanceID = GetInstanceID();
             string nameGO = name;
             yield return Ninja.JumpBack;
-
             string baseIRMDir = m_DataPath + "IRM/", baseMeshDir = m_DataPath + "Meshes/";
-            // IRM
-            NII = new DLL.NIFTI();
-            NII.LoadNIIFile(baseIRMDir + "MNI.nii");
-
-            List<string> filesPaths = new List<string>(9);
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Lhemi.obj");
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Rhemi.obj");
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Bhemi.obj");
-
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Lwhite.obj");
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Rwhite.obj");
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Bwhite.obj");
-
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Lwhite_inflated.obj");
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Rwhite_inflated.obj");
-            filesPaths.Add(baseMeshDir + "MNI_single_hight_Bwhite_inflated.obj");
-            
             LoadData(baseIRMDir, baseMeshDir, nameGO, instanceID);
-
             yield return Ninja.JumpToUnity;
             Loaded = true;
-            Debug.Log("MNI loaded");
         }
         #endregion
     }
