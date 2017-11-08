@@ -124,6 +124,7 @@ namespace HBP.Module3D
 
         // lights
         public GameObject SharedDirectionalLight = null;            /**< shared light between all the scene cameras */
+        public GameObject SharedSpotlight = null;
 
         // Lists of GameObjects to be displayed 
         public List<GameObject> BrainSurfaceMeshes = new List<GameObject>();  /**< brain surface meshes of the scene */

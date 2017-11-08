@@ -10,12 +10,12 @@ Shader "Custom/SimplifiedMeshShader"
 
 		CGPROGRAM
 
-		#pragma surface surf CustomLight
+		#pragma surface surf CustomLight noshadow
 
 		half4 LightingCustomLight(SurfaceOutput s, half3 lightDir, half3 viewDir, half atten)
 		{
 			half3 h = normalize(lightDir + viewDir);
-			half diff = max(0, dot(s.Normal, h) * 0.7 + 0.3);
+			half diff = max(0, dot(s.Normal, h) * 0.8 + 0.2);
 			float nh = max(0, dot(s.Normal, viewDir));
 			float spec = pow(nh, 70.0);
 

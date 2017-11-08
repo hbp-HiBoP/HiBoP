@@ -1127,6 +1127,7 @@ namespace HBP.Module3D
 
             // init lights
             m_DisplayedObjects.SharedDirectionalLight = transform.parent.Find("Global Light").gameObject;
+            m_DisplayedObjects.SharedSpotlight = transform.parent.Find("Global Spotlight").gameObject;
 
             // init default planes
             m_Cuts = new List<Cut>();

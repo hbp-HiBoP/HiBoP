@@ -201,6 +201,8 @@ namespace HBP.Module3D
             RenderSettings.skybox = null;
             RenderSettings.ambientLight = AmbientLight;
             m_AssociatedScene.DisplayedObjects.SharedDirectionalLight.transform.eulerAngles = transform.eulerAngles;
+            m_AssociatedScene.DisplayedObjects.SharedSpotlight.transform.eulerAngles = transform.eulerAngles;
+            m_AssociatedScene.DisplayedObjects.SharedSpotlight.transform.position = transform.position;
         }
         private void OnPreRender()
         {
