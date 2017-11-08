@@ -45,12 +45,15 @@ namespace HBP.Module3D
         public DLL.NIFTI NII = null;
 
         private string m_DataPath = "";
+
+        public bool Loaded { get; private set; }
         #endregion
 
         #region Private Methods
         void Awake()
         {
             m_DataPath = GlobalPaths.Data;
+            this.StartCoroutineAsync(c_Load());
         }
         /// <summary>
         /// 
@@ -131,6 +134,10 @@ namespace HBP.Module3D
             filesPaths.Add(baseMeshDir + "MNI_single_hight_Bwhite_inflated.obj");
             
             LoadData(baseIRMDir, baseMeshDir, nameGO, instanceID);
+
+            yield return Ninja.JumpToUnity;
+            Loaded = true;
+            Debug.Log("MNI loaded");
         }
         #endregion
     }

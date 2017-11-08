@@ -112,6 +112,11 @@ namespace HBP.Module3D
         /// Mars atlas index (to get name of mars atlas, broadman etc)
         /// </summary>
         public DLL.MarsAtlasIndex MarsAtlasIndex;
+
+        /// <summary>
+        /// MNI Objects
+        /// </summary>
+        public MNIObjects MNIObjects;
         #endregion
 
         #region Events

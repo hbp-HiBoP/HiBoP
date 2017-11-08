@@ -197,12 +197,6 @@ namespace HBP.Module3D
         /// </summary>
         public Column3DManager ColumnManager { get { return m_ColumnManager; } }
 
-        [SerializeField]
-        /// <summary>
-        /// MNI Objects
-        /// </summary>
-        protected MNIObjects m_MNIObjects = null;
-
         /// <summary>
         /// ID of the selected column of this scene
         /// </summary>
@@ -2943,13 +2937,12 @@ namespace HBP.Module3D
         /// <returns></returns>
         protected IEnumerator c_LoadMNIObjects()
         {
-            yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_MNIObjects.c_Load());
             yield return Ninja.JumpBack;
-            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Grey Matter", m_MNIObjects.LeftHemi, m_MNIObjects.RightHemi, m_MNIObjects.BothHemi));
-            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI White Matter", m_MNIObjects.LeftWhite, m_MNIObjects.RightWhite, m_MNIObjects.BothWhite));
-            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Inflated", m_MNIObjects.LeftWhiteInflated, m_MNIObjects.RightWhiteInflated, m_MNIObjects.BothWhiteInflated));
-            m_ColumnManager.MRIs.Add(new MRI3D("MNI", m_MNIObjects.NII, m_MNIObjects.MRI));
+            yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.Loaded; });
+            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Grey Matter", ApplicationState.Module3D.MNIObjects.LeftHemi, ApplicationState.Module3D.MNIObjects.RightHemi, ApplicationState.Module3D.MNIObjects.BothHemi));
+            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI White Matter", ApplicationState.Module3D.MNIObjects.LeftWhite, ApplicationState.Module3D.MNIObjects.RightWhite, ApplicationState.Module3D.MNIObjects.BothWhite));
+            m_ColumnManager.Meshes.Add(new LeftRightMesh3D("MNI Inflated", ApplicationState.Module3D.MNIObjects.LeftWhiteInflated, ApplicationState.Module3D.MNIObjects.RightWhiteInflated, ApplicationState.Module3D.MNIObjects.BothWhiteInflated));
+            m_ColumnManager.MRIs.Add(new MRI3D("MNI", ApplicationState.Module3D.MNIObjects.NII, ApplicationState.Module3D.MNIObjects.MRI));
         }
         /// <summary>
         /// Define the timeline data with a patient and a list of column data
