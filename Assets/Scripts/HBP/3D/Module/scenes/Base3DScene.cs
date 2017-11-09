@@ -471,8 +471,11 @@ namespace HBP.Module3D
             }
             set
             {
-                m_CuttingMesh = value;
-                SceneInformation.MeshGeometryNeedsUpdate = true;
+                if (m_CuttingMesh != value)
+                {
+                    m_CuttingMesh = value;
+                    SceneInformation.MeshGeometryNeedsUpdate = true;
+                }
             }
         }
 
@@ -1563,6 +1566,8 @@ namespace HBP.Module3D
                 return;
             }
 
+            if (!CuttingMesh) CuttingMesh = true;
+
             if (cut.Orientation == CutOrientation.Custom || !SceneInformation.MRILoaded)
             {
                 if (cut.Normal.x == 0 && cut.Normal.y == 0 && cut.Normal.z == 0)
@@ -2158,7 +2163,7 @@ namespace HBP.Module3D
             ColumnManager.PlanesCutsCopy = Cuts;
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
-            if (m_CuttingMesh)
+            if (CuttingMesh)
             {
                 ComputeSimplifyMeshCut();
             }

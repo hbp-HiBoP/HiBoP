@@ -28,18 +28,23 @@ namespace HBP.UI.Module3D
             m_Scene = scene;
 
             ResizableGrid grid = GetComponent<ResizableGrid>();
+            // 3D
             grid.AddColumn();
             grid.AddViewLine(SceneUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>().Initialize(scene);
-            grid.AddColumn(null, CutUIPrefab);
-            grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
+            // Graphs
             grid.AddColumn(null, GraphsUIPrefab);
             Graph.GraphsGestion graphsGestion = grid.Columns.Last().Views.Last().GetComponent<Graph.GraphsGestion>();
             graphsGestion.Scene = scene;
-            grid.VerticalHandlers[0].MagneticPosition = 0.9f;
-            grid.VerticalHandlers[0].Position = 0.9f;
-            grid.VerticalHandlers[1].MagneticPosition = 0.5f;
-            grid.VerticalHandlers[1].Position = 1.0f;
+            // Cuts
+            grid.AddColumn(null, CutUIPrefab);
+            grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
+            // Positions
+            grid.VerticalHandlers[0].MagneticPosition = 0.45f;
+            grid.VerticalHandlers[0].Position = 1.0f;
+            grid.VerticalHandlers[1].MagneticPosition = 0.9f;
+            grid.VerticalHandlers[1].Position = 0.9f;
+            grid.SetVerticalHandlersPosition(1);
 
             ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {
@@ -71,7 +76,7 @@ namespace HBP.UI.Module3D
             });
             graphsGestion.OnOpenGraphsWindow.AddListener(() =>
             {
-                grid.VerticalHandlers[1].Position = grid.VerticalHandlers[1].MagneticPosition;
+                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
                 grid.SetVerticalHandlersPosition(1);
                 grid.UpdateAnchors();
             });

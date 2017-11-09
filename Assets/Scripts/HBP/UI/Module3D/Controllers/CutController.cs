@@ -88,6 +88,13 @@ namespace HBP.UI.Module3D
             CutParametersController controller = Instantiate(m_CutControlPrefab, m_Content).GetComponent<CutParametersController>();
             controller.Initialize(m_Scene, cut);
             m_CutParametersControllers.Add(controller);
+            cut.OnUpdateCut.AddListener(() =>
+            {
+                if (m_CutParametersControllers.All(c => !c.AreControlsOpen))
+                {
+                    m_Scene.CuttingMesh = false;
+                }
+            });
             cut.OnRemoveCut.AddListener(() =>
             {
                 m_CutParametersControllers.Remove(controller);
@@ -102,7 +109,6 @@ namespace HBP.UI.Module3D
                         control.CloseControls();
                     }
                 }
-                if (!m_Scene.CuttingMesh) m_Scene.CuttingMesh = true;
             });
             controller.OnCloseControls.AddListener(() =>
             {
