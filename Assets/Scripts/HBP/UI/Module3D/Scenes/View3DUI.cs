@@ -132,15 +132,14 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             if (m_UsingRenderTexture)
             {
                 UnityEngine.Profiling.Profiler.BeginSample("RenderTexture");
-                if (m_RectTransform.rect.width <= 0 || m_RectTransform.rect.height <= 0) // If the user drags too fast and width or height are negative or zero, do not continue;
+                if (m_RectTransform.rect.width > 0 && m_RectTransform.rect.height > 0)
                 {
-                    return;
+                    RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
+                    renderTexture.antiAliasing = 1;
+                    m_View.TargetTexture = renderTexture;
+                    m_View.Aspect = m_RectTransform.rect.width / m_RectTransform.rect.height;
+                    m_RawImage.texture = m_View.TargetTexture;
                 }
-                RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
-                renderTexture.antiAliasing = 1;
-                m_View.TargetTexture = renderTexture;
-                m_View.Aspect = m_RectTransform.rect.width / m_RectTransform.rect.height;
-                m_RawImage.texture = m_View.TargetTexture;
                 UnityEngine.Profiling.Profiler.EndSample();
             }
             else
@@ -277,11 +276,14 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         }
         else
         {
-            RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
-            renderTexture.antiAliasing = 1;
-            m_View.TargetTexture = renderTexture;
-            m_View.Aspect = m_RectTransform.rect.width / m_RectTransform.rect.height;
-            m_RawImage.texture = m_View.TargetTexture;
+            if (m_RectTransform.rect.width > 0 && m_RectTransform.rect.height > 0)
+            {
+                RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
+                renderTexture.antiAliasing = 1;
+                m_View.TargetTexture = renderTexture;
+                m_View.Aspect = m_RectTransform.rect.width / m_RectTransform.rect.height;
+                m_RawImage.texture = m_View.TargetTexture;
+            }
         }
         
         m_MinimizedGameObject = transform.Find("MinimizedImage").gameObject;

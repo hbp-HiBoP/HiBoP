@@ -212,6 +212,7 @@ namespace HBP.UI.Module3D
         public void Initialize(Base3DScene scene, Cut cut)
         {
             m_Cut = cut;
+            m_Image.GetComponent<ImageRatio>().Type = ImageRatio.RatioType.FixedWidth;
             UpdateUI();
             AddListeners(scene, cut);
         }

@@ -85,7 +85,15 @@ namespace HBP.Module3D
                 onChangeProgress.Invoke(progress, 1.5f, "Loading Mesh: " + mesh.Name);
                 yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh));
             }
-            GenerateSplit(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
+            if (m_ColumnManager.Meshes.Count > 0)
+            {
+                GenerateSplit(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
+            }
+            else
+            {
+                ResetSplitsNumber(3);
+            }
+            SceneInformation.MeshesLoaded = true;
 
             // Load MRIs
             float loadingMRIProgress = LOADING_VOLUME_PROGRESS / Patient.Brain.MRIs.Count;
@@ -106,7 +114,7 @@ namespace HBP.Module3D
             progress += LOADING_MNI;
             onChangeProgress.Invoke(progress, 2.0f, "Loading MNI objects");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
-            
+
             // Set Timeline
             progress += SETTING_TIMELINE_PROGRESS;
             onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
@@ -178,8 +186,6 @@ namespace HBP.Module3D
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.ResetGIIBrainSurfaceFile);
             //##################
-
-            SceneInformation.MeshesLoaded = true;
             yield return true;
         }
         #endregion

@@ -7,6 +7,8 @@ using UnityEngine.UI;
 public class ImageRatio : LayoutElement
 {
     #region Properties
+    public enum RatioType { FixedHeight, FixedWidth }
+    public RatioType Type;
     Sprite m_LastSprite;
     Image m_Image;
     #endregion
@@ -35,19 +37,38 @@ public class ImageRatio : LayoutElement
     }
     void Set()
     {
-        float ratio = (float) m_Image.sprite.texture.height / m_Image.sprite.texture.width;
-        float height = 0;
-        if(flexibleHeight == 0)
+        if (Type == RatioType.FixedHeight)
         {
-            height = preferredHeight;
+            float ratio = (float)m_Image.sprite.texture.height / m_Image.sprite.texture.width;
+            float height = 0;
+            if (flexibleHeight == 0)
+            {
+                height = preferredHeight;
+            }
+            else
+            {
+                height = (transform as RectTransform).rect.height;
+            }
+            float result = height / ratio;
+            minWidth = result / ratio;
+            preferredWidth = minWidth;
         }
-        else
+        else if (Type == RatioType.FixedWidth)
         {
-            height = (transform as RectTransform).rect.height;
+            float ratio = (float)m_Image.sprite.texture.width / m_Image.sprite.texture.height;
+            float width = 0;
+            if (flexibleWidth == 0)
+            {
+                width = preferredWidth;
+            }
+            else
+            {
+                width = (transform as RectTransform).rect.width;
+            }
+            float result = width / ratio;
+            minHeight = result / ratio;
+            preferredHeight = minHeight;
         }
-        float result = height / ratio;
-        minWidth = result / ratio;
-        preferredWidth = minWidth;
     }
 	#endregion
 }

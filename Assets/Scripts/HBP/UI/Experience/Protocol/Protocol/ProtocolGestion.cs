@@ -29,6 +29,10 @@ namespace HBP.UI.Experience.Protocol
             if (l_resultStandalone != string.Empty)
             {
                 d.Protocol protocol = Tools.Unity.ClassLoaderSaver.LoadFromJson<d.Protocol>(l_resultStandalone);
+                if (protocol.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx" || Items.Any(p => p.ID == protocol.ID))
+                {
+                    protocol.ID = System.Guid.NewGuid().ToString();
+                }
                 AddItem(protocol);
             }
         }
