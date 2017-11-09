@@ -62,6 +62,11 @@ namespace HBP.Data.Settings
         [DataMember]
         public string DefaultLocalizerDatabaseLocation { get; set; }
         /// <summary>
+        /// Default screenshots location.
+        /// </summary>
+        [DataMember]
+        public string DefaultScreenshotsLocation { get; set; }
+        /// <summary>
         /// Active or Deactive the plot name automatic correction (cast, p/' , etc...)
         /// </summary>
         [DataMember]
@@ -153,12 +158,13 @@ namespace HBP.Data.Settings
         /// <param name="plotNameAutomaticCorrectionType">Plot name automatic correction.</param>
         /// <param name="trialMatrixSmoothingType">Trial maltrix smoothing.</param>
         /// <param name="BaselineType">Trial matrix Baseline.</param>
-        public GeneralSettings(string projectDefaultName,string defaultProjectLocation, string defaultPatientDatabseLocation, string defaultLocalizerDatabaseLocation, PlotNameCorrectionTypeEnum plotNameAutomaticCorrectionType,TrialMatrixSettings trialMatrixSettings, string themeName)
+        public GeneralSettings(string projectDefaultName,string defaultProjectLocation, string defaultPatientDatabseLocation, string defaultLocalizerDatabaseLocation, string defaultScreenshotsLocation, PlotNameCorrectionTypeEnum plotNameAutomaticCorrectionType,TrialMatrixSettings trialMatrixSettings, string themeName)
         {
             DefaultProjectName = projectDefaultName;
             DefaultProjectLocation = defaultProjectLocation;
             DefaultPatientDatabaseLocation = defaultPatientDatabseLocation;
             DefaultLocalizerDatabaseLocation = defaultLocalizerDatabaseLocation;
+            DefaultScreenshotsLocation = defaultScreenshotsLocation;
             PlotNameAutomaticCorrectionType = plotNameAutomaticCorrectionType;
             TrialMatrixSettings = trialMatrixSettings;
             // TODO : include all themes in a specific folder
@@ -168,7 +174,7 @@ namespace HBP.Data.Settings
         /// <summary>
         /// Create a new general settings instance with default values.
         /// </summary>
-        public GeneralSettings() : this("New project","","","",PlotNameCorrectionTypeEnum.Enable,new TrialMatrixSettings(), "")
+        public GeneralSettings() : this("New project","","","", Path.GetFullPath(Application.dataPath + "/../Screenshots/"), PlotNameCorrectionTypeEnum.Enable,new TrialMatrixSettings(), "")
         {
         }
         #endregion

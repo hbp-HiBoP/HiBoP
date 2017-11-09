@@ -16,6 +16,7 @@ namespace HBP.UI.Settings
         FolderSelector defaultLocationProjectFolderSelector;
         FolderSelector defaultPatientDatabaseLocationFolderSelector;
         FolderSelector defaultLocalizerDatabaseLocationFolderSelector;
+        FolderSelector defaultScreenshotsLocationFolderSelector;
         Dropdown trialBaselineOption;
         Dropdown eventPositionAveragingOption;
         Dropdown valueAveragingOption;
@@ -33,6 +34,7 @@ namespace HBP.UI.Settings
             ApplicationState.GeneralSettings.DefaultProjectLocation = defaultLocationProjectFolderSelector.Folder;
             ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation = defaultPatientDatabaseLocationFolderSelector.Folder;
             ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation = defaultLocalizerDatabaseLocationFolderSelector.Folder;
+            ApplicationState.GeneralSettings.DefaultScreenshotsLocation = defaultScreenshotsLocationFolderSelector.Folder;
             ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType = (GeneralSettings.PlotNameCorrectionTypeEnum) plotNameAutoCorrectionOption.value;
             TrialMatrixSettings trialMatrixSettings = ApplicationState.GeneralSettings.TrialMatrixSettings;
             trialMatrixSettings.Smoothing = (TrialMatrixSettings.SmoothingType) trialMatrixSmoothingOption.value;
@@ -63,6 +65,7 @@ namespace HBP.UI.Settings
             defaultLocationProjectFolderSelector = transform.Find("Content").Find("Location").Find("Projects").Find("FolderSelector").GetComponent<FolderSelector>();
             defaultPatientDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("Patients").Find("FolderSelector").GetComponent<FolderSelector>();
             defaultLocalizerDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("Localizers").Find("FolderSelector").GetComponentInChildren<FolderSelector>();
+            defaultScreenshotsLocationFolderSelector = transform.Find("Content").Find("Location").Find("Screenshots").Find("FolderSelector").GetComponentInChildren<FolderSelector>();
             plotNameAutoCorrectionOption = transform.Find("Content").Find("EEG").Find("PlotNameAutomaticCorrection").GetComponentInChildren<Dropdown>();
             trialBaselineOption = transform.Find("Content").Find("Trial Matrix").Find("Baseline").GetComponentInChildren<Dropdown>();
             trialMatrixSmoothingOption = transform.Find("Content").Find("Trial Matrix").Find("TrialMatrixSmoothing").GetComponentInChildren<Dropdown>();
@@ -80,6 +83,7 @@ namespace HBP.UI.Settings
             defaultLocationProjectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
             defaultPatientDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
             defaultLocalizerDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
+            defaultScreenshotsLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultScreenshotsLocation;
 
             string[] l_typesBaseline = Enum.GetNames(typeof(TrialMatrixSettings.BaselineType));
             trialBaselineOption.ClearOptions();

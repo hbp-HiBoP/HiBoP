@@ -3,6 +3,7 @@
   "DefaultProjectLocation": "D:/HBPProjects",
   "DefaultPatientDatabaseLocation": "Y:/BrainVisaDB/Epilepsy",
   "DefaultLocalizerDatabaseLocation": "Z:/BrainTV/JPL/LOCA_DATABASE",
+  "DefaultScreenshotsLocation": "D:/HBP/HiBoP/Assets/../Screenshots/",
   "PlotNameAutomaticCorrectionType": 1,
   "EventPositionAveraging": 0,
   "ValueAveraging": 0,
