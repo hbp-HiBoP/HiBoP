@@ -1,5 +1,8 @@
 Change List:
 
+3.3.14:
+    - Fix exception when using experimental (.NET 4.6 equivalent) scripting
+      run-time version in Unity 2017.1.
 3.3.13:
     - Fix preference menu contents clipped in Unity 5.6.0.
     - Library updates.

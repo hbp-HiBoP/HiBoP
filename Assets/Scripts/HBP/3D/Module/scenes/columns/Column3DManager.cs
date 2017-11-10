@@ -931,6 +931,26 @@ namespace HBP.Module3D
             column.UpdateSitesRendering(data, latencyFile);
         }
         /// <summary>
+        /// Check the integrity of some IEEG parameters and show a warning dialog if required
+        /// </summary>
+        public void CheckIEEGParametersIntegrity()
+        {
+            List<Column3DIEEG> invalidColumns = new List<Column3DIEEG>();
+            foreach (var column in ColumnsIEEG)
+            {
+                float diffMin = column.IEEGParameters.SpanMin - column.IEEGParameters.Middle;
+                float diffMax = column.IEEGParameters.SpanMax - column.IEEGParameters.Middle;
+                if (diffMin == 0 || diffMax == 0)
+                {
+                    invalidColumns.Add(column);
+                }
+            }
+            if (invalidColumns.Count > 0)
+            {
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Warning, "Invalid iEEG span values", "The difference between Span Min and Middle or the difference between Middle and Span Max of some columns are equal to zero.\n\nThis is not supported. Please check your values.");
+            }
+        }
+        /// <summary>
         /// Update the visiblity of the ROI for all columns
         /// </summary>
         /// <param name="visible"></param>

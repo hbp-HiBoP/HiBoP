@@ -968,6 +968,9 @@ namespace HBP.Module3D
             // update plots visibility
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
+            // check validity of plot scale
+            m_ColumnManager.CheckIEEGParametersIntegrity();
+
             //####### UDPATE MODE
             m_ModesManager.UpdateMode(Mode.FunctionsId.PostUpdateGenerators);
             //##################
