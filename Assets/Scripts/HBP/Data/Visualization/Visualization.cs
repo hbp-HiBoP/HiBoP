@@ -80,7 +80,8 @@ namespace HBP.Data.Visualization
         }
 
         const float FIND_FILES_TO_READ_PROGRESS = 0.025f;
-        const float LOAD_COLUMNS_PROGRESS = 0.9f;
+        const float LOAD_DATA_PROGRESS = 0.7f;
+        const float LOAD_COLUMNS_PROGRESS = 0.2f;
         const float STANDARDIZE_COLUMNS_PROGRESS = 0.075f;
         #endregion
 
@@ -196,9 +197,14 @@ namespace HBP.Data.Visualization
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataInfoToRead(progress, onChangeProgress,(value, progressValue) => { dataInfoByColumn = value; progress = progressValue; }));
             yield return Ninja.JumpBack;
 
+            // Load Data.
+            yield return Ninja.JumpToUnity;
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadData(dataInfoByColumn, progress, onChangeProgress, (value) => progress = value));
+            yield return Ninja.JumpBack;
+
             // Load Columns.
             yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataInfoByColumn, progress, onChangeProgress,(value) => progress = value));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataInfoByColumn, progress, onChangeProgress, (value) => progress = value));
             yield return Ninja.JumpBack;
 
             // Standardize Columns.
@@ -294,6 +300,29 @@ namespace HBP.Data.Visualization
                 }
             }
             outPut(dataInfoByColumn, progress);
+        }
+        IEnumerator c_LoadData(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float> outPut)
+        {
+            float progressStep = LOAD_DATA_PROGRESS / Columns.Count;
+            foreach (Column column in Columns)
+            {
+                yield return Ninja.JumpToUnity;
+                DataInfo[] dataInfoArray = dataInfoByColumn[column];
+                float columnProgressStep = progressStep / (dataInfoArray.Length + 1);
+                foreach (DataInfo dataInfo in dataInfoArray)
+                {
+                    yield return Ninja.JumpToUnity;
+                    progress += columnProgressStep;
+                    onChangeProgress.Invoke(progress, 1.0f, "Loading data <color=blue>" + dataInfo.Name + " " + dataInfo.Patient.Name + "</color>.");
+                    yield return Ninja.JumpBack;
+                    DataManager.GetData(dataInfo, column.Bloc);
+                }
+            }
+            yield return Ninja.JumpToUnity;
+            onChangeProgress.Invoke(progress, 1.0f, "Normalizing data");
+            yield return Ninja.JumpBack;
+            DataManager.NormalizeData();
+            outPut(progress);
         }
         IEnumerator c_LoadColumns(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float> outPut)
         {

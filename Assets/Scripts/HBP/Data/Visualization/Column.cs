@@ -117,14 +117,9 @@ namespace HBP.Data.Visualization
         {
             // FIXME
             float frequency = 0;
-
+            
             List<Localizer.Bloc> blocs = new List<Localizer.Bloc>();
             Dictionary<string, SiteConfiguration> siteConfigurationsByID = new Dictionary<string, SiteConfiguration>();
-            foreach (DataInfo dataInfo in columnData)
-            {
-                DataManager.GetData(dataInfo, Bloc);
-            }
-            DataManager.NormalizeData();
             foreach (DataInfo dataInfo in columnData)
             {
                 Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);

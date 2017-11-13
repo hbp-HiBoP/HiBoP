@@ -12,6 +12,7 @@ namespace HBP.Data.Localizer
         public Dictionary<string, float[]> ValuesBySite { get; set; }
         public Dictionary<string, float[]> BaselineValuesBySite { get; set; }
         public Dictionary<string, float[]> NormalizedValuesBySite { get; set; }
+
         #endregion
 
         #region Constructor
@@ -55,7 +56,7 @@ namespace HBP.Data.Localizer
                 baselineValuesBySite.Add(pair.Key, values);
             }
             BaselineValuesBySite = baselineValuesBySite;
-            NormalizedValuesBySite = new Dictionary<string, float[]>();
+            NormalizedValuesBySite = valuesBySite.ToDictionary(valueBySite => valueBySite.Key, valueBySite => valueBySite.Value);
         }
         public Bloc(): this (new Dictionary<Experience.Protocol.Event, int>(),new Dictionary<string, float[]>(), new Dictionary<string, float[]>(), new Dictionary<string, float[]>())
         {
