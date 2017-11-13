@@ -303,22 +303,22 @@ namespace HBP.Data.Visualization
         }
         IEnumerator c_LoadData(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float> outPut)
         {
-            float progressStep = LOAD_DATA_PROGRESS / Columns.Count;
-            foreach (Column column in Columns)
+            yield return Ninja.JumpBack;
+            DataInfo[] dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct().ToArray();
+            float progressStep = LOAD_DATA_PROGRESS / (dataInfoCollection.Length + 1);
+            foreach (var dataInfo in dataInfoCollection)
             {
                 yield return Ninja.JumpToUnity;
-                DataInfo[] dataInfoArray = dataInfoByColumn[column];
-                float columnProgressStep = progressStep / (dataInfoArray.Length + 1);
-                foreach (DataInfo dataInfo in dataInfoArray)
+                progress += progressStep;
+                onChangeProgress.Invoke(progress, 1.0f, "Loading <color=blue>" + dataInfo.Name + "</color> for <color=blue>" + dataInfo.Patient.Name + "</color>.");
+                yield return Ninja.JumpBack;
+                foreach (var column in dataInfoByColumn.Keys)
                 {
-                    yield return Ninja.JumpToUnity;
-                    progress += columnProgressStep;
-                    onChangeProgress.Invoke(progress, 1.0f, "Loading data <color=blue>" + dataInfo.Name + " " + dataInfo.Patient.Name + "</color>.");
-                    yield return Ninja.JumpBack;
                     DataManager.GetData(dataInfo, column.Bloc);
                 }
             }
             yield return Ninja.JumpToUnity;
+            progress += progressStep;
             onChangeProgress.Invoke(progress, 1.0f, "Normalizing data");
             yield return Ninja.JumpBack;
             DataManager.NormalizeData();

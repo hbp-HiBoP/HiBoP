@@ -117,7 +117,7 @@ namespace HBP.Data.Visualization
         {
             // FIXME
             float frequency = 0;
-            
+
             List<Localizer.Bloc> blocs = new List<Localizer.Bloc>();
             Dictionary<string, SiteConfiguration> siteConfigurationsByID = new Dictionary<string, SiteConfiguration>();
             foreach (DataInfo dataInfo in columnData)
@@ -136,8 +136,8 @@ namespace HBP.Data.Visualization
                     }
                 }
             }
-
             Configuration.ConfigurationBySite = siteConfigurationsByID;
+
             Event mainEvent = new Event();
             Event[] secondaryEvents = new Event[Bloc.SecondaryEvents.Count];
             switch (ApplicationState.GeneralSettings.EventPositionAveraging)

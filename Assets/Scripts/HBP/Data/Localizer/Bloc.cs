@@ -80,38 +80,71 @@ namespace HBP.Data.Localizer
         #region Public static Methods
         public static Bloc Average(Bloc[] blocs, Settings.GeneralSettings.AveragingMode valueAveragingMode, Settings.GeneralSettings.AveragingMode eventPositionAveragingMode )
         {
+            // Maybe FIXME : awfull unmaintanable code
             Dictionary<Experience.Protocol.Event, List<int>> positionsByEvent = new Dictionary<Experience.Protocol.Event, List<int>>();
-            Dictionary<string, List<float>[]> valuesBySite = new Dictionary<string, List<float>[]>();
-            Dictionary<string, List<float>[]> baselineValuesBySite = new Dictionary<string, List<float>[]>();
-            Dictionary<string, List<float>[]> normalizedValuesBySite = new Dictionary<string, List<float>[]>();
-            foreach (Bloc bloc in blocs)
+            Dictionary<string, float[][]> valuesBySite = new Dictionary<string, float[][]>();
+            Dictionary<string, float[][]> baselineValuesBySite = new Dictionary<string, float[][]>();
+            Dictionary<string, float[][]> normalizedValuesBySite = new Dictionary<string, float[][]>();
+            int blocsLength = blocs.Length;
+            Bloc bloc = blocs[0];
+            foreach (var valueBySite in bloc.ValuesBySite)
             {
-                foreach (Experience.Protocol.Event _event in bloc.PositionByEvent.Keys)
+                int valuesLength = valueBySite.Value.Length;
+                float[][] values = new float[valuesLength][];
+                for (int j = 0; j < valuesLength; ++j)
                 {
-                    if (!positionsByEvent.ContainsKey(_event)) positionsByEvent.Add(_event, new List<int>());
-                    positionsByEvent[_event].Add(bloc.PositionByEvent[_event]);
+                    values[j] = new float[blocsLength];
                 }
-                foreach (string site in bloc.ValuesBySite.Keys)
+                valuesBySite.Add(valueBySite.Key, values);
+            }
+            foreach (var valueBySite in bloc.BaselineValuesBySite)
+            {
+                int valuesLength = valueBySite.Value.Length;
+                float[][] values = new float[valuesLength][];
+                for (int j = 0; j < valuesLength; ++j)
                 {
-                    if (!valuesBySite.ContainsKey(site)) valuesBySite.Add(site, new List<float>[bloc.ValuesBySite[site].Length]);
-                    for (int v = 0; v < valuesBySite[site].Length; v++)
+                    values[j] = new float[blocsLength];
+                }
+                baselineValuesBySite.Add(valueBySite.Key, values);
+            }
+            foreach (var valueBySite in bloc.NormalizedValuesBySite)
+            {
+                int valuesLength = valueBySite.Value.Length;
+                float[][] values = new float[valuesLength][];
+                for (int j = 0; j < valuesLength; ++j)
+                {
+                    values[j] = new float[blocsLength];
+                }
+                normalizedValuesBySite.Add(valueBySite.Key, values);
+            }
+            for (int i = 0; i < blocsLength; ++i)
+            {
+                Bloc bloc2 = blocs[i];
+                foreach (var valueBySite in bloc2.ValuesBySite)
+                {
+                    float[][] values = valuesBySite[valueBySite.Key];
+                    int valuesLength = valueBySite.Value.Length;
+                    for (int j = 0; j < valuesLength; ++j)
                     {
-                        if (valuesBySite[site][v] == null) valuesBySite[site][v] = new List<float>();
-                        valuesBySite[site][v].Add(bloc.ValuesBySite[site][v]);
+                        values[j][i] = valueBySite.Value[j];
                     }
-
-                    if (!baselineValuesBySite.ContainsKey(site)) baselineValuesBySite.Add(site, new List<float>[bloc.BaselineValuesBySite[site].Length]);
-                    for (int v = 0; v < baselineValuesBySite[site].Length; v++)
+                }
+                foreach (var valueBySite in bloc2.BaselineValuesBySite)
+                {
+                    float[][] values = baselineValuesBySite[valueBySite.Key];
+                    int valuesLength = valueBySite.Value.Length;
+                    for (int j = 0; j < valuesLength; ++j)
                     {
-                        if (baselineValuesBySite[site][v] == null) baselineValuesBySite[site][v] = new List<float>();
-                        baselineValuesBySite[site][v].Add(bloc.BaselineValuesBySite[site][v]);
+                        values[j][i] = valueBySite.Value[j];
                     }
-
-                    if (!normalizedValuesBySite.ContainsKey(site)) normalizedValuesBySite.Add(site, new List<float>[bloc.NormalizedValuesBySite[site].Length]);
-                    for (int v = 0; v < normalizedValuesBySite[site].Length; v++)
+                }
+                foreach (var valueBySite in bloc2.NormalizedValuesBySite)
+                {
+                    float[][] values = normalizedValuesBySite[valueBySite.Key];
+                    int valuesLength = valueBySite.Value.Length;
+                    for (int j = 0; j < valuesLength; ++j)
                     {
-                        if (normalizedValuesBySite[site][v] == null) normalizedValuesBySite[site][v] = new List<float>();
-                        normalizedValuesBySite[site][v].Add(bloc.NormalizedValuesBySite[site][v]);
+                        values[j][i] = valueBySite.Value[j];
                     }
                 }
             }
