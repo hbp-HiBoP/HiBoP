@@ -58,7 +58,7 @@ namespace HBP.Data.Visualization
         public SiteConfiguration(float[] values,float[] normalizedValues, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked)
         {
             Values = values;
-            NormalizedValues = values;
+            NormalizedValues = normalizedValues;
             IsExcluded = isExcluded;
             IsBlacklisted = isBlacklisted;
             IsHighlighted = isHighlighted;

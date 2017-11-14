@@ -201,7 +201,7 @@ namespace HBP.UI.Graph
                 {
                     Data.TrialMatrix.TrialMatrix trialMatrixData = m_TrialMatrixByProtocolBySite[column.Protocol][site];
                     TrialMatrix.TrialMatrix trialMatrix = m_TrialMatrixList.TrialMatrix.First((t) => t.Data == trialMatrixData);
-                    TrialMatrix.Bloc trialMatrixBloc = new TrialMatrix.Bloc();
+                    TrialMatrix.Bloc trialMatrixBloc = null;
                     foreach (var line in trialMatrix.Lines)
                     {
                         foreach (var bloc in line.Blocs)
