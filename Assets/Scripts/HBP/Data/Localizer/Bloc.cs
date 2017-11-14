@@ -81,15 +81,22 @@ namespace HBP.Data.Localizer
         public static Bloc Average(Bloc[] blocs, Settings.GeneralSettings.AveragingMode valueAveragingMode, Settings.GeneralSettings.AveragingMode eventPositionAveragingMode )
         {
             // Maybe FIXME : awfull unmaintanable code
-            Dictionary<Experience.Protocol.Event, List<int>> positionsByEvent = new Dictionary<Experience.Protocol.Event, List<int>>();
+            Dictionary<Experience.Protocol.Event, int[]> positionsByEvent = new Dictionary<Experience.Protocol.Event, int[]>();
             Dictionary<string, float[][]> valuesBySite = new Dictionary<string, float[][]>();
             Dictionary<string, float[][]> baselineValuesBySite = new Dictionary<string, float[][]>();
             Dictionary<string, float[][]> normalizedValuesBySite = new Dictionary<string, float[][]>();
-            int blocsLength = blocs.Length;
+            UnityEngine.Profiling.Profiler.BeginSample("Initializing");
+            // Initialization Dictionary.
             Bloc bloc = blocs[0];
+            int blocsLength = blocs.Length;
+            int valuesLength = bloc.ValuesBySite.First().Value.Length;
+            int baselineLength = bloc.BaselineValuesBySite.First().Value.Length;
+            foreach (var _event in bloc.PositionByEvent.Keys)
+            {
+                positionsByEvent.Add(_event, new int[blocsLength]);
+            }
             foreach (var valueBySite in bloc.ValuesBySite)
             {
-                int valuesLength = valueBySite.Value.Length;
                 float[][] values = new float[valuesLength][];
                 for (int j = 0; j < valuesLength; ++j)
                 {
@@ -99,9 +106,8 @@ namespace HBP.Data.Localizer
             }
             foreach (var valueBySite in bloc.BaselineValuesBySite)
             {
-                int valuesLength = valueBySite.Value.Length;
-                float[][] values = new float[valuesLength][];
-                for (int j = 0; j < valuesLength; ++j)
+                float[][] values = new float[baselineLength][];
+                for (int j = 0; j < baselineLength; ++j)
                 {
                     values[j] = new float[blocsLength];
                 }
@@ -109,7 +115,6 @@ namespace HBP.Data.Localizer
             }
             foreach (var valueBySite in bloc.NormalizedValuesBySite)
             {
-                int valuesLength = valueBySite.Value.Length;
                 float[][] values = new float[valuesLength][];
                 for (int j = 0; j < valuesLength; ++j)
                 {
@@ -117,38 +122,44 @@ namespace HBP.Data.Localizer
                 }
                 normalizedValuesBySite.Add(valueBySite.Key, values);
             }
+            UnityEngine.Profiling.Profiler.EndSample();
+            UnityEngine.Profiling.Profiler.BeginSample("Fill");
+            // Fill Dictionary.
             for (int i = 0; i < blocsLength; ++i)
             {
-                Bloc bloc2 = blocs[i];
-                foreach (var valueBySite in bloc2.ValuesBySite)
+                bloc = blocs[i];
+                foreach (var _event in bloc.PositionByEvent)
+                {
+                    positionsByEvent[_event.Key][i] = _event.Value;
+                }
+                foreach (var valueBySite in bloc.ValuesBySite)
                 {
                     float[][] values = valuesBySite[valueBySite.Key];
-                    int valuesLength = valueBySite.Value.Length;
                     for (int j = 0; j < valuesLength; ++j)
                     {
                         values[j][i] = valueBySite.Value[j];
                     }
                 }
-                foreach (var valueBySite in bloc2.BaselineValuesBySite)
+                foreach (var valueBySite in bloc.BaselineValuesBySite)
                 {
                     float[][] values = baselineValuesBySite[valueBySite.Key];
-                    int valuesLength = valueBySite.Value.Length;
-                    for (int j = 0; j < valuesLength; ++j)
+                    for (int j = 0; j < baselineLength; ++j)
                     {
                         values[j][i] = valueBySite.Value[j];
                     }
                 }
-                foreach (var valueBySite in bloc2.NormalizedValuesBySite)
+                foreach (var valueBySite in bloc.NormalizedValuesBySite)
                 {
                     float[][] values = normalizedValuesBySite[valueBySite.Key];
-                    int valuesLength = valueBySite.Value.Length;
                     for (int j = 0; j < valuesLength; ++j)
                     {
                         values[j][i] = valueBySite.Value[j];
                     }
                 }
             }
-
+            UnityEngine.Profiling.Profiler.EndSample();
+            UnityEngine.Profiling.Profiler.BeginSample("Averaging");
+            // Compute averaging.
             Bloc result = new Bloc();
             switch (eventPositionAveragingMode)
             {
@@ -172,6 +183,7 @@ namespace HBP.Data.Localizer
                     foreach (var item in normalizedValuesBySite) result.NormalizedValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
                     break;
             }
+            UnityEngine.Profiling.Profiler.EndSample();
             return result;		
 		}
         #endregion

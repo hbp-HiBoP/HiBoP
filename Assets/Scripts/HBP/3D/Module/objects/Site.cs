@@ -127,7 +127,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return PatientID + "_" + Name.ToUpper().Replace('P', '\'');
+                return ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType == Data.Settings.GeneralSettings.PlotNameCorrectionTypeEnum.Enable ? PatientID + "_" + Name.ToUpper().Replace('P', '\'') : FullID;
             }
         }
         public string DisplayedName
