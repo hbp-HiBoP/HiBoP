@@ -80,8 +80,8 @@ namespace HBP.Data.Visualization
         }
 
         const float FIND_FILES_TO_READ_PROGRESS = 0.025f;
-        const float LOAD_DATA_PROGRESS = 0.7f;
-        const float LOAD_COLUMNS_PROGRESS = 0.2f;
+        const float LOAD_DATA_PROGRESS = 0.8f;
+        const float LOAD_COLUMNS_PROGRESS = 0.1f;
         const float STANDARDIZE_COLUMNS_PROGRESS = 0.075f;
         #endregion
 
@@ -305,7 +305,7 @@ namespace HBP.Data.Visualization
         {
             yield return Ninja.JumpBack;
             DataInfo[] dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct().ToArray();
-            float progressStep = LOAD_DATA_PROGRESS / (dataInfoCollection.Length + 1);
+            float progressStep = LOAD_DATA_PROGRESS / (2 * dataInfoCollection.Length);
             foreach (var dataInfo in dataInfoCollection)
             {
                 yield return Ninja.JumpToUnity;
@@ -318,8 +318,8 @@ namespace HBP.Data.Visualization
                 }
             }
             yield return Ninja.JumpToUnity;
-            progress += progressStep;
-            onChangeProgress.Invoke(progress, 1.0f, "Normalizing data");
+            progress += progressStep * dataInfoCollection.Length;
+            onChangeProgress.Invoke(progress, 30.0f, "Normalizing data");
             yield return Ninja.JumpBack;
             DataManager.NormalizeData();
             outPut(progress);
