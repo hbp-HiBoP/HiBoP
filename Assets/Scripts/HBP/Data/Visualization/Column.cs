@@ -143,21 +143,21 @@ namespace HBP.Data.Visualization
             switch (ApplicationState.GeneralSettings.EventPositionAveraging)
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:
-                    mainEvent = new Event(Bloc.MainEvent.Name,(int) (from bloc in blocs select bloc.PositionByEvent[Bloc.MainEvent]).ToList().Average());
+                    mainEvent = new Event(Bloc.MainEvent.Name,(int) (from bloc in blocs select bloc.PositionByEvent[Bloc.MainEvent]).ToArray().Mean());
                     for (int i = 0; i < secondaryEvents.Length; i++)
                     {
                         List<Localizer.Bloc> blocWhereEventFound = (from bloc in blocs where bloc.PositionByEvent[Bloc.SecondaryEvents[i]] >= 0 select bloc).ToList();
                         float rate = (float) blocWhereEventFound.Count / blocs.Count;
-                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name,(int) (from bloc in blocWhereEventFound select bloc.PositionByEvent[Bloc.SecondaryEvents[i]]).ToList().Average(), rate);
+                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name,(int) (from bloc in blocWhereEventFound select bloc.PositionByEvent[Bloc.SecondaryEvents[i]]).ToArray().Mean(), rate);
                     }
                     break;
                 case Settings.GeneralSettings.AveragingMode.Median:
-                    mainEvent = new Event(Bloc.MainEvent.Name, (from bloc in blocs select bloc.PositionByEvent[Bloc.MainEvent]).ToList().Median());
+                    mainEvent = new Event(Bloc.MainEvent.Name, (from bloc in blocs select bloc.PositionByEvent[Bloc.MainEvent]).ToArray().Median());
                     for (int i = 0; i < secondaryEvents.Length; i++)
                     {
                         List<Localizer.Bloc> blocWhereEventFound = (from bloc in blocs where bloc.PositionByEvent[Bloc.SecondaryEvents[i]] >= 0 select bloc).ToList();
                         float rate = (float)blocWhereEventFound.Count / blocs.Count;
-                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name, (int)(from bloc in blocWhereEventFound select bloc.PositionByEvent[Bloc.SecondaryEvents[i]]).ToList().Median(), rate);
+                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name, (from bloc in blocWhereEventFound select bloc.PositionByEvent[Bloc.SecondaryEvents[i]]).ToArray().Median(), rate);
                     }
                     break;
             }

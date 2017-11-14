@@ -64,15 +64,15 @@ namespace HBP.Data.Localizer
         #endregion
 
         #region Public Methods
-        public void Normalize(float average, float standardDeviation, string siteToNormalize = "")
+        public void Normalize(float average, float standardDeviation, string siteToNormalize)
         {
-            if (string.IsNullOrEmpty(siteToNormalize))
+            NormalizedValuesBySite[siteToNormalize] = ValuesBySite[siteToNormalize].Normalize(average, standardDeviation);
+        }
+        public void Normalize(float average, float standardDeviation)
+        {
+            foreach (var site in ValuesBySite.Keys)
             {
-                NormalizedValuesBySite = (from site in ValuesBySite.Keys select new KeyValuePair<string, float[]>(site, (from value in ValuesBySite[site] select (value - average) / standardDeviation).ToArray())).ToDictionary(p => p.Key, p => p.Value);
-            }
-            else
-            {
-                NormalizedValuesBySite[siteToNormalize] = (from value in ValuesBySite[siteToNormalize] select (value - average) / standardDeviation).ToArray();
+                Normalize(average, standardDeviation, site);
             }
         }
         #endregion
@@ -81,90 +81,85 @@ namespace HBP.Data.Localizer
         public static Bloc Average(Bloc[] blocs, Settings.GeneralSettings.AveragingMode valueAveragingMode, Settings.GeneralSettings.AveragingMode eventPositionAveragingMode )
         {
             // Maybe FIXME : awfull unmaintanable code
-            Dictionary<Experience.Protocol.Event, int[]> positionsByEvent = new Dictionary<Experience.Protocol.Event, int[]>();
-            Dictionary<string, float[][]> valuesBySite = new Dictionary<string, float[][]>();
-            Dictionary<string, float[][]> baselineValuesBySite = new Dictionary<string, float[][]>();
-            Dictionary<string, float[][]> normalizedValuesBySite = new Dictionary<string, float[][]>();
-            UnityEngine.Profiling.Profiler.BeginSample("Initializing");
             // Initialization Dictionary.
             Bloc bloc = blocs[0];
             int blocsLength = blocs.Length;
             int valuesLength = bloc.ValuesBySite.First().Value.Length;
             int baselineLength = bloc.BaselineValuesBySite.First().Value.Length;
+            int siteLength = bloc.BaselineValuesBySite.Count;
+            Dictionary<Experience.Protocol.Event, int[]> positionsByEvent = new Dictionary<Experience.Protocol.Event, int[]>();
+            string[] sites = new string[siteLength];
+            float[][][] valuesBySite = new float[siteLength][][];
+            float[][][] baselineValuesBySite = new float[siteLength][][];
+            float[][][] normalizedValuesBySite = new float[siteLength][][];
             foreach (var _event in bloc.PositionByEvent.Keys)
             {
                 positionsByEvent.Add(_event, new int[blocsLength]);
             }
-            foreach (var valueBySite in bloc.ValuesBySite)
+            sites = bloc.ValuesBySite.Keys.ToArray();
+            float[][] values;
+            for (int s = 0; s < siteLength; ++s)
             {
-                float[][] values = new float[valuesLength][];
+                values = new float[valuesLength][];
                 for (int j = 0; j < valuesLength; ++j)
                 {
                     values[j] = new float[blocsLength];
                 }
-                valuesBySite.Add(valueBySite.Key, values);
-            }
-            foreach (var valueBySite in bloc.BaselineValuesBySite)
-            {
-                float[][] values = new float[baselineLength][];
+                valuesBySite[s] = values;
+
+                values = new float[baselineLength][];
                 for (int j = 0; j < baselineLength; ++j)
                 {
                     values[j] = new float[blocsLength];
                 }
-                baselineValuesBySite.Add(valueBySite.Key, values);
-            }
-            foreach (var valueBySite in bloc.NormalizedValuesBySite)
-            {
-                float[][] values = new float[valuesLength][];
+                baselineValuesBySite[s] = values;
+
+                values = new float[valuesLength][];
                 for (int j = 0; j < valuesLength; ++j)
                 {
                     values[j] = new float[blocsLength];
                 }
-                normalizedValuesBySite.Add(valueBySite.Key, values);
+                normalizedValuesBySite[s] = values;
             }
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("Fill");
             // Fill Dictionary.
-            for (int i = 0; i < blocsLength; ++i)
+            float[] siteValues;
+            for (int b = 0; b < blocsLength; ++b)
             {
-                bloc = blocs[i];
+                bloc = blocs[b];
                 foreach (var _event in bloc.PositionByEvent)
                 {
-                    positionsByEvent[_event.Key][i] = _event.Value;
+                    positionsByEvent[_event.Key][b] = _event.Value;
                 }
-                foreach (var valueBySite in bloc.ValuesBySite)
+                for (int s = 0; s < siteLength; ++s)
                 {
-                    float[][] values = valuesBySite[valueBySite.Key];
-                    for (int j = 0; j < valuesLength; ++j)
+                    values = valuesBySite[s];
+                    siteValues = bloc.ValuesBySite[sites[s]];
+                    for (int v = 0; v < valuesLength; v++)
                     {
-                        values[j][i] = valueBySite.Value[j];
+                        values[v][b] = siteValues[v];
                     }
-                }
-                foreach (var valueBySite in bloc.BaselineValuesBySite)
-                {
-                    float[][] values = baselineValuesBySite[valueBySite.Key];
-                    for (int j = 0; j < baselineLength; ++j)
+
+                    values = baselineValuesBySite[s];
+                    siteValues = bloc.BaselineValuesBySite[sites[s]];
+                    for (int v = 0; v < baselineLength; v++)
                     {
-                        values[j][i] = valueBySite.Value[j];
+                        values[v][b] = siteValues[v];
                     }
-                }
-                foreach (var valueBySite in bloc.NormalizedValuesBySite)
-                {
-                    float[][] values = normalizedValuesBySite[valueBySite.Key];
-                    for (int j = 0; j < valuesLength; ++j)
+
+                    values = normalizedValuesBySite[s];
+                    siteValues = bloc.NormalizedValuesBySite[sites[s]];
+                    for (int v = 0; v < valuesLength; v++)
                     {
-                        values[j][i] = valueBySite.Value[j];
+                        values[v][b] = siteValues[v];
                     }
                 }
             }
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("Averaging");
             // Compute averaging.
             Bloc result = new Bloc();
             switch (eventPositionAveragingMode)
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:
-                    foreach (var item in positionsByEvent) result.PositionByEvent.Add(item.Key, UnityEngine.Mathf.RoundToInt((float) item.Value.Average()));
+                    foreach (var item in positionsByEvent) result.PositionByEvent.Add(item.Key, UnityEngine.Mathf.RoundToInt(item.Value.Mean()));
                     break;
                 case Settings.GeneralSettings.AveragingMode.Median:
                     foreach (var item in positionsByEvent) result.PositionByEvent.Add(item.Key, item.Value.Median());
@@ -173,17 +168,16 @@ namespace HBP.Data.Localizer
             switch (valueAveragingMode)
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:
-                    foreach (var item in valuesBySite) result.ValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
-                    foreach (var item in baselineValuesBySite) result.BaselineValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
-                    foreach (var item in normalizedValuesBySite) result.NormalizedValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Average()).ToArray());
+                    for (int s = 0; s < siteLength; s++) result.ValuesBySite.Add(sites[s], (from elmt in valuesBySite[s] select elmt.Mean()).ToArray());
+                    for (int s = 0; s < siteLength; s++) result.BaselineValuesBySite.Add(sites[s], (from elmt in baselineValuesBySite[s] select elmt.Mean()).ToArray());
+                    for (int s = 0; s < siteLength; s++) result.NormalizedValuesBySite.Add(sites[s], (from elmt in normalizedValuesBySite[s] select elmt.Mean()).ToArray());
                     break;
                 case Settings.GeneralSettings.AveragingMode.Median:
-                    foreach (var item in valuesBySite) result.ValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
-                    foreach (var item in baselineValuesBySite) result.BaselineValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
-                    foreach (var item in normalizedValuesBySite) result.NormalizedValuesBySite.Add(item.Key, (from elmt in item.Value select elmt.Median()).ToArray());
+                    for (int s = 0; s < siteLength; s++) result.ValuesBySite.Add(sites[s], (from elmt in valuesBySite[s] select elmt.Median()).ToArray());
+                    for (int s = 0; s < siteLength; s++) result.BaselineValuesBySite.Add(sites[s], (from elmt in baselineValuesBySite[s] select elmt.Median()).ToArray());
+                    for (int s = 0; s < siteLength; s++) result.NormalizedValuesBySite.Add(sites[s], (from elmt in normalizedValuesBySite[s] select elmt.Median()).ToArray());
                     break;
             }
-            UnityEngine.Profiling.Profiler.EndSample();
             return result;		
 		}
         #endregion

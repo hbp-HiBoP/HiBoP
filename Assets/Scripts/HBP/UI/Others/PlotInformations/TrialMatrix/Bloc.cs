@@ -258,12 +258,16 @@ namespace HBP.UI.TrialMatrix
         }
         Texture2D GenerateTexture(float[,] lines,Vector2 limits,Texture2D colorMap)
         {
+            Profiler.BeginSample("A");
             // Caculate texture size.
             int width = lines.GetLength(0);
             int height = lines.GetLength(1);
             Texture2D l_texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
             Color[] colors = new Color[width * height];
+            Profiler.EndSample();
 
+            Profiler.BeginSample("B");
+            //TODO : in DLL
             // Set pixels
             for (int y = 0; y < height; y++)
             {
@@ -280,12 +284,16 @@ namespace HBP.UI.TrialMatrix
                     }
                 }
             }
+            Profiler.EndSample();
 
+            Profiler.BeginSample("C");
             // Set texture.
             l_texture.SetPixels(colors);
             l_texture.filterMode = FilterMode.Point;
             l_texture.anisoLevel = 0;
             l_texture.Apply();
+            Profiler.EndSample();
+
             return l_texture;
         }
         float[,] SmoothLines(float[,] lines, int pass)

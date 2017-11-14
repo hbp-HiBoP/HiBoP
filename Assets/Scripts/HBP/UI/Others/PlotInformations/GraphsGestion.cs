@@ -8,6 +8,7 @@ using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 using Tools.Unity.Graph;
 using UnityEngine.Events;
+using Tools.CSharp;
 
 namespace HBP.UI.Graph
 {
@@ -228,8 +229,8 @@ namespace HBP.UI.Graph
                             }
 
                             //Find selectedLines
-                            data[i] = Tools.CSharp.MathfExtension.Average(l_dataList.ToArray());
-                            standardDeviations[i] = Tools.CSharp.MathfExtension.SEM(l_dataList.ToArray());
+                            data[i] = l_dataList.ToArray().Mean();
+                            standardDeviations[i] = l_dataList.ToArray().SEM();
                         }
 
                         // Generate points.
@@ -286,7 +287,7 @@ namespace HBP.UI.Graph
                             {
                                 sum.Add(site.Configuration.NormalizedValues[i]);
                             }
-                            ROIdata[i] = Tools.CSharp.MathfExtension.Average(sum.ToArray());
+                            ROIdata[i] = sum.ToArray().Mean();
                         }
 
                         // Generate points.

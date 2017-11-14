@@ -17,8 +17,16 @@ public static class DataManager
     public static EpochedData GetData(DataInfo dataInfo,Bloc bloc)
     {
         DataRequest request = new DataRequest(dataInfo, bloc);
-        if (!m_DataByRequest.ContainsKey(request)) Load(request.DataInfo);
-        return m_DataByRequest[request];
+        EpochedData result;
+        if (m_DataByRequest.TryGetValue(request, out result))
+        {
+            return result;
+        }
+        else
+        {
+            Load(request.DataInfo);
+            return m_DataByRequest[request];
+        }
     }
     public static void Load(DataInfo dataInfo)
     {
@@ -92,8 +100,8 @@ public static class DataManager
         {
             foreach (var pair in bloc.BaselineValuesBySite)
             {
-                average = MathfExtension.Average(pair.Value);
-                standardDeviation = MathfExtension.StandardDeviation(pair.Value);
+                average = pair.Value.Mean();
+                standardDeviation = pair.Value.StandardDeviation();
                 bloc.Normalize(average, standardDeviation, pair.Key);
             }
         }
@@ -114,8 +122,8 @@ public static class DataManager
         }
         foreach (var site in BaselineBySite.Keys)
         {
-            averageBySite[site] = MathfExtension.Average(BaselineBySite[site].ToArray());
-            standardDeviationBySite[site] = MathfExtension.StandardDeviation(BaselineBySite[site].ToArray());
+            averageBySite[site] = BaselineBySite[site].ToArray().Mean();
+            standardDeviationBySite[site] = BaselineBySite[site].ToArray().StandardDeviation();
         }
         foreach (var line in m_DataByRequest[dataRequest].Blocs)
         {
@@ -146,8 +154,8 @@ public static class DataManager
         }
         foreach (var site in baselineBySite.Keys)
         {
-            averageBySite[site] = MathfExtension.Average(baselineBySite[site].ToArray());
-            standardDeviationBySite[site] = MathfExtension.StandardDeviation(baselineBySite[site].ToArray());
+            averageBySite[site] = baselineBySite[site].ToArray().Mean();
+            standardDeviationBySite[site] = baselineBySite[site].ToArray().StandardDeviation();
         }
         foreach (var tuple in dataRequestAndNeedToNormalize)
         {
