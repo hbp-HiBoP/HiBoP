@@ -305,7 +305,7 @@ namespace HBP.Data.Visualization
         {
             yield return Ninja.JumpBack;
             DataInfo[] dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct().ToArray();
-            float progressStep = LOAD_DATA_PROGRESS / (2 * dataInfoCollection.Length);
+            float progressStep = LOAD_DATA_PROGRESS / (dataInfoCollection.Length + 1);
             foreach (var dataInfo in dataInfoCollection)
             {
                 yield return Ninja.JumpToUnity;
@@ -318,8 +318,8 @@ namespace HBP.Data.Visualization
                 }
             }
             yield return Ninja.JumpToUnity;
-            progress += progressStep * dataInfoCollection.Length;
-            onChangeProgress.Invoke(progress, 30.0f, "Normalizing data");
+            progress += progressStep;
+            onChangeProgress.Invoke(progress, 1.0f, "Normalizing data");
             yield return Ninja.JumpBack;
             DataManager.NormalizeData();
             outPut(progress);

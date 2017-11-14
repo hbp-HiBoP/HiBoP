@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.Serialization;
 using System.Linq;
+using HBP.UI.Theme;
 
 namespace HBP.Data.Settings
 {
@@ -117,9 +118,7 @@ namespace HBP.Data.Settings
                     }
                     else
                     {
-                        UI.Theme.Theme defaultTheme = new UI.Theme.Theme();
-                        defaultTheme.SetDefaultValues();
-                        m_Theme = defaultTheme;
+                        m_Theme = Resources.Load("Themes/Dark") as Theme;
                     }
                 }
                 UI.Theme.Theme.UpdateThemeElements(m_Theme);
@@ -168,7 +167,7 @@ namespace HBP.Data.Settings
             PlotNameAutomaticCorrectionType = plotNameAutomaticCorrectionType;
             TrialMatrixSettings = trialMatrixSettings;
             // TODO : include all themes in a specific folder
-            m_Themes = Resources.LoadAll<UI.Theme.Theme>("Themes");
+            m_Themes = Resources.LoadAll<Theme>("Themes");
             ThemeName = themeName;
         }
         /// <summary>
