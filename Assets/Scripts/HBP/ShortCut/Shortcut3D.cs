@@ -26,7 +26,6 @@ public class Shortcut3D : MonoBehaviour
 
     void ChangeSiteSelection(Direction direction)
     {
-        Debug.Log("ChangeSiteSelection");
         Base3DScene scene = ApplicationState.Module3D.SelectedScene;
         if (scene != null)
         {

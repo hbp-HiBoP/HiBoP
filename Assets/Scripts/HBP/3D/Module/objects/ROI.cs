@@ -233,7 +233,7 @@ namespace HBP.Module3D
             m_Spheres.Add(sphere);
 
             // DLL
-            Vector3 positionBubble = position;
+            Vector3 positionBubble = sphere.transform.localPosition;
             positionBubble.x = -positionBubble.x;
             m_DLLROI.AddBubble(ray, positionBubble);
 

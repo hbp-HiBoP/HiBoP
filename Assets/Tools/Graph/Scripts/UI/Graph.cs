@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace Tools.Unity.Graph
@@ -8,6 +10,8 @@ namespace Tools.Unity.Graph
         #region Properties
         PlotGestion m_PlotGestion;
         InformationsGestion m_InformationsGestion;
+
+        Dictionary<CurveData, bool> m_CurveDataState = new Dictionary<CurveData, bool>();
 
         GraphData m_Data = new GraphData();
         public string Title
@@ -62,7 +66,7 @@ namespace Tools.Unity.Graph
             private set
             {
                 m_Data.Curves = value;
-                m_InformationsGestion.SetLegends(value);
+                m_InformationsGestion.SetLegends(m_CurveDataState.Select(c => new Tuple<CurveData,bool>(c.Key,c.Value)).ToArray());
             }
         }
 
@@ -89,6 +93,18 @@ namespace Tools.Unity.Graph
             Ordinate = graph.Ordinate;
             BackgroundColor = graph.Background;
             FontColor = graph.Font;
+            CurveData[] curveToRemove = m_CurveDataState.Keys.Where(c => !graph.Curves.Contains(c)).ToArray();
+            foreach (var item in curveToRemove)
+            {
+                m_CurveDataState.Remove(item);
+            }
+            foreach (var curve in graph.Curves)
+            {
+                if(!m_CurveDataState.ContainsKey(curve))
+                {
+                    m_CurveDataState[curve] = true;
+                }
+            }
             if (m_AutoLimits)
             {
                 Plot(graph.Curves, graph.Limits, false);
@@ -107,6 +123,11 @@ namespace Tools.Unity.Graph
             m_InformationsGestion = GetComponentInChildren<InformationsGestion>();
             m_InformationsGestion.OnAutoLimits.RemoveAllListeners();
             m_InformationsGestion.OnAutoLimits.AddListener(() => { m_AutoLimits = true; Plot(m_Data); });
+            m_InformationsGestion.OnDisplayCurve.AddListener((curve, isOn) =>
+            {
+                m_CurveDataState[curve] = isOn;
+                Plot(Curves, Limits);
+            });
             m_PlotGestion.OnChangeLimits.RemoveAllListeners();
             m_PlotGestion.OnChangeLimits.AddListener((limits,ignore) => { if(!ignore) m_AutoLimits = false; Plot(Curves, limits, true);});
         }
@@ -114,7 +135,7 @@ namespace Tools.Unity.Graph
         {
             Curves = curves;
             Limits = limits;
-            m_PlotGestion.Plot(curves, Limits, onlyUpdate);
+            m_PlotGestion.Plot(curves.Where(c => m_CurveDataState[c]).ToArray(), Limits, onlyUpdate);
             m_InformationsGestion.UpdateWindowValues();
         }
         #endregion

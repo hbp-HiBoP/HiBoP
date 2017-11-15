@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 
 namespace Tools.Unity.Graph
 {
@@ -7,23 +8,26 @@ namespace Tools.Unity.Graph
         #region Properties
         [SerializeField]
         GameObject legendPrefab;
+
+        public GenericEvent<CurveData, bool> OnDisplayCurve = new GenericEvent<CurveData, bool>();
         #endregion
 
         #region Public Methods
-        public void SetLegends(CurveData[] curves)
+        public void SetLegends(Tuple<CurveData,bool>[] curves)
         {
             Clear();
-            foreach(CurveData curve in curves) AddLegend(curve);
+            foreach(Tuple<CurveData, bool> curve in curves) AddLegend(curve.Object1,curve.Object2);
         }
         #endregion
 
         #region Private Methods
-        void AddLegend(CurveData curve)
+        void AddLegend(CurveData curve, bool active)
         {
             GameObject legendGameObject = Instantiate(legendPrefab);
-            legendGameObject.name = curve.Label;
             legendGameObject.transform.SetParent(transform);
-            legendGameObject.GetComponent<Legend>().Set(curve);
+            Legend legend = legendGameObject.GetComponent<Legend>();
+            legend.Set(curve,active);
+            legend.OnDisplayCurve.AddListener(OnDisplayCurve.Invoke);
         }
         void Clear()
         {
