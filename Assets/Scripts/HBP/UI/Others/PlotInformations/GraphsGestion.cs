@@ -249,7 +249,7 @@ namespace HBP.UI.Graph
                             points[i] = new Vector2(absciss, data[index]);
                         }
 
-                        m_CurveBySiteAndColumn[column][site] = new ShapedCurveData("C" + (c + 1) + " " + site.Information.Name, points, standardDeviations, GetCurveColor(c,s));
+                        m_CurveBySiteAndColumn[column][site] = new ShapedCurveData("C" + (c + 1) + " " + site.Information.Name, points, standardDeviations, GetCurveColor(c,s),1.5f);
                     }
                     else if (linesToRead.Length == 1)
                     {
@@ -271,7 +271,7 @@ namespace HBP.UI.Graph
                         }
 
                         //Create curve
-                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, points, GetCurveColor(c,s));
+                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, points, GetCurveColor(c,s),1.5f);
                     }
                     else continue;
                 }
@@ -306,7 +306,7 @@ namespace HBP.UI.Graph
                             float absciss = min + ((max - min) * (index - pMin) / (pMax - pMin));
                             points[i] = new Vector2(absciss, ROIdata[index]);
                         }
-                        m_ROICurvebyColumn[column] = new CurveData("C" + (c + 1) + " " + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, points, GetCurveColor(c,-1),5.0f);
+                        m_ROICurvebyColumn[column] = new CurveData("C" + (c + 1) + " " + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, points, GetCurveColor(c,-1),3.0f);
                     }
                 }
             }

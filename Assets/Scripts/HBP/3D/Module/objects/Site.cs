@@ -157,6 +157,13 @@ namespace HBP.Module3D
         public bool IsOutOfROI { get; set; }      /**< is the site in a ROI ? */
         public bool IsHighlighted { get; set; }       /**< is the site highlighted ? */
         public bool IsMarked { get; set; }          /**< is the site marked ? */
+        public bool IsDisplayed
+        {
+            get
+            {
+                return !(IsMasked || IsOutOfROI || IsBlackListed || IsExcluded);
+            }
+        }
     }
 
     /// <summary>

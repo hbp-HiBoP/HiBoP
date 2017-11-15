@@ -47,7 +47,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_Scenes.Find((s) => s.IsSelected);
+                return m_Scenes.FirstOrDefault((s) => s.IsSelected);
             }
         }
 

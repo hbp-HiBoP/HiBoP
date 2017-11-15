@@ -348,6 +348,10 @@ namespace HBP.Module3D
         /// Event called when minimizing a column
         /// </summary>
         public UnityEvent OnChangeColumnMinimizedState = new UnityEvent();
+        /// <summary>
+        /// Event called when selecting a site in a column
+        /// </summary>
+        public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
         #endregion
 
         #region Private Methods
@@ -479,6 +483,10 @@ namespace HBP.Module3D
             {
                 OnChangeColumnMinimizedState.Invoke();
             });
+            column.OnSelectSite.AddListener((site) =>
+            {
+                OnSelectSite.Invoke(site);
+            });
             column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);
             m_Columns.Add(column);
@@ -512,6 +520,10 @@ namespace HBP.Module3D
             column.OnChangeMinimizedState.AddListener(() =>
             {
                 OnChangeColumnMinimizedState.Invoke();
+            });
+            column.OnSelectSite.AddListener((site) =>
+            {
+                OnSelectSite.Invoke(site);
             });
             column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);

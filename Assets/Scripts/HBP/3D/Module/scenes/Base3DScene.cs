@@ -701,6 +701,13 @@ namespace HBP.Module3D
                 ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
                 UpdateGUITextures();
             });
+            m_ColumnManager.OnSelectSite.AddListener((site) =>
+            {
+                ClickOnSiteCallback();
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                ApplicationState.Module3D.OnSelectSite.Invoke(site);
+                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            });
             SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
                 if (!value)
@@ -2473,16 +2480,6 @@ namespace HBP.Module3D
             this.StartCoroutineAsync(c_ComputeGenerators());
         }
         /// <summary>
-        /// Unselect the site of the corresponding column
-        /// </summary>
-        /// <param name="columnId"></param>
-        public void UnselectSite(Column3D column)
-        {
-            column.SelectedSiteID = -1; // unselect current site
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            ApplicationState.Module3D.OnSelectSite.Invoke(null);
-        }
-        /// <summary>
         /// Send additionnal site info to hight level UI
         /// </summary>
         public void SendAdditionalSiteInfoRequest(Site previousSite = null)
@@ -2640,7 +2637,7 @@ namespace HBP.Module3D
             bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
             if (!isCollision)
             {
-                UnselectSite(m_ColumnManager.SelectedColumn);
+                m_ColumnManager.SelectedColumn.SelectedSiteID = -1;
                 ROI selectedROI = m_ColumnManager.SelectedColumn.SelectedROI;
                 if (selectedROI)
                 {
@@ -2658,11 +2655,8 @@ namespace HBP.Module3D
             if (siteHit)
             {
                 Site site = hit.collider.gameObject.GetComponent<Site>();
-                m_ColumnManager.SelectedColumn.SelectedSiteID = site.Information.GlobalID;
                 m_ColumnManager.SelectedColumn.SelectedPatientID = site.Information.PatientNumber;
-                ClickOnSiteCallback();
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-                ApplicationState.Module3D.OnSelectSite.Invoke(site);
+                m_ColumnManager.SelectedColumn.SelectedSiteID = site.Information.GlobalID;
             }
             else
             {
@@ -2705,7 +2699,7 @@ namespace HBP.Module3D
 
             if (!siteHit)
             {
-                UnselectSite(m_ColumnManager.SelectedColumn);
+                m_ColumnManager.SelectedColumn.SelectedSiteID = -1;
             }
         }
         #endregion

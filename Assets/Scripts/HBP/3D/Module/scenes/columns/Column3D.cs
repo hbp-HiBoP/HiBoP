@@ -144,7 +144,7 @@ namespace HBP.Module3D
         public int SelectedSiteID
         {
             get { return m_SelectedSiteID; }
-            set { m_SelectedSiteID = value; ApplicationState.Module3D.OnRequestUpdateInUI.Invoke(); }
+            set { m_SelectedSiteID = value; OnSelectSite.Invoke(SelectedSite); }
         }
         public Site SelectedSite
         {
@@ -272,6 +272,10 @@ namespace HBP.Module3D
         /// Event called when minimizing a column
         /// </summary>
         public UnityEvent OnChangeMinimizedState = new UnityEvent();
+        /// <summary>
+        /// Event called when selecting a site
+        /// </summary>
+        public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
         #endregion
 
         #region Public Methods
