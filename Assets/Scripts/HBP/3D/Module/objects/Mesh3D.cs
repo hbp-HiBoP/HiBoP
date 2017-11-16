@@ -63,6 +63,8 @@ namespace HBP.Module3D
         #region Properties
         public DLL.Surface Left { get; set; }
         public DLL.Surface Right { get; set; }
+        public DLL.Surface SimplifiedLeft { get; set; }
+        public DLL.Surface SimplifiedRight { get; set; }
         #endregion
 
         #region Constructors
@@ -74,6 +76,7 @@ namespace HBP.Module3D
                 Left.FlipTriangles();
                 Left.ComputeNormals();
                 Left.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlasIndex, mesh.LeftMarsAtlasHemisphere);
+                SimplifiedLeft = Left.Simplify();
             }
 
             Right = new DLL.Surface();
@@ -82,6 +85,7 @@ namespace HBP.Module3D
                 Right.FlipTriangles();
                 Right.ComputeNormals();
                 Right.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlasIndex, mesh.RightMarsAtlasHemisphere);
+                SimplifiedRight = Right.Simplify();
             }
             
             if (Left.IsLoaded && Right.IsLoaded)
@@ -101,6 +105,8 @@ namespace HBP.Module3D
             Left = left;
             Right = right;
             Both = both;
+            SimplifiedLeft = left.Simplify();
+            SimplifiedRight = right.Simplify();
             SimplifiedBoth = both.Simplify();
         }
         #endregion
