@@ -626,12 +626,26 @@ namespace HBP.Module3D
                 if (value < 0)
                 {
                     m_ElectrodesPositiveColor[ii] = false;
-                    value = 0.5f + 2 * (value / diffMin);                    
+                    if (diffMin != 0)
+                    {
+                        value = 0.5f + 2 * (value / diffMin);
+                    }
+                    else
+                    {
+                        value = 1.0f;
+                    }            
                 }
                 else
                 {
                     m_ElectrodesPositiveColor[ii] = true;
-                    value = 0.5f + 2 * (value / diffMax);
+                    if (diffMax != 0)
+                    {
+                        value = 0.5f + 2 * (value / diffMax);
+                    }
+                    else
+                    {
+                        value = 1.0f;
+                    }
                 }
 
                 m_ElectrodesSizeScale[ii] = new Vector3(value, value, value);

@@ -233,7 +233,7 @@ namespace HBP.Module3D
             m_Spheres.Add(sphere);
 
             // DLL
-            Vector3 positionBubble = position;
+            Vector3 positionBubble = sphere.transform.localPosition;
             positionBubble.x = -positionBubble.x;
             m_DLLROI.AddBubble(ray, positionBubble);
 
@@ -290,7 +290,11 @@ namespace HBP.Module3D
         }
         public void ChangeSelectedBubbleSize(float direction)
         {
-            ChangeBubbleSize(SelectedSphereID, direction < 0 ? 0.9f : 1.1f);
+            Debug.Log(direction);
+            if (Mathf.Abs(direction) > 0.2f)
+            {
+                ChangeBubbleSize(SelectedSphereID, direction < 0 ? 0.9f : 1.1f);
+            }
         }
         /// <summary>
         /// 

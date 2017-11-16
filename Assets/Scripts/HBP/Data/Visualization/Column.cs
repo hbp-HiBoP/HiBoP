@@ -2,10 +2,8 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using HBP.Data.Anatomy;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
-using UnityEngine;
 using Tools.CSharp;
 
 
@@ -33,12 +31,16 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Dataset of the column.
         /// </summary>
-        public Dataset Dataset { get; set; }
+        public Dataset Dataset
+        {
+            get { return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(p => p.ID == datasetID); }
+            set { datasetID = value.ID; }
+        }
 
-        /// <summary>
-        /// Data label of the column.
-        /// </summary>
-        [DataMember(Name = "Label")]
+    /// <summary>
+    /// Data label of the column.
+    /// </summary>
+    [DataMember(Name = "Label")]
         public string Data { get; set; }
 
         [DataMember(Name = "Protocol")]
@@ -46,14 +48,22 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Protocol of the column.
         /// </summary>
-        public Protocol Protocol { get; set; }
+        public Protocol Protocol
+        {
+            get { return ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == protocolID); }
+            set { protocolID = value.ID; }
+        }
 
         [DataMember(Name = "Bloc")]
         private string blocID;
         /// <summary>
         /// Protocol bloc of the column.
         /// </summary>
-        public Bloc Bloc { get; set; }
+        public Bloc Bloc
+        {
+            get { return Protocol.Blocs.FirstOrDefault(p => p.ID == blocID); }
+            set { blocID = value.ID; }
+        }
 
         /// <summary>
         /// Configuration of the column.
@@ -79,7 +89,6 @@ namespace HBP.Data.Visualization
             get
             {
                 return Data + " | " + Dataset.Name + " | " + Protocol.Name + " | " + Bloc.Name;
-                //return "Data: " + DataLabel + ", Dataset: " + Dataset.Name + ", Protocol: " + Protocol.Name + ", Bloc: " + Bloc.Name;
             }
         }
         #endregion
@@ -122,11 +131,6 @@ namespace HBP.Data.Visualization
             Dictionary<string, SiteConfiguration> siteConfigurationsByID = new Dictionary<string, SiteConfiguration>();
             foreach (DataInfo dataInfo in columnData)
             {
-                DataManager.GetData(dataInfo, Bloc);
-            }
-            DataManager.NormalizeData();
-            foreach (DataInfo dataInfo in columnData)
-            {
                 Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
                 //FIXME
                 frequency = epochedData.Frequency;
@@ -141,28 +145,28 @@ namespace HBP.Data.Visualization
                     }
                 }
             }
-
             Configuration.ConfigurationBySite = siteConfigurationsByID;
+
             Event mainEvent = new Event();
             Event[] secondaryEvents = new Event[Bloc.SecondaryEvents.Count];
             switch (ApplicationState.GeneralSettings.EventPositionAveraging)
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:
-                    mainEvent = new Event(Bloc.MainEvent.Name,(int) (from bloc in blocs select bloc.PositionByEvent[Bloc.MainEvent]).ToList().Average());
+                    mainEvent = new Event(Bloc.MainEvent.Name,(int) (from bloc in blocs select bloc.PositionByEvent[Bloc.MainEvent]).ToArray().Mean());
                     for (int i = 0; i < secondaryEvents.Length; i++)
                     {
                         List<Localizer.Bloc> blocWhereEventFound = (from bloc in blocs where bloc.PositionByEvent[Bloc.SecondaryEvents[i]] >= 0 select bloc).ToList();
                         float rate = (float) blocWhereEventFound.Count / blocs.Count;
-                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name,(int) (from bloc in blocWhereEventFound select bloc.PositionByEvent[Bloc.SecondaryEvents[i]]).ToList().Average(), rate);
+                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name,(int) (from bloc in blocWhereEventFound select bloc.PositionByEvent[Bloc.SecondaryEvents[i]]).ToArray().Mean(), rate);
                     }
                     break;
                 case Settings.GeneralSettings.AveragingMode.Median:
-                    mainEvent = new Event(Bloc.MainEvent.Name, (from bloc in blocs select bloc.PositionByEvent[Bloc.MainEvent]).ToList().Median());
+                    mainEvent = new Event(Bloc.MainEvent.Name, (from bloc in blocs select bloc.PositionByEvent[Bloc.MainEvent]).ToArray().Median());
                     for (int i = 0; i < secondaryEvents.Length; i++)
                     {
                         List<Localizer.Bloc> blocWhereEventFound = (from bloc in blocs where bloc.PositionByEvent[Bloc.SecondaryEvents[i]] >= 0 select bloc).ToList();
                         float rate = (float)blocWhereEventFound.Count / blocs.Count;
-                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name, (int)(from bloc in blocWhereEventFound select bloc.PositionByEvent[Bloc.SecondaryEvents[i]]).ToList().Median(), rate);
+                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name, (from bloc in blocWhereEventFound select bloc.PositionByEvent[Bloc.SecondaryEvents[i]]).ToArray().Median(), rate);
                     }
                     break;
             }
@@ -216,23 +220,6 @@ namespace HBP.Data.Visualization
         public object Clone()
         {
             return new Column(Dataset, Data, Protocol, Bloc, Configuration.Clone() as ColumnConfiguration);
-        }
-        #endregion
-
-        #region Serialization
-        [OnSerializing]
-        void OnSerializing(StreamingContext streamingContext)
-        {
-            datasetID = Dataset.ID;
-            protocolID = Protocol.ID;
-            blocID = Bloc.ID;
-        }
-        [OnDeserialized]
-        void OnDeserialized(StreamingContext streamingContext)
-        {
-            Dataset = ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(p => p.ID == datasetID);
-            Protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == protocolID);
-            Bloc = Protocol.Blocs.ToList().Find(p => p.ID == blocID);
         }
         #endregion
     }

@@ -14,7 +14,7 @@ namespace Tools.Unity.Graph
         #endregion
 
         #region Constructor
-        public CurveData(string label, IEnumerable<Vector2> points, Color color, float width = 10.0f)
+        public CurveData(string label, IEnumerable<Vector2> points, Color color, float width = 3.0f)
         {
             Label = label;
             Color = color;

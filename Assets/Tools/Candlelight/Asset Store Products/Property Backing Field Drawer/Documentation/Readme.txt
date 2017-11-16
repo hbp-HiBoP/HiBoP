@@ -25,9 +25,9 @@ Using the Package
 --------------------------------------------------------------------------------
 
 This package contains code for a custom property drawer that allows you to
-specify a serialized field on an Object is a backing field for some property.
-The most basic application is to use a "m_" or "_" prefix on your property's
-backing field in conjuction with PropertyBackingFieldAttribute:
+specify that a serialized field on an object is a backing field for some
+property. The most basic application is to use a "m_" or "_" prefix on your
+property's backing field in conjuction with PropertyBackingFieldAttribute:
 
     [SerializeField, Candlelight.PropertyBackingField]
     private int m_Int = 0;
@@ -89,10 +89,11 @@ of the property methods. The backing field may be List<T> and the property T[]:
         m_Lst = new List<int>(value);
     }
 
-If you have a property drawer you would already like to use in conjunction with
-this one, you simply need to specify the type assigned to the property drawer
-in its CustomPropertyDrawer attribute as an additional argument. If the type is
-a PropertyAttribute that takes arguments, you specify them as additional params:
+If you have an existing property drawer you would like to use in conjunction
+with this one, you simply need to specify the type associated with to the
+property drawer in its CustomPropertyDrawer attribute as an additional argument.
+If the type is a PropertyAttribute that takes arguments, specify them as
+additional params:
 
     [SerializeField, Candlelight.PropertyBackingField(
         typeof(RangeAttribute), 0f, 1f // corresponds to [Range(0f, 1f)]
@@ -111,8 +112,9 @@ object in the backing field, and so that the retrieved representations's
 serialized values can be compared with those of the object in the backing field.
 
 If your backing field does not have a "m_" or "_" prefix, or if its name
-otherwise differs from the property to which it corresponds, the name of the
-property can be supplied manually:
+otherwise differs from the property to which it corresponds (including
+differences in capitalization), you can supply the name of the property
+manually:
 
     [SerializeField, Candlelight.PropertyBackingField("SomeInt")]
     private int m_Int = 0;

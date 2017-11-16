@@ -122,24 +122,6 @@ namespace HBP.Data.Experience.Protocol
             Codes = e.Codes;
             Type = e.Type;
         }
-
-        public override bool Equals(object obj)
-        {
-            Event _event = obj as Event;
-            if (_event == null) return false;
-            else return Name == _event.Name && Codes.SequenceEqual(_event.Codes) && Type == _event.Type;
-        }
-        /// <summary>
-        /// Get hash code.
-        /// </summary>
-        /// <returns>HashCode.</returns>
-        public override int GetHashCode()
-        {
-            int nameHashCode = Name.GetHashCode();
-            int typeHashCode = Type.GetHashCode();
-            int codesHashCode = 1; Codes.ForEach((code) => codesHashCode *= code.GetHashCode());
-            return nameHashCode ^ codesHashCode ^ typeHashCode;
-        }
         #endregion
     }
 }

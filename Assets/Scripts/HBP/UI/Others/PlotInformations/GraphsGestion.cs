@@ -8,6 +8,7 @@ using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 using Tools.Unity.Graph;
 using UnityEngine.Events;
+using Tools.CSharp;
 
 namespace HBP.UI.Graph
 {
@@ -58,7 +59,8 @@ namespace HBP.UI.Graph
         // Curves
         [SerializeField]
         Tools.Unity.Graph.Graph m_Graph;
-        List<Color> m_Colors = new List<Color> { Color.blue, Color.red, Color.green, Color.cyan, Color.grey, Color.magenta, Color.yellow };
+        [SerializeField] List<ColumnColor> m_Colors;
+        //List<Color> m_Colors = new List<Color> { Color.blue, Color.red, Color.green, Color.cyan, Color.grey, Color.magenta, Color.yellow };
         Dictionary<Column, Dictionary<Site, CurveData>> m_CurveBySiteAndColumn = new Dictionary<Column, Dictionary<Site, CurveData>>();
         Dictionary<Column, CurveData> m_ROICurvebyColumn = new Dictionary<Column, CurveData>();
 
@@ -196,11 +198,12 @@ namespace HBP.UI.Graph
             {
                 Column column = m_Scene.ColumnManager.ColumnsIEEG[c].ColumnData;
                 m_CurveBySiteAndColumn[column] = new Dictionary<Site, CurveData>();
-                foreach (var site in m_Sites)
+                for (int s = 0; s < m_Sites.Length; s++)
                 {
+                    Site site = m_Sites[s];
                     Data.TrialMatrix.TrialMatrix trialMatrixData = m_TrialMatrixByProtocolBySite[column.Protocol][site];
                     TrialMatrix.TrialMatrix trialMatrix = m_TrialMatrixList.TrialMatrix.First((t) => t.Data == trialMatrixData);
-                    TrialMatrix.Bloc trialMatrixBloc = new TrialMatrix.Bloc();
+                    TrialMatrix.Bloc trialMatrixBloc = null;
                     foreach (var line in trialMatrix.Lines)
                     {
                         foreach (var bloc in line.Blocs)
@@ -228,8 +231,8 @@ namespace HBP.UI.Graph
                             }
 
                             //Find selectedLines
-                            data[i] = Tools.CSharp.MathfExtension.Average(l_dataList.ToArray());
-                            standardDeviations[i] = Tools.CSharp.MathfExtension.SEM(l_dataList.ToArray());
+                            data[i] = l_dataList.ToArray().Mean();
+                            standardDeviations[i] = l_dataList.ToArray().SEM();
                         }
 
                         // Generate points.
@@ -246,7 +249,7 @@ namespace HBP.UI.Graph
                             points[i] = new Vector2(absciss, data[index]);
                         }
 
-                        m_CurveBySiteAndColumn[column][site] = new ShapedCurveData("C" + (c + 1) + " " + site.Information.Name, points, standardDeviations, GetCurveColor(c));
+                        m_CurveBySiteAndColumn[column][site] = new ShapedCurveData("C" + (c + 1) + " " + site.Information.Name, points, standardDeviations, GetCurveColor(c,s),1.5f);
                     }
                     else if (linesToRead.Length == 1)
                     {
@@ -268,10 +271,11 @@ namespace HBP.UI.Graph
                         }
 
                         //Create curve
-                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, points, GetCurveColor(c));
+                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, points, GetCurveColor(c,s),1.5f);
                     }
                     else continue;
                 }
+
                 // ROI
                 if (m_Scene.ColumnManager.ColumnsIEEG[c].ROIs.Count > 0 && m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI != null)
                 {
@@ -286,7 +290,7 @@ namespace HBP.UI.Graph
                             {
                                 sum.Add(site.Configuration.NormalizedValues[i]);
                             }
-                            ROIdata[i] = Tools.CSharp.MathfExtension.Average(sum.ToArray());
+                            ROIdata[i] = sum.ToArray().Mean();
                         }
 
                         // Generate points.
@@ -302,7 +306,7 @@ namespace HBP.UI.Graph
                             float absciss = min + ((max - min) * (index - pMin) / (pMax - pMin));
                             points[i] = new Vector2(absciss, ROIdata[index]);
                         }
-                        m_ROICurvebyColumn[column] = new CurveData("C" + (c + 1) + " " + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, points, GetCurveColor(c));
+                        m_ROICurvebyColumn[column] = new CurveData("C" + (c + 1) + " " + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, points, GetCurveColor(c,-1),3.0f);
                     }
                 }
             }
@@ -336,14 +340,33 @@ namespace HBP.UI.Graph
             }
             UnityEngine.Profiling.Profiler.EndSample();
         }
-        Color GetCurveColor(int index)
+        Color GetCurveColor(int column,int site)
         {
-            if (index >= m_Colors.Count)
+            ColumnColor columnColor = m_Colors[column];
+            if(site == -1)
             {
-                Color color = new Color(Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), Random.Range(0.0f, 1.0f), 1.0f);
-                m_Colors.Add(color);
+                return columnColor.ROI;
             }
-            return m_Colors[index];
+            else if(site == 0)
+            {
+                return columnColor.Site1;
+            }
+            else if (site == 1)
+            {
+                return columnColor.Site2;
+            }
+            else if (site == 2)
+            {
+                return columnColor.Site3;
+            }
+            else if (site == 3)
+            {
+                return columnColor.Site4;
+            }
+            else
+            {
+                return new Color();
+            }
         }
         #endregion
 

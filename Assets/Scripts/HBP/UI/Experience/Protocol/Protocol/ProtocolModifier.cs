@@ -20,6 +20,7 @@ namespace HBP.UI.Experience.Protocol
         #region Private Methods
         protected void OnListEvent(d.Bloc bloc, int type)
         {
+            ItemTemp.Blocs = blocGrid.Objects.ToList();
             if (type == 0 || type == -1) OpenBlocModifier(bloc);
         }
         protected void OpenBlocModifier(d.Bloc bloc)

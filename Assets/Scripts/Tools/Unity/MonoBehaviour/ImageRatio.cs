@@ -37,6 +37,8 @@ public class ImageRatio : LayoutElement
     }
     void Set()
     {
+        if (m_Image.sprite == null) return;
+
         if (Type == RatioType.FixedHeight)
         {
             float ratio = (float)m_Image.sprite.texture.height / m_Image.sprite.texture.width;

@@ -14,12 +14,15 @@ namespace Tools.Unity.Graph
         WindowInputGestion windowInputGestion;
         Limits limits;
         [HideInInspector] public UnityEvent OnAutoLimits = new UnityEvent();
+        [HideInInspector] public GenericEvent<CurveData, bool> OnDisplayCurve = new GenericEvent<CurveData, bool>();
         #endregion
 
         #region Public Methods
-        public void SetLegends(CurveData[] curves)
+        public void SetLegends(Tuple<CurveData,bool>[] curves)
         {
             if(legendsGestion != null) legendsGestion.SetLegends(curves);
+            legendsGestion.OnDisplayCurve.RemoveAllListeners();
+            legendsGestion.OnDisplayCurve.AddListener(OnDisplayCurve.Invoke);
         }
         public void SetTitle(string title)
         {

@@ -23,6 +23,7 @@ namespace Tools.Unity.Graph
             Ratio = ratio;
             positions = (from point in data.Points select point.GetLocalPosition(Limits.Origin,Ratio)).ToArray();
             lineRenderer.Points = positions;
+            lineRenderer.LineThickness = data.Width;
             lineRenderer.color = data.Color;
         }
         public virtual void SetFields()
