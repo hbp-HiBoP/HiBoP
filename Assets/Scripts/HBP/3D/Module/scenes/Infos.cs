@@ -55,6 +55,7 @@ namespace HBP.Module3D
         // surface
         public MeshPart MeshPartToDisplay = MeshPart.Both; /**< mesh part to be displayed in the scene */
         public DLL.Surface MeshToDisplay = null; /**< reference of the mesh to be displayed */
+        public DLL.Surface SimplifiedMeshToUse = null;
         public Vector3 MeshCenter = new Vector3(0, 0, 0); /**< center of the loaded mesh */
 
         // loop check        
