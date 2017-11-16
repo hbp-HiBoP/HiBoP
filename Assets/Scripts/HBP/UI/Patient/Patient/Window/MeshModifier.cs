@@ -21,7 +21,16 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public override void Save()
         {
-            Item = ItemTemp;
+            if (m_TypeDropdown.value == (int)Type.Single)
+            {
+                SingleMesh mesh = (SingleMesh)ItemTemp;
+                Item = new SingleMesh(mesh.Name, mesh.Transformation, mesh.ID, mesh.Path, mesh.MarsAtlasPath);
+            }
+            else if (m_TypeDropdown.value == (int)Type.LeftRight)
+            {
+                LeftRightMesh mesh = (LeftRightMesh)ItemTemp;
+                Item = new LeftRightMesh(mesh.Name, mesh.Transformation, mesh.ID, mesh.LeftHemisphere, mesh.RightHemisphere, mesh.LeftMarsAtlasHemisphere, mesh.RightMarsAtlasHemisphere);
+            }
             SaveEvent.Invoke();
             base.Close();
         }
@@ -93,7 +102,7 @@ namespace HBP.UI.Anatomy
                     itemTemp = new LeftRightMesh(singleMesh.Name, singleMesh.Transformation, singleMesh.ID, singleMesh.Path, singleMesh.Path, singleMesh.MarsAtlasPath, singleMesh.MarsAtlasPath);
                 }
                 m_SingleMeshGestion.SetActive(false);
-                m_LeftRightMeshGestion.Set(ItemTemp as LeftRightMesh);
+                m_LeftRightMeshGestion.Set((LeftRightMesh) ItemTemp);
                 m_LeftRightMeshGestion.SetActive(true);
             }
         }
