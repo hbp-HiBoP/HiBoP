@@ -2109,13 +2109,40 @@ namespace HBP.Module3D
         }
         public void ComputeSimplifyMeshCut()
         {
-            if (m_ColumnManager.SelectedMesh.SimplifiedBoth == null) return;
+            // choose the mesh
+            SceneInformation.SimplifiedMeshToUse = new DLL.Surface();
+            if (m_ColumnManager.SelectedMesh is LeftRightMesh3D)
+            {
+                LeftRightMesh3D selectedMesh = (LeftRightMesh3D)m_ColumnManager.SelectedMesh;
+                switch (SceneInformation.MeshPartToDisplay)
+                {
+                    case SceneStatesInfo.MeshPart.Left:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
+                        break;
+                    case SceneStatesInfo.MeshPart.Right:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
+                        break;
+                    case SceneStatesInfo.MeshPart.Both:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
+                        break;
+                    default:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
+                        break;
+                }
+            }
+            else
+            {
+                SceneInformation.SimplifiedMeshToUse = m_ColumnManager.SelectedMesh.SimplifiedBoth;
+            }
+
+            if (SceneInformation.SimplifiedMeshToUse == null) return;
+
             // cut the mesh
             List<DLL.Surface> cuts;
             if (Cuts.Count > 0)
-                cuts = new List<DLL.Surface>(m_ColumnManager.SelectedMesh.SimplifiedBoth.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled)); //Maybe FIXME : do not allow holes
+                cuts = new List<DLL.Surface>(SceneInformation.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled)); //Maybe FIXME : do not allow holes
             else
-                cuts = new List<DLL.Surface>() { (DLL.Surface)m_ColumnManager.SelectedMesh.SimplifiedBoth.Clone() };
+                cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.SimplifiedMeshToUse.Clone() };
 
             if (m_ColumnManager.DLLCutsList.Count != cuts.Count)
                 m_ColumnManager.DLLCutsList = cuts;
@@ -2996,11 +3023,12 @@ namespace HBP.Module3D
                 Mesh colliderMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh;
                 yield return Ninja.JumpBack;
                 // cut the simplified mesh
+                if (SceneInformation.SimplifiedMeshToUse == null) SceneInformation.SimplifiedMeshToUse = m_ColumnManager.SelectedMesh.SimplifiedBoth;
                 List<DLL.Surface> cuts;
                 if (Cuts.Count > 0)
-                    cuts = new List<DLL.Surface>(m_ColumnManager.SelectedMesh.SimplifiedBoth.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled)); //Maybe FIXME : do not allow holes
+                    cuts = new List<DLL.Surface>(SceneInformation.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled)); //Maybe FIXME : do not allow holes
                 else
-                    cuts = new List<DLL.Surface>() { (DLL.Surface)m_ColumnManager.SelectedMesh.SimplifiedBoth.Clone() };
+                    cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.SimplifiedMeshToUse.Clone() };
                 yield return Ninja.JumpToUnity;
                 cuts[0].UpdateMeshFromDLL(colliderMesh, false, true, false, false, true, false);
                 m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
