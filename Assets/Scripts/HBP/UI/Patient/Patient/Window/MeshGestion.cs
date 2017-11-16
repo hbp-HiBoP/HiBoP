@@ -64,6 +64,10 @@ namespace HBP.UI.Anatomy
         public void Save()
         {
             m_Patient.Brain.Meshes = m_MeshList.Objects.ToList();
+            foreach (var item in m_MeshList.Objects)
+            {
+                Debug.Log(item.Name);
+            }
         }
         #endregion
 
@@ -84,17 +88,11 @@ namespace HBP.UI.Anatomy
         }
         void OnSaveModifier()
         {
-            m_Patient.Brain.Meshes = m_MeshList.Objects.ToList();
-            int index = m_MeshList.Objects.ToList().FindIndex((m) => m.Equals(m_Modifier.Item));
-            if (index < 0)
+            if (m_MeshList.Objects.Contains(m_Modifier.Item))
             {
-                m_MeshList.Add(m_Modifier.Item);
+                m_MeshList.Remove(m_Modifier.Item);
             }
-            else
-            {
-                m_MeshList.Objects[index] = m_Modifier.Item;
-                m_MeshList.UpdateObject(m_Modifier.Item);
-            }
+            m_MeshList.Add(m_Modifier.Item);
             m_MeshList.SortByNone();
         }
         #endregion
