@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Tools.Unity.Lists
 {
-    [RequireComponent(typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter))]
+    [RequireComponent(typeof(RectTransform), typeof(VerticalLayoutGroup) , typeof(ContentSizeFitter))]
     public class List<T> : MonoBehaviour
     {
         #region Properties

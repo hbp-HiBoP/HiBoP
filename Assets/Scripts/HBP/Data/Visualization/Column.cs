@@ -2,10 +2,8 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using HBP.Data.Anatomy;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
-using UnityEngine;
 using Tools.CSharp;
 
 
@@ -33,12 +31,16 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Dataset of the column.
         /// </summary>
-        public Dataset Dataset { get; set; }
+        public Dataset Dataset
+        {
+            get { return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(p => p.ID == datasetID); }
+            set { datasetID = value.ID; }
+        }
 
-        /// <summary>
-        /// Data label of the column.
-        /// </summary>
-        [DataMember(Name = "Label")]
+    /// <summary>
+    /// Data label of the column.
+    /// </summary>
+    [DataMember(Name = "Label")]
         public string Data { get; set; }
 
         [DataMember(Name = "Protocol")]
@@ -46,14 +48,22 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Protocol of the column.
         /// </summary>
-        public Protocol Protocol { get; set; }
+        public Protocol Protocol
+        {
+            get { return ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == protocolID); }
+            set { protocolID = value.ID; }
+        }
 
         [DataMember(Name = "Bloc")]
         private string blocID;
         /// <summary>
         /// Protocol bloc of the column.
         /// </summary>
-        public Bloc Bloc { get; set; }
+        public Bloc Bloc
+        {
+            get { return Protocol.Blocs.FirstOrDefault(p => p.ID == blocID); }
+            set { blocID = value.ID; }
+        }
 
         /// <summary>
         /// Configuration of the column.
@@ -79,7 +89,6 @@ namespace HBP.Data.Visualization
             get
             {
                 return Data + " | " + Dataset.Name + " | " + Protocol.Name + " | " + Bloc.Name;
-                //return "Data: " + DataLabel + ", Dataset: " + Dataset.Name + ", Protocol: " + Protocol.Name + ", Bloc: " + Bloc.Name;
             }
         }
         #endregion
@@ -211,23 +220,6 @@ namespace HBP.Data.Visualization
         public object Clone()
         {
             return new Column(Dataset, Data, Protocol, Bloc, Configuration.Clone() as ColumnConfiguration);
-        }
-        #endregion
-
-        #region Serialization
-        [OnSerializing]
-        void OnSerializing(StreamingContext streamingContext)
-        {
-            datasetID = Dataset.ID;
-            protocolID = Protocol.ID;
-            blocID = Bloc.ID;
-        }
-        [OnDeserialized]
-        void OnDeserialized(StreamingContext streamingContext)
-        {
-            Dataset = ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(p => p.ID == datasetID);
-            Protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == protocolID);
-            Bloc = Protocol.Blocs.ToList().Find(p => p.ID == blocID);
         }
         #endregion
     }
