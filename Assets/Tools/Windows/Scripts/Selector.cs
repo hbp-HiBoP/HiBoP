@@ -32,11 +32,13 @@ public class Selector : MonoBehaviour
     #region Private Methods
     void Start()
     {
-        FindObjectOfType<SelectionManager>().Add(this);
+        SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
+        if (selectionManager) selectionManager.Add(this);
     }
     private void OnDestroy()
     {
-        FindObjectOfType<SelectionManager>().Remove(this);
+        SelectionManager selectionManager = FindObjectOfType<SelectionManager>();
+        if (selectionManager) selectionManager.Remove(this);
     }
     #endregion
 }

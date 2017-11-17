@@ -28,7 +28,6 @@ namespace HBP.UI.Anatomy
                 m_Interactable = value;
                 m_AddMeshButton.interactable = value;
                 m_RemoveMeshButton.interactable = value;
-                m_MeshList.interactable = value;
             }
         }
         #endregion

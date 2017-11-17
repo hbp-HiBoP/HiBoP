@@ -27,7 +27,6 @@ namespace HBP.UI.Anatomy
                 m_Interactable = value;
                 m_AddButton.interactable = interactable;
                 m_RemoveButton.interactable = interactable;
-                m_ConnectivityList.interactable = interactable;
             }
         }
         #endregion
