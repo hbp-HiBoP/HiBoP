@@ -44,14 +44,7 @@ namespace HBP.Data.Anatomy
             Epilepsy = epilepsy;
         }
         public Brain() : this(new Mesh[0], new MRI[0], new Connectivity[0], new Implantation[0], new Epilepsy()) { }
-        public Brain(string path)
-        {
-            Meshes = Mesh.GetMeshes(path).ToList();
-            MRIs = MRI.GetMRIs(path).ToList();
-            Implantations = Implantation.GetImplantations(path).ToList();
-            Connectivities = new List<Connectivity>();
-            Epilepsy = new Epilepsy(Epilepsy.EpilepsyType.Unknown);
-        }
+        public Brain(string path) : this(Mesh.GetMeshes(path), MRI.GetMRIs(path), new List<Connectivity>(), Implantation.GetImplantations(path), new Epilepsy(Epilepsy.EpilepsyType.Unknown)) { }
         #endregion
 
         #region Operators

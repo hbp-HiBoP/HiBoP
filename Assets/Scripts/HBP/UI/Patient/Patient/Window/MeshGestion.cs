@@ -37,6 +37,8 @@ namespace HBP.UI.Anatomy
         public void Set(Data.Patient patient)
         {
             m_Patient = patient;
+            m_MeshList.Initialize();
+
             m_MeshList.OnSelectionChanged.RemoveAllListeners();
             m_MeshList.OnSelectionChanged.AddListener((mesh, i) => m_MeshCounter.text = m_MeshList.ObjectsSelected.Length.ToString());
 
@@ -64,10 +66,6 @@ namespace HBP.UI.Anatomy
         public void Save()
         {
             m_Patient.Brain.Meshes = m_MeshList.Objects.ToList();
-            foreach (var item in m_MeshList.Objects)
-            {
-                Debug.Log(item.Name);
-            }
         }
         #endregion
 

@@ -36,6 +36,8 @@ namespace HBP.UI.Anatomy
         public void Set(Data.Patient patient)
         {
             m_Patient = patient;
+            m_ConnectivityList.Initialize();
+
             m_ConnectivityList.OnSelectionChanged.RemoveAllListeners();
             m_ConnectivityList.OnSelectionChanged.AddListener((mesh, i) => m_ConnectivityCounter.text = m_ConnectivityList.ObjectsSelected.Length.ToString());
 

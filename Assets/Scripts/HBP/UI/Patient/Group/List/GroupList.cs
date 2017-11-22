@@ -23,17 +23,17 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.Name;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.DescendingName;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
+            ApplySort();
             m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByName()
@@ -49,17 +49,17 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Patients.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Patients.Count).ToList();
                     m_OrderBy = OrderBy.Patients;
                     m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Patients.Count).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Patients.Count).ToList();
                     m_OrderBy = OrderBy.DescendingPatients;
                     m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
+            ApplySort();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByPatients()

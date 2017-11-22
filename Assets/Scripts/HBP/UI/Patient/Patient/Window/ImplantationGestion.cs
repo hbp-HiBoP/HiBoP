@@ -33,6 +33,8 @@ namespace HBP.UI.Anatomy
         public void Set(Data.Patient patient)
         {
             m_Patient = patient;
+            m_ImplantationList.Initialize();
+
             m_ImplantationList.OnSelectionChanged.RemoveAllListeners();
             m_ImplantationList.OnSelectionChanged.AddListener((mesh, i) => m_ImplantationCounter.text = m_ImplantationList.ObjectsSelected.Length.ToString());
 

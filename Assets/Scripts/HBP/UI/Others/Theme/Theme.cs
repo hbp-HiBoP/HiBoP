@@ -41,6 +41,11 @@ namespace HBP.UI.Theme
             public Color Background = new Color();
             public LoadingCircleTheme LoadingCircle;
             public DialogBoxTheme DialogBox;
+            public CursorTheme LeftRightCursor;
+            public CursorTheme TopBottomCursor;
+            public CursorTheme BottomLeftTopRightCursor;
+            public CursorTheme TopLeftBottomRightCursor;
+            public CursorTheme MoveCursor;
 
             public void SetDefaultValues()
             {
@@ -1186,6 +1191,13 @@ namespace HBP.UI.Theme
                 Button.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
                 Button.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
             }
+        }
+
+        [System.Serializable]
+        public struct CursorTheme
+        {
+            public Texture2D Texture;
+            public Vector2 Offset;
         }
     }
 }

@@ -31,6 +31,7 @@ namespace HBP.UI.Anatomy
                 LeftRightMesh mesh = (LeftRightMesh)ItemTemp;
                 Item = new LeftRightMesh(mesh.Name, mesh.Transformation, mesh.ID, mesh.LeftHemisphere, mesh.RightHemisphere, mesh.LeftMarsAtlasHemisphere, mesh.RightMarsAtlasHemisphere);
             }
+            Item.RecalculateUsable();
             SaveEvent.Invoke();
             base.Close();
         }

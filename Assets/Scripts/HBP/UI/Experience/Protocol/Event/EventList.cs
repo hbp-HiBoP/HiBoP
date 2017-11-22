@@ -24,17 +24,17 @@ namespace HBP.UI.Experience.Protocol
             switch (m_OrderBy)
             {
                 case OrderBy.DescendingName:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.Name;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 default:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.DescendingName;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
+            ApplySort();
             m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
 
@@ -46,17 +46,17 @@ namespace HBP.UI.Experience.Protocol
             switch (m_OrderBy)
             {
                 case OrderBy.DescendingCode:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Codes.Min()).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Codes.Min()).ToList();
                     m_OrderBy = OrderBy.Code;
                     m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 default:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Codes.Min()).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Codes.Min()).ToList();
                     m_OrderBy = OrderBy.DescendingCode;
                     m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
+            ApplySort();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         #endregion

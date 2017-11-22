@@ -12,13 +12,6 @@ namespace HBP.Data.Anatomy
         [DataMember(Order = 2)] public string RightHemisphere { get; set; }
         [DataMember(Order = 3)] public string LeftMarsAtlasHemisphere { get; set; }
         [DataMember(Order = 4)] public string RightMarsAtlasHemisphere { get; set; }
-        public override bool Usable
-        {
-            get
-            {
-                return base.Usable && HasMesh;
-            }
-        }
         public override bool HasMesh
         {
             get
@@ -42,6 +35,7 @@ namespace HBP.Data.Anatomy
             RightHemisphere = rightHemisphere;
             LeftMarsAtlasHemisphere = leftMarsAtlasHemisphere;
             RightMarsAtlasHemisphere = rightMarsAtlasHemisphere;
+            RecalculateUsable();
         }
         public LeftRightMesh(string name, string transformation, string leftHemisphere, string rightHemisphere, string leftMarsAtlasHemisphere, string rightMarsAtlasHemisphere) : base(name, transformation)
         {
@@ -49,6 +43,7 @@ namespace HBP.Data.Anatomy
             RightHemisphere = rightHemisphere;
             LeftMarsAtlasHemisphere = leftMarsAtlasHemisphere;
             RightMarsAtlasHemisphere = rightMarsAtlasHemisphere;
+            RecalculateUsable();
         }
         public LeftRightMesh():this("New mesh", string.Empty, Guid.NewGuid().ToString(), string.Empty, string.Empty, string.Empty,string.Empty) { }
         #endregion

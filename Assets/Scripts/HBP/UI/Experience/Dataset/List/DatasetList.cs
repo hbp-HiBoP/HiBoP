@@ -21,17 +21,17 @@ namespace HBP.UI.Experience.Dataset
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.Name;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.DescendingName;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
+            ApplySort();
             m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
@@ -48,17 +48,17 @@ namespace HBP.UI.Experience.Dataset
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Protocol.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Protocol.Name).ToList();
                     m_OrderBy = OrderBy.Protocol;
                     m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Protocol.Name).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Protocol.Name).ToList();
                     m_OrderBy = OrderBy.DescendingProtocol;
                     m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
+            ApplySort();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
@@ -75,17 +75,17 @@ namespace HBP.UI.Experience.Dataset
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderBy((elt) => elt.Key.Data.Length).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Data.Length).ToList();
                     m_OrderBy = OrderBy.Data;
                     m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_ObjectsToItems = m_ObjectsToItems.OrderByDescending((elt) => elt.Key.Data.Length).ToDictionary(k => k.Key, v => v.Value);
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Data.Length).ToList();
                     m_OrderBy = OrderBy.DescendingData;
                     m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            foreach (var item in m_ObjectsToItems.Values) item.transform.SetAsLastSibling();
+            ApplySort();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }

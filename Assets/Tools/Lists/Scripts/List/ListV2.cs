@@ -43,7 +43,7 @@ namespace Tools.Unity.Lists
         {
             if (!m_ObjectsToItems.Keys.Contains(objectToAdd))
             {
-                GameObject prefab = m_Prefabs.First((p) => p.GetComponent<Item<IListable>>().Type == objectToAdd.GetType());
+                GameObject prefab = m_Prefabs.First(/*(p) => p.GetComponent<Item<IListable>>().Type == objectToAdd.GetType()*/);
                 Item<IListable> item = Instantiate(prefab, transform).GetComponent<Item<IListable>>();
                 m_ObjectsToItems.Add(objectToAdd, item);
                 item.Object = objectToAdd;

@@ -33,6 +33,8 @@ namespace HBP.UI.Anatomy
         public void Set(Data.Patient patient)
         {
             m_Patient = patient;
+            m_MRIList.Initialize();
+
             m_MRIList.OnSelectionChanged.RemoveAllListeners();
             m_MRIList.OnSelectionChanged.AddListener((mesh, i) => m_MRICounter.text = m_MRIList.ObjectsSelected.Length.ToString());
 

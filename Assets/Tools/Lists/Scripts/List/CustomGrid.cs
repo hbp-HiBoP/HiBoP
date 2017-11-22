@@ -109,7 +109,7 @@ namespace Tools.Unity.Lists
             Transform l_transform = l_gameObject.transform;
             Set(l_transform,obj);
             ActionnableItem<T> l_item = l_transform.GetComponent<ActionnableItem<T>>();
-            l_item.OnAction.AddListener((b, type) => ItemEvent(b, type));
+            l_item.OnAction.AddListener((type) => ItemEvent(obj, type));
             l_transform.SetParent(GetContainer(l_item.Object));
             l_transform.localScale = new Vector3(1, 1, 1);
             l_transform.transform.localPosition = new Vector3(0, 0, 0);

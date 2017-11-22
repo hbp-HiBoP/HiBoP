@@ -17,9 +17,22 @@ namespace HBP.Data.Anatomy
         [DataMember] public string File { get; set; }
         [IgnoreDataMember] public List<Site> Sites { get; set; }
         [IgnoreDataMember] public Brain Brain { get; set; }
-        public virtual bool Usable
+        protected bool m_WasUsable;
+        public bool WasUsable
         {
-            get { return !string.IsNullOrEmpty(Name) && HasImplantation; }
+            get
+            {
+                return m_WasUsable;
+            }
+        }
+        public bool Usable
+        {
+            get
+            {
+                bool usable = !string.IsNullOrEmpty(Name) && HasImplantation;
+                m_WasUsable = usable;
+                return usable;
+            }
         }
         public virtual bool HasImplantation
         {
@@ -36,6 +49,7 @@ namespace HBP.Data.Anatomy
             Name = name;
             File = path;
             Sites = new List<Site>();
+            RecalculateUsable();
         }
         public Implantation() : this("New implantation", string.Empty)
         {
@@ -43,6 +57,10 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Public Methods
+        public bool RecalculateUsable()
+        {
+            return Usable;
+        }
         public Error Load()
         {
             if (string.IsNullOrEmpty(File)) return Error.PathIsNullOrEmpty;
@@ -125,6 +143,14 @@ namespace HBP.Data.Anatomy
             Implantation implantation = copy as Implantation;
             Name = implantation.Name;
             File = implantation.File;
+        }
+        #endregion
+
+        #region Serialization
+        [OnDeserialized()]
+        public void OnDeserialized(StreamingContext context)
+        {
+            RecalculateUsable();
         }
         #endregion
     }
