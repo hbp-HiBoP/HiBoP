@@ -147,12 +147,12 @@ namespace HBP.UI.Experience.Protocol
             m_BaselineMaxInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Baseline").Find("Panel").Find("Max").GetComponentInChildren<InputField>();
 
             // Events.
-            m_EventList = transform.Find("Content").Find("Events").Find("List").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<EventList>();
+            m_EventList = transform.Find("Content").Find("Events").Find("List").Find("List").Find("Display").GetComponent<EventList>();
             m_AddEventButton = transform.Find("Content").Find("Events").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
             m_RemoveEventButton = transform.Find("Content").Find("Events").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
 
             // Icons.
-            m_IconList = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<IconList>();
+            m_IconList = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("List").Find("Display").GetComponent<IconList>();
             m_AddIconButton = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
             m_RemoveIconButton = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
 

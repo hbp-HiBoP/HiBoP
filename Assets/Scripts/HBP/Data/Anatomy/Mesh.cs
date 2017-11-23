@@ -13,9 +13,22 @@ namespace HBP.Data.Anatomy
         public const string EXTENSION = ".gii";
         [DataMember(Order = 0)] public string Name { get; set; }
         [DataMember] public string ID { get; set; }
-        public virtual bool Usable
+        protected bool m_WasUsable;
+        public bool WasUsable
         {
-            get { return !string.IsNullOrEmpty(Name) && HasMesh; }
+            get
+            {
+                return m_WasUsable;
+            }
+        }
+        public bool Usable
+        {
+            get
+            {
+                bool usable = !string.IsNullOrEmpty(Name) && HasMesh;
+                m_WasUsable = usable;
+                return usable;
+            }
         }
         public abstract bool HasMesh { get; }
         public abstract bool HasMarsAtlas { get; }
@@ -42,6 +55,10 @@ namespace HBP.Data.Anatomy
         #endregion
 
         #region Public Methods
+        public bool RecalculateUsable()
+        {
+            return Usable;
+        }
         public static Mesh[] GetMeshes(string path)
         {
             List<Mesh> meshes = new List<Mesh>();
@@ -135,6 +152,14 @@ namespace HBP.Data.Anatomy
             Name = mesh.Name;
             Transformation = mesh.Transformation;
             ID = mesh.ID;
+        }
+        #endregion
+
+        #region Serialization
+        [OnDeserialized()]
+        public void OnDeserialized(StreamingContext context)
+        {
+            RecalculateUsable();
         }
         #endregion
     }

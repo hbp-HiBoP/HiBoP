@@ -38,12 +38,13 @@ namespace HBP.UI.Anatomy
 
             set
             {
+                UnityEngine.Profiling.Profiler.BeginSample("Set Patient");
                 base.Object = value;
                 m_NameText.text = value.Name;
                 m_PlaceText.text = value.Place;
                 m_DateText.text = value.Date.ToString();
-
-                int nbMesh = value.Brain.Meshes.FindAll((m) => m.Usable).Count;
+                
+                int nbMesh = value.Brain.Meshes.Count((m) => m.WasUsable);
                 m_MeshText.text = nbMesh.ToString();
                 if (nbMesh == 0)
                 {
@@ -56,7 +57,7 @@ namespace HBP.UI.Anatomy
                     m_MeshButton.interactable = true;
                 }
 
-                int nbMRI = value.Brain.MRIs.FindAll((m) => m.Usable).Count;
+                int nbMRI = value.Brain.MRIs.Count((m) => m.WasUsable);
                 m_MRIText.text = nbMRI.ToString();
                 if (nbMRI == 0)
                 {
@@ -69,7 +70,7 @@ namespace HBP.UI.Anatomy
                     m_MRIButton.interactable = true;
                 }
 
-                int nbImplantation = value.Brain.Implantations.FindAll((i) => i.Usable).Count;
+                int nbImplantation = value.Brain.Implantations.Count((i) => i.WasUsable);
                 m_ImplantationText.text = nbImplantation.ToString();
                 if (nbImplantation == 0)
                 {
@@ -81,8 +82,8 @@ namespace HBP.UI.Anatomy
                     m_ImplantationText.color = ApplicationState.GeneralSettings.Theme.Window.Content.Text.Color;
                     m_ImplantationButton.interactable = true;
                 }
-
-                int nbConnectivity = value.Brain.Connectivities.FindAll(c => c.isUsable).Count;
+                
+                int nbConnectivity = value.Brain.Connectivities.Count(c => c.WasUsable);
                 m_ConnectivityText.text = nbConnectivity.ToString();
                 if (nbConnectivity == 0)
                 {
@@ -94,6 +95,8 @@ namespace HBP.UI.Anatomy
                     m_ConnectivityText.color = ApplicationState.GeneralSettings.Theme.Window.Content.Text.Color;
                     m_ConnectivityButton.interactable = true;
                 }
+
+                UnityEngine.Profiling.Profiler.EndSample();
             }
         }
         #endregion
@@ -102,19 +105,23 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public void SetMeshes()
         {
-            m_MeshList.Objects = (from mesh in m_Object.Brain.Meshes where mesh.Usable select mesh.Name).ToArray();
+            m_MeshList.Initialize();
+            m_MeshList.Objects = (from mesh in m_Object.Brain.Meshes where mesh.WasUsable select mesh.Name).ToArray();
         }
         public void SetMRIs()
         {
-            m_MRIList.Objects = (from mri in m_Object.Brain.MRIs where mri.Usable select mri.Name).ToArray();
+            m_MRIList.Initialize();
+            m_MRIList.Objects = (from mri in m_Object.Brain.MRIs where mri.WasUsable select mri.Name).ToArray();
         }
         public void SetImplantations()
         {
-            m_ImplantationList.Objects = (from implantation in m_Object.Brain.Implantations where implantation.Usable select implantation.Name).ToArray();
+            m_ImplantationList.Initialize();
+            m_ImplantationList.Objects = (from implantation in m_Object.Brain.Implantations where implantation.WasUsable select implantation.Name).ToArray();
         }
         public void SetConnectivities()
         {
-            m_ConnectivityList.Objects = (from connectivity in m_Object.Brain.Connectivities where connectivity.isUsable select connectivity.Name).ToArray();
+            m_ConnectivityList.Initialize();
+            m_ConnectivityList.Objects = (from connectivity in m_Object.Brain.Connectivities where connectivity.WasUsable select connectivity.Name).ToArray();
         }
         #endregion
     }

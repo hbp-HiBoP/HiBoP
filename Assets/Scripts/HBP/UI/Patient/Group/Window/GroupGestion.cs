@@ -31,7 +31,7 @@ namespace HBP.UI.Anatomy
         #region Protected Methods
         protected override void SetWindow()
         {
-            m_List = transform.Find("Content").Find("Groups").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<GroupList>();
+            m_List = transform.Find("Content").Find("Groups").Find("List").Find("Display").GetComponent<GroupList>();
             (m_List as GroupList).OnAction.AddListener((item,i) => OpenModifier(item,true));
             AddItem(ApplicationState.ProjectLoaded.Groups.ToArray());
 

@@ -21,7 +21,7 @@ namespace HBP.UI.Anatomy
         #region Private Methods
         protected override void SetWindow()
         {
-            groupList = transform.Find("Content").Find("Groups").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<GroupList>();
+            groupList = transform.Find("Content").Find("Groups").Find("List").Find("Display").GetComponent<GroupList>();
             groupList.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
             groupList.SortByName(GroupList.Sorting.Descending);
         }

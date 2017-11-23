@@ -13,9 +13,22 @@ namespace HBP.Data.Anatomy
         public const string EXTENSION = ".nii";
         [DataMember] public string Name { get; set; }
         [DataMember] public string File { get; set; }
-        public virtual bool Usable
+        protected bool m_WasUsable;
+        public bool WasUsable
         {
-            get { return !string.IsNullOrEmpty(Name) && HasMRI; }
+            get
+            {
+                return m_WasUsable;
+            }
+        }
+        public bool Usable
+        {
+            get
+            {
+                bool usable = !string.IsNullOrEmpty(Name) && HasMRI;
+                m_WasUsable = usable;
+                return usable;
+            }
         }
         public virtual bool HasMRI
         {
@@ -31,11 +44,16 @@ namespace HBP.Data.Anatomy
         {
             Name = name;
             File = path;
+            RecalculateUsable();
         }
         public MRI() : this("New MRI", string.Empty) { }
         #endregion
 
         #region Public Methods
+        public bool RecalculateUsable()
+        {
+            return Usable;
+        }
         public static MRI[] GetMRIs(string path)
         {
             //UnityEngine.Profiling.Profiler.BeginSample("GetMRIs");
@@ -81,6 +99,15 @@ namespace HBP.Data.Anatomy
             MRI mri = copy as MRI;
             Name = mri.Name;
             File = mri.File;
+            RecalculateUsable();
+        }
+        #endregion
+
+        #region Serialization
+        [OnDeserialized()]
+        public void OnDeserialized(StreamingContext context)
+        {
+            RecalculateUsable();
         }
         #endregion
     }

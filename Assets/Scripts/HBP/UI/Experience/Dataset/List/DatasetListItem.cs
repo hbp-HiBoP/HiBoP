@@ -49,6 +49,7 @@ namespace HBP.UI.Experience.Dataset
         #region Public Methods
         public void SetResumes()
         {
+            m_DatasetResumeList.Initialize();
             System.Collections.Generic.List<d.Dataset.Resume> resumes = new System.Collections.Generic.List<d.Dataset.Resume>();
             string[] names = (from data in m_Object.Data select data.Name).Distinct().ToArray();
             foreach (var name in names)

@@ -18,7 +18,7 @@
         #region Public Methods
         public virtual void SaveAll()
         {
-            foreach (var couple in m_ObjectsToItems) (couple.Value as SavableItem<T>).Save();
+            //foreach (var couple in m_ObjectsToItems) (couple.Value as SavableItem<T>).Save();
         }
         #endregion
     }

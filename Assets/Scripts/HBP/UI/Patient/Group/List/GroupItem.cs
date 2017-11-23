@@ -48,6 +48,7 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public void SetPatients()
         {
+            m_PatientsList.Initialize();
             m_PatientsList.Objects = (from patient in m_Object.Patients.ToArray() select patient.Name).ToArray();
         }
         #endregion

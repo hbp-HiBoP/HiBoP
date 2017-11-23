@@ -79,7 +79,7 @@ namespace HBP.UI.Experience.Dataset
         {
             m_NameInputField = transform.Find("Content").Find("General").Find("Name").Find("InputField").GetComponent<InputField>();
             m_ProtocolDropdown = transform.Find("Content").Find("General").Find("Protocol").Find("Dropdown").GetComponent<Dropdown>();
-            m_DataInfoList = transform.Find("Content").Find("DataInfo").Find("List").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<DataInfoList>();
+            m_DataInfoList = transform.Find("Content").Find("DataInfo").Find("List").Find("List").Find("Display").GetComponent<DataInfoList>();
             m_SaveButton = transform.Find("Content").Find("Buttons").Find("OK").GetComponent<Button>();
             m_CreateButton = transform.Find("Content").Find("DataInfo").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
             m_RemoveButton = transform.Find("Content").Find("DataInfo").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
