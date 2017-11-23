@@ -12,15 +12,6 @@ namespace Tools.Unity.ResizableGrid
         /// Is this handler the last clicked handler ?
         /// </summary>
         public bool IsClicked { get; set; }
-
-        /// <summary>
-        /// Texture of the drag cursor
-        /// </summary>
-        protected Texture2D m_Cursor;
-        /// <summary>
-        /// Hotspot of the drag cursor
-        /// </summary>
-        protected Vector2 m_CursorHotSpot;
         /// <summary>
         /// Reference to parent resizable grid
         /// </summary>
@@ -56,7 +47,7 @@ namespace Tools.Unity.ResizableGrid
         /// <param name="data">Data of the pointer when the event occurs</param>
         public void OnEndDrag(PointerEventData data)
         {
-            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+            Cursor.SetCursor(null, Vector2.zero, CursorMode.ForceSoftware);
         }
         /// <summary>
         /// Callback event when clicking on the handler
@@ -66,7 +57,6 @@ namespace Tools.Unity.ResizableGrid
         {
             IsClicked = true;
             m_ResizableGrid.IsHandlerClicked = true;
-            Cursor.SetCursor(m_Cursor, m_CursorHotSpot, CursorMode.Auto);
         }
         /// <summary>
         /// Callback event when releasing the click on the handler
@@ -81,13 +71,7 @@ namespace Tools.Unity.ResizableGrid
         /// Callback event when entering in the handler
         /// </summary>
         /// <param name="data">Data of the pointer when the event occurs</param>
-        public void OnPointerEnter(PointerEventData data)
-        {
-            if (!m_ResizableGrid.IsHandlerClicked)
-            {
-                Cursor.SetCursor(m_Cursor, m_CursorHotSpot, CursorMode.Auto);
-            }
-        }
+        public abstract void OnPointerEnter(PointerEventData data);
         /// <summary>
         /// Callback event when leaving the handler
         /// </summary>
@@ -96,7 +80,7 @@ namespace Tools.Unity.ResizableGrid
         {
             if (!m_ResizableGrid.IsHandlerClicked)
             {
-                Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+                Cursor.SetCursor(null, Vector2.zero, CursorMode.ForceSoftware);
             }
         }
         #endregion

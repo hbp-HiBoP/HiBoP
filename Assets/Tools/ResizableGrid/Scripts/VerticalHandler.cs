@@ -54,14 +54,31 @@ namespace Tools.Unity.ResizableGrid
         private void Awake()
         {
             Initialize();
-            m_Cursor = Resources.Load("Cursor/vertical") as Texture2D;
-            m_CursorHotSpot = new Vector2(11, 6);
             MinimumPosition = m_ResizableGrid.MinimumViewWidth / m_ResizableGrid.RectTransform.rect.width;
-            MaximumPosition = 1 - MinimumPosition;
         }
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Callback event when clicking on the handler
+        /// </summary>
+        /// <param name="eventData">Data of the pointer when the event occurs</param>
+        public override void OnPointerDown(PointerEventData data)
+        {
+            base.OnPointerDown(data);
+            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Texture, ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Offset, CursorMode.ForceSoftware);
+        }
+        /// <summary>
+        /// Callback event when entering in the handler
+        /// </summary>
+        /// <param name="data">Data of the pointer when the event occurs</param>
+        public override void OnPointerEnter(PointerEventData data)
+        {
+            if (!m_ResizableGrid.IsHandlerClicked)
+            {
+                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Texture, ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Offset, CursorMode.ForceSoftware);
+            }
+        }
         /// <summary>
         /// Callback event when dragging the handler
         /// </summary>

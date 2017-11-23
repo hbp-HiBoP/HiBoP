@@ -46,15 +46,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     /// </summary>
     private bool m_PointerDownLock;
 
-    [SerializeField]
-    private Texture2D m_RotateCursor;
-    [SerializeField]
-    private Vector2 m_RotateCursorHotSpot;
-    [SerializeField]
-    private Texture2D m_StrafeCursor;
-    [SerializeField]
-    private Vector2 m_StrafeCursorHotSpot;
-
     private bool m_UsingRenderTexture;
     /// <summary>
     /// True if we are using render textures for the cameras (instead of changing the viewport)
@@ -193,11 +184,11 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             m_View.DisplayRotationCircles = true;
             if (Input.GetMouseButton(1))
             {
-                Cursor.SetCursor(m_StrafeCursor, m_StrafeCursorHotSpot, CursorMode.Auto);
+                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.ForceSoftware);
             }
             else
             {
-                Cursor.SetCursor(m_RotateCursor, m_RotateCursorHotSpot, CursorMode.Auto);
+                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.ForceSoftware);
             }
         }
         else
@@ -228,13 +219,13 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     public void OnEndDrag(PointerEventData data)
     {
         m_View.DisplayRotationCircles = false;
-        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.ForceSoftware);
     }
     public void OnPointerUp(PointerEventData data)
     {
         m_PointerDownLock = false;
         m_View.DisplayRotationCircles = false;
-        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.ForceSoftware);
     }
     public void OnScroll(PointerEventData data)
     {

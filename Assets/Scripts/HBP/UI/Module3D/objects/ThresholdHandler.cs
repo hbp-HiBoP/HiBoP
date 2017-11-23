@@ -9,14 +9,6 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         /// <summary>
-        /// Texture of the drag cursor
-        /// </summary>
-        private Texture2D m_Cursor;
-        /// <summary>
-        /// Hotspot of the drag cursor
-        /// </summary>
-        private Vector2 m_CursorHotSpot;
-        /// <summary>
         /// RectTransform of this handler
         /// </summary>
         [SerializeField]
@@ -59,14 +51,6 @@ namespace HBP.UI.Module3D
         public UnityEvent OnChangePosition = new UnityEvent();
         #endregion
 
-        #region Private Methods
-        private void Awake()
-        {
-            m_Cursor = Resources.Load("Cursor/vertical") as Texture2D;
-            m_CursorHotSpot = new Vector2(11, 6);
-        }
-        #endregion
-
         #region Public Methods
         /// <summary>
         /// Clamps the position of the handler between min and max
@@ -84,11 +68,11 @@ namespace HBP.UI.Module3D
         }
         public void OnPointerEnter(PointerEventData data)
         {
-            Cursor.SetCursor(m_Cursor, m_CursorHotSpot, CursorMode.Auto);
+            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Texture, ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Offset, CursorMode.ForceSoftware);
         }
         public void OnPointerExit(PointerEventData data)
         {
-            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+            Cursor.SetCursor(null, Vector2.zero, CursorMode.ForceSoftware);
         }
         #endregion
     }
