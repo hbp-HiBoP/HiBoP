@@ -131,6 +131,22 @@ namespace Tools.Unity.Lists
             }
             return false;
         }
+        public override void Refresh()
+        {
+            Item<T>[] items = m_ItemByObject.Values.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
+            int itemsLength = items.Length;
+            m_ItemByObject.Clear();
+            for (int i = m_Start, j = 0; i <= m_End && j < itemsLength; i++, j++)
+            {
+                SelectableItem<T> item = items[j] as SelectableItem<T>;
+                T obj = m_Objects[i];
+                item.Object = obj;
+                m_ItemByObject.Add(obj, item);
+                item.OnChangeSelected.RemoveAllListeners();
+                item.Select(m_SelectedStateByObject[obj]);
+                item.OnChangeSelected.AddListener((selected) => OnSelection(obj, selected));
+            }
+        }
         #endregion
 
         #region Private Methods

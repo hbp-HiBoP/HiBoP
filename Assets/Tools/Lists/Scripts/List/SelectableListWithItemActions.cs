@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace Tools.Unity.Lists
@@ -8,6 +9,27 @@ namespace Tools.Unity.Lists
         #region Properties
         protected GenericEvent<T, int> m_OnAction = new GenericEvent<T, int>();
         public GenericEvent<T, int> OnAction { get { return m_OnAction; } }
+        #endregion
+
+        #region Public Methods
+        public override void Refresh()
+        {
+            Item<T>[] items = m_ItemByObject.Values.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
+            int itemsLength = items.Length;
+            m_ItemByObject.Clear();
+            for (int i = m_Start, j = 0; i <= m_End && j < itemsLength; i++, j++)
+            {
+                ActionnableItem<T> item = items[j] as ActionnableItem<T>;
+                T obj = m_Objects[i];
+                item.Object = obj;
+                m_ItemByObject.Add(obj, item);
+                item.OnChangeSelected.RemoveAllListeners();
+                item.Select(m_SelectedStateByObject[obj]);
+                item.OnChangeSelected.AddListener((selected) => OnSelection(obj, selected));
+                item.OnAction.RemoveAllListeners();
+                item.OnAction.AddListener((actionID) => m_OnAction.Invoke(obj, actionID));
+            }
+        }
         #endregion
 
         #region Private Methods

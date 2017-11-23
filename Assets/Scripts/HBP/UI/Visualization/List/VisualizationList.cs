@@ -30,7 +30,7 @@ namespace HBP.UI.Visualization
                     m_OrderBy = OrderBy.DescendingName;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
@@ -57,7 +57,7 @@ namespace HBP.UI.Visualization
                     m_OrderBy = OrderBy.DescendingPatients;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
@@ -84,7 +84,7 @@ namespace HBP.UI.Visualization
                     m_OrderBy = OrderBy.DescendingColumns;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }

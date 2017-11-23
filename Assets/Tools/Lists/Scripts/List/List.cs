@@ -22,7 +22,7 @@ namespace Tools.Unity.Lists
             }
             set
             {
-                Remove(m_Objects);
+                Remove(m_Objects.ToArray());
                 Add(value);
             }
         }
@@ -72,10 +72,16 @@ namespace Tools.Unity.Lists
         {
             if (m_Objects.Contains(obj))
             {
-                m_Objects.Remove(obj);
+                if (m_NumberOfObjects <= m_NumberOfObjectsVisibleAtTheSameTime)
+                {
+                    DestroyItem(-1);
+                }
                 m_NumberOfObjects--;
+                m_Objects.Remove(obj);
                 m_ScrollRect.content.sizeDelta = new Vector2(m_ScrollRect.content.sizeDelta.x, m_ScrollRect.content.sizeDelta.y - ItemHeight);
                 m_ScrollRect.content.hasChanged = true;
+                GetLimits(out m_Start, out m_End);
+                Refresh();
                 return true;
             }
             return false;
@@ -96,13 +102,15 @@ namespace Tools.Unity.Lists
             }
             return false;
         }
-        public virtual void ApplySort()
+        public virtual void Refresh()
         {
             Item<T>[] items =  m_ItemByObject.Values.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
             int itemsLength = items.Length;
+            m_ItemByObject.Clear();
             for (int i = m_Start, j=0; i <= m_End && j < itemsLength; i++, j++)
             {
                 items[j].Object = m_Objects[i];
+                m_ItemByObject.Add(m_Objects[i], items[j]);
             }
         }
         public virtual bool Initialize()
@@ -143,7 +151,7 @@ namespace Tools.Unity.Lists
 
             // Resize viewport and list.
             int resize = (end - start) - (m_End - m_Start);
-            if (resize > 0) SpawnItem(resize);
+            if (resize >= 0) SpawnItem(resize);
             else if (resize < 0) DestroyItem(resize);
 
             // Move content.

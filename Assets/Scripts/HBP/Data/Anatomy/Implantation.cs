@@ -143,6 +143,7 @@ namespace HBP.Data.Anatomy
             Implantation implantation = copy as Implantation;
             Name = implantation.Name;
             File = implantation.File;
+            RecalculateUsable();
         }
         #endregion
 

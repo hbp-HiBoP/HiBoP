@@ -47,7 +47,7 @@ namespace HBP.UI
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            ApplySort();
+            Refresh();
         }
         public void SortByPatients()
         {
@@ -73,7 +73,7 @@ namespace HBP.UI
                     m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -105,7 +105,7 @@ namespace HBP.UI
                 default:
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -119,7 +119,7 @@ namespace HBP.UI
                 case OrderBy.DescendingProtocols: SortByProtocols(Sorting.Ascending); break;
                 default: SortByProtocols(Sorting.Descending); break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -141,7 +141,7 @@ namespace HBP.UI
                     m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -172,7 +172,7 @@ namespace HBP.UI
                     m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -202,7 +202,7 @@ namespace HBP.UI
                     m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
