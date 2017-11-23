@@ -27,7 +27,7 @@ namespace HBP.UI.Visualization
         protected override void SetWindow()
         {
             displayButton = transform.Find("Content").Find("Buttons").Find("Display").GetComponent<Button>();
-            m_List = transform.Find("Content").Find("MultiPatientsVisualizations").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<VisualizationList>();
+            m_List = transform.Find("Content").Find("MultiPatientsVisualizations").Find("List").Find("Display").GetComponent<VisualizationList>();
             (m_List as VisualizationList).OnAction.AddListener((visu, type) => OpenModifier(visu,true));
             (m_List as VisualizationList).OnSelectionChanged.AddListener((visu,selected) => SetDisplay());
             AddItem(ApplicationState.ProjectLoaded.Visualizations.ToArray());

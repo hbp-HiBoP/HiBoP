@@ -135,8 +135,8 @@ namespace HBP.UI.Visualization
             m_TabGestion = transform.Find("Content").Find("Columns").Find("Fields").Find("Tabs").GetComponent<TabGestion>();
             m_ColumnModifier = transform.Find("Content").Find("Columns").Find("Fields").Find("Column").GetComponent<ColumnModifier>();
             m_SaveButton = transform.Find("Content").Find("Buttons").Find("OK").GetComponent<Button>();
-            m_VisualizationPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("Visualization").Find("Display").Find("Viewport").Find("Content").GetComponent<PatientList>();
-            m_ProjectPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("Project").Find("Display").Find("Viewport").Find("Content").GetComponent<PatientList>();
+            m_VisualizationPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("Visualization").Find("Display").GetComponent<PatientList>();
+            m_ProjectPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("Project").Find("Display").GetComponent<PatientList>();
             m_AddPatientButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Add").GetComponent<Button>();
             m_RemovePatientButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Remove").GetComponent<Button>();
             m_AddGroupButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("AddGroup").GetComponent<Button>();

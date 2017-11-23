@@ -38,8 +38,8 @@ namespace HBP.UI.Visualization
         {
             switch (m_OrderBy)
             {
-                case OrderBy.Name: SortByName(Sorting.Descending); break;
-                default: SortByName(Sorting.Ascending); break;
+                case OrderBy.DescendingName: SortByName(Sorting.Ascending); break;
+                default: SortByName(Sorting.Descending); break;
             }
         }
         public void SortByPatients(Sorting sorting)
@@ -65,8 +65,8 @@ namespace HBP.UI.Visualization
         {
             switch (m_OrderBy)
             {
-                case OrderBy.Patients: SortByPatients(Sorting.Descending); break;
-                default: SortByPatients(Sorting.Ascending); break;
+                case OrderBy.DescendingPatients: SortByPatients(Sorting.Ascending); break;
+                default: SortByPatients(Sorting.Descending); break;
             }
         }
         public void SortByColumns(Sorting sorting)
@@ -74,25 +74,25 @@ namespace HBP.UI.Visualization
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Patients.Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Columns.Count).ToList();
                     m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     m_OrderBy = OrderBy.Columns;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Patients.Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Columns.Count).ToList();
                     m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     m_OrderBy = OrderBy.DescendingColumns;
                     break;
             }
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByColumns()
         {
             switch (m_OrderBy)
             {
-                case OrderBy.Columns: SortByColumns(Sorting.Ascending); break;
+                case OrderBy.DescendingColumns: SortByColumns(Sorting.Ascending); break;
                 default: SortByColumns(Sorting.Descending); break;
             }
         }
