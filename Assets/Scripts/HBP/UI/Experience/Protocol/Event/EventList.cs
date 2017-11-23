@@ -59,6 +59,28 @@ namespace HBP.UI.Experience.Protocol
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
+        /// <summary>
+        /// Sort by type.
+        /// </summary>
+        public void SortByType()
+        {
+            switch (m_OrderBy)
+            {
+                case OrderBy.DescendingCode:
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Type).ToList();
+                    m_OrderBy = OrderBy.Code;
+                    m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+                    break;
+                default:
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Type).ToList();
+                    m_OrderBy = OrderBy.DescendingCode;
+                    m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+                    break;
+            }
+            Refresh();
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        }
         #endregion
     }
 }
