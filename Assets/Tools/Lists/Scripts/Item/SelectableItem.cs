@@ -46,10 +46,13 @@ namespace Tools.Unity.Lists
         private void Awake()
         {
             m_Toggle = GetComponent<Toggle>();
-            m_Toggle.onValueChanged.AddListener((value) =>
+            if (m_Toggle != null)
             {
-                if (!m_isLock) m_OnChangeSelected.Invoke(value);
-            });
+                m_Toggle.onValueChanged.AddListener((value) =>
+                {
+                    if (!m_isLock) m_OnChangeSelected.Invoke(value);
+                });
+            }
         }
         #endregion
     }
