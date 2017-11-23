@@ -99,6 +99,7 @@ namespace HBP.Data.Anatomy
             MRI mri = copy as MRI;
             Name = mri.Name;
             File = mri.File;
+            RecalculateUsable();
         }
         #endregion
 

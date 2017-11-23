@@ -34,7 +34,7 @@ namespace HBP.UI.Experience.Protocol
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
 
@@ -56,7 +56,7 @@ namespace HBP.UI.Experience.Protocol
                     m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         #endregion

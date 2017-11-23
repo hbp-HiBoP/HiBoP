@@ -66,6 +66,7 @@ namespace HBP.Data.Anatomy
             Connectivity connectivity = copy as Connectivity;
             Name = connectivity.Name;
             File = connectivity.File;
+            RecalculateUsable();
         }
         #endregion
 

@@ -49,7 +49,7 @@ namespace HBP.UI.Anatomy
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -78,7 +78,7 @@ namespace HBP.UI.Anatomy
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -107,7 +107,7 @@ namespace HBP.UI.Anatomy
                     m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -136,7 +136,7 @@ namespace HBP.UI.Anatomy
                     m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;

@@ -106,22 +106,22 @@ namespace HBP.UI.Anatomy
         public void SetMeshes()
         {
             m_MeshList.Initialize();
-            m_MeshList.Objects = (from mesh in m_Object.Brain.Meshes where mesh.Usable select mesh.Name).ToArray();
+            m_MeshList.Objects = (from mesh in m_Object.Brain.Meshes where mesh.WasUsable select mesh.Name).ToArray();
         }
         public void SetMRIs()
         {
             m_MRIList.Initialize();
-            m_MRIList.Objects = (from mri in m_Object.Brain.MRIs where mri.Usable select mri.Name).ToArray();
+            m_MRIList.Objects = (from mri in m_Object.Brain.MRIs where mri.WasUsable select mri.Name).ToArray();
         }
         public void SetImplantations()
         {
             m_ImplantationList.Initialize();
-            m_ImplantationList.Objects = (from implantation in m_Object.Brain.Implantations where implantation.Usable select implantation.Name).ToArray();
+            m_ImplantationList.Objects = (from implantation in m_Object.Brain.Implantations where implantation.WasUsable select implantation.Name).ToArray();
         }
         public void SetConnectivities()
         {
             m_ConnectivityList.Initialize();
-            m_ConnectivityList.Objects = (from connectivity in m_Object.Brain.Connectivities where connectivity.Usable select connectivity.Name).ToArray();
+            m_ConnectivityList.Objects = (from connectivity in m_Object.Brain.Connectivities where connectivity.WasUsable select connectivity.Name).ToArray();
         }
         #endregion
     }

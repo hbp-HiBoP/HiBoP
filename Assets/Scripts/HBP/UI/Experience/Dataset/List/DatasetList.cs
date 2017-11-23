@@ -31,7 +31,7 @@ namespace HBP.UI.Experience.Dataset
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
@@ -58,7 +58,7 @@ namespace HBP.UI.Experience.Dataset
                     m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
@@ -85,7 +85,7 @@ namespace HBP.UI.Experience.Dataset
                     m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }

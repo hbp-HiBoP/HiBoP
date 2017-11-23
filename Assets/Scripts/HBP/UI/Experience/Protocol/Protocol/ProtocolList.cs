@@ -30,7 +30,7 @@ namespace HBP.UI.Experience.Protocol
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_BlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByName()
@@ -56,7 +56,7 @@ namespace HBP.UI.Experience.Protocol
                     m_BlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByBlocs()

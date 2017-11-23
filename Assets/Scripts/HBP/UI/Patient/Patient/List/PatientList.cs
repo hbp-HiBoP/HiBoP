@@ -36,7 +36,7 @@ namespace HBP.UI.Anatomy
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -67,7 +67,7 @@ namespace HBP.UI.Anatomy
                     m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -98,7 +98,7 @@ namespace HBP.UI.Anatomy
                     m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -119,17 +119,17 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.Meshes.FindAll(m => m.Usable).Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.Meshes.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.Mesh;
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Meshes.FindAll(m => m.Usable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Meshes.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingMesh;
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -150,19 +150,19 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.MRIs.FindAll(m => m.Usable).Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.MRIs.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.MRI;
                     m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.MRIs.FindAll(m => m.Usable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.MRIs.FindAll(m => m.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingMRI;
                     m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
                 default:
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -183,17 +183,17 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Implantations.FindAll(i => i.Usable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Implantations.FindAll(i => i.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.Implantation;
                     m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Implantations.FindAll(i => i.Usable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Implantations.FindAll(i => i.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingImplantation;
                     m_ImplantationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -214,19 +214,19 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.Connectivities.FindAll(c => c.Usable).Count).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Brain.Connectivities.FindAll(c => c.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.Connectivity;
                     m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Connectivities.FindAll(c => c.Usable).Count).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Brain.Connectivities.FindAll(c => c.WasUsable).Count).ToList();
                     m_OrderBy = OrderBy.DescendingConnectivity;
                     m_ConnectivitySortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
                 default:
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;

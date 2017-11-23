@@ -38,7 +38,7 @@ namespace HBP.UI.Anatomy
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByPath()
@@ -64,7 +64,7 @@ namespace HBP.UI.Anatomy
                     m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            ApplySort();
+            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByNone()
