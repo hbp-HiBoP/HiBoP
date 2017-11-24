@@ -122,14 +122,6 @@ namespace HBP.UI.Visualization
             groupSelection.CloseEvent.AddListener(() => OnCloseGroupSelection(groupSelection));
             m_GroupSelectionModifiers.Add(groupSelection);
         }
-        public void OpenPatientModifier(Patient patientToModify)
-        {
-            RectTransform obj = Instantiate(m_PatientModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            PatientModifier patientModifier = obj.GetComponent<PatientModifier>();
-            patientModifier.Open(patientToModify, false);
-        }
         public void RemovePatients()
         {
             Data.Patient[] patientsToRemove = m_VisualizationPatientsList.ObjectsSelected;
