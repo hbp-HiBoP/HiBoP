@@ -12,7 +12,7 @@ namespace HBP.UI.Theme
         public enum ZoneEnum { General, Menu, Window, Toolbar, Visualization }
         public enum GeneralEnum { Tooltip, Background, LoadingCircle, DialogBox }
         public enum MenuEnum { Background, Button, Text, Dropdown, Toggle, SubMenuBackground }
-        public enum WindowEnum { Header, Content }
+        public enum WindowEnum { Header, Content, Selector, Shadow }
         public enum HeaderEnum { Background, Text, Button }
         public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton, Item, FileSelector }
         public enum ItemEnum { Background, Text, Toggle, Button, ContainerBloc, MainBloc, SecondaryBloc, Scrollbar } 
@@ -129,6 +129,8 @@ namespace HBP.UI.Theme
             {
                 case WindowEnum.Header: SetHeader(theme); break;
                 case WindowEnum.Content: SetContent(theme); break;
+                case WindowEnum.Selector: SetBorderEffect(theme.Window.Selector); break;
+                case WindowEnum.Shadow: SetBorderEffect(theme.Window.Shadow); break;
             }
         }
         void SetHeader(Theme theme)
@@ -565,6 +567,19 @@ namespace HBP.UI.Theme
             SetText(dialogBox.Find("Window").Find("Corps").Find("Text").Find("Title").GetComponent<Text>(), theme.Title);
             SetText(dialogBox.Find("Window").Find("Corps").Find("Text").Find("Message").GetComponent<Text>(), theme.Text);
             SetButton(dialogBox.Find("Window").Find("Buttons").Find("Button").GetComponent<Button>(), theme.Button);
+        }
+        void SetBorderEffect(Theme.BorderEffectTheme theme)
+        {
+            RectTransform rectTransform = transform as RectTransform;
+            Image image = GetComponent<Image>();
+            if(image != null && rectTransform != null)
+            {
+                image.sprite = theme.Sprite;
+                image.color = theme.Color;
+                rectTransform.anchorMin = new Vector2(0, 0);
+                rectTransform.anchorMax = new Vector2(1, 1);
+                rectTransform.sizeDelta = -2 * theme.Offset * Vector2.one;
+            }
         }
         void FindContents(out Text[] texts,out Image[] icons, Transform parent = null, bool forceRecursiveChildren = false)
         {

@@ -165,6 +165,8 @@ namespace HBP.UI.Theme
         {
             public HeaderTheme Header;
             public ContentTheme Content;
+            public BorderEffectTheme Selector;
+            public BorderEffectTheme Shadow;
 
             public void SetDefaultValues()
             {
@@ -1198,6 +1200,14 @@ namespace HBP.UI.Theme
         {
             public Texture2D Texture;
             public Vector2 Offset;
+        }
+
+        [System.Serializable]
+        public struct BorderEffectTheme
+        {
+            public Sprite Sprite;
+            public Color Color;
+            public float Offset;
         }
     }
 }
