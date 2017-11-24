@@ -10,7 +10,7 @@ namespace HBP.UI
     {
         #region Properties
         [SerializeField] protected GameObject m_ModifierPrefab;
-        protected ItemModifier<T> m_Modifier;
+        protected System.Collections.Generic.List<ItemModifier<T>> m_Modifiers = new System.Collections.Generic.List<ItemModifier<T>>();
         protected SelectableList<T> m_List;
         private System.Collections.Generic.List<T> m_Items = new System.Collections.Generic.List<T>();
         protected ReadOnlyCollection<T> Items
@@ -24,6 +24,12 @@ namespace HBP.UI
         {
             FindObjectOfType<MenuButtonState>().SetInteractables();
             Close();
+        }
+        public override void Close()
+        {
+            foreach (var modifier in m_Modifiers.ToArray()) modifier.Close();
+            m_Modifiers.Clear();
+            base.Close();
         }
         public virtual void Create()
         {
@@ -46,25 +52,25 @@ namespace HBP.UI
             RectTransform obj = Instantiate(m_ModifierPrefab).GetComponent<RectTransform>();
             obj.SetParent(GameObject.Find("Windows").transform);
             obj.localPosition = new Vector3(0, 0, 0);
-            m_Modifier = obj.GetComponent<ItemModifier<T>>();
-            m_Modifier.Open(item, interactable);
-            m_Modifier.CloseEvent.AddListener(() => OnCloseModifier());
-            m_Modifier.SaveEvent.AddListener(() => OnSaveModifier());
+            ItemModifier<T> modifier = obj.GetComponent<ItemModifier<T>>();
+            modifier.Open(item, interactable);
+            modifier.CloseEvent.AddListener(() => OnCloseModifier(modifier));
+            modifier.SaveEvent.AddListener(() => OnSaveModifier(modifier));
+            m_Modifiers.Add(modifier);
         }
-        protected virtual void OnCloseModifier()
+        protected virtual void OnCloseModifier(ItemModifier<T> modifier)
         {
-            SetInteractable(true);
-            m_Modifier = null;
+            m_Modifiers.Remove(modifier);
         }
-        protected virtual void OnSaveModifier()
+        protected virtual void OnSaveModifier(ItemModifier<T> modifier)
         {
-            if(!Items.Contains(m_Modifier.Item))
+            if(!Items.Contains(modifier.Item))
             {
-                AddItem(m_Modifier.Item);
+                AddItem(modifier.Item);
             }
             else
             {
-                m_List.UpdateObject(m_Modifier.Item);
+                m_List.UpdateObject(modifier.Item);
             }
         }
         protected virtual void AddItem(T item)
