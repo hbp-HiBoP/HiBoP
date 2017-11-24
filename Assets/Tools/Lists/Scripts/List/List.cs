@@ -78,8 +78,7 @@ namespace Tools.Unity.Lists
                 }
                 m_NumberOfObjects--;
                 m_Objects.Remove(obj);
-                m_ScrollRect.content.sizeDelta = new Vector2(m_ScrollRect.content.sizeDelta.x, m_ScrollRect.content.sizeDelta.y - ItemHeight);
-                m_ScrollRect.content.hasChanged = true;
+                UpdateContent();
                 GetLimits(out m_Start, out m_End);
                 Refresh();
                 return true;
@@ -161,6 +160,26 @@ namespace Tools.Unity.Lists
 
             m_Start = start;
             m_End = end;
+        }
+        void UpdateContent()
+        {
+            m_ScrollRect.content.sizeDelta = new Vector2(m_ScrollRect.content.sizeDelta.x, m_ScrollRect.content.sizeDelta.y - ItemHeight);
+            if (m_ScrollRect.content.localPosition.y > ItemHeight)
+            {
+                if (m_NumberOfObjects >= m_NumberOfObjectsVisibleAtTheSameTime - 1)
+                {
+                    m_ScrollRect.content.localPosition = new Vector3(m_ScrollRect.content.localPosition.x, m_ScrollRect.content.localPosition.y - ItemHeight, m_ScrollRect.content.localPosition.z);
+
+                    if (m_NumberOfObjects >= m_NumberOfObjectsVisibleAtTheSameTime)
+                    {
+                        foreach (var item in m_ItemByObject.Values)
+                        {
+                            item.transform.localPosition = new Vector3(item.transform.localPosition.x, item.transform.localPosition.y + ItemHeight, item.transform.localPosition.z);
+                        }
+                    }
+                }
+            }
+            m_ScrollRect.content.hasChanged = true;
         }
         protected virtual void SpawnItem(int number)
         {
