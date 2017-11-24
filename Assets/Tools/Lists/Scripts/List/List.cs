@@ -179,6 +179,7 @@ namespace Tools.Unity.Lists
                     }
                 }
             }
+            m_ScrollRect.verticalScrollbar = m_ScrollRect.verticalScrollbar;
             m_ScrollRect.content.hasChanged = true;
         }
         protected virtual void SpawnItem(int number)
