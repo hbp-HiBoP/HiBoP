@@ -12,6 +12,22 @@ namespace Tools.Unity.Lists
         #endregion
 
         #region Public Methods
+        public override bool UpdateObject(T objectToUpdate)
+        {
+            Item<T> item;
+            if (m_ItemByObject.TryGetValue(objectToUpdate, out item))
+            {
+                ActionnableItem<T> actionnableItem = item as ActionnableItem<T>;
+                actionnableItem.Object = objectToUpdate;
+                actionnableItem.OnChangeSelected.RemoveAllListeners();
+                actionnableItem.Select(m_SelectedStateByObject[objectToUpdate]);
+                actionnableItem.OnChangeSelected.AddListener((selected) => OnSelection(objectToUpdate, selected));
+                actionnableItem.OnAction.RemoveAllListeners();
+                actionnableItem.OnAction.AddListener((actionID) => m_OnAction.Invoke(objectToUpdate, actionID));
+                return true;
+            }
+            return false;
+        }
         public override void Refresh()
         {
             Item<T>[] items = m_ItemByObject.Values.OrderByDescending((item) => item.transform.localPosition.y).ToArray();

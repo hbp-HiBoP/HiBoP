@@ -122,6 +122,20 @@ namespace Tools.Unity.Lists
         {
             foreach (var obj in objectsToDeselect) Deselect(obj, transition);
         }
+        public override bool UpdateObject(T objectToUpdate)
+        {
+            Item<T> item;
+            if (m_ItemByObject.TryGetValue(objectToUpdate, out item))
+            {
+                SelectableItem<T> selectableItem = item as SelectableItem<T>;
+                selectableItem.Object = objectToUpdate;
+                selectableItem.OnChangeSelected.RemoveAllListeners();
+                selectableItem.Select(m_SelectedStateByObject[objectToUpdate]);
+                selectableItem.OnChangeSelected.AddListener((selected) => OnSelection(objectToUpdate, selected));
+                return true;
+            }
+            return false;
+        }
         public override bool Initialize()
         {
             if (base.Initialize())

@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Linq;
 using HBP.Data;
+using System.Collections.Generic;
 
 namespace HBP.UI.Anatomy
 {
@@ -13,6 +14,7 @@ namespace HBP.UI.Anatomy
         #region Properties
         [SerializeField]
         GameObject m_PatientModifierPrefab;
+        List<PatientModifier> m_Modifiers = new List<PatientModifier>();
 
         InputField m_NameInputField;
         Button m_SaveButton, m_AddButton, m_RemoveButton;
@@ -41,6 +43,12 @@ namespace HBP.UI.Anatomy
             m_ProjectPatientsList.Select(patients);
             m_groupPatientsCounter.text = m_GroupPatientsList.ObjectsSelected.Length.ToString();
         }
+        public override void Close()
+        {
+            foreach (var modifier in m_Modifiers.ToArray()) modifier.Close();
+            m_Modifiers.Clear();
+            base.Close();
+        }
         public void OpenPatientModifier(Patient patientToModify)
         {
             RectTransform obj = Instantiate(m_PatientModifierPrefab).GetComponent<RectTransform>();
@@ -48,15 +56,15 @@ namespace HBP.UI.Anatomy
             obj.localPosition = new Vector3(0, 0, 0);
             PatientModifier patientModifier = obj.GetComponent<PatientModifier>();
             patientModifier.Open(patientToModify, false);
-            patientModifier.CloseEvent.AddListener(() => OnClosePatientModifier());
-            SetInteractable(false);
+            patientModifier.CloseEvent.AddListener(() => OnClosePatientModifier(patientModifier));
+            m_Modifiers.Add(patientModifier);
         }
         #endregion
 
         #region Private Methods
-        protected void OnClosePatientModifier()
+        protected void OnClosePatientModifier(PatientModifier modifier)
         {
-            SetInteractable(true);
+            m_Modifiers.Remove(modifier);
         }
         protected override void SetFields(Group objectToDisplay)
         {

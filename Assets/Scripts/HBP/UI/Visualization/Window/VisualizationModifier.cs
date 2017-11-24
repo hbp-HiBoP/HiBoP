@@ -13,6 +13,10 @@ namespace HBP.UI.Visualization
         #region Properties
         [SerializeField] GameObject m_RemoveGroupPrefab;
         [SerializeField] GameObject m_AddGroupPrefab;
+        [SerializeField] GameObject m_PatientModifierPrefab;
+
+        List<PatientModifier> m_PatientModifiers = new List<PatientModifier>();
+        List<GroupSelection> m_GroupSelectionModifiers = new List<GroupSelection>();
 
         InputField m_NameInputField;
         TabGestion m_TabGestion;
@@ -23,6 +27,14 @@ namespace HBP.UI.Visualization
         #endregion
 
         #region Public Methods
+        public override void Close()
+        {
+            foreach (var modifier in m_PatientModifiers.ToArray()) modifier.Close();
+            m_PatientModifiers.Clear();
+            foreach (var modifier in m_GroupSelectionModifiers.ToArray()) modifier.Close();
+            m_GroupSelectionModifiers.Clear();
+            base.Close();
+        }
         public void AddColumn()
         {
             ItemTemp.Columns.Add(new Column());
@@ -78,6 +90,16 @@ namespace HBP.UI.Visualization
             m_VisualizationPatientsList.Remove(patientsToRemove.ToArray());
             SelectColumn();
         }
+        public void OpenPatientModifier(Patient patientToModify)
+        {
+            RectTransform obj = Instantiate(m_PatientModifierPrefab).GetComponent<RectTransform>();
+            obj.SetParent(GameObject.Find("Windows").transform);
+            obj.localPosition = new Vector3(0, 0, 0);
+            PatientModifier patientModifier = obj.GetComponent<PatientModifier>();
+            patientModifier.Open(patientToModify, false);
+            patientModifier.CloseEvent.AddListener(() => OnClosePatientModifier(patientModifier));
+            m_PatientModifiers.Add(patientModifier);
+        }
         public void OpenAddGroupWindow()
         {
             SetInteractable(false);
@@ -86,7 +108,8 @@ namespace HBP.UI.Visualization
             GroupSelection groupSelection = groupsSelectionTransform.GetComponent<GroupSelection>();
             groupSelection.Open();
             groupSelection.GroupsSelectedEvent.AddListener((groups) => AddGroups(groups));
-            groupSelection.CloseEvent.AddListener(() => OnCloseGroupSelection());
+            groupSelection.CloseEvent.AddListener(() => OnCloseGroupSelection(groupSelection));
+            m_GroupSelectionModifiers.Add(groupSelection);
         }
         public void OpenRemoveGroupWindow()
         {
@@ -96,7 +119,8 @@ namespace HBP.UI.Visualization
             GroupSelection groupSelection = groupsSelectionTransform.GetComponent<GroupSelection>();
             groupSelection.Open();
             groupSelection.GroupsSelectedEvent.AddListener((groups) => RemoveGroups(groups));
-            groupSelection.CloseEvent.AddListener(() => OnCloseGroupSelection());
+            groupSelection.CloseEvent.AddListener(() => OnCloseGroupSelection(groupSelection));
+            m_GroupSelectionModifiers.Add(groupSelection);
         }
         public void RemovePatients()
         {
@@ -109,6 +133,14 @@ namespace HBP.UI.Visualization
         #endregion
 
         #region Private Methods
+        protected void OnClosePatientModifier(PatientModifier modifier)
+        {
+            m_PatientModifiers.Remove(modifier);
+        }
+        protected void OnCloseGroupSelection(GroupSelection groupSelection)
+        {
+            m_GroupSelectionModifiers.Remove(groupSelection);
+        }
         protected void SwapColumns(int i1, int i2)
         {
             ItemTemp.SwapColumns(i1, i2);
@@ -149,10 +181,6 @@ namespace HBP.UI.Visualization
             m_NameInputField.interactable = interactable;
             m_SaveButton.interactable = interactable;
         }
-        protected void OnCloseGroupSelection()
-        {
-            SetInteractable(true);
-        }
         protected void SetName(Data.Visualization.Visualization objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
@@ -162,6 +190,10 @@ namespace HBP.UI.Visualization
         {
             m_VisualizationPatientsList.Objects = objectToDisplay.Patients.ToArray();
             m_ProjectPatientsList.Objects = (from p in ApplicationState.ProjectLoaded.Patients where !objectToDisplay.Patients.Contains(p) select p).ToArray();
+            m_VisualizationPatientsList.OnAction.RemoveAllListeners();
+            m_VisualizationPatientsList.OnAction.AddListener((patient, action) => OpenPatientModifier(patient));
+            m_ProjectPatientsList.OnAction.RemoveAllListeners();
+            m_ProjectPatientsList.OnAction.AddListener((patient, action) => OpenPatientModifier(patient));
         }
         protected void SetTabs(Data.Visualization.Visualization objectToDisplay)
         {

@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using HBP.Data.Anatomy;
+using Tools.Unity.Lists;
 
 namespace HBP.UI.Anatomy
 {
@@ -15,7 +16,7 @@ namespace HBP.UI.Anatomy
         public SortingDisplayer m_TransformationSortingDisplayer;
         #endregion
 
-        #region SortingMethods
+        #region Public Methods
         public override bool Add(Mesh objectToAdd)
         {
             if (base.Add(objectToAdd))
@@ -25,7 +26,31 @@ namespace HBP.UI.Anatomy
             }
             else return false;
         }
+        public override bool UpdateObject(Mesh objectToUpdate)
+        {
 
+            int index = m_Objects.FindIndex(obj => obj == objectToUpdate);
+            if (index != -1)
+            {
+                m_Objects[index] = objectToUpdate;
+                Item<Mesh> item;
+                if (m_ItemByObject.TryGetValue(objectToUpdate, out item))
+                {
+                    ActionnableItem<Mesh> actionnableItem = item as ActionnableItem<Mesh>;
+                    actionnableItem.Object = objectToUpdate;
+                    actionnableItem.OnChangeSelected.RemoveAllListeners();
+                    actionnableItem.Select(m_SelectedStateByObject[objectToUpdate]);
+                    actionnableItem.OnChangeSelected.AddListener((selected) => OnSelection(objectToUpdate, selected));
+                    actionnableItem.OnAction.RemoveAllListeners();
+                    actionnableItem.OnAction.AddListener((actionID) => m_OnAction.Invoke(objectToUpdate, actionID));
+                    return true;
+                }
+            }
+            return false;
+        }
+        #endregion
+
+        #region SortingMethods
         public void SortByName()
         {
             switch (m_OrderBy)

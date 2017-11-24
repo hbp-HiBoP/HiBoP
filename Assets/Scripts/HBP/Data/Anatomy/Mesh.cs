@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 namespace HBP.Data.Anatomy
 {
     [DataContract]
-    public abstract class Mesh : ICloneable, ICopiable
+    public class Mesh : ICloneable, ICopiable
     {
         #region Properties
         public const string EXTENSION = ".gii";
@@ -30,8 +30,8 @@ namespace HBP.Data.Anatomy
                 return usable;
             }
         }
-        public abstract bool HasMesh { get; }
-        public abstract bool HasMarsAtlas { get; }
+        public virtual bool HasMesh { get { return false; } }
+        public virtual bool HasMarsAtlas { get { return false; } }
         public virtual bool HasTransformation
         {
             get
@@ -52,6 +52,7 @@ namespace HBP.Data.Anatomy
         public Mesh(string name, string transformation) : this(name,transformation, Guid.NewGuid().ToString())
         {
         }
+        public Mesh() : this("New mesh", string.Empty) { }
         #endregion
 
         #region Public Methods
@@ -145,7 +146,10 @@ namespace HBP.Data.Anatomy
         {
             return !(a == b);
         }
-        public abstract object Clone();
+        public virtual object Clone()
+        {
+            return new Mesh(Name, Transformation, ID);
+        }
         public virtual void Copy(object copy)
         {
             Mesh mesh = copy as Mesh;

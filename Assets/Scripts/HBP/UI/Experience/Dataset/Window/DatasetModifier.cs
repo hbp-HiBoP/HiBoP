@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using d = HBP.Data.Experience.Dataset;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace HBP.UI.Experience.Dataset
 {
@@ -16,6 +17,7 @@ namespace HBP.UI.Experience.Dataset
         Dropdown m_ProtocolDropdown;
         Button m_SaveButton, m_CreateButton, m_RemoveButton;
         [SerializeField] GameObject m_DataInfoModifierPrefab;
+        List<DataInfoModifier> m_Modifiers = new List<DataInfoModifier>();
         Data.Experience.Protocol.Protocol[] m_Protocols;
         #endregion
 
@@ -29,7 +31,13 @@ namespace HBP.UI.Experience.Dataset
             d.DataInfo[] dataInfoToRemove = m_DataInfoList.ObjectsSelected;
             ItemTemp.RemoveData(dataInfoToRemove);
             m_DataInfoList.Remove(dataInfoToRemove);
-		}
+        }
+        public override void Close()
+        {
+            foreach (var modifier in m_Modifiers.ToArray()) modifier.Close();
+            m_Modifiers.Clear();
+            base.Close();
+        }
         #endregion
 
         #region Protected Methods
@@ -41,25 +49,31 @@ namespace HBP.UI.Experience.Dataset
             DataInfoModifier dataInfoModifier = obj.GetComponent<DataInfoModifier>();
             dataInfoModifier.Open(dataInfo, true);
             dataInfoModifier.SaveEvent.AddListener(() => OnSaveDataInfoModifier(dataInfoModifier));
+            dataInfoModifier.CloseEvent.AddListener(() => OnCloseDataInfoModifier(dataInfoModifier));
             dataInfoModifier.CanSaveEvent.AddListener(() => OnCanSave(dataInfoModifier));
+            m_Modifiers.Add(dataInfoModifier);
         }
-        protected void OnCanSave(DataInfoModifier eventModifier)
+        protected void OnCanSave(DataInfoModifier modifier)
         {
-            eventModifier.CanSave = !ItemTemp.Data.Any((d) => d.Name == eventModifier.ItemTemp.Name && d.Patient == eventModifier.ItemTemp.Patient && d != eventModifier.Item);
+            modifier.CanSave = !ItemTemp.Data.Any((d) => d.Name == modifier.ItemTemp.Name && d.Patient == modifier.ItemTemp.Patient && d != modifier.Item);
         }
-        protected void OnSaveDataInfoModifier(DataInfoModifier eventModifier)
+        protected void OnSaveDataInfoModifier(DataInfoModifier modifier)
         {
-            eventModifier.Item.GetErrors(ItemTemp.Protocol);
+            modifier.Item.GetErrors(ItemTemp.Protocol);
             // Save
-            if (!ItemTemp.Data.Contains(eventModifier.Item))
+            if (!ItemTemp.Data.Contains(modifier.Item))
             {
-                ItemTemp.AddData(eventModifier.Item);
-                m_DataInfoList.Add(eventModifier.Item);
+                ItemTemp.AddData(modifier.Item);
+                m_DataInfoList.Add(modifier.Item);
             }
             else
             {
-                m_DataInfoList.UpdateObject(eventModifier.Item);
+                m_DataInfoList.UpdateObject(modifier.Item);
             }
+        }
+        protected void OnCloseDataInfoModifier(DataInfoModifier modifier)
+        {
+            m_Modifiers.Remove(modifier);
         }
         protected override void SetFields(d.Dataset objectToDisplay)
         {
