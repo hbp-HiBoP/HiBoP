@@ -2,6 +2,7 @@
 using d = HBP.Data.Experience.Protocol;
 using Tools.Unity;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -16,9 +17,19 @@ namespace HBP.UI.Experience.Protocol
 
         [SerializeField] GameObject EventModifierPrefab;
         [SerializeField] GameObject IconModifierPrefab;
+        List<EventModifier> m_EventModifiers = new List<EventModifier>();
+        List<IconModifier> m_IconModifiers = new List<IconModifier>();
         #endregion
 
         #region Public Methods
+        public override void Close()
+        {
+            foreach (var modifier in m_EventModifiers.ToArray()) modifier.Close();
+            m_EventModifiers.Clear();
+            foreach (var modifier in m_IconModifiers.ToArray()) modifier.Close();
+            m_IconModifiers.Clear();
+            base.Close();
+        }
         public void AddEvent()
 		{
             d.Event newEvent = new d.Event("Event", new int[] { 0 } ,d.Event.TypeEnum.Secondary);
@@ -58,6 +69,8 @@ namespace HBP.UI.Experience.Protocol
             EventModifier eventModifier = obj.GetComponent<EventModifier>();
             eventModifier.Open(event_, true);
             eventModifier.SaveEvent.AddListener(() => OnSaveEventModifier(eventModifier));
+            eventModifier.CloseEvent.AddListener(() => OnCloseEventModifier(eventModifier));
+            m_EventModifiers.Add(eventModifier);
         }
         protected void OnSaveEventModifier(EventModifier eventModifier)
         {
@@ -81,10 +94,6 @@ namespace HBP.UI.Experience.Protocol
                     m_EventList.UpdateObject(e);
                 }
             }
-            else
-            {
-
-            }
         }
         protected void OpenIconModifier(d.Icon icon)
         {
@@ -94,6 +103,8 @@ namespace HBP.UI.Experience.Protocol
             IconModifier iconModifier = obj.GetComponent<IconModifier>();
             iconModifier.Open(icon, true);
             iconModifier.SaveEvent.AddListener(() => OnSaveIconModifier(iconModifier));
+            iconModifier.CloseEvent.AddListener(() => OnCloseIconModifier(iconModifier));
+            m_IconModifiers.Add(iconModifier);
         }
         protected void OnSaveIconModifier(IconModifier iconModifier)
         {
@@ -106,6 +117,14 @@ namespace HBP.UI.Experience.Protocol
             {
                 m_IconList.UpdateObject(iconModifier.Item);
             }
+        }
+        protected void OnCloseEventModifier(EventModifier modifier)
+        {
+            m_EventModifiers.Remove(modifier);
+        }
+        protected void OnCloseIconModifier(IconModifier modifier)
+        {
+            m_IconModifiers.Remove(modifier);
         }
         protected override void SetFields(d.Bloc objectToDisplay)
         {
@@ -147,12 +166,12 @@ namespace HBP.UI.Experience.Protocol
             m_BaselineMaxInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Baseline").Find("Panel").Find("Max").GetComponentInChildren<InputField>();
 
             // Events.
-            m_EventList = transform.Find("Content").Find("Events").Find("List").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<EventList>();
+            m_EventList = transform.Find("Content").Find("Events").Find("List").Find("List").Find("Display").GetComponent<EventList>();
             m_AddEventButton = transform.Find("Content").Find("Events").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
             m_RemoveEventButton = transform.Find("Content").Find("Events").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
 
             // Icons.
-            m_IconList = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<IconList>();
+            m_IconList = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("List").Find("Display").GetComponent<IconList>();
             m_AddIconButton = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
             m_RemoveIconButton = transform.Find("Content").Find("Iconic Scenario").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
 

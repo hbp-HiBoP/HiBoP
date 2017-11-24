@@ -27,6 +27,7 @@ namespace HBP.UI.Experience.Protocol
                 m_NameText.text = m_Object.Name;
                 int nbCode = m_Object.Codes.Count;
                 m_CodeText.text = m_Object.Codes.Count.ToString();
+                m_CodeList.Initialize();
                 m_CodeList.Objects = (from code in m_Object.Codes select code.ToString()).ToArray();
                 if (nbCode == 0)
                 {

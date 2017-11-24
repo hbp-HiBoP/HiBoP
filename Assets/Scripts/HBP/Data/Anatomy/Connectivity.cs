@@ -11,9 +11,22 @@ namespace HBP.Data.Anatomy
         const string EXTENSION = ".txt";
         [DataMember] public string Name { get; set; }
         [DataMember] public string File { get; set; }
-        public virtual bool isUsable
+        protected bool m_WasUsable;
+        public bool WasUsable
         {
-            get { return !string.IsNullOrEmpty(Name) && HasConnectivity; }
+            get
+            {
+                return m_WasUsable;
+            }
+        }
+        public bool Usable
+        {
+            get
+            {
+                bool usable = !string.IsNullOrEmpty(Name) && HasConnectivity;
+                m_WasUsable = usable;
+                return usable;
+            }
         }
         public virtual bool HasConnectivity
         {
@@ -29,9 +42,17 @@ namespace HBP.Data.Anatomy
         {
             Name = name;
             File = file;
+            RecalculateUsable();
         }
         public Connectivity() : this("New connectivity", string.Empty)
         {
+        }
+        #endregion
+
+        #region Public Methods
+        public bool RecalculateUsable()
+        {
+            return Usable;
         }
         #endregion
 
@@ -45,6 +66,15 @@ namespace HBP.Data.Anatomy
             Connectivity connectivity = copy as Connectivity;
             Name = connectivity.Name;
             File = connectivity.File;
+            RecalculateUsable();
+        }
+        #endregion
+
+        #region Serialization
+        [OnDeserialized()]
+        public void OnDeserialized(StreamingContext context)
+        {
+            RecalculateUsable();
         }
         #endregion
     }

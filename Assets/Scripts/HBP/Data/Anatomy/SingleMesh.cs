@@ -31,11 +31,13 @@ namespace HBP.Data.Anatomy
         {
             Path = path;
             MarsAtlasPath = marsAtlasPath;
+            RecalculateUsable();
         }
         public SingleMesh(string name, string transformation, string path,string marsAtlasPath) : base(name, transformation)
         {
             Path = path;
             MarsAtlasPath = marsAtlasPath;
+            RecalculateUsable();
         }
         public SingleMesh() : this("New mesh", string.Empty, string.Empty, string.Empty) { }
         #endregion

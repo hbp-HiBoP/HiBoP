@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using Tools.CSharp;
+using HBP.UI.Theme;
 
 namespace Tools.Unity.Window
 {
@@ -8,13 +9,6 @@ namespace Tools.Unity.Window
 	public class Resizer : MonoBehaviour 
 	{
 		#region Properties
-		/* Texture Cursor + offsetPosition Cursor */
-		[SerializeField] Texture2D m_WECursor;
-		[SerializeField] Texture2D m_NSCursor;
-		[SerializeField] Texture2D m_SWNECursor;
-		[SerializeField] Texture2D m_NWSECursor;
-		[SerializeField] Vector2 m_CursorOffsetPosition = new Vector2(11,11);
-
 		/* RectTransforms */
 		RectTransform m_RectTransform;
         ILayoutElement m_LayoutElement;
@@ -31,21 +25,25 @@ namespace Tools.Unity.Window
 		#region Public Methods
 		public void DisplayLeftRightCursor()
 		{
-			if(isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(m_WECursor, m_CursorOffsetPosition, CursorMode.ForceSoftware);
+            Theme.CursorTheme theme = ApplicationState.GeneralSettings.Theme.General.LeftRightCursor;
+            if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(theme.Texture, theme.Offset, CursorMode.ForceSoftware);
 		}	
 		public void DisplayBottomTopCursor()
 		{
-			if(isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(m_NSCursor, m_CursorOffsetPosition, CursorMode.ForceSoftware);
-		}		
-		public void DisplayBottomLeftToTopRightCursor()
+            Theme.CursorTheme theme = ApplicationState.GeneralSettings.Theme.General.TopBottomCursor;
+            if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(theme.Texture, theme.Offset, CursorMode.ForceSoftware);
+        }
+        public void DisplayBottomLeftToTopRightCursor()
 		{
-			if(isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(m_SWNECursor, m_CursorOffsetPosition, CursorMode.ForceSoftware);
-		}		
-		public void DisplayTopLeftToBottomRightCursor()
+            Theme.CursorTheme theme = ApplicationState.GeneralSettings.Theme.General.BottomLeftTopRightCursor;
+            if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(theme.Texture, theme.Offset, CursorMode.ForceSoftware);
+        }
+        public void DisplayTopLeftToBottomRightCursor()
 		{
-            if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(m_NWSECursor, m_CursorOffsetPosition, CursorMode.ForceSoftware);
-		}		
-		public void DisplayNormalCursor()
+            Theme.CursorTheme theme = ApplicationState.GeneralSettings.Theme.General.TopLeftBottomRightCursor;
+            if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(theme.Texture, theme.Offset, CursorMode.ForceSoftware);
+        }
+        public void DisplayNormalCursor()
 		{
             if(!Input.GetMouseButton(0))
             {

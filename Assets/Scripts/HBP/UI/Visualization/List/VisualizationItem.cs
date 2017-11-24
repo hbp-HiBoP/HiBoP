@@ -64,11 +64,13 @@ namespace HBP.UI.Visualization
         #region Public Methods
         public void SetPatients()
         {
+            m_PatientsList.Initialize();
             m_PatientsList.Objects = (from patient in m_Object.Patients select patient.Name).ToArray();
         }
 
         public void SetColumns()
         {
+            m_ColumnsList.Initialize();
             m_ColumnsList.Objects = (from column in m_Object.Columns select (column.Data + " " + column.Protocol + " " + column.Bloc)).ToArray();
         }
         #endregion

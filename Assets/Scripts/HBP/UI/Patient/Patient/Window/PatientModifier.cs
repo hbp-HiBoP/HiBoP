@@ -23,6 +23,14 @@ namespace HBP.UI.Anatomy
         #endregion
 
         #region Public Methods
+        public override void Close()
+        {
+            m_MeshGestion.Close();
+            m_MRIGestion.Close();
+            m_ImplantationGestion.Close();
+            //m_ConnectivityGestion.Close();
+            base.Close();
+        }
         #endregion
 
         #region Protected Methods

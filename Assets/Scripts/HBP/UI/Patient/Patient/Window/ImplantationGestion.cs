@@ -1,93 +1,45 @@
 ﻿using System.Linq;
-using UnityEngine;
-using UnityEngine.UI;
 using HBP.Data.Anatomy;
+using UnityEngine;
+using Tools.Unity.Lists;
 
 namespace HBP.UI.Anatomy
 {
-    public class ImplantationGestion : MonoBehaviour
+    public class ImplantationGestion : AnatomyGestion<Implantation>
     {
         #region Properties
-        [SerializeField] ImplantationList m_ImplantationList;
-        [SerializeField] ItemModifier<Implantation> m_Modifier;
-        [SerializeField] GameObject m_ModifierPrefab;
-        [SerializeField] Text m_ImplantationCounter;
-        [SerializeField] Button m_AddButton;
-        [SerializeField] Button m_RemoveButton;
-        Data.Patient m_Patient;
-        bool m_Interactable;
-        public virtual bool interactable
-        {
-            get { return m_Interactable; }
-            set
-            {
-                m_Interactable = value;
-                m_AddButton.interactable = interactable;
-                m_RemoveButton.interactable = interactable;
-            }
-        }
+        [SerializeField] ImplantationList m_List;
+        protected override SelectableListWithItemAction<Implantation> List { get { return m_List; } }
         #endregion
 
         #region Public Methods
-        public void Set(Data.Patient patient)
+        public override void Set(Data.Patient patient)
         {
-            m_Patient = patient;
-            m_ImplantationList.OnSelectionChanged.RemoveAllListeners();
-            m_ImplantationList.OnSelectionChanged.AddListener((mesh, i) => m_ImplantationCounter.text = m_ImplantationList.ObjectsSelected.Length.ToString());
-
-            m_ImplantationList.OnAction.RemoveAllListeners();
-            m_ImplantationList.OnAction.AddListener((implantation, i) => OpenModifier(implantation, interactable));
-
-            m_ImplantationList.Objects = m_Patient.Brain.Implantations.ToArray();
-            m_ImplantationList.SortByName(ImplantationList.Sorting.Descending);
+            base.Set(patient);
+            List.Objects = m_Patient.Brain.Implantations.ToArray();
+            m_List.SortByName(ImplantationList.Sorting.Descending);
         }
-        public void SetActive(bool active)
+        public override void SetActive(bool active)
         {
-            gameObject.SetActive(active);
-            m_ImplantationList.SortByName(ImplantationList.Sorting.Descending);
+            base.SetActive(active);
+            m_List.SortByName(ImplantationList.Sorting.Descending);
         }
-        public void AddImplantation()
+        public override void RemoveItem()
         {
-            OpenModifier(new Implantation(), interactable);
+            base.RemoveItem();
+            m_Patient.Brain.Implantations = List.Objects.ToList();
         }
-        public void RemoveImplantation()
+        public override void Save()
         {
-            m_ImplantationList.Remove(m_ImplantationList.ObjectsSelected);
-            m_Patient.Brain.Implantations = m_ImplantationList.Objects.ToList();
-            m_ImplantationCounter.text = m_ImplantationList.ObjectsSelected.Count().ToString();
-        }
-        public void Save()
-        {
-            m_Patient.Brain.Implantations = m_ImplantationList.Objects.ToList();
+            m_Patient.Brain.Implantations = List.Objects.ToList();
         }
         #endregion
 
         #region Private Methods
-        void OpenModifier(Implantation implantation, bool interactable)
+        protected override void OnSaveModifier(ItemModifier<Implantation> modifier)
         {
-            RectTransform obj = Instantiate(m_ModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            m_Modifier = obj.GetComponent<ItemModifier<Implantation>>();
-            m_Modifier.Open(implantation, interactable);
-            m_Modifier.CloseEvent.AddListener(() => OnCloseModifier());
-            m_Modifier.SaveEvent.AddListener(() => OnSaveModifier());
-        }
-        void OnCloseModifier()
-        {
-            m_Modifier = null;
-        }
-        void OnSaveModifier()
-        {
-            if (!m_ImplantationList.Objects.Contains(m_Modifier.Item))
-            {
-                m_ImplantationList.Add(m_Modifier.Item);
-            }
-            else
-            {
-                m_ImplantationList.UpdateObject(m_Modifier.Item);
-            }
-            m_ImplantationList.SortByNone();
+            base.OnSaveModifier(modifier);
+            m_List.SortByNone();
         }
         #endregion
     }

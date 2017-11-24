@@ -2,19 +2,28 @@
 using UnityEngine.UI;
 using System.Linq;
 using d = HBP.Data.Experience.Protocol;
+using System.Collections.Generic;
 
 namespace HBP.UI.Experience.Protocol
 {
 	public class ProtocolModifier : ItemModifier<d.Protocol> 
 	{
         #region Properties
-        [SerializeField]
-        GameObject blocModifierPrefab;
-        BlocModifier blocModifier;
+        [SerializeField] GameObject blocModifierPrefab;
+        List<BlocModifier> m_Modifiers = new List<BlocModifier>();
 
         InputField nameInputField;
 		BlocGrid blocGrid;
         Button saveButton;
+        #endregion
+
+        #region Public Methods
+        public override void Close()
+        {
+            foreach (var modifier in m_Modifiers.ToArray()) modifier.Close();
+            m_Modifiers.Clear();
+            base.Close();
+        }
         #endregion
 
         #region Private Methods
@@ -29,23 +38,23 @@ namespace HBP.UI.Experience.Protocol
             RectTransform obj = Instantiate(blocModifierPrefab).GetComponent<RectTransform>();
             obj.SetParent(GameObject.Find("Windows").transform);
             obj.localPosition = new Vector3(0, 0, 0);
-            blocModifier = obj.GetComponent<BlocModifier>();
-            blocModifier.Open(bloc, true);
-            blocModifier.CloseEvent.AddListener(() => OnCloseBlocModifier());
-            blocModifier.SaveEvent.AddListener(() => OnSaveBlocModifier());
-            SetInteractable(false);
+            BlocModifier modifier = obj.GetComponent<BlocModifier>();
+            modifier.Open(bloc, true);
+            modifier.CloseEvent.AddListener(() => OnCloseBlocModifier(modifier));
+            modifier.SaveEvent.AddListener(() => OnSaveBlocModifier(modifier));
+            m_Modifiers.Add(modifier);
         }
-        protected void OnSaveBlocModifier()
+        protected void OnSaveBlocModifier(BlocModifier modifier)
         {
-            if(!ItemTemp.Blocs.Contains(blocModifier.Item))
+            if(!ItemTemp.Blocs.Contains(modifier.Item))
             {
-                ItemTemp.Blocs.Add(blocModifier.Item);
+                ItemTemp.Blocs.Add(modifier.Item);
             }
             blocGrid.Display(ItemTemp.Blocs.ToArray());
         }
-        protected void OnCloseBlocModifier()
+        protected void OnCloseBlocModifier(BlocModifier modifier)
         {
-            SetInteractable(true);
+            m_Modifiers.Remove(modifier);
         }
         protected override void SetFields(d.Protocol objectToDisplay)
         {

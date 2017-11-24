@@ -38,12 +38,10 @@ namespace HBP.UI.Anatomy
             m_LeftMeshFileSelector.File = mesh.LeftHemisphere;
             m_LeftMeshFileSelector.onValueChanged.RemoveAllListeners();
             m_LeftMeshFileSelector.onValueChanged.AddListener((path) => mesh.LeftHemisphere = path);
-            m_LeftMeshFileSelector.onValueChanged.AddListener((path) => Debug.Log("LeftPath:" + path));
 
             m_RightMeshFileSelector.File = mesh.RightHemisphere;
             m_RightMeshFileSelector.onValueChanged.RemoveAllListeners();
             m_RightMeshFileSelector.onValueChanged.AddListener((path) => mesh.RightHemisphere = path);
-            m_RightMeshFileSelector.onValueChanged.AddListener((path) => Debug.Log("RightPath:" + path));
 
             m_LeftMarsAtlasFileSelector.File = mesh.LeftMarsAtlasHemisphere;
             m_LeftMarsAtlasFileSelector.onValueChanged.RemoveAllListeners();

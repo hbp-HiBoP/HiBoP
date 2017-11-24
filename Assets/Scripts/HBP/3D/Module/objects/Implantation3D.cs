@@ -34,7 +34,7 @@ namespace HBP.Module3D
             PatientElectrodesList.ExtractRawSiteList(RawSiteList);
             foreach (Data.Anatomy.Connectivity connectivity in patient.Brain.Connectivities)
             {
-                if (!connectivity.isUsable) continue;
+                if (!connectivity.Usable) continue;
                 Latencies latencies = connectivity.HasConnectivity ? RawSiteList.UpdateLatenciesWithFile(connectivity.File) : RawSiteList.GenerateDummyLatencies();
                 latencies.Name = connectivity.Name;
                 Latencies.Add(latencies);

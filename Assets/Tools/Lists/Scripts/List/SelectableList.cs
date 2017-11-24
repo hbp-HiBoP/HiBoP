@@ -1,16 +1,15 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.Events;
-using System.Linq;
+﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace Tools.Unity.Lists
 {
-    [RequireComponent(typeof(ToggleGroup))]
     public class SelectableList<T> : List<T>
     {
-        #region Properties 
-        protected ToggleGroup m_ToggleGroup;
+        #region Properties
         protected GenericEvent<T, bool> m_OnSelectionChanged = new GenericEvent<T, bool>();
         public virtual GenericEvent<T, bool> OnSelectionChanged
         {
@@ -20,14 +19,15 @@ namespace Tools.Unity.Lists
         {
             get
             {
-                return (from couple in m_ObjectsToItems where (couple.Value as SelectableItem<T>).selected select couple.Key).ToArray();
+                return (from couple in m_SelectedStateByObject where couple.Value select couple.Key).ToArray();
             }
             set
             {
-                Deselect(from couple in m_ObjectsToItems.Where((elt) => !value.Contains(elt.Key)) select couple.Key);
-                Select(from couple in m_ObjectsToItems.Where((elt) => value.Contains(elt.Key)) select couple.Key);
+                Deselect(from obj in m_Objects.Where((elt) => !value.Contains(elt)) select obj);
+                Select(from obj in m_Objects.Where((elt) => value.Contains(elt)) select obj);
             }
         }
+        protected Dictionary<T, bool> m_SelectedStateByObject;
         [SerializeField, Candlelight.PropertyBackingField]
         protected bool m_MultiSelection;
         public virtual bool MultiSelection
@@ -39,61 +39,194 @@ namespace Tools.Unity.Lists
             set
             {
                 m_MultiSelection = value;
-                if(!value)
+                if (!value)
                 {
-                    foreach (var item in m_ObjectsToItems.Values) item.GetComponent<Toggle>().group = m_ToggleGroup;
                     T[] objectSelected = ObjectsSelected;
                     for (int i = 1; i < objectSelected.Length; i++)
                     {
                         Deselect(objectSelected[i]);
                     }
                 }
-                else
-                {
-                    foreach (var item in m_ObjectsToItems.Values) item.GetComponent<Toggle>().group = null;
-                }
             }
         }
         #endregion
 
         #region Public Methods
-        public override void Add(T objectToAdd)
+        public override bool Add(T obj)
         {
-            base.Add(objectToAdd);
-            SelectableItem<T> item = (m_ObjectsToItems[objectToAdd] as SelectableItem<T>);
-            if (!m_MultiSelection) item.GetComponent<Toggle>().group = m_ToggleGroup;
-            item.OnChangeSelected.AddListener((selected) => OnSelectionChanged.Invoke(objectToAdd, selected));
+            if (base.Add(obj))
+            {
+                m_SelectedStateByObject.Add(obj, false);
+                return true;
+            }
+            return false;
+        }
+        public override bool Remove(T obj)
+        {
+            if (base.Remove(obj))
+            {
+                m_SelectedStateByObject.Remove(obj);
+                return true;
+            }
+            return false;
         }
         public virtual void SelectAll()
         {
-            Select(m_ObjectsToItems.Keys);
+            SelectAll(Toggle.ToggleTransition.None);
+        }
+        public virtual void SelectAll(Toggle.ToggleTransition transition)
+        {
+            Select(m_Objects, transition);
         }
         public virtual void DeselectAll()
         {
-            Deselect(m_ObjectsToItems.Keys);
+            DeselectAll(Toggle.ToggleTransition.None);
         }
-        public virtual void Select(T objectToSelect)
+        public virtual void DeselectAll(Toggle.ToggleTransition transition) 
         {
-            (m_ObjectsToItems[objectToSelect] as SelectableItem<T>).selected = true;
+            Deselect(m_Objects, transition);
         }
-        public virtual void Select(IEnumerable<T> objectsToSelect)
+        public virtual void Select(T objectToSelect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
-            foreach (var obj in objectsToSelect) Select(obj);
+            if (!m_MultiSelection)
+            {
+                Deselect(m_Objects.Where((o) => !o.Equals(objectToSelect)));
+            }
+            if (m_SelectedStateByObject.ContainsKey(objectToSelect))
+            {
+                m_SelectedStateByObject[objectToSelect] = true;
+            }
+            Item<T> item;
+            if (m_ItemByObject.TryGetValue(objectToSelect, out item))
+            {
+                (item as SelectableItem<T>).Select(true, transition);
+            }
         }
-        public virtual void Deselect(T objectToDeselect)
+        public virtual void Select(IEnumerable<T> objectsToSelect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
-            (m_ObjectsToItems[objectToDeselect] as SelectableItem<T>).selected = false;
+            foreach (var obj in objectsToSelect) Select(obj, transition);
         }
-        public virtual void Deselect(IEnumerable<T> objectsToDeselect)
+        public virtual void Deselect(T objectToDeselect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
-            foreach (var obj in objectsToDeselect) Deselect(obj);
+            if (m_SelectedStateByObject.ContainsKey(objectToDeselect))
+            {
+                m_SelectedStateByObject[objectToDeselect] = false;
+            }
+            Item<T> item;
+            if (m_ItemByObject.TryGetValue(objectToDeselect, out item))
+            {
+                (item as SelectableItem<T>).Select(false, transition);
+            }
+        }
+        public virtual void Deselect(IEnumerable<T> objectsToDeselect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
+        {
+            foreach (var obj in objectsToDeselect) Deselect(obj, transition);
+        }
+        public override bool UpdateObject(T objectToUpdate)
+        {
+            Item<T> item;
+            if (m_ItemByObject.TryGetValue(objectToUpdate, out item))
+            {
+                SelectableItem<T> selectableItem = item as SelectableItem<T>;
+                selectableItem.Object = objectToUpdate;
+                selectableItem.OnChangeSelected.RemoveAllListeners();
+                selectableItem.Select(m_SelectedStateByObject[objectToUpdate]);
+                selectableItem.OnChangeSelected.AddListener((selected) => OnSelection(objectToUpdate, selected));
+                return true;
+            }
+            return false;
+        }
+        public override bool Initialize()
+        {
+            if (base.Initialize())
+            {
+                m_SelectedStateByObject = new Dictionary<T, bool>();
+                return true;
+            }
+            return false;
+        }
+        public override void Refresh()
+        {
+            Item<T>[] items = m_ItemByObject.Values.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
+            int itemsLength = items.Length;
+            m_ItemByObject.Clear();
+            for (int i = m_Start, j = 0; i <= m_End && j < itemsLength; i++, j++)
+            {
+                SelectableItem<T> item = items[j] as SelectableItem<T>;
+                T obj = m_Objects[i];
+                item.Object = obj;
+                m_ItemByObject.Add(obj, item);
+                item.OnChangeSelected.RemoveAllListeners();
+                item.Select(m_SelectedStateByObject[obj]);
+                item.OnChangeSelected.AddListener((selected) => OnSelection(obj, selected));
+            }
         }
         #endregion
 
         #region Private Methods
-        void Awake()
+        protected override void SpawnItem(int number)
         {
-            m_ToggleGroup = GetComponent<ToggleGroup>();
+            int end = Mathf.Min(m_End + number, m_NumberOfObjects - 1);
+            for (int i = m_Start; i <= end; i++)
+            {
+                T obj = m_Objects[i];
+                if (!m_ItemByObject.ContainsKey(obj))
+                {
+                    SelectableItem<T> item = Instantiate(ItemPrefab, m_ScrollRect.content).GetComponent<SelectableItem<T>>();
+                    RectTransform itemRectTransform = item.transform as RectTransform;
+                    itemRectTransform.sizeDelta = new Vector2(0, itemRectTransform.sizeDelta.y);
+                    itemRectTransform.localPosition = new Vector3(itemRectTransform.localPosition.x, -i * ItemHeight, itemRectTransform.localPosition.z);
+                    m_ItemByObject.Add(obj, item);
+                    item.OnChangeSelected.RemoveAllListeners();
+                    item.Select(m_SelectedStateByObject[obj]);
+                    item.OnChangeSelected.AddListener((selected) => OnSelection(obj, selected));
+                    item.Object = obj;
+                }
+            };
+        }
+        protected override void MoveItemsDownwards(int deplacement)
+        {
+            for (int i = 0; i < deplacement; i++)
+            {
+                T obj = m_Objects[m_Start + i];
+                SelectableItem<T> item = m_ItemByObject[obj] as SelectableItem<T>;
+                m_ItemByObject.Remove(obj);
+                T newObj = m_Objects[m_End + 1 + i];
+                m_ItemByObject.Add(newObj, item);
+                item.transform.localPosition = new Vector3(item.transform.localPosition.x, -(m_End + 1 + i) * ItemHeight, item.transform.localPosition.z);
+                item.OnChangeSelected.RemoveAllListeners();
+                item.Select(m_SelectedStateByObject[newObj]);
+                item.OnChangeSelected.AddListener((selected) => OnSelection(newObj, selected));
+                item.Object = newObj;
+            }
+        }
+        protected override void MoveItemsUpwards(int deplacement)
+        {
+            for (int i = 0; i > deplacement; i--)
+            {
+                T obj = m_Objects[m_End + i];
+                SelectableItem<T> item = m_ItemByObject[obj] as SelectableItem<T>;
+                m_ItemByObject.Remove(obj);
+                T newObj = m_Objects[m_Start - 1 + i];
+                m_ItemByObject.Add(newObj, item);
+                item.transform.localPosition = new Vector3(item.transform.localPosition.x, -(m_Start - 1 + i) * ItemHeight, item.transform.localPosition.z);
+                item.OnChangeSelected.RemoveAllListeners();
+                item.Select(m_SelectedStateByObject[newObj]);
+                item.OnChangeSelected.AddListener((selected) => OnSelection(newObj, selected));
+                item.Object = newObj;
+            }
+        }
+        protected virtual void OnSelection(T obj, bool selected)
+        {
+            if (!m_MultiSelection)
+            {
+                Deselect(m_Objects.Where((o) => !o.Equals(obj)), Toggle.ToggleTransition.Fade);
+            }
+            if (m_SelectedStateByObject.ContainsKey(obj))
+            {
+                m_SelectedStateByObject[obj] = selected;
+            }
+            OnSelectionChanged.Invoke(obj, selected);
         }
         #endregion
     }

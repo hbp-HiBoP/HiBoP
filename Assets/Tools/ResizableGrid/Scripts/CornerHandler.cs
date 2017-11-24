@@ -22,8 +22,6 @@ namespace Tools.Unity.ResizableGrid
         private void Awake()
         {
             Initialize();
-            m_Cursor = Resources.Load("Cursor/corner") as Texture2D;
-            m_CursorHotSpot = new Vector2(11, 13);
         }
         private void Update()
         {
@@ -57,6 +55,7 @@ namespace Tools.Unity.ResizableGrid
             base.OnPointerDown(data);
             m_HorizontalHandler.IsClicked = true;
             m_VerticalHandler.IsClicked = true;
+            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.ForceSoftware);
         }
         /// <summary>
         /// Callback event when releasing the click on the handler
@@ -67,6 +66,17 @@ namespace Tools.Unity.ResizableGrid
             base.OnPointerUp(data);
             m_HorizontalHandler.IsClicked = false;
             m_VerticalHandler.IsClicked = false;
+        }
+        /// <summary>
+        /// Callback event when entering in the handler
+        /// </summary>
+        /// <param name="data">Data of the pointer when the event occurs</param>
+        public override void OnPointerEnter(PointerEventData data)
+        {
+            if (!m_ResizableGrid.IsHandlerClicked)
+            {
+                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.ForceSoftware);
+            }
         }
         /// <summary>
         /// Callback event when dragging the handler

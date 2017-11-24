@@ -59,11 +59,11 @@ namespace HBP.UI.Experience.Protocol
         #region Public Methods
         public void OpenBlocModifier()
 		{
-            OnAction.Invoke(Object, 0);
+            OnAction.Invoke(0);
         }
         public void RemoveBloc()
 		{
-            OnAction.Invoke(Object, 1);
+            OnAction.Invoke(1);
         }
         public void OnBeginDrag(PointerEventData eventData)
 		{
@@ -83,7 +83,7 @@ namespace HBP.UI.Experience.Protocol
         }
         public void OnEndDrag(PointerEventData eventData)
 		{
-            OnAction.Invoke(Object, 2);
+            OnAction.Invoke(2);
             GetComponent<LayoutElement>().ignoreLayout = false;
         }
         #endregion
