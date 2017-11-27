@@ -275,6 +275,25 @@ namespace HBP.Module3D
         }
 
         /// <summary>
+        /// Are all sites shown ?
+        /// </summary>
+        public bool ShowAllSites
+        {
+            get
+            {
+                return SceneInformation.ShowAllSites;
+            }
+            set
+            {
+                SceneInformation.ShowAllSites = value;
+                foreach (var column in ColumnManager.Columns)
+                {
+                    UpdateCurrentRegionOfInterest(column);
+                }
+            }
+        }
+
+        /// <summary>
         /// Handles triangle erasing
         /// </summary>
         protected TriEraser m_TriEraser = new TriEraser();
@@ -667,24 +686,24 @@ namespace HBP.Module3D
                 ComputeIEEGTexturesOfColumn(column);
                 m_ColumnManager.UpdateColumnIEEGSitesRendering(column, SceneInformation);
             });
-            m_ColumnManager.OnChangeNumberOfROI.AddListener(() =>
+            m_ColumnManager.OnChangeNumberOfROI.AddListener((column) =>
             {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                UpdateCurrentRegionOfInterest(column);
                 ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
             });
-            m_ColumnManager.OnChangeNumberOfVolumeInROI.AddListener(() =>
+            m_ColumnManager.OnChangeNumberOfVolumeInROI.AddListener((column) =>
             {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                UpdateCurrentRegionOfInterest(column);
                 ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
             });
-            m_ColumnManager.OnSelectROI.AddListener(() =>
+            m_ColumnManager.OnSelectROI.AddListener((column) =>
             {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                UpdateCurrentRegionOfInterest(column);
                 ApplicationState.Module3D.OnSelectROI.Invoke();
             });
-            m_ColumnManager.OnChangeROIVolumeRadius.AddListener(() =>
+            m_ColumnManager.OnChangeROIVolumeRadius.AddListener((column) =>
             {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                UpdateCurrentRegionOfInterest(column);
                 ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
             });
             m_ColumnManager.OnChangeColumnMinimizedState.AddListener(() =>
@@ -1414,7 +1433,7 @@ namespace HBP.Module3D
                             site.State.IsBlackListed = false;
                             site.State.IsHighlighted = false;
                             site.State.IsExcluded = false;
-                            site.State.IsOutOfROI = false;
+                            site.State.IsOutOfROI = true;
                             site.State.IsMarked = false;
                             site.State.IsMasked = false;
                             site.IsActive = true;
@@ -1441,6 +1460,40 @@ namespace HBP.Module3D
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.IsRenderingUpToDate = false;
+            }
+        }
+        /// <summary>
+        /// Update meshes to display
+        /// </summary>
+        public void UpdateMeshesInformation()
+        {
+            if (m_ColumnManager.SelectedMesh is LeftRightMesh3D)
+            {
+                LeftRightMesh3D selectedMesh = (LeftRightMesh3D)m_ColumnManager.SelectedMesh;
+                switch (SceneInformation.MeshPartToDisplay)
+                {
+                    case SceneStatesInfo.MeshPart.Left:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
+                        SceneInformation.MeshToDisplay = selectedMesh.Left;
+                        break;
+                    case SceneStatesInfo.MeshPart.Right:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
+                        SceneInformation.MeshToDisplay = selectedMesh.Right;
+                        break;
+                    case SceneStatesInfo.MeshPart.Both:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
+                        SceneInformation.MeshToDisplay = selectedMesh.Both;
+                        break;
+                    default:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
+                        SceneInformation.MeshToDisplay = selectedMesh.Both;
+                        break;
+                }
+            }
+            else
+            {
+                SceneInformation.SimplifiedMeshToUse = m_ColumnManager.SelectedMesh.SimplifiedBoth;
+                SceneInformation.MeshToDisplay = m_ColumnManager.SelectedMesh.Both;
             }
         }
         #endregion
@@ -1985,35 +2038,9 @@ namespace HBP.Module3D
         /// </summary>
         public void ComputeMeshesCut()
         {
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 0 cutSurface"); // 40%
-
-            // choose the mesh
-            SceneInformation.MeshToDisplay = new DLL.Surface();
-            if (m_ColumnManager.SelectedMesh is LeftRightMesh3D)
-            {
-                LeftRightMesh3D selectedMesh = (LeftRightMesh3D)m_ColumnManager.SelectedMesh;
-                switch (SceneInformation.MeshPartToDisplay)
-                {
-                    case SceneStatesInfo.MeshPart.Left:
-                        SceneInformation.MeshToDisplay = selectedMesh.Left;
-                        break;
-                    case SceneStatesInfo.MeshPart.Right:
-                        SceneInformation.MeshToDisplay = selectedMesh.Right;
-                        break;
-                    case SceneStatesInfo.MeshPart.Both:
-                        SceneInformation.MeshToDisplay = selectedMesh.Both;
-                        break;
-                    default:
-                        SceneInformation.MeshToDisplay = selectedMesh.Both;
-                        break;
-                }
-            }
-            else
-            {
-                SceneInformation.MeshToDisplay = m_ColumnManager.SelectedMesh.Both;
-            }
-
             if (SceneInformation.MeshToDisplay == null) return;
+
+            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 0 cutSurface"); // 40%
 
             // get the middle
             SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox.Center;
@@ -2109,32 +2136,6 @@ namespace HBP.Module3D
         }
         public void ComputeSimplifyMeshCut()
         {
-            // choose the mesh
-            SceneInformation.SimplifiedMeshToUse = new DLL.Surface();
-            if (m_ColumnManager.SelectedMesh is LeftRightMesh3D)
-            {
-                LeftRightMesh3D selectedMesh = (LeftRightMesh3D)m_ColumnManager.SelectedMesh;
-                switch (SceneInformation.MeshPartToDisplay)
-                {
-                    case SceneStatesInfo.MeshPart.Left:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
-                        break;
-                    case SceneStatesInfo.MeshPart.Right:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
-                        break;
-                    case SceneStatesInfo.MeshPart.Both:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        break;
-                    default:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        break;
-                }
-            }
-            else
-            {
-                SceneInformation.SimplifiedMeshToUse = m_ColumnManager.SelectedMesh.SimplifiedBoth;
-            }
-
             if (SceneInformation.SimplifiedMeshToUse == null) return;
 
             // cut the mesh
@@ -2198,6 +2199,7 @@ namespace HBP.Module3D
         {
             SceneInformation.IsGeometryUpToDate = false;
             ColumnManager.PlanesCutsCopy = Cuts;
+            UpdateMeshesInformation();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
             if (CuttingMesh)
@@ -2533,7 +2535,7 @@ namespace HBP.Module3D
             {
                 foreach (Site site in column.Sites)
                 {
-                    site.State.IsOutOfROI = false;
+                    site.State.IsOutOfROI = !SceneInformation.ShowAllSites;
                 }
             }
             else
@@ -2545,8 +2547,16 @@ namespace HBP.Module3D
                     maskROI[ii] = column.Sites[ii].State.IsOutOfROI;
 
                 column.SelectedROI.UpdateMask(column.RawElectrodes, maskROI);
-                for (int ii = 0; ii < column.Sites.Count; ++ii)
-                    column.Sites[ii].State.IsOutOfROI = maskROI[ii];
+                if (SceneInformation.ShowAllSites)
+                {
+                    for (int ii = 0; ii < column.Sites.Count; ++ii)
+                        column.Sites[ii].State.IsOutOfROI = false;
+                }
+                else
+                {
+                    for (int ii = 0; ii < column.Sites.Count; ++ii)
+                        column.Sites[ii].State.IsOutOfROI = maskROI[ii];
+                }
             }
             ResetIEEG();
             OnUpdateROI.Invoke();
@@ -2702,7 +2712,7 @@ namespace HBP.Module3D
                         }
                         else if (meshHit || cutHit)
                         {
-                            selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hit.point, 5.0f);
+                            selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hit.point - transform.position, 5.0f);
                             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                         }
                         else
