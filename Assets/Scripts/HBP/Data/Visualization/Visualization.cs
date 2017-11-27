@@ -191,25 +191,41 @@ namespace HBP.Data.Visualization
 
             float progress = 0.0f;
 
+            Exception exception = null;
+
             // Find dataInfo.
             Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
             yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataInfoToRead(progress, onChangeProgress,(value, progressValue) => { dataInfoByColumn = value; progress = progressValue; }));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataInfoToRead(progress, onChangeProgress, (value, progressValue, e) => { dataInfoByColumn = value; progress = progressValue; exception = e; }));
             yield return Ninja.JumpBack;
 
             // Load Data.
-            yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadData(dataInfoByColumn, progress, onChangeProgress, (value) => progress = value));
-            yield return Ninja.JumpBack;
+            if (exception == null)
+            {
+                yield return Ninja.JumpToUnity;
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadData(dataInfoByColumn, progress, onChangeProgress, (value, e) => { progress = value; exception = e; }));
+                yield return Ninja.JumpBack;
+            }
 
             // Load Columns.
-            yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataInfoByColumn, progress, onChangeProgress, (value) => progress = value));
-            yield return Ninja.JumpBack;
+            if (exception == null)
+            {
+                yield return Ninja.JumpToUnity;
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(dataInfoByColumn, progress, onChangeProgress, (value, e) => { progress = value; exception = e; }));
+                yield return Ninja.JumpBack;
+            }
 
             // Standardize Columns.
-            yield return Ninja.JumpToUnity;
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_StandardizeColumns(progress, onChangeProgress,(value) => progress = value));
+            if (exception == null)
+            {
+                yield return Ninja.JumpToUnity;
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_StandardizeColumns(progress, onChangeProgress, (value, e) => { progress = value; exception = e; }));
+            }
+
+            if (exception != null)
+            {
+                throw exception;
+            }
         }
         /// <summary>
         /// Swap two columns by index.
@@ -269,8 +285,9 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Private Methods
-        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, string> onChangeProgress, Action<Dictionary<Column, DataInfo[]>, float> outPut)
+        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, string> onChangeProgress, Action<Dictionary<Column, DataInfo[]>, float, Exception> outPut)
         {
+            Exception exception = null;
             // Find files to read.
             Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
             float progressStep = FIND_FILES_TO_READ_PROGRESS / (Columns.Count);
@@ -295,14 +312,16 @@ namespace HBP.Data.Visualization
                     }
                     dataInfoByColumn.Add(column, GetDataInfo(column).ToArray());
                 }
-                catch(Exception exception)
+                catch(Exception e)
                 {
+                    exception = e;
                 }
             }
-            outPut(dataInfoByColumn, progress);
+            outPut(dataInfoByColumn, progress, exception);
         }
-        IEnumerator c_LoadData(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadData(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
         {
+            Exception exception = null;
             yield return Ninja.JumpBack;
             DataInfo[] dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct().ToArray();
             float progressStep = LOAD_DATA_PROGRESS / (dataInfoCollection.Length + 1);
@@ -312,20 +331,32 @@ namespace HBP.Data.Visualization
                 progress += progressStep;
                 onChangeProgress.Invoke(progress, 1.0f, "Loading <color=blue>" + dataInfo.Name + "</color> for <color=blue>" + dataInfo.Patient.Name + "</color>.");
                 yield return Ninja.JumpBack;
-                foreach (var column in dataInfoByColumn.Keys)
+                try
                 {
-                    DataManager.GetData(dataInfo, column.Bloc);
+                    foreach (var column in dataInfoByColumn.Keys)
+                    {
+                        DataManager.GetData(dataInfo, column.Bloc);
+                    }
+                }
+                catch (Exception e)
+                {
+                    exception = new CannotLoadDataInfoException(dataInfo.Name, dataInfo.Patient.ID);
+                    break;
                 }
             }
             yield return Ninja.JumpToUnity;
             progress += progressStep;
             onChangeProgress.Invoke(progress, 1.0f, "Normalizing data");
             yield return Ninja.JumpBack;
-            DataManager.NormalizeData();
-            outPut(progress);
+            if (exception == null)
+            {
+                DataManager.NormalizeData();
+            }
+            outPut(progress, exception);
         }
-        IEnumerator c_LoadColumns(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadColumns(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
         {
+            Exception exception = null;
             float progressStep = LOAD_COLUMNS_PROGRESS / Columns.Count;
             foreach (Column column in Columns)
             {
@@ -333,14 +364,31 @@ namespace HBP.Data.Visualization
                 progress += progressStep;
                 onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.DisplayLabel + "</color>.");
                 yield return Ninja.JumpBack;
-                column.Load(dataInfoByColumn[column]);
+                try
+                {
+                    column.Load(dataInfoByColumn[column]);
+                }
+                catch (Exception e)
+                {
+                    exception = e;
+                    break;
+                }
                 yield return Ninja.JumpToUnity;
-                column.IconicScenario.LoadIcons();
+                try
+                {
+                    column.IconicScenario.LoadIcons();
+                }
+                catch (Exception e)
+                {
+                    exception = e;
+                    break;
+                }
             }
-            outPut(progress);
+            outPut(progress, exception);
         }
-        IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, string> onChangeProgress, Action<float> outPut)
+        IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
         {
+            Exception exception = null;
             float progressStep = STANDARDIZE_COLUMNS_PROGRESS / Columns.Count;
             int maxBefore = (from column in Columns select column.TimeLine.MainEvent.Position).Max();
             int maxAfter = (from column in Columns select column.TimeLine.Lenght - column.TimeLine.MainEvent.Position).Max();
@@ -350,8 +398,17 @@ namespace HBP.Data.Visualization
                 progress += progressStep;
                 onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.DisplayLabel + "</color>.");
                 yield return Ninja.JumpBack;
-                column.Standardize(maxBefore, maxAfter);
+                try
+                {
+                    column.Standardize(maxBefore, maxAfter);
+                }
+                catch (Exception e)
+                {
+                    exception = e;
+                    break;
+                }
             }
+            outPut(progress, exception);
         }
         #endregion
     }

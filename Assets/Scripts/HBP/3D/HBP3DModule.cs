@@ -320,17 +320,20 @@ namespace HBP.Module3D
                         ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
                         break;
                 }
-                Task sceneLoadingTask;
-                yield return this.StartCoroutineAsync(c_LoadScene(visualization, OnChangeLoadingProgress), out sceneLoadingTask);
-                switch (sceneLoadingTask.State)
+                if (visualizationLoadingTask.State == TaskState.Done)
                 {
-                    case TaskState.Done:
-                        yield return new WaitForSeconds(0.5f);
-                        break;
-                    case TaskState.Error:
-                        Exception exception = sceneLoadingTask.Exception;
-                        ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
-                        break;
+                    Task sceneLoadingTask;
+                    yield return this.StartCoroutineAsync(c_LoadScene(visualization, OnChangeLoadingProgress), out sceneLoadingTask);
+                    switch (sceneLoadingTask.State)
+                    {
+                        case TaskState.Done:
+                            yield return new WaitForSeconds(0.5f);
+                            break;
+                        case TaskState.Error:
+                            Exception exception = sceneLoadingTask.Exception;
+                            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
+                            break;
+                    }
                 }
                 loadingCircle.Close();
             }
@@ -338,15 +341,22 @@ namespace HBP.Module3D
         IEnumerator c_LoadScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress = null)
         {
             if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, string>();
-            
+
+            Exception exception = null;
+
             yield return Ninja.JumpToUnity;
             if (visualization.Patients.Count == 1)
             {
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddSinglePatientScene(visualization, onChangeProgress));
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddSinglePatientScene(visualization, onChangeProgress, (e) => exception = e));
             }
             else
             {
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddMultiPatientsScene(visualization, onChangeProgress));
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddMultiPatientsScene(visualization, onChangeProgress, (e) => exception = e));
+            }
+
+            if (exception != null)
+            {
+                throw exception;
             }
         }
         #endregion

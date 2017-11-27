@@ -80,7 +80,6 @@ namespace HBP.Data.Localizer
         #region Public static Methods
         public static Bloc Average(Bloc[] blocs, Settings.GeneralSettings.AveragingMode valueAveragingMode, Settings.GeneralSettings.AveragingMode eventPositionAveragingMode )
         {
-            // Maybe FIXME : awfull unmaintanable code
             // Initialization Dictionary.
             Bloc bloc = blocs[0];
             int blocsLength = blocs.Length;
