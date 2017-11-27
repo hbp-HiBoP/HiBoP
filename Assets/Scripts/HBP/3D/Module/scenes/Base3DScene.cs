@@ -1462,6 +1462,40 @@ namespace HBP.Module3D
                 column.IsRenderingUpToDate = false;
             }
         }
+        /// <summary>
+        /// Update meshes to display
+        /// </summary>
+        public void UpdateMeshesInformation()
+        {
+            if (m_ColumnManager.SelectedMesh is LeftRightMesh3D)
+            {
+                LeftRightMesh3D selectedMesh = (LeftRightMesh3D)m_ColumnManager.SelectedMesh;
+                switch (SceneInformation.MeshPartToDisplay)
+                {
+                    case SceneStatesInfo.MeshPart.Left:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
+                        SceneInformation.MeshToDisplay = selectedMesh.Left;
+                        break;
+                    case SceneStatesInfo.MeshPart.Right:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
+                        SceneInformation.MeshToDisplay = selectedMesh.Right;
+                        break;
+                    case SceneStatesInfo.MeshPart.Both:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
+                        SceneInformation.MeshToDisplay = selectedMesh.Both;
+                        break;
+                    default:
+                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
+                        SceneInformation.MeshToDisplay = selectedMesh.Both;
+                        break;
+                }
+            }
+            else
+            {
+                SceneInformation.SimplifiedMeshToUse = m_ColumnManager.SelectedMesh.SimplifiedBoth;
+                SceneInformation.MeshToDisplay = m_ColumnManager.SelectedMesh.Both;
+            }
+        }
         #endregion
 
         #region Cuts
@@ -2004,35 +2038,9 @@ namespace HBP.Module3D
         /// </summary>
         public void ComputeMeshesCut()
         {
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 0 cutSurface"); // 40%
-
-            // choose the mesh
-            SceneInformation.MeshToDisplay = new DLL.Surface();
-            if (m_ColumnManager.SelectedMesh is LeftRightMesh3D)
-            {
-                LeftRightMesh3D selectedMesh = (LeftRightMesh3D)m_ColumnManager.SelectedMesh;
-                switch (SceneInformation.MeshPartToDisplay)
-                {
-                    case SceneStatesInfo.MeshPart.Left:
-                        SceneInformation.MeshToDisplay = selectedMesh.Left;
-                        break;
-                    case SceneStatesInfo.MeshPart.Right:
-                        SceneInformation.MeshToDisplay = selectedMesh.Right;
-                        break;
-                    case SceneStatesInfo.MeshPart.Both:
-                        SceneInformation.MeshToDisplay = selectedMesh.Both;
-                        break;
-                    default:
-                        SceneInformation.MeshToDisplay = selectedMesh.Both;
-                        break;
-                }
-            }
-            else
-            {
-                SceneInformation.MeshToDisplay = m_ColumnManager.SelectedMesh.Both;
-            }
-
             if (SceneInformation.MeshToDisplay == null) return;
+
+            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 0 cutSurface"); // 40%
 
             // get the middle
             SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox.Center;
@@ -2128,32 +2136,6 @@ namespace HBP.Module3D
         }
         public void ComputeSimplifyMeshCut()
         {
-            // choose the mesh
-            SceneInformation.SimplifiedMeshToUse = new DLL.Surface();
-            if (m_ColumnManager.SelectedMesh is LeftRightMesh3D)
-            {
-                LeftRightMesh3D selectedMesh = (LeftRightMesh3D)m_ColumnManager.SelectedMesh;
-                switch (SceneInformation.MeshPartToDisplay)
-                {
-                    case SceneStatesInfo.MeshPart.Left:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
-                        break;
-                    case SceneStatesInfo.MeshPart.Right:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
-                        break;
-                    case SceneStatesInfo.MeshPart.Both:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        break;
-                    default:
-                        SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        break;
-                }
-            }
-            else
-            {
-                SceneInformation.SimplifiedMeshToUse = m_ColumnManager.SelectedMesh.SimplifiedBoth;
-            }
-
             if (SceneInformation.SimplifiedMeshToUse == null) return;
 
             // cut the mesh
@@ -2217,6 +2199,7 @@ namespace HBP.Module3D
         {
             SceneInformation.IsGeometryUpToDate = false;
             ColumnManager.PlanesCutsCopy = Cuts;
+            UpdateMeshesInformation();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
             if (CuttingMesh)
