@@ -85,6 +85,7 @@ namespace HBP.Module3D
         public string MeshesLayerName; /**< layer name of all the meshes of the scene */
         public string HiddenMeshesLayerName;
         public bool HideBlacklistedSites = false;
+        public bool ShowAllSites = false;
 
         // work     
         public Vector3 VolumeCenter = new Vector3(0, 0, 0); /**< center of the loaded volume */

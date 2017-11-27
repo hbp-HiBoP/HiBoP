@@ -34,7 +34,7 @@ namespace HBP.Module3D
             private set
             {
                 m_Position = value;
-                transform.position = value;
+                transform.localPosition = value;
             }
         }
 
@@ -95,8 +95,8 @@ namespace HBP.Module3D
         {
             if (m_RadiusPercentage < 1.0f)
             {
-                Radius = Mathf.SmoothStep(m_Radius, m_TargetRadius, m_RadiusPercentage);
                 m_RadiusPercentage += 2 * Time.deltaTime;
+                Radius = Mathf.SmoothStep(m_Radius, m_TargetRadius, m_RadiusPercentage);
             }
         }
         #endregion

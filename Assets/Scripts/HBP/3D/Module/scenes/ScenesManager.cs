@@ -95,7 +95,7 @@ namespace HBP.Module3D
             SinglePatient3DScene scene = Instantiate(SinglePatientScenePrefab, transform).GetComponent<SinglePatient3DScene>();
             scene.Initialize(visualization);
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress, (e) => exception = e));
-            if (exception != null)
+            if (exception == null)
             {
                 try
                 {
