@@ -667,24 +667,24 @@ namespace HBP.Module3D
                 ComputeIEEGTexturesOfColumn(column);
                 m_ColumnManager.UpdateColumnIEEGSitesRendering(column, SceneInformation);
             });
-            m_ColumnManager.OnChangeNumberOfROI.AddListener(() =>
+            m_ColumnManager.OnChangeNumberOfROI.AddListener((column) =>
             {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                UpdateCurrentRegionOfInterest(column);
                 ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
             });
-            m_ColumnManager.OnChangeNumberOfVolumeInROI.AddListener(() =>
+            m_ColumnManager.OnChangeNumberOfVolumeInROI.AddListener((column) =>
             {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                UpdateCurrentRegionOfInterest(column);
                 ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
             });
-            m_ColumnManager.OnSelectROI.AddListener(() =>
+            m_ColumnManager.OnSelectROI.AddListener((column) =>
             {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                UpdateCurrentRegionOfInterest(column);
                 ApplicationState.Module3D.OnSelectROI.Invoke();
             });
-            m_ColumnManager.OnChangeROIVolumeRadius.AddListener(() =>
+            m_ColumnManager.OnChangeROIVolumeRadius.AddListener((column) =>
             {
-                UpdateCurrentRegionOfInterest(m_ColumnManager.SelectedColumn);
+                UpdateCurrentRegionOfInterest(column);
                 ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
             });
             m_ColumnManager.OnChangeColumnMinimizedState.AddListener(() =>
@@ -2702,7 +2702,7 @@ namespace HBP.Module3D
                         }
                         else if (meshHit || cutHit)
                         {
-                            selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hit.point, 5.0f);
+                            selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hit.point - transform.position, 5.0f);
                             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                         }
                         else

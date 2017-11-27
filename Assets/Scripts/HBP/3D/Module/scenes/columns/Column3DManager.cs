@@ -311,19 +311,19 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when changing the number of ROIs of this scene
         /// </summary>
-        public UnityEvent OnChangeNumberOfROI = new UnityEvent();
+        public GenericEvent<Column3D> OnChangeNumberOfROI = new GenericEvent<Column3D>();
         /// <summary>
         /// Event called when changing the number of volumes in a ROI of this scene
         /// </summary>
-        public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
+        public GenericEvent<Column3D> OnChangeNumberOfVolumeInROI = new GenericEvent<Column3D>();
         /// <summary>
         /// Event called when selecting a ROI in a column
         /// </summary>
-        public UnityEvent OnSelectROI = new UnityEvent();
+        public GenericEvent<Column3D> OnSelectROI = new GenericEvent<Column3D>();
         /// <summary>
         /// Event called when changing the radius of a volume in a ROI
         /// </summary>
-        public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
+        public GenericEvent<Column3D> OnChangeROIVolumeRadius = new GenericEvent<Column3D>();
         /// <summary>
         /// Event called when changing the IEEG span values
         /// </summary>
@@ -387,19 +387,19 @@ namespace HBP.Module3D
             });
             column.OnChangeNumberOfROI.AddListener(() =>
             {
-                OnChangeNumberOfROI.Invoke();
+                OnChangeNumberOfROI.Invoke(column);
             });
             column.OnChangeNumberOfVolumeInROI.AddListener(() =>
             {
-                OnChangeNumberOfVolumeInROI.Invoke();
+                OnChangeNumberOfVolumeInROI.Invoke(column);
             });
             column.OnSelectROI.AddListener(() =>
             {
-                OnSelectROI.Invoke();
+                OnSelectROI.Invoke(column);
             });
             column.OnChangeROIVolumeRadius.AddListener(() =>
             {
-                OnChangeROIVolumeRadius.Invoke();
+                OnChangeROIVolumeRadius.Invoke(column);
             });
             column.OnChangeMinimizedState.AddListener(() =>
             {
@@ -465,19 +465,19 @@ namespace HBP.Module3D
             });
             column.OnChangeNumberOfROI.AddListener(() =>
             {
-                OnChangeNumberOfROI.Invoke();
+                OnChangeNumberOfROI.Invoke(column);
             });
             column.OnChangeNumberOfVolumeInROI.AddListener(() =>
             {
-                OnChangeNumberOfVolumeInROI.Invoke();
+                OnChangeNumberOfVolumeInROI.Invoke(column);
             });
             column.OnSelectROI.AddListener(() =>
             {
-                OnSelectROI.Invoke();
+                OnSelectROI.Invoke(column);
             });
             column.OnChangeROIVolumeRadius.AddListener(() =>
             {
-                OnChangeROIVolumeRadius.Invoke();
+                OnChangeROIVolumeRadius.Invoke(column);
             });
             column.OnChangeMinimizedState.AddListener(() =>
             {
