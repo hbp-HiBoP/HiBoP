@@ -275,6 +275,25 @@ namespace HBP.Module3D
         }
 
         /// <summary>
+        /// Are all sites shown ?
+        /// </summary>
+        public bool ShowAllSites
+        {
+            get
+            {
+                return SceneInformation.ShowAllSites;
+            }
+            set
+            {
+                SceneInformation.ShowAllSites = value;
+                foreach (var column in ColumnManager.Columns)
+                {
+                    UpdateCurrentRegionOfInterest(column);
+                }
+            }
+        }
+
+        /// <summary>
         /// Handles triangle erasing
         /// </summary>
         protected TriEraser m_TriEraser = new TriEraser();
@@ -1414,7 +1433,7 @@ namespace HBP.Module3D
                             site.State.IsBlackListed = false;
                             site.State.IsHighlighted = false;
                             site.State.IsExcluded = false;
-                            site.State.IsOutOfROI = false;
+                            site.State.IsOutOfROI = true;
                             site.State.IsMarked = false;
                             site.State.IsMasked = false;
                             site.IsActive = true;
@@ -2533,7 +2552,7 @@ namespace HBP.Module3D
             {
                 foreach (Site site in column.Sites)
                 {
-                    site.State.IsOutOfROI = false;
+                    site.State.IsOutOfROI = !SceneInformation.ShowAllSites;
                 }
             }
             else
@@ -2545,8 +2564,16 @@ namespace HBP.Module3D
                     maskROI[ii] = column.Sites[ii].State.IsOutOfROI;
 
                 column.SelectedROI.UpdateMask(column.RawElectrodes, maskROI);
-                for (int ii = 0; ii < column.Sites.Count; ++ii)
-                    column.Sites[ii].State.IsOutOfROI = maskROI[ii];
+                if (SceneInformation.ShowAllSites)
+                {
+                    for (int ii = 0; ii < column.Sites.Count; ++ii)
+                        column.Sites[ii].State.IsOutOfROI = false;
+                }
+                else
+                {
+                    for (int ii = 0; ii < column.Sites.Count; ++ii)
+                        column.Sites[ii].State.IsOutOfROI = maskROI[ii];
+                }
             }
             ResetIEEG();
             OnUpdateROI.Invoke();
