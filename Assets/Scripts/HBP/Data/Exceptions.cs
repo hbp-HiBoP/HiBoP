@@ -39,6 +39,20 @@ public class CannotFindDataInfoException : HBPException
 }
 
 [Serializable]
+public class CannotLoadDataInfoException : HBPException
+{
+    public CannotLoadDataInfoException() { }
+    public CannotLoadDataInfoException(string data, string patient) : base("Can not load <color=red>" + data + "</color> for <color=red>" + patient + "</color>.\n\nPlease verify your data files.")
+    {
+        Title = "Data can not be loaded";
+    }
+    public CannotLoadDataInfoException(string message, Exception inner) : base(message, inner) { }
+    protected CannotLoadDataInfoException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
 public class DirectoryNotFoundException : HBPException
 {
     public DirectoryNotFoundException() { }

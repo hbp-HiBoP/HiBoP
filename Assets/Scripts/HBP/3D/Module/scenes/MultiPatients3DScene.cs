@@ -50,8 +50,10 @@ namespace HBP.Module3D
         /// Reset the scene : reload MRI, sites, and regenerate textures
         /// </summary>
         /// <param name="data"></param>
-        public IEnumerator c_Initialize(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress)
+        public IEnumerator c_Initialize(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, Action<Exception> outPut)
         {
+            Exception exception = null;
+
             yield return Ninja.JumpToUnity;
             float progress = 1.0f;
             onChangeProgress.Invoke(progress, 0.0f, "");
@@ -103,6 +105,8 @@ namespace HBP.Module3D
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
             // update scenes cameras
             OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
+
+            outPut(exception);
         }
         #endregion
     }

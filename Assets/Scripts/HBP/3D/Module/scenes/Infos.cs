@@ -40,10 +40,12 @@ namespace HBP.Module3D
         }
         public bool DisplayCCEPMode = false; // TEST
         public bool IsROICreationModeEnabled = false; /**< is the ROI creation mode enabled ? */
+
         public bool TimelinesLoaded = false; /**< timelines have been loaded */
         public bool SitesLoaded = false; /**< electrodes have been loaded */
         public bool MeshesLoaded = false;    /**< meshes have been loaded */
         public bool MRILoaded = false;    /**< volume has been loaded */
+
         public bool CollidersUpdated = false;/**< colluders are up to date */
         public bool IsSceneInitialized { get; set; }
         public bool IsSceneDisplayed { get; set; }
