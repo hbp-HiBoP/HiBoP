@@ -62,25 +62,25 @@ namespace HBP.Data.Anatomy
             DirectoryInfo directoryInfo = new DirectoryInfo(path);
             DirectoryInfo t1mriDirectoy = directoryInfo.GetDirectories("t1mri", SearchOption.TopDirectoryOnly).FirstOrDefault();
 
-            // Preoperative.
-            DirectoryInfo preoperativeDirectory = t1mriDirectoy.GetDirectories("T1pre_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
-            if (preoperativeDirectory != null && preoperativeDirectory.Exists)
+            // Preimplantation.
+            DirectoryInfo preimplantationDirectory = t1mriDirectoy.GetDirectories("T1pre_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
+            if (preimplantationDirectory != null && preimplantationDirectory.Exists)
             {
-                FileInfo preoperativeMRIFile = preoperativeDirectory.GetFiles(directoryInfo.Name + EXTENSION).FirstOrDefault();
-                if (preoperativeMRIFile != null && preoperativeMRIFile.Exists)
+                FileInfo preimplantationMRIFile = preimplantationDirectory.GetFiles(directoryInfo.Name + EXTENSION).FirstOrDefault();
+                if (preimplantationMRIFile != null && preimplantationMRIFile.Exists)
                 {
-                    MRIs.Add(new MRI("Preoperative", preoperativeMRIFile.FullName));
+                    MRIs.Add(new MRI("Preimplantation", preimplantationMRIFile.FullName));
                 }
             }
 
-            // Postoperative.
-            DirectoryInfo postoperativeDirectory = t1mriDirectoy.GetDirectories("T1post_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
-            if (postoperativeDirectory != null && postoperativeDirectory.Exists)
+            // Postimplantation.
+            DirectoryInfo postimplantationDirectory = t1mriDirectoy.GetDirectories("T1post_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
+            if (postimplantationDirectory != null && postimplantationDirectory.Exists)
             {
-                FileInfo postoperativeMRIFile = postoperativeDirectory.GetFiles(directoryInfo.Name + EXTENSION).FirstOrDefault();
-                if (postoperativeMRIFile != null && postoperativeMRIFile.Exists)
+                FileInfo postimplantationMRIFile = postimplantationDirectory.GetFiles(directoryInfo.Name + EXTENSION).FirstOrDefault();
+                if (postimplantationMRIFile != null && postimplantationMRIFile.Exists)
                 {
-                    MRIs.Add(new MRI("Postoperative", postoperativeMRIFile.FullName));
+                    MRIs.Add(new MRI("Posimplantation", postimplantationMRIFile.FullName));
                 }
             }
             //UnityEngine.Profiling.Profiler.EndSample();

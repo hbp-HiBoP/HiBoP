@@ -65,12 +65,12 @@ namespace HBP.Data.Anatomy
             List<Mesh> meshes = new List<Mesh>();
             DirectoryInfo parent = new DirectoryInfo(path);
             DirectoryInfo t1mr1 = new DirectoryInfo(path + Path.DirectorySeparatorChar + "t1mri");
-            DirectoryInfo preoperativeDirectory = new DirectoryInfo(t1mr1.GetDirectories("T1pre_*").First().FullName);
-            DirectoryInfo transformationsDirectory = new DirectoryInfo(preoperativeDirectory.FullName + Path.DirectorySeparatorChar + "registration");
-            FileInfo transformation = transformationsDirectory.GetFiles("RawT1-" + parent.Name + "_" + preoperativeDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
+            DirectoryInfo preimplantationDirectory = new DirectoryInfo(t1mr1.GetDirectories("T1pre_*").First().FullName);
+            DirectoryInfo transformationsDirectory = new DirectoryInfo(preimplantationDirectory.FullName + Path.DirectorySeparatorChar + "registration");
+            FileInfo transformation = transformationsDirectory.GetFiles("RawT1-" + parent.Name + "_" + preimplantationDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
             string transformationPath = string.Empty;
             if (transformation != null && transformation.Exists) transformationPath = transformation.FullName;
-            DirectoryInfo meshDirectory = new DirectoryInfo(preoperativeDirectory.FullName + Path.DirectorySeparatorChar + "default_analysis" + Path.DirectorySeparatorChar + "segmentation" + Path.DirectorySeparatorChar + "mesh");
+            DirectoryInfo meshDirectory = new DirectoryInfo(preimplantationDirectory.FullName + Path.DirectorySeparatorChar + "default_analysis" + Path.DirectorySeparatorChar + "segmentation" + Path.DirectorySeparatorChar + "mesh");
             if(meshDirectory.Exists)
             {
                 FileInfo greyMatterLeftHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Lhemi" + EXTENSION);

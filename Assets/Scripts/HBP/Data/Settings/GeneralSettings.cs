@@ -30,11 +30,11 @@ namespace HBP.Data.Settings
         public enum PlotNameCorrectionTypeEnum { Disable, Enable }
         public enum AveragingMode { Mean, Median }
 
-        private UI.Theme.Theme[] m_Themes;
+        private Theme[] m_Themes;
         /// <summary>
         /// List of the themes.
         /// </summary>
-        public UI.Theme.Theme[] Themes
+        public Theme[] Themes
         {
             get
             {

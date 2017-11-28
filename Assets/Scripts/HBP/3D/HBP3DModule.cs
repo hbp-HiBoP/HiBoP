@@ -269,9 +269,9 @@ namespace HBP.Module3D
             {
                 visualizationToLoad.Configuration.MeshName = patient.Brain.Meshes.First().Name;
             }
-            if (patient.Brain.MRIs.First(m => m.Name == "Preoperative") != null)
+            if (patient.Brain.MRIs.First(m => m.Name == "Preimplantation") != null)
             {
-                visualizationToLoad.Configuration.MRIName = "Preoperative";
+                visualizationToLoad.Configuration.MRIName = "Preimplantation";
             }
             else if (patient.Brain.MRIs.Count > 0)
             {

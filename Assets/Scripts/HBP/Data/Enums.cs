@@ -2,6 +2,6 @@
 {
     public enum DisplayableError
     {
-        LeftMeshEmpty, RightMeshEmpty, PreoperativeMRIEmpty, ImplantationEmpty
+        LeftMeshEmpty, RightMeshEmpty, PreimplantationMRIEmpty, ImplantationEmpty
     }
 }

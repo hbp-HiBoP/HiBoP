@@ -1953,7 +1953,7 @@ namespace HBP.Module3D
             {
                 case SceneType.SinglePatient:
                     UpdateMeshToDisplay(m_ColumnManager.Meshes.FindIndex((m) => m.Name == "Grey matter"));
-                    UpdateMRIToDisplay(m_ColumnManager.MRIs.FindIndex((m) => m.Name == "Preoperative"));
+                    UpdateMRIToDisplay(m_ColumnManager.MRIs.FindIndex((m) => m.Name == "Preimplantation"));
                     UpdateSites(m_ColumnManager.Implantations.FindIndex((i) => i.Name == "Patient"));
                     break;
                 case SceneType.MultiPatients:
