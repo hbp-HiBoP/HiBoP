@@ -136,7 +136,7 @@ namespace HBP.Module3D
             MultiPatients3DScene scene = Instantiate(MultiPatientsScenePrefab, transform).GetComponent<MultiPatients3DScene>();
             scene.Initialize(visualization);
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress, (e) => exception = e));
-            if (exception != null)
+            if (exception == null)
             {
                 try
                 {

@@ -536,10 +536,10 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateDLLSitesMask()
         {
-            bool noROI = false; // (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles == 0);
+            bool isROI = m_ROIs.Count > 0; // (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles == 0);
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                m_RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || Sites[ii].State.IsExcluded || (Sites[ii].State.IsOutOfROI && !noROI)));
+                m_RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || Sites[ii].State.IsExcluded || (Sites[ii].State.IsOutOfROI && isROI)));
             }
         }
         /// <summary>

@@ -151,40 +151,43 @@ namespace HBP.Module3D
             SceneInformation.MeshesLoaded = false;
 
             // checks parameters
-            if (mesh == null) throw new EmptyFilePathException("GII");
-            if (!mesh.Usable) throw new EmptyFilePathException("GII"); // TODO CHANGE TO NOT USABLE
+            //if (mesh == null) throw new EmptyFilePathException("GII"); // FIXME
+            //if (!mesh.Usable) throw new EmptyFilePathException("GII"); // TODO CHANGE TO NOT USABLE
 
-            if (mesh is Data.Anatomy.LeftRightMesh)
+            if (mesh.Usable)
             {
-                LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
-                
-                if (mesh3D.IsLoaded)
+                if (mesh is Data.Anatomy.LeftRightMesh)
                 {
-                    m_ColumnManager.Meshes.Add(mesh3D);
+                    LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
+
+                    if (mesh3D.IsLoaded)
+                    {
+                        m_ColumnManager.Meshes.Add(mesh3D);
+                    }
+                    else
+                    {
+                        SceneInformation.MeshesLoaded = false;
+                        throw new CanNotLoadGIIFile(mesh3D.Left.IsLoaded, mesh3D.Right.IsLoaded);
+                    }
+                }
+                else if (mesh is Data.Anatomy.SingleMesh)
+                {
+                    SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
+
+                    if (mesh3D.IsLoaded)
+                    {
+                        m_ColumnManager.Meshes.Add(mesh3D);
+                    }
+                    else
+                    {
+                        SceneInformation.MeshesLoaded = false;
+                        throw new CanNotLoadGIIFile(mesh3D.IsLoaded);
+                    }
                 }
                 else
                 {
-                    SceneInformation.MeshesLoaded = false;
-                    throw new CanNotLoadGIIFile(mesh3D.Left.IsLoaded, mesh3D.Right.IsLoaded);
+                    Debug.LogError("Mesh not handled.");
                 }
-            }
-            else if(mesh is Data.Anatomy.SingleMesh)
-            {
-                SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
-
-                if (mesh3D.IsLoaded)
-                {
-                    m_ColumnManager.Meshes.Add(mesh3D);
-                }
-                else
-                {
-                    SceneInformation.MeshesLoaded = false;
-                    throw new CanNotLoadGIIFile(mesh3D.IsLoaded);
-                }
-            }
-            else
-            {
-                Debug.LogError("Mesh not handled.");
             }
 
             //####### UDPATE MODE

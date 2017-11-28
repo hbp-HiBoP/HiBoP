@@ -2886,22 +2886,25 @@ namespace HBP.Module3D
             SceneInformation.MRILoaded = false;
 
             // checks parameter
-            if (!mri.Usable) throw new EmptyFilePathException("NII");
-
-            MRI3D mri3D = new MRI3D(mri);
-            if (mri3D.IsLoaded)
+            //if (!mri.Usable) throw new EmptyFilePathException("NII"); // FIXME
+            if (mri.Usable)
             {
-                m_ColumnManager.MRIs.Add(mri3D);
-            }
-            else
-            {
-                throw new CanNotLoadNIIFile(mri.File);
-            }
-            
-            // Update mode
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
 
-            SceneInformation.MRILoaded = true;
+                MRI3D mri3D = new MRI3D(mri);
+                if (mri3D.IsLoaded)
+                {
+                    m_ColumnManager.MRIs.Add(mri3D);
+                }
+                else
+                {
+                    throw new CanNotLoadNIIFile(mri.File);
+                }
+
+                // Update mode
+                m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
+
+                SceneInformation.MRILoaded = true;
+            }
             yield return SceneInformation.MRILoaded;
         }
         /// <summary>
@@ -2925,7 +2928,7 @@ namespace HBP.Module3D
                 bool isImplantationCommonToAllPatients = true;
                 foreach (Data.Patient patient in patients)
                 {
-                    if (patient.Brain.Implantations.FindIndex((i) => i.Name == implantationName) == -1)
+                    if (patient.Brain.Implantations.FindIndex((i) => i.Name == implantationName && i.Usable) == -1)
                     {
                         isImplantationCommonToAllPatients = false;
                         break;
