@@ -50,17 +50,14 @@ namespace HBP.UI.Graph
         public UnityEvent OnOpenGraphsWindow = new UnityEvent();
 
         // Trial matrix
-        [SerializeField]
-        TrialMatrixList m_TrialMatrixList;
+        [SerializeField] TrialMatrixList m_TrialMatrixList;
         Dictionary<Protocol, Vector2> m_LimitsByProtocol = new Dictionary<Protocol, Vector2>();
         Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>> m_TrialMatrixByProtocolBySite = new Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>>();
         bool m_LineSelectable = false;
 
         // Curves
-        [SerializeField]
-        Tools.Unity.Graph.Graph m_Graph;
+        [SerializeField] Tools.Unity.Graph.Graph m_Graph;
         [SerializeField] List<ColumnColor> m_Colors;
-        //List<Color> m_Colors = new List<Color> { Color.blue, Color.red, Color.green, Color.cyan, Color.grey, Color.magenta, Color.yellow };
         Dictionary<Column, Dictionary<Site, CurveData>> m_CurveBySiteAndColumn = new Dictionary<Column, Dictionary<Site, CurveData>>();
         Dictionary<Column, CurveData> m_ROICurvebyColumn = new Dictionary<Column, CurveData>();
 
@@ -73,13 +70,37 @@ namespace HBP.UI.Graph
         #endregion
 
         #region Handlers Methods
-        public void OnSelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc, bool additive)
+        public void OnSelectLines(int[] lines, TrialMatrix.Bloc bloc, bool additive)
         {
             if (m_LineSelectable)
             {
-                foreach (TrialMatrix.TrialMatrix trial in m_TrialMatrixList.TrialMatrix)
+                switch (ApplicationState.GeneralSettings.TrialMatrixSettings.TrialsSynchronization)
                 {
-                    trial.SelectLines(lines, bloc, additive);
+                    case Data.Settings.TrialMatrixSettings.TrialsSynchronizationType.Disable:
+                        foreach (var trialMatrix in m_TrialMatrixList.TrialMatrix)
+                        {
+                            foreach (var line in trialMatrix.Lines)
+                            {
+                                foreach (var b in line.Blocs)
+                                {
+                                    if (b == bloc)
+                                    {
+                                        trialMatrix.SelectLines(lines, bloc.Data.ProtocolBloc, additive);
+                                        goto @out;
+                                    }
+                                }
+                            }
+                        }
+                        @out:
+                        break;
+                    case Data.Settings.TrialMatrixSettings.TrialsSynchronizationType.Enable:
+                        foreach (TrialMatrix.TrialMatrix trial in m_TrialMatrixList.TrialMatrix)
+                        {
+                            trial.SelectLines(lines, bloc.Data.ProtocolBloc, additive);
+                        }
+                        break;
+                    default:
+                        break;
                 }
                 GenerateCurves();
                 DisplayCurves();
