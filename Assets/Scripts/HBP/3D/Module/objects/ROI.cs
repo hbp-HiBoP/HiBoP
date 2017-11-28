@@ -82,10 +82,10 @@ namespace HBP.Module3D
         /// </summary>
         private void UnselectSphere()
         {
-            if (SelectedSphereID == -1 || SelectedSphereID > m_Spheres.Count) // no sphere selected
-                return;
-
-            m_Spheres[SelectedSphereID].GetComponent<Sphere>().Selected = false;
+            if (SelectedSphereID != -1 && SelectedSphereID < m_Spheres.Count)
+            {
+                m_Spheres[SelectedSphereID].GetComponent<Sphere>().Selected = false;
+            }
             SelectedSphereID = -1;
             ApplicationState.Module3D.OnSelectROIVolume.Invoke();
         }
@@ -243,33 +243,32 @@ namespace HBP.Module3D
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="idBubble"></param>
-        public void RemoveBubble(int idBubble)
+        /// <param name="sphereID"></param>
+        public void RemoveSphere(int sphereID)
         {
-            if (SelectedSphereID > idBubble)
-                SelectedSphereID--;
-            else if(SelectedSphereID == idBubble)
-                SelectedSphereID = -1;
+            if (sphereID == -1) return;
 
             // remove the bubble
-            Destroy(m_Spheres[idBubble].gameObject);
-            m_Spheres.RemoveAt(idBubble);
+            Destroy(m_Spheres[sphereID].gameObject);
+            m_Spheres.RemoveAt(sphereID);
 
             // remove dll sphere
-            m_DLLROI.RemoveBubble(idBubble);
+            m_DLLROI.RemoveBubble(sphereID);
 
             OnChangeNumberOfVolumeInROI.Invoke();
-
-            // if not we removed the selected bubble, select instead the last one
-            if (SelectedSphereID == -1)
+            
+            if (SelectedSphereID - 1 == -1 && m_Spheres.Count > 0)
             {
-                if(m_Spheres.Count > 0)
-                    SelectSphere(m_Spheres.Count - 1);
+                SelectSphere(SelectedSphereID);
+            }
+            else
+            {
+                SelectSphere(SelectedSphereID - 1);
             }
         }
         public void RemoveSelectedSphere()
         {
-            RemoveBubble(SelectedSphereID);
+            RemoveSphere(SelectedSphereID);
         }
         /// <summary>
         /// 
