@@ -207,8 +207,12 @@ namespace HBP.Data.Visualization
         public void Standardize(int before,int after)
         {
             int diffBefore = TimeLine.MainEvent.Position - before;
-            int diffAfter = (TimeLine.Lenght - TimeLine.MainEvent.Position) - after;
+            int diffAfter = after - (TimeLine.Lenght - TimeLine.MainEvent.Position);
             TimeLine.Resize(diffBefore, diffAfter);
+            foreach (var siteConfiguration in Configuration.ConfigurationBySite.Values)
+            {
+                siteConfiguration.Resize(diffBefore, diffAfter);
+            }
         }
         #endregion
 

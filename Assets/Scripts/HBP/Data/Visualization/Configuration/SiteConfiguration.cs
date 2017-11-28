@@ -80,6 +80,31 @@ namespace HBP.Data.Visualization
             IsHighlighted = configuration.IsHighlighted;
             IsMarked = configuration.IsMarked;
         }
+        public void Resize(int diffBefore, int diffAfter)
+        {
+            float[] values = new float[Values.Length + diffBefore + diffAfter];
+            float[] normalizedValues = new float[NormalizedValues.Length + diffBefore + diffAfter];
+            for (int i = 0; i < diffBefore; ++i)
+            {
+                values[i] = Values[0];
+                normalizedValues[i] = NormalizedValues[0];
+            }
+            for (int i = 0; i < Values.Length; ++i)
+            {
+                values[diffBefore + i] = Values[i];
+            }
+            for (int i = 0; i < NormalizedValues.Length; ++i)
+            {
+                normalizedValues[diffBefore + i] = NormalizedValues[i];
+            }
+            for (int i = 0; i < diffAfter; ++i)
+            {
+                values[diffBefore + Values.Length + i] = Values[Values.Length - 1];
+                normalizedValues[diffBefore + NormalizedValues.Length + i] = NormalizedValues[Values.Length - 1];
+            }
+            Values = values;
+            NormalizedValues = normalizedValues;
+        }
         #endregion
     }
 }
