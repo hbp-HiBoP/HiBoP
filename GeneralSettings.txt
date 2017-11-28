@@ -13,7 +13,8 @@
     "BlocFormat": 1,
     "ConstantLineHeight": 3,
     "LineHeightByWidth": 0.005,
-    "HeightByWidth": 0.5625
+    "HeightByWidth": 0.5625,
+    "TrialsSynchronization": 0
   },
   "Theme": "Dark",
   "ShowCutLines": true
