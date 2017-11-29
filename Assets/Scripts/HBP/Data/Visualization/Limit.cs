@@ -57,5 +57,13 @@
             Position = position;
         }
         #endregion
+
+        #region Public Methods
+        public void Reposition(int count, float step)
+        {
+            Position += count;
+            Value += count * step;
+        }
+        #endregion
     }
 }
