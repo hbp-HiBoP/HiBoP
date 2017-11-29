@@ -33,7 +33,7 @@ namespace HBP.Data.General
     public class Project
     {
         #region Properties
-        ProjectSettings m_Settings;
+        ProjectSettings m_Settings = new ProjectSettings();
         /// <summary>
         /// Settings of the project.
         /// </summary>
@@ -43,7 +43,7 @@ namespace HBP.Data.General
             set { m_Settings = value; }
         }
 
-        List<Patient> m_Patients;
+        List<Patient> m_Patients = new List<Patient>();
         /// <summary>
         /// Patients of the project.
         /// </summary>
@@ -52,7 +52,7 @@ namespace HBP.Data.General
             get { return new ReadOnlyCollection<Patient>(m_Patients); }
         }
 
-        List<Group> m_Groups;
+        List<Group> m_Groups = new List<Group>();
         /// <summary>
         /// Patient groups of the project.
         /// </summary>
@@ -61,7 +61,7 @@ namespace HBP.Data.General
             get { return new ReadOnlyCollection<Group>(m_Groups); }
         }
 
-        List<Protocol> m_Protocols;
+        List<Protocol> m_Protocols = new List<Protocol>();
         /// <summary>
         /// Protocols of the project.
         /// </summary>
@@ -70,7 +70,7 @@ namespace HBP.Data.General
             get { return new ReadOnlyCollection<Protocol>(m_Protocols); }
         }
 
-        List<Dataset> m_Datasets;
+        List<Dataset> m_Datasets = new List<Dataset>();
         /// <summary>
         /// Datasets of the project.
         /// </summary>
@@ -79,7 +79,7 @@ namespace HBP.Data.General
             get { return new ReadOnlyCollection<Dataset>(m_Datasets); }
         }
 
-        List<Visualization.Visualization> m_Visualizations;
+        List<Visualization.Visualization> m_Visualizations = new List<Visualization.Visualization>();
         /// <summary>
         /// Visualizations of the project.
         /// </summary>
@@ -141,6 +141,18 @@ namespace HBP.Data.General
         {
             this.m_Patients = new List<Patient>();
             AddPatient(patients);
+            foreach (Dataset dataset in m_Datasets)
+            {
+                dataset.RemoveData(from data in dataset.Data where !m_Patients.Any(p => p == data.Patient) select data);
+            }
+            foreach (Visualization.Visualization visualization in m_Visualizations)
+            {
+                visualization.RemovePatient(from patient in visualization.Patients where !m_Patients.Contains(patient) select patient);
+            }
+            foreach (Group _group in m_Groups)
+            {
+                _group.RemovePatient((from patient in _group.Patients where !m_Patients.Contains(patient) select patient).ToArray());
+            }
         }
         public void AddPatient(Patient patient)
         {
@@ -209,6 +221,15 @@ namespace HBP.Data.General
         {
             this.m_Protocols = new List<Protocol>();
             AddProtocol(protocols);
+            RemoveDataset((from dataset in m_Datasets where !m_Protocols.Any(p => p == dataset.Protocol) select dataset).ToArray());
+            foreach (Visualization.Visualization visualization in m_Visualizations)
+            {
+                Column[] columnsToRemove = (from column in visualization.Columns where !m_Protocols.Any(p => p == column.Protocol) select column).ToArray();
+                foreach (Column column in columnsToRemove)
+                {
+                    visualization.Columns.Remove(column);
+                }
+            }
         }
         public void AddProtocol(Protocol protocol)
         {
@@ -242,6 +263,14 @@ namespace HBP.Data.General
         {
             this.m_Datasets = new List<Dataset>();
             AddDataset(datasets);
+            foreach (Visualization.Visualization visualization in m_Visualizations)
+            {
+                Column[] columnsToRemove = (from column in visualization.Columns where !m_Datasets.Any(d => d == column.Dataset) select column).ToArray();
+                foreach (Column column in columnsToRemove)
+                {
+                    visualization.Columns.Remove(column);
+                }
+            }
         }
         public void AddDataset(Dataset dataset)
         {
