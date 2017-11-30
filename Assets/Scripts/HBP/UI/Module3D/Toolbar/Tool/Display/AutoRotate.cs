@@ -47,56 +47,9 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentModeID)
-            {
-                case HBP.Module3D.Mode.ModesId.NoPathDefined:
-                    m_Button.interactable = false;
-                    m_Toggle.interactable = false;
-                    m_Slider.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.MinPathDefined:
-                    m_Button.interactable = true;
-                    m_Toggle.interactable = true;
-                    m_Slider.interactable = true;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AllPathDefined:
-                    m_Button.interactable = true;
-                    m_Toggle.interactable = true;
-                    m_Slider.interactable = true;
-                    break;
-                case HBP.Module3D.Mode.ModesId.ComputingAmplitudes:
-                    m_Button.interactable = true;
-                    m_Toggle.interactable = true;
-                    m_Slider.interactable = true;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AmplitudesComputed:
-                    m_Button.interactable = true;
-                    m_Toggle.interactable = true;
-                    m_Slider.interactable = true;
-                    break;
-                case HBP.Module3D.Mode.ModesId.TriErasing:
-                    m_Button.interactable = false;
-                    m_Toggle.interactable = false;
-                    m_Slider.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.ROICreation:
-                    m_Button.interactable = false;
-                    m_Toggle.interactable = false;
-                    m_Slider.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AmpNeedUpdate:
-                    m_Button.interactable = true;
-                    m_Toggle.interactable = true;
-                    m_Slider.interactable = true;
-                    break;
-                case HBP.Module3D.Mode.ModesId.Error:
-                    m_Button.interactable = false;
-                    m_Toggle.interactable = false;
-                    m_Slider.interactable = false;
-                    break;
-                default:
-                    break;
-            }
+            m_Button.interactable = true;
+            m_Toggle.interactable = true;
+            m_Slider.interactable = true;
         }
 
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)

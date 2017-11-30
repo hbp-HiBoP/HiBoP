@@ -21,7 +21,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.UpdateGenerators();
+                ApplicationState.Module3D.SelectedScene.UpdateGenerator();
             });
         }
         public override void DefaultState()
@@ -32,38 +32,8 @@ namespace HBP.UI.Module3D.Tools
         {
             bool isCCEP = ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled;
             bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == Column3D.ColumnType.IEEG;
-            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
-            {
-                case Mode.ModesId.NoPathDefined:
-                    m_Button.interactable = false;
-                    break;
-                case Mode.ModesId.MinPathDefined:
-                    m_Button.interactable = !isCCEP && isColumnIEEG;
-                    break;
-                case Mode.ModesId.AllPathDefined:
-                    m_Button.interactable = !isCCEP && isColumnIEEG;
-                    break;
-                case Mode.ModesId.ComputingAmplitudes:
-                    m_Button.interactable = false;
-                    break;
-                case Mode.ModesId.AmplitudesComputed:
-                    m_Button.interactable = false;
-                    break;
-                case Mode.ModesId.TriErasing:
-                    m_Button.interactable = false;
-                    break;
-                case Mode.ModesId.ROICreation:
-                    m_Button.interactable = false;
-                    break;
-                case Mode.ModesId.AmpNeedUpdate:
-                    m_Button.interactable = !isCCEP && isColumnIEEG;
-                    break;
-                case Mode.ModesId.Error:
-                    m_Button.interactable = false;
-                    break;
-                default:
-                    break;
-            }
+
+            m_Button.interactable = !isCCEP && isColumnIEEG;
         }
         #endregion
     }

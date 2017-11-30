@@ -29,43 +29,15 @@ namespace HBP.UI.Module3D.Tools
 
         public override void DefaultState()
         {
-
+            m_Toggle.interactable = false;
         }
 
         public override void UpdateInteractable()
         {
-            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentModeID)
-            {
-                case HBP.Module3D.Mode.ModesId.NoPathDefined:
-                    m_Toggle.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.MinPathDefined:
-                    m_Toggle.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AllPathDefined:
-                    m_Toggle.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.ComputingAmplitudes:
-                    m_Toggle.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AmplitudesComputed:
-                    m_Toggle.interactable = true;
-                    break;
-                case HBP.Module3D.Mode.ModesId.TriErasing:
-                    m_Toggle.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.ROICreation:
-                    m_Toggle.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AmpNeedUpdate:
-                    m_Toggle.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.Error:
-                    m_Toggle.interactable = false;
-                    break;
-                default:
-                    break;
-            }
+            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG;
+            bool areAmplitudesComputed = ApplicationState.Module3D.SelectedScene.SceneInformation.IsGeneratorUpToDate;
+
+            m_Toggle.interactable = isColumnIEEG && areAmplitudesComputed;
         }
         #endregion
     }

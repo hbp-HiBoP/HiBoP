@@ -952,14 +952,14 @@ namespace HBP.Module3D
             {
                 float diffMin = column.IEEGParameters.SpanMin - column.IEEGParameters.Middle;
                 float diffMax = column.IEEGParameters.SpanMax - column.IEEGParameters.Middle;
-                if (diffMin == 0 || diffMax == 0)
+                if (diffMin == 0 && diffMax == 0)
                 {
                     invalidColumns.Add(column);
                 }
             }
             if (invalidColumns.Count > 0)
             {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Warning, "Invalid iEEG span values", "The difference between Span Min and Middle or the difference between Middle and Span Max of some columns are equal to zero.\n\nThis is not supported. Please check your values.");
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Warning, "Invalid iEEG span values", "The difference between Span Min, Middle and Span Max of some columns is equal to zero.\n\nThis is not supported. Please check your values.");
             }
         }
         /// <summary>

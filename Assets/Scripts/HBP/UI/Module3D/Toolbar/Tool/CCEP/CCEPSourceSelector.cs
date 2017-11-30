@@ -61,47 +61,9 @@ namespace HBP.UI.Module3D.Tools
             {
                 isSiteSelected &= scene.ColumnManager.SelectedImplantation.Latencies[column.CurrentLatencyFile].IsSiteASource(column.SelectedSiteID);
             }
-            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentModeID)
-            {
-                case HBP.Module3D.Mode.ModesId.NoPathDefined:
-                    m_SetSource.interactable = false;
-                    m_UnsetSource.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.MinPathDefined:
-                    m_SetSource.interactable = isCCEP && isSiteSelected;
-                    m_UnsetSource.interactable = isCCEP && isSourceDefined;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AllPathDefined:
-                    m_SetSource.interactable = isCCEP && isSiteSelected;
-                    m_UnsetSource.interactable = isCCEP && isSourceDefined;
-                    break;
-                case HBP.Module3D.Mode.ModesId.ComputingAmplitudes:
-                    m_SetSource.interactable = isCCEP && isSiteSelected;
-                    m_UnsetSource.interactable = isCCEP && isSourceDefined;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AmplitudesComputed:
-                    m_SetSource.interactable = isCCEP && isSiteSelected;
-                    m_UnsetSource.interactable = isCCEP && isSourceDefined;
-                    break;
-                case HBP.Module3D.Mode.ModesId.TriErasing:
-                    m_SetSource.interactable = false;
-                    m_UnsetSource.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.ROICreation:
-                    m_SetSource.interactable = false;
-                    m_UnsetSource.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AmpNeedUpdate:
-                    m_SetSource.interactable = isCCEP && isSiteSelected;
-                    m_UnsetSource.interactable = isCCEP && isSourceDefined;
-                    break;
-                case HBP.Module3D.Mode.ModesId.Error:
-                    m_SetSource.interactable = false;
-                    m_UnsetSource.interactable = false;
-                    break;
-                default:
-                    break;
-            }
+
+            m_SetSource.interactable = isCCEP && isSiteSelected;
+            m_UnsetSource.interactable = isCCEP && isSourceDefined;
         }
 
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)

@@ -168,16 +168,6 @@ namespace HBP.Module3D
         /// </summary>
         public SceneStatesInfo SceneInformation { get; set; }
 
-        [SerializeField]
-        protected ModesManager m_ModesManager;
-        /// <summary>
-        /// Modes of the scene
-        /// </summary>
-        public ModesManager ModesManager
-        {
-            get { return m_ModesManager; }
-        }
-
         protected DisplayedObjects3DView m_DisplayedObjects = null;
         /// <summary>
         /// Displayable objects of the scene
@@ -222,12 +212,11 @@ namespace HBP.Module3D
 
                 SceneInformation.CutHolesEnabled = value;
                 SceneInformation.MeshGeometryNeedsUpdate = true;
-                SceneInformation.IsIEEGOutdated = true;
+                ResetIEEG();
                 foreach (Column3D column in m_ColumnManager.Columns)
                 {
                     column.IsRenderingUpToDate = false;
                 }
-                m_ModesManager.UpdateMode(Mode.FunctionsId.UpdatePlane);
             }
         }
         /// <summary>
@@ -253,7 +242,6 @@ namespace HBP.Module3D
                     }
                 }
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-                m_ModesManager.SetCurrentModeSpecifications(true);
                 ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
             }
@@ -527,6 +515,9 @@ namespace HBP.Module3D
             }
         }
 
+        private bool m_UpdatingGenerator = false;
+        private bool m_GeneratorNeedsUpdate = true;
+
         private bool m_UpdatingColliders = false;
 
         [SerializeField]
@@ -604,6 +595,10 @@ namespace HBP.Module3D
         /// Event called when requesting a screenshot of the scene
         /// </summary>
         public GenericEvent<bool> OnRequestScreenshot = new GenericEvent<bool>();
+        /// <summary>
+        /// Event called when updating the generator state
+        /// </summary>
+        public GenericEvent<bool> OnUpdatingGenerator = new GenericEvent<bool>();
         #endregion
 
         #region Private Methods
@@ -611,26 +606,16 @@ namespace HBP.Module3D
         {
             if (!SceneInformation.IsSceneInitialized) return;
 
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update: set_current_mode_specifications");
-            SetCurrentModeSpecifications();
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            if (m_ModesManager.CurrentModeID == Mode.ModesId.NoPathDefined) return;
-
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update");
-
-            // TEMP : useless
-            for (int ii = 0; ii < Cuts.Count; ++ii)
-            {
-                Cuts[ii].RemoveFrontPlane = 0;
-            }
-
-            // check if we must perform new cuts of the brain
             if (SceneInformation.MeshGeometryNeedsUpdate)
             {
                 UpdateGeometry();
             }
-            UnityEngine.Profiling.Profiler.EndSample();
+
+            if (m_GeneratorNeedsUpdate)
+            {
+                UpdateGenerator();
+            }
+            OnUpdatingGenerator.Invoke(m_UpdatingGenerator);
 
             if (!SceneInformation.IsSceneDisplayed)
             {
@@ -670,7 +655,7 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateIEEGAlpha.AddListener((column) =>
             {
-                if (SceneInformation.IsGeometryUpToDate && !SceneInformation.IsIEEGOutdated)
+                if (SceneInformation.IsGeometryUpToDate)
                     ComputeIEEGTexturesOfColumn(column);
             });
             m_ColumnManager.OnUpdateIEEGGain.AddListener((column) =>
@@ -713,9 +698,6 @@ namespace HBP.Module3D
             m_ColumnManager.OnSelectColumnManager.AddListener((columnManager) =>
             {
                 IsSelected = true;
-
-                // force mode to update UI
-                m_ModesManager.SetCurrentModeSpecifications(true);
 
                 ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
                 UpdateGUITextures();
@@ -967,7 +949,6 @@ namespace HBP.Module3D
         {
             // generators are now up to date
             SceneInformation.IsGeneratorUpToDate = true;
-            SceneInformation.IsIEEGOutdated = false;
 
             // send inf values to overlays
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
@@ -980,26 +961,11 @@ namespace HBP.Module3D
                 m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID = 0;
             }
 
-            // amplitudes are not displayed yet
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-                m_ColumnManager.ColumnsIEEG[ii].UpdateIEEG = true;
-
-            //####### CHECK ACCESS
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.PostUpdateGenerators))
-            {
-                Debug.LogError("-ERROR : Base3DScene::post_updateGenerators -> no acess for mode : " + m_ModesManager.CurrentModeName);
-            }
-            //##################
-
             // update plots visibility
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
             // check validity of plot scale
             m_ColumnManager.CheckIEEGParametersIntegrity();
-
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.PostUpdateGenerators);
-            //##################
         }
         /// <summary>
         /// Load FMRI dialog
@@ -1048,13 +1014,6 @@ namespace HBP.Module3D
         /// <returns></returns>
         private bool LoadFMRIColumn(string fmriLabel)
         {
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.AddFMRIColumn))
-            {
-                Debug.LogError("-ERROR : Base3DScene::add_FMRI_column -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return false;
-            }
-
             // Update column number
             int newFMRIColumnNumber = m_ColumnManager.ColumnsFMRI.Count + 1;
             //m_ColumnManager.SetColumns(m_ColumnManager.ColumnsIEEG.Count, newFMRIColumnNumber, Cuts.Count);
@@ -1093,8 +1052,7 @@ namespace HBP.Module3D
 
             OnSendFMRIParameters.Invoke(fmriParams);
             ComputeFMRITextures(-1, -1);
-
-            m_ModesManager.UpdateMode(Mode.FunctionsId.AddFMRIColumn);
+            
             return true;
         }
         /// <summary>
@@ -1102,13 +1060,6 @@ namespace HBP.Module3D
         /// </summary>
         private void UnloadLastFMRIColumn()
         {
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.RemoveLastFMRIColumn))
-            {
-                Debug.LogError("-ERROR : Base3DScene::remove_last_FMRI_column -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return;
-            }
-
             // Update columns number
             //m_ColumnManager.SetColumns(m_ColumnManager.ColumnsIEEG.Count, m_ColumnManager.ColumnsFMRI.Count - 1, Cuts.Count);
 
@@ -1118,8 +1069,6 @@ namespace HBP.Module3D
             ComputeMRITextures();
             ComputeFMRITextures(-1, -1);
             UpdateGUITextures();
-
-            m_ModesManager.UpdateMode(Mode.FunctionsId.RemoveLastFMRIColumn);
         }
         /// <summary>
         /// Actions to perform when clicking on a site
@@ -1130,10 +1079,7 @@ namespace HBP.Module3D
 
             if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG)
             {
-                if (((Column3DIEEG)m_ColumnManager.SelectedColumn).SendInformation)
-                {
-                    SendAdditionalSiteInfoRequest();
-                }
+                SendAdditionalSiteInfoRequest();
             }
         }
         /// <summary>
@@ -1186,11 +1132,9 @@ namespace HBP.Module3D
         {
             if (!SceneInformation.IsGeometryUpToDate) return;
             SceneInformation.IsGeneratorUpToDate = false;
-            SceneInformation.IsIEEGOutdated = true;
+            m_GeneratorNeedsUpdate = true;
             UpdateGUITextures();
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetIEEG);
         }
         /// <summary>
         /// Generate the split number regarding all meshes
@@ -1221,7 +1165,7 @@ namespace HBP.Module3D
 
             SharedMaterials.Brain.BrainMaterials[this].SetTexture("_ColorTex", ColumnManager.BrainColorMapTexture);
 
-            if (SceneInformation.IsGeometryUpToDate && !SceneInformation.IsIEEGOutdated)
+            if (SceneInformation.IsGeometryUpToDate && SceneInformation.IsGeneratorUpToDate)
                 ComputeIEEGTextures();
 
             OnChangeColormap.Invoke(color);
@@ -1250,15 +1194,11 @@ namespace HBP.Module3D
                 ColumnManager.ResetColors();
 
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
+            ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.IsRenderingUpToDate = false;
             }
-
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.UpdatePlane); // TEMP
-            //##################
         }
         /// <summary>
         /// Set the mesh part to be displayed in the scene
@@ -1266,26 +1206,15 @@ namespace HBP.Module3D
         /// <param name="meshPartToDisplay"></param>
         public void UpdateMeshPartToDisplay(SceneStatesInfo.MeshPart meshPartToDisplay)
         {
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetDisplayedMesh))
-            {
-                Debug.LogError("-ERROR : Base3DScene::setDisplayedMesh -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return;
-            }
-
             if (!SceneInformation.IsGeometryUpToDate) return;
 
             SceneInformation.MeshPartToDisplay = meshPartToDisplay;
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
-            //m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.IsRenderingUpToDate = false;
             }
-
-            // Update Mode
-            m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
         }
         /// <summary>
         /// Set the mesh type to be displayed in the scene
@@ -1293,30 +1222,19 @@ namespace HBP.Module3D
         /// <param name="meshTypeToDisplay"></param>
         public void UpdateMeshToDisplay(int meshID)
         {
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetDisplayedMesh))
-            {
-                Debug.LogError("-ERROR : Base3DScene::setDisplayedMesh -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return;
-            }
-
             if (!SceneInformation.IsGeometryUpToDate) return;
 
             if (meshID == -1) meshID = 0;
 
             m_ColumnManager.SelectedMeshID = meshID;
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.IsRenderingUpToDate = false;
             }
 
             OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
-
-            // Update mode
-            m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
 
             foreach (var cut in m_Cuts)
             {
@@ -1329,13 +1247,6 @@ namespace HBP.Module3D
         /// <param name="mriID"></param>
         public void UpdateMRIToDisplay(int mriID)
         {
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetDisplayedMesh))
-            {
-                Debug.LogError("-ERROR : Base3DScene::setDisplayedMesh -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return;
-            }
-
             if (!SceneInformation.IsGeometryUpToDate) return;
 
             if (mriID == -1) mriID = 0;
@@ -1343,15 +1254,11 @@ namespace HBP.Module3D
             m_ColumnManager.SelectedMRIID = mriID;
             SceneInformation.VolumeCenter = m_ColumnManager.SelectedMRI.Volume.Center;
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.IsRenderingUpToDate = false;
             }
-
-            // Update mode
-            m_ModesManager.UpdateMode(Mode.FunctionsId.SetDisplayedMesh);
         }
         /// <summary>
         /// Update the gameobjects of the sites
@@ -1454,9 +1361,7 @@ namespace HBP.Module3D
                 m_ColumnManager.Columns[ii].SelectedSiteID = -1;
             }
 
-            SceneInformation.IsIEEGOutdated = true;
-            SceneInformation.IsGeneratorUpToDate = false;
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.IsRenderingUpToDate = false;
@@ -1504,13 +1409,6 @@ namespace HBP.Module3D
         /// </summary>
         public Cut AddCutPlane()
         {
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.AddNewPlane))
-            {
-                Debug.LogError("-ERROR : Base3DScene::addNewPlane -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return null;
-            }
-
             // Add new cut
             Cut cut = new Cut(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
             switch (Cuts.Count)
@@ -1562,14 +1460,8 @@ namespace HBP.Module3D
             // update columns manager
             m_ColumnManager.UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
 
-            // update plots visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
-
-            // Update mode
-            m_ModesManager.UpdateMode(Mode.FunctionsId.AddNewPlane);
+            ResetIEEG();
 
             OnAddCut.Invoke(cut);
             UpdateCutPlane(cut);
@@ -1581,13 +1473,6 @@ namespace HBP.Module3D
         /// </summary>
         public void RemoveCutPlane(Cut cut)
         {
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.RemoveLastPlane))
-            {
-                Debug.LogError("-ERROR : Base3DScene::removeLastPlane -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return;
-            }
-
             Cuts.Remove(cut);
             for (int i = 0; i < Cuts.Count; i++)
             {
@@ -1600,14 +1485,8 @@ namespace HBP.Module3D
             // update columns manager
             m_ColumnManager.UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
 
-            // update plots visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
-
-            // Update mode
-            m_ModesManager.UpdateMode(Mode.FunctionsId.RemoveLastPlane);
+            ResetIEEG();
 
             cut.OnRemoveCut.Invoke();
         }
@@ -1622,13 +1501,6 @@ namespace HBP.Module3D
         /// <param name="position"></param>
         public void UpdateCutPlane(Cut cut)
         {
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.UpdatePlane))
-            {
-                Debug.LogError("-ERROR : Base3DScene::updatePlane -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return;
-            }
-
             if (!CuttingMesh) CuttingMesh = true;
 
             if (cut.Orientation == CutOrientation.Custom || !SceneInformation.MRILoaded)
@@ -1660,16 +1532,10 @@ namespace HBP.Module3D
             cut.Point = SceneInformation.MeshCenter + cut.Normal * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
 
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
-
-            // update sites visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
 
             // update cameras cuts display
             OnModifyPlanesCuts.Invoke();
-
-            // Update mode
-            m_ModesManager.UpdateMode(Mode.FunctionsId.UpdatePlane);
 
             cut.OnUpdateCut.Invoke();
         }
@@ -1822,9 +1688,6 @@ namespace HBP.Module3D
             SceneInformation.MeshesLayerName = "Default";
             SceneInformation.HiddenMeshesLayerName = "Hidden Meshes";
 
-            // init modes
-            m_ModesManager.Initialize(this);
-
             AddListeners();
             InitializeSceneGameObjects();
         }
@@ -1834,7 +1697,6 @@ namespace HBP.Module3D
         public void FinalizeInitialization()
         {
             m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
-            m_ModesManager.SetCurrentModeSpecifications(true);
             ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
             UpdateGUITextures();
             UpdateGeometry();
@@ -2118,11 +1980,7 @@ namespace HBP.Module3D
 
             SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
             SceneInformation.MeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
-            SceneInformation.IsGeneratorUpToDate = false; // generator is not up to date anymore
-
-            // update amplitude for all columns
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-                m_ColumnManager.ColumnsIEEG[ii].UpdateIEEG = true;
+            ResetIEEG();
 
             UnityEngine.Profiling.Profiler.EndSample();
             
@@ -2171,11 +2029,7 @@ namespace HBP.Module3D
             
             SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
             SceneInformation.MeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
-            SceneInformation.IsGeneratorUpToDate = false; // generator is not up to date anymore
-
-            // update amplitude for all columns
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-                m_ColumnManager.ColumnsIEEG[ii].UpdateIEEG = true;
+            ResetIEEG();
 
             UnityEngine.Profiling.Profiler.BeginSample("Changing layers");
             foreach (Column3D column in m_ColumnManager.Columns)
@@ -2184,13 +2038,6 @@ namespace HBP.Module3D
             }
             m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
             UnityEngine.Profiling.Profiler.EndSample();
-        }
-        /// <summary>
-        /// Set UI screen space/overlays layers mask settings corresponding to the current mode of the scene
-        /// </summary>
-        public void SetCurrentModeSpecifications(bool force = false)
-        {
-            m_ModesManager.SetCurrentModeSpecifications(force);
         }
         /// <summary>
         /// Update the mesh geometry
@@ -2218,8 +2065,6 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
 
             SceneInformation.IsGeometryUpToDate = true;
-
-            m_ModesManager.UpdateMode(Mode.FunctionsId.UpdatePlane);
         }
         /// <summary>
         /// Update the sites masks
@@ -2235,12 +2080,6 @@ namespace HBP.Module3D
             if (m_ColumnManager.SelectedColumn.SelectedSite)
             {
                 siteGameObject = m_ColumnManager.SelectedColumn.SelectedSite.gameObject;
-            }
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.UpdateMaskPlot))
-            {
-                Debug.LogError("-ERROR : Base3DScene::updateMaskPlot -> no acess for mode : " + m_ModesManager.CurrentModeName);
-                return;
             }
 
             List<Column3D> columns = new List<Column3D>(); // List of columns we inspect
@@ -2399,9 +2238,6 @@ namespace HBP.Module3D
 
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
-            // Update Mode
-            m_ModesManager.UpdateMode(Mode.FunctionsId.UpdateMaskPlot);
-
             ResetIEEG();
         }
         /// <summary>
@@ -2490,23 +2326,14 @@ namespace HBP.Module3D
         /// <summary>
         /// Update the textures generator
         /// </summary>
-        public void UpdateGenerators()
+        public void UpdateGenerator()
         {
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.PreUpdateGenerators))
-            {
-                Debug.LogError("-ERROR : Base3DScene::pre_updateGenerators -> no acess for mode : " + m_ModesManager.CurrentModeName);
+            if (SceneInformation.MeshGeometryNeedsUpdate || !SceneInformation.IsGeometryUpToDate || CuttingMesh || m_UpdatingGenerator) // if update cut plane is pending, cancel action
                 return;
-            }
-
-            if (SceneInformation.MeshGeometryNeedsUpdate || !SceneInformation.IsGeometryUpToDate) // if update cut plane is pending, cancel action
-                return;
-
-            // Update mode
-            m_ModesManager.UpdateMode(Mode.FunctionsId.PreUpdateGenerators);
-
+            
+            m_GeneratorNeedsUpdate = false;
             SceneInformation.IsGeneratorUpToDate = false;
-            this.StartCoroutineAsync(c_ComputeGenerators());
+            StartCoroutine(c_ComputeGenerators());
         }
         /// <summary>
         /// Send additionnal site info to hight level UI
@@ -2744,32 +2571,20 @@ namespace HBP.Module3D
         #region Coroutines
         private IEnumerator c_ComputeGenerators()
         {
-            yield return Ninja.JumpToUnity;
-            LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
-            GenericEvent<float, float, string> OnChangeLoadingProgress = new GenericEvent<float, float, string>();
-            OnChangeLoadingProgress.AddListener((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
-            Task loadingTask;
-            yield return this.StartCoroutineAsync(c_LoadIEEG(OnChangeLoadingProgress), out loadingTask);
-            switch (loadingTask.State)
-            {
-                case TaskState.Done:
-                    yield return new WaitForSeconds(0.5f);
-                    break;
-                case TaskState.Error:
-                    Exception exception = loadingTask.Exception;
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
-                    break;
-            }
-            FinalizeGeneratorsComputing();
-            ComputeIEEGTextures();
-            loadingCircle.Close();
-            ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
-        }
-        private IEnumerator c_LoadIEEG(GenericEvent<float, float, string> onChangeProgress = null)
-        {
-            float progress = 0.0f;
-            float progressStep = 1.0f / ColumnManager.ColumnsIEEG.Count;
+            m_UpdatingGenerator = true;
+            yield return this.StartCoroutineAsync(c_LoadIEEG());
+            m_UpdatingGenerator = false;
 
+            if (!m_GeneratorNeedsUpdate)
+            {
+                FinalizeGeneratorsComputing();
+                ComputeIEEGTextures();
+                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            }
+        }
+        private IEnumerator c_LoadIEEG()
+        {
+            yield return Ninja.JumpBack;
             bool useMultiCPU = true;
             bool addValues = false;
             bool ratioDistances = true;
@@ -2785,12 +2600,7 @@ namespace HBP.Module3D
 
             // Do your threaded task
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-            {
-                yield return Ninja.JumpToUnity;
-                progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Computing IEEG for column n°" + ii);
-                yield return Ninja.JumpBack;
-                    
+            {                    
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
                 float maxDensity = 1;
 
@@ -2804,19 +2614,9 @@ namespace HBP.Module3D
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances);
 
-
-                    if (!m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true))
-                    {
-                        Debug.LogError("Abort computing"); // useless
-                        yield return null;
-                    }
-
-                    if (!m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
-                    {
-                        Debug.LogError("Abort computing"); // useless
-                        yield return null;
-                    }
                     currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
                     currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
                     currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
@@ -2837,12 +2637,7 @@ namespace HBP.Module3D
                 {
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true);
-
-                    if (!m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
-                    {
-                        Debug.LogError("Abort computing");
-                        yield return null;
-                    }
+                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances);
 
                     currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity;
                     currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MinimumInfluence;
@@ -2869,6 +2664,7 @@ namespace HBP.Module3D
                 for (int jj = 0; jj < m_ColumnManager.PlanesCutsCopy.Count; ++jj)
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap();
             }
+            yield return Ninja.JumpToUnity;
         }
         /// <summary>
         /// Reset the volume of the scene
@@ -2877,12 +2673,6 @@ namespace HBP.Module3D
         /// <returns></returns>
         protected IEnumerator c_LoadBrainVolume(Data.Anatomy.MRI mri)
         {
-            // Check access
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetNIIBrainVolumeFile))
-            {
-                throw new ModeAccessException(m_ModesManager.CurrentModeName);
-            }
-
             SceneInformation.MRILoaded = false;
 
             // checks parameter
@@ -2900,9 +2690,6 @@ namespace HBP.Module3D
                     throw new CanNotLoadNIIFile(mri.File);
                 }
 
-                // Update mode
-                m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
-
                 SceneInformation.MRILoaded = true;
             }
             yield return SceneInformation.MRILoaded;
@@ -2914,13 +2701,6 @@ namespace HBP.Module3D
         /// <returns></returns>
         protected IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients)
         {
-            //####### CHECK ACESS
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetElectrodesFile))
-            {
-                throw new ModeAccessException(m_ModesManager.CurrentModeName);
-            }
-            //##################
-
             List<string> commonImplantations = new List<string>();
             foreach (Data.Anatomy.Implantation implantation in patients.ToList()[0].Brain.Implantations)
             {
@@ -2968,10 +2748,6 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
             UpdateSites(0);
             yield return Ninja.JumpBack;
-
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetElectrodesFile);
-            //##################
         }
         /// <summary>
         /// Load MNI
@@ -2992,14 +2768,6 @@ namespace HBP.Module3D
         /// <param name="columnDataList"></param>
         protected IEnumerator c_SetEEGData()
         {
-            //####### CHECK ACESS
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.SetTimelines))
-            {
-                yield return Ninja.JumpToUnity;
-                throw new ModeAccessException(m_ModesManager.CurrentModeName);
-            }
-            //##################
-
             yield return Ninja.JumpToUnity;
             // update columns number
             m_ColumnManager.InitializeColumns(Column3D.ColumnType.IEEG, Visualization.Columns.Count);
@@ -3018,9 +2786,6 @@ namespace HBP.Module3D
             SceneInformation.TimelinesLoaded = true;
 
             yield return Ninja.JumpToUnity;
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.SetTimelines);
-            //##################
         }
         private IEnumerator c_UpdateMeshesColliders()
         {

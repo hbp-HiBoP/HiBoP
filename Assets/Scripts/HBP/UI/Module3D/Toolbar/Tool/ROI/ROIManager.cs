@@ -172,131 +172,19 @@ namespace HBP.UI.Module3D.Tools
             {
                 hasVolume = ApplicationState.Module3D.SelectedColumn.SelectedROI.NumberOfBubbles > 0;
             }
-            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
-            {
-                case Mode.ModesId.NoPathDefined:
-                    m_AddROI.interactable = false;
-                    m_RemoveROI.interactable = false;
-                    m_ROIName.interactable = false;
-                    m_ROISelector.interactable = false;
-                    m_VolumeSelector.interactable = false;
-                    m_RemoveVolume.interactable = false;
-                    m_RemoveROI.gameObject.SetActive(false);
-                    m_ROIName.gameObject.SetActive(false);
-                    m_ROINameParent.gameObject.SetActive(false);
-                    m_ROISelector.gameObject.SetActive(false);
-                    m_VolumeSelector.gameObject.SetActive(false);
-                    m_RemoveVolume.gameObject.SetActive(false);
-                    break;
-                case Mode.ModesId.MinPathDefined:
-                    m_AddROI.interactable = true;
-                    m_RemoveROI.interactable = hasROI;
-                    m_ROIName.interactable = hasROI;
-                    m_ROISelector.interactable = hasROI;
-                    m_VolumeSelector.interactable = hasVolume;
-                    m_RemoveVolume.interactable = hasVolume;
-                    m_RemoveROI.gameObject.SetActive(hasROI);
-                    m_ROIName.gameObject.SetActive(hasROI);
-                    m_ROINameParent.gameObject.SetActive(hasROI);
-                    m_ROISelector.gameObject.SetActive(hasROI);
-                    m_VolumeSelector.gameObject.SetActive(hasVolume);
-                    m_RemoveVolume.gameObject.SetActive(hasVolume);
-                    break;
-                case Mode.ModesId.AllPathDefined:
-                    m_AddROI.interactable = true;
-                    m_RemoveROI.interactable = hasROI;
-                    m_ROIName.interactable = hasROI;
-                    m_ROISelector.interactable = hasROI;
-                    m_VolumeSelector.interactable = hasVolume;
-                    m_RemoveVolume.interactable = hasVolume;
-                    m_RemoveROI.gameObject.SetActive(hasROI);
-                    m_ROIName.gameObject.SetActive(hasROI);
-                    m_ROINameParent.gameObject.SetActive(hasROI);
-                    m_ROISelector.gameObject.SetActive(hasROI);
-                    m_VolumeSelector.gameObject.SetActive(hasVolume);
-                    m_RemoveVolume.gameObject.SetActive(hasVolume);
-                    break;
-                case Mode.ModesId.ComputingAmplitudes:
-                    m_AddROI.interactable = false;
-                    m_RemoveROI.interactable = false;
-                    m_ROIName.interactable = false;
-                    m_ROISelector.interactable = false;
-                    m_VolumeSelector.interactable = false;
-                    m_RemoveVolume.interactable = false;
-                    break;
-                case Mode.ModesId.AmplitudesComputed:
-                    m_AddROI.interactable = true;
-                    m_RemoveROI.interactable = hasROI;
-                    m_ROIName.interactable = hasROI;
-                    m_ROISelector.interactable = hasROI;
-                    m_VolumeSelector.interactable = hasVolume;
-                    m_RemoveVolume.interactable = hasVolume;
-                    m_RemoveROI.gameObject.SetActive(hasROI);
-                    m_ROIName.gameObject.SetActive(hasROI);
-                    m_ROINameParent.gameObject.SetActive(hasROI);
-                    m_ROISelector.gameObject.SetActive(hasROI);
-                    m_VolumeSelector.gameObject.SetActive(hasVolume);
-                    m_RemoveVolume.gameObject.SetActive(hasVolume);
-                    break;
-                case Mode.ModesId.TriErasing:
-                    m_AddROI.interactable = false;
-                    m_RemoveROI.interactable = false;
-                    m_ROIName.interactable = false;
-                    m_ROISelector.interactable = false;
-                    m_VolumeSelector.interactable = false;
-                    m_RemoveVolume.interactable = false;
-                    m_RemoveROI.gameObject.SetActive(false);
-                    m_ROIName.gameObject.SetActive(false);
-                    m_ROINameParent.gameObject.SetActive(false);
-                    m_ROISelector.gameObject.SetActive(false);
-                    m_VolumeSelector.gameObject.SetActive(false);
-                    m_RemoveVolume.gameObject.SetActive(false);
-                    break;
-                case Mode.ModesId.ROICreation:
-                    m_AddROI.interactable = true;
-                    m_RemoveROI.interactable = hasROI;
-                    m_ROIName.interactable = hasROI;
-                    m_ROISelector.interactable = hasROI;
-                    m_VolumeSelector.interactable = hasVolume;
-                    m_RemoveVolume.interactable = hasVolume;
-                    m_RemoveROI.gameObject.SetActive(hasROI);
-                    m_ROIName.gameObject.SetActive(hasROI);
-                    m_ROINameParent.gameObject.SetActive(hasROI);
-                    m_ROISelector.gameObject.SetActive(hasROI);
-                    m_VolumeSelector.gameObject.SetActive(hasVolume);
-                    m_RemoveVolume.gameObject.SetActive(hasVolume);
-                    break;
-                case Mode.ModesId.AmpNeedUpdate:
-                    m_AddROI.interactable = true;
-                    m_RemoveROI.interactable = hasROI;
-                    m_ROIName.interactable = hasROI;
-                    m_ROISelector.interactable = hasROI;
-                    m_VolumeSelector.interactable = hasVolume;
-                    m_RemoveVolume.interactable = hasVolume;
-                    m_RemoveROI.gameObject.SetActive(hasROI);
-                    m_ROIName.gameObject.SetActive(hasROI);
-                    m_ROINameParent.gameObject.SetActive(hasROI);
-                    m_ROISelector.gameObject.SetActive(hasROI);
-                    m_VolumeSelector.gameObject.SetActive(hasVolume);
-                    m_RemoveVolume.gameObject.SetActive(hasVolume);
-                    break;
-                case Mode.ModesId.Error:
-                    m_AddROI.interactable = false;
-                    m_RemoveROI.interactable = false;
-                    m_ROIName.interactable = false;
-                    m_ROISelector.interactable = false;
-                    m_VolumeSelector.interactable = false;
-                    m_RemoveVolume.interactable = false;
-                    m_RemoveROI.gameObject.SetActive(false);
-                    m_ROIName.gameObject.SetActive(false);
-                    m_ROINameParent.gameObject.SetActive(false);
-                    m_ROISelector.gameObject.SetActive(false);
-                    m_VolumeSelector.gameObject.SetActive(false);
-                    m_RemoveVolume.gameObject.SetActive(false);
-                    break;
-                default:
-                    break;
-            }
+
+            m_AddROI.interactable = true;
+            m_RemoveROI.interactable = hasROI;
+            m_ROIName.interactable = hasROI;
+            m_ROISelector.interactable = hasROI;
+            m_VolumeSelector.interactable = hasVolume;
+            m_RemoveVolume.interactable = hasVolume;
+            m_RemoveROI.gameObject.SetActive(hasROI);
+            m_ROIName.gameObject.SetActive(hasROI);
+            m_ROINameParent.gameObject.SetActive(hasROI);
+            m_ROISelector.gameObject.SetActive(hasROI);
+            m_VolumeSelector.gameObject.SetActive(hasVolume);
+            m_RemoveVolume.gameObject.SetActive(hasVolume);
         }
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {

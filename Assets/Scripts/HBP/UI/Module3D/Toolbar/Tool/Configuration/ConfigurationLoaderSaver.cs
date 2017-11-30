@@ -52,56 +52,9 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
-            {
-                case Mode.ModesId.NoPathDefined:
-                    m_Save.interactable = false;
-                    m_Load.interactable = false;
-                    m_Reset.interactable = false;
-                    break;
-                case Mode.ModesId.MinPathDefined:
-                    m_Save.interactable = true;
-                    m_Load.interactable = true;
-                    m_Reset.interactable = true;
-                    break;
-                case Mode.ModesId.AllPathDefined:
-                    m_Save.interactable = true;
-                    m_Load.interactable = true;
-                    m_Reset.interactable = true;
-                    break;
-                case Mode.ModesId.ComputingAmplitudes:
-                    m_Save.interactable = true;
-                    m_Load.interactable = true;
-                    m_Reset.interactable = true;
-                    break;
-                case Mode.ModesId.AmplitudesComputed:
-                    m_Save.interactable = true;
-                    m_Load.interactable = true;
-                    m_Reset.interactable = true;
-                    break;
-                case Mode.ModesId.TriErasing:
-                    m_Save.interactable = true;
-                    m_Load.interactable = true;
-                    m_Reset.interactable = true;
-                    break;
-                case Mode.ModesId.ROICreation:
-                    m_Save.interactable = true;
-                    m_Load.interactable = true;
-                    m_Reset.interactable = true;
-                    break;
-                case Mode.ModesId.AmpNeedUpdate:
-                    m_Save.interactable = true;
-                    m_Load.interactable = true;
-                    m_Reset.interactable = true;
-                    break;
-                case Mode.ModesId.Error:
-                    m_Save.interactable = false;
-                    m_Load.interactable = false;
-                    m_Reset.interactable = false;
-                    break;
-                default:
-                    break;
-            }
+            m_Save.interactable = true;
+            m_Load.interactable = true;
+            m_Reset.interactable = true;
         }
         #endregion
     }

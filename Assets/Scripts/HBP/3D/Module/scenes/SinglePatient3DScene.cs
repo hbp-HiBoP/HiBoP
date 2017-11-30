@@ -69,8 +69,6 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
             float progress = 1.0f;
             onChangeProgress.Invoke(progress, 0.0f, "");
-
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
             
             int sceneID = ApplicationState.Module3D.NumberOfScenesLoadedSinceStart;
             gameObject.name = "SinglePatient Scene (" + sceneID + ")";
@@ -121,10 +119,6 @@ namespace HBP.Module3D
             progress += SETTING_TIMELINE_PROGRESS;
             onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetEEGData());
-            
-            // TMP : to debug anatomy scene
-            //m_ColumnManager.InitializeColumns(Column3D.ColumnType.Base, 1);
-            //m_ColumnManager.Columns.Last().Label = Patient.Name + " (" + Patient.Place + " - " + Patient.Date + ")";
 
             // Finalization
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
@@ -141,13 +135,6 @@ namespace HBP.Module3D
         /// <returns></returns>
         private IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh)
         {
-            //####### CHECK ACESS
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetGIIBrainSurfaceFile))
-            {
-                throw new ModeAccessException(m_ModesManager.CurrentModeName);
-            }
-            //##################
-
             SceneInformation.MeshesLoaded = false;
 
             // checks parameters
@@ -189,10 +176,6 @@ namespace HBP.Module3D
                     Debug.LogError("Mesh not handled.");
                 }
             }
-
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetGIIBrainSurfaceFile);
-            //##################
             yield return true;
         }
         #endregion
