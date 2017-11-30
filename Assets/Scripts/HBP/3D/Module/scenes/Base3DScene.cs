@@ -515,6 +515,9 @@ namespace HBP.Module3D
             }
         }
 
+        private bool m_UpdatingGenerator = false;
+        private bool m_GeneratorNeedsUpdate = true;
+
         private bool m_UpdatingColliders = false;
 
         [SerializeField]
@@ -604,10 +607,10 @@ namespace HBP.Module3D
                 UpdateGeometry();
             }
 
-            //if (m_GeneratorNeedsUpdate)
-            //{
-            //    UpdateGenerator();
-            //}
+            if (m_GeneratorNeedsUpdate)
+            {
+                UpdateGenerator();
+            }
 
             if (!SceneInformation.IsSceneDisplayed)
             {
@@ -1124,6 +1127,7 @@ namespace HBP.Module3D
         {
             if (!SceneInformation.IsGeometryUpToDate) return;
             SceneInformation.IsGeneratorUpToDate = false;
+            m_GeneratorNeedsUpdate = true;
             UpdateGUITextures();
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
         }
@@ -2319,10 +2323,11 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateGenerator()
         {
-            if (SceneInformation.MeshGeometryNeedsUpdate || !SceneInformation.IsGeometryUpToDate) // if update cut plane is pending, cancel action
+            if (SceneInformation.MeshGeometryNeedsUpdate || !SceneInformation.IsGeometryUpToDate || CuttingMesh || m_UpdatingGenerator) // if update cut plane is pending, cancel action
                 return;
             
-            this.StartCoroutineAsync(c_ComputeGenerators());
+            m_GeneratorNeedsUpdate = false;
+            StartCoroutine(c_ComputeGenerators());
         }
         /// <summary>
         /// Send additionnal site info to hight level UI
@@ -2560,11 +2565,16 @@ namespace HBP.Module3D
         #region Coroutines
         private IEnumerator c_ComputeGenerators()
         {
-            yield return Ninja.JumpToUnity;
+            m_UpdatingGenerator = true;
             yield return this.StartCoroutineAsync(c_LoadIEEG());
-            FinalizeGeneratorsComputing();
-            ComputeIEEGTextures();
-            ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            m_UpdatingGenerator = false;
+
+            if (!m_GeneratorNeedsUpdate)
+            {
+                FinalizeGeneratorsComputing();
+                ComputeIEEGTextures();
+                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            }
         }
         private IEnumerator c_LoadIEEG()
         {
@@ -2648,6 +2658,7 @@ namespace HBP.Module3D
                 for (int jj = 0; jj < m_ColumnManager.PlanesCutsCopy.Count; ++jj)
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap();
             }
+            yield return Ninja.JumpToUnity;
         }
         /// <summary>
         /// Reset the volume of the scene
