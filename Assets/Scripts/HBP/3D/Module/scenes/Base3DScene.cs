@@ -212,7 +212,7 @@ namespace HBP.Module3D
 
                 SceneInformation.CutHolesEnabled = value;
                 SceneInformation.MeshGeometryNeedsUpdate = true;
-                SceneInformation.IsIEEGOutdated = true;
+                ResetIEEG();
                 foreach (Column3D column in m_ColumnManager.Columns)
                 {
                     column.IsRenderingUpToDate = false;
@@ -599,20 +599,15 @@ namespace HBP.Module3D
         {
             if (!SceneInformation.IsSceneInitialized) return;
 
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update");
-
-            // TEMP : useless
-            for (int ii = 0; ii < Cuts.Count; ++ii)
-            {
-                Cuts[ii].RemoveFrontPlane = 0;
-            }
-
-            // check if we must perform new cuts of the brain
             if (SceneInformation.MeshGeometryNeedsUpdate)
             {
                 UpdateGeometry();
             }
-            UnityEngine.Profiling.Profiler.EndSample();
+
+            //if (m_GeneratorNeedsUpdate)
+            //{
+            //    UpdateGenerator();
+            //}
 
             if (!SceneInformation.IsSceneDisplayed)
             {
@@ -652,7 +647,7 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateIEEGAlpha.AddListener((column) =>
             {
-                if (SceneInformation.IsGeometryUpToDate && !SceneInformation.IsIEEGOutdated)
+                if (SceneInformation.IsGeometryUpToDate)
                     ComputeIEEGTexturesOfColumn(column);
             });
             m_ColumnManager.OnUpdateIEEGGain.AddListener((column) =>
@@ -946,7 +941,6 @@ namespace HBP.Module3D
         {
             // generators are now up to date
             SceneInformation.IsGeneratorUpToDate = true;
-            SceneInformation.IsIEEGOutdated = false;
 
             // send inf values to overlays
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
@@ -958,10 +952,6 @@ namespace HBP.Module3D
                 OnSendColorMapValues.Invoke(minValue, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle, maxValue, m_ColumnManager.ColumnsIEEG[ii]);
                 m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID = 0;
             }
-
-            // amplitudes are not displayed yet
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-                m_ColumnManager.ColumnsIEEG[ii].UpdateIEEG = true;
 
             // update plots visibility
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
@@ -1081,10 +1071,7 @@ namespace HBP.Module3D
 
             if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG)
             {
-                if (((Column3DIEEG)m_ColumnManager.SelectedColumn).SendInformation)
-                {
-                    SendAdditionalSiteInfoRequest();
-                }
+                SendAdditionalSiteInfoRequest();
             }
         }
         /// <summary>
@@ -1137,7 +1124,6 @@ namespace HBP.Module3D
         {
             if (!SceneInformation.IsGeometryUpToDate) return;
             SceneInformation.IsGeneratorUpToDate = false;
-            SceneInformation.IsIEEGOutdated = true;
             UpdateGUITextures();
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
         }
@@ -1170,7 +1156,7 @@ namespace HBP.Module3D
 
             SharedMaterials.Brain.BrainMaterials[this].SetTexture("_ColorTex", ColumnManager.BrainColorMapTexture);
 
-            if (SceneInformation.IsGeometryUpToDate && !SceneInformation.IsIEEGOutdated)
+            if (SceneInformation.IsGeometryUpToDate && SceneInformation.IsGeneratorUpToDate)
                 ComputeIEEGTextures();
 
             OnChangeColormap.Invoke(color);
@@ -1199,7 +1185,7 @@ namespace HBP.Module3D
                 ColumnManager.ResetColors();
 
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
+            ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.IsRenderingUpToDate = false;
@@ -1215,8 +1201,7 @@ namespace HBP.Module3D
 
             SceneInformation.MeshPartToDisplay = meshPartToDisplay;
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
-            //m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.IsRenderingUpToDate = false;
@@ -1234,8 +1219,7 @@ namespace HBP.Module3D
 
             m_ColumnManager.SelectedMeshID = meshID;
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.IsRenderingUpToDate = false;
@@ -1261,8 +1245,7 @@ namespace HBP.Module3D
             m_ColumnManager.SelectedMRIID = mriID;
             SceneInformation.VolumeCenter = m_ColumnManager.SelectedMRI.Volume.Center;
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.IsRenderingUpToDate = false;
@@ -1369,9 +1352,7 @@ namespace HBP.Module3D
                 m_ColumnManager.Columns[ii].SelectedSiteID = -1;
             }
 
-            SceneInformation.IsIEEGOutdated = true;
-            SceneInformation.IsGeneratorUpToDate = false;
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.IsRenderingUpToDate = false;
@@ -1470,11 +1451,8 @@ namespace HBP.Module3D
             // update columns manager
             m_ColumnManager.UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
 
-            // update plots visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
+            ResetIEEG();
 
             OnAddCut.Invoke(cut);
             UpdateCutPlane(cut);
@@ -1498,11 +1476,8 @@ namespace HBP.Module3D
             // update columns manager
             m_ColumnManager.UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
 
-            // update plots visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
+            ResetIEEG();
 
             cut.OnRemoveCut.Invoke();
         }
@@ -1548,10 +1523,7 @@ namespace HBP.Module3D
             cut.Point = SceneInformation.MeshCenter + cut.Normal * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
 
             SceneInformation.MeshGeometryNeedsUpdate = true;
-            SceneInformation.IsIEEGOutdated = true;
-
-            // update sites visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
 
             // update cameras cuts display
             OnModifyPlanesCuts.Invoke();
@@ -1999,11 +1971,7 @@ namespace HBP.Module3D
 
             SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
             SceneInformation.MeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
-            SceneInformation.IsGeneratorUpToDate = false; // generator is not up to date anymore
-
-            // update amplitude for all columns
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-                m_ColumnManager.ColumnsIEEG[ii].UpdateIEEG = true;
+            ResetIEEG();
 
             UnityEngine.Profiling.Profiler.EndSample();
             
@@ -2052,11 +2020,7 @@ namespace HBP.Module3D
             
             SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
             SceneInformation.MeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
-            SceneInformation.IsGeneratorUpToDate = false; // generator is not up to date anymore
-
-            // update amplitude for all columns
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-                m_ColumnManager.ColumnsIEEG[ii].UpdateIEEG = true;
+            ResetIEEG();
 
             UnityEngine.Profiling.Profiler.BeginSample("Changing layers");
             foreach (Column3D column in m_ColumnManager.Columns)
@@ -2353,12 +2317,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Update the textures generator
         /// </summary>
-        public void UpdateGenerators()
+        public void UpdateGenerator()
         {
             if (SceneInformation.MeshGeometryNeedsUpdate || !SceneInformation.IsGeometryUpToDate) // if update cut plane is pending, cancel action
                 return;
-
-            SceneInformation.IsGeneratorUpToDate = false;
+            
             this.StartCoroutineAsync(c_ComputeGenerators());
         }
         /// <summary>
@@ -2598,31 +2561,14 @@ namespace HBP.Module3D
         private IEnumerator c_ComputeGenerators()
         {
             yield return Ninja.JumpToUnity;
-            LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
-            GenericEvent<float, float, string> OnChangeLoadingProgress = new GenericEvent<float, float, string>();
-            OnChangeLoadingProgress.AddListener((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
-            Task loadingTask;
-            yield return this.StartCoroutineAsync(c_LoadIEEG(OnChangeLoadingProgress), out loadingTask);
-            switch (loadingTask.State)
-            {
-                case TaskState.Done:
-                    yield return new WaitForSeconds(0.5f);
-                    break;
-                case TaskState.Error:
-                    Exception exception = loadingTask.Exception;
-                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
-                    break;
-            }
+            yield return this.StartCoroutineAsync(c_LoadIEEG());
             FinalizeGeneratorsComputing();
             ComputeIEEGTextures();
-            loadingCircle.Close();
             ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
-        private IEnumerator c_LoadIEEG(GenericEvent<float, float, string> onChangeProgress = null)
+        private IEnumerator c_LoadIEEG()
         {
-            float progress = 0.0f;
-            float progressStep = 1.0f / ColumnManager.ColumnsIEEG.Count;
-
+            yield return Ninja.JumpBack;
             bool useMultiCPU = true;
             bool addValues = false;
             bool ratioDistances = true;
@@ -2638,12 +2584,7 @@ namespace HBP.Module3D
 
             // Do your threaded task
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-            {
-                yield return Ninja.JumpToUnity;
-                progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Computing IEEG for column n°" + ii);
-                yield return Ninja.JumpBack;
-                    
+            {                    
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
                 float maxDensity = 1;
 
@@ -2657,19 +2598,9 @@ namespace HBP.Module3D
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances);
 
-
-                    if (!m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true))
-                    {
-                        Debug.LogError("Abort computing"); // useless
-                        yield return null;
-                    }
-
-                    if (!m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
-                    {
-                        Debug.LogError("Abort computing"); // useless
-                        yield return null;
-                    }
                     currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
                     currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
                     currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumInfluence;
@@ -2690,12 +2621,7 @@ namespace HBP.Module3D
                 {
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true);
-
-                    if (!m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances))
-                    {
-                        Debug.LogError("Abort computing");
-                        yield return null;
-                    }
+                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances);
 
                     currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity;
                     currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MinimumInfluence;

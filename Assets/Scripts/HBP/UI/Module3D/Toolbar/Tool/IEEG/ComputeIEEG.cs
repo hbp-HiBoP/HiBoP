@@ -21,7 +21,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.UpdateGenerators();
+                ApplicationState.Module3D.SelectedScene.UpdateGenerator();
             });
         }
         public override void DefaultState()
