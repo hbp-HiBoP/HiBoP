@@ -717,7 +717,7 @@ namespace HBP.Module3D
                     {
                         column.IsTimelineLooping = false;
                         column.IsTimelinePlaying = false;
-                        column.CurrentTimeLineID = 0;
+                        column.CurrentTimeLineID = column.CurrentTimeLineID;
                         column.IsRenderingUpToDate = false;
                     }
                 }
@@ -958,7 +958,7 @@ namespace HBP.Module3D
                 minValue += m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle;
                 maxValue += m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle;
                 OnSendColorMapValues.Invoke(minValue, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle, maxValue, m_ColumnManager.ColumnsIEEG[ii]);
-                m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID = 0;
+                m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID = m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID;
             }
 
             // update plots visibility

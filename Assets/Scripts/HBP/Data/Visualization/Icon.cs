@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Tools.Unity;
+using System.IO;
 
 namespace HBP.Data.Visualization
 {
@@ -67,6 +68,14 @@ namespace HBP.Data.Visualization
             get
             {
                 return m_Illustration;
+            }
+        }
+
+        public bool Usable
+        {
+            get
+            {
+                return SpriteExtension.IsFileLoadable(illustrationPath);
             }
         }
 

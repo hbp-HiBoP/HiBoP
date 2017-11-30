@@ -52,8 +52,7 @@ namespace HBP.UI.Module3D
                         Data.Visualization.Icon icon = m_Icons.DefaultIfEmpty(null).FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
                         if (icon != m_CurrentIcon)
                         {
-                            m_CurrentIcon = icon;
-                            if (icon == null || icon.Illustration == null)
+                            if (icon == null || !icon.Usable)
                             {
                                 IsActive = false;
                                 m_Image.sprite = m_DefaultSprite;
@@ -63,6 +62,7 @@ namespace HBP.UI.Module3D
                                 IsActive = true;
                                 m_Image.sprite = icon.Illustration;
                                 m_Text.text = icon.Label;
+                                m_CurrentIcon = icon;
                             }
                         }
                     });

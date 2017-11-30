@@ -38,5 +38,10 @@ namespace Tools.Unity
             }
             else return false;
         }
+
+        public static bool IsFileLoadable(string path)
+        {
+            return File.Exists(path) && EXTENSIONS.Contains(new FileInfo(path).Extension.Substring(1));
+        }
     }
 }
