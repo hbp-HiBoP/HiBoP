@@ -595,6 +595,10 @@ namespace HBP.Module3D
         /// Event called when requesting a screenshot of the scene
         /// </summary>
         public GenericEvent<bool> OnRequestScreenshot = new GenericEvent<bool>();
+        /// <summary>
+        /// Event called when updating the generator state
+        /// </summary>
+        public GenericEvent<bool> OnUpdatingGenerator = new GenericEvent<bool>();
         #endregion
 
         #region Private Methods
@@ -611,6 +615,7 @@ namespace HBP.Module3D
             {
                 UpdateGenerator();
             }
+            OnUpdatingGenerator.Invoke(m_UpdatingGenerator);
 
             if (!SceneInformation.IsSceneDisplayed)
             {
@@ -2327,6 +2332,7 @@ namespace HBP.Module3D
                 return;
             
             m_GeneratorNeedsUpdate = false;
+            SceneInformation.IsGeneratorUpToDate = false;
             StartCoroutine(c_ComputeGenerators());
         }
         /// <summary>

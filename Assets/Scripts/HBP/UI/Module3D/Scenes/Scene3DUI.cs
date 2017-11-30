@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 using HBP.Module3D;
+using Tools.Unity;
 
 namespace HBP.UI.Module3D
 {
@@ -21,6 +22,11 @@ namespace HBP.UI.Module3D
         /// Linked resizable grid
         /// </summary>
         private ResizableGrid m_ResizableGrid;
+        /// <summary>
+        /// Update circle when loading things
+        /// </summary>
+        [SerializeField]
+        private UpdateCircle m_Circle;
         #endregion
 
         #region Private Methods
@@ -99,6 +105,17 @@ namespace HBP.UI.Module3D
                 if (!m_Scene) return;
 
                 m_ResizableGrid.ResetPositions();
+            });
+            m_Scene.OnUpdatingGenerator.AddListener((value) =>
+            {
+                if (value)
+                {
+                    m_Circle.StartAnimation();
+                }
+                else
+                {
+                    m_Circle.StopAnimation();
+                }
             });
         }
         #endregion
