@@ -57,8 +57,6 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
             float progress = 1.0f;
             onChangeProgress.Invoke(progress, 0.0f, "");
-
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
             
             int sceneID = ApplicationState.Module3D.NumberOfScenesLoadedSinceStart;
             gameObject.name = "MultiPatients Scene (" + sceneID + ")";
@@ -82,10 +80,6 @@ namespace HBP.Module3D
             yield return Ninja.JumpBack;
             // retrieve MNI IRM volume
             SceneInformation.MRILoaded = true;
-
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetNIIBrainVolumeFile);
-            //##################
 
             // reset electrodes
             yield return Ninja.JumpToUnity;

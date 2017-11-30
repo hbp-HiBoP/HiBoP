@@ -59,49 +59,11 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             bool isZoneModeEnabled = ApplicationState.Module3D.SelectedScene.TriangleErasingMode == TriEraser.Mode.Zone;
+
             m_InputFieldParent.gameObject.SetActive(isZoneModeEnabled);
             m_InputField.gameObject.SetActive(isZoneModeEnabled);
-            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
-            {
-                case Mode.ModesId.NoPathDefined:
-                    m_Dropdown.interactable = false;
-                    m_InputField.interactable = false;
-                    break;
-                case Mode.ModesId.MinPathDefined:
-                    m_Dropdown.interactable = true;
-                    m_InputField.interactable = isZoneModeEnabled;
-                    break;
-                case Mode.ModesId.AllPathDefined:
-                    m_Dropdown.interactable = true;
-                    m_InputField.interactable = isZoneModeEnabled;
-                    break;
-                case Mode.ModesId.ComputingAmplitudes:
-                    m_Dropdown.interactable = false;
-                    m_InputField.interactable = false;
-                    break;
-                case Mode.ModesId.AmplitudesComputed:
-                    m_Dropdown.interactable = true;
-                    m_InputField.interactable = isZoneModeEnabled;
-                    break;
-                case Mode.ModesId.TriErasing:
-                    m_Dropdown.interactable = true;
-                    m_InputField.interactable = isZoneModeEnabled;
-                    break;
-                case Mode.ModesId.ROICreation:
-                    m_Dropdown.interactable = false;
-                    m_InputField.interactable = false;
-                    break;
-                case Mode.ModesId.AmpNeedUpdate:
-                    m_Dropdown.interactable = true;
-                    m_InputField.interactable = isZoneModeEnabled;
-                    break;
-                case Mode.ModesId.Error:
-                    m_Dropdown.interactable = false;
-                    m_InputField.interactable = false;
-                    break;
-                default:
-                    break;
-            }
+            m_Dropdown.interactable = true;
+            m_InputField.interactable = isZoneModeEnabled;
         }
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {

@@ -95,47 +95,9 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             bool isMeshLeftRight = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedMesh is LeftRightMesh3D;
-            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
-            {
-                case Mode.ModesId.NoPathDefined:
-                    m_Left.interactable = false;
-                    m_Right.interactable = false;
-                    break;
-                case Mode.ModesId.MinPathDefined:
-                    m_Left.interactable = isMeshLeftRight;
-                    m_Right.interactable = isMeshLeftRight;
-                    break;
-                case Mode.ModesId.AllPathDefined:
-                    m_Left.interactable = isMeshLeftRight;
-                    m_Right.interactable = isMeshLeftRight;
-                    break;
-                case Mode.ModesId.ComputingAmplitudes:
-                    m_Left.interactable = false;
-                    m_Right.interactable = false;
-                    break;
-                case Mode.ModesId.AmplitudesComputed:
-                    m_Left.interactable = isMeshLeftRight;
-                    m_Right.interactable = isMeshLeftRight;
-                    break;
-                case Mode.ModesId.TriErasing:
-                    m_Left.interactable = false;
-                    m_Right.interactable = false;
-                    break;
-                case Mode.ModesId.ROICreation:
-                    m_Left.interactable = false;
-                    m_Right.interactable = false;
-                    break;
-                case Mode.ModesId.AmpNeedUpdate:
-                    m_Left.interactable = isMeshLeftRight;
-                    m_Right.interactable = isMeshLeftRight;
-                    break;
-                case Mode.ModesId.Error:
-                    m_Left.interactable = false;
-                    m_Right.interactable = false;
-                    break;
-                default:
-                    break;
-            }
+
+            m_Left.interactable = isMeshLeftRight;
+            m_Right.interactable = isMeshLeftRight;
         }
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {
