@@ -21,6 +21,7 @@
         /// Real value of the (min/max) real point.
         /// </summary>
         public float Value { get { return value; } private set { this.value = value; } }
+        public float RawValue { get; private set; }
 
         float rounderValue;
         /// <summary>
@@ -39,6 +40,7 @@
         /// Position (index) compared to the timeline . 
         /// </summary>
         public int Position { get { return position; } set { position = value; } }
+        public int RawPosition { get; private set; }
         #endregion
 
         #region Constructor
@@ -52,9 +54,11 @@
         public Limit(float roundedValue,float value, string unite,int position)
         {
             Value = value;
+            RawValue = value;
             RoundedValue = roundedValue;
             Unite = unite;
             Position = position;
+            RawPosition = position;
         }
         #endregion
 
