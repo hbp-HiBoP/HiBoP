@@ -206,10 +206,7 @@ namespace HBP.Module3D
         }
         private void OnPreRender()
         {
-            if (m_AssociatedView.LineID == 0)
-            {
-                m_AssociatedScene.UpdateColumnRendering(m_AssociatedColumn);
-            }
+            m_AssociatedScene.UpdateColumnRendering(m_AssociatedColumn);
         }
         private void OnPostRender()
         {
