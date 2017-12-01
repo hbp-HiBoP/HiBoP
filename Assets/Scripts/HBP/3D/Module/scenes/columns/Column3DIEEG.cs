@@ -886,12 +886,30 @@ namespace HBP.Module3D
         /// <param name="drawLines"></param>
         public void CreateGUIIEEGTexture(int indexCut, string orientation, bool flip, List<Cut> cutPlanes, bool drawLines)
         {
-            if (DLLBrainCutTextures[indexCut].m_TextureSize[0] > 0)
+            if (DLLBrainCutTextures[indexCut].TextureSize[0] > 0)
             {
                 DLLGUIBrainCutWithIEEGTextures[indexCut].CopyAndRotate(DLLBrainCutWithIEEGTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
                 DLLGUIBrainCutWithIEEGTextures[indexCut].UpdateTexture2D(GUIBrainCutWithIEEGTextures[indexCut]);
             }
         }
+        public void ResizeGUIMRITexturesWithIEEG()
+        {
+            int max = 0;
+            foreach (var texture in DLLGUIBrainCutWithIEEGTextures)
+            {
+                int textureMax = texture.TextureSize.Max();
+                if (textureMax > max)
+                {
+                    max = textureMax;
+                }
+            }
+            for (int i = 0; i < DLLGUIBrainCutWithIEEGTextures.Count; ++i)
+            {
+                DLLGUIBrainCutWithIEEGTextures[i].ResizeToSquare(max);
+                DLLGUIBrainCutWithIEEGTextures[i].UpdateTexture2D(GUIBrainCutWithIEEGTextures[i]);
+            }
+        }
+
         #endregion
     }
 }

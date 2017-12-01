@@ -907,6 +907,24 @@ namespace HBP.Module3D
                             break;
                     }
                 }
+                switch (currCol.Type)
+                {
+                    case Column3D.ColumnType.Base:
+                        currCol.ResizeGUIMRITextures();
+                        break;
+                    case Column3D.ColumnType.FMRI:
+                        ((Column3DFMRI)currCol).ResizeGUIMRITexturesWithFMRI();
+                        break;
+                    case Column3D.ColumnType.IEEG:
+                        if (!SceneInformation.IsGeneratorUpToDate)
+                            currCol.ResizeGUIMRITextures();
+                        else
+                            ((Column3DIEEG)currCol).ResizeGUIMRITexturesWithIEEG();
+                        break;
+                    default:
+                        currCol.ResizeGUIMRITextures();
+                        break;
+                }
             }
         }
         /// <summary>

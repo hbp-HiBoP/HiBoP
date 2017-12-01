@@ -9,6 +9,7 @@
 
 // system
 using System.Collections.Generic;
+using System.Linq;
 
 // unity
 using UnityEngine;
@@ -190,10 +191,27 @@ namespace HBP.Module3D
         /// <param name="drawLines"></param>
         public void CreateGUIFMRITexture(int indexCut, string orientation, bool flip, List<Cut> cutPlanes, bool drawLines)
         {
-            if (DLLBrainCutTextures[indexCut].m_TextureSize[0] > 0)
+            if (DLLBrainCutTextures[indexCut].TextureSize[0] > 0)
             {
                 DLLGUIBrainCutWithFMRITextures[indexCut].CopyAndRotate(DLLBrainCutWithFMRITextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
                 DLLGUIBrainCutWithFMRITextures[indexCut].UpdateTexture2D(GUIBrainCutWithFMRITextures[indexCut], false); // TODO: ;..
+            }
+        }
+        public void ResizeGUIMRITexturesWithFMRI()
+        {
+            int max = 0;
+            foreach (var texture in DLLGUIBrainCutWithFMRITextures)
+            {
+                int textureMax = texture.TextureSize.Max();
+                if (textureMax > max)
+                {
+                    max = textureMax;
+                }
+            }
+            for (int i = 0; i < DLLGUIBrainCutWithFMRITextures.Count; ++i)
+            {
+                DLLGUIBrainCutWithFMRITextures[i].ResizeToSquare(max);
+                DLLGUIBrainCutWithFMRITextures[i].UpdateTexture2D(GUIBrainCutWithFMRITextures[i]);
             }
         }
         #endregion
