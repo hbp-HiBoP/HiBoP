@@ -14,7 +14,8 @@
     "ConstantLineHeight": 3,
     "LineHeightByWidth": 0.005,
     "HeightByWidth": 0.5625,
-    "TrialsSynchronization": 0
+    "TrialsSynchronization": 0,
+    "Type": 0
   },
   "Theme": "Dark",
   "ShowCutLines": true

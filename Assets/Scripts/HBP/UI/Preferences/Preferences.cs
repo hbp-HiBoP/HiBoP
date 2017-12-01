@@ -24,6 +24,7 @@ namespace HBP.UI.Settings
         Dropdown trialMatrixSmoothingOption;
         Dropdown blocFormatOption;
         Dropdown trialsSynchronizationOption;
+        Dropdown trialMatrixTypeOption;
         Dropdown m_ThemeSelector;
         Dropdown m_CutLines;
         #endregion
@@ -41,7 +42,8 @@ namespace HBP.UI.Settings
             trialMatrixSettings.Smoothing = (TrialMatrixSettings.SmoothingType) trialMatrixSmoothingOption.value;
             trialMatrixSettings.Baseline = (TrialMatrixSettings.BaselineType) trialBaselineOption.value;
             trialMatrixSettings.BlocFormat = (TrialMatrixSettings.BlocFormatType) blocFormatOption.value;
-            trialMatrixSettings.TrialsSynchronization = (TrialMatrixSettings.TrialsSynchronizationType)trialsSynchronizationOption.value;
+            trialMatrixSettings.TrialsSynchronization = (TrialMatrixSettings.TrialsSynchronizationType) trialsSynchronizationOption.value;
+            trialMatrixSettings.Type = (TrialMatrixSettings.TrialMatrixType) trialMatrixTypeOption.value;
             ApplicationState.GeneralSettings.TrialMatrixSettings = trialMatrixSettings;
             ApplicationState.GeneralSettings.TrialMatrixSettings.ConstantLineHeight = int.Parse(constantLineInputField.text);
             ApplicationState.GeneralSettings.TrialMatrixSettings.LineHeightByWidth = float.Parse(LineRatioInputField.text);
@@ -76,6 +78,7 @@ namespace HBP.UI.Settings
             LineRatioInputField = transform.Find("Content").Find("Trial Matrix").Find("LineRatio").GetComponentInChildren<InputField>(true);
             BlocRatioInputField = transform.Find("Content").Find("Trial Matrix").Find("BlocRatio").GetComponentInChildren<InputField>(true);
             trialsSynchronizationOption = transform.Find("Content").Find("Trial Matrix").Find("TrialsSynchronization").GetComponentInChildren<Dropdown>();
+            trialMatrixTypeOption = transform.Find("Content").Find("Trial Matrix").Find("Type").GetComponentInChildren<Dropdown>();
 
             eventPositionAveragingOption = transform.Find("Content").Find("Averaging").Find("EventPositionAveraging").GetComponentInChildren<Dropdown>();
             valueAveragingOption = transform.Find("Content").Find("Averaging").Find("ValueAveraging").GetComponentInChildren<Dropdown>();
@@ -87,6 +90,15 @@ namespace HBP.UI.Settings
             defaultPatientDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
             defaultLocalizerDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
             defaultScreenshotsLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultScreenshotsLocation;
+
+            string[] l_typesTrialMatrix = Enum.GetNames(typeof(TrialMatrixSettings.TrialMatrixType));
+            trialMatrixTypeOption.ClearOptions();
+            foreach (string i_type in l_typesTrialMatrix)
+            {
+                trialMatrixTypeOption.options.Add(new Dropdown.OptionData(i_type));
+            }
+            trialMatrixTypeOption.value = (int) ApplicationState.GeneralSettings.TrialMatrixSettings.Type;
+            trialMatrixTypeOption.RefreshShownValue();
 
             string[] l_typesBaseline = Enum.GetNames(typeof(TrialMatrixSettings.BaselineType));
             trialBaselineOption.ClearOptions();

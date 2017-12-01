@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
-using HBP.Data.Anatomy;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
-using Tools.CSharp;
+using HBP.Module3D;
 
 namespace HBP.Data.TrialMatrix
 {
@@ -19,11 +18,31 @@ namespace HBP.Data.TrialMatrix
         #endregion
 
         #region Constructor
-        public TrialMatrix(Protocol protocol, DataInfo dataInfo, Dictionary<Experience.Protocol.Bloc,Localizer.Bloc[]> blocsByProtocolBloc, Module3D.Site site)
+        public TrialMatrix(Protocol protocol, DataInfo dataInfo, Dictionary<Experience.Protocol.Bloc,Localizer.Bloc[]> blocsByProtocolBloc, Module3D.Site site, Base3DScene scene)
         {
             // Genreate blocs.
             UnityEngine.Profiling.Profiler.BeginSample("Generate blocs");
-            Bloc[] trialMatrixBlocs = (from bloc in protocol.Blocs select new Bloc(bloc, blocsByProtocolBloc[bloc] , site)).ToArray();
+            Bloc[] trialMatrixBlocs;
+            switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Type)
+            {
+                case Settings.TrialMatrixSettings.TrialMatrixType.Simplified:
+                    List<Bloc> blocs = new List<Bloc>();
+                    foreach (var bloc in protocol.Blocs)
+                    {
+                       if(scene.Visualization.Columns.Exists((c) => c.Bloc == bloc))
+                       {
+                            blocs.Add(new Bloc(bloc,blocsByProtocolBloc[bloc],site));
+                       }
+                    }
+                    trialMatrixBlocs = blocs.ToArray();
+                    break;
+                case Settings.TrialMatrixSettings.TrialMatrixType.Complete:
+                    trialMatrixBlocs = (from bloc in protocol.Blocs select new Bloc(bloc, blocsByProtocolBloc[bloc], site)).ToArray();
+                    break;
+                default:
+                    trialMatrixBlocs = new Bloc[0];
+                    break;
+            }
             UnityEngine.Profiling.Profiler.EndSample();
 
             Normalize(trialMatrixBlocs, site);

@@ -192,7 +192,7 @@ namespace HBP.UI.Graph
                 UnityEngine.Profiling.Profiler.BeginSample("new TrialMatrix");
                 foreach (var site in m_Sites)
                 {
-                    trialMatrixData[site] = new Data.TrialMatrix.TrialMatrix(protocol, dataInfoBySite[site], epochedBlocsByProtocolBlocByDataInfo[dataInfoBySite[site]], site);
+                    trialMatrixData[site] = new Data.TrialMatrix.TrialMatrix(protocol, dataInfoBySite[site], epochedBlocsByProtocolBlocByDataInfo[dataInfoBySite[site]], site, Scene);
                 }
                 trialMatrixByProtocol.Add(protocol, trialMatrixData);
                 UnityEngine.Profiling.Profiler.EndSample();
