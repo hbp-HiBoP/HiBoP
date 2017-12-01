@@ -71,47 +71,9 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG;
-            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentModeID)
-            {
-                case HBP.Module3D.Mode.ModesId.NoPathDefined:
-                    m_Slider.interactable = false;
-                    m_InputField.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.MinPathDefined:
-                    m_Slider.interactable = isColumnIEEG;
-                    m_InputField.interactable = isColumnIEEG;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AllPathDefined:
-                    m_Slider.interactable = isColumnIEEG;
-                    m_InputField.interactable = isColumnIEEG;
-                    break;
-                case HBP.Module3D.Mode.ModesId.ComputingAmplitudes:
-                    m_Slider.interactable = false;
-                    m_InputField.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AmplitudesComputed:
-                    m_Slider.interactable = isColumnIEEG;
-                    m_InputField.interactable = isColumnIEEG;
-                    break;
-                case HBP.Module3D.Mode.ModesId.TriErasing:
-                    m_Slider.interactable = false;
-                    m_InputField.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.ROICreation:
-                    m_Slider.interactable = false;
-                    m_InputField.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AmpNeedUpdate:
-                    m_Slider.interactable = isColumnIEEG;
-                    m_InputField.interactable = isColumnIEEG;
-                    break;
-                case HBP.Module3D.Mode.ModesId.Error:
-                    m_Slider.interactable = false;
-                    m_InputField.interactable = false;
-                    break;
-                default:
-                    break;
-            }
+
+            m_Slider.interactable = isColumnIEEG;
+            m_InputField.interactable = isColumnIEEG;
         }
 
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)

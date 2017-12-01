@@ -41,8 +41,6 @@ namespace HBP.Module3D
         public List<DLL.Texture> DLLGUIBrainCutWithIEEGTextures = null;
 
         // IEEG
-        public bool SendInformation = true; /**< send info at each plot click ? */
-        public bool UpdateIEEG; /**< amplitude needs to be updated ? */
         private int m_CurrentTimeLineID = 0;
         public int CurrentTimeLineID
         {
@@ -412,9 +410,6 @@ namespace HBP.Module3D
             // call parent init
             base.Initialize(idColumn, nbCuts, plots, PlotsPatientParent, siteList);
 
-            // amplitudes
-            UpdateIEEG = false;
-
             // GO textures
             BrainCutWithIEEGTextures = new List<Texture2D>(nbCuts);
             GUIBrainCutWithIEEGTextures = new List<Texture2D>(nbCuts);
@@ -458,7 +453,7 @@ namespace HBP.Module3D
             IEEGParameters.Gain = ColumnData.Configuration.Gain;
             IEEGParameters.MaximumInfluence = ColumnData.Configuration.MaximumInfluence;
             IEEGParameters.AlphaMin = ColumnData.Configuration.Alpha;
-            if (Mathf.Approximately(ColumnData.Configuration.SpanMin, 0.0f) && Mathf.Approximately(ColumnData.Configuration.Middle, 0.0f) && Mathf.Approximately(ColumnData.Configuration.SpanMax, 0.0f))
+            if (ColumnData.Configuration.SpanMin == 0 && ColumnData.Configuration.Middle == 0 && ColumnData.Configuration.SpanMax == 0)
             {
                 float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
                 IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
@@ -632,7 +627,7 @@ namespace HBP.Module3D
                     }
                     else
                     {
-                        value = 1.0f;
+                        value = 0.5f;
                     }            
                 }
                 else
@@ -644,7 +639,7 @@ namespace HBP.Module3D
                     }
                     else
                     {
-                        value = 1.0f;
+                        value = 0.5f;
                     }
                 }
 

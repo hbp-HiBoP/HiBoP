@@ -26,18 +26,6 @@ namespace HBP.Module3D
 
         #region Properties
         // state
-        private bool m_IsIEEGOutdated = true;
-        public bool IsIEEGOutdated /**< it true, the amplitudes may need to be updated (ROI, mask, geometry modifications) */
-        {
-            get
-            {
-                return m_IsIEEGOutdated;
-            }
-            set
-            {
-                m_IsIEEGOutdated = value;
-            }
-        }
         public bool DisplayCCEPMode = false; // TEST
         public bool IsROICreationModeEnabled = false; /**< is the ROI creation mode enabled ? */
 

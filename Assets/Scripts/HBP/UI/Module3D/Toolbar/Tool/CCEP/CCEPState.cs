@@ -39,38 +39,8 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             bool areCCEPAvailable = ApplicationState.Module3D.SelectedScene.Type == SceneType.SinglePatient && ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedImplantation.AreLatenciesLoaded && ApplicationState.Module3D.SelectedColumn.Type != HBP.Module3D.Column3D.ColumnType.FMRI;
-            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentModeID)
-            {
-                case HBP.Module3D.Mode.ModesId.NoPathDefined:
-                    m_Toggle.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.MinPathDefined:
-                    m_Toggle.interactable = areCCEPAvailable;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AllPathDefined:
-                    m_Toggle.interactable = areCCEPAvailable;
-                    break;
-                case HBP.Module3D.Mode.ModesId.ComputingAmplitudes:
-                    m_Toggle.interactable = areCCEPAvailable;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AmplitudesComputed:
-                    m_Toggle.interactable = areCCEPAvailable;
-                    break;
-                case HBP.Module3D.Mode.ModesId.TriErasing:
-                    m_Toggle.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.ROICreation:
-                    m_Toggle.interactable = false;
-                    break;
-                case HBP.Module3D.Mode.ModesId.AmpNeedUpdate:
-                    m_Toggle.interactable = areCCEPAvailable;
-                    break;
-                case HBP.Module3D.Mode.ModesId.Error:
-                    m_Toggle.interactable = false;
-                    break;
-                default:
-                    break;
-            }
+
+            m_Toggle.interactable = areCCEPAvailable;
         }
 
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
