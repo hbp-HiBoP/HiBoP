@@ -18,6 +18,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.ROICopy m_ROICopy;
+        /// <summary>
+        /// Tool to import/export ROIs
+        /// </summary>
+        [SerializeField]
+        private Tools.ROIExport m_ROIExport;
         #endregion
 
         #region Private Methods
@@ -25,6 +30,7 @@ namespace HBP.UI.Module3D
         {
             m_Tools.Add(m_ROIManager);
             m_Tools.Add(m_ROICopy);
+            m_Tools.Add(m_ROIExport);
         }
         #endregion
 
