@@ -48,47 +48,8 @@ namespace HBP.UI.Module3D.Tools
             bool canAddFMRI = ApplicationState.Module3D.SelectedScene.ColumnManager.Columns.Count < HBP3DModule.MAXIMUM_COLUMN_NUMBER;
             bool canRemoveFMRI = (ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsFMRI.Count > 0);
 
-            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
-            {
-                case Mode.ModesId.NoPathDefined:
-                    m_Add.interactable = false;
-                    m_Remove.interactable = false;
-                    break;
-                case Mode.ModesId.MinPathDefined:
-                    m_Add.interactable = canAddFMRI;
-                    m_Remove.interactable = canRemoveFMRI;
-                    break;
-                case Mode.ModesId.AllPathDefined:
-                    m_Add.interactable = canAddFMRI;
-                    m_Remove.interactable = canRemoveFMRI;
-                    break;
-                case Mode.ModesId.ComputingAmplitudes:
-                    m_Add.interactable = false;
-                    m_Remove.interactable = false;
-                    break;
-                case Mode.ModesId.AmplitudesComputed:
-                    m_Add.interactable = canAddFMRI;
-                    m_Remove.interactable = canRemoveFMRI;
-                    break;
-                case Mode.ModesId.TriErasing:
-                    m_Add.interactable = false;
-                    m_Remove.interactable = false;
-                    break;
-                case Mode.ModesId.ROICreation:
-                    m_Add.interactable = false;
-                    m_Remove.interactable = false;
-                    break;
-                case Mode.ModesId.AmpNeedUpdate:
-                    m_Add.interactable = canAddFMRI;
-                    m_Remove.interactable = canRemoveFMRI;
-                    break;
-                case Mode.ModesId.Error:
-                    m_Add.interactable = false;
-                    m_Remove.interactable = false;
-                    break;
-                default:
-                    break;
-            }
+            m_Add.interactable = canAddFMRI;
+            m_Remove.interactable = canRemoveFMRI;
         }
         #endregion
     }

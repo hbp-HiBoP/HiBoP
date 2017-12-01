@@ -41,8 +41,6 @@ namespace HBP.Module3D
         public List<DLL.Texture> DLLGUIBrainCutWithIEEGTextures = null;
 
         // IEEG
-        public bool SendInformation = true; /**< send info at each plot click ? */
-        public bool UpdateIEEG; /**< amplitude needs to be updated ? */
         private int m_CurrentTimeLineID = 0;
         public int CurrentTimeLineID
         {
@@ -412,9 +410,6 @@ namespace HBP.Module3D
             // call parent init
             base.Initialize(idColumn, nbCuts, plots, PlotsPatientParent, siteList);
 
-            // amplitudes
-            UpdateIEEG = false;
-
             // GO textures
             BrainCutWithIEEGTextures = new List<Texture2D>(nbCuts);
             GUIBrainCutWithIEEGTextures = new List<Texture2D>(nbCuts);
@@ -458,7 +453,7 @@ namespace HBP.Module3D
             IEEGParameters.Gain = ColumnData.Configuration.Gain;
             IEEGParameters.MaximumInfluence = ColumnData.Configuration.MaximumInfluence;
             IEEGParameters.AlphaMin = ColumnData.Configuration.Alpha;
-            if (Mathf.Approximately(ColumnData.Configuration.SpanMin, 0.0f) && Mathf.Approximately(ColumnData.Configuration.Middle, 0.0f) && Mathf.Approximately(ColumnData.Configuration.SpanMax, 0.0f))
+            if (ColumnData.Configuration.SpanMin == 0 && ColumnData.Configuration.Middle == 0 && ColumnData.Configuration.SpanMax == 0)
             {
                 float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
                 IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
@@ -536,10 +531,10 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateDLLSitesMask()
         {
-            bool noROI = false; // (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles == 0);
+            bool isROI = m_ROIs.Count > 0; // (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles == 0);
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                m_RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || Sites[ii].State.IsExcluded || (Sites[ii].State.IsOutOfROI && !noROI)));
+                m_RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || Sites[ii].State.IsExcluded || (Sites[ii].State.IsOutOfROI && isROI)));
             }
         }
         /// <summary>
@@ -632,7 +627,7 @@ namespace HBP.Module3D
                     }
                     else
                     {
-                        value = 1.0f;
+                        value = 0.5f;
                     }            
                 }
                 else
@@ -644,7 +639,7 @@ namespace HBP.Module3D
                     }
                     else
                     {
-                        value = 1.0f;
+                        value = 0.5f;
                     }
                 }
 
@@ -891,12 +886,30 @@ namespace HBP.Module3D
         /// <param name="drawLines"></param>
         public void CreateGUIIEEGTexture(int indexCut, string orientation, bool flip, List<Cut> cutPlanes, bool drawLines)
         {
-            if (DLLBrainCutTextures[indexCut].m_TextureSize[0] > 0)
+            if (DLLBrainCutTextures[indexCut].TextureSize[0] > 0)
             {
                 DLLGUIBrainCutWithIEEGTextures[indexCut].CopyAndRotate(DLLBrainCutWithIEEGTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
                 DLLGUIBrainCutWithIEEGTextures[indexCut].UpdateTexture2D(GUIBrainCutWithIEEGTextures[indexCut]);
             }
         }
+        public void ResizeGUIMRITexturesWithIEEG()
+        {
+            int max = 0;
+            foreach (var texture in DLLGUIBrainCutWithIEEGTextures)
+            {
+                int textureMax = texture.TextureSize.Max();
+                if (textureMax > max)
+                {
+                    max = textureMax;
+                }
+            }
+            for (int i = 0; i < DLLGUIBrainCutWithIEEGTextures.Count; ++i)
+            {
+                DLLGUIBrainCutWithIEEGTextures[i].ResizeToSquare(max);
+                DLLGUIBrainCutWithIEEGTextures[i].UpdateTexture2D(GUIBrainCutWithIEEGTextures[i]);
+            }
+        }
+
         #endregion
     }
 }

@@ -58,29 +58,31 @@ namespace HBP.UI.TrialMatrix
             Profiler.EndSample();
 
             //Separate blocs by line
-            Profiler.BeginSample("C");
-            d.Bloc[][] l_lines = new d.Bloc[l_blocs[l_blocs.Length - 1].ProtocolBloc.Position.Row][];
-            int l_blocsByRow = 0;
-            for (int i = 0; i < l_lines.Length; i++)
+            Profiler.BeginSample("FindLine");
+            List<d.Bloc[]> l_lines = new List<d.Bloc[]>();
+            foreach (var bloc in l_blocs)
             {
-                l_lines[i] = System.Array.FindAll(l_blocs, x => x.ProtocolBloc.Position.Row == i + 1);
-                if (l_blocsByRow < l_lines.Length) l_blocsByRow = l_lines.Length;
+                if (!l_lines.Exists((a) => a.Contains(bloc)))
+                {
+                    l_lines.Add(System.Array.FindAll(l_blocs, x => x.ProtocolBloc.Position.Row == bloc.ProtocolBloc.Position.Row));
+                }
             }
+
 
             int maxBlocByRow = 0;
             foreach (d.Bloc[] line in l_lines)
             {
-                int max = line[line.Length - 1].ProtocolBloc.Position.Column;
-                if (max > maxBlocByRow)
-                {
-                    maxBlocByRow = max;
-                }
+                    int max = line[line.Length - 1].ProtocolBloc.Position.Column;
+                    if (max > maxBlocByRow)
+                    {
+                        maxBlocByRow = max;
+                    }
             }
             Profiler.EndSample();
 
             //Generate Line
             Profiler.BeginSample("D");
-            for (int i = 0; i < l_lines.Length; i++)
+            for (int i = 0; i < l_lines.Count; i++)
             {
                 AddLine(l_lines[i], maxBlocByRow, colorMap, trialMatrix.ValuesLimits);
             }

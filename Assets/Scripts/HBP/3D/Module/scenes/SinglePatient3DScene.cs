@@ -69,8 +69,6 @@ namespace HBP.Module3D
             yield return Ninja.JumpToUnity;
             float progress = 1.0f;
             onChangeProgress.Invoke(progress, 0.0f, "");
-
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetScene);
             
             int sceneID = ApplicationState.Module3D.NumberOfScenesLoadedSinceStart;
             gameObject.name = "SinglePatient Scene (" + sceneID + ")";
@@ -121,10 +119,6 @@ namespace HBP.Module3D
             progress += SETTING_TIMELINE_PROGRESS;
             onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetEEGData());
-            
-            // TMP : to debug anatomy scene
-            //m_ColumnManager.InitializeColumns(Column3D.ColumnType.Base, 1);
-            //m_ColumnManager.Columns.Last().Label = Patient.Name + " (" + Patient.Place + " - " + Patient.Date + ")";
 
             // Finalization
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
@@ -141,55 +135,47 @@ namespace HBP.Module3D
         /// <returns></returns>
         private IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh)
         {
-            //####### CHECK ACESS
-            if (!m_ModesManager.FunctionAccess(Mode.FunctionsId.ResetGIIBrainSurfaceFile))
-            {
-                throw new ModeAccessException(m_ModesManager.CurrentModeName);
-            }
-            //##################
-
             SceneInformation.MeshesLoaded = false;
 
             // checks parameters
-            if (mesh == null) throw new EmptyFilePathException("GII");
-            if (!mesh.Usable) throw new EmptyFilePathException("GII"); // TODO CHANGE TO NOT USABLE
+            //if (mesh == null) throw new EmptyFilePathException("GII"); // FIXME
+            //if (!mesh.Usable) throw new EmptyFilePathException("GII"); // TODO CHANGE TO NOT USABLE
 
-            if (mesh is Data.Anatomy.LeftRightMesh)
+            if (mesh.Usable)
             {
-                LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
-                
-                if (mesh3D.IsLoaded)
+                if (mesh is Data.Anatomy.LeftRightMesh)
                 {
-                    m_ColumnManager.Meshes.Add(mesh3D);
+                    LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
+
+                    if (mesh3D.IsLoaded)
+                    {
+                        m_ColumnManager.Meshes.Add(mesh3D);
+                    }
+                    else
+                    {
+                        SceneInformation.MeshesLoaded = false;
+                        throw new CanNotLoadGIIFile(mesh3D.Left.IsLoaded, mesh3D.Right.IsLoaded);
+                    }
+                }
+                else if (mesh is Data.Anatomy.SingleMesh)
+                {
+                    SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
+
+                    if (mesh3D.IsLoaded)
+                    {
+                        m_ColumnManager.Meshes.Add(mesh3D);
+                    }
+                    else
+                    {
+                        SceneInformation.MeshesLoaded = false;
+                        throw new CanNotLoadGIIFile(mesh3D.IsLoaded);
+                    }
                 }
                 else
                 {
-                    SceneInformation.MeshesLoaded = false;
-                    throw new CanNotLoadGIIFile(mesh3D.Left.IsLoaded, mesh3D.Right.IsLoaded);
+                    Debug.LogError("Mesh not handled.");
                 }
             }
-            else if(mesh is Data.Anatomy.SingleMesh)
-            {
-                SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
-
-                if (mesh3D.IsLoaded)
-                {
-                    m_ColumnManager.Meshes.Add(mesh3D);
-                }
-                else
-                {
-                    SceneInformation.MeshesLoaded = false;
-                    throw new CanNotLoadGIIFile(mesh3D.IsLoaded);
-                }
-            }
-            else
-            {
-                Debug.LogError("Mesh not handled.");
-            }
-
-            //####### UDPATE MODE
-            m_ModesManager.UpdateMode(Mode.FunctionsId.ResetGIIBrainSurfaceFile);
-            //##################
             yield return true;
         }
         #endregion

@@ -17,15 +17,22 @@ public static class DataManager
     public static EpochedData GetData(DataInfo dataInfo,Bloc bloc)
     {
         DataRequest request = new DataRequest(dataInfo, bloc);
-        EpochedData result;
-        if (m_DataByRequest.TryGetValue(request, out result))
+        if (IsRequestValid(request))
         {
-            return result;
+            EpochedData result;
+            if (m_DataByRequest.TryGetValue(request, out result))
+            {
+                return result;
+            }
+            else
+            {
+                Load(request.DataInfo);
+                return m_DataByRequest[request];
+            }
         }
         else
         {
-            Load(request.DataInfo);
-            return m_DataByRequest[request];
+            return null;
         }
     }
     public static void Load(DataInfo dataInfo)
@@ -82,6 +89,10 @@ public static class DataManager
     #endregion
 
     #region Private Methods
+    static bool IsRequestValid(DataRequest request)
+    {
+        return ApplicationState.ProjectLoaded.Datasets.First((d) => d.Data.Contains(request.DataInfo)).Protocol.Blocs.Contains(request.Bloc);
+    }
     static void NormalizeByNone(DataRequest dataRequest)
     {
         float average = 0;

@@ -122,11 +122,11 @@ namespace HBP.UI.TrialMatrix
                     int[] linesClicked = new int[1] { beginDragLine };
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
-                        SendMessageSelectLines(linesClicked, data.ProtocolBloc, true);
+                        SendMessageSelectLines(linesClicked, true);
                     }
                     else
                     {
-                        SendMessageSelectLines(linesClicked, data.ProtocolBloc, false);
+                        SendMessageSelectLines(linesClicked, false);
                     }
                 }
             }
@@ -138,7 +138,7 @@ namespace HBP.UI.TrialMatrix
                 {
                     array[i] = i;
                 }
-                SendMessageSelectLines(array, data.ProtocolBloc, false);
+                SendMessageSelectLines(array, false);
             }
         }
         public void OnBeginDrag()
@@ -166,12 +166,12 @@ namespace HBP.UI.TrialMatrix
             }
             if(Input.GetKey(KeyCode.LeftShift))
             {
-                SendMessageSelectLines(linesSelected.ToArray(), data.ProtocolBloc, true);
+                SendMessageSelectLines(linesSelected.ToArray(), true);
 
             }
             else
             {
-                SendMessageSelectLines(linesSelected.ToArray(), data.ProtocolBloc, false);
+                SendMessageSelectLines(linesSelected.ToArray(), false);
             }
             onDrag = false;
         }
@@ -196,11 +196,11 @@ namespace HBP.UI.TrialMatrix
                 }
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
-                    SendMessageSelectLines(l_linesToSelect.ToArray(), data.ProtocolBloc, true);
+                    SendMessageSelectLines(l_linesToSelect.ToArray(), true);
                 }
                 else
                 {
-                    SendMessageSelectLines(l_linesToSelect.ToArray(), data.ProtocolBloc, false);
+                    SendMessageSelectLines(l_linesToSelect.ToArray(), false);
                 }
             }
         }
@@ -227,12 +227,12 @@ namespace HBP.UI.TrialMatrix
             displayerRect.offsetMin = new Vector2(0, 0);
             displayerRect.offsetMax = new Vector2(0, 0);
         }
-        void SendMessageSelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc,bool additive)
+        void SendMessageSelectLines(int[] lines, bool additive)
         {
             Graph.GraphsGestion graphGestion = FindObjectOfType<Graph.GraphsGestion>();
             if (graphGestion)
             {
-                graphGestion.OnSelectLines(lines, bloc, additive);
+                graphGestion.OnSelectLines(lines, this, additive);
             }
         }
         void SetTexture(d.Bloc bloc,Texture2D colorMap,Vector2 limits)

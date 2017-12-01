@@ -32,38 +32,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            switch (ApplicationState.Module3D.SelectedScene.ModesManager.CurrentMode.ID)
-            {
-                case Mode.ModesId.NoPathDefined:
-                    m_Dropdown.interactable = false;
-                    break;
-                case Mode.ModesId.MinPathDefined:
-                    m_Dropdown.interactable = true;
-                    break;
-                case Mode.ModesId.AllPathDefined:
-                    m_Dropdown.interactable = true;
-                    break;
-                case Mode.ModesId.ComputingAmplitudes:
-                    m_Dropdown.interactable = false;
-                    break;
-                case Mode.ModesId.AmplitudesComputed:
-                    m_Dropdown.interactable = true;
-                    break;
-                case Mode.ModesId.TriErasing:
-                    m_Dropdown.interactable = false;
-                    break;
-                case Mode.ModesId.ROICreation:
-                    m_Dropdown.interactable = false;
-                    break;
-                case Mode.ModesId.AmpNeedUpdate:
-                    m_Dropdown.interactable = true;
-                    break;
-                case Mode.ModesId.Error:
-                    m_Dropdown.interactable = false;
-                    break;
-                default:
-                    break;
-            }
+            m_Dropdown.interactable = true;
         }
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {
