@@ -4,6 +4,7 @@
     {
         #region Properties
         public enum TrialsSynchronizationType { Disable, Enable }
+        public enum TrialMatrixType { Simplified, Complete }
         public enum SmoothingType { None, Line }
         public enum BaselineType { None, Line, Bloc, Protocol }
         public enum BlocFormatType { ConstantLine, LineRatio, BlocRatio }
@@ -36,15 +37,13 @@
         /// Synchronization of the trials beetween sites for the same bloc.
         /// </summary>
         public TrialsSynchronizationType TrialsSynchronization { get; set; }
+        /// <summary>
+        /// Display all blocs or just the visualized blocs.
+        /// </summary>
+        public TrialMatrixType Type{ get; set; }
         #endregion
 
         #region Constructor
-        /// <summary>
-        /// Create a new trial matrix settings instance with default values.
-        /// </summary>
-        public TrialMatrixSettings() : this(SmoothingType.Line, BaselineType.Protocol, BlocFormatType.LineRatio, 3, 0.05f, 0.3f, TrialsSynchronizationType.Enable)
-        {
-        }
         /// <summary>
         /// Create a new trial matrix settings instance.
         /// </summary>
@@ -54,7 +53,7 @@
         /// <param name="constantLineHeight">Constant height of a line in a trial matrix.</param>
         /// <param name="lineHeightByWidth">Ratio height by width of a line in a trial matrix.</param>
         /// <param name="heightByWidth">Ratio height by width of a bloc in a trial matrix.</param>
-        public TrialMatrixSettings(SmoothingType smoothing = SmoothingType.Line,BaselineType baseline = BaselineType.Protocol,BlocFormatType blocformat = BlocFormatType.LineRatio,int constantLineHeight = 3,float lineHeightByWidth = 0.05f,float heightByWidth = 0.3f, TrialsSynchronizationType trialsSynchronization = TrialsSynchronizationType.Enable)
+        public TrialMatrixSettings(SmoothingType smoothing = SmoothingType.Line,BaselineType baseline = BaselineType.Protocol,BlocFormatType blocformat = BlocFormatType.LineRatio,int constantLineHeight = 3,float lineHeightByWidth = 0.05f,float heightByWidth = 0.3f, TrialsSynchronizationType trialsSynchronization = TrialsSynchronizationType.Enable, TrialMatrixType type = TrialMatrixType.Complete)
         {
             Smoothing = smoothing;
             Baseline = baseline;
@@ -63,6 +62,7 @@
             LineHeightByWidth = lineHeightByWidth;
             HeightByWidth = heightByWidth;
             TrialsSynchronization = trialsSynchronization;
+            Type = type;
         }
         #endregion
     }
