@@ -275,7 +275,7 @@ namespace HBP.Data.General
         public void AddDataset(Dataset dataset)
         {
             m_Datasets.Add(dataset);
-            dataset.UpdateDataStates();
+            dataset.UpdateDataStates(); // FIXME : takes a long time when loading a project
         }
         public void AddDataset(IEnumerable<Dataset> datasets)
         {
@@ -577,6 +577,9 @@ namespace HBP.Data.General
                 }
                 progress += progressStep;
             }
+            yield return Ninja.JumpToUnity;
+            OnChangeProgress.Invoke(progress, 0, "Checking Datasets");
+            yield return Ninja.JumpBack;
             SetDatasets(datasets.ToArray());
             outPut(progress);
         }

@@ -136,7 +136,7 @@ namespace HBP.Data.Experience.Dataset
             List<ErrorType> errors = new List<ErrorType>();
             if(string.IsNullOrEmpty(Name)) errors.Add(ErrorType.LabelEmpty);
             m_NameErrors = errors.ToArray();
-            return errors.ToArray();
+            return m_NameErrors;
         }
         public ErrorType[] GetMeasureErrors()
         {
@@ -151,14 +151,14 @@ namespace HBP.Data.Experience.Dataset
                 }
             }
             m_MeasureErrors = errors.ToArray();
-            return errors.ToArray();
+            return m_MeasureErrors;
         }
         public ErrorType[] GetPatientErrors()
         {
             List<ErrorType> errors = new List<ErrorType>();
             if (Patient == null) errors.Add(ErrorType.PatientEmpty);
             m_PatientErrors = errors.ToArray();
-            return errors.ToArray();
+            return m_PatientErrors;
         }
         public ErrorType[] GetEEGErrors()
         {
@@ -166,7 +166,6 @@ namespace HBP.Data.Experience.Dataset
             if (string.IsNullOrEmpty(EEG))
             {
                 errors.Add(ErrorType.EEGEmpty);
-                return errors.ToArray();
             }
             else
             {
@@ -174,14 +173,12 @@ namespace HBP.Data.Experience.Dataset
                 if (!EEGFile.Exists)
                 {
                     errors.Add(ErrorType.EEGFileNotExist);
-                    return errors.ToArray();
                 }
                 else
                 {
                     if (EEGFile.Extension != Elan.EEG.EXTENSION)
                     {
                         errors.Add(ErrorType.EEGFileNotAGoodFile);
-                        return errors.ToArray();
                     }
                     else
                     {
@@ -191,7 +188,7 @@ namespace HBP.Data.Experience.Dataset
                 }
             }
             m_EEGErrors = errors.ToArray();
-            return errors.ToArray();
+            return m_EEGErrors;
         }
         public ErrorType[] GetPOSErrors(Protocol.Protocol protocol)
         {
@@ -212,7 +209,7 @@ namespace HBP.Data.Experience.Dataset
                 }
             }
             m_POSErrors = errors.ToArray();
-            return errors.ToArray();
+            return m_POSErrors;
         }
         public string GetErrorsMessage()
         {
