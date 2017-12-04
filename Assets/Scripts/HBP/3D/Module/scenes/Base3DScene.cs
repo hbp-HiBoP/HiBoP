@@ -2449,9 +2449,9 @@ namespace HBP.Module3D
                     break;
                 case Column3D.ColumnType.IEEG:
                     Column3DIEEG columnIEEG = column as Column3DIEEG;
-                    int siteID = site.Information.SitePatientID;
+                    int siteID = site.Information.GlobalID;
 
-                    float amplitude = 0;
+                    float amplitude = -1;
                     if (columnIEEG.IEEGValuesBySiteID.Length > 0)
                     {
                         amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
