@@ -38,11 +38,6 @@ namespace HBP.Module3D
                 return SceneType.MultiPatients;
             }
         }
-
-        private const float LOADING_MESHES_PROGRESS = 0.10f;
-        private const float LOADING_COLUMNS_PROGRESS = 0.10f;
-        private const float LOADING_ELECTRODES_PROGRESS = 0.10f;
-        private const float SETTING_TIMELINE_PROGRESS = 0.70f;
         #endregion
 
         #region Coroutines
@@ -54,6 +49,17 @@ namespace HBP.Module3D
         {
             Exception exception = null;
 
+            // Compute progress variables
+            float implantationsCount = (from patient in Patients select patient.Brain.Implantations.Count).Sum();
+            float patientsCount = Patients.Count;
+            float totalTime = implantationsCount * LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + patientsCount * LOADING_IEEG_WEIGHT;
+            float loadingImplantationsProgress = (implantationsCount * LOADING_IMPLANTATIONS_WEIGHT) / totalTime;
+            float loadingImplantationsTime = (implantationsCount * LOADING_IMPLANTATIONS_WEIGHT) / 1000.0f;
+            float loadingMNIProgress = LOADING_MNI_WEIGHT / totalTime;
+            float loadingMNITime = LOADING_MNI_WEIGHT / 1000.0f;
+            float loadingIEEGProgress = (patientsCount * LOADING_IEEG_WEIGHT) / totalTime;
+            float loadingIEEGTime = (patientsCount * LOADING_IEEG_WEIGHT) / 1000.0f;
+
             yield return Ninja.JumpToUnity;
             float progress = 1.0f;
             onChangeProgress.Invoke(progress, 0.0f, "");
@@ -62,38 +68,26 @@ namespace HBP.Module3D
             gameObject.name = "MultiPatients Scene (" + sceneID + ")";
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * sceneID, transform.position.y, transform.position.z);
 
-            progress += LOADING_MESHES_PROGRESS;
-            onChangeProgress.Invoke(progress, 0.05f, "Loading MNI");
+            // Loading MNI
+            progress += loadingMNIProgress;
+            onChangeProgress.Invoke(progress, loadingMNITime, "Loading MNI");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
-            yield return Ninja.JumpBack;
-
-            // MNI meshes are preloaded
+            ResetSplitsNumber(3);
             SceneInformation.MeshesLoaded = true;
+            SceneInformation.MRILoaded = true;
             SceneInformation.IsROICreationModeEnabled = false;
+            SceneInformation.MeshGeometryNeedsUpdate = true;
 
-            yield return Ninja.JumpToUnity;
-            progress += LOADING_COLUMNS_PROGRESS;
-            onChangeProgress.Invoke(progress, 0.05f, "Loading columns");
             // reset columns
             m_ColumnManager.Initialize(Cuts.Count);
 
-            yield return Ninja.JumpBack;
-            // retrieve MNI IRM volume
-            SceneInformation.MRILoaded = true;
-
             // reset electrodes
-            yield return Ninja.JumpToUnity;
-            progress += LOADING_ELECTRODES_PROGRESS;
-            onChangeProgress.Invoke(progress, 0.05f, "Loading implantations");
+            progress += loadingImplantationsProgress;
+            onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients));
 
-            // define meshes splits nb
-            ResetSplitsNumber(3);
-            
-            SceneInformation.MeshGeometryNeedsUpdate = true;
-
-            progress += SETTING_TIMELINE_PROGRESS;
-            onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
+            progress += loadingIEEGProgress;
+            onChangeProgress.Invoke(progress, loadingIEEGTime, "Setting timeline");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetEEGData());
 
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);

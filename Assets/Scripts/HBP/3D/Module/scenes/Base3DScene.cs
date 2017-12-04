@@ -515,10 +515,24 @@ namespace HBP.Module3D
             }
         }
 
+        /// <summary>
+        /// Lock when updating generator
+        /// </summary>
         private bool m_UpdatingGenerator = false;
+        /// <summary>
+        /// True if generator needs an update
+        /// </summary>
         private bool m_GeneratorNeedsUpdate = true;
-
+        /// <summary>
+        /// Lock when updating colliders
+        /// </summary>
         private bool m_UpdatingColliders = false;
+        
+        protected const int LOADING_MESH_WEIGHT = 2500;
+        protected const int LOADING_MRI_WEIGHT = 1500;
+        protected const int LOADING_IMPLANTATIONS_WEIGHT = 50;
+        protected const int LOADING_MNI_WEIGHT = 100;
+        protected const int LOADING_IEEG_WEIGHT = 15;
 
         [SerializeField]
         protected GameObject m_BrainPrefab;
@@ -2802,8 +2816,6 @@ namespace HBP.Module3D
 
             // set flag
             SceneInformation.TimelinesLoaded = true;
-
-            yield return Ninja.JumpToUnity;
         }
         private IEnumerator c_UpdateMeshesColliders()
         {

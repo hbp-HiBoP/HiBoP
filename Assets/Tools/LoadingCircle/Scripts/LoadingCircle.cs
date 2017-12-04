@@ -137,8 +137,7 @@ public class LoadingCircle : MonoBehaviour
         if(m_Progress != m_LastProgress)
         {
             int percentage = Mathf.FloorToInt(m_Progress * 100.0f);
-            int circles = percentage / 5;
-            transform.GetChild(1).GetComponent<Image>().fillAmount = circles * 0.05f;
+            transform.GetChild(1).GetComponent<Image>().fillAmount = m_Progress;
             string path = "BrainAnim" + System.IO.Path.DirectorySeparatorChar + percentage;
             Sprite sprite = Resources.Load<Sprite>(path) as Sprite;
             transform.GetChild(2).GetComponent<Image>().sprite = sprite;
