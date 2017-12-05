@@ -86,10 +86,11 @@ namespace HBP.Module3D
             m_ColumnManager.Initialize(m_Cuts.Count);
 
             // Load Meshes
-            foreach (Data.Anatomy.Mesh mesh in Patient.Brain.Meshes)
+            for (int i = 0; i < Patient.Brain.Meshes.Count; ++i)
             {
+                Data.Anatomy.Mesh mesh = Patient.Brain.Meshes[i];
                 progress += loadingMeshProgress;
-                onChangeProgress.Invoke(progress, loadingMeshTime, "Loading Mesh: " + mesh.Name);
+                onChangeProgress.Invoke(progress, loadingMeshTime, "Loading Mesh: " + mesh.Name + " [" + (i + 1).ToString() + "/" + Patient.Brain.Meshes.Count + "]");
                 yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh));
             }
             if (m_ColumnManager.Meshes.Count > 0)
@@ -103,10 +104,11 @@ namespace HBP.Module3D
             SceneInformation.MeshesLoaded = true;
 
             // Load MRIs
-            foreach (Data.Anatomy.MRI mri in Patient.Brain.MRIs)
+            for (int i = 0; i < Patient.Brain.MRIs.Count; ++i)
             {
+                Data.Anatomy.MRI mri = Patient.Brain.MRIs[i];
                 progress += loadingMRIProgress;
-                onChangeProgress.Invoke(progress, loadingMRITime, "Loading MRI: " + mri.Name);
+                onChangeProgress.Invoke(progress, loadingMRITime, "Loading MRI: " + mri.Name + " [" + (i + 1).ToString() + "/" + Patient.Brain.MRIs.Count + "]");
                 yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri));
             }
 
@@ -114,7 +116,7 @@ namespace HBP.Module3D
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients, usableImplantations, (i) =>
             {
                 progress += loadingImplantationsProgress;
-                onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations [" + i + "/" + usableImplantations.Count + "]");
+                onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations [" + (i + 1).ToString() + "/" + usableImplantations.Count + "]");
             }));
             SceneInformation.MeshGeometryNeedsUpdate = true;
 

@@ -458,7 +458,7 @@ namespace HBP.Module3D
             if (ColumnData.Configuration.SpanMin == 0 && ColumnData.Configuration.Middle == 0 && ColumnData.Configuration.SpanMax == 0)
             {
                 float amplitude = IEEGParameters.MaximumAmplitude - IEEGParameters.MinimumAmplitude;
-                float middle = IEEGValuesForHistogram.Mean();
+                float middle = IEEGValuesForHistogram.Median();
                 IEEGParameters.Middle = middle;
                 IEEGParameters.SpanMin = Mathf.Clamp(middle - 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
                 IEEGParameters.SpanMax = Mathf.Clamp(middle + 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
@@ -515,7 +515,7 @@ namespace HBP.Module3D
             IEEGParameters.MaximumInfluence = 15.0f;
             IEEGParameters.AlphaMin = 0.8f;
             float amplitude = IEEGParameters.MaximumAmplitude - IEEGParameters.MinimumAmplitude;
-            float middle = IEEGValuesForHistogram.Mean();
+            float middle = IEEGValuesForHistogram.Median();
             IEEGParameters.Middle = middle;
             IEEGParameters.SpanMin = Mathf.Clamp(middle - 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
             IEEGParameters.SpanMax = Mathf.Clamp(middle + 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);

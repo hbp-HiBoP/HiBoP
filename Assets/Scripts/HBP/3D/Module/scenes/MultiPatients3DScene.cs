@@ -86,7 +86,7 @@ namespace HBP.Module3D
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients, usableImplantations, (i) =>
             {
                 progress += loadingImplantationsProgress;
-                onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations [" + i + "/" + usableImplantations.Count + "]");
+                onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations [" + (i + 1).ToString() + "/" + usableImplantations.Count + "]");
             }));
 
             progress += loadingIEEGProgress;
