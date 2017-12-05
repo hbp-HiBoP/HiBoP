@@ -26,6 +26,7 @@ public class LoadingCircle : MonoBehaviour
     bool m_ChangePercentageCoroutineIsRunning;
     float m_EndPercentageCurrentCoroutine;
 
+    string m_LastText;
     string m_Text;
     public string Text
     {
@@ -35,10 +36,6 @@ public class LoadingCircle : MonoBehaviour
         }
         set
         {
-            StopCoroutine(m_TextCoroutine);
-            loading = false;
-            m_InformationText.text = value;
-            m_LoadingEffectText.text = "";
             m_Text = value;
         }
     }
@@ -70,9 +67,9 @@ public class LoadingCircle : MonoBehaviour
     {
         if(!Mathf.Approximately(start,end))
         {
-            if(seconds > 0)
+            m_EndPercentageCurrentCoroutine = end;
+            if (seconds > 0)
             {
-                m_EndPercentageCurrentCoroutine = end;
                 m_ChangePercentageCoroutine = StartCoroutine(c_ChangePercentage(start, end, seconds));
             }
             else
@@ -142,6 +139,14 @@ public class LoadingCircle : MonoBehaviour
             Sprite sprite = Resources.Load<Sprite>(path) as Sprite;
             transform.GetChild(2).GetComponent<Image>().sprite = sprite;
             m_LastProgress = m_Progress;
+        }
+        if (m_Text != m_LastText)
+        {
+            StopCoroutine(m_TextCoroutine);
+            loading = false;
+            m_InformationText.text = m_Text;
+            m_LoadingEffectText.text = "";
+            m_LastText = m_Text;
         }
     }
     #endregion
