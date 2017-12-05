@@ -317,9 +317,9 @@ namespace HBP.Module3D
             /// <param name="maxCoeff"></param>
             /// <param name="middle"></param>
             /// <returns></returns>
-            public static Texture GenerateDistributionHistogram(float[] data, int height, int width, float minCoeff, float maxCoeff, float middle = -1f)
+            public static Texture GenerateDistributionHistogram(float[] data, int height, int width, float min = 0, float max = 0)
             {
-                return new Texture(generate_distribution_histogram_with_data_Texture(data, data.Length, height, width, minCoeff, maxCoeff, middle));
+                return new Texture(generate_distribution_histogram_with_data_Texture(data, data.Length, height, width, min, max));
             }
             /// <summary>
             /// Update the size array with the DLL data
@@ -415,7 +415,7 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_Texture", CallingConvention = CallingConvention.Cdecl)]
             static private extern IntPtr generate_distribution_histogram_Texture(HandleRef handleVolume, int height, int width, float minCoeff, float maxCoeff, float middle);
             [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_with_data_Texture", CallingConvention = CallingConvention.Cdecl)]
-            static private extern IntPtr generate_distribution_histogram_with_data_Texture(float[] data, int dataSize, int height, int width, float minCoeff, float maxCoeff, float middle);
+            static private extern IntPtr generate_distribution_histogram_with_data_Texture(float[] data, int dataSize, int height, int width, float min, float max);
 
             [DllImport("hbp_export", EntryPoint = "apply_blur_Texture", CallingConvention = CallingConvention.Cdecl)]
             static private extern void apply_blur_Texture(HandleRef handleTexture);

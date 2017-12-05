@@ -113,7 +113,7 @@ namespace HBP.UI.Module3D
             {
                 m_IEEGHistogram = new Texture2D(1, 1);
             }
-            HBP.Module3D.DLL.Texture.GenerateDistributionHistogram((from value in ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGValues where value != 0 select value).ToArray(), 4 * 110, 4 * 110, m_SpanMinFactor, m_SpanMaxFactor, m_MiddleFactor).UpdateTexture2D(m_IEEGHistogram);
+            HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGValuesForHistogram, 4 * 110, 4 * 110, m_MinAmplitude, m_MaxAmplitude).UpdateTexture2D(m_IEEGHistogram);
 
             Destroy(m_Histogram.sprite);
             m_Histogram.sprite = Sprite.Create(m_IEEGHistogram, new Rect(0, 0, m_IEEGHistogram.width, m_IEEGHistogram.height), new Vector2(0.5f, 0.5f), 400f);

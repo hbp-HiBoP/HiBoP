@@ -959,7 +959,7 @@ namespace HBP.Module3D
             }
             if (invalidColumns.Count > 0)
             {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Warning, "Invalid iEEG span values", "The difference between Span Min, Middle and Span Max of some columns is equal to zero.\n\nThis is not supported. Please check your values.");
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Warning, "Invalid iEEG span values", "The difference between Span Min, Middle and Span Max of some columns is equal to zero.");
             }
         }
         /// <summary>
