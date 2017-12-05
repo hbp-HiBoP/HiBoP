@@ -61,13 +61,14 @@ namespace HBP.Module3D
             Exception exception = null;
 
             // Compute progress variables
-            float totalTime = Patient.Brain.Meshes.Count * LOADING_MESH_WEIGHT + Patient.Brain.MRIs.Count * LOADING_MRI_WEIGHT + Patient.Brain.Implantations.Count * LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT;
+            List<string> usableImplantations = visualization.FindUsableImplantations();
+            float totalTime = Patient.Brain.Meshes.Count * LOADING_MESH_WEIGHT + Patient.Brain.MRIs.Count * LOADING_MRI_WEIGHT + usableImplantations.Count * LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT;
             float loadingMeshProgress = LOADING_MESH_WEIGHT / totalTime;
             float loadingMeshTime = LOADING_MESH_WEIGHT / 1000.0f;
             float loadingMRIProgress = LOADING_MRI_WEIGHT / totalTime;
             float loadingMRITime = LOADING_MRI_WEIGHT / 1000.0f;
-            float loadingImplantationsProgress = (Patient.Brain.Implantations.Count * LOADING_IMPLANTATIONS_WEIGHT) / totalTime;
-            float loadingImplantationsTime = (Patient.Brain.Implantations.Count * LOADING_IMPLANTATIONS_WEIGHT) / 1000.0f;
+            float loadingImplantationsProgress = LOADING_IMPLANTATIONS_WEIGHT / totalTime;
+            float loadingImplantationsTime = LOADING_IMPLANTATIONS_WEIGHT / 1000.0f;
             float loadingMNIProgress = LOADING_MNI_WEIGHT / totalTime;
             float loadingMNITime = LOADING_MNI_WEIGHT / 1000.0f;
             float loadingIEEGProgress = LOADING_IEEG_WEIGHT / totalTime;
@@ -110,9 +111,11 @@ namespace HBP.Module3D
             }
 
             // Load Sites
-            progress += loadingImplantationsProgress;
-            onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading Implantations");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients, usableImplantations, (i) =>
+            {
+                progress += loadingImplantationsProgress;
+                onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations [" + i + "/" + usableImplantations.Count + "]");
+            }));
             SceneInformation.MeshGeometryNeedsUpdate = true;
 
             // Load MNI

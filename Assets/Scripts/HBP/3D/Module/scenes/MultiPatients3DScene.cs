@@ -50,11 +50,12 @@ namespace HBP.Module3D
             Exception exception = null;
 
             // Compute progress variables
-            float implantationsCount = (from patient in Patients select patient.Brain.Implantations.Count).Sum();
+            List<string> usableImplantations = visualization.FindUsableImplantations();
+            float implantationsCount = usableImplantations.Count * Patients.Count;
             float patientsCount = Patients.Count;
             float totalTime = implantationsCount * LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + patientsCount * LOADING_IEEG_WEIGHT;
-            float loadingImplantationsProgress = (implantationsCount * LOADING_IMPLANTATIONS_WEIGHT) / totalTime;
-            float loadingImplantationsTime = (implantationsCount * LOADING_IMPLANTATIONS_WEIGHT) / 1000.0f;
+            float loadingImplantationsProgress = (Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / totalTime;
+            float loadingImplantationsTime = (Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / 1000.0f;
             float loadingMNIProgress = LOADING_MNI_WEIGHT / totalTime;
             float loadingMNITime = LOADING_MNI_WEIGHT / 1000.0f;
             float loadingIEEGProgress = (patientsCount * LOADING_IEEG_WEIGHT) / totalTime;
@@ -82,9 +83,11 @@ namespace HBP.Module3D
             m_ColumnManager.Initialize(Cuts.Count);
 
             // reset electrodes
-            progress += loadingImplantationsProgress;
-            onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients, usableImplantations, (i) =>
+            {
+                progress += loadingImplantationsProgress;
+                onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations [" + i + "/" + usableImplantations.Count + "]");
+            }));
 
             progress += loadingIEEGProgress;
             onChangeProgress.Invoke(progress, loadingIEEGTime, "Setting timeline");

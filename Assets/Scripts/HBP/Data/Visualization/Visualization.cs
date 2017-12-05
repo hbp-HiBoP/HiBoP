@@ -257,6 +257,33 @@ namespace HBP.Data.Visualization
         {
             return GetDataInfo(column).First((dataInfo) => dataInfo.Patient == patient);
         }
+        /// <summary>
+        /// Find implantations that are usable in all patients
+        /// </summary>
+        /// <param name="patients"></param>
+        /// <returns></returns>
+        public List<string> FindUsableImplantations()
+        {
+            List<string> commonImplantations = new List<string>();
+            foreach (Anatomy.Implantation implantation in Patients.ToList()[0].Brain.Implantations)
+            {
+                string implantationName = implantation.Name;
+                bool isImplantationCommonToAllPatients = true;
+                foreach (Patient patient in Patients)
+                {
+                    if (patient.Brain.Implantations.FindIndex((i) => i.Name == implantationName && i.WasUsable) == -1)
+                    {
+                        isImplantationCommonToAllPatients = false;
+                        break;
+                    }
+                }
+                if (isImplantationCommonToAllPatients)
+                {
+                    commonImplantations.Add(implantation.Name);
+                }
+            }
+            return commonImplantations;
+        }
         #endregion
 
         #region Operators
@@ -325,11 +352,12 @@ namespace HBP.Data.Visualization
             yield return Ninja.JumpBack;
             DataInfo[] dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct().ToArray();
             float progressStep = LOAD_DATA_PROGRESS / (dataInfoCollection.Length + 1);
-            foreach (var dataInfo in dataInfoCollection)
+            for (int i = 0; i < dataInfoCollection.Length; ++i)
             {
+                DataInfo dataInfo = dataInfoCollection[i];
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Loading <color=blue>" + dataInfo.Name + "</color> for <color=blue>" + dataInfo.Patient.Name + "</color>.");
+                onChangeProgress.Invoke(progress, 1.0f, "Loading <color=blue>" + dataInfo.Name + "</color> for <color=blue>" + dataInfo.Patient.Name + "</color> [" + i + "/" + dataInfoCollection.Length + "]");
                 yield return Ninja.JumpBack;
                 try
                 {
@@ -358,11 +386,12 @@ namespace HBP.Data.Visualization
         {
             Exception exception = null;
             float progressStep = LOAD_COLUMNS_PROGRESS / Columns.Count;
-            foreach (Column column in Columns)
+            for (int i = 0; i < Columns.Count; ++i)
             {
+                Column column = Columns[i];
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.DisplayLabel + "</color>.");
+                onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.DisplayLabel + "</color> [" + i + "/" + Columns.Count + "]");
                 yield return Ninja.JumpBack;
                 try
                 {
@@ -392,11 +421,12 @@ namespace HBP.Data.Visualization
             float progressStep = STANDARDIZE_COLUMNS_PROGRESS / Columns.Count;
             int maxBefore = (from column in Columns select column.TimeLine.MainEvent.Position).Max();
             int maxAfter = (from column in Columns select column.TimeLine.Lenght - column.TimeLine.MainEvent.Position).Max();
-            foreach (var column in Columns)
+            for (int i = 0; i < Columns.Count; ++i)
             {
+                Column column = Columns[i];
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.DisplayLabel + "</color>.");
+                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.DisplayLabel + "</color> [" + i + "/" + Columns.Count + "]");
                 yield return Ninja.JumpBack;
                 try
                 {

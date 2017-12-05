@@ -2731,32 +2731,17 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="pathsElectrodesPtsFile"></param>
         /// <returns></returns>
-        protected IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients)
+        protected IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle)
         {
-            List<string> commonImplantations = new List<string>();
-            foreach (Data.Anatomy.Implantation implantation in patients.ToList()[0].Brain.Implantations)
-            {
-                string implantationName = implantation.Name;
-                bool isImplantationCommonToAllPatients = true;
-                foreach (Data.Patient patient in patients)
-                {
-                    if (patient.Brain.Implantations.FindIndex((i) => i.Name == implantationName && i.Usable) == -1)
-                    {
-                        isImplantationCommonToAllPatients = false;
-                        break;
-                    }
-                }
-                if (isImplantationCommonToAllPatients)
-                {
-                    commonImplantations.Add(implantation.Name);
-                }
-            }
-
             SceneInformation.SitesLoaded = false;
-
-            foreach (string implantationName in commonImplantations)
+            
+            for (int i = 0; i < commonImplantations.Count; ++i)
             {
-                List<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((i) => i.Name == implantationName).File).ToList();
+                yield return Ninja.JumpToUnity;
+                updateCircle(i);
+                yield return Ninja.JumpBack;
+                string implantationName = commonImplantations[i];
+                List<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).File).ToList();
                 List<string> patientIDs = (from patient in patients select patient.ID).ToList();
 
                 Implantation3D implantation3D = new Implantation3D(implantationName, ptsFiles, patientIDs);
