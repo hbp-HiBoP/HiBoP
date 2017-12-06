@@ -515,10 +515,24 @@ namespace HBP.Module3D
             }
         }
 
+        /// <summary>
+        /// Lock when updating generator
+        /// </summary>
         private bool m_UpdatingGenerator = false;
+        /// <summary>
+        /// True if generator needs an update
+        /// </summary>
         private bool m_GeneratorNeedsUpdate = true;
-
+        /// <summary>
+        /// Lock when updating colliders
+        /// </summary>
         private bool m_UpdatingColliders = false;
+        
+        protected const int LOADING_MESH_WEIGHT = 2500;
+        protected const int LOADING_MRI_WEIGHT = 1500;
+        protected const int LOADING_IMPLANTATIONS_WEIGHT = 50;
+        protected const int LOADING_MNI_WEIGHT = 100;
+        protected const int LOADING_IEEG_WEIGHT = 15;
 
         [SerializeField]
         protected GameObject m_BrainPrefab;
@@ -906,6 +920,24 @@ namespace HBP.Module3D
                         default:
                             break;
                     }
+                }
+                switch (currCol.Type)
+                {
+                    case Column3D.ColumnType.Base:
+                        currCol.ResizeGUIMRITextures();
+                        break;
+                    case Column3D.ColumnType.FMRI:
+                        ((Column3DFMRI)currCol).ResizeGUIMRITexturesWithFMRI();
+                        break;
+                    case Column3D.ColumnType.IEEG:
+                        if (!SceneInformation.IsGeneratorUpToDate)
+                            currCol.ResizeGUIMRITextures();
+                        else
+                            ((Column3DIEEG)currCol).ResizeGUIMRITexturesWithIEEG();
+                        break;
+                    default:
+                        currCol.ResizeGUIMRITextures();
+                        break;
                 }
             }
         }
@@ -2431,9 +2463,9 @@ namespace HBP.Module3D
                     break;
                 case Column3D.ColumnType.IEEG:
                     Column3DIEEG columnIEEG = column as Column3DIEEG;
-                    int siteID = site.Information.SitePatientID;
+                    int siteID = site.Information.GlobalID;
 
-                    float amplitude = 0;
+                    float amplitude = -1;
                     if (columnIEEG.IEEGValuesBySiteID.Length > 0)
                     {
                         amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
@@ -2699,32 +2731,17 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="pathsElectrodesPtsFile"></param>
         /// <returns></returns>
-        protected IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients)
+        protected IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle)
         {
-            List<string> commonImplantations = new List<string>();
-            foreach (Data.Anatomy.Implantation implantation in patients.ToList()[0].Brain.Implantations)
-            {
-                string implantationName = implantation.Name;
-                bool isImplantationCommonToAllPatients = true;
-                foreach (Data.Patient patient in patients)
-                {
-                    if (patient.Brain.Implantations.FindIndex((i) => i.Name == implantationName && i.Usable) == -1)
-                    {
-                        isImplantationCommonToAllPatients = false;
-                        break;
-                    }
-                }
-                if (isImplantationCommonToAllPatients)
-                {
-                    commonImplantations.Add(implantation.Name);
-                }
-            }
-
             SceneInformation.SitesLoaded = false;
-
-            foreach (string implantationName in commonImplantations)
+            
+            for (int i = 0; i < commonImplantations.Count; ++i)
             {
-                List<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((i) => i.Name == implantationName).File).ToList();
+                yield return Ninja.JumpToUnity;
+                updateCircle(i);
+                yield return Ninja.JumpBack;
+                string implantationName = commonImplantations[i];
+                List<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).File).ToList();
                 List<string> patientIDs = (from patient in patients select patient.ID).ToList();
 
                 Implantation3D implantation3D = new Implantation3D(implantationName, ptsFiles, patientIDs);
@@ -2784,8 +2801,6 @@ namespace HBP.Module3D
 
             // set flag
             SceneInformation.TimelinesLoaded = true;
-
-            yield return Ninja.JumpToUnity;
         }
         private IEnumerator c_UpdateMeshesColliders()
         {

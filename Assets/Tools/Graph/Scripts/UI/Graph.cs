@@ -11,7 +11,7 @@ namespace Tools.Unity.Graph
         PlotGestion m_PlotGestion;
         InformationsGestion m_InformationsGestion;
 
-        Dictionary<CurveData, bool> m_CurveDataState = new Dictionary<CurveData, bool>();
+        Dictionary<string, bool> m_CurveDataState = new Dictionary<string, bool>();
 
         GraphData m_Data = new GraphData();
         public string Title
@@ -66,7 +66,7 @@ namespace Tools.Unity.Graph
             private set
             {
                 m_Data.Curves = value;
-                m_InformationsGestion.SetLegends(m_CurveDataState.Select(c => new Tuple<CurveData,bool>(c.Key,c.Value)).ToArray());
+                m_InformationsGestion.SetLegends(value.Select(c => new Tuple<CurveData,bool>(c,m_CurveDataState[c.ID])).ToArray());
             }
         }
 
@@ -93,16 +93,16 @@ namespace Tools.Unity.Graph
             Ordinate = graph.Ordinate;
             BackgroundColor = graph.Background;
             FontColor = graph.Font;
-            CurveData[] curveToRemove = m_CurveDataState.Keys.Where(c => !graph.Curves.Contains(c)).ToArray();
+            string[] curveToRemove = m_CurveDataState.Keys.Where(l => !(from curve in graph.Curves select curve.ID).Contains(l)).ToArray();
             foreach (var item in curveToRemove)
             {
                 m_CurveDataState.Remove(item);
             }
             foreach (var curve in graph.Curves)
             {
-                if(!m_CurveDataState.ContainsKey(curve))
+                if(!m_CurveDataState.ContainsKey(curve.ID))
                 {
-                    m_CurveDataState[curve] = true;
+                    m_CurveDataState[curve.ID] = true;
                 }
             }
             if (m_AutoLimits)
@@ -125,7 +125,7 @@ namespace Tools.Unity.Graph
             m_InformationsGestion.OnAutoLimits.AddListener(() => { m_AutoLimits = true; Plot(m_Data); });
             m_InformationsGestion.OnDisplayCurve.AddListener((curve, isOn) =>
             {
-                m_CurveDataState[curve] = isOn;
+                m_CurveDataState[curve.ID] = isOn;
                 Plot(Curves, Limits);
             });
             m_PlotGestion.OnChangeLimits.RemoveAllListeners();
@@ -135,7 +135,7 @@ namespace Tools.Unity.Graph
         {
             Curves = curves;
             Limits = limits;
-            m_PlotGestion.Plot(curves.Where(c => m_CurveDataState[c]).ToArray(), Limits, onlyUpdate);
+            m_PlotGestion.Plot(curves.Where(c => m_CurveDataState[c.ID]).ToArray(), Limits, onlyUpdate);
             m_InformationsGestion.UpdateWindowValues();
         }
         #endregion

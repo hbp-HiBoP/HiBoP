@@ -827,10 +827,27 @@ namespace HBP.Module3D
         /// <param name="drawLines"></param>
         public void CreateGUIMRITexture(int indexCut, string orientation, bool flip, List<Cut> cutPlanes, bool drawLines)
         {
-            if (DLLBrainCutTextures[indexCut].m_TextureSize[0] > 0)
+            if (DLLBrainCutTextures[indexCut].TextureSize[0] > 0)
             { 
-                DLLGUIBrainCutTextures[indexCut].CopyAndRotate(DLLBrainCutTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);                
+                DLLGUIBrainCutTextures[indexCut].CopyAndRotate(DLLBrainCutTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
                 DLLGUIBrainCutTextures[indexCut].UpdateTexture2D(GUIBrainCutTextures[indexCut]);
+            }
+        }
+        public void ResizeGUIMRITextures()
+        {
+            int max = 0;
+            foreach (var texture in DLLGUIBrainCutTextures)
+            {
+                int textureMax = texture.TextureSize.Max();
+                if (textureMax > max)
+                {
+                    max = textureMax;
+                }
+            }
+            for (int i = 0; i < DLLGUIBrainCutTextures.Count; ++i)
+            {
+                DLLGUIBrainCutTextures[i].ResizeToSquare(max);
+                DLLGUIBrainCutTextures[i].UpdateTexture2D(GUIBrainCutTextures[i]);
             }
         }
         /// <summary>

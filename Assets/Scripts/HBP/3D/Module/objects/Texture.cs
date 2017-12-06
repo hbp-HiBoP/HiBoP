@@ -183,7 +183,7 @@ namespace HBP.Module3D
             #region Properties
             private bool m_IsPinned = false;
 
-            public int[] m_TextureSize = new int[2]; /**< size of the texure */
+            public int[] TextureSize = new int[2]; /**< size of the texure */
 
             private Color32[] Pixels2 = new Color32[1];
             GCHandle pixelsHandle2;
@@ -246,6 +246,15 @@ namespace HBP.Module3D
                 UpdateSizes();
             }
             /// <summary>
+            /// Resize a texture to a square of size * size
+            /// </summary>
+            /// <param name="size"></param>
+            public void ResizeToSquare(int size)
+            {
+                resize_to_square_Texture(_handle, size);
+                UpdateSizes();
+            }
+            /// <summary>
             /// Save the texture to a PNG file
             /// </summary>
             /// <param name="path"></param>
@@ -260,7 +269,7 @@ namespace HBP.Module3D
             /// <param name="texture"></param>
             public void UpdateTexture2D(Texture2D texture, bool forcePinned = false)
             {
-                bool nullDLLTexture = m_TextureSize[1] == 0 || m_TextureSize[0] == 0;
+                bool nullDLLTexture = TextureSize[1] == 0 || TextureSize[0] == 0;
                 if (nullDLLTexture)
                 {
                     texture.Resize(10, 10);
@@ -272,9 +281,9 @@ namespace HBP.Module3D
                     return;
                 }
 
-                if (texture.width != m_TextureSize[1] || texture.height != m_TextureSize[0] || forcePinned || !m_IsPinned)
+                if (texture.width != TextureSize[1] || texture.height != TextureSize[0] || forcePinned || !m_IsPinned)
                 {
-                    texture.Resize(m_TextureSize[1], m_TextureSize[0]);
+                    texture.Resize(TextureSize[1], TextureSize[0]);
                     Pixels2 = texture.GetPixels32(0);
                     if (pixelsHandle2.IsAllocated) pixelsHandle2.Free();
                     pixelsHandle2 = GCHandle.Alloc(Pixels2, GCHandleType.Pinned);
@@ -308,16 +317,16 @@ namespace HBP.Module3D
             /// <param name="maxCoeff"></param>
             /// <param name="middle"></param>
             /// <returns></returns>
-            public static Texture GenerateDistributionHistogram(float[] data, int height, int width, float minCoeff, float maxCoeff, float middle = -1f)
+            public static Texture GenerateDistributionHistogram(float[] data, int height, int width, float min = 0, float max = 0)
             {
-                return new Texture(generate_distribution_histogram_with_data_Texture(data, data.Length, height, width, minCoeff, maxCoeff, middle));
+                return new Texture(generate_distribution_histogram_with_data_Texture(data, data.Length, height, width, min, max));
             }
             /// <summary>
             /// Update the size array with the DLL data
             /// </summary>
             public void UpdateSizes()
             {
-                get_size_Texture(_handle, m_TextureSize);
+                get_size_Texture(_handle, TextureSize);
             }
             /// <summary>
             /// Generate a one dimension texture corresponding to the input id, see DLL for details
@@ -351,7 +360,7 @@ namespace HBP.Module3D
             /// <param name="surfaceHandle"></param>
             public Texture(IntPtr texturePtr) : base(texturePtr)
             {
-                get_size_Texture( _handle, m_TextureSize);
+                get_size_Texture( _handle, TextureSize);
             }
             /// <summary>
             /// Clone the surface
@@ -369,7 +378,7 @@ namespace HBP.Module3D
             protected override void create_DLL_class()
             {
                 _handle = new HandleRef(this,create_Texture());
-                get_size_Texture(_handle, m_TextureSize);
+                get_size_Texture(_handle, TextureSize);
             }
             /// <summary>
             /// Clean DLL memory
@@ -406,7 +415,7 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_Texture", CallingConvention = CallingConvention.Cdecl)]
             static private extern IntPtr generate_distribution_histogram_Texture(HandleRef handleVolume, int height, int width, float minCoeff, float maxCoeff, float middle);
             [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_with_data_Texture", CallingConvention = CallingConvention.Cdecl)]
-            static private extern IntPtr generate_distribution_histogram_with_data_Texture(float[] data, int dataSize, int height, int width, float minCoeff, float maxCoeff, float middle);
+            static private extern IntPtr generate_distribution_histogram_with_data_Texture(float[] data, int dataSize, int height, int width, float min, float max);
 
             [DllImport("hbp_export", EntryPoint = "apply_blur_Texture", CallingConvention = CallingConvention.Cdecl)]
             static private extern void apply_blur_Texture(HandleRef handleTexture);
@@ -415,6 +424,8 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "copy_from_and_rotate_Texture", CallingConvention = CallingConvention.Cdecl)]
             static private extern void copy_from_and_rotate_Texture(HandleRef handleTexture, HandleRef handleTextureToCopyAndRotate, string orientationStr, int flip,
                 int displayLines, int nbPlanes, float[] planes, HandleRef MRIGenerator);
+            [DllImport("hbp_export", EntryPoint = "resize_to_square_Texture", CallingConvention = CallingConvention.Cdecl)]
+            static private extern void resize_to_square_Texture(HandleRef handleTexture, int size);
 
             [DllImport("hbp_export", EntryPoint = "generate_1D_color_Texture", CallingConvention = CallingConvention.Cdecl)]
             static private extern IntPtr generate_1D_color_Texture(int idColor);

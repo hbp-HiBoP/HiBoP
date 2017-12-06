@@ -261,7 +261,7 @@ namespace HBP.Data.General
         // Datasets.
         public void SetDatasets(IEnumerable<Dataset> datasets)
         {
-            this.m_Datasets = new List<Dataset>();
+            m_Datasets = new List<Dataset>();
             AddDataset(datasets);
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
@@ -275,7 +275,6 @@ namespace HBP.Data.General
         public void AddDataset(Dataset dataset)
         {
             m_Datasets.Add(dataset);
-            dataset.UpdateDataStates();
         }
         public void AddDataset(IEnumerable<Dataset> datasets)
         {
@@ -465,10 +464,9 @@ namespace HBP.Data.General
         #region Private Methods
         IEnumerator c_LoadSettings(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
         {
-            // Loading settings file.
-            yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(progress, 0, "Loading settings");
             yield return Ninja.JumpBack;
+            // Loading settings file.
+            OnChangeProgress.Invoke(progress, 0, "Loading settings");
 
             FileInfo[] settingsFiles = projectDirectory.GetFiles("*" + ProjectSettings.EXTENSION, SearchOption.TopDirectoryOnly);
             if (settingsFiles.Length == 0) throw new SettingsFileNotFoundException(); // Test if settings files found.
@@ -486,15 +484,15 @@ namespace HBP.Data.General
         }
         IEnumerator c_LoadPatients(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
         {
+            yield return Ninja.JumpBack;
             // Load patients.
             List<Patient> patients = new List<Patient>();
             DirectoryInfo patientDirectory = projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
-            foreach (FileInfo patientFile in patientFiles)
+            for (int i = 0; i < patientFiles.Length; ++i)
             {
-                yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Loading patient <color=blue>" + Path.GetFileNameWithoutExtension(patientFile.Name) + "</color>.");
-                yield return Ninja.JumpBack;
+                FileInfo patientFile = patientFiles[i];
+                OnChangeProgress.Invoke(progress, 0, "Loading patient <color=blue>" + Path.GetFileNameWithoutExtension(patientFile.Name) + "</color> [" + (i + 1).ToString() + "/" + patientFiles.Length + "]");
                 try
                 {
                     patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(patientFile.FullName));
@@ -510,15 +508,15 @@ namespace HBP.Data.General
         }
         IEnumerator c_LoadGroups(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
         {
+            yield return Ninja.JumpBack;
             // Load groups.
             List<Group> groups = new List<Group>();
             DirectoryInfo groupDirectory = projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] groupFiles = groupDirectory.GetFiles("*" + Group.EXTENSION, SearchOption.TopDirectoryOnly);
-            foreach (FileInfo groupFile in groupFiles)
+            for (int i = 0; i < groupFiles.Length; ++i)
             {
-                yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Loading group <color=blue>" + Path.GetFileNameWithoutExtension(groupFile.Name) + "</color>.");
-                yield return Ninja.JumpBack;
+                FileInfo groupFile = groupFiles[i];
+                OnChangeProgress.Invoke(progress, 0, "Loading group <color=blue>" + Path.GetFileNameWithoutExtension(groupFile.Name) + "</color> [" + (i + 1).ToString() + "/" + groupFiles.Length + "]");
                 try
                 {
                     groups.Add(ClassLoaderSaver.LoadFromJson<Group>(groupFile.FullName));
@@ -534,15 +532,15 @@ namespace HBP.Data.General
         }
         IEnumerator c_LoadProtocols(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
         {
+            yield return Ninja.JumpBack;
             //Load Protocols
             List<Protocol> protocols = new List<Protocol>();
             DirectoryInfo protocolDirectory = projectDirectory.GetDirectories("Protocols", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] protocolFiles = protocolDirectory.GetFiles("*" + Protocol.EXTENSION, SearchOption.TopDirectoryOnly);
-            foreach (FileInfo protocolFile in protocolFiles)
+            for (int i = 0; i < protocolFiles.Length; ++i)
             {
-                yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Loading protocol <color=blue>" + Path.GetFileNameWithoutExtension(protocolFile.Name) + "</color>.");
-                yield return Ninja.JumpBack;
+                FileInfo protocolFile = protocolFiles[i];
+                OnChangeProgress.Invoke(progress, 0, "Loading protocol <color=blue>" + Path.GetFileNameWithoutExtension(protocolFile.Name) + "</color> [" + (i + 1).ToString() + "/" + protocolFiles.Length + "]");
                 try
                 {
                     protocols.Add(ClassLoaderSaver.LoadFromJson<Protocol>(protocolFile.FullName));
@@ -558,15 +556,15 @@ namespace HBP.Data.General
         }
         IEnumerator c_LoadDatasets(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
         {
+            yield return Ninja.JumpBack;
             //Load Datasets
             List<Dataset> datasets = new List<Dataset>();
             DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
-            foreach (FileInfo datasetFile in datasetFiles)
+            for (int i = 0; i < datasetFiles.Length; ++i)
             {
-                yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Loading dataset <color=blue>" + Path.GetFileNameWithoutExtension(datasetFile.Name) + "</color>.");
-                yield return Ninja.JumpBack;
+                FileInfo datasetFile = datasetFiles[i];
+                OnChangeProgress.Invoke(progress, 0, "Loading dataset <color=blue>" + Path.GetFileNameWithoutExtension(datasetFile.Name) + "</color> [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]");
                 try
                 {
                     datasets.Add(ClassLoaderSaver.LoadFromJson<Dataset>(datasetFile.FullName));
@@ -578,20 +576,32 @@ namespace HBP.Data.General
                 progress += progressStep;
             }
             SetDatasets(datasets.ToArray());
+            int count = 0;
+            int length = m_Datasets.SelectMany(d => d.Data).Count();
+            for (int i = 0; i < m_Datasets.Count; ++i)
+            {
+                Dataset dataset = m_Datasets[i];
+                for (int j = 0; j < dataset.Data.Length; ++j, ++count)
+                {
+                    DataInfo data = dataset.Data[j];
+                    data.GetErrors(dataset.Protocol);
+                    OnChangeProgress.Invoke(progress, 0, "Checking <color=blue>" + data.Name + " | " + dataset.Protocol.Name + " | " + data.Patient.Name + "</color> [" + count + "/" + length + "]");
+                }
+            }
             outPut(progress);
         }
         IEnumerator c_LoadVisualizations(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
         {
+            yield return Ninja.JumpBack;
             //Load Visualizations
             DirectoryInfo visualizationsDirectory = projectDirectory.GetDirectories("Visualizations", SearchOption.TopDirectoryOnly)[0];
 
             List<Visualization.Visualization> visualizations = new List<Visualization.Visualization>();
             FileInfo[] visualizationFiles = visualizationsDirectory.GetFiles("*" + Visualization.Visualization.EXTENSION, SearchOption.TopDirectoryOnly);
-            foreach (FileInfo visualizationFile in visualizationFiles)
+            for (int i = 0; i < visualizationFiles.Length; ++i)
             {
-                yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Loading visualization <color=blue>" + Path.GetFileNameWithoutExtension(visualizationFile.Name) + "</color>.");
-                yield return Ninja.JumpBack;
+                FileInfo visualizationFile = visualizationFiles[i];
+                OnChangeProgress.Invoke(progress, 0, "Loading visualization <color=blue>" + Path.GetFileNameWithoutExtension(visualizationFile.Name) + "</color> [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]");
                 try
                 {
                     visualizations.Add(ClassLoaderSaver.LoadFromJson<Visualization.Visualization>(visualizationFile.FullName));

@@ -9,7 +9,7 @@ namespace HBP.UI.Module3D
     public class SiteInfoDisplayer : MonoBehaviour
     {
         #region Properties
-        private SiteInformationDisplayMode m_CurrentMode = SiteInformationDisplayMode.IEEG;
+        private SiteInformationDisplayMode m_CurrentMode = SiteInformationDisplayMode.Anatomy;
 
         [SerializeField]
         private Text m_SiteName;

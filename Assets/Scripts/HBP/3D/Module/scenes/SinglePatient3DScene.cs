@@ -49,12 +49,6 @@ namespace HBP.Module3D
         /// CCEP Labels
         /// </summary>
         private List<string> CCEPLabels = null;
-
-        private const float LOADING_MNI = 0.15f;
-        private const float LOADING_MESHES_PROGRESS = 0.35f;
-        private const float LOADING_VOLUME_PROGRESS = 0.3f;
-        private const float LOADING_ELECTRODES_PROGRESS = 0.1f;
-        private const float SETTING_TIMELINE_PROGRESS = 0.2f;
         #endregion
 
         #region Coroutines
@@ -65,6 +59,20 @@ namespace HBP.Module3D
         public IEnumerator c_Initialize(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, Action<Exception> outPut)
         {
             Exception exception = null;
+
+            // Compute progress variables
+            List<string> usableImplantations = visualization.FindUsableImplantations();
+            float totalTime = Patient.Brain.Meshes.Count * LOADING_MESH_WEIGHT + Patient.Brain.MRIs.Count * LOADING_MRI_WEIGHT + usableImplantations.Count * LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT;
+            float loadingMeshProgress = LOADING_MESH_WEIGHT / totalTime;
+            float loadingMeshTime = LOADING_MESH_WEIGHT / 1000.0f;
+            float loadingMRIProgress = LOADING_MRI_WEIGHT / totalTime;
+            float loadingMRITime = LOADING_MRI_WEIGHT / 1000.0f;
+            float loadingImplantationsProgress = LOADING_IMPLANTATIONS_WEIGHT / totalTime;
+            float loadingImplantationsTime = LOADING_IMPLANTATIONS_WEIGHT / 1000.0f;
+            float loadingMNIProgress = LOADING_MNI_WEIGHT / totalTime;
+            float loadingMNITime = LOADING_MNI_WEIGHT / 1000.0f;
+            float loadingIEEGProgress = LOADING_IEEG_WEIGHT / totalTime;
+            float loadingIEEGTime = LOADING_IEEG_WEIGHT / 1000.0f;
 
             yield return Ninja.JumpToUnity;
             float progress = 1.0f;
@@ -78,11 +86,11 @@ namespace HBP.Module3D
             m_ColumnManager.Initialize(m_Cuts.Count);
 
             // Load Meshes
-            float loadingMeshesProgress = LOADING_MESHES_PROGRESS / Patient.Brain.Meshes.Count;
-            foreach (Data.Anatomy.Mesh mesh in Patient.Brain.Meshes)
+            for (int i = 0; i < Patient.Brain.Meshes.Count; ++i)
             {
-                progress += loadingMeshesProgress;
-                onChangeProgress.Invoke(progress, 1.5f, "Loading Mesh: " + mesh.Name);
+                Data.Anatomy.Mesh mesh = Patient.Brain.Meshes[i];
+                progress += loadingMeshProgress;
+                onChangeProgress.Invoke(progress, loadingMeshTime, "Loading Mesh: " + mesh.Name + " [" + (i + 1).ToString() + "/" + Patient.Brain.Meshes.Count + "]");
                 yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh));
             }
             if (m_ColumnManager.Meshes.Count > 0)
@@ -96,28 +104,30 @@ namespace HBP.Module3D
             SceneInformation.MeshesLoaded = true;
 
             // Load MRIs
-            float loadingMRIProgress = LOADING_VOLUME_PROGRESS / Patient.Brain.MRIs.Count;
-            foreach (Data.Anatomy.MRI mri in Patient.Brain.MRIs)
+            for (int i = 0; i < Patient.Brain.MRIs.Count; ++i)
             {
+                Data.Anatomy.MRI mri = Patient.Brain.MRIs[i];
                 progress += loadingMRIProgress;
-                onChangeProgress.Invoke(progress, 1.5f, "Loading MRI: " + mri.Name);
+                onChangeProgress.Invoke(progress, loadingMRITime, "Loading MRI: " + mri.Name + " [" + (i + 1).ToString() + "/" + Patient.Brain.MRIs.Count + "]");
                 yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri));
             }
 
             // Load Sites
-            progress += LOADING_ELECTRODES_PROGRESS;
-            onChangeProgress.Invoke(progress, 0.05f, "Loading Implantations");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients, usableImplantations, (i) =>
+            {
+                progress += loadingImplantationsProgress;
+                onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations [" + (i + 1).ToString() + "/" + usableImplantations.Count + "]");
+            }));
             SceneInformation.MeshGeometryNeedsUpdate = true;
 
             // Load MNI
-            progress += LOADING_MNI;
-            onChangeProgress.Invoke(progress, 2.0f, "Loading MNI objects");
+            progress += loadingMNIProgress;
+            onChangeProgress.Invoke(progress, loadingMNITime, "Loading MNI objects");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
 
             // Set Timeline
-            progress += SETTING_TIMELINE_PROGRESS;
-            onChangeProgress.Invoke(progress, 0.5f, "Setting timeline");
+            progress += loadingIEEGProgress;
+            onChangeProgress.Invoke(progress, loadingIEEGTime, "Loading Columns");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetEEGData());
 
             // Finalization

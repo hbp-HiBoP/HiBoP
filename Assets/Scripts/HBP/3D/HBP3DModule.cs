@@ -313,7 +313,6 @@ namespace HBP.Module3D
                 switch (visualizationLoadingTask.State)
                 {
                     case TaskState.Done:
-                        yield return new WaitForSeconds(0.5f);
                         break;
                     case TaskState.Error:
                         Exception exception = visualizationLoadingTask.Exception;
