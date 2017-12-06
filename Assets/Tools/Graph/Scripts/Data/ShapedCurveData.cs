@@ -10,7 +10,7 @@ namespace Tools.Unity.Graph
         #endregion
 
         #region Constructor
-        public ShapedCurveData(string label, IEnumerable<Vector2> points, IEnumerable<float> shapes, Color color , float width = 3.0f) : base(label, points, color, width)
+        public ShapedCurveData(string label, string id, IEnumerable<Vector2> points, IEnumerable<float> shapes, Color color , float width = 3.0f) : base(label, id, points, color, width)
         {
             float[] shapeArray = shapes as float[];
             if(shapeArray.Length == Points.Length)
