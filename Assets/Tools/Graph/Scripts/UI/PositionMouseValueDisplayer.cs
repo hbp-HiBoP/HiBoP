@@ -10,6 +10,12 @@ namespace Tools.Unity.Graph
         #region Properties
         public Graph Graph;
         public RectTransform GraphRectTransform;
+
+        public Vector2 TopLeft;
+        public Vector2 TopRight;
+        public Vector2 BotLeft;
+        public Vector2 BotRight;
+
         RectTransform m_RectTransform;
         Text m_Text;
         #endregion
@@ -35,8 +41,46 @@ namespace Tools.Unity.Graph
 
         private void UpdatePosition()
         {
-            //transform.position = Input.mousePosition;
-            CheckSide();
+            Vector3[] parentCorners = new Vector3[4];
+            GraphRectTransform.GetWorldCorners(parentCorners);
+
+
+            Vector3 mousePosition = Input.mousePosition;
+            float RightLimit = mousePosition.x + Mathf.Max(TopRight.x,BotRight.x) + m_RectTransform.rect.width;
+            float TopLimit = mousePosition.y + Mathf.Max(TopRight.y, TopLeft.y) + m_RectTransform.rect.height;
+
+            bool isTop = TopLimit < parentCorners[2].y;
+            bool isRight = RightLimit < parentCorners[2].x;
+            if(isTop)
+            {
+                if(isRight)
+                {
+                    // Top Right.
+                    m_RectTransform.pivot = new Vector2(0, 0);
+                    m_RectTransform.position = mousePosition + (Vector3) TopRight;
+                }
+                else
+                {
+                    // Top Left.
+                    m_RectTransform.pivot = new Vector2(1, 0);
+                    m_RectTransform.position = mousePosition + (Vector3) TopLeft;
+                }
+            }
+            else
+            {
+                if (isRight)
+                {
+                    // Bot Right.
+                    m_RectTransform.pivot = new Vector2(0, 1);
+                    m_RectTransform.position = mousePosition + (Vector3) BotRight;
+                }
+                else
+                {
+                    // Bot Left.
+                    m_RectTransform.pivot = new Vector2(1, 1);
+                    m_RectTransform.position = mousePosition + (Vector3) BotLeft;
+                }
+            }
         }
 
         private void UpdateValues()
@@ -48,44 +92,6 @@ namespace Tools.Unity.Graph
             Limits limits = Graph.Limits;
             Vector2 values = new Vector2(limits.AbscissaMin + ratioPosition.x * (limits.AbscissaMax - limits.AbscissaMin), limits.OrdinateMin + ratioPosition.y * (limits.OrdinateMax - limits.OrdinateMin));
             m_Text.text = "(" + values.x.ToString("F2") + ", " + values.y.ToString("F2") + ")";
-        }
-
-        private void CheckSide()
-        {
-            Vector3[] corners = new Vector3[4];
-            Vector3[] parentCorners = new Vector3[4];
-            m_RectTransform.GetWorldCorners(corners);
-            GraphRectTransform.GetWorldCorners(parentCorners);
-
-            float botPosition = m_RectTransform.position.y - m_RectTransform.rect.height;
-            float rightPosition = m_RectTransform.position.x + m_RectTransform.rect.width;
-
-            if (botPosition > parentCorners[0].y && rightPosition < parentCorners[2].x)
-            {
-                m_RectTransform.pivot = new Vector2(0, 1);
-                transform.position = Input.mousePosition + new Vector3(15,0,0);
-            }
-            else
-            {
-                if (corners[2].x > parentCorners[2].x)
-                {
-                    m_RectTransform.pivot = new Vector2(1, m_RectTransform.pivot.y);
-                    transform.position = Input.mousePosition + new Vector3(-10, -10, 0);
-                }
-                else
-                {
-                    transform.position = Input.mousePosition + new Vector3(15, 0, 0);
-                }
-                if (corners[0].y < parentCorners[0].y)
-                {
-                    m_RectTransform.pivot = new Vector2(m_RectTransform.pivot.x, 0);
-                    transform.position = Input.mousePosition + new Vector3(-10, -10, 0);
-                }
-                else
-                {
-                    transform.position = Input.mousePosition + new Vector3(15, 0, 0);
-                }
-            }
         }
         #endregion
     }
