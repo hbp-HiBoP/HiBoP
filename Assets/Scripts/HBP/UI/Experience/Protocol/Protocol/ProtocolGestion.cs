@@ -14,8 +14,21 @@ namespace HBP.UI.Experience.Protocol
         #region Public Methods
         public override void Save()
 		{
-            ApplicationState.ProjectLoaded.SetProtocols(Items.ToArray());
-            base.Save();
+            if (ApplicationState.Module3D.Visualizations.Count > 0)
+            {
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "A visualization is already open. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                {
+                    ApplicationState.ProjectLoaded.SetProtocols(Items.ToArray());
+                    base.Save();
+                    DataManager.Clear();
+                    ApplicationState.Module3D.ReloadScenes();
+                });
+            }
+            else
+            {
+                ApplicationState.ProjectLoaded.SetProtocols(Items.ToArray());
+                base.Save();
+            }
         }
         public override void Remove()
         {

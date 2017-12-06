@@ -58,6 +58,11 @@ public static class DataManager
         UnLoad(dataInfo);
         Load(dataInfo);
     }
+    public static void Clear()
+    {
+        m_DataByRequest.Clear();
+        m_NormalizeByRequest.Clear();
+    }
     public static void NormalizeData()
     {
         switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Baseline)

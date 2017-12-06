@@ -297,6 +297,20 @@ namespace HBP.Module3D
                 scene.SaveConfiguration();
             }
         }
+        /// <summary>
+        /// Reload all scenes
+        /// </summary>
+        public void ReloadScenes()
+        {
+            SaveConfigurations();
+            List<Base3DScene> scenes = m_ScenesManager.Scenes.ToList();
+            foreach (Base3DScene scene in scenes)
+            {
+                RemoveScene(scene);
+            }
+            IEnumerable<string> visualizationIDs = (from scene in scenes select scene.Visualization.ID);
+            LoadScenes(from visualization in ApplicationState.ProjectLoaded.Visualizations where visualizationIDs.Contains(visualization.ID) select visualization);
+        }
         #endregion
 
         #region Coroutines
@@ -304,6 +318,8 @@ namespace HBP.Module3D
         {
             foreach (Data.Visualization.Visualization visualization in visualizations)
             {
+                if (!visualization.IsVisualizable) continue;
+
                 yield return Ninja.JumpToUnity;
                 LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
                 GenericEvent<float, float, string> OnChangeLoadingProgress = new GenericEvent<float, float, string>();

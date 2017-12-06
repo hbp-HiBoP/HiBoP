@@ -13,8 +13,21 @@ namespace HBP.UI.Visualization
         #region Public Methods
         public override void Save()
         {
-            ApplicationState.ProjectLoaded.SetVisualizations(Items.ToArray());
-            base.Save();
+            if (ApplicationState.Module3D.Visualizations.Count > 0)
+            {
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "A visualization is already open. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                {
+                    ApplicationState.ProjectLoaded.SetVisualizations(Items.ToArray());
+                    base.Save();
+                    DataManager.Clear();
+                    ApplicationState.Module3D.ReloadScenes();
+                });
+            }
+            else
+            {
+                ApplicationState.ProjectLoaded.SetVisualizations(Items.ToArray());
+                base.Save();
+            }
         }
         public void Display()
         {

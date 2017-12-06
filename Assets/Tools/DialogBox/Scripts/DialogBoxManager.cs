@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine;
 using CielaSpike;
+using UnityEngine.Events;
 
 namespace Tools.Unity
 {
@@ -33,6 +34,14 @@ namespace Tools.Unity
         }
 
         [SerializeField, Candlelight.PropertyBackingField]
+        private GameObject m_WarningAlertMultiOptionsPrefab;
+        public GameObject WarningAlertMultiOptionsPrefab
+        {
+            get { return m_WarningAlertMultiOptionsPrefab; }
+            set { m_WarningAlertMultiOptionsPrefab = value; }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
         private Canvas m_Canvas;
         public Canvas Canvas
         {
@@ -40,11 +49,11 @@ namespace Tools.Unity
             set { m_Canvas = value; }
         }
 
-        public enum AlertType { Informational, Warning, Error }
+        public enum AlertType { Informational, Warning, Error, WarningMultiOptions }
         #endregion
 
         #region Public Methods
-        public void Open(AlertType type,string title, string message)
+        public void Open(AlertType type, string title, string message, UnityAction button1action = null, UnityAction button2action = null)
         {
             GameObject dialogBox;
             switch (type)
@@ -58,12 +67,22 @@ namespace Tools.Unity
                 case AlertType.Error:
                     dialogBox = Instantiate(ErrorAlertPrefab, Canvas.transform);
                     break;
+                case AlertType.WarningMultiOptions:
+                    dialogBox = Instantiate(WarningAlertMultiOptionsPrefab, Canvas.transform);
+                    break;
                 default:
                     dialogBox = Instantiate(InformationAlertPrefab, Canvas.transform);
                     break;
             }
             dialogBox.transform.SetAsLastSibling();
-            dialogBox.GetComponent<DialogBox>().Open(title, message);
+            if (type == AlertType.WarningMultiOptions)
+            {
+                dialogBox.GetComponent<MultiOptionsDialogBox>().Open(title, message, button1action, button2action);
+            }
+            else
+            {
+                dialogBox.GetComponent<DialogBox>().Open(title, message);
+            }
         }
         #endregion
     }
