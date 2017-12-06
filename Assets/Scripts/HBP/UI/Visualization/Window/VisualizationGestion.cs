@@ -13,9 +13,9 @@ namespace HBP.UI.Visualization
         #region Public Methods
         public override void Save()
         {
-            if (ApplicationState.Module3D.Visualizations.Count > 0)
+            if (DataManager.HasData)
             {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "A visualization is already open. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
                     ApplicationState.ProjectLoaded.SetVisualizations(Items.ToArray());
                     base.Save();
