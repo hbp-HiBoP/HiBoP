@@ -395,6 +395,7 @@ namespace HBP.Data.General
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadProtocols(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadDatasets(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadVisualizations(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_CheckDatasets(OnChangeProgress));
             
             yield return Ninja.JumpToUnity;
             OnChangeProgress.Invoke(1, 0, "Project succesfully loaded.");
@@ -576,18 +577,6 @@ namespace HBP.Data.General
                 progress += progressStep;
             }
             SetDatasets(datasets.ToArray());
-            int count = 0;
-            int length = m_Datasets.SelectMany(d => d.Data).Count();
-            for (int i = 0; i < m_Datasets.Count; ++i)
-            {
-                Dataset dataset = m_Datasets[i];
-                for (int j = 0; j < dataset.Data.Length; ++j, ++count)
-                {
-                    DataInfo data = dataset.Data[j];
-                    data.GetErrors(dataset.Protocol);
-                    OnChangeProgress.Invoke(progress, 0, "Checking <color=blue>" + data.Name + " | " + dataset.Protocol.Name + " | " + data.Patient.Name + "</color> [" + count + "/" + length + "]");
-                }
-            }
             outPut(progress);
         }
         IEnumerator c_LoadVisualizations(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
@@ -614,6 +603,25 @@ namespace HBP.Data.General
             }
             SetVisualizations(visualizations.ToArray());
             outPut(progress);
+        }
+        IEnumerator c_CheckDatasets(GenericEvent<float, float, string> OnChangeProgress)
+        {
+            yield return Ninja.JumpBack;
+            int count = 0;
+            int length = m_Datasets.SelectMany(d => d.Data).Count();
+            float progress = 0.0f;
+            float progressStep = 1.0f / length;
+            for (int i = 0; i < m_Datasets.Count; ++i)
+            {
+                Dataset dataset = m_Datasets[i];
+                for (int j = 0; j < dataset.Data.Length; ++j, ++count)
+                {
+                    DataInfo data = dataset.Data[j];
+                    data.GetErrors(dataset.Protocol);
+                    progress += progressStep;
+                    OnChangeProgress.Invoke(progress, 0, "Checking <color=blue>" + data.Name + " | " + dataset.Protocol.Name + " | " + data.Patient.Name + "</color> [" + count + "/" + length + "]");
+                }
+            }
         }
         IEnumerator c_SaveSettings(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
         {
