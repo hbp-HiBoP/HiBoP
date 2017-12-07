@@ -62,8 +62,8 @@ namespace HBP.UI.Module3D
                                 IsActive = true;
                                 m_Image.sprite = icon.Illustration;
                                 m_Text.text = icon.Label;
-                                m_CurrentIcon = icon;
                             }
+                            m_CurrentIcon = icon;
                         }
                     });
                     break;
