@@ -2757,8 +2757,6 @@ namespace HBP.Module3D
         /// <returns></returns>
         protected IEnumerator c_LoadBrainVolume(Data.Anatomy.MRI mri)
         {
-            SceneInformation.MRILoaded = false;
-
             // checks parameter
             //if (!mri.Usable) throw new EmptyFilePathException("NII"); // FIXME
             if (mri.Usable)
@@ -2773,8 +2771,6 @@ namespace HBP.Module3D
                 {
                     throw new CanNotLoadNIIFile(mri.File);
                 }
-
-                SceneInformation.MRILoaded = true;
             }
             yield return SceneInformation.MRILoaded;
         }

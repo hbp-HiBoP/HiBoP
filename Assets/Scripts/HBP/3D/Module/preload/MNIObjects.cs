@@ -85,7 +85,7 @@ namespace HBP.Module3D
             m_LeftHemi.ComputeNormals();
             m_RightHemi.ComputeNormals();
             m_BothHemi.ComputeNormals();
-            GreyMatter = new LeftRightMesh3D("MNI Grey Matter", m_LeftHemi, m_RightHemi, m_BothHemi);
+            GreyMatter = new LeftRightMesh3D("MNI Grey matter", m_LeftHemi, m_RightHemi, m_BothHemi);
 
             m_LeftWhite = new DLL.Surface();
             m_RightWhite = new DLL.Surface();
@@ -97,7 +97,7 @@ namespace HBP.Module3D
             m_LeftWhite.ComputeNormals();
             m_RightWhite.ComputeNormals();
             m_BothWhite.ComputeNormals();
-            WhiteMatter = new LeftRightMesh3D("MNI White Matter", m_LeftWhite, m_RightWhite, m_BothWhite);
+            WhiteMatter = new LeftRightMesh3D("MNI White matter", m_LeftWhite, m_RightWhite, m_BothWhite);
 
             m_LeftWhiteInflated = new DLL.Surface();
             m_RightWhiteInflated = new DLL.Surface();

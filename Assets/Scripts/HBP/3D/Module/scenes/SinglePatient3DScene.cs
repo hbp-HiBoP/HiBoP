@@ -111,6 +111,7 @@ namespace HBP.Module3D
                 onChangeProgress.Invoke(progress, loadingMRITime, "Loading MRI: " + mri.Name + " [" + (i + 1).ToString() + "/" + Patient.Brain.MRIs.Count + "]");
                 yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri));
             }
+            SceneInformation.MRILoaded = true;
 
             // Load Sites
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients, usableImplantations, (i) =>
@@ -132,7 +133,6 @@ namespace HBP.Module3D
 
             // Finalization
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
-            UpdateMeshesColliders();
             OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
 
             outPut(exception);
