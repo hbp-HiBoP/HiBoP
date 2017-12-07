@@ -2653,6 +2653,7 @@ namespace HBP.Module3D
             {
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].Dispose();
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)m_ColumnManager.DLLCommonBrainTextureGeneratorList[jj].Clone();
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
