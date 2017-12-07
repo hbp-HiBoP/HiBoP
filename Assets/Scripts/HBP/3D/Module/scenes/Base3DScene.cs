@@ -278,6 +278,7 @@ namespace HBP.Module3D
                 {
                     UpdateCurrentRegionOfInterest(column);
                 }
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             }
         }
 
@@ -1746,6 +1747,7 @@ namespace HBP.Module3D
             UpdateColormap(Visualization.Configuration.Colormap);
             UpdateMeshPartToDisplay(Visualization.Configuration.MeshPart);
             EdgeMode = Visualization.Configuration.EdgeMode;
+            ShowAllSites = Visualization.Configuration.ShowAllSites;
             m_ColumnManager.MRICalMinFactor = Visualization.Configuration.MRICalMinFactor;
             m_ColumnManager.MRICalMaxFactor = Visualization.Configuration.MRICalMaxFactor;
             CameraType = Visualization.Configuration.CameraType;
@@ -1806,6 +1808,7 @@ namespace HBP.Module3D
             Visualization.Configuration.MRIName = m_ColumnManager.SelectedMRI.Name;
             Visualization.Configuration.ImplantationName = m_ColumnManager.SelectedImplantation.Name;
             Visualization.Configuration.EdgeMode = EdgeMode;
+            Visualization.Configuration.ShowAllSites = ShowAllSites;
             Visualization.Configuration.MRICalMinFactor = m_ColumnManager.MRICalMinFactor;
             Visualization.Configuration.MRICalMaxFactor = m_ColumnManager.MRICalMaxFactor;
             Visualization.Configuration.CameraType = CameraType;
