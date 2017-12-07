@@ -2654,9 +2654,10 @@ namespace HBP.Module3D
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj] = (DLL.MRIBrainGenerator)m_ColumnManager.DLLCommonBrainTextureGeneratorList[jj].Clone();
+                    if (m_GeneratorNeedsUpdate) yield break;
                 }
             }
-
+            
             // Do your threaded task
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {                    
@@ -2672,9 +2673,13 @@ namespace HBP.Module3D
                 // splits
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
+                    if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                    if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true);
+                    if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances);
+                    if (m_GeneratorNeedsUpdate) yield break;
 
                     currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
                     currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MinimumInfluence;
@@ -2694,9 +2699,13 @@ namespace HBP.Module3D
                 // cuts
                 for (int jj = 0; jj < m_ColumnManager.PlanesCutsCopy.Count; ++jj)
                 {
+                    if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                    if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true);
+                    if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances);
+                    if (m_GeneratorNeedsUpdate) yield break;
 
                     currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity;
                     currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MinimumInfluence;
@@ -2714,14 +2723,26 @@ namespace HBP.Module3D
 
                 // synchronize max density
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
+                {
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
+                    if (m_GeneratorNeedsUpdate) yield break;
+                }
                 for (int jj = 0; jj < m_ColumnManager.PlanesCutsCopy.Count; ++jj)
+                {
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
+                    if (m_GeneratorNeedsUpdate) yield break;
+                }
 
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
+                {
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
+                    if (m_GeneratorNeedsUpdate) yield break;
+                }
                 for (int jj = 0; jj < m_ColumnManager.PlanesCutsCopy.Count; ++jj)
+                {
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap();
+                    if (m_GeneratorNeedsUpdate) yield break;
+                }
             }
             yield return Ninja.JumpToUnity;
         }
