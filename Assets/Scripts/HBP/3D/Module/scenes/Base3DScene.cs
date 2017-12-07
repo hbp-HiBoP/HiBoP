@@ -2273,6 +2273,33 @@ namespace HBP.Module3D
             ResetIEEG();
         }
         /// <summary>
+        /// Invert the state of the selected site
+        /// </summary>
+        public void InvertSelectedSiteState(SiteAction action)
+        {
+            Site site = m_ColumnManager.SelectedColumn.SelectedSite;
+            if (site)
+            {
+                switch (action)
+                {
+                    case SiteAction.Include:
+                        site.State.IsExcluded = !site.State.IsExcluded;
+                        break;
+                    case SiteAction.Blacklist:
+                        site.State.IsBlackListed = !site.State.IsBlackListed;
+                        break;
+                    case SiteAction.Highlight:
+                        site.State.IsHighlighted = !site.State.IsHighlighted;
+                        break;
+                    case SiteAction.Mark:
+                        site.State.IsMarked = !site.State.IsMarked;
+                        break;
+                }
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                ResetIEEG();
+            }              
+        }
+        /// <summary>
         /// Update the sites rendering of all columns
         /// </summary>
         public void UpdateSitesRendering()
