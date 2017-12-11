@@ -14,6 +14,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Module3D.DLL;
+using Tools.CSharp;
 
 namespace HBP.Module3D
 {
@@ -213,7 +214,7 @@ namespace HBP.Module3D
                 }
             }
 
-            private float m_AlphaMin = 0.2f;
+            private float m_AlphaMin = 0.8f;
             /// <summary>
             /// Minimum Alpha
             /// </summary>
@@ -365,6 +366,7 @@ namespace HBP.Module3D
             }
         }
         public float[] IEEGValues = new float[0]; /**< amplitudes 1D array (to be sent to the DLL) */
+        public float[] IEEGValuesForHistogram = new float[0];
         public float[][] IEEGValuesBySiteID;
 
         //  plots
@@ -455,10 +457,11 @@ namespace HBP.Module3D
             IEEGParameters.AlphaMin = ColumnData.Configuration.Alpha;
             if (ColumnData.Configuration.SpanMin == 0 && ColumnData.Configuration.Middle == 0 && ColumnData.Configuration.SpanMax == 0)
             {
-                float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
-                IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
-                IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
-                IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
+                float amplitude = IEEGParameters.MaximumAmplitude - IEEGParameters.MinimumAmplitude;
+                float middle = IEEGValuesForHistogram.Median();
+                IEEGParameters.Middle = middle;
+                IEEGParameters.SpanMin = Mathf.Clamp(middle - 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
+                IEEGParameters.SpanMax = Mathf.Clamp(middle + 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
             }
             else
             {
@@ -510,11 +513,12 @@ namespace HBP.Module3D
         {
             IEEGParameters.Gain = 1.0f;
             IEEGParameters.MaximumInfluence = 15.0f;
-            IEEGParameters.AlphaMin = 0.2f;
-            float middle = (IEEGParameters.MinimumAmplitude + IEEGParameters.MaximumAmplitude) / 2;
-            IEEGParameters.Middle = (float)Math.Round((decimal)middle, 3, MidpointRounding.AwayFromZero);
-            IEEGParameters.SpanMin = (float)Math.Round((decimal)IEEGParameters.MinimumAmplitude, 3, MidpointRounding.AwayFromZero);
-            IEEGParameters.SpanMax = (float)Math.Round((decimal)IEEGParameters.MaximumAmplitude, 3, MidpointRounding.AwayFromZero);
+            IEEGParameters.AlphaMin = 0.8f;
+            float amplitude = IEEGParameters.MaximumAmplitude - IEEGParameters.MinimumAmplitude;
+            float middle = IEEGValuesForHistogram.Median();
+            IEEGParameters.Middle = middle;
+            IEEGParameters.SpanMin = Mathf.Clamp(middle - 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
+            IEEGParameters.SpanMax = Mathf.Clamp(middle + 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
             while (m_ROIs.Count > 0)
             {
                 RemoveSelectedROI();
@@ -570,11 +574,14 @@ namespace HBP.Module3D
             IEEGParameters.MaximumAmplitude = float.MinValue;
 
             IEEGValues = new float[TimelineLength * SitesCount];
+            List<float> histogramValues = new List<float>(TimelineLength * SitesCount);
             for (int ii = 0; ii < TimelineLength; ++ii)
             {
                 for (int jj = 0; jj < SitesCount; ++jj)
                 {
-                    IEEGValues[ii * SitesCount + jj] = IEEGValuesBySiteID[jj][ii];
+                    float val = IEEGValuesBySiteID[jj][ii];
+                    IEEGValues[ii * SitesCount + jj] = val;
+                    if (val != 0) histogramValues.Add(val);
 
                     // update min/max values
                     if (IEEGValuesBySiteID[jj][ii] > IEEGParameters.MaximumAmplitude)
@@ -584,6 +591,7 @@ namespace HBP.Module3D
                         IEEGParameters.MinimumAmplitude = IEEGValuesBySiteID[jj][ii];
                 }
             }
+            IEEGValuesForHistogram = histogramValues.ToArray();
         }
         /// <summary>
         /// Specify a new columnData to be associated with the columnd3DView
@@ -621,26 +629,17 @@ namespace HBP.Module3D
                 if (value < 0)
                 {
                     m_ElectrodesPositiveColor[ii] = false;
-                    if (diffMin != 0)
-                    {
-                        value = 0.5f + 2 * (value / diffMin);
-                    }
-                    else
-                    {
-                        value = 0.5f;
-                    }            
+                    value = 0.5f + 2 * (value / diffMin);
+                }
+                else if (value > 0)
+                {
+                    m_ElectrodesPositiveColor[ii] = true;
+                    value = 0.5f + 2 * (value / diffMax);
                 }
                 else
                 {
-                    m_ElectrodesPositiveColor[ii] = true;
-                    if (diffMax != 0)
-                    {
-                        value = 0.5f + 2 * (value / diffMax);
-                    }
-                    else
-                    {
-                        value = 0.5f;
-                    }
+                    m_ElectrodesPositiveColor[ii] = false;
+                    value = 0.5f;
                 }
 
                 m_ElectrodesSizeScale[ii] = new Vector3(value, value, value);

@@ -11,6 +11,7 @@ public static class DataManager
     #region Properties
     static Dictionary<DataRequest, EpochedData> m_DataByRequest = new Dictionary<DataRequest, EpochedData>();
     static Dictionary<DataRequest, TrialMatrixSettings.BaselineType> m_NormalizeByRequest = new Dictionary<DataRequest, TrialMatrixSettings.BaselineType>();
+    public static bool HasData { get { return m_DataByRequest.Count > 0; } }
     #endregion
 
     #region Public Methods
@@ -57,6 +58,11 @@ public static class DataManager
     {
         UnLoad(dataInfo);
         Load(dataInfo);
+    }
+    public static void Clear()
+    {
+        m_DataByRequest.Clear();
+        m_NormalizeByRequest.Clear();
     }
     public static void NormalizeData()
     {

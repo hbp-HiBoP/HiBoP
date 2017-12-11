@@ -13,8 +13,21 @@ namespace HBP.UI.Experience.Dataset
         #region Public Methods
         public override void Save()
 		{
-            ApplicationState.ProjectLoaded.SetDatasets(Items.ToArray());
-            base.Save();
+            if (DataManager.HasData)
+            {
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                {
+                    ApplicationState.ProjectLoaded.SetDatasets(Items.ToArray());
+                    base.Save();
+                    DataManager.Clear();
+                    ApplicationState.Module3D.ReloadScenes();
+                });
+            }
+            else
+            {
+                ApplicationState.ProjectLoaded.SetDatasets(Items.ToArray());
+                base.Save();
+            }
         }
         public override void Remove()
         {

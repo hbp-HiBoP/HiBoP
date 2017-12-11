@@ -14,8 +14,21 @@ namespace HBP.UI.Experience.Protocol
         #region Public Methods
         public override void Save()
 		{
-            ApplicationState.ProjectLoaded.SetProtocols(Items.ToArray());
-            base.Save();
+            if (DataManager.HasData)
+            {
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                {
+                    ApplicationState.ProjectLoaded.SetProtocols(Items.ToArray());
+                    base.Save();
+                    DataManager.Clear();
+                    ApplicationState.Module3D.ReloadScenes();
+                });
+            }
+            else
+            {
+                ApplicationState.ProjectLoaded.SetProtocols(Items.ToArray());
+                base.Save();
+            }
         }
         public override void Remove()
         {

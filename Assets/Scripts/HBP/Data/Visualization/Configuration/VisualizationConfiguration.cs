@@ -144,6 +144,23 @@ namespace HBP.Data.Visualization
             }
         }
 
+        [DataMember(Name = "Sites")]
+        private bool m_ShowAllSites = false;
+        /// <summary>
+        /// Show all sites in the scene
+        /// </summary>
+        public bool ShowAllSites
+        {
+            get
+            {
+                return m_ShowAllSites;
+            }
+            set
+            {
+                m_ShowAllSites = value;
+            }
+        }
+
         [DataMember(Name = "MRI Min")]
         private float m_MRICalMinFactor = 0.0f;
         /// <summary>
@@ -240,6 +257,7 @@ namespace HBP.Data.Visualization
             configuration.MRIName = MRIName;
             configuration.ImplantationName = ImplantationName;
             configuration.EdgeMode = EdgeMode;
+            configuration.ShowAllSites = ShowAllSites;
             configuration.MRICalMinFactor = MRICalMinFactor;
             configuration.MRICalMaxFactor = MRICalMaxFactor;
             configuration.CameraType = CameraType;

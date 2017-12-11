@@ -27,7 +27,13 @@ namespace HBP.UI.Module3D
             m_Button.onClick.AddListener(() =>
             {
                 ApplicationState.Module3D.RemoveScene(scene);
-                Destroy(gameObject);
+            });
+            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            {
+                if (s == scene)
+                {
+                    Destroy(gameObject);
+                }
             });
             m_Toggle.isOn = true;
             m_Toggle.onValueChanged.AddListener((isOn) =>

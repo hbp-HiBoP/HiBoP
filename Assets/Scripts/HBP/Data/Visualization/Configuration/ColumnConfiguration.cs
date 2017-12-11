@@ -65,7 +65,7 @@ namespace HBP.Data.Visualization
         }
 
         [DataMember(Name = "Transparency")]
-        private float m_Alpha = 0.2f;
+        private float m_Alpha = 0.8f;
         /// <summary>
         /// IEEG Transparency
         /// </summary>

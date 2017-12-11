@@ -5,13 +5,8 @@ using UnityEngine;
 
 public class Shortcut3D : MonoBehaviour
 {
-    enum Direction { Left, Right}
-	// Use this for initialization
-	void Start () {
-		
-	}
+    enum Direction { Left, Right }
 	
-	// Update is called once per frame
 	void Update ()
     {
 		if(Input.GetKeyDown(KeyCode.LeftArrow))
@@ -21,6 +16,11 @@ public class Shortcut3D : MonoBehaviour
         else if(Input.GetKeyDown(KeyCode.RightArrow))
         {
             ChangeSiteSelection(Direction.Right);
+        }
+
+        if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+        {
+            ChangeSelectedSiteState();
         }
 	}
 
@@ -53,6 +53,30 @@ public class Shortcut3D : MonoBehaviour
                 }
                 while (!site.State.IsDisplayed && ++count <= selectedColumn.Sites.Count);
                 selectedColumn.SelectedSiteID = id;
+            }
+        }
+    }
+
+    void ChangeSelectedSiteState()
+    {
+        Base3DScene scene = ApplicationState.Module3D.SelectedScene;
+        if (scene)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                scene.InvertSelectedSiteState(SiteAction.Include);
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                scene.InvertSelectedSiteState(SiteAction.Highlight);
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha3))
+            {
+                scene.InvertSelectedSiteState(SiteAction.Blacklist);
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha4))
+            {
+                scene.InvertSelectedSiteState(SiteAction.Mark);
             }
         }
     }

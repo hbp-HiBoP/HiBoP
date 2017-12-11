@@ -22,6 +22,8 @@ namespace HBP.UI.Module3D.Tools
         [SerializeField]
         private RectTransform m_Events;
         [SerializeField]
+        private RectTransform m_RawTimeline;
+        [SerializeField]
         private GameObject m_MainEventPrefab;
         [SerializeField]
         private GameObject m_SecondaryEventPrefab;
@@ -131,9 +133,13 @@ namespace HBP.UI.Module3D.Tools
                     HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
                     m_Slider.value = column.CurrentTimeLineID;
                     m_Slider.maxValue = column.MaxTimeLineID;
-                    m_Min.text = column.MinTimeLine.ToString("N2") + column.TimeLineUnite;
-                    m_Max.text = column.MaxTimeLine.ToString("N2") + column.TimeLineUnite;
+                    m_Min.text = column.ColumnData.TimeLine.Start.RawValue.ToString("N2") + column.TimeLineUnite;
+                    m_Max.text = column.ColumnData.TimeLine.End.RawValue.ToString("N2") + column.TimeLineUnite;
                     m_Current.text = column.CurrentTimeLineID + " (" + column.CurrentTimeLine.ToString("N2") + column.TimeLineUnite + ")";
+                    m_RawTimeline.anchorMin = new Vector2((column.ColumnData.TimeLine.Start.RawValue - column.MinTimeLine) / (column.MaxTimeLine - column.MinTimeLine), 0);
+                    m_RawTimeline.anchorMax = new Vector2(1 - ((column.MaxTimeLine - column.ColumnData.TimeLine.End.RawValue) / (column.MaxTimeLine - column.MinTimeLine)), 1);
+                    //Debug.Log(column.ColumnData.TimeLine.Start.RawValue + " " + column.MinTimeLine);
+                    //Debug.Log(column.ColumnData.TimeLine.End.RawValue + " " + column.MaxTimeLine);
                     ShowEvents(column);
                 }
                 else
@@ -142,6 +148,8 @@ namespace HBP.UI.Module3D.Tools
                     m_Max.text = "Max";
                     m_Current.text = "Current Time";
                     m_Slider.value = 0;
+                    m_RawTimeline.anchorMin = new Vector2(0, 0);
+                    m_RawTimeline.anchorMax = new Vector2(1, 1);
                 }
             }
         }

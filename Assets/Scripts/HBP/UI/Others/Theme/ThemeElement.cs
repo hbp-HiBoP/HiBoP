@@ -566,7 +566,10 @@ namespace HBP.UI.Theme
             SetImage(dialogBox.Find("Window").GetComponent<Image>(), theme.Background);
             SetText(dialogBox.Find("Window").Find("Corps").Find("Text").Find("Title").GetComponent<Text>(), theme.Title);
             SetText(dialogBox.Find("Window").Find("Corps").Find("Text").Find("Message").GetComponent<Text>(), theme.Text);
-            SetButton(dialogBox.Find("Window").Find("Buttons").Find("Button").GetComponent<Button>(), theme.Button);
+            foreach (Button button in dialogBox.Find("Window").Find("Buttons").GetComponentsInChildren<Button>())
+            {
+                SetButton(button, theme.Button);
+            }
         }
         void SetBorderEffect(Theme.BorderEffectTheme theme)
         {
