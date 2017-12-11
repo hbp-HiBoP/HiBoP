@@ -607,7 +607,7 @@ namespace HBP.Data.General
         IEnumerator c_CheckDatasets(GenericEvent<float, float, string> OnChangeProgress)
         {
             yield return Ninja.JumpBack;
-            int count = 0;
+            int count = 1;
             int length = m_Datasets.SelectMany(d => d.Data).Count();
             float progress = 0.0f;
             float progressStep = 1.0f / length;

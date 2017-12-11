@@ -357,7 +357,7 @@ namespace HBP.Data.Visualization
                 DataInfo dataInfo = dataInfoCollection[i];
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Loading <color=blue>" + dataInfo.Name + "</color> for <color=blue>" + dataInfo.Patient.Name + "</color> [" + i + "/" + dataInfoCollection.Length + "]");
+                onChangeProgress.Invoke(progress, 1.0f, "Loading <color=blue>" + dataInfo.Name + "</color> for <color=blue>" + dataInfo.Patient.Name + "</color> [" + (i + 1).ToString() + "/" + dataInfoCollection.Length + "]");
                 yield return Ninja.JumpBack;
                 try
                 {
@@ -391,7 +391,7 @@ namespace HBP.Data.Visualization
                 Column column = Columns[i];
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.DisplayLabel + "</color> [" + i + "/" + Columns.Count + "]");
+                onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.DisplayLabel + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
                 yield return Ninja.JumpBack;
                 try
                 {
@@ -426,7 +426,7 @@ namespace HBP.Data.Visualization
                 Column column = Columns[i];
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.DisplayLabel + "</color> [" + i + "/" + Columns.Count + "]");
+                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.DisplayLabel + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
                 yield return Ninja.JumpBack;
                 try
                 {
