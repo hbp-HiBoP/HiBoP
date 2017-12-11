@@ -51,7 +51,6 @@ namespace Tools.Unity
                     break;
             }
 
-
             BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
             buildPlayerOptions.locationPathName = buildDirectory + hibopName;
             buildPlayerOptions.target = target;
