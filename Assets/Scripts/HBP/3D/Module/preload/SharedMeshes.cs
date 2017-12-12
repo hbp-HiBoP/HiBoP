@@ -30,7 +30,7 @@ namespace HBP.Module3D
         void Awake()
         {
             ROISphere = Geometry.CreateSphereMesh(1f, 48, 32);
-            Site = Geometry.CreateSphereMesh(1, 12, 8);
+            Site = Geometry.CreateSphereMesh(1, 10, 7);
             HighlightedSite = Geometry.CreateTube();// (3f);
             SiteSelection = Geometry.CreateTube();// (3f);
 
