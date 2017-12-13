@@ -65,5 +65,27 @@
             Type = type;
         }
         #endregion
+
+        #region Public Methods
+        public void SetBaseline(BaselineType type)
+        {
+            if (Baseline != type)
+            {
+                if (ApplicationState.Module3D.ScenesManager.Scenes.Count > 0)
+                {
+                    ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Baseline settings changed", "You need to reload the open visualizations in order to apply the changes made to the baseline normalization.\n\nWould you like to reload ?", () =>
+                    {
+                        Baseline = type;
+                        Tools.Unity.ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH, true);
+                        ApplicationState.Module3D.ReloadScenes();
+                    });
+                }
+                else
+                {
+                    Baseline = type;
+                }
+            }
+        }
+        #endregion
     }
 }
