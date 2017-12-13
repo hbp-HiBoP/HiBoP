@@ -186,6 +186,7 @@ namespace HBP.UI.Module3D
             {
                 m_Position.value = m_Cut.Position;
                 m_Orientation.value = (int)m_Cut.Orientation;
+                m_Orientation.RefreshShownValue();
                 m_Flip.isOn = m_Cut.Flip;
                 m_CustomX.text = m_Cut.Normal.x.ToString();
                 m_CustomY.text = m_Cut.Normal.y.ToString();
@@ -213,6 +214,11 @@ namespace HBP.UI.Module3D
         {
             m_Cut = cut;
             m_Image.GetComponent<ImageRatio>().Type = ImageRatio.RatioType.FixedWidth;
+            m_Orientation.options = new List<Dropdown.OptionData>();
+            foreach (var orientation in Enum.GetNames(typeof(CutOrientation)))
+            {
+                m_Orientation.options.Add(new Dropdown.OptionData(orientation));
+            }
             UpdateUI();
             AddListeners(scene, cut);
         }
