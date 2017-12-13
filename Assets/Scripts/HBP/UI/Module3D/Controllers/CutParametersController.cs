@@ -34,6 +34,16 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Slider m_Position;
         /// <summary>
+        /// Button to slightly change the position of the cut
+        /// </summary>
+        [SerializeField]
+        private Button m_PlusPosition;
+        /// <summary>
+        /// Button to slightly change the position of the cut
+        /// </summary>
+        [SerializeField]
+        private Button m_MinusPosition;
+        /// <summary>
         /// Toggle to change the flip of the cut
         /// </summary>
         [SerializeField]
@@ -96,6 +106,18 @@ namespace HBP.UI.Module3D
 
                 cut.Position = value;
                 scene.UpdateCutPlane(cut);
+            });
+            m_MinusPosition.onClick.AddListener(() =>
+            {
+                if (m_IsUIUpdating) return;
+
+                m_Position.value -= 0.01f;
+            });
+            m_PlusPosition.onClick.AddListener(() =>
+            {
+                if (m_IsUIUpdating) return;
+
+                m_Position.value += 0.01f;
             });
             m_Orientation.onValueChanged.AddListener((value) =>
             {
@@ -193,7 +215,7 @@ namespace HBP.UI.Module3D
                 m_CustomZ.text = m_Cut.Normal.z.ToString();
                 m_Remove.gameObject.SetActive(true);
                 m_Orientation.gameObject.SetActive(true);
-                m_Position.gameObject.SetActive(true);
+                m_Position.transform.parent.gameObject.SetActive(true);
                 m_Flip.gameObject.SetActive(m_Cut.Orientation != CutOrientation.Custom);
                 m_CustomValues.gameObject.SetActive(m_Cut.Orientation == CutOrientation.Custom);
             }
@@ -201,7 +223,7 @@ namespace HBP.UI.Module3D
             {
                 m_Remove.gameObject.SetActive(false);
                 m_Orientation.gameObject.SetActive(false);
-                m_Position.gameObject.SetActive(false);
+                m_Position.transform.parent.gameObject.SetActive(false);
                 m_Flip.gameObject.SetActive(false);
                 m_CustomValues.gameObject.SetActive(false);
             }
