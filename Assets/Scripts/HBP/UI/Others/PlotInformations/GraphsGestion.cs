@@ -223,7 +223,8 @@ namespace HBP.UI.Graph
                 {
                     Site site = m_Sites[s];
                     Data.TrialMatrix.TrialMatrix trialMatrixData = m_TrialMatrixByProtocolBySite[column.Protocol][site];
-                    TrialMatrix.TrialMatrix trialMatrix = m_TrialMatrixList.TrialMatrix.First((t) => t.Data == trialMatrixData);
+                    TrialMatrix.TrialMatrix trialMatrix = m_TrialMatrixList.TrialMatrix.FirstOrDefault((t) => t.Data == trialMatrixData);
+                    if (trialMatrix == null) continue;
                     TrialMatrix.Bloc trialMatrixBloc = null;
                     foreach (var line in trialMatrix.Lines)
                     {

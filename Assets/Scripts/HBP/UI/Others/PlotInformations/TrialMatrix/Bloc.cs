@@ -229,7 +229,7 @@ namespace HBP.UI.TrialMatrix
         }
         void SendMessageSelectLines(int[] lines, bool additive)
         {
-            Graph.GraphsGestion graphGestion = FindObjectOfType<Graph.GraphsGestion>();
+            Graph.GraphsGestion graphGestion = GetComponentInParent<Graph.GraphsGestion>();
             if (graphGestion)
             {
                 graphGestion.OnSelectLines(lines, this, additive);
