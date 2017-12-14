@@ -78,6 +78,10 @@ namespace HBP.Data.Visualization
         {
             get { return Columns.Count > 0 && Patients.Count > 0 && Columns.All((column) => column.IsCompatible(Patients)); }
         }
+        /// <summary>
+        /// Is the visualization opened in a scene ?
+        /// </summary>
+        public bool IsOpen { get { return ApplicationState.Module3D.Visualizations.Contains(this); } }
 
         const float FIND_FILES_TO_READ_PROGRESS = 0.025f;
         const float LOAD_DATA_PROGRESS = 0.8f;
