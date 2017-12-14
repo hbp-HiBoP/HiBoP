@@ -9,6 +9,7 @@ using HBP.Data.Experience.Protocol;
 using Tools.Unity.Graph;
 using UnityEngine.Events;
 using Tools.CSharp;
+using UnityEngine.UI;
 
 namespace HBP.UI.Graph
 {
@@ -36,6 +37,10 @@ namespace HBP.UI.Graph
         RectTransform m_RectTransform;
         [SerializeField]
         GameObject m_MinimizedGameObject;
+        [SerializeField]
+        Button m_MinimizeButton;
+        [SerializeField]
+        Button m_ExpandButton;
         Tools.Unity.ResizableGrid.ResizableGrid m_ParentGrid;
         /// <summary>
         /// Is the column minimzed ?
@@ -48,6 +53,7 @@ namespace HBP.UI.Graph
             }
         }
         public UnityEvent OnOpenGraphsWindow = new UnityEvent();
+        public UnityEvent OnCloseGraphsWindow = new UnityEvent();
 
         // Trial matrix
         [SerializeField] TrialMatrixList m_TrialMatrixList;
@@ -133,6 +139,8 @@ namespace HBP.UI.Graph
         private void Awake()
         {
             m_ParentGrid = GetComponentInParent<Tools.Unity.ResizableGrid.ResizableGrid>();
+            m_MinimizeButton.onClick.AddListener(OnCloseGraphsWindow.Invoke);
+            m_ExpandButton.onClick.AddListener(OnOpenGraphsWindow.Invoke);
         }
         private void Update()
         {
