@@ -18,5 +18,5 @@
     "Type": 0
   },
   "Theme": "Dark",
-  "ShowCutLines": true
+  "ShowCutLines": false
 }
