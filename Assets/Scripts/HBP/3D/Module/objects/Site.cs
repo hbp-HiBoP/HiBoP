@@ -127,7 +127,23 @@ namespace HBP.Module3D
         {
             get
             {
-                return ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType == Data.Settings.GeneralSettings.PlotNameCorrectionTypeEnum.Enable ? PatientID + "_" + Name.ToUpper().Replace('P', '\'') : FullID;
+                if (ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType == Data.Settings.GeneralSettings.PlotNameCorrectionTypeEnum.Enable)
+                {
+                    string siteName = Name.ToUpper();
+                    int prime = siteName.LastIndexOf('P');
+                    if (prime > 0)
+                    {
+                        return PatientID + "_" + siteName.Remove(prime, 1).Insert(prime, "\'");
+                    }
+                    else
+                    {
+                        return FullID;
+                    }
+                }
+                else
+                {
+                    return FullID;
+                }
             }
         }
         public string DisplayedName

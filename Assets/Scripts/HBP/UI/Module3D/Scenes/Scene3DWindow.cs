@@ -80,6 +80,12 @@ namespace HBP.UI.Module3D
                 grid.SetVerticalHandlersPosition(1);
                 grid.UpdateAnchors();
             });
+            graphsGestion.OnCloseGraphsWindow.AddListener(() =>
+            {
+                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
+                grid.SetVerticalHandlersPosition(1);
+                grid.UpdateAnchors();
+            });
         }
 
         public void SaveSceneToPNG(string path, bool multipleFiles = false)

@@ -238,8 +238,11 @@ namespace HBP.Module3D
         /// <param name="visualization"></param>
         public void RemoveScene(Data.Visualization.Visualization visualization)
         {
-            Base3DScene scene = m_ScenesManager.Scenes.ToList().Find(s => s.Visualization == visualization);
-            m_ScenesManager.RemoveScene(scene);
+            Base3DScene[] scenes = m_ScenesManager.Scenes.Where(s => s.Visualization == visualization).ToArray();
+            foreach (var scene in scenes)
+            {
+                m_ScenesManager.RemoveScene(scene);
+            }
         }
         /// <summary>
         /// Remove a visualization and its associated scene

@@ -19,6 +19,8 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
+                if (ListenerLock) return;
+                
                 ApplicationState.Module3D.SelectedScene.ShowAllSites = isOn;
             });
         }

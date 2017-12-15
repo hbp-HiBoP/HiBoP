@@ -188,7 +188,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {
-            if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
+            if (type == Toolbar.UpdateToolbarType.Column)
             {
                 UpdateROIDropdownOptions();
                 UpdateSelectedROIUI();

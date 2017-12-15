@@ -9,6 +9,7 @@ using HBP.Data.Experience.Protocol;
 using Tools.Unity.Graph;
 using UnityEngine.Events;
 using Tools.CSharp;
+using UnityEngine.UI;
 
 namespace HBP.UI.Graph
 {
@@ -36,6 +37,10 @@ namespace HBP.UI.Graph
         RectTransform m_RectTransform;
         [SerializeField]
         GameObject m_MinimizedGameObject;
+        [SerializeField]
+        Button m_MinimizeButton;
+        [SerializeField]
+        Button m_ExpandButton;
         Tools.Unity.ResizableGrid.ResizableGrid m_ParentGrid;
         /// <summary>
         /// Is the column minimzed ?
@@ -48,6 +53,7 @@ namespace HBP.UI.Graph
             }
         }
         public UnityEvent OnOpenGraphsWindow = new UnityEvent();
+        public UnityEvent OnCloseGraphsWindow = new UnityEvent();
 
         // Trial matrix
         [SerializeField] TrialMatrixList m_TrialMatrixList;
@@ -133,6 +139,8 @@ namespace HBP.UI.Graph
         private void Awake()
         {
             m_ParentGrid = GetComponentInParent<Tools.Unity.ResizableGrid.ResizableGrid>();
+            m_MinimizeButton.onClick.AddListener(OnCloseGraphsWindow.Invoke);
+            m_ExpandButton.onClick.AddListener(OnOpenGraphsWindow.Invoke);
         }
         private void Update()
         {
@@ -223,7 +231,8 @@ namespace HBP.UI.Graph
                 {
                     Site site = m_Sites[s];
                     Data.TrialMatrix.TrialMatrix trialMatrixData = m_TrialMatrixByProtocolBySite[column.Protocol][site];
-                    TrialMatrix.TrialMatrix trialMatrix = m_TrialMatrixList.TrialMatrix.First((t) => t.Data == trialMatrixData);
+                    TrialMatrix.TrialMatrix trialMatrix = m_TrialMatrixList.TrialMatrix.FirstOrDefault((t) => t.Data == trialMatrixData);
+                    if (trialMatrix == null) continue;
                     TrialMatrix.Bloc trialMatrixBloc = null;
                     foreach (var line in trialMatrix.Lines)
                     {
@@ -292,7 +301,7 @@ namespace HBP.UI.Graph
                         }
 
                         //Create curve
-                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name + "_" + c, points, GetCurveColor(c,s),1.5f);
+                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, "C" + c + "_" + column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name, points, GetCurveColor(c,s),1.5f);
                     }
                     else continue;
                 }
