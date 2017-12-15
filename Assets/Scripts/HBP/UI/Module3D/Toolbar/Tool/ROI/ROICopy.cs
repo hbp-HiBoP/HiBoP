@@ -49,13 +49,6 @@ namespace HBP.UI.Module3D.Tools
 
             m_Button.interactable = hasROI;
         }
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
-        {
-            if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
-            {
-                UpdateInteractable();
-            }
-        }
         #endregion
     }
 }

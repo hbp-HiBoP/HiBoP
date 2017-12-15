@@ -139,6 +139,7 @@ namespace HBP.UI.Module3D
                 if (m_IsUIUpdating) return;
 
                 cut.Flip = isOn;
+                cut.Position = 1.0f - cut.Position;
                 scene.UpdateCutPlane(cut);
             });
             m_Remove.onClick.AddListener(() =>
