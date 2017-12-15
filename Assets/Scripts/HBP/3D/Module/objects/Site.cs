@@ -131,7 +131,14 @@ namespace HBP.Module3D
                 {
                     string siteName = Name.ToUpper();
                     int prime = siteName.LastIndexOf('P');
-                    return PatientID + "_" + siteName.Remove(prime, 1).Insert(prime, "\'");
+                    if (prime > 0)
+                    {
+                        return PatientID + "_" + siteName.Remove(prime, 1).Insert(prime, "\'");
+                    }
+                    else
+                    {
+                        return FullID;
+                    }
                 }
                 else
                 {

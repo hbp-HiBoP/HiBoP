@@ -301,7 +301,7 @@ namespace HBP.UI.Graph
                         }
 
                         //Create curve
-                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name + "_" + c, points, GetCurveColor(c,s),1.5f);
+                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, "C" + c + "_" + column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name, points, GetCurveColor(c,s),1.5f);
                     }
                     else continue;
                 }
