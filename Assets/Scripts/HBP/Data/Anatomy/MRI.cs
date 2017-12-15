@@ -80,7 +80,7 @@ namespace HBP.Data.Anatomy
                 FileInfo postimplantationMRIFile = postimplantationDirectory.GetFiles(directoryInfo.Name + EXTENSION).FirstOrDefault();
                 if (postimplantationMRIFile != null && postimplantationMRIFile.Exists)
                 {
-                    MRIs.Add(new MRI("Posimplantation", postimplantationMRIFile.FullName));
+                    MRIs.Add(new MRI("Postimplantation", postimplantationMRIFile.FullName));
                 }
             }
             //UnityEngine.Profiling.Profiler.EndSample();
