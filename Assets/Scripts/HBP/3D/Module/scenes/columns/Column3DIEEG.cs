@@ -559,7 +559,7 @@ namespace HBP.Module3D
                 if (ColumnData.Configuration.ConfigurationBySite.ContainsKey(site.Information.FullCorrectedID))
                 {
                     Data.Visualization.SiteConfiguration siteConfiguration = ColumnData.Configuration.ConfigurationBySite[site.Information.FullCorrectedID]; // FIXME (Automatic correction)
-                    IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.Values;
+                    IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.NormalizedValues;
                     site.State.IsMasked = false; // update mask
                     site.Configuration = siteConfiguration;
                 }

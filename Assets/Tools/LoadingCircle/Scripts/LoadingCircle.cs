@@ -145,7 +145,6 @@ public class LoadingCircle : MonoBehaviour
         {
             int percentage = Mathf.Min(Mathf.FloorToInt(m_Progress * 100.0f),100);
             transform.GetChild(1).GetComponent<Image>().fillAmount = m_Progress;
-            Debug.Log(percentage);
             transform.GetChild(2).GetComponent<Image>().sprite = m_Sprites[percentage];
             m_LastProgress = m_Progress;
         }
