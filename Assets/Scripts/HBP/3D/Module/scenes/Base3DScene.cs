@@ -2650,6 +2650,8 @@ namespace HBP.Module3D
         }
         private IEnumerator c_LoadIEEG()
         {
+            yield return Ninja.JumpToUnity;
+            OnProgressUpdateGenerator.Invoke(0, 0, "Copy from main generators");
             yield return Ninja.JumpBack;
             bool useMultiCPU = true;
             bool addValues = false;
@@ -2670,7 +2672,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
                 yield return Ninja.JumpToUnity;
-                OnProgressUpdateGenerator.Invoke((float)ii / m_ColumnManager.ColumnsIEEG.Count, 1.0f, "toto");
+                OnProgressUpdateGenerator.Invoke((float)(ii + 1) / (m_ColumnManager.ColumnsIEEG.Count), 0.5f, "Loading column n°" + (ii + 1).ToString());
                 yield return Ninja.JumpBack;
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
                 float maxDensity = 1;
@@ -2756,6 +2758,9 @@ namespace HBP.Module3D
                 }
             }
             yield return Ninja.JumpToUnity;
+            OnProgressUpdateGenerator.Invoke(1.0f, 0.0f, "Finalizing");
+            yield return Ninja.JumpBack;
+            yield return new WaitForSeconds(0.1f);
         }
         /// <summary>
         /// Reset the volume of the scene
