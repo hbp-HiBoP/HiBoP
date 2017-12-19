@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace UnityEngine.UI
@@ -27,6 +28,10 @@ namespace UnityEngine.UI
         public RectTransform Content;
         #endregion
 
+        #region Events
+        public GenericEvent<bool> OnChangeWindowState = new GenericEvent<bool>();
+        #endregion
+
         #region Private Methods
         private void Awake()
         {
@@ -40,7 +45,8 @@ namespace UnityEngine.UI
         /// </summary>
         public void ChangeWindowState()
         {
-            if (!Window.activeSelf)
+            bool state = !Window.activeSelf;
+            if (state)
             {
                 m_Blocker = Instantiate(BlockerPrefab, GetTopmostCanvas(GetComponent<RectTransform>()).GetComponent<RectTransform>());
                 m_Blocker.GetComponent<Button>().onClick.AddListener(() =>
@@ -52,7 +58,8 @@ namespace UnityEngine.UI
             {
                 Destroy(m_Blocker);
             }
-            Window.SetActive(!Window.activeSelf);
+            Window.SetActive(state);
+            OnChangeWindowState.Invoke(state);
         }
         /// <summary>
         /// Get the topmost canvas of a component
