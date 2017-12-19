@@ -31,8 +31,8 @@ namespace HBP.UI
         }
         #endregion
 
-        #region Private Methods
-        IEnumerator c_Load(ProjectInfo info)
+        #region Coroutines
+        public IEnumerator c_Load(ProjectInfo info)
         {
             Project oldProject = ApplicationState.ProjectLoaded;
             Project project = new Project();

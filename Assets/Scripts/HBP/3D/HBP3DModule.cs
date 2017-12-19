@@ -317,7 +317,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Coroutines
-        IEnumerator c_Load(IEnumerable<Data.Visualization.Visualization> visualizations)
+        public IEnumerator c_Load(IEnumerable<Data.Visualization.Visualization> visualizations)
         {
             foreach (Data.Visualization.Visualization visualization in visualizations)
             {
