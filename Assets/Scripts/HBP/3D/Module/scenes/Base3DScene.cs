@@ -2672,6 +2672,7 @@ namespace HBP.Module3D
                 yield return Ninja.JumpToUnity;
                 OnProgressUpdateGenerator.Invoke((float)ii / m_ColumnManager.ColumnsIEEG.Count, 1.0f, "toto");
                 yield return Ninja.JumpBack;
+
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
                 float maxDensity = 1;
 

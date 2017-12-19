@@ -83,6 +83,8 @@ namespace HBP.UI.Experience.Dataset
             m_Protocols = ApplicationState.ProjectLoaded.Protocols.ToArray();
             m_ProtocolDropdown.options = (from protocol in m_Protocols select new Dropdown.OptionData(protocol.Name)).ToList();
             m_ProtocolDropdown.value = m_Protocols.ToList().IndexOf(ItemTemp.Protocol);
+            m_ProtocolDropdown.onValueChanged.RemoveAllListeners();
+            m_ProtocolDropdown.onValueChanged.AddListener((i) => ItemTemp.Protocol = m_Protocols[i]);
 
             m_DataInfoList.Objects = ItemTemp.Data.ToArray();
             m_DataInfoList.OnAction.RemoveAllListeners();
