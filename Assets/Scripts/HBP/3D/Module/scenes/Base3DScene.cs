@@ -560,6 +560,10 @@ namespace HBP.Module3D
         /// Event called when reseting the view positions in the UI
         /// </summary>
         public UnityEvent OnResetViewPositions = new UnityEvent();
+        /// <summary>
+        /// Event called when progressing in updating generator.
+        /// </summary>
+        public GenericEvent<float, float, string> OnProgressUpdateGenerator = new GenericEvent<float, float, string>();
 
         /// <summary>
         /// Event for updating the planes cuts display in the cameras
@@ -2664,7 +2668,10 @@ namespace HBP.Module3D
             
             // Do your threaded task
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-            {                    
+            {
+                yield return Ninja.JumpToUnity;
+                OnProgressUpdateGenerator.Invoke((float)ii / m_ColumnManager.ColumnsIEEG.Count, 1.0f, "toto");
+                yield return Ninja.JumpBack;
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
                 float maxDensity = 1;
 

@@ -22,11 +22,10 @@ namespace HBP.UI.Module3D
         /// Linked resizable grid
         /// </summary>
         private ResizableGrid m_ResizableGrid;
-        /// <summary>
-        /// Update circle when loading things
-        /// </summary>
-        [SerializeField]
-        private UpdateCircle m_Circle;
+        ///// <summary>
+        ///// Update circle when loading things
+        ///// </summary>
+        private LoadingCircle m_LoadingCircle;
         #endregion
 
         #region Private Methods
@@ -110,12 +109,27 @@ namespace HBP.UI.Module3D
             {
                 if (value)
                 {
-                    m_Circle.StartAnimation();
+                    if(m_LoadingCircle == null)
+                    {
+                        m_LoadingCircle = ApplicationState.LoadingManager.Open();
+                        RectTransform loadingCircleRectTransform = m_LoadingCircle.GetComponent<RectTransform>();
+                        loadingCircleRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                        loadingCircleRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                        loadingCircleRectTransform.anchoredPosition = new Vector2(0f, 0f);
+                        m_LoadingCircle.ChangePercentage(0.0f, 99.0f, 1.0f);
+                    }        
                 }
                 else
                 {
-                    m_Circle.StopAnimation();
+                    if(m_LoadingCircle != null)
+                    {
+                        m_LoadingCircle.Close();
+                    }
                 }
+            });
+            m_Scene.OnProgressUpdateGenerator.AddListener((progress, duration, message) =>
+            {
+                if (m_LoadingCircle != null) m_LoadingCircle.ChangePercentage(progress, duration, message);
             });
         }
         #endregion
