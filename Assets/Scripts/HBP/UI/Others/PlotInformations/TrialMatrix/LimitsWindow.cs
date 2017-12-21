@@ -7,16 +7,18 @@ namespace HBP.UI.TrialMatrix
     public class LimitsWindow : MonoBehaviour
     {
         #region Properties
-        public OnUpdateLimitsEvent onUpdateLimits = new OnUpdateLimitsEvent();
-        InputField minInputField, maxInputField;
+        [SerializeField] Button m_Auto;
+        public GenericEvent<Vector2> OnUpdateLimits = new GenericEvent<Vector2>();
+        public GenericEvent<bool> OnAutoLimits = new GenericEvent<bool>();
+        InputField m_MinInputField, m_MaxInputField;
         #endregion
 
         #region Public Methods
         public void Open(Vector2 limits)
         {
             gameObject.SetActive(true);
-            minInputField.text = limits.x.ToString();
-            maxInputField.text = limits.y.ToString();
+            m_MinInputField.text = limits.x.ToString();
+            m_MaxInputField.text = limits.y.ToString();
         }
         public void Close()
         {
@@ -24,19 +26,22 @@ namespace HBP.UI.TrialMatrix
         }
         public void UpdateWindow()
         {
-            Vector2 limits = new Vector2(float.Parse(minInputField.text), float.Parse(maxInputField.text));
-            onUpdateLimits.Invoke((limits));
+            Vector2 limits = new Vector2(float.Parse(m_MinInputField.text), float.Parse(m_MaxInputField.text));
+            OnUpdateLimits.Invoke(limits);
+            OnAutoLimits.Invoke(false);
         }
         #endregion
 
         #region Private Methods
         void Awake()
         {
-            minInputField = transform.Find("Min").Find("Value").GetComponent<InputField>();
-            maxInputField = transform.Find("Max").Find("Value").GetComponent<InputField>();
+            m_MinInputField = transform.Find("Min").Find("Value").GetComponent<InputField>();
+            m_MaxInputField = transform.Find("Max").Find("Value").GetComponent<InputField>();
+            m_Auto.onClick.AddListener(() =>
+            {
+                OnAutoLimits.Invoke(true);
+            });
         }
         #endregion
     }
-
-    public class OnUpdateLimitsEvent : UnityEvent<Vector2> { }
 }

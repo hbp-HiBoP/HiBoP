@@ -11,7 +11,8 @@ namespace HBP.UI.TrialMatrix
         RectTransform valuesRect;
         LimitsWindow limitsWindow;
         Vector2 limits;
-        public OnUpdateLimitsEvent onUpdateLimits { get { return limitsWindow.onUpdateLimits; } }
+        public GenericEvent<Vector2> OnChangeLimits { get { return limitsWindow.OnUpdateLimits; } }
+        public GenericEvent<bool> OnAutoLimits { get { return limitsWindow.OnAutoLimits; } }
         #endregion
 
         #region Public Methods

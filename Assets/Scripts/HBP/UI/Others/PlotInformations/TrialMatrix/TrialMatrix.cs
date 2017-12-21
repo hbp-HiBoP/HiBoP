@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using d = HBP.Data.TrialMatrix;
 using UnityEngine.Profiling;
+using UnityEngine.Events;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -31,6 +32,7 @@ namespace HBP.UI.TrialMatrix
         public Vector2 Limits
         {
             get { return limits; }
+            set { UpdateLimites(value); }
         }
 
         List<Line> lines = new List<Line>();
@@ -38,13 +40,16 @@ namespace HBP.UI.TrialMatrix
         {
             get { return new ReadOnlyCollection<Line>(lines); }
         }
+
+        public GenericEvent<Vector2> OnChangeLimits { get { return valuesLegend.OnChangeLimits; } }
+        public GenericEvent<bool> OnAutoLimits { get { return valuesLegend.OnAutoLimits; } }
         #endregion
 
         #region Public Methods
         public void Set(d.TrialMatrix trialMatrix)
         {
             data = trialMatrix;
-            limits = trialMatrix.ValuesLimits;
+            limits = trialMatrix.Limits;
             title.text = trialMatrix.Title;
 
             //Organize array
@@ -54,7 +59,7 @@ namespace HBP.UI.TrialMatrix
 
             // Set Legends
             Profiler.BeginSample("B");
-            SetLegends(trialMatrix.ValuesLimits, trialMatrix.TimeLimitsByColumn);
+            SetLegends(trialMatrix.Limits, trialMatrix.TimeLimitsByColumn);
             Profiler.EndSample();
 
             //Separate blocs by line
@@ -84,10 +89,9 @@ namespace HBP.UI.TrialMatrix
             Profiler.BeginSample("D");
             for (int i = 0; i < l_lines.Count; i++)
             {
-                AddLine(l_lines[i], maxBlocByRow, colorMap, trialMatrix.ValuesLimits);
+                AddLine(l_lines[i], maxBlocByRow, colorMap, trialMatrix.Limits);
             }
             SelectAllLines();
-            valuesLegend.onUpdateLimits.AddListener((l) => UpdateLimites(l));
             Profiler.EndSample();
         }
         public void SelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc,bool additive)

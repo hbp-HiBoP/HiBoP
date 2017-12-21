@@ -33,14 +33,10 @@ namespace HBP.UI.Graph
         // Minimize handling
         public const float MINIMIZED_THRESHOLD = 200.0f;
         bool m_RectTransformChanged;
-        [SerializeField]
-        RectTransform m_RectTransform;
-        [SerializeField]
-        GameObject m_MinimizedGameObject;
-        [SerializeField]
-        Button m_MinimizeButton;
-        [SerializeField]
-        Button m_ExpandButton;
+        [SerializeField] RectTransform m_RectTransform;
+        [SerializeField] GameObject m_MinimizedGameObject;
+        [SerializeField] Button m_MinimizeButton;
+        [SerializeField] Button m_ExpandButton;
         Tools.Unity.ResizableGrid.ResizableGrid m_ParentGrid;
         /// <summary>
         /// Is the column minimzed ?
@@ -58,6 +54,7 @@ namespace HBP.UI.Graph
         // Trial matrix
         [SerializeField] TrialMatrixList m_TrialMatrixList;
         Dictionary<Protocol, Vector2> m_LimitsByProtocol = new Dictionary<Protocol, Vector2>();
+        Dictionary<Protocol, bool> m_AutoLimitsByProtocol = new Dictionary<Protocol, bool>();
         Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>> m_TrialMatrixByProtocolBySite = new Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>>();
         bool m_LineSelectable = false;
 
@@ -200,7 +197,16 @@ namespace HBP.UI.Graph
                 UnityEngine.Profiling.Profiler.BeginSample("new TrialMatrix");
                 foreach (var site in m_Sites)
                 {
-                    trialMatrixData[site] = new Data.TrialMatrix.TrialMatrix(protocol, dataInfoBySite[site], epochedBlocsByProtocolBlocByDataInfo[dataInfoBySite[site]], site, Scene);
+                    Data.TrialMatrix.TrialMatrix trialMatrix = new Data.TrialMatrix.TrialMatrix(protocol, dataInfoBySite[site], epochedBlocsByProtocolBlocByDataInfo[dataInfoBySite[site]], site, Scene);
+                    bool autoLimits;
+                    if (m_AutoLimitsByProtocol.TryGetValue(protocol, out autoLimits))
+                    {
+                        if (!autoLimits)
+                        {
+                            trialMatrix.Limits = m_LimitsByProtocol[protocol];
+                        }
+                    }
+                    trialMatrixData[site] = trialMatrix;
                 }
                 trialMatrixByProtocol.Add(protocol, trialMatrixData);
                 UnityEngine.Profiling.Profiler.EndSample();
