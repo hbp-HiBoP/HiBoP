@@ -31,6 +31,7 @@ namespace Tools.CSharp
         public static float[] Normalize(this float[] array, float average, float standardDeviation)
         {
             float[] tmparray = (float[])array.Clone();
+            if (standardDeviation == 0) standardDeviation = 1;
             Normalize(tmparray, array.Length, average, standardDeviation);
             return tmparray;
         }

@@ -455,19 +455,19 @@ namespace HBP.Module3D
             IEEGParameters.Gain = ColumnData.Configuration.Gain;
             IEEGParameters.MaximumInfluence = ColumnData.Configuration.MaximumInfluence;
             IEEGParameters.AlphaMin = ColumnData.Configuration.Alpha;
-            if (ColumnData.Configuration.SpanMin == 0 && ColumnData.Configuration.Middle == 0 && ColumnData.Configuration.SpanMax == 0)
+            if(ColumnData.Configuration.SpanMin != 0.0f ||ColumnData.Configuration.Middle != 0.0f ||ColumnData.Configuration.SpanMax != 0.0f)
+            {
+                IEEGParameters.Middle = ColumnData.Configuration.Middle;
+                IEEGParameters.SpanMin = ColumnData.Configuration.SpanMin;
+                IEEGParameters.SpanMax = ColumnData.Configuration.SpanMax;
+            }
+            else
             {
                 float amplitude = IEEGParameters.MaximumAmplitude - IEEGParameters.MinimumAmplitude;
                 float middle = IEEGValuesForHistogram.Median();
                 IEEGParameters.Middle = middle;
                 IEEGParameters.SpanMin = Mathf.Clamp(middle - 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
                 IEEGParameters.SpanMax = Mathf.Clamp(middle + 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
-            }
-            else
-            {
-                IEEGParameters.Middle = ColumnData.Configuration.Middle;
-                IEEGParameters.SpanMin = ColumnData.Configuration.SpanMin;
-                IEEGParameters.SpanMax = ColumnData.Configuration.SpanMax;
             }
             foreach (Data.Visualization.RegionOfInterest roi in ColumnData.Configuration.RegionsOfInterest)
             {
@@ -590,7 +590,7 @@ namespace HBP.Module3D
                         float val = IEEGValuesBySiteID[jj][t];
                         iEEGHistogramme.Add(val);
 
-                        // update min/max values
+                        //update min/ max values
                         if (val > IEEGParameters.MaximumAmplitude)
                             IEEGParameters.MaximumAmplitude = val;
                         else if (val < IEEGParameters.MinimumAmplitude)
@@ -598,6 +598,15 @@ namespace HBP.Module3D
                     }
                 }
             }
+            //float max = iEEGHistogramme.Max();
+            //float min = iEEGHistogramme.Min();
+            //if(float.IsNaN(max)  || float.IsNaN(min))
+            //{
+            //    max = 0;
+            //    min = 0;
+            //}
+            //IEEGParameters.MaximumAmplitude = max;
+            //IEEGParameters.MinimumAmplitude = min;
             IEEGValuesForHistogram = iEEGHistogramme.ToArray();
         }
         /// <summary>

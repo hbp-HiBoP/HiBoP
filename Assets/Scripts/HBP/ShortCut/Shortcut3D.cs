@@ -6,15 +6,20 @@ using UnityEngine;
 public class Shortcut3D : MonoBehaviour
 {
     enum Direction { Left, Right }
-	
+    const float DELAY = 0.2f;
+    float m_Timer = 0.0f;
+
 	void Update ()
     {
-		if(Input.GetKeyDown(KeyCode.LeftArrow))
+        m_Timer += Time.deltaTime;
+		if((Input.GetKey(KeyCode.LeftArrow) && m_Timer >= DELAY) || Input.GetKeyDown(KeyCode.LeftArrow))
         {
+            m_Timer = 0;
             ChangeSiteSelection(Direction.Left);
         }
-        else if(Input.GetKeyDown(KeyCode.RightArrow))
+        else if((Input.GetKey(KeyCode.RightArrow) && m_Timer >= DELAY) || Input.GetKeyDown(KeyCode.RightArrow))
         {
+            m_Timer = 0;
             ChangeSiteSelection(Direction.Right);
         }
 
