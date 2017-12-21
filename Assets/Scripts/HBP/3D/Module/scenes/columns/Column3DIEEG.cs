@@ -573,25 +573,32 @@ namespace HBP.Module3D
             IEEGParameters.MinimumAmplitude = float.MaxValue;
             IEEGParameters.MaximumAmplitude = float.MinValue;
 
-            IEEGValues = new float[TimelineLength * SitesCount];
-            List<float> histogramValues = new List<float>(TimelineLength * SitesCount);
-            for (int ii = 0; ii < TimelineLength; ++ii)
+            int length = TimelineLength * SitesCount;
+            IEEGValues = new float[length];
+            List<float> iEEGHistogramme = new List<float>();
+            for (int jj = 0; jj < Sites.Count; ++jj)
             {
-                for (int jj = 0; jj < SitesCount; ++jj)
+                for (int ii = 0; ii < TimelineLength; ++ii)
                 {
                     float val = IEEGValuesBySiteID[jj][ii];
-                    IEEGValues[ii * SitesCount + jj] = val;
-                    if (val != 0) histogramValues.Add(val);
+                    IEEGValues[ii * SitesCount + jj] = val;                   
+                }
+                if (!Sites[jj].State.IsMasked)
+                {
+                    for (int t = 0; t < TimelineLength; t++)
+                    {
+                        float val = IEEGValuesBySiteID[jj][t];
+                        iEEGHistogramme.Add(val);
 
-                    // update min/max values
-                    if (IEEGValuesBySiteID[jj][ii] > IEEGParameters.MaximumAmplitude)
-                        IEEGParameters.MaximumAmplitude = IEEGValuesBySiteID[jj][ii];
-
-                    if (IEEGValuesBySiteID[jj][ii] < IEEGParameters.MinimumAmplitude)
-                        IEEGParameters.MinimumAmplitude = IEEGValuesBySiteID[jj][ii];
+                        // update min/max values
+                        if (val > IEEGParameters.MaximumAmplitude)
+                            IEEGParameters.MaximumAmplitude = val;
+                        else if (val < IEEGParameters.MinimumAmplitude)
+                            IEEGParameters.MinimumAmplitude = val;
+                    }
                 }
             }
-            IEEGValuesForHistogram = histogramValues.ToArray();
+            IEEGValuesForHistogram = iEEGHistogramme.ToArray();
         }
         /// <summary>
         /// Specify a new columnData to be associated with the columnd3DView
