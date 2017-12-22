@@ -11,6 +11,7 @@ using System.Collections.ObjectModel;
 using UnityEngine.Events;
 using System.Linq;
 using System;
+using System.IO;
 
 namespace HBP.Module3D
 {
@@ -688,97 +689,94 @@ namespace HBP.Module3D
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
-        /// <summary>
-        /// Retrieve a string containing all the plots states
-        /// </summary>
-        /// <returns></returns>
-        public string SiteStatesIntoString()
+        public void SaveSiteStates(string path)
         {
-            string text = "Plots states\n";
-            int id = 0;
-            for(int ii = 0; ii < SitesGameObjects.Count; ++ii) // patients
+            try
             {
-                text += "n " + Sites[id].Information.PatientID + "\n";
-                for (int jj = 0; jj < SitesGameObjects[ii].Count; ++jj) // electrodes
+                using (StreamWriter sw = new StreamWriter(path))
                 {
-                    text += "e " + jj + "\n";
-                    for (int kk = 0; kk < SitesGameObjects[ii][jj].Count; ++kk, id++) // plots
+                    sw.WriteLine("ID,Excluded,Blacklisted,Highlighted,Marked");
+                    foreach (var site in SiteStateBySiteID)
                     {
-                        string plotGOName = SitesGameObjects[ii][jj][kk].name;
-                        string[] split = plotGOName.Split('_');
-                        text += split[split.Length - 1] + " " + (Sites[id].State.IsExcluded ? 1 : 0) + " " + (Sites[id].State.IsBlackListed ? 1 : 0 ) + " " + (Sites[id].State.IsMasked ? 1 : 0) + " " + (Sites[id].State.IsHighlighted? 1 : 0) + "\n";
+                        sw.WriteLine("{0},{1},{2},{3},{4}", site.Key, site.Value.IsExcluded, site.Value.IsBlackListed, site.Value.IsHighlighted, site.Value.IsMarked);
                     }
                 }
             }
-            
-            return text;
+            catch
+            {
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Can not save site states", "Please verify your rights.");
+            }
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public string OnlySitesInROIIntoString()
+        public void LoadSiteStates(string path)
         {
-            List<bool> sitesInROIPerPatient = new List<bool>(SitesGameObjects.Count);
-            List<List<bool>> sitesInROIPerElectrode = new List<List<bool>>(SitesGameObjects.Count);
-            List<List<List<bool>>> sitesInROIPerPlot = new List<List<List<bool>>>(SitesGameObjects.Count);
-            int id = 0;
-            for (int ii = 0; ii < SitesGameObjects.Count; ++ii)
-            {                
-                bool isInROIP = false;
-                sitesInROIPerPlot.Add(new List<List<bool>>(SitesGameObjects[ii].Count));
-                sitesInROIPerElectrode.Add(new List<bool>(SitesGameObjects[ii].Count));
-                for (int jj = 0; jj < SitesGameObjects[ii].Count; ++jj)
-                {
-                    bool isInROIElec = false;
-                    sitesInROIPerPlot[ii].Add(new List<bool>(SitesGameObjects[ii][jj].Count));
-                    for (int kk = 0; kk < SitesGameObjects[ii][jj].Count; ++kk, ++id)
-                    {
-                        bool inROI = !Sites[id].State.IsOutOfROI;
-                        bool blackList = Sites[id].State.IsBlackListed;
-
-                        bool keep = inROI && !blackList;
-
-                        if (!isInROIElec)
-                            isInROIElec = keep;
-
-                        if (!isInROIP)
-                        {
-                            isInROIP = keep;
-                        }
-
-                        sitesInROIPerPlot[ii][jj].Add(keep);
-                    }
-                    sitesInROIPerElectrode[ii].Add(isInROIElec);
-                }
-                sitesInROIPerPatient.Add(isInROIP);
-            }
-
-            string text = "";
-            id = 0;
-            for (int ii = 0; ii < SitesGameObjects.Count; ++ii) // patients
+            try
             {
-                if (sitesInROIPerPatient[ii])
-                    text += "n " + Sites[id].Information.PatientID + "\n";
-
-                for (int jj = 0; jj < SitesGameObjects[ii].Count; ++jj) // electrodes
+                using (StreamReader sr = new StreamReader(path))
                 {
-                    if (sitesInROIPerElectrode[ii][jj])
-                        text += "e " + jj + "\n";
-
-                    for (int kk = 0; kk < SitesGameObjects[ii][jj].Count; ++kk, id++) // plots
+                    // Find which column of the csv corresponds to which argument
+                    string firstLine = sr.ReadLine();
+                    string[] firstLineSplits = firstLine.Split(',');
+                    int[] indices = new int[5];
+                    for (int i = 0; i < 5; ++i)
                     {
-                        if (sitesInROIPerPlot[ii][jj][kk])
+                        string split = firstLineSplits[i];
+                        indices[i] = split == "ID" ? 0 : split == "Excluded" ? 1 : split == "Blacklisted" ? 2 : split == "Highlighted" ? 3 : split == "Marked" ? 4 : i;
+                    }
+                    // Fill states
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        string[] args = line.Split(',');
+                        SiteState state = new SiteState();
+                        bool stateValue;
+                        if (bool.TryParse(args[indices[1]], out stateValue))
                         {
-                            string plotGOName = SitesGameObjects[ii][jj][kk].name;
-                            string[] split = plotGOName.Split('_');
-                            text += split[split.Length - 1] + " " + (Sites[id].State.IsExcluded ? 1 : 0) + " " + (Sites[id].State.IsBlackListed ? 1 : 0) + " " + (Sites[id].State.IsMasked ? 1 : 0) + " " + (Sites[id].State.IsHighlighted ? 1 : 0) + "\n";
+                            state.IsExcluded = stateValue;
+                        }
+                        else
+                        {
+                            state.IsExcluded = false;
+                        }
+                        if (bool.TryParse(args[indices[2]], out stateValue))
+                        {
+                            state.IsBlackListed = stateValue;
+                        }
+                        else
+                        {
+                            state.IsBlackListed = false;
+                        }
+                        if (bool.TryParse(args[indices[3]], out stateValue))
+                        {
+                            state.IsHighlighted = stateValue;
+                        }
+                        else
+                        {
+                            state.IsHighlighted = false;
+                        }
+                        if (bool.TryParse(args[indices[4]], out stateValue))
+                        {
+                            state.IsMarked = stateValue;
+                        }
+                        else
+                        {
+                            state.IsMarked = false;
+                        }
+                        SiteState existingState;
+                        if (SiteStateBySiteID.TryGetValue(args[indices[0]], out existingState))
+                        {
+                            existingState.ApplyState(state);
+                        }
+                        else
+                        {
+                            SiteStateBySiteID.Add(args[indices[0]], state);
                         }
                     }
                 }
             }
-
-            return text;
+            catch
+            {
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Can not load site states", "Please verify your files and try again.");
+            }
         }
         /// <summary>
         /// 

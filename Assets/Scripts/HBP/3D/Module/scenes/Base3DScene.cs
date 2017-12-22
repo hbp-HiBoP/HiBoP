@@ -1890,6 +1890,24 @@ namespace HBP.Module3D
 
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
+        /// <summary>
+        /// Save site states of selected column
+        /// </summary>
+        /// <param name="path"></param>
+        public void SaveSiteStatesOfSelectedColumn(string path)
+        {
+            m_ColumnManager.SelectedColumn.SaveSiteStates(path);
+        }
+        /// <summary>
+        /// Load site states to selected column
+        /// </summary>
+        /// <param name="path"></param>
+        public void LoadSiteStatesToSelectedColumn(string path)
+        {
+            m_ColumnManager.SelectedColumn.LoadSiteStates(path);
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
+        }
         #endregion
 
         /// <summary>

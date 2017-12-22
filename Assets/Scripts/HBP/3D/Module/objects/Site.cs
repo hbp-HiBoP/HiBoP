@@ -182,10 +182,14 @@ namespace HBP.Module3D
         }
         public void ApplyState(SiteState state)
         {
-            IsExcluded = state.IsExcluded;
-            IsBlackListed = state.IsBlackListed;
-            IsHighlighted = state.IsHighlighted;
-            IsMarked = state.IsMarked;
+            ApplyState(state.IsExcluded, state.IsBlackListed, state.IsHighlighted, state.IsMarked);
+        }
+        public void ApplyState(bool excluded, bool blacklisted, bool highlighted, bool marked)
+        {
+            IsExcluded = excluded;
+            IsBlackListed = blacklisted;
+            IsHighlighted = highlighted;
+            IsMarked = marked;
         }
     }
 
