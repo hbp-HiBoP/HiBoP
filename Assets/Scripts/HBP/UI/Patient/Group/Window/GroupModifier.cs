@@ -33,6 +33,7 @@ namespace HBP.UI.Anatomy
             m_GroupPatientsList.Add(patients);
             m_GroupPatientsList.Select(patients);
             m_projectPatientsCounter.text = m_ProjectPatientsList.ObjectsSelected.Length.ToString();
+            m_groupPatientsCounter.text = m_GroupPatientsList.ObjectsSelected.Length.ToString();
         }
         public void RemovePatients()
 		{
@@ -41,6 +42,7 @@ namespace HBP.UI.Anatomy
             m_GroupPatientsList.Remove(patients);
             m_ProjectPatientsList.Add(patients);
             m_ProjectPatientsList.Select(patients);
+            m_projectPatientsCounter.text = m_ProjectPatientsList.ObjectsSelected.Length.ToString();
             m_groupPatientsCounter.text = m_GroupPatientsList.ObjectsSelected.Length.ToString();
         }
         public override void Close()
