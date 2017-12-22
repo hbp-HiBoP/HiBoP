@@ -2306,6 +2306,20 @@ namespace HBP.Module3D
                 ResetIEEG();
             }              
         }
+        public void ApplySelectedColumnSiteStatesToOtherColumns()
+        {
+            Column3D selectedColumn = m_ColumnManager.SelectedColumn;
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                if (column == selectedColumn) continue;
+                foreach (Site site in column.Sites)
+                {
+                    site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
+                }
+            }
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
+        }
         /// <summary>
         /// Update the sites rendering of all columns
         /// </summary>
