@@ -266,6 +266,7 @@ namespace HBP.Module3D
                 }
                 set
                 {
+                    value = Mathf.Clamp(value, m_MinimumAmplitude, m_Middle);
                     if (m_SpanMin != value)
                     {
                         m_SpanMin = value;
@@ -286,6 +287,7 @@ namespace HBP.Module3D
                 }
                 set
                 {
+                    value = Mathf.Clamp(value, m_SpanMin, m_SpanMax);
                     if (m_Middle != value)
                     {
                         m_Middle = value;
@@ -306,6 +308,7 @@ namespace HBP.Module3D
                 }
                 set
                 {
+                    value = Mathf.Clamp(value, m_Middle, m_MaximumAmplitude);
                     if (m_SpanMax != value)
                     {
                         m_SpanMax = value;
@@ -455,19 +458,19 @@ namespace HBP.Module3D
             IEEGParameters.Gain = ColumnData.Configuration.Gain;
             IEEGParameters.MaximumInfluence = ColumnData.Configuration.MaximumInfluence;
             IEEGParameters.AlphaMin = ColumnData.Configuration.Alpha;
-            if (ColumnData.Configuration.SpanMin == 0 && ColumnData.Configuration.Middle == 0 && ColumnData.Configuration.SpanMax == 0)
+            if(ColumnData.Configuration.SpanMin != 0.0f ||ColumnData.Configuration.Middle != 0.0f ||ColumnData.Configuration.SpanMax != 0.0f)
+            {
+                IEEGParameters.Middle = ColumnData.Configuration.Middle;
+                IEEGParameters.SpanMin = ColumnData.Configuration.SpanMin;
+                IEEGParameters.SpanMax = ColumnData.Configuration.SpanMax;
+            }
+            else
             {
                 float amplitude = IEEGParameters.MaximumAmplitude - IEEGParameters.MinimumAmplitude;
                 float middle = IEEGValuesForHistogram.Median();
                 IEEGParameters.Middle = middle;
                 IEEGParameters.SpanMin = Mathf.Clamp(middle - 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
                 IEEGParameters.SpanMax = Mathf.Clamp(middle + 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
-            }
-            else
-            {
-                IEEGParameters.Middle = ColumnData.Configuration.Middle;
-                IEEGParameters.SpanMin = ColumnData.Configuration.SpanMin;
-                IEEGParameters.SpanMax = ColumnData.Configuration.SpanMax;
             }
             foreach (Data.Visualization.RegionOfInterest roi in ColumnData.Configuration.RegionsOfInterest)
             {
@@ -556,15 +559,24 @@ namespace HBP.Module3D
             IEEGValuesBySiteID = new float[SitesCount][];
             foreach (Site site in Sites)
             {
-                if (ColumnData.Configuration.ConfigurationBySite.ContainsKey(site.Information.FullCorrectedID))
+                Data.Visualization.SiteConfiguration siteConfiguration;
+                if (ColumnData.Configuration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out siteConfiguration))
                 {
-                    Data.Visualization.SiteConfiguration siteConfiguration = ColumnData.Configuration.ConfigurationBySite[site.Information.FullCorrectedID]; // FIXME (Automatic correction)
-                    IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.Values;
-                    site.State.IsMasked = false; // update mask
+                    if (siteConfiguration.Values.Length > 0)
+                    {
+                        IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.NormalizedValues;
+                        site.State.IsMasked = false; // update mask
+                    }
+                    else
+                    {
+                        IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
+                        site.State.IsMasked = true; // update mask
+                    }
                     site.Configuration = siteConfiguration;
                 }
                 else
                 {
+                    ColumnData.Configuration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
                     IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
                     site.State.IsMasked = true; // update mask
                 }
@@ -573,25 +585,41 @@ namespace HBP.Module3D
             IEEGParameters.MinimumAmplitude = float.MaxValue;
             IEEGParameters.MaximumAmplitude = float.MinValue;
 
-            IEEGValues = new float[TimelineLength * SitesCount];
-            List<float> histogramValues = new List<float>(TimelineLength * SitesCount);
-            for (int ii = 0; ii < TimelineLength; ++ii)
+            int length = TimelineLength * SitesCount;
+            IEEGValues = new float[length];
+            List<float> iEEGHistogramme = new List<float>();
+            for (int s = 0; s < Sites.Count; ++s)
             {
-                for (int jj = 0; jj < SitesCount; ++jj)
+                for (int t = 0; t < TimelineLength; ++t)
                 {
-                    float val = IEEGValuesBySiteID[jj][ii];
-                    IEEGValues[ii * SitesCount + jj] = val;
-                    if (val != 0) histogramValues.Add(val);
+                    float val = IEEGValuesBySiteID[s][t];
+                    IEEGValues[t * SitesCount + s] = val;                   
+                }
+                if (!Sites[s].State.IsMasked)
+                {
+                    for (int t = 0; t < TimelineLength; ++t)
+                    {
+                        float val = IEEGValuesBySiteID[s][t];
+                        iEEGHistogramme.Add(val);
 
-                    // update min/max values
-                    if (IEEGValuesBySiteID[jj][ii] > IEEGParameters.MaximumAmplitude)
-                        IEEGParameters.MaximumAmplitude = IEEGValuesBySiteID[jj][ii];
-
-                    if (IEEGValuesBySiteID[jj][ii] < IEEGParameters.MinimumAmplitude)
-                        IEEGParameters.MinimumAmplitude = IEEGValuesBySiteID[jj][ii];
+                        //update min/ max values
+                        if (val > IEEGParameters.MaximumAmplitude)
+                            IEEGParameters.MaximumAmplitude = val;
+                        else if (val < IEEGParameters.MinimumAmplitude)
+                            IEEGParameters.MinimumAmplitude = val;
+                    }
                 }
             }
-            IEEGValuesForHistogram = histogramValues.ToArray();
+            //float max = iEEGHistogramme.Max();
+            //float min = iEEGHistogramme.Min();
+            //if(float.IsNaN(max)  || float.IsNaN(min))
+            //{
+            //    max = 0;
+            //    min = 0;
+            //}
+            //IEEGParameters.MaximumAmplitude = max;
+            //IEEGParameters.MinimumAmplitude = min;
+            IEEGValuesForHistogram = iEEGHistogramme.ToArray();
         }
         /// <summary>
         /// Specify a new columnData to be associated with the columnd3DView

@@ -50,7 +50,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {
-            if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
+            if (type == Toolbar.UpdateToolbarType.Column)
             {
                 HBP.Module3D.Column3D selectedColumn = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
                 if (selectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)

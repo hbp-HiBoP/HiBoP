@@ -45,10 +45,6 @@ namespace HBP.Module3D
                 return Visualization.Patients[0];
             }
         }
-        /// <summary>
-        /// CCEP Labels
-        /// </summary>
-        private List<string> CCEPLabels = null;
         #endregion
 
         #region Coroutines

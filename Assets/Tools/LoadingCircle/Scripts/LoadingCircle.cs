@@ -40,6 +40,7 @@ public class LoadingCircle : MonoBehaviour
         }
     }
     bool loading;
+    Sprite[] m_Sprites;
 
     [SerializeField]
     Text m_LoadingEffectText;
@@ -124,6 +125,15 @@ public class LoadingCircle : MonoBehaviour
     #endregion
 
     #region Private Methods
+    private void Awake()
+    {
+        m_Sprites = new Sprite[101];
+        for (int i = 0; i < 101; ++i)
+        {
+            string path = "BrainAnim" + System.IO.Path.DirectorySeparatorChar + i;
+            m_Sprites[i] = Resources.Load<Sprite>(path) as Sprite;
+        }
+    }
     void LateUpdate()
     {
         if (!loading && m_LoadingEffectText.gameObject.activeSelf) m_TextCoroutine = StartCoroutine(c_Load());
@@ -133,11 +143,9 @@ public class LoadingCircle : MonoBehaviour
     {
         if(m_Progress != m_LastProgress)
         {
-            int percentage = Mathf.FloorToInt(m_Progress * 100.0f);
+            int percentage = Mathf.Min(Mathf.FloorToInt(m_Progress * 100.0f),100);
             transform.GetChild(1).GetComponent<Image>().fillAmount = m_Progress;
-            string path = "BrainAnim" + System.IO.Path.DirectorySeparatorChar + percentage;
-            Sprite sprite = Resources.Load<Sprite>(path) as Sprite;
-            transform.GetChild(2).GetComponent<Image>().sprite = sprite;
+            transform.GetChild(2).GetComponent<Image>().sprite = m_Sprites[percentage];
             m_LastProgress = m_Progress;
         }
         if (m_Text != m_LastText)

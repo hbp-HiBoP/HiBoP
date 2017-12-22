@@ -167,14 +167,68 @@ namespace HBP.Data.Localizer
             switch (valueAveragingMode)
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:
-                    for (int s = 0; s < siteLength; s++) result.ValuesBySite.Add(sites[s], (from elmt in valuesBySite[s] select elmt.Mean()).ToArray());
-                    for (int s = 0; s < siteLength; s++) result.BaselineValuesBySite.Add(sites[s], (from elmt in baselineValuesBySite[s] select elmt.Mean()).ToArray());
-                    for (int s = 0; s < siteLength; s++) result.NormalizedValuesBySite.Add(sites[s], (from elmt in normalizedValuesBySite[s] select elmt.Mean()).ToArray());
+                    for (int s = 0; s < siteLength; s++)
+                    {
+                        float[][] valbysite = valuesBySite[s];
+                        float[] val = new float[valbysite.Length];
+                        for (int b = 0; b < valbysite.Length; ++b)
+                        {
+                            val[b] = valbysite[b].Mean();
+                        }
+                        result.ValuesBySite.Add(sites[s], val);
+                    }
+                    for (int s = 0; s < siteLength; s++)
+                    {
+                        float[][] valbysite = baselineValuesBySite[s];
+                        float[] val = new float[valbysite.Length];
+                        for (int b = 0; b < valbysite.Length; ++b)
+                        {
+                            val[b] = valbysite[b].Mean();
+                        }
+                        result.BaselineValuesBySite.Add(sites[s], val);
+                    }
+                    for (int s = 0; s < siteLength; s++)
+                    {
+                        float[][] valbysite = normalizedValuesBySite[s];
+                        float[] val = new float[valbysite.Length];
+                        for (int b = 0; b < valbysite.Length; ++b)
+                        {
+                            val[b] = valbysite[b].Mean();
+                        }
+                        result.NormalizedValuesBySite.Add(sites[s], val);
+                    }
                     break;
                 case Settings.GeneralSettings.AveragingMode.Median:
-                    for (int s = 0; s < siteLength; s++) result.ValuesBySite.Add(sites[s], (from elmt in valuesBySite[s] select elmt.Median()).ToArray());
-                    for (int s = 0; s < siteLength; s++) result.BaselineValuesBySite.Add(sites[s], (from elmt in baselineValuesBySite[s] select elmt.Median()).ToArray());
-                    for (int s = 0; s < siteLength; s++) result.NormalizedValuesBySite.Add(sites[s], (from elmt in normalizedValuesBySite[s] select elmt.Median()).ToArray());
+                    for (int s = 0; s < siteLength; s++)
+                    {
+                        float[][] valbysite = valuesBySite[s];
+                        float[] val = new float[valbysite.Length];
+                        for (int b = 0; b < valbysite.Length; ++b)
+                        {
+                            val[b] = valbysite[b].Median();
+                        }
+                        result.ValuesBySite.Add(sites[s], val);
+                    }
+                    for (int s = 0; s < siteLength; s++)
+                    {
+                        float[][] valbysite = baselineValuesBySite[s];
+                        float[] val = new float[valbysite.Length];
+                        for (int b = 0; b < valbysite.Length; ++b)
+                        {
+                            val[b] = valbysite[b].Median();
+                        }
+                        result.BaselineValuesBySite.Add(sites[s], val);
+                    }
+                    for (int s = 0; s < siteLength; s++)
+                    {
+                        float[][] valbysite = normalizedValuesBySite[s];
+                        float[] val = new float[valbysite.Length];
+                        for (int b = 0; b < valbysite.Length; ++b)
+                        {
+                            val[b] = valbysite[b].Median();
+                        }
+                        result.NormalizedValuesBySite.Add(sites[s], val);
+                    }
                     break;
             }
             return result;		

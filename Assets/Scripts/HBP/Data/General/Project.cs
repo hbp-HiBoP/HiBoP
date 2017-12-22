@@ -398,7 +398,7 @@ namespace HBP.Data.General
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_CheckDatasets(OnChangeProgress));
             
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(1, 0, "Project succesfully loaded.");
+            OnChangeProgress.Invoke(2, 0, "Project succesfully loaded.");
         }
         public IEnumerator c_Save(string path, GenericEvent<float, float, string> OnChangeProgress = null)
         {
@@ -607,9 +607,9 @@ namespace HBP.Data.General
         IEnumerator c_CheckDatasets(GenericEvent<float, float, string> OnChangeProgress)
         {
             yield return Ninja.JumpBack;
-            int count = 0;
+            int count = 1;
             int length = m_Datasets.SelectMany(d => d.Data).Count();
-            float progress = 0.0f;
+            float progress = 1.0f;
             float progressStep = 1.0f / length;
             for (int i = 0; i < m_Datasets.Count; ++i)
             {

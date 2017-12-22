@@ -188,6 +188,10 @@ namespace HBP.Module3D
         /// Event called when requesting an update in the UI
         /// </summary>
         public UnityEvent OnRequestUpdateInUI = new UnityEvent();
+        /// <summary>
+        /// Event called when reseting the IEEG of a scene
+        /// </summary>
+        public UnityEvent OnResetIEEG = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -238,8 +242,11 @@ namespace HBP.Module3D
         /// <param name="visualization"></param>
         public void RemoveScene(Data.Visualization.Visualization visualization)
         {
-            Base3DScene scene = m_ScenesManager.Scenes.ToList().Find(s => s.Visualization == visualization);
-            m_ScenesManager.RemoveScene(scene);
+            Base3DScene[] scenes = m_ScenesManager.Scenes.Where(s => s.Visualization == visualization).ToArray();
+            foreach (var scene in scenes)
+            {
+                m_ScenesManager.RemoveScene(scene);
+            }
         }
         /// <summary>
         /// Remove a visualization and its associated scene
@@ -256,12 +263,12 @@ namespace HBP.Module3D
         /// <param name="patient"></param>
         public void LoadSinglePatientSceneFromMultiPatientScene(Data.Visualization.Visualization visualization, Data.Patient patient)
         {
-            m_ScenesManager.Scenes.First(s => s.Visualization == visualization).SaveConfiguration();
+            m_ScenesManager.Scenes.FirstOrDefault(s => s.Visualization == visualization).SaveConfiguration();
             Data.Visualization.Visualization visualizationToLoad = visualization.Clone() as Data.Visualization.Visualization;
             visualizationToLoad.Name = patient.Name;
             visualizationToLoad.RemoveAllPatients();
             visualizationToLoad.AddPatient(patient);
-            if (patient.Brain.Meshes.First(m => m.Name == "Grey matter") != null)
+            if (patient.Brain.Meshes.FirstOrDefault(m => m.Name == "Grey matter") != null)
             {
                 visualizationToLoad.Configuration.MeshName = "Grey matter";
             }
@@ -269,7 +276,7 @@ namespace HBP.Module3D
             {
                 visualizationToLoad.Configuration.MeshName = patient.Brain.Meshes.First().Name;
             }
-            if (patient.Brain.MRIs.First(m => m.Name == "Preimplantation") != null)
+            if (patient.Brain.MRIs.FirstOrDefault(m => m.Name == "Preimplantation") != null)
             {
                 visualizationToLoad.Configuration.MRIName = "Preimplantation";
             }
@@ -277,7 +284,7 @@ namespace HBP.Module3D
             {
                 visualizationToLoad.Configuration.MRIName = patient.Brain.MRIs.First().Name;
             }
-            if (patient.Brain.Implantations.First(m => m.Name == "Patient") != null)
+            if (patient.Brain.Implantations.FirstOrDefault(m => m.Name == "Patient") != null)
             {
                 visualizationToLoad.Configuration.ImplantationName = "Patient";
             }
@@ -314,7 +321,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Coroutines
-        IEnumerator c_Load(IEnumerable<Data.Visualization.Visualization> visualizations)
+        public IEnumerator c_Load(IEnumerable<Data.Visualization.Visualization> visualizations)
         {
             foreach (Data.Visualization.Visualization visualization in visualizations)
             {

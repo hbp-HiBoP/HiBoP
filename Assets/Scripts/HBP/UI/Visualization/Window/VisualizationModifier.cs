@@ -27,6 +27,22 @@ namespace HBP.UI.Visualization
         #endregion
 
         #region Public Methods
+        public override void Save()
+        {
+            if (Item.IsOpen)
+            {
+                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already open", "The visualization you are trying to modify is already open. This visualization needs to be closed before saving the changes.\n\nWould you like to close it and save the changes ?", () =>
+                {
+                    ApplicationState.Module3D.RemoveScene(Item);
+                    base.Save();
+                },
+                "Close & Save");
+            }
+            else
+            {
+                base.Save();
+            }
+        }
         public override void Close()
         {
             foreach (var modifier in m_PatientModifiers.ToArray()) modifier.Close();

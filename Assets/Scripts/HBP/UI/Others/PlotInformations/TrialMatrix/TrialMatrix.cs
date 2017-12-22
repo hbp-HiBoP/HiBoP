@@ -5,60 +5,78 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using d = HBP.Data.TrialMatrix;
 using UnityEngine.Profiling;
+using UnityEngine.Events;
 
 namespace HBP.UI.TrialMatrix
 {
     public class TrialMatrix : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        GameObject linePrefab;
-        [SerializeField]
-        Texture2D colorMap;
+        [SerializeField] GameObject linePrefab;
+        [SerializeField] Texture2D colorMap;
 
-        Text title;
-        ValuesLegend valuesLegend;
-        TimeLegend timeLegend;
-        RectTransform linesRect;
+        Text m_Title;
+        ValuesLegend m_ValuesLegend;
+        TimeLegend m_TimeLegend;
+        RectTransform m_LinesRect;
 
-        d.TrialMatrix data;
+        d.TrialMatrix m_Data;
         public d.TrialMatrix Data
         {
-            get { return data; }
+            get { return m_Data; }
         }
 
-        Vector2 limits;
+        Vector2 m_Limits;
         public Vector2 Limits
         {
-            get { return limits; }
+            get { return m_Limits; }
+            set
+            {
+                m_Limits = value;
+                m_ValuesLegend.Set(colorMap, m_Limits, 5);
+                foreach (Line line in Lines)
+                {
+                    foreach (Bloc bloc in line.Blocs)
+                    {
+                        bloc.UpdateLimits(m_Limits);
+                    }
+                }
+            }
         }
 
-        List<Line> lines = new List<Line>();
+        bool m_AutoLimits;
+        public bool AutoLimits
+        {
+            get { return m_AutoLimits; }
+            set { m_AutoLimits = value; }
+        }
+
+        List<Line> m_Lines = new List<Line>();
         public ReadOnlyCollection<Line> Lines
         {
-            get { return new ReadOnlyCollection<Line>(lines); }
+            get { return new ReadOnlyCollection<Line>(m_Lines); }
         }
+
+        public GenericEvent<Vector2> OnChangeLimits { get { return m_ValuesLegend.OnChangeLimits; } }
+        public GenericEvent<bool> OnAutoLimits { get { return m_ValuesLegend.OnAutoLimits; } }
         #endregion
 
         #region Public Methods
-        public void Set(d.TrialMatrix trialMatrix)
+        public void Set(d.TrialMatrix trialMatrix, bool autoLimits, Vector2 limits)
         {
-            data = trialMatrix;
-            limits = trialMatrix.ValuesLimits;
-            title.text = trialMatrix.Title;
+            m_Data = trialMatrix;
+            m_AutoLimits = autoLimits;
+            if(autoLimits) Limits = trialMatrix.Limits;
+            else Limits = limits;
+            m_Title.text = trialMatrix.Title;
 
             //Organize array
-            Profiler.BeginSample("A");
             d.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.ProtocolBloc.Position.Row).ThenBy(t => t.ProtocolBloc.Position.Column).ToArray();
-            Profiler.EndSample();
 
             // Set Legends
-            Profiler.BeginSample("B");
-            SetLegends(trialMatrix.ValuesLimits, trialMatrix.TimeLimitsByColumn);
-            Profiler.EndSample();
+            SetLegends(Limits, trialMatrix.TimeLimitsByColumn);
 
             //Separate blocs by line
-            Profiler.BeginSample("FindLine");
             List<d.Bloc[]> l_lines = new List<d.Bloc[]>();
             foreach (var bloc in l_blocs)
             {
@@ -78,21 +96,17 @@ namespace HBP.UI.TrialMatrix
                         maxBlocByRow = max;
                     }
             }
-            Profiler.EndSample();
 
             //Generate Line
-            Profiler.BeginSample("D");
             for (int i = 0; i < l_lines.Count; i++)
             {
-                AddLine(l_lines[i], maxBlocByRow, colorMap, trialMatrix.ValuesLimits);
+                AddLine(l_lines[i], maxBlocByRow, colorMap, Limits);
             }
             SelectAllLines();
-            valuesLegend.onUpdateLimits.AddListener((l) => UpdateLimites(l));
-            Profiler.EndSample();
         }
         public void SelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc,bool additive)
         {
-            foreach(Line line in this.lines)
+            foreach(Line line in this.m_Lines)
             {
                 line.SelectLines(lines, bloc, additive);
             }
@@ -114,40 +128,25 @@ namespace HBP.UI.TrialMatrix
         #region Private Methods
         void Awake()
         {
-            title = transform.Find("Title").Find("Text").GetComponent<Text>();
-            valuesLegend = transform.Find("Body").Find("ValuesLegend").GetComponent<ValuesLegend>();
-            timeLegend = transform.Find("Body").Find("Main").Find("TimeLegend").GetComponent<TimeLegend>();
-            linesRect = transform.Find("Body").Find("Main").Find("Lines").GetComponent<RectTransform>();
-        }
-        void UpdateLimites(Vector2 limits)
-        {
-            this.limits = limits;
-
-            // Set Legends
-            valuesLegend.Set(colorMap, limits, 5);
-
-            foreach (Line line in Lines)
-            {
-                foreach (Bloc bloc in line.Blocs)
-                {
-                    bloc.UpdateLimits(limits);
-                }
-            }
+            m_Title = transform.Find("Title").Find("Text").GetComponent<Text>();
+            m_ValuesLegend = transform.Find("Body").Find("ValuesLegend").GetComponent<ValuesLegend>();
+            m_TimeLegend = transform.Find("Body").Find("Main").Find("TimeLegend").GetComponent<TimeLegend>();
+            m_LinesRect = transform.Find("Body").Find("Main").Find("Lines").GetComponent<RectTransform>();
         }
         void AddLine(d.Bloc[] blocsInLine,int max,Texture2D colorMap,Vector2 limits)
         {
-            Line lines = (Instantiate(linePrefab, linesRect) as GameObject).GetComponent<Line>();
+            Line lines = (Instantiate(linePrefab, m_LinesRect) as GameObject).GetComponent<Line>();
             lines.Initialize();
             lines.Set(blocsInLine,max, colorMap,limits);
-            this.lines.Add(lines);
+            this.m_Lines.Add(lines);
         }
         void SetLegends(Vector2 valueslimits,Vector2[] timeLimitsByColumn)
         {
             Profiler.BeginSample("set values");
-            valuesLegend.Set(colorMap, valueslimits,5);
+            m_ValuesLegend.Set(colorMap, valueslimits,5);
             Profiler.EndSample();
             Profiler.BeginSample("set time");
-            timeLegend.Set(timeLimitsByColumn);
+            m_TimeLegend.Set(timeLimitsByColumn);
             Profiler.EndSample();
         }
         #endregion

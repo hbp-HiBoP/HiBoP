@@ -40,6 +40,21 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.BlacklistedSitesDisplay m_BlacklistedSitesDisplay;
+        /// <summary>
+        /// Show every site and their state
+        /// </summary>
+        [SerializeField]
+        private Tools.SiteListDisplayer m_SiteList;
+        /// <summary>
+        /// Copy the state of the sites to other columns
+        /// </summary>
+        [SerializeField]
+        private Tools.SiteStateCopy m_SiteStateCopy;
+        /// <summary>
+        /// Copy the state of the sites to other columns
+        /// </summary>
+        [SerializeField]
+        private Tools.SiteStateExport m_SiteStateExport;
         #endregion
 
         #region Private Methods
@@ -55,6 +70,9 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_LoadPatient);
             m_Tools.Add(m_SiteModifier);
             m_Tools.Add(m_BlacklistedSitesDisplay);
+            m_Tools.Add(m_SiteList);
+            m_Tools.Add(m_SiteStateCopy);
+            m_Tools.Add(m_SiteStateExport);
         }
         #endregion
     }

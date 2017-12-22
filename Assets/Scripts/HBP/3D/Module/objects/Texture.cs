@@ -241,7 +241,6 @@ namespace HBP.Module3D
 
                     ++currCut;
                 }
-
                 copy_from_and_rotate_Texture(_handle, texture.getHandle(), orientation, flip ? 1 : 0, displayCutLines ? 1 : 0, nbPlanes, planes, generator.getHandle());
                 UpdateSizes();
             }

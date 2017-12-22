@@ -31,8 +31,8 @@ namespace HBP.UI
         }
         #endregion
 
-        #region Private Methods
-        IEnumerator c_Load(ProjectInfo info)
+        #region Coroutines
+        public IEnumerator c_Load(ProjectInfo info)
         {
             Project oldProject = ApplicationState.ProjectLoaded;
             Project project = new Project();
@@ -40,7 +40,7 @@ namespace HBP.UI
             yield return Ninja.JumpToUnity;
             LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
             GenericEvent<float, float, string> onChangeProgress = new GenericEvent<float, float, string>();
-            onChangeProgress.AddListener((progress,time,message) => loadingCircle.ChangePercentage(progress, time, message));
+            onChangeProgress.AddListener((progress,time,message) => loadingCircle.ChangePercentage(progress / 2.0f, time, message));
             Task loadingTask;
             yield return this.StartCoroutineAsync(project.c_Load(info, onChangeProgress), out loadingTask);
             switch (loadingTask.State)

@@ -9,6 +9,7 @@ using HBP.Data.Experience.Protocol;
 using Tools.Unity.Graph;
 using UnityEngine.Events;
 using Tools.CSharp;
+using UnityEngine.UI;
 
 namespace HBP.UI.Graph
 {
@@ -26,16 +27,21 @@ namespace HBP.UI.Graph
                 m_Scene.OnRequestSiteInformation.AddListener(OnRequestSiteInformation);
                 m_Scene.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumns);
                 m_Scene.OnUpdateROI.AddListener(OnUpdateROI);
+                foreach (var protocol in (from column in m_Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Protocol).Distinct())
+                {
+                    m_AutoLimitsByProtocol[protocol] = true;
+                    m_LimitsByProtocol[protocol] = new Vector2();
+                }
             }
         }
 
         // Minimize handling
         public const float MINIMIZED_THRESHOLD = 200.0f;
         bool m_RectTransformChanged;
-        [SerializeField]
-        RectTransform m_RectTransform;
-        [SerializeField]
-        GameObject m_MinimizedGameObject;
+        [SerializeField] RectTransform m_RectTransform;
+        [SerializeField] GameObject m_MinimizedGameObject;
+        [SerializeField] Button m_MinimizeButton;
+        [SerializeField] Button m_ExpandButton;
         Tools.Unity.ResizableGrid.ResizableGrid m_ParentGrid;
         /// <summary>
         /// Is the column minimzed ?
@@ -48,10 +54,12 @@ namespace HBP.UI.Graph
             }
         }
         public UnityEvent OnOpenGraphsWindow = new UnityEvent();
+        public UnityEvent OnCloseGraphsWindow = new UnityEvent();
 
         // Trial matrix
         [SerializeField] TrialMatrixList m_TrialMatrixList;
         Dictionary<Protocol, Vector2> m_LimitsByProtocol = new Dictionary<Protocol, Vector2>();
+        Dictionary<Protocol, bool> m_AutoLimitsByProtocol = new Dictionary<Protocol, bool>();
         Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>> m_TrialMatrixByProtocolBySite = new Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>>();
         bool m_LineSelectable = false;
 
@@ -133,6 +141,29 @@ namespace HBP.UI.Graph
         private void Awake()
         {
             m_ParentGrid = GetComponentInParent<Tools.Unity.ResizableGrid.ResizableGrid>();
+            m_MinimizeButton.onClick.AddListener(OnCloseGraphsWindow.Invoke);
+            m_ExpandButton.onClick.AddListener(OnOpenGraphsWindow.Invoke);
+            m_TrialMatrixList.OnAutoLimits.RemoveAllListeners();
+            m_TrialMatrixList.OnAutoLimits.AddListener((autoLimits, protocol) =>
+            {
+                m_AutoLimitsByProtocol[protocol] = autoLimits;
+                if(autoLimits)
+                {
+                    foreach (var trial in m_TrialMatrixList.TrialMatrix)
+                    {
+                        trial.Limits = trial.Data.Limits;
+                    }
+                }
+                else
+                {
+                    foreach (var trial in m_TrialMatrixList.TrialMatrix)
+                    {
+                        trial.Limits = m_LimitsByProtocol[trial.Data.Protocol];
+                    }
+                }
+            });
+            m_TrialMatrixList.OnChangeLimits.RemoveAllListeners();
+            m_TrialMatrixList.OnChangeLimits.AddListener((limits, protocol) => m_LimitsByProtocol[protocol] = limits);
         }
         private void Update()
         {
@@ -142,41 +173,23 @@ namespace HBP.UI.Graph
                 m_RectTransformChanged = false;
             }
         }
+
         // Trial matrix
         void GenerateTrialMatrix()
         {
-            UnityEngine.Profiling.Profiler.BeginSample("GenerateTrialMatrix()");
-
-            // Save value
-            UnityEngine.Profiling.Profiler.BeginSample("Save value");
-            m_LimitsByProtocol = new Dictionary<Protocol, Vector2>();
-            foreach (TrialMatrix.TrialMatrix trialMatrix in m_TrialMatrixList.TrialMatrix)
-            {
-                m_LimitsByProtocol[trialMatrix.Data.Protocol] = trialMatrix.Limits;
-            }
-            UnityEngine.Profiling.Profiler.EndSample();
-
             // Find protocols to display
-            UnityEngine.Profiling.Profiler.BeginSample("Find Protocols");
             IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Protocol).Distinct();
-            UnityEngine.Profiling.Profiler.EndSample();
 
             // Generate trialMatrix and create the dictionary
-            UnityEngine.Profiling.Profiler.BeginSample("Generate");
             Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>> trialMatrixByProtocol = new Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>>();
             foreach (Protocol protocol in protocols)
             {
-                UnityEngine.Profiling.Profiler.BeginSample("new TrialMatrix array");
                 Column column = Scene.ColumnManager.ColumnsIEEG.First(c => c.ColumnData.Protocol == protocol).ColumnData;
                 Dictionary<Site, Data.TrialMatrix.TrialMatrix> trialMatrixData = new Dictionary<Site, Data.TrialMatrix.TrialMatrix>();
-                UnityEngine.Profiling.Profiler.EndSample();
 
-                UnityEngine.Profiling.Profiler.BeginSample("Find DataInfoBySite");
                 Dictionary<Site, DataInfo> dataInfoBySite = m_Sites.ToDictionary(s => s, s => Scene.Visualization.GetDataInfo(s.Information.Patient, column));
                 IEnumerable<DataInfo> dataInfoToRead = dataInfoBySite.Values.Distinct();
-                UnityEngine.Profiling.Profiler.EndSample();
 
-                UnityEngine.Profiling.Profiler.BeginSample("GetData from Manager");
                 Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>> epochedBlocsByProtocolBlocByDataInfo = new Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>>();
                 foreach (var data in dataInfoToRead)
                 {
@@ -187,28 +200,23 @@ namespace HBP.UI.Graph
                     }
                     epochedBlocsByProtocolBlocByDataInfo.Add(data, epochedBlocsByProtocolBloc);
                 }
-                UnityEngine.Profiling.Profiler.EndSample();
 
-                UnityEngine.Profiling.Profiler.BeginSample("new TrialMatrix");
                 foreach (var site in m_Sites)
                 {
-                    trialMatrixData[site] = new Data.TrialMatrix.TrialMatrix(protocol, dataInfoBySite[site], epochedBlocsByProtocolBlocByDataInfo[dataInfoBySite[site]], site, Scene);
+                    Data.TrialMatrix.TrialMatrix trialMatrix = new Data.TrialMatrix.TrialMatrix(protocol, dataInfoBySite[site], epochedBlocsByProtocolBlocByDataInfo[dataInfoBySite[site]], site, Scene);
+                    trialMatrixData[site] = trialMatrix;
                 }
                 trialMatrixByProtocol.Add(protocol, trialMatrixData);
-                UnityEngine.Profiling.Profiler.EndSample();
             }
             m_TrialMatrixByProtocolBySite = trialMatrixByProtocol;
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.EndSample();
         }
         void DisplayTrialMatrix()
         {
-            UnityEngine.Profiling.Profiler.BeginSample("DisplayTrialMatrix()");
             IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG where !column.IsMinimized select column.ColumnData.Protocol).Distinct();
             Data.TrialMatrix.TrialMatrix[][] trialMatrix = m_TrialMatrixByProtocolBySite.Where(m => protocols.Contains(m.Key)).Select(m => m.Value.Values.ToArray()).ToArray();
-            m_TrialMatrixList.Set(trialMatrix);
-            UnityEngine.Profiling.Profiler.EndSample();
+            m_TrialMatrixList.Set(trialMatrix,m_AutoLimitsByProtocol,m_LimitsByProtocol);
         }
+
         // Curves
         void GenerateCurves()
         {
@@ -223,7 +231,8 @@ namespace HBP.UI.Graph
                 {
                     Site site = m_Sites[s];
                     Data.TrialMatrix.TrialMatrix trialMatrixData = m_TrialMatrixByProtocolBySite[column.Protocol][site];
-                    TrialMatrix.TrialMatrix trialMatrix = m_TrialMatrixList.TrialMatrix.First((t) => t.Data == trialMatrixData);
+                    TrialMatrix.TrialMatrix trialMatrix = m_TrialMatrixList.TrialMatrix.FirstOrDefault((t) => t.Data == trialMatrixData);
+                    if (trialMatrix == null) continue;
                     TrialMatrix.Bloc trialMatrixBloc = null;
                     foreach (var line in trialMatrix.Lines)
                     {
@@ -292,7 +301,7 @@ namespace HBP.UI.Graph
                         }
 
                         //Create curve
-                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name + "_" + c, points, GetCurveColor(c,s),1.5f);
+                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, "C" + c + "_" + column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name, points, GetCurveColor(c,s),1.5f);
                     }
                     else continue;
                 }
@@ -361,6 +370,7 @@ namespace HBP.UI.Graph
             }
             UnityEngine.Profiling.Profiler.EndSample();
         }
+
         Color GetCurveColor(int column,int site)
         {
             ColumnColor columnColor = m_Colors[column];

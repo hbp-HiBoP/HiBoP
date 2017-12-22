@@ -560,6 +560,10 @@ namespace HBP.Module3D
         /// Event called when reseting the view positions in the UI
         /// </summary>
         public UnityEvent OnResetViewPositions = new UnityEvent();
+        /// <summary>
+        /// Event called when progressing in updating generator.
+        /// </summary>
+        public GenericEvent<float, float, string> OnProgressUpdateGenerator = new GenericEvent<float, float, string>();
 
         /// <summary>
         /// Event for updating the planes cuts display in the cameras
@@ -626,7 +630,7 @@ namespace HBP.Module3D
                 UpdateGeometry();
             }
 
-            if (m_GeneratorNeedsUpdate)
+            if (m_GeneratorNeedsUpdate && ApplicationState.GeneralSettings.AutoTriggerIEEG)
             {
                 UpdateGenerator();
             }
@@ -1168,6 +1172,7 @@ namespace HBP.Module3D
             m_GeneratorNeedsUpdate = true;
             UpdateGUITextures();
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ApplicationState.Module3D.OnResetIEEG.Invoke();
         }
         /// <summary>
         /// Generate the split number regarding all meshes
@@ -1734,6 +1739,7 @@ namespace HBP.Module3D
             UpdateGUITextures();
             UpdateGeometry();
             LoadConfiguration();
+            m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
             SceneInformation.IsSceneInitialized = true;
         }
         /// <summary>
@@ -1885,6 +1891,24 @@ namespace HBP.Module3D
             }
 
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+        }
+        /// <summary>
+        /// Save site states of selected column
+        /// </summary>
+        /// <param name="path"></param>
+        public void SaveSiteStatesOfSelectedColumn(string path)
+        {
+            m_ColumnManager.SelectedColumn.SaveSiteStates(path);
+        }
+        /// <summary>
+        /// Load site states to selected column
+        /// </summary>
+        /// <param name="path"></param>
+        public void LoadSiteStatesToSelectedColumn(string path)
+        {
+            m_ColumnManager.SelectedColumn.LoadSiteStates(path);
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
         }
         #endregion
 
@@ -2302,6 +2326,20 @@ namespace HBP.Module3D
                 ResetIEEG();
             }              
         }
+        public void ApplySelectedColumnSiteStatesToOtherColumns()
+        {
+            Column3D selectedColumn = m_ColumnManager.SelectedColumn;
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                if (column == selectedColumn) continue;
+                foreach (Site site in column.Sites)
+                {
+                    site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
+                }
+            }
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
+        }
         /// <summary>
         /// Update the sites rendering of all columns
         /// </summary>
@@ -2646,6 +2684,8 @@ namespace HBP.Module3D
         }
         private IEnumerator c_LoadIEEG()
         {
+            yield return Ninja.JumpToUnity;
+            OnProgressUpdateGenerator.Invoke(0, 0, "Copy from main generators");
             yield return Ninja.JumpBack;
             bool useMultiCPU = true;
             bool addValues = false;
@@ -2664,7 +2704,11 @@ namespace HBP.Module3D
             
             // Do your threaded task
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-            {                    
+            {
+                yield return Ninja.JumpToUnity;
+                OnProgressUpdateGenerator.Invoke((float)(ii + 1) / (m_ColumnManager.ColumnsIEEG.Count), 0.5f, "Loading column n°" + (ii + 1).ToString());
+                yield return Ninja.JumpBack;
+
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
                 float maxDensity = 1;
 
@@ -2749,6 +2793,9 @@ namespace HBP.Module3D
                 }
             }
             yield return Ninja.JumpToUnity;
+            OnProgressUpdateGenerator.Invoke(1.0f, 0.0f, "Finalizing");
+            yield return Ninja.JumpBack;
+            yield return new WaitForSeconds(0.1f);
         }
         /// <summary>
         /// Reset the volume of the scene
@@ -2841,7 +2888,7 @@ namespace HBP.Module3D
             // update columns names
             for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
             {
-                m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].DisplayLabel;
+                m_ColumnManager.ColumnsIEEG[ii].Label = "[C" + (ii + 1).ToString() + "] " + Visualization.Columns[ii].DisplayLabel;
             }
 
             // set timelines

@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using HBP.Data.Anatomy;
-using System;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -26,10 +24,6 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public Dictionary<string,float[]> ValuesBySite { get; set; }
         /// <summary>
-        /// Plot mask : \a True if masked and \a false otherwise.
-        /// </summary>
-        public Dictionary<string,bool> MaskBySite { get; set; }
-        /// <summary>
         /// POS file which containts plot anatomy informations.
         /// </summary>
         public Localizer.POS POS { get; set; }
@@ -47,7 +41,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new Data instance with default values.
         /// </summary>
-        public Data(): this(new Dictionary < string, float[] >(), new Dictionary < string, bool >(), new Localizer.POS(), 0, new Patient())
+        public Data(): this(new Dictionary < string, float[] >(), new Localizer.POS(), 0, new Patient())
         {
         }
         /// <summary>
@@ -58,10 +52,9 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="pos">POS file.</param>
         /// <param name="frequency">Values frequency.</param>
         /// <param name="patient">Patient.</param>
-        public Data(Dictionary<string,float[]> valuesBySite, Dictionary<string, bool> maskBySite, Localizer.POS pos, float frequency, Patient patient)
+        public Data(Dictionary<string,float[]> valuesBySite, Localizer.POS pos, float frequency, Patient patient)
         {
             ValuesBySite = valuesBySite;
-            MaskBySite = maskBySite;
             POS = pos;
             Frequency = frequency;
             Patient = patient;
@@ -82,7 +75,6 @@ namespace HBP.Data.Experience.Dataset
                 if (track.Channel >= 0 && track.Measure >= 0)
                 {
                     ValuesBySite.Add(info.Patient.ID + "_" + channel.Label, elanFile.EEG.GetFloatData(track)); // fixme
-                    MaskBySite.Add(channel.Label, false);
                 }
             }
             POS = new Localizer.POS(info.POS);

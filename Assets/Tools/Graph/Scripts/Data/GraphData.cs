@@ -60,6 +60,11 @@ namespace Tools.Unity.Graph
             }
             limits.OrdinateMin = min.Min();
             limits.OrdinateMax = max.Max();
+            if(limits.OrdinateMin == limits.OrdinateMax)
+            {
+                limits.OrdinateMax += 1;
+                limits.OrdinateMin -= 1;
+            }
             Limits = limits;
         }
         public GraphData() : this("", "", "", Color.black, Color.white, new CurveData[0], new Limits()) { }

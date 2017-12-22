@@ -38,6 +38,12 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
+            ApplicationState.Module3D.OnResetIEEG.AddListener(() =>
+            {
+                ListenerLock = true;
+                UpdateStatus(Toolbar.UpdateToolbarType.Column);
+                ListenerLock = false;
+            });
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
                 if (ListenerLock) return;
@@ -75,7 +81,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {
-            if (type == Toolbar.UpdateToolbarType.Scene || type == Toolbar.UpdateToolbarType.Column)
+            if (type == Toolbar.UpdateToolbarType.Column)
             {
                 if (ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
                 {

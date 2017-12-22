@@ -127,7 +127,23 @@ namespace HBP.Module3D
         {
             get
             {
-                return ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType == Data.Settings.GeneralSettings.PlotNameCorrectionTypeEnum.Enable ? PatientID + "_" + Name.ToUpper().Replace('P', '\'') : FullID;
+                if (ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType == Data.Settings.GeneralSettings.PlotNameCorrectionTypeEnum.Enable)
+                {
+                    string siteName = Name.ToUpper();
+                    int prime = siteName.LastIndexOf('P');
+                    if (prime > 0)
+                    {
+                        return PatientID + "_" + siteName.Remove(prime, 1).Insert(prime, "\'");
+                    }
+                    else
+                    {
+                        return FullID;
+                    }
+                }
+                else
+                {
+                    return FullID;
+                }
             }
         }
         public string DisplayedName
@@ -163,6 +179,17 @@ namespace HBP.Module3D
             {
                 return !(IsMasked || IsOutOfROI || IsBlackListed || IsExcluded);
             }
+        }
+        public void ApplyState(SiteState state)
+        {
+            ApplyState(state.IsExcluded, state.IsBlackListed, state.IsHighlighted, state.IsMarked);
+        }
+        public void ApplyState(bool excluded, bool blacklisted, bool highlighted, bool marked)
+        {
+            IsExcluded = excluded;
+            IsBlackListed = blacklisted;
+            IsHighlighted = highlighted;
+            IsMarked = marked;
         }
     }
 

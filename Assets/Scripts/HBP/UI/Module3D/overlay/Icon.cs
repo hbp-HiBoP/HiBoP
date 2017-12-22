@@ -31,6 +31,7 @@ namespace HBP.UI.Module3D
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
                 IsActive = value;
+                m_CurrentIcon = null;
             });
 
             switch (column.Type)

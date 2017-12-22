@@ -7,22 +7,14 @@ namespace Tools.Unity.Graph
     public class WindowInputGestion : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        Text m_AbscissaLabel;
-        [SerializeField]
-        Text m_OrdinateLabel;
-        [SerializeField]
-        InputField m_xmin;
-        [SerializeField]
-        InputField m_xmax;
-        [SerializeField]
-        InputField m_ymin;
-        [SerializeField]
-        InputField m_ymax;
-        [SerializeField]
-        PlotGestion m_display;
-        [SerializeField]
-        Button m_AutoButton;
+        [SerializeField] Text m_AbscissaLabel;
+        [SerializeField] Text m_OrdinateLabel;
+        [SerializeField] InputField m_xmin;
+        [SerializeField] InputField m_xmax;
+        [SerializeField] InputField m_ymin;
+        [SerializeField] InputField m_ymax;
+        [SerializeField] PlotGestion m_display;
+        [SerializeField] Button m_AutoButton;
         [HideInInspector] public UnityEvent OnAutoLimits = new UnityEvent();
         #endregion
 

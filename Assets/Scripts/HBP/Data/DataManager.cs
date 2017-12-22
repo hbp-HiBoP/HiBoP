@@ -69,13 +69,13 @@ public static class DataManager
         switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Baseline)
         {
             case TrialMatrixSettings.BaselineType.None:
-                foreach (var request in m_DataByRequest.Keys.Where((r) => m_NormalizeByRequest[r] != TrialMatrixSettings.BaselineType.None)) NormalizeByNone(request);
+                foreach (var request in m_DataByRequest.Keys) if (m_NormalizeByRequest[request] != TrialMatrixSettings.BaselineType.None) NormalizeByNone(request);
                 break;
             case TrialMatrixSettings.BaselineType.Line:
-                foreach (var request in m_DataByRequest.Keys.Where((r) => m_NormalizeByRequest[r] != TrialMatrixSettings.BaselineType.Line)) NormalizeByLine(request);
+                foreach (var request in m_DataByRequest.Keys) if (m_NormalizeByRequest[request] != TrialMatrixSettings.BaselineType.Line) NormalizeByLine(request);
                 break;
             case TrialMatrixSettings.BaselineType.Bloc:
-                foreach (var request in m_DataByRequest.Keys.Where((r) => m_NormalizeByRequest[r] != TrialMatrixSettings.BaselineType.Bloc)) NormalizeByBloc(request);
+                foreach (var request in m_DataByRequest.Keys) if (m_NormalizeByRequest[request] != TrialMatrixSettings.BaselineType.Bloc) NormalizeByBloc(request);
                 break;
             case TrialMatrixSettings.BaselineType.Protocol:
                 IEnumerable<DataInfo> dataInfoCollection = (from request in m_DataByRequest.Keys select request.DataInfo).Distinct();

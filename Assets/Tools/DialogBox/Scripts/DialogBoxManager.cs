@@ -53,7 +53,7 @@ namespace Tools.Unity
         #endregion
 
         #region Public Methods
-        public void Open(AlertType type, string title, string message, UnityAction button1action = null, UnityAction button2action = null)
+        public void Open(AlertType type, string title, string message, UnityAction button1action = null, string button1name = "", UnityAction button2action = null, string button2name = "")
         {
             GameObject dialogBox;
             switch (type)
@@ -77,7 +77,7 @@ namespace Tools.Unity
             dialogBox.transform.SetAsLastSibling();
             if (type == AlertType.WarningMultiOptions)
             {
-                dialogBox.GetComponent<MultiOptionsDialogBox>().Open(title, message, button1action, button2action);
+                dialogBox.GetComponent<MultiOptionsDialogBox>().Open(title, message, button1action, button1name, button2action, button2name);
             }
             else
             {

@@ -80,7 +80,7 @@ namespace Tools.Unity
                 return false;
             }
         }
-        static void GenerateUniqueSavePath(ref string path)
+        public static void GenerateUniqueSavePath(ref string path)
         {
             string extension = Path.GetExtension(path);
             string pathWithoutExtension = Path.GetFullPath(path).Remove(Path.GetFullPath(path).Length - extension.Length);
@@ -89,6 +89,15 @@ namespace Tools.Unity
             {
                 string temp = string.Format("{0}({1})", pathWithoutExtension, ++count);
                 path = temp + extension;
+            }
+        }
+        public static void GenerateUniqueDirectoryPath(ref string path)
+        {
+            string fullPath = Path.GetFullPath(path);
+            int count = 0;
+            while (Directory.Exists(path))
+            {
+                path = string.Format("{0}({1})", fullPath, ++count);
             }
         }
     }

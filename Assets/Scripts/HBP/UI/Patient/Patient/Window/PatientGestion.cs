@@ -44,6 +44,7 @@ namespace HBP.UI.Anatomy
             AddItem(patientsToAdd);
             m_List.Select(patientsToAdd);
             m_DatabaseList.Remove(patientsToAdd);
+            m_ProjectCounter.text = m_List.ObjectsSelected.Length.ToString();
             m_DatabaseCounter.text = m_DatabaseList.ObjectsSelected.Length.ToString();
         }
         public override void Remove()
@@ -52,6 +53,7 @@ namespace HBP.UI.Anatomy
             m_DatabaseList.Select(m_List.ObjectsSelected);
             base.Remove();
             m_ProjectCounter.text = m_List.ObjectsSelected.Length.ToString();
+            m_DatabaseCounter.text = m_DatabaseList.ObjectsSelected.Length.ToString();
         }
         public override void SetInteractable(bool interactable)
         {

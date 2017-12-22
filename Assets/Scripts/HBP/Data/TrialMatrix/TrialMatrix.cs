@@ -12,7 +12,7 @@ namespace HBP.Data.TrialMatrix
         #region Properties
         public string Title { get; set; }
         public Bloc[] Blocs { get; set; }
-        public Vector2 ValuesLimits { get; set; }
+        public Vector2 Limits { get; set; }
         public Protocol Protocol { get; set; }
         public Vector2[] TimeLimitsByColumn { get; set; }
         #endregion
@@ -51,7 +51,7 @@ namespace HBP.Data.TrialMatrix
             UnityEngine.Profiling.Profiler.BeginSample("calculate values");
             List<float> values = new List<float>();
             foreach (Bloc bloc in trialMatrixBlocs) foreach (Line line in bloc.Lines) values.AddRange(line.Bloc.NormalizedValuesBySite[site.Information.FullCorrectedID]);
-            ValuesLimits = CalculateValueLimit(values.ToArray());
+            Limits = CalculateValueLimit(values.ToArray());
             UnityEngine.Profiling.Profiler.EndSample();
 
             //Standardize Blocs
