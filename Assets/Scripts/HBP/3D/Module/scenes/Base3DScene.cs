@@ -630,7 +630,7 @@ namespace HBP.Module3D
                 UpdateGeometry();
             }
 
-            if (m_GeneratorNeedsUpdate)
+            if (m_GeneratorNeedsUpdate && ApplicationState.GeneralSettings.AutoTriggerIEEG)
             {
                 UpdateGenerator();
             }
