@@ -128,7 +128,6 @@ namespace HBP.Data.Visualization
             float frequency = 0;
 
             List<Localizer.Bloc> blocs = new List<Localizer.Bloc>();
-            Dictionary<string, SiteConfiguration> siteConfigurationsByID = new Dictionary<string, SiteConfiguration>();
             foreach (DataInfo dataInfo in columnData)
             {
                 Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
@@ -138,14 +137,18 @@ namespace HBP.Data.Visualization
                 blocs.AddRange(epochedData.Blocs);
                 foreach (var site in averagedBloc.ValuesBySite.Keys)
                 {
-                    siteConfigurationsByID.Add(site, new SiteConfiguration(averagedBloc.ValuesBySite[site],averagedBloc.NormalizedValuesBySite[site], false, false, false, false));
-                    if (Configuration.ConfigurationBySite.ContainsKey(site))
+                    SiteConfiguration siteConfiguration;
+                    if (Configuration.ConfigurationBySite.TryGetValue(site, out siteConfiguration))
                     {
-                        siteConfigurationsByID[site].LoadSerializedConfiguration(Configuration.ConfigurationBySite[site]);
+                        siteConfiguration.Values = averagedBloc.ValuesBySite[site];
+                        siteConfiguration.NormalizedValues = averagedBloc.NormalizedValuesBySite[site];
+                    }
+                    else
+                    {
+                        Configuration.ConfigurationBySite.Add(site, new SiteConfiguration(averagedBloc.ValuesBySite[site], averagedBloc.NormalizedValuesBySite[site], false, false, false, false));
                     }
                 }
             }
-            Configuration.ConfigurationBySite = siteConfigurationsByID;
 
             Event mainEvent = new Event();
             Event[] secondaryEvents = new Event[Bloc.SecondaryEvents.Count];
