@@ -180,6 +180,17 @@ namespace HBP.Module3D
                 return !(IsMasked || IsOutOfROI || IsBlackListed || IsExcluded);
             }
         }
+        public void ApplyState(SiteState state)
+        {
+            ApplyState(state.IsExcluded, state.IsBlackListed, state.IsHighlighted, state.IsMarked);
+        }
+        public void ApplyState(bool excluded, bool blacklisted, bool highlighted, bool marked)
+        {
+            IsExcluded = excluded;
+            IsBlackListed = blacklisted;
+            IsHighlighted = highlighted;
+            IsMarked = marked;
+        }
     }
 
     /// <summary>

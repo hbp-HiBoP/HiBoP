@@ -630,7 +630,7 @@ namespace HBP.Module3D
                 UpdateGeometry();
             }
 
-            if (m_GeneratorNeedsUpdate)
+            if (m_GeneratorNeedsUpdate && ApplicationState.GeneralSettings.AutoTriggerIEEG)
             {
                 UpdateGenerator();
             }
@@ -1172,6 +1172,7 @@ namespace HBP.Module3D
             m_GeneratorNeedsUpdate = true;
             UpdateGUITextures();
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ApplicationState.Module3D.OnResetIEEG.Invoke();
         }
         /// <summary>
         /// Generate the split number regarding all meshes
@@ -1738,6 +1739,7 @@ namespace HBP.Module3D
             UpdateGUITextures();
             UpdateGeometry();
             LoadConfiguration();
+            m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
             SceneInformation.IsSceneInitialized = true;
         }
         /// <summary>
@@ -1889,6 +1891,24 @@ namespace HBP.Module3D
             }
 
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+        }
+        /// <summary>
+        /// Save site states of selected column
+        /// </summary>
+        /// <param name="path"></param>
+        public void SaveSiteStatesOfSelectedColumn(string path)
+        {
+            m_ColumnManager.SelectedColumn.SaveSiteStates(path);
+        }
+        /// <summary>
+        /// Load site states to selected column
+        /// </summary>
+        /// <param name="path"></param>
+        public void LoadSiteStatesToSelectedColumn(string path)
+        {
+            m_ColumnManager.SelectedColumn.LoadSiteStates(path);
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
         }
         #endregion
 
@@ -2305,6 +2325,20 @@ namespace HBP.Module3D
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                 ResetIEEG();
             }              
+        }
+        public void ApplySelectedColumnSiteStatesToOtherColumns()
+        {
+            Column3D selectedColumn = m_ColumnManager.SelectedColumn;
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                if (column == selectedColumn) continue;
+                foreach (Site site in column.Sites)
+                {
+                    site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
+                }
+            }
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG();
         }
         /// <summary>
         /// Update the sites rendering of all columns

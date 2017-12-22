@@ -266,6 +266,7 @@ namespace HBP.Module3D
                 }
                 set
                 {
+                    value = Mathf.Clamp(value, m_MinimumAmplitude, m_Middle);
                     if (m_SpanMin != value)
                     {
                         m_SpanMin = value;
@@ -286,6 +287,7 @@ namespace HBP.Module3D
                 }
                 set
                 {
+                    value = Mathf.Clamp(value, m_SpanMin, m_SpanMax);
                     if (m_Middle != value)
                     {
                         m_Middle = value;
@@ -306,6 +308,7 @@ namespace HBP.Module3D
                 }
                 set
                 {
+                    value = Mathf.Clamp(value, m_Middle, m_MaximumAmplitude);
                     if (m_SpanMax != value)
                     {
                         m_SpanMax = value;
@@ -556,15 +559,24 @@ namespace HBP.Module3D
             IEEGValuesBySiteID = new float[SitesCount][];
             foreach (Site site in Sites)
             {
-                if (ColumnData.Configuration.ConfigurationBySite.ContainsKey(site.Information.FullCorrectedID))
+                Data.Visualization.SiteConfiguration siteConfiguration;
+                if (ColumnData.Configuration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out siteConfiguration))
                 {
-                    Data.Visualization.SiteConfiguration siteConfiguration = ColumnData.Configuration.ConfigurationBySite[site.Information.FullCorrectedID]; // FIXME (Automatic correction)
-                    IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.NormalizedValues;
-                    site.State.IsMasked = false; // update mask
+                    if (siteConfiguration.Values.Length > 0)
+                    {
+                        IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.NormalizedValues;
+                        site.State.IsMasked = false; // update mask
+                    }
+                    else
+                    {
+                        IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
+                        site.State.IsMasked = true; // update mask
+                    }
                     site.Configuration = siteConfiguration;
                 }
                 else
                 {
+                    ColumnData.Configuration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
                     IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
                     site.State.IsMasked = true; // update mask
                 }
@@ -576,18 +588,18 @@ namespace HBP.Module3D
             int length = TimelineLength * SitesCount;
             IEEGValues = new float[length];
             List<float> iEEGHistogramme = new List<float>();
-            for (int jj = 0; jj < Sites.Count; ++jj)
+            for (int s = 0; s < Sites.Count; ++s)
             {
-                for (int ii = 0; ii < TimelineLength; ++ii)
+                for (int t = 0; t < TimelineLength; ++t)
                 {
-                    float val = IEEGValuesBySiteID[jj][ii];
-                    IEEGValues[ii * SitesCount + jj] = val;                   
+                    float val = IEEGValuesBySiteID[s][t];
+                    IEEGValues[t * SitesCount + s] = val;                   
                 }
-                if (!Sites[jj].State.IsMasked)
+                if (!Sites[s].State.IsMasked)
                 {
-                    for (int t = 0; t < TimelineLength; t++)
+                    for (int t = 0; t < TimelineLength; ++t)
                     {
-                        float val = IEEGValuesBySiteID[jj][t];
+                        float val = IEEGValuesBySiteID[s][t];
                         iEEGHistogramme.Add(val);
 
                         //update min/ max values

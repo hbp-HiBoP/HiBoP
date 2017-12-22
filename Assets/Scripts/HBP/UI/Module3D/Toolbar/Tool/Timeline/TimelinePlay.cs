@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -39,6 +38,12 @@ namespace HBP.UI.Module3D.Tools
         public override void Initialize()
         {
             ApplicationState.Module3D.OnStopTimelinePlay.AddListener(() =>
+            {
+                ListenerLock = true;
+                UpdateStatus(Toolbar.UpdateToolbarType.Column);
+                ListenerLock = false;
+            });
+            ApplicationState.Module3D.OnResetIEEG.AddListener(() =>
             {
                 ListenerLock = true;
                 UpdateStatus(Toolbar.UpdateToolbarType.Column);

@@ -103,20 +103,8 @@ namespace HBP.UI.Module3D
                 if (multipleFiles) // TODO : add iconic scenario and / or scales
                 {
                     string screenshotsPath = path + m_Scene.Name;
-                    if (!Directory.Exists(screenshotsPath))
-                    {
-                        Directory.CreateDirectory(screenshotsPath);
-                    }
-                    else
-                    {
-                        int i = 0;
-                        do
-                        {
-                            screenshotsPath += "(" + (++i) + ")";
-                        }
-                        while (Directory.Exists(screenshotsPath));
-                        Directory.CreateDirectory(screenshotsPath);
-                    }
+                    ClassLoaderSaver.GenerateUniqueDirectoryPath(ref screenshotsPath);
+                    Directory.CreateDirectory(screenshotsPath);
                     screenshotsPath += "/";
                     // Scene
                     for (int c = 0; c < m_Scene.ColumnManager.Columns.Count; c++)
@@ -166,15 +154,7 @@ namespace HBP.UI.Module3D
                     Rect sceneRect = GetComponent<RectTransform>().ToScreenSpace();
                     Texture2D sceneTexture = Texture2DExtension.ScreenRectToTexture(sceneRect);
                     string screenshotPath = path + m_Scene.Name + ".png";
-                    if (File.Exists(screenshotPath))
-                    {
-                        int i = 0;
-                        do
-                        {
-                            screenshotPath = path + m_Scene.Name + "(" + (++i) + ")" + ".png";
-                        }
-                        while (File.Exists(screenshotPath));
-                    }
+                    ClassLoaderSaver.GenerateUniqueSavePath(ref screenshotPath);
                     sceneTexture.SaveToPNG(screenshotPath);
                     ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshot saved", "A screenshot of the scene has been saved at " + screenshotPath);
                 }

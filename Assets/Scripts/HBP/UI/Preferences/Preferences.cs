@@ -25,6 +25,7 @@ namespace HBP.UI.Settings
         Dropdown blocFormatOption;
         Dropdown trialsSynchronizationOption;
         Dropdown trialMatrixTypeOption;
+        Dropdown m_AutoTrigger;
         Dropdown m_ThemeSelector;
         Dropdown m_CutLines;
         #endregion
@@ -52,6 +53,7 @@ namespace HBP.UI.Settings
             ApplicationState.GeneralSettings.ValueAveraging = (GeneralSettings.AveragingMode) valueAveragingOption.value;
             ApplicationState.GeneralSettings.ThemeName = m_ThemeSelector.options[m_ThemeSelector.value].text;
             ApplicationState.GeneralSettings.ShowCutLines = m_CutLines.value == 0 ? true : false;
+            ApplicationState.GeneralSettings.AutoTriggerIEEG = m_AutoTrigger.value == 0 ? true : false;
             ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH,true);
             Close();
         }
@@ -66,11 +68,15 @@ namespace HBP.UI.Settings
         protected override void SetWindow()
         {
             defaultNameProjectInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
+
             defaultLocationProjectFolderSelector = transform.Find("Content").Find("Location").Find("Projects").Find("FolderSelector").GetComponent<FolderSelector>();
             defaultPatientDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("Patients").Find("FolderSelector").GetComponent<FolderSelector>();
             defaultLocalizerDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("Localizers").Find("FolderSelector").GetComponentInChildren<FolderSelector>();
             defaultScreenshotsLocationFolderSelector = transform.Find("Content").Find("Location").Find("Screenshots").Find("FolderSelector").GetComponentInChildren<FolderSelector>();
+
             plotNameAutoCorrectionOption = transform.Find("Content").Find("EEG").Find("PlotNameAutomaticCorrection").GetComponentInChildren<Dropdown>();
+            m_AutoTrigger = transform.Find("Content").Find("EEG").Find("AutoTrigger").GetComponentInChildren<Dropdown>();
+
             trialBaselineOption = transform.Find("Content").Find("Trial Matrix").Find("Baseline").GetComponentInChildren<Dropdown>();
             trialMatrixSmoothingOption = transform.Find("Content").Find("Trial Matrix").Find("TrialMatrixSmoothing").GetComponentInChildren<Dropdown>();
             blocFormatOption = transform.Find("Content").Find("Trial Matrix").Find("BlocFormat").GetComponentInChildren<Dropdown>();
@@ -117,6 +123,12 @@ namespace HBP.UI.Settings
             }
             plotNameAutoCorrectionOption.value = (int)ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType;
             plotNameAutoCorrectionOption.RefreshShownValue();
+            
+            m_AutoTrigger.ClearOptions();
+            m_AutoTrigger.options.Add(new Dropdown.OptionData("Yes"));
+            m_AutoTrigger.options.Add(new Dropdown.OptionData("No"));
+            m_AutoTrigger.value = ApplicationState.GeneralSettings.AutoTriggerIEEG ? 0 : 1;
+            m_AutoTrigger.RefreshShownValue();
 
             string[] l_typesSmoothing = Enum.GetNames(typeof(TrialMatrixSettings.SmoothingType));
             trialMatrixSmoothingOption.ClearOptions();

@@ -131,6 +131,23 @@ namespace HBP.Data.Settings
         [DataMember]
         public bool ShowCutLines { get; set; }
 
+        /// <summary>
+        /// Auto trigger the updating of the ieeg in the visualization
+        /// </summary>
+        [DataMember(Name = "Automatic iEEG Update")]
+        private bool m_AutoTriggerIEEG = true;
+        public bool AutoTriggerIEEG
+        {
+            get
+            {
+                return m_AutoTriggerIEEG;
+            }
+            set
+            {
+                m_AutoTriggerIEEG = value;
+            }
+        }
+
         [IgnoreDataMember]
         private UI.Theme.Theme m_Theme;
         /// <summary>
