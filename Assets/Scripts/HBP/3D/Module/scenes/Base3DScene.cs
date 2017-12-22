@@ -1172,6 +1172,7 @@ namespace HBP.Module3D
             m_GeneratorNeedsUpdate = true;
             UpdateGUITextures();
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ApplicationState.Module3D.OnResetIEEG.Invoke();
         }
         /// <summary>
         /// Generate the split number regarding all meshes
