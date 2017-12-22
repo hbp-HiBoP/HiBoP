@@ -17,8 +17,8 @@ namespace HBP.UI.TrialMatrix
         public void Open(Vector2 limits)
         {
             gameObject.SetActive(true);
-            m_MinInputField.text = limits.x.ToString();
-            m_MaxInputField.text = limits.y.ToString();
+            m_MinInputField.text = limits.x.ToString("n2");
+            m_MaxInputField.text = limits.y.ToString("n2");
         }
         public void Close()
         {

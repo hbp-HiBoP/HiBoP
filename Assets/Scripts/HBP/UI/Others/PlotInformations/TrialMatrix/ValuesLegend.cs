@@ -7,37 +7,41 @@ namespace HBP.UI.TrialMatrix
     public class ValuesLegend : MonoBehaviour
     {
         #region Properties
-        RawImage colorMapRawImage;
-        RectTransform valuesRect;
-        LimitsWindow limitsWindow;
-        Vector2 limits;
-        public GenericEvent<Vector2> OnChangeLimits { get { return limitsWindow.OnUpdateLimits; } }
-        public GenericEvent<bool> OnAutoLimits { get { return limitsWindow.OnAutoLimits; } }
+        RawImage m_ColorMapRawImage;
+        RectTransform m_ValuesRect;
+        LimitsWindow m_LimitsWindow;
+        Vector2 m_Limits;
+        public GenericEvent<Vector2> OnChangeLimits { get { return m_LimitsWindow.OnUpdateLimits; } }
+        public GenericEvent<bool> OnAutoLimits { get { return m_LimitsWindow.OnAutoLimits; } }
         #endregion
 
         #region Public Methods
         public void Set(Texture2D colorMap, Vector2 limits, int nbValue)
         {
-            this.limits = limits;
+            this.m_Limits = limits;
             SetColorMap(colorMap);
             SetValues(GenerateValues(limits.x, limits.y, nbValue));
         }
         public void OpenLimitsWindow()
         {
-            limitsWindow.Open(limits);
+            m_LimitsWindow.Open(m_Limits);
+        }
+        public void CloseLimitsWindow()
+        {
+            m_LimitsWindow.Close();
         }
         #endregion
 
         #region Private Methods
         void Awake()
         {
-            colorMapRawImage = transform.Find("ColorLegend").GetComponent<RawImage>();
-            valuesRect = transform.Find("ValuesRect").GetComponent<RectTransform>();
-            limitsWindow = transform.Find("LimitsWindow").GetComponent<LimitsWindow>();
+            m_ColorMapRawImage = transform.Find("ColorLegend").GetComponent<RawImage>();
+            m_ValuesRect = transform.Find("ValuesRect").GetComponent<RectTransform>();
+            m_LimitsWindow = transform.Find("LimitsWindow").GetComponent<LimitsWindow>();
         }
         void SetColorMap(Texture2D colorMap)
         {
-            colorMapRawImage.texture = colorMap;
+            m_ColorMapRawImage.texture = colorMap;
         }
         void SetValues(float[] values)
         {
@@ -49,7 +53,7 @@ namespace HBP.UI.TrialMatrix
         }
         void ClearValues()
         {
-            foreach(Transform child in valuesRect)
+            foreach(Transform child in m_ValuesRect)
             {
                 Destroy(child.gameObject);
             }
@@ -58,7 +62,7 @@ namespace HBP.UI.TrialMatrix
         {
             // Instantiate and add components needed
             GameObject l_gameObject = new GameObject();
-            l_gameObject.transform.SetParent(valuesRect);
+            l_gameObject.transform.SetParent(m_ValuesRect);
             RectTransform l_rect = l_gameObject.AddComponent<RectTransform>();
             Text l_text = l_gameObject.AddComponent<Text>();
             int l_max = max - 1;
