@@ -1738,6 +1738,7 @@ namespace HBP.Module3D
             UpdateGUITextures();
             UpdateGeometry();
             LoadConfiguration();
+            m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
             SceneInformation.IsSceneInitialized = true;
         }
         /// <summary>

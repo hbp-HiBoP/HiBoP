@@ -266,6 +266,7 @@ namespace HBP.Module3D
                 }
                 set
                 {
+                    value = Mathf.Clamp(value, m_MinimumAmplitude, m_Middle);
                     if (m_SpanMin != value)
                     {
                         m_SpanMin = value;
@@ -286,6 +287,7 @@ namespace HBP.Module3D
                 }
                 set
                 {
+                    value = Mathf.Clamp(value, m_SpanMin, m_SpanMax);
                     if (m_Middle != value)
                     {
                         m_Middle = value;
@@ -306,6 +308,7 @@ namespace HBP.Module3D
                 }
                 set
                 {
+                    value = Mathf.Clamp(value, m_Middle, m_MaximumAmplitude);
                     if (m_SpanMax != value)
                     {
                         m_SpanMax = value;
