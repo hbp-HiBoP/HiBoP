@@ -209,7 +209,7 @@ namespace HBP.Data.Visualization
         /// <param name="after">sample after</param>
         public void Standardize(int before,int after)
         {
-            int diffBefore = TimeLine.MainEvent.Position - before;
+            int diffBefore = before - TimeLine.MainEvent.Position;
             int diffAfter = after - (TimeLine.Lenght - TimeLine.MainEvent.Position);
             TimeLine.Resize(diffBefore, diffAfter);
             foreach (var siteConfiguration in Configuration.ConfigurationBySite.Values)

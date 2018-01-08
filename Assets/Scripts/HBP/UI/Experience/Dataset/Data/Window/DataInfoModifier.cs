@@ -36,7 +36,7 @@ namespace HBP.UI.Experience.Dataset
 
             // Patient.
             m_Patients = ApplicationState.ProjectLoaded.Patients.ToList();
-            m_PatientDropdown.options = (from patient in m_Patients select new Dropdown.OptionData(patient.Name, null)).ToList();
+            m_PatientDropdown.options = (from patient in m_Patients select new Dropdown.OptionData(patient.CompleteName, null)).ToList();
             m_PatientDropdown.value = m_Patients.IndexOf(objectToDisplay.Patient);
             m_PatientDropdown.onValueChanged.RemoveAllListeners();
             m_PatientDropdown.onValueChanged.AddListener((i) => objectToDisplay.Patient = m_Patients[i]);

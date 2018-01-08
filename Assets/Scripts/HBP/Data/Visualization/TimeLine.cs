@@ -140,7 +140,7 @@ namespace HBP.Data.Visualization
             }
 
             // Change Limits
-            Start.Reposition(diffBefore, Step);
+            Start.Reposition(-diffBefore, Step);
             End.Reposition(diffAfter, Step);
         }
         #endregion

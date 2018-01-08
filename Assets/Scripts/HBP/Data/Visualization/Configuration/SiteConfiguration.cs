@@ -82,6 +82,8 @@ namespace HBP.Data.Visualization
         }
         public void Resize(int diffBefore, int diffAfter)
         {
+            if (Values.Length == 0) return;
+
             float[] values = new float[Values.Length + diffBefore + diffAfter];
             float[] normalizedValues = new float[NormalizedValues.Length + diffBefore + diffAfter];
             for (int i = 0; i < diffBefore; ++i)
