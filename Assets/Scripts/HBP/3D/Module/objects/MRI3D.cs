@@ -1,10 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace HBP.Module3D
 {
-    public class MRI3D
+    public class MRI3D : ICloneable
     {
         #region Properties
         public string Name { get; set; }
@@ -35,6 +36,18 @@ namespace HBP.Module3D
             Name = name;
             NII = nii;
             Volume = volume;
+        }
+        public MRI3D() { }
+        #endregion
+
+        #region Public Methods
+        public object Clone()
+        {
+            MRI3D mri = new MRI3D();
+            mri.Name = Name;
+            mri.NII = NII;
+            mri.Volume = Volume;
+            return mri;
         }
         #endregion
     }

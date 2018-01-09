@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace HBP.Module3D
 {
-    public abstract class Mesh3D
+    public abstract class Mesh3D : ICloneable
     {
         #region Properties
         public string Name { get; set; }
@@ -35,14 +36,14 @@ namespace HBP.Module3D
         }
         public Mesh3D() { }
         #endregion
+
+        #region Public Methods
+        public abstract object Clone();
+        #endregion
     }
 
     public class SingleMesh3D : Mesh3D
     {
-        #region Properties
-
-        #endregion
-
         #region Constructors
         public SingleMesh3D(Data.Anatomy.SingleMesh mesh) : base(mesh)
         {
@@ -54,6 +55,18 @@ namespace HBP.Module3D
                 Both.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlasIndex, mesh.MarsAtlasPath);
                 SimplifiedBoth = Both.Simplify();
             }
+        }
+        public SingleMesh3D() { }
+        #endregion
+
+        #region Public Methods
+        public override object Clone()
+        {
+            SingleMesh3D mesh = new SingleMesh3D();
+            mesh.Name = Name;
+            mesh.Both = Both;
+            mesh.SimplifiedBoth = SimplifiedBoth;
+            return mesh;
         }
         #endregion
     }
@@ -108,6 +121,22 @@ namespace HBP.Module3D
             SimplifiedLeft = left.Simplify();
             SimplifiedRight = right.Simplify();
             SimplifiedBoth = both.Simplify();
+        }
+        public LeftRightMesh3D() { }
+        #endregion
+
+        #region Public Methods
+        public override object Clone()
+        {
+            LeftRightMesh3D mesh = new LeftRightMesh3D();
+            mesh.Name = Name;
+            mesh.Both = Both;
+            mesh.SimplifiedBoth = SimplifiedBoth;
+            mesh.Left = Left;
+            mesh.Right = Right;
+            mesh.SimplifiedLeft = SimplifiedLeft;
+            mesh.SimplifiedRight = SimplifiedRight;
+            return mesh;
         }
         #endregion
     }

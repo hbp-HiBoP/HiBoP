@@ -2867,9 +2867,9 @@ namespace HBP.Module3D
         protected IEnumerator c_LoadMNIObjects()
         {
             yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.Loaded; });
-            m_ColumnManager.Meshes.Add(ApplicationState.Module3D.MNIObjects.GreyMatter);
-            m_ColumnManager.Meshes.Add(ApplicationState.Module3D.MNIObjects.WhiteMatter);
-            m_ColumnManager.Meshes.Add(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter);
+            m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.GreyMatter.Clone()));
+            m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.WhiteMatter.Clone()));
+            m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter.Clone()));
             m_ColumnManager.MRIs.Add(ApplicationState.Module3D.MNIObjects.MRI);
         }
         /// <summary>
