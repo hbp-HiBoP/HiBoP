@@ -16,7 +16,7 @@
     "LineHeightByWidth": 0.005,
     "HeightByWidth": 0.5625,
     "TrialsSynchronization": 0,
-    "Type": 0
+    "Type": 1
   },
   "Theme": "Dark",
   "ShowCutLines": true

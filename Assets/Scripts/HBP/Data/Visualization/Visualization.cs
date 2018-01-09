@@ -262,6 +262,15 @@ namespace HBP.Data.Visualization
             return GetDataInfo(column).First((dataInfo) => dataInfo.Patient == patient);
         }
         /// <summary>
+        /// Get the dataInfo of all columns for a specific patient
+        /// </summary>
+        /// <param name="patient"></param>
+        /// <returns></returns>
+        public IEnumerable<DataInfo> GetDataInfo(Patient patient)
+        {
+            return Columns.Select(c => GetDataInfo(patient, c)).Distinct();
+        }
+        /// <summary>
         /// Find implantations that are usable in all patients
         /// </summary>
         /// <param name="patients"></param>

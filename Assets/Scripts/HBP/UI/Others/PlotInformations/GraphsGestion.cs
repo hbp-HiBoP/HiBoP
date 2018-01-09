@@ -60,7 +60,7 @@ namespace HBP.UI.Graph
         [SerializeField] TrialMatrixList m_TrialMatrixList;
         Dictionary<Protocol, Vector2> m_LimitsByProtocol = new Dictionary<Protocol, Vector2>();
         Dictionary<Protocol, bool> m_AutoLimitsByProtocol = new Dictionary<Protocol, bool>();
-        Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>> m_TrialMatrixByProtocolBySite = new Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>>();
+        Dictionary<Protocol, Dictionary<Site, Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>>> m_TrialMatrixByProtocolBySiteByDataInfo = new Dictionary<Protocol, Dictionary<Site, Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>>>();
         bool m_LineSelectable = false;
 
         // Curves
@@ -181,14 +181,14 @@ namespace HBP.UI.Graph
             IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Protocol).Distinct();
 
             // Generate trialMatrix and create the dictionary
-            Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>> trialMatrixByProtocol = new Dictionary<Protocol, Dictionary<Site, Data.TrialMatrix.TrialMatrix>>();
+            Dictionary<Protocol, Dictionary<Site, Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>>> trialMatrixByProtocol = new Dictionary<Protocol, Dictionary<Site, Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>>>();
             foreach (Protocol protocol in protocols)
             {
                 Column column = Scene.ColumnManager.ColumnsIEEG.First(c => c.ColumnData.Protocol == protocol).ColumnData;
-                Dictionary<Site, Data.TrialMatrix.TrialMatrix> trialMatrixData = new Dictionary<Site, Data.TrialMatrix.TrialMatrix>();
+                Dictionary<Site, Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>> trialMatrixData = new Dictionary<Site, Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>>();
 
-                Dictionary<Site, DataInfo> dataInfoBySite = m_Sites.ToDictionary(s => s, s => Scene.Visualization.GetDataInfo(s.Information.Patient, column));
-                IEnumerable<DataInfo> dataInfoToRead = dataInfoBySite.Values.Distinct();
+                Dictionary<Site, IEnumerable<DataInfo>> dataInfoBySite = m_Sites.ToDictionary(s => s, s => Scene.Visualization.GetDataInfo(s.Information.Patient));
+                IEnumerable<DataInfo> dataInfoToRead = dataInfoBySite.Values.SelectMany(d => d).Distinct();
 
                 Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>> epochedBlocsByProtocolBlocByDataInfo = new Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>>();
                 foreach (var data in dataInfoToRead)
@@ -203,17 +203,21 @@ namespace HBP.UI.Graph
 
                 foreach (var site in m_Sites)
                 {
-                    Data.TrialMatrix.TrialMatrix trialMatrix = new Data.TrialMatrix.TrialMatrix(protocol, dataInfoBySite[site], epochedBlocsByProtocolBlocByDataInfo[dataInfoBySite[site]], site, Scene);
-                    trialMatrixData[site] = trialMatrix;
+                    trialMatrixData[site] = new Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>();
+                    foreach (var dataInfo in dataInfoBySite[site])
+                    {
+                        Data.TrialMatrix.TrialMatrix trialMatrix = new Data.TrialMatrix.TrialMatrix(protocol, dataInfo, epochedBlocsByProtocolBlocByDataInfo[dataInfo], site, Scene);
+                        trialMatrixData[site][dataInfo] = trialMatrix;
+                    }
                 }
                 trialMatrixByProtocol.Add(protocol, trialMatrixData);
             }
-            m_TrialMatrixByProtocolBySite = trialMatrixByProtocol;
+            m_TrialMatrixByProtocolBySiteByDataInfo = trialMatrixByProtocol;
         }
         void DisplayTrialMatrix()
         {
             IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG where !column.IsMinimized select column.ColumnData.Protocol).Distinct();
-            Data.TrialMatrix.TrialMatrix[][] trialMatrix = m_TrialMatrixByProtocolBySite.Where(m => protocols.Contains(m.Key)).Select(m => m.Value.Values.ToArray()).ToArray();
+            Data.TrialMatrix.TrialMatrix[][] trialMatrix = m_TrialMatrixByProtocolBySiteByDataInfo.Where(m => protocols.Contains(m.Key)).Select(m => m.Value.Values.SelectMany(v => v.Values).ToArray()).ToArray();
             m_TrialMatrixList.Set(trialMatrix,m_AutoLimitsByProtocol,m_LimitsByProtocol);
         }
 
@@ -230,7 +234,7 @@ namespace HBP.UI.Graph
                 for (int s = 0; s < m_Sites.Length; s++)
                 {
                     Site site = m_Sites[s];
-                    Data.TrialMatrix.TrialMatrix trialMatrixData = m_TrialMatrixByProtocolBySite[column.Protocol][site];
+                    Data.TrialMatrix.TrialMatrix trialMatrixData = m_TrialMatrixByProtocolBySiteByDataInfo[column.Protocol][site][Scene.Visualization.GetDataInfo(site.Information.Patient, column)];
                     TrialMatrix.TrialMatrix trialMatrix = m_TrialMatrixList.TrialMatrix.FirstOrDefault((t) => t.Data == trialMatrixData);
                     if (trialMatrix == null) continue;
                     TrialMatrix.Bloc trialMatrixBloc = null;
@@ -279,7 +283,7 @@ namespace HBP.UI.Graph
                             points[i] = new Vector2(absciss, data[index]);
                         }
 
-                        m_CurveBySiteAndColumn[column][site] = new ShapedCurveData("C" + (c + 1) + " " + site.Information.Name, column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name + "_" + c, points, standardDeviations, GetCurveColor(c,s),1.5f);
+                        m_CurveBySiteAndColumn[column][site] = new ShapedCurveData("C" + (c + 1) + " " + site.Information.Name, column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name + "_" + c, points, standardDeviations, GetCurveColor(c, s), 1.5f);
                     }
                     else if (linesToRead.Length == 1)
                     {
@@ -301,7 +305,7 @@ namespace HBP.UI.Graph
                         }
 
                         //Create curve
-                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, "C" + c + "_" + column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name, points, GetCurveColor(c,s),1.5f);
+                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, "C" + c + "_" + column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name, points, GetCurveColor(c, s), 1.5f);
                     }
                     else continue;
                 }
@@ -336,7 +340,7 @@ namespace HBP.UI.Graph
                             float absciss = min + ((max - min) * (index - pMin) / (pMax - pMin));
                             points[i] = new Vector2(absciss, ROIdata[index]);
                         }
-                        m_ROICurvebyColumn[column] = new CurveData("C" + (c + 1) + " " + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, column.Protocol.Name + "_" + column.Bloc.Name + "_" + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name + "_" + c, points, GetCurveColor(c,-1),3.0f);
+                        m_ROICurvebyColumn[column] = new CurveData("C" + (c + 1) + " " + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, column.Protocol.Name + "_" + column.Bloc.Name + "_" + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name + "_" + c, points, GetCurveColor(c, -1), 3.0f);
                     }
                 }
             }
