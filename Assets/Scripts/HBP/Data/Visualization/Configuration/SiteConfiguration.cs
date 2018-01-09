@@ -123,7 +123,7 @@ namespace HBP.Data.Visualization
                 float floatIndex = ((float)i / size) * (length - 1);
                 int lowIndex = Mathf.FloorToInt(floatIndex);
                 int highIndex = Mathf.CeilToInt(floatIndex);
-                float percentage = highIndex - lowIndex;
+                float percentage = highIndex - floatIndex;
                 values[i] = percentage * Values[lowIndex] + (1 - percentage) * Values[highIndex];
                 normalizedValues[i] = percentage * NormalizedValues[lowIndex] + (1 - percentage) * NormalizedValues[highIndex];
             }

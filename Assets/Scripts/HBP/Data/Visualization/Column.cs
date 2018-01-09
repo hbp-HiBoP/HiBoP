@@ -24,7 +24,7 @@ namespace HBP.Data.Visualization
     *   - \a Bloc.
     */
     [DataContract]
-    public class Column: ICloneable
+    public class Column : ICloneable
     {
         #region Properties
         [DataMember(Name = "Dataset")]
@@ -38,10 +38,10 @@ namespace HBP.Data.Visualization
             set { datasetID = value.ID; }
         }
 
-    /// <summary>
-    /// Data label of the column.
-    /// </summary>
-    [DataMember(Name = "Label")]
+        /// <summary>
+        /// Data label of the column.
+        /// </summary>
+        [DataMember(Name = "Label")]
         public string Data { get; set; }
 
         [DataMember(Name = "Protocol")]
@@ -81,6 +81,9 @@ namespace HBP.Data.Visualization
         /// Iconic scenario which define the labels,images to display during the timeLine. 
         /// </summary>
         public IconicScenario IconicScenario { get; set; }
+
+        public Dictionary<int, Timeline> TimeLineByFrequency { get; set; }
+        public Dictionary<int, IconicScenario> IconicScenarioByFrequency { get; set; }
 
         /// <summary>
         /// Display label of the column
@@ -125,15 +128,20 @@ namespace HBP.Data.Visualization
         /// <param name="columnData"></param>
         public void Load(IEnumerable<DataInfo> columnData)
         {
-            int maxFrequency = 0;
-
+            List<int> frequencies = new List<int>();
             List<Localizer.Bloc> blocs = new List<Localizer.Bloc>();
             foreach (DataInfo dataInfo in columnData)
             {
                 Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
                 int frequency = UnityEngine.Mathf.RoundToInt(epochedData.Frequency);
-                if (!frequency.IsPowerOfTwo()) throw new FrequencyException(dataInfo.EEG, frequency);
-                if (frequency > maxFrequency) maxFrequency = frequency;
+                if (frequency.IsPowerOfTwo())
+                {
+                    frequencies.Add(frequency);
+                }
+                else
+                {
+                    throw new FrequencyException(dataInfo.EEG, frequency);
+                }
                 Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs,ApplicationState.GeneralSettings.ValueAveraging, ApplicationState.GeneralSettings.EventPositionAveraging);
                 blocs.AddRange(epochedData.Blocs);
                 foreach (var site in averagedBloc.ValuesBySite.Keys)
@@ -150,14 +158,13 @@ namespace HBP.Data.Visualization
                     }
                 }
             }
-            /*
             // Resampling considering frequencies. Does not give good results yet, need more work TODO
-            int maxSize = (from siteConfiguration in Configuration.ConfigurationBySite.Values select siteConfiguration.Values).Max(v => v.Length); // check performances
+            int maxSize = (from siteConfiguration in Configuration.ConfigurationBySite.Values select siteConfiguration.Values).Max(v => v.Length); // TODO: check performances
             foreach (var siteConfiguration in Configuration.ConfigurationBySite.Values)
             {
                 siteConfiguration.ResizeValues(maxSize);
             }
-            */
+
             Event mainEvent = new Event();
             Event[] secondaryEvents = new Event[Bloc.SecondaryEvents.Count];
             switch (ApplicationState.GeneralSettings.EventPositionAveraging)
@@ -181,6 +188,17 @@ namespace HBP.Data.Visualization
                     }
                     break;
             }
+
+            // Timeline
+            frequencies = frequencies.Distinct().ToList();
+            TimeLineByFrequency = new Dictionary<int, Timeline>();
+            IconicScenarioByFrequency = new Dictionary<int, IconicScenario>();
+            foreach (int frequency in frequencies)
+            {
+                TimeLineByFrequency.Add(frequency, new Timeline(Bloc.Window, mainEvent, secondaryEvents, frequency));
+                IconicScenarioByFrequency.Add(frequency, new IconicScenario(Bloc, frequency, TimeLineByFrequency[frequency]));
+            }
+            int maxFrequency = frequencies.Max();
             TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents, maxFrequency);
             IconicScenario = new IconicScenario(Bloc, maxFrequency, TimeLine);
         }

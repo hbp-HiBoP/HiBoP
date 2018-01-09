@@ -252,6 +252,7 @@ namespace HBP.UI.Graph
                     Found:
                     Data.TrialMatrix.Line[] linesToRead = trialMatrixBloc.Data.GetLines(trialMatrixBloc.SelectedLines);
                     float[] data = new float[linesToRead.Length > 0 ? linesToRead.First().NormalizedValues.Length : 0];
+                    Timeline timeline = column.TimeLineByFrequency[(int)DataManager.GetData(Scene.Visualization.GetDataInfo(site.Information.Patient, column), column.Bloc).Frequency];
                     if (linesToRead.Length > 1)
                     {
                         // Shape
@@ -270,10 +271,10 @@ namespace HBP.UI.Graph
                         }
 
                         // Generate points.
-                        int pMin = column.TimeLine.Start.RawPosition;
-                        int pMax = column.TimeLine.End.RawPosition;
-                        float min = column.TimeLine.Start.RawValue;
-                        float max = column.TimeLine.End.RawValue;
+                        int pMin = timeline.Start.RawPosition;
+                        int pMax = timeline.End.RawPosition;
+                        float min = timeline.Start.RawValue;
+                        float max = timeline.End.RawValue;
                         int lenght = pMax + 1 - pMin;
                         Vector2[] points = new Vector2[lenght];
                         for (int i = 0; i < lenght; i++)
@@ -291,10 +292,10 @@ namespace HBP.UI.Graph
                         data = trialMatrixBloc.Data.Lines[trialMatrixBloc.SelectedLines[0]].NormalizedValues;
 
                         // Generate points.
-                        int pMin = column.TimeLine.Start.RawPosition;
-                        int pMax = column.TimeLine.End.RawPosition;
-                        float min = column.TimeLine.Start.RawValue;
-                        float max = column.TimeLine.End.RawValue;
+                        int pMin = timeline.Start.RawPosition;
+                        int pMax = timeline.End.RawPosition;
+                        float min = timeline.Start.RawValue;
+                        float max = timeline.End.RawValue;
                         int lenght = pMax + 1 - pMin;
                         Vector2[] points = new Vector2[lenght];
                         for (int i = 0; i < lenght; i++)
