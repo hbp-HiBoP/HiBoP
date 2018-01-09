@@ -2619,7 +2619,6 @@ namespace HBP.Module3D
             if (siteHit)
             {
                 Site site = hit.collider.gameObject.GetComponent<Site>();
-                m_ColumnManager.SelectedColumn.SelectedPatientID = site.Information.PatientNumber;
                 m_ColumnManager.SelectedColumn.SelectedSiteID = site.Information.GlobalID;
             }
             else
