@@ -107,6 +107,29 @@ namespace HBP.Data.Visualization
             Values = values;
             NormalizedValues = normalizedValues;
         }
+        /// <summary>
+        /// Resize the values array using homemade "interpolation". Does not work yet
+        /// </summary>
+        /// <param name="size"></param>
+        public void ResizeValues(int size)
+        {
+            if (size == Values.Length || Values.Length == 0) return;
+
+            int length = Values.Length;
+            float[] values = new float[size];
+            float[] normalizedValues = new float[size];
+            for (int i = 0; i < size; ++i)
+            {
+                float floatIndex = ((float)i / size) * (length - 1);
+                int lowIndex = Mathf.FloorToInt(floatIndex);
+                int highIndex = Mathf.CeilToInt(floatIndex);
+                float percentage = highIndex - lowIndex;
+                values[i] = percentage * Values[lowIndex] + (1 - percentage) * Values[highIndex];
+                normalizedValues[i] = percentage * NormalizedValues[lowIndex] + (1 - percentage) * NormalizedValues[highIndex];
+            }
+            Values = values;
+            NormalizedValues = normalizedValues;
+        }
         #endregion
     }
 }

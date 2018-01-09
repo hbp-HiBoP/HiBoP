@@ -386,3 +386,17 @@ public class CanNotLoadNIIFile : HBPException
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }
+
+[Serializable]
+public class FrequencyException : HBPException
+{
+    public FrequencyException() { }
+    public FrequencyException(string fileName, int frequency) : base("The frequency of the file <color=blue>" + fileName + "</color> is not a power of two (" + frequency + ").\n\nThis is not supported.")
+    {
+        Title = "Invalid frequency";
+    }
+    public FrequencyException(string message, Exception inner) : base(message, inner) { }
+    protected FrequencyException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}

@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 using Tools.CSharp;
+using Tools.Unity;
 
 
 namespace HBP.Data.Visualization
@@ -124,15 +125,15 @@ namespace HBP.Data.Visualization
         /// <param name="columnData"></param>
         public void Load(IEnumerable<DataInfo> columnData)
         {
-            // FIXME
-            float frequency = 0;
+            int maxFrequency = 0;
 
             List<Localizer.Bloc> blocs = new List<Localizer.Bloc>();
             foreach (DataInfo dataInfo in columnData)
             {
                 Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
-                //FIXME
-                frequency = epochedData.Frequency;
+                int frequency = UnityEngine.Mathf.RoundToInt(epochedData.Frequency);
+                if (!frequency.IsPowerOfTwo()) throw new FrequencyException(dataInfo.EEG, frequency);
+                if (frequency > maxFrequency) maxFrequency = frequency;
                 Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs,ApplicationState.GeneralSettings.ValueAveraging, ApplicationState.GeneralSettings.EventPositionAveraging);
                 blocs.AddRange(epochedData.Blocs);
                 foreach (var site in averagedBloc.ValuesBySite.Keys)
@@ -149,7 +150,14 @@ namespace HBP.Data.Visualization
                     }
                 }
             }
-
+            /*
+            // Resampling considering frequencies. Does not give good results yet, need more work TODO
+            int maxSize = (from siteConfiguration in Configuration.ConfigurationBySite.Values select siteConfiguration.Values).Max(v => v.Length); // check performances
+            foreach (var siteConfiguration in Configuration.ConfigurationBySite.Values)
+            {
+                siteConfiguration.ResizeValues(maxSize);
+            }
+            */
             Event mainEvent = new Event();
             Event[] secondaryEvents = new Event[Bloc.SecondaryEvents.Count];
             switch (ApplicationState.GeneralSettings.EventPositionAveraging)
@@ -173,8 +181,8 @@ namespace HBP.Data.Visualization
                     }
                     break;
             }
-            TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents, frequency);
-            IconicScenario = new IconicScenario(Bloc, frequency, TimeLine);
+            TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents, maxFrequency);
+            IconicScenario = new IconicScenario(Bloc, maxFrequency, TimeLine);
         }
         /// <summary>
         /// Test if the visualization Column is compatible with a Patient.
