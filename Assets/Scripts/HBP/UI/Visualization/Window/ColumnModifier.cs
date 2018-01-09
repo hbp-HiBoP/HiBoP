@@ -100,8 +100,11 @@ namespace HBP.UI.Visualization
 
         void OnChangeDataset()
         {
-            m_Column.Dataset = m_Datasets[m_DatasetDropdown.value];
-            SetDataDropdown();
+            if (m_Datasets.Length > 0)
+            {
+                m_Column.Dataset = m_Datasets[m_DatasetDropdown.value];
+                SetDataDropdown();
+            }
         }
         void SetDatasetDropdown()
         {
