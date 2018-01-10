@@ -45,56 +45,48 @@ namespace HBP.Data.Settings
         /// <summary>
         /// Default project name.
         /// </summary>
-        [DataMember]
-        public string DefaultProjectName { get; set; }
+        [DataMember] public string DefaultProjectName { get; set; }
         /// <summary>
         /// Default project location.
         /// </summary>
-        [DataMember]
-        public string DefaultProjectLocation { get; set; }
+        [DataMember] public string DefaultProjectLocation { get; set; }
         /// <summary>
         /// Default patient database location.
         /// </summary>
-        [DataMember]
-        public string DefaultPatientDatabaseLocation { get; set; }
+        [DataMember] public string DefaultPatientDatabaseLocation { get; set; }
         /// <summary>
         /// Default localizer database location.
         /// </summary>
-        [DataMember]
-        public string DefaultLocalizerDatabaseLocation { get; set; }
+        [DataMember] public string DefaultLocalizerDatabaseLocation { get; set; }
         /// <summary>
         /// Default screenshots location.
         /// </summary>
-        [DataMember]
-        public string DefaultScreenshotsLocation { get; set; }
+        [DataMember] public string DefaultScreenshotsLocation { get; set; }
         /// <summary>
         /// Active or Deactive the plot name automatic correction (cast, p/' , etc...)
         /// </summary>
-        [DataMember]
-        public PlotNameCorrectionTypeEnum PlotNameAutomaticCorrectionType { get; set; }
+        [DataMember] public PlotNameCorrectionTypeEnum PlotNameAutomaticCorrectionType { get; set; }
         /// <summary>
         /// Bloc event position averaging.
         /// </summary>
-        [DataMember]
-        public AveragingMode EventPositionAveraging { get; set; }
+        [DataMember] public AveragingMode EventPositionAveraging { get; set; }
         /// <summary>
         /// Bloc value averaging.
         /// </summary>
-        [DataMember]
-        public AveragingMode ValueAveraging { get; set; }
+        [DataMember] public AveragingMode ValueAveraging { get; set; }
         /// <summary>
         /// Settings of the trial matrix.
         /// </summary>
-        [DataMember]
-        public TrialMatrixSettings TrialMatrixSettings { get; set; }
-
-        [IgnoreDataMember]
-        private string m_ThemeName;
+        [DataMember] public TrialMatrixSettings TrialMatrixSettings { get; set; }
+        /// <summary>
+        /// Hide curves when a column is close.
+        /// </summary>
+        [DataMember] public bool HideCurveWhenColumnHidden { get; set; }
+        [IgnoreDataMember] private string m_ThemeName;
         /// <summary>
         /// Name of the used theme.
         /// </summary>
-        [DataMember(Name = "Theme")]
-        public string ThemeName
+        [DataMember(Name = "Theme")] public string ThemeName
         {
             get
             {
@@ -105,37 +97,33 @@ namespace HBP.Data.Settings
                 m_ThemeName = value;
                 if (Themes.Length == 0)
                 {
-                    UI.Theme.Theme defaultTheme = new UI.Theme.Theme();
+                    Theme defaultTheme = new Theme();
                     defaultTheme.SetDefaultValues();
-                    m_Theme = defaultTheme;
+                    Theme = defaultTheme;
                 }
                 else
                 {
-                    UI.Theme.Theme theme = Themes.FirstOrDefault((t) => t.name == ThemeName);
+                    Theme theme = Themes.FirstOrDefault((t) => t.name == ThemeName);
                     if (theme)
                     {
-                        m_Theme = theme;
+                        Theme = theme;
                     }
                     else
                     {
-                        m_Theme = Resources.Load("Themes/Dark") as Theme;
+                        Theme = Resources.Load("Themes/Dark") as Theme;
                     }
                 }
-                UI.Theme.Theme.UpdateThemeElements(m_Theme);
+                Theme.UpdateThemeElements(Theme);
             }
         }
-
         /// <summary>
         /// Display the cut lines on the cuts
         /// </summary>
-        [DataMember]
-        public bool ShowCutLines { get; set; }
-
+        [DataMember] public bool ShowCutLines { get; set; }
         /// <summary>
         /// Auto trigger the updating of the ieeg in the visualization
         /// </summary>
-        [DataMember(Name = "Automatic iEEG Update")]
-        private bool m_AutoTriggerIEEG = true;
+        [DataMember(Name = "Automatic iEEG Update")] private bool m_AutoTriggerIEEG = true;
         public bool AutoTriggerIEEG
         {
             get
@@ -147,20 +135,10 @@ namespace HBP.Data.Settings
                 m_AutoTriggerIEEG = value;
             }
         }
-
-        [IgnoreDataMember]
-        private UI.Theme.Theme m_Theme;
         /// <summary>
         /// Used theme.
         /// </summary>
-        [IgnoreDataMember]
-        public UI.Theme.Theme Theme
-        {
-            get
-            {
-                return m_Theme;
-            }
-        }
+        [IgnoreDataMember] public Theme Theme { get; private set; }
         #endregion
 
         #region Constructor
@@ -174,7 +152,7 @@ namespace HBP.Data.Settings
         /// <param name="plotNameAutomaticCorrectionType">Plot name automatic correction.</param>
         /// <param name="trialMatrixSmoothingType">Trial maltrix smoothing.</param>
         /// <param name="BaselineType">Trial matrix Baseline.</param>
-        public GeneralSettings(string projectDefaultName,string defaultProjectLocation, string defaultPatientDatabseLocation, string defaultLocalizerDatabaseLocation, string defaultScreenshotsLocation, PlotNameCorrectionTypeEnum plotNameAutomaticCorrectionType,TrialMatrixSettings trialMatrixSettings, string themeName)
+        public GeneralSettings(string projectDefaultName,string defaultProjectLocation, string defaultPatientDatabseLocation, string defaultLocalizerDatabaseLocation, string defaultScreenshotsLocation, PlotNameCorrectionTypeEnum plotNameAutomaticCorrectionType,TrialMatrixSettings trialMatrixSettings, bool hideCurvesWhenColumnClose, string themeName)
         {
             DefaultProjectName = projectDefaultName;
             DefaultProjectLocation = defaultProjectLocation;
@@ -183,6 +161,7 @@ namespace HBP.Data.Settings
             DefaultScreenshotsLocation = defaultScreenshotsLocation;
             PlotNameAutomaticCorrectionType = plotNameAutomaticCorrectionType;
             TrialMatrixSettings = trialMatrixSettings;
+            HideCurveWhenColumnHidden = hideCurvesWhenColumnClose;
             // TODO : include all themes in a specific folder
             m_Themes = Resources.LoadAll<Theme>("Themes");
             ThemeName = themeName;
@@ -190,7 +169,7 @@ namespace HBP.Data.Settings
         /// <summary>
         /// Create a new general settings instance with default values.
         /// </summary>
-        public GeneralSettings() : this("New project","","","", Path.GetFullPath(Application.dataPath + "/../Screenshots/"), PlotNameCorrectionTypeEnum.Enable,new TrialMatrixSettings(), "")
+        public GeneralSettings() : this("New project","","","", Path.GetFullPath(Application.dataPath + "/../Screenshots/"), PlotNameCorrectionTypeEnum.Enable,new TrialMatrixSettings(), true, "")
         {
         }
         #endregion

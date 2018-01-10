@@ -25,9 +25,10 @@ namespace HBP.UI.Settings
         Dropdown blocFormatOption;
         Dropdown trialsSynchronizationOption;
         Dropdown trialMatrixTypeOption;
-        Dropdown m_AutoTrigger;
-        Dropdown m_ThemeSelector;
-        Dropdown m_CutLines;
+        Dropdown m_AutoTriggerOption;
+        Dropdown m_ThemeSelectorOption;
+        Dropdown m_CutLinesOption;
+        Dropdown m_HideCurveWhenColumnHiddenOption;
         #endregion
 
         #region Public Methods
@@ -51,9 +52,10 @@ namespace HBP.UI.Settings
             ApplicationState.GeneralSettings.TrialMatrixSettings.HeightByWidth = float.Parse(BlocRatioInputField.text);
             ApplicationState.GeneralSettings.EventPositionAveraging = (GeneralSettings.AveragingMode) eventPositionAveragingOption.value;
             ApplicationState.GeneralSettings.ValueAveraging = (GeneralSettings.AveragingMode) valueAveragingOption.value;
-            ApplicationState.GeneralSettings.ThemeName = m_ThemeSelector.options[m_ThemeSelector.value].text;
-            ApplicationState.GeneralSettings.ShowCutLines = m_CutLines.value == 0 ? true : false;
-            ApplicationState.GeneralSettings.AutoTriggerIEEG = m_AutoTrigger.value == 0 ? true : false;
+            ApplicationState.GeneralSettings.ThemeName = m_ThemeSelectorOption.options[m_ThemeSelectorOption.value].text;
+            ApplicationState.GeneralSettings.ShowCutLines = m_CutLinesOption.value == 0 ? true : false;
+            ApplicationState.GeneralSettings.AutoTriggerIEEG = m_AutoTriggerOption.value == 0 ? true : false;
+            ApplicationState.GeneralSettings.HideCurveWhenColumnHidden = m_HideCurveWhenColumnHiddenOption.value == 0 ? true : false;
             ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH,true);
             Close();
         }
@@ -75,7 +77,7 @@ namespace HBP.UI.Settings
             defaultScreenshotsLocationFolderSelector = transform.Find("Content").Find("Location").Find("Screenshots").Find("FolderSelector").GetComponentInChildren<FolderSelector>();
 
             plotNameAutoCorrectionOption = transform.Find("Content").Find("EEG").Find("PlotNameAutomaticCorrection").GetComponentInChildren<Dropdown>();
-            m_AutoTrigger = transform.Find("Content").Find("EEG").Find("AutoTrigger").GetComponentInChildren<Dropdown>();
+            m_AutoTriggerOption = transform.Find("Content").Find("EEG").Find("AutoTrigger").GetComponentInChildren<Dropdown>();
 
             trialBaselineOption = transform.Find("Content").Find("Trial Matrix").Find("Baseline").GetComponentInChildren<Dropdown>();
             trialMatrixSmoothingOption = transform.Find("Content").Find("Trial Matrix").Find("TrialMatrixSmoothing").GetComponentInChildren<Dropdown>();
@@ -88,8 +90,9 @@ namespace HBP.UI.Settings
 
             eventPositionAveragingOption = transform.Find("Content").Find("Averaging").Find("EventPositionAveraging").GetComponentInChildren<Dropdown>();
             valueAveragingOption = transform.Find("Content").Find("Averaging").Find("ValueAveraging").GetComponentInChildren<Dropdown>();
-            m_ThemeSelector = transform.Find("Content").Find("Display").Find("Theme").GetComponentInChildren<Dropdown>();
-            m_CutLines = transform.Find("Content").Find("Display").Find("Cut lines").GetComponentInChildren<Dropdown>();
+            m_ThemeSelectorOption = transform.Find("Content").Find("Display").Find("Theme").GetComponentInChildren<Dropdown>();
+            m_CutLinesOption = transform.Find("Content").Find("Display").Find("Cut lines").GetComponentInChildren<Dropdown>();
+            m_HideCurveWhenColumnHiddenOption = transform.Find("Content").Find("Display").Find("Hide curve when column hidden").GetComponentInChildren<Dropdown>();
 
             defaultNameProjectInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
             defaultLocationProjectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
@@ -124,11 +127,11 @@ namespace HBP.UI.Settings
             plotNameAutoCorrectionOption.value = (int)ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType;
             plotNameAutoCorrectionOption.RefreshShownValue();
             
-            m_AutoTrigger.ClearOptions();
-            m_AutoTrigger.options.Add(new Dropdown.OptionData("Yes"));
-            m_AutoTrigger.options.Add(new Dropdown.OptionData("No"));
-            m_AutoTrigger.value = ApplicationState.GeneralSettings.AutoTriggerIEEG ? 0 : 1;
-            m_AutoTrigger.RefreshShownValue();
+            m_AutoTriggerOption.ClearOptions();
+            m_AutoTriggerOption.options.Add(new Dropdown.OptionData("Yes"));
+            m_AutoTriggerOption.options.Add(new Dropdown.OptionData("No"));
+            m_AutoTriggerOption.value = ApplicationState.GeneralSettings.AutoTriggerIEEG ? 0 : 1;
+            m_AutoTriggerOption.RefreshShownValue();
 
             string[] l_typesSmoothing = Enum.GetNames(typeof(TrialMatrixSettings.SmoothingType));
             trialMatrixSmoothingOption.ClearOptions();
@@ -175,25 +178,31 @@ namespace HBP.UI.Settings
             valueAveragingOption.value = (int)ApplicationState.GeneralSettings.ValueAveraging;
             valueAveragingOption.RefreshShownValue();
 
-            m_ThemeSelector.ClearOptions();
-            m_ThemeSelector.onValueChanged.AddListener((t) =>
+            m_ThemeSelectorOption.ClearOptions();
+            m_ThemeSelectorOption.onValueChanged.AddListener((t) =>
             {
                 Theme.Theme theme = ApplicationState.GeneralSettings.Themes[t];
                 Theme.Theme.UpdateThemeElements(theme);
             });
             foreach (Theme.Theme theme in ApplicationState.GeneralSettings.Themes)
             {
-                m_ThemeSelector.options.Add(new Dropdown.OptionData(theme.name));
+                m_ThemeSelectorOption.options.Add(new Dropdown.OptionData(theme.name));
             }
-            int themeID = m_ThemeSelector.options.FindIndex((o) => o.text == ApplicationState.GeneralSettings.ThemeName);
-            m_ThemeSelector.value = themeID != -1 ? themeID : 0;
-            m_ThemeSelector.RefreshShownValue();
+            int themeID = m_ThemeSelectorOption.options.FindIndex((o) => o.text == ApplicationState.GeneralSettings.ThemeName);
+            m_ThemeSelectorOption.value = themeID != -1 ? themeID : 0;
+            m_ThemeSelectorOption.RefreshShownValue();
 
-            m_CutLines.ClearOptions();
-            m_CutLines.options.Add(new Dropdown.OptionData("Show"));
-            m_CutLines.options.Add(new Dropdown.OptionData("Hide"));
-            m_CutLines.value = ApplicationState.GeneralSettings.ShowCutLines ? 0 : 1;
-            m_CutLines.RefreshShownValue();
+            m_CutLinesOption.ClearOptions();
+            m_CutLinesOption.options.Add(new Dropdown.OptionData("Show"));
+            m_CutLinesOption.options.Add(new Dropdown.OptionData("Hide"));
+            m_CutLinesOption.value = ApplicationState.GeneralSettings.ShowCutLines ? 0 : 1;
+            m_CutLinesOption.RefreshShownValue();
+
+            m_HideCurveWhenColumnHiddenOption.ClearOptions();
+            m_HideCurveWhenColumnHiddenOption.options.Add(new Dropdown.OptionData("Hide"));
+            m_HideCurveWhenColumnHiddenOption.options.Add(new Dropdown.OptionData("Show"));
+            m_HideCurveWhenColumnHiddenOption.value = ApplicationState.GeneralSettings.HideCurveWhenColumnHidden ? 0 : 1;
+            m_HideCurveWhenColumnHiddenOption.RefreshShownValue();
         }
 
         void UpdateBlocFormat(TrialMatrixSettings.BlocFormatType blocFormat)

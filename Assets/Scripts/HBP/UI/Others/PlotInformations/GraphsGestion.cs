@@ -353,7 +353,7 @@ namespace HBP.UI.Graph
             List<CurveData> curvesToDisplay = new List<CurveData>();
             foreach (var column in m_Scene.ColumnManager.ColumnsIEEG)
             {
-                if (!column.IsMinimized)
+                if (!column.IsMinimized || !ApplicationState.GeneralSettings.HideCurveWhenColumnHidden)
                 {
                     foreach (var site in m_Sites)
                     {
