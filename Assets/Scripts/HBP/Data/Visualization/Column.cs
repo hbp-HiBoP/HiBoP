@@ -130,6 +130,7 @@ namespace HBP.Data.Visualization
         {
             List<int> frequencies = new List<int>();
             List<Localizer.Bloc> blocs = new List<Localizer.Bloc>();
+            Dictionary<SiteConfiguration, int> frequencyBySiteConfiguration = new Dictionary<SiteConfiguration, int>();
             foreach (DataInfo dataInfo in columnData)
             {
                 Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
@@ -154,15 +155,11 @@ namespace HBP.Data.Visualization
                     }
                     else
                     {
-                        Configuration.ConfigurationBySite.Add(site, new SiteConfiguration(averagedBloc.ValuesBySite[site], averagedBloc.NormalizedValuesBySite[site], false, false, false, false));
+                        siteConfiguration = new SiteConfiguration(averagedBloc.ValuesBySite[site], averagedBloc.NormalizedValuesBySite[site], false, false, false, false);
+                        Configuration.ConfigurationBySite.Add(site, siteConfiguration);
                     }
+                    frequencyBySiteConfiguration.Add(siteConfiguration, frequency);
                 }
-            }
-            // Resampling considering frequencies. Does not give good results yet, need more work TODO
-            int maxSize = (from siteConfiguration in Configuration.ConfigurationBySite.Values select siteConfiguration.Values).Max(v => v.Length); // TODO: check performances
-            foreach (var siteConfiguration in Configuration.ConfigurationBySite.Values)
-            {
-                siteConfiguration.ResizeValues(maxSize);
             }
 
             Event mainEvent = new Event();
@@ -201,6 +198,23 @@ namespace HBP.Data.Visualization
             int maxFrequency = frequencies.Max();
             TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents, maxFrequency);
             IconicScenario = new IconicScenario(Bloc, maxFrequency, TimeLine);
+
+            // Resampling taking frequencies into account
+            if (frequencies.Count > 1)
+            {
+                int maxSize = (from siteConfiguration in Configuration.ConfigurationBySite.Values select siteConfiguration.Values).Max(v => v.Length);
+                foreach (var siteConfiguration in Configuration.ConfigurationBySite.Values)
+                {
+                    int frequency;
+                    if (frequencyBySiteConfiguration.TryGetValue(siteConfiguration, out frequency))
+                    {
+                        Timeline timeline = TimeLineByFrequency[frequency];
+                        int samplesBefore = (int)((timeline.Start.RawValue - TimeLine.Start.RawValue) / TimeLine.Step);
+                        int samplesAfter = (int)((TimeLine.End.RawValue - timeline.End.RawValue) / TimeLine.Step);
+                        siteConfiguration.ResizeValues(maxSize, samplesBefore, samplesAfter);
+                    }
+                }
+            }
         }
         /// <summary>
         /// Test if the visualization Column is compatible with a Patient.
