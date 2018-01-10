@@ -2164,7 +2164,7 @@ namespace HBP.Module3D
                 columns.Add(m_ColumnManager.SelectedColumn);
             }
 
-            List<int> sitesID = new List<int>();
+            List<Site> sites = new List<Site>();
             // Build the list of the sites on which we apply actions
             foreach (Column3D column in columns)
             {
@@ -2172,7 +2172,7 @@ namespace HBP.Module3D
                 {
                     case SiteFilter.Site:
                         {
-                            sitesID.Add(siteGameObject.GetComponent<Site>().Information.GlobalID);
+                            sites.Add(siteGameObject.GetComponent<Site>());
                         }
                         break;
                     case SiteFilter.Electrode:
@@ -2180,7 +2180,7 @@ namespace HBP.Module3D
                             Transform parentElectrode = siteGameObject.transform.parent;
                             for (int jj = 0; jj < parentElectrode.childCount; ++jj)
                             {
-                                sitesID.Add(parentElectrode.GetChild(jj).gameObject.GetComponent<Site>().Information.GlobalID);
+                                sites.Add(parentElectrode.GetChild(jj).gameObject.GetComponent<Site>());
                             }
                         }
                         break;
@@ -2192,79 +2192,79 @@ namespace HBP.Module3D
                                 Transform parentElectrode = parentPatient.GetChild(jj);
                                 for (int kk = 0; kk < parentElectrode.childCount; kk++)
                                 {
-                                    sitesID.Add(parentElectrode.GetChild(kk).gameObject.GetComponent<Site>().Information.GlobalID);
+                                    sites.Add(parentElectrode.GetChild(kk).gameObject.GetComponent<Site>());
                                 }
                             }
                         }
                         break;
                     case SiteFilter.Highlighted:
                         {
-                            for (int jj = 0; jj < column.Sites.Count; ++jj)
-                            {                                
-                                if (column.Sites[jj].State.IsHighlighted)
-                                    sitesID.Add(jj);
+                            foreach (Site site in column.Sites)
+                            {
+                                if (site.State.IsHighlighted)
+                                    sites.Add(site);
                             }
                         }
                         break;
                     case SiteFilter.Unhighlighted:
-                        {                            
-                            for (int jj = 0; jj < column.Sites.Count; ++jj)
+                        {
+                            foreach (Site site in column.Sites)
                             {
-                                if (!column.Sites[jj].State.IsHighlighted)
-                                    sitesID.Add(jj);
+                                if (!site.State.IsHighlighted)
+                                    sites.Add(site);
                             }
                         }
                         break;
                     case SiteFilter.All:
                         {
-                            for (int jj = 0; jj < column.Sites.Count; ++jj)
+                            foreach (Site site in column.Sites)
                             {
-                                sitesID.Add(jj);
+                                sites.Add(site);
                             }
                         }
                         break;
                     case SiteFilter.InRegionOfInterest:
                         {
-                            for (int jj = 0; jj < column.Sites.Count; ++jj)
+                            foreach (Site site in column.Sites)
                             {
-                                if (!column.Sites[jj].State.IsOutOfROI)
-                                    sitesID.Add(jj);
+                                if (!site.State.IsOutOfROI)
+                                    sites.Add(site);
                             }
                         }
                         break;
                     case SiteFilter.OutOfRegionOfInterest:
                         {
-                            for (int jj = 0; jj < column.Sites.Count; ++jj)
+                            foreach (Site site in column.Sites)
                             {
-                                if (column.Sites[jj].State.IsOutOfROI)
-                                    sitesID.Add(jj);
+                                if (site.State.IsOutOfROI)
+                                    sites.Add(site);
                             }
                         }
                         break;
                     case SiteFilter.Name:
                         {
-                            for (int jj = 0; jj < column.Sites.Count; ++jj)
+                            foreach (Site site in column.Sites)
                             {
-                                if (column.Sites[jj].Information.FullID.ToLower().Contains(nameFilter.ToLower()))
-                                    sitesID.Add(jj);
+                                if (site.Information.FullID.ToLower().Contains(nameFilter.ToLower()))
+                                    sites.Add(site);
                             }
                         }
                         break;
                     case SiteFilter.MarsAtlas:
-                        {                            
-                            for (int jj = 0; jj < column.Sites.Count; ++jj)
+                        {
+                            foreach (Site site in column.Sites)
                             {
-                                if (ApplicationState.Module3D.MarsAtlasIndex.FullName(column.Sites[jj].Information.MarsAtlasIndex).ToLower().Contains(nameFilter.ToLower()))
-                                    sitesID.Add(jj);      
+                                if (ApplicationState.Module3D.MarsAtlasIndex.FullName(site.Information.MarsAtlasIndex).ToLower().Contains(nameFilter.ToLower()))
+                                    sites.Add(site);
                             }
                         }
                         break;
                     case SiteFilter.Broadman:
                         {
-                            for (int jj = 0; jj < column.Sites.Count; ++jj)
+                            foreach (Site site in column.Sites)
                             {
-                                if (ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(column.Sites[jj].Information.MarsAtlasIndex).ToLower().Contains(nameFilter.ToLower()))
-                                    sitesID.Add(jj);
+                                if (ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(site.Information.MarsAtlasIndex).ToLower().Contains(nameFilter.ToLower()))
+                                    sites.Add(site);
                             }
                         }
                         break;
@@ -2272,39 +2272,36 @@ namespace HBP.Module3D
             }
 
             // Apply action
-            foreach (Column3D column in columns)
+            foreach (Site site in sites)
             {
-                for (int ii = 0; ii < sitesID.Count; ++ii)
+                switch (action)
                 {
-                    switch (action)
-                    {
-                        case SiteAction.Include:
-                            column.Sites[sitesID[ii]].State.IsExcluded = false;
-                            break;
-                        case SiteAction.Exclude:
-                            column.Sites[sitesID[ii]].State.IsExcluded = true;
-                            break;
-                        case SiteAction.Blacklist:
-                            column.Sites[sitesID[ii]].State.IsBlackListed = true;
-                            break;
-                        case SiteAction.Unblacklist:
-                            column.Sites[sitesID[ii]].State.IsBlackListed = false;
-                            break;
-                        case SiteAction.Highlight:
-                            column.Sites[sitesID[ii]].State.IsHighlighted = true;
-                            break;
-                        case SiteAction.Unhighlight:
-                            column.Sites[sitesID[ii]].State.IsHighlighted = false;
-                            break;
-                        case SiteAction.Mark:
-                            column.Sites[sitesID[ii]].State.IsMarked = true;
-                            break;
-                        case SiteAction.Unmark:
-                            column.Sites[sitesID[ii]].State.IsMarked = false;
-                            break;
-                        default:
-                            break;
-                    }
+                    case SiteAction.Include:
+                        site.State.IsExcluded = false;
+                        break;
+                    case SiteAction.Exclude:
+                        site.State.IsExcluded = true;
+                        break;
+                    case SiteAction.Blacklist:
+                        site.State.IsBlackListed = true;
+                        break;
+                    case SiteAction.Unblacklist:
+                        site.State.IsBlackListed = false;
+                        break;
+                    case SiteAction.Highlight:
+                        site.State.IsHighlighted = true;
+                        break;
+                    case SiteAction.Unhighlight:
+                        site.State.IsHighlighted = false;
+                        break;
+                    case SiteAction.Mark:
+                        site.State.IsMarked = true;
+                        break;
+                    case SiteAction.Unmark:
+                        site.State.IsMarked = false;
+                        break;
+                    default:
+                        break;
                 }
             }
 
