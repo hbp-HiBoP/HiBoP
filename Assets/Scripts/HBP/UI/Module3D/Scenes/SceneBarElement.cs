@@ -38,7 +38,7 @@ namespace HBP.UI.Module3D
             m_Toggle.isOn = true;
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
-                scene.OnChangeVisibleState.Invoke(isOn);
+                scene.UpdateVisibleState(isOn);
             });
         }
         #endregion

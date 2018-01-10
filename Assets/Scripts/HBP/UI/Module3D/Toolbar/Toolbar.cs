@@ -40,6 +40,16 @@ namespace HBP.UI.Module3D
                 }
             });
 
+            ApplicationState.Module3D.OnMinimizeScene.AddListener((scene) =>
+            {
+                if (scene == ApplicationState.Module3D.SelectedScene)
+                {
+                    m_Tools.ForEach((t) => t.ListenerLock = true);
+                    DefaultState();
+                    m_Tools.ForEach((t) => t.ListenerLock = false);
+                }
+            });
+
             ApplicationState.Module3D.OnSelectColumn.AddListener((column) => OnChangeColumn());
 
             ApplicationState.Module3D.OnSelectView.AddListener((column) => OnChangeView());

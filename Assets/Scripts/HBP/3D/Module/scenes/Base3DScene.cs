@@ -638,7 +638,7 @@ namespace HBP.Module3D
 
             if (!SceneInformation.IsSceneDisplayed)
             {
-                OnChangeVisibleState.Invoke(true);
+                UpdateVisibleState(true);
                 SceneInformation.IsSceneDisplayed = true;
             }
         }
@@ -1437,6 +1437,19 @@ namespace HBP.Module3D
             {
                 SceneInformation.SimplifiedMeshToUse = m_ColumnManager.SelectedMesh.SimplifiedBoth;
                 SceneInformation.MeshToDisplay = m_ColumnManager.SelectedMesh.Both;
+            }
+        }
+        /// <summary>
+        /// Update the visible state of the scene
+        /// </summary>
+        /// <param name="state"></param>
+        public void UpdateVisibleState(bool state)
+        {
+            OnChangeVisibleState.Invoke(state);
+            if (!state)
+            {
+                ApplicationState.Module3D.OnMinimizeScene.Invoke(this);
+                IsSelected = false;
             }
         }
         #endregion
