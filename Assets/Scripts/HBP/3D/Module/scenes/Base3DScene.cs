@@ -2498,7 +2498,7 @@ namespace HBP.Module3D
                         column.Sites[ii].State.IsOutOfROI = maskROI[ii];
                 }
             }
-            //ResetIEEG();
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             OnUpdateROI.Invoke();
         }
         /// <summary>
