@@ -2485,7 +2485,7 @@ namespace HBP.Module3D
                         column.Sites[ii].State.IsOutOfROI = maskROI[ii];
                 }
             }
-            ResetIEEG();
+            //ResetIEEG();
             OnUpdateROI.Invoke();
         }
         /// <summary>
