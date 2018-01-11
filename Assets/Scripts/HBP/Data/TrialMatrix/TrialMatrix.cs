@@ -61,7 +61,7 @@ namespace HBP.Data.TrialMatrix
 
             // Set properties
             UnityEngine.Profiling.Profiler.BeginSample("set properties");
-            Title = dataInfo.Patient.Place + " " + dataInfo.Patient.Date + " " + dataInfo.Patient.Name + " " + site.Information.Name + " " + protocol.Name + " " + dataInfo.Name;
+            Title = "Site: " + site.Information.ChannelName + "   |   Patient: " + dataInfo.Patient.CompleteName + "   |   Protocol: " + protocol.Name + "   |   Data: " + dataInfo.Name;
             Blocs = trialMatrixBlocs.ToArray();
             TimeLimitsByColumn = CalculateTimeLimitsByColumn(trialMatrixBlocs);
             Protocol = protocol;
