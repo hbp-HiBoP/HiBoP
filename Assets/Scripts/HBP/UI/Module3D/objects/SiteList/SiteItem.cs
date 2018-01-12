@@ -28,7 +28,7 @@ namespace HBP.UI.Module3D
             set
             {
                 base.Object = value;
-                m_Site.GetComponentInChildren<Text>().text = value.Information.Patient.Name + "_" + value.Information.Name;
+                m_Site.GetComponentInChildren<Text>().text = value.Information.Name + " (" + value.Information.Patient.Name + ")";
                 m_Site.interactable = value.IsActive;
                 m_Excluded.isOn = value.State.IsExcluded;
                 m_Blacklisted.isOn = value.State.IsBlackListed;

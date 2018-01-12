@@ -618,6 +618,10 @@ namespace HBP.Module3D
         /// Event called when updating the generator state
         /// </summary>
         public GenericEvent<bool> OnUpdatingGenerator = new GenericEvent<bool>();
+        /// <summary>
+        /// Event called when ieeg are outdated or not anymore
+        /// </summary>
+        public GenericEvent<bool> OnIEEGOutdated = new GenericEvent<bool>();
         #endregion
 
         #region Private Methods
@@ -1176,6 +1180,7 @@ namespace HBP.Module3D
             UpdateGUITextures();
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             ApplicationState.Module3D.OnResetIEEG.Invoke();
+            OnIEEGOutdated.Invoke(true);
         }
         /// <summary>
         /// Generate the split number regarding all meshes
@@ -2699,6 +2704,7 @@ namespace HBP.Module3D
                 FinalizeGeneratorsComputing();
                 ComputeIEEGTextures();
                 ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                OnIEEGOutdated.Invoke(false);
             }
         }
         private IEnumerator c_LoadIEEG()
