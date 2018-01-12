@@ -9,17 +9,15 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         [SerializeField]
-        private Text m_Label;
+        private Button m_Site;
         [SerializeField]
-        private Image m_Included;
+        private Toggle m_Excluded;
         [SerializeField]
-        private Image m_NotBlacklisted;
+        private Toggle m_Blacklisted;
         [SerializeField]
-        private Image m_InAROI;
+        private Toggle m_Marked;
         [SerializeField]
-        private Image m_Marked;
-        [SerializeField]
-        private Image m_Highlighted;
+        private Toggle m_Highlighted;
 
         public override Site Object
         {
@@ -30,14 +28,47 @@ namespace HBP.UI.Module3D
             set
             {
                 base.Object = value;
-                m_Label.text = value.Information.Patient.Name + "_" + value.Information.Name;
-                m_Label.color = !value.State.IsMasked ? ApplicationState.GeneralSettings.Theme.General.OK : ApplicationState.GeneralSettings.Theme.General.Error;
-                m_Included.color = !value.State.IsExcluded ? ApplicationState.GeneralSettings.Theme.General.OK : ApplicationState.GeneralSettings.Theme.General.Error;
-                m_NotBlacklisted.color = !value.State.IsBlackListed ? ApplicationState.GeneralSettings.Theme.General.OK : ApplicationState.GeneralSettings.Theme.General.Error;
-                m_InAROI.color = !value.State.IsOutOfROI ? ApplicationState.GeneralSettings.Theme.General.OK : ApplicationState.GeneralSettings.Theme.General.Error;
-                m_Marked.color = value.State.IsMarked ? ApplicationState.GeneralSettings.Theme.General.OK : ApplicationState.GeneralSettings.Theme.General.Error;
-                m_Highlighted.color = value.State.IsHighlighted ? ApplicationState.GeneralSettings.Theme.General.OK : ApplicationState.GeneralSettings.Theme.General.Error;
+                m_Site.GetComponentInChildren<Text>().text = value.Information.Name + " (" + value.Information.Patient.Name + ")";
+                m_Site.interactable = value.IsActive;
+                m_Excluded.isOn = value.State.IsExcluded;
+                m_Blacklisted.isOn = value.State.IsBlackListed;
+                m_Marked.isOn = value.State.IsMarked;
+                m_Highlighted.isOn = value.State.IsHighlighted;
             }
+        }
+        #endregion
+
+        #region Private Methods
+        private void Awake()
+        {
+            m_Site.onClick.AddListener(() =>
+            {
+                ApplicationState.Module3D.SelectedColumn.SelectedSiteID = Object.Information.GlobalID;
+            });
+
+            m_Excluded.onValueChanged.AddListener((isOn) =>
+            {
+                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Exclude : SiteAction.Include, Object);
+                m_Site.interactable = Object.IsActive;
+            });
+
+            m_Blacklisted.onValueChanged.AddListener((isOn) =>
+            {
+                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Blacklist : SiteAction.Unblacklist, Object);
+                m_Site.interactable = Object.IsActive;
+            });
+
+            m_Marked.onValueChanged.AddListener((isOn) =>
+            {
+                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Mark : SiteAction.Unmark, Object);
+                m_Site.interactable = Object.IsActive;
+            });
+
+            m_Highlighted.onValueChanged.AddListener((isOn) =>
+            {
+                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Highlight : SiteAction.Unhighlight, Object);
+                m_Site.interactable = Object.IsActive;
+            });
         }
         #endregion
     }

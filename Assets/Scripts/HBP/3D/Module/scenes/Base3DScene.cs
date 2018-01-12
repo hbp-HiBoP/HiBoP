@@ -618,6 +618,10 @@ namespace HBP.Module3D
         /// Event called when updating the generator state
         /// </summary>
         public GenericEvent<bool> OnUpdatingGenerator = new GenericEvent<bool>();
+        /// <summary>
+        /// Event called when ieeg are outdated or not anymore
+        /// </summary>
+        public GenericEvent<bool> OnIEEGOutdated = new GenericEvent<bool>();
         #endregion
 
         #region Private Methods
@@ -1165,14 +1169,18 @@ namespace HBP.Module3D
         /// <summary>
         /// Function to be called everytime we want to reset IEEG
         /// </summary>
-        protected void ResetIEEG()
+        protected void ResetIEEG(bool hardReset = true)
         {
             if (!SceneInformation.IsGeometryUpToDate) return;
-            SceneInformation.IsGeneratorUpToDate = false;
-            m_GeneratorNeedsUpdate = true;
+            if (hardReset)
+            {
+                SceneInformation.IsGeneratorUpToDate = false;
+                m_GeneratorNeedsUpdate = true;
+            }
             UpdateGUITextures();
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             ApplicationState.Module3D.OnResetIEEG.Invoke();
+            OnIEEGOutdated.Invoke(true);
         }
         /// <summary>
         /// Generate the split number regarding all meshes
@@ -1921,7 +1929,7 @@ namespace HBP.Module3D
         {
             m_ColumnManager.SelectedColumn.LoadSiteStates(path);
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            ResetIEEG();
+            ResetIEEG(false);
         }
         #endregion
 
@@ -2304,36 +2312,44 @@ namespace HBP.Module3D
                         break;
                 }
             }
-
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
-            ResetIEEG();
+            ResetIEEG(false);
         }
         /// <summary>
-        /// Invert the state of the selected site
+        /// Change the state of a site
         /// </summary>
-        public void InvertSelectedSiteState(SiteAction action)
+        public void ChangeSiteState(SiteAction action, Site site = null)
         {
-            Site site = m_ColumnManager.SelectedColumn.SelectedSite;
+            if (site == null) site = m_ColumnManager.SelectedColumn.SelectedSite;
             if (site)
             {
                 switch (action)
                 {
                     case SiteAction.Include:
-                        site.State.IsExcluded = !site.State.IsExcluded;
+                        site.State.IsExcluded = false;
+                        break;
+                    case SiteAction.Exclude:
+                        site.State.IsExcluded = true;
                         break;
                     case SiteAction.Blacklist:
-                        site.State.IsBlackListed = !site.State.IsBlackListed;
+                        site.State.IsBlackListed = true;
+                        break;
+                    case SiteAction.Unblacklist:
+                        site.State.IsBlackListed = false;
                         break;
                     case SiteAction.Highlight:
-                        site.State.IsHighlighted = !site.State.IsHighlighted;
+                        site.State.IsHighlighted = true;
+                        break;
+                    case SiteAction.Unhighlight:
+                        site.State.IsHighlighted = false;
                         break;
                     case SiteAction.Mark:
-                        site.State.IsMarked = !site.State.IsMarked;
+                        site.State.IsMarked = true;
+                        break;
+                    case SiteAction.Unmark:
+                        site.State.IsMarked = false;
                         break;
                 }
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-                ResetIEEG();
+                ResetIEEG(false);
             }              
         }
         public void ApplySelectedColumnSiteStatesToOtherColumns()
@@ -2347,8 +2363,7 @@ namespace HBP.Module3D
                     site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
                 }
             }
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            ResetIEEG();
+            ResetIEEG(false);
         }
         /// <summary>
         /// Update the sites rendering of all columns
@@ -2495,7 +2510,7 @@ namespace HBP.Module3D
                         column.Sites[ii].State.IsOutOfROI = maskROI[ii];
                 }
             }
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG(false);
             OnUpdateROI.Invoke();
         }
         /// <summary>
@@ -2689,6 +2704,7 @@ namespace HBP.Module3D
                 FinalizeGeneratorsComputing();
                 ComputeIEEGTextures();
                 ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                OnIEEGOutdated.Invoke(false);
             }
         }
         private IEnumerator c_LoadIEEG()
