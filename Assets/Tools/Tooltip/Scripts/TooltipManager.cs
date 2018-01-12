@@ -8,7 +8,7 @@ namespace Tools.Unity
     public class TooltipManager : MonoBehaviour
     {
         #region Properties
-        public const float TIME_TO_DISPLAY = 1.5f;
+        public const float TIME_TO_DISPLAY = 0.7f;
 
         private bool m_IsTooltipDisplayed = false;
         public bool IsTooltipDisplayed
