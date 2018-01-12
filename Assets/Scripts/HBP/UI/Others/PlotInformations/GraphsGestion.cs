@@ -73,8 +73,7 @@ namespace HBP.UI.Graph
         Site[] m_Sites = new Site[0];
 
         // Type
-        [SerializeField]
-        ZoneResizer m_ZoneResizer;
+        [SerializeField] ZoneResizer m_ZoneResizer;
         #endregion
 
         #region Handlers Methods

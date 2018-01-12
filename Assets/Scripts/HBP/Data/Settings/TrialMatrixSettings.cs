@@ -6,7 +6,7 @@
         public enum TrialsSynchronizationType { Disable, Enable }
         public enum TrialMatrixType { Simplified, Complete }
         public enum SmoothingType { None, Line }
-        public enum BaselineType { None, Line, Bloc, Protocol }
+        public enum NormalizationType { None, Trial, Bloc, Protocol }
         public enum BlocFormatType { ConstantLine, LineRatio, BlocRatio }
 
         /// <summary>
@@ -16,7 +16,7 @@
         /// <summary>
         /// Type of Baseline matrix.
         /// </summary>
-        public BaselineType Baseline { get; set; }
+        public NormalizationType Normalization { get; set; }
         /// <summary>
         /// Type of bloc format.
         /// </summary>
@@ -53,10 +53,10 @@
         /// <param name="constantLineHeight">Constant height of a line in a trial matrix.</param>
         /// <param name="lineHeightByWidth">Ratio height by width of a line in a trial matrix.</param>
         /// <param name="heightByWidth">Ratio height by width of a bloc in a trial matrix.</param>
-        public TrialMatrixSettings(SmoothingType smoothing = SmoothingType.Line,BaselineType baseline = BaselineType.Protocol,BlocFormatType blocformat = BlocFormatType.LineRatio,int constantLineHeight = 3,float lineHeightByWidth = 0.05f,float heightByWidth = 0.3f, TrialsSynchronizationType trialsSynchronization = TrialsSynchronizationType.Enable, TrialMatrixType type = TrialMatrixType.Complete)
+        public TrialMatrixSettings(SmoothingType smoothing = SmoothingType.Line,NormalizationType baseline = NormalizationType.Protocol,BlocFormatType blocformat = BlocFormatType.LineRatio,int constantLineHeight = 3,float lineHeightByWidth = 0.05f,float heightByWidth = 0.3f, TrialsSynchronizationType trialsSynchronization = TrialsSynchronizationType.Enable, TrialMatrixType type = TrialMatrixType.Complete)
         {
             Smoothing = smoothing;
-            Baseline = baseline;
+            Normalization = baseline;
             BlocFormat = blocformat;
             ConstantLineHeight = constantLineHeight;
             LineHeightByWidth = lineHeightByWidth;
@@ -67,22 +67,22 @@
         #endregion
 
         #region Public Methods
-        public void SetBaseline(BaselineType type)
+        public void SetBaseline(NormalizationType type)
         {
-            if (Baseline != type)
+            if (Normalization != type)
             {
                 if (ApplicationState.Module3D.ScenesManager.Scenes.Count > 0)
                 {
                     ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Baseline settings changed", "You need to reload the open visualizations in order to apply the changes made to the baseline normalization.\n\nWould you like to reload ?", () =>
                     {
-                        Baseline = type;
+                        Normalization = type;
                         Tools.Unity.ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH, true);
                         ApplicationState.Module3D.ReloadScenes();
                     });
                 }
                 else
                 {
-                    Baseline = type;
+                    Normalization = type;
                 }
             }
         }

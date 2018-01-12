@@ -16,6 +16,7 @@ namespace HBP.UI.Experience.Dataset
         public new d.DataInfo ItemTemp { get { return itemTemp; } }
         InputField m_NameInputField, m_MeasureInputField;
         Dropdown m_PatientDropdown;
+        Dropdown m_NormalizationDropdown;
         FileSelector m_EEGFileSelector, m_POSFileSelector;
         List<Data.Patient> m_Patients;
         #endregion
@@ -56,6 +57,13 @@ namespace HBP.UI.Experience.Dataset
             m_POSFileSelector.File = objectToDisplay.POS;
             m_POSFileSelector.onValueChanged.RemoveAllListeners();
             m_POSFileSelector.onValueChanged.AddListener((pos) => objectToDisplay.POS = pos);
+
+            // Normalization.
+            m_NormalizationDropdown.options = (from name in System.Enum.GetNames(typeof(d.DataInfo.NormalizationType)) select new Dropdown.OptionData(name, null)).ToList();
+            m_NormalizationDropdown.value = (int) objectToDisplay.Normalization;
+            m_NormalizationDropdown.RefreshShownValue();
+            m_NormalizationDropdown.onValueChanged.RemoveAllListeners();
+            m_NormalizationDropdown.onValueChanged.AddListener((value) => objectToDisplay.Normalization = (d.DataInfo.NormalizationType) value);
         }
         protected override void SetInteractableFields(bool interactable)
         {
@@ -64,6 +72,7 @@ namespace HBP.UI.Experience.Dataset
             m_MeasureInputField.interactable = interactable;
             m_EEGFileSelector.interactable = interactable;
             m_POSFileSelector.interactable = interactable;
+            m_NormalizationDropdown.interactable = interactable;
         }
         protected override void SetWindow()
         {
@@ -74,9 +83,10 @@ namespace HBP.UI.Experience.Dataset
             m_PatientDropdown = general.Find("Patient").GetComponentInChildren<Dropdown>();
 
             Transform data = transform.Find("Content").Find("Data");
-            m_EEGFileSelector = data.Find("EEG").Find("FileSelector").GetComponentInChildren<FileSelector>();
+            m_EEGFileSelector = data.Find("EEG").Find("File").GetComponentInChildren<FileSelector>();
             m_MeasureInputField = data.Find("EEG").Find("Measure").GetComponentInChildren<InputField>();
             m_POSFileSelector = data.Find("POS").GetComponentInChildren<FileSelector>();
+            m_NormalizationDropdown = data.Find("Normalization").GetComponentInChildren<Dropdown>();
         }
         void SetPosFile()
         {

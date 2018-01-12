@@ -42,7 +42,7 @@ namespace HBP.UI.Settings
             ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType = (GeneralSettings.PlotNameCorrectionTypeEnum) plotNameAutoCorrectionOption.value;
             TrialMatrixSettings trialMatrixSettings = ApplicationState.GeneralSettings.TrialMatrixSettings;
             trialMatrixSettings.Smoothing = (TrialMatrixSettings.SmoothingType) trialMatrixSmoothingOption.value;
-            trialMatrixSettings.SetBaseline((TrialMatrixSettings.BaselineType)trialBaselineOption.value);
+            trialMatrixSettings.SetBaseline((TrialMatrixSettings.NormalizationType)trialBaselineOption.value);
             trialMatrixSettings.BlocFormat = (TrialMatrixSettings.BlocFormatType) blocFormatOption.value;
             trialMatrixSettings.TrialsSynchronization = (TrialMatrixSettings.TrialsSynchronizationType) trialsSynchronizationOption.value;
             trialMatrixSettings.Type = (TrialMatrixSettings.TrialMatrixType) trialMatrixTypeOption.value;
@@ -79,7 +79,7 @@ namespace HBP.UI.Settings
             plotNameAutoCorrectionOption = transform.Find("Content").Find("EEG").Find("PlotNameAutomaticCorrection").GetComponentInChildren<Dropdown>();
             m_AutoTriggerOption = transform.Find("Content").Find("EEG").Find("AutoTrigger").GetComponentInChildren<Dropdown>();
 
-            trialBaselineOption = transform.Find("Content").Find("Trial Matrix").Find("Baseline").GetComponentInChildren<Dropdown>();
+            trialBaselineOption = transform.Find("Content").Find("Trial Matrix").Find("Normalization").GetComponentInChildren<Dropdown>();
             trialMatrixSmoothingOption = transform.Find("Content").Find("Trial Matrix").Find("TrialMatrixSmoothing").GetComponentInChildren<Dropdown>();
             blocFormatOption = transform.Find("Content").Find("Trial Matrix").Find("BlocFormat").GetComponentInChildren<Dropdown>();
             constantLineInputField = transform.Find("Content").Find("Trial Matrix").Find("ConstantLine").GetComponentInChildren<InputField>(true);
@@ -109,13 +109,13 @@ namespace HBP.UI.Settings
             trialMatrixTypeOption.value = (int) ApplicationState.GeneralSettings.TrialMatrixSettings.Type;
             trialMatrixTypeOption.RefreshShownValue();
 
-            string[] l_typesBaseline = Enum.GetNames(typeof(TrialMatrixSettings.BaselineType));
+            string[] l_typesBaseline = Enum.GetNames(typeof(TrialMatrixSettings.NormalizationType));
             trialBaselineOption.ClearOptions();
             foreach (string i_type in l_typesBaseline)
             {
                 trialBaselineOption.options.Add(new Dropdown.OptionData(i_type));
             }
-            trialBaselineOption.value = (int)ApplicationState.GeneralSettings.TrialMatrixSettings.Baseline;
+            trialBaselineOption.value = (int)ApplicationState.GeneralSettings.TrialMatrixSettings.Normalization;
             trialBaselineOption.RefreshShownValue();
 
             string[] l_typesPlotName = Enum.GetNames(typeof(GeneralSettings.PlotNameCorrectionTypeEnum));

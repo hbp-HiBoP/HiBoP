@@ -27,8 +27,7 @@ namespace HBP.Data.Experience.Dataset
     public class DataInfo : ICloneable, ICopiable
     {
         #region Properties
-        [DataMember(Name = "Name")]
-        string m_Name;
+        [DataMember(Name = "Name")] string m_Name;
         /// <summary>
         /// Name of the data.
         /// </summary>
@@ -38,8 +37,7 @@ namespace HBP.Data.Experience.Dataset
             set { m_Name = value; m_NameErrors = GetNameErrors(); }
         }
 
-        [DataMember(Name = "Patient")]
-        string m_Patient;
+        [DataMember(Name = "Patient")] string m_Patient;
         /// <summary>
         /// Patient who has passed the experiment.
         /// </summary>
@@ -50,8 +48,7 @@ namespace HBP.Data.Experience.Dataset
             set { m_Patient = value.ID; m_PatientErrors = GetPatientErrors(); }
         }
 
-        [DataMember(Name = "Measure")]
-        string m_Measure;
+        [DataMember(Name = "Measure")] string m_Measure;
         /// <summary>
         /// Name of the measure in the EEG file : "EGG data" by default.
         /// </summary>
@@ -61,8 +58,7 @@ namespace HBP.Data.Experience.Dataset
             set { m_Measure = value; m_MeasureErrors = GetMeasureErrors(); }
         }
 
-        [DataMember(Name = "EEG")]
-        string m_EEG;
+        [DataMember(Name = "EEG")] string m_EEG;
         /// <summary>
         /// Path of the EEG file.
         /// </summary>
@@ -72,8 +68,7 @@ namespace HBP.Data.Experience.Dataset
             set { m_EEG = value; m_EEGErrors = GetEEGErrors(); }
         }
 
-        [DataMember(Name = "POS")]
-        string m_POS;
+        [DataMember(Name = "POS")] string m_POS;
         /// <summary>
         /// Path of the POS file.
         /// </summary>
@@ -85,12 +80,24 @@ namespace HBP.Data.Experience.Dataset
         public UnityEvent OnPOSChanged { get; set; }
          
         /// <summary>
+        /// Normalization of the Data.
+        /// </summary>
+        public NormalizationType Normalization { get; set; }
+
+        /// <summary>
         /// Error type of the DataInfo.
         /// </summary>
         public enum ErrorType
         {
             LabelEmpty, PatientEmpty, MeasureEmpty, EEGEmpty, POSEmpty, EEGFileNotExist, POSFileNotExist,
             EEGFileNotAGoodFile, EEGDoNotContainsMeasure, POSFileNotAGoodFile, POSNotCompatible
+        }
+        /// <summary>
+        /// Normalization Type.
+        /// </summary>
+        public enum NormalizationType
+        {
+            None, Trial, Bloc, Protocol, Auto
         }
 
         ErrorType[] m_NameErrors;
@@ -237,7 +244,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="measure">Name of the measure in the EEG file.</param>
         /// <param name="eeg">EEG file path.</param>
         /// <param name="pos">POS file path.</param>
-        public DataInfo(string name, Patient patient, string measure, string eeg, string pos)
+        public DataInfo(string name, Patient patient, string measure, string eeg, string pos, NormalizationType normalization)
         {
             OnPOSChanged = new UnityEvent();
             Name = name;
@@ -245,11 +252,12 @@ namespace HBP.Data.Experience.Dataset
             Measure = measure;
             EEG = eeg;
             POS = pos;
+            Normalization = normalization;
         }
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public DataInfo() : this("Data", ApplicationState.ProjectLoaded.Patients.FirstOrDefault(),"EEG data", string.Empty, string.Empty)
+        public DataInfo() : this("Data", ApplicationState.ProjectLoaded.Patients.FirstOrDefault(),"EEG data", string.Empty, string.Empty, NormalizationType.Auto)
         {
         }
         #endregion
@@ -261,7 +269,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, EEG.Clone() as string, POS.Clone() as string);
+            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, EEG.Clone() as string, POS.Clone() as string, Normalization);
             dataInfo.OnPOSChanged = OnPOSChanged;
             return dataInfo;
         }
@@ -273,6 +281,7 @@ namespace HBP.Data.Experience.Dataset
             Measure = dataInfo.Measure;
             EEG = dataInfo.EEG;
             POS = dataInfo.POS;
+            Normalization = dataInfo.Normalization;
         }
         #endregion
 
