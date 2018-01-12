@@ -113,6 +113,32 @@ namespace HBP.Data.Visualization
             Data = dataLabel;
             Configuration = configuration;
         }
+        public Column(IEnumerable<Patient> patients, IEnumerable<Dataset> datasets) : this()
+        {
+            Dataset datasetUsable = null;
+            string nameUsable = string.Empty;
+            foreach (Dataset dataset in datasets)
+            {
+                foreach (var name in dataset.Data.Select(d => d.Name).Distinct())
+                {
+                    if(patients.All((p) => dataset.Data.Any((d) => (d.Patient == p && d.Name == name))))
+                    {
+                        datasetUsable = dataset;
+                        nameUsable = name;
+                        goto Found;
+                    }
+                }
+            }
+            Found:
+            if(datasetUsable != null)
+            {
+                Protocol = datasetUsable.Protocol;
+                Bloc = datasetUsable.Protocol.Blocs.First();
+                Dataset = datasetUsable;
+                Data = nameUsable;
+                Configuration = new ColumnConfiguration();
+            }
+        }
         /// <summary>
         /// Create a new Column instance with default values.
         /// </summary>
