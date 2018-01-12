@@ -2306,30 +2306,41 @@ namespace HBP.Module3D
             }
 
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
             ResetIEEG();
         }
         /// <summary>
-        /// Invert the state of the selected site
+        /// Change the state of a site
         /// </summary>
-        public void InvertSelectedSiteState(SiteAction action)
+        public void ChangeSiteState(SiteAction action, Site site = null)
         {
-            Site site = m_ColumnManager.SelectedColumn.SelectedSite;
+            if (site == null) site = m_ColumnManager.SelectedColumn.SelectedSite;
             if (site)
             {
                 switch (action)
                 {
                     case SiteAction.Include:
-                        site.State.IsExcluded = !site.State.IsExcluded;
+                        site.State.IsExcluded = false;
+                        break;
+                    case SiteAction.Exclude:
+                        site.State.IsExcluded = true;
                         break;
                     case SiteAction.Blacklist:
-                        site.State.IsBlackListed = !site.State.IsBlackListed;
+                        site.State.IsBlackListed = true;
+                        break;
+                    case SiteAction.Unblacklist:
+                        site.State.IsBlackListed = false;
                         break;
                     case SiteAction.Highlight:
-                        site.State.IsHighlighted = !site.State.IsHighlighted;
+                        site.State.IsHighlighted = true;
+                        break;
+                    case SiteAction.Unhighlight:
+                        site.State.IsHighlighted = false;
                         break;
                     case SiteAction.Mark:
-                        site.State.IsMarked = !site.State.IsMarked;
+                        site.State.IsMarked = true;
+                        break;
+                    case SiteAction.Unmark:
+                        site.State.IsMarked = false;
                         break;
                 }
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);

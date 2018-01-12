@@ -26,8 +26,7 @@ namespace HBP.UI.Module3D.Tools
             m_List.Initialize();
             m_Button.onClick.AddListener(() =>
             {
-                m_List.Initialize();
-                m_List.Objects = ApplicationState.Module3D.SelectedColumn.Sites.ToArray();
+                m_List.ObjectsList = ApplicationState.Module3D.SelectedColumn.Sites;
             });
         }
         public override void DefaultState()
