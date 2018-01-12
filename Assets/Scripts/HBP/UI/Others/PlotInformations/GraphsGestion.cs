@@ -283,7 +283,7 @@ namespace HBP.UI.Graph
                             points[i] = new Vector2(absciss, data[index]);
                         }
 
-                        m_CurveBySiteAndColumn[column][site] = new ShapedCurveData("C" + (c + 1) + " " + site.Information.Name, column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name + "_" + c, points, standardDeviations, GetCurveColor(c, s), 1.5f);
+                        m_CurveBySiteAndColumn[column][site] = new ShapedCurveData("C" + (c + 1) + " " + site.Information.ChannelName, column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name + "_" + c, points, standardDeviations, GetCurveColor(c, s), 1.5f);
                     }
                     else if (linesToRead.Length == 1)
                     {
@@ -305,7 +305,7 @@ namespace HBP.UI.Graph
                         }
 
                         //Create curve
-                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.Name, "C" + c + "_" + column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name, points, GetCurveColor(c, s), 1.5f);
+                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.ChannelName, "C" + c + "_" + column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name, points, GetCurveColor(c, s), 1.5f);
                     }
                     else continue;
                 }
