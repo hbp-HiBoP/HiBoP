@@ -165,6 +165,10 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
         /// <summary>
+        /// Event called when minimizing a scene
+        /// </summary>
+        public GenericEvent<Base3DScene> OnMinimizeScene = new GenericEvent<Base3DScene>();
+        /// <summary>
         /// Event called when changing the selected column
         /// </summary>
         public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();

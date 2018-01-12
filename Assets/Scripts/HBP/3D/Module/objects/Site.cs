@@ -153,6 +153,10 @@ namespace HBP.Module3D
                 return Name + " (" + Patient.Name + " - " + Patient.Place + " - " + Patient.Date + ")";
             }
         }
+        public string ChannelName
+        {
+            get { return FullCorrectedID.Replace(PatientID + "_", ""); }
+        }
     }
 
     public class SiteState

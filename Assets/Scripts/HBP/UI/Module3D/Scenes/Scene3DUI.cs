@@ -22,10 +22,15 @@ namespace HBP.UI.Module3D
         /// Linked resizable grid
         /// </summary>
         private ResizableGrid m_ResizableGrid;
-        ///// <summary>
-        ///// Update circle when loading things
-        ///// </summary>
+        /// <summary>
+        /// Update circle when loading things
+        /// </summary>
         private LoadingCircle m_LoadingCircle;
+        /// <summary>
+        /// Feedback for when the iEEG are not up to date
+        /// </summary>
+        [SerializeField]
+        private GameObject m_IEEGOutdated;
         #endregion
 
         #region Private Methods
@@ -130,6 +135,10 @@ namespace HBP.UI.Module3D
             m_Scene.OnProgressUpdateGenerator.AddListener((progress, duration, message) =>
             {
                 if (m_LoadingCircle != null) m_LoadingCircle.ChangePercentage(progress, duration, message);
+            });
+            m_Scene.OnIEEGOutdated.AddListener((state) =>
+            {
+                m_IEEGOutdated.SetActive(state);
             });
         }
         #endregion

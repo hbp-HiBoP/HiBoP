@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 using Tools.CSharp;
+using Tools.Unity;
 
 
 namespace HBP.Data.Visualization
@@ -23,7 +24,7 @@ namespace HBP.Data.Visualization
     *   - \a Bloc.
     */
     [DataContract]
-    public class Column: ICloneable
+    public class Column : ICloneable
     {
         #region Properties
         [DataMember(Name = "Dataset")]
@@ -37,10 +38,10 @@ namespace HBP.Data.Visualization
             set { datasetID = value.ID; }
         }
 
-    /// <summary>
-    /// Data label of the column.
-    /// </summary>
-    [DataMember(Name = "Label")]
+        /// <summary>
+        /// Data label of the column.
+        /// </summary>
+        [DataMember(Name = "Label")]
         public string Data { get; set; }
 
         [DataMember(Name = "Protocol")]
@@ -81,6 +82,9 @@ namespace HBP.Data.Visualization
         /// </summary>
         public IconicScenario IconicScenario { get; set; }
 
+        public Dictionary<int, Timeline> TimeLineByFrequency { get; set; }
+        public Dictionary<int, IconicScenario> IconicScenarioByFrequency { get; set; }
+
         /// <summary>
         /// Display label of the column
         /// </summary>
@@ -109,6 +113,32 @@ namespace HBP.Data.Visualization
             Data = dataLabel;
             Configuration = configuration;
         }
+        public Column(IEnumerable<Patient> patients, IEnumerable<Dataset> datasets) : this()
+        {
+            Dataset datasetUsable = null;
+            string nameUsable = string.Empty;
+            foreach (Dataset dataset in datasets)
+            {
+                foreach (var name in dataset.Data.Select(d => d.Name).Distinct())
+                {
+                    if(patients.All((p) => dataset.Data.Any((d) => (d.Patient == p && d.Name == name))))
+                    {
+                        datasetUsable = dataset;
+                        nameUsable = name;
+                        goto Found;
+                    }
+                }
+            }
+            Found:
+            if(datasetUsable != null)
+            {
+                Protocol = datasetUsable.Protocol;
+                Bloc = datasetUsable.Protocol.Blocs.First();
+                Dataset = datasetUsable;
+                Data = nameUsable;
+                Configuration = new ColumnConfiguration();
+            }
+        }
         /// <summary>
         /// Create a new Column instance with default values.
         /// </summary>
@@ -124,15 +154,21 @@ namespace HBP.Data.Visualization
         /// <param name="columnData"></param>
         public void Load(IEnumerable<DataInfo> columnData)
         {
-            // FIXME
-            float frequency = 0;
-
+            List<int> frequencies = new List<int>();
             List<Localizer.Bloc> blocs = new List<Localizer.Bloc>();
+            Dictionary<SiteConfiguration, int> frequencyBySiteConfiguration = new Dictionary<SiteConfiguration, int>();
             foreach (DataInfo dataInfo in columnData)
             {
                 Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
-                //FIXME
-                frequency = epochedData.Frequency;
+                int frequency = UnityEngine.Mathf.RoundToInt(epochedData.Frequency);
+                if (frequency.IsPowerOfTwo())
+                {
+                    frequencies.Add(frequency);
+                }
+                else
+                {
+                    throw new FrequencyException(dataInfo.EEG, frequency);
+                }
                 Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs,ApplicationState.GeneralSettings.ValueAveraging, ApplicationState.GeneralSettings.EventPositionAveraging);
                 blocs.AddRange(epochedData.Blocs);
                 foreach (var site in averagedBloc.ValuesBySite.Keys)
@@ -145,8 +181,10 @@ namespace HBP.Data.Visualization
                     }
                     else
                     {
-                        Configuration.ConfigurationBySite.Add(site, new SiteConfiguration(averagedBloc.ValuesBySite[site], averagedBloc.NormalizedValuesBySite[site], false, false, false, false));
+                        siteConfiguration = new SiteConfiguration(averagedBloc.ValuesBySite[site], averagedBloc.NormalizedValuesBySite[site], false, false, false, false);
+                        Configuration.ConfigurationBySite.Add(site, siteConfiguration);
                     }
+                    frequencyBySiteConfiguration.Add(siteConfiguration, frequency);
                 }
             }
 
@@ -173,8 +211,36 @@ namespace HBP.Data.Visualization
                     }
                     break;
             }
-            TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents, frequency);
-            IconicScenario = new IconicScenario(Bloc, frequency, TimeLine);
+
+            // Timeline
+            frequencies = frequencies.Distinct().ToList();
+            TimeLineByFrequency = new Dictionary<int, Timeline>();
+            IconicScenarioByFrequency = new Dictionary<int, IconicScenario>();
+            foreach (int frequency in frequencies)
+            {
+                TimeLineByFrequency.Add(frequency, new Timeline(Bloc.Window, mainEvent, secondaryEvents, frequency));
+                IconicScenarioByFrequency.Add(frequency, new IconicScenario(Bloc, frequency, TimeLineByFrequency[frequency]));
+            }
+            int maxFrequency = frequencies.Max();
+            TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents, maxFrequency);
+            IconicScenario = new IconicScenario(Bloc, maxFrequency, TimeLine);
+
+            // Resampling taking frequencies into account
+            if (frequencies.Count > 1)
+            {
+                int maxSize = (from siteConfiguration in Configuration.ConfigurationBySite.Values select siteConfiguration.Values).Max(v => v.Length);
+                foreach (var siteConfiguration in Configuration.ConfigurationBySite.Values)
+                {
+                    int frequency;
+                    if (frequencyBySiteConfiguration.TryGetValue(siteConfiguration, out frequency))
+                    {
+                        Timeline timeline = TimeLineByFrequency[frequency];
+                        int samplesBefore = (int)((timeline.Start.RawValue - TimeLine.Start.RawValue) / TimeLine.Step);
+                        int samplesAfter = (int)((TimeLine.End.RawValue - timeline.End.RawValue) / TimeLine.Step);
+                        siteConfiguration.ResizeValues(maxSize, samplesBefore, samplesAfter);
+                    }
+                }
+            }
         }
         /// <summary>
         /// Test if the visualization Column is compatible with a Patient.
@@ -209,7 +275,7 @@ namespace HBP.Data.Visualization
         /// <param name="after">sample after</param>
         public void Standardize(int before,int after)
         {
-            int diffBefore = TimeLine.MainEvent.Position - before;
+            int diffBefore = before - TimeLine.MainEvent.Position;
             int diffAfter = after - (TimeLine.Lenght - TimeLine.MainEvent.Position);
             TimeLine.Resize(diffBefore, diffAfter);
             foreach (var siteConfiguration in Configuration.ConfigurationBySite.Values)

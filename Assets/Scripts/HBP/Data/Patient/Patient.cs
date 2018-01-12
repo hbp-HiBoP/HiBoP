@@ -49,6 +49,8 @@ namespace HBP.Data
         /// Patient brain.
         /// </summary>
         [DataMember] public Brain Brain { get; set; }
+
+        [IgnoreDataMember] public string CompleteName { get { return Name + " (" + Place + " - " + Date + ")"; } }
         #endregion
 
         #region Constructors

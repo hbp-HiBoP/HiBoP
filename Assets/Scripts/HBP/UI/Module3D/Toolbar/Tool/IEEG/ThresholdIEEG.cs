@@ -28,10 +28,12 @@ namespace HBP.UI.Module3D.Tools
                 {
                     foreach (HBP.Module3D.Column3DIEEG column in ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG)
                     {
-                        column.IEEGParameters.SpanMin = min;
-                        column.IEEGParameters.Middle = mid;
-                        column.IEEGParameters.SpanMax = max;
+                        column.IEEGParameters.SetSpanValues(min, mid, max);
                     }
+                }
+                else
+                {
+                    ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SetSpanValues(min, mid, max);
                 }
             });
         }

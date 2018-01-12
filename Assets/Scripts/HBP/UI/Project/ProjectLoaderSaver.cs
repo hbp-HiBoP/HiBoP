@@ -14,6 +14,7 @@ namespace HBP.UI
         #region Public Methods  
         public void Load(ProjectInfo projectInfo)
         {
+            DataManager.Clear();
             this.StartCoroutineAsync(c_Load(projectInfo));
         }
         public void Save(string path)

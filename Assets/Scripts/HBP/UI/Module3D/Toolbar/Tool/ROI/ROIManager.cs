@@ -30,6 +30,7 @@ namespace HBP.UI.Module3D.Tools
         public void UpdateROIDropdownOptions()
         {
             m_ROISelector.options.Clear();
+            m_ROISelector.options.Add(new Dropdown.OptionData("None"));
             for (int i = 0; i < ApplicationState.Module3D.SelectedColumn.ROIs.Count; i++)
             {
                 ROI roi = ApplicationState.Module3D.SelectedColumn.ROIs[i];
@@ -63,7 +64,7 @@ namespace HBP.UI.Module3D.Tools
         {
             ListenerLock = true;
             int roiID = ApplicationState.Module3D.SelectedColumn.SelectedROIID;
-            m_ROISelector.value = roiID;
+            m_ROISelector.value = roiID + 1;
             if (roiID != -1)
             {
                 m_ROIName.text = ApplicationState.Module3D.SelectedColumn.SelectedROI.Name;
@@ -126,7 +127,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedColumn.SelectedROIID = value;
+                ApplicationState.Module3D.SelectedColumn.SelectedROIID = value - 1;
             });
             m_ROIName.onEndEdit.AddListener((value) =>
             {
@@ -152,17 +153,11 @@ namespace HBP.UI.Module3D.Tools
         {
             m_AddROI.interactable = false;
             m_RemoveROI.interactable = false;
-            m_RemoveROI.gameObject.SetActive(false);
             m_ROIName.interactable = false;
-            m_ROIName.gameObject.SetActive(false);
             m_ROIName.text = "";
-            m_ROINameParent.gameObject.SetActive(false);
             m_ROISelector.interactable = false;
-            m_ROISelector.gameObject.SetActive(false);
             m_VolumeSelector.interactable = false;
-            m_VolumeSelector.gameObject.SetActive(false);
             m_RemoveVolume.interactable = false;
-            m_RemoveVolume.gameObject.SetActive(false);
         }
         public override void UpdateInteractable()
         {
@@ -179,12 +174,6 @@ namespace HBP.UI.Module3D.Tools
             m_ROISelector.interactable = hasROI;
             m_VolumeSelector.interactable = hasVolume;
             m_RemoveVolume.interactable = hasVolume;
-            m_RemoveROI.gameObject.SetActive(hasROI);
-            m_ROIName.gameObject.SetActive(hasROI);
-            m_ROINameParent.gameObject.SetActive(hasROI);
-            m_ROISelector.gameObject.SetActive(hasROI);
-            m_VolumeSelector.gameObject.SetActive(hasVolume);
-            m_RemoveVolume.gameObject.SetActive(hasVolume);
         }
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {

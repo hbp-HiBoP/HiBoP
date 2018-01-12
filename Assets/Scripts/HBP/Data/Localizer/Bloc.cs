@@ -12,7 +12,6 @@ namespace HBP.Data.Localizer
         public Dictionary<string, float[]> ValuesBySite { get; set; }
         public Dictionary<string, float[]> BaselineValuesBySite { get; set; }
         public Dictionary<string, float[]> NormalizedValuesBySite { get; set; }
-
         #endregion
 
         #region Constructor

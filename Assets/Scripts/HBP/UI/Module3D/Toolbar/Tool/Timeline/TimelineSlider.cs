@@ -131,8 +131,8 @@ namespace HBP.UI.Module3D.Tools
                 if (ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
                 {
                     HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
-                    m_Slider.value = column.CurrentTimeLineID;
                     m_Slider.maxValue = column.MaxTimeLineID;
+                    m_Slider.value = column.CurrentTimeLineID;
                     m_Min.text = column.ColumnData.TimeLine.Start.RawValue.ToString("N2") + column.TimeLineUnite;
                     m_Max.text = column.ColumnData.TimeLine.End.RawValue.ToString("N2") + column.TimeLineUnite;
                     m_Current.text = column.CurrentTimeLineID + " (" + column.CurrentTimeLine.ToString("N2") + column.TimeLineUnite + ")";

@@ -67,21 +67,57 @@ public class Shortcut3D : MonoBehaviour
         Base3DScene scene = ApplicationState.Module3D.SelectedScene;
         if (scene)
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
+            Column3D column = scene.ColumnManager.SelectedColumn;
+            if (column)
             {
-                scene.InvertSelectedSiteState(SiteAction.Include);
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
-                scene.InvertSelectedSiteState(SiteAction.Highlight);
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha3))
-            {
-                scene.InvertSelectedSiteState(SiteAction.Blacklist);
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha4))
-            {
-                scene.InvertSelectedSiteState(SiteAction.Mark);
+                Site site = column.SelectedSite;
+                if (site)
+                {
+                    if (Input.GetKeyDown(KeyCode.Alpha1))
+                    {
+                        if (site.State.IsExcluded)
+                        {
+                            scene.ChangeSiteState(SiteAction.Include);
+                        }
+                        else
+                        {
+                            scene.ChangeSiteState(SiteAction.Exclude);
+                        }
+                    }
+                    else if (Input.GetKeyDown(KeyCode.Alpha2))
+                    {
+                        if (site.State.IsHighlighted)
+                        {
+                            scene.ChangeSiteState(SiteAction.Unhighlight);
+                        }
+                        else
+                        {
+                            scene.ChangeSiteState(SiteAction.Highlight);
+                        }
+                    }
+                    else if (Input.GetKeyDown(KeyCode.Alpha3))
+                    {
+                        if (site.State.IsBlackListed)
+                        {
+                            scene.ChangeSiteState(SiteAction.Unblacklist);
+                        }
+                        else
+                        {
+                            scene.ChangeSiteState(SiteAction.Blacklist);
+                        }
+                    }
+                    else if (Input.GetKeyDown(KeyCode.Alpha4))
+                    {
+                        if (site.State.IsMarked)
+                        {
+                            scene.ChangeSiteState(SiteAction.Unmark);
+                        }
+                        else
+                        {
+                            scene.ChangeSiteState(SiteAction.Mark);
+                        }
+                    }
+                }
             }
         }
     }

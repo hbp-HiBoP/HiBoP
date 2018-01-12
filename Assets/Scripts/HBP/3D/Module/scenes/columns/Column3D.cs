@@ -144,15 +144,38 @@ namespace HBP.Module3D
         protected int m_SelectedSiteID = -1;
         public int SelectedSiteID
         {
-            get { return m_SelectedSiteID; }
-            set { m_SelectedSiteID = value; OnSelectSite.Invoke(SelectedSite); }
+            get
+            {
+                return m_SelectedSiteID;
+            }
+            set
+            {
+                m_SelectedSiteID = value;
+                OnSelectSite.Invoke(SelectedSite);
+                if (value >= 0)
+                {
+                    SelectedPatientID = SelectedSite.Information.PatientNumber;
+                }
+                else
+                {
+                    SelectedPatientID = -1;
+                }
+            }
         }
         public Site SelectedSite
         {
-            get { return m_SelectedSiteID >= 0 ? Sites[m_SelectedSiteID] : null; }
-            set { m_SelectedSiteID = Sites.FindIndex((site) => site == value); ApplicationState.Module3D.OnRequestUpdateInUI.Invoke(); }
+            get
+            {
+                return m_SelectedSiteID >= 0 ? Sites[m_SelectedSiteID] : null;
+            }
+            set
+            {
+                m_SelectedSiteID = Sites.FindIndex((site) => site == value);
+                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                SelectedPatientID = value.Information.PatientNumber;
+            }
         }
-        public int SelectedPatientID { get; set; }
+        public int SelectedPatientID { get; protected set; }
 
         protected DLL.RawSiteList m_RawElectrodes = null;  /**< raw format of the plots container dll */
         public DLL.RawSiteList RawElectrodes

@@ -10,7 +10,7 @@ public static class DataManager
 {
     #region Properties
     static Dictionary<DataRequest, EpochedData> m_DataByRequest = new Dictionary<DataRequest, EpochedData>();
-    static Dictionary<DataRequest, TrialMatrixSettings.BaselineType> m_NormalizeByRequest = new Dictionary<DataRequest, TrialMatrixSettings.BaselineType>();
+    static Dictionary<DataRequest, TrialMatrixSettings.NormalizationType> m_NormalizeByRequest = new Dictionary<DataRequest, TrialMatrixSettings.NormalizationType>();
     public static bool HasData { get { return m_DataByRequest.Count > 0; } }
     #endregion
 
@@ -43,7 +43,7 @@ public static class DataManager
         foreach (var bloc in protocol.Blocs)
         {
             m_DataByRequest.Add(new DataRequest(dataInfo, bloc), new EpochedData(bloc, data));
-            m_NormalizeByRequest.Add(new DataRequest(dataInfo, bloc), TrialMatrixSettings.BaselineType.None);
+            m_NormalizeByRequest.Add(new DataRequest(dataInfo, bloc), TrialMatrixSettings.NormalizationType.None);
         }
     }
     public static void UnLoad(DataInfo dataInfo)
@@ -66,30 +66,50 @@ public static class DataManager
     }
     public static void NormalizeData()
     {
-        switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Baseline)
+        IEnumerable<DataInfo> dataInfoCollection = m_DataByRequest.Select((d) => d.Key.DataInfo).Distinct();
+        foreach (var dataInfo in dataInfoCollection)
         {
-            case TrialMatrixSettings.BaselineType.None:
-                foreach (var request in m_DataByRequest.Keys) if (m_NormalizeByRequest[request] != TrialMatrixSettings.BaselineType.None) NormalizeByNone(request);
-                break;
-            case TrialMatrixSettings.BaselineType.Line:
-                foreach (var request in m_DataByRequest.Keys) if (m_NormalizeByRequest[request] != TrialMatrixSettings.BaselineType.Line) NormalizeByLine(request);
-                break;
-            case TrialMatrixSettings.BaselineType.Bloc:
-                foreach (var request in m_DataByRequest.Keys) if (m_NormalizeByRequest[request] != TrialMatrixSettings.BaselineType.Bloc) NormalizeByBloc(request);
-                break;
-            case TrialMatrixSettings.BaselineType.Protocol:
-                IEnumerable<DataInfo> dataInfoCollection = (from request in m_DataByRequest.Keys select request.DataInfo).Distinct();
-                foreach (var dataInfo in dataInfoCollection)
-                {
-                    Protocol protocol = ApplicationState.ProjectLoaded.Datasets.First((d) => d.Data.Contains(dataInfo)).Protocol;
-                    IEnumerable<DataRequest> dataRequestCollection = (from bloc in protocol.Blocs select new DataRequest(dataInfo, bloc));
-                    IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize = from dataRequest in dataRequestCollection select new Tuple<DataRequest, bool>(dataRequest, m_NormalizeByRequest[dataRequest] != TrialMatrixSettings.BaselineType.Protocol);
+            IEnumerable<DataRequest> dataRequestCollection = m_DataByRequest.Where((d) => d.Key.DataInfo == dataInfo).Select((d) => d.Key);
+            switch (dataInfo.Normalization)
+            {
+                case DataInfo.NormalizationType.None:
+                    foreach(var request in dataRequestCollection) if(m_NormalizeByRequest[request] != TrialMatrixSettings.NormalizationType.None) NormalizeByNone(request);
+                    break;
+                case DataInfo.NormalizationType.Trial:
+                    foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != TrialMatrixSettings.NormalizationType.Trial) NormalizeByTrial(request);
+                    break;
+                case DataInfo.NormalizationType.Bloc:
+                    foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != TrialMatrixSettings.NormalizationType.Bloc) NormalizeByBloc(request);
+                    break;
+                case DataInfo.NormalizationType.Protocol:
+                    IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize = from dataRequest in dataRequestCollection select new Tuple<DataRequest, bool>(dataRequest, m_NormalizeByRequest[dataRequest] != TrialMatrixSettings.NormalizationType.Protocol);
                     if (dataRequestAndNeedToNormalize.Any((tuple) => tuple.Object2))
                     {
                         NormalizeByProtocol(dataRequestAndNeedToNormalize);
                     }
-                }
-                break;
+                    break;
+                case DataInfo.NormalizationType.Auto:
+                    switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Normalization)
+                    {
+                        case TrialMatrixSettings.NormalizationType.None:
+                            foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != TrialMatrixSettings.NormalizationType.None) NormalizeByNone(request);
+                            break;
+                        case TrialMatrixSettings.NormalizationType.Trial:
+                            foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != TrialMatrixSettings.NormalizationType.Trial) NormalizeByTrial(request);
+                            break;
+                        case TrialMatrixSettings.NormalizationType.Bloc:
+                            foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != TrialMatrixSettings.NormalizationType.Bloc) NormalizeByBloc(request);
+                            break;
+                        case TrialMatrixSettings.NormalizationType.Protocol:
+                            IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize2 = from dataRequest in dataRequestCollection select new Tuple<DataRequest, bool>(dataRequest, m_NormalizeByRequest[dataRequest] != TrialMatrixSettings.NormalizationType.Protocol);
+                            if (dataRequestAndNeedToNormalize2.Any((tuple) => tuple.Object2))
+                            {
+                                NormalizeByProtocol(dataRequestAndNeedToNormalize2);
+                            }
+                            break;
+                    }
+                    break;
+            }
         }
     }
     #endregion
@@ -107,9 +127,9 @@ public static class DataManager
         {
             bloc.Normalize(average, standardDeviation);
         }
-        m_NormalizeByRequest[dataRequest] = TrialMatrixSettings.BaselineType.None;
+        m_NormalizeByRequest[dataRequest] = TrialMatrixSettings.NormalizationType.None;
     }
-    static void NormalizeByLine(DataRequest dataRequest)
+    static void NormalizeByTrial(DataRequest dataRequest)
     {
         float average = 0;
         float standardDeviation = 1;
@@ -122,7 +142,7 @@ public static class DataManager
                 bloc.Normalize(average, standardDeviation, pair.Key);
             }
         }
-        m_NormalizeByRequest[dataRequest] = TrialMatrixSettings.BaselineType.Line;
+        m_NormalizeByRequest[dataRequest] = TrialMatrixSettings.NormalizationType.Trial;
     }
     static void NormalizeByBloc(DataRequest dataRequest)
     {
@@ -149,7 +169,7 @@ public static class DataManager
                 line.Normalize(averageBySite[site], standardDeviationBySite[site], site);
             }
         }
-        m_NormalizeByRequest[dataRequest] = TrialMatrixSettings.BaselineType.Bloc;
+        m_NormalizeByRequest[dataRequest] = TrialMatrixSettings.NormalizationType.Bloc;
     }
     static void NormalizeByProtocol(IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize)
     {
@@ -186,7 +206,7 @@ public static class DataManager
                         line.Normalize(averageBySite[site], standardDeviationBySite[site], site);
                     }
                 }
-                m_NormalizeByRequest[tuple.Object1] = TrialMatrixSettings.BaselineType.Protocol;
+                m_NormalizeByRequest[tuple.Object1] = TrialMatrixSettings.NormalizationType.Protocol;
             }
         }
     }

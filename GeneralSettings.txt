@@ -10,14 +10,15 @@
   "ValueAveraging": 0,
   "TrialMatrixSettings": {
     "Smoothing": 1,
-    "Baseline": 3,
+    "Normalization": 3,
     "BlocFormat": 2,
     "ConstantLineHeight": 30,
     "LineHeightByWidth": 0.005,
     "HeightByWidth": 0.5625,
     "TrialsSynchronization": 0,
-    "Type": 0
+    "Type": 1
   },
+  "HideCurveWhenColumnHidden": true,
   "Theme": "Dark",
   "ShowCutLines": true
 }
