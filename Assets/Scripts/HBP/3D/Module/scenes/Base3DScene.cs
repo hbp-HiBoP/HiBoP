@@ -1165,11 +1165,14 @@ namespace HBP.Module3D
         /// <summary>
         /// Function to be called everytime we want to reset IEEG
         /// </summary>
-        protected void ResetIEEG()
+        protected void ResetIEEG(bool hardReset = true)
         {
             if (!SceneInformation.IsGeometryUpToDate) return;
-            SceneInformation.IsGeneratorUpToDate = false;
-            m_GeneratorNeedsUpdate = true;
+            if (hardReset)
+            {
+                SceneInformation.IsGeneratorUpToDate = false;
+                m_GeneratorNeedsUpdate = true;
+            }
             UpdateGUITextures();
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             ApplicationState.Module3D.OnResetIEEG.Invoke();
@@ -1921,7 +1924,7 @@ namespace HBP.Module3D
         {
             m_ColumnManager.SelectedColumn.LoadSiteStates(path);
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            ResetIEEG();
+            ResetIEEG(false);
         }
         #endregion
 
@@ -2304,9 +2307,7 @@ namespace HBP.Module3D
                         break;
                 }
             }
-
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            ResetIEEG();
+            ResetIEEG(false);
         }
         /// <summary>
         /// Change the state of a site
@@ -2343,8 +2344,7 @@ namespace HBP.Module3D
                         site.State.IsMarked = false;
                         break;
                 }
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-                ResetIEEG();
+                ResetIEEG(false);
             }              
         }
         public void ApplySelectedColumnSiteStatesToOtherColumns()
@@ -2358,8 +2358,7 @@ namespace HBP.Module3D
                     site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
                 }
             }
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            ResetIEEG();
+            ResetIEEG(false);
         }
         /// <summary>
         /// Update the sites rendering of all columns
@@ -2506,7 +2505,7 @@ namespace HBP.Module3D
                         column.Sites[ii].State.IsOutOfROI = maskROI[ii];
                 }
             }
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ResetIEEG(false);
             OnUpdateROI.Invoke();
         }
         /// <summary>
