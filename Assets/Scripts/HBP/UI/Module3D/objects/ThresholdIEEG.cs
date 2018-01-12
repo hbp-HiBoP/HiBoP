@@ -154,7 +154,6 @@ namespace HBP.UI.Module3D
 
                 if (m_Initialized)
                 {
-                    ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SpanMin = val;
                     OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
                 }
             });
@@ -174,7 +173,6 @@ namespace HBP.UI.Module3D
 
                 if (m_Initialized)
                 {
-                    ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.Middle = val;
                     OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
                 }
             });
@@ -192,7 +190,6 @@ namespace HBP.UI.Module3D
 
                 if (m_Initialized)
                 {
-                    ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SpanMax = val;
                     OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
                 }
             });

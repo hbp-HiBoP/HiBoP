@@ -137,7 +137,7 @@ namespace HBP.Module3D
         /// </summary>
         public class IEEGDataParameters
         {
-            public Data.Visualization.Column ColumnData { get; set; }
+            public Column3DIEEG Column { get; set; }
 
             private const float MIN_INFLUENCE = 0.0f;
             private const float MAX_INFLUENCE = 50.0f;
@@ -264,15 +264,6 @@ namespace HBP.Module3D
                 {
                     return m_SpanMin;
                 }
-                set
-                {
-                    value = Mathf.Clamp(value, m_MinimumAmplitude, m_Middle);
-                    if (m_SpanMin != value)
-                    {
-                        m_SpanMin = value;
-                        OnUpdateSpanValues.Invoke();
-                    }
-                }
             }
 
             private float m_Middle = 0.0f;
@@ -284,15 +275,6 @@ namespace HBP.Module3D
                 get
                 {
                     return m_Middle;
-                }
-                set
-                {
-                    value = Mathf.Clamp(value, m_SpanMin, m_SpanMax);
-                    if (m_Middle != value)
-                    {
-                        m_Middle = value;
-                        OnUpdateSpanValues.Invoke();
-                    }
                 }
             }
 
@@ -306,15 +288,33 @@ namespace HBP.Module3D
                 {
                     return m_SpanMax;
                 }
-                set
+            }
+
+            /// <summary>
+            /// Set the span values of the IEEG column
+            /// </summary>
+            /// <param name="min"></param>
+            /// <param name="middle"></param>
+            /// <param name="max"></param>
+            public void SetSpanValues(float min, float mid, float max)
+            {
+                min = Mathf.Clamp(min, m_MinimumAmplitude, m_MaximumAmplitude);
+                mid = Mathf.Clamp(mid, m_MinimumAmplitude, m_MaximumAmplitude);
+                max = Mathf.Clamp(max, m_MinimumAmplitude, m_MaximumAmplitude);
+                if (min > max) min = max;
+                mid = Mathf.Clamp(mid, min, max);
+                if (Mathf.Approximately(min, mid) && Mathf.Approximately(min, max) && Mathf.Approximately(mid, max))
                 {
-                    value = Mathf.Clamp(value, m_Middle, m_MaximumAmplitude);
-                    if (m_SpanMax != value)
-                    {
-                        m_SpanMax = value;
-                        OnUpdateSpanValues.Invoke();
-                    }
+                    float amplitude = m_MaximumAmplitude - m_MinimumAmplitude;
+                    float middle = Column.IEEGValuesForHistogram.Median();
+                    mid = middle;
+                    min = Mathf.Clamp(middle - 0.05f * amplitude, m_MinimumAmplitude, m_MaximumAmplitude);
+                    max = Mathf.Clamp(middle + 0.05f * amplitude, m_MinimumAmplitude, m_MaximumAmplitude);
                 }
+                m_SpanMin = min;
+                m_Middle = mid;
+                m_SpanMax = max;
+                OnUpdateSpanValues.Invoke();
             }
 
             /// <summary>
@@ -458,20 +458,7 @@ namespace HBP.Module3D
             IEEGParameters.Gain = ColumnData.Configuration.Gain;
             IEEGParameters.MaximumInfluence = ColumnData.Configuration.MaximumInfluence;
             IEEGParameters.AlphaMin = ColumnData.Configuration.Alpha;
-            if(ColumnData.Configuration.SpanMin != 0.0f ||ColumnData.Configuration.Middle != 0.0f ||ColumnData.Configuration.SpanMax != 0.0f)
-            {
-                IEEGParameters.Middle = ColumnData.Configuration.Middle;
-                IEEGParameters.SpanMin = ColumnData.Configuration.SpanMin;
-                IEEGParameters.SpanMax = ColumnData.Configuration.SpanMax;
-            }
-            else
-            {
-                float amplitude = IEEGParameters.MaximumAmplitude - IEEGParameters.MinimumAmplitude;
-                float middle = IEEGValuesForHistogram.Median();
-                IEEGParameters.Middle = middle;
-                IEEGParameters.SpanMin = Mathf.Clamp(middle - 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
-                IEEGParameters.SpanMax = Mathf.Clamp(middle + 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
-            }
+            IEEGParameters.SetSpanValues(ColumnData.Configuration.SpanMin, ColumnData.Configuration.Middle, ColumnData.Configuration.SpanMax);
             foreach (Data.Visualization.RegionOfInterest roi in ColumnData.Configuration.RegionsOfInterest)
             {
                 ROI newROI = AddROI(roi.Name);
@@ -517,11 +504,7 @@ namespace HBP.Module3D
             IEEGParameters.Gain = 1.0f;
             IEEGParameters.MaximumInfluence = 15.0f;
             IEEGParameters.AlphaMin = 0.8f;
-            float amplitude = IEEGParameters.MaximumAmplitude - IEEGParameters.MinimumAmplitude;
-            float middle = IEEGValuesForHistogram.Median();
-            IEEGParameters.Middle = middle;
-            IEEGParameters.SpanMin = Mathf.Clamp(middle - 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
-            IEEGParameters.SpanMax = Mathf.Clamp(middle + 0.05f * amplitude, IEEGParameters.MinimumAmplitude, IEEGParameters.MaximumAmplitude);
+            IEEGParameters.SetSpanValues(0, 0, 0);
             while (m_ROIs.Count > 0)
             {
                 RemoveSelectedROI();
@@ -610,15 +593,6 @@ namespace HBP.Module3D
                     }
                 }
             }
-            //float max = iEEGHistogramme.Max();
-            //float min = iEEGHistogramme.Min();
-            //if(float.IsNaN(max)  || float.IsNaN(min))
-            //{
-            //    max = 0;
-            //    min = 0;
-            //}
-            //IEEGParameters.MaximumAmplitude = max;
-            //IEEGParameters.MinimumAmplitude = min;
             IEEGValuesForHistogram = iEEGHistogramme.ToArray();
         }
         /// <summary>
@@ -628,7 +602,7 @@ namespace HBP.Module3D
         public void SetColumnData(Data.Visualization.Column newColumnData)
         {
             ColumnData = newColumnData;
-            m_IEEGParameters.ColumnData = newColumnData;
+            m_IEEGParameters.Column = this;
             SetEEGData();
         }
         /// <summary>
@@ -936,7 +910,6 @@ namespace HBP.Module3D
                 DLLGUIBrainCutWithIEEGTextures[i].UpdateTexture2D(GUIBrainCutWithIEEGTextures[i]);
             }
         }
-
         #endregion
     }
 }
