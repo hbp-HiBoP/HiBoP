@@ -10,6 +10,7 @@ using Tools.Unity.Graph;
 using UnityEngine.Events;
 using Tools.CSharp;
 using UnityEngine.UI;
+using Tools.Unity;
 
 namespace HBP.UI.Graph
 {
@@ -217,7 +218,9 @@ namespace HBP.UI.Graph
         {
             IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG where !column.IsMinimized select column.ColumnData.Protocol).Distinct();
             Data.TrialMatrix.TrialMatrix[][] trialMatrix = m_TrialMatrixByProtocolBySiteByDataInfo.Where(m => protocols.Contains(m.Key)).Select(m => m.Value.Values.SelectMany(v => v.Values).ToArray()).ToArray();
-            m_TrialMatrixList.Set(trialMatrix,m_AutoLimitsByProtocol,m_LimitsByProtocol);
+            Texture2D colormap = Scene.ColumnManager.BrainColorMapTexture.RotateTexture();
+            colormap.wrapMode = TextureWrapMode.Clamp;
+            m_TrialMatrixList.Set(trialMatrix,m_AutoLimitsByProtocol,m_LimitsByProtocol, colormap);
         }
 
         // Curves

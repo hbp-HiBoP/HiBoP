@@ -13,12 +13,13 @@ namespace HBP.UI.TrialMatrix
     {
         #region Properties
         [SerializeField] GameObject linePrefab;
-        [SerializeField] Texture2D colorMap;
 
         Text m_Title;
         ValuesLegend m_ValuesLegend;
         TimeLegend m_TimeLegend;
         RectTransform m_LinesRect;
+
+        Texture2D m_Colormap;
 
         d.TrialMatrix m_Data;
         public d.TrialMatrix Data
@@ -33,7 +34,7 @@ namespace HBP.UI.TrialMatrix
             set
             {
                 m_Limits = value;
-                m_ValuesLegend.Set(colorMap, m_Limits, 5);
+                m_ValuesLegend.Set(m_Colormap, m_Limits, 5);
                 foreach (Line line in Lines)
                 {
                     foreach (Bloc bloc in line.Blocs)
@@ -62,8 +63,10 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(d.TrialMatrix trialMatrix, bool autoLimits, Vector2 limits)
+        public void Set(d.TrialMatrix trialMatrix, bool autoLimits, Vector2 limits, Texture2D colormap)
         {
+            DestroyImmediate(m_Colormap);
+            m_Colormap = colormap;
             m_Data = trialMatrix;
             m_AutoLimits = autoLimits;
             if(autoLimits) Limits = trialMatrix.Limits;
@@ -100,7 +103,7 @@ namespace HBP.UI.TrialMatrix
             //Generate Line
             for (int i = 0; i < l_lines.Count; i++)
             {
-                AddLine(l_lines[i], maxBlocByRow, colorMap, Limits);
+                AddLine(l_lines[i], maxBlocByRow, m_Colormap, Limits);
             }
             SelectAllLines();
         }
@@ -143,7 +146,7 @@ namespace HBP.UI.TrialMatrix
         void SetLegends(Vector2 valueslimits,Vector2[] timeLimitsByColumn)
         {
             Profiler.BeginSample("set values");
-            m_ValuesLegend.Set(colorMap, valueslimits,5);
+            m_ValuesLegend.Set(m_Colormap, valueslimits,5);
             Profiler.EndSample();
             Profiler.BeginSample("set time");
             m_TimeLegend.Set(timeLimitsByColumn);
