@@ -410,6 +410,13 @@ namespace HBP.UI.Graph
         {
             m_RectTransformChanged = true;
         }
+        public void ChangeOverlayState(bool state)
+        {
+            transform.Find("BotBorder").gameObject.SetActive(state);
+            transform.Find("LeftBorder").gameObject.SetActive(state);
+            transform.Find("RightBorder").gameObject.SetActive(state);
+            transform.Find("TopBorder").gameObject.SetActive(state);
+        }
         #endregion
     }
 }

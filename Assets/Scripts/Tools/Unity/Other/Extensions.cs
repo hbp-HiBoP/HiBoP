@@ -8,8 +8,14 @@ namespace Tools.Unity
     {
         public static Rect ToScreenSpace(this RectTransform rectTransform)
         {
+            //Vector2 size = Vector2.Scale(rectTransform.rect.size, rectTransform.lossyScale);
+            //return new Rect((Vector2)rectTransform.position - (size * 0.5f), size);
+
             Vector2 size = Vector2.Scale(rectTransform.rect.size, rectTransform.lossyScale);
-            return new Rect((Vector2)rectTransform.position - (size * 0.5f), size);
+            Rect rect = new Rect(rectTransform.position.x, rectTransform.position.y, size.x, size.y);
+            rect.x -= (rectTransform.pivot.x * size.x);
+            rect.y -= (rectTransform.pivot.y * size.y);
+            return rect;
         }
     }
 
