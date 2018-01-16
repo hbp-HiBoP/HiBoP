@@ -39,7 +39,7 @@ namespace Tools.Unity
             textureToRotate = l_texture;
         }
 
-        public static Texture2D RotateTexture(Texture2D textureToRotate)
+        public static Texture2D RotateTexture(this Texture2D textureToRotate)
         {
             Texture2D l_texture = new Texture2D(textureToRotate.height, textureToRotate.width);
             for (int y = 0; y < l_texture.height; y++)

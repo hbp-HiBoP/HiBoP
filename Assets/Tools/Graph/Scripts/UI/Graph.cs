@@ -155,6 +155,14 @@ namespace Tools.Unity.Graph
                 Plot(graph.GroupCurveData, Limits, false);
             }
         }
+        public string ToSVG()
+        {
+            return m_Data.ToSVG();
+        }
+        public Dictionary<string, string> ToCSV()
+        {
+            return m_Data.ToCSV();
+        }
         #endregion
 
         #region Private Methods
