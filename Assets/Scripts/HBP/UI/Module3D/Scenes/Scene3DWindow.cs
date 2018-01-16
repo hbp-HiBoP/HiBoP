@@ -162,6 +162,10 @@ namespace HBP.UI.Module3D
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                             yield break;
                         }
+                        using (StreamWriter sw = new StreamWriter(screenshotsPath + "Graph.svg"))
+                        {
+                            sw.Write(graph.ToSVG());
+                        }
                     }
                     if (!Mathf.Approximately(graphsGestion.GetComponent<ZoneResizer>().Ratio, 0.0f))
                     {

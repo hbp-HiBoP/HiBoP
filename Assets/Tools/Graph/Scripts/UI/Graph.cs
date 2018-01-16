@@ -114,6 +114,10 @@ namespace Tools.Unity.Graph
                 Plot(graph.Curves, Limits, false);
             }
         }
+        public string ToSVG()
+        {
+            return m_Data.ToSVG();
+        }
         #endregion
 
         #region Private Methods

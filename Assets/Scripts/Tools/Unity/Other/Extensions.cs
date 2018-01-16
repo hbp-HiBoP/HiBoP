@@ -36,6 +36,14 @@ namespace Tools.Unity
         }
     }
 
+    public static class ColorExtension
+    {
+        public static string ToHexString(this Color color)
+        {
+            return "#" + ((int)(color.r * 255)).ToString("X2") + ((int)(color.g * 255)).ToString("X2") + ((int)(color.b * 255)).ToString("X2");
+        }
+    }
+
     public static class NumberExtension
     {
         public static bool IsPowerOfTwo(this int x)
