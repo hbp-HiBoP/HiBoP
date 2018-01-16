@@ -18,7 +18,7 @@
     "TrialsSynchronization": 0,
     "Type": 1
   },
-  "HideCurveWhenColumnHidden": true,
+  "HideCurveWhenColumnHidden": false,
   "Theme": "Dark",
   "ShowCutLines": true
 }

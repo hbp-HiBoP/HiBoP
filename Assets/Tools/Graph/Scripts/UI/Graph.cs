@@ -11,8 +11,8 @@ namespace Tools.Unity.Graph
         PlotGestion m_PlotGestion;
         InformationsGestion m_InformationsGestion;
 
-        Dictionary<string, bool> m_CurveDataState = new Dictionary<string, bool>();
-
+        Dictionary<string, bool> m_StateByGroupCurveData = new Dictionary<string, bool>();
+        Dictionary<string, bool> m_StateByCurveData = new Dictionary<string, bool>();
         GraphData m_Data = new GraphData();
         public string Title
         {
@@ -60,13 +60,20 @@ namespace Tools.Unity.Graph
                 m_PlotGestion.GetComponent<Image>().color = value;
             }
         }
-        public CurveData[] Curves
+        public GroupCurveData[] GroupCurves
         {
-            get { return m_Data.Curves; }
+            get { return m_Data.GroupCurveData; }
             private set
             {
-                m_Data.Curves = value;
-                m_InformationsGestion.SetLegends(value.Select(c => new Tuple<CurveData,bool>(c,m_CurveDataState[c.ID])).ToArray());
+                m_Data.GroupCurveData = value;
+                Dictionary<GroupCurveData, bool> stateByGroupCurveData = new Dictionary<GroupCurveData, bool>();
+                Dictionary<CurveData, bool> stateByCurveData = new Dictionary<CurveData, bool>();
+                foreach (var group in value)
+                {
+                    stateByGroupCurveData.Add(group, m_StateByGroupCurveData[group.Name]);
+                    foreach (var curve in group.Curves) stateByCurveData.Add(curve, m_StateByCurveData[curve.ID]);
+                }
+                m_InformationsGestion.SetLegends(stateByGroupCurveData, stateByCurveData);
             }
         }
 
@@ -93,25 +100,59 @@ namespace Tools.Unity.Graph
             Ordinate = graph.Ordinate;
             BackgroundColor = graph.Background;
             FontColor = graph.Font;
-            string[] curveToRemove = m_CurveDataState.Keys.Where(l => !(from curve in graph.Curves select curve.ID).Contains(l)).ToArray();
-            foreach (var item in curveToRemove)
+            List<string> curveToRemove = new List<string>();
+            List<string> groupToRemove = new List<string>();
+            foreach (var ID in m_StateByCurveData.Keys)
             {
-                m_CurveDataState.Remove(item);
-            }
-            foreach (var curve in graph.Curves)
-            {
-                if(!m_CurveDataState.ContainsKey(curve.ID))
+                bool found = false;
+                foreach (var group in graph.GroupCurveData)
                 {
-                    m_CurveDataState[curve.ID] = true;
+                    foreach (var curve in group.Curves)
+                    {
+                        if (curve.ID == ID)
+                        {
+                            found = true;
+                            goto Found;
+                        }
+                    }
+                }
+                Found:
+                if (!found) curveToRemove.Add(ID);
+            }
+            foreach (var name in m_StateByGroupCurveData.Keys)
+            {
+                if(!graph.GroupCurveData.Any(g => g.Name == name))
+                {
+                    groupToRemove.Add(name);
                 }
             }
+            foreach (var curve in curveToRemove) m_StateByCurveData.Remove(curve);
+            foreach (var group in groupToRemove) m_StateByGroupCurveData.Remove(group);
+
+
+            foreach (var group in graph.GroupCurveData)
+            {
+                if(!m_StateByGroupCurveData.ContainsKey(group.Name))
+                {
+                    m_StateByGroupCurveData[group.Name] = true;
+                }
+                foreach (var curve in group.Curves)
+                {
+                    if (!m_StateByCurveData.ContainsKey(curve.ID))
+                    {
+                        m_StateByCurveData[curve.ID] = true;
+                    }
+                }
+            }
+
+
             if (m_AutoLimits)
             {
-                Plot(graph.Curves, graph.Limits, false);
+                Plot(graph.GroupCurveData, graph.Limits, false);
             }
             else
             {
-                Plot(graph.Curves, Limits, false);
+                Plot(graph.GroupCurveData, Limits, false);
             }
         }
         #endregion
@@ -123,19 +164,37 @@ namespace Tools.Unity.Graph
             m_InformationsGestion = GetComponentInChildren<InformationsGestion>();
             m_InformationsGestion.OnAutoLimits.RemoveAllListeners();
             m_InformationsGestion.OnAutoLimits.AddListener(() => { m_AutoLimits = true; Plot(m_Data); });
+            m_InformationsGestion.OnDisplayCurve.RemoveAllListeners();
             m_InformationsGestion.OnDisplayCurve.AddListener((curve, isOn) =>
             {
-                m_CurveDataState[curve.ID] = isOn;
-                Plot(Curves, Limits);
+                m_StateByCurveData[curve.ID] = isOn;
+                Plot(GroupCurves, Limits);
+            });
+            m_InformationsGestion.OnDisplayGroup.RemoveAllListeners();
+            m_InformationsGestion.OnDisplayGroup.AddListener((group, isOn) =>
+            {
+                m_StateByGroupCurveData[group.Name] = isOn;
+                Plot(GroupCurves, Limits);
             });
             m_PlotGestion.OnChangeLimits.RemoveAllListeners();
-            m_PlotGestion.OnChangeLimits.AddListener((limits,ignore) => { if(!ignore) m_AutoLimits = false; Plot(Curves, limits, true);});
+            m_PlotGestion.OnChangeLimits.AddListener((limits,ignore) => { if(!ignore) m_AutoLimits = false; Plot(GroupCurves, limits, true);});
         }
-        void Plot (CurveData[] curves, Limits limits, bool onlyUpdate = false)
+        void Plot (GroupCurveData[] groupCurves, Limits limits, bool onlyUpdate = false)
         {
-            Curves = curves;
+            GroupCurves = groupCurves;
             Limits = limits;
-            m_PlotGestion.Plot(curves.Where(c => m_CurveDataState[c.ID]).ToArray(), Limits, onlyUpdate);
+            List<CurveData> curvesToDisplay = new List<CurveData>();
+            foreach (var group in groupCurves)
+            {
+                if(m_StateByGroupCurveData[group.Name])
+                {
+                    foreach (var curve in group.Curves)
+                    {
+                        if (m_StateByCurveData[curve.ID]) curvesToDisplay.Add(curve);
+                    }
+                }
+            }
+            m_PlotGestion.Plot(curvesToDisplay.ToArray(), Limits, onlyUpdate);
             m_InformationsGestion.UpdateWindowValues();
         }
         #endregion

@@ -66,8 +66,7 @@ namespace HBP.UI.Graph
         // Curves
         [SerializeField] Tools.Unity.Graph.Graph m_Graph;
         [SerializeField] List<ColumnColor> m_Colors;
-        Dictionary<Column, Dictionary<Site, CurveData>> m_CurveBySiteAndColumn = new Dictionary<Column, Dictionary<Site, CurveData>>();
-        Dictionary<Column, CurveData> m_ROICurvebyColumn = new Dictionary<Column, CurveData>();
+        Dictionary<Column, GroupCurveData> m_CurvesByColumn = new Dictionary<Column, GroupCurveData>();
 
         // Plots
         Site[] m_Sites = new Site[0];
@@ -224,12 +223,11 @@ namespace HBP.UI.Graph
         void GenerateCurves()
         {
             UnityEngine.Profiling.Profiler.BeginSample("GenerateCurve()");
-            m_CurveBySiteAndColumn.Clear();
-            m_ROICurvebyColumn.Clear();
+            m_CurvesByColumn.Clear();
             for (int c = 0; c < m_Scene.ColumnManager.ColumnsIEEG.Count; c++)
             {
                 Column column = m_Scene.ColumnManager.ColumnsIEEG[c].ColumnData;
-                m_CurveBySiteAndColumn[column] = new Dictionary<Site, CurveData>();
+                m_CurvesByColumn[column] = new GroupCurveData(column.Name);
                 for (int s = 0; s < m_Sites.Length; s++)
                 {
                     Site site = m_Sites[s];
@@ -283,7 +281,7 @@ namespace HBP.UI.Graph
                             points[i] = new Vector2(absciss, data[index]);
                         }
 
-                        m_CurveBySiteAndColumn[column][site] = new ShapedCurveData("C" + (c + 1) + " " + site.Information.ChannelName, column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name + "_" + c, points, standardDeviations, GetCurveColor(c, s), 1.5f);
+                        m_CurvesByColumn[column].Curves.Add(new ShapedCurveData(site.Information.ChannelName, column.Name + "_" + site.Information.FullCorrectedID , points, standardDeviations, GetCurveColor(c, s), 1.5f));
                     }
                     else if (linesToRead.Length == 1)
                     {
@@ -305,7 +303,7 @@ namespace HBP.UI.Graph
                         }
 
                         //Create curve
-                        m_CurveBySiteAndColumn[column][site] = new CurveData("C" + (c + 1) + " " + site.Information.ChannelName, "C" + c + "_" + column.Protocol.Name + "_" + column.Bloc.Name + "_" + site.Information.Name, points, GetCurveColor(c, s), 1.5f);
+                        m_CurvesByColumn[column].Curves.Add(new CurveData(site.Information.ChannelName, column.Name + "_" + site.Information.FullCorrectedID, points, GetCurveColor(c, s), 1.5f));
                     }
                     else continue;
                 }
@@ -340,7 +338,7 @@ namespace HBP.UI.Graph
                             float absciss = min + ((max - min) * (index - pMin) / (pMax - pMin));
                             points[i] = new Vector2(absciss, ROIdata[index]);
                         }
-                        m_ROICurvebyColumn[column] = new CurveData("C" + (c + 1) + " " + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, column.Protocol.Name + "_" + column.Bloc.Name + "_" + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name + "_" + c, points, GetCurveColor(c, -1), 3.0f);
+                        m_CurvesByColumn[column].Curves.Add(new CurveData(m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, column.Name + "_" + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name , points, GetCurveColor(c, -1), 3.0f));
                     }
                 }
             }
@@ -349,27 +347,17 @@ namespace HBP.UI.Graph
         void DisplayCurves()
         {
             UnityEngine.Profiling.Profiler.BeginSample("DisplayCurves()");
-            List<CurveData> curvesToDisplay = new List<CurveData>();
+            List<GroupCurveData> groupCurvesToDisplay = new List<GroupCurveData>();
             foreach (var column in m_Scene.ColumnManager.ColumnsIEEG)
             {
                 if (!column.IsMinimized || !ApplicationState.GeneralSettings.HideCurveWhenColumnHidden)
                 {
-                    foreach (var site in m_Sites)
-                    {
-                        if (m_CurveBySiteAndColumn[column.ColumnData].ContainsKey(site))
-                        {
-                            curvesToDisplay.Add(m_CurveBySiteAndColumn[column.ColumnData][site]);
-                        }
-                    }
-                    if (m_ROICurvebyColumn.ContainsKey(column.ColumnData))
-                    {
-                        curvesToDisplay.Add(m_ROICurvebyColumn[column.ColumnData]);
-                    }
+                    groupCurvesToDisplay.Add(m_CurvesByColumn[column.ColumnData]);
                 }
             }
-            if (curvesToDisplay.Count > 0)
+            if (groupCurvesToDisplay.Count > 0)
             {
-                GraphData graphData = new GraphData("EEG", "Time(ms)", "Activity(mV)", Color.black, Color.white, curvesToDisplay.ToArray());
+                GraphData graphData = new GraphData("EEG", "Time(ms)", "Activity(mV)", Color.black, Color.white, groupCurvesToDisplay.ToArray());
                 m_Graph.Plot(graphData);
             }
             UnityEngine.Profiling.Profiler.EndSample();

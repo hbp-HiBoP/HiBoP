@@ -2913,7 +2913,7 @@ namespace HBP.Module3D
             // update columns names
             for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
             {
-                m_ColumnManager.ColumnsIEEG[ii].Label = "[C" + (ii + 1).ToString() + "] " + Visualization.Columns[ii].DisplayLabel;
+                m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].Name;
             }
 
             // set timelines

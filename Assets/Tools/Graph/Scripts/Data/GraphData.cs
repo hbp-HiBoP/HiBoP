@@ -11,62 +11,72 @@ namespace Tools.Unity.Graph
         public string Ordinate { get; set; }
         public Color Background { get; set; }
         public Color Font { get; set; }
-        public CurveData[] Curves { get; set; }
+        public GroupCurveData[] GroupCurveData { get; set; }
         public Limits Limits { get; set; }
 
-        public GraphData(string title, string abscissa, string ordinate, Color background, Color font, CurveData[] curves, Limits limits)
+        public GraphData(string title, string abscissa, string ordinate, Color background, Color font, GroupCurveData[] curves, Limits limits)
         {
             Title = title;
             Abscissa = abscissa;
             Ordinate = ordinate;
             Background = background;
             Font = font;
-            Curves = curves;
+            GroupCurveData = curves;
             Limits = limits;
         }
-        public GraphData(string title, string abscissa, string ordinate, Color background, Color font, CurveData[] curves)
+        public GraphData(string title, string abscissa, string ordinate, Color background, Color font, GroupCurveData[] curves)
         {
             Title = title;
             Abscissa = abscissa;
             Ordinate = ordinate;
             Background = background;
             Font = font;
-            Curves = curves;
+            GroupCurveData = curves;
             Limits limits = new Limits();
-            limits.AbscissaMin = (from curve in Curves select curve.Points.Min((p) => p.x)).Min();
-            limits.AbscissaMax = (from curve in Curves select curve.Points.Max((p) => p.x)).Max();
-            List<float> max = new List<float>();
-            List<float> min = new List<float>();
-            foreach (var curve in Curves)
+
+            float abscissaMax = float.MinValue;
+            float abscissaMin = float.MaxValue;
+            float ordinateMax = float.MinValue;
+            float ordinateMin = float.MaxValue;
+            foreach (var groupCurves in GroupCurveData)
             {
-                if(curve is ShapedCurveData)
+                foreach (var curve in groupCurves.Curves)
                 {
-                    ShapedCurveData shapedCurve = curve as ShapedCurveData;
-                    List<float> yMax = new List<float>();
-                    List<float> yMin = new List<float>();
-                    for (int p = 0; p < shapedCurve.Points.Length; p++)
+                    if (curve is ShapedCurveData)
                     {
-                        yMax.Add(shapedCurve.Points[p].y + shapedCurve.Shapes[p] /2);
-                        yMin.Add(shapedCurve.Points[p].y - shapedCurve.Shapes[p] /2);
+                        ShapedCurveData shapedCurve = curve as ShapedCurveData;
+                        for (int p = 0; p < shapedCurve.Points.Length; p++)
+                        {
+                            ordinateMax = Mathf.Max(ordinateMax, shapedCurve.Points[p].y + shapedCurve.Shapes[p] / 2);
+                            ordinateMin = Mathf.Min(ordinateMin, shapedCurve.Points[p].y - shapedCurve.Shapes[p] / 2);
+                            abscissaMax = Mathf.Max(abscissaMax, shapedCurve.Points[p].x);
+                            abscissaMin = Mathf.Min(abscissaMin, shapedCurve.Points[p].x);
+                        }
                     }
-                    max.Add(yMax.Max());
-                    min.Add(yMin.Min());
-                }
-                else
-                {
-                    max.Add(curve.Points.Max((p) => p.y));
-                    min.Add(curve.Points.Min((p) => p.y));
+                    else
+                    {
+                        for (int p = 0; p < curve.Points.Length; p++)
+                        {
+                            ordinateMax = Mathf.Max(ordinateMax, curve.Points[p].y);
+                            ordinateMin = Mathf.Min(ordinateMin, curve.Points[p].y);
+                            abscissaMax = Mathf.Max(abscissaMax, curve.Points[p].x);
+                            abscissaMin = Mathf.Min(abscissaMin, curve.Points[p].x);
+                        }
+                    }
                 }
             }
-            limits.OrdinateMin = min.Min();
-            limits.OrdinateMax = max.Max();
-            if(limits.OrdinateMin == limits.OrdinateMax)
+            limits.AbscissaMin = abscissaMin;
+            limits.AbscissaMax = abscissaMax;
+            limits.OrdinateMin = ordinateMin;
+            limits.OrdinateMax = ordinateMax;
+
+            if (limits.OrdinateMin == limits.OrdinateMax)
             {
                 limits.OrdinateMax += 1;
                 limits.OrdinateMin -= 1;
             }
             Limits = limits;
         }
-        public GraphData() : this("", "", "", Color.black, Color.white, new CurveData[0], new Limits()) { }
+        public GraphData() : this("", "", "", Color.black, Color.white, new GroupCurveData[0], new Limits()) { }
     }
 }

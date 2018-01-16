@@ -1,8 +1,32 @@
-﻿namespace Tools.Unity.Graph
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace Tools.Unity.Graph
 {
     public class GroupCurveData
     {
-        public string Name;
-        public CurveData[] Curves;
+        #region Properties
+        public string Name { get; set; }
+        public List<CurveData> Curves { get; set; }
+        #endregion
+
+        #region Constructors
+        public GroupCurveData(string name)
+        {
+            Name = name;
+            Curves = new List<CurveData>();
+        }
+        #endregion
+
+        #region Public Methods
+        public CurveData GetCurveByName(string name)
+        {
+            return Curves.FirstOrDefault(c => c.Name == name);
+        }
+        public CurveData GetCurveByID(string ID)
+        {
+            return Curves.FirstOrDefault(c => c.ID == ID);
+        }
+        #endregion
     }
 }

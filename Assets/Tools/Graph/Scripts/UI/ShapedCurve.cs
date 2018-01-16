@@ -20,7 +20,7 @@ namespace Tools.Unity.Graph
             shapes = (from shape in data.Shapes select shape * ratio.y).ToArray();
             shapeRenderer.Points = positions;
             shapeRenderer.ShapeThickness = shapes;
-            shapeRenderer.color = new Color(data.Color.r, data.Color.g, data.Color.b, 0.3f);
+            shapeRenderer.color = new Color(data.Color.r, data.Color.g, data.Color.b, 0.5f);
         }
         public override void SetFields()
         {
