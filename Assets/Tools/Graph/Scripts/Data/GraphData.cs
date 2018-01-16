@@ -138,7 +138,7 @@ namespace Tools.Unity.Graph
             Rect curveViewport = new Rect(130, 60, 1600, 900);
             Vector2 ratio = curveViewport.GetRatio(Limits);
             svgBuilder.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
-            svgBuilder.AppendLine("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"1730\" height=\"1100\">");
+            svgBuilder.AppendLine("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"" + (curveViewport.x + curveViewport.width + 300.0f).ToString() + "\" height=\"" + (curveViewport.y + curveViewport.height + 150.0f).ToString() + "\">");
             foreach (var curve in Curves)
             {
                 svgBuilder.AppendLine("<g>");
@@ -186,6 +186,7 @@ namespace Tools.Unity.Graph
             // Ordinate
             svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<path d=\"M " + curveViewport.x + "," + curveViewport.y + " " + curveViewport.x + "," + (curveViewport.y + curveViewport.height).ToString() + "\" style=\"stroke:#000000;stroke-width:5;fill:none\"/>");
+            svgBuilder.AppendLine("<path d=\"M " + curveViewport.x + "," + (curveViewport.y - 25.0f).ToString() + " " + (curveViewport.x + 10.0f).ToString() + "," + curveViewport.y + " " + (curveViewport.x - 10.0f).ToString() + "," + curveViewport.y + "\" style=\"stroke:#000000;stroke-width:0;fill:#000000\"/>");
             CalculateAxisValue(Limits.OrdinateMax, Limits.OrdinateMin, curveViewport.height, out axisRatio, out axisStep, out numberOfTickMark, out axisStartIndex);
             for (int i = 0; i < numberOfTickMark; ++i)
             {
@@ -201,6 +202,7 @@ namespace Tools.Unity.Graph
             // Abscissa
             svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<path d=\"M " + curveViewport.x + "," + (curveViewport.y + curveViewport.height).ToString() + " " + (curveViewport.x + curveViewport.width).ToString() + "," + (curveViewport.y + curveViewport.height).ToString() + "\" style=\"stroke:#000000;stroke-width:5;fill:none\"/>");
+            svgBuilder.AppendLine("<path d=\"M " + (curveViewport.x + curveViewport.width + 25.0f).ToString() + "," + (curveViewport.y + curveViewport.height).ToString() + " " + (curveViewport.x + curveViewport.width).ToString() + "," + (curveViewport.y + curveViewport.height + 10.0f).ToString() + " " + (curveViewport.x + curveViewport.width).ToString() + "," + (curveViewport.y + curveViewport.height - 10.0f).ToString() + "\" style=\"stroke:#000000;stroke-width:0;fill:#000000\"/>");
             CalculateAxisValue(Limits.AbscissaMax, Limits.AbscissaMin, curveViewport.width, out axisRatio, out axisStep, out numberOfTickMark, out axisStartIndex);
             for (int i = 0; i < numberOfTickMark; ++i)
             {
@@ -212,6 +214,17 @@ namespace Tools.Unity.Graph
                 svgBuilder.AppendLine("</g>");
             }
             svgBuilder.AppendLine("<text x=\"" + (curveViewport.x + (curveViewport.width / 2)).ToString() + "\" y=\"" + (curveViewport.y + curveViewport.height + 70).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + Abscissa + "</text>");
+            svgBuilder.AppendLine("</g>");
+            // Write Legend
+            svgBuilder.AppendLine("<g>");
+            for (int i = 0; i < Curves.Length; ++i)
+            {
+                CurveData curve = Curves[i];
+                float x = curveViewport.x + curveViewport.width + 30.0f;
+                float y = curveViewport.y + (i * 40.0f);
+                svgBuilder.AppendLine("<path d=\"M " + x + "," + y + " " + (x + 30.0f).ToString() + "," + y + "\" style=\"stroke:" + curve.Color.ToHexString() +";stroke-width:10;fill:none\"/>");
+                svgBuilder.AppendLine("<text x=\"" + (x + 40.0f).ToString() + "\" y=\"" + y + "\" text-anchor=\"left\" dy=\".3em\" style=\"font-size:30\">" + curve.Name + "</text>");
+            }
             svgBuilder.AppendLine("</g>");
             svgBuilder.AppendLine("</svg>");
             return svgBuilder.ToString();
