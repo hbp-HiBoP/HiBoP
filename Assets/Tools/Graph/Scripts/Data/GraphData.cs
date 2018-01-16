@@ -229,6 +229,34 @@ namespace Tools.Unity.Graph
             svgBuilder.AppendLine("</svg>");
             return svgBuilder.ToString();
         }
+        public Dictionary<string,string> ToCSV()
+        {
+            Dictionary<string, string> csv = new Dictionary<string, string>();
+            foreach (var curve in Curves)
+            {
+                System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
+                csvBuilder.AppendLine("X,Y,SEM");
+                if (curve is ShapedCurveData)
+                {
+                    ShapedCurveData shapedCurve = curve as ShapedCurveData;
+                    for (int i = 0; i < shapedCurve.Points.Length; ++i)
+                    {
+                        Vector2 point = shapedCurve.Points[i];
+                        csvBuilder.AppendLine(string.Format("{0},{1},{2}", point.x, point.y, shapedCurve.Shapes[i]));
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < curve.Points.Length; ++i)
+                    {
+                        Vector2 point = curve.Points[i];
+                        csvBuilder.AppendLine(string.Format("{0},{1},{2}", point.x, point.y, 0));
+                    }
+                }
+                csv.Add(curve.Name, csvBuilder.ToString());
+            }
+            return csv;
+        }
         #endregion
     }
 }

@@ -118,6 +118,10 @@ namespace Tools.Unity.Graph
         {
             return m_Data.ToSVG();
         }
+        public Dictionary<string, string> ToCSV()
+        {
+            return m_Data.ToCSV();
+        }
         #endregion
 
         #region Private Methods
