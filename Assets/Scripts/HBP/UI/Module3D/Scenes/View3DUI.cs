@@ -10,7 +10,7 @@ using System;
 using System.Linq;
 using UnityEngine.Events;
 
-public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler
+public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler, IPointerEnterHandler, IPointerExitHandler
 {
     #region Properties
     /// <summary>
@@ -45,6 +45,10 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     /// Lock to know whether a click triggered OnPointerDown event or not
     /// </summary>
     private bool m_PointerDownLock;
+    /// <summary>
+    /// True if the pointer in on the view ui
+    /// </summary>
+    private bool m_PointerIsInView;
 
     private bool m_UsingRenderTexture;
     /// <summary>
@@ -247,6 +251,14 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             m_View.ZoomCamera(data.scrollDelta.y);
         }
     }
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        m_PointerIsInView = true;
+    }
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        m_PointerIsInView = false;
+    }
     public void OnRectTransformDimensionsChange()
     {
         m_RectTransformChanged = true;
@@ -288,6 +300,12 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     /// <returns>True if the cursor is indeed in the view</returns>
     public bool CursorToRay(out Ray ray)
     {
+        if (!m_PointerIsInView)
+        {
+            ray = new Ray();
+            return false;
+        }
+
         Vector2 localPosition = new Vector2();
         Vector2 position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
         RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, position, null, out localPosition);
