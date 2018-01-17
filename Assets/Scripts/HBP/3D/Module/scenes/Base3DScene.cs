@@ -35,8 +35,8 @@ namespace HBP.Module3D
             Site = site;
             Enabled = enabled;
             Position = position;
-            Amplitude = amplitude;
-            Height = height;
+            IEEGAmplitude = amplitude;
+            CCEPAmplitude = height;
             Latency = latency;
             Mode = mode;
         }
@@ -44,8 +44,8 @@ namespace HBP.Module3D
         public Site Site { get; set; }
         public bool Enabled { get; set; }
         public Vector3 Position { get; set; }
-        public string Amplitude { get; set; }
-        public string Height { get; set; }
+        public string IEEGAmplitude { get; set; }
+        public string CCEPAmplitude { get; set; }
         public string Latency { get; set; }
         public SiteInformationDisplayMode Mode { get; set; }
     }
