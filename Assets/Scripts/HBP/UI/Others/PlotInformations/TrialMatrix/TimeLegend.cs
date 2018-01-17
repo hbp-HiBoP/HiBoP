@@ -5,10 +5,7 @@ namespace HBP.UI.TrialMatrix
     public class TimeLegend : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        GameObject m_timeBloc;
-
-        RectTransform m_rect;
+        [SerializeField] GameObject m_TimeBlocPrefab;
         #endregion
 
         #region Public Methods
@@ -24,15 +21,10 @@ namespace HBP.UI.TrialMatrix
         #region Private Methods
         void AddTimeBloc(Vector2 limit)
         {
-            GameObject l_timeBlocGameObject = Instantiate(m_timeBloc);
+            GameObject l_timeBlocGameObject = Instantiate(m_TimeBlocPrefab);
             TimeBloc l_timeBloc = l_timeBlocGameObject.GetComponent<TimeBloc>();
-            l_timeBlocGameObject.GetComponent<RectTransform>().SetParent(m_rect);
+            l_timeBlocGameObject.GetComponent<RectTransform>().SetParent(transform);
             l_timeBloc.Set(limit.x,limit.y);
-        }
-
-        void Awake()
-        {
-            m_rect = transform.GetChild(0).GetComponent<RectTransform>();
         }
         #endregion
     }
