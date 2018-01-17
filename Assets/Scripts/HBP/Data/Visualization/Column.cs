@@ -171,10 +171,11 @@ namespace HBP.Data.Visualization
                     {
                         siteConfiguration.Values = averagedBloc.ValuesBySite[site];
                         siteConfiguration.NormalizedValues = averagedBloc.NormalizedValuesBySite[site];
+                        siteConfiguration.Unit = averagedBloc.UnitBySite[site];
                     }
                     else
                     {
-                        siteConfiguration = new SiteConfiguration(averagedBloc.ValuesBySite[site], averagedBloc.NormalizedValuesBySite[site], false, false, false, false);
+                        siteConfiguration = new SiteConfiguration(averagedBloc.ValuesBySite[site], averagedBloc.NormalizedValuesBySite[site], averagedBloc.UnitBySite[site], false, false, false, false);
                         Configuration.ConfigurationBySite.Add(site, siteConfiguration);
                     }
                     frequencyBySiteConfiguration.Add(siteConfiguration, frequency);

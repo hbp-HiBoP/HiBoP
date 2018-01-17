@@ -9,6 +9,7 @@ namespace HBP.Data.Localizer
     {
         #region Properties
         public Dictionary<Experience.Protocol.Event, int> PositionByEvent;
+        public Dictionary<string, string> UnitBySite { get; set; }
         public Dictionary<string, float[]> ValuesBySite { get; set; }
         public Dictionary<string, float[]> BaselineValuesBySite { get; set; }
         public Dictionary<string, float[]> NormalizedValuesBySite { get; set; }
@@ -56,6 +57,7 @@ namespace HBP.Data.Localizer
             }
             BaselineValuesBySite = baselineValuesBySite;
             NormalizedValuesBySite = valuesBySite.ToDictionary(valueBySite => valueBySite.Key, valueBySite => valueBySite.Value);
+            UnitBySite = data.UnitBySite.ToDictionary(pair => pair.Key,k => k.Value);
         }
         public Bloc(): this (new Dictionary<Experience.Protocol.Event, int>(),new Dictionary<string, float[]>(), new Dictionary<string, float[]>(), new Dictionary<string, float[]>())
         {
@@ -154,6 +156,7 @@ namespace HBP.Data.Localizer
             }
             // Compute averaging.
             Bloc result = new Bloc();
+            result.UnitBySite = bloc.UnitBySite.ToDictionary(pair => pair.Key, pair => pair.Value);
             switch (eventPositionAveragingMode)
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:

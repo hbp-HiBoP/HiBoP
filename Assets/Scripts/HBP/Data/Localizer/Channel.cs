@@ -14,12 +14,12 @@ namespace Elan
         }
         public string Type
         {
-            get { return GetType(channel, _handle); }
+            get { return Marshal.PtrToStringAnsi(GetType(channel, _handle)); }
             set { SetType(value, channel, _handle); }
         }
         public string Unit
         {
-            get { return GetUnit(channel, _handle); }
+            get { return Marshal.PtrToStringAnsi(GetUnit(channel, _handle)); }
             set { SetUnit(value, channel, _handle); }
         }
         public int CoordinatesNumber
@@ -59,12 +59,12 @@ namespace Elan
         private static extern void SetLabel(string dataType, int channel, HandleRef cppStruct);
 
         [DllImport("elan", EntryPoint = "Channel_GetType", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern string GetType(int channel, HandleRef cppStruct);
+        private static extern IntPtr GetType(int channel, HandleRef cppStruct);
         [DllImport("elan", EntryPoint = "Channel_SetType", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void SetType(string type, int channel, HandleRef cppStruct);
 
         [DllImport("elan", EntryPoint = "Channel_GetUnit", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern string GetUnit(int channel, HandleRef cppStruct);
+        private static extern IntPtr GetUnit(int channel, HandleRef cppStruct);
         [DllImport("elan", EntryPoint = "Channel_SetUnit", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void SetUnit(string unit, int channel, HandleRef cppStruct);
 

@@ -125,11 +125,14 @@ namespace HBP.UI.Module3D
         void SetCCEP(HBP.Module3D.SiteInfo siteInfo)
         {
             m_CCEPAmplitudeText.text = siteInfo.CCEPAmplitude;
-            m_CCEPLatencyText.text = siteInfo.Latency;
+            m_CCEPLatencyText.text = siteInfo.CCEPLatency;
         }
         void SetIEEG(HBP.Module3D.SiteInfo siteInfo)
         {
-            m_IEEGAmplitudeText.text = siteInfo.IEEGAmplitude;
+            string unit = siteInfo.IEEGUnit;
+            if (unit == "microV") unit = "mV";
+            if (unit != string.Empty) unit = " (" + unit + ")";
+            m_IEEGAmplitudeText.text = siteInfo.IEEGAmplitude + unit;      
         }
         void SetAtlas(HBP.Module3D.SiteInfo siteInfo)
         {

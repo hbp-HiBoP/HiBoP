@@ -24,6 +24,10 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public Dictionary<string,float[]> ValuesBySite { get; set; }
         /// <summary>
+        /// Site values.
+        /// </summary>
+        public Dictionary<string, string> UnitBySite { get; set; }
+        /// <summary>
         /// POS file which containts plot anatomy informations.
         /// </summary>
         public Localizer.POS POS { get; set; }
@@ -41,7 +45,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new Data instance with default values.
         /// </summary>
-        public Data(): this(new Dictionary < string, float[] >(), new Localizer.POS(), 0, new Patient())
+        public Data(): this(new Dictionary < string, float[] >(), new Dictionary<string, string>(), new Localizer.POS(), 0, new Patient())
         {
         }
         /// <summary>
@@ -52,9 +56,10 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="pos">POS file.</param>
         /// <param name="frequency">Values frequency.</param>
         /// <param name="patient">Patient.</param>
-        public Data(Dictionary<string,float[]> valuesBySite, Localizer.POS pos, float frequency, Patient patient)
+        public Data(Dictionary<string,float[]> valuesBySite, Dictionary<string,string> unitBySite, Localizer.POS pos, float frequency, Patient patient)
         {
             ValuesBySite = valuesBySite;
+            UnitBySite = unitBySite;
             POS = pos;
             Frequency = frequency;
             Patient = patient;
@@ -74,7 +79,9 @@ namespace HBP.Data.Experience.Dataset
                 Elan.Track track = elanFile.FindTrack(info.Measure, channel.Label);
                 if (track.Channel >= 0 && track.Measure >= 0)
                 {
-                    ValuesBySite.Add(info.Patient.ID + "_" + channel.Label, elanFile.EEG.GetFloatData(track)); // fixme
+                    string ID = info.Patient.ID + "_" + channel.Label;
+                    ValuesBySite.Add(ID,elanFile.EEG.GetFloatData(track)); // fixme
+                    UnitBySite.Add(ID, channel.Unit);
                 }
             }
             POS = new Localizer.POS(info.POS);

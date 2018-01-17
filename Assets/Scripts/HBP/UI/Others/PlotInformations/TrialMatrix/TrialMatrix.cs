@@ -12,12 +12,11 @@ namespace HBP.UI.TrialMatrix
     public class TrialMatrix : MonoBehaviour
     {
         #region Properties
-        [SerializeField] GameObject linePrefab;
-
-        Text m_Title;
-        ValuesLegend m_ValuesLegend;
-        TimeLegend m_TimeLegend;
-        RectTransform m_LinesRect;
+        [SerializeField] GameObject m_LinePrefab;
+        [SerializeField] Text m_TitleText;
+        [SerializeField] ValuesLegend m_ValuesLegend;
+        [SerializeField] TimeLegend m_TimeLegend;
+        [SerializeField] RectTransform m_LinesRectTransform;
 
         Texture2D m_Colormap;
 
@@ -71,7 +70,7 @@ namespace HBP.UI.TrialMatrix
             m_AutoLimits = autoLimits;
             if(autoLimits) Limits = trialMatrix.Limits;
             else Limits = limits;
-            m_Title.text = trialMatrix.Title;
+            m_TitleText.text = trialMatrix.Title;
 
             //Organize array
             d.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.ProtocolBloc.Position.Row).ThenBy(t => t.ProtocolBloc.Position.Column).ToArray();
@@ -131,14 +130,14 @@ namespace HBP.UI.TrialMatrix
         #region Private Methods
         void Awake()
         {
-            m_Title = transform.Find("Title").Find("Text").GetComponent<Text>();
+            m_TitleText = transform.Find("Title").Find("Text").GetComponent<Text>();
             m_ValuesLegend = transform.Find("Body").Find("ValuesLegend").GetComponent<ValuesLegend>();
             m_TimeLegend = transform.Find("Body").Find("Main").Find("TimeLegend").GetComponent<TimeLegend>();
-            m_LinesRect = transform.Find("Body").Find("Main").Find("Lines").GetComponent<RectTransform>();
+            m_LinesRectTransform = transform.Find("Body").Find("Main").Find("Lines").GetComponent<RectTransform>();
         }
         void AddLine(d.Bloc[] blocsInLine,int max,Texture2D colorMap,Vector2 limits)
         {
-            Line lines = (Instantiate(linePrefab, m_LinesRect) as GameObject).GetComponent<Line>();
+            Line lines = (Instantiate(m_LinePrefab, m_LinesRectTransform) as GameObject).GetComponent<Line>();
             lines.Initialize();
             lines.Set(blocsInLine,max, colorMap,limits);
             this.m_Lines.Add(lines);

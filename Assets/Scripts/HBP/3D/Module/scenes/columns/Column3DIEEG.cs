@@ -371,6 +371,7 @@ namespace HBP.Module3D
         public float[] IEEGValues = new float[0]; /**< amplitudes 1D array (to be sent to the DLL) */
         public float[] IEEGValuesForHistogram = new float[0];
         public float[][] IEEGValuesBySiteID;
+        public string[] IEEGUnitsBySiteID = new string[0];
 
         //  plots
         private List<Vector3> m_ElectrodesSizeScale = null;  /**< scale of the plots of this column */
@@ -540,6 +541,7 @@ namespace HBP.Module3D
 
             // Construct sites value array the old way, and set sites masks // maybe FIXME
             IEEGValuesBySiteID = new float[SitesCount][];
+            IEEGUnitsBySiteID = new string[SitesCount];
             foreach (Site site in Sites)
             {
                 Data.Visualization.SiteConfiguration siteConfiguration;
@@ -556,11 +558,13 @@ namespace HBP.Module3D
                         site.State.IsMasked = true; // update mask
                     }
                     site.Configuration = siteConfiguration;
+                    IEEGUnitsBySiteID[site.Information.GlobalID] = siteConfiguration.Unit;
                 }
                 else
                 {
                     ColumnData.Configuration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
                     IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
+                    IEEGUnitsBySiteID[site.Information.GlobalID] = "";
                     site.State.IsMasked = true; // update mask
                 }
             }

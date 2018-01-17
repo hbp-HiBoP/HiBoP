@@ -210,7 +210,6 @@ namespace HBP.Data.Visualization
                 yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadData(dataInfoByColumn, progress, onChangeProgress, (value, e) => { progress = value; exception = e; }));
                 yield return Ninja.JumpBack;
             }
-
             // Load Columns.
             if (exception == null)
             {
