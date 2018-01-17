@@ -168,7 +168,15 @@ namespace HBP.UI.Module3D
                             {
                                 sw.Write(graph.ToSVG());
                             }
-                            Dictionary<string, string> curveValues = graph.ToCSV();
+                        }
+                        catch
+                        {
+                            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
+                            yield break;
+                        }
+                        Dictionary<string, string> curveValues = graph.ToCSV();
+                        try
+                        {
                             foreach (var curve in curveValues)
                             {
                                 using (StreamWriter sw = new StreamWriter(screenshotsPath + curve.Key + ".csv"))
@@ -176,7 +184,6 @@ namespace HBP.UI.Module3D
                                     sw.Write(curve.Value);
                                 }
                             }
-
                         }
                         catch
                         {
