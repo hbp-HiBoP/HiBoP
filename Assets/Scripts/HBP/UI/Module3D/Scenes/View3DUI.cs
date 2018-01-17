@@ -154,7 +154,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     /// </summary>
     private void DeselectView()
     {
-        UnityEngine.Profiling.Profiler.BeginSample("check click");
         if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2) || Input.mouseScrollDelta != Vector2.zero)
         {
             if (!m_PointerDownLock) // If a click was recorded but this click did not trigger OnPointerDown, consider that the view has not been clicked
@@ -163,7 +162,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             }
         }
         m_PointerDownLock = false;
-        UnityEngine.Profiling.Profiler.EndSample();
     }
     /// <summary>
     /// Transform the mouse position to a ray and send it to the scene
