@@ -199,6 +199,7 @@ namespace Tools.Unity.Graph
             svgBuilder.AppendLine("</g>");
             // Ordinate
             svgBuilder.AppendLine("<g>");
+            svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<path d=\"M " + curveViewport.x + "," + curveViewport.y + " " + curveViewport.x + "," + (curveViewport.y + curveViewport.height).ToString() + "\" style=\"stroke:#000000;stroke-width:5;fill:none\"/>");
             svgBuilder.AppendLine("<path d=\"M " + curveViewport.x + "," + (curveViewport.y - 25.0f).ToString() + " " + (curveViewport.x + 10.0f).ToString() + "," + curveViewport.y + " " + (curveViewport.x - 10.0f).ToString() + "," + curveViewport.y + "\" style=\"stroke:#000000;stroke-width:0;fill:#000000\"/>");
             CalculateAxisValue(Limits.OrdinateMax, Limits.OrdinateMin, curveViewport.height, out axisRatio, out axisStep, out numberOfTickMark, out axisStartIndex);
@@ -211,9 +212,13 @@ namespace Tools.Unity.Graph
                 svgBuilder.AppendLine("<text x=\"" + (curveViewport.x - 40).ToString() + "\" y=\"" + position + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + value + "</text>");
                 svgBuilder.AppendLine("</g>");
             }
+            svgBuilder.AppendLine("<g>");
+            svgBuilder.AppendLine("</g>");
             svgBuilder.AppendLine("<text x=\"" + (curveViewport.x - 100).ToString() + "\" y=\"" + (curveViewport.y + (curveViewport.height / 2)).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" transform=\"rotate(-90 " + (curveViewport.x - 100).ToString() + "," + (curveViewport.y + (curveViewport.height / 2)).ToString() + ")\" style=\"font-size:30\">" + Ordinate + "</text>");
             svgBuilder.AppendLine("</g>");
+            svgBuilder.AppendLine("</g>");
             // Abscissa
+            svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<path d=\"M " + curveViewport.x + "," + (curveViewport.y + curveViewport.height).ToString() + " " + (curveViewport.x + curveViewport.width).ToString() + "," + (curveViewport.y + curveViewport.height).ToString() + "\" style=\"stroke:#000000;stroke-width:5;fill:none\"/>");
             svgBuilder.AppendLine("<path d=\"M " + (curveViewport.x + curveViewport.width + 25.0f).ToString() + "," + (curveViewport.y + curveViewport.height).ToString() + " " + (curveViewport.x + curveViewport.width).ToString() + "," + (curveViewport.y + curveViewport.height + 10.0f).ToString() + " " + (curveViewport.x + curveViewport.width).ToString() + "," + (curveViewport.y + curveViewport.height - 10.0f).ToString() + "\" style=\"stroke:#000000;stroke-width:0;fill:#000000\"/>");
@@ -227,7 +232,10 @@ namespace Tools.Unity.Graph
                 svgBuilder.AppendLine("<text x=\"" + position + "\" y=\"" + (curveViewport.y + curveViewport.height + 30).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + value + "</text>");
                 svgBuilder.AppendLine("</g>");
             }
+            svgBuilder.AppendLine("</g>");
+            svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<text x=\"" + (curveViewport.x + (curveViewport.width / 2)).ToString() + "\" y=\"" + (curveViewport.y + curveViewport.height + 70).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + Abscissa + "</text>");
+            svgBuilder.AppendLine("</g>");
             svgBuilder.AppendLine("</g>");
             // Write Legend
             svgBuilder.AppendLine("<g>");
@@ -237,14 +245,18 @@ namespace Tools.Unity.Graph
             {
                 GroupCurveData group = GroupCurveData[i];
                 float y = curveViewport.y + (id * 40.0f);
+                svgBuilder.AppendLine("<g>");
                 svgBuilder.AppendLine("<text x=\"" + x + "\" y=\"" + y + "\" text-anchor=\"left\" dy=\".3em\" style=\"font-size:30\">" + group.Name + "</text>");
+                svgBuilder.AppendLine("</g>");
                 for (int j = 0; j < group.Curves.Count; ++j)
                 {
                     ++id;
                     CurveData curve = group.Curves[j];
                     y = curveViewport.y + (id * 40.0f);
+                    svgBuilder.AppendLine("<g>");
                     svgBuilder.AppendLine("<path d=\"M " + x + "," + y + " " + (x + 30.0f).ToString() + "," + y + "\" style=\"stroke:" + curve.Color.ToHexString() + ";stroke-width:10;fill:none\"/>");
                     svgBuilder.AppendLine("<text x=\"" + (x + 40.0f).ToString() + "\" y=\"" + y + "\" text-anchor=\"left\" dy=\".3em\" style=\"font-size:30\">" + curve.Name + "</text>");
+                    svgBuilder.AppendLine("</g>");
                 }
             }
             svgBuilder.AppendLine("</g>");
@@ -254,10 +266,12 @@ namespace Tools.Unity.Graph
         public Dictionary<string,string> ToCSV()
         {
             Dictionary<string, string> csv = new Dictionary<string, string>();
-            foreach (var group in GroupCurveData)
+            for (int g = 0; g < GroupCurveData.Length; ++g)
             {
-                foreach (var curve in group.Curves)
+                GroupCurveData group = GroupCurveData[g];
+                for (int c = 0; c < group.Curves.Count; ++c)
                 {
+                    CurveData curve = group.Curves[c];
                     System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
                     csvBuilder.AppendLine("X,Y,SEM");
                     if (curve is ShapedCurveData)
@@ -277,7 +291,14 @@ namespace Tools.Unity.Graph
                             csvBuilder.AppendLine(string.Format("{0},{1},{2}", point.x, point.y, 0));
                         }
                     }
-                    csv.Add(group.Name + " " + curve.Name, csvBuilder.ToString());
+                    if (csv.ContainsKey(group.Name + " " + curve.Name))
+                    {
+                        csv.Add(group.Name + " " + curve.Name + " (" + g + "-" + c + ")", csvBuilder.ToString());
+                    }
+                    else
+                    {
+                        csv.Add(group.Name + " " + curve.Name, csvBuilder.ToString());
+                    }
                 }
             }
             return csv;
