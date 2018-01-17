@@ -203,6 +203,7 @@ namespace HBP.Module3D
             m_AssociatedScene.DisplayedObjects.SharedDirectionalLight.transform.eulerAngles = transform.eulerAngles;
             m_AssociatedScene.DisplayedObjects.SharedSpotlight.transform.eulerAngles = transform.eulerAngles;
             m_AssociatedScene.DisplayedObjects.SharedSpotlight.transform.position = transform.position;
+            m_AssociatedColumn.SelectRing.SelectRingFaceCamera(Camera);
         }
         private void OnPreRender()
         {
