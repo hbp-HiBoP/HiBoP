@@ -1782,7 +1782,7 @@ namespace HBP.Module3D
             if (!string.IsNullOrEmpty(Visualization.Configuration.MeshName)) UpdateMeshToDisplay(m_ColumnManager.Meshes.FindIndex((m) => m.Name == Visualization.Configuration.MeshName));
             if (!string.IsNullOrEmpty(Visualization.Configuration.MRIName)) UpdateMRIToDisplay(m_ColumnManager.MRIs.FindIndex((m) => m.Name == Visualization.Configuration.MRIName));
             if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) UpdateSites(m_ColumnManager.Implantations.FindIndex((i) => i.Name == Visualization.Configuration.ImplantationName));
-
+            
             foreach (Data.Visualization.Cut cut in Visualization.Configuration.Cuts)
             {
                 Cut newCut = AddCutPlane();
@@ -1792,7 +1792,7 @@ namespace HBP.Module3D
                 newCut.Position = cut.Position;
                 UpdateCutPlane(newCut);
             }
-            
+
             for (int i = 0; i < Visualization.Configuration.Views.Count; i++)
             {
                 View view = Visualization.Configuration.Views[i];
@@ -1812,12 +1812,12 @@ namespace HBP.Module3D
                 column.LoadConfiguration(false);
             }
             ROICreation = !ROICreation;
-
+            /*
             foreach (var cut in m_Cuts)
             {
                 UpdateCutPlane(cut);
             }
-
+            */
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
@@ -2129,11 +2129,8 @@ namespace HBP.Module3D
             UpdateMeshesInformation();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
-            if (CuttingMesh)
-            {
-                ComputeSimplifyMeshCut();
-            }
-            else
+            ComputeSimplifyMeshCut();
+            if (!CuttingMesh)
             {
                 ComputeMeshesCut();
             }
@@ -2443,10 +2440,8 @@ namespace HBP.Module3D
             if (!SceneInformation.MeshesLoaded || !SceneInformation.MRILoaded || SceneInformation.CollidersUpdated)
                 return;
 
-            UnityEngine.Profiling.Profiler.BeginSample("Update Meshes Colliders");
             this.StartCoroutineAsync(c_UpdateMeshesColliders());
             SceneInformation.CollidersUpdated = true;
-            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Update the textures generator
@@ -2931,21 +2926,9 @@ namespace HBP.Module3D
             m_UpdatingColliders = true;
             if (HBP3DModule.UseSimplifiedMeshes)
             {
-                // update mesh collider TODO : remove next section when this is finished
                 yield return Ninja.JumpToUnity;
-                Mesh colliderMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh;
-                yield return Ninja.JumpBack;
-                // cut the simplified mesh
-                if (SceneInformation.SimplifiedMeshToUse == null) SceneInformation.SimplifiedMeshToUse = m_ColumnManager.SelectedMesh.SimplifiedBoth;
-                List<DLL.Surface> cuts;
-                if (Cuts.Count > 0)
-                    cuts = new List<DLL.Surface>(SceneInformation.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled)); //Maybe FIXME : do not allow holes
-                else
-                    cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.SimplifiedMeshToUse.Clone() };
-                yield return Ninja.JumpToUnity;
-                cuts[0].UpdateMeshFromDLL(colliderMesh, false, true, false, false, true, false);
                 m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
-                m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = colliderMesh;
+                m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh;
                 yield return Ninja.JumpBack;
             }
             else

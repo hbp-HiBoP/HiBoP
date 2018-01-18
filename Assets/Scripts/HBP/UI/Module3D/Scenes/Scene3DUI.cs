@@ -40,7 +40,10 @@ namespace HBP.UI.Module3D
         }
         private void OnDestroy()
         {
-            m_LoadingCircle.Close();
+            if (m_LoadingCircle)
+            {
+                m_LoadingCircle.Close();
+            }
         }
         #endregion
 
