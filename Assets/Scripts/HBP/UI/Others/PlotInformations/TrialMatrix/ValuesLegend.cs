@@ -7,9 +7,9 @@ namespace HBP.UI.TrialMatrix
     public class ValuesLegend : MonoBehaviour
     {
         #region Properties
-        RawImage m_ColorMapRawImage;
-        RectTransform m_ValuesRect;
-        LimitsWindow m_LimitsWindow;
+        [SerializeField] RawImage m_ColorMapRawImage;
+        [SerializeField] RectTransform m_ValuesRect;
+        [SerializeField] LimitsWindow m_LimitsWindow;
         Vector2 m_Limits;
         public GenericEvent<Vector2> OnChangeLimits { get { return m_LimitsWindow.OnUpdateLimits; } }
         public GenericEvent<bool> OnAutoLimits { get { return m_LimitsWindow.OnAutoLimits; } }
@@ -33,12 +33,6 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Private Methods
-        void Awake()
-        {
-            m_ColorMapRawImage = transform.Find("ColorLegend").GetComponent<RawImage>();
-            m_ValuesRect = transform.Find("ValuesRect").GetComponent<RectTransform>();
-            m_LimitsWindow = transform.Find("LimitsWindow").GetComponent<LimitsWindow>();
-        }
         void SetColorMap(Texture2D colorMap)
         {
             m_ColorMapRawImage.texture = colorMap;

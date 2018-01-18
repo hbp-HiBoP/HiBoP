@@ -30,23 +30,25 @@ namespace HBP.Module3D
     /// </summary>
     public class SiteInfo
     {
-        public SiteInfo(Site site, bool enabled, Vector3 position, SiteInformationDisplayMode mode = SiteInformationDisplayMode.IEEG, string amplitude = "", string height = "", string latency = "")
+        public SiteInfo(Site site, bool enabled, Vector3 position, SiteInformationDisplayMode mode = SiteInformationDisplayMode.IEEG, string IEEGAmplitude = "", string IEEGUnit ="", string CCEPAmplitude = "", string CCEPLatency = "")
         {
             Site = site;
             Enabled = enabled;
             Position = position;
-            Amplitude = amplitude;
-            Height = height;
-            Latency = latency;
+            this.IEEGAmplitude = IEEGAmplitude;
+            this.IEEGUnit = IEEGUnit;
+            this.CCEPAmplitude = CCEPAmplitude;
+            this.CCEPLatency = CCEPLatency;
             Mode = mode;
         }
 
         public Site Site { get; set; }
         public bool Enabled { get; set; }
         public Vector3 Position { get; set; }
-        public string Amplitude { get; set; }
-        public string Height { get; set; }
-        public string Latency { get; set; }
+        public string IEEGAmplitude { get; set; }
+        public string IEEGUnit { get; set; }
+        public string CCEPAmplitude { get; set; }
+        public string CCEPLatency { get; set; }
         public SiteInformationDisplayMode Mode { get; set; }
     }
 
@@ -2553,48 +2555,49 @@ namespace HBP.Module3D
                     Column3DIEEG columnIEEG = column as Column3DIEEG;
                     int siteID = site.Information.GlobalID;
 
-                    float amplitude = -1;
+                    float iEEGActivity = -1;
+                    string iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
                     if (columnIEEG.IEEGValuesBySiteID.Length > 0)
                     {
-                        amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
+                        iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
                     }
                     bool amplitudesComputed = SceneInformation.IsGeneratorUpToDate;
                     switch (Type)
                     {
                         case SceneType.SinglePatient:
-                            string latency = "none", height = "none";
+                            string CCEPLatency = "none", CCEPAmplitude = "none";
                             if (columnIEEG.CurrentLatencyFile != -1)
                             {
                                 Latencies latencyFile = m_ColumnManager.SelectedImplantation.Latencies[columnIEEG.CurrentLatencyFile];
 
                                 if (columnIEEG.SourceSelectedID == -1) // no source selected
                                 {
-                                    latency = "...";
-                                    height = "no source selected";
+                                    CCEPLatency = "...";
+                                    CCEPAmplitude = "no source selected";
                                 }
                                 else if (columnIEEG.SourceSelectedID == siteID) // site is the source
                                 {
-                                    latency = "0";
-                                    height = "source";
+                                    CCEPLatency = "0";
+                                    CCEPAmplitude = "source";
                                 }
                                 else
                                 {
                                     if (latencyFile.IsSiteResponsiveForSource(siteID, columnIEEG.SourceSelectedID))
                                     {
-                                        latency = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
-                                        height = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
+                                        CCEPLatency = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
+                                        CCEPAmplitude = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
                                     }
                                     else
                                     {
-                                        latency = "No data";
-                                        height = "No data";
+                                        CCEPLatency = "No data";
+                                        CCEPAmplitude = "No data";
                                     }
                                 }
                             }
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? SiteInformationDisplayMode.CCEP : amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.Anatomy, "" + amplitude, height, latency));
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? SiteInformationDisplayMode.CCEP : amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.Anatomy, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
                             break;
                         case SceneType.MultiPatients:
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.Anatomy, "" + amplitude));
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.Anatomy, iEEGActivity.ToString("0.00"), iEEGUnit));
                             break;
                         default:
                             break;

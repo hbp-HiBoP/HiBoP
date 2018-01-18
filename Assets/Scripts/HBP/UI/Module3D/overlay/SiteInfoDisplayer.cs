@@ -1,7 +1,4 @@
-﻿using HBP.Module3D;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
@@ -9,38 +6,34 @@ namespace HBP.UI.Module3D
     public class SiteInfoDisplayer : MonoBehaviour
     {
         #region Properties
-        private SiteInformationDisplayMode m_CurrentMode = SiteInformationDisplayMode.Anatomy;
+        [SerializeField] GameObject m_IEEG;
+        [SerializeField] GameObject m_CCEP;
+        [SerializeField] GameObject m_Atlas;
+        [SerializeField] Text m_SiteNameText;
+        [SerializeField] Image m_IsExcludedImage;
+        [SerializeField] Image m_IsHighlightedImage;
+        [SerializeField] Image m_IsBlackListedImage;
+        [SerializeField] Image m_IsMarkedImage;
+        [SerializeField] Text m_PatientText;
+        [SerializeField] Text m_IEEGAmplitudeText;
+        [SerializeField] Text m_CCEPAmplitudeText;
+        [SerializeField] Text m_CCEPLatencyText;
+        [SerializeField] Text m_MarsAtlasText;
+        [SerializeField] Text m_BroadmanText;
+        [SerializeField] RectTransform m_Canvas;
 
-        [SerializeField]
-        private Text m_SiteName;
-        [SerializeField]
-        private Text m_Patient;
-        [SerializeField]
-        private Text m_IEEG;
-        [SerializeField]
-        private Text m_Height;
-        [SerializeField]
-        private Text m_Latency;
-        [SerializeField]
-        private Text m_MarsAtlas;
-        [SerializeField]
-        private Text m_Broadman;
-
-        [SerializeField]
-        private RectTransform m_Canvas;
-
-        private RectTransform m_RectTransform;
+        SiteInformationDisplayMode m_CurrentMode = SiteInformationDisplayMode.Anatomy;
+        RectTransform m_RectTransform;
+        Color m_DisableColor = new Color(0.6f, 0.6f, 0.6f);
         #endregion
 
         #region Public Methods
         public void Initialize()
         {
             m_RectTransform = GetComponent<RectTransform>();
-            m_IEEG.gameObject.SetActive(false);
-            m_Height.gameObject.SetActive(false);
-            m_Latency.gameObject.SetActive(false);
-            m_MarsAtlas.gameObject.SetActive(true);
-            m_Broadman.gameObject.SetActive(true);
+            m_IEEG.SetActive(false);
+            m_CCEP.SetActive(false);
+            m_Atlas.SetActive(true);
             ApplicationState.Module3D.OnDisplaySiteInformation.AddListener((siteInfo) =>
             {
                 SiteInformationDisplayMode mode = siteInfo.Mode;
@@ -50,116 +43,56 @@ namespace HBP.UI.Module3D
                     switch (mode)
                     {
                         case SiteInformationDisplayMode.Anatomy:
-                            m_IEEG.gameObject.SetActive(false);
-                            m_Height.gameObject.SetActive(false);
-                            m_Latency.gameObject.SetActive(false);
-                            m_MarsAtlas.gameObject.SetActive(true);
-                            m_Broadman.gameObject.SetActive(true);
+                            m_IEEG.SetActive(false);
+                            m_CCEP.SetActive(false);
+                            m_Atlas.SetActive(true);
                             break;
                         case SiteInformationDisplayMode.IEEG:
-                            m_IEEG.gameObject.SetActive(true);
-                            m_Height.gameObject.SetActive(false);
-                            m_Latency.gameObject.SetActive(false);
-                            m_MarsAtlas.gameObject.SetActive(true);
-                            m_Broadman.gameObject.SetActive(true);
+                            m_IEEG.SetActive(true);
+                            m_CCEP.SetActive(false);
+                            m_Atlas.SetActive(true);
                             break;
                         case SiteInformationDisplayMode.FMRI:
-                            m_IEEG.gameObject.SetActive(false);
-                            m_Height.gameObject.SetActive(false);
-                            m_Latency.gameObject.SetActive(false);
-                            m_MarsAtlas.gameObject.SetActive(false);
-                            m_Broadman.gameObject.SetActive(false);
+                            m_IEEG.SetActive(false);
+                            m_CCEP.SetActive(false);
+                            m_Atlas.SetActive(false);
                             break;
                         case SiteInformationDisplayMode.CCEP:
-                            m_IEEG.gameObject.SetActive(false);
-                            m_Height.gameObject.SetActive(true);
-                            m_Latency.gameObject.SetActive(true);
-                            m_MarsAtlas.gameObject.SetActive(false);
-                            m_Broadman.gameObject.SetActive(false);
-                            break;
-                        default:
+                            m_IEEG.SetActive(false);
+                            m_CCEP.SetActive(true);
+                            m_Atlas.SetActive(false);
                             break;
                     }
                 }
-                gameObject.SetActive(siteInfo.Enabled);
                 if (siteInfo.Enabled)
                 {
-                    transform.position = siteInfo.Position + new Vector3(0, -20, 0);
-                    // Site name string
-                    string siteNameText = siteInfo.Site.Information.Name;
-                    bool isBlacklisted = siteInfo.Site.State.IsBlackListed, isExcluded = siteInfo.Site.State.IsExcluded, isHighlighted = siteInfo.Site.State.IsHighlighted, isMarked = siteInfo.Site.State.IsMarked;
-                    if (isBlacklisted || isExcluded || isHighlighted || isMarked)
+                    SetPosition(siteInfo);
+                    SetSite(siteInfo.Site);
+                    SetPatient(siteInfo.Site.Information.Patient);
+                    switch (siteInfo.Mode)
                     {
-                        siteNameText += " (";
-                        if (isBlacklisted)
-                        {
-                            siteNameText += "Blacklisted";
-                        }
-                        else if (isExcluded)
-                        {
-                            siteNameText += "Excluded";
-                        }
-                        else
-                        {
-                            if (isHighlighted && isMarked)
-                            {
-                                siteNameText += "Highlighted, Marked";
-                            }
-                            else if (isHighlighted)
-                            {
-                                siteNameText += "Highlighted";
-                            }
-                            else
-                            {
-                                siteNameText += "Marked";
-                            }
-                        }
-                        siteNameText += ")";
-                    }
-                    m_SiteName.text = siteNameText;
-                    // Site patient string
-                    m_Patient.text = siteInfo.Site.Information.Patient.Name + " (" + siteInfo.Site.Information.Patient.Place + " - " + siteInfo.Site.Information.Patient.Date.ToString() + ")";
-                    // Informations
-                    if (siteInfo.Mode == SiteInformationDisplayMode.CCEP)
-                    {
-                        m_Height.text = "Height: " + siteInfo.Height;
-                        m_Latency.text = "Latency: " + siteInfo.Latency;
-                    }
-                    else if (siteInfo.Mode == SiteInformationDisplayMode.IEEG || siteInfo.Mode == SiteInformationDisplayMode.Anatomy)
-                    {
-                        if (siteInfo.Mode == SiteInformationDisplayMode.IEEG) m_IEEG.text = "IEEG: " + siteInfo.Amplitude;
-                        if (siteInfo.Site)
-                        {
-                            string marsAtlasText = ApplicationState.Module3D.MarsAtlasIndex.FullName(siteInfo.Site.Information.MarsAtlasIndex);
-                            if (marsAtlasText != "No_info" && marsAtlasText != "not found")
-                            {
-                                m_MarsAtlas.gameObject.SetActive(true);
-                                m_MarsAtlas.text = "Mars Atlas: " + marsAtlasText;
-                            }
-                            else
-                            {
-                                m_MarsAtlas.gameObject.SetActive(false);
-                            }
-                            string broadmanText = ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(siteInfo.Site.Information.MarsAtlasIndex);
-                            if (broadmanText != "No_info" && broadmanText != "not found")
-                            {
-                                m_Broadman.gameObject.SetActive(true);
-                                m_Broadman.text = "Broadman: " + broadmanText;
-                            }
-                            else
-                            {
-                                m_Broadman.gameObject.SetActive(false);
-                            }
-                        }
+                        case SiteInformationDisplayMode.Anatomy:
+                            SetAtlas(siteInfo);
+                            break;
+                        case SiteInformationDisplayMode.IEEG:
+                            SetIEEG(siteInfo);
+                            SetAtlas(siteInfo);
+                            break;
+                        case SiteInformationDisplayMode.FMRI:
+                            break;
+                        case SiteInformationDisplayMode.CCEP:
+                            SetCCEP(siteInfo);
+                            break;
                     }
                     ClampToCanvas();
                 }
+                gameObject.SetActive(siteInfo.Enabled);
             });
         }
         #endregion
 
         #region Private Methods
-        private void ClampToCanvas() // FIXME : high cost of performance
+        void ClampToCanvas() // FIXME : high cost of performance
 		{
             Vector3 l_pos = m_RectTransform.localPosition;
 			Vector3 l_minPosition = m_Canvas.rect.min - m_RectTransform.rect.min;
@@ -173,6 +106,60 @@ namespace HBP.UI.Module3D
 
             m_RectTransform.localPosition = l_pos;
 		}
+        void SetPosition(HBP.Module3D.SiteInfo siteInfo)
+        {
+            transform.position = siteInfo.Position + new Vector3(0, -20, 0);
+        }
+        void SetSite(HBP.Module3D.Site site)
+        {
+            m_SiteNameText.text = site.Information.ChannelName;
+            m_IsMarkedImage.color = site.State.IsMarked ? Color.white : m_DisableColor;
+            m_IsBlackListedImage.color = site.State.IsBlackListed ? Color.white : m_DisableColor;
+            m_IsHighlightedImage.color = site.State.IsHighlighted ? Color.white : m_DisableColor;
+            m_IsExcludedImage.color = site.State.IsExcluded ? Color.white : m_DisableColor;
+        }
+        void SetPatient(Data.Patient patient)
+        {
+            m_PatientText.text = patient.CompleteName;
+        }
+        void SetCCEP(HBP.Module3D.SiteInfo siteInfo)
+        {
+            m_CCEPAmplitudeText.text = siteInfo.CCEPAmplitude;
+            m_CCEPLatencyText.text = siteInfo.CCEPLatency;
+        }
+        void SetIEEG(HBP.Module3D.SiteInfo siteInfo)
+        {
+            string unit = siteInfo.IEEGUnit;
+            if (unit == "microV") unit = "mV";
+            if (unit != string.Empty) unit = " (" + unit + ")";
+            m_IEEGAmplitudeText.text = siteInfo.IEEGAmplitude + unit;      
+        }
+        void SetAtlas(HBP.Module3D.SiteInfo siteInfo)
+        {
+            if (siteInfo.Site)
+            {
+                string marsAtlasText = ApplicationState.Module3D.MarsAtlasIndex.FullName(siteInfo.Site.Information.MarsAtlasIndex);
+                if (marsAtlasText != "No_info" && marsAtlasText != "not found")
+                {
+                    m_MarsAtlasText.transform.parent.gameObject.SetActive(true);
+                    m_MarsAtlasText.text = marsAtlasText;
+                }
+                else
+                {
+                    m_MarsAtlasText.transform.parent.gameObject.SetActive(false);
+                }
+                string broadmanText = ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(siteInfo.Site.Information.MarsAtlasIndex);
+                if (broadmanText != "No_info" && broadmanText != "not found")
+                {
+                    m_BroadmanText.transform.parent.gameObject.SetActive(true);
+                    m_BroadmanText.text = broadmanText;
+                }
+                else
+                {
+                    m_BroadmanText.transform.parent.gameObject.SetActive(false);
+                }
+            }
+        }
         #endregion
     }
 }
