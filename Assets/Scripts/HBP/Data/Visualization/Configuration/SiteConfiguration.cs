@@ -27,51 +27,47 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// The site is excluded ?
         /// </summary>
-        [DataMember]
-        public bool IsExcluded { get; set; }
+        [DataMember] public bool IsExcluded { get; set; }
 
         /// <summary>
         /// The site is blacklisted ?
         /// </summary>
-        [DataMember]
-        public bool IsBlacklisted { get; set; }
+        [DataMember] public bool IsBlacklisted { get; set; }
 
         /// <summary>
         /// The site is highlighted ?
         /// </summary>
-        [DataMember]
-        public bool IsHighlighted { get; set; }
+        [DataMember] public bool IsHighlighted { get; set; }
 
         /// <summary>
         /// The site is marked ?
         /// </summary>
-        [DataMember]
-        public bool IsMarked { get; set; }
+        [DataMember] public bool IsMarked { get; set; }
 
-        [IgnoreDataMember]
-        public float[] Values { get; set; }
-        [IgnoreDataMember]
-        public float[] NormalizedValues { get; set; }
+        [IgnoreDataMember] public float[] Values { get; set; }
+        [IgnoreDataMember] public float[] NormalizedValues { get; set; }
+        [IgnoreDataMember] public string Unit { get; set; }
         #endregion
 
         #region Constructors
-        public SiteConfiguration(float[] values,float[] normalizedValues, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked)
+        public SiteConfiguration(float[] values,float[] normalizedValues,string unit, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked)
         {
             Values = values;
             NormalizedValues = normalizedValues;
+            Unit = unit;
             IsExcluded = isExcluded;
             IsBlacklisted = isBlacklisted;
             IsHighlighted = isHighlighted;
             IsMarked = isMarked;
         }
-        public SiteConfiguration(Color color) : this(new float[0],new float[0], false, false, false, false) { }
+        public SiteConfiguration(Color color) : this(new float[0],new float[0],"", false, false, false, false) { }
         public SiteConfiguration() : this(new Color()) { }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new SiteConfiguration(Values, NormalizedValues, IsExcluded, IsBlacklisted, IsHighlighted, IsMarked);
+            return new SiteConfiguration(Values, NormalizedValues, Unit, IsExcluded, IsBlacklisted, IsHighlighted, IsMarked);
         }
         public void LoadSerializedConfiguration(SiteConfiguration configuration)
         {

@@ -12,13 +12,13 @@ namespace HBP.UI.TrialMatrix
     public class TrialMatrix : MonoBehaviour
     {
         #region Properties
-        [SerializeField] GameObject linePrefab;
-        [SerializeField] Texture2D colorMap;
+        [SerializeField] GameObject m_LinePrefab;
+        [SerializeField] Text m_TitleText;
+        [SerializeField] ValuesLegend m_ValuesLegend;
+        [SerializeField] TimeLegend m_TimeLegend;
+        [SerializeField] RectTransform m_LinesRectTransform;
 
-        Text m_Title;
-        ValuesLegend m_ValuesLegend;
-        TimeLegend m_TimeLegend;
-        RectTransform m_LinesRect;
+        Texture2D m_Colormap;
 
         d.TrialMatrix m_Data;
         public d.TrialMatrix Data
@@ -33,7 +33,7 @@ namespace HBP.UI.TrialMatrix
             set
             {
                 m_Limits = value;
-                m_ValuesLegend.Set(colorMap, m_Limits, 5);
+                m_ValuesLegend.Set(m_Colormap, m_Limits, 5);
                 foreach (Line line in Lines)
                 {
                     foreach (Bloc bloc in line.Blocs)
@@ -62,13 +62,15 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(d.TrialMatrix trialMatrix, bool autoLimits, Vector2 limits)
+        public void Set(d.TrialMatrix trialMatrix, bool autoLimits, Vector2 limits, Texture2D colormap)
         {
+            DestroyImmediate(m_Colormap);
+            m_Colormap = colormap;
             m_Data = trialMatrix;
             m_AutoLimits = autoLimits;
             if(autoLimits) Limits = trialMatrix.Limits;
             else Limits = limits;
-            m_Title.text = trialMatrix.Title;
+            m_TitleText.text = trialMatrix.Title;
 
             //Organize array
             d.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.ProtocolBloc.Position.Row).ThenBy(t => t.ProtocolBloc.Position.Column).ToArray();
@@ -100,7 +102,7 @@ namespace HBP.UI.TrialMatrix
             //Generate Line
             for (int i = 0; i < l_lines.Count; i++)
             {
-                AddLine(l_lines[i], maxBlocByRow, colorMap, Limits);
+                AddLine(l_lines[i], maxBlocByRow, m_Colormap, Limits);
             }
             SelectAllLines();
         }
@@ -128,14 +130,14 @@ namespace HBP.UI.TrialMatrix
         #region Private Methods
         void Awake()
         {
-            m_Title = transform.Find("Title").Find("Text").GetComponent<Text>();
+            m_TitleText = transform.Find("Title").Find("Text").GetComponent<Text>();
             m_ValuesLegend = transform.Find("Body").Find("ValuesLegend").GetComponent<ValuesLegend>();
             m_TimeLegend = transform.Find("Body").Find("Main").Find("TimeLegend").GetComponent<TimeLegend>();
-            m_LinesRect = transform.Find("Body").Find("Main").Find("Lines").GetComponent<RectTransform>();
+            m_LinesRectTransform = transform.Find("Body").Find("Main").Find("Lines").GetComponent<RectTransform>();
         }
         void AddLine(d.Bloc[] blocsInLine,int max,Texture2D colorMap,Vector2 limits)
         {
-            Line lines = (Instantiate(linePrefab, m_LinesRect) as GameObject).GetComponent<Line>();
+            Line lines = (Instantiate(m_LinePrefab, m_LinesRectTransform) as GameObject).GetComponent<Line>();
             lines.Initialize();
             lines.Set(blocsInLine,max, colorMap,limits);
             this.m_Lines.Add(lines);
@@ -143,7 +145,7 @@ namespace HBP.UI.TrialMatrix
         void SetLegends(Vector2 valueslimits,Vector2[] timeLimitsByColumn)
         {
             Profiler.BeginSample("set values");
-            m_ValuesLegend.Set(colorMap, valueslimits,5);
+            m_ValuesLegend.Set(m_Colormap, valueslimits,5);
             Profiler.EndSample();
             Profiler.BeginSample("set time");
             m_TimeLegend.Set(timeLimitsByColumn);

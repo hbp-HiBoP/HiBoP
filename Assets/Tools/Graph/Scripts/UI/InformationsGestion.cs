@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using System.Collections.Generic;
 
 namespace Tools.Unity.Graph
 {
@@ -15,14 +16,17 @@ namespace Tools.Unity.Graph
         Limits limits;
         [HideInInspector] public UnityEvent OnAutoLimits = new UnityEvent();
         [HideInInspector] public GenericEvent<CurveData, bool> OnDisplayCurve = new GenericEvent<CurveData, bool>();
+        [HideInInspector] public GenericEvent<GroupCurveData, bool> OnDisplayGroup = new GenericEvent<GroupCurveData, bool>();
         #endregion
 
         #region Public Methods
-        public void SetLegends(Tuple<CurveData,bool>[] curves)
+        public void SetLegends(Dictionary<GroupCurveData,bool> stateByGroupCurve, Dictionary<CurveData,bool> stateByCurve)
         {
-            if(legendsGestion != null) legendsGestion.SetLegends(curves);
+            if(legendsGestion != null) legendsGestion.SetLegends(stateByGroupCurve, stateByCurve);
             legendsGestion.OnDisplayCurve.RemoveAllListeners();
             legendsGestion.OnDisplayCurve.AddListener(OnDisplayCurve.Invoke);
+            legendsGestion.OnDisplayGroup.RemoveAllListeners();
+            legendsGestion.OnDisplayGroup.AddListener(OnDisplayGroup.Invoke);
         }
         public void SetTitle(string title)
         {

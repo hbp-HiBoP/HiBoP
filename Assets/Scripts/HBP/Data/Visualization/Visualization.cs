@@ -210,7 +210,6 @@ namespace HBP.Data.Visualization
                 yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadData(dataInfoByColumn, progress, onChangeProgress, (value, e) => { progress = value; exception = e; }));
                 yield return Ninja.JumpBack;
             }
-
             // Load Columns.
             if (exception == null)
             {
@@ -404,7 +403,7 @@ namespace HBP.Data.Visualization
                 Column column = Columns[i];
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.DisplayLabel + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
+                onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
                 yield return Ninja.JumpBack;
                 try
                 {
@@ -439,7 +438,7 @@ namespace HBP.Data.Visualization
                 Column column = Columns[i];
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.DisplayLabel + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
+                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
                 yield return Ninja.JumpBack;
                 try
                 {

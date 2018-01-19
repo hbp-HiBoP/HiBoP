@@ -38,6 +38,13 @@ namespace HBP.UI.Module3D
         {
             m_ResizableGrid = GetComponent<ResizableGrid>();
         }
+        private void OnDestroy()
+        {
+            if (m_LoadingCircle)
+            {
+                m_LoadingCircle.Close();
+            }
+        }
         #endregion
 
         #region Public Methods

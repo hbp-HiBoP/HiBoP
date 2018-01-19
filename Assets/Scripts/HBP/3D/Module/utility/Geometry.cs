@@ -342,11 +342,11 @@ namespace HBP.Module3D
         /// 
         /// </summary>
         /// <param name="radius"></param>
-        /// <param name="inter"></param>
+        /// <param name="width"></param>
         /// <param name="height"></param>
         /// <param name="nbSides"></param>
         /// <returns></returns>
-        public static Mesh CreateTube(float radius = 1.7f, float inter = 0.15f, float height = 0.1f, int nbSides = 60)
+        public static Mesh CreateTube(float radius = 1.7f, float width = 0.15f, float height = 0.1f, int nbSides = 60)
         {
             Mesh mesh = new Mesh();
 
@@ -355,9 +355,9 @@ namespace HBP.Module3D
 
             // Outter shell is at radius1 + radius2 / 2, inner shell at radius1 - radius2 / 2
             float bottomRadius1 = radius; // .5
-            float bottomRadius2 = inter; // .15
+            float bottomRadius2 = width; // .15
             float topRadius1 = radius;
-            float topRadius2 = inter;
+            float topRadius2 = width;
 
             int nbVerticesCap = nbSides * 2 + 2;
             int nbVerticesSides = nbSides * 2 + 2;
@@ -377,8 +377,8 @@ namespace HBP.Module3D
                 float r1 = (float)(sideCounter++) / nbSides * _2pi;
                 float cos = Mathf.Cos(r1);
                 float sin = Mathf.Sin(r1);
-                vertices[vert] = new Vector3(cos * (bottomRadius1 - bottomRadius2 * .5f), 0f, sin * (bottomRadius1 - bottomRadius2 * .5f));
-                vertices[vert + 1] = new Vector3(cos * (bottomRadius1 + bottomRadius2 * .5f), 0f, sin * (bottomRadius1 + bottomRadius2 * .5f));
+                vertices[vert] = new Vector3(cos * bottomRadius1, 0f, sin * bottomRadius1);
+                vertices[vert + 1] = new Vector3(cos * (bottomRadius1 + bottomRadius2), 0f, sin * (bottomRadius1 + bottomRadius2));
                 vert += 2;
             }
 
@@ -391,8 +391,8 @@ namespace HBP.Module3D
                 float r1 = (float)(sideCounter++) / nbSides * _2pi;
                 float cos = Mathf.Cos(r1);
                 float sin = Mathf.Sin(r1);
-                vertices[vert] = new Vector3(cos * (topRadius1 - topRadius2 * .5f), height, sin * (topRadius1 - topRadius2 * .5f));
-                vertices[vert + 1] = new Vector3(cos * (topRadius1 + topRadius2 * .5f), height, sin * (topRadius1 + topRadius2 * .5f));
+                vertices[vert] = new Vector3(cos * (topRadius1), height, sin * (topRadius1));
+                vertices[vert + 1] = new Vector3(cos * (topRadius1 + topRadius2), height, sin * (topRadius1 + topRadius2));
                 vert += 2;
             }
 
@@ -406,8 +406,8 @@ namespace HBP.Module3D
                 float cos = Mathf.Cos(r1);
                 float sin = Mathf.Sin(r1);
 
-                vertices[vert] = new Vector3(cos * (topRadius1 + topRadius2 * .5f), height, sin * (topRadius1 + topRadius2 * .5f));
-                vertices[vert + 1] = new Vector3(cos * (bottomRadius1 + bottomRadius2 * .5f), 0, sin * (bottomRadius1 + bottomRadius2 * .5f));
+                vertices[vert] = new Vector3(cos * (topRadius1 + topRadius2), height, sin * (topRadius1 + topRadius2));
+                vertices[vert + 1] = new Vector3(cos * (bottomRadius1 + bottomRadius2), 0, sin * (bottomRadius1 + bottomRadius2));
                 vert += 2;
             }
 
@@ -421,8 +421,8 @@ namespace HBP.Module3D
                 float cos = Mathf.Cos(r1);
                 float sin = Mathf.Sin(r1);
 
-                vertices[vert] = new Vector3(cos * (topRadius1 - topRadius2 * .5f), height, sin * (topRadius1 - topRadius2 * .5f));
-                vertices[vert + 1] = new Vector3(cos * (bottomRadius1 - bottomRadius2 * .5f), 0, sin * (bottomRadius1 - bottomRadius2 * .5f));
+                vertices[vert] = new Vector3(cos * (topRadius1), height, sin * (topRadius1));
+                vertices[vert + 1] = new Vector3(cos * (bottomRadius1), 0, sin * (bottomRadius1));
                 vert += 2;
             }
             #endregion

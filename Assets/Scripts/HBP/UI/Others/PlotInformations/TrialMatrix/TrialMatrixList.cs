@@ -19,7 +19,7 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(Data.TrialMatrix.TrialMatrix[][] trialMatrix, Dictionary<Protocol,bool> autoLimitsByProtocol, Dictionary<Protocol,Vector2> limitsByProtocol)
+        public void Set(Data.TrialMatrix.TrialMatrix[][] trialMatrix, Dictionary<Protocol,bool> autoLimitsByProtocol, Dictionary<Protocol,Vector2> limitsByProtocol, Texture2D colormap)
         {
             Clear();
             for (int lineIndex = 0; lineIndex < trialMatrix.Length; lineIndex++)
@@ -31,7 +31,7 @@ namespace HBP.UI.TrialMatrix
                     Data.TrialMatrix.TrialMatrix dataTrialMatrix = trialMatrix[lineIndex][columnIndex];
                     TrialMatrix trial = Instantiate(m_trialMatrixPrefab, lineRectTransform).GetComponent<TrialMatrix>();
                     TrialMatrix.Add(trial);
-                    trial.Set(dataTrialMatrix, autoLimitsByProtocol[dataTrialMatrix.Protocol], limitsByProtocol[dataTrialMatrix.Protocol]);
+                    trial.Set(dataTrialMatrix, autoLimitsByProtocol[dataTrialMatrix.Protocol], limitsByProtocol[dataTrialMatrix.Protocol], colormap);
                     trial.OnAutoLimits.RemoveAllListeners();
                     trial.OnAutoLimits.AddListener((autoLimit) => OnAutoLimits.Invoke(autoLimit, dataTrialMatrix.Protocol));
                     trial.OnChangeLimits.RemoveAllListeners();

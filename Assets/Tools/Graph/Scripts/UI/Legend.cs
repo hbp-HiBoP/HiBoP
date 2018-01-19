@@ -8,12 +8,13 @@ namespace Tools.Unity.Graph
     {
         #region Properties
         [SerializeField] Text m_Text;
+        [SerializeField] Image m_Image;
         [SerializeField] Toggle m_Toggle;
 
         CurveData m_Curve;
         static Color m_InactiveColor = Color.grey;
 
-        public GenericEvent<CurveData,bool> OnDisplayCurve = new GenericEvent<CurveData,bool>();
+        public GenericEvent<CurveData, bool> OnDisplayCurve = new GenericEvent<CurveData,bool>();
         #endregion
 
         #region Public Methods
@@ -21,23 +22,24 @@ namespace Tools.Unity.Graph
         {
             name = curve.Name;
             m_Curve = curve;
-            m_Text.color = curve.Color;
             m_Text.text = curve.Name;
 
             m_Toggle.isOn = active;
             ChangeColor(active);
-            m_Toggle.onValueChanged.AddListener(ChangeToggleState);
+        }
+        public void OnChangeValue(bool isOn)
+        {
+            OnDisplayCurve.Invoke(m_Curve, isOn);
+            ChangeColor(isOn);
         }
         #endregion
 
         #region Private Methods
-        void ChangeToggleState(bool isOn)
-        {
-            OnDisplayCurve.Invoke(m_Curve, isOn);
-        }
+
         void ChangeColor(bool isOn)
         {
-            m_Text.color = isOn ? m_Curve.Color : m_InactiveColor;
+            m_Text.color = isOn ? Color.white : Color.grey;
+            m_Image.color = isOn ? m_Curve.Color : Color.grey;
         }
         #endregion
     }

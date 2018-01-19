@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace Tools.Unity.Graph
@@ -6,28 +7,32 @@ namespace Tools.Unity.Graph
     public class LegendsGestion : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        GameObject legendPrefab;
-
+        [SerializeField] GameObject groupLegendPrefab;
+        public GenericEvent<GroupCurveData, bool> OnDisplayGroup = new GenericEvent<GroupCurveData, bool>();
         public GenericEvent<CurveData, bool> OnDisplayCurve = new GenericEvent<CurveData, bool>();
         #endregion
 
         #region Public Methods
-        public void SetLegends(Tuple<CurveData,bool>[] curves)
+        public void SetLegends(Dictionary<GroupCurveData, bool> stateByGroupCurve, Dictionary<CurveData, bool> stateByCurve)
         {
             Clear();
-            foreach(Tuple<CurveData, bool> curve in curves) AddLegend(curve.Object1,curve.Object2);
+            foreach (var group in stateByGroupCurve)
+            {
+                AddLegend(group.Key, group.Value, stateByCurve);
+            }
         }
         #endregion
 
         #region Private Methods
-        void AddLegend(CurveData curve, bool active)
+        void AddLegend(GroupCurveData group, bool active, Dictionary<CurveData,bool> stateByCurve)
         {
-            GameObject legendGameObject = Instantiate(legendPrefab);
-            legendGameObject.transform.SetParent(transform);
-            Legend legend = legendGameObject.GetComponent<Legend>();
-            legend.Set(curve,active);
+            GameObject legendGameObject = Instantiate(groupLegendPrefab,transform);
+            GroupLegend legend = legendGameObject.GetComponent<GroupLegend>();
+            legend.Set(group,active, stateByCurve);
+            legend.OnDisplayCurve.RemoveAllListeners();
             legend.OnDisplayCurve.AddListener(OnDisplayCurve.Invoke);
+            legend.OnDisplayGroup.RemoveAllListeners();
+            legend.OnDisplayGroup.AddListener(OnDisplayGroup.Invoke);
         }
         void Clear()
         {

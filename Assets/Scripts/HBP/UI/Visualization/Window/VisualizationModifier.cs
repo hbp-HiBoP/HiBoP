@@ -52,8 +52,8 @@ namespace HBP.UI.Visualization
             base.Close();
         }
         public void AddColumn()
-        {
-            ItemTemp.Columns.Add(new Column(Item.Patients,ApplicationState.ProjectLoaded.Datasets));
+        { 
+            ItemTemp.Columns.Add(new Column(ItemTemp.Columns.Count + 1, ItemTemp.Patients, ApplicationState.ProjectLoaded.Datasets));
             m_TabGestion.AddTab();
         }
         public void RemoveColumn()
@@ -222,7 +222,7 @@ namespace HBP.UI.Visualization
             // Columns.
             if (objectToDisplay.Columns.Count == 0)
             {
-                objectToDisplay.Columns.Add(new Column(Item.Patients, ApplicationState.ProjectLoaded.Datasets));
+                objectToDisplay.Columns.Add(new Column(ItemTemp.Columns.Count + 1, ItemTemp.Patients, ApplicationState.ProjectLoaded.Datasets));
             }
             for (int i = 0; i < objectToDisplay.Columns.Count; i++)
             {

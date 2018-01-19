@@ -27,6 +27,8 @@ namespace HBP.Data.Visualization
     public class Column : ICloneable
     {
         #region Properties
+        [DataMember] public string Name { get; set; }
+
         [DataMember(Name = "Dataset")]
         private string datasetID;
         /// <summary>
@@ -84,17 +86,6 @@ namespace HBP.Data.Visualization
 
         public Dictionary<int, Timeline> TimeLineByFrequency { get; set; }
         public Dictionary<int, IconicScenario> IconicScenarioByFrequency { get; set; }
-
-        /// <summary>
-        /// Display label of the column
-        /// </summary>
-        public string DisplayLabel
-        {
-            get
-            {
-                return Data + " | " + Dataset.Name + " | " + Protocol.Name + " | " + Bloc.Name;
-            }
-        }
         #endregion
 
         #region Constructors
@@ -105,15 +96,16 @@ namespace HBP.Data.Visualization
         /// <param name="dataLabel">Label of the data to use in the visualization Column.</param>
         /// <param name="protocol">Protocol to use in the visualization Column.</param>
         /// <param name="bloc">Bloc of the Protocol to use in the visualization Column.</param>
-        public Column(Dataset dataset, string dataLabel, Protocol protocol, Bloc bloc,ColumnConfiguration configuration)
+        public Column(string name, Dataset dataset, string dataLabel, Protocol protocol, Bloc bloc,ColumnConfiguration configuration)
         {
+            Name = name;
             Dataset = dataset;
             Protocol = protocol;
             Bloc = bloc;
             Data = dataLabel;
             Configuration = configuration;
         }
-        public Column(IEnumerable<Patient> patients, IEnumerable<Dataset> datasets) : this()
+        public Column(int column, IEnumerable<Patient> patients, IEnumerable<Dataset> datasets) : this()
         {
             Dataset datasetUsable = null;
             string nameUsable = string.Empty;
@@ -138,11 +130,12 @@ namespace HBP.Data.Visualization
                 Data = nameUsable;
                 Configuration = new ColumnConfiguration();
             }
+            Name = "Column n°" + column;
         }
         /// <summary>
         /// Create a new Column instance with default values.
         /// </summary>
-        public Column():this(new Dataset(), string.Empty,new Protocol(),new Bloc(),new ColumnConfiguration())
+        public Column():this("New column", new Dataset(), string.Empty,new Protocol(),new Bloc(),new ColumnConfiguration())
         {
         }
         #endregion
@@ -178,10 +171,11 @@ namespace HBP.Data.Visualization
                     {
                         siteConfiguration.Values = averagedBloc.ValuesBySite[site];
                         siteConfiguration.NormalizedValues = averagedBloc.NormalizedValuesBySite[site];
+                        siteConfiguration.Unit = averagedBloc.UnitBySite[site];
                     }
                     else
                     {
-                        siteConfiguration = new SiteConfiguration(averagedBloc.ValuesBySite[site], averagedBloc.NormalizedValuesBySite[site], false, false, false, false);
+                        siteConfiguration = new SiteConfiguration(averagedBloc.ValuesBySite[site], averagedBloc.NormalizedValuesBySite[site], averagedBloc.UnitBySite[site], false, false, false, false);
                         Configuration.ConfigurationBySite.Add(site, siteConfiguration);
                     }
                     frequencyBySiteConfiguration.Add(siteConfiguration, frequency);
@@ -292,7 +286,7 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            return new Column(Dataset, Data, Protocol, Bloc, Configuration.Clone() as ColumnConfiguration);
+            return new Column(Name, Dataset, Data, Protocol, Bloc, Configuration.Clone() as ColumnConfiguration);
         }
         #endregion
     }

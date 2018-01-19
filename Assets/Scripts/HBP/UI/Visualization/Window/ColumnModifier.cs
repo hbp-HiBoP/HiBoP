@@ -12,6 +12,7 @@ namespace HBP.UI.Visualization
     public class ColumnModifier : MonoBehaviour
     {
         #region Properties
+        [SerializeField] InputField m_NameInputField;
         [SerializeField] Dropdown m_ProtocolDropdown;
         [SerializeField] Dropdown m_BlocDropdown;
         [SerializeField] Dropdown m_DatasetDropdown;
@@ -30,6 +31,9 @@ namespace HBP.UI.Visualization
         {
             m_Patients = patients;
             m_Column = column;
+            m_NameInputField.onValueChanged.RemoveAllListeners();
+            m_NameInputField.text = column.Name;
+            m_NameInputField.onValueChanged.AddListener((name) => m_Column.Name = name);
             SetProtocolDropdown();
         }
         #endregion

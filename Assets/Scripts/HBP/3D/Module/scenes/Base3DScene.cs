@@ -30,23 +30,25 @@ namespace HBP.Module3D
     /// </summary>
     public class SiteInfo
     {
-        public SiteInfo(Site site, bool enabled, Vector3 position, SiteInformationDisplayMode mode = SiteInformationDisplayMode.IEEG, string amplitude = "", string height = "", string latency = "")
+        public SiteInfo(Site site, bool enabled, Vector3 position, SiteInformationDisplayMode mode = SiteInformationDisplayMode.IEEG, string IEEGAmplitude = "", string IEEGUnit ="", string CCEPAmplitude = "", string CCEPLatency = "")
         {
             Site = site;
             Enabled = enabled;
             Position = position;
-            Amplitude = amplitude;
-            Height = height;
-            Latency = latency;
+            this.IEEGAmplitude = IEEGAmplitude;
+            this.IEEGUnit = IEEGUnit;
+            this.CCEPAmplitude = CCEPAmplitude;
+            this.CCEPLatency = CCEPLatency;
             Mode = mode;
         }
 
         public Site Site { get; set; }
         public bool Enabled { get; set; }
         public Vector3 Position { get; set; }
-        public string Amplitude { get; set; }
-        public string Height { get; set; }
-        public string Latency { get; set; }
+        public string IEEGAmplitude { get; set; }
+        public string IEEGUnit { get; set; }
+        public string CCEPAmplitude { get; set; }
+        public string CCEPLatency { get; set; }
         public SiteInformationDisplayMode Mode { get; set; }
     }
 
@@ -1782,7 +1784,7 @@ namespace HBP.Module3D
             if (!string.IsNullOrEmpty(Visualization.Configuration.MeshName)) UpdateMeshToDisplay(m_ColumnManager.Meshes.FindIndex((m) => m.Name == Visualization.Configuration.MeshName));
             if (!string.IsNullOrEmpty(Visualization.Configuration.MRIName)) UpdateMRIToDisplay(m_ColumnManager.MRIs.FindIndex((m) => m.Name == Visualization.Configuration.MRIName));
             if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) UpdateSites(m_ColumnManager.Implantations.FindIndex((i) => i.Name == Visualization.Configuration.ImplantationName));
-
+            
             foreach (Data.Visualization.Cut cut in Visualization.Configuration.Cuts)
             {
                 Cut newCut = AddCutPlane();
@@ -1792,7 +1794,7 @@ namespace HBP.Module3D
                 newCut.Position = cut.Position;
                 UpdateCutPlane(newCut);
             }
-            
+
             for (int i = 0; i < Visualization.Configuration.Views.Count; i++)
             {
                 View view = Visualization.Configuration.Views[i];
@@ -1812,12 +1814,12 @@ namespace HBP.Module3D
                 column.LoadConfiguration(false);
             }
             ROICreation = !ROICreation;
-
+            /*
             foreach (var cut in m_Cuts)
             {
                 UpdateCutPlane(cut);
             }
-
+            */
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
@@ -2129,11 +2131,8 @@ namespace HBP.Module3D
             UpdateMeshesInformation();
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
-            if (CuttingMesh)
-            {
-                ComputeSimplifyMeshCut();
-            }
-            else
+            ComputeSimplifyMeshCut();
+            if (!CuttingMesh)
             {
                 ComputeMeshesCut();
             }
@@ -2156,10 +2155,10 @@ namespace HBP.Module3D
         /// / 5 : all plots / 6 : in ROI / 7 : not in ROI / 8 : names filter / 9 : mars filter / 10 : broadman filter </param>
         public void UpdateSitesMasks(bool allColumns, SiteAction action = SiteAction.Exclude, SiteFilter filter = SiteFilter.Site, string nameFilter = "")
         {
-            GameObject siteGameObject = null;
+            Site selectedSite = null;
             if (m_ColumnManager.SelectedColumn.SelectedSite)
             {
-                siteGameObject = m_ColumnManager.SelectedColumn.SelectedSite.gameObject;
+                selectedSite = m_ColumnManager.SelectedColumn.SelectedSite;
             }
 
             List<Column3D> columns = new List<Column3D>(); // List of columns we inspect
@@ -2176,31 +2175,32 @@ namespace HBP.Module3D
             // Build the list of the sites on which we apply actions
             foreach (Column3D column in columns)
             {
+                Site columnSelectedSite = column.Sites.FirstOrDefault(s => s.Information.GlobalID == selectedSite.Information.GlobalID);
                 switch(filter)
                 {
                     case SiteFilter.Site:
                         {
-                            sites.Add(siteGameObject.GetComponent<Site>());
+                            sites.Add(columnSelectedSite);
                         }
                         break;
                     case SiteFilter.Electrode:
                         {
-                            Transform parentElectrode = siteGameObject.transform.parent;
+                            Transform parentElectrode = columnSelectedSite.transform.parent;
                             for (int jj = 0; jj < parentElectrode.childCount; ++jj)
                             {
-                                sites.Add(parentElectrode.GetChild(jj).gameObject.GetComponent<Site>());
+                                sites.Add(parentElectrode.GetChild(jj).GetComponent<Site>());
                             }
                         }
                         break;
                     case SiteFilter.Patient:
                         {
-                            Transform parentPatient = siteGameObject.transform.parent.parent;
+                            Transform parentPatient = columnSelectedSite.transform.parent.parent;
                             for (int jj = 0; jj < parentPatient.childCount; ++jj)
                             {
                                 Transform parentElectrode = parentPatient.GetChild(jj);
                                 for (int kk = 0; kk < parentElectrode.childCount; kk++)
                                 {
-                                    sites.Add(parentElectrode.GetChild(kk).gameObject.GetComponent<Site>());
+                                    sites.Add(parentElectrode.GetChild(kk).GetComponent<Site>());
                                 }
                             }
                         }
@@ -2443,10 +2443,8 @@ namespace HBP.Module3D
             if (!SceneInformation.MeshesLoaded || !SceneInformation.MRILoaded || SceneInformation.CollidersUpdated)
                 return;
 
-            UnityEngine.Profiling.Profiler.BeginSample("Update Meshes Colliders");
             this.StartCoroutineAsync(c_UpdateMeshesColliders());
             SceneInformation.CollidersUpdated = true;
-            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Update the textures generator
@@ -2558,48 +2556,49 @@ namespace HBP.Module3D
                     Column3DIEEG columnIEEG = column as Column3DIEEG;
                     int siteID = site.Information.GlobalID;
 
-                    float amplitude = -1;
+                    float iEEGActivity = -1;
+                    string iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
                     if (columnIEEG.IEEGValuesBySiteID.Length > 0)
                     {
-                        amplitude = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
+                        iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
                     }
                     bool amplitudesComputed = SceneInformation.IsGeneratorUpToDate;
                     switch (Type)
                     {
                         case SceneType.SinglePatient:
-                            string latency = "none", height = "none";
+                            string CCEPLatency = "none", CCEPAmplitude = "none";
                             if (columnIEEG.CurrentLatencyFile != -1)
                             {
                                 Latencies latencyFile = m_ColumnManager.SelectedImplantation.Latencies[columnIEEG.CurrentLatencyFile];
 
                                 if (columnIEEG.SourceSelectedID == -1) // no source selected
                                 {
-                                    latency = "...";
-                                    height = "no source selected";
+                                    CCEPLatency = "...";
+                                    CCEPAmplitude = "no source selected";
                                 }
                                 else if (columnIEEG.SourceSelectedID == siteID) // site is the source
                                 {
-                                    latency = "0";
-                                    height = "source";
+                                    CCEPLatency = "0";
+                                    CCEPAmplitude = "source";
                                 }
                                 else
                                 {
                                     if (latencyFile.IsSiteResponsiveForSource(siteID, columnIEEG.SourceSelectedID))
                                     {
-                                        latency = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
-                                        height = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
+                                        CCEPLatency = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
+                                        CCEPAmplitude = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
                                     }
                                     else
                                     {
-                                        latency = "No data";
-                                        height = "No data";
+                                        CCEPLatency = "No data";
+                                        CCEPAmplitude = "No data";
                                     }
                                 }
                             }
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? SiteInformationDisplayMode.CCEP : amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.Anatomy, "" + amplitude, height, latency));
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? SiteInformationDisplayMode.CCEP : amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.Anatomy, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
                             break;
                         case SceneType.MultiPatients:
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.Anatomy, "" + amplitude));
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.Anatomy, iEEGActivity.ToString("0.00"), iEEGUnit));
                             break;
                         default:
                             break;
@@ -2913,7 +2912,7 @@ namespace HBP.Module3D
             // update columns names
             for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
             {
-                m_ColumnManager.ColumnsIEEG[ii].Label = "[C" + (ii + 1).ToString() + "] " + Visualization.Columns[ii].DisplayLabel;
+                m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].Name;
             }
 
             // set timelines
@@ -2931,21 +2930,9 @@ namespace HBP.Module3D
             m_UpdatingColliders = true;
             if (HBP3DModule.UseSimplifiedMeshes)
             {
-                // update mesh collider TODO : remove next section when this is finished
                 yield return Ninja.JumpToUnity;
-                Mesh colliderMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh;
-                yield return Ninja.JumpBack;
-                // cut the simplified mesh
-                if (SceneInformation.SimplifiedMeshToUse == null) SceneInformation.SimplifiedMeshToUse = m_ColumnManager.SelectedMesh.SimplifiedBoth;
-                List<DLL.Surface> cuts;
-                if (Cuts.Count > 0)
-                    cuts = new List<DLL.Surface>(SceneInformation.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled)); //Maybe FIXME : do not allow holes
-                else
-                    cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.SimplifiedMeshToUse.Clone() };
-                yield return Ninja.JumpToUnity;
-                cuts[0].UpdateMeshFromDLL(colliderMesh, false, true, false, false, true, false);
                 m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
-                m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = colliderMesh;
+                m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh;
                 yield return Ninja.JumpBack;
             }
             else
