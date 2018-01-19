@@ -23,7 +23,9 @@ namespace Tools.Unity
 
         public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target) // FIXME : some libraries are not copied in linux .so.X.X.X
         {
-            string buildName = string.Format("HiBoP_{0}_{1}_{2}", DateTime.Today.Year.ToString("d4"), DateTime.Today.Month.ToString("d2"), DateTime.Today.Day.ToString("d2"));
+            //string buildName = string.Format("HiBoP_{0}_{1}_{2}", DateTime.Today.Year.ToString("d4"), DateTime.Today.Month.ToString("d2"), DateTime.Today.Day.ToString("d2"));
+            string buildName = Application.productName;
+            /*
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:
@@ -36,6 +38,7 @@ namespace Tools.Unity
                     buildName += "_macosx64";
                     break;
             }
+            */
             string buildDirectory = buildsDirectory + buildName + "/";
             string hibopName = "HiBoP";
             switch (target)
