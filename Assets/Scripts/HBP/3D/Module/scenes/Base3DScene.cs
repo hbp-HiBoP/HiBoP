@@ -2155,10 +2155,10 @@ namespace HBP.Module3D
         /// / 5 : all plots / 6 : in ROI / 7 : not in ROI / 8 : names filter / 9 : mars filter / 10 : broadman filter </param>
         public void UpdateSitesMasks(bool allColumns, SiteAction action = SiteAction.Exclude, SiteFilter filter = SiteFilter.Site, string nameFilter = "")
         {
-            GameObject siteGameObject = null;
+            Site selectedSite = null;
             if (m_ColumnManager.SelectedColumn.SelectedSite)
             {
-                siteGameObject = m_ColumnManager.SelectedColumn.SelectedSite.gameObject;
+                selectedSite = m_ColumnManager.SelectedColumn.SelectedSite;
             }
 
             List<Column3D> columns = new List<Column3D>(); // List of columns we inspect
@@ -2175,31 +2175,32 @@ namespace HBP.Module3D
             // Build the list of the sites on which we apply actions
             foreach (Column3D column in columns)
             {
+                Site columnSelectedSite = column.Sites.FirstOrDefault(s => s.Information.GlobalID == selectedSite.Information.GlobalID);
                 switch(filter)
                 {
                     case SiteFilter.Site:
                         {
-                            sites.Add(siteGameObject.GetComponent<Site>());
+                            sites.Add(columnSelectedSite);
                         }
                         break;
                     case SiteFilter.Electrode:
                         {
-                            Transform parentElectrode = siteGameObject.transform.parent;
+                            Transform parentElectrode = columnSelectedSite.transform.parent;
                             for (int jj = 0; jj < parentElectrode.childCount; ++jj)
                             {
-                                sites.Add(parentElectrode.GetChild(jj).gameObject.GetComponent<Site>());
+                                sites.Add(parentElectrode.GetChild(jj).GetComponent<Site>());
                             }
                         }
                         break;
                     case SiteFilter.Patient:
                         {
-                            Transform parentPatient = siteGameObject.transform.parent.parent;
+                            Transform parentPatient = columnSelectedSite.transform.parent.parent;
                             for (int jj = 0; jj < parentPatient.childCount; ++jj)
                             {
                                 Transform parentElectrode = parentPatient.GetChild(jj);
                                 for (int kk = 0; kk < parentElectrode.childCount; kk++)
                                 {
-                                    sites.Add(parentElectrode.GetChild(kk).gameObject.GetComponent<Site>());
+                                    sites.Add(parentElectrode.GetChild(kk).GetComponent<Site>());
                                 }
                             }
                         }
