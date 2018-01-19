@@ -24,7 +24,7 @@ namespace HBP.UI.Module3D
 
         SiteInformationDisplayMode m_CurrentMode = SiteInformationDisplayMode.Anatomy;
         RectTransform m_RectTransform;
-        Color m_DisableColor = new Color(0.6f, 0.6f, 0.6f);
+        Color m_DisableColor = new Color(1.0f, 1.0f, 1.0f, 0.2f);
         #endregion
 
         #region Public Methods
