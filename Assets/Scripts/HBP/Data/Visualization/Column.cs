@@ -148,7 +148,7 @@ namespace HBP.Data.Visualization
         public void Load(IEnumerable<DataInfo> columnData)
         {
             List<int> frequencies = new List<int>();
-            List<Localizer.Bloc> blocs = new List<Localizer.Bloc>();
+            List<Tuple<Localizer.Bloc, int>> blocs = new List<Tuple<Localizer.Bloc, int>>();
             Dictionary<SiteConfiguration, int> frequencyBySiteConfiguration = new Dictionary<SiteConfiguration, int>();
             foreach (DataInfo dataInfo in columnData)
             {
@@ -163,7 +163,7 @@ namespace HBP.Data.Visualization
                     throw new FrequencyException(dataInfo.EEG, frequency);
                 }
                 Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs,ApplicationState.GeneralSettings.ValueAveraging, ApplicationState.GeneralSettings.EventPositionAveraging);
-                blocs.AddRange(epochedData.Blocs);
+                blocs.AddRange(from bloc in epochedData.Blocs select new Tuple<Localizer.Bloc, int>(bloc, frequency));
                 foreach (var site in averagedBloc.ValuesBySite.Keys)
                 {
                     SiteConfiguration siteConfiguration;
@@ -181,27 +181,28 @@ namespace HBP.Data.Visualization
                     frequencyBySiteConfiguration.Add(siteConfiguration, frequency);
                 }
             }
+            int maxFrequency = frequencies.Max();
 
             Event mainEvent = new Event();
             Event[] secondaryEvents = new Event[Bloc.SecondaryEvents.Count];
             switch (ApplicationState.GeneralSettings.EventPositionAveraging)
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:
-                    mainEvent = new Event(Bloc.MainEvent.Name,(int) (from bloc in blocs select bloc.PositionByEvent[Bloc.MainEvent]).ToArray().Mean());
+                    mainEvent = new Event(Bloc.MainEvent.Name,(int) (from bloc in blocs select bloc.Object1.PositionByEvent[Bloc.MainEvent] * (maxFrequency / bloc.Object2)).ToArray().Mean());
                     for (int i = 0; i < secondaryEvents.Length; i++)
                     {
-                        List<Localizer.Bloc> blocWhereEventFound = (from bloc in blocs where bloc.PositionByEvent[Bloc.SecondaryEvents[i]] >= 0 select bloc).ToList();
+                        List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in blocs where bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2) >= 0 select bloc).ToList();
                         float rate = (float) blocWhereEventFound.Count / blocs.Count;
-                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name,(int) (from bloc in blocWhereEventFound select bloc.PositionByEvent[Bloc.SecondaryEvents[i]]).ToArray().Mean(), rate);
+                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name,(int) (from bloc in blocWhereEventFound select bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2)).ToArray().Mean(), rate);
                     }
                     break;
                 case Settings.GeneralSettings.AveragingMode.Median:
-                    mainEvent = new Event(Bloc.MainEvent.Name, (from bloc in blocs select bloc.PositionByEvent[Bloc.MainEvent]).ToArray().Median());
+                    mainEvent = new Event(Bloc.MainEvent.Name, (int)(from bloc in blocs select bloc.Object1.PositionByEvent[Bloc.MainEvent] * (maxFrequency / bloc.Object2)).ToArray().Median());
                     for (int i = 0; i < secondaryEvents.Length; i++)
                     {
-                        List<Localizer.Bloc> blocWhereEventFound = (from bloc in blocs where bloc.PositionByEvent[Bloc.SecondaryEvents[i]] >= 0 select bloc).ToList();
+                        List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in blocs where bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2) >= 0 select bloc).ToList();
                         float rate = (float)blocWhereEventFound.Count / blocs.Count;
-                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name, (from bloc in blocWhereEventFound select bloc.PositionByEvent[Bloc.SecondaryEvents[i]]).ToArray().Median(), rate);
+                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name, (int)(from bloc in blocWhereEventFound select bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2)).ToArray().Median(), rate);
                     }
                     break;
             }
@@ -215,7 +216,6 @@ namespace HBP.Data.Visualization
                 TimeLineByFrequency.Add(frequency, new Timeline(Bloc.Window, mainEvent, secondaryEvents, frequency));
                 IconicScenarioByFrequency.Add(frequency, new IconicScenario(Bloc, frequency, TimeLineByFrequency[frequency]));
             }
-            int maxFrequency = frequencies.Max();
             TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents, maxFrequency);
             IconicScenario = new IconicScenario(Bloc, maxFrequency, TimeLine);
 
