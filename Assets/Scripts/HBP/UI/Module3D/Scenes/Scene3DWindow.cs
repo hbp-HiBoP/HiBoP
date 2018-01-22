@@ -197,22 +197,30 @@ namespace HBP.UI.Module3D
                         graphsGestion.ChangeOverlayState(false);
                         Sprite mask = trialMatrixScrollRect.viewport.GetComponent<Image>().sprite;
                         trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = null;
-                        Texture2D trialMatrixTexture = new Texture2D((int)trialMatrixScrollRect.content.rect.width, (int)trialMatrixScrollRect.content.rect.height);
-                        float step = trialMatrixScrollRect.viewport.rect.height / trialMatrixScrollRect.content.rect.height;
-                        float position = 0.0f;
-                        bool isFinished = false;
-                        while (!isFinished)
+                        Texture2D trialMatrixTexture;
+                        if (trialMatrixScrollRect.content.rect.height > trialMatrixScrollRect.viewport.rect.height)
                         {
-                            if (position > 1.0f)
+                            trialMatrixTexture = new Texture2D((int)trialMatrixScrollRect.content.rect.width, (int)trialMatrixScrollRect.content.rect.height);
+                            float step = trialMatrixScrollRect.viewport.rect.height / trialMatrixScrollRect.content.rect.height;
+                            float position = 0.0f;
+                            bool isFinished = false;
+                            while (!isFinished)
                             {
-                                position = 1.0f;
-                                isFinished = true;
+                                if (position > 1.0f)
+                                {
+                                    position = 1.0f;
+                                    isFinished = true;
+                                }
+                                trialMatrixScrollRect.verticalNormalizedPosition = position;
+                                yield return new WaitForEndOfFrame();
+                                Texture2D trialMatrixTextureFragment = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.viewport.ToScreenSpace());
+                                trialMatrixTexture.SetPixels(0, (int)(position * trialMatrixTexture.height - position * trialMatrixTextureFragment.height), trialMatrixTextureFragment.width, trialMatrixTextureFragment.height, trialMatrixTextureFragment.GetPixels());
+                                position += step;
                             }
-                            trialMatrixScrollRect.verticalNormalizedPosition = position;
-                            yield return new WaitForEndOfFrame();
-                            Texture2D trialMatrixTextureFragment = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.GetComponent<RectTransform>().ToScreenSpace());
-                            trialMatrixTexture.SetPixels(0, (int)(position * trialMatrixTexture.height - position * trialMatrixTextureFragment.height), trialMatrixTextureFragment.width, trialMatrixTextureFragment.height, trialMatrixTextureFragment.GetPixels());
-                            position += step;
+                        }
+                        else
+                        {
+                            trialMatrixTexture = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.content.ToScreenSpace());
                         }
                         try
                         {
