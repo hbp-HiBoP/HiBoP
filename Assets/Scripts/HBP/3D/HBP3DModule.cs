@@ -322,6 +322,14 @@ namespace HBP.Module3D
             IEnumerable<string> visualizationIDs = (from scene in scenes select scene.Visualization.ID);
             LoadScenes(from visualization in ApplicationState.ProjectLoaded.Visualizations where visualizationIDs.Contains(visualization.ID) select visualization);
         }
+        public void RemoveAllScenes()
+        {
+            List<Base3DScene> scenes = m_ScenesManager.Scenes.ToList();
+            foreach (Base3DScene scene in scenes)
+            {
+                RemoveScene(scene);
+            }
+        }
         #endregion
 
         #region Coroutines
