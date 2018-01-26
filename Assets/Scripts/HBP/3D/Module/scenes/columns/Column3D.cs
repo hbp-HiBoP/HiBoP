@@ -150,15 +150,18 @@ namespace HBP.Module3D
             }
             set
             {
-                m_SelectedSiteID = value;
-                OnSelectSite.Invoke(SelectedSite);
-                if (value >= 0)
+                if (m_SelectedSiteID != value)
                 {
-                    SelectedPatientID = SelectedSite.Information.PatientNumber;
-                }
-                else
-                {
-                    SelectedPatientID = -1;
+                    m_SelectedSiteID = value;
+                    OnSelectSite.Invoke(SelectedSite);
+                    if (m_SelectedSiteID >= 0)
+                    {
+                        SelectedPatientID = SelectedSite.Information.PatientNumber;
+                    }
+                    else
+                    {
+                        SelectedPatientID = -1;
+                    }
                 }
             }
         }

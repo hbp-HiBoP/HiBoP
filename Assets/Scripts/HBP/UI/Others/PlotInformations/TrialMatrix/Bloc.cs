@@ -356,6 +356,7 @@ namespace HBP.UI.TrialMatrix
             rect.anchorMax = new Vector2(X+ Xstep, 1f);
             rect.offsetMin = new Vector2(0, 0);
             rect.offsetMax = new Vector2(0, 0);
+            if (rect.sizeDelta.x < 1) rect.sizeDelta = new Vector2(1.0f, rect.sizeDelta.y);
             image.color = Color.black;
         }
         void GenerateSecondaryIndicator(d.Bloc bloc)

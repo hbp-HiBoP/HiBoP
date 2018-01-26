@@ -2175,7 +2175,11 @@ namespace HBP.Module3D
             // Build the list of the sites on which we apply actions
             foreach (Column3D column in columns)
             {
-                Site columnSelectedSite = column.Sites.FirstOrDefault(s => s.Information.GlobalID == selectedSite.Information.GlobalID);
+                Site columnSelectedSite = null;
+                if (selectedSite)
+                {
+                    columnSelectedSite = column.Sites.FirstOrDefault(s => s.Information.GlobalID == selectedSite.Information.GlobalID);
+                }
                 switch(filter)
                 {
                     case SiteFilter.Site:

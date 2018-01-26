@@ -155,16 +155,7 @@ namespace Tools.Unity.Graph
                 {
                     svgBuilder.AppendLine("<g>");
                     System.Text.StringBuilder builder = new System.Text.StringBuilder();
-
-                    // Write curve
-                    foreach (var point in curve.Points)
-                    {
-                        Vector2 localPoint = point.GetLocalPosition(Limits.Origin, ratio);
-                        localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y);
-                        builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
-                    }
-                    svgBuilder.AppendLine("<path d=\"M " + builder.ToString() + "\" style=\"" + "fill:none;stroke:" + curve.Color.ToHexString() + ";stroke-width:" + curve.Width + "\"/>");
-
+                    
                     // Write shape
                     if (curve is ShapedCurveData)
                     {
@@ -187,6 +178,15 @@ namespace Tools.Unity.Graph
                         svgBuilder.AppendLine("<path d=\"M " + builder.ToString() + "\" style=\"" + "fill:" + curve.Color.ToHexString() + ";stroke-width:0;fill-opacity:0.5\"/>");
                     }
                     svgBuilder.AppendLine("</g>");
+                    
+                    // Write curve
+                    foreach (var point in curve.Points)
+                    {
+                        Vector2 localPoint = point.GetLocalPosition(Limits.Origin, ratio);
+                        localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y);
+                        builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
+                    }
+                    svgBuilder.AppendLine("<path d=\"M " + builder.ToString() + "\" style=\"" + "fill:none;stroke:" + curve.Color.ToHexString() + ";stroke-width:" + curve.Width + "\"/>");
                 }
             }
 
