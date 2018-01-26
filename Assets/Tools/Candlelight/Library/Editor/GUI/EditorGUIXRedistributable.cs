@@ -195,7 +195,7 @@ namespace Candlelight
 				GUI.changed = true;
 			}
 			if (
-				current.type == EventType.mouseDown &&
+				current.type == EventType.MouseDown &&
 				Event.current.button == 0 &&
 				position.Contains(Event.current.mousePosition)
 			)

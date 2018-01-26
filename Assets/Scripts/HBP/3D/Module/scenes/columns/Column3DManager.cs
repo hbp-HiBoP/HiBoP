@@ -486,6 +486,13 @@ namespace HBP.Module3D
             column.OnSelectSite.AddListener((site) =>
             {
                 OnSelectSite.Invoke(site);
+                foreach (Column3D c in m_Columns)
+                {
+                    if (!c.IsSelected)
+                    {
+                        c.SelectedSiteID = -1;
+                    }
+                }
             });
             column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);
