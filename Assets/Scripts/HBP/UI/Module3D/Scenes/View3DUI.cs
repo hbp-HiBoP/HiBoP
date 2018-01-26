@@ -256,6 +256,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     public void OnPointerExit(PointerEventData eventData)
     {
         m_PointerIsInView = false;
+        ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
     }
     public void OnRectTransformDimensionsChange()
     {
