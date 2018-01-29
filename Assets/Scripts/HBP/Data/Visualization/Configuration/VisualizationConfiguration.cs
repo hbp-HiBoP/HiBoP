@@ -144,6 +144,23 @@ namespace HBP.Data.Visualization
             }
         }
 
+        [DataMember(Name = "Strong Cuts")]
+        private bool m_StrongCuts = false;
+        /// <summary>
+        /// Cut behaviour
+        /// </summary>
+        public bool StrongCuts
+        {
+            get
+            {
+                return m_StrongCuts;
+            }
+            set
+            {
+                m_StrongCuts = value;
+            }
+        }
+
         [DataMember(Name = "Sites")]
         private bool m_ShowAllSites = false;
         /// <summary>

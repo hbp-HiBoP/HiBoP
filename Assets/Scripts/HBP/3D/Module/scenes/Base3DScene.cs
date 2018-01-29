@@ -400,6 +400,23 @@ namespace HBP.Module3D
             }
         }
 
+        private bool m_StrongCuts = false;
+        /// <summary>
+        /// Are we using strong cuts or soft cuts ?
+        /// </summary>
+        public bool StrongCuts
+        {
+            get
+            {
+                return m_StrongCuts;
+            }
+            set
+            {
+                m_StrongCuts = value;
+                SceneInformation.MeshGeometryNeedsUpdate = true;
+            }
+        }
+
         private bool m_AutomaticRotation = false;
         /// <summary>
         /// Are the brains automatically rotating ?
@@ -1776,6 +1793,7 @@ namespace HBP.Module3D
             UpdateColormap(Visualization.Configuration.Colormap);
             UpdateMeshPartToDisplay(Visualization.Configuration.MeshPart);
             EdgeMode = Visualization.Configuration.EdgeMode;
+            StrongCuts = Visualization.Configuration.StrongCuts;
             ShowAllSites = Visualization.Configuration.ShowAllSites;
             m_ColumnManager.MRICalMinFactor = Visualization.Configuration.MRICalMinFactor;
             m_ColumnManager.MRICalMaxFactor = Visualization.Configuration.MRICalMaxFactor;
@@ -1814,12 +1832,7 @@ namespace HBP.Module3D
                 column.LoadConfiguration(false);
             }
             ROICreation = !ROICreation;
-            /*
-            foreach (var cut in m_Cuts)
-            {
-                UpdateCutPlane(cut);
-            }
-            */
+
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
@@ -1837,6 +1850,7 @@ namespace HBP.Module3D
             Visualization.Configuration.MRIName = m_ColumnManager.SelectedMRI.Name;
             Visualization.Configuration.ImplantationName = m_ColumnManager.SelectedImplantation.Name;
             Visualization.Configuration.EdgeMode = EdgeMode;
+            Visualization.Configuration.StrongCuts = StrongCuts;
             Visualization.Configuration.ShowAllSites = ShowAllSites;
             Visualization.Configuration.MRICalMinFactor = m_ColumnManager.MRICalMinFactor;
             Visualization.Configuration.MRICalMaxFactor = m_ColumnManager.MRICalMaxFactor;
@@ -1871,6 +1885,7 @@ namespace HBP.Module3D
             UpdateColormap(ColorType.MatLab);
             UpdateMeshPartToDisplay(SceneStatesInfo.MeshPart.Both);
             EdgeMode = false;
+            StrongCuts = false;
             m_ColumnManager.MRICalMinFactor = 0.0f;
             m_ColumnManager.MRICalMaxFactor = 1.0f;
             CameraType = CameraControl.Trackball;
@@ -1992,7 +2007,7 @@ namespace HBP.Module3D
             // cut the mesh
             List<DLL.Surface> cuts;
             if (Cuts.Count > 0)
-                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(Cuts.ToArray(), SceneInformation.CutHolesEnabled));
+                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(Cuts.ToArray(), SceneInformation.CutHolesEnabled, StrongCuts));
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.MeshToDisplay.Clone() };
 
@@ -2081,7 +2096,7 @@ namespace HBP.Module3D
             // cut the mesh
             List<DLL.Surface> cuts;
             if (Cuts.Count > 0)
-                cuts = new List<DLL.Surface>(SceneInformation.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled)); //Maybe FIXME : do not allow holes
+                cuts = new List<DLL.Surface>(SceneInformation.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled, StrongCuts)); //Maybe FIXME : do not allow holes
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.SimplifiedMeshToUse.Clone() };
 

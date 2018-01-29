@@ -60,6 +60,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.EdgeMode m_EdgeMode;
+        /// <summary>
+        /// Show / hide edges
+        /// </summary>
+        [SerializeField]
+        private Tools.CutMode m_CutMode;
         #endregion
 
         #region Private Methods
@@ -79,6 +84,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_CutColor);
             m_Tools.Add(m_EdgeMode);
             m_Tools.Add(m_ThresholdMRI);
+            m_Tools.Add(m_CutMode);
         }
         /// <summary>
         /// Add the listeners to the elements of the toolbar
