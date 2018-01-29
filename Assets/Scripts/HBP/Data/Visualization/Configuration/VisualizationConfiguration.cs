@@ -161,6 +161,23 @@ namespace HBP.Data.Visualization
             }
         }
 
+        [DataMember(Name = "Hide Blacklisted Sites")]
+        private bool m_HideBlacklistedSites = false;
+        /// <summary>
+        /// Hide blacklisted sites
+        /// </summary>
+        public bool HideBlacklistedSites
+        {
+            get
+            {
+                return m_HideBlacklistedSites;
+            }
+            set
+            {
+                m_HideBlacklistedSites = value;
+            }
+        }
+
         [DataMember(Name = "Sites")]
         private bool m_ShowAllSites = false;
         /// <summary>

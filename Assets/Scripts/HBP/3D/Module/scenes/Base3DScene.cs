@@ -1794,6 +1794,7 @@ namespace HBP.Module3D
             UpdateMeshPartToDisplay(Visualization.Configuration.MeshPart);
             EdgeMode = Visualization.Configuration.EdgeMode;
             StrongCuts = Visualization.Configuration.StrongCuts;
+            HideBlacklistedSites = Visualization.Configuration.HideBlacklistedSites;
             ShowAllSites = Visualization.Configuration.ShowAllSites;
             m_ColumnManager.MRICalMinFactor = Visualization.Configuration.MRICalMinFactor;
             m_ColumnManager.MRICalMaxFactor = Visualization.Configuration.MRICalMaxFactor;
@@ -1851,6 +1852,7 @@ namespace HBP.Module3D
             Visualization.Configuration.ImplantationName = m_ColumnManager.SelectedImplantation.Name;
             Visualization.Configuration.EdgeMode = EdgeMode;
             Visualization.Configuration.StrongCuts = StrongCuts;
+            Visualization.Configuration.HideBlacklistedSites = HideBlacklistedSites;
             Visualization.Configuration.ShowAllSites = ShowAllSites;
             Visualization.Configuration.MRICalMinFactor = m_ColumnManager.MRICalMinFactor;
             Visualization.Configuration.MRICalMaxFactor = m_ColumnManager.MRICalMaxFactor;
@@ -1886,6 +1888,7 @@ namespace HBP.Module3D
             UpdateMeshPartToDisplay(SceneStatesInfo.MeshPart.Both);
             EdgeMode = false;
             StrongCuts = false;
+            HideBlacklistedSites = false;
             m_ColumnManager.MRICalMinFactor = 0.0f;
             m_ColumnManager.MRICalMaxFactor = 1.0f;
             CameraType = CameraControl.Trackball;
