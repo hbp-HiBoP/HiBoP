@@ -413,6 +413,7 @@ namespace HBP.Module3D
             set
             {
                 m_StrongCuts = value;
+                ResetIEEG();
                 SceneInformation.MeshGeometryNeedsUpdate = true;
             }
         }
@@ -2080,7 +2081,6 @@ namespace HBP.Module3D
 
             SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
             SceneInformation.MeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
-            ResetIEEG();
 
             UnityEngine.Profiling.Profiler.EndSample();
             
@@ -2129,7 +2129,6 @@ namespace HBP.Module3D
             
             SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
             SceneInformation.MeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
-            ResetIEEG();
 
             UnityEngine.Profiling.Profiler.BeginSample("Changing layers");
             foreach (Column3D column in m_ColumnManager.Columns)
