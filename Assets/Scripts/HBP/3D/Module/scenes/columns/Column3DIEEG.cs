@@ -612,7 +612,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
         /// </summary>
-        public void UpdateSitesSizeAndColorForIEEG()
+        public void UpdateSitesSizeAndColorForIEEG(SceneStatesInfo data)
         {
             UnityEngine.Profiling.Profiler.BeginSample("update_sites_size_and_color_arrays_for_IEEG");
 
@@ -621,7 +621,7 @@ namespace HBP.Module3D
 
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                if (Sites[ii].State.IsOutOfROI || Sites[ii].State.IsMasked)
+                if ((Sites[ii].State.IsOutOfROI && !data.ShowAllSites) || Sites[ii].State.IsMasked)
                     continue;
 
                 float value = IEEGValuesBySiteID[ii][CurrentTimeLineID];
@@ -814,7 +814,7 @@ namespace HBP.Module3D
                         activity = Sites[ii].IsActive;
 
       
-                    if (Sites[ii].State.IsMasked || Sites[ii].State.IsOutOfROI) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
+                    if (Sites[ii].State.IsMasked || (Sites[ii].State.IsOutOfROI && !data.ShowAllSites)) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
                     {
                         if (activity)
                             Sites[ii].gameObject.SetActive(false);

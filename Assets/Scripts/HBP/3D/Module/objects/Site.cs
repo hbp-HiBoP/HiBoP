@@ -177,13 +177,6 @@ namespace HBP.Module3D
         public bool IsOutOfROI { get; set; }      /**< is the site in a ROI ? */
         public bool IsHighlighted { get; set; }       /**< is the site highlighted ? */
         public bool IsMarked { get; set; }          /**< is the site marked ? */
-        public bool IsDisplayed
-        {
-            get
-            {
-                return !(IsMasked || IsOutOfROI || IsBlackListed || IsExcluded);
-            }
-        }
         public void ApplyState(SiteState state)
         {
             ApplyState(state.IsExcluded, state.IsBlackListed, state.IsHighlighted, state.IsMarked);

@@ -56,7 +56,7 @@ public class Shortcut3D : MonoBehaviour
                     }
                     site = selectedColumn.Sites[id];
                 }
-                while (!site.State.IsDisplayed && ++count <= selectedColumn.Sites.Count);
+                while ((!site.IsActive || site.State.IsBlackListed) && ++count <= selectedColumn.Sites.Count);
                 selectedColumn.SelectedSiteID = id;
             }
         }

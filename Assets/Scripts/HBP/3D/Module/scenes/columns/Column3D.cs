@@ -654,7 +654,7 @@ namespace HBP.Module3D
                         activity = Sites[ii].IsActive;
 
 
-                    if (Sites[ii].State.IsMasked || Sites[ii].State.IsOutOfROI) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
+                    if (Sites[ii].State.IsMasked || (Sites[ii].State.IsOutOfROI && !data.ShowAllSites)) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
                     {
                         if (activity)
                             Sites[ii].gameObject.SetActive(false);

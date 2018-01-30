@@ -904,7 +904,7 @@ namespace HBP.Module3D
                 if (column.SelectedSite)
                 {
                     if ((column.SelectedSite.State.IsBlackListed && data.HideBlacklistedSites) ||
-                        (column.SelectedSite.State.IsOutOfROI) ||
+                        (column.SelectedSite.State.IsOutOfROI && !data.ShowAllSites) ||
                         (column.SelectedSite.State.IsMasked && !data.DisplayCCEPMode))
                     {
                         column.SelectedSiteID = -1;
@@ -932,7 +932,7 @@ namespace HBP.Module3D
                         ((Column3DFMRI)column).UpdateSitesVisibility(data);
                         break;
                     case Column3D.ColumnType.IEEG:
-                        ((Column3DIEEG)column).UpdateSitesSizeAndColorForIEEG();
+                        ((Column3DIEEG)column).UpdateSitesSizeAndColorForIEEG(data);
                         ((Column3DIEEG)column).UpdateSitesRendering(data, latencyFile);
                         break;
                     default:
@@ -946,7 +946,7 @@ namespace HBP.Module3D
             if (column.CurrentLatencyFile != -1)
                 latencyFile = SelectedImplantation.Latencies[column.CurrentLatencyFile];
 
-            column.UpdateSitesSizeAndColorForIEEG(); // TEST
+            column.UpdateSitesSizeAndColorForIEEG(data); // TEST
             column.UpdateSitesRendering(data, latencyFile);
         }
         /// <summary>

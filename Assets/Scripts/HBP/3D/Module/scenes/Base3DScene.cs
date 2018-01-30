@@ -832,7 +832,7 @@ namespace HBP.Module3D
 
                 if (plots)
                 {
-                    currCol.UpdateSitesSizeAndColorForIEEG();
+                    currCol.UpdateSitesSizeAndColorForIEEG(SceneInformation);
                     currCol.UpdateSitesRendering(SceneInformation, null);
                 }
             }
@@ -866,7 +866,7 @@ namespace HBP.Module3D
                 m_ColumnManager.ColorCutsTexturesWithIEEG(column, jj);
             }
 
-            column.UpdateSitesSizeAndColorForIEEG();
+            column.UpdateSitesSizeAndColorForIEEG(SceneInformation);
             column.UpdateSitesRendering(SceneInformation, null);
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -2531,10 +2531,8 @@ namespace HBP.Module3D
         {
             if (column.SelectedROI == null)
             {
-                foreach (Site site in column.Sites)
-                {
-                    site.State.IsOutOfROI = !SceneInformation.ShowAllSites;
-                }
+                for (int ii = 0; ii < column.Sites.Count; ++ii)
+                    column.Sites[ii].State.IsOutOfROI = true;
             }
             else
             {
@@ -2545,16 +2543,8 @@ namespace HBP.Module3D
                     maskROI[ii] = column.Sites[ii].State.IsOutOfROI;
 
                 column.SelectedROI.UpdateMask(column.RawElectrodes, maskROI);
-                if (SceneInformation.ShowAllSites)
-                {
-                    for (int ii = 0; ii < column.Sites.Count; ++ii)
-                        column.Sites[ii].State.IsOutOfROI = false;
-                }
-                else
-                {
-                    for (int ii = 0; ii < column.Sites.Count; ++ii)
-                        column.Sites[ii].State.IsOutOfROI = maskROI[ii];
-                }
+                for (int ii = 0; ii < column.Sites.Count; ++ii)
+                    column.Sites[ii].State.IsOutOfROI = maskROI[ii];
             }
             ResetIEEG(false);
             OnUpdateROI.Invoke();
