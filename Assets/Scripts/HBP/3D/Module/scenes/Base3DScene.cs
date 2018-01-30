@@ -1618,6 +1618,33 @@ namespace HBP.Module3D
 
             cut.OnUpdateCut.Invoke();
         }
+        /// <summary>
+        /// Create 3 cuts surrounding the selected site. // FIXME : does not work properly yet
+        /// </summary>
+        public void CutAroundSelectedSite()
+        {
+            Site site = ColumnManager.SelectedColumn.SelectedSite;
+            if (!site) return;
+
+            foreach (var cut in m_Cuts.ToList())
+            {
+                RemoveCutPlane(cut);
+            }
+            Vector3 min = ColumnManager.SelectedMesh.Both.BoundingBox.Min;
+            Vector3 max = ColumnManager.SelectedMesh.Both.BoundingBox.Max;
+
+            Cut axialCut = AddCutPlane();
+            axialCut.Position = (site.transform.localPosition.z - min.z) / (max.z - min.z);
+            UpdateCutPlane(axialCut);
+
+            Cut sagitalCut = AddCutPlane();
+            sagitalCut.Position = 1.0f - ((site.transform.localPosition.y - min.y) / (max.y - min.y));
+            UpdateCutPlane(sagitalCut);
+
+            Cut coronalCut = AddCutPlane();
+            coronalCut.Position = 1.0f- ((site.transform.localPosition.x - min.x) / (max.x - min.x));
+            UpdateCutPlane(coronalCut);
+        }
         #endregion
 
         #region Triangle Erasing

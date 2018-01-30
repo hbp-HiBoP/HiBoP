@@ -111,13 +111,13 @@ namespace HBP.UI.Module3D
             {
                 if (m_IsUIUpdating) return;
 
-                m_Position.value -= 0.01f;
+                m_Position.value -= 1.0f / cut.NumberOfCuts;
             });
             m_PlusPosition.onClick.AddListener(() =>
             {
                 if (m_IsUIUpdating) return;
 
-                m_Position.value += 0.01f;
+                m_Position.value += 1.0f / cut.NumberOfCuts;
             });
             m_Orientation.onValueChanged.AddListener((value) =>
             {
