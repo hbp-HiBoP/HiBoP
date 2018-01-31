@@ -7,6 +7,7 @@ namespace Elan
     {
         #region Properties
         public const string EXTENSION = ".eeg";
+        public const string HEADER_EXTENSION = ".ent";
 
         public enum DataTypeEnum { Float, Double };
 

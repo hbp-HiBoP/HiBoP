@@ -90,7 +90,7 @@ namespace HBP.Data.Experience.Dataset
         public enum ErrorType
         {
             LabelEmpty, PatientEmpty, MeasureEmpty, EEGEmpty, POSEmpty, EEGFileNotExist, POSFileNotExist,
-            EEGFileNotAGoodFile, EEGDoNotContainsMeasure, POSFileNotAGoodFile, POSNotCompatible
+            EEGFileNotAGoodFile, EEGDoNotContainsMeasure, POSFileNotAGoodFile, POSNotCompatible, EEGHeaderNotExist, EEGHeaderEmpty
         }
         /// <summary>
         /// Normalization Type.
@@ -156,6 +156,7 @@ namespace HBP.Data.Experience.Dataset
                 {
                     errors.Add(ErrorType.EEGDoNotContainsMeasure);
                 }
+                elanFile.Dispose();
             }
             m_MeasureErrors = errors.ToArray();
             return m_MeasureErrors;
@@ -189,8 +190,23 @@ namespace HBP.Data.Experience.Dataset
                     }
                     else
                     {
-                        Elan.ElanFile elanFile = new Elan.ElanFile(EEGFile.FullName, false);
-                        if (!elanFile.MeasureLabels.Contains(Measure)) errors.Add(ErrorType.EEGDoNotContainsMeasure);
+                        if (!File.Exists(EEGFile.FullName + Elan.EEG.HEADER_EXTENSION))
+                        {
+                            errors.Add(ErrorType.EEGHeaderNotExist);
+                        }
+                        else
+                        {
+                            if (!(new FileInfo(EEGFile.FullName + Elan.EEG.HEADER_EXTENSION).Length > 0))
+                            {
+                                errors.Add(ErrorType.EEGHeaderEmpty);
+                            }
+                            else
+                            {
+                                Elan.ElanFile elanFile = new Elan.ElanFile(EEGFile.FullName, false);
+                                if (!elanFile.MeasureLabels.Contains(Measure)) errors.Add(ErrorType.EEGDoNotContainsMeasure);
+                                elanFile.Dispose();
+                            }
+                        }
                     }
                 }
             }
@@ -323,6 +339,12 @@ namespace HBP.Data.Experience.Dataset
                     break;
                 case ErrorType.POSNotCompatible:
                     message = "• The POS file is not compatible with the protocol.";
+                    break;
+                case ErrorType.EEGHeaderNotExist:
+                    message = "• The header of the EEG file is missing.";
+                    break;
+                case ErrorType.EEGHeaderEmpty:
+                    message = "• The header of the EEG file is empty.";
                     break;
                 default:
                     break;

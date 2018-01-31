@@ -87,6 +87,7 @@ namespace HBP.Data.Experience.Dataset
             POS = new Localizer.POS(info.POS);
             Frequency = elanFile.EEG.SamplingFrequency;
             Patient = info.Patient;
+            elanFile.Dispose();
         }
         #endregion
     }
