@@ -1,5 +1,5 @@
 {
-  "Automatic iEEG Update": false,
+  "Automatic iEEG Update": true,
   "DefaultProjectName": "New project",
   "DefaultProjectLocation": "D:/HBPProjects",
   "DefaultPatientDatabaseLocation": "Y:/BrainVisaDB/Epilepsy",
