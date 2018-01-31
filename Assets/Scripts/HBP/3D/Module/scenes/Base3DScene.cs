@@ -1634,15 +1634,15 @@ namespace HBP.Module3D
             Vector3 max = ColumnManager.SelectedMesh.Both.BoundingBox.Max;
 
             Cut axialCut = AddCutPlane();
-            axialCut.Position = (site.transform.localPosition.z - min.z) / (max.z - min.z);
+            axialCut.Position = (site.transform.localPosition.z - (min.z - Mathf.Abs(min.z) * 0.05f)) / ((max.z - min.z) * 1.05f);
             UpdateCutPlane(axialCut);
 
             Cut sagitalCut = AddCutPlane();
-            sagitalCut.Position = 1.0f - ((site.transform.localPosition.y - min.y) / (max.y - min.y));
+            sagitalCut.Position = 1.0f - ((site.transform.localPosition.y - (min.y - Mathf.Abs(min.y) * 0.05f)) / ((max.y - min.y) * 1.05f));
             UpdateCutPlane(sagitalCut);
 
             Cut coronalCut = AddCutPlane();
-            coronalCut.Position = 1.0f- ((site.transform.localPosition.x - min.x) / (max.x - min.x));
+            coronalCut.Position = 1.0f - ((site.transform.localPosition.x - (min.x - Mathf.Abs(min.x) * 0.05f)) / ((max.x - min.x) * 1.05f));
             UpdateCutPlane(coronalCut);
         }
         #endregion

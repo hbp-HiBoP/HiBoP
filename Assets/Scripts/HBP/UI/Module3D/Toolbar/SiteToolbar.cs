@@ -55,6 +55,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.SiteStateExport m_SiteStateExport;
+        /// <summary>
+        /// Cut the mesh around the selected site
+        /// </summary>
+        [SerializeField]
+        private Tools.CutAroundSite m_CutAroundSite;
         #endregion
 
         #region Private Methods
@@ -73,6 +78,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_SiteList);
             m_Tools.Add(m_SiteStateCopy);
             m_Tools.Add(m_SiteStateExport);
+            m_Tools.Add(m_CutAroundSite);
         }
         #endregion
     }
