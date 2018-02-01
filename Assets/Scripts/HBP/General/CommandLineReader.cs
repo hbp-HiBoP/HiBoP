@@ -16,7 +16,7 @@ namespace HBP
         private void Awake()
         {
             string[] args = System.Environment.GetCommandLineArgs();
-            //args = new string[] { "HiBoP", "-p", "LocalBDD_mini", "-v", "LEC1VISU" };
+            args = new string[] { "HiBoP", "-p", "CCEP", "-v", "Unknown" };
             StartCoroutine(c_InterpreteCommandLineArguments(args));
         }
         #endregion

@@ -199,7 +199,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Has this site been initialized ?
         /// </summary>
-        public bool IsInitialized = false;
+        private bool m_IsInitialized = false;
 
         bool m_IsActive;
         /// <summary>
@@ -209,6 +209,11 @@ namespace HBP.Module3D
         {
             get
             {
+                if (!m_IsInitialized)
+                {
+                    m_IsActive = gameObject.activeSelf;
+                    m_IsInitialized = true;
+                }
                 return m_IsActive;
             }
             set

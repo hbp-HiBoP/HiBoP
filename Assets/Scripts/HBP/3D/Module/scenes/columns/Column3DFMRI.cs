@@ -130,60 +130,6 @@ namespace HBP.Module3D
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="data"></param>
-        public void UpdateSitesVisibility(SceneStatesInfo data)
-        {
-            Vector3 normalScale = new Vector3(1, 1, 1);
-            MeshRenderer renderer = null;
-            SiteType siteType;
-
-            for (int ii = 0; ii < Sites.Count; ++ii)
-            {
-                bool activity = true;
-                bool highlight = Sites[ii].State.IsHighlighted;
-                renderer = Sites[ii].GetComponent<MeshRenderer>();
-
-                if (Sites[ii].State.IsMasked) // column mask : plot is not visible can't be clicked
-                {
-                    activity = false;
-                    siteType = Sites[ii].State.IsMarked ? SiteType.Marked : SiteType.Normal;
-                }
-                else if (Sites[ii].State.IsOutOfROI) // ROI mask : plot is not visible, can't be clicked
-                {
-                    activity = false;
-                    siteType = Sites[ii].State.IsMarked ? SiteType.Marked : SiteType.Normal;
-                }
-                else
-                {
-                    if (Sites[ii].State.IsBlackListed) // blacklist mask : plot is barely visible with another color, can be clicked
-                    {
-                        Sites[ii].transform.localScale = normalScale;
-                        siteType = SiteType.BlackListed;
-                    }
-                    else if(Sites[ii].State.IsExcluded)
-                    {
-                        Sites[ii].transform.localScale = normalScale;
-                        siteType = SiteType.Excluded;
-                    }
-                    else // no mask : all plots have the same size and color
-                    {
-                        Sites[ii].transform.localScale = normalScale;
-                        siteType = Sites[ii].State.IsMarked ? SiteType.Marked : SiteType.Normal;
-                    }
-
-                    // select site ring 
-                    if (ii == SelectedSiteID)
-                        m_SelectRing.SetSelectedSite(Sites[ii], Sites[ii].transform.localScale);
-
-                    renderer.sharedMaterial = SharedMaterials.SiteSharedMaterial(highlight, siteType);
-                }
-
-                Sites[ii].gameObject.SetActive(activity);
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="indexCut"></param>
         /// <param name="orientation"></param>
         /// <param name="flip"></param>

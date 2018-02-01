@@ -654,7 +654,7 @@ namespace HBP.Module3D
                 UpdateGeometry();
             }
 
-            if (m_GeneratorNeedsUpdate && ApplicationState.GeneralSettings.AutoTriggerIEEG)
+            if (m_GeneratorNeedsUpdate && !IsLatencyModeEnabled && ApplicationState.GeneralSettings.AutoTriggerIEEG)
             {
                 UpdateGenerator();
             }
@@ -832,7 +832,6 @@ namespace HBP.Module3D
 
                 if (plots)
                 {
-                    currCol.UpdateSitesSizeAndColorForIEEG(SceneInformation);
                     currCol.UpdateSitesRendering(SceneInformation, null);
                 }
             }
@@ -866,7 +865,6 @@ namespace HBP.Module3D
                 m_ColumnManager.ColorCutsTexturesWithIEEG(column, jj);
             }
 
-            column.UpdateSitesSizeAndColorForIEEG(SceneInformation);
             column.UpdateSitesRendering(SceneInformation, null);
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -1200,7 +1198,7 @@ namespace HBP.Module3D
             UpdateGUITextures();
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             ApplicationState.Module3D.OnResetIEEG.Invoke();
-            OnIEEGOutdated.Invoke(true);
+            OnIEEGOutdated.Invoke(!IsLatencyModeEnabled);
         }
         /// <summary>
         /// Generate the split number regarding all meshes
@@ -2501,7 +2499,8 @@ namespace HBP.Module3D
         {
             if (SceneInformation.MeshGeometryNeedsUpdate || !SceneInformation.IsGeometryUpToDate || CuttingMesh || m_UpdatingGenerator) // if update cut plane is pending, cancel action
                 return;
-            
+
+            OnIEEGOutdated.Invoke(false);
             m_GeneratorNeedsUpdate = false;
             SceneInformation.IsGeneratorUpToDate = false;
             StartCoroutine(c_ComputeGenerators());
@@ -2741,7 +2740,6 @@ namespace HBP.Module3D
                 FinalizeGeneratorsComputing();
                 ComputeIEEGTextures();
                 ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
-                OnIEEGOutdated.Invoke(false);
             }
         }
         private IEnumerator c_LoadIEEG()

@@ -712,174 +712,126 @@ namespace HBP.Module3D
         /// </summary>
         public override void UpdateSitesRendering(SceneStatesInfo data, Latencies latenciesFile)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering");
+            UpdateSitesSizeAndColorForIEEG(data);
 
-            Vector3 noScale = new Vector3(0, 0, 0);
-            Vector3 normalScale = new Vector3(1, 1, 1);
-            MeshRenderer renderer = null;
-            SiteType siteType;
             if (data.DisplayCCEPMode) // CCEP
             {
-                for (int ii = 0; ii < Sites.Count; ++ii)
+                for (int i = 0; i < Sites.Count; ++i)
                 {
-                    //MaterialPropertyBlock props = new MaterialPropertyBlock();
-
-                    bool activity = true;
-                    bool highlight = Sites[ii].State.IsHighlighted;
-                    float customAlpha = -1f;
-                    renderer = Sites[ii].GetComponent<MeshRenderer>();
-
-                    if (Sites[ii].State.IsBlackListed) // blacklisted plot
+                    Site site = Sites[i];
+                    bool activity = site.IsActive;
+                    SiteType siteType;
+                    float alpha = -1.0f;
+                    if (site.State.IsBlackListed)
                     {
-                        Sites[ii].transform.localScale = noScale;
+                        site.transform.localScale = Vector3.one;
                         siteType = SiteType.BlackListed;
+                        if (data.HideBlacklistedSites)
+                        {
+                            if (activity) site.IsActive = false;
+                            continue;
+                        }
                     }
-                    else if (Sites[ii].State.IsExcluded) // excluded plot
+                    else if (site.State.IsExcluded)
                     {
-                        Sites[ii].transform.localScale = normalScale;
+                        site.transform.localScale = Vector3.one;
                         siteType = SiteType.Excluded;
                     }
-                    else if (latenciesFile != null) // latency file available
+                    else if (latenciesFile != null)
                     {
-                        if (SourceSelectedID == -1) // no source selected
+                        if (SourceSelectedID == -1)
                         {
-                            Sites[ii].transform.localScale = normalScale;
-                            siteType = latenciesFile.IsSiteASource(ii) ? SiteType.Source : SiteType.NotASource;
+                            site.transform.localScale = Vector3.one;
+                            siteType = latenciesFile.IsSiteASource(i) ? SiteType.Source : SiteType.NotASource;
                         }
-                        else // source selected
+                        else
                         {
-                            if (ii == SourceSelectedID)
+                            if (i == SourceSelectedID)
                             {
-                                Sites[ii].transform.localScale = normalScale;
+                                site.transform.localScale = Vector3.one;
                                 siteType = SiteType.Source;
                             }
-                            else if (latenciesFile.IsSiteResponsiveForSource(ii, SourceSelectedID)) // data available
+                            else if (latenciesFile.IsSiteResponsiveForSource(i, SourceSelectedID))
                             {
-                                // set color
-                                siteType = (latenciesFile.PositiveHeight[SourceSelectedID][ii]) ? SiteType.NonePos : SiteType.NoneNeg;
-
-                                // set transparency
-                                customAlpha = latenciesFile.Transparencies[SourceSelectedID][ii] - 0.25f;
-
-                                if (Sites[ii].State.IsHighlighted)
-                                    customAlpha = 1;
-
-                                // set size
-                                float size = latenciesFile.Sizes[SourceSelectedID][ii];
-                                Sites[ii].transform.localScale = new Vector3(size, size, size);
+                                siteType = latenciesFile.PositiveHeight[SourceSelectedID][i] ? SiteType.NonePos : SiteType.NoneNeg;
+                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SourceSelectedID][i] - 0.25f;
+                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SourceSelectedID][i] * IEEGParameters.Gain;
                             }
-                            else // no data available
+                            else
                             {
-                                Sites[ii].transform.localScale = normalScale;
+                                site.transform.localScale = Vector3.one * IEEGParameters.Gain;
                                 siteType = SiteType.NoLatencyData;
                             }
                         }
                     }
-                    else // no mask and no latency file available : all plots have the same size and color
+                    else
                     {
-                        Sites[ii].transform.localScale = normalScale;
-                        siteType = Sites[ii].State.IsMarked ? SiteType.Marked : SiteType.Normal;
+                        site.transform.localScale = Vector3.one * IEEGParameters.Gain;
+                        siteType = site.State.IsMarked ? SiteType.Marked : SiteType.Normal;
                     }
-
-                    // select plot ring 
-                    if (ii == SelectedSiteID)
-                        m_SelectRing.SetSelectedSite(Sites[ii], Sites[ii].transform.localScale);
-
-                    Material siteMaterial = SharedMaterials.SiteSharedMaterial(highlight, siteType);
-                    if (customAlpha > 0f)
+                    if (!activity) site.IsActive = true;
+                    Material siteMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType);
+                    if (alpha > 0.0f)
                     {
-                        Color col = siteMaterial.color;
-                        col.a = customAlpha;
-                        siteMaterial.color = col;
-                    }                    
-
-                    renderer.sharedMaterial = siteMaterial;
-                    Sites[ii].gameObject.SetActive(activity);
+                        Color materialColor = siteMaterial.color;
+                        materialColor.a = alpha;
+                        siteMaterial.color = materialColor;
+                    }
+                    site.GetComponent<MeshRenderer>().sharedMaterial = siteMaterial;
                 }
             }
             else // iEEG
             {
-                UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering -1 ");
-
-
-                for (int ii = 0; ii < Sites.Count; ++ii)
+                for (int i = 0; i < Sites.Count; ++i)
                 {
-                    bool activity;
-                    if (!Sites[ii].IsInitialized)
+                    Site site = Sites[i];
+                    bool activity = site.IsActive;
+                    SiteType siteType;
+                    if (site.State.IsMasked || (site.State.IsOutOfROI && !data.ShowAllSites))
                     {
-                        Sites[ii].IsInitialized = true;
-                        activity = Sites[ii].gameObject.activeSelf;
-                    }
-                    else
-                        activity = Sites[ii].IsActive;
-
-      
-                    if (Sites[ii].State.IsMasked || (Sites[ii].State.IsOutOfROI && !data.ShowAllSites)) // column mask : plot is not visible can't be clicked // ROI mask : plot is not visible, can't be clicked
-                    {
-                        if (activity)
-                            Sites[ii].gameObject.SetActive(false);
-
-                        Sites[ii].IsActive = false;
+                        if (activity) site.IsActive = false;
                         continue;
                     }
-
-
-                    UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering -2 ");
-
-                    if (Sites[ii].State.IsBlackListed) // blacklist mask : plot is barely visible with another color, can be clicked
+                    else if (site.State.IsBlackListed)
                     {
-                        Sites[ii].transform.localScale = normalScale;
+                        site.transform.localScale = Vector3.one;
                         siteType = SiteType.BlackListed;
                         if (data.HideBlacklistedSites)
                         {
-                            if (activity) Sites[ii].IsActive = false;
+                            if (activity) site.IsActive = false;
                             continue;
                         }
                     }
-                    else if (Sites[ii].State.IsExcluded) // excluded mask : plot is a little visible with another color, can be clicked
+                    else if (site.State.IsExcluded)
                     {
-                        Sites[ii].transform.localScale = normalScale;
+                        site.transform.localScale = Vector3.one;
                         siteType = SiteType.Excluded;
                     }
                     else if (data.IsGeneratorUpToDate)
                     {
-                        Sites[ii].transform.localScale = m_ElectrodesSizeScale[ii] * IEEGParameters.Gain;
-                        //  plot size (collider and shape) and color are updated with the current timeline amplitude   
-                        siteType = m_ElectrodesPositiveColor[ii] ? SiteType.Positive : SiteType.Negative;
+                        site.transform.localScale = m_ElectrodesSizeScale[i] * IEEGParameters.Gain;
+                        siteType = m_ElectrodesPositiveColor[i] ? SiteType.Positive : SiteType.Negative;
                     }
-                    else // no mask and no amplitude computed : all plots have the same size and color
+                    else
                     {
-                        Sites[ii].transform.localScale = normalScale * IEEGParameters.Gain;
-                        siteType = Sites[ii].State.IsMarked ? SiteType.Marked : SiteType.Normal;
+                        site.transform.localScale = Vector3.one * IEEGParameters.Gain;
+                        siteType = site.State.IsMarked ? SiteType.Marked : SiteType.Normal;
                     }
-
-                    UnityEngine.Profiling.Profiler.EndSample();
-                    UnityEngine.Profiling.Profiler.BeginSample("TEST-updatePlotsRendering -3 ");
-
-                    Sites[ii].GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(Sites[ii].State.IsHighlighted, siteType);
-
-                    if (!activity)
-                        Sites[ii].gameObject.SetActive(true);
-
-                    Sites[ii].IsActive = true;
-
-                    UnityEngine.Profiling.Profiler.EndSample();
+                    if (!activity) site.IsActive = true;
+                    site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType);
                 }
-
-                // select plot ring 
-                if (SelectedSiteID >= 0 && SelectedSiteID < Sites.Count)
-                    m_SelectRing.SetSelectedSite(Sites[SelectedSiteID], Sites[SelectedSiteID].transform.localScale);
-
-
-                UnityEngine.Profiling.Profiler.EndSample();
             }
 
+            // Selected site
             if (SelectedSiteID == -1)
             {
-                m_SelectRing.SetSelectedSite(null, new Vector3(0,0,0));
+                m_SelectRing.SetSelectedSite(null, Vector3.zero);
             }
-
-            UnityEngine.Profiling.Profiler.EndSample();
+            else
+            {
+                Site selectedSite = SelectedSite;
+                m_SelectRing.SetSelectedSite(selectedSite, selectedSite.transform.localScale);
+            }
         }
         /// <summary>
         /// 

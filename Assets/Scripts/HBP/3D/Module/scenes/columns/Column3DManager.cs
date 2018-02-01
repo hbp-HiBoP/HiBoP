@@ -923,21 +923,7 @@ namespace HBP.Module3D
                 {
                     latencyFile = SelectedImplantation.Latencies[column.CurrentLatencyFile];
                 }
-                switch (column.Type)
-                {
-                    case Column3D.ColumnType.Base:
-                        column.UpdateSitesRendering(data, latencyFile);
-                        break;
-                    case Column3D.ColumnType.FMRI:
-                        ((Column3DFMRI)column).UpdateSitesVisibility(data);
-                        break;
-                    case Column3D.ColumnType.IEEG:
-                        ((Column3DIEEG)column).UpdateSitesSizeAndColorForIEEG(data);
-                        ((Column3DIEEG)column).UpdateSitesRendering(data, latencyFile);
-                        break;
-                    default:
-                        break;
-                }
+                column.UpdateSitesRendering(data, latencyFile);
             }
         }
         public void UpdateColumnIEEGSitesRendering(Column3DIEEG column, SceneStatesInfo data)
@@ -946,7 +932,6 @@ namespace HBP.Module3D
             if (column.CurrentLatencyFile != -1)
                 latencyFile = SelectedImplantation.Latencies[column.CurrentLatencyFile];
 
-            column.UpdateSitesSizeAndColorForIEEG(data); // TEST
             column.UpdateSitesRendering(data, latencyFile);
         }
         /// <summary>
@@ -978,14 +963,6 @@ namespace HBP.Module3D
             for(int ii = 0; ii < m_Columns.Count; ++ii)
                 if (m_Columns[ii].SelectedROI != null)
                     m_Columns[ii].SelectedROI.SetRenderingState(visible);
-        }
-        /// <summary>
-        /// Update the visiblity of the plots for all columns
-        /// </summary>
-        /// <param name="visible"></param>
-        public void UpdateSitesVisibility(bool visible)
-        {
-            foreach (var column in m_Columns) column.SetSitesVisibility(visible);
         }
         /// <summary>
         /// Add a view to every columns
