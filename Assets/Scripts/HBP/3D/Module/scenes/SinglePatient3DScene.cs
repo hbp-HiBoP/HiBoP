@@ -87,8 +87,14 @@ namespace HBP.Module3D
                 Data.Anatomy.Mesh mesh = Patient.Brain.Meshes[i];
                 progress += loadingMeshProgress;
                 onChangeProgress.Invoke(progress, loadingMeshTime, "Loading Mesh: " + mesh.Name + " [" + (i + 1).ToString() + "/" + Patient.Brain.Meshes.Count + "]");
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh));
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, e => exception = e));
             }
+            if (exception != null)
+            {
+                outPut(exception);
+                yield break;
+            }
+
             if (m_ColumnManager.Meshes.Count > 0)
             {
                 GenerateSplit(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
@@ -105,7 +111,12 @@ namespace HBP.Module3D
                 Data.Anatomy.MRI mri = Patient.Brain.MRIs[i];
                 progress += loadingMRIProgress;
                 onChangeProgress.Invoke(progress, loadingMRITime, "Loading MRI: " + mri.Name + " [" + (i + 1).ToString() + "/" + Patient.Brain.MRIs.Count + "]");
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri));
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri, e => exception = e));
+            }
+            if (exception != null)
+            {
+                outPut(exception);
+                yield break;
             }
             SceneInformation.MRILoaded = true;
 
@@ -114,17 +125,27 @@ namespace HBP.Module3D
             {
                 progress += loadingImplantationsProgress;
                 onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations [" + (i + 1).ToString() + "/" + usableImplantations.Count + "]");
-            }));
+            }, e => exception = e));
+            if (exception != null)
+            {
+                outPut(exception);
+                yield break;
+            }
             SceneInformation.MeshGeometryNeedsUpdate = true;
 
             // Load MNI
             progress += loadingMNIProgress;
             onChangeProgress.Invoke(progress, loadingMNITime, "Loading MNI objects");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects(e => exception = e));
+            if (exception != null)
+            {
+                outPut(exception);
+                yield break;
+            }
 
             // Set Timeline
             progress += loadingIEEGProgress;
-            onChangeProgress.Invoke(progress, loadingIEEGTime, "Loading Columns");
+            onChangeProgress.Invoke(progress, loadingIEEGTime, "Loading columns");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetEEGData());
 
             // Finalization
@@ -139,48 +160,51 @@ namespace HBP.Module3D
         /// <param name="pathGIIBrainFiles"></param>
         /// <param name="transformation"></param>
         /// <returns></returns>
-        private IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh)
+        private IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh, Action<Exception> outPut)
         {
             SceneInformation.MeshesLoaded = false;
-
-            // checks parameters
-            //if (mesh == null) throw new EmptyFilePathException("GII"); // FIXME
-            //if (!mesh.Usable) throw new EmptyFilePathException("GII"); // TODO CHANGE TO NOT USABLE
-
-            if (mesh.Usable)
+            try
             {
-                if (mesh is Data.Anatomy.LeftRightMesh)
+                if (mesh.Usable)
                 {
-                    LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
-
-                    if (mesh3D.IsLoaded)
+                    if (mesh is Data.Anatomy.LeftRightMesh)
                     {
-                        m_ColumnManager.Meshes.Add(mesh3D);
+                        LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
+
+                        if (mesh3D.IsLoaded)
+                        {
+                            m_ColumnManager.Meshes.Add(mesh3D);
+                        }
+                        else
+                        {
+                            SceneInformation.MeshesLoaded = false;
+                            throw new CanNotLoadGIIFile(mesh.Name);
+                        }
+                    }
+                    else if (mesh is Data.Anatomy.SingleMesh)
+                    {
+                        SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
+
+                        if (mesh3D.IsLoaded)
+                        {
+                            m_ColumnManager.Meshes.Add(mesh3D);
+                        }
+                        else
+                        {
+                            SceneInformation.MeshesLoaded = false;
+                            throw new CanNotLoadGIIFile(mesh.Name);
+                        }
                     }
                     else
                     {
-                        SceneInformation.MeshesLoaded = false;
-                        throw new CanNotLoadGIIFile(mesh3D.Left.IsLoaded, mesh3D.Right.IsLoaded);
+                        Debug.LogError("Mesh not handled.");
                     }
                 }
-                else if (mesh is Data.Anatomy.SingleMesh)
-                {
-                    SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
-
-                    if (mesh3D.IsLoaded)
-                    {
-                        m_ColumnManager.Meshes.Add(mesh3D);
-                    }
-                    else
-                    {
-                        SceneInformation.MeshesLoaded = false;
-                        throw new CanNotLoadGIIFile(mesh3D.IsLoaded);
-                    }
-                }
-                else
-                {
-                    Debug.LogError("Mesh not handled.");
-                }
+            }
+            catch
+            {
+                outPut(new CanNotLoadGIIFile(mesh.Name));
+                yield break;
             }
             yield return true;
         }

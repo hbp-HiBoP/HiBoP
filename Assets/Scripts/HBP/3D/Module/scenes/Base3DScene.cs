@@ -2864,22 +2864,28 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="pathNIIBrainVolumeFile"></param>
         /// <returns></returns>
-        protected IEnumerator c_LoadBrainVolume(Data.Anatomy.MRI mri)
+        protected IEnumerator c_LoadBrainVolume(Data.Anatomy.MRI mri, Action<Exception> outPut)
         {
-            // checks parameter
-            //if (!mri.Usable) throw new EmptyFilePathException("NII"); // FIXME
-            if (mri.Usable)
+            try
             {
+                if (mri.Usable)
+                {
 
-                MRI3D mri3D = new MRI3D(mri);
-                if (mri3D.IsLoaded)
-                {
-                    m_ColumnManager.MRIs.Add(mri3D);
+                    MRI3D mri3D = new MRI3D(mri);
+                    if (mri3D.IsLoaded)
+                    {
+                        m_ColumnManager.MRIs.Add(mri3D);
+                    }
+                    else
+                    {
+                        throw new CanNotLoadNIIFile(mri.File);
+                    }
                 }
-                else
-                {
-                    throw new CanNotLoadNIIFile(mri.File);
-                }
+            }
+            catch
+            {
+                outPut(new CanNotLoadNIIFile(mri.File));
+                yield break;
             }
             yield return SceneInformation.MRILoaded;
         }
@@ -2888,33 +2894,40 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="pathsElectrodesPtsFile"></param>
         /// <returns></returns>
-        protected IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle)
+        protected IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle, Action<Exception> outPut)
         {
             SceneInformation.SitesLoaded = false;
-            
+
             for (int i = 0; i < commonImplantations.Count; ++i)
             {
                 yield return Ninja.JumpToUnity;
                 updateCircle(i);
                 yield return Ninja.JumpBack;
                 string implantationName = commonImplantations[i];
-                List<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).File).ToList();
-                List<string> patientIDs = (from patient in patients select patient.ID).ToList();
-
-                Implantation3D implantation3D = new Implantation3D(implantationName, ptsFiles, patientIDs);
-                
-                if (implantation3D.IsLoaded)
+                try
                 {
-                    m_ColumnManager.Implantations.Add(implantation3D);
-                    if (Type == SceneType.SinglePatient)
+                    List<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).File).ToList();
+                    List<string> patientIDs = (from patient in patients select patient.ID).ToList();
+
+                    Implantation3D implantation3D = new Implantation3D(implantationName, ptsFiles, patientIDs);
+                    if (implantation3D.IsLoaded)
                     {
-                        SinglePatient3DScene scene = this as SinglePatient3DScene;
-                        implantation3D.LoadLatencies(scene.Patient);
+                        m_ColumnManager.Implantations.Add(implantation3D);
+                        if (Type == SceneType.SinglePatient)
+                        {
+                            SinglePatient3DScene scene = this as SinglePatient3DScene;
+                            implantation3D.LoadLatencies(scene.Patient);
+                        }
+                    }
+                    else
+                    {
+                        throw new CanNotLoadImplantation(implantationName);
                     }
                 }
-                else
+                catch
                 {
-                    throw new Exception(); // TODO
+                    outPut(new CanNotLoadImplantation(implantationName));
+                    yield break;
                 }
             }
 
@@ -2927,13 +2940,29 @@ namespace HBP.Module3D
         /// Load MNI
         /// </summary>
         /// <returns></returns>
-        protected IEnumerator c_LoadMNIObjects()
+        protected IEnumerator c_LoadMNIObjects(Action<Exception> outPut)
         {
-            yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.Loaded; });
-            m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.GreyMatter.Clone()));
-            m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.WhiteMatter.Clone()));
-            m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter.Clone()));
-            m_ColumnManager.MRIs.Add(ApplicationState.Module3D.MNIObjects.MRI);
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.Loaded || watch.ElapsedMilliseconds > 5000; });
+            watch.Stop();
+            if (watch.ElapsedMilliseconds > 5000)
+            {
+                outPut(new CanNotLoadMNI());
+                yield break;
+            }
+            try
+            {
+                m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.GreyMatter.Clone()));
+                m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.WhiteMatter.Clone()));
+                m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter.Clone()));
+                m_ColumnManager.MRIs.Add(ApplicationState.Module3D.MNIObjects.MRI);
+            }
+            catch
+            {
+                outPut(new CanNotLoadMNI());
+                yield break;
+            }
         }
         /// <summary>
         /// Define the timeline data with a patient and a list of column data

@@ -359,11 +359,7 @@ public class CanNotLoadTransformation : HBPException
 public class CanNotLoadGIIFile : HBPException
 {
     public CanNotLoadGIIFile() { }
-    public CanNotLoadGIIFile(bool left, bool right) : base("Left: " + (left?"OK":"NOT OK") + "\n" + "Right: " + (right?"OK":"NOT OK"))
-    {
-        Title = "Can not load GII file.";
-    }
-    public CanNotLoadGIIFile(bool both) : base("Single: " + (both ? "OK" : "NOT OK"))
+    public CanNotLoadGIIFile(string name) : base(name + " could not be loaded.\n\nPlease verify the files.")
     {
         Title = "Can not load GII file.";
     }
@@ -383,6 +379,33 @@ public class CanNotLoadNIIFile : HBPException
     }
     public CanNotLoadNIIFile(string message, Exception inner) : base(message, inner) { }
     protected CanNotLoadNIIFile(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class CanNotLoadImplantation : HBPException
+{
+    public CanNotLoadImplantation() { }
+    public CanNotLoadImplantation(string name) : base("The implantation " + name + " could not be loaded for one or multiple patients.\n\nPlease verify the files.")
+    {
+        Title = "Can not load PTS file.";
+    }
+    public CanNotLoadImplantation(string message, Exception inner) : base(message, inner) { }
+    protected CanNotLoadImplantation(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class CanNotLoadMNI : HBPException
+{
+    public CanNotLoadMNI() : base("MNI files could not be loaded.\n\nPlease verify the Data folder.")
+    {
+        Title = "Can not load MNI.";
+    }
+    public CanNotLoadMNI(string message, Exception inner) : base(message, inner) { }
+    protected CanNotLoadMNI(
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }

@@ -72,7 +72,12 @@ namespace HBP.Module3D
             // Loading MNI
             progress += loadingMNIProgress;
             onChangeProgress.Invoke(progress, loadingMNITime, "Loading MNI");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects());
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects(e => exception = e));
+            if (exception != null)
+            {
+                outPut(exception);
+                yield break;
+            }
             ResetSplitsNumber(3);
             SceneInformation.MeshesLoaded = true;
             SceneInformation.MRILoaded = true;
@@ -87,10 +92,15 @@ namespace HBP.Module3D
             {
                 progress += loadingImplantationsProgress;
                 onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations [" + (i + 1).ToString() + "/" + usableImplantations.Count + "]");
-            }));
+            }, e => exception = e));
+            if (exception != null)
+            {
+                outPut(exception);
+                yield break;
+            }
 
             progress += loadingIEEGProgress;
-            onChangeProgress.Invoke(progress, loadingIEEGTime, "Setting timeline");
+            onChangeProgress.Invoke(progress, loadingIEEGTime, "Loading columns");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetEEGData());
 
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
