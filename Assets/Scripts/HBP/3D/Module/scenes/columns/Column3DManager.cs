@@ -904,7 +904,7 @@ namespace HBP.Module3D
                 if (column.SelectedSite)
                 {
                     if ((column.SelectedSite.State.IsBlackListed && data.HideBlacklistedSites) ||
-                        (column.SelectedSite.State.IsOutOfROI && !data.ShowAllSites) ||
+                        (column.SelectedSite.State.IsOutOfROI && !data.ShowAllSites && !data.DisplayCCEPMode) ||
                         (column.SelectedSite.State.IsMasked && !data.DisplayCCEPMode))
                     {
                         column.SelectedSiteID = -1;

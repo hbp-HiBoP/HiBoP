@@ -755,18 +755,18 @@ namespace HBP.Module3D
                             {
                                 siteType = latenciesFile.PositiveHeight[SourceSelectedID][i] ? SiteType.NonePos : SiteType.NoneNeg;
                                 alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SourceSelectedID][i] - 0.25f;
-                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SourceSelectedID][i] * IEEGParameters.Gain;
+                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SourceSelectedID][i];
                             }
                             else
                             {
-                                site.transform.localScale = Vector3.one * IEEGParameters.Gain;
+                                site.transform.localScale = Vector3.one;
                                 siteType = SiteType.NoLatencyData;
                             }
                         }
                     }
                     else
                     {
-                        site.transform.localScale = Vector3.one * IEEGParameters.Gain;
+                        site.transform.localScale = Vector3.one;
                         siteType = site.State.IsMarked ? SiteType.Marked : SiteType.Normal;
                     }
                     if (!activity) site.IsActive = true;
@@ -778,6 +778,7 @@ namespace HBP.Module3D
                         siteMaterial.color = materialColor;
                     }
                     site.GetComponent<MeshRenderer>().sharedMaterial = siteMaterial;
+                    site.transform.localScale *= IEEGParameters.Gain;
                 }
             }
             else // iEEG
@@ -809,16 +810,17 @@ namespace HBP.Module3D
                     }
                     else if (data.IsGeneratorUpToDate)
                     {
-                        site.transform.localScale = m_ElectrodesSizeScale[i] * IEEGParameters.Gain;
+                        site.transform.localScale = m_ElectrodesSizeScale[i];
                         siteType = m_ElectrodesPositiveColor[i] ? SiteType.Positive : SiteType.Negative;
                     }
                     else
                     {
-                        site.transform.localScale = Vector3.one * IEEGParameters.Gain;
+                        site.transform.localScale = Vector3.one;
                         siteType = site.State.IsMarked ? SiteType.Marked : SiteType.Normal;
                     }
                     if (!activity) site.IsActive = true;
                     site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType);
+                    site.transform.localScale *= IEEGParameters.Gain;
                 }
             }
 
