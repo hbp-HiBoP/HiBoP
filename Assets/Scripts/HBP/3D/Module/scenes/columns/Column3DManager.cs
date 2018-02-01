@@ -352,6 +352,10 @@ namespace HBP.Module3D
         /// Event called when selecting a site in a column
         /// </summary>
         public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
+        /// <summary>
+        /// Event called when selecting a source in a column or changing the latency file of a column
+        /// </summary>
+        public UnityEvent OnChangeCCEPParameters = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -404,6 +408,21 @@ namespace HBP.Module3D
             column.OnChangeMinimizedState.AddListener(() =>
             {
                 OnChangeColumnMinimizedState.Invoke();
+            });
+            column.OnChangeCCEPParameters.AddListener(() =>
+            {
+                OnChangeCCEPParameters.Invoke();
+            });
+            column.OnSelectSite.AddListener((site) =>
+            {
+                OnSelectSite.Invoke(site);
+                foreach (Column3D c in m_Columns)
+                {
+                    if (!c.IsSelected)
+                    {
+                        c.SelectedSiteID = -1;
+                    }
+                }
             });
             column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);
@@ -483,6 +502,10 @@ namespace HBP.Module3D
             {
                 OnChangeColumnMinimizedState.Invoke();
             });
+            column.OnChangeCCEPParameters.AddListener(() =>
+            {
+                OnChangeCCEPParameters.Invoke();
+            });
             column.OnSelectSite.AddListener((site) =>
             {
                 OnSelectSite.Invoke(site);
@@ -528,9 +551,20 @@ namespace HBP.Module3D
             {
                 OnChangeColumnMinimizedState.Invoke();
             });
+            column.OnChangeCCEPParameters.AddListener(() =>
+            {
+                OnChangeCCEPParameters.Invoke();
+            });
             column.OnSelectSite.AddListener((site) =>
             {
                 OnSelectSite.Invoke(site);
+                foreach (Column3D c in m_Columns)
+                {
+                    if (!c.IsSelected)
+                    {
+                        c.SelectedSiteID = -1;
+                    }
+                }
             });
             column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);

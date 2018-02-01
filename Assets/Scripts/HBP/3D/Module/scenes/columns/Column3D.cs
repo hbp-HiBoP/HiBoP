@@ -153,6 +153,7 @@ namespace HBP.Module3D
                 if (m_SelectedSiteID != value)
                 {
                     m_SelectedSiteID = value;
+                    SelectedSourceID = value;
                     OnSelectSite.Invoke(SelectedSite);
                     if (m_SelectedSiteID >= 0)
                     {
@@ -174,6 +175,7 @@ namespace HBP.Module3D
             set
             {
                 m_SelectedSiteID = Sites.FindIndex((site) => site == value);
+                SelectedSourceID = m_SelectedSiteID;
                 ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
                 SelectedPatientID = value.Information.PatientNumber;
             }
@@ -265,9 +267,32 @@ namespace HBP.Module3D
 
             
         // latencies
-        public bool SourceDefined { get { return SourceSelectedID != -1; } }
-        public int SourceSelectedID = -1; /**< id of the selected source */
-        public int CurrentLatencyFile = -1; /**< id of the current latency file */
+        public bool SourceDefined { get { return SelectedSourceID != -1; } }
+        private int m_SelectedSourceID = -1;
+        public int SelectedSourceID
+        {
+            get
+            {
+                return m_SelectedSourceID;
+            }
+            set
+            {
+                m_SelectedSourceID = value;
+            }
+        }
+        private int m_CurrentLatencyFile = -1;
+        public int CurrentLatencyFile
+        {
+            get
+            {
+                return m_CurrentLatencyFile;
+            }
+            set
+            {
+                m_CurrentLatencyFile = value;
+                OnChangeCCEPParameters.Invoke();
+            }
+        }
         #endregion
 
         #region Events
@@ -303,6 +328,10 @@ namespace HBP.Module3D
         /// Event called when selecting a site
         /// </summary>
         public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
+        /// <summary>
+        /// Event called when selecting a source or when changing the latency file
+        /// </summary>
+        public UnityEvent OnChangeCCEPParameters = new UnityEvent();
         #endregion
 
         #region Public Methods
@@ -560,23 +589,23 @@ namespace HBP.Module3D
                     }
                     else if (latenciesFile != null)
                     {
-                        if (SourceSelectedID == -1)
+                        if (SelectedSourceID == -1)
                         {
                             site.transform.localScale = Vector3.one;
                             siteType = latenciesFile.IsSiteASource(i) ? SiteType.Source : SiteType.NotASource;
                         }
                         else
                         {
-                            if (i == SourceSelectedID)
+                            if (i == SelectedSourceID)
                             {
                                 site.transform.localScale = Vector3.one;
                                 siteType = SiteType.Source;
                             }
-                            else if (latenciesFile.IsSiteResponsiveForSource(i, SourceSelectedID))
+                            else if (latenciesFile.IsSiteResponsiveForSource(i, SelectedSourceID))
                             {
-                                siteType = latenciesFile.PositiveHeight[SourceSelectedID][i] ? SiteType.NonePos : SiteType.NoneNeg;
-                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SourceSelectedID][i] - 0.25f;
-                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SourceSelectedID][i];
+                                siteType = latenciesFile.PositiveHeight[SelectedSourceID][i] ? SiteType.NonePos : SiteType.NoneNeg;
+                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SelectedSourceID][i] - 0.25f;
+                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SelectedSourceID][i];
                             }
                             else
                             {
@@ -890,11 +919,11 @@ namespace HBP.Module3D
 
         public void SetCurrentSiteAsSource()
         {
-            SourceSelectedID = SelectedSiteID;
+            SelectedSourceID = SelectedSiteID;
         }
         public void UndefineSource()
         {
-            SourceSelectedID = -1;
+            SelectedSourceID = -1;
         }
         #endregion
     }

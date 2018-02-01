@@ -11,73 +11,46 @@ namespace HBP.UI.Module3D.Tools
     {
         #region Properties
         [SerializeField]
-        private Button m_SetSource;
-        [SerializeField]
-        private Button m_UnsetSource;
-        [SerializeField]
         private Text m_Text;
         #endregion
 
         #region Public Methods
         public override void Initialize()
         {
-            m_SetSource.onClick.AddListener(() =>
+            ApplicationState.Module3D.OnRequestUpdateInUI.AddListener(() =>
             {
-                if (ListenerLock) return;
-
-                HBP.Module3D.Column3D column = ApplicationState.Module3D.SelectedColumn;
-                column.SetCurrentSiteAsSource();
-                ApplicationState.Module3D.SelectedScene.UpdateSitesRendering();
-                m_Text.text = column.Sites[column.SourceSelectedID].Information.Name;
-                UpdateInteractable();
-            });
-            m_UnsetSource.onClick.AddListener(() =>
-            {
-                if (ListenerLock) return;
-
-                ApplicationState.Module3D.SelectedColumn.UndefineSource();
-                ApplicationState.Module3D.SelectedScene.UpdateSitesRendering();
-                m_Text.text = "None";
-                UpdateInteractable();
+                UpdateStatus(Toolbar.UpdateToolbarType.Column);
             });
         }
 
         public override void DefaultState()
         {
-            m_SetSource.interactable = false;
-            m_UnsetSource.interactable = false;
-            m_Text.text = "None";
+            m_Text.text = "CCEP mode disabled";
         }
 
         public override void UpdateInteractable()
         {
-            bool isCCEP = false, isSourceDefined = false, isSiteSelected = false;
-            HBP.Module3D.Base3DScene scene = ApplicationState.Module3D.SelectedScene;
-            HBP.Module3D.Column3D column = ApplicationState.Module3D.SelectedColumn;
-            isCCEP = scene.IsLatencyModeEnabled && (column.CurrentLatencyFile != -1) && ApplicationState.Module3D.SelectedScene.Type == SceneType.SinglePatient;
-            isSourceDefined = column.SourceDefined;
-            isSiteSelected = column.SelectedSite != null;
-            if (isSiteSelected && column.CurrentLatencyFile != -1)
-            {
-                isSiteSelected &= scene.ColumnManager.SelectedImplantation.Latencies[column.CurrentLatencyFile].IsSiteASource(column.SelectedSiteID);
-            }
-
-            m_SetSource.interactable = isCCEP && isSiteSelected;
-            m_UnsetSource.interactable = isCCEP && isSourceDefined;
         }
 
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {
             if (type == Toolbar.UpdateToolbarType.Column)
             {
-                HBP.Module3D.Column3D column = ApplicationState.Module3D.SelectedColumn;
-                if (column.SourceDefined)
+                if (ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled)
                 {
-                    m_Text.text = column.Sites[column.SourceSelectedID].Information.Name;
+                    HBP.Module3D.Column3D column = ApplicationState.Module3D.SelectedColumn;
+                    if (column.SourceDefined)
+                    {
+                        m_Text.text = column.Sites[column.SelectedSourceID].Information.DisplayedName;
+                    }
+                    else
+                    {
+                        m_Text.text = "No source selected";
+                    }
                 }
                 else
                 {
-                    m_Text.text = "None";
+                    m_Text.text = "CCEP mode disabled";
                 }
             }
         }

@@ -739,23 +739,23 @@ namespace HBP.Module3D
                     }
                     else if (latenciesFile != null)
                     {
-                        if (SourceSelectedID == -1)
+                        if (SelectedSourceID == -1)
                         {
                             site.transform.localScale = Vector3.one;
                             siteType = latenciesFile.IsSiteASource(i) ? SiteType.Source : SiteType.NotASource;
                         }
                         else
                         {
-                            if (i == SourceSelectedID)
+                            if (i == SelectedSourceID)
                             {
                                 site.transform.localScale = Vector3.one;
                                 siteType = SiteType.Source;
                             }
-                            else if (latenciesFile.IsSiteResponsiveForSource(i, SourceSelectedID))
+                            else if (latenciesFile.IsSiteResponsiveForSource(i, SelectedSourceID))
                             {
-                                siteType = latenciesFile.PositiveHeight[SourceSelectedID][i] ? SiteType.NonePos : SiteType.NoneNeg;
-                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SourceSelectedID][i] - 0.25f;
-                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SourceSelectedID][i];
+                                siteType = latenciesFile.PositiveHeight[SelectedSourceID][i] ? SiteType.NonePos : SiteType.NoneNeg;
+                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SelectedSourceID][i] - 0.25f;
+                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SelectedSourceID][i];
                             }
                             else
                             {

@@ -150,7 +150,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return Name + " (" + Patient.Name + " - " + Patient.Place + " - " + Patient.Date + ")";
+                return ChannelName + " (" + Patient.Name + " - " + Patient.Place + " - " + Patient.Date + ")";
             }
         }
         public string ChannelName

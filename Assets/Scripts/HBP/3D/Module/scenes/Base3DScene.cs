@@ -752,6 +752,11 @@ namespace HBP.Module3D
                 ApplicationState.Module3D.OnSelectSite.Invoke(site);
                 ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
             });
+            m_ColumnManager.OnChangeCCEPParameters.AddListener(() =>
+            {
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            });
             SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
                 if (!value)
@@ -2412,13 +2417,6 @@ namespace HBP.Module3D
             ResetIEEG(false);
         }
         /// <summary>
-        /// Update the sites rendering of all columns
-        /// </summary>
-        public void UpdateSitesRendering()
-        {
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-        }
-        /// <summary>
         /// Update the data render corresponding to the column
         /// </summary>
         /// <param name="indexColumn"></param>
@@ -2608,22 +2606,22 @@ namespace HBP.Module3D
                             {
                                 Latencies latencyFile = m_ColumnManager.SelectedImplantation.Latencies[columnIEEG.CurrentLatencyFile];
 
-                                if (columnIEEG.SourceSelectedID == -1) // no source selected
+                                if (columnIEEG.SelectedSourceID == -1) // no source selected
                                 {
                                     CCEPLatency = "...";
                                     CCEPAmplitude = "no source selected";
                                 }
-                                else if (columnIEEG.SourceSelectedID == siteID) // site is the source
+                                else if (columnIEEG.SelectedSourceID == siteID) // site is the source
                                 {
                                     CCEPLatency = "0";
                                     CCEPAmplitude = "source";
                                 }
                                 else
                                 {
-                                    if (latencyFile.IsSiteResponsiveForSource(siteID, columnIEEG.SourceSelectedID))
+                                    if (latencyFile.IsSiteResponsiveForSource(siteID, columnIEEG.SelectedSourceID))
                                     {
-                                        CCEPLatency = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
-                                        CCEPAmplitude = "" + latencyFile.LatenciesValues[columnIEEG.SourceSelectedID][siteID];
+                                        CCEPLatency = "" + latencyFile.LatenciesValues[columnIEEG.SelectedSourceID][siteID];
+                                        CCEPAmplitude = "" + latencyFile.LatenciesValues[columnIEEG.SelectedSourceID][siteID];
                                     }
                                     else
                                     {
