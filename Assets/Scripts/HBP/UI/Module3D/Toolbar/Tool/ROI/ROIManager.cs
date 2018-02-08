@@ -103,8 +103,16 @@ namespace HBP.UI.Module3D.Tools
             ApplicationState.Module3D.OnSelectROIVolume.AddListener(() =>
             {
                 ListenerLock = true;
-                m_VolumeSelector.value = ApplicationState.Module3D.SelectedColumn.SelectedROI.SelectedSphereID + 1;
-                UpdateInteractable();
+                Column3D column = ApplicationState.Module3D.SelectedColumn;
+                if (column != null)
+                {
+                    ROI roi = column.SelectedROI;
+                    if (roi != null)
+                    {
+                        m_VolumeSelector.value = roi.SelectedSphereID + 1;
+                        UpdateInteractable();
+                    }
+                }
                 ListenerLock = false;
             });
             ApplicationState.Module3D.OnChangeROIVolumeRadius.AddListener(() =>
