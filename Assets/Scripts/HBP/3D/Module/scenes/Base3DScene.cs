@@ -2737,6 +2737,7 @@ namespace HBP.Module3D
             {
                 FinalizeGeneratorsComputing();
                 ComputeIEEGTextures();
+                OnIEEGOutdated.Invoke(false);
                 ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
             }
         }
