@@ -14,9 +14,9 @@
     "BlocFormat": 2,
     "ConstantLineHeight": 30,
     "LineHeightByWidth": 0.005,
-    "HeightByWidth": 0.5625,
+    "HeightByWidth": 0.2,
     "TrialsSynchronization": 0,
-    "Type": 0
+    "Type": 1
   },
   "HideCurveWhenColumnHidden": true,
   "Theme": "Dark",

@@ -43,11 +43,14 @@ namespace HBP.UI.Module3D.Tools
             {
                 Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
                 m_Dropdown.options.Clear();
-                foreach (Mesh3D mesh in selectedScene.ColumnManager.Meshes)
+                if (selectedScene != null)
                 {
-                    m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString()));
+                    foreach (Mesh3D mesh in selectedScene.ColumnManager.Meshes)
+                    {
+                        m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString()));
+                    }
+                    m_Dropdown.value = selectedScene.ColumnManager.SelectedMeshID;
                 }
-                m_Dropdown.value = selectedScene.ColumnManager.SelectedMeshID;
                 m_Dropdown.RefreshShownValue();
             }
         }

@@ -32,7 +32,12 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool canUseMarsAtlas = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedMesh.IsMarsAtlasLoaded;
+            bool canUseMarsAtlas = false;
+            Base3DScene scene = ApplicationState.Module3D.SelectedScene;
+            if (scene != null)
+            {
+                canUseMarsAtlas = scene.ColumnManager.SelectedMesh.IsMarsAtlasLoaded;
+            }
 
             m_Toggle.interactable = canUseMarsAtlas;
         }

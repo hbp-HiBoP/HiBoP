@@ -40,11 +40,14 @@ namespace HBP.UI.Module3D.Tools
             {
                 Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
                 m_Dropdown.options.Clear();
-                foreach (Implantation3D implantation in selectedScene.ColumnManager.Implantations)
+                if (selectedScene != null)
                 {
-                    m_Dropdown.options.Add(new Dropdown.OptionData(implantation.Name));
+                    foreach (Implantation3D implantation in selectedScene.ColumnManager.Implantations)
+                    {
+                        m_Dropdown.options.Add(new Dropdown.OptionData(implantation.Name));
+                    }
+                    m_Dropdown.value = selectedScene.ColumnManager.SelectedImplantationID;
                 }
-                m_Dropdown.value = selectedScene.ColumnManager.SelectedImplantationID;
                 m_Dropdown.RefreshShownValue();
             }
         }

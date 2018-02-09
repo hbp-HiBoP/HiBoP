@@ -769,7 +769,10 @@ namespace HBP.Module3D
                         column.IsRenderingUpToDate = false;
                     }
                 }
-                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                if (IsSelected)
+                {
+                    ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                }
             });
         }
         /// <summary>
@@ -1030,6 +1033,8 @@ namespace HBP.Module3D
 
             // check validity of plot scale
             m_ColumnManager.CheckIEEGParametersIntegrity();
+
+            OnIEEGOutdated.Invoke(false);
         }
         /// <summary>
         /// Load FMRI dialog
@@ -2737,8 +2742,6 @@ namespace HBP.Module3D
             {
                 FinalizeGeneratorsComputing();
                 ComputeIEEGTextures();
-                OnIEEGOutdated.Invoke(false);
-                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
             }
         }
         private IEnumerator c_LoadIEEG()

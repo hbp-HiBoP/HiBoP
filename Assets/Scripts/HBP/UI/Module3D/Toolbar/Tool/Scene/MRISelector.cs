@@ -43,11 +43,14 @@ namespace HBP.UI.Module3D.Tools
             {
                 Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
                 m_Dropdown.options.Clear();
-                foreach (MRI3D mri in selectedScene.ColumnManager.MRIs)
+                if (selectedScene != null)
                 {
-                    m_Dropdown.options.Add(new Dropdown.OptionData(mri.Name));
+                    foreach (MRI3D mri in selectedScene.ColumnManager.MRIs)
+                    {
+                        m_Dropdown.options.Add(new Dropdown.OptionData(mri.Name));
+                    }
+                    m_Dropdown.value = selectedScene.ColumnManager.SelectedMRIID;
                 }
-                m_Dropdown.value = selectedScene.ColumnManager.SelectedMRIID;
                 m_Dropdown.RefreshShownValue();
             }
         }

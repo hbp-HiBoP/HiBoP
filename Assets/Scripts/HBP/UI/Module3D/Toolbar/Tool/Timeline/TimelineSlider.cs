@@ -101,8 +101,11 @@ namespace HBP.UI.Module3D.Tools
             {
                 ListenerLock = true;
                 HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn;
-                m_Current.text = selectedColumn.CurrentTimeLineID + " (" + selectedColumn.CurrentTimeLine.ToString("N2") + selectedColumn.TimeLineUnite + ")";
-                m_Slider.value = selectedColumn.CurrentTimeLineID;
+                if (selectedColumn)
+                {
+                    m_Current.text = selectedColumn.CurrentTimeLineID + " (" + selectedColumn.CurrentTimeLine.ToString("N2") + selectedColumn.TimeLineUnite + ")";
+                    m_Slider.value = selectedColumn.CurrentTimeLineID;
+                }
                 ListenerLock = false;
             });
         }
