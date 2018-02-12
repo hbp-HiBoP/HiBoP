@@ -212,13 +212,13 @@ public class ZoneResizer : MonoBehaviour
         switch(Direction)
         {
             case DirectionType.BottomToTop:
-                cursor = Resources.Load("Cursor/top_bottom") as Texture2D;
-                hotSpot = new Vector2(4, 11);
-
+                cursor = ApplicationState.GeneralSettings.Theme.General.TopBottomCursor.Texture;
+                hotSpot = ApplicationState.GeneralSettings.Theme.General.TopBottomCursor.Offset;
                 break;
 
-            case DirectionType.LeftToRight: cursor = Resources.Load("Cursor/left_right") as Texture2D;
-                hotSpot = new Vector2(11, 4);
+            case DirectionType.LeftToRight:
+                cursor = ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Texture;
+                hotSpot = ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Offset;
                 break;
         }
     }
