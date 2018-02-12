@@ -23,22 +23,19 @@ namespace Tools.Unity
 
         public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target) // FIXME : some libraries are not copied in linux .so.X.X.X
         {
-            //string buildName = string.Format("HiBoP_{0}_{1}_{2}", DateTime.Today.Year.ToString("d4"), DateTime.Today.Month.ToString("d2"), DateTime.Today.Day.ToString("d2"));
             string buildName = Application.productName;
-            /*
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:
-                    buildName += "_win64";
+                    buildName += " win64";
                     break;
                 case BuildTarget.StandaloneLinux64:
-                    buildName += "_linux64";
+                    buildName += " linux64";
                     break;
                 case BuildTarget.StandaloneOSXIntel64:
-                    buildName += "_macosx64";
+                    buildName += " macosx64";
                     break;
             }
-            */
             string buildDirectory = buildsDirectory + buildName + "/";
             string hibopName = "HiBoP";
             switch (target)
@@ -78,13 +75,6 @@ namespace Tools.Unity
                     break;
             }
             CopyFilesRecursively(new DirectoryInfo(projectPath + m_Data), new DirectoryInfo(buildDirectory + m_DataBuild));
-            /*
-            using (ZipFile zip = new ZipFile())
-            {
-                zip.AddDirectory(buildDirectory, "");
-                zip.Save(buildsDirectory + buildName + ".zip");
-            }
-            */
         }
 
         public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target)
