@@ -75,6 +75,9 @@ namespace Tools.Unity
                     break;
             }
             CopyFilesRecursively(new DirectoryInfo(projectPath + m_Data), new DirectoryInfo(buildDirectory + m_DataBuild));
+
+            FileInfo readme = new FileInfo(projectPath + "README.md");
+            readme.CopyTo(buildDirectory + readme.Name);
         }
 
         public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target)
