@@ -402,10 +402,24 @@ public class CanNotLoadMNI : HBPException
 {
     public CanNotLoadMNI() : base("MNI files could not be loaded.\n\nPlease verify the Data folder.")
     {
-        Title = "Can not load MNI.";
+        Title = "Can not load MNI";
     }
     public CanNotLoadMNI(string message, Exception inner) : base(message, inner) { }
     protected CanNotLoadMNI(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class CanNotLoadVisualization : HBPException
+{
+    public CanNotLoadVisualization() { }
+    public CanNotLoadVisualization(string visualizationName) : base(visualizationName + " could not be loaded.\n\nPlease verify the visualization.")
+    {
+        Title = "Can not load Visualization";
+    }
+    public CanNotLoadVisualization(string message, Exception inner) : base(message, inner) { }
+    protected CanNotLoadVisualization(
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }

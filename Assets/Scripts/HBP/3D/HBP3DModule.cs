@@ -337,7 +337,7 @@ namespace HBP.Module3D
         {
             foreach (Data.Visualization.Visualization visualization in visualizations)
             {
-                if (!visualization.IsVisualizable) continue;
+                if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
 
                 yield return Ninja.JumpToUnity;
                 LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();

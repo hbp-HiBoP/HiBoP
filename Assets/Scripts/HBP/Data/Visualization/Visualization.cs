@@ -76,7 +76,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         public virtual bool IsVisualizable
         {
-            get { return Columns.Count > 0 && Patients.Count > 0 && Columns.All((column) => column.IsCompatible(Patients)); }
+            get { return Columns.Count > 0 && Patients.Count > 0 && Columns.All((column) => column.IsCompatible(Patients)) && FindUsableImplantations().Count > 0; }
         }
         /// <summary>
         /// Is the visualization opened in a scene ?
