@@ -55,7 +55,7 @@ namespace Tools.Unity.ResizableGrid
             base.OnPointerDown(data);
             m_HorizontalHandler.IsClicked = true;
             m_VerticalHandler.IsClicked = true;
-            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.ForceSoftware);
+            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.Auto);
         }
         /// <summary>
         /// Callback event when releasing the click on the handler
@@ -75,7 +75,7 @@ namespace Tools.Unity.ResizableGrid
         {
             if (!m_ResizableGrid.IsHandlerClicked)
             {
-                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.ForceSoftware);
+                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.Auto);
             }
         }
         /// <summary>

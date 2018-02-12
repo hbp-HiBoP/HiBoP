@@ -66,7 +66,7 @@ namespace Tools.Unity.ResizableGrid
         public override void OnPointerDown(PointerEventData data)
         {
             base.OnPointerDown(data);
-            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Texture, ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Offset, CursorMode.ForceSoftware);
+            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Texture, ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Offset, CursorMode.Auto);
         }
         /// <summary>
         /// Callback event when entering in the handler
@@ -76,7 +76,7 @@ namespace Tools.Unity.ResizableGrid
         {
             if (!m_ResizableGrid.IsHandlerClicked)
             {
-                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Texture, ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Offset, CursorMode.ForceSoftware);
+                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Texture, ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Offset, CursorMode.Auto);
             }
         }
         /// <summary>

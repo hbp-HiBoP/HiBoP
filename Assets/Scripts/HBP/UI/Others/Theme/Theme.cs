@@ -41,6 +41,7 @@ namespace HBP.UI.Theme
             public Color Background = new Color();
             public LoadingCircleTheme LoadingCircle;
             public DialogBoxTheme DialogBox;
+            public CursorTheme Cursor;
             public CursorTheme LeftRightCursor;
             public CursorTheme TopBottomCursor;
             public CursorTheme BottomLeftTopRightCursor;

@@ -189,7 +189,7 @@ public class ZoneResizer : MonoBehaviour
     {
         if(!data.dragging)
         {
-            Cursor.SetCursor(null, new Vector2(), CursorMode.Auto);
+            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
         }
     }
     void OnDragDelegate(PointerEventData data)
@@ -205,7 +205,7 @@ public class ZoneResizer : MonoBehaviour
     }
     void OnEndDragDelegate(PointerEventData data)
     {
-        Cursor.SetCursor(null, new Vector2(), CursorMode.Auto);
+        Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
     }
     void SetCursor()
     {

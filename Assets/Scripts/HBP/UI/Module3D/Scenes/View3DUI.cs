@@ -186,11 +186,11 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             m_View.DisplayRotationCircles = true;
             if (Input.GetMouseButton(1))
             {
-                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.ForceSoftware);
+                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.Auto);
             }
             else
             {
-                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.ForceSoftware);
+                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.MoveCursor.Texture, ApplicationState.GeneralSettings.Theme.General.MoveCursor.Offset, CursorMode.Auto);
             }
         }
         else
@@ -221,13 +221,13 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     public void OnEndDrag(PointerEventData data)
     {
         m_View.DisplayRotationCircles = false;
-        Cursor.SetCursor(null, Vector2.zero, CursorMode.ForceSoftware);
+        Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
     }
     public void OnPointerUp(PointerEventData data)
     {
         m_PointerDownLock = false;
         m_View.DisplayRotationCircles = false;
-        Cursor.SetCursor(null, Vector2.zero, CursorMode.ForceSoftware);
+        Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
     }
     public void OnScroll(PointerEventData data)
     {
