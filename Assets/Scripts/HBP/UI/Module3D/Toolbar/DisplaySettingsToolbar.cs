@@ -21,11 +21,6 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Tools.Views m_Views;
         /// <summary>
-        /// Add / remove FMRI columns from the selected scene
-        /// </summary>
-        [SerializeField]
-        private Tools.FMRI m_FMRI;
-        /// <summary>
         /// Set the scene to the standard views
         /// </summary>
         [SerializeField]
@@ -61,7 +56,6 @@ namespace HBP.UI.Module3D
         {
             m_Tools.Add(m_AutoRotate);
             m_Tools.Add(m_Views);
-            m_Tools.Add(m_FMRI);
             m_Tools.Add(m_StandardViews);
             m_Tools.Add(m_DefaultView);
             m_Tools.Add(m_ResetViews);
@@ -76,11 +70,6 @@ namespace HBP.UI.Module3D
             base.AddListeners();
 
             m_Views.OnClick.AddListener(() =>
-            {
-                UpdateInteractableButtons();
-            });
-
-            m_FMRI.OnClick.AddListener(() =>
             {
                 UpdateInteractableButtons();
             });

@@ -23,7 +23,7 @@ namespace HBP.Module3D
         #region Properties
         public enum ColumnType
         {
-            Base, FMRI, IEEG
+            Base, IEEG
         }
         public virtual ColumnType Type
         {

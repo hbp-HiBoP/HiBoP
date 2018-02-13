@@ -43,15 +43,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Columns of the scene
         /// </summary>
-        public ReadOnlyCollection<Column3D> Columns { get { return m_Columns != null ? new ReadOnlyCollection<Column3D>(m_Columns) : new ReadOnlyCollection<Column3D>(new List<Column3D>(0)); } }
+        public List<Column3D> Columns { get { return m_Columns; } }
         /// <summary>
         /// IEEG Columns of the scene
         /// </summary>
-        public ReadOnlyCollection<Column3DIEEG> ColumnsIEEG { get { return m_Columns != null ? new ReadOnlyCollection<Column3DIEEG>((from column in m_Columns where column is Column3DIEEG select (Column3DIEEG)column).ToArray()) : new ReadOnlyCollection<Column3DIEEG>(new List<Column3DIEEG>(0)); } }
-        /// <summary>
-        /// FMRI Columns of the scene
-        /// </summary>
-        public ReadOnlyCollection<Column3DFMRI> ColumnsFMRI { get { return m_Columns != null ? new ReadOnlyCollection<Column3DFMRI>((from column in m_Columns where column is Column3DFMRI select (Column3DFMRI)column).ToArray()) : new ReadOnlyCollection<Column3DFMRI>(new List<Column3DFMRI>(0)); } }
+        public List<Column3DIEEG> ColumnsIEEG { get { return (from column in m_Columns where column.Type == Column3D.ColumnType.IEEG select (Column3DIEEG)column).ToList(); } }
 
         public ReadOnlyCollection<View3D> Views
         {
@@ -211,15 +207,74 @@ namespace HBP.Module3D
                 }
             }
         }
-
-        public List<DLL.Volume> DLLVolumeFMriList = null;
         
-        // planes
-        public List<Cut> PlanesCutsCopy = new List<Cut>();
+        /// <summary>
+        /// FMRI associated to this scene
+        /// </summary>
+        public MRI3D FMRI = null;
+        
+        private float m_FMRIAlpha = 0.5f;
+        /// <summary>
+        /// Alpha of the FMRI
+        /// </summary>
+        public float FMRIAlpha
+        {
+            get
+            {
+                return m_FMRIAlpha;
+            }
+            set
+            {
+                if (m_FMRIAlpha != value)
+                {
+                    m_FMRIAlpha = value;
+                    OnUpdateFMRIParameters.Invoke();
+                }
+            }
+        }
+
+        private float m_FMRICalMinFactor = 0.4f;
+        /// <summary>
+        /// Cal min factor of the FMRI
+        /// </summary>
+        public float FMRICalMinFactor
+        {
+            get
+            {
+                return m_FMRICalMinFactor;
+            }
+            set
+            {
+                if (m_FMRICalMinFactor != value)
+                {
+                    m_FMRICalMinFactor = value;
+                    OnUpdateFMRIParameters.Invoke();
+                }
+            }
+        }
+
+        private float m_FMRICalMaxFactor = 0.6f;
+        /// <summary>
+        /// Cal max factor of the FMRI
+        /// </summary>
+        public float FMRICalMaxFactor
+        {
+            get
+            {
+                return m_FMRICalMaxFactor;
+            }
+            set
+            {
+                if (m_FMRICalMaxFactor != value)
+                {
+                    m_FMRICalMaxFactor = value;
+                    OnUpdateFMRIParameters.Invoke();
+                }
+            }
+        }
 
         // UV coordinates
         public List<Vector2[]> UVCoordinatesSplits = null; // uv coordinates for each brain mesh split
-
 
         // textures
         private ColorType m_BrainColor = ColorType.BrainColor;
@@ -280,8 +335,6 @@ namespace HBP.Module3D
         private GameObject m_Column3DPrefab;
         [SerializeField]
         private GameObject m_Column3DIEEGPrefab;
-        [SerializeField]
-        private GameObject m_Column3DFMRIPrefab;
         #endregion
 
         #region Events
@@ -306,6 +359,10 @@ namespace HBP.Module3D
         /// Event called when changing the values of the MRI Cal Values
         /// </summary>
         public UnityEvent OnUpdateMRICalValues = new UnityEvent();
+        /// <summary>
+        /// Event called when updating the alpha or cal values of the FMRI
+        /// </summary>
+        public UnityEvent OnUpdateFMRIParameters = new UnityEvent();
         /// <summary>
         /// Event called when changing the number of ROIs of this scene
         /// </summary>
@@ -521,55 +578,6 @@ namespace HBP.Module3D
             OnAddColumn.Invoke();
         }
         /// <summary>
-        /// Add a FMRI Column to this scene
-        /// </summary>
-        private void AddFMRIColumn()
-        {
-            DLLVolumeFMriList.Add(new DLL.Volume());
-            Column3DFMRI column = Instantiate(m_Column3DFMRIPrefab, transform.Find("Columns")).GetComponent<Column3DFMRI>();
-            column.gameObject.name = "Column FMRI " + ColumnsFMRI.Count;
-            column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
-            column.OnSelectColumn.AddListener((selectedColumn) =>
-            {
-                foreach (Column3D c in m_Columns)
-                {
-                    if (c != selectedColumn)
-                    {
-                        c.IsSelected = false;
-                        foreach (View3D v in c.Views)
-                        {
-                            v.IsSelected = false;
-                        }
-                    }
-                }
-                OnSelectColumnManager.Invoke(this);
-                ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
-            });
-            column.OnChangeMinimizedState.AddListener(() =>
-            {
-                OnChangeColumnMinimizedState.Invoke();
-            });
-            column.OnChangeCCEPParameters.AddListener(() =>
-            {
-                OnChangeCCEPParameters.Invoke();
-            });
-            column.OnSelectSite.AddListener((site) =>
-            {
-                OnSelectSite.Invoke(site);
-                foreach (Column3D c in m_Columns)
-                {
-                    if (!c.IsSelected)
-                    {
-                        c.SelectedSiteID = -1;
-                    }
-                }
-            });
-            column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
-            column.ResetSplitsNumber(MeshSplitNumber);
-            m_Columns.Add(column);
-            OnAddColumn.Invoke();
-        }
-        /// <summary>
         /// Remove the last IEEG Column of this scene
         /// </summary>
         private void RemoveIEEGColumn()
@@ -577,20 +585,6 @@ namespace HBP.Module3D
             if (ColumnsIEEG.Count > 0)
             {
                 Column3DIEEG column = ColumnsIEEG[ColumnsIEEG.Count - 1];
-                int columnID = m_Columns.IndexOf(column);
-                Destroy(m_Columns[columnID]);
-                m_Columns.RemoveAt(columnID);
-                OnRemoveColumn.Invoke(column);
-            }
-        }
-        /// <summary>
-        /// Remove the last FMRI Column of this scene
-        /// </summary>
-        private void RemoveFMRIColumn()
-        {
-            if (ColumnsFMRI.Count > 0)
-            {
-                Column3DFMRI column = ColumnsFMRI[ColumnsFMRI.Count - 1];
                 int columnID = m_Columns.IndexOf(column);
                 Destroy(m_Columns[columnID]);
                 m_Columns.RemoveAt(columnID);
@@ -623,11 +617,6 @@ namespace HBP.Module3D
         {
             // surfaces
             DLLCutsList = new List<DLL.Surface>();
-
-            if (DLLVolumeFMriList != null)
-                for (int ii = 0; ii < DLLVolumeFMriList.Count; ++ii)
-                    DLLVolumeFMriList[ii].Dispose();
-            DLLVolumeFMriList = new List<DLL.Volume>();
 
             // cuts
             //  textures 2D            
@@ -754,12 +743,6 @@ namespace HBP.Module3D
                         AddBaseColumn();
                     }
                     break;
-                case Column3D.ColumnType.FMRI:
-                    for (int i = 0; i < number; i++)
-                    {
-                        AddFMRIColumn();
-                    }
-                    break;
                 case Column3D.ColumnType.IEEG:
                     for (int i = 0; i < number; i++)
                     {
@@ -789,16 +772,14 @@ namespace HBP.Module3D
         public void CreateMRITexture(Column3D column, int cutID)
         {
             column.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor);
-            if (false)
+            if (FMRI != null)
             {
-                // TODO : ColorCutsWithFMRI
-                //Column3DFMRI column = ColumnsFMRI[indexColumn];
-                //DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[indexCut];
-                //generator.FillTextureWithFMRI(column, DLLVolumeFMriList[indexColumn]);
+                DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[cutID];
+                generator.FillTextureWithFMRI(column, FMRI.Volume, m_FMRICalMinFactor, m_FMRICalMaxFactor, m_FMRIAlpha);
 
-                //DLL.Texture cutTexture = column.DLLBrainCutTextures[indexCut];
-                //generator.UpdateTextureWithFMRI(cutTexture);
-                //cutTexture.UpdateTexture2D(column.BrainCutTextures[indexCut]); // update mesh cut 2D texture
+                DLL.Texture cutTexture = column.DLLBrainCutTextures[cutID];
+                generator.UpdateTextureWithFMRI(cutTexture);
+                cutTexture.UpdateTexture2D(column.BrainCutTextures[cutID]);
             }
         }
         /// <summary>

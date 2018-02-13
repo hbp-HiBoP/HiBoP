@@ -148,7 +148,7 @@ namespace HBP.Module3D
             /// <param name="colorScheme"></param>
             /// <param name="calMin"></param>
             /// <param name="calMax"></param>
-            public void FillTextureWithVolume(DLL.Volume volume, DLL.Texture colorScheme, float calMin, float calMax)
+            public void FillTextureWithVolume(Volume volume, Texture colorScheme, float calMin, float calMax)
             {
                 fill_texture_with_volume__MRITextureCutGenerator(_handle, volume.getHandle(), colorScheme.getHandle(), calMin, calMax);
                 ApplicationState.DLLDebugManager.check_error();
@@ -156,12 +156,12 @@ namespace HBP.Module3D
             /// <summary>
             /// Will update the previously MRI colored texture with a fMRI
             /// </summary>
-            /// <param name="FMRIColumn"></param>
+            /// <param name="column"></param>
             /// <param name="volume"></param>
-            public void FillTextureWithFMRI(Column3DFMRI FMRIColumn, DLL.Volume volume)
+            public void FillTextureWithFMRI(Column3D column, Volume volume, float calMin, float calMax, float alpha)
             {
                 bool noError = false;
-                noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), FMRIColumn.DLLCutFMRIColorScheme.getHandle(), FMRIColumn.CalMin, FMRIColumn.CalMax, FMRIColumn.Alpha) ==1;
+                noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), column.DLLCutFMRIColorScheme.getHandle(), calMin, calMax, alpha) ==1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)

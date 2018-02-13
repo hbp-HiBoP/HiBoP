@@ -64,19 +64,6 @@ namespace HBP.Module3D
         public float computedCalMin;
         public float computedCalMax;
     }
-
-    /// <summary>
-    /// IRMF data to be send to the UI
-    /// </summary>
-    public struct FMRIDataParameters
-    {
-        public bool singlePatient;
-        public int columnId;
-        public float alpha;
-        public float calMin; 
-        public float calMax;
-        public MRICalValues calValues;
-    }
     #endregion
 
     /// <summary>
@@ -608,19 +595,6 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Vector3> OnUpdateCameraTarget = new GenericEvent<Vector3>();
 
-        /// <summary>
-        /// Event called when a FMRI column is added
-        /// </summary>
-        public UnityEvent OnAddFMRIColumn = new UnityEvent();
-        /// <summary>
-        /// Event called when a FMRI column is removed
-        /// </summary>
-        public UnityEvent OnRemoveFMRIColumn = new UnityEvent();
-        /// <summary>
-        /// Event for sending IRMF data parameters to UI (params : IRMFDataParameters)
-        /// </summary>
-        public GenericEvent<FMRIDataParameters> OnSendFMRIParameters = new GenericEvent<FMRIDataParameters>();
-
         public UnityEvent OnChangeColumnMinimizedState = new UnityEvent();
         /// <summary>
         /// Event called when site is clicked to dipslay additionnal infomation.
@@ -679,8 +653,8 @@ namespace HBP.Module3D
             m_ColumnManager.OnUpdateMRICalValues.AddListener(() =>
             {
                 if (!SceneInformation.IsGeometryUpToDate) return;
+                ResetIEEG();
                 ComputeMRITextures();
-                //ComputeIEEGTextures();
                 ComputeGUITextures();
             });
             m_ColumnManager.OnUpdateIEEGSpan.AddListener((column) =>
@@ -752,6 +726,12 @@ namespace HBP.Module3D
             {
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
                 ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            });
+            m_ColumnManager.OnUpdateFMRIParameters.AddListener(() =>
+            {
+                ResetIEEG();
+                ComputeMRITextures();
+                ComputeGUITextures();
             });
             SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
@@ -853,108 +833,6 @@ namespace HBP.Module3D
             m_ColumnManager.CheckIEEGParametersIntegrity();
 
             OnIEEGOutdated.Invoke(false);
-        }
-        /// <summary>
-        /// Load FMRI dialog
-        /// </summary>
-        /// <param name="path">Path of the FMRI file</param>
-        /// <returns></returns>
-        private bool LoadFMRIDialog(out string path)
-        {
-            bool loaded = true;
-            string[] filters = new string[] { "nii", "img" };
-            path = "";
-            path = DLL.QtGUI.GetExistingFileName(filters, "Select an fMRI file");
-
-            if (!string.IsNullOrEmpty(path))
-            {
-                bool result = LoadFMRIFile(path);
-                if (!result)
-                {
-                    Debug.LogError("-ERROR : ScenesManager::addIRMF -> can't load FMRI");
-                    loaded = false;
-                }
-            }
-            else
-            {
-                loaded = false;
-            }
-            return loaded;
-        }
-        /// <summary>
-        /// Load an FMRI column
-        /// </summary>
-        /// <param name="fMRIPath"></param>
-        /// <returns></returns>
-        private bool LoadFMRIFile(string fMRIPath)
-        {
-            if (m_ColumnManager.SelectedMRI.NII.LoadNIIFile(fMRIPath)) // FIXME : create new array
-                return true;
-
-            Debug.LogError("-ERROR : Base3DScene::load_FMRI_file -> load NII file failed. " + fMRIPath);
-            return false;
-        }
-        /// <summary>
-        /// Load a FMRI column
-        /// </summary>
-        /// <param name="fmriLabel"></param>
-        /// <returns></returns>
-        private bool LoadFMRIColumn(string fmriLabel)
-        {
-            // Update column number
-            int newFMRIColumnNumber = m_ColumnManager.ColumnsFMRI.Count + 1;
-            //m_ColumnManager.SetColumns(m_ColumnManager.ColumnsIEEG.Count, newFMRIColumnNumber, Cuts.Count);
-
-            // Update label
-            int newFMRIColumnID = newFMRIColumnNumber - 1;
-            m_ColumnManager.ColumnsFMRI[newFMRIColumnID].Label = fmriLabel;
-
-            // Update sites visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
-            // Convert to volume            
-            m_ColumnManager.SelectedMRI.NII.ConvertToVolume(m_ColumnManager.DLLVolumeFMriList[newFMRIColumnID]);
-
-            //if (Type == SceneType.SinglePatient)
-            //    Events.OnAskRegionOfInterestUpdate.Invoke(m_ColumnManager.ColumnsIEEG.Count + newFMRIColumnID);
-
-            // send parameters to UI
-            //IRMCalValues calValues = m_CM.DLLVolumeIRMFList[idCol].retrieveExtremeValues();
-
-            FMRIDataParameters fmriParams = new FMRIDataParameters();
-            fmriParams.calValues = m_ColumnManager.DLLVolumeFMriList[newFMRIColumnID].ExtremeValues;
-            fmriParams.columnId = newFMRIColumnID;
-            fmriParams.alpha = m_ColumnManager.ColumnsFMRI[newFMRIColumnID].Alpha;
-            fmriParams.calMin = m_ColumnManager.ColumnsFMRI[newFMRIColumnID].CalMin;
-            fmriParams.calMax = m_ColumnManager.ColumnsFMRI[newFMRIColumnID].CalMax;
-            fmriParams.singlePatient = Type == SceneType.SinglePatient;
-
-            m_ColumnManager.ColumnsFMRI[newFMRIColumnID].CalMin = fmriParams.calValues.computedCalMin;
-            m_ColumnManager.ColumnsFMRI[newFMRIColumnID].CalMax = fmriParams.calValues.computedCalMax;
-
-            // Update camera
-            OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
-
-            //ComputeMRITextures();
-
-            OnSendFMRIParameters.Invoke(fmriParams);
-            //ComputeFMRITextures(-1, -1);
-            
-            return true;
-        }
-        /// <summary>
-        /// Unload the last FMRI column
-        /// </summary>
-        private void UnloadLastFMRIColumn()
-        {
-            // Update columns number
-            //m_ColumnManager.SetColumns(m_ColumnManager.ColumnsIEEG.Count, m_ColumnManager.ColumnsFMRI.Count - 1, Cuts.Count);
-
-            // Update plots visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-
-            //ComputeMRITextures();
-            //ComputeFMRITextures(-1, -1);
         }
         /// <summary>
         /// Actions to perform when clicking on a site
@@ -1517,92 +1395,6 @@ namespace HBP.Module3D
         }
         #endregion
 
-        #region FMRI
-        /// <summary>
-        /// Update the cal min value of the input FMRI column
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="columnId"> id of the FMRI columns</param>
-        public void UpdateFMRICalMin(float value, int columnId)
-        {
-            m_ColumnManager.ColumnsFMRI[columnId].CalMin = value;
-            //ComputeFMRITextures(-1, -1);
-        }
-        /// <summary>
-        /// Update the cal max value of the input FMRI column
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="columnId"> id of the FMRI columns</param>
-        public void UpdateFMRICalMax(float value, int columnId)
-        {
-            m_ColumnManager.ColumnsFMRI[columnId].CalMax = value;
-            //ComputeFMRITextures(-1, -1);
-        }
-        /// <summary>
-        /// Update the alpha value of the input FMRI column
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="columnId"> id of the FMRI columns</param>
-        public void UpdateFMRIAlpha(float value, int columnId)
-        {
-            m_ColumnManager.ColumnsFMRI[columnId].Alpha = value;
-            //ComputeFMRITextures(-1, -1);
-        }
-        /// <summary>
-        /// Add a FMRI column to this scene
-        /// </summary>
-        /// <returns></returns>
-        public bool AddFMRIColumn()
-        {
-            string fMRIPath;
-            if (!LoadFMRIDialog(out fMRIPath)) return false;
-
-            string[] split = fMRIPath.Split(new Char[] { '/', '\\' });
-            string fMRILabel = split[split.Length - 1];
-
-            bool result = LoadFMRIColumn(fMRILabel);
-            if (!result)
-            {
-                Debug.LogError("-ERROR : ScenesManager::addIRMF -> can't add IRMF column");
-            }
-            else
-            {
-                OnAddFMRIColumn.Invoke();
-            }
-            return result;
-        }
-        /// <summary>
-        /// Remove the last FMRI column from this scene
-        /// </summary>
-        public void RemoveLastFMRIColumn()
-        {
-            if (m_ColumnManager.ColumnsFMRI.Count > 0)
-            {
-                UnloadLastFMRIColumn();
-                OnRemoveFMRIColumn.Invoke();
-            }
-        }
-        /// <summary>
-        /// Send FMRI parameters to menu via event
-        /// </summary>
-        public void SendFMRIParametersToMenu() // TODO / FIXME
-        {
-            for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
-            {
-                FMRIDataParameters FMRIDataParams;
-                FMRIDataParams.alpha = m_ColumnManager.ColumnsFMRI[ii].Alpha;
-                FMRIDataParams.calMin = m_ColumnManager.ColumnsFMRI[ii].CalMin;
-                FMRIDataParams.calMax = m_ColumnManager.ColumnsFMRI[ii].CalMax;
-                FMRIDataParams.columnId = ii;
-
-                FMRIDataParams.calValues = m_ColumnManager.DLLVolumeFMriList[ii].ExtremeValues;
-                FMRIDataParams.singlePatient = Type == SceneType.SinglePatient;
-
-                OnSendFMRIParameters.Invoke(FMRIDataParams);
-            }
-        }
-        #endregion
-
         #region Save/Load
         /// <summary>
         /// Initialize the scene with the corresponding visualization
@@ -1666,7 +1458,6 @@ namespace HBP.Module3D
                 newCut.Position = cut.Position;
                 UpdateCutPlane(newCut);
             }
-            ColumnManager.PlanesCutsCopy = Cuts;
 
             for (int i = 0; i < Visualization.Configuration.Views.Count; i++)
             {
@@ -1807,6 +1598,21 @@ namespace HBP.Module3D
         }
         #endregion
 
+        /// <summary>
+        /// Load a FMRI to this scene
+        /// </summary>
+        public void LoadFMRI()
+        {
+            string[] filters = new string[] { "nii", "img" };
+            string path = DLL.QtGUI.GetExistingFileName(filters, "Select an fMRI file");
+            if (!string.IsNullOrEmpty(path))
+            {
+                m_ColumnManager.FMRI = new MRI3D(new Data.Anatomy.MRI("FMRI", path));
+                ResetIEEG();
+                ComputeMRITextures();
+                ComputeGUITextures();
+            }
+        }
         /// <summary>
         /// Reset the number of splits of the brain mesh
         /// </summary>
@@ -1997,7 +1803,6 @@ namespace HBP.Module3D
         public void UpdateGeometry()
         {
             SceneInformation.IsGeometryUpToDate = false;
-            ColumnManager.PlanesCutsCopy = Cuts;
             UpdateMeshesInformation();
             
             ComputeSimplifyMeshCut();
@@ -2379,9 +2184,6 @@ namespace HBP.Module3D
                 case Column3D.ColumnType.Base:
                     ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.Anatomy));
                     break;
-                case Column3D.ColumnType.FMRI:
-                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.FMRI));
-                    break;
                 case Column3D.ColumnType.IEEG:
                     Column3DIEEG columnIEEG = column as Column3DIEEG;
                     int siteID = site.Information.GlobalID;
@@ -2598,7 +2400,7 @@ namespace HBP.Module3D
                 }
 
                 // cuts
-                for (int jj = 0; jj < m_ColumnManager.PlanesCutsCopy.Count; ++jj)
+                for (int jj = 0; jj < m_Cuts.Count; ++jj)
                 {
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
@@ -2628,7 +2430,7 @@ namespace HBP.Module3D
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
-                for (int jj = 0; jj < m_ColumnManager.PlanesCutsCopy.Count; ++jj)
+                for (int jj = 0; jj < m_Cuts.Count; ++jj)
                 {
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
                     if (m_GeneratorNeedsUpdate) yield break;
@@ -2639,7 +2441,7 @@ namespace HBP.Module3D
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
-                for (int jj = 0; jj < m_ColumnManager.PlanesCutsCopy.Count; ++jj)
+                for (int jj = 0; jj < m_Cuts.Count; ++jj)
                 {
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap();
                     if (m_GeneratorNeedsUpdate) yield break;
