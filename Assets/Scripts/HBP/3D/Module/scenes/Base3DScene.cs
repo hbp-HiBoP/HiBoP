@@ -679,18 +679,9 @@ namespace HBP.Module3D
             m_ColumnManager.OnUpdateMRICalValues.AddListener(() =>
             {
                 if (!SceneInformation.IsGeometryUpToDate) return;
-
-                { //TEST (maybe FIXME : delete this, the visual effect is not very good)
-                  // recompute UV
-                    for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
-                        m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
-
-                    // update brain mesh object mesh filter (TODO update only UV)
-                    UpdateMeshesFromDLL();
-                }
-
                 ComputeMRITextures();
-                ResetIEEG();
+                //ComputeIEEGTextures();
+                ComputeGUITextures();
             });
             m_ColumnManager.OnUpdateIEEGSpan.AddListener((column) =>
             {
@@ -698,8 +689,11 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateIEEGAlpha.AddListener((column) =>
             {
-                if (SceneInformation.IsGeometryUpToDate)
-                    ComputeIEEGTexturesOfColumn(column);
+                ComputeIEEGTextures(column);
+                if (column.IsSelected)
+                {
+                    ComputeGUITextures();
+                }
             });
             m_ColumnManager.OnUpdateIEEGGain.AddListener((column) =>
             {
@@ -711,8 +705,12 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateColumnTimelineID.AddListener((column) =>
             {
-                ComputeIEEGTexturesOfColumn(column);
-                m_ColumnManager.UpdateColumnIEEGSitesRendering(column, SceneInformation);
+                ComputeIEEGTextures(column);
+                if (column.IsSelected)
+                {
+                    ComputeGUITextures();
+                }
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             });
             m_ColumnManager.OnChangeNumberOfROI.AddListener((column) =>
             {
@@ -741,9 +739,7 @@ namespace HBP.Module3D
             m_ColumnManager.OnSelectColumnManager.AddListener((columnManager) =>
             {
                 IsSelected = true;
-
-                ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
-                UpdateGUITextures();
+                ComputeGUITextures();
             });
             m_ColumnManager.OnSelectSite.AddListener((site) =>
             {
@@ -781,28 +777,15 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="indexCut"></param>
         /// <param name="indexColumn"></param>
-        private void ComputeMRITextures(int indexCut = -1, int indexColumn = -1)
+        private void ComputeMRITextures()
         {
-            bool allColumns = indexColumn == -1;
-            bool allCuts = indexCut == -1;
-
-            int[] columnsIndexes = allColumns ? Enumerable.Range(0, m_ColumnManager.Columns.Count).ToArray() : new int[1] { indexColumn };
-            int[] cutsIndexes = allCuts ? Enumerable.Range(0, Cuts.Count).ToArray() : new int[1] { indexCut };
-
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene compute_MRI_textures 0 create_MRI_texture ");
-
-            for (int ii = 0; ii < columnsIndexes.Length; ++ii)
-                for (int jj = 0; jj < cutsIndexes.Length; ++jj)
-                    m_ColumnManager.CreateMRITexture(cutsIndexes[jj], columnsIndexes[ii]);
-
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene compute_MRI_textures 1 compute_GUI_textures");
-            ComputeGUITextures(indexCut, m_ColumnManager.SelectedColumnID);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene compute_MRI_textures 2 update_GUI_textures");
-            UpdateGUITextures();
-            UnityEngine.Profiling.Profiler.EndSample();
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                foreach (Cut cut in m_Cuts)
+                {
+                    m_ColumnManager.CreateMRITexture(column, cut.ID);
+                }
+            }
         }
         /// <summary>
         /// 
@@ -810,203 +793,38 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="indexCut"></param>
         /// <param name="indexColumn"></param>
-        private void ComputeIEEGTextures(int indexCut = -1, int indexColumn = -1, bool surface = true, bool cuts = true, bool plots = true)
+        private void ComputeIEEGTextures(Column3DIEEG column = null)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-compute_IEEG_textures");
-
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-compute_IEEG_textures 0");
-            bool allColumns = indexColumn == -1;
-            bool allCuts = indexCut == -1;
-
-            int[] columnsIndexes = allColumns ? Enumerable.Range(0, m_ColumnManager.Columns.Count).ToArray() : new int[1] { indexColumn };
-            int[] cutsIndexes = allCuts ? Enumerable.Range(0, Cuts.Count).ToArray() : new int[1] { indexCut };
-
-            for (int ii = 0; ii < columnsIndexes.Length; ++ii)
+            if (column)
             {
-                if (ColumnManager.Columns[columnsIndexes[ii]].Type != Column3D.ColumnType.IEEG)
-                    continue;
-
-                Column3DIEEG currCol = (Column3DIEEG)ColumnManager.Columns[columnsIndexes[ii]];
-
-                // brain surface
-                if (surface)
-                    if (!m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(m_ColumnManager.ColumnsIEEG[columnsIndexes[ii]]))
-                        continue;
-
-                // brain cuts
-                if (cuts)
-                    for (int jj = 0; jj < cutsIndexes.Length; ++jj)
-                        m_ColumnManager.ColorCutsTexturesWithIEEG(m_ColumnManager.ColumnsIEEG[columnsIndexes[ii]], cutsIndexes[jj]);
-
-                if (plots)
+                m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(column);
+                column.ColorCutsTexturesWithIEEG();
+            }
+            else
+            {
+                foreach (Column3DIEEG col in m_ColumnManager.ColumnsIEEG)
                 {
-                    currCol.UpdateSitesRendering(SceneInformation, null);
+                    m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(col);
+                    col.ColorCutsTexturesWithIEEG();
                 }
             }
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-compute_IEEG_textures 1 compute_GUI_textures");
-            ComputeGUITextures(indexCut, m_ColumnManager.SelectedColumnID);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-compute_IEEG_textures 2 update_GUI_textures");
-            UpdateGUITextures();
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.EndSample();
-        }
-        /// <summary>
-        /// Compute IEEG textures for a specific column
-        /// </summary>
-        /// <param name="column"></param>
-        private void ComputeIEEGTexturesOfColumn(Column3DIEEG column)
-        {
-            if (!SceneInformation.IsGeneratorUpToDate) return;
-
-            UnityEngine.Profiling.Profiler.BeginSample("compute_IEEG_textures");
-
-            UnityEngine.Profiling.Profiler.BeginSample("compute_IEEG_textures 0");
-
-            if (!m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(column)) return;
-
-            for (int jj = 0; jj < Cuts.Count; ++jj)
-            {
-                m_ColumnManager.ColorCutsTexturesWithIEEG(column, jj);
-            }
-
-            column.UpdateSitesRendering(SceneInformation, null);
-
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            if (column == m_ColumnManager.SelectedColumn)
-            {
-                UnityEngine.Profiling.Profiler.BeginSample("compute_IEEG_textures 1 compute_GUI_textures");
-                ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
-                UnityEngine.Profiling.Profiler.EndSample();
-
-                UnityEngine.Profiling.Profiler.BeginSample("compute_IEEG_textures 2 update_GUI_textures");
-                UpdateGUITextures();
-                UnityEngine.Profiling.Profiler.EndSample();
-            }
-
-            UnityEngine.Profiling.Profiler.EndSample();
-        }
-        /// <summary>
-        /// When to call ? changes in FMRIColumn.alpha / calMin/ calMax/ DLLCutColorScheme
-        /// </summary>
-        /// <param name="indexCut"></param>
-        /// <param name="indexColumn"></param>
-        /// <param name="surface"></param>
-        /// <param name="cuts"></param>
-        private void ComputeFMRITextures(int indexCut = -1, int indexColumn = -1, bool surface = true, bool cuts = true)
-        {
-            bool allColumns = indexColumn == -1;
-            bool allCuts = indexCut == -1;
-
-            int[] columnsIndexes = allColumns ? Enumerable.Range(0, m_ColumnManager.ColumnsFMRI.Count).ToArray() : new int[1] { indexColumn };
-            int[] cutsIndexes = allCuts ? Enumerable.Range(0, Cuts.Count).ToArray() : new int[1] { indexCut };
-
-            for (int ii = 0; ii < columnsIndexes.Length; ++ii)
-            {
-                //Column3DViewFMRI currCol = Column3DViewManager.FMRI_col(columnsIndexes[ii]);
-
-                // brain cuts
-                if (cuts)
-                    for (int jj = 0; jj < cutsIndexes.Length; ++jj)
-                        m_ColumnManager.ColorCutsTexturesWithFMRI(columnsIndexes[ii], cutsIndexes[jj]);
-            }
-
-            ComputeGUITextures(indexCut, indexColumn);
-
-            UpdateGUITextures();
         }
         /// <summary>
         /// Compute textures to be displayed on the UI
         /// </summary>
         /// <param name="indexCut"></param>
         /// <param name="indexColumn"></param>
-        private void ComputeGUITextures(int indexCut = -1, int indexColumn = -1)
+        private void ComputeGUITextures()
         {
-            bool allColumns = indexColumn == -1;
-            bool allCuts = indexCut == -1;
-
-            int[] columnsIndexes = allColumns ? Enumerable.Range(0, m_ColumnManager.Columns.Count).ToArray() : new int[1] { indexColumn };
-            int[] cutsIndexes = allCuts ? Enumerable.Range(0, Cuts.Count).ToArray() : new int[1] { indexCut };
-
-            for (int ii = 0; ii < columnsIndexes.Length; ++ii)
+            Column3D column = m_ColumnManager.SelectedColumn;
+            if (column)
             {
-                Column3D currCol = m_ColumnManager.Columns[columnsIndexes[ii]];
-
-                for (int jj = 0; jj < Cuts.Count; ++jj)
+                column.CreateGUIMRITextures(m_Cuts);
+                column.ResizeGUIMRITextures();
+                foreach (Cut cut in m_Cuts)
                 {
-                    switch (currCol.Type)
-                    {
-                        case Column3D.ColumnType.Base:
-                            m_ColumnManager.CreateGUIMRITexture(cutsIndexes[jj], columnsIndexes[ii]);
-                            break;
-                        case Column3D.ColumnType.FMRI:
-                            m_ColumnManager.CreateGUIFMRITexture(cutsIndexes[jj], columnsIndexes[ii]);
-                            break;
-                        case Column3D.ColumnType.IEEG:
-                            if (!SceneInformation.IsGeneratorUpToDate)
-                                m_ColumnManager.CreateGUIMRITexture(cutsIndexes[jj], columnsIndexes[ii]);
-                            else
-                                m_ColumnManager.CreateGUIIEEGTexture(cutsIndexes[jj], columnsIndexes[ii]);
-                            break;
-                        default:
-                            break;
-                    }
+                    cut.OnUpdateGUITextures.Invoke(column.GUIBrainCutTextures[cut.ID]);
                 }
-                switch (currCol.Type)
-                {
-                    case Column3D.ColumnType.Base:
-                        currCol.ResizeGUIMRITextures();
-                        break;
-                    case Column3D.ColumnType.FMRI:
-                        ((Column3DFMRI)currCol).ResizeGUIMRITexturesWithFMRI();
-                        break;
-                    case Column3D.ColumnType.IEEG:
-                        if (!SceneInformation.IsGeneratorUpToDate)
-                            currCol.ResizeGUIMRITextures();
-                        else
-                            ((Column3DIEEG)currCol).ResizeGUIMRITexturesWithIEEG();
-                        break;
-                    default:
-                        currCol.ResizeGUIMRITextures();
-                        break;
-                }
-            }
-        }
-        /// <summary>
-        /// Update textures displayed on the UI
-        /// </summary>
-        /// <param name="indexCut"></param>
-        private void UpdateGUITextures()
-        {
-            Column3D currCol = m_ColumnManager.SelectedColumn;
-            if (!currCol) return;
-
-            List<Texture2D> texturesToDisplay = null;
-            switch (currCol.Type)
-            {
-                case Column3D.ColumnType.Base:
-                    texturesToDisplay = currCol.GUIBrainCutTextures;
-                    break;
-                case Column3D.ColumnType.FMRI:
-                    texturesToDisplay = ((Column3DFMRI)currCol).GUIBrainCutWithFMRITextures;
-                    break;
-                case Column3D.ColumnType.IEEG:
-                    if (!SceneInformation.IsGeneratorUpToDate)
-                        texturesToDisplay = currCol.GUIBrainCutTextures;
-                    else
-                        texturesToDisplay = ((Column3DIEEG)currCol).GUIBrainCutWithIEEGTextures;
-                    break;
-                default:
-                    break;
-            }
-
-            foreach (Cut cut in Cuts)
-            {
-                cut.OnUpdateGUITextures.Invoke(texturesToDisplay[cut.ID]);
             }
         }
         /// <summary>
@@ -1117,10 +935,10 @@ namespace HBP.Module3D
             // Update camera
             OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
 
-            ComputeMRITextures();
+            //ComputeMRITextures();
 
             OnSendFMRIParameters.Invoke(fmriParams);
-            ComputeFMRITextures(-1, -1);
+            //ComputeFMRITextures(-1, -1);
             
             return true;
         }
@@ -1135,9 +953,8 @@ namespace HBP.Module3D
             // Update plots visibility
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
 
-            ComputeMRITextures();
-            ComputeFMRITextures(-1, -1);
-            UpdateGUITextures();
+            //ComputeMRITextures();
+            //ComputeFMRITextures(-1, -1);
         }
         /// <summary>
         /// Actions to perform when clicking on a site
@@ -1205,7 +1022,7 @@ namespace HBP.Module3D
                 SceneInformation.IsGeneratorUpToDate = false;
                 m_GeneratorNeedsUpdate = true;
             }
-            UpdateGUITextures();
+            ComputeGUITextures();
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             ApplicationState.Module3D.OnResetIEEG.Invoke();
             OnIEEGOutdated.Invoke(!IsLatencyModeEnabled);
@@ -1240,7 +1057,10 @@ namespace HBP.Module3D
             SharedMaterials.Brain.BrainMaterials[this].SetTexture("_ColorTex", ColumnManager.BrainColorMapTexture);
 
             if (SceneInformation.IsGeometryUpToDate && SceneInformation.IsGeneratorUpToDate)
+            {
                 ComputeIEEGTextures();
+                ComputeGUITextures();
+            }
 
             OnChangeColormap.Invoke(color);
         }
@@ -1706,7 +1526,7 @@ namespace HBP.Module3D
         public void UpdateFMRICalMin(float value, int columnId)
         {
             m_ColumnManager.ColumnsFMRI[columnId].CalMin = value;
-            ComputeFMRITextures(-1, -1);
+            //ComputeFMRITextures(-1, -1);
         }
         /// <summary>
         /// Update the cal max value of the input FMRI column
@@ -1716,7 +1536,7 @@ namespace HBP.Module3D
         public void UpdateFMRICalMax(float value, int columnId)
         {
             m_ColumnManager.ColumnsFMRI[columnId].CalMax = value;
-            ComputeFMRITextures(-1, -1);
+            //ComputeFMRITextures(-1, -1);
         }
         /// <summary>
         /// Update the alpha value of the input FMRI column
@@ -1726,7 +1546,7 @@ namespace HBP.Module3D
         public void UpdateFMRIAlpha(float value, int columnId)
         {
             m_ColumnManager.ColumnsFMRI[columnId].Alpha = value;
-            ComputeFMRITextures(-1, -1);
+            //ComputeFMRITextures(-1, -1);
         }
         /// <summary>
         /// Add a FMRI column to this scene
@@ -1811,11 +1631,8 @@ namespace HBP.Module3D
         public void FinalizeInitialization()
         {
             m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
-            ComputeGUITextures(-1, m_ColumnManager.SelectedColumnID);
-            UpdateGUITextures();
-            UpdateGeometry();
             LoadConfiguration();
-            m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
+            ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
             SceneInformation.IsSceneInitialized = true;
         }
         /// <summary>
@@ -1849,6 +1666,7 @@ namespace HBP.Module3D
                 newCut.Position = cut.Position;
                 UpdateCutPlane(newCut);
             }
+            ColumnManager.PlanesCutsCopy = Cuts;
 
             for (int i = 0; i < Visualization.Configuration.Views.Count; i++)
             {
@@ -2181,19 +1999,15 @@ namespace HBP.Module3D
             SceneInformation.IsGeometryUpToDate = false;
             ColumnManager.PlanesCutsCopy = Cuts;
             UpdateMeshesInformation();
-
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_meshes_cuts 1");
+            
             ComputeSimplifyMeshCut();
             if (!CuttingMesh)
             {
                 ComputeMeshesCut();
             }
-            UnityEngine.Profiling.Profiler.EndSample();
 
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-Base3DScene-Update compute_MRI_textures 1");
             ComputeMRITextures();
-            ComputeFMRITextures();
-            UnityEngine.Profiling.Profiler.EndSample();
+            ComputeGUITextures();
 
             SceneInformation.IsGeometryUpToDate = true;
         }
@@ -2436,31 +2250,7 @@ namespace HBP.Module3D
             // update cuts textures
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
-                switch (column.Type)
-                {
-                    case Column3D.ColumnType.Base:
-                        m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = column.BrainCutTextures[ii];
-                        break;
-                    case Column3D.ColumnType.FMRI:
-                        m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = ((Column3DFMRI)column).BrainCutWithFMRITextures[ii];
-                        break;
-                    case Column3D.ColumnType.IEEG:
-                        if (!SceneInformation.IsGeneratorUpToDate)
-                        {
-                            UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-BrainCutTextures");
-                            m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = column.BrainCutTextures[ii];
-                            UnityEngine.Profiling.Profiler.EndSample();
-                        }
-                        else
-                        {
-                            UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender-BrainCutTexturesWithEEG");
-                            m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = ((Column3DIEEG)column).BrainCutWithIEEGTextures[ii];
-                            UnityEngine.Profiling.Profiler.EndSample();
-                        }
-                        break;
-                    default:
-                        break;
-                }
+                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = column.BrainCutTextures[ii];
             }
             
             if (!column.IsRenderingUpToDate)
@@ -2742,6 +2532,7 @@ namespace HBP.Module3D
             {
                 FinalizeGeneratorsComputing();
                 ComputeIEEGTextures();
+                ComputeGUITextures();
             }
         }
         private IEnumerator c_LoadIEEG()

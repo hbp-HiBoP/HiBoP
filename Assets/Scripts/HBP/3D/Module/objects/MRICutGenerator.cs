@@ -217,15 +217,11 @@ namespace HBP.Module3D
             /// <param name="colorScheme"></param>
             /// <param name="notInBrainCol"></param>
             /// <returns></returns>
-            public bool FillTextureWithIEEG(Column3DIEEG IEEGColumn, DLL.Texture colorScheme, Color notInBrainCol)
+            public bool FillTextureWithIEEG(Column3DIEEG IEEGColumn, DLL.Texture colorScheme)
             {
                 bool noError = false;
-                float[] notInBrainColor = new float[3];
-                notInBrainColor[0] = notInBrainCol.b;
-                notInBrainColor[1] = notInBrainCol.r;
-                notInBrainColor[2] = notInBrainCol.r;
                 noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, IEEGColumn.CurrentTimeLineID, colorScheme.getHandle(), 
-                IEEGColumn.IEEGParameters.AlphaMin, IEEGColumn.IEEGParameters.AlphaMax, notInBrainColor)==1;
+                IEEGColumn.IEEGParameters.AlphaMin, IEEGColumn.IEEGParameters.AlphaMax, new float[] { 0, 0, 0 })==1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)

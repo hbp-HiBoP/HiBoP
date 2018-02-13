@@ -114,8 +114,6 @@ namespace HBP.Module3D
 
         // textures
         public List<Vector2[]> UVNull = null;                   /**< null uv vectors */ // // new List<Vector2[]>(); 
-        public Color NotInBrainColor = Color.black;
-
 
         public List<DLL.MRIBrainGenerator> DLLCommonBrainTextureGeneratorList = null; /**< common generators for each brain part  */
 
@@ -788,128 +786,20 @@ namespace HBP.Module3D
         /// Create the cut mesh texture dll and texture2D
         /// </summary>
         /// <param name="indexCut"></param>
-        public void CreateMRITexture(int indexCut, int indexColumn)
+        public void CreateMRITexture(Column3D column, int cutID)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("create_MRI_texture");
-                Columns[indexColumn].CreateMRITexture(DLLMRIGeometryCutGeneratorList[indexCut], SelectedMRI.Volume, indexCut, MRICalMinFactor, MRICalMaxFactor);
-            UnityEngine.Profiling.Profiler.EndSample();
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="indexCut"></param>
-        /// <param name="indexColumn"></param>
-        public void CreateGUIMRITexture(int indexCut, int indexColumn)
-        {
-            string orientation = "";
-            switch (PlanesCutsCopy[indexCut].Orientation)
+            column.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor);
+            if (false)
             {
-                case CutOrientation.Axial:
-                    orientation = "Axial";
-                    break;
-                case CutOrientation.Coronal:
-                    orientation = "Coronal";
-                    break;
-                case CutOrientation.Sagital:
-                    orientation = "Sagital";
-                    break;
-                case CutOrientation.Custom:
-                    orientation = "custom";
-                    break;
-                default:
-                    orientation = "custom";
-                    break;
+                // TODO : ColorCutsWithFMRI
+                //Column3DFMRI column = ColumnsFMRI[indexColumn];
+                //DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[indexCut];
+                //generator.FillTextureWithFMRI(column, DLLVolumeFMriList[indexColumn]);
+
+                //DLL.Texture cutTexture = column.DLLBrainCutTextures[indexCut];
+                //generator.UpdateTextureWithFMRI(cutTexture);
+                //cutTexture.UpdateTexture2D(column.BrainCutTextures[indexCut]); // update mesh cut 2D texture
             }
-
-            Columns[indexColumn].CreateGUIMRITexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom" && ApplicationState.GeneralSettings.ShowCutLines);            
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="indexCut"></param>
-        /// <param name="indexColumn"></param>
-        public void CreateGUIIEEGTexture(int indexCut, int indexColumn)
-        {
-            string orientation = "";
-            switch (PlanesCutsCopy[indexCut].Orientation)
-            {
-                case CutOrientation.Axial:
-                    orientation = "Axial";
-                    break;
-                case CutOrientation.Coronal:
-                    orientation = "Coronal";
-                    break;
-                case CutOrientation.Sagital:
-                    orientation = "Sagital";
-                    break;
-                case CutOrientation.Custom:
-                    orientation = "custom";
-                    break;
-                default:
-                    orientation = "custom";
-                    break;
-            }
-
-            ((Column3DIEEG)Columns[indexColumn]).CreateGUIIEEGTexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom" && ApplicationState.GeneralSettings.ShowCutLines);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="indexCut"></param>
-        /// <param name="indexColumn"></param>
-        public void CreateGUIFMRITexture(int indexCut, int indexColumn)
-        {
-            string orientation = "";
-            switch (PlanesCutsCopy[indexCut].Orientation)
-            {
-                case CutOrientation.Axial:
-                    orientation = "Axial";
-                    break;
-                case CutOrientation.Coronal:
-                    orientation = "Coronal";
-                    break;
-                case CutOrientation.Sagital:
-                    orientation = "Sagital";
-                    break;
-                case CutOrientation.Custom:
-                    orientation = "custom";
-                    break;
-                default:
-                    orientation = "custom";
-                    break;
-            }
-
-            ((Column3DFMRI)Columns[indexColumn]).CreateGUIFMRITexture(indexCut, orientation, PlanesCutsCopy[indexCut].Flip, PlanesCutsCopy, orientation != "custom" && ApplicationState.GeneralSettings.ShowCutLines);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="indexColumn"></param>
-        /// <param name="indexCut"></param>
-        /// <param name="thresholdInfluence"></param>
-        public void ColorCutsTexturesWithIEEG(Column3DIEEG column, int indexCut)
-        {       
-            DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[indexCut];        
-            generator.FillTextureWithIEEG(column, column.DLLCutColorScheme, NotInBrainColor);
-
-            DLL.Texture cutTexture = column.DLLBrainCutWithIEEGTextures[indexCut];
-            generator.UpdateTextureWithIEEG(cutTexture);
-            cutTexture.UpdateTexture2D(column.BrainCutWithIEEGTextures[indexCut]); // update mesh cut 2D texture
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="indexColumn"></param>
-        /// <param name="indexCut"></param>
-        public void ColorCutsTexturesWithFMRI(int indexColumn, int indexCut)
-        {
-            Column3DFMRI column = ColumnsFMRI[indexColumn];
-            DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[indexCut];
-            generator.FillTextureWithFMRI(column, DLLVolumeFMriList[indexColumn]);
-
-            DLL.Texture cutTexture = column.DLLBrainCutWithFMRITextures[indexCut];
-            generator.UpdateTextureWithFMRI(cutTexture);
-            cutTexture.UpdateTexture2D(column.BrainCutWithFMRITextures[indexCut]); // update mesh cut 2D texture
         }
         /// <summary>
         /// Compute the amplitudes textures coordinates for the brain mesh
@@ -959,14 +849,6 @@ namespace HBP.Module3D
                 }
                 column.UpdateSitesRendering(data, latencyFile);
             }
-        }
-        public void UpdateColumnIEEGSitesRendering(Column3DIEEG column, SceneStatesInfo data)
-        {
-            Latencies latencyFile = null;
-            if (column.CurrentLatencyFile != -1)
-                latencyFile = SelectedImplantation.Latencies[column.CurrentLatencyFile];
-
-            column.UpdateSitesRendering(data, latencyFile);
         }
         /// <summary>
         /// Check the integrity of some IEEG parameters and show a warning dialog if required
