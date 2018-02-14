@@ -108,7 +108,7 @@ namespace HBP.UI.Module3D
                 m_SiteToolbar = value;
             }
         }
-        
+
         [SerializeField, Candlelight.PropertyBackingField]
         private CCEPToolbar m_CCEPToolbar;
         /// <summary>
@@ -123,6 +123,23 @@ namespace HBP.UI.Module3D
             set
             {
                 m_CCEPToolbar = value;
+            }
+        }
+
+        [SerializeField, Candlelight.PropertyBackingField]
+        private FMRIToolbar m_FMRIToolbar;
+        /// <summary>
+        /// Toolbar for the sites settings
+        /// </summary>
+        public FMRIToolbar FMRIToolbar
+        {
+            get
+            {
+                return m_FMRIToolbar;
+            }
+            set
+            {
+                m_FMRIToolbar = value;
             }
         }
 
@@ -185,6 +202,7 @@ namespace HBP.UI.Module3D
             m_TriangleToolbar.Initialize();
             m_ConfigurationToolbar.Initialize();
             m_CCEPToolbar.Initialize();
+            m_FMRIToolbar.Initialize();
 
             CurrentToolbar = m_SceneSettingsToolbar;
 
@@ -197,6 +215,7 @@ namespace HBP.UI.Module3D
             m_TriangleToolbar.gameObject.SetActive(false);
             m_ConfigurationToolbar.gameObject.SetActive(false);
             m_CCEPToolbar.gameObject.SetActive(false);
+            m_FMRIToolbar.gameObject.SetActive(false);
         }
         #endregion
     }

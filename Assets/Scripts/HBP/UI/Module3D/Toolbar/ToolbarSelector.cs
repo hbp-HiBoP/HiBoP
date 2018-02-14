@@ -69,6 +69,12 @@ namespace HBP.UI.Module3D
         private Toggle m_TriangleToggle;
 
         /// <summary>
+        /// FMRI Toggle
+        /// </summary>
+        [SerializeField]
+        private Toggle m_FMRIToggle;
+
+        /// <summary>
         /// Toggle group associated to the left menu toggles
         /// </summary>
         private ToggleGroup m_ToggleGroup;
@@ -93,6 +99,7 @@ namespace HBP.UI.Module3D
             m_Toolbars.Add(m_ROIToggle, m_ToolbarMenu.ROIToolbar);
             m_Toolbars.Add(m_TriangleToggle, m_ToolbarMenu.TriangleToolbar);
             m_Toolbars.Add(m_CCEPToggle, m_ToolbarMenu.CCEPToolbar);
+            m_Toolbars.Add(m_FMRIToggle, m_ToolbarMenu.FMRIToolbar);
 
             AddListeners();
         }
@@ -170,6 +177,13 @@ namespace HBP.UI.Module3D
                 if (isOn)
                 {
                     ChangeToolbar(m_CCEPToggle);
+                }
+            });
+            m_FMRIToggle.onValueChanged.AddListener((isOn) =>
+            {
+                if (isOn)
+                {
+                    ChangeToolbar(m_FMRIToggle);
                 }
             });
         }

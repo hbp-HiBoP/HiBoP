@@ -29,9 +29,6 @@ namespace HBP.UI.Module3D
                 case Column3D.ColumnType.Base:
                     IsActive = false;
                     break;
-                case Column3D.ColumnType.FMRI:
-                    IsActive = false;
-                    break;
                 case Column3D.ColumnType.IEEG:
                     Column3DIEEG col = (Column3DIEEG)column;
                     col.OnUpdateCurrentTimelineID.AddListener(() =>

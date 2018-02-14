@@ -32,14 +32,7 @@ namespace HBP.Module3D
             }
         }
         // data
-        public Data.Visualization.Column ColumnData = null; /**< column data formalized by the unity main UI part */
-
-        // textures
-        public List<Texture2D> BrainCutWithIEEGTextures = null;
-        public List<Texture2D> GUIBrainCutWithIEEGTextures = null;
-
-        public List<DLL.Texture> DLLBrainCutWithIEEGTextures = null;
-        public List<DLL.Texture> DLLGUIBrainCutWithIEEGTextures = null;
+        public Data.Visualization.Column ColumnData = null;
 
         // IEEG
         private int m_CurrentTimeLineID = 0;
@@ -404,35 +397,6 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Init class of the data column
-        /// </summary>
-        /// <param name="idColumn"></param>
-        /// <param name="nbCuts"></param>
-        /// <param name="plots"></param>
-        /// <param name="plotsGO"></param>
-        public override void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList plots, List<GameObject> PlotsPatientParent, List<GameObject> siteList)
-        {
-            // call parent init
-            base.Initialize(idColumn, nbCuts, plots, PlotsPatientParent, siteList);
-
-            // GO textures
-            BrainCutWithIEEGTextures = new List<Texture2D>(nbCuts);
-            GUIBrainCutWithIEEGTextures = new List<Texture2D>(nbCuts);
-            for (int jj = 0; jj < nbCuts; ++jj)
-            {                
-                BrainCutWithIEEGTextures.Add(Texture2Dutility.GenerateCut(1,1));
-                GUIBrainCutWithIEEGTextures.Add(Texture2Dutility.GenerateGUI(1, 1));                
-            }
-            // DLL textures
-            DLLBrainCutWithIEEGTextures = new List<DLL.Texture>(nbCuts);
-            DLLGUIBrainCutWithIEEGTextures = new List<DLL.Texture>(nbCuts);
-            for (int jj = 0; jj < nbCuts; ++jj)
-            {
-                DLLBrainCutWithIEEGTextures.Add(new DLL.Texture());
-                DLLGUIBrainCutWithIEEGTextures.Add(new DLL.Texture());
-            }
-        }
         public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             base.UpdateSites(sites, sitesPatientParent, siteList);
@@ -654,60 +618,6 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
-        /// Update the cut planes number of the 3D column view
-        /// </summary>
-        /// <param name="newCutsNb"></param>
-        public override void UpdateCutsPlanesNumber(int diffCuts)
-        {
-            base.UpdateCutsPlanesNumber(diffCuts);            
-            if (diffCuts < 0)
-            {
-                for (int ii = 0; ii < -diffCuts; ++ii)
-                {
-                    // GO textures 
-                    BrainCutWithIEEGTextures.Add(Texture2Dutility.GenerateCut());
-                    GUIBrainCutWithIEEGTextures.Add(Texture2Dutility.GenerateGUI());
-
-                    // DLL textures
-                    DLLBrainCutWithIEEGTextures.Add(new DLL.Texture());
-                    DLLGUIBrainCutWithIEEGTextures.Add(new DLL.Texture());
-                }
-            }
-            else if (diffCuts > 0)
-            {          
-                for (int ii = 0; ii < diffCuts; ++ii)
-                {
-                    // GO textures                
-                    Destroy(BrainCutWithIEEGTextures[BrainCutWithIEEGTextures.Count - 1]);                    
-                    BrainCutWithIEEGTextures.RemoveAt(BrainCutWithIEEGTextures.Count - 1);
-
-                    Destroy(GUIBrainCutWithIEEGTextures[GUIBrainCutWithIEEGTextures.Count - 1]);
-                    GUIBrainCutWithIEEGTextures.RemoveAt(GUIBrainCutWithIEEGTextures.Count - 1);
-
-                    // DLL textures
-                    DLLBrainCutWithIEEGTextures.RemoveAt(DLLBrainCutWithIEEGTextures.Count - 1);
-                    DLLGUIBrainCutWithIEEGTextures.RemoveAt(DLLGUIBrainCutWithIEEGTextures.Count - 1);
-                }
-            }
-        }
-        /// <summary>
-        ///  Clean all dll data and unity textures
-        /// </summary>
-        public override void Clear()
-        {
-            base.Clear();
-
-            // plots
-            m_RawElectrodes.Dispose();
-
-            // textures 2D
-            for (int ii = 0; ii < BrainCutWithIEEGTextures.Count; ++ii)
-            {                
-                Destroy(BrainCutWithIEEGTextures[ii]);
-                Destroy(GUIBrainCutWithIEEGTextures[ii]);
-            }
-        }
-        /// <summary>
         /// Update the plots rendering (iEEG or CCEP)
         /// </summary>
         public override void UpdateSitesRendering(SceneStatesInfo data, Latencies latenciesFile)
@@ -836,36 +746,19 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// 
+        /// Color the specified cut with IEEG
         /// </summary>
-        /// <param name="indexCut"></param>
-        /// <param name="orientation"></param>
-        /// <param name="flip"></param>
-        /// <param name="cutPlanes"></param>
-        /// <param name="drawLines"></param>
-        public void CreateGUIIEEGTexture(int indexCut, string orientation, bool flip, List<Cut> cutPlanes, bool drawLines)
+        /// <param name="cutID"></param>
+        public void ColorCutsTexturesWithIEEG()
         {
-            if (DLLBrainCutTextures[indexCut].TextureSize[0] > 0)
+            for (int i = 0; i < DLLMRITextureCutGenerators.Count; ++i)
             {
-                DLLGUIBrainCutWithIEEGTextures[indexCut].CopyAndRotate(DLLBrainCutWithIEEGTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
-                DLLGUIBrainCutWithIEEGTextures[indexCut].UpdateTexture2D(GUIBrainCutWithIEEGTextures[indexCut]);
-            }
-        }
-        public void ResizeGUIMRITexturesWithIEEG()
-        {
-            int max = 0;
-            foreach (var texture in DLLGUIBrainCutWithIEEGTextures)
-            {
-                int textureMax = texture.TextureSize.Max();
-                if (textureMax > max)
-                {
-                    max = textureMax;
-                }
-            }
-            for (int i = 0; i < DLLGUIBrainCutWithIEEGTextures.Count; ++i)
-            {
-                DLLGUIBrainCutWithIEEGTextures[i].ResizeToSquare(max);
-                DLLGUIBrainCutWithIEEGTextures[i].UpdateTexture2D(GUIBrainCutWithIEEGTextures[i]);
+                MRITextureCutGenerator generator = DLLMRITextureCutGenerators[i];
+                generator.FillTextureWithIEEG(this, DLLCutColorScheme);
+
+                DLL.Texture cutTexture = DLLBrainCutTextures[i];
+                generator.UpdateTextureWithIEEG(cutTexture);
+                cutTexture.UpdateTexture2D(BrainCutTextures[i]);
             }
         }
         #endregion

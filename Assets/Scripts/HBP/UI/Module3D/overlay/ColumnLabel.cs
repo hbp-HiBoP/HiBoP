@@ -73,9 +73,6 @@ namespace HBP.UI.Module3D
                 case Column3D.ColumnType.Base:
                     IsActive = false;
                     break;
-                case Column3D.ColumnType.FMRI:
-                    IsActive = true;
-                    break;
                 case Column3D.ColumnType.IEEG:
                     IsActive = true;
                     break;

@@ -23,7 +23,7 @@ namespace HBP.Module3D
         #region Properties
         public enum ColumnType
         {
-            Base, FMRI, IEEG
+            Base, IEEG
         }
         public virtual ColumnType Type
         {
@@ -502,6 +502,9 @@ namespace HBP.Module3D
             // textures 2D
             for (int ii = 0; ii < BrainCutTextures.Count; ++ii)
                 Destroy(BrainCutTextures[ii]);
+
+            // plots
+            m_RawElectrodes.Dispose();
         }
         /// <summary>
         /// 
@@ -810,14 +813,17 @@ namespace HBP.Module3D
         /// <param name="indexCut"></param>
         /// <param name="orientation"></param>
         /// <param name="flip"></param>
-        /// <param name="cutPlanes"></param>
+        /// <param name="cuts"></param>
         /// <param name="drawLines"></param>
-        public void CreateGUIMRITexture(int indexCut, string orientation, bool flip, List<Cut> cutPlanes, bool drawLines)
+        public void CreateGUIMRITextures(List<Cut> cuts)
         {
-            if (DLLBrainCutTextures[indexCut].TextureSize[0] > 0)
-            { 
-                DLLGUIBrainCutTextures[indexCut].CopyAndRotate(DLLBrainCutTextures[indexCut], orientation, flip, drawLines, indexCut, cutPlanes, DLLMRITextureCutGenerators[indexCut]);
-                DLLGUIBrainCutTextures[indexCut].UpdateTexture2D(GUIBrainCutTextures[indexCut]);
+            foreach (Cut cut in cuts)
+            {
+                if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
+                {
+                    DLLGUIBrainCutTextures[cut.ID].CopyAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, ApplicationState.GeneralSettings.ShowCutLines, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
+                    DLLGUIBrainCutTextures[cut.ID].UpdateTexture2D(GUIBrainCutTextures[cut.ID]);
+                }
             }
         }
         public void ResizeGUIMRITextures()

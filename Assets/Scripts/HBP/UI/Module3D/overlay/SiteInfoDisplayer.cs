@@ -52,11 +52,6 @@ namespace HBP.UI.Module3D
                             m_CCEP.SetActive(false);
                             m_Atlas.SetActive(true);
                             break;
-                        case SiteInformationDisplayMode.FMRI:
-                            m_IEEG.SetActive(false);
-                            m_CCEP.SetActive(false);
-                            m_Atlas.SetActive(false);
-                            break;
                         case SiteInformationDisplayMode.CCEP:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(true);
@@ -77,8 +72,6 @@ namespace HBP.UI.Module3D
                         case SiteInformationDisplayMode.IEEG:
                             SetIEEG(siteInfo);
                             SetAtlas(siteInfo);
-                            break;
-                        case SiteInformationDisplayMode.FMRI:
                             break;
                         case SiteInformationDisplayMode.CCEP:
                             SetCCEP(siteInfo);
