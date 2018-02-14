@@ -1601,7 +1601,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Load a FMRI to this scene
         /// </summary>
-        public void LoadFMRI()
+        public bool LoadFMRI()
         {
             string[] filters = new string[] { "nii", "img" };
             string path = DLL.QtGUI.GetExistingFileName(filters, "Select an fMRI file");
@@ -1611,7 +1611,19 @@ namespace HBP.Module3D
                 ResetIEEG();
                 ComputeMRITextures();
                 ComputeGUITextures();
+                return true;
             }
+            return false;
+        }
+        /// <summary>
+        /// Unload the FMRI of this scene
+        /// </summary>
+        public void UnloadFMRI()
+        {
+            m_ColumnManager.FMRI = null;
+            ResetIEEG();
+            ComputeMRITextures();
+            ComputeGUITextures();
         }
         /// <summary>
         /// Reset the number of splits of the brain mesh

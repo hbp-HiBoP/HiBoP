@@ -252,6 +252,23 @@ namespace HBP.Module3D
                 }
             }
         }
+        public float FMRICalMin
+        {
+            get
+            {
+                if (FMRI == null) return 0;
+                return m_FMRICalMinFactor * (FMRI.Volume.ExtremeValues.computedCalMax - FMRI.Volume.ExtremeValues.computedCalMin) + FMRI.Volume.ExtremeValues.computedCalMin;
+            }
+            set
+            {
+                if (FMRI == null)
+                {
+                    FMRICalMinFactor = 0;
+                    return;
+                }
+                FMRICalMinFactor = (value - FMRI.Volume.ExtremeValues.computedCalMin) / (FMRI.Volume.ExtremeValues.computedCalMax - FMRI.Volume.ExtremeValues.computedCalMin);
+            }
+        }
 
         private float m_FMRICalMaxFactor = 0.6f;
         /// <summary>
@@ -270,6 +287,23 @@ namespace HBP.Module3D
                     m_FMRICalMaxFactor = value;
                     OnUpdateFMRIParameters.Invoke();
                 }
+            }
+        }
+        public float FMRICalMax
+        {
+            get
+            {
+                if (FMRI == null) return 0;
+                return m_FMRICalMaxFactor * (FMRI.Volume.ExtremeValues.computedCalMax - FMRI.Volume.ExtremeValues.computedCalMin) + FMRI.Volume.ExtremeValues.computedCalMin;
+            }
+            set
+            {
+                if (FMRI == null)
+                {
+                    FMRICalMaxFactor = 1.0f;
+                    return;
+                }
+                FMRICalMaxFactor = (value - FMRI.Volume.ExtremeValues.computedCalMin) / (FMRI.Volume.ExtremeValues.computedCalMax - FMRI.Volume.ExtremeValues.computedCalMin);
             }
         }
 
@@ -774,12 +808,14 @@ namespace HBP.Module3D
             column.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor);
             if (FMRI != null)
             {
+                UnityEngine.Profiling.Profiler.BeginSample("Compute FMRI textures");
                 DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[cutID];
                 generator.FillTextureWithFMRI(column, FMRI.Volume, m_FMRICalMinFactor, m_FMRICalMaxFactor, m_FMRIAlpha);
 
                 DLL.Texture cutTexture = column.DLLBrainCutTextures[cutID];
                 generator.UpdateTextureWithFMRI(cutTexture);
                 cutTexture.UpdateTexture2D(column.BrainCutTextures[cutID]);
+                UnityEngine.Profiling.Profiler.EndSample();
             }
         }
         /// <summary>
