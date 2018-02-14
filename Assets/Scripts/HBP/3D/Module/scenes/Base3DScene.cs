@@ -654,8 +654,6 @@ namespace HBP.Module3D
             {
                 if (!SceneInformation.IsGeometryUpToDate) return;
                 ResetIEEG();
-                ComputeMRITextures();
-                ComputeGUITextures();
             });
             m_ColumnManager.OnUpdateIEEGSpan.AddListener((column) =>
             {
@@ -730,8 +728,6 @@ namespace HBP.Module3D
             m_ColumnManager.OnUpdateFMRIParameters.AddListener(() =>
             {
                 ResetIEEG();
-                ComputeMRITextures();
-                ComputeGUITextures();
             });
             SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
@@ -888,22 +884,6 @@ namespace HBP.Module3D
                 column.UpdateColumnMeshes(m_DisplayedObjects.BrainSurfaceMeshes);
             }
             UnityEngine.Profiling.Profiler.EndSample();
-        }
-        /// <summary>
-        /// Function to be called everytime we want to reset IEEG
-        /// </summary>
-        protected void ResetIEEG(bool hardReset = true)
-        {
-            if (!SceneInformation.IsGeometryUpToDate) return;
-            if (hardReset)
-            {
-                SceneInformation.IsGeneratorUpToDate = false;
-                m_GeneratorNeedsUpdate = true;
-            }
-            ComputeGUITextures();
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-            ApplicationState.Module3D.OnResetIEEG.Invoke();
-            OnIEEGOutdated.Invoke(!IsLatencyModeEnabled);
         }
         /// <summary>
         /// Generate the split number regarding all meshes
@@ -1609,8 +1589,6 @@ namespace HBP.Module3D
             {
                 m_ColumnManager.FMRI = new MRI3D(new Data.Anatomy.MRI("FMRI", path));
                 ResetIEEG();
-                ComputeMRITextures();
-                ComputeGUITextures();
                 return true;
             }
             return false;
@@ -1622,8 +1600,6 @@ namespace HBP.Module3D
         {
             m_ColumnManager.FMRI = null;
             ResetIEEG();
-            ComputeMRITextures();
-            ComputeGUITextures();
         }
         /// <summary>
         /// Reset the number of splits of the brain mesh
@@ -2114,6 +2090,23 @@ namespace HBP.Module3D
             m_GeneratorNeedsUpdate = false;
             SceneInformation.IsGeneratorUpToDate = false;
             StartCoroutine(c_ComputeGenerators());
+        }
+        /// <summary>
+        /// Function to be called everytime we want to reset IEEG
+        /// </summary>
+        public void ResetIEEG(bool hardReset = true)
+        {
+            if (!SceneInformation.IsGeometryUpToDate) return;
+            if (hardReset)
+            {
+                SceneInformation.IsGeneratorUpToDate = false;
+                m_GeneratorNeedsUpdate = true;
+                ComputeMRITextures();
+                ComputeGUITextures();
+            }
+            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            ApplicationState.Module3D.OnResetIEEG.Invoke();
+            OnIEEGOutdated.Invoke(!IsLatencyModeEnabled);
         }
         /// <summary>
         /// Send additionnal site info to hight level UI
