@@ -471,27 +471,14 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="ptsFilesPath"></param>
             /// <returns> true if sucess else false</returns>
-            public bool LoadPTSFiles(List<string> ptsFilesPath, List<string> names, MarsAtlasIndex marsAtlasIndex)
+            public bool LoadPTSFiles(string[] ptsFilesPath, string[] marsAtlas, string[] names, MarsAtlasIndex marsAtlasIndex)
             {
-                string ptsFilesPathStr = "", namesStr = "";
-                for (int ii = 0; ii < ptsFilesPath.Count; ++ii)
-                {
-                    ptsFilesPathStr += ptsFilesPath[ii];
-
-                    if (ii < ptsFilesPath.Count - 1)
-                        ptsFilesPathStr += '?';
-                }
-
-                for (int ii = 0; ii < names.Count; ++ii)
-                {
-                    namesStr += names[ii];
-
-                    if (ii < names.Count - 1)
-                        namesStr += '?';
-                }
+                string ptsFilesPathStr = string.Join("?", ptsFilesPath);
+                string marsAtlasStr = string.Join("?", marsAtlas);
+                string namesStr = string.Join("?", names);
 
                 // load in the DLL
-                bool fileLoaded = load_Pts_files_PatientElectrodesList(_handle, ptsFilesPathStr, namesStr, marsAtlasIndex.getHandle()) == 1;
+                bool fileLoaded = load_Pts_files_PatientElectrodesList(_handle, ptsFilesPathStr, marsAtlasStr, namesStr, marsAtlasIndex.getHandle()) == 1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!fileLoaded)
@@ -712,7 +699,7 @@ namespace HBP.Module3D
 
             // load
             [DllImport("hbp_export", EntryPoint = "load_Pts_files_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
-            static private extern int load_Pts_files_PatientElectrodesList(HandleRef handlePatientElectrodesList, string pathFiles, string names, HandleRef handleMarsAtlasIndex);
+            static private extern int load_Pts_files_PatientElectrodesList(HandleRef handlePatientElectrodesList, string pathFiles, string marsAtlas, string names, HandleRef handleMarsAtlasIndex);
 
             // actions          
             [DllImport("hbp_export", EntryPoint = "extract_raw_site_list_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]

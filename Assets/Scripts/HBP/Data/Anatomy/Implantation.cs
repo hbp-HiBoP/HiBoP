@@ -12,9 +12,11 @@ namespace HBP.Data.Anatomy
         #region Properties
         const string HEADER = "ptsfile";
         public const string EXTENSION = ".pts";
+        public const string MARS_ATLAS_EXTENSION = ".csv";
         public enum Error { None, PathIsNullOrEmpty, FileNotFound, WrongExtension, CannotReadFile, WrongFormat, CannotReadAllSites };
         [DataMember] public string Name { get; set; }
         [DataMember] public string File { get; set; }
+        [DataMember] public string MarsAtlas { get; set; }
         [IgnoreDataMember] public List<Site> Sites { get; set; }
         [IgnoreDataMember] public Brain Brain { get; set; }
         protected bool m_WasUsable;
@@ -41,17 +43,25 @@ namespace HBP.Data.Anatomy
                 return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && (new FileInfo(File).Extension == EXTENSION);
             }
         }
+        public virtual bool HasMarsAtlas
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(MarsAtlas) && System.IO.File.Exists(MarsAtlas) && (new FileInfo(MarsAtlas).Extension == MARS_ATLAS_EXTENSION);
+            }
+        }
         #endregion
 
         #region Constructor
-        public Implantation(string name, string path)
+        public Implantation(string name, string path, string marsAtlas)
         {
             Name = name;
             File = path;
+            MarsAtlas = marsAtlas;
             Sites = new List<Site>();
             RecalculateUsable();
         }
-        public Implantation() : this("New implantation", string.Empty)
+        public Implantation() : this("New implantation", string.Empty, string.Empty)
         {
         }
         #endregion
@@ -91,15 +101,17 @@ namespace HBP.Data.Anatomy
             //UnityEngine.Profiling.Profiler.BeginSample("GetImplantations");
             List<Implantation> implantations = new List<Implantation>();
             DirectoryInfo patientDirectory = new DirectoryInfo(path);
-            DirectoryInfo implantationDirectory = new DirectoryInfo(path + System.IO.Path.DirectorySeparatorChar + "implantation");
+            DirectoryInfo implantationDirectory = new DirectoryInfo(path + Path.DirectorySeparatorChar + "implantation");
             if (implantationDirectory.Exists)
             {
-                FileInfo patientImplantation = new FileInfo(implantationDirectory.FullName + System.IO.Path.DirectorySeparatorChar + patientDirectory.Name + EXTENSION);
-                if(patientImplantation.Exists) implantations.Add(new Implantation("Patient", patientImplantation.FullName));
-                FileInfo MNIImplantation = new FileInfo(implantationDirectory.FullName + System.IO.Path.DirectorySeparatorChar + patientDirectory.Name + "_MNI" + EXTENSION);
-                if(MNIImplantation.Exists) implantations.Add(new Implantation("MNI", MNIImplantation.FullName));
-                FileInfo ACPCImplantation = new FileInfo(implantationDirectory.FullName + System.IO.Path.DirectorySeparatorChar + patientDirectory.Name + "_ACPC" + EXTENSION);
-                if (ACPCImplantation != null) implantations.Add(new Implantation("ACPC", ACPCImplantation.FullName));
+                FileInfo marsAtlasFile = new FileInfo(implantationDirectory.FullName + Path.DirectorySeparatorChar + patientDirectory.Name + MARS_ATLAS_EXTENSION);
+                string marsAtlas = marsAtlasFile.Exists ? marsAtlasFile.FullName : string.Empty;
+                FileInfo patientImplantation = new FileInfo(implantationDirectory.FullName + Path.DirectorySeparatorChar + patientDirectory.Name + EXTENSION);
+                if(patientImplantation.Exists) implantations.Add(new Implantation("Patient", patientImplantation.FullName, marsAtlas));
+                FileInfo MNIImplantation = new FileInfo(implantationDirectory.FullName + Path.DirectorySeparatorChar + patientDirectory.Name + "_MNI" + EXTENSION);
+                if(MNIImplantation.Exists) implantations.Add(new Implantation("MNI", MNIImplantation.FullName, marsAtlas));
+                FileInfo ACPCImplantation = new FileInfo(implantationDirectory.FullName + Path.DirectorySeparatorChar + patientDirectory.Name + "_ACPC" + EXTENSION);
+                if (ACPCImplantation != null) implantations.Add(new Implantation("ACPC", ACPCImplantation.FullName, marsAtlas));
             }
             //UnityEngine.Profiling.Profiler.EndSample();
             return implantations.ToArray();
@@ -136,13 +148,14 @@ namespace HBP.Data.Anatomy
         #region Operators
         public object Clone()
         {
-            return new Implantation(Name, File);
+            return new Implantation(Name, File, MarsAtlas);
         }
         public void Copy(object copy)
         {
             Implantation implantation = copy as Implantation;
             Name = implantation.Name;
             File = implantation.File;
+            MarsAtlas = implantation.MarsAtlas;
             RecalculateUsable();
         }
         #endregion

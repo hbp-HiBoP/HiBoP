@@ -12,6 +12,7 @@ namespace HBP.UI.Anatomy
         public enum Sorting { Ascending, Descending}
         public SortingDisplayer m_NameSortingDisplayer;
         public SortingDisplayer m_PathSortingDisplayer;
+        public SortingDisplayer m_MarsAtlasSortingDisplayer;
         #endregion
 
         #region SortingMethods
@@ -40,6 +41,7 @@ namespace HBP.UI.Anatomy
             }
             Refresh();
             m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByPath()
         {
@@ -66,12 +68,41 @@ namespace HBP.UI.Anatomy
             }
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        }
+        public void SortByMarsAtlas()
+        {
+            switch (m_OrderBy)
+            {
+                case OrderBy.DescendingPath: SortByMarsAtlas(Sorting.Ascending); break;
+                default: SortByMarsAtlas(Sorting.Descending); break;
+            }
+        }
+        public void SortByMarsAtlas(Sorting sorting)
+        {
+            switch (sorting)
+            {
+                case Sorting.Ascending:
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.MarsAtlas).ToList();
+                    m_OrderBy = OrderBy.Path;
+                    m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+                    break;
+                case Sorting.Descending:
+                    m_Objects = m_Objects.OrderBy((elt) => elt.MarsAtlas).ToList();
+                    m_OrderBy = OrderBy.DescendingPath;
+                    m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+                    break;
+            }
+            Refresh();
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         public void SortByNone()
         {
             m_OrderBy = OrderBy.None;
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         #endregion
     }

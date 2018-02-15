@@ -10,6 +10,7 @@ namespace HBP.UI.Anatomy
         #region Properties
         [SerializeField] Text m_NameInputField;
         [SerializeField] Image m_ImplantationIcon;
+        [SerializeField] Image m_MarsAtlasIcon;
 
         public override Implantation Object
         {
@@ -24,6 +25,7 @@ namespace HBP.UI.Anatomy
                 Color normalColor = Color.white;
                 Color notInteractableColor = ApplicationState.GeneralSettings.Theme.General.NotInteractable;
                 m_ImplantationIcon.color = value.HasImplantation ? normalColor : notInteractableColor;
+                m_MarsAtlasIcon.color = value.HasMarsAtlas ? normalColor : notInteractableColor;
             }
         }
         #endregion

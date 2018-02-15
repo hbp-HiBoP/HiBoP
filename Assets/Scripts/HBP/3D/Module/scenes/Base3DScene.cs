@@ -2504,10 +2504,11 @@ namespace HBP.Module3D
                 string implantationName = commonImplantations[i];
                 try
                 {
-                    List<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).File).ToList();
-                    List<string> patientIDs = (from patient in patients select patient.ID).ToList();
+                    IEnumerable<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).File);
+                    IEnumerable<string> marsAtlasFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).MarsAtlas);
+                    IEnumerable<string> patientIDs = (from patient in patients select patient.ID);
 
-                    Implantation3D implantation3D = new Implantation3D(implantationName, ptsFiles, patientIDs);
+                    Implantation3D implantation3D = new Implantation3D(implantationName, ptsFiles, marsAtlasFiles, patientIDs);
                     if (implantation3D.IsLoaded)
                     {
                         m_ColumnManager.Implantations.Add(implantation3D);
@@ -2540,15 +2541,6 @@ namespace HBP.Module3D
         /// <returns></returns>
         protected IEnumerator c_LoadMNIObjects(Action<Exception> outPut)
         {
-            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
-            watch.Start();
-            yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.Loaded || watch.ElapsedMilliseconds > 5000; });
-            watch.Stop();
-            if (watch.ElapsedMilliseconds > 5000)
-            {
-                outPut(new CanNotLoadMNI());
-                yield break;
-            }
             try
             {
                 m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.GreyMatter.Clone()));

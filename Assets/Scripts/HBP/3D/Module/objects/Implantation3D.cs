@@ -18,11 +18,11 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
-        public Implantation3D(string name, IEnumerable<string> pts, IEnumerable<string> patientIDs)
+        public Implantation3D(string name, IEnumerable<string> pts, IEnumerable<string> marsAtlas, IEnumerable<string> patientIDs)
         {
             Name = name;
             PatientElectrodesList = new DLL.PatientElectrodesList();
-            IsLoaded = PatientElectrodesList.LoadPTSFiles(pts.ToList(), patientIDs.ToList(), ApplicationState.Module3D.MarsAtlasIndex);
+            IsLoaded = PatientElectrodesList.LoadPTSFiles(pts.ToArray(), marsAtlas.ToArray(), patientIDs.ToArray(), ApplicationState.Module3D.MarsAtlasIndex);
         }
         #endregion
 

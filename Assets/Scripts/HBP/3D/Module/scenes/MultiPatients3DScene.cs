@@ -69,6 +69,18 @@ namespace HBP.Module3D
             gameObject.name = "MultiPatients Scene (" + sceneID + ")";
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * sceneID, transform.position.y, transform.position.z);
 
+            // Checking MNI
+            onChangeProgress.Invoke(progress, 0.0f, "Loading MNI");
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.Loaded || watch.ElapsedMilliseconds > 5000; });
+            watch.Stop();
+            if (watch.ElapsedMilliseconds > 5000)
+            {
+                outPut(new CanNotLoadMNI());
+                yield break;
+            }
+
             // Loading MNI
             progress += loadingMNIProgress;
             onChangeProgress.Invoke(progress, loadingMNITime, "Loading MNI");
