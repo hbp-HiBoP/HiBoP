@@ -33,10 +33,11 @@ namespace Tools.Unity
                     buildName += " linux64";
                     break;
                 case BuildTarget.StandaloneOSXIntel64:
-                    buildName += " macosx64";
+                    buildName += " macos64";
                     break;
             }
             string buildDirectory = buildsDirectory + buildName + "/";
+            string miscDirectory = buildDirectory;
             string hibopName = "HiBoP";
             switch (target)
             {
@@ -48,6 +49,7 @@ namespace Tools.Unity
                     break;
                 case BuildTarget.StandaloneOSXIntel64:
                     hibopName += ".app";
+                    miscDirectory += hibopName + "/";
                     break;
             }
 
@@ -65,16 +67,16 @@ namespace Tools.Unity
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:
-                    CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "windows/"), new DirectoryInfo(buildDirectory + m_Tools));
+                    CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "windows/"), new DirectoryInfo(miscDirectory + m_Tools));
                     break;
                 case BuildTarget.StandaloneLinux64:
-                    CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "linux/"), new DirectoryInfo(buildDirectory + m_Tools));
+                    CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "linux/"), new DirectoryInfo(miscDirectory + m_Tools));
                     break;
                 case BuildTarget.StandaloneOSXIntel64:
-                    CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "macosx/"), new DirectoryInfo(buildDirectory + m_Tools));
+                    CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "macos/"), new DirectoryInfo(miscDirectory + m_Tools));
                     break;
             }
-            CopyFilesRecursively(new DirectoryInfo(projectPath + m_Data), new DirectoryInfo(buildDirectory + m_DataBuild));
+            CopyFilesRecursively(new DirectoryInfo(projectPath + m_Data), new DirectoryInfo(miscDirectory + m_DataBuild));
 
             FileInfo readme = new FileInfo(projectPath + "README.md");
             readme.CopyTo(buildDirectory + readme.Name);
