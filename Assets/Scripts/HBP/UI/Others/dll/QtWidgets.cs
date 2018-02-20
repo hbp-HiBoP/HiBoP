@@ -44,8 +44,8 @@ namespace HBP.Module3D.DLL
             string filePath = Application.dataPath + "/../tools/HiBoP_Tools.exe";
             if (Application.platform == RuntimePlatform.OSXPlayer)
             {
-                //filePath = Application.dataPath + "/../../HiBoP_Tools.app/Contents/MacOS/HiBoP_Tools";
-                filePath = Application.dataPath + "/../tools/HiBoP_Tools";
+                filePath = Application.dataPath + "/../../HiBoP_Tools.app/Contents/MacOS/HiBoP_Tools";
+                //filePath = Application.dataPath + "/../tools/HiBoP_Tools";
                 //UnityEngine.Debug.LogError("mac -> " + filePath);
             }
             else if(Application.platform == RuntimePlatform.LinuxPlayer)
