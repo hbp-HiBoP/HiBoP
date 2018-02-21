@@ -767,24 +767,19 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="type"></param>
         /// <param name="number"></param>
-        public void InitializeColumns(Column3D.ColumnType type, int number)
+        public void InitializeColumns(IEnumerable<Data.Visualization.Column> columns)
         {
-            switch (type)
+            foreach (Data.Visualization.Column column in columns)
             {
-                case Column3D.ColumnType.Base:
-                    for (int i = 0; i < number; i++)
-                    {
+                switch (column.Type)
+                {
+                    case Data.Visualization.Column.ColumnType.Anatomy:
                         AddBaseColumn();
-                    }
-                    break;
-                case Column3D.ColumnType.IEEG:
-                    for (int i = 0; i < number; i++)
-                    {
+                        break;
+                    case Data.Visualization.Column.ColumnType.iEEG:
                         AddIEEGColumn();
-                    }
-                    break;
-                default:
-                    break;
+                        break;
+                }
             }
         }
         /// <summary>
@@ -794,9 +789,12 @@ namespace HBP.Module3D
         /// <param name="columnDataList"></param>
         public void SetTimelineData(List<Data.Visualization.Column> columnDataList)
         {
-            for (int c = 0; c < ColumnsIEEG.Count; c++)
+            for (int c = 0; c < Columns.Count; c++)
             {
-                ColumnsIEEG[c].SetColumnData(columnDataList[c]);
+                if (columnDataList[c].Type == Data.Visualization.Column.ColumnType.iEEG)
+                {
+                    ((Column3DIEEG)Columns[c]).SetColumnData(columnDataList[c]);
+                }
             }
         }
         /// <summary>

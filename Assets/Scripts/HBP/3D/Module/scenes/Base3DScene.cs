@@ -2559,17 +2559,17 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="patient"></param>
         /// <param name="columnDataList"></param>
-        protected IEnumerator c_SetEEGData()
+        protected IEnumerator c_SetColumns()
         {
             yield return Ninja.JumpToUnity;
             // update columns number
-            m_ColumnManager.InitializeColumns(Column3D.ColumnType.IEEG, Visualization.Columns.Count);
+            m_ColumnManager.InitializeColumns(Visualization.Columns);
             yield return Ninja.JumpBack;
 
             // update columns names
             for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
             {
-                m_ColumnManager.ColumnsIEEG[ii].Label = Visualization.Columns[ii].Name;
+                m_ColumnManager.Columns[ii].Label = Visualization.Columns[ii].Name;
             }
 
             // set timelines

@@ -13,6 +13,7 @@ namespace HBP.UI.Visualization
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
+        [SerializeField] Dropdown m_TypeDropdown;
         [SerializeField] Dropdown m_ProtocolDropdown;
         [SerializeField] Dropdown m_BlocDropdown;
         [SerializeField] Dropdown m_DatasetDropdown;
@@ -34,11 +35,30 @@ namespace HBP.UI.Visualization
             m_NameInputField.onValueChanged.RemoveAllListeners();
             m_NameInputField.text = column.Name;
             m_NameInputField.onValueChanged.AddListener((name) => m_Column.Name = name);
-            SetProtocolDropdown();
+            SetTypeDropdown();
         }
         #endregion
 
         #region Private Methods
+        void OnChangeType()
+        {
+            m_Column.Type = (Column.ColumnType)m_TypeDropdown.value;
+            SetProtocolDropdown();
+        }
+        void SetTypeDropdown()
+        {
+            m_TypeDropdown.onValueChanged.RemoveAllListeners();
+            m_TypeDropdown.onValueChanged.AddListener((index) => OnChangeType());
+            m_TypeDropdown.interactable = true;
+            m_TypeDropdown.options = (from type in Enum.GetNames(typeof(Column.ColumnType)) select new Dropdown.OptionData(type, null)).ToList();
+            SetType(m_Column.Type);
+        }
+        void SetType(Column.ColumnType type)
+        {
+            m_TypeDropdown.value = (int)type;
+            OnChangeType();
+        }
+
         void OnChangeProtocol()
         {
             m_Column.Protocol = m_Protocols[m_ProtocolDropdown.value];
@@ -51,7 +71,7 @@ namespace HBP.UI.Visualization
             m_ProtocolDropdown.onValueChanged.AddListener((index) => OnChangeProtocol());
 
             m_Protocols = ApplicationState.ProjectLoaded.Protocols.ToArray();
-            if (m_Protocols.Length > 0)
+            if (m_Protocols.Length > 0 && m_Column.Type == Column.ColumnType.iEEG)
             {
                 m_ProtocolDropdown.interactable = true;
                 m_ProtocolDropdown.options = (from protocol in m_Protocols select new Dropdown.OptionData(protocol.Name, null)).ToList();

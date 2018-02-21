@@ -113,7 +113,7 @@ namespace HBP.Module3D
 
             progress += loadingIEEGProgress;
             onChangeProgress.Invoke(progress, loadingIEEGTime, "Loading columns");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetEEGData());
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetColumns());
 
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
             // update scenes cameras

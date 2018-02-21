@@ -29,6 +29,9 @@ namespace HBP.Data.Visualization
         #region Properties
         [DataMember] public string Name { get; set; }
 
+        public enum ColumnType { Anatomy, iEEG }
+        [DataMember] public ColumnType Type { get; set; }
+
         [DataMember(Name = "Dataset")]
         private string datasetID;
         /// <summary>
@@ -96,13 +99,14 @@ namespace HBP.Data.Visualization
         /// <param name="dataLabel">Label of the data to use in the visualization Column.</param>
         /// <param name="protocol">Protocol to use in the visualization Column.</param>
         /// <param name="bloc">Bloc of the Protocol to use in the visualization Column.</param>
-        public Column(string name, Dataset dataset, string dataLabel, Protocol protocol, Bloc bloc,ColumnConfiguration configuration)
+        public Column(string name, Dataset dataset, string dataLabel, Protocol protocol, Bloc bloc, ColumnType type, ColumnConfiguration configuration)
         {
             Name = name;
             Dataset = dataset;
             Protocol = protocol;
             Bloc = bloc;
             Data = dataLabel;
+            Type = type;
             Configuration = configuration;
         }
         public Column(int column, IEnumerable<Patient> patients, IEnumerable<Dataset> datasets) : this()
@@ -131,11 +135,12 @@ namespace HBP.Data.Visualization
                 Configuration = new ColumnConfiguration();
             }
             Name = "Column n°" + column;
+            Type = ColumnType.iEEG;
         }
         /// <summary>
         /// Create a new Column instance with default values.
         /// </summary>
-        public Column():this("New column", new Dataset(), string.Empty,new Protocol(),new Bloc(),new ColumnConfiguration())
+        public Column():this("New column", new Dataset(), string.Empty,new Protocol(),new Bloc(), ColumnType.iEEG, new ColumnConfiguration())
         {
         }
         #endregion
@@ -243,7 +248,15 @@ namespace HBP.Data.Visualization
         /// <returns>\a True if is compatible and \a false otherwise.</returns>
         public bool IsCompatible(Patient patient)
         {
-            return Dataset.Data.Any((data) => data.Name == Data && data.Patient == patient && data.isOk);
+            switch (Type)
+            {
+                case ColumnType.Anatomy:
+                    return true;
+                case ColumnType.iEEG:
+                    return Dataset.Data.Any((data) => data.Name == Data && data.Patient == patient && data.isOk);
+                default:
+                    return false;
+            }
         }
         /// <summary>
         /// Test if the visualisaation Column is compatible with some Patients.
@@ -286,7 +299,7 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            return new Column(Name, Dataset, Data, Protocol, Bloc, Configuration.Clone() as ColumnConfiguration);
+            return new Column(Name, Dataset, Data, Protocol, Bloc, Type, Configuration.Clone() as ColumnConfiguration);
         }
         #endregion
     }

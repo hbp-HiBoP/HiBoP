@@ -56,7 +56,7 @@ namespace HBP.UI.Module3D
         public override void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
             base.Initialize(scene, column, columnUI);
-            IsActive = false;
+            IsActive = true;
 
             m_Text.text = column.Label;
             m_Left.onClick.AddListener(() =>
@@ -67,18 +67,6 @@ namespace HBP.UI.Module3D
             {
                 columnUI.Move(+1);
             });
-
-            switch (column.Type)
-            {
-                case Column3D.ColumnType.Base:
-                    IsActive = false;
-                    break;
-                case Column3D.ColumnType.IEEG:
-                    IsActive = true;
-                    break;
-                default:
-                    break;
-            }
         }
         public void OnPointerDown(PointerEventData eventData)
         {

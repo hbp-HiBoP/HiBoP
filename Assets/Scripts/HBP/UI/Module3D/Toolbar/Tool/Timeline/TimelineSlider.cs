@@ -52,10 +52,7 @@ namespace HBP.UI.Module3D.Tools
         #region Private Methods
         private void ShowEvents(HBP.Module3D.Column3DIEEG column)
         {
-            foreach (Transform timelineEvent in m_Events)
-            {
-                Destroy(timelineEvent.gameObject);
-            }
+            DeleteEvents();
 
             GameObject mainEvent = Instantiate(m_MainEventPrefab, m_Events);
             RectTransform mainEventRectTransform = mainEvent.GetComponent<RectTransform>();
@@ -73,6 +70,13 @@ namespace HBP.UI.Module3D.Tools
                 secondaryEventRectTransform.anchorMin = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMin.y);
                 secondaryEventRectTransform.anchorMax = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMax.y);
                 secondaryEvent.GetComponent<Tooltip>().Text = timelineEvent.Label + " | " + timelineEvent.Position + " (" + (column.ColumnData.TimeLine.Step * timelineEvent.Position + column.MinTimeLine).ToString("N2") + column.TimeLineUnite + ")" + " | " + (timelineEvent.AttendanceRate * 100).ToString("N2") +"%";
+            }
+        }
+        private void DeleteEvents()
+        {
+            foreach (Transform timelineEvent in m_Events)
+            {
+                Destroy(timelineEvent.gameObject);
             }
         }
         #endregion
@@ -117,6 +121,7 @@ namespace HBP.UI.Module3D.Tools
             m_Current.text = "Current Time";
             m_Slider.value = 0;
             m_Slider.interactable = false;
+            DeleteEvents();
         }
 
         public override void UpdateInteractable()
@@ -151,6 +156,7 @@ namespace HBP.UI.Module3D.Tools
                     m_Slider.value = 0;
                     m_RawTimeline.anchorMin = new Vector2(0, 0);
                     m_RawTimeline.anchorMax = new Vector2(1, 1);
+                    DeleteEvents();
                 }
             }
         }

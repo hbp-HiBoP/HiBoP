@@ -21,7 +21,10 @@ namespace HBP.UI.Module3D
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                IsActive = value;
+                if (column.Type == Column3D.ColumnType.IEEG)
+                {
+                    IsActive = value;
+                }
             });
 
             switch (column.Type)

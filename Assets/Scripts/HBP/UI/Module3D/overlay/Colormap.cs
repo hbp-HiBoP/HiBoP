@@ -90,7 +90,10 @@ namespace HBP.UI.Module3D
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                IsActive = value;
+                if (column.Type == Column3D.ColumnType.IEEG)
+                {
+                    IsActive = value;
+                }
             });
 
             scene.OnChangeColormap.AddListener((color) => m_Icon.sprite = m_SpriteByColorType[color]);
