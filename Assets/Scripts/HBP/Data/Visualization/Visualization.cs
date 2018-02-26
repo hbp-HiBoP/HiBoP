@@ -332,6 +332,8 @@ namespace HBP.Data.Visualization
             float progressStep = FIND_FILES_TO_READ_PROGRESS / (Columns.Count);
             foreach (var column in Columns)
             {
+                if (column.Type == Column.ColumnType.Anatomy) continue;
+
                 // Update progress;
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
@@ -401,6 +403,8 @@ namespace HBP.Data.Visualization
             for (int i = 0; i < Columns.Count; ++i)
             {
                 Column column = Columns[i];
+                if (column.Type == Column.ColumnType.Anatomy) continue;
+
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
                 onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
@@ -431,11 +435,15 @@ namespace HBP.Data.Visualization
         {
             Exception exception = null;
             float progressStep = STANDARDIZE_COLUMNS_PROGRESS / Columns.Count;
-            int maxBefore = (from column in Columns select column.TimeLine.MainEvent.Position).Max();
-            int maxAfter = (from column in Columns select column.TimeLine.Lenght - column.TimeLine.MainEvent.Position).Max();
+            int[] maxBeforeEnumerable = (from column in Columns where column.Type == Column.ColumnType.iEEG select column.TimeLine.MainEvent.Position).ToArray();
+            int[] maxAfterEnumerable = (from column in Columns where column.Type == Column.ColumnType.iEEG select column.TimeLine.Lenght - column.TimeLine.MainEvent.Position).ToArray();
+            int maxBefore = maxBeforeEnumerable.Length > 0 ? maxBeforeEnumerable.Max() : 0;
+            int maxAfter = maxAfterEnumerable.Length > 0 ? maxAfterEnumerable.Max() : 0;
             for (int i = 0; i < Columns.Count; ++i)
             {
                 Column column = Columns[i];
+                if (column.Type == Column.ColumnType.Anatomy) continue;
+
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
                 onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
