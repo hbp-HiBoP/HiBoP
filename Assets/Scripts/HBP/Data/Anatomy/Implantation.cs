@@ -12,6 +12,7 @@ namespace HBP.Data.Anatomy
         #region Properties
         const string HEADER = "ptsfile";
         public const string EXTENSION = ".pts";
+        public const string BIDS_EXTENSION = ".tsv";
         public const string MARS_ATLAS_EXTENSION = ".csv";
         public enum Error { None, PathIsNullOrEmpty, FileNotFound, WrongExtension, CannotReadFile, WrongFormat, CannotReadAllSites };
         [DataMember] public string Name { get; set; }
@@ -40,7 +41,7 @@ namespace HBP.Data.Anatomy
         {
             get
             {
-                return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && (new FileInfo(File).Extension == EXTENSION);
+                return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && (new FileInfo(File).Extension == EXTENSION || new FileInfo(File).Extension == BIDS_EXTENSION);
             }
         }
         public virtual bool HasMarsAtlas

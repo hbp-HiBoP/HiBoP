@@ -129,7 +129,7 @@ namespace HBP.Data.Visualization
 
         }
         #endregion
-
+        
         #region Getter/Setter
         /// <summary>
         /// Add a patient to the visualization.
