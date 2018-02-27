@@ -223,7 +223,7 @@ namespace HBP.Data.Experience.Dataset
                 if (!POSFile.Exists) errors.Add(ErrorType.POSFileNotExist);
                 else
                 {
-                    if (POSFile.Extension != Localizer.POS.EXTENSION) errors.Add(ErrorType.POSFileNotAGoodFile);
+                    if (POSFile.Extension != Localizer.POS.EXTENSION && POSFile.Extension != Localizer.POS.BIDS_EXTENSION) errors.Add(ErrorType.POSFileNotAGoodFile);
                     else
                     {
                         Localizer.POS pos = new Localizer.POS(POS);
@@ -335,7 +335,7 @@ namespace HBP.Data.Experience.Dataset
                     message = "• The EEG file does not contains the measure.";
                     break;
                 case ErrorType.POSFileNotAGoodFile:  
-                    message = "• The EEG file is incorrect.";
+                    message = "• The POS file is incorrect.";
                     break;
                 case ErrorType.POSNotCompatible:
                     message = "• The POS file is not compatible with the protocol.";

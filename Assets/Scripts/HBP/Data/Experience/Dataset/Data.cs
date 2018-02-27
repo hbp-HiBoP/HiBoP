@@ -84,7 +84,7 @@ namespace HBP.Data.Experience.Dataset
                     UnitBySite.Add(ID, channel.Unit);
                 }
             }
-            POS = new Localizer.POS(info.POS);
+            POS = new Localizer.POS(info.POS, elanFile.EEG.SamplingFrequency);
             Frequency = elanFile.EEG.SamplingFrequency;
             Patient = info.Patient;
             elanFile.Dispose();

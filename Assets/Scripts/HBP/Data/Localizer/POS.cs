@@ -10,6 +10,7 @@ namespace HBP.Data.Localizer
 	{
         #region Properties
         public const string EXTENSION = ".pos";
+        public const string BIDS_EXTENSION = ".tsv";
         Dictionary<int, List<Tuple<int,int>>> m_IndexByCode;
         #endregion
 
@@ -18,30 +19,41 @@ namespace HBP.Data.Localizer
         {
             m_IndexByCode = indexByCode;
         }
-		public POS(string path)
+		public POS(string path, float frequency = -1)
 		{
-            POS pos = Load(path);
+            POS pos = Load(path, frequency);
             m_IndexByCode = pos.m_IndexByCode;
 		}
         public POS() : this(new Dictionary<int, List<Tuple<int,int>>>()) { }
         #endregion
 
         #region Public Methods
-        public static POS Load(string path)
+        public static POS Load(string path, float frequency)
         {
             if (String.IsNullOrEmpty(path)) throw new EmptyFilePathException();
             FileInfo posFile = new FileInfo(path);
             if(!posFile.Exists) throw new FileNotFoundException();
-            if (posFile.Extension != EXTENSION) throw new Exception("Wrong extension");
+            if (posFile.Extension != EXTENSION && posFile.Extension != BIDS_EXTENSION) throw new Exception("Wrong extension");
 
             Dictionary<int, List<Tuple<int,int>>> indexByCode = new Dictionary<int, List<Tuple<int,int>>>();
             int code, index, state;
             foreach (string line in File.ReadAllLines(path))
             {
-                if (ReadLine(line, out code, out index, out state))
+                if (posFile.Extension == EXTENSION)
                 {
-                    if (!indexByCode.ContainsKey(code)) indexByCode[code] = new List<Tuple<int,int>>();
-                    indexByCode[code].Add(new Tuple<int, int>(index,state));
+                    if (ReadLine(line, out code, out index, out state))
+                    {
+                        if (!indexByCode.ContainsKey(code)) indexByCode[code] = new List<Tuple<int, int>>();
+                        indexByCode[code].Add(new Tuple<int, int>(index, state));
+                    }
+                }
+                else if (posFile.Extension == BIDS_EXTENSION)
+                {
+                    if (ReadBIDSLine(line, frequency, out code, out index, out state))
+                    {
+                        if (!indexByCode.ContainsKey(code)) indexByCode[code] = new List<Tuple<int, int>>();
+                        indexByCode[code].Add(new Tuple<int, int>(index, state));
+                    }
                 }
             }
             return new POS(indexByCode);
@@ -80,6 +92,20 @@ namespace HBP.Data.Localizer
             state = int.MinValue; code = int.MinValue; index = int.MinValue;
             string[] elements = line.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
             bool parsing = int.TryParse(elements[0], out index) && int.TryParse(elements[1], out code) && int.TryParse(elements[2], out state);
+            bool format = elements.Length == 3;
+            return parsing && format;
+        }
+        static bool ReadBIDSLine(string line, float frequency, out int code, out int index, out int state)
+        {
+            state = int.MinValue; code = int.MinValue; index = int.MinValue;
+            string[] elements = line.Split(new char[] { '\t' });
+            float seconds;
+            bool parsing = float.TryParse(elements[0], out seconds) && int.TryParse(elements[2], out code);
+            if (parsing)
+            {
+                state = 0;
+                index = (int)(seconds * frequency);
+            }
             bool format = elements.Length == 3;
             return parsing && format;
         }
