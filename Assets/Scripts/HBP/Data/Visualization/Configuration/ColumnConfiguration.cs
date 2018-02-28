@@ -47,7 +47,7 @@ namespace HBP.Data.Visualization
             }
         }
 
-        [DataMember(Name = "Site Maximum Inflence")]
+        [DataMember(Name = "Site Maximum Influence")]
         private float m_MaximumInfluence = 15.0f;
         /// <summary>
         /// Maximum site influence

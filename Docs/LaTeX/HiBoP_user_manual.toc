@@ -1,0 +1,35 @@
+\babel@toc {english}{}
+\contentsline {section}{\numberline {1}HiBoP project}{1}
+\contentsline {paragraph}{}{1}
+\contentsline {paragraph}{}{2}
+\contentsline {subsection}{\numberline {1.1}Settings}{2}
+\contentsline {paragraph}{}{2}
+\contentsline {subsection}{\numberline {1.2}Patients}{3}
+\contentsline {paragraph}{}{3}
+\contentsline {subsection}{\numberline {1.3}Groups}{4}
+\contentsline {paragraph}{}{4}
+\contentsline {subsection}{\numberline {1.4}Protocols}{5}
+\contentsline {paragraph}{}{5}
+\contentsline {subsection}{\numberline {1.5}Datasets}{7}
+\contentsline {paragraph}{}{7}
+\contentsline {subsection}{\numberline {1.6}Visualizations}{7}
+\contentsline {paragraph}{}{7}
+\contentsline {section}{\numberline {2}HiBoP description}{8}
+\contentsline {paragraph}{}{8}
+\contentsline {subsection}{\numberline {2.1}Preferences}{9}
+\contentsline {paragraph}{}{9}
+\contentsline {subsection}{\numberline {2.2}Project management}{10}
+\contentsline {subsubsection}{\numberline {2.2.1}Creating, opening and saving a project}{10}
+\contentsline {paragraph}{}{10}
+\contentsline {paragraph}{}{11}
+\contentsline {paragraph}{}{11}
+\contentsline {paragraph}{}{11}
+\contentsline {subsubsection}{\numberline {2.2.2}Patients management}{12}
+\contentsline {paragraph}{}{12}
+\contentsline {paragraph}{}{12}
+\contentsline {paragraph}{}{13}
+\contentsline {paragraph}{}{13}
+\contentsline {subsubsection}{\numberline {2.2.3}Data management}{15}
+\contentsline {subsubsection}{\numberline {2.2.4}Visualizations management}{17}
+\contentsline {section}{\numberline {A}HiBoP Database Manager}{17}
+\contentsline {section}{\numberline {B}HiBoP Database Hierarchy}{17}

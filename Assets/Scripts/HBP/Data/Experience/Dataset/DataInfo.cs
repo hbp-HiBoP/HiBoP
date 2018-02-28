@@ -78,7 +78,8 @@ namespace HBP.Data.Experience.Dataset
             set { m_POS = value; m_POSErrors = new ErrorType[0]; OnPOSChanged.Invoke(); }
         }
         public UnityEvent OnPOSChanged { get; set; }
-         
+        
+        [DataMember(Name = "Normalization")]
         /// <summary>
         /// Normalization of the Data.
         /// </summary>
