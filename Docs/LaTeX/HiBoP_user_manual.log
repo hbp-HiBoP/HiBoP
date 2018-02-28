@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6600 64-bit) (preloaded format=pdflatex 2018.2.27)  28 FEB 2018 17:33
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6600 64-bit) (preloaded format=pdflatex 2018.2.27)  28 FEB 2018 17:57
 entering extended mode
 **./HiBoP_user_manual.tex
 (HiBoP_user_manual.tex
@@ -712,35 +712,35 @@ Package pdftex.def Info: GroupModifier.png  used on input line 379.
 <ProtocolGestion.png, id=77, 501.875pt x 351.3125pt>
 File: ProtocolGestion.png Graphic file (type png)
 <use ProtocolGestion.png>
-Package pdftex.def Info: ProtocolGestion.png  used on input line 386.
+Package pdftex.def Info: ProtocolGestion.png  used on input line 387.
 (pdftex.def)             Requested size: 250.93687pt x 175.6558pt.
-<ProtocolModifier.png, id=78, 1003.75pt x 602.25pt>
-File: ProtocolModifier.png Graphic file (type png)
-<use ProtocolModifier.png>
-Package pdftex.def Info: ProtocolModifier.png  used on input line 392.
-(pdftex.def)             Requested size: 301.12732pt x 180.67639pt.
 
 [14 <./GroupGestion.png> <./GroupModifier.png>]
+<ProtocolModifier.png, id=83, 1003.75pt x 602.25pt>
+File: ProtocolModifier.png Graphic file (type png)
+<use ProtocolModifier.png>
+Package pdftex.def Info: ProtocolModifier.png  used on input line 394.
+(pdftex.def)             Requested size: 301.12732pt x 180.67639pt.
 <BlocModifier.png, id=84, 374.39874pt x 516.93124pt>
 File: BlocModifier.png Graphic file (type png)
 <use BlocModifier.png>
-Package pdftex.def Info: BlocModifier.png  used on input line 398.
+Package pdftex.def Info: BlocModifier.png  used on input line 401.
 (pdftex.def)             Requested size: 187.19891pt x 258.46498pt.
 <DatasetGestion.png, id=85, 351.3125pt x 351.3125pt>
 File: DatasetGestion.png Graphic file (type png)
 <use DatasetGestion.png>
-Package pdftex.def Info: DatasetGestion.png  used on input line 404.
+Package pdftex.def Info: DatasetGestion.png  used on input line 407.
 (pdftex.def)             Requested size: 175.6558pt x 175.6558pt.
  [15 <./ProtocolGestion.png> <./ProtocolModifier.png>]
 <DatasetModifier.png, id=91, 307.1475pt x 301.125pt>
 File: DatasetModifier.png Graphic file (type png)
 <use DatasetModifier.png>
-Package pdftex.def Info: DatasetModifier.png  used on input line 410.
+Package pdftex.def Info: DatasetModifier.png  used on input line 413.
 (pdftex.def)             Requested size: 153.57336pt x 150.56212pt.
 <DataInfoModifier.png, id=92, 481.8pt x 254.9525pt>
 File: DataInfoModifier.png Graphic file (type png)
 <use DataInfoModifier.png>
-Package pdftex.def Info: DataInfoModifier.png  used on input line 416.
+Package pdftex.def Info: DataInfoModifier.png  used on input line 419.
 (pdftex.def)             Requested size: 240.8994pt x 127.47592pt.
  [16 <./BlocModifier.png> <./DatasetGestion.png>]
 [17 <./DatasetModifier.png> <./DataInfoModifier.png>] (HiBoP_user_manual.aux) )
@@ -769,7 +769,7 @@ es/MiKTeX 2.9/fonts/type1/public/lm/lmr7.pfb><C:/Program Files/MiKTeX 2.9/fonts
 r9.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmsy10.pfb><C:/Progra
 m Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt10.pfb><C:/Program Files/MiKTeX 2.
 9/fonts/type1/public/lm/lmtt8.pfb>
-Output written on HiBoP_user_manual.pdf (17 pages, 816073 bytes).
+Output written on HiBoP_user_manual.pdf (17 pages, 816889 bytes).
 PDF statistics:
  158 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

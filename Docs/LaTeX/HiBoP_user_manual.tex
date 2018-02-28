@@ -381,18 +381,21 @@ A dataset is a list of data information, each of them connecting one patient (an
 \caption{\label{groupModifierUI}Group modifier}
 \end{figure}
 \subsubsection{Data management}
+\paragraph{} First thing to do concerning data management is to create a protocol that will epoch the iEEG data. You can do that using the protocol manager window (Figure \ref{protocolGestionUI}).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{ProtocolGestion.png}
 \end{center}
 \caption{\label{protocolGestionUI}Protocols manager}
 \end{figure}
+\paragraph{} Editing a protocol consists of defining the blocs for this protocol. This is done with the protocol modifier window (Figure \ref{protocolModifierUI}). There are two types of blocs in a protocol: a main bloc (first column) will be used for metadata and main epoching, whereas a secondary bloc (second and third columns) will be used to epoch around a second or a third main event (this is used if you want to hide a pause between two important data).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.3]{ProtocolModifier.png}
 \end{center}
 \caption{\label{protocolModifierUI}Protocol modifier}
 \end{figure}
+\paragraph{} A bloc can be edited with the bloc modifier window (Figure \ref{blocModifierUI}). There you can specify the name, the sorting method, the window and the baseline window, as well as events and icons for the iconic scenario, which can be edited by double clicking on them.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{BlocModifier.png}

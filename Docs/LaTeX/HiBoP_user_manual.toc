@@ -29,7 +29,10 @@
 \contentsline {paragraph}{}{12}
 \contentsline {paragraph}{}{13}
 \contentsline {paragraph}{}{13}
-\contentsline {subsubsection}{\numberline {2.2.3}Data management}{15}
+\contentsline {subsubsection}{\numberline {2.2.3}Data management}{14}
+\contentsline {paragraph}{}{14}
+\contentsline {paragraph}{}{15}
+\contentsline {paragraph}{}{15}
 \contentsline {subsubsection}{\numberline {2.2.4}Visualizations management}{17}
 \contentsline {section}{\numberline {A}HiBoP Database Manager}{17}
 \contentsline {section}{\numberline {B}HiBoP Database Hierarchy}{17}
