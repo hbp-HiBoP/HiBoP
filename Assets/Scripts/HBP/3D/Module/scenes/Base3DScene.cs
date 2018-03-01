@@ -1050,7 +1050,7 @@ namespace HBP.Module3D
                 {
                     int patientSiteID = 0;
                     string patientID = electrodesList.PatientName(ii);
-                    Data.Patient patient = Visualization.Patients.First((p) => p.ID == patientID);
+                    Data.Patient patient = Visualization.Patients.FirstOrDefault((p) => p.ID == patientID);
 
                     // create plot patient parent
                     m_ColumnManager.SitesPatientParent.Add(new GameObject("P" + ii + " - " + patientID));

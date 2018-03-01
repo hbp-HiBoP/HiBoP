@@ -381,39 +381,42 @@ A dataset is a list of data information, each of them connecting one patient (an
 \caption{\label{groupModifierUI}Group modifier}
 \end{figure}
 \subsubsection{Data management}
-\paragraph{} First thing to do concerning data management is to create a protocol that will epoch the iEEG data. You can do that using the protocol manager window (Figure \ref{protocolGestionUI}).
+\paragraph{} First thing to do concerning data management is to create a protocol that will epoch the iEEG data. You can do that using the protocol manager window (Figure \ref{protocolGestionUI}). You can also import an existing .prov file to the project by using the "Import..." button on the bottom.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{ProtocolGestion.png}
 \end{center}
 \caption{\label{protocolGestionUI}Protocols manager}
 \end{figure}
-\paragraph{} Editing a protocol consists of defining the blocs for this protocol. This is done with the protocol modifier window (Figure \ref{protocolModifierUI}). There are two types of blocs in a protocol: a main bloc (first column) will be used for metadata and main epoching, whereas a secondary bloc (second and third columns) will be used to epoch around a second or a third main event (this is used if you want to hide a pause between two important data).
+\paragraph{} Editing a protocol consists of defining the blocs for this protocol. This is done with the protocol modifier window (Figure \ref{protocolModifierUI}). There are two types of blocs in a protocol: a main bloc (first column) will be used for metadata and main epoching, whereas a secondary bloc (second and third columns) will be used to epoch around a second or a third main event (this is used if you want to hide a pause between two important data). To create a new bloc, click on an empty box. To edit a bloc, double click on an existing bloc.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.3]{ProtocolModifier.png}
 \end{center}
 \caption{\label{protocolModifierUI}Protocol modifier}
 \end{figure}
-\paragraph{} A bloc can be edited with the bloc modifier window (Figure \ref{blocModifierUI}). There you can specify the name, the sorting method, the window and the baseline window, as well as events and icons for the iconic scenario, which can be edited by double clicking on them.
+\paragraph{} A bloc can be edited with the bloc modifier window (Figure \ref{blocModifierUI}). There you can specify the name, the sorting method, the window and the baseline window, as well as events and icons for the iconic scenario, which can be edited by double clicking on them. To add an illustration to the bloc, you can click on the icon placeholder in the general category.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{BlocModifier.png}
 \end{center}
 \caption{\label{blocModifierUI}Bloc modifier}
 \end{figure}
+\paragraph{} When your protocols are correctly defined, you are ready to create your datasets. This will be done using the datasets manager window (Figure \ref{datasetGestionUI}).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{DatasetGestion.png}
 \end{center}
 \caption{\label{datasetGestionUI}Datasets manager}
 \end{figure}
+\paragraph{} For a given dataset, you need to give it a name and assign a protocol. All the data included in this dataset will be epoched regarding the chosen protocol. With the dataset modifier window (Figure \ref{datasetModifierUI}), you can add and edit data information. Each data information has a little colored box which indicates the status of the data information : red means it is unsuable, whereas green means you can visualize it. You can click on this box to have more information about the data information.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{DatasetModifier.png}
 \end{center}
 \caption{\label{datasetModifierUI}Dataset modifier}
 \end{figure}
+\paragraph{} A data information has a name and is linked to a patient. A single dataset can not have two data information with the same pair [name, patient]. In order to visualize different data from the same dataset in the same column of a visualization, you have to give them the same name (thus the two patients concerned by these data will be different). Then, you have to fill in the paths to the functional data files (.eeg and .pos). The label in front of the EEG file path corresponds to the label of the data you want to extract from the EEG file (usually, it is "EEG data"). You can also change how this particular data will be normalized (this overwrites the global parameter for normalization).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{DataInfoModifier.png}
@@ -421,6 +424,214 @@ A dataset is a list of data information, each of them connecting one patient (an
 \caption{\label{dataInfoModifierUI}Data information modifier}
 \end{figure}
 \subsubsection{Visualizations management}
+\paragraph{} When everything is set up, you can create visualizations. This is done using the visualization manager window (Figure \ref{visuGestionUI}).
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{VisualizationGestion.png}
+\end{center}
+\caption{\label{visuGestionUI}Visualizations manager}
+\end{figure}
+\paragraph{} A visualization has a name, patients and columns. To edit all of this information, you can use the visualization modifier window (Figure \ref{visuModifierUI}). To add patients to the visualization, use the arrows (same process than adding patients to the project). To add a column, click on the "+" button under the "Columns" panel. You can then edit the column by setting the name, the type (anatomy only or iEEG), the protocol, the bloc, the dataset and the data name to be used in this column. Do not forget that if multiple patients are added to the visualization, they must have at least one data information with the same name.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.3]{VisualizationModifier.png}
+\end{center}
+\caption{\label{visuModifierUI}Visualization modifier}
+\end{figure}
+\paragraph{} Once your visualizations are ready to be displayed, you can select them and click the "Display" button.
+\subsection{3D Visualization}
+\paragraph{}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.7]{GlobalUI.png}
+\end{center}
+\caption{\label{globalUI}HiBoP user interface}
+\end{figure}
+\paragraph{} The main user interface of HiBoP can be decomposed as follow (Figure \ref{globalUI}) :
+\begin{itemize}
+\item \textbf{1} - Main menu (data management, see section \ref{UI} for more information)
+\item \textbf{2} - Toolbar (used to do actions on the 3D scene, more information in later sections)
+\item \textbf{3} - Toolbar selector (to select which toolbar you want to use)
+\item \textbf{4} - 3D visualization (main visualization window)
+\item \textbf{5} - Graphs and trial matrices (precise information of iEEG data, see section \ref{graphs})
+\item \textbf{6} - Cut panel (manage cuts, see section \ref{cuts})
+\item \textbf{7} - Open visualizations (used to minimize or close open visualizations)
+\end{itemize}
+\paragraph{} Elements in parts 4, 5 and 6 can be resized using the black handlers betweens them. Columns of the 3D vizualisations can be moved by drag and dropping their labels at the top of the column. You can interact with the scene in many ways :
+\begin{itemize}
+\item Left click on a view to select the corresponding view / column / scene or left click on a site / on a ROI to select it.
+\item Right click and drag to rotate the brain surface
+\item Middle click and drag to translate the brain surface
+\item Use the scroll wheel to control the zoom
+\end{itemize}
+\paragraph{} The left panel allows you to change between toolbars. Each toolbar has its own functions, which will be explained in more details in later sections.
+\newline
+\begin{minipage}{0.2\textwidth}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.75]{ToolbarSelector.png}
+\end{center}
+\end{figure}
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+\begin{itemize}
+\item Scene settings
+\item Display settings
+\item iEEG settings
+\item Timeline
+\item Sites
+\item Regions of Interest
+\item CCEP
+\item fMRI
+\item Triangle eraser
+\item Configuration
+\end{itemize}
+\end{minipage}
+\subsubsection{Cuts}\label{cuts}
+\paragraph{} Before getting into the toolbars, let's talk about cuts. Indeed, HiBoP allows you to cut the 3D mesh (using the MRI to fill the cut plane) with the right panel. To add a cut, click on the "Add cut" button. You can change parameters on the cut after clicking on it to open the parameters panel (Figure \ref{cut}). You can change its orientation (Axial, Coronal, Sagital or Custom), you can flip it (Axial, Coronal and Sagital) or set up a custom normal (Custom), you can change the position of the cut using the slider or the "+" and "-" buttons for more precision. To delete a cut, open the parameters panel and click on the little cross on the top-right of the cut.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{Cut.png}
+\end{center}
+\caption{\label{cut}Cut parameters panel}
+\end{figure}
+\paragraph{} The following sections will explain the different functionalities of each toolbar.
+\subsubsection{Scene settings}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.35]{SceneSettings.png}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Display both parts, only the left part or only the right part of the selected mesh (only works for left-right meshes).
+\item Display mars atlas on the mesh (only works if the mars atlas field of the mesh is filled).
+\item Display the edges of the mesh.
+\item Switch between the soft cut mode (keep everything behind a cut) and the hard cut mode (cut everything in front of a cut).
+\item Change the colormap of the iEEG values.
+\item Change the color of the brain.
+\item Change the color of the cuts.
+\item Change the threshold of the MRI values (contrast).
+\item Change the mesh (MNI meshes are available no matter the number of patients, the patient meshes are only available if the patient is alone in the visualization).
+\item Change the MRI (patient MRIs are only available if the patient is alone in the visualization).
+\item Change the implantation (an implantation is available only if each patient of the visualization has an implantation with the same name)
+\end{itemize}
+\subsubsection{Display settings}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{DisplaySettings.png}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Add or remove a view (maximum 5 views).
+\item Set up standard views (3 views with 3 different points of view).
+\item Reset the camera position of the selected view.
+\item Reset the size of the views (if resized using the handlers).
+\item Automatic rotation of the brain (you can set the rotation speed with the slider).
+\item Change the camera behaviour (T = trackball camera, O = orbital camera).
+\item Take a raw screenshot of the scene which will be saved in the default screenshot directory (set in preferences).
+\item Save the scene as files in a directory named after the name of the visualization in the default screenshot directory (one image per open view, one image per cut, one image and one svg for the graph, one image for the trial matrices, one csv for each curve containing the values).
+\end{itemize}
+\subsubsection{iEEG settings}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{iEEGSettings.png}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Trigger global mode (any changes will be applied to all columns)
+\item Change the size of the sites
+\item Change the size of the influence sphere of the sites (to compute the iEEG on the brain surface)
+\item Change the transparency of the iEEG value on the brain surface
+\item Change the threshold values for the iEEG (anything less than the minimum value will be of the same color as the minimum value, the same apply for the maximum value; the rest of the values will increase linearly from minimum to middle, then decrease linearly from middle to maximum).
+\item Compute the iEEG values on the brain surface or clean the brain.
+\end{itemize}
+\subsubsection{Timeline}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{Timeline.png}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Trigger global mode (any changes will be applied to all columns).
+\item Make the timeline play automatically.
+\item Increase the current timeline ID by a specific amount of samples (this also controls the speed of the play, X samples will be played each second).
+\item Loop the timeline (when playing automatically).
+\item Slider to control the timeline precisely; the red mark indicates the main event, the blue marks indicates the secondary events (as defined in the .prov file).
+\end{itemize}
+\subsubsection{Sites}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{Sites.png}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Selected site name.
+\item Display all sites in the scene.
+\item Hide blacklisted sites.
+\item Change the state of some sites (you can select which sites using filters). Available states are :
+\begin{itemize}
+\item Excluded : an excluded site is not in the iEEG computations, but it remains visible in the scene
+\item Highlighted : a highlighted site appears without transparency in the scene
+\item Marked : a marked site appears in another color when the iEEG are not computed (the behaviour is the same as an included site)
+\item Blacklisted : a blacklisted site will be barely visible and not included in any calculation
+\end{itemize}
+\item Display a list of all sites with their respective state. Click on the name of a site to select it.
+\item Compare two sites : select a site, click on this button, then select another site to compare them.
+\item Load the single patient scene corresponding to the patient whose site is selected.
+\item Cut approximately around the select site.
+\item Copy the states of the sites of the selected column to every other columns.
+\item Save the states of the sites in a .csv file.
+\item Load a .csv file with the states of the sites to the selected column.
+\end{itemize}
+\subsubsection{Regions of Interest}
+\paragraph{} Regions of Interest (ROI) are useful if you only want to study a small group of sites. They are composed of multiple spheres with different positions and radiuses. If the option "Show All Sites" of the sites toolbar is not enabled, only the sites of the selected ROI will be included in the iEEG computations on the brain. A curve will also be generated for the selected ROI of each column (section \ref{graphs}).
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{ROI.png}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Add a new ROI in the selected column.
+\item Select a ROI for the selected column.
+\item Change the name of the selected ROI.
+\item Remove the selected ROI.
+\item Select a sphere of the ROI.
+\item Delete the selected ROI.
+\item Copy the selected ROI to other columns.
+\item Save the selected ROI to a .roi file.
+\item Load a .roi file to the selected column.
+\end{itemize}
+\subsubsection{CCEP}
+\paragraph{} This toolbar will allow you to enable CCEP mode (which will disable iEEG mode) and choose from the Connectivity files which one you want to display. To select a source, simply select the site you want as source.
+\subsubsection{fMRI}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{fMRI.png}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Add or remove a fMRI to the anatomic MRI. If iEEG values are computed, the fMRI will not be displayed.
+\item Change the threshold values of the fMRI.
+\item Change the transparency of the fMRI.
+\end{itemize}
+\subsubsection{Triangle eraser}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.4]{TriEraser.png}
+\end{center}
+\end{figure}
+\begin{itemize}
+\item Reset the triangle eraser.
+\item Choose how you want to erase triangles (one triangle, cylinder, zone).
+\item Expand the erased zone.
+\item Invert the erased zone.
+\item Revert last action.
+\end{itemize}
+\subsubsection{Configuration}
+\paragraph{} This toolbar allow you to save, load or reset the configuration of the selected scene. Beware, saving the configuration will just save it to the loaded visualization: to write the changes in the corresponding file, you still have to save the whole project.
+\subsection{Graphs and Trial Matrices}\label{graphs}
+\subsubsection{Graphs}
+\subsubsection{Trial matrices}
 \appendix
 \section{HiBoP Database Manager}\label{bddmanager}
 \section{HiBoP Database Hierarchy}\label{bddhierarchy}
