@@ -619,7 +619,11 @@ namespace HBP.Data.General
                     DataInfo data = dataset.Data[j];
                     data.GetErrors(dataset.Protocol);
                     progress += progressStep;
+
+                    // DEBUG
+                    yield return Ninja.JumpToUnity;
                     OnChangeProgress.Invoke(progress, 0, "Checking <color=blue>" + data.Name + " | " + dataset.Protocol.Name + " | " + data.Patient.Name + "</color> [" + count + "/" + length + "]");
+                    yield return Ninja.JumpBack;
                 }
             }
         }

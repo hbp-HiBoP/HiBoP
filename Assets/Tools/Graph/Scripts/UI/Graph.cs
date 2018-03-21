@@ -14,6 +14,7 @@ namespace Tools.Unity.Graph
         Dictionary<string, bool> m_StateByGroupCurveData = new Dictionary<string, bool>();
         Dictionary<string, bool> m_StateByCurveData = new Dictionary<string, bool>();
         GraphData m_Data = new GraphData();
+
         public string Title
         {
             get { return m_Data.Title; }
