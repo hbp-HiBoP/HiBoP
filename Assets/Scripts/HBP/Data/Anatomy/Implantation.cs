@@ -113,6 +113,8 @@ namespace HBP.Data.Anatomy
                 if(MNIImplantation.Exists) implantations.Add(new Implantation("MNI", MNIImplantation.FullName, marsAtlas));
                 FileInfo ACPCImplantation = new FileInfo(implantationDirectory.FullName + Path.DirectorySeparatorChar + patientDirectory.Name + "_ACPC" + EXTENSION);
                 if (ACPCImplantation != null) implantations.Add(new Implantation("ACPC", ACPCImplantation.FullName, marsAtlas));
+                FileInfo postImplantation = implantationDirectory.GetFiles(patientDirectory.Name + "_T1Post*" + EXTENSION).FirstOrDefault();
+                if (postImplantation != null) implantations.Add(new Implantation("Post", postImplantation.FullName, marsAtlas));
             }
             //UnityEngine.Profiling.Profiler.EndSample();
             return implantations.ToArray();
