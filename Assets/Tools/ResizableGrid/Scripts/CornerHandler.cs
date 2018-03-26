@@ -19,10 +19,6 @@ namespace Tools.Unity.ResizableGrid
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            Initialize();
-        }
         private void Update()
         {
             if (m_VerticalHandler != null && m_HorizontalHandler != null)
@@ -34,12 +30,16 @@ namespace Tools.Unity.ResizableGrid
         #endregion
 
         #region Public Methods
+        public override void Initialize(ResizableGrid resizableGrid)
+        {
+            base.Initialize(resizableGrid);
+        }
         /// <summary>
         /// Initialize the corner handler with the corresponding handlers
         /// </summary>
         /// <param name="verticalHandler">Associated vertical handler</param>
         /// <param name="horizontalHandler">Associated horizontal handler</param>
-        public void Initialize(VerticalHandler verticalHandler, HorizontalHandler horizontalHandler)
+        public void SetCorrespondingHandlers(VerticalHandler verticalHandler, HorizontalHandler horizontalHandler)
         {
             m_VerticalHandler = verticalHandler;
             m_HorizontalHandler = horizontalHandler;

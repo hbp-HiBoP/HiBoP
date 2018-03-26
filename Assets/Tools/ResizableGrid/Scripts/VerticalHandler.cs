@@ -50,15 +50,12 @@ namespace Tools.Unity.ResizableGrid
         }
         #endregion
 
-        #region Private Methods
-        private void Awake()
+        #region Public Methods
+        public override void Initialize(ResizableGrid resizableGrid)
         {
-            Initialize();
+            base.Initialize(resizableGrid);
             MinimumPosition = m_ResizableGrid.MinimumViewWidth / m_ResizableGrid.RectTransform.rect.width;
         }
-        #endregion
-
-        #region Public Methods
         /// <summary>
         /// Callback event when clicking on the handler
         /// </summary>

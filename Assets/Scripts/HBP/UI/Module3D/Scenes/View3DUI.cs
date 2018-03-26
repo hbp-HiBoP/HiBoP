@@ -270,7 +270,11 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         m_Scene = scene;
         m_Column = column;
         m_View = view;
-        
+        ParentGrid = GetComponentInParent<ResizableGrid>();
+        m_RectTransform = GetComponent<RectTransform>();
+        m_RawImage = GetComponent<RawImage>();
+        UsingRenderTexture = true;
+
         if (!m_UsingRenderTexture)
         {
             Rect viewport = m_RectTransform.ToScreenSpace();
