@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.UI;
 
 namespace Tools.Unity.Graph
@@ -9,35 +9,43 @@ namespace Tools.Unity.Graph
     {
         #region Properties
         public PlotGestion PlotGestion;
-        public SimplifiedInformationsGestion InformationsGestion;
 
         GraphData m_Data = new GraphData();
+
+        public Text TitleText;
         public string Title
         {
-            get { return m_Data.Title; }
+            get
+            {
+                return m_Data.Title;
+            }
             set
             {
                 m_Data.Title = value;
-                InformationsGestion.Title = value;
+                TitleText.text = value;
             }
         }
+
+        public Graphic[] FontColorGraphics;
         public Color FontColor
         {
             get { return m_Data.Font; }
             set
             {
                 m_Data.Font = value;
-                InformationsGestion.SetColor(value);
+                foreach (var graphic in FontColorGraphics) graphic.color = value;
                 PlotGestion.OriginAxeColor = value;
             }
         }
+
+        public Graphic[] BackgroundColorGraphics;
         public Color BackgroundColor
         {
             get { return m_Data.Background; }
             set
             {
                 m_Data.Background = value;
-                PlotGestion.GetComponent<Image>().color = value;
+                foreach (var graphic in BackgroundColorGraphics) graphic.color = value;
             }
         }
 
@@ -57,7 +65,6 @@ namespace Tools.Unity.Graph
             private set
             {
                 limits = value;
-                InformationsGestion.SetLimits(value);
             }
         }
 
@@ -67,12 +74,14 @@ namespace Tools.Unity.Graph
         #region Public Methods    
         public void Plot(GraphData graph)
         {
+            Profiler.BeginSample("Plot totezfz");
             m_Data = graph;
             Title = graph.Title;
             BackgroundColor = graph.Background;
             FontColor = graph.Font;
             if (m_AutoLimits) Plot(graph.GroupCurveData, graph.Limits, false);
             else Plot(graph.GroupCurveData, Limits, false);
+            Profiler.EndSample();
         }
         public string ToSVG()
         {

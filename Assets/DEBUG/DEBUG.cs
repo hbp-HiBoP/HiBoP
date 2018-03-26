@@ -1,42 +1,47 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Tools.Unity.Graph;
 
 public class DEBUG : MonoBehaviour
 {
+    public GraphList graphList;
     public SimplifiedGraph simplifiedGraph;
+    int nbPoints = 101;
+    GraphData graph;
+    GroupCurveData group;
 
 	void Start ()
     {
-        GroupCurveData group = new GroupCurveData("testGroupCurveData");
-
-        Vector2[] ROIpoints = new Vector2[]
+        Vector2[] ROIpoints = new Vector2[nbPoints];
+        for (int i = 0; i < nbPoints; i++)
         {
-        new Vector2(0,1),
-        new Vector2(1,2),
-        new Vector2(2,2),
-        new Vector2(3,3),
-        new Vector2(4,5),
-        new Vector2(5,0)
-        };
-        CurveData ROI = new CurveData("ROI", "ROI", ROIpoints, Color.red);
+            ROIpoints[i] = new Vector2(i, 50);
+        }
+        CurveData ROI = new CurveData("ROI", "ROI", ROIpoints, Color.red,1.5f);
 
-        Vector2[] points = new Vector2[]
+        Vector2[] points = new Vector2[nbPoints];
+        for (int p = 0; p < nbPoints; p++)
         {
-        new Vector2(0,3),
-        new Vector2(1,5),
-        new Vector2(2,4),
-        new Vector2(3,0),
-        new Vector2(4,2),
-        new Vector2(5,0)
-        };
-        CurveData Normal = new CurveData("Normal", "Normal", points, Color.cyan);
-
+            points[p] = new Vector2(p, p);
+        }
+        CurveData Normal = new CurveData("Normal", "Normal", points, Color.yellow, 1.5f);
+        group = new GroupCurveData("testGroupCurveData");
         group.Curves = new List<CurveData> { Normal, ROI };
+        graph = new GraphData("site n°" + 0, "abscissa", "ordinate", Color.black, Color.white, new GroupCurveData[] { group }, new Limits(0, 100, 0, 100));
 
-        GraphData myGraph = new GraphData("test", "abscissa", "ordinate", Color.black, Color.white, new GroupCurveData[] { group }, new Limits(0,5,0,5));
-        simplifiedGraph.Plot(myGraph);
     }
 
+    private void Update()
+    {
+        if(Input.GetKeyUp(KeyCode.D))
+        {
+            GraphData[] graphs = new GraphData[50];
+            for (int i = 0; i < 50; i++)
+            {
+                graphs[i] = new GraphData("A'" + (i + 1), "abscissa", "ordinate", Color.black, Color.white, new GroupCurveData[] { group }, new Limits(0, 100, 0, 100));
+            }
+            graphList.Display(graphs);
+            //simplifiedGraph.Plot(graph);
+        }
+    }
 }

@@ -26,24 +26,24 @@ namespace Tools.Unity.Graph
         }
         public void SetLimits(Vector2 limits)
         {
-            // Calculate the value of the axe.
-            float ratio, step, startIndex, value, position; int numberOfMajorTickMarksNeeded;
-            CalculateAxeValue(limits.y, limits.x, out ratio, out step, out numberOfMajorTickMarksNeeded, out startIndex);
+            //// Calculate the value of the axe.
+            //float ratio, step, startIndex, value, position; int numberOfMajorTickMarksNeeded;
+            //CalculateAxeValue(limits.y, limits.x, out ratio, out step, out numberOfMajorTickMarksNeeded, out startIndex);
 
-            //// Add the graduations
-            for (int i = 0; i < m_Graduations.Length; i++)
-            {
-                if (i < numberOfMajorTickMarksNeeded)
-                {
-                    value = (startIndex + i) * step;
-                    position = (value - limits.x) * ratio;
-                    SetGraduations(m_Graduations[i], value.ToString(), position, Side, m_Color);
-                }
-                else
-                {
-                    m_Graduations[i].gameObject.SetActive(false);
-                }
-            }
+            ////// Add the graduations
+            //for (int i = 0; i < m_Graduations.Length; i++)
+            //{
+            //    if (i < numberOfMajorTickMarksNeeded)
+            //    {
+            //        value = (startIndex + i) * step;
+            //        position = (value - limits.x) * ratio;
+            //        SetGraduations(m_Graduations[i], value.ToString(), position, Side, m_Color);
+            //    }
+            //    else
+            //    {
+            //        m_Graduations[i].gameObject.SetActive(false);
+            //    }
+            //}
         }
         #endregion
 
