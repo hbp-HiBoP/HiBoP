@@ -189,25 +189,31 @@ namespace HBP.Data.Visualization
             int maxFrequency = frequencies.Max();
 
             Event mainEvent = new Event();
-            Event[] secondaryEvents = new Event[Bloc.SecondaryEvents.Count];
+            List<Event> secondaryEvents = new List<Event>(Bloc.SecondaryEvents.Count);
             switch (ApplicationState.GeneralSettings.EventPositionAveraging)
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:
                     mainEvent = new Event(Bloc.MainEvent.Name,(int) (from bloc in blocs select bloc.Object1.PositionByEvent[Bloc.MainEvent] * (maxFrequency / bloc.Object2)).ToArray().Mean());
-                    for (int i = 0; i < secondaryEvents.Length; i++)
+                    for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
                     {
                         List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in blocs where bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2) >= 0 select bloc).ToList();
-                        float rate = (float) blocWhereEventFound.Count / blocs.Count;
-                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name,(int) (from bloc in blocWhereEventFound select bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2)).ToArray().Mean(), rate);
+                        if (blocWhereEventFound.Count > 0)
+                        {
+                            float rate = (float)blocWhereEventFound.Count / blocs.Count;
+                            secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, (int)(from bloc in blocWhereEventFound select bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2)).ToArray().Mean(), rate));
+                        }
                     }
                     break;
                 case Settings.GeneralSettings.AveragingMode.Median:
                     mainEvent = new Event(Bloc.MainEvent.Name, (int)(from bloc in blocs select bloc.Object1.PositionByEvent[Bloc.MainEvent] * (maxFrequency / bloc.Object2)).ToArray().Median());
-                    for (int i = 0; i < secondaryEvents.Length; i++)
+                    for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
                     {
                         List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in blocs where bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2) >= 0 select bloc).ToList();
-                        float rate = (float)blocWhereEventFound.Count / blocs.Count;
-                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name, (int)(from bloc in blocWhereEventFound select bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2)).ToArray().Median(), rate);
+                        if (blocWhereEventFound.Count > 0)
+                        {
+                            float rate = (float)blocWhereEventFound.Count / blocs.Count;
+                            secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, (int)(from bloc in blocWhereEventFound select bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2)).ToArray().Median(), rate));
+                        }
                     }
                     break;
             }
@@ -218,10 +224,10 @@ namespace HBP.Data.Visualization
             IconicScenarioByFrequency = new Dictionary<int, IconicScenario>();
             foreach (int frequency in frequencies)
             {
-                TimeLineByFrequency.Add(frequency, new Timeline(Bloc.Window, mainEvent, secondaryEvents, frequency));
+                TimeLineByFrequency.Add(frequency, new Timeline(Bloc.Window, mainEvent, secondaryEvents.ToArray(), frequency));
                 IconicScenarioByFrequency.Add(frequency, new IconicScenario(Bloc, frequency, TimeLineByFrequency[frequency]));
             }
-            TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents, maxFrequency);
+            TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents.ToArray(), maxFrequency);
             IconicScenario = new IconicScenario(Bloc, maxFrequency, TimeLine);
 
             // Resampling taking frequencies into account

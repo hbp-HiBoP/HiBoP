@@ -6,30 +6,58 @@ namespace Tools.CSharp
     {
         public static float StandardDeviation(this float[] array)
         {
+            if (array.Length == 0)
+            {
+                throw new System.Exception("Array is empty");
+            }
             return StandardDeviation(array, array.Length);
         }
         public static float SEM(this float[] array)
         {
+            if (array.Length == 0)
+            {
+                throw new System.Exception("Array is empty");
+            }
             return SEM(array, array.Length);
         }
         public static float Mean(this float[] array)
         {
+            if (array.Length == 0)
+            {
+                throw new System.Exception("Array is empty");
+            }
             return Mean(array, array.Length);
         }
         public static float Mean(this int[] array)
         {
+            if (array.Length == 0)
+            {
+                throw new System.Exception("Array is empty");
+            }
             return Mean(array, array.Length);
         }
         public static float Median(this float[] array)
         {
+            if (array.Length == 0)
+            {
+                throw new System.Exception("Array is empty");
+            }
             return Median(array, array.Length);
         }
         public static int Median(this int[] array)
         {
+            if (array.Length == 0)
+            {
+                throw new System.Exception("Array is empty");
+            }
             return Median(array, array.Length);
         }
         public static float[] Normalize(this float[] array, float average, float standardDeviation)
         {
+            if (array.Length == 0)
+            {
+                throw new System.Exception("Array is empty");
+            }
             float[] tmparray = (float[])array.Clone();
             if (standardDeviation == 0) standardDeviation = 1;
             Normalize(tmparray, array.Length, average, standardDeviation);
