@@ -10,6 +10,7 @@ using System.Runtime.Serialization;
 using CielaSpike;
 using HBP.Data.Experience.Dataset;
 using System.Diagnostics;
+using Tools.Unity;
 
 namespace HBP.Data.Visualization
 {
@@ -399,7 +400,7 @@ namespace HBP.Data.Visualization
         IEnumerator c_LoadColumns(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
-            float progressStep = LOAD_COLUMNS_PROGRESS / Columns.Count;
+            float progressStep = LOAD_COLUMNS_PROGRESS / (Columns.Count * 2);
             for (int i = 0; i < Columns.Count; ++i)
             {
                 Column column = Columns[i];
@@ -418,6 +419,22 @@ namespace HBP.Data.Visualization
                     exception = e;
                     break;
                 }
+            }
+            IEnumerable<int> frequencies = Columns.SelectMany(c => c.Frequencies);
+            frequencies = frequencies.Distinct();
+            if (!frequencies.ToList().AreMultiples())
+            {
+                throw new FrequencyException(Name);
+            }
+            int maxFrequency = frequencies.Max();
+            for (int i = 0; i < Columns.Count; ++i)
+            {
+                Column column = Columns[i];
+                yield return Ninja.JumpToUnity;
+                progress += progressStep;
+                onChangeProgress.Invoke(progress, 1.0f, "Loading timeline of column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
+                yield return Ninja.JumpBack;
+                column.SetTimeline(maxFrequency);
                 yield return Ninja.JumpToUnity;
                 try
                 {

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 [Serializable]
 public class HBPException : Exception
@@ -428,7 +430,7 @@ public class CanNotLoadVisualization : HBPException
 public class FrequencyException : HBPException
 {
     public FrequencyException() { }
-    public FrequencyException(string fileName, int frequency) : base("The frequency of the file <color=blue>" + fileName + "</color> is not a power of two (" + frequency + ").\n\nThis is not supported.")
+    public FrequencyException(string columnName) : base("The frequencies of the data of column <color=blue>" + columnName + "</color> are not multiples of each other.\n\nThis is not supported.")
     {
         Title = "Invalid frequency";
     }
