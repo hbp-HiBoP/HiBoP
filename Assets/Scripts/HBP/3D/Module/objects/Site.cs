@@ -137,7 +137,7 @@ namespace HBP.Module3D
                     }
                     else
                     {
-                        return FullID;
+                        return PatientID + "_" + siteName;
                     }
                 }
                 else
