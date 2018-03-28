@@ -63,6 +63,16 @@ namespace Tools.CSharp
             Normalize(tmparray, array.Length, average, standardDeviation);
             return tmparray;
         }
+        public static float Lerp(float value1, float value2, float percentage)
+        {
+            return LerpDLL(value1, value2, percentage);
+        }
+        public static float[] LinearSmooth(this float[] values, int smoothFactor)
+        {
+            float[] newValues = new float[(values.Length - 1) * smoothFactor + 1];
+            LinearSmooth(values, values.Length, smoothFactor, newValues);
+            return newValues;
+        }
 
         #region DLL
         [DllImport("HBP_Compute", EntryPoint = "MeanFloat", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -79,6 +89,10 @@ namespace Tools.CSharp
         private static extern float SEM(float[] values, int lenght);
         [DllImport("HBP_Compute", EntryPoint = "Normalize", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void Normalize(float[] values, int length, float average, float standardDeviation);
+        [DllImport("HBP_Compute", EntryPoint = "Lerp", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern float LerpDLL(float value1, float value2, float percentage);
+        [DllImport("HBP_Compute", EntryPoint = "LinearSmooth", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern void LinearSmooth(float[] values, int length, int smoothFactor, float[] newValues);
         #endregion
     }
 }

@@ -5,6 +5,7 @@ using HBP.Data.Settings;
 using System.Collections.Generic;
 using d = HBP.Data.TrialMatrix;
 using UnityEngine.Profiling;
+using Tools.CSharp;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -238,7 +239,7 @@ namespace HBP.UI.TrialMatrix
         void SetTexture(d.Bloc bloc,Texture2D colorMap,Vector2 limits)
         {
             Profiler.BeginSample("A");
-            float[,] lines = ExtractDataFromLines(bloc.Lines);
+            float[][] lines = ExtractDataFromLines(bloc.Lines);
             Profiler.EndSample();
 
             Profiler.BeginSample("B");
@@ -256,14 +257,15 @@ namespace HBP.UI.TrialMatrix
             GetComponent<RawImage>().texture = texture;
             Profiler.EndSample();
         }
-        Texture2D GenerateTexture(float[,] lines,Vector2 limits,Texture2D colorMap)
+        Texture2D GenerateTexture(float[][] lines,Vector2 limits,Texture2D colorMap)
         {
             Profiler.BeginSample("A");
             // Caculate texture size.
-            int width = lines.GetLength(0);
-            int height = lines.GetLength(1);
+            int height = lines.Length;
+            if (height == 0) return new Texture2D(0,0);
+            int width = lines[0].Length;
             Texture2D l_texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            Color[] colors = new Color[width * height];
+            Color[] colors = new Color[height * width];
             Profiler.EndSample();
 
             Profiler.BeginSample("B");
@@ -273,7 +275,7 @@ namespace HBP.UI.TrialMatrix
             {
                 for (int x = 0; x < width; x++)
                 {
-                    float value = lines[x, y];
+                    float value = lines[y][x];
                     if (float.IsNaN(value))
                     {
                         colors[y*width + x] = Color.black;
@@ -296,42 +298,23 @@ namespace HBP.UI.TrialMatrix
 
             return l_texture;
         }
-        float[,] SmoothLines(float[,] lines, int pass)
+        float[][] SmoothLines(float[][] lines, int pass)
         {
-            float[,] result = new float[(lines.GetLength(0)-1)*pass + 1,lines.GetLength(1)];
-            int width = lines.GetLength(0);
-            int height = lines.GetLength(1);
-            for (int y = 0; y < height; y++)
+            UnityEngine.Profiling.Profiler.BeginSample("smoothing lines");
+            float[][] result = new float[lines.Length][];
+            for (int l = 0; l < result.Length; l++)
             {
-                for (int x = 0; x < width; x++)
-                {
-                    if (x == width - 1)
-                    {
-                        result[x * pass, y] = lines[x, y];
-                    }
-                    else
-                    {
-                        for (int t = 0; t < pass; t++)
-                        {
-                            float value = Mathf.Lerp(lines[x, y], lines[x + 1, y], (float)t / pass);
-                            result[(x * pass) + t, y] = value;
-                        }
-                    }
-                }
+                result[l] = lines[l].LinearSmooth(pass);
             }
+            Profiler.EndSample();
             return result;
         }
-        float[,] ExtractDataFromLines(d.Line[] lines)
+        float[][] ExtractDataFromLines(d.Line[] lines)
         {
-            float[,] result = new float[lines[0].NormalizedValues.Length,lines.Length];
-            int width = result.GetLength(0);
-            int height = result.GetLength(1);
-            for (int x = 0; x < width; x++)
+            float[][] result = new float[lines.Length][];
+            for (int l = 0; l < lines.Length; l++)
             {
-                for (int y = 0; y < height; y++)
-                {
-                    result[x, y] = lines[y].NormalizedValues[x];
-                }
+                result[l] = lines[l].NormalizedValues;
             }
             return result;
         }
