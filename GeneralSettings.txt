@@ -6,8 +6,8 @@
   "DefaultLocalizerDatabaseLocation": "Y:\\LOCA_DATABASE",
   "DefaultScreenshotsLocation": "D:\\HBP\\Screenshots",
   "PlotNameAutomaticCorrectionType": 1,
-  "EventPositionAveraging": 0,
-  "ValueAveraging": 0,
+  "EventPositionAveraging": 1,
+  "ValueAveraging": 1,
   "TrialMatrixSettings": {
     "Smoothing": 1,
     "Normalization": 0,

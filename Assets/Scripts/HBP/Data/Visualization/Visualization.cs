@@ -417,15 +417,11 @@ namespace HBP.Data.Visualization
                 catch (Exception e)
                 {
                     exception = e;
-                    break;
+                    outPut(progress, exception);
+                    yield break;
                 }
             }
             IEnumerable<int> frequencies = Columns.SelectMany(c => c.Frequencies);
-            frequencies = frequencies.Distinct();
-            if (!frequencies.ToList().AreMultiples())
-            {
-                throw new FrequencyException(Name);
-            }
             int maxFrequency = frequencies.Max();
             for (int i = 0; i < Columns.Count; ++i)
             {
@@ -443,7 +439,8 @@ namespace HBP.Data.Visualization
                 catch (Exception e)
                 {
                     exception = e;
-                    break;
+                    outPut(progress, exception);
+                    yield break;
                 }
             }
             outPut(progress, exception);

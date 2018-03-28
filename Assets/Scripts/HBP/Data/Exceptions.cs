@@ -429,10 +429,9 @@ public class CanNotLoadVisualization : HBPException
 [Serializable]
 public class FrequencyException : HBPException
 {
-    public FrequencyException() { }
-    public FrequencyException(string columnName) : base("The frequencies of the data of column <color=blue>" + columnName + "</color> are not multiples of each other.\n\nThis is not supported.")
+    public FrequencyException() : base("The frequencies of the data of the columns of this visualization are not multiples of each other.\n\nThis is not supported.")
     {
-        Title = "Invalid frequency";
+        Title = "Invalid frequencies";
     }
     public FrequencyException(string message, Exception inner) : base(message, inner) { }
     protected FrequencyException(
