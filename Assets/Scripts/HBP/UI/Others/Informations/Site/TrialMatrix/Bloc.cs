@@ -3,8 +3,9 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using HBP.Data.Settings;
 using System.Collections.Generic;
-using d = HBP.Data.TrialMatrix;
-using UnityEngine.Profiling;
+using data = HBP.Data.TrialMatrix;
+using System.Collections.ObjectModel;
+using Tools.Unity;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -12,57 +13,72 @@ namespace HBP.UI.TrialMatrix
     public class Bloc : MonoBehaviour
     {
         #region Properties
-
-        [SerializeField]
-        GameObject pref_selectionDisplay;
-
-        d.Bloc data;
-        public d.Bloc Data { get { return data; } }
-
-        List<int> selectedLines = new List<int>();
-        public int[] SelectedLines
+        data.Bloc m_Data;
+        public data.Bloc Data
         {
-            get { return selectedLines.ToArray(); }
+            get
+            {
+                return m_Data;
+            }
+            set
+            {
+                m_Data = Data;
+                GenerateTexture();
+            }
         }
-        const float LINE_RATIO = 0.0025f;
-        int beginDragLine;
-        bool onDrag;
 
-        Texture2D colorMap;
-        RectTransform rectTransform;
-        BlocInformationDisplayer blocInformationsDisplayer;
-        LayoutElement layoutElement;
+        Texture2D m_ColorMap;
+        public Texture2D ColorMap
+        {
+            get
+            {
+                return m_ColorMap;
+            }
+            set
+            {
+                m_ColorMap = value;
+                GenerateTexture();
+            }
+        }
+
+        Vector2 m_Limits;
+        public Vector2 Limits
+        {
+            get { return m_Limits; }
+            set
+            {
+                m_Limits = value;
+                GenerateTexture();
+            }
+        }
+
+        List<int> m_selectedLines = new List<int>();
+        public ReadOnlyCollection<int> SelectedLines
+        {
+            get { return new ReadOnlyCollection<int>(m_selectedLines); }
+        }
+
+        [SerializeField] GameObject SelectionMask;
+        int m_BeginDragLine;
+        bool m_Initialized;
+        bool m_Dragging;
+        RectTransform m_RectTransform;
+        LayoutElement m_LayoutElement;
         #endregion
 
         #region Public Methods
-        public void Set(d.Bloc bloc,Texture2D colorMap,Vector2 limits)
+        public void Set(data.Bloc data,Texture2D colorMap,Vector2 limits)
         {
-            data = bloc;
-            this.colorMap = colorMap;
-            gameObject.name = bloc.ProtocolBloc.Name + " | " + "Bloc n°" + bloc.ProtocolBloc.Position.Column;
-            Profiler.BeginSample("A");
-            blocInformationsDisplayer.Set(bloc);
-            Profiler.EndSample();
+            m_Data = data;
+            m_ColorMap = colorMap;
+            m_Limits = limits;
 
-            Profiler.BeginSample("B");
+            name = data.ProtocolBloc.Name + " | " + "Bloc n°" + data.ProtocolBloc.Position.Column;
+
             SetSize();
-            Profiler.EndSample();
-
-            Profiler.BeginSample("C");
-            SetTexture(bloc, colorMap, limits);
-            Profiler.EndSample();
-
-            Profiler.BeginSample("D");
-            GenerateMainEventIndicator(bloc);
-            Profiler.EndSample();
-
-            Profiler.BeginSample("E");
-            GenerateSecondaryIndicator(bloc);
-            Profiler.EndSample();
-        }
-        public void UpdateLimits(Vector2 limits)
-        {
-            SetTexture(Data, colorMap, limits);
+            GenerateTexture();
+            GenerateMainEventIndicator(data);
+            GenerateSecondaryIndicator(data);
         }
         public void SelectLines(int[] lines,bool additive)
         {
@@ -71,20 +87,20 @@ namespace HBP.UI.TrialMatrix
                 {
                     foreach (int i in lines)
                     {
-                        if (!selectedLines.Contains(i))
+                        if (!m_selectedLines.Contains(i))
                         {
-                            selectedLines.Add(i);
+                            m_selectedLines.Add(i);
                         }
                     }
                 }
                 else
                 {
-                    selectedLines = new List<int>(lines);
+                    m_selectedLines = new List<int>(lines);
                 }
                 List<int> l_notSelectedLines = new List<int>();
-                for (int i = 0; i < Data.Lines.Length; i++)
+                for (int i = 0; i < Data.Trials.Length; i++)
                 {
-                    if (!selectedLines.Contains(i)) l_notSelectedLines.Add(i);
+                    if (!m_selectedLines.Contains(i)) l_notSelectedLines.Add(i);
                 }
 
                 List<List<int>> GroupOfLines = new List<List<int>>();
@@ -110,16 +126,16 @@ namespace HBP.UI.TrialMatrix
         }
         public void OnPointerDown()
         {
-            beginDragLine = LineClicked();
+            m_BeginDragLine = LineClicked();
         }
         public void OnPointerClick(BaseEventData p)
         {
             PointerEventData pointer = (PointerEventData) p;
             if (pointer.button.ToString() == "Left")
             {
-                if (!onDrag)
+                if (!m_Dragging)
                 {
-                    int[] linesClicked = new int[1] { beginDragLine };
+                    int[] linesClicked = new int[1] { m_BeginDragLine };
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
                         SendMessageSelectLines(linesClicked, true);
@@ -132,7 +148,7 @@ namespace HBP.UI.TrialMatrix
             }
             else if (pointer.button.ToString() == "Right")
             {
-                int max = Data.Lines.Length;
+                int max = Data.Trials.Length;
                 int[] array = new int[max];
                 for (int i = 0; i < max; i++)
                 {
@@ -143,12 +159,12 @@ namespace HBP.UI.TrialMatrix
         }
         public void OnBeginDrag()
         {
-            onDrag = true;
+            m_Dragging = true;
         }
         public void OnEndDrag()
         {
-            int l_endDragLine = Mathf.Clamp(LineClicked(),0,data.Lines.Length-1);
-            int l_beginDragLine = Mathf.Clamp(beginDragLine, 0, data.Lines.Length-1); ;
+            int l_endDragLine = Mathf.Clamp(LineClicked(),0,m_Data.Trials.Length-1);
+            int l_beginDragLine = Mathf.Clamp(m_BeginDragLine, 0, m_Data.Trials.Length-1); ;
             List<int> linesSelected = new List<int>();
             if(l_beginDragLine > l_endDragLine)
             {
@@ -173,7 +189,7 @@ namespace HBP.UI.TrialMatrix
             {
                 SendMessageSelectLines(linesSelected.ToArray(), false);
             }
-            onDrag = false;
+            m_Dragging = false;
         }
         public void OnScroll()
         {
@@ -181,15 +197,15 @@ namespace HBP.UI.TrialMatrix
             int delta = Mathf.RoundToInt(l_input);
             if(delta != 0)
             {
-                int[] l_lines = SelectedLines;
+                int[] l_lines = m_selectedLines.ToArray();
                 int size = l_lines.Length - 1;
                 if (size < 0) size = 0;
                 List<int> l_linesToSelect = new List<int>(size);
                 int newLine;
                 for (int i = 0; i < l_lines.Length; i++)
                 {
-                    newLine = (((l_lines[i] + delta) % Data.Lines.Length) + Data.Lines.Length) % Data.Lines.Length;
-                    if (newLine >= 0 && newLine < Data.Lines.Length)
+                    newLine = (((l_lines[i] + delta) % Data.Trials.Length) + Data.Trials.Length) % Data.Trials.Length;
+                    if (newLine >= 0 && newLine < Data.Trials.Length)
                     {
                         l_linesToSelect.Add(newLine);
                     }
@@ -209,17 +225,53 @@ namespace HBP.UI.TrialMatrix
         #region Private Methods
         void Awake()
         {
-            rectTransform = GetComponent<RectTransform>();
-            blocInformationsDisplayer = transform.GetChild(2).GetComponent<BlocInformationDisplayer>();
-            layoutElement = GetComponent<LayoutElement>();
+           if(!m_Initialized) Initialize();
         }
+        void Initialize()
+        {
+            m_RectTransform = GetComponent<RectTransform>();
+            m_LayoutElement = GetComponent<LayoutElement>();
+            m_Initialized = true;
+        }
+
+        void SetSize()
+        {
+            switch (ApplicationState.GeneralSettings.TrialMatrixSettings.BlocFormat)
+            {
+                case TrialMatrixSettings.BlocFormatType.ConstantLine:
+                    m_LayoutElement.preferredHeight = ApplicationState.GeneralSettings.TrialMatrixSettings.ConstantLineHeight * m_Data.Trials.Length;
+                    break;
+                case TrialMatrixSettings.BlocFormatType.LineRatio:
+                    m_LayoutElement.preferredHeight = ApplicationState.GeneralSettings.TrialMatrixSettings.LineHeightByWidth * m_RectTransform.rect.width * m_Data.Trials.Length;
+                    break;
+                case TrialMatrixSettings.BlocFormatType.BlocRatio:
+                    m_LayoutElement.preferredHeight = ApplicationState.GeneralSettings.TrialMatrixSettings.HeightByWidth * m_RectTransform.rect.width;
+                    break;
+            }
+        }
+        void GenerateTexture()
+        {
+            float[,] lines = GenerateArray(m_Data.Trials);
+
+            switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Smoothing)
+            {
+                case TrialMatrixSettings.SmoothingType.None: break;
+                case TrialMatrixSettings.SmoothingType.Line: lines = SmoothLines(lines, 5); break;
+            }
+
+            Texture2D texture = GenerateTexture(lines, m_Limits, m_ColorMap);
+            texture.mipMapBias = -5;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            GetComponent<RawImage>().texture = texture;
+        }
+
         void AddCache(int[] lines)
         {
             RectTransform rectTransform = GetComponent<RectTransform>();
-            GameObject displayer = Instantiate(pref_selectionDisplay as GameObject);
+            GameObject displayer = Instantiate(SelectionMask as GameObject);
             RectTransform displayerRect = displayer.GetComponent<RectTransform>();
             displayerRect.SetParent(transform.GetChild(1));
-            int nbLines = data.Lines.Length;
+            int nbLines = m_Data.Trials.Length;
             float top = (float)(lines[lines.Length - 1] + 1) / nbLines;
             float bot = (float)lines[0] / nbLines;
             displayerRect.anchorMin = new Vector2(0, bot);
@@ -229,44 +281,20 @@ namespace HBP.UI.TrialMatrix
         }
         void SendMessageSelectLines(int[] lines, bool additive)
         {
-            Graph.GraphsGestion graphGestion = GetComponentInParent<Graph.GraphsGestion>();
+            Informations.TrialMatrixGestion graphGestion = GetComponentInParent<Informations.TrialMatrixGestion>();
             if (graphGestion)
             {
                 graphGestion.OnSelectLines(lines, this, additive);
             }
         }
-        void SetTexture(d.Bloc bloc,Texture2D colorMap,Vector2 limits)
-        {
-            Profiler.BeginSample("A");
-            float[,] lines = ExtractDataFromLines(bloc.Lines);
-            Profiler.EndSample();
-
-            Profiler.BeginSample("B");
-            switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Smoothing)
-            {
-                case TrialMatrixSettings.SmoothingType.None: break;
-                case TrialMatrixSettings.SmoothingType.Line: lines = SmoothLines(lines,5); break;
-            }
-            Profiler.EndSample();
-
-            Profiler.BeginSample("C");
-            Texture2D texture = GenerateTexture(lines, limits, colorMap);
-            texture.mipMapBias = -5;
-            texture.wrapMode = TextureWrapMode.Clamp;
-            GetComponent<RawImage>().texture = texture;
-            Profiler.EndSample();
-        }
         Texture2D GenerateTexture(float[,] lines,Vector2 limits,Texture2D colorMap)
         {
-            Profiler.BeginSample("A");
             // Caculate texture size.
             int width = lines.GetLength(0);
             int height = lines.GetLength(1);
             Texture2D l_texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
             Color[] colors = new Color[width * height];
-            Profiler.EndSample();
 
-            Profiler.BeginSample("B");
             //TODO : in DLL
             // Set pixels
             for (int y = 0; y < height; y++)
@@ -284,16 +312,12 @@ namespace HBP.UI.TrialMatrix
                     }
                 }
             }
-            Profiler.EndSample();
 
-            Profiler.BeginSample("C");
             // Set texture.
             l_texture.SetPixels(colors);
             l_texture.filterMode = FilterMode.Point;
             l_texture.anisoLevel = 0;
             l_texture.Apply();
-            Profiler.EndSample();
-
             return l_texture;
         }
         float[,] SmoothLines(float[,] lines, int pass)
@@ -321,7 +345,7 @@ namespace HBP.UI.TrialMatrix
             }
             return result;
         }
-        float[,] ExtractDataFromLines(d.Line[] lines)
+        float[,] GenerateArray(data.Line[] lines)
         {
             float[,] result = new float[lines[0].NormalizedValues.Length,lines.Length];
             int width = result.GetLength(0);
@@ -342,15 +366,15 @@ namespace HBP.UI.TrialMatrix
             int y = Mathf.RoundToInt(ratio * (colorMap.height - 1));
             return colorMap.GetPixel(0,y);
         }
-        void GenerateMainEventIndicator(d.Bloc bloc)
+        void GenerateMainEventIndicator(data.Bloc bloc)
         {
             GameObject mainEvent = new GameObject();
             mainEvent.name = "Main event";
             Image image = mainEvent.AddComponent<Image>();
             RectTransform rect = mainEvent.GetComponent<RectTransform>();
             rect.SetParent(transform.GetChild(0));
-            float X = (float)bloc.Lines[0].Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent] / bloc.Lines[0].NormalizedValues.Length;
-            float Xstep = 0.5f / bloc.Lines[0].NormalizedValues.Length;
+            float X = (float)bloc.Trials[0].Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent] / bloc.Trials[0].NormalizedValues.Length;
+            float Xstep = 0.5f / bloc.Trials[0].NormalizedValues.Length;
             rect.pivot = new Vector2(0, 0);
             rect.anchorMin = new Vector2(X, 0f);
             rect.anchorMax = new Vector2(X+ Xstep, 1f);
@@ -359,13 +383,13 @@ namespace HBP.UI.TrialMatrix
             if (rect.sizeDelta.x < 1) rect.sizeDelta = new Vector2(1.0f, rect.sizeDelta.y);
             image.color = Color.black;
         }
-        void GenerateSecondaryIndicator(d.Bloc bloc)
+        void GenerateSecondaryIndicator(data.Bloc bloc)
         {
-            for (int l = 0; l < bloc.Lines.Length; l++)
+            for (int l = 0; l < bloc.Trials.Length; l++)
             {
                 foreach (var secondaryEvent in bloc.ProtocolBloc.SecondaryEvents)
                 {
-                    int position = bloc.Lines[l].Bloc.PositionByEvent[secondaryEvent];
+                    int position = bloc.Trials[l].Bloc.PositionByEvent[secondaryEvent];
                     if (position > -1)
                     {
                         GameObject mainEvent = new GameObject();
@@ -373,10 +397,10 @@ namespace HBP.UI.TrialMatrix
                         Image image = mainEvent.AddComponent<Image>();
                         RectTransform rect = mainEvent.GetComponent<RectTransform>();
                         rect.SetParent(transform.GetChild(0));
-                        float X = (float)position / bloc.Lines[l].NormalizedValues.Length;
-                        float Xstep = 0.5f / bloc.Lines[l].NormalizedValues.Length;
-                        float Y = (float)l / bloc.Lines.Length;
-                        float Ystep = 1.0f / bloc.Lines.Length;
+                        float X = (float)position / bloc.Trials[l].NormalizedValues.Length;
+                        float Xstep = 0.5f / bloc.Trials[l].NormalizedValues.Length;
+                        float Y = (float)l / bloc.Trials.Length;
+                        float Ystep = 1.0f / bloc.Trials.Length;
                         rect.pivot = new Vector2(0, 0);
                         rect.anchorMin = new Vector2(X, Y);
                         rect.anchorMax = new Vector2(X + Xstep, Y + Ystep);
@@ -389,10 +413,8 @@ namespace HBP.UI.TrialMatrix
         }
         int LineClicked()
         {
-            Vector2 mousePosition = Input.mousePosition - rectTransform.position;
-            mousePosition = new Vector2(mousePosition.x / rectTransform.rect.width, mousePosition.y / rectTransform.rect.height);
-            mousePosition = new Vector2(Mathf.Clamp01(mousePosition.x), Mathf.Clamp01(mousePosition.y));
-            return Mathf.FloorToInt(mousePosition.y * Data.Lines.Length);
+            Vector2 ratio = m_RectTransform.GetRatioPosition(Input.mousePosition);
+            return Mathf.FloorToInt(ratio.y * Data.Trials.Length);
         }
         void ClearLinesSelected()
         {
@@ -401,28 +423,9 @@ namespace HBP.UI.TrialMatrix
                 Destroy(child.gameObject);
             }
         }
-        void SetSize()
-        {
-            switch(ApplicationState.GeneralSettings.TrialMatrixSettings.BlocFormat)
-            {
-                case TrialMatrixSettings.BlocFormatType.ConstantLine:
-                    layoutElement.preferredHeight = ApplicationState.GeneralSettings.TrialMatrixSettings.ConstantLineHeight * data.Lines.Length;
-                    break;
-                case TrialMatrixSettings.BlocFormatType.LineRatio:
-                    layoutElement.preferredHeight = ApplicationState.GeneralSettings.TrialMatrixSettings.LineHeightByWidth * rectTransform.rect.width * data.Lines.Length;
-                    break;
-                case TrialMatrixSettings.BlocFormatType.BlocRatio:
-                    layoutElement.preferredHeight = ApplicationState.GeneralSettings.TrialMatrixSettings.HeightByWidth * rectTransform.rect.width;  
-                    break;
-            }
-        }
-
         void OnRectTransformDimensionsChange()
         {
-            if (rectTransform.hasChanged)
-            {
-                SetSize();
-            }
+            if (m_RectTransform.hasChanged) SetSize();
         }
         #endregion
     }

@@ -1,37 +1,36 @@
 ﻿using UnityEngine;
-using UnityEngine.Profiling;
-using System.Collections.Generic;
-using UnityEngine.Events;
-using HBP.Data.Experience.Protocol;
 using UnityEngine.UI;
+using UnityEngine.Events;
+using System.Linq;
+using System.Collections.Generic;
+using HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.TrialMatrix
 {
     public class TrialMatrixList : MonoBehaviour
     {
         #region Properties
-        [SerializeField] GameObject m_trialMatrixPrefab;
+        [SerializeField] GameObject m_TrialMatrixPrefab;
 
         public List<TrialMatrix> TrialMatrix { get; set; }
-
         public GenericEvent<Vector2, Protocol> OnChangeLimits = new GenericEvent<Vector2, Protocol>();
         public GenericEvent<bool, Protocol> OnAutoLimits = new GenericEvent<bool, Protocol>();
         #endregion
 
         #region Public Methods
-        public void Set(Data.TrialMatrix.TrialMatrix[][] trialMatrix, Dictionary<Protocol,bool> autoLimitsByProtocol, Dictionary<Protocol,Vector2> limitsByProtocol, Texture2D colormap)
+        public void Set(Dictionary<Protocol, Informations.TrialMatrixGestion.ProtocolInformation> informationByProtocol, Texture2D colorMap)
         {
             Clear();
-            for (int lineIndex = 0; lineIndex < trialMatrix.Length; lineIndex++)
+            foreach (var protocolPair in informationByProtocol)
             {
-                RectTransform lineRectTransform = new GameObject("line n°" + (lineIndex + 1), new System.Type[] { typeof(RectTransform), typeof(HorizontalLayoutGroup) }).GetComponent<RectTransform>();
+                RectTransform lineRectTransform = new GameObject("Protocol" + protocolPair.Key.Name, new System.Type[] { typeof(RectTransform), typeof(HorizontalLayoutGroup) }).GetComponent<RectTransform>();
                 lineRectTransform.SetParent(transform);
-                for (int columnIndex = 0; columnIndex < trialMatrix[lineIndex].Length; columnIndex++)
+                foreach (var sitePair in protocolPair.Value.TrialMatrixByDataInfoBySite)
                 {
-                    Data.TrialMatrix.TrialMatrix dataTrialMatrix = trialMatrix[lineIndex][columnIndex];
-                    TrialMatrix trial = Instantiate(m_trialMatrixPrefab, lineRectTransform).GetComponent<TrialMatrix>();
+                    Data.TrialMatrix.TrialMatrix dataTrialMatrix = sitePair.Value.Values.First();
+                    TrialMatrix trial = Instantiate(m_TrialMatrixPrefab, lineRectTransform).GetComponent<TrialMatrix>();
                     TrialMatrix.Add(trial);
-                    trial.Set(dataTrialMatrix, autoLimitsByProtocol[dataTrialMatrix.Protocol], limitsByProtocol[dataTrialMatrix.Protocol], colormap);
+                    trial.Set(dataTrialMatrix, protocolPair.Value.AutoLimits, protocolPair.Value.Limits, colorMap);
                     trial.OnAutoLimits.RemoveAllListeners();
                     trial.OnAutoLimits.AddListener((autoLimit) => OnAutoLimits.Invoke(autoLimit, dataTrialMatrix.Protocol));
                     trial.OnChangeLimits.RemoveAllListeners();

@@ -38,7 +38,7 @@ namespace HBP.UI.TrialMatrix
                 {
                     foreach (Bloc bloc in line.Blocs)
                     {
-                        bloc.UpdateLimits(m_Limits);
+                        bloc.Limits = m_Limits;
                     }
                 }
             }
@@ -117,7 +117,7 @@ namespace HBP.UI.TrialMatrix
         {
             foreach(d.Bloc bloc in Data.Blocs)
             {
-                int[] linesSelected = new int[bloc.Lines.Length];
+                int[] linesSelected = new int[bloc.Trials.Length];
                 for (int i = 0; i < linesSelected.Length; i++)
                 {
                     linesSelected[i] = i;

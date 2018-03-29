@@ -50,7 +50,7 @@ namespace HBP.Data.TrialMatrix
             // Calculate values limits.
             UnityEngine.Profiling.Profiler.BeginSample("calculate values");
             List<float> values = new List<float>();
-            foreach (Bloc bloc in trialMatrixBlocs) foreach (Line line in bloc.Lines) values.AddRange(line.Bloc.NormalizedValuesBySite[site.Information.FullCorrectedID]);
+            foreach (Bloc bloc in trialMatrixBlocs) foreach (Line line in bloc.Trials) values.AddRange(line.Bloc.NormalizedValuesBySite[site.Information.FullCorrectedID]);
             Limits = CalculateValueLimit(values.ToArray());
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -78,23 +78,23 @@ namespace HBP.Data.TrialMatrix
             int[] afterByColumns = new int[columnNumber];
             for (int c = 0; c < columnNumber; c++)
             {
-                beforeByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.Position.Column - 1 == c) select bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
-                afterByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.Position.Column - 1 == c) select bloc.Lines.First().Bloc.ValuesBySite.First().Value.Length - bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
+                beforeByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.Position.Column - 1 == c) select bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
+                afterByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.Position.Column - 1 == c) select bloc.Trials.First().Bloc.ValuesBySite.First().Value.Length - bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
             }
 
             // Standardize blocs
             foreach (Bloc bloc in blocs)
             {
                 int col = bloc.ProtocolBloc.Position.Column - 1;
-                bloc.SpacesBefore = beforeByColumns[col] - bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent];
-                bloc.SpacesAfter = afterByColumns[col] - (bloc.Lines.First().Bloc.ValuesBySite.First().Value.Length - bloc.Lines.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]);
+                bloc.SpacesBefore = beforeByColumns[col] - bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent];
+                bloc.SpacesAfter = afterByColumns[col] - (bloc.Trials.First().Bloc.ValuesBySite.First().Value.Length - bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]);
             }
         }
         void Normalize(Bloc[] blocs, Module3D.Site site)
         {
             foreach (Bloc bloc in blocs)
             {
-                foreach (Line line in bloc.Lines)
+                foreach (Line line in bloc.Trials)
                 {
                     line.UpdateValues();
                 }

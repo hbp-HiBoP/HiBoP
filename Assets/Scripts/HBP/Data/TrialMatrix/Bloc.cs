@@ -14,7 +14,7 @@ namespace HBP.Data.TrialMatrix
         /// <summary>
         /// Lines of the bloc.
         /// </summary>
-        public Line[] Lines { get; set; }
+        public Line[] Trials { get; set; }
 
         public int SpacesBefore { get; set; }
         public int SpacesAfter { get; set; }
@@ -24,12 +24,12 @@ namespace HBP.Data.TrialMatrix
         public Bloc(Experience.Protocol.Bloc protocolBloc,Line[] lines)
         {
             ProtocolBloc = protocolBloc;
-            Lines = lines;
+            Trials = lines;
         }
         public Bloc(Experience.Protocol.Bloc protocolBloc, IEnumerable<Localizer.Bloc> blocs, Module3D.Site site)
         {
             ProtocolBloc = protocolBloc;
-            Lines = Line.MakeLines(protocolBloc, blocs, site).ToArray();
+            Trials = Line.MakeLines(protocolBloc, blocs, site).ToArray();
         }
         public Bloc() : this(new Experience.Protocol.Bloc(),new Line[0])
         {
@@ -42,7 +42,7 @@ namespace HBP.Data.TrialMatrix
             Line[] result = new Line[lines.Length];
             for (int i = 0; i < lines.Length; i++)
             {
-                result[i] = Lines[lines[i]];
+                result[i] = Trials[lines[i]];
             }
             return result;
         }

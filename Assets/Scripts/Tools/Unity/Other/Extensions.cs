@@ -14,6 +14,13 @@ namespace Tools.Unity
             rect.y -= (rectTransform.pivot.y * size.y);
             return rect;
         }
+        public static Vector2 GetRatioPosition(this RectTransform rectTransform,Vector2 position)
+        {
+            Vector2 localPosition = Input.mousePosition - rectTransform.position - (Vector3)rectTransform.rect.min;
+            Vector2 ratio = new Vector2(localPosition.x / rectTransform.rect.width, localPosition.y / rectTransform.rect.height);
+            Vector2 clampedRatio = new Vector2(Mathf.Clamp01(ratio.x), Mathf.Clamp01(ratio.y));
+            return clampedRatio;
+        }
     }
 
     public static class RenderTextureExtension
