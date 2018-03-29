@@ -9,26 +9,53 @@ namespace HBP.Module3D
     {
         #region Properties
         public string Name { get; set; }
-        public DLL.NIFTI NII { get; set; }
-        public DLL.Volume Volume { get; set; }
+
+        private DLL.NIFTI m_NII = new DLL.NIFTI();
+        public DLL.NIFTI NII
+        {
+            get
+            {
+                if (!IsLoaded) Load();
+                return m_NII;
+            }
+            protected set
+            {
+                m_NII = value;
+            }
+        }
+
+        private DLL.Volume m_Volume = new DLL.Volume();
+        public DLL.Volume Volume
+        {
+            get
+            {
+                if (!IsLoaded) Load();
+                return m_Volume;
+            }
+            protected set
+            {
+                m_Volume = value;
+            }
+        }
         public bool IsLoaded
         {
             get
             {
-                return NII.IsLoaded;
+                return m_NII.IsLoaded;
             }
         }
+
+        protected Data.Anatomy.MRI m_MRI;
         #endregion
 
         #region Constructors
         public MRI3D(Data.Anatomy.MRI mri)
         {
             Name = mri.Name;
-            NII = new DLL.NIFTI();
-            Volume = new DLL.Volume();
-            if (NII.LoadNIIFile(mri.File))
+            m_MRI = mri;
+            if (ApplicationState.GeneralSettings.PreloadAnatomy)
             {
-                NII.ConvertToVolume(Volume);
+                Load();
             }
         }
         public MRI3D(string name, DLL.NIFTI nii, DLL.Volume volume)
@@ -48,6 +75,13 @@ namespace HBP.Module3D
             mri.NII = NII;
             mri.Volume = Volume;
             return mri;
+        }
+        public void Load()
+        {
+            if (m_NII.LoadNIIFile(m_MRI.File))
+            {
+                m_NII.ConvertToVolume(m_Volume);
+            }
         }
         #endregion
     }

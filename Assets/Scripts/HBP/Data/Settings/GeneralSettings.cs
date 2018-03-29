@@ -136,6 +136,21 @@ namespace HBP.Data.Settings
             }
         }
         /// <summary>
+        /// Load anatomy on scene load
+        /// </summary>
+        [DataMember(Name = "Preload Anatomy")] private bool m_PreloadAnatomy = true;
+        public bool PreloadAnatomy
+        {
+            get
+            {
+                return m_PreloadAnatomy;
+            }
+            set
+            {
+                m_PreloadAnatomy = value;
+            }
+        }
+        /// <summary>
         /// Used theme.
         /// </summary>
         [IgnoreDataMember] public Theme Theme { get; private set; }

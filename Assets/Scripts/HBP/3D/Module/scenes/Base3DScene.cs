@@ -2470,17 +2470,26 @@ namespace HBP.Module3D
                 {
 
                     MRI3D mri3D = new MRI3D(mri);
-                    if (mri3D.IsLoaded)
+                    if (ApplicationState.GeneralSettings.PreloadAnatomy)
                     {
-                        m_ColumnManager.MRIs.Add(mri3D);
+                        if (mri3D.IsLoaded)
+                        {
+                            m_ColumnManager.MRIs.Add(mri3D);
+                        }
+                        else
+                        {
+                            throw new CanNotLoadNIIFile(mri.File);
+                        }
                     }
                     else
                     {
-                        throw new CanNotLoadNIIFile(mri.File);
+                        string name = !string.IsNullOrEmpty(Visualization.Configuration.MeshName) ? Visualization.Configuration.MeshName : Type == SceneType.SinglePatient ? "Preimplantation" : "MNI";
+                        if (mri3D.Name == name) mri3D.Load();
+                        m_ColumnManager.MRIs.Add(mri3D);
                     }
                 }
             }
-            catch
+            catch (Exception e)
             {
                 outPut(new CanNotLoadNIIFile(mri.File));
                 yield break;
