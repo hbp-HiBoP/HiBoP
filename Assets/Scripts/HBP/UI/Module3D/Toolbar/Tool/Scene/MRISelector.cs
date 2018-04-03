@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -24,7 +25,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.UpdateMRIToDisplay(value);
+                ApplicationState.Module3D.SelectedScene.UpdateMRIToDisplay(m_Dropdown.options[value].text);
                 OnChangeValue.Invoke(value);
             });
         }

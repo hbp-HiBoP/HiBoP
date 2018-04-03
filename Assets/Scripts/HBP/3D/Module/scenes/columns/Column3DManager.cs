@@ -126,6 +126,10 @@ namespace HBP.Module3D
         /// </summary>
         public List<Mesh3D> Meshes = new List<Mesh3D>();
         /// <summary>
+        /// List of all the loaded meshes
+        /// </summary>
+        public List<Mesh3D> LoadedMeshes { get { return (from mesh in Meshes where mesh.IsLoaded select mesh).ToList(); } }
+        /// <summary>
         /// Number of splits of the meshes
         /// </summary>
         public int MeshSplitNumber { get; set; }
@@ -153,6 +157,10 @@ namespace HBP.Module3D
         /// List of the MRIs of the scene
         /// </summary>
         public List<MRI3D> MRIs = new List<MRI3D>();
+        /// <summary>
+        /// List of loaded MRIs
+        /// </summary>
+        public List<MRI3D> LoadedMRIs { get { return (from mri in MRIs where mri.IsLoaded select mri).ToList(); } }
         /// <summary>
         /// Selected MRI3D ID
         /// </summary>

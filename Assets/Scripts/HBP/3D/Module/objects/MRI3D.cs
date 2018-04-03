@@ -15,6 +15,7 @@ namespace HBP.Module3D
         {
             get
             {
+                while (m_IsLoading) System.Threading.Thread.Sleep(10);
                 if (!IsLoaded) Load();
                 return m_NII;
             }
@@ -29,6 +30,7 @@ namespace HBP.Module3D
         {
             get
             {
+                while (m_IsLoading) System.Threading.Thread.Sleep(10);
                 if (!IsLoaded) Load();
                 return m_Volume;
             }
@@ -44,6 +46,8 @@ namespace HBP.Module3D
                 return m_NII.IsLoaded;
             }
         }
+
+        protected bool m_IsLoading = false;
 
         protected Data.Anatomy.MRI m_MRI;
         #endregion
@@ -78,10 +82,12 @@ namespace HBP.Module3D
         }
         public void Load()
         {
+            m_IsLoading = true;
             if (m_NII.LoadNIIFile(m_MRI.File))
             {
                 m_NII.ConvertToVolume(m_Volume);
             }
+            m_IsLoading = false;
         }
         #endregion
     }

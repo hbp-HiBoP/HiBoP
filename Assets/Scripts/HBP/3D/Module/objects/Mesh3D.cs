@@ -16,6 +16,7 @@ namespace HBP.Module3D
         {
             get
             {
+                while (m_IsLoading) System.Threading.Thread.Sleep(10);
                 if (!IsLoaded) Load();
                 return m_Both;
             }
@@ -30,6 +31,7 @@ namespace HBP.Module3D
         {
             get
             {
+                while (m_IsLoading) System.Threading.Thread.Sleep(10);
                 if (!IsLoaded) Load();
                 return m_SimplifiedBoth;
             }
@@ -55,6 +57,7 @@ namespace HBP.Module3D
                 return m_Both.IsMarsAtlasLoaded;
             }
         }
+        protected bool m_IsLoading = false;
 
         protected Data.Anatomy.Mesh m_Mesh;
         #endregion
@@ -97,6 +100,7 @@ namespace HBP.Module3D
         }
         public override void Load()
         {
+            m_IsLoading = true;
             Data.Anatomy.SingleMesh mesh = m_Mesh as Data.Anatomy.SingleMesh;
 
             if (m_Both.LoadGIIFile(mesh.Path, true, mesh.Transformation))
@@ -106,6 +110,7 @@ namespace HBP.Module3D
                 m_Both.SearchMarsParcelFileAndUpdateColors(ApplicationState.Module3D.MarsAtlasIndex, mesh.MarsAtlasPath);
                 SimplifiedBoth = m_Both.Simplify();
             }
+            m_IsLoading = false;
         }
         #endregion
     }
@@ -118,6 +123,7 @@ namespace HBP.Module3D
         {
             get
             {
+                while (m_IsLoading) System.Threading.Thread.Sleep(10);
                 if (!IsLoaded) Load();
                 return m_Left;
             }
@@ -132,6 +138,7 @@ namespace HBP.Module3D
         {
             get
             {
+                while (m_IsLoading) System.Threading.Thread.Sleep(10);
                 if (!IsLoaded) Load();
                 return m_Right;
             }
@@ -146,6 +153,7 @@ namespace HBP.Module3D
         {
             get
             {
+                while (m_IsLoading) System.Threading.Thread.Sleep(10);
                 if (!IsLoaded) Load();
                 return m_SimplifiedLeft;
             }
@@ -160,6 +168,7 @@ namespace HBP.Module3D
         {
             get
             {
+                while (m_IsLoading) System.Threading.Thread.Sleep(10);
                 if (!IsLoaded) Load();
                 return m_SimplifiedRight;
             }
@@ -201,6 +210,7 @@ namespace HBP.Module3D
         }
         public override void Load()
         {
+            m_IsLoading = true;
             Data.Anatomy.LeftRightMesh mesh = m_Mesh as Data.Anatomy.LeftRightMesh;
             if (m_Left.LoadGIIFile(mesh.LeftHemisphere, true, mesh.Transformation))
             {
@@ -224,6 +234,7 @@ namespace HBP.Module3D
                 m_Both.Append(m_Right);
                 SimplifiedBoth = m_Both.Simplify();
             }
+            m_IsLoading = false;
         }
         #endregion
     }

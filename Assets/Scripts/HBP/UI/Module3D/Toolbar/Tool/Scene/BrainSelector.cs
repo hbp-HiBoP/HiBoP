@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -23,8 +24,9 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
-                
-                ApplicationState.Module3D.SelectedScene.UpdateMeshToDisplay(value);
+
+                Base3DScene scene = ApplicationState.Module3D.SelectedScene;
+                scene.UpdateMeshToDisplay(m_Dropdown.options[value].text);
                 OnChangeValue.Invoke(value);
             });
         }
