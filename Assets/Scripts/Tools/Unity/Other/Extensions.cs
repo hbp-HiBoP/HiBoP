@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System.IO;
 using UnityEngine.UI;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Tools.Unity
 {
@@ -56,6 +58,21 @@ namespace Tools.Unity
         public static bool IsPowerOfTwo(this int x)
         {
             return (x != 0) && ((x & (x - 1)) == 0);
+        }
+
+        public static bool AreMultiples(this List<int> numbers)
+        {
+            return numbers.Contains(numbers.GCD());
+        }
+
+        public static int GCD(this List<int> numbers)
+        {
+            return numbers.Aggregate(GCD);
+        }
+
+        public static int GCD(int a, int b)
+        {
+            return b == 0 ? a : GCD(b, a % b);
         }
     }
 }

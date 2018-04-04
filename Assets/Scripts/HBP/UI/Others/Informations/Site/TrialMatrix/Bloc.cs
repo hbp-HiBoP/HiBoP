@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using data = HBP.Data.TrialMatrix;
 using System.Collections.ObjectModel;
 using Tools.Unity;
+using Tools.CSharp;
+using UnityEngine.Profiling;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -23,7 +25,7 @@ namespace HBP.UI.TrialMatrix
             set
             {
                 m_Data = Data;
-                GenerateTexture();
+                SetTexture();
             }
         }
 
@@ -37,7 +39,7 @@ namespace HBP.UI.TrialMatrix
             set
             {
                 m_ColorMap = value;
-                GenerateTexture();
+                SetTexture();
             }
         }
 
@@ -48,7 +50,7 @@ namespace HBP.UI.TrialMatrix
             set
             {
                 m_Limits = value;
-                GenerateTexture();
+                SetTexture();
             }
         }
 
@@ -76,13 +78,13 @@ namespace HBP.UI.TrialMatrix
             name = data.ProtocolBloc.Name + " | " + "Bloc n°" + data.ProtocolBloc.Position.Column;
 
             SetSize();
-            GenerateTexture();
+            SetTexture();
             GenerateMainEventIndicator(data);
             GenerateSecondaryIndicator(data);
         }
         public void SelectLines(int[] lines,bool additive)
         {
-                ClearLinesSelected();
+                ClearMask();
                 if (additive)
                 {
                     foreach (int i in lines)
@@ -126,12 +128,12 @@ namespace HBP.UI.TrialMatrix
         }
         public void OnPointerDown()
         {
-            m_BeginDragLine = LineClicked();
+            m_BeginDragLine = GetTrialAtPosition(Input.mousePosition);
         }
         public void OnPointerClick(BaseEventData p)
         {
             PointerEventData pointer = (PointerEventData) p;
-            if (pointer.button.ToString() == "Left")
+            if (pointer.button == PointerEventData.InputButton.Left)
             {
                 if (!m_Dragging)
                 {
@@ -146,7 +148,7 @@ namespace HBP.UI.TrialMatrix
                     }
                 }
             }
-            else if (pointer.button.ToString() == "Right")
+            else if (pointer.button == PointerEventData.InputButton.Right)
             {
                 int max = Data.Trials.Length;
                 int[] array = new int[max];
@@ -163,7 +165,7 @@ namespace HBP.UI.TrialMatrix
         }
         public void OnEndDrag()
         {
-            int l_endDragLine = Mathf.Clamp(LineClicked(),0,m_Data.Trials.Length-1);
+            int l_endDragLine = Mathf.Clamp(GetTrialAtPosition(Input.mousePosition),0,m_Data.Trials.Length-1);
             int l_beginDragLine = Mathf.Clamp(m_BeginDragLine, 0, m_Data.Trials.Length-1); ;
             List<int> linesSelected = new List<int>();
             if(l_beginDragLine > l_endDragLine)
@@ -233,7 +235,6 @@ namespace HBP.UI.TrialMatrix
             m_LayoutElement = GetComponent<LayoutElement>();
             m_Initialized = true;
         }
-
         void SetSize()
         {
             switch (ApplicationState.GeneralSettings.TrialMatrixSettings.BlocFormat)
@@ -249,9 +250,9 @@ namespace HBP.UI.TrialMatrix
                     break;
             }
         }
-        void GenerateTexture()
+        void SetTexture()
         {
-            float[,] lines = GenerateArray(m_Data.Trials);
+            float[][] lines = ExtractDataFromLines(m_Data.Trials);
 
             switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Smoothing)
             {
@@ -281,27 +282,27 @@ namespace HBP.UI.TrialMatrix
         }
         void SendMessageSelectLines(int[] lines, bool additive)
         {
-            Informations.TrialMatrixGestion graphGestion = GetComponentInParent<Informations.TrialMatrixGestion>();
+            Informations.TrialMatrixZone graphGestion = GetComponentInParent<Informations.TrialMatrixZone>();
             if (graphGestion)
             {
                 graphGestion.OnSelectLines(lines, this, additive);
             }
         }
-        Texture2D GenerateTexture(float[,] lines,Vector2 limits,Texture2D colorMap)
+        Texture2D GenerateTexture(float[][] lines,Vector2 limits,Texture2D colorMap)
         {
             // Caculate texture size.
-            int width = lines.GetLength(0);
-            int height = lines.GetLength(1);
+            int height = lines.Length;
+            if (height == 0) return new Texture2D(0,0);
+            int width = lines[0].Length;
             Texture2D l_texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
             Color[] colors = new Color[width * height];
 
-            //TODO : in DLL
             // Set pixels
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    float value = lines[x, y];
+                    float value = lines[y][x];
                     if (float.IsNaN(value))
                     {
                         colors[y*width + x] = Color.black;
@@ -320,50 +321,32 @@ namespace HBP.UI.TrialMatrix
             l_texture.Apply();
             return l_texture;
         }
-        float[,] SmoothLines(float[,] lines, int pass)
+        float[][] SmoothLines(float[][] lines, int pass)
         {
-            float[,] result = new float[(lines.GetLength(0)-1)*pass + 1,lines.GetLength(1)];
-            int width = lines.GetLength(0);
-            int height = lines.GetLength(1);
-            for (int y = 0; y < height; y++)
+            UnityEngine.Profiling.Profiler.BeginSample("smoothing lines");
+            float[][] result = new float[lines.Length][];
+            for (int l = 0; l < result.Length; l++)
             {
-                for (int x = 0; x < width; x++)
-                {
-                    if (x == width - 1)
-                    {
-                        result[x * pass, y] = lines[x, y];
-                    }
-                    else
-                    {
-                        for (int t = 0; t < pass; t++)
-                        {
-                            float value = Mathf.Lerp(lines[x, y], lines[x + 1, y], (float)t / pass);
-                            result[(x * pass) + t, y] = value;
-                        }
-                    }
-                }
+                result[l] = lines[l].LinearSmooth(pass);
             }
             return result;
         }
-        float[,] GenerateArray(data.Line[] lines)
+        float[][] ExtractDataFromLines(data.Line[] lines)
         {
-            float[,] result = new float[lines[0].NormalizedValues.Length,lines.Length];
-            int width = result.GetLength(0);
-            int height = result.GetLength(1);
-            for (int x = 0; x < width; x++)
+            float[][] result = new float[lines.Length][];
+            for (int l = 0; l < lines.Length; l++)
             {
-                for (int y = 0; y < height; y++)
-                {
-                    result[x, y] = lines[y].NormalizedValues[x];
-                }
+                result[l] = lines[l].NormalizedValues;
             }
             return result;
         }
         Color GetColor(float value,Vector2 limits,Texture2D colorMap)
         {
+            Profiler.BeginSample("GetColor");
             float ratio = (value - limits.x) / (limits.y - limits.x);
-            ratio = Mathf.Clamp(ratio, 0.0f, 1.0f);
+            ratio = Mathf.Clamp01(ratio);
             int y = Mathf.RoundToInt(ratio * (colorMap.height - 1));
+            Profiler.EndSample();
             return colorMap.GetPixel(0,y);
         }
         void GenerateMainEventIndicator(data.Bloc bloc)
@@ -411,17 +394,14 @@ namespace HBP.UI.TrialMatrix
                 }
             }
         }
-        int LineClicked()
+        int GetTrialAtPosition(Vector3 position)
         {
-            Vector2 ratio = m_RectTransform.GetRatioPosition(Input.mousePosition);
+            Vector2 ratio = m_RectTransform.GetRatioPosition(position);
             return Mathf.FloorToInt(ratio.y * Data.Trials.Length);
         }
-        void ClearLinesSelected()
+        void ClearMask()
         {
-            foreach(Transform child in transform.GetChild(1))
-            {
-                Destroy(child.gameObject);
-            }
+            foreach(Transform child in transform.GetChild(1)) Destroy(child.gameObject);
         }
         void OnRectTransformDimensionsChange()
         {

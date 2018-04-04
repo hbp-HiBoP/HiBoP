@@ -89,6 +89,9 @@ namespace Tools.Unity
 
             FileInfo readme = new FileInfo(projectPath + "README.md");
             readme.CopyTo(buildDirectory + readme.Name);
+
+            FileInfo documentation = new FileInfo(projectPath + "Docs/LaTeX/HiBoP_user_manual.pdf");
+            documentation.CopyTo(buildDirectory + documentation.Name);
         }
 
         public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target)

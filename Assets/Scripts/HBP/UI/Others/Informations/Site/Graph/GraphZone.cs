@@ -1,101 +1,34 @@
-﻿using UnityEngine;
-using System.Linq;
-using System.Collections.Generic;
+﻿using HBP.Data.Visualization;
 using HBP.Module3D;
-using HBP.Data.Visualization;
+using System.Collections.Generic;
 using Tools.Unity.Graph;
-using UnityEngine.Events;
-using Tools.CSharp;
-using UnityEngine.UI;
+using UnityEngine;
 
-namespace HBP.UI.Graph
+namespace HBP.UI.Informations
 {
-    [RequireComponent(typeof(ZoneResizer))]
-    public class GraphsGestion : MonoBehaviour
+    public class GraphZone : MonoBehaviour
     {
         #region Properties
         Base3DScene m_Scene;
         public Base3DScene Scene
         {
             get { return m_Scene; }
-            set
-            {
-                m_Scene = value;
-                m_Scene.OnRequestSiteInformation.AddListener(OnRequestSiteInformation);
-                m_Scene.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumns);
-                m_Scene.OnUpdateROI.AddListener(OnUpdateROI);
-            }
+            set { m_Scene = value; }
         }
 
-        // Minimize handling
-        public const float MINIMIZED_THRESHOLD = 200.0f;
-        bool m_RectTransformChanged;
-        [SerializeField] RectTransform m_RectTransform;
-        [SerializeField] GameObject m_MinimizedGameObject;
-        [SerializeField] Button m_MinimizeButton;
-        [SerializeField] Button m_ExpandButton;
-        Tools.Unity.ResizableGrid.ResizableGrid m_ParentGrid;
-        /// <summary>
-        /// Is the column minimzed ?
-        /// </summary>
-        public bool IsMinimized
-        {
-            get
-            {
-                return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
-            }
-        }
-        public UnityEvent OnOpenGraphsWindow = new UnityEvent();
-        public UnityEvent OnCloseGraphsWindow = new UnityEvent();
-
-        // Curves
-        [SerializeField] Tools.Unity.Graph.Graph m_Graph;
+        [SerializeField] Graph m_Graph;
         [SerializeField] List<ColumnColor> m_Colors;
-        Dictionary<Column, GroupCurveData> m_CurvesByColumn = new Dictionary<Column, GroupCurveData>();
-
-        // Plots
-        Site[] m_Sites = new Site[0];
-
-        // Type
-        [SerializeField] ZoneResizer m_ZoneResizer;
+        Dictionary<Column, GroupCurveData> m_CurvesByColumn = new Dictionary<Column, GroupCurveData>(); 
         #endregion
 
-        #region Handlers Methods
-        void OnRequestSiteInformation(IEnumerable<Site> sites)
+        #region Public Methods
+        public void Display(IEnumerable<Site> sites)
         {
-            if (IsMinimized) OnOpenGraphsWindow.Invoke();
 
-            m_Sites = sites.ToArray();
-            GenerateCurves();
-            DisplayCurves();
-        }
-        void OnMinimizeColumns()
-        {
-            DisplayCurves();
-        }
-        void OnUpdateROI()
-        {
-            GenerateCurves();
-            DisplayCurves();
         }
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            m_ParentGrid = GetComponentInParent<Tools.Unity.ResizableGrid.ResizableGrid>();
-            m_MinimizeButton.onClick.AddListener(OnCloseGraphsWindow.Invoke);
-            m_ExpandButton.onClick.AddListener(OnOpenGraphsWindow.Invoke);
-        }
-        private void Update()
-        {
-            if (m_RectTransformChanged)
-            {
-                m_MinimizedGameObject.SetActive(IsMinimized);
-                m_RectTransformChanged = false;
-            }
-        }
-
         void GenerateCurves()
         {
             //UnityEngine.Profiling.Profiler.BeginSample("GenerateCurve()");
@@ -222,31 +155,30 @@ namespace HBP.UI.Graph
         }
         void DisplayCurves()
         {
-            UnityEngine.Profiling.Profiler.BeginSample("DisplayCurves()");
-            List<GroupCurveData> groupCurvesToDisplay = new List<GroupCurveData>();
-            foreach (var column in m_Scene.ColumnManager.ColumnsIEEG)
-            {
-                if (!column.IsMinimized || !ApplicationState.GeneralSettings.HideCurveWhenColumnHidden)
-                {
-                    groupCurvesToDisplay.Add(m_CurvesByColumn[column.ColumnData]);
-                }
-            }
-            if (groupCurvesToDisplay.Count > 0)
-            {
-                GraphData graphData = new GraphData("EEG", "Time(ms)", "Activity(mV)", Color.black, Color.white, groupCurvesToDisplay.ToArray());
-                m_Graph.Plot(graphData);
-            }
-            UnityEngine.Profiling.Profiler.EndSample();
+            //UnityEngine.Profiling.Profiler.BeginSample("DisplayCurves()");
+            //List<GroupCurveData> groupCurvesToDisplay = new List<GroupCurveData>();
+            //foreach (var column in m_Scene.ColumnManager.ColumnsIEEG)
+            //{
+            //    if (!column.IsMinimized || !ApplicationState.GeneralSettings.HideCurveWhenColumnHidden)
+            //    {
+            //        groupCurvesToDisplay.Add(m_CurvesByColumn[column.ColumnData]);
+            //    }
+            //}
+            //if (groupCurvesToDisplay.Count > 0)
+            //{
+            //    GraphData graphData = new GraphData("EEG", "Time(ms)", "Activity(mV)", Color.black, Color.white, groupCurvesToDisplay.ToArray());
+            //    m_Graph.Plot(graphData);
+            //}
+            //UnityEngine.Profiling.Profiler.EndSample();
         }
-
-        Color GetCurveColor(int column,int site)
+        Color GetCurveColor(int column, int site)
         {
             ColumnColor columnColor = m_Colors[column];
-            if(site == -1)
+            if (site == -1)
             {
                 return columnColor.ROI;
             }
-            else if(site == 0)
+            else if (site == 0)
             {
                 return columnColor.Site1;
             }
@@ -266,20 +198,6 @@ namespace HBP.UI.Graph
             {
                 return new Color();
             }
-        }
-        #endregion
-
-        #region Public Methods
-        public void OnRectTransformDimensionsChange()
-        {
-            m_RectTransformChanged = true;
-        }
-        public void ChangeOverlayState(bool state)
-        {
-            transform.Find("BotBorder").gameObject.SetActive(state);
-            transform.Find("LeftBorder").gameObject.SetActive(state);
-            transform.Find("RightBorder").gameObject.SetActive(state);
-            transform.Find("TopBorder").gameObject.SetActive(state);
         }
         #endregion
     }

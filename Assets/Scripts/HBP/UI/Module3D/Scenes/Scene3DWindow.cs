@@ -33,10 +33,10 @@ namespace HBP.UI.Module3D
             grid.AddColumn();
             grid.AddViewLine(SceneUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>().Initialize(scene);
-            // Graphs
+            // Information
             grid.AddColumn(null, GraphsUIPrefab);
-            Graph.GraphsGestion graphsGestion = grid.Columns.Last().Views.Last().GetComponent<Graph.GraphsGestion>();
-            graphsGestion.Scene = scene;
+            Informations.Informations informations = grid.Columns.Last().Views.Last().GetComponent<Informations.Informations>();
+            informations.Scene = scene;
             // Cuts
             grid.AddColumn(null, CutUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
@@ -75,13 +75,13 @@ namespace HBP.UI.Module3D
                 }
                 SaveSceneToPNG(screenshotsPath, multipleFiles);
             });
-            graphsGestion.OnOpenGraphsWindow.AddListener(() =>
+            informations.OnOpenInformationsWindow.AddListener(() =>
             {
                 grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
                 grid.SetVerticalHandlersPosition(1);
                 grid.UpdateAnchors();
             });
-            graphsGestion.OnCloseGraphsWindow.AddListener(() =>
+            informations.OnCloseInformationsWindow.AddListener(() =>
             {
                 grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
                 grid.SetVerticalHandlersPosition(1);
@@ -146,12 +146,12 @@ namespace HBP.UI.Module3D
                     }
                 }
                 // Graph and Trial Matrix
-                Graph.GraphsGestion graphsGestion = GetComponentInChildren<Graph.GraphsGestion>();
-                if (!graphsGestion.IsMinimized)
+                Informations.Informations informations = GetComponentInChildren<Informations.Informations>();
+                if (!informations.IsMinimized)
                 {
-                    if (!Mathf.Approximately(graphsGestion.GetComponent<ZoneResizer>().Ratio, 1.0f))
+                    if (!Mathf.Approximately(informations.GetComponent<ZoneResizer>().Ratio, 1.0f))
                     {
-                        global::Tools.Unity.Graph.Graph graph = graphsGestion.transform.GetComponentInChildren<global::Tools.Unity.Graph.Graph>();
+                        global::Tools.Unity.Graph.Graph graph = informations.transform.GetComponentInChildren<global::Tools.Unity.Graph.Graph>();
                         Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
                         try
                         {
@@ -191,10 +191,10 @@ namespace HBP.UI.Module3D
                             yield break;
                         }
                     }
-                    if (!Mathf.Approximately(graphsGestion.GetComponent<ZoneResizer>().Ratio, 0.0f))
+                    if (!Mathf.Approximately(informations.GetComponent<ZoneResizer>().Ratio, 0.0f))
                     {
-                        ScrollRect trialMatrixScrollRect = graphsGestion.transform.Find("TrialZone").Find("TrialMatrix").GetComponent<ScrollRect>();
-                        graphsGestion.ChangeOverlayState(false);
+                        ScrollRect trialMatrixScrollRect = informations.transform.Find("TrialZone").Find("TrialMatrix").GetComponent<ScrollRect>();
+                        informations.ChangeOverlayState(false);
                         Sprite mask = trialMatrixScrollRect.viewport.GetComponent<Image>().sprite;
                         trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = null;
                         Texture2D trialMatrixTexture;
@@ -231,7 +231,7 @@ namespace HBP.UI.Module3D
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                             yield break;
                         }
-                        graphsGestion.ChangeOverlayState(true);
+                        informations.ChangeOverlayState(true);
                         trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = mask;
                     }
                 }

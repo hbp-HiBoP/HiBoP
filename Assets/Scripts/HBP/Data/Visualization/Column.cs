@@ -89,6 +89,10 @@ namespace HBP.Data.Visualization
 
         public Dictionary<int, Timeline> TimeLineByFrequency { get; set; }
         public Dictionary<int, IconicScenario> IconicScenarioByFrequency { get; set; }
+
+        public List<int> Frequencies = new List<int>();
+        private List<Tuple<Localizer.Bloc, int>> m_Blocs = new List<Tuple<Localizer.Bloc, int>>();
+        private Dictionary<SiteConfiguration, int> m_FrequencyBySiteConfiguration = new Dictionary<SiteConfiguration, int>();
         #endregion
 
         #region Constructors
@@ -152,23 +156,16 @@ namespace HBP.Data.Visualization
         /// <param name="columnData"></param>
         public void Load(IEnumerable<DataInfo> columnData)
         {
-            List<int> frequencies = new List<int>();
-            List<Tuple<Localizer.Bloc, int>> blocs = new List<Tuple<Localizer.Bloc, int>>();
-            Dictionary<SiteConfiguration, int> frequencyBySiteConfiguration = new Dictionary<SiteConfiguration, int>();
+            Frequencies = new List<int>();
+            m_Blocs = new List<Tuple<Localizer.Bloc, int>>();
+            m_FrequencyBySiteConfiguration = new Dictionary<SiteConfiguration, int>();
             foreach (DataInfo dataInfo in columnData)
             {
                 Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
                 int frequency = UnityEngine.Mathf.RoundToInt(epochedData.Frequency);
-                if (frequency.IsPowerOfTwo())
-                {
-                    frequencies.Add(frequency);
-                }
-                else
-                {
-                    throw new FrequencyException(dataInfo.EEG, frequency);
-                }
+                Frequencies.Add(frequency);
                 Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs,ApplicationState.GeneralSettings.ValueAveraging, ApplicationState.GeneralSettings.EventPositionAveraging);
-                blocs.AddRange(from bloc in epochedData.Blocs select new Tuple<Localizer.Bloc, int>(bloc, frequency));
+                m_Blocs.AddRange(from bloc in epochedData.Blocs select new Tuple<Localizer.Bloc, int>(bloc, frequency));
                 foreach (var site in averagedBloc.ValuesBySite.Keys)
                 {
                     SiteConfiguration siteConfiguration;
@@ -183,60 +180,69 @@ namespace HBP.Data.Visualization
                         siteConfiguration = new SiteConfiguration(averagedBloc.ValuesBySite[site], averagedBloc.NormalizedValuesBySite[site], averagedBloc.UnitBySite[site], false, false, false, false);
                         Configuration.ConfigurationBySite.Add(site, siteConfiguration);
                     }
-                    frequencyBySiteConfiguration.Add(siteConfiguration, frequency);
+                    m_FrequencyBySiteConfiguration.Add(siteConfiguration, frequency);
                 }
             }
-            int maxFrequency = frequencies.Max();
-
+            Frequencies = Frequencies.Distinct().ToList();
+        }
+        public void SetTimeline(int maxFrequency)
+        {
+            Frequencies.Add(maxFrequency);
+            Frequencies = Frequencies.Distinct().ToList();
             Event mainEvent = new Event();
-            Event[] secondaryEvents = new Event[Bloc.SecondaryEvents.Count];
+            List<Event> secondaryEvents = new List<Event>(Bloc.SecondaryEvents.Count);
             switch (ApplicationState.GeneralSettings.EventPositionAveraging)
             {
                 case Settings.GeneralSettings.AveragingMode.Mean:
-                    mainEvent = new Event(Bloc.MainEvent.Name,(int) (from bloc in blocs select bloc.Object1.PositionByEvent[Bloc.MainEvent] * (maxFrequency / bloc.Object2)).ToArray().Mean());
-                    for (int i = 0; i < secondaryEvents.Length; i++)
+                    mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Object1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Object2)).ToArray().Mean()));
+                    for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
                     {
-                        List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in blocs where bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2) >= 0 select bloc).ToList();
-                        float rate = (float) blocWhereEventFound.Count / blocs.Count;
-                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name,(int) (from bloc in blocWhereEventFound select bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2)).ToArray().Mean(), rate);
+                        List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in m_Blocs where bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2) >= 0 select bloc).ToList();
+                        if (blocWhereEventFound.Count > 0)
+                        {
+                            float rate = (float)blocWhereEventFound.Count / m_Blocs.Count;
+                            secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, UnityEngine.Mathf.RoundToInt((from bloc in blocWhereEventFound select bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2)).ToArray().Mean()), rate));
+                        }
                     }
                     break;
                 case Settings.GeneralSettings.AveragingMode.Median:
-                    mainEvent = new Event(Bloc.MainEvent.Name, (int)(from bloc in blocs select bloc.Object1.PositionByEvent[Bloc.MainEvent] * (maxFrequency / bloc.Object2)).ToArray().Median());
-                    for (int i = 0; i < secondaryEvents.Length; i++)
+                    mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Object1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Object2)).ToArray().Median()));
+                    for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
                     {
-                        List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in blocs where bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2) >= 0 select bloc).ToList();
-                        float rate = (float)blocWhereEventFound.Count / blocs.Count;
-                        secondaryEvents[i] = new Event(Bloc.SecondaryEvents[i].Name, (int)(from bloc in blocWhereEventFound select bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2)).ToArray().Median(), rate);
+                        List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in m_Blocs where bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2) >= 0 select bloc).ToList();
+                        if (blocWhereEventFound.Count > 0)
+                        {
+                            float rate = (float)blocWhereEventFound.Count / m_Blocs.Count;
+                            secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, UnityEngine.Mathf.RoundToInt((from bloc in blocWhereEventFound select bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2)).ToArray().Median()), rate));
+                        }
                     }
                     break;
             }
 
             // Timeline
-            frequencies = frequencies.Distinct().ToList();
             TimeLineByFrequency = new Dictionary<int, Timeline>();
             IconicScenarioByFrequency = new Dictionary<int, IconicScenario>();
-            foreach (int frequency in frequencies)
+            foreach (int frequency in Frequencies)
             {
-                TimeLineByFrequency.Add(frequency, new Timeline(Bloc.Window, mainEvent, secondaryEvents, frequency));
+                TimeLineByFrequency.Add(frequency, new Timeline(Bloc.Window, mainEvent, secondaryEvents.ToArray(), frequency));
                 IconicScenarioByFrequency.Add(frequency, new IconicScenario(Bloc, frequency, TimeLineByFrequency[frequency]));
             }
-            TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents, maxFrequency);
+            TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents.ToArray(), maxFrequency);
             IconicScenario = new IconicScenario(Bloc, maxFrequency, TimeLine);
 
             // Resampling taking frequencies into account
-            if (frequencies.Count > 1)
+            if (Frequencies.Count > 1)
             {
-                int maxSize = (from siteConfiguration in Configuration.ConfigurationBySite.Values select siteConfiguration.Values).Max(v => v.Length);
+                //int maxSize = (from siteConfiguration in Configuration.ConfigurationBySite.Values select siteConfiguration.Values).Max(v => v.Length);
                 foreach (var siteConfiguration in Configuration.ConfigurationBySite.Values)
                 {
                     int frequency;
-                    if (frequencyBySiteConfiguration.TryGetValue(siteConfiguration, out frequency))
+                    if (m_FrequencyBySiteConfiguration.TryGetValue(siteConfiguration, out frequency))
                     {
                         Timeline timeline = TimeLineByFrequency[frequency];
                         int samplesBefore = (int)((timeline.Start.RawValue - TimeLine.Start.RawValue) / TimeLine.Step);
                         int samplesAfter = (int)((TimeLine.End.RawValue - timeline.End.RawValue) / TimeLine.Step);
-                        siteConfiguration.ResizeValues(maxSize, samplesBefore, samplesAfter);
+                        siteConfiguration.ResizeValues(TimeLine.Lenght, samplesBefore, samplesAfter);
                     }
                 }
             }

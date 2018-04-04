@@ -21,13 +21,6 @@ namespace Tools.Unity.ResizableGrid
         #endregion
 
         #region Private Methods
-        /// <summary>
-        /// Initialize the handler
-        /// </summary>
-        protected void Initialize()
-        {
-            m_ResizableGrid = GetComponentInParent<ResizableGrid>();
-        }
         protected float RoundAtPrecision(float number, float precision)
         {
             if (precision > 1.0f || precision <= 0.0f) return number;
@@ -36,6 +29,13 @@ namespace Tools.Unity.ResizableGrid
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Initialize the handler
+        /// </summary>
+        public virtual void Initialize(ResizableGrid resizableGrid)
+        {
+            m_ResizableGrid = resizableGrid;
+        }
         /// <summary>
         /// Callback event when dragging the handler
         /// </summary>

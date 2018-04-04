@@ -65,17 +65,48 @@ namespace HBP.Data.Anatomy
             List<Mesh> meshes = new List<Mesh>();
             DirectoryInfo parent = new DirectoryInfo(path);
             DirectoryInfo t1mr1 = new DirectoryInfo(path + Path.DirectorySeparatorChar + "t1mri");
-            DirectoryInfo preimplantationDirectory = new DirectoryInfo(t1mr1.GetDirectories("T1pre_*").First().FullName);
-            DirectoryInfo transformationsDirectory = new DirectoryInfo(preimplantationDirectory.FullName + Path.DirectorySeparatorChar + "registration");
-            FileInfo transformation = transformationsDirectory.GetFiles("RawT1-" + parent.Name + "_" + preimplantationDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
-            string transformationPath = string.Empty;
-            if (transformation != null && transformation.Exists) transformationPath = transformation.FullName;
+            // Pre
+            DirectoryInfo preimplantationDirectory = null, preTransformationsDirectory = null;
+            FileInfo preTransformation = null;
+            preimplantationDirectory = t1mr1.GetDirectories("T1pre_*").FirstOrDefault();
+            if (preimplantationDirectory != null)
+            {
+                preTransformationsDirectory = new DirectoryInfo(preimplantationDirectory.FullName + Path.DirectorySeparatorChar + "registration");
+                if (preTransformationsDirectory != null)
+                {
+                    preTransformation = preTransformationsDirectory.GetFiles("RawT1-" + parent.Name + "_" + preimplantationDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
+                }
+            }
+            string preTransformationPath = string.Empty;
+            if (preTransformation != null && preTransformation.Exists) preTransformationPath = preTransformation.FullName;
+            // Post
+            DirectoryInfo postimplantationDirectory = null, postTransformationsDirectory = null;
+            FileInfo postTransformation = null;
+            postimplantationDirectory = t1mr1.GetDirectories("T1post_*").FirstOrDefault();
+            if (postimplantationDirectory != null)
+            {
+                postTransformationsDirectory = new DirectoryInfo(postimplantationDirectory.FullName + Path.DirectorySeparatorChar + "registration");
+                if (postTransformationsDirectory != null)
+                {
+                    postTransformation = postTransformationsDirectory.GetFiles("RawT1-" + parent.Name + "_" + postimplantationDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
+                }
+            }
+            string postTransformationPath = string.Empty;
+            if (postTransformation != null && postTransformation.Exists) postTransformationPath = postTransformation.FullName;
+            // Mesh
             DirectoryInfo meshDirectory = new DirectoryInfo(preimplantationDirectory.FullName + Path.DirectorySeparatorChar + "default_analysis" + Path.DirectorySeparatorChar + "segmentation" + Path.DirectorySeparatorChar + "mesh");
             if(meshDirectory.Exists)
             {
                 FileInfo greyMatterLeftHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Lhemi" + EXTENSION);
                 FileInfo greyMatterRightHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Rhemi" + EXTENSION);
-                if(greyMatterLeftHemisphere.Exists && greyMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("Grey matter", transformationPath, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName,string.Empty,string.Empty));
+                if (greyMatterLeftHemisphere.Exists && greyMatterRightHemisphere.Exists)
+                {
+                    meshes.Add(new LeftRightMesh("Grey matter", preTransformationPath, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName, string.Empty, string.Empty));
+                    if (!string.IsNullOrEmpty(postTransformationPath))
+                    {
+                        meshes.Add(new LeftRightMesh("Grey matter post", postTransformationPath, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName, string.Empty, string.Empty));
+                    }
+                }
 
                 FileInfo whiteMatterLeftHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Lwhite" + EXTENSION);
                 FileInfo whiteMatterRightHemisphere = new FileInfo(meshDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Rwhite" + EXTENSION);
@@ -84,7 +115,14 @@ namespace HBP.Data.Anatomy
                 FileInfo marsAtlasRightHemisphere = new FileInfo(SurfaceAnalysisDirectory.FullName + Path.DirectorySeparatorChar + parent.Name + "_Rwhite_parcels_marsAtlas" + EXTENSION);
                 string marsAtlasLeftHemispherePath = marsAtlasLeftHemisphere.Exists ? marsAtlasLeftHemisphere.FullName : string.Empty;
                 string marsAtlasRightHemispherePath = marsAtlasRightHemisphere.Exists ? marsAtlasRightHemisphere.FullName : string.Empty;
-                if (whiteMatterLeftHemisphere.Exists && whiteMatterRightHemisphere.Exists) meshes.Add(new LeftRightMesh("White matter", transformationPath, whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName, marsAtlasLeftHemispherePath, marsAtlasRightHemispherePath));
+                if (whiteMatterLeftHemisphere.Exists && whiteMatterRightHemisphere.Exists)
+                {
+                    meshes.Add(new LeftRightMesh("White matter", preTransformationPath, whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName, marsAtlasLeftHemispherePath, marsAtlasRightHemispherePath));
+                    if (!string.IsNullOrEmpty(postTransformationPath))
+                    {
+                        meshes.Add(new LeftRightMesh("White matter post", postTransformationPath, whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName, marsAtlasLeftHemispherePath, marsAtlasRightHemispherePath));
+                    }
+                }
             }
             return meshes.ToArray();
         }

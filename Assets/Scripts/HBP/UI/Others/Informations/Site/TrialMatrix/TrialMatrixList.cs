@@ -18,12 +18,12 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(Dictionary<Protocol, Informations.TrialMatrixGestion.ProtocolInformation> informationByProtocol, Texture2D colorMap)
+        public void Set(Dictionary<Protocol, Informations.TrialMatrixZone.ProtocolInformation> informationByProtocol, Texture2D colorMap)
         {
             Clear();
             foreach (var protocolPair in informationByProtocol)
             {
-                RectTransform lineRectTransform = new GameObject("Protocol" + protocolPair.Key.Name, new System.Type[] { typeof(RectTransform), typeof(HorizontalLayoutGroup) }).GetComponent<RectTransform>();
+                RectTransform lineRectTransform = new GameObject(protocolPair.Key.Name, new System.Type[] { typeof(RectTransform), typeof(HorizontalLayoutGroup) }).GetComponent<RectTransform>();
                 lineRectTransform.SetParent(transform);
                 foreach (var sitePair in protocolPair.Value.TrialMatrixByDataInfoBySite)
                 {

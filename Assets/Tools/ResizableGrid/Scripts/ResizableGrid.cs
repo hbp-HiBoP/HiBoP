@@ -8,6 +8,7 @@ namespace Tools.Unity.ResizableGrid
     public class ResizableGrid : MonoBehaviour
     {
         #region Properties
+        [SerializeField]
         private RectTransform m_RectTransform;
         /// <summary>
         /// ResizableGrid's RectTransform
@@ -16,6 +17,10 @@ namespace Tools.Unity.ResizableGrid
         {
             get
             {
+                if (m_RectTransform == null)
+                {
+                    m_RectTransform = GetComponent<RectTransform>();
+                }
                 return m_RectTransform;
             }
         }
@@ -171,10 +176,6 @@ namespace Tools.Unity.ResizableGrid
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            m_RectTransform = GetComponent<RectTransform>();
-        }
         private void Update()
         {
             if (m_RectTransformChanged)
@@ -399,8 +400,10 @@ namespace Tools.Unity.ResizableGrid
         {
             if (ColumnNumber > 0)
             {
-                m_VerticalHandlers.Add(Instantiate(VerticalHandlerPrefab, transform).GetComponent<VerticalHandler>());
-                m_VerticalHandlers.Last().OnChangePosition.AddListener(() =>
+                VerticalHandler verticalHandler = Instantiate(VerticalHandlerPrefab, transform).GetComponent<VerticalHandler>();
+                verticalHandler.Initialize(this);
+                m_VerticalHandlers.Add(verticalHandler);
+                verticalHandler.OnChangePosition.AddListener(() =>
                 {
                     SetVerticalHandlersPosition();
                     SetHorizontalHandlersPosition();
@@ -409,8 +412,10 @@ namespace Tools.Unity.ResizableGrid
                 m_CornerHandlers.Add(new List<CornerHandler>());
                 for (int i = 0; i < HorizontalHandlerNumber; i++)
                 {
-                    m_CornerHandlers.Last().Add(Instantiate(CornerHandlerPrefab, transform).GetComponent<CornerHandler>());
-                    m_CornerHandlers.Last().Last().Initialize(m_VerticalHandlers.Last(), m_HorizontalHandlers[i]);
+                    CornerHandler cornerHandler = Instantiate(CornerHandlerPrefab, transform).GetComponent<CornerHandler>();
+                    cornerHandler.Initialize(this);
+                    m_CornerHandlers.Last().Add(cornerHandler);
+                    cornerHandler.SetCorrespondingHandlers(m_VerticalHandlers.Last(), m_HorizontalHandlers[i]);
                 }
             }
             m_Columns.Add(Instantiate(customColumnPrefab?customColumnPrefab:ColumnPrefab, transform).GetComponent<Column>());
@@ -460,8 +465,10 @@ namespace Tools.Unity.ResizableGrid
         {
             if (ViewNumber > 0)
             {
-                m_HorizontalHandlers.Add(Instantiate(HorizontalHandlerPrefab, transform).GetComponent<HorizontalHandler>());
-                m_HorizontalHandlers.Last().OnChangePosition.AddListener(() =>
+                HorizontalHandler horizontalHandler = Instantiate(HorizontalHandlerPrefab, transform).GetComponent<HorizontalHandler>();
+                horizontalHandler.Initialize(this);
+                m_HorizontalHandlers.Add(horizontalHandler);
+                horizontalHandler.OnChangePosition.AddListener(() =>
                 {
                     SetVerticalHandlersPosition();
                     SetHorizontalHandlersPosition();
@@ -469,8 +476,10 @@ namespace Tools.Unity.ResizableGrid
                 });
                 for (int i = 0; i < VerticalHandlerNumber; i++)
                 {
-                    m_CornerHandlers[i].Add(Instantiate(CornerHandlerPrefab, transform).GetComponent<CornerHandler>());
-                    m_CornerHandlers[i].Last().Initialize(m_VerticalHandlers[i], m_HorizontalHandlers.Last());
+                    CornerHandler cornerHandler = Instantiate(CornerHandlerPrefab, transform).GetComponent<CornerHandler>();
+                    cornerHandler.Initialize(this);
+                    m_CornerHandlers[i].Add(cornerHandler);
+                    cornerHandler.SetCorrespondingHandlers(m_VerticalHandlers[i], m_HorizontalHandlers.Last());
                 }
             }
 

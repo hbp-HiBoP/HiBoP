@@ -9,39 +9,53 @@ using Tools.Unity;
 
 namespace HBP.UI.Informations
 {
-    public class TrialMatrixGestion : MonoBehaviour
+    public class TrialMatrixZone : MonoBehaviour
     {
         #region Properties
+        Base3DScene m_Scene;
+        public Base3DScene Scene
+        {
+            get { return m_Scene; }
+            set { m_Scene = value; }
+        }
+
         [SerializeField] TrialMatrixList m_TrialMatrixList;
         Dictionary<Protocol, ProtocolInformation> m_InformationByProtocol;
         bool m_TrialCanBeSelect = false;
+        bool m_Initialized = false;
         #endregion
 
         #region Public Methods
         public void Initialize()
         {
-            // OnAutoLimits.
-            m_TrialMatrixList.OnAutoLimits.RemoveAllListeners();
-            m_TrialMatrixList.OnAutoLimits.AddListener((autoLimits, protocol) => OnChangeAutoLimits(autoLimits, protocol));
+            m_InformationByProtocol = new Dictionary<Protocol, ProtocolInformation>();
+            m_TrialCanBeSelect = false;
 
-            // OnChangeLimits.
-            m_TrialMatrixList.OnChangeLimits.RemoveAllListeners();
-            m_TrialMatrixList.OnChangeLimits.AddListener((limits, protocol) => OnChangeLimits(limits, protocol));
+            m_TrialMatrixList.OnAutoLimits.RemoveListener(OnChangeAutoLimits);
+            m_TrialMatrixList.OnAutoLimits.AddListener(OnChangeAutoLimits);
+
+            m_TrialMatrixList.OnChangeLimits.RemoveListener(OnChangeLimits);
+            m_TrialMatrixList.OnChangeLimits.AddListener(OnChangeLimits);
+
+            m_Initialized = true;
         }
-        public void Set(IEnumerable<Site> sites, Base3DScene scene)
+        public void Display(IEnumerable<Site> sites)
         {
+            if (!m_Initialized) Initialize();
+
             // Test is a single trial can be selected.
             m_TrialCanBeSelect = sites.All((site) => site.Information.Patient == sites.FirstOrDefault().Information.Patient);
 
-            IEnumerable<Protocol> protocols = (from column in scene.ColumnManager.ColumnsIEEG select column.ColumnData.Protocol).Distinct();
+            IEnumerable<Protocol> protocols = (from column in m_Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Protocol).Distinct();
             foreach (Protocol protocol in protocols)
             {
+                m_InformationByProtocol[protocol] = new ProtocolInformation();
                 m_InformationByProtocol[protocol].AutoLimits = true;
                 m_InformationByProtocol[protocol].Limits = new Vector2();
             }
 
-            Generate(sites, scene);
-            Display(scene.ColumnManager);
+            Generate(sites.ToArray());
+            Display();
         }
         #endregion
 
@@ -83,17 +97,17 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Private Methods
-        void Generate(IEnumerable<Site> sites, Base3DScene scene)
+        void Generate(Site[] sites)
         {
             // Find protocols to display
-            IEnumerable<Protocol> protocols = (from column in scene.ColumnManager.ColumnsIEEG select column.ColumnData.Protocol).Distinct();
+            IEnumerable<Protocol> protocols = (from column in m_Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Protocol).Distinct();
 
             // Generate trialMatrix and create the dictionary
             foreach (Protocol protocol in protocols)
             {
                 m_InformationByProtocol[protocol].TrialMatrixByDataInfoBySite = new Dictionary<Site, Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>>();
 
-                Dictionary<Site, IEnumerable<DataInfo>> dataInfoBySite = sites.ToDictionary(s => s, s => scene.Visualization.GetDataInfo(s.Information.Patient).Where(d => ApplicationState.ProjectLoaded.Datasets.First(ds => ds.Data.Contains(d)).Protocol == protocol));
+                Dictionary<Site, IEnumerable<DataInfo>> dataInfoBySite = sites.ToDictionary(s => s, s => m_Scene.Visualization.GetDataInfo(s.Information.Patient).Where(d => ApplicationState.ProjectLoaded.Datasets.First(ds => ds.Data.Contains(d)).Protocol == protocol));
                 IEnumerable<DataInfo> dataInfoToRead = dataInfoBySite.Values.SelectMany(d => d).Distinct();
 
                 Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>> epochedBlocsByProtocolBlocByDataInfo = new Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>>();
@@ -112,17 +126,17 @@ namespace HBP.UI.Informations
                     m_InformationByProtocol[protocol].TrialMatrixByDataInfoBySite[site] = new Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>();
                     foreach (var dataInfo in dataInfoBySite[site])
                     {
-                        Data.TrialMatrix.TrialMatrix trialMatrix = new Data.TrialMatrix.TrialMatrix(protocol, dataInfo, epochedBlocsByProtocolBlocByDataInfo[dataInfo], site, scene);
+                        Data.TrialMatrix.TrialMatrix trialMatrix = new Data.TrialMatrix.TrialMatrix(protocol, dataInfo, epochedBlocsByProtocolBlocByDataInfo[dataInfo], site, m_Scene);
                         m_InformationByProtocol[protocol].TrialMatrixByDataInfoBySite[site][dataInfo] = trialMatrix;
                     }
                 }
             }
         }
-        void Display(Column3DManager column3DManager)
+        void Display()
         {
-            IEnumerable<Protocol> protocols = (from column in column3DManager.ColumnsIEEG where !column.IsMinimized select column.ColumnData.Protocol).Distinct();
+            IEnumerable<Protocol> protocols = (from column in m_Scene.ColumnManager.ColumnsIEEG where !column.IsMinimized select column.ColumnData.Protocol).Distinct();
             Dictionary<Protocol,ProtocolInformation> informationByProtocol = m_InformationByProtocol.Where(protocol => protocols.Contains(protocol.Key)).ToDictionary(pair => pair.Key, pair => pair.Value);
-            Texture2D colorMap = column3DManager.BrainColorMapTexture.RotateTexture();
+            Texture2D colorMap = m_Scene.ColumnManager.BrainColorMapTexture.RotateTexture();
             colorMap.wrapMode = TextureWrapMode.Clamp;
             m_TrialMatrixList.Set(informationByProtocol, colorMap);
         }
