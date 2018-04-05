@@ -1,68 +1,47 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.EventSystems;
+using UnityEngine.Events;
 
-
-namespace Tools.Unity
+namespace Tools.Unity.Components
 {
 	public class DoubleClickEventHandler : MonoBehaviour , IPointerClickHandler
 	{
-		public float delayBetweenClick = 0.1f;
-		private bool isSecondClick = false;
-		private bool WaitSecondClick = false;
-		
-		public FunctionToCall functionsToCallOnSimpleClick;
-		public FunctionToCall functionsToCallOnDoubleClick;
+        #region Properties
+        public float DelayBetweenClick = 0.1f;
+        public UnityEvent OnSimpleClick;
+        public UnityEvent OnDoubleClick;
 
-		public void OnPointerClick(PointerEventData eventData)
-		{
-			OnClick();
-		}
+        bool m_IsSecondClick = false;
+		bool m_IsWaiting = false;
+        #endregion
 
-		private void OnClick()
+        #region Public Methods
+        public void OnPointerClick(PointerEventData eventData)
 		{
-			if(!WaitSecondClick)
-			{
-				WaitSecondClick= true;
-				StartCoroutine(WaitForClick(delayBetweenClick));
-			}
-			else
-			{
-				isSecondClick=true;
-			}
-		}
-		
-		private void simpleClick()
-		{
-			if(functionsToCallOnSimpleClick.Component != null)
-			{
-                functionsToCallOnSimpleClick.Send();
+            if (!m_IsWaiting)
+            {
+                m_IsWaiting = true;
+                StartCoroutine(c_WaitForClick(DelayBetweenClick));
             }
-		}
-		
-		private void doubleClick()
-		{
-			if(functionsToCallOnDoubleClick.Component != null)
-			{
-                functionsToCallOnDoubleClick.Send();
+            else
+            {
+                m_IsSecondClick = true;
             }
-		}
-		
-		IEnumerator WaitForClick(float waitTime) 
+        }
+        #endregion
+
+        #region Private Methods		
+		IEnumerator c_WaitForClick(float delay) 
 		{
-			yield return new WaitForSeconds(waitTime);
-			if(isSecondClick==true && WaitSecondClick==true)
-			{
-				doubleClick();
-			}
-			else
-			{
-				simpleClick();
-			}
-			WaitSecondClick=false;
-			isSecondClick=false;
+			yield return new WaitForSeconds(delay);
+            if (m_IsSecondClick == true && m_IsWaiting == true) OnDoubleClick.Invoke();
+            else OnSimpleClick.Invoke();
+			m_IsWaiting=false;
+			m_IsSecondClick=false;
 		}
-	}
+        #endregion
+    }
 }
 
 

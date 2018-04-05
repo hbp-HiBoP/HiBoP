@@ -1,26 +1,22 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Events;
 
-namespace Tools.Unity
+namespace Tools.Unity.Components
 {
-    [RequireComponent(typeof(Toggle))]
     public class ToggleMethodCaller : MonoBehaviour
     {
-        Toggle toggle;
-        public FunctionToCall OnMethod;
-        public FunctionToCall OffMethod;
+        #region Properties
+        public UnityEvent OnIsOn;
+        public UnityEvent OnIsOff;
+        #endregion
 
-        void Start()
+        #region Public Methods
+        public void OnValueChanged(bool isOn)
         {
-            toggle = GetComponent<Toggle>();
-            toggle.onValueChanged.AddListener((isOn) => CallMethods(isOn));
+            if (isOn) OnIsOn.Invoke();
+            else OnIsOff.Invoke();
         }
-
-        void CallMethods(bool isOn)
-        {
-            if(isOn) OnMethod.Send();
-            else OffMethod.Send();
-        }
+        #endregion
     }
 }
 
