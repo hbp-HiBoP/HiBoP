@@ -30,9 +30,16 @@ namespace HBP.UI.TrialMatrix
                     Data.TrialMatrix.TrialMatrix dataTrialMatrix = sitePair.Value.Values.First();
                     TrialMatrix trial = Instantiate(m_TrialMatrixPrefab, lineRectTransform).GetComponent<TrialMatrix>();
                     TrialMatrix.Add(trial);
-                    trial.Set(dataTrialMatrix, protocolPair.Value.AutoLimits, protocolPair.Value.Limits, colorMap);
-                    trial.OnAutoLimits.RemoveAllListeners();
-                    trial.OnAutoLimits.AddListener((autoLimit) => OnAutoLimits.Invoke(autoLimit, dataTrialMatrix.Protocol));
+                    if(protocolPair.Value.AutoLimits)
+                    {
+                        trial.Set(dataTrialMatrix, colorMap);
+                    }
+                    else
+                    {
+                        trial.Set(dataTrialMatrix, colorMap, protocolPair.Value.Limits);
+                    }
+                    trial.OnChangeUsePrecalculatedLimits.RemoveAllListeners();
+                    trial.OnChangeUsePrecalculatedLimits.AddListener((autoLimit) => OnAutoLimits.Invoke(autoLimit, dataTrialMatrix.Protocol));
                     trial.OnChangeLimits.RemoveAllListeners();
                     trial.OnChangeLimits.AddListener((limits) => OnChangeLimits.Invoke(limits, dataTrialMatrix.Protocol));
                 }

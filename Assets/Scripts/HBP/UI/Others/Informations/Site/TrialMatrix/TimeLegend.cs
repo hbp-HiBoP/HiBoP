@@ -6,23 +6,22 @@ namespace HBP.UI.TrialMatrix
     {
         #region Properties
         [SerializeField] GameObject m_TimeBlocPrefab;
-        public RectTransform TimeBlocsRectTransform;
-        #endregion
-
-        #region Public Methods
-        public void Set(Vector2[] limits)
+        public Vector2[] Limits
         {
-            foreach(Vector2 limit in limits)
+            set
             {
-                AddTimeBloc(limit);
+                foreach (Vector2 limit in value)
+                {
+                    Add(limit);
+                }
             }
         }
         #endregion
 
         #region Private Methods
-        void AddTimeBloc(Vector2 limit)
+        void Add(Vector2 limit)
         {
-            TimeBloc timeBloc = Instantiate(m_TimeBlocPrefab, TimeBlocsRectTransform).GetComponent<TimeBloc>();
+            TimeBloc timeBloc = Instantiate(m_TimeBlocPrefab, transform).GetComponent<TimeBloc>();
             timeBloc.Set(limit.x,limit.y);
         }
         #endregion

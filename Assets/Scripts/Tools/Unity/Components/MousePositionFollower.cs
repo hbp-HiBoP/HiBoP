@@ -7,7 +7,9 @@ namespace Tools.Unity.Components
     {
         #region Properties
         public Vector2 Offset;
-        public bool AlwaysUpdate;
+        public bool FollowX = true;
+        public bool FollowY = true;
+        public bool AlwaysUpdate = true;
 
         RectTransform m_RectTransform;
         bool m_Initialized;
@@ -17,7 +19,16 @@ namespace Tools.Unity.Components
         public void Follow()
         {
             if (!m_Initialized) Initialize();
-            m_RectTransform.position = Input.mousePosition + (Vector3)Offset;
+            Vector3 position = Input.mousePosition + (Vector3)Offset;
+            if(!FollowX)
+            {
+                position.x = m_RectTransform.position.x; 
+            }
+            if(!FollowY)
+            {
+                position.y = m_RectTransform.position.y;
+            }
+            m_RectTransform.position = position;
         }
         #endregion
 

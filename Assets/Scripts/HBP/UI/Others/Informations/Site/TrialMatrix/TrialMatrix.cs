@@ -1,39 +1,57 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using d = HBP.Data.TrialMatrix;
-using UnityEngine.Profiling;
-using UnityEngine.Events;
+using data = HBP.Data.TrialMatrix;
+using Tools.Unity;
 
 namespace HBP.UI.TrialMatrix
 {
     public class TrialMatrix : MonoBehaviour
     {
         #region Properties
-        [SerializeField] GameObject m_LinePrefab;
-        [SerializeField] Text m_TitleText;
-        [SerializeField] ValuesLegend m_ValuesLegend;
-        [SerializeField] TimeLegend m_TimeLegend;
-        [SerializeField] RectTransform m_LinesRectTransform;
+        string m_Title;
+        public string Title
+        {
+            get
+            {
+                return m_Title;
+            }
+            set
+            {
+                m_Title = value;
+                OnChangeTitle.Invoke(value);
+            }
+        }
+        public StringEvent OnChangeTitle;
 
         Texture2D m_Colormap;
-
-        d.TrialMatrix m_Data;
-        public d.TrialMatrix Data
+        public Texture2D ColorMap
         {
-            get { return m_Data; }
+            get
+            {
+                return m_Colormap;
+            }
+            set
+            {
+                DestroyImmediate(m_Colormap);
+                m_Colormap = value;
+                OnChangeColorMap.Invoke(value);
+            }
         }
+        public Texture2DEvent OnChangeColorMap;
 
         Vector2 m_Limits;
         public Vector2 Limits
         {
-            get { return m_Limits; }
+            get
+            {
+                return m_Limits;
+            }
             set
             {
                 m_Limits = value;
-                m_ValuesLegend.Set(m_Colormap, m_Limits, 5);
+                OnChangeLimits.Invoke(value);
                 foreach (Line line in Lines)
                 {
                     foreach (Bloc bloc in line.Blocs)
@@ -43,13 +61,23 @@ namespace HBP.UI.TrialMatrix
                 }
             }
         }
+        public Vector2Event OnChangeLimits;
 
-        bool m_AutoLimits;
-        public bool AutoLimits
+        bool m_UsePrecalculatedLimits;
+        public bool UsePrecalculatedLimits
         {
-            get { return m_AutoLimits; }
-            set { m_AutoLimits = value; }
+            get
+            {
+                return m_UsePrecalculatedLimits;
+            }
+            set
+            {
+                m_UsePrecalculatedLimits = value;
+                if (value) Limits = m_Data.Limits;
+                else Limits = m_Limits;
+            }
         }
+        public BoolEvent OnChangeUsePrecalculatedLimits;
 
         List<Line> m_Lines = new List<Line>();
         public ReadOnlyCollection<Line> Lines
@@ -57,29 +85,34 @@ namespace HBP.UI.TrialMatrix
             get { return new ReadOnlyCollection<Line>(m_Lines); }
         }
 
-        public GenericEvent<Vector2> OnChangeLimits { get { return m_ValuesLegend.OnChangeLimits; } }
-        public GenericEvent<bool> OnAutoLimits { get { return m_ValuesLegend.OnAutoLimits; } }
+        public Vector2ArrayEvent OnChangeTimeLimits;
+
+        [SerializeField] GameObject m_LinePrefab;
+        [SerializeField] RectTransform m_LinesRectTransform;
+        data.TrialMatrix m_Data;
+        public data.TrialMatrix Data
+        {
+            get { return m_Data; }
+        }
         #endregion
 
         #region Public Methods
-        public void Set(d.TrialMatrix trialMatrix, bool autoLimits, Vector2 limits, Texture2D colormap)
+        public void Set(data.TrialMatrix trialMatrix , Texture2D colorMap, Vector2 limits = new Vector2())
         {
-            DestroyImmediate(m_Colormap);
-            m_Colormap = colormap;
             m_Data = trialMatrix;
-            m_AutoLimits = autoLimits;
-            if(autoLimits) Limits = trialMatrix.Limits;
-            else Limits = limits;
-            m_TitleText.text = trialMatrix.Title;
+
+            Title = trialMatrix.Title;
+            ColorMap = colorMap;
+            UsePrecalculatedLimits = limits == new Vector2();
 
             //Organize array
-            d.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.ProtocolBloc.Position.Row).ThenBy(t => t.ProtocolBloc.Position.Column).ToArray();
+            data.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.ProtocolBloc.Position.Row).ThenBy(t => t.ProtocolBloc.Position.Column).ToArray();
 
             // Set Legends
-            SetLegends(Limits, trialMatrix.TimeLimitsByColumn);
+            OnChangeTimeLimits.Invoke(trialMatrix.TimeLimitsByColumn);
 
             //Separate blocs by line
-            List<d.Bloc[]> l_lines = new List<d.Bloc[]>();
+            List<data.Bloc[]> l_lines = new List<data.Bloc[]>();
             foreach (var bloc in l_blocs)
             {
                 if (!l_lines.Exists((a) => a.Contains(bloc)))
@@ -90,7 +123,7 @@ namespace HBP.UI.TrialMatrix
 
 
             int maxBlocByRow = 0;
-            foreach (d.Bloc[] line in l_lines)
+            foreach (data.Bloc[] line in l_lines)
             {
                     int max = line[line.Length - 1].ProtocolBloc.Position.Column;
                     if (max > maxBlocByRow)
@@ -115,7 +148,7 @@ namespace HBP.UI.TrialMatrix
         }
         public void SelectAllLines()
         {
-            foreach(d.Bloc bloc in Data.Blocs)
+            foreach(data.Bloc bloc in Data.Blocs)
             {
                 int[] linesSelected = new int[bloc.Trials.Length];
                 for (int i = 0; i < linesSelected.Length; i++)
@@ -128,28 +161,11 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Private Methods
-        void Awake()
-        {
-            m_TitleText = transform.Find("Title").Find("Text").GetComponent<Text>();
-            m_ValuesLegend = transform.Find("Body").Find("ValuesLegend").GetComponent<ValuesLegend>();
-            m_TimeLegend = transform.Find("Body").Find("Main").Find("TimeLegend").GetComponent<TimeLegend>();
-            m_LinesRectTransform = transform.Find("Body").Find("Main").Find("Lines").GetComponent<RectTransform>();
-        }
-        void AddLine(d.Bloc[] blocsInLine,int max,Texture2D colorMap,Vector2 limits)
+        void AddLine(data.Bloc[] blocsInLine,int max,Texture2D colorMap,Vector2 limits)
         {
             Line lines = (Instantiate(m_LinePrefab, m_LinesRectTransform) as GameObject).GetComponent<Line>();
-            lines.Initialize();
             lines.Set(blocsInLine,max, colorMap,limits);
             this.m_Lines.Add(lines);
-        }
-        void SetLegends(Vector2 valueslimits,Vector2[] timeLimitsByColumn)
-        {
-            Profiler.BeginSample("set values");
-            m_ValuesLegend.Set(m_Colormap, valueslimits,5);
-            Profiler.EndSample();
-            Profiler.BeginSample("set time");
-            m_TimeLegend.Set(timeLimitsByColumn);
-            Profiler.EndSample();
         }
         #endregion
     }

@@ -1,42 +1,28 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
 
 namespace HBP.UI.TrialMatrix
 {
     public class ValuesLegend : MonoBehaviour
     {
         #region Properties
-        [SerializeField] RawImage m_ColorMapRawImage;
-        [SerializeField] RectTransform m_ValuesRect;
-        [SerializeField] LimitsWindow m_LimitsWindow;
+        public int NumberOfValues = 5;
         Vector2 m_Limits;
-        public GenericEvent<Vector2> OnChangeLimits { get { return m_LimitsWindow.OnUpdateLimits; } }
-        public GenericEvent<bool> OnAutoLimits { get { return m_LimitsWindow.OnAutoLimits; } }
-        #endregion
-
-        #region Public Methods
-        public void Set(Texture2D colorMap, Vector2 limits, int nbValue)
+        public Vector2 Limits
         {
-            this.m_Limits = limits;
-            SetColorMap(colorMap);
-            SetValues(GenerateValues(limits.x, limits.y, nbValue));
-        }
-        public void OpenLimitsWindow()
-        {
-            m_LimitsWindow.Open(m_Limits);
-        }
-        public void CloseLimitsWindow()
-        {
-            m_LimitsWindow.Close();
+            get
+            {
+                return m_Limits;
+            }
+            set
+            {
+                m_Limits = value;
+                SetValues(GenerateValues(value.x, value.y, NumberOfValues));
+            }
         }
         #endregion
 
         #region Private Methods
-        void SetColorMap(Texture2D colorMap)
-        {
-            m_ColorMapRawImage.texture = colorMap;
-        }
         void SetValues(float[] values)
         {
             ClearValues();
@@ -47,7 +33,7 @@ namespace HBP.UI.TrialMatrix
         }
         void ClearValues()
         {
-            foreach(Transform child in m_ValuesRect)
+            foreach(Transform child in transform)
             {
                 Destroy(child.gameObject);
             }
@@ -56,7 +42,7 @@ namespace HBP.UI.TrialMatrix
         {
             // Instantiate and add components needed
             GameObject l_gameObject = new GameObject();
-            l_gameObject.transform.SetParent(m_ValuesRect);
+            l_gameObject.transform.SetParent(transform);
             RectTransform l_rect = l_gameObject.AddComponent<RectTransform>();
             Text l_text = l_gameObject.AddComponent<Text>();
             int l_max = max - 1;
