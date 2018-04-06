@@ -44,13 +44,18 @@ namespace HBP.Data.Visualization
         /// </summary>
         [DataMember] public bool IsMarked { get; set; }
 
+        /// <summary>
+        /// The site is suspicious ?
+        /// </summary>
+        [DataMember] public bool IsSuspicious { get; set; }
+
         [IgnoreDataMember] public float[] Values { get; set; }
         [IgnoreDataMember] public float[] NormalizedValues { get; set; }
         [IgnoreDataMember] public string Unit { get; set; }
         #endregion
 
         #region Constructors
-        public SiteConfiguration(float[] values,float[] normalizedValues,string unit, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked)
+        public SiteConfiguration(float[] values,float[] normalizedValues,string unit, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked, bool isSuspicious)
         {
             Values = values;
             NormalizedValues = normalizedValues;
@@ -59,15 +64,16 @@ namespace HBP.Data.Visualization
             IsBlacklisted = isBlacklisted;
             IsHighlighted = isHighlighted;
             IsMarked = isMarked;
+            IsSuspicious = isSuspicious;
         }
-        public SiteConfiguration(Color color) : this(new float[0],new float[0],"", false, false, false, false) { }
+        public SiteConfiguration(Color color) : this(new float[0],new float[0],"", false, false, false, false, false) { }
         public SiteConfiguration() : this(new Color()) { }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new SiteConfiguration(Values, NormalizedValues, Unit, IsExcluded, IsBlacklisted, IsHighlighted, IsMarked);
+            return new SiteConfiguration(Values, NormalizedValues, Unit, IsExcluded, IsBlacklisted, IsHighlighted, IsMarked, IsSuspicious);
         }
         public void LoadSerializedConfiguration(SiteConfiguration configuration)
         {
@@ -75,6 +81,7 @@ namespace HBP.Data.Visualization
             IsExcluded = configuration.IsExcluded;
             IsHighlighted = configuration.IsHighlighted;
             IsMarked = configuration.IsMarked;
+            IsSuspicious = configuration.IsSuspicious;
         }
         public void Resize(int diffBefore, int diffAfter)
         {

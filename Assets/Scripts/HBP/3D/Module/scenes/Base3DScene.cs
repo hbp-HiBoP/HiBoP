@@ -1098,6 +1098,7 @@ namespace HBP.Module3D
                             site.State.IsOutOfROI = true;
                             site.State.IsMarked = false;
                             site.State.IsMasked = false;
+                            site.State.IsSuspicious = false;
                             site.IsActive = true;
 
                             m_ColumnManager.SitesList.Add(siteGameObject);
@@ -1890,6 +1891,24 @@ namespace HBP.Module3D
                             }
                         }
                         break;
+                    case SiteFilter.Suspicious:
+                        {
+                            foreach (Site site in column.Sites)
+                            {
+                                if (site.State.IsSuspicious)
+                                    sites.Add(site);
+                            }
+                        }
+                        break;
+                    case SiteFilter.Unsuspicious:
+                        {
+                            foreach (Site site in column.Sites)
+                            {
+                                if (!site.State.IsSuspicious)
+                                    sites.Add(site);
+                            }
+                        }
+                        break;
                     case SiteFilter.All:
                         {
                             foreach (Site site in column.Sites)
@@ -1975,6 +1994,12 @@ namespace HBP.Module3D
                     case SiteAction.Unmark:
                         site.State.IsMarked = false;
                         break;
+                    case SiteAction.Suspect:
+                        site.State.IsSuspicious = true;
+                        break;
+                    case SiteAction.Unsuspect:
+                        site.State.IsSuspicious = false;
+                        break;
                     default:
                         break;
                 }
@@ -2014,6 +2039,12 @@ namespace HBP.Module3D
                         break;
                     case SiteAction.Unmark:
                         site.State.IsMarked = false;
+                        break;
+                    case SiteAction.Suspect:
+                        site.State.IsSuspicious = true;
+                        break;
+                    case SiteAction.Unsuspect:
+                        site.State.IsSuspicious = false;
                         break;
                 }
                 ResetIEEG(false);

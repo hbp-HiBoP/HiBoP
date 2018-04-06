@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace HBP.Module3D
 {
-    public enum SiteType { Normal, Positive, Negative, Excluded, Source, NotASource, NoLatencyData, BlackListed, NonePos, NoneNeg, Marked};
+    public enum SiteType { Normal, Positive, Negative, Excluded, Source, NotASource, NoLatencyData, BlackListed, NonePos, NoneNeg, Marked, Suspicious };
     /// <summary>
     /// Structure containing informations related to the site shaders (not used for now, shader uniform too slow)
     /// </summary>
@@ -169,6 +169,7 @@ namespace HBP.Module3D
             IsOutOfROI = state.IsOutOfROI;
             IsHighlighted = state.IsHighlighted;
             IsMarked = state.IsMarked;
+            IsSuspicious = state.IsSuspicious;
         }
         public SiteState() { }
         public bool IsMasked { get; set; }     /**< is the site masked on the column ? */
@@ -177,16 +178,18 @@ namespace HBP.Module3D
         public bool IsOutOfROI { get; set; }      /**< is the site in a ROI ? */
         public bool IsHighlighted { get; set; }       /**< is the site highlighted ? */
         public bool IsMarked { get; set; }          /**< is the site marked ? */
+        public bool IsSuspicious { get; set; }
         public void ApplyState(SiteState state)
         {
-            ApplyState(state.IsExcluded, state.IsBlackListed, state.IsHighlighted, state.IsMarked);
+            ApplyState(state.IsExcluded, state.IsBlackListed, state.IsHighlighted, state.IsMarked, state.IsSuspicious);
         }
-        public void ApplyState(bool excluded, bool blacklisted, bool highlighted, bool marked)
+        public void ApplyState(bool excluded, bool blacklisted, bool highlighted, bool marked, bool suspicious)
         {
             IsExcluded = excluded;
             IsBlackListed = blacklisted;
             IsHighlighted = highlighted;
             IsMarked = marked;
+            IsSuspicious = suspicious;
         }
     }
 
@@ -304,6 +307,7 @@ namespace HBP.Module3D
             State.IsExcluded = Configuration.IsExcluded;
             State.IsHighlighted = Configuration.IsHighlighted;
             State.IsMarked = Configuration.IsMarked;
+            State.IsSuspicious = Configuration.IsSuspicious;
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
 
@@ -313,6 +317,7 @@ namespace HBP.Module3D
             Configuration.IsExcluded = State.IsExcluded;
             Configuration.IsHighlighted = State.IsHighlighted;
             Configuration.IsMarked = State.IsMarked;
+            Configuration.IsSuspicious = State.IsSuspicious;
         }
 
         public void ResetConfiguration(bool firstCall = true)
@@ -321,6 +326,7 @@ namespace HBP.Module3D
             State.IsExcluded = false;
             State.IsHighlighted = false;
             State.IsMarked = false;
+            State.IsSuspicious = false;
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         #endregion
