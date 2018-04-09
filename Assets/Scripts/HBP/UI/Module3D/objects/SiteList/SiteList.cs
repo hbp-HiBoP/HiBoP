@@ -15,11 +15,17 @@ namespace HBP.UI.Module3D
             }
             set
             {
+                foreach (var item in m_ItemByObject.Values)
+                {
+                    Destroy(item.gameObject);
+                }
+                m_ItemByObject.Clear();
+                m_Start = 0;
+                m_End = 0;
                 m_Objects = value;
                 m_NumberOfObjects = value.Count;
                 m_ScrollRect.content.sizeDelta = new Vector2(m_ScrollRect.content.sizeDelta.x, m_NumberOfObjects * ItemHeight);
                 m_ScrollRect.content.hasChanged = true;
-                Refresh();
             }
         }
         #endregion

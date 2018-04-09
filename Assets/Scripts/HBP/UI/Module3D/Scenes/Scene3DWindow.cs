@@ -17,6 +17,7 @@ namespace HBP.UI.Module3D
         public GameObject SceneUIPrefab;
         public GameObject CutUIPrefab;
         public GameObject GraphsUIPrefab;
+        public GameObject SitesInformationsPrefab;
         #endregion
 
         #region Public Methods
@@ -33,19 +34,26 @@ namespace HBP.UI.Module3D
             grid.AddColumn();
             grid.AddViewLine(SceneUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>().Initialize(scene);
-            // Graphs
-            grid.AddColumn(null, GraphsUIPrefab);
-            Graph.GraphsGestion graphsGestion = grid.Columns.Last().Views.Last().GetComponent<Graph.GraphsGestion>();
-            graphsGestion.Scene = scene;
-            // Cuts
-            grid.AddColumn(null, CutUIPrefab);
-            grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
-            // Positions
-            grid.VerticalHandlers[0].MagneticPosition = 0.45f;
-            grid.VerticalHandlers[0].Position = 1.0f;
-            grid.VerticalHandlers[1].MagneticPosition = 0.9f;
-            grid.VerticalHandlers[1].Position = 0.9f;
-            grid.SetVerticalHandlersPosition(1);
+            // DEBUG Sites
+            grid.AddColumn(null, SitesInformationsPrefab);
+            SitesInformations sitesInformations = grid.Columns.Last().Views.Last().GetComponent<SitesInformations>();
+            sitesInformations.Initialize(scene);
+            grid.VerticalHandlers[0].MagneticPosition = 0.85f;
+            grid.VerticalHandlers[0].Position = 0.85f;
+            grid.SetVerticalHandlersPosition(0);
+            //// Graphs
+            //grid.AddColumn(null, GraphsUIPrefab);
+            //Graph.GraphsGestion graphsGestion = grid.Columns.Last().Views.Last().GetComponent<Graph.GraphsGestion>();
+            //graphsGestion.Scene = scene;
+            //// Cuts
+            //grid.AddColumn(null, CutUIPrefab);
+            //grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
+            //// Positions
+            //grid.VerticalHandlers[0].MagneticPosition = 0.45f;
+            //grid.VerticalHandlers[0].Position = 1.0f;
+            //grid.VerticalHandlers[1].MagneticPosition = 0.9f;
+            //grid.VerticalHandlers[1].Position = 0.9f;
+            //grid.SetVerticalHandlersPosition(1);
 
             ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {
@@ -75,18 +83,18 @@ namespace HBP.UI.Module3D
                 }
                 SaveSceneToPNG(screenshotsPath, multipleFiles);
             });
-            graphsGestion.OnOpenGraphsWindow.AddListener(() =>
-            {
-                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
-                grid.SetVerticalHandlersPosition(1);
-                grid.UpdateAnchors();
-            });
-            graphsGestion.OnCloseGraphsWindow.AddListener(() =>
-            {
-                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
-                grid.SetVerticalHandlersPosition(1);
-                grid.UpdateAnchors();
-            });
+            //graphsGestion.OnOpenGraphsWindow.AddListener(() =>
+            //{
+            //    grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
+            //    grid.SetVerticalHandlersPosition(1);
+            //    grid.UpdateAnchors();
+            //});
+            //graphsGestion.OnCloseGraphsWindow.AddListener(() =>
+            //{
+            //    grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
+            //    grid.SetVerticalHandlersPosition(1);
+            //    grid.UpdateAnchors();
+            //});
         }
 
         public void SaveSceneToPNG(string path, bool multipleFiles = false)

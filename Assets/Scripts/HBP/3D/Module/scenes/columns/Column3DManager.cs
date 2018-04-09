@@ -382,6 +382,10 @@ namespace HBP.Module3D
         #region Events
         public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
         /// <summary>
+        /// Event called when selecting a column
+        /// </summary>
+        public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        /// <summary>
         /// Event called when adding a column
         /// </summary>
         public UnityEvent OnAddColumn = new UnityEvent();
@@ -480,6 +484,7 @@ namespace HBP.Module3D
                     }
                 }
                 OnSelectColumnManager.Invoke(this);
+                OnSelectColumn.Invoke(column);
                 ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
             });
             column.OnMoveView.AddListener((view) =>
@@ -548,6 +553,7 @@ namespace HBP.Module3D
                     }
                 }
                 OnSelectColumnManager.Invoke(this);
+                OnSelectColumn.Invoke(column);
                 ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
             });
             column.OnMoveView.AddListener((view) =>

@@ -28,7 +28,7 @@ namespace Tools.Unity.Lists
         }
 
         protected bool m_Interactable;
-        public bool interactable
+        public bool Interactable
         {
             get
             {
