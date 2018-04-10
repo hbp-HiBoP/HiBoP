@@ -13,7 +13,7 @@ namespace HBP.UI.Theme
         public enum GeneralEnum { Tooltip, Background, LoadingCircle, DialogBox }
         public enum MenuEnum { Background, Button, Text, Dropdown, Toggle, SubMenuBackground }
         public enum WindowEnum { Header, Content, Selector, Shadow }
-        public enum HeaderEnum { Background, Text, Button }
+        public enum HeaderEnum { Background, Text, CloseButton, MaximizeButton, MinimizeButton }
         public enum ContentEnum { Background, Text, Title, Toggle, Dropdown, Inputfield, ScrollRect, MainButton, SecondaryButton, Item, FileSelector }
         public enum ItemEnum { Background, Text, Toggle, Button, ContainerBloc, MainBloc, SecondaryBloc, Scrollbar } 
         public enum ToolbarEnum { Background, Text, ButtonImage, Toggle, Inputfield, Slider, DropdownText, DropdownImage, ButtonText, ScrollRect, MainEvent, SecondaryEvent, SecondaryText, DropdownTextWithIcon }
@@ -89,7 +89,7 @@ namespace HBP.UI.Theme
                     SetText(GetComponentInChildren<Text>(), theme.General.TooltipText);
                     break;
                 case GeneralEnum.Background:
-                    SetImage(GetComponent<Image>(), theme.General.Background);
+                    SetImage(GetComponent<Image>(), theme.General.Background.Color,theme.General.Background.Sprite);
                     break;
                 case GeneralEnum.LoadingCircle:
                     SetLoadingCircle(theme.General.LoadingCircle, transform);
@@ -104,10 +104,10 @@ namespace HBP.UI.Theme
             switch (Menu)
             {
                 case MenuEnum.Background:
-                    SetImage(GetComponent<Image>(), theme.Menu.Background);
+                    SetImage(GetComponent<Image>(), theme.Menu.Background.Color,theme.Menu.Background.Sprite);
                     break;
                 case MenuEnum.SubMenuBackground:
-                    SetImage(GetComponent<Image>(), theme.Menu.SubMenuBackground);
+                    SetImage(GetComponent<Image>(), theme.Menu.SubMenuBackground.Color, theme.Menu.SubMenuBackground.Sprite);
                     break;
                 case MenuEnum.Button:
                     SetButton(GetComponent<Button>(), theme.Menu.Button);
@@ -138,13 +138,13 @@ namespace HBP.UI.Theme
             switch (Header)
             {
                 case HeaderEnum.Background:
-                    SetImage(GetComponent<Image>(), theme.Window.Header.Background);
+                    SetImage(GetComponent<Image>(), theme.Window.Header.Background.Color, theme.Window.Header.Background.Sprite);
                     break;
                 case HeaderEnum.Text:
                     SetText(GetComponent<Text>(), theme.Window.Header.Text);
                     break;
-                case HeaderEnum.Button:
-                    SetButton(GetComponent<Button>(), theme.Window.Header.Button);
+                case HeaderEnum.CloseButton:
+                    SetButton(GetComponent<Button>(), theme.Window.Header.CloseButton);
                     break;
             }
         }
@@ -153,7 +153,7 @@ namespace HBP.UI.Theme
             switch (Content)
             {
                 case ContentEnum.Background:
-                    SetImage(GetComponent<Image>(), theme.Window.Content.Background);
+                    SetImage(GetComponent<Image>(), theme.Window.Content.Background.Color, theme.Window.Content.Background.Sprite);
                     break;
                 case ContentEnum.Text:
                     SetText(GetComponent<Text>(), theme.Window.Content.Text);
@@ -324,11 +324,25 @@ namespace HBP.UI.Theme
                 image.color = color;
             }
         }
+        void SetImage(Image image, Color color, Sprite sprite)
+        {
+            if(image)
+            {
+                image.color = color;
+                image.sprite = sprite;
+            }
+        }
         void SetButton(Button button, Theme.ButtonTheme theme, bool setByAnother = false)
         {
             if (button)
             {
-                button.colors = theme.ColorBlock;
+                Image image = button.targetGraphic as Image;
+                if (image)
+                {
+                    image.color = theme.Background.Color;
+                    image.sprite = theme.Background.Sprite;
+                }
+                button.colors = theme.ColorBlock.Colors;
                 if (!setByAnother)
                 {
                     Text[] texts; Image[] icons;
@@ -368,8 +382,13 @@ namespace HBP.UI.Theme
         {
             if (dropdown)
             {
-                dropdown.colors = theme.ColorBlock;
-
+                dropdown.colors = theme.ColorBlock.Colors;
+                Image image = dropdown.targetGraphic as Image;
+                if(image)
+                {
+                    image.color = theme.Background.Color;
+                    image.sprite = theme.Background.Sprite;
+                }
                 if (!setByAnother)
                 {
                     Text[] texts; Image[] icons;
@@ -414,7 +433,7 @@ namespace HBP.UI.Theme
         {
             if (toggle)
             {
-                toggle.colors = theme.ColorBlock;
+                toggle.colors = theme.ColorBlock.Colors;
                 if (toggle.graphic) toggle.graphic.color = theme.Checkmark;
                 Text[] texts; Image[] icons;
                 FindContents(out texts, out icons, toggle.transform, true);
@@ -428,7 +447,7 @@ namespace HBP.UI.Theme
                     if (toggle.interactable) SetImage(icon, theme.Icon);
                     else SetImage(icon, theme.DisabledIcon);
                 }
-                toggle.colors = theme.ColorBlock;
+                toggle.colors = theme.ColorBlock.Colors;
                 SetImage((Image)toggle.graphic, theme.Checkmark);
             }
         }
@@ -436,8 +455,14 @@ namespace HBP.UI.Theme
         {
             if (toggle)
             {
-                toggle.colors = theme.ColorBlock;
-                if(toggle.graphic) toggle.graphic.color = theme.Checkmark;
+                toggle.colors = theme.ColorBlock.Colors;
+                Image image = toggle.targetGraphic as Image;
+                if (image)
+                {
+                    image.color = theme.Background.Color;
+                    image.sprite = theme.Background.Sprite;
+                }
+                if (toggle.graphic) toggle.graphic.color = theme.Checkmark;
 
                 if (!setByAnother)
                 {
@@ -454,7 +479,7 @@ namespace HBP.UI.Theme
                         else SetImage(icon, theme.DisabledIcon);
                     }
                 }
-                toggle.colors = theme.ColorBlock;
+                toggle.colors = theme.ColorBlock.Colors;
                 SetImage((Image)toggle.graphic, theme.Checkmark);
             }
         }
@@ -462,6 +487,12 @@ namespace HBP.UI.Theme
         {
             if (inputField)
             {
+                Image image = inputField.targetGraphic as Image;
+                if (image)
+                {
+                    image.color = theme.Background.Color;
+                    image.sprite = theme.Background.Sprite;
+                }
                 if (!setByAnother)
                 {
                     Text[] texts; Image[] icons;
@@ -477,7 +508,7 @@ namespace HBP.UI.Theme
                         else SetImage(icon, theme.DisabledIcon);
                     }
                 }
-                inputField.colors = theme.ColorBlock;
+                inputField.colors = theme.ColorBlock.Colors;
             }
         }
         void SetScrollRect(ScrollRect scrollRect, Theme.ScrollRectTheme theme)
@@ -494,7 +525,7 @@ namespace HBP.UI.Theme
         {
             if (scrollbar)
             {
-                scrollbar.colors = theme.ColorBlock;
+                scrollbar.colors = theme.ColorBlock.Colors;
                 SetImage(scrollbar.GetComponent<Image>(), theme.Background);
                 SetImage(scrollbar.handleRect.GetComponent<Image>(), theme.Handle);
             }
@@ -503,7 +534,7 @@ namespace HBP.UI.Theme
         {
             if(title)
             {
-                SetImage(title, theme.Background);
+                SetImage(title, theme.Background.Color, theme.Background.Sprite);
                 foreach(Text text in title.GetComponentsInChildren<Text>())
                 {
                     SetText(text, theme.Text);
@@ -514,7 +545,7 @@ namespace HBP.UI.Theme
         {
             if (slider)
             {
-                slider.colors = theme.ColorBlock;
+                slider.colors = theme.ColorBlock.Colors;
 
                 if (!setByAnother)
                 {
@@ -563,7 +594,7 @@ namespace HBP.UI.Theme
         }
         void SetDialogBox(Theme.DialogBoxTheme theme, Transform dialogBox)
         {
-            SetImage(dialogBox.Find("Window").GetComponent<Image>(), theme.Background);
+            SetImage(dialogBox.Find("Window").GetComponent<Image>(), theme.Background.Color,theme.Background.Sprite);
             SetText(dialogBox.Find("Window").Find("Corps").Find("Text").Find("Title").GetComponent<Text>(), theme.Title);
             SetText(dialogBox.Find("Window").Find("Corps").Find("Text").Find("Message").GetComponent<Text>(), theme.Text);
             foreach (Button button in dialogBox.Find("Window").Find("Buttons").GetComponentsInChildren<Button>())
@@ -577,11 +608,12 @@ namespace HBP.UI.Theme
             Image image = GetComponent<Image>();
             if(image != null && rectTransform != null)
             {
-                image.sprite = theme.Sprite;
-                image.color = theme.Color;
+                image.sprite = theme.Background.Sprite;
+                image.color = theme.Background.Color;
                 rectTransform.anchorMin = new Vector2(0, 0);
                 rectTransform.anchorMax = new Vector2(1, 1);
-                rectTransform.sizeDelta = -2 * theme.Offset * Vector2.one;
+                rectTransform.offsetMin = new Vector2(theme.Offset.left,theme.Offset.bottom);
+                rectTransform.offsetMax = new Vector2(-theme.Offset.right, -theme.Offset.top);
             }
         }
         void FindContents(out Text[] texts,out Image[] icons, Transform parent = null, bool forceRecursiveChildren = false)

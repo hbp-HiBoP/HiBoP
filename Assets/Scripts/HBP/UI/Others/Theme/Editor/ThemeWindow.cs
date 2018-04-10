@@ -34,9 +34,19 @@ namespace HBP.UI.Theme
             }
         }
 
+        [MenuItem("Tools/Apply new theme")]
+        public static void SetTheme()
+        {
+            NewTheme.ThemeElement[] ThemeElements = FindObjectsOfType<NewTheme.ThemeElement>();
+            foreach (var element in ThemeElements)
+            {
+                element.Set();
+            }
+        }
+
         public static void SetTheme(Theme theme)
         {
-            ApplicationState.GeneralSettings.ThemeName = theme.name;
+            if(Application.isPlaying) ApplicationState.GeneralSettings.ThemeName = theme.name;
             Theme.UpdateThemeElements(theme);
         }
 

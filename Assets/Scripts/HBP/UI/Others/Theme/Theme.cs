@@ -38,7 +38,7 @@ namespace HBP.UI.Theme
             public Color NotInteractable = new Color();
             public Color TooltipBackground;
             public TextTheme TooltipText;
-            public Color Background = new Color();
+            public ImageTheme Background;
             public LoadingCircleTheme LoadingCircle;
             public DialogBoxTheme DialogBox;
             public CursorTheme Cursor;
@@ -54,7 +54,7 @@ namespace HBP.UI.Theme
                 OK = new Color(50, 200, 50, 255) / 255.0f;
                 Warning = new Color(200, 200, 50, 255) / 255.0f;
                 Error = new Color(200, 50, 50, 255) / 255.0f;
-                Background = new Color(20, 20, 20, 255) / 255.0f;
+                Background.Color = new Color(20, 20, 20, 255) / 255.0f;
 
                 TooltipBackground = new Color(40, 40, 40, 255) / 255.0f;
                 TooltipText.Color = new Color(255, 255, 255, 255) / 255.0f;
@@ -80,8 +80,8 @@ namespace HBP.UI.Theme
         [System.Serializable]
         public struct MenuTheme
         {
-            public Color Background;
-            public Color SubMenuBackground;
+            public ImageTheme Background;
+            public ImageTheme SubMenuBackground;
             public TextTheme Text;
             public ButtonTheme Button;
             public ToggleTheme Toggle;
@@ -89,8 +89,8 @@ namespace HBP.UI.Theme
 
             public void SetDefaultValues()
             {
-                Background = new Color(40, 40, 40, 255) / 255.0f;
-                SubMenuBackground = new Color(20, 20, 20, 255) / 255.0f;
+                Background.Color = new Color(40, 40, 40, 255) / 255.0f;
+                SubMenuBackground.Color = new Color(20, 20, 20, 255) / 255.0f;
 
                 Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Text.Font = FontData.defaultFontData;
@@ -99,11 +99,11 @@ namespace HBP.UI.Theme
                 Text.Font.alignByGeometry = true;
                 Text.Font.fontStyle = FontStyle.Normal;
 
-                Button.ColorBlock = ColorBlock.defaultColorBlock;
-                Button.ColorBlock.normalColor = new Color(40, 40, 40, 255) / 255.0f;
-                Button.ColorBlock.highlightedColor = new Color(30, 30, 30, 255) / 255.0f;
-                Button.ColorBlock.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
-                Button.ColorBlock.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
+                Button.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Button.ColorBlock.Colors.normalColor = new Color(40, 40, 40, 255) / 255.0f;
+                Button.ColorBlock.Colors.highlightedColor = new Color(30, 30, 30, 255) / 255.0f;
+                Button.ColorBlock.Colors.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
+                Button.ColorBlock.Colors.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
                 Button.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Button.Text.Font = FontData.defaultFontData;
                 Button.Text.Font.fontSize = 13;
@@ -119,11 +119,11 @@ namespace HBP.UI.Theme
                 Button.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 Button.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
-                Toggle.ColorBlock = ColorBlock.defaultColorBlock;
-                Toggle.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
-                Toggle.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Toggle.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Toggle.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                Toggle.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Toggle.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                Toggle.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Toggle.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Toggle.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 Toggle.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
                 Toggle.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Toggle.Text.Font = FontData.defaultFontData;
@@ -140,11 +140,11 @@ namespace HBP.UI.Theme
                 Toggle.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 Toggle.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
-                Dropdown.ColorBlock = ColorBlock.defaultColorBlock;
-                Dropdown.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
-                Dropdown.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Dropdown.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Dropdown.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                Dropdown.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Dropdown.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                Dropdown.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Dropdown.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Dropdown.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 Dropdown.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Dropdown.Text.Font = FontData.defaultFontData;
                 Dropdown.Text.Font.fontSize = 13;
@@ -178,12 +178,16 @@ namespace HBP.UI.Theme
         [System.Serializable]
         public struct HeaderTheme
         {
-            public Color Background;
+            public ImageTheme Background;
             public TextTheme Text;
-            public ButtonTheme Button;
+            public ButtonTheme CloseButton;
+            public ButtonTheme MaximizeButton;
+            public ButtonTheme MinimizeButton;
 
             public void Initialize()
             {
+                Background.Color = new Color(40, 40, 40, 255) / 255.0f;
+
                 Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Text.Font = FontData.defaultFontData;
                 Text.Font.fontSize = 14;
@@ -192,26 +196,50 @@ namespace HBP.UI.Theme
                 Text.Font.alignment = TextAnchor.MiddleCenter;
                 Text.Font.fontStyle = FontStyle.Bold;
 
-                Background = new Color(41, 41, 41, 255) / 255.0f;
+                CloseButton.Text.Font = FontData.defaultFontData;
+                CloseButton.Text.Font.fontSize = 14;
+                CloseButton.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                CloseButton.Text.Font.alignByGeometry = true;
+                CloseButton.Text.Font.alignment = TextAnchor.MiddleCenter;
+                CloseButton.Text.Font.fontStyle = FontStyle.Bold;
+                CloseButton.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                CloseButton.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                CloseButton.ColorBlock.Colors.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                CloseButton.ColorBlock.Colors.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
+                CloseButton.ColorBlock.Colors.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                CloseButton.ColorBlock.Colors.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
 
-                Button.Text.Font = FontData.defaultFontData;
-                Button.Text.Font.fontSize = 14;
-                Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
-                Button.Text.Font.alignByGeometry = true;
-                Button.Text.Font.alignment = TextAnchor.MiddleCenter;
-                Button.Text.Font.fontStyle = FontStyle.Bold;
-                Button.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
-                Button.ColorBlock = ColorBlock.defaultColorBlock;
-                Button.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
-                Button.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
-                Button.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
-                Button.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
+                MaximizeButton.Text.Font = FontData.defaultFontData;
+                MaximizeButton.Text.Font.fontSize = 14;
+                MaximizeButton.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                MaximizeButton.Text.Font.alignByGeometry = true;
+                MaximizeButton.Text.Font.alignment = TextAnchor.MiddleCenter;
+                MaximizeButton.Text.Font.fontStyle = FontStyle.Bold;
+                MaximizeButton.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                MaximizeButton.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                MaximizeButton.ColorBlock.Colors.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                MaximizeButton.ColorBlock.Colors.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
+                MaximizeButton.ColorBlock.Colors.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                MaximizeButton.ColorBlock.Colors.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
+
+                MinimizeButton.Text.Font = FontData.defaultFontData;
+                MinimizeButton.Text.Font.fontSize = 14;
+                MinimizeButton.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
+                MinimizeButton.Text.Font.alignByGeometry = true;
+                MinimizeButton.Text.Font.alignment = TextAnchor.MiddleCenter;
+                MinimizeButton.Text.Font.fontStyle = FontStyle.Bold;
+                MinimizeButton.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
+                MinimizeButton.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                MinimizeButton.ColorBlock.Colors.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                MinimizeButton.ColorBlock.Colors.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
+                MinimizeButton.ColorBlock.Colors.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                MinimizeButton.ColorBlock.Colors.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
             }
         }
         [System.Serializable]
         public struct ContentTheme
         {
-            public Color Background;
+            public ImageTheme Background;
             public TextTheme Text;
             public TitleTheme Title;
             public ToggleTheme Toggle;
@@ -225,9 +253,9 @@ namespace HBP.UI.Theme
 
             public void Initialize()
             {
-                Background = new Color(56, 56, 56, 255) / 255.0f;
+                Background.Color = new Color(56, 56, 56, 255) / 255.0f;
 
-                Title.Background = new Color(80, 80, 80, 255) / 255.0f;
+                Title.Background.Color = new Color(80, 80, 80, 255) / 255.0f;
                 Title.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Title.Text.Font = FontData.defaultFontData;
                 Title.Text.Font.fontSize = 14;
@@ -236,11 +264,11 @@ namespace HBP.UI.Theme
                 Title.Text.Font.alignment = TextAnchor.MiddleLeft;
                 Title.Text.Font.fontStyle = FontStyle.Normal;
 
-                Toggle.ColorBlock = ColorBlock.defaultColorBlock;
-                Toggle.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                Toggle.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Toggle.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Toggle.ColorBlock.disabledColor = new Color(65, 65, 65, 255) / 255.0f;
+                Toggle.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Toggle.ColorBlock.Colors.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                Toggle.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Toggle.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Toggle.ColorBlock.Colors.disabledColor = new Color(65, 65, 65, 255) / 255.0f;
                 Toggle.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
                 Toggle.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Toggle.Text.Font = FontData.defaultFontData;
@@ -259,11 +287,11 @@ namespace HBP.UI.Theme
                 Toggle.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 Toggle.DisabledIcon = new Color(255, 255, 255, 255) / 255.0f;
 
-                Dropdown.ColorBlock = ColorBlock.defaultColorBlock;
-                Dropdown.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                Dropdown.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Dropdown.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Dropdown.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                Dropdown.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Dropdown.ColorBlock.Colors.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                Dropdown.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Dropdown.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Dropdown.ColorBlock.Colors.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
                 Dropdown.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Dropdown.Text.Font = FontData.defaultFontData;
                 Dropdown.Text.Font.fontSize = 14;
@@ -283,11 +311,11 @@ namespace HBP.UI.Theme
                 Dropdown.Arrow = new Color(255, 255, 255, 255) / 255.0f;
                 Dropdown.DisabledArrow = new Color(255, 255, 255, 255) / 255.0f;
                 Dropdown.Template.Background = new Color(65, 65, 65, 255) / 255.0f;
-                Dropdown.Item.ColorBlock = ColorBlock.defaultColorBlock;
-                Dropdown.Item.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                Dropdown.Item.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Dropdown.Item.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Dropdown.Item.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                Dropdown.Item.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Dropdown.Item.ColorBlock.Colors.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                Dropdown.Item.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Dropdown.Item.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Dropdown.Item.ColorBlock.Colors.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
                 Dropdown.Item.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
                 Dropdown.Item.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Dropdown.Item.Text.Font = FontData.defaultFontData;
@@ -305,11 +333,11 @@ namespace HBP.UI.Theme
                 Dropdown.Item.DisabledText.Font.fontStyle = FontStyle.Normal;
                 Dropdown.Item.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 Dropdown.Item.DisabledIcon = new Color(255, 255, 255, 255) / 255.0f;
-                Dropdown.Template.Scrollbar.ColorBlock = ColorBlock.defaultColorBlock;
-                Dropdown.Template.Scrollbar.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                Dropdown.Template.Scrollbar.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Dropdown.Template.Scrollbar.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Dropdown.Template.Scrollbar.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                Dropdown.Template.Scrollbar.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Dropdown.Template.Scrollbar.ColorBlock.Colors.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                Dropdown.Template.Scrollbar.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Dropdown.Template.Scrollbar.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Dropdown.Template.Scrollbar.ColorBlock.Colors.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
                 Dropdown.Template.Scrollbar.Handle = new Color(255, 255, 255, 255) / 255.0f;
                 Dropdown.Template.Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
                 Dropdown.Template.Background = new Color(80, 80, 80, 255) / 255.0f;
@@ -322,11 +350,11 @@ namespace HBP.UI.Theme
                 Text.Font.alignment = TextAnchor.MiddleLeft;
                 Text.Font.fontStyle = FontStyle.Normal;
 
-                FileSelector.InputField.ColorBlock = ColorBlock.defaultColorBlock;
-                FileSelector.InputField.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                FileSelector.InputField.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                FileSelector.InputField.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                FileSelector.InputField.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                FileSelector.InputField.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                FileSelector.InputField.ColorBlock.Colors.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                FileSelector.InputField.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                FileSelector.InputField.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                FileSelector.InputField.ColorBlock.Colors.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
                 FileSelector.InputField.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 FileSelector.InputField.Text.Font = FontData.defaultFontData;
                 FileSelector.InputField.Text.Font.fontSize = 14;
@@ -359,17 +387,17 @@ namespace HBP.UI.Theme
                 FileSelector.Button.DisabledText.Color = new Color(80, 80, 80, 255) / 255.0f;
                 FileSelector.Button.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 FileSelector.Button.DisabledIcon = new Color(80, 80, 80, 255) / 255.0f;
-                FileSelector.Button.ColorBlock = ColorBlock.defaultColorBlock;
-                FileSelector.Button.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
-                FileSelector.Button.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
-                FileSelector.Button.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
-                FileSelector.Button.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
+                FileSelector.Button.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                FileSelector.Button.ColorBlock.Colors.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                FileSelector.Button.ColorBlock.Colors.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
+                FileSelector.Button.ColorBlock.Colors.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                FileSelector.Button.ColorBlock.Colors.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
 
-                InputField.ColorBlock = ColorBlock.defaultColorBlock;
-                InputField.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                InputField.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                InputField.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                InputField.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                InputField.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                InputField.ColorBlock.Colors.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                InputField.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                InputField.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                InputField.ColorBlock.Colors.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
                 InputField.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 InputField.Text.Font = FontData.defaultFontData;
                 InputField.Text.Font.fontSize = 14;
@@ -385,11 +413,11 @@ namespace HBP.UI.Theme
                 InputField.DisabledText.Font.alignment = TextAnchor.MiddleLeft;
                 InputField.DisabledText.Font.fontStyle = FontStyle.Normal;
 
-                ScrollRect.Scrollbar.ColorBlock = ColorBlock.defaultColorBlock;
-                ScrollRect.Scrollbar.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                ScrollRect.Scrollbar.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                ScrollRect.Scrollbar.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                ScrollRect.Scrollbar.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                ScrollRect.Scrollbar.ColorBlock.Colors.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.Colors.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
                 ScrollRect.Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
                 ScrollRect.Background = new Color(80, 80, 80, 255) / 255.0f;
 
@@ -409,11 +437,11 @@ namespace HBP.UI.Theme
                 MainButton.DisabledText.Color = new Color(80, 80, 80, 255) / 255.0f;
                 MainButton.Icon = new Color(0, 0, 0, 255) / 255.0f;
                 MainButton.DisabledIcon = new Color(80, 80, 80, 255) / 255.0f;
-                MainButton.ColorBlock = ColorBlock.defaultColorBlock;
-                MainButton.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
-                MainButton.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
-                MainButton.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
-                MainButton.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
+                MainButton.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                MainButton.ColorBlock.Colors.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                MainButton.ColorBlock.Colors.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
+                MainButton.ColorBlock.Colors.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                MainButton.ColorBlock.Colors.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
 
                 SecondaryButton.Text.Font = FontData.defaultFontData;
                 SecondaryButton.Text.Font.fontSize = 14;
@@ -429,11 +457,11 @@ namespace HBP.UI.Theme
                 SecondaryButton.DisabledText.Font.alignment = TextAnchor.MiddleCenter;
                 SecondaryButton.DisabledText.Font.fontStyle = FontStyle.Normal;
                 SecondaryButton.DisabledText.Color = new Color(255, 255, 255, 255) / 255.0f;
-                SecondaryButton.ColorBlock = ColorBlock.defaultColorBlock;
-                SecondaryButton.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                SecondaryButton.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                SecondaryButton.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                SecondaryButton.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                SecondaryButton.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                SecondaryButton.ColorBlock.Colors.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                SecondaryButton.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                SecondaryButton.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                SecondaryButton.ColorBlock.Colors.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
                 SecondaryButton.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 SecondaryButton.DisabledIcon = new Color(255, 255, 255, 255) / 255.0f;
 
@@ -468,17 +496,17 @@ namespace HBP.UI.Theme
                 ScrollRect.Background = new Color(40, 40, 40, 255) / 255.0f;
                 ScrollRect.Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
                 ScrollRect.Scrollbar.Handle = new Color(59, 122, 194, 255) / 255.0f;
-                ScrollRect.Scrollbar.ColorBlock = ColorBlock.defaultColorBlock;
-                ScrollRect.Scrollbar.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
-                ScrollRect.Scrollbar.ColorBlock.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
-                ScrollRect.Scrollbar.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
-                ScrollRect.Scrollbar.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                ScrollRect.Scrollbar.ColorBlock.Colors.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.Colors.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.Colors.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                ScrollRect.Scrollbar.ColorBlock.Colors.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
 
-                ButtonImage.ColorBlock = ColorBlock.defaultColorBlock;
-                ButtonImage.ColorBlock.normalColor = new Color(40, 40, 40, 255) / 255.0f;
-                ButtonImage.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                ButtonImage.ColorBlock.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
-                ButtonImage.ColorBlock.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
+                ButtonImage.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                ButtonImage.ColorBlock.Colors.normalColor = new Color(40, 40, 40, 255) / 255.0f;
+                ButtonImage.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                ButtonImage.ColorBlock.Colors.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
+                ButtonImage.ColorBlock.Colors.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
                 ButtonImage.Text.Font = FontData.defaultFontData;
                 ButtonImage.Text.Font.fontSize = 14;
                 ButtonImage.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
@@ -494,11 +522,11 @@ namespace HBP.UI.Theme
                 ButtonImage.DisabledText.Font.fontStyle = FontStyle.Normal;
                 ButtonImage.DisabledText.Color = new Color(100, 100, 100, 255) / 255.0f;
 
-                ButtonText.ColorBlock = ColorBlock.defaultColorBlock;
-                ButtonText.ColorBlock.normalColor = new Color(40, 40, 40, 255) / 255.0f;
-                ButtonText.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                ButtonText.ColorBlock.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
-                ButtonText.ColorBlock.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
+                ButtonText.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                ButtonText.ColorBlock.Colors.normalColor = new Color(40, 40, 40, 255) / 255.0f;
+                ButtonText.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                ButtonText.ColorBlock.Colors.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
+                ButtonText.ColorBlock.Colors.disabledColor = new Color(40, 40, 40, 255) / 255.0f;
                 ButtonText.Text.Font = FontData.defaultFontData;
                 ButtonText.Text.Font.fontSize = 14;
                 ButtonText.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
@@ -514,11 +542,11 @@ namespace HBP.UI.Theme
                 ButtonText.DisabledText.Font.fontStyle = FontStyle.Normal;
                 ButtonText.DisabledText.Color = new Color(100, 100, 100, 255) / 255.0f;
 
-                InputField.ColorBlock = ColorBlock.defaultColorBlock;
-                InputField.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                InputField.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                InputField.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                InputField.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                InputField.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                InputField.ColorBlock.Colors.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                InputField.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                InputField.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                InputField.ColorBlock.Colors.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
                 InputField.Text.Font = FontData.defaultFontData;
                 InputField.Text.Font.fontSize = 14;
                 InputField.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
@@ -534,11 +562,11 @@ namespace HBP.UI.Theme
                 InputField.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 InputField.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
-                Toggle.ColorBlock = ColorBlock.defaultColorBlock;
-                Toggle.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
-                Toggle.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Toggle.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Toggle.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                Toggle.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Toggle.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                Toggle.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Toggle.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Toggle.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 Toggle.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
                 Toggle.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Toggle.Text.Font = FontData.defaultFontData;
@@ -576,11 +604,11 @@ namespace HBP.UI.Theme
                 TimelineText.Font.alignByGeometry = true;
                 TimelineText.Font.fontStyle = FontStyle.Bold;
 
-                Slider.ColorBlock = ColorBlock.defaultColorBlock;
-                Slider.ColorBlock.normalColor = new Color(170, 170, 170, 255) / 255.0f;
-                Slider.ColorBlock.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
-                Slider.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
-                Slider.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                Slider.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Slider.ColorBlock.Colors.normalColor = new Color(170, 170, 170, 255) / 255.0f;
+                Slider.ColorBlock.Colors.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
+                Slider.ColorBlock.Colors.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                Slider.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 Slider.Background = new Color(255, 255, 255, 255) / 255.0f;
                 Slider.DisabledBackground = new Color(100, 100, 100, 255) / 255.0f;
                 Slider.Fill = new Color(255, 255, 255, 255) / 255.0f;
@@ -600,11 +628,11 @@ namespace HBP.UI.Theme
                 Slider.DisabledText.Font.alignByGeometry = true;
                 Slider.DisabledText.Font.fontStyle = FontStyle.Normal;
 
-                DropdownText.ColorBlock = ColorBlock.defaultColorBlock;
-                DropdownText.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
-                DropdownText.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                DropdownText.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                DropdownText.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownText.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                DropdownText.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownText.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                DropdownText.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                DropdownText.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 DropdownText.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownText.Text.Font = FontData.defaultFontData;
                 DropdownText.Text.Font.fontSize = 14;
@@ -620,16 +648,16 @@ namespace HBP.UI.Theme
                 DropdownText.Template.Background = new Color(40, 40, 40, 255) / 255.0f;
                 DropdownText.Template.Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
                 DropdownText.Template.Scrollbar.Handle = new Color(59, 122, 194, 255) / 255.0f;
-                DropdownText.Template.Scrollbar.ColorBlock = ColorBlock.defaultColorBlock;
-                DropdownText.Template.Scrollbar.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
-                DropdownText.Template.Scrollbar.ColorBlock.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
-                DropdownText.Template.Scrollbar.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
-                DropdownText.Template.Scrollbar.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
-                DropdownText.Item.ColorBlock = ColorBlock.defaultColorBlock;
-                DropdownText.Item.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
-                DropdownText.Item.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                DropdownText.Item.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                DropdownText.Item.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownText.Template.Scrollbar.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                DropdownText.Template.Scrollbar.ColorBlock.Colors.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownText.Template.Scrollbar.ColorBlock.Colors.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
+                DropdownText.Template.Scrollbar.ColorBlock.Colors.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                DropdownText.Template.Scrollbar.ColorBlock.Colors.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
+                DropdownText.Item.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                DropdownText.Item.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownText.Item.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                DropdownText.Item.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                DropdownText.Item.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 DropdownText.Item.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
                 DropdownText.Item.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownText.Item.Text.Font = FontData.defaultFontData;
@@ -642,11 +670,11 @@ namespace HBP.UI.Theme
                 DropdownText.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownText.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
-                DropdownImage.ColorBlock = ColorBlock.defaultColorBlock;
-                DropdownImage.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
-                DropdownImage.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                DropdownImage.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                DropdownImage.ColorBlock.disabledColor = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownImage.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                DropdownImage.ColorBlock.Colors.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownImage.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                DropdownImage.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                DropdownImage.ColorBlock.Colors.disabledColor = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownImage.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownImage.Text.Font = FontData.defaultFontData;
                 DropdownImage.Text.Font.fontSize = 14;
@@ -656,27 +684,27 @@ namespace HBP.UI.Theme
                 DropdownImage.Template.Background = new Color(40, 40, 40, 255) / 255.0f;
                 DropdownImage.Template.Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
                 DropdownImage.Template.Scrollbar.Handle = new Color(59, 122, 194, 255) / 255.0f;
-                DropdownImage.Template.Scrollbar.ColorBlock = ColorBlock.defaultColorBlock;
-                DropdownImage.Template.Scrollbar.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
-                DropdownImage.Template.Scrollbar.ColorBlock.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
-                DropdownImage.Template.Scrollbar.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
-                DropdownImage.Template.Scrollbar.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
-                DropdownImage.Item.ColorBlock = ColorBlock.defaultColorBlock;
-                DropdownImage.Item.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
-                DropdownImage.Item.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                DropdownImage.Item.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                DropdownImage.Item.ColorBlock.disabledColor = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownImage.Template.Scrollbar.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                DropdownImage.Template.Scrollbar.ColorBlock.Colors.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownImage.Template.Scrollbar.ColorBlock.Colors.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
+                DropdownImage.Template.Scrollbar.ColorBlock.Colors.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                DropdownImage.Template.Scrollbar.ColorBlock.Colors.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
+                DropdownImage.Item.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                DropdownImage.Item.ColorBlock.Colors.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownImage.Item.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                DropdownImage.Item.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                DropdownImage.Item.ColorBlock.Colors.disabledColor = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownImage.Item.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
                 DropdownImage.Item.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownImage.Item.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
                 DropdownImage.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 DropdownImage.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
-                DropdownTextWithIcon.ColorBlock = ColorBlock.defaultColorBlock;
-                DropdownTextWithIcon.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
-                DropdownTextWithIcon.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                DropdownTextWithIcon.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                DropdownTextWithIcon.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownTextWithIcon.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                DropdownTextWithIcon.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownTextWithIcon.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                DropdownTextWithIcon.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                DropdownTextWithIcon.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 DropdownTextWithIcon.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
                 DropdownTextWithIcon.Text.Font = FontData.defaultFontData;
                 DropdownTextWithIcon.Text.Font.fontSize = 14;
@@ -692,16 +720,16 @@ namespace HBP.UI.Theme
                 DropdownTextWithIcon.Template.Background = new Color(40, 40, 40, 255) / 255.0f;
                 DropdownTextWithIcon.Template.Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
                 DropdownTextWithIcon.Template.Scrollbar.Handle = new Color(59, 122, 194, 255) / 255.0f;
-                DropdownTextWithIcon.Template.Scrollbar.ColorBlock = ColorBlock.defaultColorBlock;
-                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
-                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
-                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
-                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
-                DropdownTextWithIcon.Item.ColorBlock = ColorBlock.defaultColorBlock;
-                DropdownTextWithIcon.Item.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
-                DropdownTextWithIcon.Item.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                DropdownTextWithIcon.Item.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                DropdownTextWithIcon.Item.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.Colors.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.Colors.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
+                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.Colors.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                DropdownTextWithIcon.Template.Scrollbar.ColorBlock.Colors.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
+                DropdownTextWithIcon.Item.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                DropdownTextWithIcon.Item.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                DropdownTextWithIcon.Item.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                DropdownTextWithIcon.Item.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                DropdownTextWithIcon.Item.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 DropdownTextWithIcon.Item.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
                 DropdownTextWithIcon.Item.Text.Color = new Color(0, 0, 0, 255) / 255.0f;
                 DropdownTextWithIcon.Item.Text.Font = FontData.defaultFontData;
@@ -737,11 +765,11 @@ namespace HBP.UI.Theme
                 Text.Font.alignment = TextAnchor.MiddleLeft;
                 Text.Font.fontStyle = FontStyle.Normal;
 
-                Toggle.ColorBlock = ColorBlock.defaultColorBlock;
-                Toggle.ColorBlock.normalColor = new Color(50, 50, 50, 255) / 255.0f;
-                Toggle.ColorBlock.highlightedColor = new Color(40, 40, 40, 255) / 255.0f;
-                Toggle.ColorBlock.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
-                Toggle.ColorBlock.disabledColor = new Color(65, 65, 65, 255) / 255.0f;
+                Toggle.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Toggle.ColorBlock.Colors.normalColor = new Color(50, 50, 50, 255) / 255.0f;
+                Toggle.ColorBlock.Colors.highlightedColor = new Color(40, 40, 40, 255) / 255.0f;
+                Toggle.ColorBlock.Colors.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
+                Toggle.ColorBlock.Colors.disabledColor = new Color(65, 65, 65, 255) / 255.0f;
                 Toggle.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
                 Toggle.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Toggle.Text.Font = FontData.defaultFontData;
@@ -757,17 +785,17 @@ namespace HBP.UI.Theme
                 Button.Text.Font.alignment = TextAnchor.MiddleCenter;
                 Button.Text.Font.fontStyle = FontStyle.Bold;
                 Button.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
-                Button.ColorBlock = ColorBlock.defaultColorBlock;
-                Button.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
-                Button.ColorBlock.highlightedColor = new Color(0, 0, 0, 100) / 255.0f;
-                Button.ColorBlock.pressedColor = new Color(0, 0, 0, 120) / 255.0f;
-                Button.ColorBlock.disabledColor = new Color(200, 200, 200, 0) / 255.0f;
+                Button.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Button.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                Button.ColorBlock.Colors.highlightedColor = new Color(0, 0, 0, 100) / 255.0f;
+                Button.ColorBlock.Colors.pressedColor = new Color(0, 0, 0, 120) / 255.0f;
+                Button.ColorBlock.Colors.disabledColor = new Color(200, 200, 200, 0) / 255.0f;
 
-                Scrollbar.ColorBlock = ColorBlock.defaultColorBlock;
-                Scrollbar.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                Scrollbar.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Scrollbar.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Scrollbar.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                Scrollbar.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Scrollbar.ColorBlock.Colors.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                Scrollbar.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Scrollbar.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Scrollbar.ColorBlock.Colors.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
                 Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
                 Scrollbar.Handle = new Color(255, 255, 255, 255) / 255.0f;
 
@@ -802,11 +830,11 @@ namespace HBP.UI.Theme
                 TransparentBackground = new Color(50, 50, 50, 150) / 255.0f;
                 Border = new Color(0, 0, 0, 255) / 255.0f;
 
-                Button.ColorBlock = ColorBlock.defaultColorBlock;
-                Button.ColorBlock.normalColor = new Color(0, 0, 0, 150) / 255.0f;
-                Button.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Button.ColorBlock.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
-                Button.ColorBlock.disabledColor = new Color(0, 0, 0, 150) / 255.0f;
+                Button.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Button.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 150) / 255.0f;
+                Button.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Button.ColorBlock.Colors.pressedColor = new Color(20, 20, 20, 255) / 255.0f;
+                Button.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 150) / 255.0f;
                 Button.Text.Font = FontData.defaultFontData;
                 Button.Text.Font.fontSize = 12;
                 Button.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
@@ -822,11 +850,11 @@ namespace HBP.UI.Theme
                 Button.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 Button.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
-                InvisibleButton.ColorBlock = ColorBlock.defaultColorBlock;
-                InvisibleButton.ColorBlock.normalColor = new Color(0, 0, 0, 150) / 255.0f;
-                InvisibleButton.ColorBlock.highlightedColor = new Color(0, 0, 0, 255) / 255.0f;
-                InvisibleButton.ColorBlock.pressedColor = new Color(0, 0, 0, 150) / 255.0f;
-                InvisibleButton.ColorBlock.disabledColor = new Color(0, 0, 0, 150) / 255.0f;
+                InvisibleButton.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                InvisibleButton.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 150) / 255.0f;
+                InvisibleButton.ColorBlock.Colors.highlightedColor = new Color(0, 0, 0, 255) / 255.0f;
+                InvisibleButton.ColorBlock.Colors.pressedColor = new Color(0, 0, 0, 150) / 255.0f;
+                InvisibleButton.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 150) / 255.0f;
                 InvisibleButton.Text.Font = FontData.defaultFontData;
                 InvisibleButton.Text.Font.fontSize = 14;
                 InvisibleButton.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
@@ -834,11 +862,11 @@ namespace HBP.UI.Theme
                 InvisibleButton.Text.Font.fontStyle = FontStyle.Normal;
                 InvisibleButton.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
 
-                InputField.ColorBlock = ColorBlock.defaultColorBlock;
-                InputField.ColorBlock.normalColor = new Color(65, 65, 65, 255) / 255.0f;
-                InputField.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                InputField.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                InputField.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                InputField.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                InputField.ColorBlock.Colors.normalColor = new Color(65, 65, 65, 255) / 255.0f;
+                InputField.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                InputField.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                InputField.ColorBlock.Colors.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
                 InputField.Text.Font = FontData.defaultFontData;
                 InputField.Text.Font.fontSize = 12;
                 InputField.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
@@ -854,11 +882,11 @@ namespace HBP.UI.Theme
                 InputField.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 InputField.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
-                Toggle.ColorBlock = ColorBlock.defaultColorBlock;
-                Toggle.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
-                Toggle.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Toggle.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Toggle.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                Toggle.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Toggle.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                Toggle.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Toggle.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Toggle.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 Toggle.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
                 Toggle.Text.Font = FontData.defaultFontData;
                 Toggle.Text.Font.fontSize = 12;
@@ -901,11 +929,11 @@ namespace HBP.UI.Theme
                 BroadmanText.Font.alignByGeometry = true;
                 BroadmanText.Font.fontStyle = FontStyle.Normal;
 
-                Slider.ColorBlock = ColorBlock.defaultColorBlock;
-                Slider.ColorBlock.normalColor = new Color(170, 170, 170, 255) / 255.0f;
-                Slider.ColorBlock.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
-                Slider.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
-                Slider.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                Slider.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Slider.ColorBlock.Colors.normalColor = new Color(170, 170, 170, 255) / 255.0f;
+                Slider.ColorBlock.Colors.highlightedColor = new Color(245, 245, 245, 255) / 255.0f;
+                Slider.ColorBlock.Colors.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                Slider.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 Slider.Background = new Color(255, 255, 255, 255) / 255.0f;
                 Slider.DisabledBackground = new Color(100, 100, 100, 255) / 255.0f;
                 Slider.Fill = new Color(255, 255, 255, 255) / 255.0f;
@@ -925,11 +953,11 @@ namespace HBP.UI.Theme
                 Slider.DisabledText.Font.alignByGeometry = true;
                 Slider.DisabledText.Font.fontStyle = FontStyle.Normal;
 
-                Dropdown.ColorBlock = ColorBlock.defaultColorBlock;
-                Dropdown.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
-                Dropdown.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Dropdown.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Dropdown.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                Dropdown.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Dropdown.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                Dropdown.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Dropdown.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Dropdown.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 Dropdown.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Dropdown.Text.Font = FontData.defaultFontData;
                 Dropdown.Text.Font.fontSize = 12;
@@ -945,11 +973,11 @@ namespace HBP.UI.Theme
                 Dropdown.Template.Background = new Color(40, 40, 40, 255) / 255.0f;
                 Dropdown.Template.Scrollbar.Background = new Color(40, 40, 40, 255) / 255.0f;
                 Dropdown.Template.Scrollbar.Handle = new Color(59, 122, 194, 255) / 255.0f;
-                Dropdown.Item.ColorBlock = ColorBlock.defaultColorBlock;
-                Dropdown.Item.ColorBlock.normalColor = new Color(0, 0, 0, 0) / 255.0f;
-                Dropdown.Item.ColorBlock.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
-                Dropdown.Item.ColorBlock.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
-                Dropdown.Item.ColorBlock.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
+                Dropdown.Item.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Dropdown.Item.ColorBlock.Colors.normalColor = new Color(0, 0, 0, 0) / 255.0f;
+                Dropdown.Item.ColorBlock.Colors.highlightedColor = new Color(80, 80, 80, 255) / 255.0f;
+                Dropdown.Item.ColorBlock.Colors.pressedColor = new Color(60, 60, 60, 255) / 255.0f;
+                Dropdown.Item.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 0) / 255.0f;
                 Dropdown.Item.Checkmark = new Color(59, 122, 194, 255) / 255.0f;
                 Dropdown.Item.Text.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Dropdown.Item.Text.Font = FontData.defaultFontData;
@@ -962,7 +990,7 @@ namespace HBP.UI.Theme
         [System.Serializable]
         public struct TitleTheme
         {
-            public Color Background;  
+            public ImageTheme Background;
             public TextTheme Text;
         }
         [System.Serializable]
@@ -982,7 +1010,7 @@ namespace HBP.UI.Theme
         [System.Serializable]
         public struct SliderTheme
         {
-            public ColorBlock ColorBlock;
+            public ColorBlockTheme ColorBlock;
             public Color Background;
             public Color DisabledBackground;
             public Color Fill;
@@ -995,7 +1023,8 @@ namespace HBP.UI.Theme
         [System.Serializable]
         public struct ToggleTheme
         {
-            public ColorBlock ColorBlock;
+            public ImageTheme Background;
+            public ColorBlockTheme ColorBlock;
             public Color Checkmark;
             public TextTheme Text;
             public TextTheme DisabledText;
@@ -1005,7 +1034,8 @@ namespace HBP.UI.Theme
         [System.Serializable]
         public struct ButtonTheme
         {
-            public ColorBlock ColorBlock;
+            public ImageTheme Background;
+            public ColorBlockTheme ColorBlock;
             public TextTheme Text;
             public TextTheme DisabledText;
             public Color Icon;
@@ -1014,7 +1044,8 @@ namespace HBP.UI.Theme
         [System.Serializable]
         public struct InputFieldTheme
         {
-            public ColorBlock ColorBlock;
+            public ImageTheme Background;
+            public ColorBlockTheme ColorBlock;
             public TextTheme Text;
             public TextTheme DisabledText;
             public Color Icon;
@@ -1030,7 +1061,7 @@ namespace HBP.UI.Theme
         public struct ScrollBarTheme
         {
             public Color Background;
-            public ColorBlock ColorBlock;
+            public ColorBlockTheme ColorBlock;
             public Color Handle;
         }
         [System.Serializable]
@@ -1042,7 +1073,8 @@ namespace HBP.UI.Theme
         [System.Serializable]
         public struct DropdownTheme
         {
-            public ColorBlock ColorBlock;
+            public ImageTheme Background;
+            public ColorBlockTheme ColorBlock;
             public TextTheme Text;
             public TextTheme DisabledText;
             public Color Icon;
@@ -1061,7 +1093,7 @@ namespace HBP.UI.Theme
         [System.Serializable]
         public struct ColorBlockTheme
         {
-            public ColorBlock ColorBlock;
+            public ColorBlock Colors;
         }
         [System.Serializable]
         public struct FontDataTheme
@@ -1077,11 +1109,11 @@ namespace HBP.UI.Theme
 
             public void Initialize()
             {
-                Container.ColorBlock = ColorBlock.defaultColorBlock;
-                Container.ColorBlock.normalColor = new Color(80, 80, 80, 255) / 255.0f;
-                Container.ColorBlock.highlightedColor = new Color(70, 70, 70, 255) / 255.0f;
-                Container.ColorBlock.pressedColor = new Color(50, 50, 50, 255) / 255.0f;
-                Container.ColorBlock.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
+                Container.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Container.ColorBlock.Colors.normalColor = new Color(80, 80, 80, 255) / 255.0f;
+                Container.ColorBlock.Colors.highlightedColor = new Color(70, 70, 70, 255) / 255.0f;
+                Container.ColorBlock.Colors.pressedColor = new Color(50, 50, 50, 255) / 255.0f;
+                Container.ColorBlock.Colors.disabledColor = new Color(150, 150, 150, 255) / 255.0f;
                 Container.Text.Font = FontData.defaultFontData;
                 Container.Text.Font.fontSize = 26;
                 Container.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
@@ -1097,11 +1129,11 @@ namespace HBP.UI.Theme
                 Container.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 Container.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
-                MainBloc.ColorBlock = ColorBlock.defaultColorBlock;
-                MainBloc.ColorBlock.normalColor = new Color(0, 150, 0, 255) / 255.0f;
-                MainBloc.ColorBlock.highlightedColor = new Color(0, 140, 0, 255) / 255.0f;
-                MainBloc.ColorBlock.pressedColor = new Color(0, 120, 0, 255) / 255.0f;
-                MainBloc.ColorBlock.disabledColor = new Color(0, 0, 0, 255) / 255.0f;
+                MainBloc.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                MainBloc.ColorBlock.Colors.normalColor = new Color(0, 150, 0, 255) / 255.0f;
+                MainBloc.ColorBlock.Colors.highlightedColor = new Color(0, 140, 0, 255) / 255.0f;
+                MainBloc.ColorBlock.Colors.pressedColor = new Color(0, 120, 0, 255) / 255.0f;
+                MainBloc.ColorBlock.Colors.disabledColor = new Color(0, 0, 0, 255) / 255.0f;
                 MainBloc.Text.Font = FontData.defaultFontData;
                 MainBloc.Text.Font.fontSize = 26;
                 MainBloc.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
@@ -1117,11 +1149,11 @@ namespace HBP.UI.Theme
                 MainBloc.Icon = new Color(255, 255, 255, 255) / 255.0f;
                 MainBloc.DisabledIcon = new Color(100, 100, 100, 255) / 255.0f;
 
-                SecondaryBloc.ColorBlock = ColorBlock.defaultColorBlock;
-                SecondaryBloc.ColorBlock.normalColor = new Color(150, 0, 0, 255) / 255.0f;
-                SecondaryBloc.ColorBlock.highlightedColor = new Color(140, 0, 0, 255) / 255.0f;
-                SecondaryBloc.ColorBlock.pressedColor = new Color(120, 0, 0, 255) / 255.0f;
-                SecondaryBloc.ColorBlock.disabledColor = new Color(150, 0, 0, 255) / 255.0f;
+                SecondaryBloc.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                SecondaryBloc.ColorBlock.Colors.normalColor = new Color(150, 0, 0, 255) / 255.0f;
+                SecondaryBloc.ColorBlock.Colors.highlightedColor = new Color(140, 0, 0, 255) / 255.0f;
+                SecondaryBloc.ColorBlock.Colors.pressedColor = new Color(120, 0, 0, 255) / 255.0f;
+                SecondaryBloc.ColorBlock.Colors.disabledColor = new Color(150, 0, 0, 255) / 255.0f;
                 SecondaryBloc.Text.Font = FontData.defaultFontData;
                 SecondaryBloc.Text.Font.fontSize = 26;
                 SecondaryBloc.Text.Font.font = Resources.Load<Font>("Fonts/Arial");
@@ -1149,14 +1181,14 @@ namespace HBP.UI.Theme
         [System.Serializable]
         public struct DialogBoxTheme
         {
-            public Color Background;
+            public ImageTheme Background;
             public TextTheme Title;
             public TextTheme Text;
             public ButtonTheme Button;
 
             public void Initialize()
             {
-                Background = new Color(40, 40, 40, 255) / 255.0f;
+                Background.Color = new Color(40, 40, 40, 255) / 255.0f;
 
                 Title.Color = new Color(255, 255, 255, 255) / 255.0f;
                 Title.Font = FontData.defaultFontData;
@@ -1188,11 +1220,11 @@ namespace HBP.UI.Theme
                 Button.DisabledText.Color = new Color(80, 80, 80, 255) / 255.0f;
                 Button.Icon = new Color(0, 0, 0, 255) / 255.0f;
                 Button.DisabledIcon = new Color(80, 80, 80, 255) / 255.0f;
-                Button.ColorBlock = ColorBlock.defaultColorBlock;
-                Button.ColorBlock.normalColor = new Color(255, 255, 255, 255) / 255.0f;
-                Button.ColorBlock.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
-                Button.ColorBlock.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
-                Button.ColorBlock.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
+                Button.ColorBlock.Colors = ColorBlock.defaultColorBlock;
+                Button.ColorBlock.Colors.normalColor = new Color(255, 255, 255, 255) / 255.0f;
+                Button.ColorBlock.Colors.highlightedColor = new Color(220, 220, 220, 255) / 255.0f;
+                Button.ColorBlock.Colors.pressedColor = new Color(200, 200, 200, 255) / 255.0f;
+                Button.ColorBlock.Colors.disabledColor = new Color(200, 200, 200, 128) / 255.0f;
             }
         }
 
@@ -1206,9 +1238,15 @@ namespace HBP.UI.Theme
         [System.Serializable]
         public struct BorderEffectTheme
         {
+            public ImageTheme Background;
+            public RectOffset Offset;
+        }
+
+        [System.Serializable]
+        public struct ImageTheme
+        {
             public Sprite Sprite;
             public Color Color;
-            public float Offset;
         }
     }
 }
