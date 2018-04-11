@@ -13,6 +13,7 @@ namespace HBP.UI.Module3D
         private Base3DScene m_Scene;
         private RectTransform m_RectTransform;
         [SerializeField] private SiteList m_SiteList;
+        [SerializeField] private SiteConditions m_SiteConditions;
 
         private string m_Name;
         public string Name
@@ -159,6 +160,7 @@ namespace HBP.UI.Module3D
             m_Scene = scene;
             m_SiteList.Initialize();
             UpdateList();
+            m_SiteConditions.Initialize(scene);
             m_Scene.ColumnManager.OnSelectColumn.AddListener((c) => UpdateList());
         }
         #endregion
