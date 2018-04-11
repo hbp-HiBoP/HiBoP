@@ -11,6 +11,7 @@ using System;
 * \brief   Define site related classes
 */
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
@@ -161,6 +162,7 @@ namespace HBP.Module3D
 
     public class SiteState
     {
+        public UnityEvent OnChangeState = new UnityEvent();
         public SiteState(SiteState state)
         {
             IsMasked = state.IsMasked;
@@ -172,13 +174,97 @@ namespace HBP.Module3D
             IsSuspicious = state.IsSuspicious;
         }
         public SiteState() { }
-        public bool IsMasked { get; set; }     /**< is the site masked on the column ? */
-        public bool IsExcluded { get; set; }        /**< is the site excluded ? */
-        public bool IsBlackListed { get; set; }      /**< is the site blacklisted ? */
-        public bool IsOutOfROI { get; set; }      /**< is the site in a ROI ? */
-        public bool IsHighlighted { get; set; }       /**< is the site highlighted ? */
-        public bool IsMarked { get; set; }          /**< is the site marked ? */
-        public bool IsSuspicious { get; set; }
+        private bool m_IsMasked;
+        public bool IsMasked
+        {
+            get
+            {
+                return m_IsMasked;
+            }
+            set
+            {
+                m_IsMasked = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsExcluded;
+        public bool IsExcluded
+        {
+            get
+            {
+                return m_IsExcluded;
+            }
+            set
+            {
+                m_IsExcluded = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsBlackListed;
+        public bool IsBlackListed
+        {
+            get
+            {
+                return m_IsBlackListed;
+            }
+            set
+            {
+                m_IsBlackListed = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsOutOfROI;
+        public bool IsOutOfROI
+        {
+            get
+            {
+                return m_IsOutOfROI;
+            }
+            set
+            {
+                m_IsOutOfROI = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsHighlighted;
+        public bool IsHighlighted
+        {
+            get
+            {
+                return m_IsHighlighted;
+            }
+            set
+            {
+                m_IsHighlighted = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsMarked;
+        public bool IsMarked
+        {
+            get
+            {
+                return m_IsMarked;
+            }
+            set
+            {
+                m_IsMarked = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsSuspicious;
+        public bool IsSuspicious
+        {
+            get
+            {
+                return m_IsSuspicious;
+            }
+            set
+            {
+                m_IsSuspicious = value;
+                OnChangeState.Invoke();
+            }
+        }
         public void ApplyState(SiteState state)
         {
             ApplyState(state.IsExcluded, state.IsBlackListed, state.IsHighlighted, state.IsMarked, state.IsSuspicious);

@@ -199,7 +199,7 @@ namespace Tools.Unity.Lists
                 }
             }
         }
-        void DestroyItem(int number)
+        protected void DestroyItem(int number)
         {
             int end = m_End + 1 + number;
             for (int i = end; i <= m_End; i++)
@@ -236,7 +236,7 @@ namespace Tools.Unity.Lists
                 item.Object = newObj;
             }
         }
-        void GetLimits(out int start, out int end)
+        protected void GetLimits(out int start, out int end)
         {
             int maxNumberOfItem = m_NumberOfObjects - m_NumberOfObjectsVisibleAtTheSameTime;
             start = Mathf.Clamp(Mathf.FloorToInt((m_ScrollRect.content.localPosition.y / m_ScrollRect.content.sizeDelta.y) * m_NumberOfObjects), 0, Mathf.Max(maxNumberOfItem, 0));
