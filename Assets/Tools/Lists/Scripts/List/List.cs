@@ -212,7 +212,8 @@ namespace Tools.Unity.Lists
             int itemNumber = items.Length;
             for (int i = 0; i > deplacement; i--)
             {
-                Item<T> item = items[itemNumber - 1 + i];
+                int itemID = ((itemNumber - 1 + i) % itemNumber + itemNumber) % itemNumber;
+                Item<T> item = items[itemID];
                 T newObj = m_Objects[m_Start - 1 + i];
                 item.transform.localPosition = new Vector3(item.transform.localPosition.x, -(m_Start - 1 + i) * ItemHeight, item.transform.localPosition.z);
                 item.Object = newObj;
@@ -221,9 +222,11 @@ namespace Tools.Unity.Lists
         protected virtual void MoveItemsDownwards(int deplacement)
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
+            int itemNumber = items.Length;
             for (int i = 0; i < deplacement; i++)
             {
-                Item<T> item = items[i];
+                int itemID = (i % itemNumber + itemNumber) % itemNumber;
+                Item<T> item = items[itemID];
                 T newObj = m_Objects[m_End + 1 + i];
                 item.transform.localPosition = new Vector3(item.transform.localPosition.x, -(m_End + 1 + i) * ItemHeight, item.transform.localPosition.z);
                 item.Object = newObj;

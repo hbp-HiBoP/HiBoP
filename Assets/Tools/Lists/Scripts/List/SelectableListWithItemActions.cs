@@ -70,9 +70,11 @@ namespace Tools.Unity.Lists
         protected override void MoveItemsDownwards(int deplacement)
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
+            int itemNumber = items.Length;
             for (int i = 0; i < deplacement; i++)
             {
-                ActionnableItem<T> item = items[i] as ActionnableItem<T>;
+                int itemID = (i % itemNumber + itemNumber) % itemNumber;
+                ActionnableItem<T> item = items[itemID] as ActionnableItem<T>;
                 T newObj = m_Objects[m_End + 1 + i];
                 item.transform.localPosition = new Vector3(item.transform.localPosition.x, -(m_End + 1 + i) * ItemHeight, item.transform.localPosition.z);
                 item.OnChangeSelected.RemoveAllListeners();
@@ -89,7 +91,8 @@ namespace Tools.Unity.Lists
             int itemNumber = items.Length;
             for (int i = 0; i > deplacement; i--)
             {
-                ActionnableItem<T> item = items[itemNumber - 1 + i] as ActionnableItem<T>;
+                int itemID = ((itemNumber - 1 + i) % itemNumber + itemNumber) % itemNumber;
+                ActionnableItem<T> item = items[itemID] as ActionnableItem<T>;
                 T newObj = m_Objects[m_Start - 1 + i];
                 item.transform.localPosition = new Vector3(item.transform.localPosition.x, -(m_Start - 1 + i) * ItemHeight, item.transform.localPosition.z);
                 item.OnChangeSelected.RemoveAllListeners();
