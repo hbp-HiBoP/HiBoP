@@ -34,7 +34,7 @@ namespace HBP.UI.Anatomy
             {
                 m_Objects[index] = objectToUpdate;
                 Item<Mesh> item;
-                if (m_ItemByObject.TryGetValue(objectToUpdate, out item))
+                if (GetItemFromObject(objectToUpdate, out item))
                 {
                     ActionnableItem<Mesh> actionnableItem = item as ActionnableItem<Mesh>;
                     actionnableItem.Object = objectToUpdate;

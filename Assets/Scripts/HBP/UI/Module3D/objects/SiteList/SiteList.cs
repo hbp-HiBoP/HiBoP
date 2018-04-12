@@ -18,10 +18,7 @@ namespace HBP.UI.Module3D
             set
             {
                 int newNumberOfObjects = value.Count;
-                m_ScrollRect.content.sizeDelta = new Vector2(m_ScrollRect.content.sizeDelta.x, newNumberOfObjects * ItemHeight);
-                m_ScrollRect.verticalScrollbar = m_ScrollRect.verticalScrollbar;
-                m_ScrollRect.content.hasChanged = true;
-                int resize = Mathf.Min(newNumberOfObjects, m_NumberOfObjectsVisibleAtTheSameTime) - m_ItemByObject.Count;
+                int resize = Mathf.Min(newNumberOfObjects, m_NumberOfObjectsVisibleAtTheSameTime) - m_Items.Count;
                 if (resize < 0)
                 {
                     DestroyItem(resize);
@@ -32,6 +29,9 @@ namespace HBP.UI.Module3D
                 }
                 m_Objects = value;
                 m_NumberOfObjects = newNumberOfObjects;
+                m_ScrollRect.content.sizeDelta = new Vector2(m_ScrollRect.content.sizeDelta.x, newNumberOfObjects * ItemHeight);
+                m_ScrollRect.verticalScrollbar = m_ScrollRect.verticalScrollbar;
+                m_ScrollRect.content.hasChanged = true;
                 GetLimits(out m_Start, out m_End);
                 Refresh();
             }

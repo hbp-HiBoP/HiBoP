@@ -12,7 +12,7 @@ namespace Tools.Unity.Lists
         public GameObject ItemPrefab;
         public float ItemHeight;
 
-        protected Dictionary<T, Item<T>> m_ItemByObject;
+        protected System.Collections.Generic.List<Item<T>> m_Items;
         protected System.Collections.Generic.List<T> m_Objects = new System.Collections.Generic.List<T>();
         public virtual T[] Objects
         {
@@ -37,7 +37,7 @@ namespace Tools.Unity.Lists
             set
             {
                 m_Interactable = value;
-                foreach (var item in m_ItemByObject.Values) item.interactable = value;
+                foreach (var item in m_Items) item.interactable = value;
             }
         }
 
@@ -94,7 +94,7 @@ namespace Tools.Unity.Lists
         public virtual bool UpdateObject(T objectToUpdate)
         {
             Item<T> item;
-            if (m_ItemByObject.TryGetValue(objectToUpdate, out item))
+            if (GetItemFromObject(objectToUpdate, out item))
             {
                 item.Object = objectToUpdate;
                 return true;
@@ -103,13 +103,11 @@ namespace Tools.Unity.Lists
         }
         public virtual void Refresh()
         {
-            Item<T>[] items =  m_ItemByObject.Values.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
+            Item<T>[] items =  m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
             int itemsLength = items.Length;
-            m_ItemByObject.Clear();
             for (int i = m_Start, j=0; i <= m_End && j < itemsLength; i++, j++)
             {
                 items[j].Object = m_Objects[i];
-                m_ItemByObject.Add(m_Objects[i], items[j]);
             }
         }
         public virtual bool Initialize()
@@ -117,7 +115,7 @@ namespace Tools.Unity.Lists
             if (!m_Initialized)
             {
                 m_Objects = new System.Collections.Generic.List<T>();
-                m_ItemByObject = new Dictionary<T, Item<T>>();
+                m_Items = new System.Collections.Generic.List<Item<T>>();
                 m_ScrollRect = GetComponent<ScrollRect>();
                 m_Initialized = true;
                 return true;
@@ -172,7 +170,7 @@ namespace Tools.Unity.Lists
 
                     if (m_NumberOfObjects >= m_NumberOfObjectsVisibleAtTheSameTime)
                     {
-                        foreach (var item in m_ItemByObject.Values)
+                        foreach (var item in m_Items)
                         {
                             item.transform.localPosition = new Vector3(item.transform.localPosition.x, item.transform.localPosition.y + ItemHeight, item.transform.localPosition.z);
                         }
@@ -185,53 +183,48 @@ namespace Tools.Unity.Lists
         protected virtual void SpawnItem(int number)
         {
             int end = Mathf.Min(m_End + number, m_NumberOfObjects - 1);
-            for (int i = m_Start; i <= end; i++)
+            int itemNumber = m_Items.Count;
+            for (int i = m_Start + itemNumber; i <= end; i++)
             {
                 T obj = m_Objects[i];
-                if (!m_ItemByObject.ContainsKey(obj))
-                {
-                    Item<T> item = Instantiate(ItemPrefab, m_ScrollRect.content).GetComponent<Item<T>>();
-                    RectTransform itemRectTransform = item.transform as RectTransform;
-                    itemRectTransform.sizeDelta = new Vector2(0, itemRectTransform.sizeDelta.y);
-                    itemRectTransform.localPosition = new Vector3(itemRectTransform.localPosition.x, -i * ItemHeight, itemRectTransform.localPosition.z);
-                    m_ItemByObject.Add(obj, item);
-                    item.Object = obj;
-                }
+                Item<T> item = Instantiate(ItemPrefab, m_ScrollRect.content).GetComponent<Item<T>>();
+                RectTransform itemRectTransform = item.transform as RectTransform;
+                itemRectTransform.sizeDelta = new Vector2(0, itemRectTransform.sizeDelta.y);
+                itemRectTransform.localPosition = new Vector3(itemRectTransform.localPosition.x, -i * ItemHeight, itemRectTransform.localPosition.z);
+                m_Items.Add(item);
+                item.Object = obj;
             }
         }
         protected void DestroyItem(int number)
         {
-            int end = m_End + 1 + number;
-            for (int i = end; i <= m_End; i++)
+            Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
+            int itemNumber = items.Length;
+            for (int i = number; i < 0; i++)
             {
-                T obj = m_Objects[i];
-                Item<T> item = m_ItemByObject[obj];
-                m_ItemByObject.Remove(obj);
+                Item<T> item = items[itemNumber + i];
                 Destroy(item.gameObject);
+                m_Items.Remove(item);
             }
         }
         protected virtual void MoveItemsUpwards(int deplacement)
         {
+            Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
+            int itemNumber = items.Length;
             for (int i = 0; i > deplacement; i--)
             {
-                T obj = m_Objects[m_End + i];
-                Item<T> item = m_ItemByObject[obj];
-                m_ItemByObject.Remove(obj);
+                Item<T> item = items[itemNumber - 1 + i];
                 T newObj = m_Objects[m_Start - 1 + i];
-                m_ItemByObject.Add(newObj, item);
                 item.transform.localPosition = new Vector3(item.transform.localPosition.x, -(m_Start - 1 + i) * ItemHeight, item.transform.localPosition.z);
                 item.Object = newObj;
             }
         }
         protected virtual void MoveItemsDownwards(int deplacement)
         {
+            Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
             for (int i = 0; i < deplacement; i++)
             {
-                T obj = m_Objects[m_Start + i];
-                Item<T> item = m_ItemByObject[obj];
-                m_ItemByObject.Remove(obj);
+                Item<T> item = items[i];
                 T newObj = m_Objects[m_End + 1 + i];
-                m_ItemByObject.Add(newObj, item);
                 item.transform.localPosition = new Vector3(item.transform.localPosition.x, -(m_End + 1 + i) * ItemHeight, item.transform.localPosition.z);
                 item.Object = newObj;
             }
@@ -241,6 +234,19 @@ namespace Tools.Unity.Lists
             int maxNumberOfItem = m_NumberOfObjects - m_NumberOfObjectsVisibleAtTheSameTime;
             start = Mathf.Clamp(Mathf.FloorToInt((m_ScrollRect.content.localPosition.y / m_ScrollRect.content.sizeDelta.y) * m_NumberOfObjects), 0, Mathf.Max(maxNumberOfItem, 0));
             end = Mathf.Clamp(start + m_NumberOfObjectsVisibleAtTheSameTime - 1, 0, m_NumberOfObjects > 0 ? m_NumberOfObjects - 1 : 0);
+        }
+        protected bool GetItemFromObject(T obj, out Item<T> itemToReturn)
+        {
+            foreach (var item in m_Items)
+            {
+                if (item.Object.Equals(obj))
+                {
+                    itemToReturn = item;
+                    return true;
+                }
+            }
+            itemToReturn = null;
+            return false;
         }
         #endregion
     }
