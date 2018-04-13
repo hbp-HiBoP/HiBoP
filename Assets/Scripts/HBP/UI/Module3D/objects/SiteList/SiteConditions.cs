@@ -29,11 +29,22 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
             m_SiteConditionList.Initialize();
+            OnEndFindingSuspiciousSites.AddListener(() =>
+            {
+                m_Coroutine = null;
+            });
         }
         public void FindSuspiciousSites()
         {
-            if (m_Coroutine != null) StopCoroutine(m_Coroutine);
-            m_Coroutine = this.StartCoroutineAsync(c_FindSuspiciousSites());
+            if (m_Coroutine != null)
+            {
+                StopCoroutine(m_Coroutine);
+                OnEndFindingSuspiciousSites.Invoke();
+            }
+            else
+            {
+                m_Coroutine = this.StartCoroutineAsync(c_FindSuspiciousSites());
+            }
         }
         public void AddCondition()
         {
