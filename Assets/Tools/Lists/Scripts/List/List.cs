@@ -118,7 +118,6 @@ namespace Tools.Unity.Lists
                 Item<T> item = m_Items[j];
                 item.transform.localPosition = new Vector3(item.transform.localPosition.x, -i * ItemHeight, item.transform.localPosition.z);
             }
-            m_ScrollRect.verticalScrollbar = m_ScrollRect.verticalScrollbar;
         }
         public virtual bool Initialize()
         {

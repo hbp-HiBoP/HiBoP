@@ -119,7 +119,18 @@ namespace HBP.UI.Module3D
         {
             m_RectTransform = GetComponent<RectTransform>();
         }
-        private void UpdateList()
+        #endregion
+
+        #region Public Methods
+        public void Initialize(Base3DScene scene)
+        {
+            m_Scene = scene;
+            m_SiteList.Initialize();
+            UpdateList();
+            m_SiteConditions.Initialize(scene);
+            m_Scene.ColumnManager.OnSelectColumn.AddListener((c) => UpdateList());
+        }
+        public void UpdateList()
         {
             List<Site> sites = m_Scene.ColumnManager.SelectedColumn.Sites.ToList();
             if (!string.IsNullOrEmpty(m_Name))
@@ -151,17 +162,6 @@ namespace HBP.UI.Module3D
                 sites.RemoveAll(s => !s.State.IsSuspicious);
             }
             m_SiteList.ObjectsList = sites;
-        }
-        #endregion
-
-        #region Public Methods
-        public void Initialize(Base3DScene scene)
-        {
-            m_Scene = scene;
-            m_SiteList.Initialize();
-            UpdateList();
-            m_SiteConditions.Initialize(scene);
-            m_Scene.ColumnManager.OnSelectColumn.AddListener((c) => UpdateList());
         }
         #endregion
     }
