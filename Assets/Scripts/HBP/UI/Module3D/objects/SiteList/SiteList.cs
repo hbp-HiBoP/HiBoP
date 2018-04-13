@@ -33,6 +33,7 @@ namespace HBP.UI.Module3D
                 m_ScrollRect.verticalScrollbar = m_ScrollRect.verticalScrollbar;
                 m_ScrollRect.content.hasChanged = true;
                 GetLimits(out m_Start, out m_End);
+                RefreshPosition();
                 Refresh();
             }
         }

@@ -110,6 +110,16 @@ namespace Tools.Unity.Lists
                 items[j].Object = m_Objects[i];
             }
         }
+        public void RefreshPosition()
+        {
+            int itemsLength = m_Items.Count;
+            for (int i = m_Start, j = 0; i <= m_End && j < itemsLength; i++, j++)
+            {
+                Item<T> item = m_Items[j];
+                item.transform.localPosition = new Vector3(item.transform.localPosition.x, -i * ItemHeight, item.transform.localPosition.z);
+            }
+            m_ScrollRect.verticalScrollbar = m_ScrollRect.verticalScrollbar;
+        }
         public virtual bool Initialize()
         {
             if (!m_Initialized)
