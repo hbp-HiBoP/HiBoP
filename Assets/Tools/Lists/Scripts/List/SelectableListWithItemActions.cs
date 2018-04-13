@@ -71,7 +71,8 @@ namespace Tools.Unity.Lists
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
             int itemNumber = items.Length;
-            for (int i = 0; i < deplacement; i++)
+            int begin = deplacement > itemNumber ? deplacement - itemNumber : 0;
+            for (int i = begin; i < deplacement; i++)
             {
                 int itemID = (i % itemNumber + itemNumber) % itemNumber;
                 ActionnableItem<T> item = items[itemID] as ActionnableItem<T>;
@@ -89,7 +90,8 @@ namespace Tools.Unity.Lists
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
             int itemNumber = items.Length;
-            for (int i = 0; i > deplacement; i--)
+            int begin = -deplacement > itemNumber ? deplacement + itemNumber : 0;
+            for (int i = begin; i > deplacement; i--)
             {
                 int itemID = ((itemNumber - 1 + i) % itemNumber + itemNumber) % itemNumber;
                 ActionnableItem<T> item = items[itemID] as ActionnableItem<T>;
