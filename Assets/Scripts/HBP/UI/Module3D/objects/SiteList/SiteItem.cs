@@ -11,6 +11,8 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Button m_Site;
         [SerializeField]
+        private Text m_Patient;
+        [SerializeField]
         private Toggle m_Excluded;
         [SerializeField]
         private Toggle m_Blacklisted;
@@ -18,6 +20,8 @@ namespace HBP.UI.Module3D
         private Toggle m_Marked;
         [SerializeField]
         private Toggle m_Highlighted;
+        [SerializeField]
+        private Toggle m_Suspicious;
 
         public override Site Object
         {
@@ -28,12 +32,8 @@ namespace HBP.UI.Module3D
             set
             {
                 base.Object = value;
-                m_Site.GetComponentInChildren<Text>().text = value.Information.Name + " (" + value.Information.Patient.Name + ")";
-                m_Site.interactable = value.IsActive;
-                m_Excluded.isOn = value.State.IsExcluded;
-                m_Blacklisted.isOn = value.State.IsBlackListed;
-                m_Marked.isOn = value.State.IsMarked;
-                m_Highlighted.isOn = value.State.IsHighlighted;
+                UpdateFields();
+                value.State.OnChangeState.AddListener(UpdateFields);
             }
         }
         #endregion
@@ -69,6 +69,23 @@ namespace HBP.UI.Module3D
                 ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Highlight : SiteAction.Unhighlight, Object);
                 m_Site.interactable = Object.IsActive;
             });
+
+            m_Suspicious.onValueChanged.AddListener((isOn) =>
+            {
+                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Suspect : SiteAction.Unsuspect, Object);
+                m_Site.interactable = Object.IsActive;
+            });
+        }
+        private void UpdateFields()
+        {
+            m_Site.GetComponentInChildren<Text>().text = Object.Information.ChannelName;
+            m_Site.interactable = Object.IsActive;
+            m_Patient.text = Object.Information.Patient.Name;
+            m_Excluded.isOn = Object.State.IsExcluded;
+            m_Blacklisted.isOn = Object.State.IsBlackListed;
+            m_Marked.isOn = Object.State.IsMarked;
+            m_Highlighted.isOn = Object.State.IsHighlighted;
+            m_Suspicious.isOn = Object.State.IsSuspicious;
         }
         #endregion
     }

@@ -59,7 +59,7 @@ namespace HBP.UI.Anatomy
         {
             base.SetInteractable(interactable);
             m_DatabaseFolderSelector.interactable = interactable;
-            m_DatabaseList.interactable = interactable;
+            m_DatabaseList.Interactable = interactable;
         }
         #endregion
 

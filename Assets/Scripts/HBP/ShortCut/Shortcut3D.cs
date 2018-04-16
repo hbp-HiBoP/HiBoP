@@ -117,6 +117,17 @@ public class Shortcut3D : MonoBehaviour
                             scene.ChangeSiteState(SiteAction.Mark);
                         }
                     }
+                    else if (Input.GetKeyDown(KeyCode.Alpha5))
+                    {
+                        if (site.State.IsSuspicious)
+                        {
+                            scene.ChangeSiteState(SiteAction.Unsuspect);
+                        }
+                        else
+                        {
+                            scene.ChangeSiteState(SiteAction.Suspect);
+                        }
+                    }
                 }
             }
         }

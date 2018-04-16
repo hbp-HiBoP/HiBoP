@@ -46,7 +46,9 @@ public enum SiteFilter
     OutOfRegionOfInterest = 7,
     Name = 8,
     MarsAtlas = 9,
-    Broadman = 10
+    Broadman = 10,
+    Suspicious = 11,
+    Unsuspicious = 12
 }
 public enum SiteAction
 {
@@ -57,7 +59,9 @@ public enum SiteAction
     Highlight = 4,
     Unhighlight = 5,
     Mark = 6,
-    Unmark = 7
+    Unmark = 7,
+    Suspect = 8,
+    Unsuspect = 9
 }
 public enum CutOrientation { Axial = 0, Coronal = 1, Sagital = 2, Custom = 3 } // Same as above
 public enum SiteInformationDisplayMode { Anatomy, IEEG, CCEP }

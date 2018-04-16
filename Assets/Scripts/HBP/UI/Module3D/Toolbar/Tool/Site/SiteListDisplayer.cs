@@ -27,6 +27,8 @@ namespace HBP.UI.Module3D.Tools
             m_Button.onClick.AddListener(() =>
             {
                 m_List.ObjectsList = ApplicationState.Module3D.SelectedColumn.Sites;
+                // FIXME Problem concerning this list : the height of the list is not fixed so the number of items that can be displayed is not known in advance
+                // causing downwards and upwards movements out of bounds
             });
         }
         public override void DefaultState()

@@ -194,8 +194,8 @@ namespace HBP.UI.Experience.Protocol
             m_RemoveEventButton.interactable = interactable;
             m_AddIconButton.interactable = interactable;
             m_RemoveIconButton.interactable = interactable;
-            m_IconList.interactable = interactable;
-            m_EventList.interactable = interactable;
+            m_IconList.Interactable = interactable;
+            m_EventList.Interactable = interactable;
         }
         #endregion
     }

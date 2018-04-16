@@ -17,6 +17,7 @@ namespace HBP.UI.Module3D
         public GameObject SceneUIPrefab;
         public GameObject CutUIPrefab;
         public GameObject GraphsUIPrefab;
+        public GameObject SitesInformationsPrefab;
         #endregion
 
         #region Public Methods
