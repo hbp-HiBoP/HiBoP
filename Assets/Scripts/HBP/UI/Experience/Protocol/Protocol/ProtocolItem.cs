@@ -45,6 +45,7 @@ namespace HBP.UI.Experience.Protocol
         #region Public Methods
         public void SetBlocs()
         {
+            m_BlocsList.Initialize();
             m_BlocsList.Objects = (from bloc in m_Object.Blocs select bloc.Name).ToArray();
         }
         #endregion

@@ -164,9 +164,9 @@ namespace Tools.Unity.Lists
         }
         protected virtual void ItemEvent(T obj, int type)
         {
-            OnAction.Invoke(obj, type);
             if (type == 1) Remove(obj);
             else if (type == 2) MoveObjToMousePosition(obj);
+            OnAction.Invoke(obj, type);
         }
         protected virtual void MoveObjToMousePosition(T obj)
         {
