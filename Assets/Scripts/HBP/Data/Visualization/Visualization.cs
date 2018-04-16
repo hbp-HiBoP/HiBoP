@@ -11,6 +11,7 @@ using CielaSpike;
 using HBP.Data.Experience.Dataset;
 using System.Diagnostics;
 using Tools.Unity;
+using HBP.Data.Experience;
 
 namespace HBP.Data.Visualization
 {
@@ -364,6 +365,7 @@ namespace HBP.Data.Visualization
         IEnumerator c_LoadData(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
+            string additionalInformation = "";
             yield return Ninja.JumpBack;
             DataInfo[] dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct().ToArray();
             float progressStep = LOAD_DATA_PROGRESS / (dataInfoCollection.Length + 1);
@@ -378,12 +380,17 @@ namespace HBP.Data.Visualization
                 {
                     foreach (var column in dataInfoByColumn.Keys)
                     {
-                        DataManager.GetData(dataInfo, column.Bloc);
+                        EpochedData epochedData = DataManager.GetData(dataInfo, column.Bloc);
+                        if (!epochedData.IsValid)
+                        {
+                            additionalInformation = "No bloc could be epoched.";
+                            throw new Exception();
+                        }
                     }
                 }
                 catch (Exception e)
                 {
-                    exception = new CannotLoadDataInfoException(dataInfo.Name, dataInfo.Patient.ID);
+                    exception = new CannotLoadDataInfoException(dataInfo.Name, dataInfo.Patient.ID, additionalInformation);
                     break;
                 }
             }

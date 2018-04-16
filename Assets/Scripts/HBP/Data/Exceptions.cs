@@ -44,7 +44,7 @@ public class CannotFindDataInfoException : HBPException
 public class CannotLoadDataInfoException : HBPException
 {
     public CannotLoadDataInfoException() { }
-    public CannotLoadDataInfoException(string data, string patient) : base("Can not load <color=red>" + data + "</color> for <color=red>" + patient + "</color>.\n\nPlease verify your data files.")
+    public CannotLoadDataInfoException(string data, string patient, string additionalInformation = "") : base("Can not load <color=red>" + data + "</color> for <color=red>" + patient + "</color>. " + additionalInformation + "\n\nPlease verify your data files.")
     {
         Title = "Data can not be loaded";
     }
