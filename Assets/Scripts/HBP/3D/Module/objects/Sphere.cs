@@ -31,7 +31,7 @@ namespace HBP.Module3D
             {
                 return m_Position;
             }
-            private set
+            set
             {
                 m_Position = value;
                 transform.localPosition = value;

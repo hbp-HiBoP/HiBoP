@@ -901,7 +901,7 @@ namespace HBP.Module3D
             {
                 OnChangeNumberOfVolumeInROI.Invoke();
             });
-            roi.OnChangeROIVolumeRadius.AddListener(() =>
+            roi.OnChangeROISphereParameters.AddListener(() =>
             {
                 OnChangeROIVolumeRadius.Invoke();
             });
@@ -933,6 +933,20 @@ namespace HBP.Module3D
             else
             {
                 SelectedROI = null;
+            }
+        }
+        public void MoveSelectedROISphere(Camera camera, Vector3 delta)
+        {
+            if (m_SelectedROI)
+            {
+                if (m_SelectedROI.SelectedSphereID != -1)
+                {
+                    Vector3 position = camera.WorldToScreenPoint(m_SelectedROI.SelectedSphere.transform.position);
+                    position += delta;
+                    position = camera.ScreenToWorldPoint(position);
+                    position -= m_SelectedROI.SelectedSphere.transform.position;
+                    m_SelectedROI.MoveSelectedSphere(position);
+                }
             }
         }
 
