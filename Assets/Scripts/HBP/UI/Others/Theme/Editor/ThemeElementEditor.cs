@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace HBP.UI.Theme
 {
-    [CustomEditor(typeof(ThemeElement))]
+    [CustomEditor(typeof(OldThemeElement))]
     [CanEditMultipleObjects]
     public class ThemeElementEditor : Editor
     {
@@ -42,29 +42,29 @@ namespace HBP.UI.Theme
             if (!m_IgnoreThemeProp.boolValue)
             {
                 EditorGUILayout.PropertyField(m_ZoneProp);
-                switch ((ThemeElement.ZoneEnum) m_ZoneProp.enumValueIndex)
+                switch ((OldThemeElement.ZoneEnum) m_ZoneProp.enumValueIndex)
                 {
-                    case ThemeElement.ZoneEnum.General: EditorGUILayout.PropertyField(m_GeneralProp, new GUIContent("Type")); break;
-                    case ThemeElement.ZoneEnum.Menu: EditorGUILayout.PropertyField(m_MenuProp, new GUIContent("Type")); break;
-                    case ThemeElement.ZoneEnum.Window:
+                    case OldThemeElement.ZoneEnum.General: EditorGUILayout.PropertyField(m_GeneralProp, new GUIContent("Type")); break;
+                    case OldThemeElement.ZoneEnum.Menu: EditorGUILayout.PropertyField(m_MenuProp, new GUIContent("Type")); break;
+                    case OldThemeElement.ZoneEnum.Window:
                         EditorGUILayout.PropertyField(m_WindowProp, new GUIContent("Window"));
-                        switch ((ThemeElement.WindowEnum)m_WindowProp.enumValueIndex)
+                        switch ((OldThemeElement.WindowEnum)m_WindowProp.enumValueIndex)
                         {
-                            case ThemeElement.WindowEnum.Header: EditorGUILayout.PropertyField(m_HeaderProp, new GUIContent("Type")); break;
-                            case ThemeElement.WindowEnum.Content:
+                            case OldThemeElement.WindowEnum.Header: EditorGUILayout.PropertyField(m_HeaderProp, new GUIContent("Type")); break;
+                            case OldThemeElement.WindowEnum.Content:
                                 EditorGUILayout.PropertyField(m_ContentProp, new GUIContent("Type"));
-                                if ((ThemeElement.ContentEnum) m_ContentProp.enumValueIndex == ThemeElement.ContentEnum.Item)
+                                if ((OldThemeElement.ContentEnum) m_ContentProp.enumValueIndex == OldThemeElement.ContentEnum.Item)
                                 {
                                     EditorGUILayout.PropertyField(m_ItemProp, new GUIContent("Type"));
                                 }
                                 break;
                         }
                         break;
-                    case ThemeElement.ZoneEnum.Toolbar: EditorGUILayout.PropertyField(m_ToolbarProp, new GUIContent("Type")); break;
-                    case ThemeElement.ZoneEnum.Visualization: EditorGUILayout.PropertyField(m_VisualizationProp, new GUIContent("Type")); break;
+                    case OldThemeElement.ZoneEnum.Toolbar: EditorGUILayout.PropertyField(m_ToolbarProp, new GUIContent("Type")); break;
+                    case OldThemeElement.ZoneEnum.Visualization: EditorGUILayout.PropertyField(m_VisualizationProp, new GUIContent("Type")); break;
                 }
                 EditorGUILayout.PropertyField(m_EffectProp, new GUIContent("Effect"));
-                if ((ThemeElement.EffectEnum)m_EffectProp.enumValueIndex == ThemeElement.EffectEnum.Custom)
+                if ((OldThemeElement.EffectEnum)m_EffectProp.enumValueIndex == OldThemeElement.EffectEnum.Custom)
                 {
                     EditorGUILayout.PropertyField(m_GraphicsProp,new GUIContent("Graphics"),true);
                 }

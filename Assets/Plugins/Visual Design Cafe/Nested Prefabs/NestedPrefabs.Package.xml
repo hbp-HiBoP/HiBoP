@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>NestedPrefabs.Package</name>
+    </assembly>
+    <members>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsAnalytics.SendDownloadEvent">
+            <summary>
+            Sends a Download Update event.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsAnalytics.SendApplyAssetTime(System.Int64)">
+            <summary>
+            Sends the time it took to apply changes to a prefab asset.
+            </summary>
+            <param name="elapsedTime"></param>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsAnalytics.SendApplyNestedTime(System.Int64)">
+            <summary>
+            Sends the time it took to apply changes to a nested prefab.
+            </summary>
+            <param name="elapsedTime"></param>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsAnalytics.SendCachePrefabDatabaseTime(System.Int64)">
+            <summary>
+            Sends the time it took to cache the prefab database.
+            </summary>
+            <param name="elapsedTime"></param>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsAnalytics.CheckNewVersion(VisualDesignCafe.NestedPrefabs.NestedPrefabsAnalytics.HttpResponse)">
+            <summary>
+            Sends an http request to the server to check if a new version is available.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsAnalytics.TestCheckNews">
+            <summary>
+            Sends an http request to the server to check if there are any news posts.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsAnalytics.ShowNews(System.Collections.Generic.List{VisualDesignCafe.Serialization.JsonObject})">
+            <summary>
+            Shows the news posts to the user.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="F:VisualDesignCafe.NestedPrefabs.NestedPrefabsConfig.NAME">
+            <summary>
+            The name of the extension.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.NestedPrefabs.NestedPrefabsConfig.VERSION">
+            <summary>
+            The version code of the extension. Is displayed to the user.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.NestedPrefabs.NestedPrefabsConfig.BUILD_NUMBER">
+            <summary>
+            The build number of the extension. Is increased with every release.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.NestedPrefabs.NestedPrefabsConfig.SERIALIZED_FORMAT">
+            <summary>
+            The format of the Nested Prefab serialization. 
+            If any changes are made to the serialzed data this value should 
+            be increase so Nested Prefabs will be reinstalled on every machine and project.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.NestedPrefabs.NestedPrefabsConfig.ENABLE_ANALYTICS">
+            <summary>
+            Should the extension send analytics information?
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.NestedPrefabs.NestedPrefabsConfig.CHECK_FOR_UPDATES">
+            <summary>
+            Should the extension check for updates?
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.NestedPrefabs.NestedPrefabsConfig.REINSTALL">
+            <summary>
+            When set to 'true' will reinstall Nested Prefabs after recompiling scripts or restarting the editor
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.Open(System.String,System.Int32,VisualDesignCafe.NestedPrefabs.Changelog)">
+            <summary>
+            Opens the downloader window.
+            </summary>
+            <param name="version"></param>
+            <param name="changelog"></param>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.LoadResources">
+            <summary>
+            Loads all required resources for the GUI.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.OnGUI">
+            <summary>
+            Called every frame to draw the GUI of the window.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.DownloadIcon">
+            <summary>
+            Downloads the icon of the package.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.DrawHeader(UnityEngine.Rect)">
+            <summary>
+            Draws the header.
+            </summary>
+            <param name="rect"></param>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.DrawChangeLog(UnityEngine.Rect)">
+            <summary>
+            Draws the changelog.
+            </summary>
+            <param name="rect"></param>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.DrawInvoice(UnityEngine.Rect)">
+            <summary>
+            Draws the invoice input field.
+            </summary>
+            <param name="rect"></param>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.DrawProgress(UnityEngine.Rect)">
+            <summary>
+            Draws the download progress bar.
+            </summary>
+            <param name="rect"></param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.DrawButtons(UnityEngine.Rect)" -->
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.OnDownloadCompleted">
+            <summary>
+            Called when the download was completed.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.ImportPackage">
+            <summary>
+            Imports the package.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.GetSerializedFormatKey">
+            <summary>
+            Gets the key in the EditorPrefs for the current serialized format.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.GetSerializedFormatKey(System.Int32)">
+            <summary>
+            Gets the key in the EditorPrefs for the given serialized format.
+            </summary>
+            <param name="format"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.GetGuidKey">
+            <summary>
+            Gets the key in the EditorPrefs for the GUID of the NestedPrefabs.dll file.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.GetInstalledSerializedFormat">
+            <summary>
+            Gets the installed serialized format.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.GetIsInstalled">
+            <summary>
+            Checks if Nested Prefabs is installed in the project.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.GetUpdateIsRequired">
+            <summary>
+            Checks if an update of the serialized format is required.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.Refresh">
+            <summary>
+            Refreshes the current install of Nested Prefabs. Simply checks the project if there are no corrupt prefabs or missing scripts.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.Update">
+            <summary>
+            Updates the current project to a new serialized format.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.Install(System.Boolean,System.String,System.String)">
+            <summary>
+            Installs Nested Prefabs in the current project.
+            </summary>
+            <param name="suppressDialogs"></param>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.Uninstall(System.Boolean)">
+            <summary>
+            Removes Nested Prefabs from the project.
+            </summary>
+            <param name="suppressDialogs"></param>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.FixNestedPrefabsPluginGuid(System.Boolean,System.String)">
+            <summary>
+            Checks the GUID of the NestedPrefabs.dll and compares it to the previously installed GUID.
+            Will revert the old GUID of it changed.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.GetPathToNestedPrefabsPlugin">
+            <summary>
+            Searches the project for the path to the NestedPrefabs.dll file.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.RemoveAllComponentsFromScene``1(System.Boolean)">
+            <summary>
+            Removes all components of type T from the project.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="suppressDialogs"></param>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsInstaller.SetInstalledSerializedFormat(System.Int32)">
+            <summary>
+            Sets the current installed serialized format to the given format. Use -1 to uninstall.
+            </summary>
+            <param name="format"></param>
+        </member>
+    </members>
+</doc>

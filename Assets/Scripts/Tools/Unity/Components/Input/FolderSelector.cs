@@ -7,32 +7,24 @@ namespace Tools.Unity
     public class FolderSelector : MonoBehaviour
     {
         #region Properties
-        InputField m_inputfield;
-        Button m_button;
-
-        public InputField.OnChangeEvent onValueChanged { get { return m_inputfield.onValueChanged; } }
-        public bool interactable { set { m_inputfield.interactable = value; m_button.interactable = value; } }
-        public string Folder { get { return m_inputfield.text; } set { m_inputfield.text = value; } }
+        public InputField.OnChangeEvent onValueChanged { get { return m_Inputfield.onValueChanged; } }
+        public bool interactable { set { m_Inputfield.interactable = value; m_Button.interactable = value; } }
+        public string Folder { get { return m_Inputfield.text; } set { m_Inputfield.text = value; } }
         public string Message;
+
+        [SerializeField] InputField m_Inputfield;
+        [SerializeField] Button m_Button;
         #endregion
 
         #region Public Methods
         public void Open()
         {
-            string l_result = HBP.Module3D.DLL.QtGUI.GetExistingDirectoryName( Message, m_inputfield.text);
+            string l_result = HBP.Module3D.DLL.QtGUI.GetExistingDirectoryName( Message, m_Inputfield.text);
             if (l_result != string.Empty)
             {
                 StringExtension.StandardizeToPath(ref l_result);
-                m_inputfield.text = l_result;
+                m_Inputfield.text = l_result;
             }
-        }
-        #endregion
-
-        #region Private Methods
-        void Awake()
-        {
-            m_inputfield = GetComponent<InputField>();
-            m_button = GetComponentInChildren<Button>();
         }
         #endregion
     }

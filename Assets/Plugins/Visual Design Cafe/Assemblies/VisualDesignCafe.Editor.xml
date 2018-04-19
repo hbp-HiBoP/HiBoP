@@ -1,0 +1,387 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>VisualDesignCafe.Editor</name>
+    </assembly>
+    <members>
+        <member name="M:VisualDesignCafe.Editor.AsyncAction.#ctor(System.Action)">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.AsyncAction.Dispose">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.AsyncAction.Abort">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.AsyncAction.Abort(System.Object,System.EventArgs)">
+            <summary>
+            
+            </summary>
+            <param name="sender"></param>
+            <param name="args"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.ArrayExtension.Combine``1(System.Array,System.Array)">
+            <summary>
+            
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="array"></param>
+            <param name="other"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.ArrayExtension.Combine``1(System.Array,System.Array[])">
+            <summary>
+            
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="array"></param>
+            <param name="other"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.ArrayExtension.RemoveDoubleItems``1(System.Array)">
+            <summary>
+            
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="array"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.RectExtension.GetAspectRatio(UnityEngine.Rect)">
+            <summary>
+            
+            </summary>
+            <param name="rect"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.RectExtension.Scale(UnityEngine.Rect,UnityEngine.Vector2)">
+            <summary>
+            
+            </summary>
+            <param name="rect"></param>
+            <param name="scale"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.RectExtension.Expand(UnityEngine.Rect,System.Single,System.Single,System.Single,System.Single)">
+            <summary>
+            
+            </summary>
+            <param name="rect"></param>
+            <param name="left"></param>
+            <param name="top"></param>
+            <param name="right"></param>
+            <param name="bottom"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.RectExtension.Contract(UnityEngine.Rect,System.Single,System.Single,System.Single,System.Single)">
+            <summary>
+            
+            </summary>
+            <param name="rect"></param>
+            <param name="left"></param>
+            <param name="top"></param>
+            <param name="right"></param>
+            <param name="bottom"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.StringExtension.IndexOfAny(System.String,System.String[],System.StringComparison)">
+            <summary>
+            
+            </summary>
+            <param name="rect"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.StringExtension.ContainsPattern(System.String,System.StringComparison,System.String[])">
+            <summary>
+            
+            </summary>
+            <param name="source"></param>
+            <param name="comparison"></param>
+            <param name="pattern"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.StringExtension.ExtractPattern(System.String,System.String[],System.StringComparison)">
+            <summary>
+            
+            </summary>
+            <param name="source"></param>
+            <param name="pattern"></param>
+            <param name="startPos"></param>
+            <param name="endPos"></param>
+            <param name="comparison"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.StringExtension.Remove(System.String,System.String,System.StringComparison)">
+            <summary>
+            
+            </summary>
+            <param name="source"></param>
+            <param name="value"></param>
+            <param name="comparison"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.StringExtension.GetInt(System.String,System.Int32)">
+            <summary>
+            
+            </summary>
+            <param name="source"></param>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.StringExtension.FormatByName``1(System.String,``0)">
+            <summary>
+            ex) "{a}, {a:000}, {b}".WithVar(new {a, b});
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="str">A composite format string (equal string.Format's format)</param>
+            <param name="arg">class or anonymouse type</param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.ThreadExtension.SetAsMainThread(System.Threading.Thread)">
+            <summary>
+            
+            </summary>
+            <param name="thread"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.ThreadExtension.GetIsMainThread(System.Threading.Thread)">
+            <summary>
+            
+            </summary>
+            <param name="thread"></param>
+            <returns></returns>
+        </member>
+        <member name="T:VisualDesignCafe.Editor.Wildcard">
+            <summary>
+            Represents a wildcard running on the
+            <see cref="N:System.Text.RegularExpressions"/> engine.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Wildcard.WildcardToRegex(System.String)">
+            <summary>
+            Converts a wildcard to a regex.
+            </summary>
+            <param name="pattern">The wildcard pattern to convert.</param>
+            <returns>A regex equivalent of the given wildcard.</returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Wildcard.#ctor(System.String)">
+            <summary>
+            Initializes a wildcard with the given search pattern.
+            </summary>
+            <param name="pattern">The wildcard pattern to match.</param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Wildcard.#ctor(System.String,System.Text.RegularExpressions.RegexOptions)">
+            <summary>
+            Initializes a wildcard with the given search pattern and options.
+            </summary>
+            <param name="pattern">The wildcard pattern to match.</param>
+            <param name="options">A combination of one or more
+            <see cref="!:System.Text.RegexOptions"/>.</param>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.EditorWebRequest.Url">
+            <summary>
+            URL of this request.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.EditorWebRequest.IsDone">
+            <summary>
+            Did the request receive a response?
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.EditorWebRequest.IsError">
+            <summary>
+            Did this request return an error?
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.EditorWebRequest.Error">
+            <summary>
+            The error that was received.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.EditorWebRequest.Result">
+            <summary>
+            The received data.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.EditorWebRequest.Texture">
+            <summary>
+            Loads the received data into a texture and returns it.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.EditorWebRequest.Text">
+            <summary>
+            The received data as a string.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.EditorWebRequest.Progress">
+            <summary>
+            Progress of the download.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorWebRequest.#ctor(System.String)">
+            <summary>
+            Creates a new web request for the given URL.
+            </summary>
+            <param name="url"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorWebRequest.Send(System.Action)">
+            <summary>
+            Sends the request.
+            </summary>
+            <param name="response"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorWebRequest.OnDownloadCompleted(System.Object,System.Net.DownloadDataCompletedEventArgs,System.Action)">
+            <summary>
+            Called when the request was sent and a response was received (or the request failed).
+            </summary>
+            <param name="sender"></param>
+            <param name="args"></param>
+            <param name="response"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorWebRequest.OnDownloadProgressReceived(System.Object,System.Net.DownloadProgressChangedEventArgs)">
+            <summary>
+            Called when the asynchronous download operation successfully transfers some or all of the data.
+            </summary>
+            <param name="sender"></param>
+            <param name="args"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorWebRequest.RemoteCertificateValidation(System.Object,System.Security.Cryptography.X509Certificates.X509Certificate,System.Security.Cryptography.X509Certificates.X509Chain,System.Net.Security.SslPolicyErrors)">
+            <summary>
+            Validates certificate for HTTPS requests.
+            </summary>
+            <param name="sender"></param>
+            <param name="certificate"></param>
+            <param name="chain"></param>
+            <param name="sslPolicyErrors"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.GetKey(System.Object,System.String)">
+            <summary>
+            Returns the key for the given field in the object
+            </summary>
+            <param name="o"></param>
+            <param name="field"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.GetIsShared(System.String,System.Boolean)">
+            <summary>
+            Checks if the preference with the given key is shared
+            </summary>
+            <param name="key"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.SetIsShared(System.String,System.Boolean)">
+            <summary>
+            Sets if the preference with the given key is shared
+            </summary>
+            <param name="key"></param>
+            <param name="value"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.AddListenerToObject(System.Object)">
+            <summary>
+            Adds a listener to the object to automatically save the Editor Preferences
+            </summary>
+            <param name="o"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.RemoveListenerFromObject(System.Object)">
+            <summary>
+            Removes a listener from the object
+            </summary>
+            <param name="o"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.ObjectHasListener(System.Object)">
+            <summary>
+            Check if an object has a listener
+            </summary>
+            <param name="o"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.SaveAll">
+            <summary>
+            Saves all Editor Preferences
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.LoadAll">
+            <summary>
+            Loads all Editor Preferences
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.ClearAll">
+            <summary>
+            Clears all Editor Preferences
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.ClearAttribute(System.Object,System.Reflection.PropertyInfo,System.Reflection.FieldInfo,VisualDesignCafe.Editor.EditorPreference)">
+            <summary>
+            Clears the value of the property/field on the object instance
+            </summary>
+            <param name="instance"></param>
+            <param name="property"></param>
+            <param name="field"></param>
+            <param name="attribute"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.LoadAttribute(System.Object,System.Reflection.PropertyInfo,System.Reflection.FieldInfo,VisualDesignCafe.Editor.EditorPreference)">
+            <summary>
+            Loads the value of the property/field on the object instance
+            </summary>
+            <param name="instance"></param>
+            <param name="property"></param>
+            <param name="attribute"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.SaveAttribute(System.Object,System.Reflection.PropertyInfo,System.Reflection.FieldInfo,VisualDesignCafe.Editor.EditorPreference)">
+            <summary>
+            Saves the value of the property/field on the object instance
+            </summary>
+            <param name="instance"></param>
+            <param name="property"></param>
+            <param name="attribute"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.ForEachAttribute(VisualDesignCafe.Editor.EditorPrefsUtility.ForEachCallback)">
+            <summary>
+            Loops through every EditorPreference attribute and calls the callback for them
+            </summary>
+            <param name="callback"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.GetKey(System.Reflection.PropertyInfo,VisualDesignCafe.Editor.EditorPreference)">
+            <summary>
+            Returns the name of the key that should be used for the property
+            </summary>
+            <param name="property"></param>
+            <param name="attribute"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.GetKey(System.Reflection.FieldInfo,VisualDesignCafe.Editor.EditorPreference)">
+            <summary>
+            Returns the name of the key that should be used for the field
+            </summary>
+            <param name="field"></param>
+            <param name="attribute"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.GetAllPropertiesWithAttribute``1">
+            <summary>
+            Returns an array of all properties in the current assembly with the given attrivute
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.EditorPrefsUtility.GetAllFieldsWithAttribute``1">
+            <summary>
+            Returns an array of all fields in the current assembly with the given attribute
+            </summary>
+            <typeparam name="T"></typeparam>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.SelectionUtility.GetSelectedAssetPaths(System.Boolean,System.Boolean,System.Boolean,System.String[])">
+            <summary>
+            
+            </summary>
+            <param name="includeMetaFiles"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

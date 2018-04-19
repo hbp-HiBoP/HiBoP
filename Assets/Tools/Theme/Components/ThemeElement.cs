@@ -1,36 +1,27 @@
-﻿using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace NewTheme
+namespace NewTheme.Components
 {
+    [ExecuteInEditMode]
     public class ThemeElement : MonoBehaviour
     {
         #region Properties
-        public State Default;
-        public ElementsByState[] ElementsByState;
+        public Element Element;
         #endregion
 
         #region Public Methods
         public void Set()
         {
-            Set(Default);
+            Element.Set(gameObject);
         }
-
         public void Set(State state)
         {
-            Element[] Elements = ElementsByState.FirstOrDefault((t) => t.State == state).Elements;
-            foreach (var element in Elements)
-            {
-                if (element)
-                {
-                    element.Set(gameObject);
-                }
-            }
+            Element.Set(gameObject, state);
         }
         #endregion
 
         #region Private Methods
-        private void Start()
+        void Awake()
         {
             Set();
         }

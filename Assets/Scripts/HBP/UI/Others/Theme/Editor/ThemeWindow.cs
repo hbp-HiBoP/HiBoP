@@ -37,7 +37,7 @@ namespace HBP.UI.Theme
         [MenuItem("Tools/Apply new theme")]
         public static void SetTheme()
         {
-            NewTheme.ThemeElement[] ThemeElements = FindObjectsOfType<NewTheme.ThemeElement>();
+            NewTheme.Components.ThemeElement[] ThemeElements = Resources.FindObjectsOfTypeAll<NewTheme.Components.ThemeElement>();
             foreach (var element in ThemeElements)
             {
                 element.Set();

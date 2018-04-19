@@ -1,0 +1,382 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>VisualDesignCafe.Editor.Analytics</name>
+    </assembly>
+    <members>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsInfo`1.GetThis">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsInfo`1.Validate">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsInfo`1.SetCustomDimension(System.Int32,System.String)">
+            <summary>
+            
+            </summary>
+            <param name="dimensionNumber"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsInfo`1.GetCustomDimensions">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsInfo`1.SetCustomMetric(System.Int32,System.String)">
+            <summary>
+            
+            </summary>
+            <param name="metricNumber"></param>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsInfo`1.GetCustomMetrics">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsInfo`1.ToString">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.EventInfo.#ctor(System.String,System.String)">
+            <summary>
+            
+            </summary>
+            <param name="category"></param>
+            <param name="action"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.EventInfo.#ctor(System.String,System.String,System.String)">
+            <summary>
+            
+            </summary>
+            <param name="category"></param>
+            <param name="action"></param>
+            <param name="label"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.EventInfo.Validate">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.EventInfo.GetThis">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.EventInfo.ToString">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.ExceptionInfo.#ctor(System.String,System.String,System.Boolean)">
+            <summary>
+            
+            </summary>
+            <param name="category"></param>
+            <param name="action"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.ExceptionInfo.Validate">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.ExceptionInfo.GetThis">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.ExceptionInfo.ToString">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.ScreenInfo.#ctor(System.String)">
+            <summary>
+            
+            </summary>
+            <param name="category"></param>
+            <param name="action"></param>
+            <param name="elapsedTime"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.ScreenInfo.GetThis">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.ScreenInfo.Validate">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.ScreenInfo.ToString">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.TimingInfo.#ctor(System.String,System.String,System.Int64)">
+            <summary>
+            
+            </summary>
+            <param name="category"></param>
+            <param name="action"></param>
+            <param name="elapsedTime"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.TimingInfo.#ctor(System.String,System.String,System.String,System.Int64)">
+            <summary>
+            
+            </summary>
+            <param name="category"></param>
+            <param name="action"></param>
+            <param name="label"></param>
+            <param name="elapsedTime"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.TimingInfo.GetThis">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.TimingInfo.Validate">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.TimingInfo.ToString">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.#ctor(System.String,System.String,System.String)">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.LogException(VisualDesignCafe.Editor.Analytics.ExceptionInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.LogEvent(VisualDesignCafe.Editor.Analytics.EventInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.LogTiming(VisualDesignCafe.Editor.Analytics.TimingInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.LogScreen(VisualDesignCafe.Editor.Analytics.ScreenInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.SendAll">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.StartSession">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.StopSession">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.SendEvent(VisualDesignCafe.Editor.Analytics.EventInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.SendTiming(VisualDesignCafe.Editor.Analytics.TimingInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.SendScreen(VisualDesignCafe.Editor.Analytics.ScreenInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.SendException(VisualDesignCafe.Editor.Analytics.ExceptionInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.GetEventInfo(VisualDesignCafe.Editor.Analytics.EventInfo@)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.GetTimingInfo(VisualDesignCafe.Editor.Analytics.TimingInfo@)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.GetScreenInfo(VisualDesignCafe.Editor.Analytics.ScreenInfo@)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.GetExceptionInfo(VisualDesignCafe.Editor.Analytics.ExceptionInfo@)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.AnalyticsSystem.SendAllLoop">
+            <summary>
+            
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Buffer.Enqueue(VisualDesignCafe.Editor.Analytics.EventInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Buffer.Enqueue(VisualDesignCafe.Editor.Analytics.TimingInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Buffer.Enqueue(VisualDesignCafe.Editor.Analytics.ScreenInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Buffer.Enqueue(VisualDesignCafe.Editor.Analytics.ExceptionInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Buffer.Dequeue(VisualDesignCafe.Editor.Analytics.EventInfo@)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Buffer.Dequeue(VisualDesignCafe.Editor.Analytics.TimingInfo@)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Buffer.Dequeue(VisualDesignCafe.Editor.Analytics.ScreenInfo@)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Buffer.Dequeue(VisualDesignCafe.Editor.Analytics.ExceptionInfo@)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Google.GoogleAnalyticsSystem.#ctor(System.String,System.String,System.String,System.String)">
+            <summary>
+            
+            </summary>
+            <param name="productName"></param>
+            <param name="productID"></param>
+            <param name="productVersion"></param>
+            <param name="trackingCode"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Google.GoogleAnalyticsSystem.StartSession">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Google.GoogleAnalyticsSystem.StopSession">
+            <summary>
+            
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Google.GoogleAnalyticsSystem.SendEvent(VisualDesignCafe.Editor.Analytics.EventInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Google.GoogleAnalyticsSystem.SendTiming(VisualDesignCafe.Editor.Analytics.TimingInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Google.GoogleAnalyticsSystem.SendScreen(VisualDesignCafe.Editor.Analytics.ScreenInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Google.GoogleAnalyticsSystem.SendException(VisualDesignCafe.Editor.Analytics.ExceptionInfo)">
+            <summary>
+            
+            </summary>
+            <param name="info"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Analytics.Google.GoogleAnalyticsSystem.Initialize">
+            <summary>
+            
+            </summary>
+        </member>
+    </members>
+</doc>

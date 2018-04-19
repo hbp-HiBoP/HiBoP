@@ -12,14 +12,14 @@ namespace HBP.UI
     public class NewProject : Window
 	{
         #region Properties
-		InputField nameInputField;
-        FolderSelector projectFolderSelector;
-        FolderSelector patientsDatabaseFolderSelector;
-        FolderSelector localizerDatabaseFolderSelector;
+		[SerializeField] InputField m_NameInputField;
+        [SerializeField] FolderSelector m_ProjectLocationFolderSelector;
+        [SerializeField] FolderSelector m_PatientsDatabaseLocationFolderSelector;
+        [SerializeField] FolderSelector m_LocalizerDatabaseLocationFolderSelector;
         #endregion
 
         #region Public Methods
-        public void CreateNewProject()
+        public void Create()
 		{
             if (ApplicationState.ProjectLoaded != null)
             {
@@ -28,18 +28,18 @@ namespace HBP.UI
                     ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", () =>
                     {
                         ApplicationState.Module3D.RemoveAllScenes();
-                        CreateProject();
+                        CreateNewProject();
                     },
                     "Load project");
                 }
                 else
                 {
-                    CreateProject();
+                    CreateNewProject();
                 }
             }
             else
             {
-                CreateProject();
+                CreateNewProject();
             }
         }
         #endregion
@@ -47,21 +47,16 @@ namespace HBP.UI
         #region Private Methods
         protected override void SetWindow()
 		{
-            nameInputField = transform.Find("Content").Find("General").Find("Name").GetComponentInChildren<InputField>();
-            projectFolderSelector = transform.Find("Content").Find("General").Find("Location").GetComponentInChildren<FolderSelector>();
-            patientsDatabaseFolderSelector = transform.Find("Content").Find("Database").Find("Patients").GetComponentInChildren<FolderSelector>();
-            localizerDatabaseFolderSelector = transform.Find("Content").Find("Database").Find("Localizers").GetComponentInChildren<FolderSelector>();
-
-            nameInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
-            projectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
-            patientsDatabaseFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
-            localizerDatabaseFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
+            m_NameInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
+            m_ProjectLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
+            m_PatientsDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
+            m_LocalizerDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
         }
-        protected void CreateProject()
+        protected void CreateNewProject()
         {
-            Data.Settings.ProjectSettings l_settings = new Data.Settings.ProjectSettings(nameInputField.text, patientsDatabaseFolderSelector.Folder, localizerDatabaseFolderSelector.Folder);
-            ApplicationState.ProjectLoaded = new Project(l_settings);
-            ApplicationState.ProjectLoadedLocation = projectFolderSelector.Folder;
+            Data.Settings.ProjectSettings settings = new Data.Settings.ProjectSettings(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
+            ApplicationState.ProjectLoaded = new Project(settings);
+            ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
             FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
             Close();
         }

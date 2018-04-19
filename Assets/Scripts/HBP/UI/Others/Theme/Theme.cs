@@ -14,7 +14,7 @@ namespace HBP.UI.Theme
 
         public static void UpdateThemeElements(Theme theme)
         {
-            foreach (ThemeElement element in FindObjectsOfType<ThemeElement>())
+            foreach (OldThemeElement element in FindObjectsOfType<OldThemeElement>())
             {
                 element.Set(theme);
             }

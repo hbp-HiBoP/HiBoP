@@ -56,13 +56,13 @@ namespace Tools.Unity
         }
         public void OnPointerExit(PointerEventData data)
         {
-            ApplicationState.TooltipManager.HideTooltip();
+            if(Application.isPlaying) ApplicationState.TooltipManager.HideTooltip();
             m_Entered = false;
             m_TimeSinceEntered = 0.0f;
         }
         public void OnDestroy()
         {
-            ApplicationState.TooltipManager.HideTooltip();
+            if(ApplicationState.TooltipManager != null) ApplicationState.TooltipManager.HideTooltip();
             m_Entered = false;
             m_TimeSinceEntered = 0.0f;
         }

@@ -1,0 +1,1501 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>NestedPrefabs.Editor</name>
+    </assembly>
+    <members>
+        <member name="T:VisualDesignCafe.Editor.Prefabs.CustomProcessor">
+            <summary>
+            Custom processor for a component or prefab.
+            Can be used to change the modifications that are applied to a nested prefab.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.CustomProcessor.Type">
+            <summary>
+            The target component type to which this processor should be applied.
+            Use 'Prefab' in order to apply the processor for all components in a prefab.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.ApplyPool.Count">
+            <summary>
+            The number of entries (prefab assets) in the apply pool.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ApplyPool.Clear">
+            <summary>
+            Clears all entries in the apply pool.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ApplyPool.GetSortedQueue">
+            <summary>
+            Returns all prefabs in the queue ordered by depth.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ApplyPool.Add(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Adds the prefab to the pool.
+            </summary>
+            <param name="prefab"></param>
+            <param name="includeChildren"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ApplyPool.AddRecursive(UnityEngine.Transform)">
+            <summary>
+            Adds all Prefab components on the transform and all its children to the pool.
+            </summary>
+            <param name="transform"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Patch.RemovePrefabConnection(VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Removes the prefab connection.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Patch.OverwriteGuid(VisualDesignCafe.Editor.Prefabs.Prefab,System.String,System.String)">
+            <summary>
+            Overwrites the GUID in the prefab with the new GUID.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Patch.Apply(VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Applies the patch to the prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Patch.ApplyRecursive(VisualDesignCafe.Editor.Prefabs.Prefab,UnityEngine.Transform)">
+            <summary>
+            Applies the patch to the transform and all its children recursively.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Patch.ApplyToGuid(VisualDesignCafe.Editor.Prefabs.Prefab,UnityEngine.Transform)">
+            <summary>
+            Applies the patch to the GUID of the transform.
+            Ignored if there is no GUID component on the Transform.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Patch.ApplyToPrefab(VisualDesignCafe.Editor.Prefabs.Prefab,UnityEngine.Transform)">
+            <summary>
+            Applies the patch to the Prefab of the transform. 
+            Ignored if there is no Prefab component on the Transform.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Patch.ReplaceGuidInOverrides(UnityEngine.Transform,System.String,System.String)">
+            <summary>
+            Replaces all occurrences of the GUID value in all Prefab Overrides components on all parents of the transform.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.SerializedObjectExtensions.SaveModifications(UnityEditor.SerializedObject)">
+            <summary>
+            Compatibility method for ApplyModifiedPropertiesWithoutUndo because it is not publicly accessible in Unity 5.0
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.SerializedObjectExtensions.UpdateIfRequired(UnityEditor.SerializedObject)">
+            <summary>
+            Compatibility method for UpdateIfRequiredOrScript because it has different names between Unity versions.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ApplyOperation.#ctor(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Creates a new Apply Operation for the prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ApplyOperation.#ctor(VisualDesignCafe.Editor.Prefabs.Prefab[],System.Boolean)">
+            <summary>
+            Creates a new Apply Operation for the prefabs.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ApplyOperation.Do">
+            <summary>
+            Applies the changes to the prefabs.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ApplyOperation.GroupByAsset(VisualDesignCafe.Editor.Prefabs.Prefab[])">
+            <summary>
+            Groups the list of prefabs by asset.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ApplyOperation.PreprocessPrefab(VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Preprocesses the (Nested) Prefab before applying changes
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ApplyOperation.PostprocessPrefab(VisualDesignCafe.Editor.Prefabs.Prefab,VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Postprocesses the Nested Prefab after applying changes
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ApplyOperation.RemovePrefabOverride(UnityEngine.GameObject,UnityEngine.GameObject)">
+            <summary>
+            Removes the (unity) prefab overrides from the serialized properties.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ApplyOperation.RemovePrefabOverridesForObject(UnityEngine.Object,UnityEngine.GameObject)">
+            <summary>
+            Removes the (unity) prefab overrides from the serialized properties.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.FlattenOperation.RemovePrefabConnection(VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Removes the prefab connection.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabOperation.BeginBatch">
+            <summary>
+            Begins a new batch. 
+            Should be used before reloading any Nested Prefabs or assets.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabOperation.EndBatch">
+            <summary>
+            Ends the current batch.
+            Should be called after all Nested Prefabs and/or assets were reloaded.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabOperation.HasInstanceForAsset(UnityEngine.GameObject)">
+            <summary>
+            Checks if an instance for the asset is stored in the current batch.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabOperation.GetInstanceForAsset(UnityEngine.GameObject,System.Boolean)">
+            <summary>
+            Creates an instance of the asset for editing
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabOperation.SaveAssetInstance(UnityEngine.GameObject,UnityEngine.GameObject,System.Boolean)">
+            <summary>
+            Saves the changes to the asset instance to the given prefab
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.HierarchyWindowPostprocessor.OnPrefabInstanceUpdated(UnityEngine.GameObject)">
+            <summary>
+            Called whenever any prefab instance in the scene was updated.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.HierarchyWindowPostprocessor.OnUndoRedoPerformed">
+            <summary>
+            Called every time an Undo or Redo operation was performed
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.HierarchyWindowPostprocessor.OnPostprocessAllAssets(System.String[],System.String[],System.String[],System.String[])">
+            <summary>
+            Called whenever any asset was imported, moved, or deleted.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.HierarchyWindowPostprocessor.OnEditorUpdate">
+            <summary>
+            Called every frame in the editor
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.HierarchyWindowPostprocessor.OnHierarchyWindowChanged">
+            <summary>
+            Called whenever anything in the hierarchy window changed.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.HierarchyWindowPostprocessor.CachePrefabsInSelection(UnityEngine.GameObject[])">
+            <summary>
+            Loops through the objects and checks for any changes within the hierarchy,
+            creating or deleting Nested Prefabs where necessary.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.HierarchyWindowPostprocessor.CacheHierarchy(UnityEngine.Transform,UnityEngine.Transform,System.Collections.Generic.HashSet{UnityEngine.GameObject})">
+            <summary>
+            Collects the entire hierarchy of the transform and stores it in the HashSet
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.HierarchyWindowPostprocessor.CacheHierarchyRecursive(UnityEngine.Transform,System.Collections.Generic.HashSet{UnityEngine.GameObject})">
+            <summary>
+            Collects the entire hierarchy of the transform and stores it in the HashSet.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.HierarchyWindowPostprocessor.FindPrefabs(UnityEngine.Transform,System.Collections.Generic.List{UnityEngine.GameObject})">
+            <summary>
+            Finds all prefabs in the given transform and its children
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.HierarchyWindowPostprocessor.OnSelectionChanged">
+            <summary>
+            Called when the active object in the selection changed
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ModelPostprocessor.SetModelModifications(VisualDesignCafe.Editor.Prefabs.Prefab,UnityEngine.Transform,VisualDesignCafe.Editor.Prefabs.Guid[])">
+            <summary>
+            Checks the model prefab for any modifications made compared to 
+            the original model asset and marks the modifications with the ModelModification flag.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ModelPostprocessor.SetModelComponentModifications(VisualDesignCafe.Editor.Prefabs.Prefab,UnityEngine.Transform,VisualDesignCafe.Editor.Prefabs.Guid[])">
+            <summary>
+            Checks the model prefab for components added to the game objects of the original asset.
+            These added components will be marked with the ModelComponentModification flag so they are ignored when reloading changes from the asset.
+            If the flag is not added the components will be removed when reloading the asset.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ModelPostprocessor.FindModelObject(UnityEngine.Transform,VisualDesignCafe.Editor.Prefabs.Prefab,VisualDesignCafe.Editor.Prefabs.Guid[])">
+            <summary>
+            Finds the transform in the original model asset of the prefab.
+            Searches based on object GUID.
+            </summary>
+            <param name="transform">Transform to find in the asset</param>
+            <param name="prefab">Parent prefab of the tranform</param>
+            <param name="assetGuids">Collection of GUID components in the asset</param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ModelPostprocessor.IsModelObject(UnityEngine.Transform,VisualDesignCafe.Editor.Prefabs.Prefab,VisualDesignCafe.Editor.Prefabs.Guid[])">
+            <summary>
+            Checks if the transform is part of the original asset of the prefab.
+            </summary>
+            <param name="transform">Transform to find in the asset</param>
+            <param name="prefab">Parent prefab of the tranform</param>
+            <param name="assetGuids">Collection of GUID components in the asset</param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ModelPostprocessor.UpdateModelPrefabGuid(System.String)">
+            <summary>
+            Updates the asset GUID of the prefab at the given path.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ModelPostprocessor.OnPostprocessModel(UnityEditor.AssetPostprocessor,UnityEngine.GameObject)">
+            <summary>
+            Called by the Unity asset postprocessor after importing a model asset.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ModelPostprocessor.SetConsistentGuid(UnityEngine.Transform,UnityEngine.Transform,System.Collections.Generic.List{System.String})">
+            <summary>
+            Makes sure the objects in the model prefab have a consistent GUID.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.NestedPrefabsPostprocessor.IsEnabled">
+            <summary>
+            Is the post processor enabled? 
+            When disabled, prefabs will still be processed and validated, but no changes will be applied to nested prefabs in the project.
+            The postprocessor will be disabled while installing and when restoring the prefab database after building.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.NestedPrefabsPostprocessor.IsDestroyed">
+            <summary>
+            Is the post processor destroyed?
+            When destroyed, all postprocess operations will be ignored.
+            The postprocessor will be destroyed when uninstalling Nested Prefabs.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabsPostprocessor.Destroy">
+            <summary>
+            Destroys the postprocessor. Should only be used during Uninstall.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabsPostprocessor.ApplyChangesDelayed(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Applies changes to the prefab in the next update loop.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabsPostprocessor.EditorUpdate">
+            <summary>
+            Called every frame in the editor
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Postprocessor.Target">
+            <summary>
+            The target type for this processor.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Postprocessor.PostprocessModificationsMethod">
+            <summary>
+            Method that gets called after all modifications to a nested prefab have been found and before applying them.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Postprocessor.OnReloadedScripts">
+            <summary>
+            Called after reloading scripts. (after compile finished)
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabPostprocessor.PostprocessPrefabObject(System.Collections.Generic.List{System.String},VisualDesignCafe.Editor.Prefabs.Prefab,System.Int32)">
+            <summary>
+            Postprocess this prefab. Will create new Guid components where necessary
+            and will also update the reference collection with all children of this Prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabPostprocessor.RegisterChildren(System.Collections.Generic.List{System.String},VisualDesignCafe.Editor.Prefabs.Prefab,UnityEngine.Transform,System.Int32,System.Boolean)">
+            <summary>
+            Registers all children of the Transform to the reference collection.
+            Will create new Guid components where necessary.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabPostprocessor.OnPrefabInstanceUpdated(UnityEngine.GameObject)">
+            <summary>
+            Called when a user hit 'Apply' on a prefab instance
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ScenePostprocessor.OnPostProcessScene">
+            <summary>
+            Called for each scene when the game starts or when starting a build
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ScenePostprocessor.RemoveAllComponents``1">
+            <summary>
+            Removes all components in the scene of the given type.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.AssetDatabaseUtility.FindPrefabsInProject">
+            <summary>
+            Finds and loads all prefab assets in the project.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.AssetDatabaseUtility.FindAssetsWithReferenceTo(UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.PrefabDatabase,System.Boolean,System.Int32,System.Boolean,System.Boolean)">
+            <summary>
+            Returns all the assets that contain a reference to the given prefab asset
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.AssetDatabaseUtility.HasReferenceToAsset(VisualDesignCafe.Editor.Prefabs.NestedPrefab,UnityEngine.GameObject,System.Int32,System.Boolean,System.Boolean)">
+            <summary>
+            Checks if the NestedPrefab has a reference to the asset.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.AssetDatabaseUtility.ForEachPrefabInAssetDatabase(System.Action{UnityEngine.GameObject,System.Int32,System.Int32},System.Action{System.Exception})">
+            <summary>
+            Executes the action for each prefab in the asset database.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.AssetDatabaseUtility.ForEachPrefabInAssetDatabase(System.Action{System.String,System.Int32,System.Int32},System.Action{System.Exception})">
+            <summary>
+            Executes the action for each path of a prefab asset in the asset database.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.AssetDatabaseUtility.ForEachModelInAssetDatabase(System.Action{System.String,System.Int32,System.Int32},System.Action{System.Exception})">
+            <summary>
+            Executes the action for each path of a model asset in the asset database.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.AssetDatabaseUtility.ForEachModelInAssetDatabase(System.Action{UnityEngine.GameObject,System.Int32,System.Int32},System.Action{System.Exception})">
+            <summary>
+            Executes the action for each model asset in the asset database.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.AssetDatabaseUtility.ForEachSceneInProject(System.Action{System.String,System.Int32,System.Int32},System.Action{System.Exception})">
+            <summary>
+            Executes the action for each scene in the project. Will temporarily load the scene.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.InternalEditorStyles.InspectorTitlebar">
+            <summary>
+            Big header background
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.InternalEditorStyles.SearchField">
+            <summary>
+            Search field 
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.InternalEditorStyles.SearchFieldCancelButton">
+            <summary>
+            Search field cancel button, should be drawn next to a search field.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.InternalEditorStyles.SearchFieldCancelButtonEmpty">
+            <summary>
+            Search field cancel button, should be drawn next to a search field.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.ModificationCallback">
+            <summary>
+            Gets called for each modification found in a prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.GetPrefab(UnityEngine.GameObject)">
+            <summary>
+            Returns the prefab object that the gameobject is part of.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.GetPrefab(UnityEngine.Transform)">
+            <summary>
+            Returns the prefab object that the transform is part of.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.GetParentPrefab(VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Returns the parent prefab of the given prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.GetParentPrefab(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Returns the parent of the given prefab.
+            </summary>
+            <param name="ignoreModelPrefabs">Should model prefabs be ignored?</param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.RevertProperty(UnityEditor.SerializedProperty)">
+            <summary>
+            Reverts the serialized property back to the value in the original prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.IsModelModification(UnityEngine.GameObject)">
+            <summary>
+            Is the GameObject added to a model prefab?
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.IsModelPrefab(VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Is the prefab a model prefab?
+            </summary>
+            <param name="prefab"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.IsModelPrefab(UnityEngine.GameObject)">
+            <summary>
+            Is the prefab a model prefab?
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.IsModelPrefab(System.String)">
+            <summary>
+            Is the prefab a model prefab?
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.IsInternalComponent(System.Type)">
+            <summary>
+            Is the component an internal component?
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.FindAlternativeAsset(VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Returns the nested prefab in the asset of the parent prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.IsConnectedToAsset(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Checks if the prefab is connected to the asset. Will also check all parents of the prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.ReplacePrefab(UnityEngine.GameObject,UnityEngine.Object,UnityEditor.ReplacePrefabOptions)">
+            <summary>
+            Safe wrapper for NestedPrefabUtility.ReplacePrefab.
+            For internal use.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.ConnectGameObjectToPrefab(UnityEngine.GameObject,UnityEngine.GameObject)">
+            <summary>
+            Unity 5.0 Compatibility method for PrefabUtility.ConnectGameObjectToPrefab.
+            Connects the GameObject to the prefab in later versions of Unity. 
+            Is ignored if PrefabUtility.ConnectGameObjectToPrefab is not supported by Unity.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.ReloadPrefab(VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Reloads the Nested Prefab from the original asset.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.ReloadPrefab(VisualDesignCafe.Editor.Prefabs.Prefab,UnityEngine.GameObject,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Reloads the Nested Prefab from the given source.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.ReloadPrefab(VisualDesignCafe.Editor.Prefabs.Prefab,UnityEngine.GameObject[],System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Reloads the Nested Prefab from the given source.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.GetModificationsForInstance(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Gets the modifications for the prefab instance. 
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.HasModifications(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Checks if the Nested Prefab has any modifications.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.HasModifiedHierarchy(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Does the prefab has modifications to its hierarchy?
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.HasModifiedHierarchy(UnityEngine.GameObject,UnityEngine.GameObject,System.Boolean,System.Boolean)">
+            <summary>
+            Does the prefab have modifications to its hierarchy?
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.HasModifications(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean,System.Boolean,System.Boolean,VisualDesignCafe.Editor.Prefabs.Comparing.ModificationType[])">
+            <summary>
+            Checks if the Nested Prefab has any of the given modifications.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.HasModifications(UnityEngine.GameObject,UnityEngine.GameObject,System.Boolean,System.Boolean,VisualDesignCafe.Editor.Prefabs.Comparing.ModificationType[])">
+            <summary>
+            Checks if the GameObject instance has any of the given modifications, compared to the given asset.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.ApplyChanges(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Applies changes to the Nested Prefab without applying changes to its parent(s).
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.ApplyChanges(VisualDesignCafe.Editor.Prefabs.Prefab[],System.Boolean)">
+            <summary>
+            Applies changes to the Nested Prefab without applying changes to its parent(s).
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.ReloadInstancesForAsset(UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.PrefabDatabase,System.Boolean)">
+            <summary>
+            Applies all changes made to the asset to the nested prefabs in the project
+            with a reference to the asset.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.RemovePrefabConnection(VisualDesignCafe.Editor.Prefabs.Prefab,VisualDesignCafe.Editor.Prefabs.PrefabDatabase)">
+            <summary>
+            Removes a prefab connection from the prefab, 
+            its asset, and all other instances and nested prefabs.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.GetPrefabType(UnityEngine.GameObject)">
+            <summary>
+            Returns a string containing a description of the prefab type. 
+            (Unknown, Asset, Asset Instance, Nested, Root)
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.FixPrefab(VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Fixes the reference collection of the nested prefab by copying it from the original asset, 
+            or any Nested Prefab in the scene with a valid collection.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.RevertModelToPrefab(VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Reverts all modified properties of the model back to the saved properties in the prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabUtility.ModificationIsOverride(VisualDesignCafe.Editor.Prefabs.Comparing.Modification)">
+            <summary>
+            Checks if the modification is a permanent prefab override.
+            </summary>
+            <returns>True if the modification is a permanent prefab override.</returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.FindPrefabRoot(UnityEngine.GameObject)">
+            <summary>
+            Returns the topmost prefab in the hierarchy.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.GetPrefab(UnityEngine.GameObject)">
+            <summary>
+            Returns the prefab object that the gameobject is part of.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.GetParentPrefab(VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Returns the parent prefab of the given prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.GetPrefab(UnityEngine.Transform)">
+            <summary>
+            Returns the prefab object that the transform is part of.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.GetParentPrefab(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Returns the parent of the given prefab.
+            </summary>
+            <param name="ignoreModelPrefabs">Should model prefabs be ignored?</param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.FindRoot(UnityEngine.Transform)">
+            <summary>
+            Finds the topmost transform in the hierarchy.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.GetDepth(VisualDesignCafe.Editor.Prefabs.NestedPrefab,System.Boolean)">
+            <summary>
+            Returns the number of nested prefab parents of the given prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.GetDepth(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Returns the number of nested prefab parents of the given prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.GetDepth(UnityEngine.Transform)">
+            <summary>
+            Returns the total number of parents of the given transform.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.GetDepth(UnityEngine.Transform,UnityEngine.Transform)">
+            <summary>
+            Returns the total number of parents until the root transform.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.FindValidParentPrefab(UnityEngine.GameObject,UnityEngine.Transform@)">
+            <summary>
+            Returns the parent prefab for the given GameObject. 
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.FindValidParentPrefab(UnityEngine.GameObject)">
+            <summary>
+            Returns the parent prefab for the given GameObject.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.FindValidPrefab(UnityEngine.Transform,UnityEngine.Transform@)">
+            <summary>
+            Finds the parent prefab for the given transform. 
+            Either the transform of a NestedPrefab or a prefab will be returned, whatever is found first.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.HasCircularReference(VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Checks if the nested prefab has a circular reference in its hierarchy.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.FindObjectBySiblingIndex(UnityEngine.GameObject,UnityEngine.GameObject,UnityEngine.GameObject)">
+            <summary>
+            Finds the GameObject that is a child of 'root' in the given 'other root' object.
+            Uses the sibling index of the GameObject (and its parents) to find the object.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.GetPrefabhHierarchy(UnityEngine.Transform,UnityEngine.Transform,System.Boolean,System.Boolean)">
+            <summary>
+            Gets an array containing the prefab hierarchy of the given transform.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.GetHierarchyPath(UnityEngine.GameObject,UnityEngine.Transform,System.Boolean)">
+            <summary>
+            Returns a string containing the path from the root to the GameObject.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.IsDirectChildOf(VisualDesignCafe.Editor.Prefabs.Prefab,VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Is the prefab a direct child of the parent?
+            Or are there any other nested prefabs in between?
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.HasCircularReference(UnityEngine.Transform,UnityEngine.GameObject)">
+            <summary>
+            Checks if the transform has a circular reference to the asset in its hierarchy.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabHierarchyUtility.FindNestedPrefabWithGuid(UnityEngine.Transform,VisualDesignCafe.Editor.Prefabs.Guid)">
+            <summary>
+            Finds a nested prefab in the hierarchy of the root transform with the given GUID.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ReferenceCollectionUtility.Validate(VisualDesignCafe.Editor.Prefabs.ReferenceCollection)">
+            <summary>
+            Validates the reference collection by removing any empty entries 
+            and ensuring that all references in the collection are relative.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ReferenceCollectionUtility.IsValidCached(VisualDesignCafe.Editor.Prefabs.ReferenceCollection,System.Int32)">
+            <summary>
+            Gets the cached result of the last GetIsValid check.
+            Updates the result if it is outdated.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ReferenceCollectionUtility.IsValid(VisualDesignCafe.Editor.Prefabs.ReferenceCollection)">
+            <summary>
+            Checks if the reference collection is valid.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ReferenceCollectionUtility.IsValid(UnityEngine.Transform,UnityEngine.Transform,VisualDesignCafe.Editor.Prefabs.ReferenceCollection)">
+            <summary>
+            Checks if the transform is a valid entry in the reference collection.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ReferenceCollectionUtility.Update(VisualDesignCafe.Editor.Prefabs.ReferenceCollection)">
+            <summary>
+            Updates the reference collection. 
+            Makes sure there are no prefab overrides in the collection.
+            When a child of a prefab is deleted in Unity and applied, 
+            the array element that used to contain a reference to that child will be marked as overridden.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ReferenceCollectionUtility.UpdateRecursive(VisualDesignCafe.Editor.Prefabs.ReferenceCollection)">
+            <summary>
+            Updates the reference collection and all reference collections 
+            of nested prefabs in the prefab's hierarchy.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.GuidInspector.OnEnable">
+            <summary>
+            Immediately hides the Guid components after the inspector (editor) is opened.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ModelComponentModificationInspector.OnEnable">
+            <summary>
+            Immediately hides the ModelComponentModification components after the inspector (editor) is opened.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.ModelModificationInspector.OnEnable">
+            <summary>
+            Immediately hides the ModelModification components after the inspector (editor) is opened.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.Initialize">
+            <summary>
+            Initialize the hierarchy window. Should be called at startup
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.HierarchyWindowItemOnGUI(System.Int32,UnityEngine.Rect)">
+            <summary>
+            OnGUI Callback for every item in the hierarchy
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.DrawHelperLine(UnityEngine.Rect,UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Draws a helper line to indicate the hierarchy relation for the selected object.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.DrawIndentLine(UnityEngine.Rect)">
+            <summary>
+            Draws a vertical line on the left side of the rect.
+            Only the 'y' and 'height' value of the rect are used.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.DrawLineToItem(UnityEngine.Rect,VisualDesignCafe.Editor.Prefabs.Prefab,UnityEngine.GameObject)">
+            <summary>
+            Draws a line indicating the hierarchy relation for the current object.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.DrawOverrides(UnityEngine.Rect,UnityEngine.GameObject)">
+            <summary>
+            Draws the prefab overrides for the current object.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.DrawHelperLineForOverrides(UnityEngine.Rect,UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.Prefab,VisualDesignCafe.Editor.Prefabs.PrefabOverrides,System.Int32)">
+            <summary>
+            Draws a helper line from the current object to the target of each prefab override.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.GetPrefabIconRect(UnityEngine.Rect)">
+            <summary>
+            Calculates the rect for the prefab icon.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.DrawPrefabIcon(UnityEngine.Rect,UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.Prefab,VisualDesignCafe.Editor.Prefabs.NestedPrefab)">
+            <summary>
+            Draws the icon for a prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.DrawDefaultPrefabIcon(UnityEngine.Rect,System.Boolean,UnityEngine.Color)">
+            <summary>
+            Draws a default prefab icon.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.DrawModelIcon(UnityEngine.Rect,System.Boolean,UnityEngine.Color)">
+            <summary>
+            Draws a model icon.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.DrawReferenceCollectionIcon(UnityEngine.Rect,VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Draws a yellow question mark (?) if the reference collection is invalid.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.DrawDisconnectedPrefabIcon(UnityEngine.Rect)">
+            <summary>
+            Draws a red 'X'.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.DrawMissingPrefabIcon(UnityEngine.Rect,System.String)">
+            <summary>
+            Draws a red 'X' and a white prefab icon.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.GetTooltip(VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Creates a tooltip for the prefab.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.OpenContextMenu(UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Opens the context menu for the object.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.AddApplyAll(UnityEditor.GenericMenu,System.Boolean,UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Adds an item to the context menu for 'Apply All'
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.AddApply(UnityEditor.GenericMenu,System.Boolean,UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Adds an item to the context menu for Apply.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.AddApplySelf(UnityEditor.GenericMenu,System.Boolean,UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Adds an item to the context menu for Apply Self.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.AddRevertAll(UnityEditor.GenericMenu,System.Boolean,UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Adds an item to the context menu for Revert.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.AddRevert(UnityEditor.GenericMenu,System.Boolean,UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Adds an item to the context menu for Revert.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.AddRevertSelf(UnityEditor.GenericMenu,System.Boolean,UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Adds an item to the context menu for Revert Self.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.AddRemoveConnection(UnityEditor.GenericMenu,System.Boolean,UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.Prefab,System.Boolean)">
+            <summary>
+            Adds an item to the context menu for 'Remove Prefab Connection'.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabHierarchyWindow.AddFix(UnityEditor.GenericMenu,System.Boolean,UnityEngine.GameObject,VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Adds an item to the context menu for Fix.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabInspector.OnEnable">
+            <summary>
+            Immediately hides the NestedPrefab components after the inspector (editor) is opened.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.PrefabInspector.OnEnable">
+            <summary>
+            Immediately hides the Prefab components after the inspector (editor) is opened.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentComparer.Compare(VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo,VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo,VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison,System.Boolean@)">
+            <summary>
+            Compares the component to the other component.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentComparer.AreEqual(VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo,VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo,VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison)">
+            <summary>
+            Checks if this component equals the other component.
+            </summary>
+            <returns>True if the components are equal.</returns>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison.ComponentType">
+            <summary>
+            Compare components by type only.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison.PropertyPath">
+            <summary>
+            Compare properties only by property path and not by value
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison.IgnorePrefabOverrides">
+            <summary>
+            Ignore properties marked as prefab override
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison.GameObject">
+            <summary>
+            Compare the root object
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison.Components">
+            <summary>
+            Compare components
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison.Children">
+            <summary>
+            Compare children
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison.Guid">
+            <summary>
+            Match objects by using the object's GUID.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison.IncludeSceneReferences">
+            <summary>
+            Include references to other objects in the scene. 
+            Scene object references are usually ignored since they are always an override.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparer.#ctor(VisualDesignCafe.Editor.Prefabs.Prefab,VisualDesignCafe.Editor.Prefabs.Prefab,VisualDesignCafe.Editor.Prefabs.Comparing.IgnoreList,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Creates a new prefab comparer that can compare the given prefabs.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparer.AreEqual(VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison,VisualDesignCafe.Editor.Prefabs.Comparing.IgnoreList)">
+            <summary>
+            Returns true if the objects are equal to each other based on the comparison method.
+            </summary>
+        </member>
+        <member name="T:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo">
+            <summary>
+            Contains all (serialized) data of a Component.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.CacheTime">
+            <summary>
+            Total number of milliseconds it took to cache the component.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.SaveInParent">
+            <summary>
+            Should this component be saved in the parent prefab?
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.Processors">
+            <summary>
+            Custom processors for this component.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.Index">
+            <summary>
+            Component index.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.Object">
+            <summary>
+            The object that this component is attached to.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.Type">
+            <summary>
+            The type of this component.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.Serialized">
+            <summary>
+            SerializedObject for the component.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.Properties">
+            <summary>
+            List of properties in this component.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.IgnoreList">
+            <summary>
+            List of ignored components and properties.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.#ctor(System.Int32,UnityEngine.Object,VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo,VisualDesignCafe.Editor.Prefabs.Comparing.IgnoreList)">
+            <summary>
+            Creates a new class holding cached information about the component.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.Equals(VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo,VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison)">
+            <summary>
+            Checks if this component equals the other component.
+            </summary>
+            <param name="other"></param>
+            <param name="comparison"></param>
+            <param name="ignoreList"></param>
+            <returns>True if the components are equal.</returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.Compare(VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo,System.Func{VisualDesignCafe.Editor.Prefabs.Comparing.Modification,System.Boolean},VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison,System.Boolean@)">
+            <summary>
+            Compares the component to the other component.
+            </summary>
+            <param name="other"></param>
+            <param name="modificationCallback"></param>
+            <param name="comparison"></param>
+            <param name="ignoreList"></param>
+            <param name="shouldExit"></param>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentLayout._properties">
+            <summary>
+            Collection of serialized properties in the component.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentLayout.GetCachedLayout(UnityEditor.SerializedObject,VisualDesignCafe.Editor.Prefabs.Comparing.IgnoreList,System.Boolean)">
+            <summary>
+            Gets the Component Layout for the given serialized component.
+            </summary>
+            <param name="component">Serialized component or gameobject.</param>
+            <param name="createIfNull"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentLayout.#ctor(UnityEditor.SerializedObject,VisualDesignCafe.Editor.Prefabs.Comparing.IgnoreList)">
+            <summary>
+            Creates a new Component Layout for the serialized component.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentLayout.GetProperties(VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo,VisualDesignCafe.Editor.Prefabs.Comparing.IgnoreList)">
+            <summary>
+            Gets all properties in the component.
+            </summary>
+            <param name="componentInfo"></param>
+            <param name="component"></param>
+            <returns></returns>
+        </member>
+        <member name="T:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo">
+            <summary>
+            Contains all (serialized) data for a GameObject.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.CacheTime">
+            <summary>
+            The time (in ms) it took to create and cache data for this ObjectInfo.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.PrefabInfo">
+            <summary>
+            ObjectInfo class of the root GameObject in this prefab.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.Object">
+            <summary>
+            The GameObject's properties as a ComponentInfo.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.Components">
+            <summary>
+            All components on this GameObject.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.Children">
+            <summary>
+            All direct children of this GameObject.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.CachedChildren">
+            <summary>
+            All children in the hierarchy of this GameObject.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.PrefabTransform">
+            <summary>
+            The root transform of the prefab this GameObject is part of.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.IncludeNestedChildren">
+            <summary>
+            Should nested prefabs be included in this ObjectInfo's data?
+            If set to false no children will be cached in nested prefabs but the nested prefab itself will still be included.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.NestedPrefab">
+            <summary>
+            The nested prefab component on this object. Null if the object is not a nested prefab.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.RootPrefab">
+            <summary>
+            The topmost prefab in the entire hierarchy.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.Prefab">
+            <summary>
+            The prefab this object is a part of.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.Guid">
+            <summary>
+            The object GUID of this object.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.IsRootObject">
+            <summary>
+            Is this object the root of a prefab or nested prefab?
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.IsReloadedFromModelPrefab">
+            <summary>
+            Is the prefab being reloaded from the original model prefab?
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.#ctor(UnityEngine.GameObject,UnityEngine.Transform,VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo,VisualDesignCafe.Editor.Prefabs.Comparing.IgnoreList,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Creates a new serialized representation of the GameObject,
+            can be used to compare GameObjects against each other to find modifications.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.Equals(VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo,VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison)">
+            <summary>
+            Checks if this object equals the other object.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.Compare(VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo,System.Func{VisualDesignCafe.Editor.Prefabs.Comparing.Modification,System.Boolean},VisualDesignCafe.Editor.Prefabs.Comparing.PrefabComparison,System.Boolean@)">
+            <summary>
+            Compares this object to the other object and returns the differences, if there are any.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectReferenceType.Null">
+            <summary>
+            The reference value is null.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectReferenceType.Invalid">
+            <summary>
+            The reference is invalid. 
+            This can happen if the referenced object is a parent of a nested prefab 
+            and the component containing the reference property is inside the nested prefab.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectReferenceType.Relative">
+            <summary>
+            The referenced object is part of the prefab.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectReferenceType.Asset">
+            <summary>
+            The reference object is a prefab asset.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectReferenceType.ObjectInstance">
+            <summary>
+            The referenced object is an instance of a non-GameObject Object (ScriptableObject, Texture, Material, etc.).
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectReferenceType.ObjectAsset">
+            <summary>
+            The referenced object is a non-GameObject asset (ScriptableObject, Texture, Material, etc.).
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectReferenceType.SceneObject">
+            <summary>
+            The referenced object is an object in the scene outside of the prefab hierarchy.
+            </summary>
+        </member>
+        <member name="T:VisualDesignCafe.Editor.Prefabs.Comparing.PropertyInfo">
+            <summary>
+            Contains the (serialized) data of a single property
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.PropertyInfo.SubtractIgnoredFromRootOrder">
+            <summary>
+            Returns the root order, reduced by the number of ignored children in its parent's transform.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentModifier.AddComponent(UnityEngine.GameObject,UnityEngine.Component,VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo,System.Boolean@)">
+            <summary>
+            Adds a component to the destination gameobject.
+            Copies the component data from the source component.
+            </summary>
+            <param name="transformTypeChanged">True if the transform type changes to/from RectTransform.</param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentModifier.RemoveComponent(UnityEngine.Component)">
+            <summary>
+            Removes the component.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.InspectorObjectDrawer.DrawExtendedBackground">
+            <summary>
+            Draws an extended background box on the right side of the title.
+            This will cover the empty space caused by the inspector boundries.
+            </summary>
+        </member>
+        <member name="T:VisualDesignCafe.Editor.Prefabs.Overrides.ToggleObjectDrawer">
+            <summary>
+            Object Drawer with a toggle. 
+            Used for the list of modified properties in the Prefab Overrides popup.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PropertyFilter.IsMatch(System.String)">
+            <summary>
+            Does the full property path match with the filter?
+            </summary>
+            <returns>True if the path matches with the filter.</returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PropertyFilter.IsMatchSingle(System.String[],System.String)">
+            <summary>
+            Checks if the split path matches with a single value of the filter.
+            </summary>
+            <param name="source"></param>
+            <param name="filter"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverridesProcessor.PostprocessModifications(VisualDesignCafe.Editor.Prefabs.Prefab,VisualDesignCafe.Editor.Prefabs.Comparing.Modification[],VisualDesignCafe.Editor.Prefabs.Prefab)">
+            <summary>
+            Called before applying modifications to a prefab.
+            </summary>
+            <param name="prefab">The prefab that will be modified.</param>
+            <param name="modifications">The modifications that will be applied to the prefab.</param>
+            <param name="sourcePrefab">The source prefab that modifications are applied from.</param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideGuiUtility.ListOverridesAsString(VisualDesignCafe.Editor.Prefabs.PrefabOverrides)">
+            <summary>
+            Returns a string containing all overrides of the object.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.UnsupportedComponents">
+            <summary>
+            List of all components that do not support Prefab Overrides.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.UnsupportedProperties">
+            <summary>
+            List of all properties that do not support Prefab Overrides.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.UpdateAll(UnityEngine.GameObject)">
+            <summary>
+            Updates the value for every property override in the entire hierarchy.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.Update(VisualDesignCafe.Editor.Prefabs.PrefabOverrides)">
+            <summary>
+            Updates the value for every property override.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.ApplyAll(UnityEngine.GameObject)">
+            <summary>
+            Applies all prefab overrides in the GameObject and its children.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.Apply(VisualDesignCafe.Editor.Prefabs.PrefabOverrides)">
+            <summary>
+            Applies the prefab overrides.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.SetPropertyOverride(VisualDesignCafe.Editor.Prefabs.PrefabOverrides,UnityEditor.SerializedProperty,System.Boolean,System.Boolean)">
+            <summary>
+            Enables or disables the override for the property.
+            </summary>
+            <param name="includeSubProperties">Should sub properties be included? (x,y for Vector2. x,y,z for Vector3 values. etc.)</param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.SetOverrideValue(UnityEditor.SerializedProperty,UnityEditor.SerializedProperty)">
+            <summary>
+            Sets the value of the override to the value of the serialized property.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.SetOverrideValue(VisualDesignCafe.Editor.Prefabs.Overrides.PropertyOverride,UnityEditor.SerializedProperty)">
+            <summary>
+            Sets the value of the override to the value of the property.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.SetPropertyValue(UnityEditor.SerializedProperty,VisualDesignCafe.Editor.Prefabs.Overrides.PropertyOverride)">
+            <summary>
+            Sets the value of the property to the value of the override.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.CanOverrideComponent(UnityEngine.Transform,UnityEditor.SerializedObject)">
+            <summary>
+            Checks if overriding a property in the component is supported.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.CanOverrideComponent(UnityEngine.Transform,UnityEngine.Component)">
+            <summary>
+            Checks if overriding a property in the component is supported.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverrideUtility.CanOverrideProperty(UnityEngine.Transform,UnityEditor.SerializedObject,UnityEditor.SerializedProperty)">
+            <summary>
+            Checks if overriding the proprerty is supported.
+            </summary>
+            <param name="property"></param>
+            <returns>True if the property can be overridden.</returns>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Overrides.AddOverridePopup.ActiveInspector">
+            <summary>
+            The current or last active Prefab Overrides Inspector.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Overrides.AddOverridePopup._minimumDepth">
+            <summary>
+            Minimum visible depth.
+            All items with a lower depth are hidden because they did not match the search filter.
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Overrides.AddOverridePopup._selectedTab">
+            <summary>
+            Currently selected tab. (0 = Default List, 1 = Modified Properties)
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Overrides.AddOverridePopup._addAllModifiedProperties">
+            <summary>
+            Should all modified properties be added when clicking Add?
+            </summary>
+        </member>
+        <member name="F:VisualDesignCafe.Editor.Prefabs.Overrides.AddOverridePopup._cachedFilter">
+            <summary>
+            Current search filter.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.AddOverridePopup.OnItemClicked(VisualDesignCafe.Editor.Prefabs.Overrides.IDrawer)">
+            <summary>
+            Called when the user clicked on an item in the hierarchy.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.AddOverridePopup.CacheComponents(VisualDesignCafe.Editor.Prefabs.Overrides.ObjectDrawer,UnityEngine.Transform)">
+            <summary>
+            Adds all components on the object. Uses the ObjectDrawer's target as target GameObject.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.AddOverridePopup.CacheProperties(VisualDesignCafe.Editor.Prefabs.Overrides.ComponentDrawer,UnityEngine.Transform)">
+            <summary>
+            Adds all the properties in the component. Uses the ComponentDrawer's target as target Component.
+            </summary>
+            <param name="drawer"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.AddOverridePopup.CacheProperties(UnityEngine.Transform,VisualDesignCafe.Editor.Prefabs.Overrides.IDrawer,UnityEditor.SerializedProperty,VisualDesignCafe.Editor.Prefabs.Overrides.PropertyDrawer,System.Boolean@)">
+            <summary>
+            Adds the property and children to the drawer. 
+            </summary>
+            <param name="property"></param>
+            <param name="drawer"></param>
+            <param name="hasNext"></param>
+            <returns>True if the property iterator moved to the next property</returns>
+        </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverridesInspector.Target">
+            <summary>
+            The Prefab Overrides component being inspected.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverridesInspector.Refresh">
+            <summary>
+            Refreshes the cached prefab overrides in the Inspector.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverridesInspector.OnInspectorGUI">
+            <summary>
+            Called every frame by Unity to draw the GUI.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverridesInspector.OnEnable">
+            <summary>
+            Called by Unity when the inspector was created.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverridesInspector.OnDestroy">
+            <summary>
+            Called by Unity when the inspector was destroyed.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverridesInspector.DrawOverridesList">
+            <summary>
+            Draws the list of prefab overrides.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverridesInspector.HandleItemClicked(VisualDesignCafe.Editor.Prefabs.Overrides.IDrawer)">
+            <summary>
+            Gets called when any item in the hierarchy drawer was clicked.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverridesInspector.HandlePropertyClicked(UnityEditor.SerializedProperty)">
+            <summary>
+            Gets called when a property was clicked. 
+            In the Inspector a property is clicked when the user chooses "Remove" from the context menu.
+            </summary>
+            <param name="property">The property that should be removed.</param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Overrides.PrefabOverridesInspector.DrawAddOverrideButton">
+            <summary>
+            Draws the "Add Override" button and opens a popup when it is clicked.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.AssetBackup.#ctor(System.String)">
+            <summary>
+            Creates a new Prefab Asset Database at the given location.
+            </summary>
+            <param name="location">Directory for the asset backup.</param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.AssetBackup.Export(System.String,System.Action{System.Int32,System.Int32,System.String})">
+            <summary>
+            Exports a copy of all prefabs and models in the project to the backup location.
+            </summary>
+            <param name="path">Only export the assets in this folder. Pass an empty string to include all assets.</param>
+            <param name="progressCallback"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.AssetBackup.Import(System.Boolean,System.Action{System.Int32,System.Int32,System.String})">
+            <summary>
+            Imports all backup files in the backup location in the project.
+            </summary>
+            <param name="deleteStoredData"></param>
+            <param name="progressCallback"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildMenu.Help">
+            <summary>
+            Opens the documentation for 'Making a Build' in the default internet browser.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildMenu.PreprocessBuild">
+            <summary>
+            Preprocesses the project for a build.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildMenu.PostprocessBuild">
+            <summary>
+            Postprocesses the project after a build.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildMenu.ValidatePreprocessBuild">
+            <summary>
+            Checks if the project is in build mode and enables the Import prefab database option.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildMenu.ValidatePostprocessBuild">
+            <summary>
+            Checks if the project is in build mode and enables the Import prefab database option.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildPostprocessor.PostprocessBuildFull">
+            <summary>
+            Restores the prefabs by copying the backup files back into the project.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildPreprocessor.OnPreprocessBuild">
+            <summary>
+            Preprocesses the project for a build.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildPreprocessor.RemoveInternalComponentsFromAssets(System.Boolean)">
+            <summary>
+            Removes all internal components from assets in the project.
+            </summary>
+            <param name="suppressDialogs"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildPreprocessor.PreprocessBuild(System.String)">
+            <summary>
+            Preprocesses the project for a build.
+            </summary>
+            <param name="path">
+            Only processes assets in this path. 
+            Use string.Empty to process the entire project.
+            </param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildPreprocessor.HasWriteAccess">
+            <summary>
+            Checks if the application has write access to the Library folder.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildPreprocessor.PreprocessBuildFull(System.String)">
+            <summary>
+            Does a full export of the Prefab Database (makes a backup copy of every prefab and model file).
+            </summary>
+            <param name="path"></param>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildUtility.IsInBuildMode">
+            <summary>
+            Checks if the project is in build mode.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildUtility.PreprocessCloudBuild">
+            <summary>
+            Preprocesses the project for building with Unity Cloud Build. 
+            Will remove all components added by the Nested Prefabs extension from the Asset Database.
+            Does not create any backup data and does not support restoring the removed data.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildUtility.PreprocessBuild">
+            <summary>
+            Preprocesses the project for a regular build. 
+            Will remove all components added by the Nested prefab extension from the Asset Database.
+            Stores the removed components and all prefab connections on disk so the data can be restored after building.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildUtility.PostprocessBuild">
+            <summary>
+            Postprocesses the project after building. 
+            Will restore all removed components and prefab connection from disk.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildUtility.SetIsPreprocessed(System.Boolean)">
+            <summary>
+            Sets if the current project is preprocessed for a build.
+            </summary>
+            <param name="isPreprocessed"></param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Building.BuildUtility.RemovePrefabDatabase">
+            <summary>
+            Removes the prefab database from the project. 
+            Will delete all stored data/components on assets in this project.
+            </summary>
+        </member>
+    </members>
+</doc>

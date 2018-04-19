@@ -8,18 +8,45 @@ namespace Tools.Unity
     public class FileSelector : MonoBehaviour
     {
         #region Properties
-        public InputField.OnChangeEvent onValueChanged { get { return GetComponent<InputField>().onValueChanged; } }
-        public bool interactable { set { GetComponent<InputField>().interactable = value; GetComponentInChildren<Button>().interactable = value; } }
-        public string File { get { return GetComponent<InputField>().text; } set { GetComponent<InputField>().text = value; } }
-        public string DefaultDirectory{ get; set; }
         public string Message;
         public string Extension;
+        public string DefaultDirectory;
+
+        public InputField.OnChangeEvent onValueChanged
+        {
+            get
+            {
+                return m_InputField.onValueChanged;
+            }
+        }
+        public bool interactable
+        {
+            set
+            {
+                m_InputField.interactable = value;
+                m_OpenFileBrowserButton.interactable = value;
+            }
+        }
+        public string File
+        {
+            get
+            {
+                return m_InputField.text;
+            }
+            set
+            {
+                m_InputField.text = value;
+            }
+        }
+
+        [SerializeField] InputField m_InputField;
+        [SerializeField] Button m_OpenFileBrowserButton;
         #endregion
 
         #region Public Methods
         public void Open()
         {
-            string path = GetComponent<InputField>().text;
+            string path = m_InputField.text;
             if (!string.IsNullOrEmpty(path))
             {
                 FileInfo file = new FileInfo(path);
@@ -29,11 +56,12 @@ namespace Tools.Unity
             {
                 path = DefaultDirectory;
             }
-            string l_result = HBP.Module3D.DLL.QtGUI.GetExistingFileName(Extension.Split(','), Message, path);
-            if (l_result != string.Empty)
+
+            string result = HBP.Module3D.DLL.QtGUI.GetExistingFileName(Extension.Split(','), Message, path);
+            if (result != string.Empty)
             {
-                StringExtension.StandardizeToPath(ref l_result);
-                GetComponent<InputField>().text = l_result;
+                StringExtension.StandardizeToPath(ref result);
+                m_InputField.text = result;
             }
         }
         #endregion

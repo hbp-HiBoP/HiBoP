@@ -28,10 +28,10 @@ namespace HBP.UI.Experience.Protocol
                 base.Object = value;
                 gameObject.name = value.Name;
                 m_Label.text = value.Name;
-                Theme.ThemeElement themeElement = GetComponent<Theme.ThemeElement>();
+                Theme.OldThemeElement themeElement = GetComponent<Theme.OldThemeElement>();
                 if (value.Position.Column == 1)
                 {
-                    themeElement.Item = Theme.ThemeElement.ItemEnum.MainBloc;
+                    themeElement.Item = Theme.OldThemeElement.ItemEnum.MainBloc;
                     Texture2D l_texture = new Texture2D(0, 0);
                     if (l_texture.LoadPNG(value.IllustrationPath))
                     {
@@ -47,7 +47,7 @@ namespace HBP.UI.Experience.Protocol
                 }
                 else
                 {
-                    themeElement.Item = Theme.ThemeElement.ItemEnum.SecondaryBloc;
+                    themeElement.Item = Theme.OldThemeElement.ItemEnum.SecondaryBloc;
                     m_Illustration.enabled = false;
                     m_Label.enabled = true;
                 }

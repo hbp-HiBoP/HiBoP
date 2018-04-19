@@ -1,20 +1,23 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using Tools.Unity.Components;
 using System;
 
 public class DEBUG : MonoBehaviour
 {
-    public float Value;
-    public float TOTO
+    private void Update()
     {
-        get { return Value; }
-        set { Value = value; }
-    }
-    public Single titeite;
-    public Parser Parser;
+        LayoutElement layoutElement = GetComponent<LayoutElement>();
+        Debug.Log("ignoreLayout: "+layoutElement.ignoreLayout);
 
-    private void Start()
-    {
-        Parser.Parse(Value);
+        Debug.Log("minWidth: " + layoutElement.minWidth);
+        Debug.Log("minHeight: " + layoutElement.minHeight);
+
+        Debug.Log("preferredWidth: " + layoutElement.preferredWidth);
+        Debug.Log("preferredHeight: " + layoutElement.preferredHeight);
+
+        Debug.Log("flexibleWidth: " + layoutElement.flexibleWidth);
+        Debug.Log("flexibleHeight: " + layoutElement.flexibleHeight);
+
     }
 }

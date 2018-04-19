@@ -144,7 +144,7 @@ namespace HBP.UI
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }

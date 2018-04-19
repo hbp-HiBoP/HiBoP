@@ -1,21 +1,21 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 
-namespace NewTheme
+namespace NewTheme.Components
 {
     [RequireComponent(typeof(UnityEngine.UI.Selectable))]
     public class SelectableStateSetter : MonoBehaviour
     {
         #region Properties
-        UnityEngine.UI.Selectable m_Selectable;
-        bool m_lastState;
         public State Interactable;
         public State NotInteractble;
         public StateEvent OnChangeState;
+
+        UnityEngine.UI.Selectable m_Selectable;
+        bool m_lastState;
         #endregion
 
         #region Private Methods
-        void Start()
+        void OnEnable()
         {
             m_Selectable = GetComponent<UnityEngine.UI.Selectable>();
             m_lastState = m_Selectable.interactable;
@@ -27,11 +27,11 @@ namespace NewTheme
         {
             if (m_lastState != m_Selectable.interactable)
             {
-                Debug.Log("ChangeState");
                 m_lastState = m_Selectable.interactable;
                 Send();
             }
         }
+
         void Send()
         {
             if (m_Selectable.interactable)
