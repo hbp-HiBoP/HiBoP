@@ -18,7 +18,6 @@ namespace NewTheme
         #region Public Methods
         public override void Set(GameObject gameObject)
         {
-            Debug.Log(gameObject.name);
             UnityEngine.UI.HorizontalOrVerticalLayoutGroup horizontalOrVerticalLayoutGroup = gameObject.GetComponent<UnityEngine.UI.HorizontalOrVerticalLayoutGroup>();
             horizontalOrVerticalLayoutGroup.padding = Padding;
             horizontalOrVerticalLayoutGroup.spacing = Spacing;
