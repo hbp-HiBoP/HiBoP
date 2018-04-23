@@ -1,4 +1,5 @@
-﻿using UnityEngine.UI;
+﻿using UnityEngine;
+using UnityEngine.UI;
 using Tools.Unity;
 using HBP.Data.Settings;
 using System;
@@ -6,21 +7,35 @@ using Tools.CSharp;
 
 namespace HBP.UI.Settings
 {
-    public class Preferences : Window
+    public class UserPreferences : Window
     {
         #region Properties
-        InputField defaultNameProjectInputField;
+        // General
+        [SerializeField] InputField m_DefaultNameProjectInputField;
+        [SerializeField] FolderSelector m_DefaultLocationProjectFolderSelector;
+        [SerializeField] FolderSelector m_DefaultPatientDatabaseLocationFolderSelector;
+        [SerializeField] FolderSelector m_DefaultLocalizerDatabaseLocationFolderSelector;
+
+        [SerializeField] Toggle m_MultiThreadingToggle;
+
+        [SerializeField] FolderSelector m_DefaultScreenshotsLocationFolderSelector;
+
+        // Data
+        [SerializeField] Dropdown m_EEGAveragingDropdown;
+        [SerializeField] Dropdown m_EEGNormalizationDropdown;
+
+        [SerializeField] Dropdown m_EventAveragingDropdown;
+
+        [SerializeField] Toggle m_SiteNameCorrectionToggle;
+        [SerializeField] Toggle m_PreloadMeshesToggle;
+        [SerializeField] Toggle m_PreloadMRIsToggle;
+        [SerializeField] Toggle m_PreloadImplantationsToggle;
+
+        // Visualization
         InputField constantLineInputField;
         InputField LineRatioInputField;
         InputField BlocRatioInputField;
-        FolderSelector defaultLocationProjectFolderSelector;
-        FolderSelector defaultPatientDatabaseLocationFolderSelector;
-        FolderSelector defaultLocalizerDatabaseLocationFolderSelector;
-        FolderSelector defaultScreenshotsLocationFolderSelector;
-        Dropdown trialBaselineOption;
-        Dropdown eventPositionAveragingOption;
-        Dropdown valueAveragingOption;
-        Dropdown plotNameAutoCorrectionOption;
+
         Dropdown trialMatrixSmoothingOption;
         Dropdown blocFormatOption;
         Dropdown trialsSynchronizationOption;
@@ -34,15 +49,11 @@ namespace HBP.UI.Settings
         #region Public Methods
         public void Save()
         {
-            ApplicationState.GeneralSettings.DefaultProjectName = defaultNameProjectInputField.text;
-            ApplicationState.GeneralSettings.DefaultProjectLocation = defaultLocationProjectFolderSelector.Folder;
-            ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation = defaultPatientDatabaseLocationFolderSelector.Folder;
-            ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation = defaultLocalizerDatabaseLocationFolderSelector.Folder;
-            ApplicationState.GeneralSettings.DefaultScreenshotsLocation = defaultScreenshotsLocationFolderSelector.Folder;
-            ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType = (GeneralSettings.PlotNameCorrectionTypeEnum) plotNameAutoCorrectionOption.value;
+            SaveGeneral();
+
             TrialMatrixSettings trialMatrixSettings = ApplicationState.GeneralSettings.TrialMatrixSettings;
             trialMatrixSettings.Smoothing = (TrialMatrixSettings.SmoothingType) trialMatrixSmoothingOption.value;
-            trialMatrixSettings.SetBaseline((TrialMatrixSettings.NormalizationType)trialBaselineOption.value);
+            trialMatrixSettings.SetBaseline((TrialMatrixSettings.NormalizationType)m_EEGNormalizationDropdown.value);
             trialMatrixSettings.BlocFormat = (TrialMatrixSettings.BlocFormatType) blocFormatOption.value;
             trialMatrixSettings.TrialsSynchronization = (TrialMatrixSettings.TrialsSynchronizationType) trialsSynchronizationOption.value;
             trialMatrixSettings.Type = (TrialMatrixSettings.TrialMatrixType) trialMatrixTypeOption.value;
@@ -50,13 +61,13 @@ namespace HBP.UI.Settings
             ApplicationState.GeneralSettings.TrialMatrixSettings.ConstantLineHeight = int.Parse(constantLineInputField.text);
             ApplicationState.GeneralSettings.TrialMatrixSettings.LineHeightByWidth = float.Parse(LineRatioInputField.text);
             ApplicationState.GeneralSettings.TrialMatrixSettings.HeightByWidth = float.Parse(BlocRatioInputField.text);
-            ApplicationState.GeneralSettings.EventPositionAveraging = (GeneralSettings.AveragingMode) eventPositionAveragingOption.value;
-            ApplicationState.GeneralSettings.ValueAveraging = (GeneralSettings.AveragingMode) valueAveragingOption.value;
+            ApplicationState.GeneralSettings.EventPositionAveraging = (Data.Settings.UserPreferences.AveragingMode)m_EventAveragingDropdown.value;
+            ApplicationState.GeneralSettings.ValueAveraging = (Data.Settings.UserPreferences.AveragingMode)m_EEGAveragingDropdown.value;
             ApplicationState.GeneralSettings.ThemeName = m_ThemeSelectorOption.options[m_ThemeSelectorOption.value].text;
             ApplicationState.GeneralSettings.ShowCutLines = m_CutLinesOption.value == 0 ? true : false;
             ApplicationState.GeneralSettings.AutoTriggerIEEG = m_AutoTriggerOption.value == 0 ? true : false;
             ApplicationState.GeneralSettings.HideCurveWhenColumnHidden = m_HideCurveWhenColumnHiddenOption.value == 0 ? true : false;
-            ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH,true);
+            ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, Data.Settings.UserPreferences.PATH,true);
             Close();
         }
         public override void Close()
@@ -67,38 +78,68 @@ namespace HBP.UI.Settings
         #endregion
 
         #region Private Methods
+        // General
+        protected void SaveGeneral()
+        {
+            SaveProject();
+            SaveTheme();
+            SaveLocalization();
+            SaveSystem();
+            SaveExport();
+        }
+        protected void SaveProject()
+        {
+            ApplicationState.GeneralSettings.DefaultProjectName = m_DefaultNameProjectInputField.text;
+            ApplicationState.GeneralSettings.DefaultProjectLocation = m_DefaultLocationProjectFolderSelector.Folder;
+            ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation = m_DefaultPatientDatabaseLocationFolderSelector.Folder;
+            ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation = m_DefaultLocalizerDatabaseLocationFolderSelector.Folder;
+        }
+        protected void SaveTheme()
+        {
+
+        }
+        protected void SaveLocalization()
+        {
+
+        }
+        protected void SaveSystem()
+        {
+
+        }
+        protected void SaveExport()
+        {
+            ApplicationState.GeneralSettings.DefaultScreenshotsLocation = m_DefaultScreenshotsLocationFolderSelector.Folder;
+        }
+
+        // Data
+        protected void SaveData()
+        {
+            SaveEEG();
+            SaveEvent();
+            SaveAnatomy();
+        }
+        protected void SaveEEG()
+        {
+            ApplicationState.GeneralSettings.SiteNameCorrection = m_SiteNameCorrectionToggle.isOn;
+        }
+        protected void SaveEvent()
+        {
+
+        }
+        protected void SaveAnatomy()
+        {
+
+        }
         protected override void SetWindow()
         {
-            defaultNameProjectInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
+            // Project
+            m_DefaultNameProjectInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
+            m_DefaultLocationProjectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
+            m_DefaultPatientDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
+            m_DefaultLocalizerDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
 
-            defaultLocationProjectFolderSelector = transform.Find("Content").Find("Location").Find("Projects").Find("FolderSelector").GetComponent<FolderSelector>();
-            defaultPatientDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("Patients").Find("FolderSelector").GetComponent<FolderSelector>();
-            defaultLocalizerDatabaseLocationFolderSelector = transform.Find("Content").Find("Location").Find("Localizers").Find("FolderSelector").GetComponentInChildren<FolderSelector>();
-            defaultScreenshotsLocationFolderSelector = transform.Find("Content").Find("Location").Find("Screenshots").Find("FolderSelector").GetComponentInChildren<FolderSelector>();
-
-            plotNameAutoCorrectionOption = transform.Find("Content").Find("EEG").Find("PlotNameAutomaticCorrection").GetComponentInChildren<Dropdown>();
-            m_AutoTriggerOption = transform.Find("Content").Find("EEG").Find("AutoTrigger").GetComponentInChildren<Dropdown>();
-
-            trialBaselineOption = transform.Find("Content").Find("Trial Matrix").Find("Normalization").GetComponentInChildren<Dropdown>();
-            trialMatrixSmoothingOption = transform.Find("Content").Find("Trial Matrix").Find("TrialMatrixSmoothing").GetComponentInChildren<Dropdown>();
-            blocFormatOption = transform.Find("Content").Find("Trial Matrix").Find("BlocFormat").GetComponentInChildren<Dropdown>();
-            constantLineInputField = transform.Find("Content").Find("Trial Matrix").Find("ConstantLine").GetComponentInChildren<InputField>(true);
-            LineRatioInputField = transform.Find("Content").Find("Trial Matrix").Find("LineRatio").GetComponentInChildren<InputField>(true);
-            BlocRatioInputField = transform.Find("Content").Find("Trial Matrix").Find("BlocRatio").GetComponentInChildren<InputField>(true);
-            trialsSynchronizationOption = transform.Find("Content").Find("Trial Matrix").Find("TrialsSynchronization").GetComponentInChildren<Dropdown>();
-            trialMatrixTypeOption = transform.Find("Content").Find("Trial Matrix").Find("Type").GetComponentInChildren<Dropdown>();
-
-            eventPositionAveragingOption = transform.Find("Content").Find("Averaging").Find("EventPositionAveraging").GetComponentInChildren<Dropdown>();
-            valueAveragingOption = transform.Find("Content").Find("Averaging").Find("ValueAveraging").GetComponentInChildren<Dropdown>();
-            m_ThemeSelectorOption = transform.Find("Content").Find("Display").Find("Theme").GetComponentInChildren<Dropdown>();
-            m_CutLinesOption = transform.Find("Content").Find("Display").Find("Cut lines").GetComponentInChildren<Dropdown>();
-            m_HideCurveWhenColumnHiddenOption = transform.Find("Content").Find("Display").Find("Hide curve when column hidden").GetComponentInChildren<Dropdown>();
-
-            defaultNameProjectInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
-            defaultLocationProjectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
-            defaultPatientDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
-            defaultLocalizerDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
-            defaultScreenshotsLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultScreenshotsLocation;
+            // Export
+            m_DefaultScreenshotsLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultScreenshotsLocation;
 
             string[] l_typesTrialMatrix = Enum.GetNames(typeof(TrialMatrixSettings.TrialMatrixType));
             trialMatrixTypeOption.ClearOptions();
@@ -110,22 +151,22 @@ namespace HBP.UI.Settings
             trialMatrixTypeOption.RefreshShownValue();
 
             string[] l_typesBaseline = Enum.GetNames(typeof(TrialMatrixSettings.NormalizationType));
-            trialBaselineOption.ClearOptions();
+            m_EEGNormalizationDropdown.ClearOptions();
             foreach (string i_type in l_typesBaseline)
             {
-                trialBaselineOption.options.Add(new Dropdown.OptionData(i_type));
+                m_EEGNormalizationDropdown.options.Add(new Dropdown.OptionData(i_type));
             }
-            trialBaselineOption.value = (int)ApplicationState.GeneralSettings.TrialMatrixSettings.Normalization;
-            trialBaselineOption.RefreshShownValue();
+            m_EEGNormalizationDropdown.value = (int)ApplicationState.GeneralSettings.TrialMatrixSettings.Normalization;
+            m_EEGNormalizationDropdown.RefreshShownValue();
 
-            string[] l_typesPlotName = Enum.GetNames(typeof(GeneralSettings.PlotNameCorrectionTypeEnum));
-            plotNameAutoCorrectionOption.ClearOptions();
+            string[] l_typesPlotName = Enum.GetNames(typeof(Data.Settings.UserPreferences.PlotNameCorrectionTypeEnum));
+            m_SiteNameCorrectionToggle.ClearOptions();
             foreach (string i_type in l_typesPlotName)
             {
-                plotNameAutoCorrectionOption.options.Add(new Dropdown.OptionData(i_type));
+                m_SiteNameCorrectionToggle.options.Add(new Dropdown.OptionData(i_type));
             }
-            plotNameAutoCorrectionOption.value = (int)ApplicationState.GeneralSettings.PlotNameAutomaticCorrectionType;
-            plotNameAutoCorrectionOption.RefreshShownValue();
+            m_SiteNameCorrectionToggle.value = (int)ApplicationState.GeneralSettings.SiteNameCorrection;
+            m_SiteNameCorrectionToggle.RefreshShownValue();
             
             m_AutoTriggerOption.ClearOptions();
             m_AutoTriggerOption.options.Add(new Dropdown.OptionData("Yes"));
@@ -165,18 +206,18 @@ namespace HBP.UI.Settings
             trialsSynchronizationOption.value = (int)ApplicationState.GeneralSettings.TrialMatrixSettings.TrialsSynchronization;
             trialsSynchronizationOption.RefreshShownValue();
 
-            string[] l_averaging = Enum.GetNames(typeof(GeneralSettings.AveragingMode));
-            eventPositionAveragingOption.ClearOptions();
-            valueAveragingOption.ClearOptions();
+            string[] l_averaging = Enum.GetNames(typeof(Data.Settings.UserPreferences.AveragingMode));
+            m_EventAveragingDropdown.ClearOptions();
+            m_EEGAveragingDropdown.ClearOptions();
             foreach (string i_type in l_averaging)
             {
-                eventPositionAveragingOption.options.Add(new Dropdown.OptionData(i_type));
-                valueAveragingOption.options.Add(new Dropdown.OptionData(i_type));
+                m_EventAveragingDropdown.options.Add(new Dropdown.OptionData(i_type));
+                m_EEGAveragingDropdown.options.Add(new Dropdown.OptionData(i_type));
             }
-            eventPositionAveragingOption.value = (int)ApplicationState.GeneralSettings.EventPositionAveraging;
-            eventPositionAveragingOption.RefreshShownValue();
-            valueAveragingOption.value = (int)ApplicationState.GeneralSettings.ValueAveraging;
-            valueAveragingOption.RefreshShownValue();
+            m_EventAveragingDropdown.value = (int)ApplicationState.GeneralSettings.EventPositionAveraging;
+            m_EventAveragingDropdown.RefreshShownValue();
+            m_EEGAveragingDropdown.value = (int)ApplicationState.GeneralSettings.ValueAveraging;
+            m_EEGAveragingDropdown.RefreshShownValue();
 
             m_ThemeSelectorOption.ClearOptions();
             m_ThemeSelectorOption.onValueChanged.AddListener((t) =>

@@ -193,7 +193,7 @@ namespace HBP.Data.Visualization
             List<Event> secondaryEvents = new List<Event>(Bloc.SecondaryEvents.Count);
             switch (ApplicationState.GeneralSettings.EventPositionAveraging)
             {
-                case Settings.GeneralSettings.AveragingMode.Mean:
+                case Settings.UserPreferences.AveragingMode.Mean:
                     mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Object1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Object2)).ToArray().Mean()));
                     for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
                     {
@@ -205,7 +205,7 @@ namespace HBP.Data.Visualization
                         }
                     }
                     break;
-                case Settings.GeneralSettings.AveragingMode.Median:
+                case Settings.UserPreferences.AveragingMode.Median:
                     mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Object1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Object2)).ToArray().Median()));
                     for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
                     {

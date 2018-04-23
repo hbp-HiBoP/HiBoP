@@ -17,7 +17,7 @@ namespace HBP.UI.Settings
             RectTransform obj = Instantiate(preferencesPrefab).GetComponent<RectTransform>();
             obj.SetParent(GameObject.Find("Windows").transform);
             obj.localPosition = new Vector3(0, 0, 0);
-            obj.GetComponent<Preferences>().Open();
+            obj.GetComponent<UserPreferences>().Open();
         }
         public void OpenProjectPreferences()
         {

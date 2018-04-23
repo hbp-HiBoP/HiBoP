@@ -79,7 +79,7 @@ namespace HBP.Data.Localizer
         #endregion
 
         #region Public static Methods
-        public static Bloc Average(Bloc[] blocs, Settings.GeneralSettings.AveragingMode valueAveragingMode, Settings.GeneralSettings.AveragingMode eventPositionAveragingMode )
+        public static Bloc Average(Bloc[] blocs, Settings.UserPreferences.AveragingMode valueAveragingMode, Settings.UserPreferences.AveragingMode eventPositionAveragingMode )
         {
             // Initialization Dictionary.
             Bloc bloc = blocs[0];
@@ -159,16 +159,16 @@ namespace HBP.Data.Localizer
             result.UnitBySite = bloc.UnitBySite.ToDictionary(pair => pair.Key, pair => pair.Value);
             switch (eventPositionAveragingMode)
             {
-                case Settings.GeneralSettings.AveragingMode.Mean:
+                case Settings.UserPreferences.AveragingMode.Mean:
                     foreach (var item in positionsByEvent) result.PositionByEvent.Add(item.Key, UnityEngine.Mathf.RoundToInt(item.Value.Mean()));
                     break;
-                case Settings.GeneralSettings.AveragingMode.Median:
+                case Settings.UserPreferences.AveragingMode.Median:
                     foreach (var item in positionsByEvent) result.PositionByEvent.Add(item.Key, item.Value.Median());
                     break;
             }
             switch (valueAveragingMode)
             {
-                case Settings.GeneralSettings.AveragingMode.Mean:
+                case Settings.UserPreferences.AveragingMode.Mean:
                     for (int s = 0; s < siteLength; s++)
                     {
                         float[][] valbysite = valuesBySite[s];
@@ -200,7 +200,7 @@ namespace HBP.Data.Localizer
                         result.NormalizedValuesBySite.Add(sites[s], val);
                     }
                     break;
-                case Settings.GeneralSettings.AveragingMode.Median:
+                case Settings.UserPreferences.AveragingMode.Median:
                     for (int s = 0; s < siteLength; s++)
                     {
                         float[][] valbysite = valuesBySite[s];

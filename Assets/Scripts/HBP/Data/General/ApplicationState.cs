@@ -40,7 +40,7 @@ public static class ApplicationState
     /// <summary>
     /// General settings of the application.
     /// </summary>
-    public static HBP.Data.Settings.GeneralSettings GeneralSettings { get; set; }
+    public static HBP.Data.Settings.UserPreferences GeneralSettings { get; set; }
 
     /// <summary>
     /// Coroutine manager.
