@@ -32,6 +32,7 @@ namespace Tools.Unity
                     byte[] bytes = File.ReadAllBytes(path);
                     Image image = Image.FromFile(path);
                     texture = new Texture2D(image.Width, image.Height);
+                    image.Dispose();
                     return texture.LoadImage(bytes);
                 }
                 else return false;
