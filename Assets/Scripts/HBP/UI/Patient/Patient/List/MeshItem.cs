@@ -23,7 +23,7 @@ namespace HBP.UI.Anatomy
                 m_NameInputField.text = value.Name;
                 //Color normalColor = ApplicationState.GeneralSettings.Theme.Window.Content.Item.Text.Color;
                 Color normalColor = Color.white;
-                Color notInteractableColor = ApplicationState.GeneralSettings.Theme.General.NotInteractable;
+                Color notInteractableColor = ApplicationState.UserPreferences.Theme.General.NotInteractable;
                 m_Mesh.color = value.HasMesh ? normalColor : notInteractableColor;
                 m_MarsAtlas.color = value.HasMarsAtlas ? normalColor : notInteractableColor;
                 m_Transformation.color = value.HasTransformation ? normalColor : notInteractableColor;

@@ -68,11 +68,11 @@ namespace HBP.UI.Module3D
         }
         public void OnPointerEnter(PointerEventData data)
         {
-            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Texture, ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Offset, CursorMode.Auto);
+            Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.LeftRightCursor.Texture, ApplicationState.UserPreferences.Theme.General.LeftRightCursor.Offset, CursorMode.Auto);
         }
         public void OnPointerExit(PointerEventData data)
         {
-            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
+            Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.Cursor.Texture, ApplicationState.UserPreferences.Theme.General.Cursor.Offset, CursorMode.Auto);
         }
         #endregion
     }

@@ -47,14 +47,14 @@ namespace HBP.UI
         #region Private Methods
         protected override void SetWindow()
 		{
-            m_NameInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
-            m_ProjectLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
-            m_PatientsDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultPatientDatabaseLocation;
-            m_LocalizerDatabaseLocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultLocalizerDatabaseLocation;
+            m_NameInputField.text = ApplicationState.UserPreferences.General.Project.DefaultName;
+            m_ProjectLocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocation;
+            m_PatientsDatabaseLocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultPatientDatabase;
+            m_LocalizerDatabaseLocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocalizerDatabase;
         }
         protected void CreateNewProject()
         {
-            Data.Settings.ProjectSettings settings = new Data.Settings.ProjectSettings(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
+            Data.Preferences.ProjectSettings settings = new Data.Preferences.ProjectSettings(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
             ApplicationState.ProjectLoaded = new Project(settings);
             ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
             FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();

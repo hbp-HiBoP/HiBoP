@@ -47,7 +47,7 @@ namespace Tools.Unity.ResizableGrid
         /// <param name="data">Data of the pointer when the event occurs</param>
         public void OnEndDrag(PointerEventData data)
         {
-            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
+            Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.Cursor.Texture, ApplicationState.UserPreferences.Theme.General.Cursor.Offset, CursorMode.Auto);
         }
         /// <summary>
         /// Callback event when clicking on the handler
@@ -80,7 +80,7 @@ namespace Tools.Unity.ResizableGrid
         {
             if (!m_ResizableGrid.IsHandlerClicked)
             {
-                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
+                Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.Cursor.Texture, ApplicationState.UserPreferences.Theme.General.Cursor.Offset, CursorMode.Auto);
             }
         }
         #endregion

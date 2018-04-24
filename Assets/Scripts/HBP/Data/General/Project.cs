@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using HBP.Data.Settings;
+using HBP.Data.Preferences;
 using HBP.Data.Visualization;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;

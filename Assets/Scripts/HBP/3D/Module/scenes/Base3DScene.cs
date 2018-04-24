@@ -628,7 +628,7 @@ namespace HBP.Module3D
                 UpdateGeometry();
             }
 
-            if (m_GeneratorNeedsUpdate && !IsLatencyModeEnabled && ApplicationState.GeneralSettings.AutoTriggerIEEG)
+            if (m_GeneratorNeedsUpdate && !IsLatencyModeEnabled && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
             {
                 UpdateGenerator();
             }

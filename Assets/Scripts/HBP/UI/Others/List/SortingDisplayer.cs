@@ -25,13 +25,13 @@ public class SortingDisplayer : MonoBehaviour
                     break;
                 case SortingType.Ascending:
                     m_AscendingColor = m_AscendingImage.color;
-                    m_AscendingImage.color = ApplicationState.GeneralSettings.Theme.Window.Content.Toggle.Checkmark;
+                    m_AscendingImage.color = ApplicationState.UserPreferences.Theme.Window.Content.Toggle.Checkmark;
                     m_DescendingImage.color = m_DescendingColor;
                     break;
                 case SortingType.Descending:
                     m_DescendingColor = m_DescendingImage.color;
                     m_AscendingImage.color = m_AscendingColor;
-                    m_DescendingImage.color = ApplicationState.GeneralSettings.Theme.Window.Content.Toggle.Checkmark;
+                    m_DescendingImage.color = ApplicationState.UserPreferences.Theme.Window.Content.Toggle.Checkmark;
                     break;
             }
         }

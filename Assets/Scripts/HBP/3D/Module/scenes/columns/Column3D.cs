@@ -821,7 +821,7 @@ namespace HBP.Module3D
             {
                 if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
                 {
-                    DLLGUIBrainCutTextures[cut.ID].CopyAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, ApplicationState.GeneralSettings.ShowCutLines, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
+                    DLLGUIBrainCutTextures[cut.ID].CopyAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
                     DLLGUIBrainCutTextures[cut.ID].UpdateTexture2D(GUIBrainCutTextures[cut.ID]);
                 }
             }

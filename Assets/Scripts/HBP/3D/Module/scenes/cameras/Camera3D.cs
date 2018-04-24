@@ -219,20 +219,20 @@ namespace HBP.Module3D
             {
                 if (m_AssociatedView.IsSelected)
                 {
-                    Camera.backgroundColor = ApplicationState.GeneralSettings.Theme.Visualization.View.Clicked;
+                    Camera.backgroundColor = ApplicationState.UserPreferences.Theme.Visualization.View.Clicked;
                 }
                 else if (m_AssociatedColumn.IsSelected)
                 {
-                    Camera.backgroundColor = ApplicationState.GeneralSettings.Theme.Visualization.View.Selected;
+                    Camera.backgroundColor = ApplicationState.UserPreferences.Theme.Visualization.View.Selected;
                 }
                 else
                 {
-                    Camera.backgroundColor = ApplicationState.GeneralSettings.Theme.Visualization.View.Normal;
+                    Camera.backgroundColor = ApplicationState.UserPreferences.Theme.Visualization.View.Normal;
                 }
             }
             else
             {
-                Camera.backgroundColor = ApplicationState.GeneralSettings.Theme.Visualization.View.Normal;
+                Camera.backgroundColor = ApplicationState.UserPreferences.Theme.Visualization.View.Normal;
             }
             AutomaticCameraRotation();
         }

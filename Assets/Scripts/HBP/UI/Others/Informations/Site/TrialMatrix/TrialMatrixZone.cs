@@ -64,9 +64,9 @@ namespace HBP.UI.Informations
         {
             if (m_TrialCanBeSelect)
             {
-                switch (ApplicationState.GeneralSettings.TrialMatrixSettings.TrialsSynchronization)
+                switch (ApplicationState.UserPreferences.TrialMatrixSettings.TrialsSynchronization)
                 {
-                    case Data.Settings.TrialMatrixSettings.TrialsSynchronizationType.Disable:
+                    case Data.Preferences.TrialMatrixSettings.TrialsSynchronizationType.Disable:
                         foreach (var trialMatrix in m_TrialMatrixList.TrialMatrix)
                         {
                             foreach (var line in trialMatrix.Lines)
@@ -83,7 +83,7 @@ namespace HBP.UI.Informations
                         }
                         @out:
                         break;
-                    case Data.Settings.TrialMatrixSettings.TrialsSynchronizationType.Enable:
+                    case Data.Preferences.TrialMatrixSettings.TrialsSynchronizationType.Enable:
                         foreach (TrialMatrix.TrialMatrix trial in m_TrialMatrixList.TrialMatrix)
                         {
                             trial.SelectLines(lines, bloc.Data.ProtocolBloc, additive);

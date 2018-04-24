@@ -54,7 +54,7 @@ namespace HBP.UI
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
             m_LocationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(DisplayProjects(value)));
-            m_LocationFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
+            m_LocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocation;
         }
         IEnumerator DisplayProjects(string path)
         {

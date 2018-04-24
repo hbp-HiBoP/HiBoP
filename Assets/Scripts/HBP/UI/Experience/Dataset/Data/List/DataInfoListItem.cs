@@ -27,7 +27,7 @@ namespace HBP.UI.Experience.Dataset
                 m_NameText.text = value.Name;
                 m_PatientText.text = value.Patient.Name;
                 m_ErrorText.text = Object.GetErrorsMessage();
-                m_StateImage.color = value.isOk ? ApplicationState.GeneralSettings.Theme.General.OK : ApplicationState.GeneralSettings.Theme.General.Error;
+                m_StateImage.color = value.isOk ? ApplicationState.UserPreferences.Theme.General.OK : ApplicationState.UserPreferences.Theme.General.Error;
             }
         }
         #endregion

@@ -1,4 +1,4 @@
-﻿namespace HBP.Data.Settings
+﻿namespace HBP.Data.Preferences
 {
     public class TrialMatrixSettings
     {
@@ -76,7 +76,7 @@
                     ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Baseline settings changed", "You need to reload the open visualizations in order to apply the changes made to the baseline normalization.\n\nWould you like to reload ?", () =>
                     {
                         Normalization = type;
-                        Tools.Unity.ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, UserPreferences.PATH, true);
+                        Tools.Unity.ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, UserPreferences.PATH, true);
                         ApplicationState.Module3D.ReloadScenes();
                     });
                 }

@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using HBP.Data.Settings;
+using HBP.Data.Preferences;
 using System.Linq;
 
 namespace HBP.Data.General

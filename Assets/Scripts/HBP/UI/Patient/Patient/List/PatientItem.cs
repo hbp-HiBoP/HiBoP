@@ -48,12 +48,12 @@ namespace HBP.UI.Anatomy
                 m_MeshText.text = nbMesh.ToString();
                 if (nbMesh == 0)
                 {
-                    m_MeshText.color = ApplicationState.GeneralSettings.Theme.General.Error;
+                    m_MeshText.color = ApplicationState.UserPreferences.Theme.General.Error;
                     m_MeshButton.interactable = false;
                 }
                 else
                 {
-                    m_MeshText.color = ApplicationState.GeneralSettings.Theme.Window.Content.Text.Color;
+                    m_MeshText.color = ApplicationState.UserPreferences.Theme.Window.Content.Text.Color;
                     m_MeshButton.interactable = true;
                 }
 
@@ -61,12 +61,12 @@ namespace HBP.UI.Anatomy
                 m_MRIText.text = nbMRI.ToString();
                 if (nbMRI == 0)
                 {
-                    m_MRIText.color = ApplicationState.GeneralSettings.Theme.General.Error;
+                    m_MRIText.color = ApplicationState.UserPreferences.Theme.General.Error;
                     m_MRIButton.interactable = false;
                 }
                 else
                 {
-                    m_MRIText.color = ApplicationState.GeneralSettings.Theme.Window.Content.Text.Color;
+                    m_MRIText.color = ApplicationState.UserPreferences.Theme.Window.Content.Text.Color;
                     m_MRIButton.interactable = true;
                 }
 
@@ -74,12 +74,12 @@ namespace HBP.UI.Anatomy
                 m_ImplantationText.text = nbImplantation.ToString();
                 if (nbImplantation == 0)
                 {
-                    m_ImplantationText.color = ApplicationState.GeneralSettings.Theme.General.Error;
+                    m_ImplantationText.color = ApplicationState.UserPreferences.Theme.General.Error;
                     m_ImplantationButton.interactable = false;
                 }
                 else
                 {
-                    m_ImplantationText.color = ApplicationState.GeneralSettings.Theme.Window.Content.Text.Color;
+                    m_ImplantationText.color = ApplicationState.UserPreferences.Theme.Window.Content.Text.Color;
                     m_ImplantationButton.interactable = true;
                 }
                 
@@ -87,12 +87,12 @@ namespace HBP.UI.Anatomy
                 m_ConnectivityText.text = nbConnectivity.ToString();
                 if (nbConnectivity == 0)
                 {
-                    m_ConnectivityText.color = ApplicationState.GeneralSettings.Theme.General.Error;
+                    m_ConnectivityText.color = ApplicationState.UserPreferences.Theme.General.Error;
                     m_ConnectivityButton.interactable = false;
                 }
                 else
                 {
-                    m_ConnectivityText.color = ApplicationState.GeneralSettings.Theme.Window.Content.Text.Color;
+                    m_ConnectivityText.color = ApplicationState.UserPreferences.Theme.Window.Content.Text.Color;
                     m_ConnectivityButton.interactable = true;
                 }
 

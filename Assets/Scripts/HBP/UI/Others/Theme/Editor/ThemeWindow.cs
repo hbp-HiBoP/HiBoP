@@ -46,7 +46,7 @@ namespace HBP.UI.Theme
 
         public static void SetTheme(Theme theme)
         {
-            if(Application.isPlaying) ApplicationState.GeneralSettings.ThemeName = theme.name;
+            if(Application.isPlaying) ApplicationState.UserPreferences.ThemeName = theme.name;
             Theme.UpdateThemeElements(theme);
         }
 

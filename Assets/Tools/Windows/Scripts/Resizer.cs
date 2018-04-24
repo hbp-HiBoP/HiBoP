@@ -25,29 +25,29 @@ namespace Tools.Unity.Window
 		#region Public Methods
 		public void DisplayLeftRightCursor()
 		{
-            Theme.CursorTheme theme = ApplicationState.GeneralSettings.Theme.General.LeftRightCursor;
+            Theme.CursorTheme theme = ApplicationState.UserPreferences.Theme.General.LeftRightCursor;
             if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(theme.Texture, theme.Offset, CursorMode.Auto);
 		}	
 		public void DisplayBottomTopCursor()
 		{
-            Theme.CursorTheme theme = ApplicationState.GeneralSettings.Theme.General.TopBottomCursor;
+            Theme.CursorTheme theme = ApplicationState.UserPreferences.Theme.General.TopBottomCursor;
             if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(theme.Texture, theme.Offset, CursorMode.Auto);
         }
         public void DisplayBottomLeftToTopRightCursor()
 		{
-            Theme.CursorTheme theme = ApplicationState.GeneralSettings.Theme.General.BottomLeftTopRightCursor;
+            Theme.CursorTheme theme = ApplicationState.UserPreferences.Theme.General.BottomLeftTopRightCursor;
             if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(theme.Texture, theme.Offset, CursorMode.Auto);
         }
         public void DisplayTopLeftToBottomRightCursor()
 		{
-            Theme.CursorTheme theme = ApplicationState.GeneralSettings.Theme.General.TopLeftBottomRightCursor;
+            Theme.CursorTheme theme = ApplicationState.UserPreferences.Theme.General.TopLeftBottomRightCursor;
             if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(theme.Texture, theme.Offset, CursorMode.Auto);
         }
         public void DisplayNormalCursor()
 		{
             if(!Input.GetMouseButton(0))
             {
-                Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
+                Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.Cursor.Texture, ApplicationState.UserPreferences.Theme.General.Cursor.Offset, CursorMode.Auto);
             }   
         }			
 

@@ -60,10 +60,10 @@ namespace HBP
                 else
                 {
                     Task projectLoadingTask;
-                    yield return this.StartCoroutineAsync(FindObjectOfType<ProjectLoaderSaver>().c_Load(new Data.General.ProjectInfo(ApplicationState.GeneralSettings.DefaultProjectLocation + Path.DirectorySeparatorChar + arguments[0])), out projectLoadingTask);
+                    yield return this.StartCoroutineAsync(FindObjectOfType<ProjectLoaderSaver>().c_Load(new Data.General.ProjectInfo(ApplicationState.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0])), out projectLoadingTask);
                     if (projectLoadingTask.State == TaskState.Error)
                     {
-                        ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "No project named <color=red>" + arguments[0] + "</color> could be found in the default project directory (" + ApplicationState.GeneralSettings.DefaultProjectLocation + ").\n\nPlease verify the project name or your default project directory.");
+                        ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Couldn't open project", "No project named <color=red>" + arguments[0] + "</color> could be found in the default project directory (" + ApplicationState.UserPreferences.General.Project.DefaultLocation + ").\n\nPlease verify the project name or your default project directory.");
                     }
                 }
             }

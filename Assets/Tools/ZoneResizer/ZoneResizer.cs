@@ -189,7 +189,7 @@ public class ZoneResizer : MonoBehaviour
     {
         if(!data.dragging)
         {
-            Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
+            Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.Cursor.Texture, ApplicationState.UserPreferences.Theme.General.Cursor.Offset, CursorMode.Auto);
         }
     }
     void OnDragDelegate(PointerEventData data)
@@ -205,20 +205,20 @@ public class ZoneResizer : MonoBehaviour
     }
     void OnEndDragDelegate(PointerEventData data)
     {
-        Cursor.SetCursor(ApplicationState.GeneralSettings.Theme.General.Cursor.Texture, ApplicationState.GeneralSettings.Theme.General.Cursor.Offset, CursorMode.Auto);
+        Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.Cursor.Texture, ApplicationState.UserPreferences.Theme.General.Cursor.Offset, CursorMode.Auto);
     }
     void SetCursor()
     {
         switch(Direction)
         {
             case DirectionType.BottomToTop:
-                cursor = ApplicationState.GeneralSettings.Theme.General.TopBottomCursor.Texture;
-                hotSpot = ApplicationState.GeneralSettings.Theme.General.TopBottomCursor.Offset;
+                cursor = ApplicationState.UserPreferences.Theme.General.TopBottomCursor.Texture;
+                hotSpot = ApplicationState.UserPreferences.Theme.General.TopBottomCursor.Offset;
                 break;
 
             case DirectionType.LeftToRight:
-                cursor = ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Texture;
-                hotSpot = ApplicationState.GeneralSettings.Theme.General.LeftRightCursor.Offset;
+                cursor = ApplicationState.UserPreferences.Theme.General.LeftRightCursor.Texture;
+                hotSpot = ApplicationState.UserPreferences.Theme.General.LeftRightCursor.Offset;
                 break;
         }
     }

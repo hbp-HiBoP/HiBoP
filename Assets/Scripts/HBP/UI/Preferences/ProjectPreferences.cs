@@ -2,7 +2,7 @@
 using Tools.Unity;
 using System;
 
-namespace HBP.UI.Settings
+namespace HBP.UI.Preferences
 {
     public class ProjectPreferences : Window
     {

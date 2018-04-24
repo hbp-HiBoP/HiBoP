@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace HBP.UI.Settings
+namespace HBP.UI.Preferences
 {
     public class EditMenu : MonoBehaviour
     {

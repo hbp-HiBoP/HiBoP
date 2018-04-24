@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using HBP.Data.Settings;
+using HBP.Data.Preferences;
 using Tools.Unity;
 
 public class ApplicationManager : MonoBehaviour
@@ -8,8 +8,8 @@ public class ApplicationManager : MonoBehaviour
     {
         ApplicationState.ProjectLoaded = null;
         ApplicationState.ProjectLoadedLocation = string.Empty;
-        ApplicationState.GeneralSettings = ClassLoaderSaver.LoadFromJson<UserPreferences>(UserPreferences.PATH);
-        ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, UserPreferences.PATH, true);
+        ApplicationState.UserPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(UserPreferences.PATH);
+        ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, UserPreferences.PATH, true);
         ApplicationState.CoroutineManager = FindObjectOfType<CoroutineManager>();
         ApplicationState.Module3D = FindObjectOfType<HBP.Module3D.HBP3DModule>();
         ApplicationState.DLLDebugManager = FindObjectOfType<HBP.Module3D.DLL.DLLDebugManager>();

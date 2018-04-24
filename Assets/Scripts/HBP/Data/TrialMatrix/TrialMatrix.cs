@@ -23,25 +23,21 @@ namespace HBP.Data.TrialMatrix
             // Genreate blocs.
             UnityEngine.Profiling.Profiler.BeginSample("Generate blocs");
             Bloc[] trialMatrixBlocs;
-            switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Type)
+            if (ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
             {
-                case Settings.TrialMatrixSettings.TrialMatrixType.Simplified:
-                    List<Bloc> blocs = new List<Bloc>();
-                    foreach (var bloc in protocol.Blocs)
+                trialMatrixBlocs = (from bloc in protocol.Blocs select new Bloc(bloc, blocsByProtocolBloc[bloc], site)).ToArray();
+            }
+            else
+            {
+                List<Bloc> blocs = new List<Bloc>();
+                foreach (var bloc in protocol.Blocs)
+                {
+                    if (scene.Visualization.Columns.Exists((c) => c.Bloc == bloc))
                     {
-                       if(scene.Visualization.Columns.Exists((c) => c.Bloc == bloc))
-                       {
-                            blocs.Add(new Bloc(bloc,blocsByProtocolBloc[bloc],site));
-                       }
+                        blocs.Add(new Bloc(bloc, blocsByProtocolBloc[bloc], site));
                     }
-                    trialMatrixBlocs = blocs.ToArray();
-                    break;
-                case Settings.TrialMatrixSettings.TrialMatrixType.Complete:
-                    trialMatrixBlocs = (from bloc in protocol.Blocs select new Bloc(bloc, blocsByProtocolBloc[bloc], site)).ToArray();
-                    break;
-                default:
-                    trialMatrixBlocs = new Bloc[0];
-                    break;
+                }
+                trialMatrixBlocs = blocs.ToArray();
             }
             UnityEngine.Profiling.Profiler.EndSample();
 

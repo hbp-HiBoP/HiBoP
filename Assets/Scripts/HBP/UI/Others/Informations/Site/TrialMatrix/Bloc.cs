@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using HBP.Data.Settings;
+using HBP.Data.Preferences;
 using System.Collections.Generic;
 using data = HBP.Data.TrialMatrix;
 using System.Collections.ObjectModel;
@@ -237,16 +237,16 @@ namespace HBP.UI.TrialMatrix
         }
         void SetSize()
         {
-            switch (ApplicationState.GeneralSettings.TrialMatrixSettings.BlocFormat)
+            switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocFormat)
             {
-                case TrialMatrixSettings.BlocFormatType.ConstantLine:
-                    m_LayoutElement.preferredHeight = ApplicationState.GeneralSettings.TrialMatrixSettings.ConstantLineHeight * m_Data.Trials.Length;
+                case TrialMatrixPreferences.BlocFormatType.HeightLine:
+                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.LineHeight * m_Data.Trials.Length;
                     break;
-                case TrialMatrixSettings.BlocFormatType.LineRatio:
-                    m_LayoutElement.preferredHeight = ApplicationState.GeneralSettings.TrialMatrixSettings.LineHeightByWidth * m_RectTransform.rect.width * m_Data.Trials.Length;
+                case TrialMatrixPreferences.BlocFormatType.LineRatio:
+                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.LineRatio * m_RectTransform.rect.width * m_Data.Trials.Length;
                     break;
-                case TrialMatrixSettings.BlocFormatType.BlocRatio:
-                    m_LayoutElement.preferredHeight = ApplicationState.GeneralSettings.TrialMatrixSettings.HeightByWidth * m_RectTransform.rect.width;
+                case TrialMatrixPreferences.BlocFormatType.BlocRatio:
+                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
                     break;
             }
         }
@@ -254,10 +254,9 @@ namespace HBP.UI.TrialMatrix
         {
             float[][] lines = ExtractDataFromLines(m_Data.Trials);
 
-            switch (ApplicationState.GeneralSettings.TrialMatrixSettings.Smoothing)
+            if(ApplicationState.UserPreferences.Visualization.TrialMatrix.SmoothLine)
             {
-                case TrialMatrixSettings.SmoothingType.None: break;
-                case TrialMatrixSettings.SmoothingType.Line: lines = SmoothLines(lines, 5); break;
+                lines = SmoothLines(lines, ApplicationState.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues);
             }
 
             Texture2D texture = GenerateTexture(lines, m_Limits, m_ColorMap);

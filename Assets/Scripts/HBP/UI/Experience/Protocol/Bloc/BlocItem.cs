@@ -51,7 +51,7 @@ namespace HBP.UI.Experience.Protocol
                     m_Illustration.enabled = false;
                     m_Label.enabled = true;
                 }
-                themeElement.Set(ApplicationState.GeneralSettings.Theme);
+                themeElement.Set(ApplicationState.UserPreferences.Theme);
             }
         }
         #endregion

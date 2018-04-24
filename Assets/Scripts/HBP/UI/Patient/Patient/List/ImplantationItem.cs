@@ -23,7 +23,7 @@ namespace HBP.UI.Anatomy
                 base.Object = value;
                 m_NameInputField.text = value.Name;
                 Color normalColor = Color.white;
-                Color notInteractableColor = ApplicationState.GeneralSettings.Theme.General.NotInteractable;
+                Color notInteractableColor = ApplicationState.UserPreferences.Theme.General.NotInteractable;
                 m_ImplantationIcon.color = value.HasImplantation ? normalColor : notInteractableColor;
                 m_MarsAtlasIcon.color = value.HasMarsAtlas ? normalColor : notInteractableColor;
             }
