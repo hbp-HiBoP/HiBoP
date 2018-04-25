@@ -31,6 +31,12 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private GameObject m_IEEGOutdated;
+        /// <summary>
+        /// GameObject to hide a minimized column
+        /// </summary>
+        [SerializeField]
+        private GameObject m_MinimizedGameObject;
+        private bool m_RectTransformChanged;
         #endregion
 
         #region Private Methods
@@ -43,6 +49,21 @@ namespace HBP.UI.Module3D
             if (m_LoadingCircle)
             {
                 m_LoadingCircle.Close();
+            }
+        }
+        private void Update()
+        {
+            if (m_RectTransformChanged)
+            {
+                if (GetComponent<RectTransform>().rect.width < 5 * m_ResizableGrid.MinimumViewWidth)
+                {
+                    m_MinimizedGameObject.SetActive(true);
+                }
+                else
+                {
+                    m_MinimizedGameObject.SetActive(false);
+                }
+                m_RectTransformChanged = false;
             }
         }
         #endregion
@@ -147,6 +168,10 @@ namespace HBP.UI.Module3D
             {
                 m_IEEGOutdated.SetActive(state);
             });
+        }
+        public void OnRectTransformDimensionsChange()
+        {
+            m_RectTransformChanged = true;
         }
         #endregion
     }

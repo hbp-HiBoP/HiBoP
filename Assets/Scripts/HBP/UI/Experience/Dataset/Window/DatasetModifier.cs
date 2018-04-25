@@ -107,7 +107,7 @@ namespace HBP.UI.Experience.Dataset
             m_SaveButton.interactable = interactable;
             m_CreateButton.interactable = interactable;
             m_RemoveButton.interactable = interactable;
-            m_DataInfoList.interactable = interactable;
+            m_DataInfoList.Interactable = interactable;
         }
         #endregion
     }

@@ -972,10 +972,11 @@ namespace HBP.Module3D
         /// Set the mesh type to be displayed in the scene
         /// </summary>
         /// <param name="meshTypeToDisplay"></param>
-        public void UpdateMeshToDisplay(int meshID)
+        public void UpdateMeshToDisplay(string meshName)
         {
             if (!SceneInformation.IsGeometryUpToDate) return;
 
+            int meshID = m_ColumnManager.Meshes.FindIndex(m => m.Name == meshName);
             if (meshID == -1) meshID = 0;
 
             m_ColumnManager.SelectedMeshID = meshID;
@@ -997,10 +998,11 @@ namespace HBP.Module3D
         /// Set the MRI to be used
         /// </summary>
         /// <param name="mriID"></param>
-        public void UpdateMRIToDisplay(int mriID)
+        public void UpdateMRIToDisplay(string mriName)
         {
             if (!SceneInformation.IsGeometryUpToDate) return;
 
+            int mriID = m_ColumnManager.MRIs.FindIndex(m => m.Name == mriName);
             if (mriID == -1) mriID = 0;
 
             m_ColumnManager.SelectedMRIID = mriID;
@@ -1016,7 +1018,7 @@ namespace HBP.Module3D
         /// Update the gameobjects of the sites
         /// </summary>
         /// <param name="implantationID"></param>
-        public void UpdateSites(int implantationID)
+        public void UpdateSites(string implantationName)
         {
             // destroy previous electrodes gameobjects
             for (int ii = 0; ii < m_ColumnManager.SitesList.Count; ++ii)
@@ -1040,6 +1042,7 @@ namespace HBP.Module3D
             m_ColumnManager.SitesPatientParent.Clear();
             m_ColumnManager.SitesElectrodesParent.Clear();
 
+            int implantationID = m_ColumnManager.Implantations.FindIndex(i => i.Name == implantationName);
             m_ColumnManager.SelectedImplantationID = implantationID > 0 ? implantationID : 0;
             DLL.PatientElectrodesList electrodesList = m_ColumnManager.SelectedImplantation.PatientElectrodesList;
 
@@ -1095,6 +1098,7 @@ namespace HBP.Module3D
                             site.State.IsOutOfROI = true;
                             site.State.IsMarked = false;
                             site.State.IsMasked = false;
+                            site.State.IsSuspicious = false;
                             site.IsActive = true;
 
                             m_ColumnManager.SitesList.Add(siteGameObject);
@@ -1406,6 +1410,7 @@ namespace HBP.Module3D
             LoadConfiguration();
             ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
             SceneInformation.IsSceneInitialized = true;
+            this.StartCoroutineAsync(c_LoadMissingAnatomy());
         }
         /// <summary>
         /// Load the visualization configuration from the loaded visualization
@@ -1425,9 +1430,9 @@ namespace HBP.Module3D
             m_ColumnManager.MRICalMaxFactor = Visualization.Configuration.MRICalMaxFactor;
             CameraType = Visualization.Configuration.CameraType;
 
-            if (!string.IsNullOrEmpty(Visualization.Configuration.MeshName)) UpdateMeshToDisplay(m_ColumnManager.Meshes.FindIndex((m) => m.Name == Visualization.Configuration.MeshName));
-            if (!string.IsNullOrEmpty(Visualization.Configuration.MRIName)) UpdateMRIToDisplay(m_ColumnManager.MRIs.FindIndex((m) => m.Name == Visualization.Configuration.MRIName));
-            if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) UpdateSites(m_ColumnManager.Implantations.FindIndex((i) => i.Name == Visualization.Configuration.ImplantationName));
+            if (!string.IsNullOrEmpty(Visualization.Configuration.MeshName)) UpdateMeshToDisplay(Visualization.Configuration.MeshName);
+            if (!string.IsNullOrEmpty(Visualization.Configuration.MRIName)) UpdateMRIToDisplay(Visualization.Configuration.MRIName);
+            if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) UpdateSites(Visualization.Configuration.ImplantationName);
             
             foreach (Data.Visualization.Cut cut in Visualization.Configuration.Cuts)
             {
@@ -1521,14 +1526,14 @@ namespace HBP.Module3D
             switch (Type)
             {
                 case SceneType.SinglePatient:
-                    UpdateMeshToDisplay(m_ColumnManager.Meshes.FindIndex((m) => m.Name == "Grey matter"));
-                    UpdateMRIToDisplay(m_ColumnManager.MRIs.FindIndex((m) => m.Name == "Preimplantation"));
-                    UpdateSites(m_ColumnManager.Implantations.FindIndex((i) => i.Name == "Patient"));
+                    UpdateMeshToDisplay("Grey matter");
+                    UpdateMRIToDisplay("Preimplantation");
+                    UpdateSites("Patient");
                     break;
                 case SceneType.MultiPatients:
-                    UpdateMeshToDisplay(m_ColumnManager.Meshes.FindIndex((m) => m.Name == "MNI Grey matter"));
-                    UpdateMRIToDisplay(m_ColumnManager.MRIs.FindIndex((m) => m.Name == "MNI"));
-                    UpdateSites(m_ColumnManager.Implantations.FindIndex((i) => i.Name == "MNI"));
+                    UpdateMeshToDisplay("MNI Grey matter");
+                    UpdateMRIToDisplay("MNI");
+                    UpdateSites("MNI");
                     break;
                 default:
                     break;
@@ -1886,6 +1891,24 @@ namespace HBP.Module3D
                             }
                         }
                         break;
+                    case SiteFilter.Suspicious:
+                        {
+                            foreach (Site site in column.Sites)
+                            {
+                                if (site.State.IsSuspicious)
+                                    sites.Add(site);
+                            }
+                        }
+                        break;
+                    case SiteFilter.Unsuspicious:
+                        {
+                            foreach (Site site in column.Sites)
+                            {
+                                if (!site.State.IsSuspicious)
+                                    sites.Add(site);
+                            }
+                        }
+                        break;
                     case SiteFilter.All:
                         {
                             foreach (Site site in column.Sites)
@@ -1971,6 +1994,12 @@ namespace HBP.Module3D
                     case SiteAction.Unmark:
                         site.State.IsMarked = false;
                         break;
+                    case SiteAction.Suspect:
+                        site.State.IsSuspicious = true;
+                        break;
+                    case SiteAction.Unsuspect:
+                        site.State.IsSuspicious = false;
+                        break;
                     default:
                         break;
                 }
@@ -2010,6 +2039,12 @@ namespace HBP.Module3D
                         break;
                     case SiteAction.Unmark:
                         site.State.IsMarked = false;
+                        break;
+                    case SiteAction.Suspect:
+                        site.State.IsSuspicious = true;
+                        break;
+                    case SiteAction.Unsuspect:
+                        site.State.IsSuspicious = false;
                         break;
                 }
                 ResetIEEG(false);
@@ -2470,17 +2505,26 @@ namespace HBP.Module3D
                 {
 
                     MRI3D mri3D = new MRI3D(mri);
-                    if (mri3D.IsLoaded)
+                    if (ApplicationState.GeneralSettings.PreloadAnatomy)
                     {
-                        m_ColumnManager.MRIs.Add(mri3D);
+                        if (mri3D.IsLoaded)
+                        {
+                            m_ColumnManager.MRIs.Add(mri3D);
+                        }
+                        else
+                        {
+                            throw new CanNotLoadNIIFile(mri.File);
+                        }
                     }
                     else
                     {
-                        throw new CanNotLoadNIIFile(mri.File);
+                        string name = !string.IsNullOrEmpty(Visualization.Configuration.MeshName) ? Visualization.Configuration.MeshName : Type == SceneType.SinglePatient ? "Preimplantation" : "MNI";
+                        if (mri3D.Name == name) mri3D.Load();
+                        m_ColumnManager.MRIs.Add(mri3D);
                     }
                 }
             }
-            catch
+            catch (Exception e)
             {
                 outPut(new CanNotLoadNIIFile(mri.File));
                 yield break;
@@ -2532,7 +2576,7 @@ namespace HBP.Module3D
 
             SceneInformation.SitesLoaded = true;
             yield return Ninja.JumpToUnity;
-            UpdateSites(0);
+            UpdateSites("");
             yield return Ninja.JumpBack;
         }
         /// <summary>
@@ -2552,6 +2596,22 @@ namespace HBP.Module3D
             {
                 outPut(new CanNotLoadMNI());
                 yield break;
+            }
+        }
+        /// <summary>
+        /// Load missing anatomy if not preloaded
+        /// </summary>
+        /// <returns></returns>
+        protected IEnumerator c_LoadMissingAnatomy()
+        {
+            yield return Ninja.JumpBack;
+            foreach (var mesh in m_ColumnManager.Meshes)
+            {
+                if (!mesh.IsLoaded) mesh.Load();
+            }
+            foreach (var mri in m_ColumnManager.MRIs)
+            {
+                if (!mri.IsLoaded) mri.Load();
             }
         }
         /// <summary>

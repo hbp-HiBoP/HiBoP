@@ -50,10 +50,14 @@ namespace HBP.UI.Module3D
                     {
                         if (!scene.SceneInformation.IsGeneratorUpToDate) return;
 
-                        Data.Visualization.Icon icon = m_Icons.DefaultIfEmpty(null).FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
+                        Data.Visualization.Icon icon = m_Icons.FirstOrDefault((i) => i.StartPosition <= col.CurrentTimeLineID && i.EndPosition >= col.CurrentTimeLineID);
+                        if (icon == null)
+                        {
+                            IsActive = false;
+                        }
                         if (icon != m_CurrentIcon)
                         {
-                            if (icon == null || !icon.Usable)
+                            if (!icon.Usable)
                             {
                                 IsActive = false;
                                 m_Image.sprite = m_DefaultSprite;

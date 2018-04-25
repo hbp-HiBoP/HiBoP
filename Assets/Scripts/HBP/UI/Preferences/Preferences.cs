@@ -29,6 +29,7 @@ namespace HBP.UI.Settings
         Dropdown m_ThemeSelectorOption;
         Dropdown m_CutLinesOption;
         Dropdown m_HideCurveWhenColumnHiddenOption;
+        Dropdown m_PreloadAnatomy;
         #endregion
 
         #region Public Methods
@@ -56,6 +57,7 @@ namespace HBP.UI.Settings
             ApplicationState.GeneralSettings.ShowCutLines = m_CutLinesOption.value == 0 ? true : false;
             ApplicationState.GeneralSettings.AutoTriggerIEEG = m_AutoTriggerOption.value == 0 ? true : false;
             ApplicationState.GeneralSettings.HideCurveWhenColumnHidden = m_HideCurveWhenColumnHiddenOption.value == 0 ? true : false;
+            ApplicationState.GeneralSettings.PreloadAnatomy = m_PreloadAnatomy.value == 0 ? true : false;
             ClassLoaderSaver.SaveToJSon(ApplicationState.GeneralSettings, GeneralSettings.PATH,true);
             Close();
         }
@@ -93,6 +95,7 @@ namespace HBP.UI.Settings
             m_ThemeSelectorOption = transform.Find("Content").Find("Display").Find("Theme").GetComponentInChildren<Dropdown>();
             m_CutLinesOption = transform.Find("Content").Find("Display").Find("Cut lines").GetComponentInChildren<Dropdown>();
             m_HideCurveWhenColumnHiddenOption = transform.Find("Content").Find("Display").Find("Hide curve when column hidden").GetComponentInChildren<Dropdown>();
+            m_PreloadAnatomy = transform.Find("Content").Find("Loading").Find("Preload").GetComponentInChildren<Dropdown>();
 
             defaultNameProjectInputField.text = ApplicationState.GeneralSettings.DefaultProjectName;
             defaultLocationProjectFolderSelector.Folder = ApplicationState.GeneralSettings.DefaultProjectLocation;
@@ -203,6 +206,12 @@ namespace HBP.UI.Settings
             m_HideCurveWhenColumnHiddenOption.options.Add(new Dropdown.OptionData("Show"));
             m_HideCurveWhenColumnHiddenOption.value = ApplicationState.GeneralSettings.HideCurveWhenColumnHidden ? 0 : 1;
             m_HideCurveWhenColumnHiddenOption.RefreshShownValue();
+
+            m_PreloadAnatomy.ClearOptions();
+            m_PreloadAnatomy.options.Add(new Dropdown.OptionData("Preload anatomy"));
+            m_PreloadAnatomy.options.Add(new Dropdown.OptionData("Load only when required"));
+            m_PreloadAnatomy.value = ApplicationState.GeneralSettings.PreloadAnatomy ? 0 : 1;
+            m_PreloadAnatomy.RefreshShownValue();
         }
 
         void UpdateBlocFormat(TrialMatrixSettings.BlocFormatType blocFormat)
