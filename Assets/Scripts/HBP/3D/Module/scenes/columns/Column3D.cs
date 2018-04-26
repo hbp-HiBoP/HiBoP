@@ -152,8 +152,10 @@ namespace HBP.Module3D
             {
                 if (m_SelectedSiteID != value)
                 {
+                    if (m_SelectedSiteID >= 0) SelectedSite.IsSelected = false; // old
                     m_SelectedSiteID = value;
                     SelectedSourceID = value;
+                    if (m_SelectedSiteID >= 0) SelectedSite.IsSelected = true; // new
                     OnSelectSite.Invoke(SelectedSite);
                     if (m_SelectedSiteID >= 0)
                     {

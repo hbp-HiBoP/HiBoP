@@ -11,6 +11,8 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Button m_Site;
         [SerializeField]
+        private Image m_SelectedImage;
+        [SerializeField]
         private Text m_Patient;
         [SerializeField]
         private Toggle m_Excluded;
@@ -80,6 +82,7 @@ namespace HBP.UI.Module3D
         {
             m_Site.GetComponentInChildren<Text>().text = Object.Information.ChannelName;
             m_Site.interactable = Object.IsActive;
+            m_SelectedImage.gameObject.SetActive(Object.IsSelected);
             m_Patient.text = Object.Information.Patient.Name;
             m_Excluded.isOn = Object.State.IsExcluded;
             m_Blacklisted.isOn = Object.State.IsBlackListed;

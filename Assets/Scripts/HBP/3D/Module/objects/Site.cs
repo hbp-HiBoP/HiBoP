@@ -312,6 +312,8 @@ namespace HBP.Module3D
             }
         }
 
+        public bool IsSelected { get; set; }
+
         /// <summary>
         /// Information about this site
         /// </summary>

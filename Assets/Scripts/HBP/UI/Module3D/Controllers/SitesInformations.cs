@@ -129,6 +129,10 @@ namespace HBP.UI.Module3D
             UpdateList();
             m_SiteConditions.Initialize(scene);
             m_Scene.ColumnManager.OnSelectColumn.AddListener((c) => UpdateList());
+            m_Scene.ColumnManager.OnSelectSite.AddListener(s =>
+            {
+                m_SiteList.Refresh();
+            });
         }
         public void UpdateList()
         {

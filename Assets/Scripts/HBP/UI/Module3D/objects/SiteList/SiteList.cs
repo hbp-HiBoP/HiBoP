@@ -38,9 +38,5 @@ namespace HBP.UI.Module3D
             }
         }
         #endregion
-
-        #region Public Methods
-
-        #endregion
     }
 }
