@@ -16,6 +16,13 @@ namespace HBP.Data.Experience
         #region Properties
         public float Frequency { get; set; }
         public Localizer.Bloc[] Blocs { get; set; }
+        public bool IsValid
+        {
+            get
+            {
+                return Blocs.Length > 0;
+            }
+        }
         #endregion
 
         #region Constructors

@@ -1,14 +1,22 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Tools.CSharp;
 using HBP.UI.Theme;
+using NewTheme;
 
 namespace Tools.Unity.Window
 {
 	[RequireComponent (typeof (RectTransform))]
 	public class Resizer : MonoBehaviour 
 	{
-		#region Properties
+        #region Properties
+        [SerializeField] Element Cursors;
+
+        [SerializeField] State Default;
+        [SerializeField] State LeftRight;
+        [SerializeField] State BottomTop;
+        [SerializeField] State TopLeftToBottomRight;
+        [SerializeField] State BottomLeftToTopRight;
+
 		/* RectTransforms */
 		RectTransform m_RectTransform;
         ILayoutElement m_LayoutElement;
@@ -25,31 +33,27 @@ namespace Tools.Unity.Window
 		#region Public Methods
 		public void DisplayLeftRightCursor()
 		{
-            Theme.CursorTheme theme = ApplicationState.UserPreferences.Theme.General.LeftRightCursor;
-            if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(theme.Texture, theme.Offset, CursorMode.Auto);
+            if (enabled) Cursors.Set(gameObject, LeftRight);
 		}	
 		public void DisplayBottomTopCursor()
 		{
-            Theme.CursorTheme theme = ApplicationState.UserPreferences.Theme.General.TopBottomCursor;
-            if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(theme.Texture, theme.Offset, CursorMode.Auto);
+            if (enabled) Cursors.Set(gameObject, BottomTop);
+
         }
         public void DisplayBottomLeftToTopRightCursor()
 		{
-            Theme.CursorTheme theme = ApplicationState.UserPreferences.Theme.General.BottomLeftTopRightCursor;
-            if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(theme.Texture, theme.Offset, CursorMode.Auto);
+            if (enabled) Cursors.Set(gameObject, BottomLeftToTopRight);
+
         }
         public void DisplayTopLeftToBottomRightCursor()
 		{
-            Theme.CursorTheme theme = ApplicationState.UserPreferences.Theme.General.TopLeftBottomRightCursor;
-            if (isActiveAndEnabled && !Input.GetMouseButton(0)) Cursor.SetCursor(theme.Texture, theme.Offset, CursorMode.Auto);
+            if (enabled) Cursors.Set(gameObject, TopLeftToBottomRight);
+
         }
         public void DisplayNormalCursor()
 		{
-            if(!Input.GetMouseButton(0))
-            {
-                Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.Cursor.Texture, ApplicationState.UserPreferences.Theme.General.Cursor.Offset, CursorMode.Auto);
-            }   
-        }			
+            if (enabled) Cursors.Set(gameObject, Default);
+        }
 
         public void LeftDrag()
         {

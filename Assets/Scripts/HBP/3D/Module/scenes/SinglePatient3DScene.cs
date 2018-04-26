@@ -109,7 +109,14 @@ namespace HBP.Module3D
 
             if (m_ColumnManager.Meshes.Count > 0)
             {
-                GenerateSplit(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
+                if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMeshes)
+                {
+                    GenerateSplit(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
+                }
+                else
+                {
+                    ResetSplitsNumber(10);
+                }
             }
             else
             {
@@ -183,28 +190,46 @@ namespace HBP.Module3D
                     {
                         LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
 
-                        if (mesh3D.IsLoaded)
+                        if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMeshes)
                         {
-                            m_ColumnManager.Meshes.Add(mesh3D);
+                            if (mesh3D.IsLoaded)
+                            {
+                                m_ColumnManager.Meshes.Add(mesh3D);
+                            }
+                            else
+                            {
+                                SceneInformation.MeshesLoaded = false;
+                                throw new CanNotLoadGIIFile(mesh.Name);
+                            }
                         }
                         else
                         {
-                            SceneInformation.MeshesLoaded = false;
-                            throw new CanNotLoadGIIFile(mesh.Name);
+                            string name = !string.IsNullOrEmpty(Visualization.Configuration.MeshName) ? Visualization.Configuration.MeshName : "Grey matter";
+                            if (mesh3D.Name == name) mesh3D.Load();
+                            m_ColumnManager.Meshes.Add(mesh3D);
                         }
                     }
                     else if (mesh is Data.Anatomy.SingleMesh)
                     {
                         SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
 
-                        if (mesh3D.IsLoaded)
+                        if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMeshes)
                         {
-                            m_ColumnManager.Meshes.Add(mesh3D);
+                            if (mesh3D.IsLoaded)
+                            {
+                                m_ColumnManager.Meshes.Add(mesh3D);
+                            }
+                            else
+                            {
+                                SceneInformation.MeshesLoaded = false;
+                                throw new CanNotLoadGIIFile(mesh.Name);
+                            }
                         }
                         else
                         {
-                            SceneInformation.MeshesLoaded = false;
-                            throw new CanNotLoadGIIFile(mesh.Name);
+                            string name = !string.IsNullOrEmpty(Visualization.Configuration.MeshName) ? Visualization.Configuration.MeshName : "Grey matter";
+                            if (mesh3D.Name == name) mesh3D.Load();
+                            m_ColumnManager.Meshes.Add(mesh3D);
                         }
                     }
                     else
@@ -213,7 +238,7 @@ namespace HBP.Module3D
                     }
                 }
             }
-            catch
+            catch (Exception e)
             {
                 outPut(new CanNotLoadGIIFile(mesh.Name));
                 yield break;

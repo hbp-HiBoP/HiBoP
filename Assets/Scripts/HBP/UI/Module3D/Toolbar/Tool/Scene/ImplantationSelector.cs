@@ -22,7 +22,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.UpdateSites(value);
+                ApplicationState.Module3D.SelectedScene.UpdateSites(m_Dropdown.options[value].text);
             });
         }
         public override void DefaultState()

@@ -126,6 +126,10 @@ namespace HBP.Module3D
         /// </summary>
         public List<Mesh3D> Meshes = new List<Mesh3D>();
         /// <summary>
+        /// List of all the loaded meshes
+        /// </summary>
+        public List<Mesh3D> LoadedMeshes { get { return (from mesh in Meshes where mesh.IsLoaded select mesh).ToList(); } }
+        /// <summary>
         /// Number of splits of the meshes
         /// </summary>
         public int MeshSplitNumber { get; set; }
@@ -153,6 +157,10 @@ namespace HBP.Module3D
         /// List of the MRIs of the scene
         /// </summary>
         public List<MRI3D> MRIs = new List<MRI3D>();
+        /// <summary>
+        /// List of loaded MRIs
+        /// </summary>
+        public List<MRI3D> LoadedMRIs { get { return (from mri in MRIs where mri.IsLoaded select mri).ToList(); } }
         /// <summary>
         /// Selected MRI3D ID
         /// </summary>
@@ -374,6 +382,10 @@ namespace HBP.Module3D
         #region Events
         public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
         /// <summary>
+        /// Event called when selecting a column
+        /// </summary>
+        public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        /// <summary>
         /// Event called when adding a column
         /// </summary>
         public UnityEvent OnAddColumn = new UnityEvent();
@@ -472,6 +484,7 @@ namespace HBP.Module3D
                     }
                 }
                 OnSelectColumnManager.Invoke(this);
+                OnSelectColumn.Invoke(column);
                 ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
             });
             column.OnMoveView.AddListener((view) =>
@@ -540,6 +553,7 @@ namespace HBP.Module3D
                     }
                 }
                 OnSelectColumnManager.Invoke(this);
+                OnSelectColumn.Invoke(column);
                 ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
             });
             column.OnMoveView.AddListener((view) =>

@@ -114,8 +114,8 @@ namespace HBP.Module3D
                     });
                     // Add the scene to the list
                     m_Scenes.Add(scene);
-                    ApplicationState.Module3D.OnAddScene.Invoke(scene);
                     scene.FinalizeInitialization();
+                    ApplicationState.Module3D.OnAddScene.Invoke(scene);
                 }
                 catch (Exception e)
                 {
@@ -155,8 +155,8 @@ namespace HBP.Module3D
                     });
                     // Add the scene to the list
                     m_Scenes.Add(scene);
-                    ApplicationState.Module3D.OnAddScene.Invoke(scene);
                     scene.FinalizeInitialization();
+                    ApplicationState.Module3D.OnAddScene.Invoke(scene);
                 }
                 catch (Exception e)
                 {

@@ -1,13 +1,13 @@
-﻿using UnityEngine;
+﻿using NewTheme.Components;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class SortingDisplayer : MonoBehaviour
 {
     #region Properties
-    [SerializeField] Image m_AscendingImage;
-    [SerializeField] Image m_DescendingImage;
-    Color m_AscendingColor;
-    Color m_DescendingColor;
+    [SerializeField] State Activated;
+    [SerializeField] ThemeElement m_AscendingThemeElement;
+    [SerializeField] ThemeElement m_DescendingThemeElement;
 
     public enum SortingType { None, Ascending, Descending }
     SortingType m_Sorting = SortingType.None;
@@ -20,29 +20,19 @@ public class SortingDisplayer : MonoBehaviour
             switch (value)
             {
                 case SortingType.None:
-                    m_AscendingImage.color = m_AscendingColor;
-                    m_DescendingImage.color = m_DescendingColor;
+                    m_AscendingThemeElement.Set();
+                    m_DescendingThemeElement.Set();
                     break;
                 case SortingType.Ascending:
-                    m_AscendingColor = m_AscendingImage.color;
-                    m_AscendingImage.color = ApplicationState.UserPreferences.Theme.Window.Content.Toggle.Checkmark;
-                    m_DescendingImage.color = m_DescendingColor;
+                    m_AscendingThemeElement.Set(Activated);
+                    m_DescendingThemeElement.Set();
                     break;
                 case SortingType.Descending:
-                    m_DescendingColor = m_DescendingImage.color;
-                    m_AscendingImage.color = m_AscendingColor;
-                    m_DescendingImage.color = ApplicationState.UserPreferences.Theme.Window.Content.Toggle.Checkmark;
+                    m_AscendingThemeElement.Set();
+                    m_DescendingThemeElement.Set(Activated);
                     break;
             }
         }
-    }
-    #endregion
-
-    #region Private Methods
-    void Awake()
-    {
-        m_AscendingColor = m_AscendingImage.color;
-        m_DescendingColor = m_DescendingImage.color;
     }
     #endregion
 }

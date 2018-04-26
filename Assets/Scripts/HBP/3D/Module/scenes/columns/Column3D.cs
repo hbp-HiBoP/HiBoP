@@ -152,8 +152,10 @@ namespace HBP.Module3D
             {
                 if (m_SelectedSiteID != value)
                 {
+                    if (m_SelectedSiteID >= 0) SelectedSite.IsSelected = false; // old
                     m_SelectedSiteID = value;
                     SelectedSourceID = value;
+                    if (m_SelectedSiteID >= 0) SelectedSite.IsSelected = true; // new
                     OnSelectSite.Invoke(SelectedSite);
                     if (m_SelectedSiteID >= 0)
                     {
@@ -660,6 +662,11 @@ namespace HBP.Module3D
                         site.transform.localScale = Vector3.one;
                         siteType = SiteType.Excluded;
                     }
+                    else if (site.State.IsSuspicious)
+                    {
+                        site.transform.localScale = Vector3.one;
+                        siteType = SiteType.Suspicious;
+                    }
                     else
                     {
                         site.transform.localScale = Vector3.one;
@@ -687,10 +694,10 @@ namespace HBP.Module3D
             {
                 using (StreamWriter sw = new StreamWriter(path))
                 {
-                    sw.WriteLine("ID,Excluded,Blacklisted,Highlighted,Marked");
+                    sw.WriteLine("ID,Excluded,Blacklisted,Highlighted,Marked,Suspicious");
                     foreach (var site in SiteStateBySiteID)
                     {
-                        sw.WriteLine("{0},{1},{2},{3},{4}", site.Key, site.Value.IsExcluded, site.Value.IsBlackListed, site.Value.IsHighlighted, site.Value.IsMarked);
+                        sw.WriteLine("{0},{1},{2},{3},{4},{5}", site.Key, site.Value.IsExcluded, site.Value.IsBlackListed, site.Value.IsHighlighted, site.Value.IsMarked, site.Value.IsSuspicious);
                     }
                 }
             }
@@ -708,11 +715,11 @@ namespace HBP.Module3D
                     // Find which column of the csv corresponds to which argument
                     string firstLine = sr.ReadLine();
                     string[] firstLineSplits = firstLine.Split(',');
-                    int[] indices = new int[5];
-                    for (int i = 0; i < 5; ++i)
+                    int[] indices = new int[6];
+                    for (int i = 0; i < 6; ++i)
                     {
                         string split = firstLineSplits[i];
-                        indices[i] = split == "ID" ? 0 : split == "Excluded" ? 1 : split == "Blacklisted" ? 2 : split == "Highlighted" ? 3 : split == "Marked" ? 4 : i;
+                        indices[i] = split == "ID" ? 0 : split == "Excluded" ? 1 : split == "Blacklisted" ? 2 : split == "Highlighted" ? 3 : split == "Marked" ? 4 : split == "Suspicious" ? 5 : i;
                     }
                     // Fill states
                     string line;
@@ -752,6 +759,14 @@ namespace HBP.Module3D
                         else
                         {
                             state.IsMarked = false;
+                        }
+                        if (bool.TryParse(args[indices[5]], out stateValue))
+                        {
+                            state.IsSuspicious = stateValue;
+                        }
+                        else
+                        {
+                            state.IsSuspicious = false;
                         }
                         SiteState existingState;
                         if (SiteStateBySiteID.TryGetValue(args[indices[0]], out existingState))
@@ -888,7 +903,7 @@ namespace HBP.Module3D
             {
                 OnChangeNumberOfVolumeInROI.Invoke();
             });
-            roi.OnChangeROIVolumeRadius.AddListener(() =>
+            roi.OnChangeROISphereParameters.AddListener(() =>
             {
                 OnChangeROIVolumeRadius.Invoke();
             });
@@ -920,6 +935,20 @@ namespace HBP.Module3D
             else
             {
                 SelectedROI = null;
+            }
+        }
+        public void MoveSelectedROISphere(Camera camera, Vector3 delta)
+        {
+            if (m_SelectedROI)
+            {
+                if (m_SelectedROI.SelectedSphereID != -1)
+                {
+                    Vector3 position = camera.WorldToScreenPoint(m_SelectedROI.SelectedSphere.transform.position);
+                    position += delta;
+                    position = camera.ScreenToWorldPoint(position);
+                    position -= m_SelectedROI.SelectedSphere.transform.position;
+                    m_SelectedROI.MoveSelectedSphere(position);
+                }
             }
         }
 

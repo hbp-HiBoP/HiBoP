@@ -14,6 +14,7 @@ namespace HBP.UI.Module3D
         [SerializeField] Image m_IsHighlightedImage;
         [SerializeField] Image m_IsBlackListedImage;
         [SerializeField] Image m_IsMarkedImage;
+        [SerializeField] Image m_IsSuspiciousImage;
         [SerializeField] Text m_PatientText;
         [SerializeField] Text m_IEEGAmplitudeText;
         [SerializeField] Text m_CCEPAmplitudeText;
@@ -106,10 +107,11 @@ namespace HBP.UI.Module3D
         void SetSite(HBP.Module3D.Site site)
         {
             m_SiteNameText.text = site.Information.ChannelName;
-            m_IsMarkedImage.color = site.State.IsMarked ? Color.white : m_DisableColor;
-            m_IsBlackListedImage.color = site.State.IsBlackListed ? Color.white : m_DisableColor;
-            m_IsHighlightedImage.color = site.State.IsHighlighted ? Color.white : m_DisableColor;
-            m_IsExcludedImage.color = site.State.IsExcluded ? Color.white : m_DisableColor;
+            m_IsMarkedImage.gameObject.SetActive(site.State.IsMarked);
+            m_IsBlackListedImage.gameObject.SetActive(site.State.IsBlackListed);
+            m_IsHighlightedImage.gameObject.SetActive(site.State.IsHighlighted);
+            m_IsSuspiciousImage.gameObject.SetActive(site.State.IsSuspicious);
+            m_IsExcludedImage.gameObject.SetActive(site.State.IsExcluded);
         }
         void SetPatient(Data.Patient patient)
         {

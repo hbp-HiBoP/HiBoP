@@ -184,14 +184,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         if (Input.GetMouseButton(1) || Input.GetMouseButton(2))
         {
             m_View.DisplayRotationCircles = true;
-            if (Input.GetMouseButton(1))
-            {
-                Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.MoveCursor.Texture, ApplicationState.UserPreferences.Theme.General.MoveCursor.Offset, CursorMode.Auto);
-            }
-            else
-            {
-                Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.MoveCursor.Texture, ApplicationState.UserPreferences.Theme.General.MoveCursor.Offset, CursorMode.Auto);
-            }
+            Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.MoveCursor.Texture, ApplicationState.UserPreferences.Theme.General.MoveCursor.Offset, CursorMode.Auto);
         }
         else
         {
@@ -207,6 +200,10 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         switch (data.button)
         {
             case PointerEventData.InputButton.Left:
+                if (m_Scene.SceneInformation.IsROICreationModeEnabled)
+                {
+                    m_Column.MoveSelectedROISphere(m_View.Camera, data.delta);
+                }
                 break;
             case PointerEventData.InputButton.Right:
                 m_View.RotateCamera(data.delta);

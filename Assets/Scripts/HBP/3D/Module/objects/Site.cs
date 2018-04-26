@@ -11,10 +11,11 @@ using System;
 * \brief   Define site related classes
 */
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
-    public enum SiteType { Normal, Positive, Negative, Excluded, Source, NotASource, NoLatencyData, BlackListed, NonePos, NoneNeg, Marked};
+    public enum SiteType { Normal, Positive, Negative, Excluded, Source, NotASource, NoLatencyData, BlackListed, NonePos, NoneNeg, Marked, Suspicious };
     /// <summary>
     /// Structure containing informations related to the site shaders (not used for now, shader uniform too slow)
     /// </summary>
@@ -161,6 +162,7 @@ namespace HBP.Module3D
 
     public class SiteState
     {
+        public UnityEvent OnChangeState = new UnityEvent();
         public SiteState(SiteState state)
         {
             IsMasked = state.IsMasked;
@@ -169,24 +171,111 @@ namespace HBP.Module3D
             IsOutOfROI = state.IsOutOfROI;
             IsHighlighted = state.IsHighlighted;
             IsMarked = state.IsMarked;
+            IsSuspicious = state.IsSuspicious;
         }
         public SiteState() { }
-        public bool IsMasked { get; set; }     /**< is the site masked on the column ? */
-        public bool IsExcluded { get; set; }        /**< is the site excluded ? */
-        public bool IsBlackListed { get; set; }      /**< is the site blacklisted ? */
-        public bool IsOutOfROI { get; set; }      /**< is the site in a ROI ? */
-        public bool IsHighlighted { get; set; }       /**< is the site highlighted ? */
-        public bool IsMarked { get; set; }          /**< is the site marked ? */
+        private bool m_IsMasked;
+        public bool IsMasked
+        {
+            get
+            {
+                return m_IsMasked;
+            }
+            set
+            {
+                m_IsMasked = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsExcluded;
+        public bool IsExcluded
+        {
+            get
+            {
+                return m_IsExcluded;
+            }
+            set
+            {
+                m_IsExcluded = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsBlackListed;
+        public bool IsBlackListed
+        {
+            get
+            {
+                return m_IsBlackListed;
+            }
+            set
+            {
+                m_IsBlackListed = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsOutOfROI;
+        public bool IsOutOfROI
+        {
+            get
+            {
+                return m_IsOutOfROI;
+            }
+            set
+            {
+                m_IsOutOfROI = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsHighlighted;
+        public bool IsHighlighted
+        {
+            get
+            {
+                return m_IsHighlighted;
+            }
+            set
+            {
+                m_IsHighlighted = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsMarked;
+        public bool IsMarked
+        {
+            get
+            {
+                return m_IsMarked;
+            }
+            set
+            {
+                m_IsMarked = value;
+                OnChangeState.Invoke();
+            }
+        }
+        private bool m_IsSuspicious;
+        public bool IsSuspicious
+        {
+            get
+            {
+                return m_IsSuspicious;
+            }
+            set
+            {
+                m_IsSuspicious = value;
+                OnChangeState.Invoke();
+            }
+        }
         public void ApplyState(SiteState state)
         {
-            ApplyState(state.IsExcluded, state.IsBlackListed, state.IsHighlighted, state.IsMarked);
+            ApplyState(state.IsExcluded, state.IsBlackListed, state.IsHighlighted, state.IsMarked, state.IsSuspicious);
         }
-        public void ApplyState(bool excluded, bool blacklisted, bool highlighted, bool marked)
+        public void ApplyState(bool excluded, bool blacklisted, bool highlighted, bool marked, bool suspicious)
         {
             IsExcluded = excluded;
             IsBlackListed = blacklisted;
             IsHighlighted = highlighted;
             IsMarked = marked;
+            IsSuspicious = suspicious;
         }
     }
 
@@ -222,6 +311,8 @@ namespace HBP.Module3D
                 gameObject.SetActive(value);
             }
         }
+
+        public bool IsSelected { get; set; }
 
         /// <summary>
         /// Information about this site
@@ -304,6 +395,7 @@ namespace HBP.Module3D
             State.IsExcluded = Configuration.IsExcluded;
             State.IsHighlighted = Configuration.IsHighlighted;
             State.IsMarked = Configuration.IsMarked;
+            State.IsSuspicious = Configuration.IsSuspicious;
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
 
@@ -313,6 +405,7 @@ namespace HBP.Module3D
             Configuration.IsExcluded = State.IsExcluded;
             Configuration.IsHighlighted = State.IsHighlighted;
             Configuration.IsMarked = State.IsMarked;
+            Configuration.IsSuspicious = State.IsSuspicious;
         }
 
         public void ResetConfiguration(bool firstCall = true)
@@ -321,6 +414,7 @@ namespace HBP.Module3D
             State.IsExcluded = false;
             State.IsHighlighted = false;
             State.IsMarked = false;
+            State.IsSuspicious = false;
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
         #endregion

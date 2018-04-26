@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace NewTheme.Components
 {
@@ -12,11 +13,27 @@ namespace NewTheme.Components
         #region Public Methods
         public void Set()
         {
-            Element.Set(gameObject);
+            try
+            {
+                Element.Set(gameObject);
+            }
+            catch(Exception e)
+            {
+                Debug.LogError(gameObject.name);
+                throw e;
+            }
         }
         public void Set(State state)
         {
-            Element.Set(gameObject, state);
+            try
+            {
+                Element.Set(gameObject, state);
+            }
+            catch(Exception e)
+            {
+                Debug.LogError(gameObject.name);
+                throw e;
+            }
         }
         #endregion
 

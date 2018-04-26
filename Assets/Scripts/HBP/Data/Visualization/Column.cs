@@ -176,7 +176,7 @@ namespace HBP.Data.Visualization
                     }
                     else
                     {
-                        siteConfiguration = new SiteConfiguration(averagedBloc.ValuesBySite[site], averagedBloc.NormalizedValuesBySite[site], averagedBloc.UnitBySite[site], false, false, false, false);
+                        siteConfiguration = new SiteConfiguration(averagedBloc.ValuesBySite[site], averagedBloc.NormalizedValuesBySite[site], averagedBloc.UnitBySite[site], false, false, false, false, false);
                         Configuration.ConfigurationBySite.Add(site, siteConfiguration);
                     }
                     m_FrequencyBySiteConfiguration.Add(siteConfiguration, frequency);
