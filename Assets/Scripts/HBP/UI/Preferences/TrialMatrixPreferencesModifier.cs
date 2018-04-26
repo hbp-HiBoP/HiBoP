@@ -23,7 +23,7 @@ namespace HBP.UI.Preferences
             Data.Preferences.TrialMatrixPreferences trialMatrixPreferences = ApplicationState.UserPreferences.Visualization.TrialMatrix;
 
             m_ShowWholeProtocolToggle.isOn = trialMatrixPreferences.ShowWholeProtocol;
-            m_TrialSynchronizationToggle.isOn = trialMatrixPreferences.TrialSynchronization;
+            m_TrialSynchronizationToggle.isOn = trialMatrixPreferences.TrialsSynchronization;
             m_SmoothLineToggle.isOn = trialMatrixPreferences.SmoothLine;
             m_NumberOfIntermediateValuesSlider.value = trialMatrixPreferences.NumberOfIntermediateValues;
 
@@ -45,7 +45,7 @@ namespace HBP.UI.Preferences
             Data.Preferences.TrialMatrixPreferences trialMatrixPreferences = ApplicationState.UserPreferences.Visualization.TrialMatrix;
 
             trialMatrixPreferences.ShowWholeProtocol = m_ShowWholeProtocolToggle.isOn;
-            trialMatrixPreferences.TrialSynchronization = m_TrialSynchronizationToggle.isOn;
+            trialMatrixPreferences.TrialsSynchronization = m_TrialSynchronizationToggle.isOn;
             trialMatrixPreferences.SmoothLine = m_SmoothLineToggle.isOn;
             trialMatrixPreferences.NumberOfIntermediateValues = (int) m_NumberOfIntermediateValuesSlider.value;
             trialMatrixPreferences.BlocFormat = (Data.Preferences.TrialMatrixPreferences.BlocFormatType) m_BlocFormatDropdown.value;

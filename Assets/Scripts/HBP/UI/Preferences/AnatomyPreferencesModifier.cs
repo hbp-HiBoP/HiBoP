@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.UI.Preferences
 {
@@ -11,6 +9,14 @@ namespace HBP.UI.Preferences
         #endregion
 
         #region Public Methods
+        public void Save()
+        {
+
+        }
+        public void Set()
+        {
+
+        }
         #endregion
     }
 }

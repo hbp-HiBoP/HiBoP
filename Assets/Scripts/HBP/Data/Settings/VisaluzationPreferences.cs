@@ -3,12 +3,24 @@
 namespace HBP.Data.Preferences
 {
     [DataContract]
-    public class VisaluzationPreferences
+    public class VisualizationPreferences
     {
+        #region Properties
         [DataMember] public _3DPreferences _3D { get; set; }
         [DataMember] public TrialMatrixPreferences TrialMatrix { get; set; }
         [DataMember] public GraphPreferences Graph { get; set; }
         [DataMember] public CutPreferences Cut { get; set; }
+        #endregion
+
+        #region Constructors
+        public VisualizationPreferences()
+        {
+            _3D = new _3DPreferences();
+            TrialMatrix = new TrialMatrixPreferences();
+            Graph = new GraphPreferences();
+            Cut = new CutPreferences();
+        }
+        #endregion
     }
 
     [DataContract]
@@ -26,7 +38,7 @@ namespace HBP.Data.Preferences
     {
         public enum BlocFormatType { HeightLine, LineRatio, BlocRatio }
         [DataMember] public bool ShowWholeProtocol { get; set; }
-        [DataMember] public bool TrialSynchronization { get; set; }
+        [DataMember] public bool TrialsSynchronization { get; set; }
         [DataMember] public bool SmoothLine { get; set; }
         [DataMember] public int NumberOfIntermediateValues { get; set; }
         [DataMember] public BlocFormatType BlocFormat { get; set; }

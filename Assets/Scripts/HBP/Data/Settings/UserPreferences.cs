@@ -25,7 +25,16 @@ namespace HBP.Data.Preferences
         public Theme Theme;
         [DataMember] public GeneralPreferences General { get; set; }
         [DataMember] public DataPreferences Data { get; set; }
-        [DataMember] public VisaluzationPreferences Visualization { get; set; }
+        [DataMember] public VisualizationPreferences Visualization { get; set; }
+        #endregion
+
+        #region Constructors
+        public UserPreferences()
+        {
+            General = new GeneralPreferences();
+            Data = new DataPreferences();
+            Visualization = new VisualizationPreferences();
+        }
         #endregion
     }
 }

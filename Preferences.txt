@@ -1,0 +1,59 @@
+{
+  "General": {
+    "Project": {
+      "DefaultName": "New project",
+      "DefaultLocation": "",
+      "DefaultPatientDatabase": "",
+      "DefaultLocalizerDatabase": ""
+    },
+    "Theme": {},
+    "Localization": {},
+    "System": {
+      "MultiThreading": true
+    },
+    "Export": {
+      "DefaultScreenshotsLocation": ""
+    }
+  },
+  "Data": {
+    "EEG": {
+      "Averaging": 1,
+      "Normalization": 0
+    },
+    "Event": {
+      "PositionAveraging": 1
+    },
+    "Anatomy": {
+      "SiteNameCorrection": false,
+      "PreloadMeshes": false,
+      "PreloadMRIs": false,
+      "PreloadImplantations": false
+    }
+  },
+  "Visualization": {
+    "_3D": {
+      "AutomaticEEGUpdate": false,
+      "SiteInfluence": 0,
+      "DefaultSelectedMRI": null,
+      "DefaultSelectedMesh": null,
+      "DefaultSelectedImplantation": null
+    },
+    "TrialMatrix": {
+      "ShowWholeProtocol": false,
+      "TrialsSynchronization": false,
+      "SmoothLine": false,
+      "NumberOfIntermediateValues": 0,
+      "BlocFormat": 0,
+      "LineHeight": 0,
+      "LineRatio": 0.0,
+      "BlocRatio": 0.0
+    },
+    "Graph": {
+      "ShowCurvesOfMinimizedColumns": false
+    },
+    "Cut": {
+      "ShowCutLines": false,
+      "SimplifiedMeshes": false
+    }
+  }
+}

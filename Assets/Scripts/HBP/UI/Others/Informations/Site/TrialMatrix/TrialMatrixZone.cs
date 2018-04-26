@@ -64,33 +64,30 @@ namespace HBP.UI.Informations
         {
             if (m_TrialCanBeSelect)
             {
-                switch (ApplicationState.UserPreferences.TrialMatrixSettings.TrialsSynchronization)
+                if (ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialsSynchronization)
                 {
-                    case Data.Preferences.TrialMatrixSettings.TrialsSynchronizationType.Disable:
-                        foreach (var trialMatrix in m_TrialMatrixList.TrialMatrix)
+                    foreach (TrialMatrix.TrialMatrix trial in m_TrialMatrixList.TrialMatrix)
+                    {
+                        trial.SelectLines(lines, bloc.Data.ProtocolBloc, additive);
+                    }
+                }
+                else
+                {
+                    foreach (var trialMatrix in m_TrialMatrixList.TrialMatrix)
+                    {
+                        foreach (var line in trialMatrix.Lines)
                         {
-                            foreach (var line in trialMatrix.Lines)
+                            foreach (var b in line.Blocs)
                             {
-                                foreach (var b in line.Blocs)
+                                if (b == bloc)
                                 {
-                                    if (b == bloc)
-                                    {
-                                        trialMatrix.SelectLines(lines, bloc.Data.ProtocolBloc, additive);
-                                        goto @out;
-                                    }
+                                    trialMatrix.SelectLines(lines, bloc.Data.ProtocolBloc, additive);
+                                    goto @out;
                                 }
                             }
                         }
-                        @out:
-                        break;
-                    case Data.Preferences.TrialMatrixSettings.TrialsSynchronizationType.Enable:
-                        foreach (TrialMatrix.TrialMatrix trial in m_TrialMatrixList.TrialMatrix)
-                        {
-                            trial.SelectLines(lines, bloc.Data.ProtocolBloc, additive);
-                        }
-                        break;
-                    default:
-                        break;
+                    }
+                    @out:;
                 }
             }
         }

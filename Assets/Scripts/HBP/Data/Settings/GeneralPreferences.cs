@@ -5,19 +5,44 @@ namespace HBP.Data.Preferences
     [DataContract]
     public class GeneralPreferences
     {
+        #region Properties
         [DataMember] public ProjectPreferences Project { get; set; }
         [DataMember] public ThemePreferences Theme { get; set; }
         [DataMember] public LocalizationPreferences Localization { get; set; }
         [DataMember] public SystemPreferences System { get; set; }
         [DataMember] public ExportPreferences Export { get; set; }
+        #endregion
+
+        #region Constructors
+        public GeneralPreferences()
+        {
+            Project = new ProjectPreferences();
+            Theme = new ThemePreferences();
+            Localization = new LocalizationPreferences();
+            System = new SystemPreferences();
+            Export = new ExportPreferences();
+        }
+        #endregion
     }
     [DataContract]
     public class ProjectPreferences
     {
+        #region Properties
         [DataMember] public string DefaultName { get; set; }
         [DataMember] public string DefaultLocation { get; set; }
         [DataMember] public string DefaultPatientDatabase { get; set; }
         [DataMember] public string DefaultLocalizerDatabase { get; set; }
+        #endregion
+
+        #region Constructors
+        public ProjectPreferences()
+        {
+            DefaultName = "New project";
+            DefaultLocation = string.Empty;
+            DefaultPatientDatabase = string.Empty;
+            DefaultLocalizerDatabase = string.Empty;
+        }
+        #endregion
     }
     [DataContract]
     public class ThemePreferences
@@ -32,11 +57,29 @@ namespace HBP.Data.Preferences
     [DataContract]
     public class SystemPreferences
     {
+        #region Properties
         [DataMember] public bool MultiThreading { get; set; }
+        #endregion
+
+        #region Constructors
+        public SystemPreferences()
+        {
+            MultiThreading = true;
+        }
+        #endregion
     }
     [DataContract]
     public class ExportPreferences
     {
+        #region Properties
         [DataMember] public string DefaultScreenshotsLocation { get; set; }
+        #endregion
+
+        #region Constructors
+        public ExportPreferences()
+        {
+            DefaultScreenshotsLocation = string.Empty;
+        }
+        #endregion
     }
 }
