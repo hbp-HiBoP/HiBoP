@@ -38,15 +38,18 @@ namespace HBP.UI.Module3D
             grid.AddColumn(null, GraphsUIPrefab);
             Informations.Informations informations = grid.Columns.Last().Views.Last().GetComponent<Informations.Informations>();
             informations.Scene = scene;
+            // Sites
+            grid.AddColumn(null, SitesInformationsPrefab);
+            grid.Columns.Last().Views.Last().GetComponent<SitesInformations>().Initialize(scene);
             // Cuts
             grid.AddColumn(null, CutUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
             // Positions
             grid.VerticalHandlers[0].MagneticPosition = 0.45f;
+            grid.VerticalHandlers[1].MagneticPosition = 0.8f;
+            grid.VerticalHandlers[2].MagneticPosition = 0.9f;
             grid.VerticalHandlers[0].Position = 1.0f;
-            grid.VerticalHandlers[1].MagneticPosition = 0.9f;
-            grid.VerticalHandlers[1].Position = 0.9f;
-            grid.SetVerticalHandlersPosition(1);
+            grid.SetVerticalHandlersPosition(0);
 
             ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {
