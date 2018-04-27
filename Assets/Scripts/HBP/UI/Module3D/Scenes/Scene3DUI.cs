@@ -22,10 +22,8 @@ namespace HBP.UI.Module3D
         /// Linked resizable grid
         /// </summary>
         private ResizableGrid m_ResizableGrid;
-        /// <summary>
-        /// Update circle when loading things
-        /// </summary>
-        private LoadingCircle m_LoadingCircle;
+
+        [SerializeField] private ProgressBar m_ProgressBar;
         /// <summary>
         /// Feedback for when the iEEG are not up to date
         /// </summary>
@@ -43,13 +41,6 @@ namespace HBP.UI.Module3D
         private void Awake()
         {
             m_ResizableGrid = GetComponent<ResizableGrid>();
-        }
-        private void OnDestroy()
-        {
-            if (m_LoadingCircle)
-            {
-                m_LoadingCircle.Close();
-            }
         }
         private void Update()
         {
@@ -142,27 +133,16 @@ namespace HBP.UI.Module3D
             {
                 if (value)
                 {
-                    if(m_LoadingCircle == null)
-                    {
-                        m_LoadingCircle = ApplicationState.LoadingManager.Open();
-                        RectTransform loadingCircleRectTransform = m_LoadingCircle.GetComponent<RectTransform>();
-                        loadingCircleRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-                        loadingCircleRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-                        loadingCircleRectTransform.anchoredPosition = new Vector2(0f, 0f);
-                        m_LoadingCircle.ChangePercentage(0.0f, 99.0f, 1.0f);
-                    }        
+                    m_ProgressBar.Open();
                 }
                 else
                 {
-                    if(m_LoadingCircle != null)
-                    {
-                        m_LoadingCircle.Close();
-                    }
+                    m_ProgressBar.Close();
                 }
             });
-            m_Scene.OnProgressUpdateGenerator.AddListener((progress, duration, message) =>
+            m_Scene.OnProgressUpdateGenerator.AddListener((progress, message) =>
             {
-                if (m_LoadingCircle != null) m_LoadingCircle.ChangePercentage(progress, duration, message);
+                m_ProgressBar.Progress(progress, message);
             });
             m_Scene.OnIEEGOutdated.AddListener((state) =>
             {

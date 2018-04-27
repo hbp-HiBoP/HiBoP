@@ -570,7 +570,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when progressing in updating generator.
         /// </summary>
-        public GenericEvent<float, float, string> OnProgressUpdateGenerator = new GenericEvent<float, float, string>();
+        public GenericEvent<float, string> OnProgressUpdateGenerator = new GenericEvent<float, string>();
 
         /// <summary>
         /// Event for updating the planes cuts display in the cameras
@@ -628,6 +628,10 @@ namespace HBP.Module3D
                 UpdateGeometry();
             }
 
+            if (m_GeneratorNeedsUpdate && !IsLatencyModeEnabled)
+            {
+                OnIEEGOutdated.Invoke(true);
+            }
             if (m_GeneratorNeedsUpdate && !IsLatencyModeEnabled && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
             {
                 UpdateGenerator();
@@ -2141,7 +2145,6 @@ namespace HBP.Module3D
             }
             m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
             ApplicationState.Module3D.OnResetIEEG.Invoke();
-            OnIEEGOutdated.Invoke(!IsLatencyModeEnabled);
         }
         /// <summary>
         /// Send additionnal site info to hight level UI
@@ -2380,7 +2383,9 @@ namespace HBP.Module3D
         private IEnumerator c_LoadIEEG()
         {
             yield return Ninja.JumpToUnity;
-            OnProgressUpdateGenerator.Invoke(0, 0, "Copy from main generators");
+            float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (m_ColumnManager.MeshSplitNumber + m_Cuts.Count + 1);
+            float currentProgress = 0.0f;
+            OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing");
             yield return Ninja.JumpBack;
             bool useMultiCPU = true;
             bool addValues = false;
@@ -2401,7 +2406,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
                 yield return Ninja.JumpToUnity;
-                OnProgressUpdateGenerator.Invoke((float)(ii + 1) / (m_ColumnManager.ColumnsIEEG.Count), 0.5f, "Loading column n°" + (ii + 1).ToString());
+                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
                 yield return Ninja.JumpBack;
 
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
@@ -2416,6 +2421,9 @@ namespace HBP.Module3D
                 // splits
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
+                    yield return Ninja.JumpToUnity;
+                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
+                    yield return Ninja.JumpBack;
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
                     if (m_GeneratorNeedsUpdate) yield break;
@@ -2442,6 +2450,9 @@ namespace HBP.Module3D
                 // cuts
                 for (int jj = 0; jj < m_Cuts.Count; ++jj)
                 {
+                    yield return Ninja.JumpToUnity;
+                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
+                    yield return Ninja.JumpBack;
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
                     if (m_GeneratorNeedsUpdate) yield break;
@@ -2488,7 +2499,7 @@ namespace HBP.Module3D
                 }
             }
             yield return Ninja.JumpToUnity;
-            OnProgressUpdateGenerator.Invoke(1.0f, 0.0f, "Finalizing");
+            OnProgressUpdateGenerator.Invoke(1.0f, "Finalizing");
             yield return Ninja.JumpBack;
             yield return new WaitForSeconds(0.1f);
         }
