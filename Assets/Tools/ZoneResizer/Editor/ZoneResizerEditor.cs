@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using NewTheme.Components;
 
 [CustomEditor(typeof(ZoneResizer))]
 public class ZoneResizerEditor : Editor
@@ -12,6 +13,9 @@ public class ZoneResizerEditor : Editor
 
     public override void OnInspectorGUI()
     {
+        instance.LeftRight = (State)EditorGUILayout.ObjectField("Left Right State", instance.LeftRight, typeof(State), true);
+        instance.TopBottom = (State)EditorGUILayout.ObjectField("Top Bottom State", instance.TopBottom, typeof(State), true);
+        instance.ThemeElement = (ThemeElement)EditorGUILayout.ObjectField("Theme Element", instance.ThemeElement, typeof(ThemeElement), true);
         instance.Direction = (ZoneResizer.DirectionType) EditorGUILayout.EnumPopup("Direction", instance.Direction);
         switch(instance.Direction)
         {
