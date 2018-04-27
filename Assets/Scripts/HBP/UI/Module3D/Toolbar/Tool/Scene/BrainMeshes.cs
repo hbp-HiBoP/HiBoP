@@ -52,7 +52,7 @@ namespace HBP.UI.Module3D.Tools
                     }
                     else
                     {
-                        m_Left.isOn = true;
+                        m_Right.isOn = true;
                     }
                 }
                 else
@@ -75,7 +75,7 @@ namespace HBP.UI.Module3D.Tools
                     }
                     else
                     {
-                        m_Right.isOn = true;
+                        m_Left.isOn = true;
                     }
                 }
                 else
