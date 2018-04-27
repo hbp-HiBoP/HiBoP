@@ -1,4 +1,5 @@
 ﻿using System;
+using Tools.Unity;
 using UnityEngine.Events;
 
 namespace HBP.UI.Preferences
@@ -14,6 +15,7 @@ namespace HBP.UI.Preferences
         public void Save()
         {
             OnSave.Invoke();
+            ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, Data.Preferences.UserPreferences.PATH, true);
             Close();
         }
         public override void Close()

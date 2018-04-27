@@ -18,8 +18,7 @@ namespace Tools.CSharp
         }
         public static void StandardizeToPath(ref string path)
         {
-            path = path.Replace('/', System.IO.Path.DirectorySeparatorChar);
-            path = path.Replace('\\', System.IO.Path.DirectorySeparatorChar);
+            path = path.Replace('\\', '/');
         }
         public static string SplitPascalCase(this string pascalCase)
         {
