@@ -2,7 +2,7 @@
   "General": {
     "Project": {
       "DefaultName": "New project",
-      "DefaultLocation": "",
+      "DefaultLocation": "D:/HBPProjects/",
       "DefaultPatientDatabase": "",
       "DefaultLocalizerDatabase": ""
     },
@@ -24,7 +24,7 @@
       "PositionAveraging": 1
     },
     "Anatomy": {
-      "SiteNameCorrection": false,
+      "SiteNameCorrection": true,
       "PreloadMeshes": false,
       "PreloadMRIs": false,
       "PreloadImplantations": false

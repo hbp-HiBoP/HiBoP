@@ -40,6 +40,8 @@ namespace HBP.UI.Theme
         #region Public Methods
         public void Set(Theme theme)
         {
+            // Prevents errors
+            return;
             m_Theme = theme;
             if(!IgnoreTheme)
             {

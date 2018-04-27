@@ -9,10 +9,14 @@ using UnityEngine.EventSystems;
 using System;
 using System.Linq;
 using UnityEngine.Events;
+using NewTheme.Components;
 
 public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler, IPointerEnterHandler, IPointerExitHandler
 {
     #region Properties
+    [SerializeField] private ThemeElement m_ThemeElement;
+    [SerializeField] private State m_MoveState;
+
     /// <summary>
     /// Associated logical scene 3D
     /// </summary>
@@ -184,7 +188,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         if (Input.GetMouseButton(1) || Input.GetMouseButton(2))
         {
             m_View.DisplayRotationCircles = true;
-            Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.MoveCursor.Texture, ApplicationState.UserPreferences.Theme.General.MoveCursor.Offset, CursorMode.Auto);
+            m_ThemeElement.Set(m_MoveState);
         }
         else
         {
@@ -218,13 +222,13 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     public void OnEndDrag(PointerEventData data)
     {
         m_View.DisplayRotationCircles = false;
-        Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.Cursor.Texture, ApplicationState.UserPreferences.Theme.General.Cursor.Offset, CursorMode.Auto);
+        m_ThemeElement.Set();
     }
     public void OnPointerUp(PointerEventData data)
     {
         m_PointerDownLock = false;
         m_View.DisplayRotationCircles = false;
-        Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.Cursor.Texture, ApplicationState.UserPreferences.Theme.General.Cursor.Offset, CursorMode.Auto);
+        m_ThemeElement.Set();
     }
     public void OnScroll(PointerEventData data)
     {

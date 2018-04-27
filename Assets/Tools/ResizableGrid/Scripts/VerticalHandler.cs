@@ -7,6 +7,8 @@ namespace Tools.Unity.ResizableGrid
     public class VerticalHandler : Handler
     {
         #region Properties
+        [SerializeField] protected State m_VerticalState;
+
         /// <summary>
         /// Minimum position of the handler
         /// </summary>
@@ -63,7 +65,7 @@ namespace Tools.Unity.ResizableGrid
         public override void OnPointerDown(PointerEventData data)
         {
             base.OnPointerDown(data);
-            Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.LeftRightCursor.Texture, ApplicationState.UserPreferences.Theme.General.LeftRightCursor.Offset, CursorMode.Auto);
+            m_ThemeElement.Set(m_VerticalState);
         }
         /// <summary>
         /// Callback event when entering in the handler
@@ -73,7 +75,7 @@ namespace Tools.Unity.ResizableGrid
         {
             if (!m_ResizableGrid.IsHandlerClicked)
             {
-                Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.LeftRightCursor.Texture, ApplicationState.UserPreferences.Theme.General.LeftRightCursor.Offset, CursorMode.Auto);
+                m_ThemeElement.Set(m_VerticalState);
             }
         }
         /// <summary>
