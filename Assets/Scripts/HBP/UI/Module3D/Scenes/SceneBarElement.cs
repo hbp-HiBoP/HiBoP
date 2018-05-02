@@ -1,4 +1,5 @@
 ﻿using HBP.Module3D;
+using NewTheme.Components;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,17 +18,25 @@ namespace HBP.UI.Module3D
         private Toggle m_Toggle;
         [SerializeField]
         private Button m_Button;
+
+        [SerializeField] private State m_SelectedState;
+        [SerializeField] private ThemeElement m_ThemeElement;
         #endregion
 
         #region Public Methods
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
+            m_Scene.OnChangeSelectedState.AddListener(SetSelectedState);
+            SetSelectedState(m_Scene.IsSelected);
+
             m_Text.text = scene.Name;
+
             m_Button.onClick.AddListener(() =>
             {
                 ApplicationState.Module3D.RemoveScene(scene);
             });
+
             ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {
                 if (s == scene)
@@ -35,11 +44,26 @@ namespace HBP.UI.Module3D
                     Destroy(gameObject);
                 }
             });
+
             m_Toggle.isOn = true;
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
                 scene.UpdateVisibleState(isOn);
             });
+        }
+        #endregion
+
+        #region Private Methods
+        private void SetSelectedState(bool selected)
+        {
+            if (selected)
+            {
+                m_ThemeElement.Set(m_SelectedState);
+            }
+            else
+            {
+                m_ThemeElement.Set();
+            }
         }
         #endregion
     }

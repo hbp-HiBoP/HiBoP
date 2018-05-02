@@ -61,13 +61,6 @@ namespace HBP.Module3D
         public GameObject MultiPatientsScenePrefab;
         #endregion
 
-        #region Events
-        /// <summary>
-        /// Event called when the user selects a scene
-        /// </summary>
-        public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
-        #endregion
-
         #region Public Methods
         /// <summary>
         /// Remove a scene
@@ -101,16 +94,17 @@ namespace HBP.Module3D
                 {
                     ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
                     // Add the listeners
-                    scene.OnSelectScene.AddListener((selectedScene) =>
-                    {
-                        foreach (Base3DScene s in m_Scenes)
+                    scene.OnChangeSelectedState.AddListener((selected) =>
+                    {   if (selected)
                         {
-                            if (s != selectedScene)
+                            foreach (Base3DScene s in m_Scenes)
                             {
-                                s.IsSelected = false;
+                                if (s != scene)
+                                {
+                                    s.IsSelected = false;
+                                }
                             }
                         }
-                        OnSelectScene.Invoke(selectedScene);
                     });
                     // Add the scene to the list
                     m_Scenes.Add(scene);
@@ -142,16 +136,18 @@ namespace HBP.Module3D
                 {
                     ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
                     // Add the listeners
-                    scene.OnSelectScene.AddListener((selectedScene) =>
+                    scene.OnChangeSelectedState.AddListener((selected) =>
                     {
-                        foreach (Base3DScene s in m_Scenes)
+                        if (selected)
                         {
-                            if (s != selectedScene)
+                            foreach (Base3DScene s in m_Scenes)
                             {
-                                s.IsSelected = false;
+                                if (s != scene)
+                                {
+                                    s.IsSelected = false;
+                                }
                             }
                         }
-                        OnSelectScene.Invoke(selectedScene);
                     });
                     // Add the scene to the list
                     m_Scenes.Add(scene);

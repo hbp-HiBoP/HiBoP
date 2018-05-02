@@ -203,10 +203,6 @@ namespace HBP.Module3D
         {
             // Scene Manager
             m_ScenesManager = transform.GetComponentInChildren<ScenesManager>();
-            m_ScenesManager.OnSelectScene.AddListener((s) =>
-            {
-                OnSelectScene.Invoke(s);
-            });
 
             // Graphic Settings
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;

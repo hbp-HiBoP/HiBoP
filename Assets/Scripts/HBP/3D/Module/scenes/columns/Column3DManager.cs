@@ -380,7 +380,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Events
-        public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
+        public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
         /// <summary>
         /// Event called when selecting a column
         /// </summary>
@@ -470,22 +470,23 @@ namespace HBP.Module3D
             Column3D column = Instantiate(m_Column3DPrefab, transform.Find("Columns")).GetComponent<Column3D>();
             column.gameObject.name = "Column " + Columns.Count;
             column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
-            column.OnSelectColumn.AddListener((selectedColumn) =>
+            column.OnChangeSelectedState.AddListener((selected) =>
             {
-                foreach (Column3D c in m_Columns)
+                if (selected)
                 {
-                    if (c != selectedColumn)
+                    foreach (Column3D c in m_Columns)
                     {
-                        c.IsSelected = false;
-                        foreach (View3D v in c.Views)
+                        if (c != column)
                         {
-                            v.IsSelected = false;
+                            foreach (View3D v in c.Views)
+                            {
+                                v.IsSelected = false;
+                            }
                         }
                     }
                 }
-                OnSelectColumnManager.Invoke(this);
+                OnChangeSelectedState.Invoke(selected);
                 OnSelectColumn.Invoke(column);
-                ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
             });
             column.OnMoveView.AddListener((view) =>
             {
@@ -539,22 +540,23 @@ namespace HBP.Module3D
             Column3DIEEG column = Instantiate(m_Column3DIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
             column.gameObject.name = "Column IEEG " + ColumnsIEEG.Count;
             column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
-            column.OnSelectColumn.AddListener((selectedColumn) =>
+            column.OnChangeSelectedState.AddListener((selected) =>
             {
-                foreach (Column3D c in m_Columns)
+                if (selected)
                 {
-                    if (c != selectedColumn)
+                    foreach (Column3D c in m_Columns)
                     {
-                        c.IsSelected = false;
-                        foreach (View3D v in c.Views)
+                        if (c != column)
                         {
-                            v.IsSelected = false;
+                            foreach (View3D v in c.Views)
+                            {
+                                v.IsSelected = false;
+                            }
                         }
                     }
                 }
-                OnSelectColumnManager.Invoke(this);
+                OnChangeSelectedState.Invoke(selected);
                 OnSelectColumn.Invoke(column);
-                ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
             });
             column.OnMoveView.AddListener((view) =>
             {

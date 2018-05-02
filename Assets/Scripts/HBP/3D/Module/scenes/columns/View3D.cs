@@ -35,10 +35,12 @@ namespace HBP.Module3D
             }
             set
             {
+                bool wasSelected = m_IsSelected;
                 m_IsSelected = value;
-                if (m_IsSelected)
+                OnChangeSelectedState.Invoke(value);
+                if (m_IsSelected && !wasSelected)
                 {
-                    OnSelectView.Invoke(this);
+                    ApplicationState.Module3D.OnSelectView.Invoke(this);
                 }
             }
         }
@@ -279,7 +281,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when we select this view
         /// </summary>
-        public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
+        public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
         /// <summary>
         /// Event called when the camera is moved (rotation, strafe, zoom)
         /// </summary>
