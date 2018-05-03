@@ -106,11 +106,18 @@ namespace HBP.UI.Module3D
         private bool CheckValues(Site site)
         {
             bool result = true;
-            if (m_Mean.isOn) result &= CompareValue(site.Configuration.NormalizedValues.Mean(), m_MeanSuperior.isOn, m_MeanValue.text);
-            if (m_Median.isOn) result &= CompareValue(site.Configuration.NormalizedValues.Median(), m_MedianSuperior.isOn, m_MedianValue.text);
-            if (m_Max.isOn) result &= CompareValue(site.Configuration.NormalizedValues.Max(), m_MaxSuperior.isOn, m_MaxValue.text);
-            if (m_Min.isOn) result &= CompareValue(site.Configuration.NormalizedValues.Min(), m_MinSuperior.isOn, m_MinValue.text);
-            if (m_StandardDeviation.isOn) result &= CompareValue(site.Configuration.NormalizedValues.StandardDeviation(), m_StandardDeviationSuperior.isOn, m_StandardDeviationValue.text);
+            if (site.Configuration.NormalizedValues.Length > 0)
+            {
+                if (m_Mean.isOn) result &= CompareValue(site.Configuration.NormalizedValues.Mean(), m_MeanSuperior.isOn, m_MeanValue.text);
+                if (m_Median.isOn) result &= CompareValue(site.Configuration.NormalizedValues.Median(), m_MedianSuperior.isOn, m_MedianValue.text);
+                if (m_Max.isOn) result &= CompareValue(site.Configuration.NormalizedValues.Max(), m_MaxSuperior.isOn, m_MaxValue.text);
+                if (m_Min.isOn) result &= CompareValue(site.Configuration.NormalizedValues.Min(), m_MinSuperior.isOn, m_MinValue.text);
+                if (m_StandardDeviation.isOn) result &= CompareValue(site.Configuration.NormalizedValues.StandardDeviation(), m_StandardDeviationSuperior.isOn, m_StandardDeviationValue.text);
+            }
+            else
+            {
+                result = false;
+            }
             return result;
         }
         private bool CompareValue(float value, bool superior, string stringValueToCompare)
