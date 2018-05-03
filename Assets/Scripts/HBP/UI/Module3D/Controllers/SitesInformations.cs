@@ -139,11 +139,11 @@ namespace HBP.UI.Module3D
             List<Site> sites = m_Scene.ColumnManager.SelectedColumn.Sites.ToList();
             if (!string.IsNullOrEmpty(m_Name))
             {
-                sites.RemoveAll(s => !s.Information.ChannelName.Contains(m_Name));
+                sites.RemoveAll(s => !s.Information.ChannelName.ToUpper().Contains(m_Name.ToUpper()));
             }
             if (!string.IsNullOrEmpty(m_Patient))
             {
-                sites.RemoveAll(s => !s.Information.Patient.Name.Contains(m_Patient));
+                sites.RemoveAll(s => !s.Information.Patient.Name.ToUpper().Contains(m_Patient.ToUpper()));
             }
             if (m_Excluded)
             {
