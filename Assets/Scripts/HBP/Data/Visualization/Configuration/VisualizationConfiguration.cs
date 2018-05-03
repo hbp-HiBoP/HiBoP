@@ -9,11 +9,11 @@ namespace HBP.Data.Visualization
     public class VisualizationConfiguration
     {
         [DataMember(Name = "Brain Color")]
-        private ColorType m_BrainColor = ColorType.BrainColor;
+        private Enums.ColorType m_BrainColor = Enums.ColorType.BrainColor;
         /// <summary>
         /// Color of the brain
         /// </summary>
-        public ColorType BrainColor
+        public Enums.ColorType BrainColor
         {
             get
             {
@@ -26,11 +26,11 @@ namespace HBP.Data.Visualization
         }
 
         [DataMember(Name = "Brain Cut Color")]
-        private ColorType m_BrainCutColor = ColorType.Default;
+        private Enums.ColorType m_BrainCutColor = Enums.ColorType.Default;
         /// <summary>
         /// Color of the brain
         /// </summary>
-        public ColorType BrainCutColor
+        public Enums.ColorType BrainCutColor
         {
             get
             {
@@ -43,11 +43,11 @@ namespace HBP.Data.Visualization
         }
 
         [DataMember(Name = "Colormap")]
-        private ColorType m_Colormap = ColorType.MatLab;
+        private Enums.ColorType m_Colormap = Enums.ColorType.MatLab;
         /// <summary>
         /// Color of the brain
         /// </summary>
-        public ColorType Colormap
+        public Enums.ColorType Colormap
         {
             get
             {

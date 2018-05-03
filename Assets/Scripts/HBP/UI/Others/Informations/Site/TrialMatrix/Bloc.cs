@@ -239,7 +239,7 @@ namespace HBP.UI.TrialMatrix
         {
             switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocFormat)
             {
-                case TrialMatrixPreferences.BlocFormatType.HeightLine:
+                case TrialMatrixPreferences.BlocFormatType.LineHeight:
                     m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.LineHeight * m_Data.Trials.Length;
                     break;
                 case TrialMatrixPreferences.BlocFormatType.LineRatio:

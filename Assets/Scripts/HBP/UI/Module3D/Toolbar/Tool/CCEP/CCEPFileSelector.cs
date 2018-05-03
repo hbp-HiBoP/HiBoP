@@ -32,7 +32,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isCCEP = ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled && ApplicationState.Module3D.SelectedScene.Type == SceneType.SinglePatient;
+            bool isCCEP = ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled && ApplicationState.Module3D.SelectedScene.Type == Data.Enums.SceneType.SinglePatient;
 
             m_Dropdown.interactable = isCCEP;
         }
@@ -42,7 +42,7 @@ namespace HBP.UI.Module3D.Tools
             if (type == Toolbar.UpdateToolbarType.Column)
             {
                 m_Dropdown.options.Clear();
-                if (ApplicationState.Module3D.SelectedScene.Type == SceneType.SinglePatient)
+                if (ApplicationState.Module3D.SelectedScene.Type == Data.Enums.SceneType.SinglePatient)
                 {
                     foreach (HBP.Module3D.Latencies latencies in ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedImplantation.Latencies)
                     {

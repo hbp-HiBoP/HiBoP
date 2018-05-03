@@ -790,7 +790,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="colormap"></param>
         /// <param name="colorBrainCut"></param>
-        public void ResetColorSchemes(ColorType colormap, ColorType colorBrainCut)
+        public void ResetColorSchemes(Data.Enums.ColorType colormap, Data.Enums.ColorType colorBrainCut)
         {
             DLLCutColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap); 
             DLLCutFMRIColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);

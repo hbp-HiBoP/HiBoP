@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text.RegularExpressions;
+using Tools.CSharp;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,6 +17,10 @@ namespace HBP.UI.Preferences
         [SerializeField] InputField m_LineHeightInputField;
         [SerializeField] InputField m_LineRatioInputField;
         [SerializeField] InputField m_BlocRatioInputField;
+        [SerializeField] GameObject m_LineHeightSubMenu;
+        [SerializeField] GameObject m_LineRatioSubMenu;
+        [SerializeField] GameObject m_BlocRatioSubMenu;
+
         #endregion
 
         #region Public Methods
@@ -28,6 +34,10 @@ namespace HBP.UI.Preferences
             m_NumberOfIntermediateValuesSlider.value = trialMatrixPreferences.NumberOfIntermediateValues;
 
             string[] options = Enum.GetNames(typeof(Data.Preferences.TrialMatrixPreferences.BlocFormatType));
+            for (int i = 0; i < options.Length; i++)
+            {
+                options[i] = StringExtension.CamelCaseToWords(options[i]);
+            }
             m_BlocFormatDropdown.ClearOptions();
             foreach (string option in options)
             {
@@ -35,6 +45,7 @@ namespace HBP.UI.Preferences
             }
             m_BlocFormatDropdown.value = (int) ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocFormat;
             m_BlocFormatDropdown.RefreshShownValue();
+            OnChangeBlocFormat(m_BlocFormatDropdown.value);
 
             m_LineHeightInputField.text = trialMatrixPreferences.LineHeight.ToString();
             m_LineRatioInputField.text = trialMatrixPreferences.LineRatio.ToString();
@@ -59,20 +70,20 @@ namespace HBP.UI.Preferences
             Data.Preferences.TrialMatrixPreferences.BlocFormatType blocFormat = (Data.Preferences.TrialMatrixPreferences.BlocFormatType) m_BlocFormatDropdown.value;
             switch (blocFormat)
             {
-                case Data.Preferences.TrialMatrixPreferences.BlocFormatType.HeightLine:
-                    m_LineHeightInputField.gameObject.SetActive(true);
-                    m_LineRatioInputField.gameObject.SetActive(false);
-                    m_BlocRatioInputField.gameObject.SetActive(false);
+                case Data.Preferences.TrialMatrixPreferences.BlocFormatType.LineHeight:
+                    m_LineHeightSubMenu.SetActive(true);
+                    m_LineRatioSubMenu.SetActive(false);
+                    m_BlocRatioSubMenu.SetActive(false);
                     break;
                 case Data.Preferences.TrialMatrixPreferences.BlocFormatType.LineRatio:
-                    m_LineHeightInputField.gameObject.SetActive(false);
-                    m_LineRatioInputField.gameObject.SetActive(true);
-                    m_BlocRatioInputField.gameObject.SetActive(false);
+                    m_LineHeightSubMenu.SetActive(false);
+                    m_LineRatioSubMenu.SetActive(true);
+                    m_BlocRatioSubMenu.SetActive(false);
                     break;
                 case Data.Preferences.TrialMatrixPreferences.BlocFormatType.BlocRatio:
-                    m_LineHeightInputField.gameObject.SetActive(false);
-                    m_LineRatioInputField.gameObject.SetActive(false);
-                    m_BlocRatioInputField.gameObject.SetActive(true);
+                    m_LineHeightSubMenu.SetActive(false);
+                    m_LineRatioSubMenu.SetActive(false);
+                    m_BlocRatioSubMenu.SetActive(true);
                     break;
             }
         }

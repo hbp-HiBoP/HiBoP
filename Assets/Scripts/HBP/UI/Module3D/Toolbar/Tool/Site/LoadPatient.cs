@@ -36,7 +36,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isInteractable = (ApplicationState.Module3D.SelectedColumn.SelectedSite != null) && (ApplicationState.Module3D.SelectedScene.Type == SceneType.MultiPatients);
+            bool isInteractable = (ApplicationState.Module3D.SelectedColumn.SelectedSite != null) && (ApplicationState.Module3D.SelectedScene.Type == Data.Enums.SceneType.MultiPatients);
 
             m_Button.interactable = isInteractable;
         }

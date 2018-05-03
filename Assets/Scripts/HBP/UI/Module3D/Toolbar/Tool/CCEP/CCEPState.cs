@@ -38,7 +38,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool areCCEPAvailable = ApplicationState.Module3D.SelectedScene.Type == SceneType.SinglePatient && ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedImplantation.AreLatenciesLoaded;
+            bool areCCEPAvailable = ApplicationState.Module3D.SelectedScene.Type == Data.Enums.SceneType.SinglePatient && ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedImplantation.AreLatenciesLoaded;
 
             m_Toggle.interactable = areCCEPAvailable;
         }

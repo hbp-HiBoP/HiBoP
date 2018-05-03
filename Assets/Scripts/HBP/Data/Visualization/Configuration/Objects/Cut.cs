@@ -10,7 +10,7 @@ namespace HBP.Data.Visualization
         [DataMember]
         public SerializableVector3 Normal { get; set; }
         [DataMember]
-        public CutOrientation Orientation { get; set; }
+        public Data.Enums.CutOrientation Orientation { get; set; }
         [DataMember]
         public bool Flip { get; set; }
         [DataMember]
@@ -18,7 +18,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public Cut(Vector3 normal, CutOrientation orientation, bool flip, float position)
+        public Cut(Vector3 normal, Data.Enums.CutOrientation orientation, bool flip, float position)
         {
             Normal = new SerializableVector3(normal);
             Orientation = orientation;

@@ -123,8 +123,8 @@ namespace HBP.UI.Module3D
             {
                 if (m_IsUIUpdating) return;
 
-                cut.Orientation = (CutOrientation)value;
-                if (cut.Orientation == CutOrientation.Custom)
+                cut.Orientation = (Data.Enums.CutOrientation)value;
+                if (cut.Orientation == Data.Enums.CutOrientation.Custom)
                 {
                     int x = 1, y = 0, z = 0;
                     int.TryParse(m_CustomX.text, out x);
@@ -152,7 +152,7 @@ namespace HBP.UI.Module3D
             {
                 if (m_IsUIUpdating) return;
 
-                if (cut.Orientation == CutOrientation.Custom)
+                if (cut.Orientation == Data.Enums.CutOrientation.Custom)
                 {
                     int x = 1, y = 0, z = 0;
                     int.TryParse(m_CustomX.text, out x);
@@ -166,7 +166,7 @@ namespace HBP.UI.Module3D
             {
                 if (m_IsUIUpdating) return;
 
-                if (cut.Orientation == CutOrientation.Custom)
+                if (cut.Orientation == Data.Enums.CutOrientation.Custom)
                 {
                     int x = 1, y = 0, z = 0;
                     int.TryParse(m_CustomX.text, out x);
@@ -180,7 +180,7 @@ namespace HBP.UI.Module3D
             {
                 if (m_IsUIUpdating) return;
 
-                if (cut.Orientation == CutOrientation.Custom)
+                if (cut.Orientation == Data.Enums.CutOrientation.Custom)
                 {
                     int x = 1, y = 0, z = 0;
                     int.TryParse(m_CustomX.text, out x);
@@ -217,8 +217,8 @@ namespace HBP.UI.Module3D
                 m_Remove.gameObject.SetActive(true);
                 m_Orientation.gameObject.SetActive(true);
                 m_Position.transform.parent.gameObject.SetActive(true);
-                m_Flip.gameObject.SetActive(m_Cut.Orientation != CutOrientation.Custom);
-                m_CustomValues.gameObject.SetActive(m_Cut.Orientation == CutOrientation.Custom);
+                m_Flip.gameObject.SetActive(m_Cut.Orientation != Data.Enums.CutOrientation.Custom);
+                m_CustomValues.gameObject.SetActive(m_Cut.Orientation == Data.Enums.CutOrientation.Custom);
             }
             else
             {
@@ -238,7 +238,7 @@ namespace HBP.UI.Module3D
             m_Cut = cut;
             m_Image.GetComponent<ImageRatio>().Type = ImageRatio.RatioType.FixedWidth;
             m_Orientation.options = new List<Dropdown.OptionData>();
-            foreach (var orientation in Enum.GetNames(typeof(CutOrientation)))
+            foreach (var orientation in Enum.GetNames(typeof(Data.Enums.CutOrientation)))
             {
                 m_Orientation.options.Add(new Dropdown.OptionData(orientation));
             }

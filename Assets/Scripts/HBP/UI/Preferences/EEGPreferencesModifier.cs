@@ -16,7 +16,7 @@ namespace HBP.UI.Preferences
         {
             Data.Preferences.EEGPreferences preferences = ApplicationState.UserPreferences.Data.EEG;
 
-            string[] normalizationType = Enum.GetNames(typeof(NormalizationType));
+            string[] normalizationType = Enum.GetNames(typeof(Data.Enums.NormalizationType));
             m_EEGNormalizationDropdown.ClearOptions();
             foreach (string type in normalizationType)
             {
@@ -25,7 +25,7 @@ namespace HBP.UI.Preferences
             m_EEGNormalizationDropdown.value = (int)preferences.Normalization;
             m_EEGNormalizationDropdown.RefreshShownValue();
 
-            string[] averagingType = Enum.GetNames(typeof(AveragingType));
+            string[] averagingType = Enum.GetNames(typeof(Data.Enums.AveragingType));
             m_EEGAveragingDropdown.ClearOptions();
             foreach (string type in averagingType)
             {
@@ -36,8 +36,8 @@ namespace HBP.UI.Preferences
         }
         public void Save()
         {
-            ApplicationState.UserPreferences.Data.EEG.Normalization = (NormalizationType)m_EEGNormalizationDropdown.value;
-            ApplicationState.UserPreferences.Data.EEG.Averaging = (AveragingType)m_EEGAveragingDropdown.value;
+            ApplicationState.UserPreferences.Data.EEG.Normalization = (Data.Enums.NormalizationType)m_EEGNormalizationDropdown.value;
+            ApplicationState.UserPreferences.Data.EEG.Averaging = (Data.Enums.AveragingType)m_EEGAveragingDropdown.value;
         }
         #endregion
     }

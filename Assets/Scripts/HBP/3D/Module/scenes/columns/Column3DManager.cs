@@ -319,11 +319,11 @@ namespace HBP.Module3D
         public List<Vector2[]> UVCoordinatesSplits = null; // uv coordinates for each brain mesh split
 
         // textures
-        private ColorType m_BrainColor = ColorType.BrainColor;
+        private Data.Enums.ColorType m_BrainColor = Data.Enums.ColorType.BrainColor;
         /// <summary>
         /// Brain surface color
         /// </summary>
-        public ColorType BrainColor
+        public Data.Enums.ColorType BrainColor
         {
             get
             {
@@ -335,11 +335,11 @@ namespace HBP.Module3D
             }
         }
 
-        private ColorType m_BrainCutColor = ColorType.Default;
+        private Data.Enums.ColorType m_BrainCutColor = Data.Enums.ColorType.Default;
         /// <summary>
         /// Brain cut color
         /// </summary>
-        public ColorType BrainCutColor
+        public Data.Enums.ColorType BrainCutColor
         {
             get
             {
@@ -351,11 +351,11 @@ namespace HBP.Module3D
             }
         }
 
-        private ColorType m_Colormap = ColorType.MatLab;
+        private Data.Enums.ColorType m_Colormap = Data.Enums.ColorType.MatLab;
         /// <summary>
         /// Colormap
         /// </summary>
-        public ColorType Colormap
+        public Data.Enums.ColorType Colormap
         {
             get
             {

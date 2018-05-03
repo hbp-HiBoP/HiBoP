@@ -10,7 +10,7 @@ public static class DataManager
 {
     #region Properties
     static Dictionary<DataRequest, EpochedData> m_DataByRequest = new Dictionary<DataRequest, EpochedData>();
-    static Dictionary<DataRequest, NormalizationType> m_NormalizeByRequest = new Dictionary<DataRequest, NormalizationType>();
+    static Dictionary<DataRequest, HBP.Data.Enums.NormalizationType> m_NormalizeByRequest = new Dictionary<DataRequest, HBP.Data.Enums.NormalizationType>();
     public static bool HasData { get { return m_DataByRequest.Count > 0; } }
     #endregion
 
@@ -43,7 +43,7 @@ public static class DataManager
         foreach (var bloc in protocol.Blocs)
         {
             m_DataByRequest.Add(new DataRequest(dataInfo, bloc), new EpochedData(bloc, data));
-            m_NormalizeByRequest.Add(new DataRequest(dataInfo, bloc), NormalizationType.None);
+            m_NormalizeByRequest.Add(new DataRequest(dataInfo, bloc), HBP.Data.Enums.NormalizationType.None);
         }
     }
     public static void UnLoad(DataInfo dataInfo)
@@ -73,16 +73,16 @@ public static class DataManager
             switch (dataInfo.Normalization)
             {
                 case DataInfo.NormalizationType.None:
-                    foreach(var request in dataRequestCollection) if(m_NormalizeByRequest[request] != NormalizationType.None) NormalizeByNone(request);
+                    foreach(var request in dataRequestCollection) if(m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.None) NormalizeByNone(request);
                     break;
                 case DataInfo.NormalizationType.Trial:
-                    foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != NormalizationType.Trial) NormalizeByTrial(request);
+                    foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Trial) NormalizeByTrial(request);
                     break;
                 case DataInfo.NormalizationType.Bloc:
-                    foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != NormalizationType.Bloc) NormalizeByBloc(request);
+                    foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Bloc) NormalizeByBloc(request);
                     break;
                 case DataInfo.NormalizationType.Protocol:
-                    IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize = from dataRequest in dataRequestCollection select new Tuple<DataRequest, bool>(dataRequest, m_NormalizeByRequest[dataRequest] != NormalizationType.Protocol);
+                    IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize = from dataRequest in dataRequestCollection select new Tuple<DataRequest, bool>(dataRequest, m_NormalizeByRequest[dataRequest] != HBP.Data.Enums.NormalizationType.Protocol);
                     if (dataRequestAndNeedToNormalize.Any((tuple) => tuple.Object2))
                     {
                         NormalizeByProtocol(dataRequestAndNeedToNormalize);
@@ -91,17 +91,17 @@ public static class DataManager
                 case DataInfo.NormalizationType.Auto:
                     switch (ApplicationState.UserPreferences.Data.EEG.Normalization)
                     {
-                        case NormalizationType.None:
-                            foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != NormalizationType.None) NormalizeByNone(request);
+                        case HBP.Data.Enums.NormalizationType.None:
+                            foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.None) NormalizeByNone(request);
                             break;
-                        case NormalizationType.Trial:
-                            foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != NormalizationType.Trial) NormalizeByTrial(request);
+                        case HBP.Data.Enums.NormalizationType.Trial:
+                            foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Trial) NormalizeByTrial(request);
                             break;
-                        case NormalizationType.Bloc:
-                            foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != NormalizationType.Bloc) NormalizeByBloc(request);
+                        case HBP.Data.Enums.NormalizationType.Bloc:
+                            foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Bloc) NormalizeByBloc(request);
                             break;
-                        case NormalizationType.Protocol:
-                            IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize2 = from dataRequest in dataRequestCollection select new Tuple<DataRequest, bool>(dataRequest, m_NormalizeByRequest[dataRequest] != NormalizationType.Protocol);
+                        case HBP.Data.Enums.NormalizationType.Protocol:
+                            IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize2 = from dataRequest in dataRequestCollection select new Tuple<DataRequest, bool>(dataRequest, m_NormalizeByRequest[dataRequest] != HBP.Data.Enums.NormalizationType.Protocol);
                             if (dataRequestAndNeedToNormalize2.Any((tuple) => tuple.Object2))
                             {
                                 NormalizeByProtocol(dataRequestAndNeedToNormalize2);
@@ -127,7 +127,7 @@ public static class DataManager
         {
             bloc.Normalize(average, standardDeviation);
         }
-        m_NormalizeByRequest[dataRequest] = NormalizationType.None;
+        m_NormalizeByRequest[dataRequest] = HBP.Data.Enums.NormalizationType.None;
     }
     static void NormalizeByTrial(DataRequest dataRequest)
     {
@@ -142,7 +142,7 @@ public static class DataManager
                 bloc.Normalize(average, standardDeviation, pair.Key);
             }
         }
-        m_NormalizeByRequest[dataRequest] = NormalizationType.Trial;
+        m_NormalizeByRequest[dataRequest] = HBP.Data.Enums.NormalizationType.Trial;
     }
     static void NormalizeByBloc(DataRequest dataRequest)
     {
@@ -169,7 +169,7 @@ public static class DataManager
                 line.Normalize(averageBySite[site], standardDeviationBySite[site], site);
             }
         }
-        m_NormalizeByRequest[dataRequest] = NormalizationType.Bloc;
+        m_NormalizeByRequest[dataRequest] = HBP.Data.Enums.NormalizationType.Bloc;
     }
     static void NormalizeByProtocol(IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize)
     {
@@ -206,7 +206,7 @@ public static class DataManager
                         line.Normalize(averageBySite[site], standardDeviationBySite[site], site);
                     }
                 }
-                m_NormalizeByRequest[tuple.Object1] = NormalizationType.Protocol;
+                m_NormalizeByRequest[tuple.Object1] = HBP.Data.Enums.NormalizationType.Protocol;
             }
         }
     }

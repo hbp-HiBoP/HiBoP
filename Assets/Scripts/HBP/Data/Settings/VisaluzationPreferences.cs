@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System.ComponentModel;
+using System.Runtime.Serialization;
 
 namespace HBP.Data.Preferences
 {
@@ -27,7 +28,7 @@ namespace HBP.Data.Preferences
     public class _3DPreferences
     {
         [DataMember] public bool AutomaticEEGUpdate { get; set; }
-        [DataMember] public SiteInfluenceType SiteInfluence { get; set; }
+        [DataMember] public Enums.SiteInfluenceType SiteInfluence { get; set; }
         [DataMember] public string DefaultSelectedMRI { get; set; }
         [DataMember] public string DefaultSelectedMesh { get; set; }
         [DataMember] public string DefaultSelectedImplantation { get; set; }
@@ -36,7 +37,7 @@ namespace HBP.Data.Preferences
     [DataContract]
     public class TrialMatrixPreferences
     {
-        public enum BlocFormatType { HeightLine, LineRatio, BlocRatio }
+        public enum BlocFormatType {[Description("Line height")] LineHeight, [Description("Line height")] LineRatio, [Description("Bloc ratio")] BlocRatio }
         [DataMember] public bool ShowWholeProtocol { get; set; }
         [DataMember] public bool TrialsSynchronization { get; set; }
         [DataMember] public bool SmoothLine { get; set; }

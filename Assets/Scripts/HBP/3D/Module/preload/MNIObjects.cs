@@ -54,7 +54,7 @@ namespace HBP.Module3D
         #region Private Methods
         void Awake()
         {
-            m_DataPath = GlobalPaths.Data;
+            m_DataPath = ApplicationState.DataPath;
             this.StartCoroutineAsync(c_Load());
         }
         /// <summary>

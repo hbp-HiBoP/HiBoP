@@ -15,7 +15,7 @@ namespace HBP.UI.Preferences
         {
             Data.Preferences.EventPreferences preferences = ApplicationState.UserPreferences.Data.Event;
 
-            string[] averagingType = Enum.GetNames(typeof(AveragingType));
+            string[] averagingType = Enum.GetNames(typeof(Data.Enums.AveragingType));
             m_PositionAveragingDropdown.ClearOptions();
             foreach (string type in averagingType)
             {
@@ -29,7 +29,7 @@ namespace HBP.UI.Preferences
         {
             Data.Preferences.EventPreferences preferences = ApplicationState.UserPreferences.Data.Event;
 
-            preferences.PositionAveraging = (AveragingType) m_PositionAveragingDropdown.value;
+            preferences.PositionAveraging = (Data.Enums.AveragingType) m_PositionAveragingDropdown.value;
         }
         #endregion
     }

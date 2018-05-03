@@ -21,7 +21,7 @@ namespace HBP.UI.Preferences
 
             m_AutomaticEEGUpdateToggle.isOn = preferences.AutomaticEEGUpdate;
 
-            string[] options = Enum.GetNames(typeof(SiteInfluenceType));
+            string[] options = Enum.GetNames(typeof(Data.Enums.SiteInfluenceType));
             m_SiteInfluenceDropdown.ClearOptions();
             foreach (string option in options)
             {
@@ -39,7 +39,7 @@ namespace HBP.UI.Preferences
             Data.Preferences._3DPreferences preferences = ApplicationState.UserPreferences.Visualization._3D;
 
             preferences.AutomaticEEGUpdate = m_AutomaticEEGUpdateToggle.isOn;
-            ApplicationState.UserPreferences.Visualization._3D.SiteInfluence = (SiteInfluenceType) m_SiteInfluenceDropdown.value;
+            ApplicationState.UserPreferences.Visualization._3D.SiteInfluence = (Data.Enums.SiteInfluenceType) m_SiteInfluenceDropdown.value;
 
             preferences.DefaultSelectedMRI = m_DefaultSelectedMRIInputField.text;
             preferences.DefaultSelectedMesh = m_DefaultSelectedMeshInputField.text;

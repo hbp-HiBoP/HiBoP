@@ -16,9 +16,9 @@ namespace HBP.UI.Module3D.Tools
         /// <summary>
         /// Correspondance between cut color dropdown options indices and color type
         /// </summary>
-        private List<ColorType> m_CutColorIndices = new List<ColorType>() { ColorType.Default, ColorType.Grayscale };
+        private List<Data.Enums.ColorType> m_CutColorIndices = new List<Data.Enums.ColorType>() { Data.Enums.ColorType.Default, Data.Enums.ColorType.Grayscale };
 
-        public GenericEvent<ColorType> OnChangeValue = new GenericEvent<ColorType>();
+        public GenericEvent<Data.Enums.ColorType> OnChangeValue = new GenericEvent<Data.Enums.ColorType>();
         #endregion
 
         #region Public Methods
@@ -28,7 +28,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ColorType color = m_CutColorIndices[value];
+                Data.Enums.ColorType color = m_CutColorIndices[value];
                 ApplicationState.Module3D.SelectedScene.UpdateBrainCutColor(color);
                 OnChangeValue.Invoke(color);
             });

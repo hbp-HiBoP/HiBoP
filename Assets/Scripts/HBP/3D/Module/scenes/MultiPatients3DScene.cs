@@ -31,11 +31,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Type of the scene
         /// </summary>
-        public override SceneType Type
+        public override Data.Enums.SceneType Type
         {
             get
             {
-                return SceneType.MultiPatients;
+                return Data.Enums.SceneType.MultiPatients;
             }
         }
         #endregion

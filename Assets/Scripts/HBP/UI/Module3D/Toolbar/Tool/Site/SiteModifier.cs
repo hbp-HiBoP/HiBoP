@@ -31,13 +31,13 @@ namespace HBP.UI.Module3D.Tools
         {
             ApplicationState.Module3D.OnSelectSite.AddListener((site) =>
             {
-                SiteFilter filter = (SiteFilter)m_Selector.value;
-                m_Apply.interactable = !((filter == SiteFilter.Site || filter == SiteFilter.Electrode || filter == SiteFilter.Patient) && site == null);
+                Data.Enums.SiteFilter filter = (Data.Enums.SiteFilter)m_Selector.value;
+                m_Apply.interactable = !((filter == Data.Enums.SiteFilter.Site || filter == Data.Enums.SiteFilter.Electrode || filter == Data.Enums.SiteFilter.Patient) && site == null);
             });
             m_Selector.onValueChanged.AddListener((value) =>
             {
-                SiteFilter filter = (SiteFilter)value;
-                if (filter == SiteFilter.Name || filter == SiteFilter.MarsAtlas || filter == SiteFilter.Broadman)
+                Data.Enums.SiteFilter filter = (Data.Enums.SiteFilter)value;
+                if (filter == Data.Enums.SiteFilter.Name || filter == Data.Enums.SiteFilter.MarsAtlas || filter == Data.Enums.SiteFilter.Broadman)
                 {
                     m_Filter.gameObject.SetActive(true);
                 }
@@ -45,11 +45,11 @@ namespace HBP.UI.Module3D.Tools
                 {
                     m_Filter.gameObject.SetActive(false);
                 }
-                m_Apply.interactable = !((filter == SiteFilter.Site || filter == SiteFilter.Electrode || filter == SiteFilter.Patient) && ApplicationState.Module3D.SelectedColumn.SelectedSite == null);
+                m_Apply.interactable = !((filter == Data.Enums.SiteFilter.Site || filter == Data.Enums.SiteFilter.Electrode || filter == Data.Enums.SiteFilter.Patient) && ApplicationState.Module3D.SelectedColumn.SelectedSite == null);
             });
             m_Apply.onClick.AddListener(() =>
             {
-                ApplicationState.Module3D.SelectedScene.UpdateSitesMasks(m_AllColumns.isOn, (SiteAction)m_Action.value, (SiteFilter)m_Selector.value, m_Filter.text);
+                ApplicationState.Module3D.SelectedScene.UpdateSitesMasks(m_AllColumns.isOn, (Data.Enums.SiteAction)m_Action.value, (Data.Enums.SiteFilter)m_Selector.value, m_Filter.text);
                 m_DropWindow.ChangeWindowState();
             });
             m_Filter.gameObject.SetActive(false);
@@ -69,8 +69,8 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            SiteFilter filter = (SiteFilter)m_Selector.value;
-            bool interactable = !((filter == SiteFilter.Site || filter == SiteFilter.Electrode || filter == SiteFilter.Patient) && ApplicationState.Module3D.SelectedColumn.SelectedSite == null);
+            Data.Enums.SiteFilter filter = (Data.Enums.SiteFilter)m_Selector.value;
+            bool interactable = !((filter == Data.Enums.SiteFilter.Site || filter == Data.Enums.SiteFilter.Electrode || filter == Data.Enums.SiteFilter.Patient) && ApplicationState.Module3D.SelectedColumn.SelectedSite == null);
             m_Button.interactable = true;
             m_Selector.interactable = true;
             m_Filter.interactable = true;

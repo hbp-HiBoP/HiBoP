@@ -23,7 +23,7 @@ namespace HBP.UI.Module3D
         [SerializeField] Text m_BroadmanText;
         [SerializeField] RectTransform m_Canvas;
 
-        SiteInformationDisplayMode m_CurrentMode = SiteInformationDisplayMode.Anatomy;
+        Data.Enums.SiteInformationDisplayMode m_CurrentMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
         RectTransform m_RectTransform;
         Color m_DisableColor = new Color(1.0f, 1.0f, 1.0f, 0.2f);
         #endregion
@@ -37,23 +37,23 @@ namespace HBP.UI.Module3D
             m_Atlas.SetActive(true);
             ApplicationState.Module3D.OnDisplaySiteInformation.AddListener((siteInfo) =>
             {
-                SiteInformationDisplayMode mode = siteInfo.Mode;
+                Data.Enums.SiteInformationDisplayMode mode = siteInfo.Mode;
                 if (mode != m_CurrentMode)
                 {
                     m_CurrentMode = mode;
                     switch (mode)
                     {
-                        case SiteInformationDisplayMode.Anatomy:
+                        case Data.Enums.SiteInformationDisplayMode.Anatomy:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
                             m_Atlas.SetActive(true);
                             break;
-                        case SiteInformationDisplayMode.IEEG:
+                        case Data.Enums.SiteInformationDisplayMode.IEEG:
                             m_IEEG.SetActive(true);
                             m_CCEP.SetActive(false);
                             m_Atlas.SetActive(true);
                             break;
-                        case SiteInformationDisplayMode.CCEP:
+                        case Data.Enums.SiteInformationDisplayMode.CCEP:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(true);
                             m_Atlas.SetActive(false);
@@ -67,14 +67,14 @@ namespace HBP.UI.Module3D
                     SetPatient(siteInfo.Site.Information.Patient);
                     switch (siteInfo.Mode)
                     {
-                        case SiteInformationDisplayMode.Anatomy:
+                        case Data.Enums.SiteInformationDisplayMode.Anatomy:
                             SetAtlas(siteInfo);
                             break;
-                        case SiteInformationDisplayMode.IEEG:
+                        case Data.Enums.SiteInformationDisplayMode.IEEG:
                             SetIEEG(siteInfo);
                             SetAtlas(siteInfo);
                             break;
-                        case SiteInformationDisplayMode.CCEP:
+                        case Data.Enums.SiteInformationDisplayMode.CCEP:
                             SetCCEP(siteInfo);
                             break;
                     }

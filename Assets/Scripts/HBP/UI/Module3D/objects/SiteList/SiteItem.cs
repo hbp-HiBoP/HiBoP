@@ -50,31 +50,31 @@ namespace HBP.UI.Module3D
 
             m_Excluded.onValueChanged.AddListener((isOn) =>
             {
-                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Exclude : SiteAction.Include, Object);
+                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? Data.Enums.SiteAction.Exclude : Data.Enums.SiteAction.Include, Object);
                 m_Site.interactable = Object.IsActive;
             });
 
             m_Blacklisted.onValueChanged.AddListener((isOn) =>
             {
-                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Blacklist : SiteAction.Unblacklist, Object);
+                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? Data.Enums.SiteAction.Blacklist : Data.Enums.SiteAction.Unblacklist, Object);
                 m_Site.interactable = Object.IsActive;
             });
 
             m_Marked.onValueChanged.AddListener((isOn) =>
             {
-                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Mark : SiteAction.Unmark, Object);
+                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? Data.Enums.SiteAction.Mark : Data.Enums.SiteAction.Unmark, Object);
                 m_Site.interactable = Object.IsActive;
             });
 
             m_Highlighted.onValueChanged.AddListener((isOn) =>
             {
-                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Highlight : SiteAction.Unhighlight, Object);
+                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? Data.Enums.SiteAction.Highlight : Data.Enums.SiteAction.Unhighlight, Object);
                 m_Site.interactable = Object.IsActive;
             });
 
             m_Suspicious.onValueChanged.AddListener((isOn) =>
             {
-                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? SiteAction.Suspect : SiteAction.Unsuspect, Object);
+                ApplicationState.Module3D.SelectedScene.ChangeSiteState(isOn ? Data.Enums.SiteAction.Suspect : Data.Enums.SiteAction.Unsuspect, Object);
                 m_Site.interactable = Object.IsActive;
             });
         }

@@ -25,15 +25,15 @@ namespace HBP.Data.Preferences
     public class EEGPreferences
     {
         #region Properties
-        [DataMember] public AveragingType Averaging { get; set; }
-        [DataMember] public NormalizationType Normalization { get; set; }
+        [DataMember] public Enums.AveragingType Averaging { get; set; }
+        [DataMember] public Enums.NormalizationType Normalization { get; set; }
         #endregion
 
         #region Constructors
         public EEGPreferences()
         {
-            Averaging = AveragingType.Median;
-            Normalization = NormalizationType.None;
+            Averaging = Enums.AveragingType.Median;
+            Normalization = Enums.NormalizationType.None;
         }
         #endregion
     }
@@ -42,13 +42,13 @@ namespace HBP.Data.Preferences
     public class EventPreferences
     {
         #region Properties
-        [DataMember] public AveragingType PositionAveraging { get; set; }
+        [DataMember] public Enums.AveragingType PositionAveraging { get; set; }
         #endregion
 
         #region Constructors
         public EventPreferences()
         {
-            PositionAveraging = AveragingType.Median;
+            PositionAveraging = Enums.AveragingType.Median;
         }
         #endregion
     }

@@ -30,7 +30,7 @@ namespace HBP.Module3D
     /// </summary>
     public class SiteInfo
     {
-        public SiteInfo(Site site, bool enabled, Vector3 position, SiteInformationDisplayMode mode = SiteInformationDisplayMode.IEEG, string IEEGAmplitude = "", string IEEGUnit ="", string CCEPAmplitude = "", string CCEPLatency = "")
+        public SiteInfo(Site site, bool enabled, Vector3 position, Data.Enums.SiteInformationDisplayMode mode = Data.Enums.SiteInformationDisplayMode.IEEG, string IEEGAmplitude = "", string IEEGUnit ="", string CCEPAmplitude = "", string CCEPLatency = "")
         {
             Site = site;
             Enabled = enabled;
@@ -49,7 +49,7 @@ namespace HBP.Module3D
         public string IEEGUnit { get; set; }
         public string CCEPAmplitude { get; set; }
         public string CCEPLatency { get; set; }
-        public SiteInformationDisplayMode Mode { get; set; }
+        public Data.Enums.SiteInformationDisplayMode Mode { get; set; }
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Type of the scene (Single / Multi)
         /// </summary>
-        public abstract SceneType Type { get; }
+        public abstract Data.Enums.SceneType Type { get; }
         
         private bool m_IsSelected;
         /// <summary>
@@ -584,7 +584,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when changing the colors of the colormap
         /// </summary>
-        public GenericEvent<ColorType> OnChangeColormap = new GenericEvent<ColorType>();
+        public GenericEvent<Data.Enums.ColorType> OnChangeColormap = new GenericEvent<Data.Enums.ColorType>();
         /// <summary>
         /// Event for colormap values associated to a column id (params : minValue, middle, maxValue, id)
         /// </summary>
@@ -906,7 +906,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="color">Color of the colormap</param>
         /// <param name="updateColors">Do the colors need to be reset ?</param>
-        public void UpdateColormap(ColorType color, bool updateColors = true)
+        public void UpdateColormap(Data.Enums.ColorType color, bool updateColors = true)
         {
             ColumnManager.Colormap = color;
             if (updateColors)
@@ -926,7 +926,7 @@ namespace HBP.Module3D
         /// Update the color of the surface of the brain for this scene
         /// </summary>
         /// <param name="color">Color of the brain</param>
-        public void UpdateBrainSurfaceColor(ColorType color)
+        public void UpdateBrainSurfaceColor(Data.Enums.ColorType color)
         {
             ColumnManager.BrainColor = color;
             DLL.Texture tex = DLL.Texture.Generate1DColorTexture(ColumnManager.BrainColor);
@@ -939,7 +939,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="color">Color of the cuts</param>
         /// <param name="updateColors">Do the colors need to be reset ?</param>
-        public void UpdateBrainCutColor(ColorType color, bool updateColors = true)
+        public void UpdateBrainCutColor(Data.Enums.ColorType color, bool updateColors = true)
         {
             ColumnManager.BrainCutColor = color;
             if (updateColors)
@@ -1183,25 +1183,25 @@ namespace HBP.Module3D
             switch (Cuts.Count)
             {
                 case 0:
-                    cut.Orientation = CutOrientation.Axial;
+                    cut.Orientation = Data.Enums.CutOrientation.Axial;
                     cut.Flip = false;
                     cut.RemoveFrontPlane = 0;
                     cut.Position = 0.5f;
                     break;
                 case 1:
-                    cut.Orientation = CutOrientation.Coronal;
+                    cut.Orientation = Data.Enums.CutOrientation.Coronal;
                     cut.Flip = false;
                     cut.RemoveFrontPlane = 0;
                     cut.Position = 0.5f;
                     break;
                 case 2:
-                    cut.Orientation = CutOrientation.Sagital;
+                    cut.Orientation = Data.Enums.CutOrientation.Sagital;
                     cut.Flip = false;
                     cut.RemoveFrontPlane = 0;
                     cut.Position = 0.5f;
                     break;
                 default:
-                    cut.Orientation = CutOrientation.Axial;
+                    cut.Orientation = Data.Enums.CutOrientation.Axial;
                     cut.Flip = false;
                     cut.RemoveFrontPlane = 0;
                     cut.Position = 0.5f;
@@ -1272,7 +1272,7 @@ namespace HBP.Module3D
         {
             if (!CuttingMesh) CuttingMesh = true;
 
-            if (cut.Orientation == CutOrientation.Custom || !SceneInformation.MRILoaded)
+            if (cut.Orientation == Data.Enums.CutOrientation.Custom || !SceneInformation.MRILoaded)
             {
                 if (cut.Normal.x == 0 && cut.Normal.y == 0 && cut.Normal.z == 0)
                 {
@@ -1512,9 +1512,9 @@ namespace HBP.Module3D
         /// </summary>
         public void ResetConfiguration(bool firstCall = true)
         {
-            UpdateBrainSurfaceColor(ColorType.BrainColor);
-            UpdateBrainCutColor(ColorType.Default);
-            UpdateColormap(ColorType.MatLab);
+            UpdateBrainSurfaceColor(Data.Enums.ColorType.BrainColor);
+            UpdateBrainCutColor(Data.Enums.ColorType.Default);
+            UpdateColormap(Data.Enums.ColorType.MatLab);
             UpdateMeshPartToDisplay(SceneStatesInfo.MeshPart.Both);
             EdgeMode = false;
             StrongCuts = false;
@@ -1525,12 +1525,12 @@ namespace HBP.Module3D
 
             switch (Type)
             {
-                case SceneType.SinglePatient:
+                case Data.Enums.SceneType.SinglePatient:
                     UpdateMeshToDisplay("Grey matter");
                     UpdateMRIToDisplay("Preimplantation");
                     UpdateSites("Patient");
                     break;
-                case SceneType.MultiPatients:
+                case Data.Enums.SceneType.MultiPatients:
                     UpdateMeshToDisplay("MNI Grey matter");
                     UpdateMRIToDisplay("MNI");
                     UpdateSites("MNI");
@@ -1817,7 +1817,7 @@ namespace HBP.Module3D
         /// <param name="action"> 0 : excluded / 1 : included / 2 : blacklisted / 3 : unblacklist / 4 : highlight / 5 : unhighlight / 6 : marked / 7 : unmarked </param>
         /// <param name="range"> 0 : a plot / 1 : all plots from an electrode / 2 : all plots from a patient / 3 : all highlighted / 4 : all unhighlighted 
         /// / 5 : all plots / 6 : in ROI / 7 : not in ROI / 8 : names filter / 9 : mars filter / 10 : broadman filter </param>
-        public void UpdateSitesMasks(bool allColumns, SiteAction action = SiteAction.Exclude, SiteFilter filter = SiteFilter.Site, string nameFilter = "")
+        public void UpdateSitesMasks(bool allColumns, Data.Enums.SiteAction action = Data.Enums.SiteAction.Exclude, Data.Enums.SiteFilter filter = Data.Enums.SiteFilter.Site, string nameFilter = "")
         {
             Site selectedSite = null;
             if (m_ColumnManager.SelectedColumn.SelectedSite)
@@ -1846,12 +1846,12 @@ namespace HBP.Module3D
                 }
                 switch(filter)
                 {
-                    case SiteFilter.Site:
+                    case Data.Enums.SiteFilter.Site:
                         {
                             sites.Add(columnSelectedSite);
                         }
                         break;
-                    case SiteFilter.Electrode:
+                    case Data.Enums.SiteFilter.Electrode:
                         {
                             Transform parentElectrode = columnSelectedSite.transform.parent;
                             for (int jj = 0; jj < parentElectrode.childCount; ++jj)
@@ -1860,7 +1860,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case SiteFilter.Patient:
+                    case Data.Enums.SiteFilter.Patient:
                         {
                             Transform parentPatient = columnSelectedSite.transform.parent.parent;
                             for (int jj = 0; jj < parentPatient.childCount; ++jj)
@@ -1873,7 +1873,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case SiteFilter.Highlighted:
+                    case Data.Enums.SiteFilter.Highlighted:
                         {
                             foreach (Site site in column.Sites)
                             {
@@ -1882,7 +1882,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case SiteFilter.Unhighlighted:
+                    case Data.Enums.SiteFilter.Unhighlighted:
                         {
                             foreach (Site site in column.Sites)
                             {
@@ -1891,7 +1891,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case SiteFilter.Suspicious:
+                    case Data.Enums.SiteFilter.Suspicious:
                         {
                             foreach (Site site in column.Sites)
                             {
@@ -1900,7 +1900,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case SiteFilter.Unsuspicious:
+                    case Data.Enums.SiteFilter.Unsuspicious:
                         {
                             foreach (Site site in column.Sites)
                             {
@@ -1909,7 +1909,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case SiteFilter.All:
+                    case Data.Enums.SiteFilter.All:
                         {
                             foreach (Site site in column.Sites)
                             {
@@ -1917,7 +1917,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case SiteFilter.InRegionOfInterest:
+                    case Data.Enums.SiteFilter.InRegionOfInterest:
                         {
                             foreach (Site site in column.Sites)
                             {
@@ -1926,7 +1926,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case SiteFilter.OutOfRegionOfInterest:
+                    case Data.Enums.SiteFilter.OutOfRegionOfInterest:
                         {
                             foreach (Site site in column.Sites)
                             {
@@ -1935,7 +1935,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case SiteFilter.Name:
+                    case Data.Enums.SiteFilter.Name:
                         {
                             foreach (Site site in column.Sites)
                             {
@@ -1944,7 +1944,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case SiteFilter.MarsAtlas:
+                    case Data.Enums.SiteFilter.MarsAtlas:
                         {
                             foreach (Site site in column.Sites)
                             {
@@ -1953,7 +1953,7 @@ namespace HBP.Module3D
                             }
                         }
                         break;
-                    case SiteFilter.Broadman:
+                    case Data.Enums.SiteFilter.Broadman:
                         {
                             foreach (Site site in column.Sites)
                             {
@@ -1970,34 +1970,34 @@ namespace HBP.Module3D
             {
                 switch (action)
                 {
-                    case SiteAction.Include:
+                    case Data.Enums.SiteAction.Include:
                         site.State.IsExcluded = false;
                         break;
-                    case SiteAction.Exclude:
+                    case Data.Enums.SiteAction.Exclude:
                         site.State.IsExcluded = true;
                         break;
-                    case SiteAction.Blacklist:
+                    case Data.Enums.SiteAction.Blacklist:
                         site.State.IsBlackListed = true;
                         break;
-                    case SiteAction.Unblacklist:
+                    case Data.Enums.SiteAction.Unblacklist:
                         site.State.IsBlackListed = false;
                         break;
-                    case SiteAction.Highlight:
+                    case Data.Enums.SiteAction.Highlight:
                         site.State.IsHighlighted = true;
                         break;
-                    case SiteAction.Unhighlight:
+                    case Data.Enums.SiteAction.Unhighlight:
                         site.State.IsHighlighted = false;
                         break;
-                    case SiteAction.Mark:
+                    case Data.Enums.SiteAction.Mark:
                         site.State.IsMarked = true;
                         break;
-                    case SiteAction.Unmark:
+                    case Data.Enums.SiteAction.Unmark:
                         site.State.IsMarked = false;
                         break;
-                    case SiteAction.Suspect:
+                    case Data.Enums.SiteAction.Suspect:
                         site.State.IsSuspicious = true;
                         break;
-                    case SiteAction.Unsuspect:
+                    case Data.Enums.SiteAction.Unsuspect:
                         site.State.IsSuspicious = false;
                         break;
                     default:
@@ -2009,41 +2009,41 @@ namespace HBP.Module3D
         /// <summary>
         /// Change the state of a site
         /// </summary>
-        public void ChangeSiteState(SiteAction action, Site site = null)
+        public void ChangeSiteState(Data.Enums.SiteAction action, Site site = null)
         {
             if (site == null) site = m_ColumnManager.SelectedColumn.SelectedSite;
             if (site)
             {
                 switch (action)
                 {
-                    case SiteAction.Include:
+                    case Data.Enums.SiteAction.Include:
                         site.State.IsExcluded = false;
                         break;
-                    case SiteAction.Exclude:
+                    case Data.Enums.SiteAction.Exclude:
                         site.State.IsExcluded = true;
                         break;
-                    case SiteAction.Blacklist:
+                    case Data.Enums.SiteAction.Blacklist:
                         site.State.IsBlackListed = true;
                         break;
-                    case SiteAction.Unblacklist:
+                    case Data.Enums.SiteAction.Unblacklist:
                         site.State.IsBlackListed = false;
                         break;
-                    case SiteAction.Highlight:
+                    case Data.Enums.SiteAction.Highlight:
                         site.State.IsHighlighted = true;
                         break;
-                    case SiteAction.Unhighlight:
+                    case Data.Enums.SiteAction.Unhighlight:
                         site.State.IsHighlighted = false;
                         break;
-                    case SiteAction.Mark:
+                    case Data.Enums.SiteAction.Mark:
                         site.State.IsMarked = true;
                         break;
-                    case SiteAction.Unmark:
+                    case Data.Enums.SiteAction.Unmark:
                         site.State.IsMarked = false;
                         break;
-                    case SiteAction.Suspect:
+                    case Data.Enums.SiteAction.Suspect:
                         site.State.IsSuspicious = true;
                         break;
-                    case SiteAction.Unsuspect:
+                    case Data.Enums.SiteAction.Unsuspect:
                         site.State.IsSuspicious = false;
                         break;
                 }
@@ -2222,7 +2222,7 @@ namespace HBP.Module3D
             switch (column.Type)
             {
                 case Column3D.ColumnType.Base:
-                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SiteInformationDisplayMode.Anatomy));
+                    ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, Data.Enums.SiteInformationDisplayMode.Anatomy));
                     break;
                 case Column3D.ColumnType.IEEG:
                     Column3DIEEG columnIEEG = column as Column3DIEEG;
@@ -2237,7 +2237,7 @@ namespace HBP.Module3D
                     bool amplitudesComputed = SceneInformation.IsGeneratorUpToDate;
                     switch (Type)
                     {
-                        case SceneType.SinglePatient:
+                        case Data.Enums.SceneType.SinglePatient:
                             string CCEPLatency = "none", CCEPAmplitude = "none";
                             if (columnIEEG.CurrentLatencyFile != -1)
                             {
@@ -2267,10 +2267,10 @@ namespace HBP.Module3D
                                     }
                                 }
                             }
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? SiteInformationDisplayMode.CCEP : amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.Anatomy, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, SceneInformation.DisplayCCEPMode ? Data.Enums.SiteInformationDisplayMode.CCEP : amplitudesComputed ? Data.Enums.SiteInformationDisplayMode.IEEG : Data.Enums.SiteInformationDisplayMode.Anatomy, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
                             break;
-                        case SceneType.MultiPatients:
-                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, amplitudesComputed ? SiteInformationDisplayMode.IEEG : SiteInformationDisplayMode.Anatomy, iEEGActivity.ToString("0.00"), iEEGUnit));
+                        case Data.Enums.SceneType.MultiPatients:
+                            ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, amplitudesComputed ? Data.Enums.SiteInformationDisplayMode.IEEG : Data.Enums.SiteInformationDisplayMode.Anatomy, iEEGActivity.ToString("0.00"), iEEGUnit));
                             break;
                         default:
                             break;
@@ -2518,7 +2518,7 @@ namespace HBP.Module3D
                     }
                     else
                     {
-                        string name = !string.IsNullOrEmpty(Visualization.Configuration.MeshName) ? Visualization.Configuration.MeshName : Type == SceneType.SinglePatient ? "Preimplantation" : "MNI";
+                        string name = !string.IsNullOrEmpty(Visualization.Configuration.MeshName) ? Visualization.Configuration.MeshName : Type == Data.Enums.SceneType.SinglePatient ? "Preimplantation" : "MNI";
                         if (mri3D.Name == name) mri3D.Load();
                         m_ColumnManager.MRIs.Add(mri3D);
                     }
@@ -2556,7 +2556,7 @@ namespace HBP.Module3D
                     if (implantation3D.IsLoaded)
                     {
                         m_ColumnManager.Implantations.Add(implantation3D);
-                        if (Type == SceneType.SinglePatient)
+                        if (Type == Data.Enums.SceneType.SinglePatient)
                         {
                             SinglePatient3DScene scene = this as SinglePatient3DScene;
                             implantation3D.LoadLatencies(scene.Patient);

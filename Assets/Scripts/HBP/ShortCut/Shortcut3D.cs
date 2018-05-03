@@ -77,55 +77,55 @@ public class Shortcut3D : MonoBehaviour
                     {
                         if (site.State.IsExcluded)
                         {
-                            scene.ChangeSiteState(SiteAction.Include);
+                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Include);
                         }
                         else
                         {
-                            scene.ChangeSiteState(SiteAction.Exclude);
+                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Exclude);
                         }
                     }
                     else if (Input.GetKeyDown(KeyCode.Alpha2))
                     {
                         if (site.State.IsHighlighted)
                         {
-                            scene.ChangeSiteState(SiteAction.Unhighlight);
+                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Unhighlight);
                         }
                         else
                         {
-                            scene.ChangeSiteState(SiteAction.Highlight);
+                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Highlight);
                         }
                     }
                     else if (Input.GetKeyDown(KeyCode.Alpha3))
                     {
                         if (site.State.IsBlackListed)
                         {
-                            scene.ChangeSiteState(SiteAction.Unblacklist);
+                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Unblacklist);
                         }
                         else
                         {
-                            scene.ChangeSiteState(SiteAction.Blacklist);
+                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Blacklist);
                         }
                     }
                     else if (Input.GetKeyDown(KeyCode.Alpha4))
                     {
                         if (site.State.IsMarked)
                         {
-                            scene.ChangeSiteState(SiteAction.Unmark);
+                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Unmark);
                         }
                         else
                         {
-                            scene.ChangeSiteState(SiteAction.Mark);
+                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Mark);
                         }
                     }
                     else if (Input.GetKeyDown(KeyCode.Alpha5))
                     {
                         if (site.State.IsSuspicious)
                         {
-                            scene.ChangeSiteState(SiteAction.Unsuspect);
+                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Unsuspect);
                         }
                         else
                         {
-                            scene.ChangeSiteState(SiteAction.Suspect);
+                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Suspect);
                         }
                     }
                 }

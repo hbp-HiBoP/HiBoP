@@ -1,4 +1,6 @@
-﻿/**
+﻿
+using UnityEngine;
+/**
 * \class ApplicationState
 * \author Adrien Gannerie
 * \version 1.0
@@ -26,7 +28,7 @@ public static class ApplicationState
     {
         get
         {
-            if(ProjectLoaded == null || string.IsNullOrEmpty(ProjectLoadedLocation))
+            if (ProjectLoaded == null || string.IsNullOrEmpty(ProjectLoadedLocation))
             {
                 return ".";
             }
@@ -75,5 +77,18 @@ public static class ApplicationState
     /// <summary>
     /// Memory manager.
     /// </summary>
-    public static  Tools.Unity.MemoryManager MemoryManager { get; set; }
+    public static Tools.Unity.MemoryManager MemoryManager { get; set; }
+
+    static public string DataPath
+    {
+        get
+        {
+#if UNITY_EDITOR
+            return Application.dataPath + "/Data/";
+#else
+            return Application.dataPath +  "/../Data/";
+#endif
+
+        }
+    }
 }

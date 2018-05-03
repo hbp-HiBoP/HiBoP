@@ -406,7 +406,7 @@ namespace HBP.Module3D
             if (buildDataPath.Length > 0)
             {
                 FileUtil.DeleteFileOrDirectory(buildDataPath + "/Data");
-                FileUtil.CopyFileOrDirectory(GlobalPaths.Data, buildDataPath + "/Data");
+                FileUtil.CopyFileOrDirectory(ApplicationState.DataPath, buildDataPath + "/Data");
             }            
         }
 
