@@ -439,6 +439,15 @@ namespace HBP.Module3D.DLL
             simplify_mesh_Surface(surface.getHandle(), numberOfTriangles, agressiveness);
             return surface;
         }
+        /// <summary>
+        /// Returns true if the point is inside the surface
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        public bool IsPointInside(RawSiteList rawSiteList, int id)
+        {
+            return is_point_inside_Surface(_handle, rawSiteList.getHandle(), id);
+        }
         #endregion
 
         #region Memory Management
@@ -548,6 +557,8 @@ namespace HBP.Module3D.DLL
         static private extern void update_triangles_Surface(HandleRef handleSurface, IntPtr triangles);
         [DllImport("hbp_export", EntryPoint = "simplify_mesh_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void simplify_mesh_Surface(HandleRef handleSurface, int triangleCount, int agressiveness);
+        [DllImport("hbp_export", EntryPoint = "is_point_inside_Surface", CallingConvention = CallingConvention.Cdecl)]
+        static private extern bool is_point_inside_Surface(HandleRef handleSurface, HandleRef handleRawSiteList, int id);
 
         [DllImport("hbp_export", EntryPoint = "update_visiblity_mask_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_visiblity_mask_Surface(HandleRef handleSurface, HandleRef handleInvisiblePartSurface, int[] visibilityMask);

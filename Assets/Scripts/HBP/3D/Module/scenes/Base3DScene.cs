@@ -725,6 +725,10 @@ namespace HBP.Module3D
                 ApplicationState.Module3D.OnSelectSite.Invoke(site);
                 ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
             });
+            m_ColumnManager.OnChangeSiteState.AddListener((site) =>
+            {
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            });
             m_ColumnManager.OnChangeCCEPParameters.AddListener(() =>
             {
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);

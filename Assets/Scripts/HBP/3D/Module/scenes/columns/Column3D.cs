@@ -333,6 +333,10 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
         /// <summary>
+        /// Event called each time we change the state of a site
+        /// </summary>
+        public GenericEvent<Site> OnChangeSiteState = new GenericEvent<Site>();
+        /// <summary>
         /// Event called when selecting a source or when changing the latency file
         /// </summary>
         public UnityEvent OnChangeCCEPParameters = new UnityEvent();
@@ -433,6 +437,7 @@ namespace HBP.Module3D
                             SiteStateBySiteID.Add(baseSite.Information.FullID, new SiteState(baseSite.State));
                         }
                         Sites[id].State = SiteStateBySiteID[baseSite.Information.FullID];
+                        Sites[id].State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(Sites[id]));
                         Sites[id].IsActive = true;
                     }
                 }

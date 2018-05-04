@@ -32,7 +32,7 @@
   },
   "Visualization": {
     "_3D": {
-      "AutomaticEEGUpdate": true,
+      "AutomaticEEGUpdate": false,
       "SiteInfluence": 0,
       "DefaultSelectedMRI": null,
       "DefaultSelectedMesh": null,

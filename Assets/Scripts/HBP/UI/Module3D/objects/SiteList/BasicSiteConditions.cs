@@ -90,8 +90,8 @@ namespace HBP.UI.Module3D
             bool result = true;
             if (m_InROI.isOn) result &= !site.State.IsOutOfROI;
             if (m_OutOfROI.isOn) result &= site.State.IsOutOfROI;
-            if (m_InMesh.isOn) result &= true; // FIXME
-            if (m_OutOfMesh.isOn) result &= true; // FIXME
+            if (m_InMesh.isOn) result &= m_Scene.ColumnManager.SelectedMesh.SimplifiedBoth.IsPointInside(m_Scene.ColumnManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
+            if (m_OutOfMesh.isOn) result &= !m_Scene.ColumnManager.SelectedMesh.SimplifiedBoth.IsPointInside(m_Scene.ColumnManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
             return result;
         }
         private bool CheckInformation(Site site)

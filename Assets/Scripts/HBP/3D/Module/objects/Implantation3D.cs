@@ -23,6 +23,8 @@ namespace HBP.Module3D
             Name = name;
             PatientElectrodesList = new DLL.PatientElectrodesList();
             IsLoaded = PatientElectrodesList.LoadPTSFiles(pts.ToArray(), marsAtlas.ToArray(), patientIDs.ToArray(), ApplicationState.Module3D.MarsAtlasIndex);
+            RawSiteList = new DLL.RawSiteList();
+            PatientElectrodesList.ExtractRawSiteList(RawSiteList);
         }
         #endregion
 
@@ -30,8 +32,6 @@ namespace HBP.Module3D
         public void LoadLatencies(Data.Patient patient)
         {
             Latencies = new List<Module3D.Latencies>();
-            RawSiteList = new DLL.RawSiteList();
-            PatientElectrodesList.ExtractRawSiteList(RawSiteList);
             foreach (Data.Anatomy.Connectivity connectivity in patient.Brain.Connectivities)
             {
                 if (!connectivity.WasUsable) continue;

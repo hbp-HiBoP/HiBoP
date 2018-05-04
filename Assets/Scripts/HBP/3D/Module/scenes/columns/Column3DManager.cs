@@ -454,6 +454,10 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
         /// <summary>
+        /// Event called when changing the state of a site
+        /// </summary>
+        public GenericEvent<Site> OnChangeSiteState = new GenericEvent<Site>();
+        /// <summary>
         /// Event called when selecting a source in a column or changing the latency file of a column
         /// </summary>
         public UnityEvent OnChangeCCEPParameters = new UnityEvent();
@@ -526,6 +530,10 @@ namespace HBP.Module3D
                         c.SelectedSiteID = -1;
                     }
                 }
+            });
+            column.OnChangeSiteState.AddListener((site) =>
+            {
+                OnChangeSiteState.Invoke(site);
             });
             column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);
@@ -621,6 +629,10 @@ namespace HBP.Module3D
                         c.SelectedSiteID = -1;
                     }
                 }
+            });
+            column.OnChangeSiteState.AddListener((site) =>
+            {
+                OnChangeSiteState.Invoke(site);
             });
             column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);
