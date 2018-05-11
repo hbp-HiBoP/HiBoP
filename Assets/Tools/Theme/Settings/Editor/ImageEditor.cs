@@ -16,7 +16,6 @@ namespace NewTheme
             SerializedProperty fillCenterProperty = serializedObject.FindProperty("FillCenter");
 
             EditorGUILayout.PropertyField(sourceImageProperty);
-            EditorGUILayout.PropertyField(colorProperty);
             EditorGUILayout.PropertyField(materialProperty);
             EditorGUILayout.PropertyField(typeProperty);
             UnityEngine.UI.Image.Type type = (UnityEngine.UI.Image.Type) typeProperty.enumValueIndex;

@@ -47,8 +47,8 @@ namespace NewTheme
 
             //EditorGUI.indentLevel--;
 
-            SerializedProperty colorProperty = serializedObject.FindProperty("Color");
-            EditorGUILayout.PropertyField(colorProperty);
+            //SerializedProperty colorProperty = serializedObject.FindProperty("Color");
+            //EditorGUILayout.PropertyField(colorProperty);
 
             SerializedProperty materialProperty = serializedObject.FindProperty("Material");
             EditorGUILayout.PropertyField(materialProperty);

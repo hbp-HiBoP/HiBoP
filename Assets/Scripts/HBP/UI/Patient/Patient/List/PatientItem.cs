@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Tools.Unity.Lists;
 using System.Linq;
+using NewTheme.Components;
 
 namespace HBP.UI.Anatomy
 {
@@ -29,16 +30,16 @@ namespace HBP.UI.Anatomy
         [SerializeField] Button m_ConnectivityButton;
         [SerializeField] LabelList m_ConnectivityList;
 
+        [SerializeField] State Error;
+
         public override Patient Object
         {
             get
             {
                 return base.Object;
             }
-
             set
             {
-                UnityEngine.Profiling.Profiler.BeginSample("Set Patient");
                 base.Object = value;
                 m_NameText.text = value.Name;
                 m_PlaceText.text = value.Place;
@@ -48,12 +49,12 @@ namespace HBP.UI.Anatomy
                 m_MeshText.text = nbMesh.ToString();
                 if (nbMesh == 0)
                 {
-                    m_MeshText.color = ApplicationState.UserPreferences.Theme.General.Error;
+                    m_MeshText.GetComponent<ThemeElement>().Set(Error);
                     m_MeshButton.interactable = false;
                 }
                 else
                 {
-                    m_MeshText.color = ApplicationState.UserPreferences.Theme.Window.Content.Text.Color;
+                    m_MeshText.GetComponent<ThemeElement>().Set();
                     m_MeshButton.interactable = true;
                 }
 
@@ -61,12 +62,12 @@ namespace HBP.UI.Anatomy
                 m_MRIText.text = nbMRI.ToString();
                 if (nbMRI == 0)
                 {
-                    m_MRIText.color = ApplicationState.UserPreferences.Theme.General.Error;
+                    m_MRIText.GetComponent<ThemeElement>().Set(Error);
                     m_MRIButton.interactable = false;
                 }
                 else
                 {
-                    m_MRIText.color = ApplicationState.UserPreferences.Theme.Window.Content.Text.Color;
+                    m_MRIText.GetComponent<ThemeElement>().Set();
                     m_MRIButton.interactable = true;
                 }
 
@@ -74,12 +75,12 @@ namespace HBP.UI.Anatomy
                 m_ImplantationText.text = nbImplantation.ToString();
                 if (nbImplantation == 0)
                 {
-                    m_ImplantationText.color = ApplicationState.UserPreferences.Theme.General.Error;
+                    m_ImplantationText.GetComponent<ThemeElement>().Set(Error);
                     m_ImplantationButton.interactable = false;
                 }
                 else
                 {
-                    m_ImplantationText.color = ApplicationState.UserPreferences.Theme.Window.Content.Text.Color;
+                    m_ImplantationText.GetComponent<ThemeElement>().Set();
                     m_ImplantationButton.interactable = true;
                 }
                 
@@ -87,16 +88,14 @@ namespace HBP.UI.Anatomy
                 m_ConnectivityText.text = nbConnectivity.ToString();
                 if (nbConnectivity == 0)
                 {
-                    m_ConnectivityText.color = ApplicationState.UserPreferences.Theme.General.Error;
+                    m_ConnectivityText.GetComponent<ThemeElement>().Set(Error);
                     m_ConnectivityButton.interactable = false;
                 }
                 else
                 {
-                    m_ConnectivityText.color = ApplicationState.UserPreferences.Theme.Window.Content.Text.Color;
+                    m_ConnectivityText.GetComponent<ThemeElement>().Set();
                     m_ConnectivityButton.interactable = true;
                 }
-
-                UnityEngine.Profiling.Profiler.EndSample();
             }
         }
         #endregion

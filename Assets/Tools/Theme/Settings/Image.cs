@@ -6,7 +6,6 @@ namespace NewTheme
     public class Image : Settings
     {
         public Sprite SourceImage;
-        public Color Color;
         public Material Material;
         public UnityEngine.UI.Image.Type ImageType;
         public UnityEngine.UI.Image.FillMethod FillMethod;
@@ -23,7 +22,6 @@ namespace NewTheme
             if(image)
             {
                 image.sprite = SourceImage;
-                image.color = Color;
                 image.material = Material;
                 image.type = ImageType;
                 image.fillMethod = FillMethod;

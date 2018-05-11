@@ -19,7 +19,7 @@ namespace NewTheme
         //public HorizontalWrapMode HorizontalOverflow;
         //public VerticalWrapMode VerticalOverflow;
         //public bool BestFit;
-        public Color Color;
+        //public Color Color;
         public Material Material;
         #endregion
 
@@ -40,7 +40,7 @@ namespace NewTheme
                 //text.horizontalOverflow = HorizontalOverflow;
                 //text.verticalOverflow = VerticalOverflow;
                 //text.resizeTextForBestFit = BestFit;
-                text.color = Color;
+                //text.color = Color.Value;
                 text.material = Material;
             }
         }

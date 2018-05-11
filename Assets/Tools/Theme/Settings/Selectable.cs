@@ -8,7 +8,7 @@ namespace NewTheme
     {
         #region Properties
         public UnityEngine.UI.Selectable.Transition Transition;
-        public ColorBlock Colors;
+        public UnityEngine.UI.ColorBlock Colors;
         public SpriteState SpriteState;
         public AnimationTriggers AnimationTriggers;
         #endregion
