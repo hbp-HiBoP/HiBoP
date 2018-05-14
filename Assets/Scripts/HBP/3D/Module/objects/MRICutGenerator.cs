@@ -198,11 +198,11 @@ namespace HBP.Module3D
             /// <param name="addValues"></param>
             /// <param name="ratioDistances"></param>
             /// <returns></returns>
-            public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
+            public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
             {
                 bool noError = false;
                 noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.MaximumInfluence,
-                    multiCPU?1:0, addValues?1:0, ratioDistances?1:0, IEEGColumn.IEEGParameters.Middle, IEEGColumn.IEEGParameters.SpanMin, IEEGColumn.IEEGParameters.SpanMax)== 1;
+                    multiCPU?1:0, addValues?1:0, ratioDistances, IEEGColumn.IEEGParameters.Middle, IEEGColumn.IEEGParameters.SpanMin, IEEGColumn.IEEGParameters.SpanMax)== 1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
@@ -259,9 +259,9 @@ namespace HBP.Module3D
             /// <summary>
             /// 
             /// </summary>
-            public void AdjustInfluencesToColormap()
+            public void AdjustInfluencesToColormap(Column3DIEEG column3DIEEG)
             {
-                ajust_influences_to_colormap__MRITextureCutGenerator(_handle);
+                ajust_influences_to_colormap__MRITextureCutGenerator(_handle, column3DIEEG.IEEGParameters.Middle, column3DIEEG.IEEGParameters.SpanMin, column3DIEEG.IEEGParameters.SpanMax);
             }
             /// <summary>
             /// Upathe the max density and influences values
@@ -333,7 +333,7 @@ namespace HBP.Module3D
             [DllImport("hbp_export", EntryPoint = "update_texture_with_IRMF__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void update_texture_with_IRMF__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, HandleRef handleTexture);
             [DllImport("hbp_export", EntryPoint = "ajust_influences_to_colormap__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void ajust_influences_to_colormap__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator);
+            static private extern void ajust_influences_to_colormap__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float middle, float min, float max);
             [DllImport("hbp_export", EntryPoint = "synchronize_with_others_generators__MRITextureCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void synchronize_with_others_generators__MRITextureCutGenerator(HandleRef handleMRITextureCutGenerator, float sharedMaxDensity, float sharedMinInf, float sharedMaxInf);
 

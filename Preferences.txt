@@ -32,8 +32,8 @@
   },
   "Visualization": {
     "_3D": {
-      "AutomaticEEGUpdate": false,
-      "SiteInfluence": 0,
+      "AutomaticEEGUpdate": true,
+      "SiteInfluence": 1,
       "DefaultSelectedMRI": null,
       "DefaultSelectedMesh": null,
       "DefaultSelectedImplantation": null
