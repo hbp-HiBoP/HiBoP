@@ -892,6 +892,8 @@ namespace HBP.Module3D
                 }
                 column.UpdateSitesRendering(data, latencyFile);
             }
+
+            data.AreSitesUpdated = true;
         }
         /// <summary>
         /// Check the integrity of some IEEG parameters and show a warning dialog if required

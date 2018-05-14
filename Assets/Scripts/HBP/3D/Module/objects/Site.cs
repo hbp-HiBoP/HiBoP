@@ -184,7 +184,6 @@ namespace HBP.Module3D
             set
             {
                 m_IsMasked = value;
-                OnChangeState.Invoke();
             }
         }
         private bool m_IsExcluded;
@@ -223,7 +222,6 @@ namespace HBP.Module3D
             set
             {
                 m_IsOutOfROI = value;
-                OnChangeState.Invoke();
             }
         }
         private bool m_IsHighlighted;

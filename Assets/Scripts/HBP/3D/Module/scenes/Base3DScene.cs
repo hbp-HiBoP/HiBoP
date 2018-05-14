@@ -231,7 +231,7 @@ namespace HBP.Module3D
                         }
                     }
                 }
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
                 ResetIEEG();
                 ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
             }
@@ -248,7 +248,7 @@ namespace HBP.Module3D
             set
             {
                 SceneInformation.HideBlacklistedSites = value;
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
             }
         }
 
@@ -268,7 +268,7 @@ namespace HBP.Module3D
                 {
                     UpdateCurrentRegionOfInterest(column);
                 }
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
             }
         }
 
@@ -629,6 +629,11 @@ namespace HBP.Module3D
                 UpdateGeometry();
             }
 
+            if (!SceneInformation.AreSitesUpdated)
+            {
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            }
+
             if (m_GeneratorNeedsUpdate && !IsLatencyModeEnabled)
             {
                 OnIEEGOutdated.Invoke(true);
@@ -674,7 +679,7 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateIEEGGain.AddListener((column) =>
             {
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
             });
             m_ColumnManager.OnUpdateIEEGMaximumInfluence.AddListener((column) =>
             {
@@ -687,7 +692,7 @@ namespace HBP.Module3D
                 {
                     ComputeGUITextures();
                 }
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
             });
             m_ColumnManager.OnChangeNumberOfROI.AddListener((column) =>
             {
@@ -721,17 +726,17 @@ namespace HBP.Module3D
             m_ColumnManager.OnSelectSite.AddListener((site) =>
             {
                 ClickOnSiteCallback();
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
                 ApplicationState.Module3D.OnSelectSite.Invoke(site);
                 ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
             });
             m_ColumnManager.OnChangeSiteState.AddListener((site) =>
             {
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
             });
             m_ColumnManager.OnChangeCCEPParameters.AddListener(() =>
             {
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
                 ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
             });
             m_ColumnManager.OnUpdateFMRIParameters.AddListener(() =>
@@ -832,7 +837,7 @@ namespace HBP.Module3D
             }
 
             // update plots visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            SceneInformation.AreSitesUpdated = false;
 
             // check validity of plot scale
             m_ColumnManager.CheckIEEGParametersIntegrity();
@@ -1473,7 +1478,7 @@ namespace HBP.Module3D
             }
             ROICreation = !ROICreation;
 
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            SceneInformation.AreSitesUpdated = false;
 
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
         }
@@ -1587,7 +1592,7 @@ namespace HBP.Module3D
         public void LoadSiteStatesToSelectedColumn(string path)
         {
             m_ColumnManager.SelectedColumn.LoadSiteStates(path);
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            SceneInformation.AreSitesUpdated = false;
             ResetIEEG(false);
         }
         #endregion
@@ -2148,7 +2153,7 @@ namespace HBP.Module3D
                 ComputeMRITextures();
                 ComputeGUITextures();
             }
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            SceneInformation.AreSitesUpdated = false;
             ApplicationState.Module3D.OnResetIEEG.Invoke();
         }
         /// <summary>
@@ -2343,7 +2348,7 @@ namespace HBP.Module3D
                         else if (meshHit || cutHit)
                         {
                             selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hit.point - transform.position, 5.0f);
-                            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                            SceneInformation.AreSitesUpdated = false;
                         }
                         else
                         {
