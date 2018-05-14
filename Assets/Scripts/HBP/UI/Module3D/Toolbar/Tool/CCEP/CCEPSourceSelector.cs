@@ -34,7 +34,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {
-            if (type == Toolbar.UpdateToolbarType.Column)
+            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
             {
                 if (ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled)
                 {

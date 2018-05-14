@@ -526,7 +526,6 @@ namespace HBP.Module3D
                 }
                 else
                 {
-                    Debug.Log(site.Information.FullCorrectedID);
                     ColumnData.Configuration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
                     IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
                     IEEGUnitsBySiteID[site.Information.GlobalID] = "";
