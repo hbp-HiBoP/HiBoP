@@ -92,6 +92,16 @@ namespace HBP.Module3D
 
             // reset columns
             m_ColumnManager.Initialize(m_Cuts.Count);
+            
+            // Load MNI
+            progress += loadingMNIProgress;
+            onChangeProgress.Invoke(progress, loadingMNITime, "Loading MNI objects");
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects(e => exception = e));
+            if (exception != null)
+            {
+                outPut(exception);
+                yield break;
+            }
 
             // Load Meshes
             for (int i = 0; i < Patient.Brain.Meshes.Count; ++i)
@@ -151,16 +161,6 @@ namespace HBP.Module3D
                 yield break;
             }
             SceneInformation.MeshGeometryNeedsUpdate = true;
-
-            // Load MNI
-            progress += loadingMNIProgress;
-            onChangeProgress.Invoke(progress, loadingMNITime, "Loading MNI objects");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects(e => exception = e));
-            if (exception != null)
-            {
-                outPut(exception);
-                yield break;
-            }
 
             // Set Timeline
             progress += loadingIEEGProgress;

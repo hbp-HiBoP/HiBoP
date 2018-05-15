@@ -720,7 +720,7 @@ namespace HBP.Module3D
         {
             foreach (Mesh3D mesh in Meshes)
             {
-                mesh.SplittedMeshes = new List<DLL.Surface>(MeshSplitNumber);
+                mesh.Split(MeshSplitNumber);
             }
 
             // uv coordinates

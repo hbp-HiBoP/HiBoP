@@ -662,7 +662,6 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateMRICalValues.AddListener(() =>
             {
-                if (!SceneInformation.IsGeometryUpToDate) return;
                 ResetIEEG();
             });
             m_ColumnManager.OnUpdateIEEGSpan.AddListener((column) =>
@@ -785,6 +784,8 @@ namespace HBP.Module3D
         /// <param name="indexColumn"></param>
         private void ComputeIEEGTextures(Column3DIEEG column = null)
         {
+            if (!SceneInformation.IsGeneratorUpToDate) return;
+
             if (column)
             {
                 m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(column);
