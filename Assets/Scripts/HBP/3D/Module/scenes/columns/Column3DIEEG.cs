@@ -291,9 +291,6 @@ namespace HBP.Module3D
             /// <param name="max"></param>
             public void SetSpanValues(float min, float mid, float max)
             {
-                min = Mathf.Clamp(min, m_MinimumAmplitude, m_MaximumAmplitude);
-                mid = Mathf.Clamp(mid, m_MinimumAmplitude, m_MaximumAmplitude);
-                max = Mathf.Clamp(max, m_MinimumAmplitude, m_MaximumAmplitude);
                 if (min > max) min = max;
                 mid = Mathf.Clamp(mid, min, max);
                 if (Mathf.Approximately(min, mid) && Mathf.Approximately(min, max) && Mathf.Approximately(mid, max))

@@ -144,17 +144,17 @@ namespace HBP.UI.Module3D
         {
             m_IEEGHistogram = new Texture2D(1, 1);
 
-            m_MinHandler.MinimumPosition = 0.0f;
+            m_MinHandler.MinimumPosition = float.MinValue;
             m_MinHandler.MaximumPosition = 1.0f;
             m_MaxHandler.MinimumPosition = 0.0f;
-            m_MaxHandler.MaximumPosition = 1.0f;
-            m_MidHandler.MinimumPosition = 0.0f;
-            m_MidHandler.MaximumPosition = 1.0f;
+            m_MaxHandler.MaximumPosition = float.MaxValue;
+            m_MidHandler.MinimumPosition = float.MinValue;
+            m_MidHandler.MaximumPosition = float.MaxValue;
 
             m_SpanMinInput.onEndEdit.AddListener((value) =>
             {
                 float val = float.Parse(value);
-                val = Mathf.Clamp(val, m_MinAmplitude, Middle);
+                if (val > Middle) val = Middle;
                 m_SpanMinInput.text = val.ToString("N3");
                 m_SpanMinFactor = (val - m_MinAmplitude) / m_Amplitude;
 
@@ -190,7 +190,7 @@ namespace HBP.UI.Module3D
             m_SpanMaxInput.onEndEdit.AddListener((value) =>
             {
                 float val = float.Parse(value);
-                val = Mathf.Clamp(val, Middle, m_MaxAmplitude);
+                if (val < Middle) val = Middle;
                 m_SpanMaxInput.text = val.ToString("N3");
                 m_SpanMaxFactor = (val - m_MinAmplitude) / m_Amplitude;
 
@@ -223,7 +223,7 @@ namespace HBP.UI.Module3D
                 m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
                 if (m_SymmetryToggle.isOn)
                 {
-                    m_MaxHandler.Position -= deplacement;
+                    m_MaxHandler.Position = m_MidHandler.Position + (m_MidHandler.Position - m_MinHandler.Position);
                     m_SpanMaxFactor = m_MaxHandler.Position;
                     m_SpanMaxInput.text = SpanMax.ToString("N3");
                     m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
@@ -257,7 +257,7 @@ namespace HBP.UI.Module3D
                 m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
                 if (m_SymmetryToggle.isOn)
                 {
-                    m_MinHandler.Position -= deplacement;
+                    m_MinHandler.Position = m_MidHandler.Position - (m_MaxHandler.Position - m_MidHandler.Position);
                     m_SpanMinFactor = m_MinHandler.Position;
                     m_SpanMinInput.text = SpanMin.ToString("N3");
                     m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);

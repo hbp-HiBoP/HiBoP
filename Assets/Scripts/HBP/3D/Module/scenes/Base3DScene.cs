@@ -829,11 +829,7 @@ namespace HBP.Module3D
             // send inf values to overlays
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
-                float maxValue = Math.Max(Math.Abs(m_ColumnManager.ColumnsIEEG[ii].SharedMinInf), Math.Abs(m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf));
-                float minValue = -maxValue;
-                minValue += m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle;
-                maxValue += m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle;
-                OnSendColorMapValues.Invoke(minValue, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle, maxValue, m_ColumnManager.ColumnsIEEG[ii]);
+                OnSendColorMapValues.Invoke(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.SpanMin, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.SpanMax, m_ColumnManager.ColumnsIEEG[ii]);
                 m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID = m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID;
             }
 
