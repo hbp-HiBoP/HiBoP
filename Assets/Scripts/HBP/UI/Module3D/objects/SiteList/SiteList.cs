@@ -17,24 +17,19 @@ namespace HBP.UI.Module3D
             }
             set
             {
-                int newNumberOfObjects = value.Count;
-                int resize = Mathf.Min(newNumberOfObjects, m_MaximumNumberOfItems) - m_Items.Count;
-                if (resize < 0)
-                {
-                    DestroyItem(resize,false);
-                }
-                else if (resize > 0)
-                {
-                    SpawnItem(resize,false);
-                }
                 m_Objects = value;
-                m_NumberOfObjects = newNumberOfObjects;
-                m_ScrollRect.content.sizeDelta = new Vector2(m_ScrollRect.content.sizeDelta.x, newNumberOfObjects * ItemHeight);
-                m_ScrollRect.verticalScrollbar = m_ScrollRect.verticalScrollbar;
+                m_NumberOfObjects = value.Count;
+                m_ScrollRect.content.sizeDelta = new Vector2(0, ItemHeight * m_NumberOfObjects);
                 m_ScrollRect.content.hasChanged = true;
-                GetLimits(out m_FirstIndexDisplayed, out m_LastIndexDisplayed);
-                RefreshPosition();
-                Refresh();
+
+                foreach (var item in m_Items)
+                {
+                    Destroy(item.gameObject);
+                }
+                m_Items.Clear();
+                m_NumberOfItems = 0;
+                m_FirstIndexDisplayed = 0;
+                m_LastIndexDisplayed = 0;
             }
         }
         #endregion

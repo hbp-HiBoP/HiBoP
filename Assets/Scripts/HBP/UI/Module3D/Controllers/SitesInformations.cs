@@ -189,8 +189,7 @@ namespace HBP.UI.Module3D
             {
                 sites.RemoveAll(s => !s.State.IsSuspicious);
             }
-            //m_SiteList.ObjectsList = sites;
-            m_SiteList.Objects = sites.ToArray(); // FIXME : refaire la objectslist avec le nouveau fonctionnement des listes
+            m_SiteList.ObjectsList = sites;
         }
         #endregion
     }
