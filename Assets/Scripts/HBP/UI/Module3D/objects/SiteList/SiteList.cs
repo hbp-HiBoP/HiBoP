@@ -21,15 +21,6 @@ namespace HBP.UI.Module3D
                 m_NumberOfObjects = value.Count;
                 m_ScrollRect.content.sizeDelta = new Vector2(0, ItemHeight * m_NumberOfObjects);
                 m_ScrollRect.content.hasChanged = true;
-
-                foreach (var item in m_Items)
-                {
-                    Destroy(item.gameObject);
-                }
-                m_Items.Clear();
-                m_NumberOfItems = 0;
-                m_FirstIndexDisplayed = 0;
-                m_LastIndexDisplayed = 0;
             }
         }
         #endregion

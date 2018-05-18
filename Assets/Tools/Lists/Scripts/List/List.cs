@@ -162,7 +162,6 @@ namespace Tools.Unity.Lists
 
             // Resize viewport and list.
             int sizeDifference = lastIndexDifference - firstIndexDifference;
-            Debug.Log("Size Difference : " + sizeDifference);
             if (sizeDifference > 0)
             {
                 int numberOfItemToSpawnOnBot = Mathf.Min(sizeDifference, m_NumberOfObjects - m_LastIndexDisplayed);
@@ -181,7 +180,6 @@ namespace Tools.Unity.Lists
             
             // Move items.
             int deplacement = newFirstIndexDisplayed - m_FirstIndexDisplayed;
-            Debug.Log("Deplacement : " + deplacement);
             if (deplacement > 0)
             {
                 MoveItemsDownwards(Mathf.Abs(deplacement));
