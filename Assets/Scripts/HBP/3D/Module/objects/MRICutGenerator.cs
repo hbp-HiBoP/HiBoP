@@ -38,7 +38,7 @@ namespace HBP.Module3D
                     planeF[ii + 3] = plane.Normal[ii];
                 }
 
-                reset__MRIGeometryCutGenerator(_handle, volume.getHandle(), planeF);
+                reset__MRIGeometryCutGenerator(_handle, volume.getHandle(), planeF, 1.0f);
                 ApplicationState.DLLDebugManager.check_error();
             }
             /// <summary>
@@ -82,7 +82,7 @@ namespace HBP.Module3D
             static private extern void delete__MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator);
 
             [DllImport("hbp_export", EntryPoint = "reset__MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void reset__MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator, HandleRef handleVolume, float[] plane);
+            static private extern void reset__MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator, HandleRef handleVolume, float[] plane, float scaleFactor);
 
             [DllImport("hbp_export", EntryPoint = "update_cut_mesh_UV__MRIGeometryCutGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void update_cut_mesh_UV__MRIGeometryCutGenerator(HandleRef handleMRIGeometryCutGenerator, HandleRef handleSurface);

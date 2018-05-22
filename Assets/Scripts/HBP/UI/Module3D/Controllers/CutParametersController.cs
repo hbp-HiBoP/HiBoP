@@ -87,7 +87,6 @@ namespace HBP.UI.Module3D
         {
             m_Cut.OnUpdateGUITextures.AddListener((texture) =>
             {
-                // FIXME : maybe memory leak
                 Destroy(m_Image.sprite);
                 m_Image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
                 m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
@@ -226,15 +225,15 @@ namespace HBP.UI.Module3D
                 {
                     case CutOrientation.Axial:
                         m_PositionTitle.text = "Z";
-                        m_PositionValue.text = m_Cut.Point.z.ToString("N1");
+                        m_PositionValue.text = Mathf.RoundToInt(m_Cut.Point.z).ToString();
                         break;
                     case CutOrientation.Coronal:
                         m_PositionTitle.text = "Y";
-                        m_PositionValue.text = m_Cut.Point.y.ToString("N1");
+                        m_PositionValue.text = Mathf.RoundToInt(m_Cut.Point.y).ToString();
                         break;
                     case CutOrientation.Sagital:
                         m_PositionTitle.text = "X";
-                        m_PositionValue.text = m_Cut.Point.x.ToString("N1");
+                        m_PositionValue.text = Mathf.RoundToInt(m_Cut.Point.x).ToString();
                         break;
                 }
             }
