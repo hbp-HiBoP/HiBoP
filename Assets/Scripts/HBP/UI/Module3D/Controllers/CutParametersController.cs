@@ -14,6 +14,7 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         private Cut m_Cut;
+        private Base3DScene m_Scene;
         private bool m_IsUIUpdating = false;
         public bool AreControlsOpen { get; set; }
         public Texture2D Texture { get { return m_Image.sprite.texture; } }
@@ -21,58 +22,59 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Image of the cut
         /// </summary>
-        [SerializeField]
-        private Image m_Image;
+        [SerializeField] private Image m_Image;
         /// <summary>
         /// Dropdown to change the axis of the cut
         /// </summary>
-        [SerializeField]
-        private Dropdown m_Orientation;
+        [SerializeField] private Dropdown m_Orientation;
         /// <summary>
         /// Slider to change the position of the cut
         /// </summary>
-        [SerializeField]
-        private Slider m_Position;
+        [SerializeField] private Slider m_Position;
         /// <summary>
         /// Button to slightly change the position of the cut
         /// </summary>
-        [SerializeField]
-        private Button m_PlusPosition;
+        [SerializeField] private Button m_PlusPosition;
         /// <summary>
         /// Button to slightly change the position of the cut
         /// </summary>
-        [SerializeField]
-        private Button m_MinusPosition;
+        [SerializeField] private Button m_MinusPosition;
         /// <summary>
         /// Toggle to change the flip of the cut
         /// </summary>
-        [SerializeField]
-        private Toggle m_Flip;
+        [SerializeField] private Toggle m_Flip;
         /// <summary>
         /// Button to remove the cut
         /// </summary>
-        [SerializeField]
-        private Button m_Remove;
+        [SerializeField] private Button m_Remove;
         /// <summary>
         /// Rect Transform of the custom vector editor
         /// </summary>
-        [SerializeField]
-        private RectTransform m_CustomValues;
+        [SerializeField] private RectTransform m_CustomValues;
         /// <summary>
         /// X value for the custom normal
         /// </summary>
-        [SerializeField]
-        private InputField m_CustomX;
+        [SerializeField] private InputField m_CustomX;
         /// <summary>
         /// Y value for the custom normal
         /// </summary>
-        [SerializeField]
-        private InputField m_CustomY;
+        [SerializeField] private InputField m_CustomY;
         /// <summary>
         /// Z value for the custom normal
         /// </summary>
-        [SerializeField]
-        private InputField m_CustomZ;
+        [SerializeField] private InputField m_CustomZ;
+        /// <summary>
+        /// Text on the MRI for the direction of the cut
+        /// </summary>
+        [SerializeField] private Text m_PositionTitle;
+        /// <summary>
+        /// Text on the MRI for the value of the cut
+        /// </summary>
+        [SerializeField] private Text m_PositionValue;
+        /// <summary>
+        /// Gameobject showing information about the position of the cut
+        /// </summary>
+        [SerializeField] private GameObject m_PositionInformation;
         #endregion
 
         #region Events
@@ -81,9 +83,9 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        private void AddListeners(Base3DScene scene, Cut cut)
+        private void AddListeners()
         {
-            cut.OnUpdateGUITextures.AddListener((texture) =>
+            m_Cut.OnUpdateGUITextures.AddListener((texture) =>
             {
                 // FIXME : maybe memory leak
                 Destroy(m_Image.sprite);
@@ -91,11 +93,11 @@ namespace HBP.UI.Module3D
                 m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
                 m_Image.sprite.texture.anisoLevel = 9;
             });
-            cut.OnUpdateCut.AddListener(() =>
+            m_Cut.OnUpdateCut.AddListener(() =>
             {
                 UpdateUI();
             });
-            cut.OnRemoveCut.AddListener(() =>
+            m_Cut.OnRemoveCut.AddListener(() =>
             {
                 Destroy(gameObject);
             });
@@ -104,91 +106,91 @@ namespace HBP.UI.Module3D
             {
                 if (m_IsUIUpdating) return;
 
-                cut.Position = value;
-                scene.UpdateCutPlane(cut);
+                m_Cut.Position = value;
+                m_Scene.UpdateCutPlane(m_Cut);
             });
             m_MinusPosition.onClick.AddListener(() =>
             {
                 if (m_IsUIUpdating) return;
 
-                m_Position.value -= 1.0f / cut.NumberOfCuts;
+                m_Position.value -= 1.0f / m_Cut.NumberOfCuts;
             });
             m_PlusPosition.onClick.AddListener(() =>
             {
                 if (m_IsUIUpdating) return;
 
-                m_Position.value += 1.0f / cut.NumberOfCuts;
+                m_Position.value += 1.0f / m_Cut.NumberOfCuts;
             });
             m_Orientation.onValueChanged.AddListener((value) =>
             {
                 if (m_IsUIUpdating) return;
 
-                cut.Orientation = (CutOrientation)value;
-                if (cut.Orientation == CutOrientation.Custom)
+                m_Cut.Orientation = (CutOrientation)value;
+                if (m_Cut.Orientation == CutOrientation.Custom)
                 {
                     int x = 1, y = 0, z = 0;
                     int.TryParse(m_CustomX.text, out x);
                     int.TryParse(m_CustomY.text, out y);
                     int.TryParse(m_CustomZ.text, out z);
-                    cut.Normal = new Vector3(x, y, z);
+                    m_Cut.Normal = new Vector3(x, y, z);
                 }
-                scene.UpdateCutPlane(cut);
+                m_Scene.UpdateCutPlane(m_Cut);
             });
             m_Flip.onValueChanged.AddListener((isOn) =>
             {
                 if (m_IsUIUpdating) return;
 
-                cut.Flip = isOn;
-                cut.Position = 1.0f - cut.Position;
-                scene.UpdateCutPlane(cut);
+                m_Cut.Flip = isOn;
+                m_Cut.Position = 1.0f - m_Cut.Position;
+                m_Scene.UpdateCutPlane(m_Cut);
             });
             m_Remove.onClick.AddListener(() =>
             {
                 if (m_IsUIUpdating) return;
 
-                scene.RemoveCutPlane(cut);
+                m_Scene.RemoveCutPlane(m_Cut);
             });
             m_CustomX.onEndEdit.AddListener((value) =>
             {
                 if (m_IsUIUpdating) return;
 
-                if (cut.Orientation == CutOrientation.Custom)
+                if (m_Cut.Orientation == CutOrientation.Custom)
                 {
                     int x = 1, y = 0, z = 0;
                     int.TryParse(m_CustomX.text, out x);
                     int.TryParse(m_CustomY.text, out y);
                     int.TryParse(m_CustomZ.text, out z);
-                    cut.Normal = new Vector3(x, y, z);
+                    m_Cut.Normal = new Vector3(x, y, z);
                 }
-                scene.UpdateCutPlane(cut);
+                m_Scene.UpdateCutPlane(m_Cut);
             });
             m_CustomY.onEndEdit.AddListener((value) =>
             {
                 if (m_IsUIUpdating) return;
 
-                if (cut.Orientation == CutOrientation.Custom)
+                if (m_Cut.Orientation == CutOrientation.Custom)
                 {
                     int x = 1, y = 0, z = 0;
                     int.TryParse(m_CustomX.text, out x);
                     int.TryParse(m_CustomY.text, out y);
                     int.TryParse(m_CustomZ.text, out z);
-                    cut.Normal = new Vector3(x, y, z);
+                    m_Cut.Normal = new Vector3(x, y, z);
                 }
-                scene.UpdateCutPlane(cut);
+                m_Scene.UpdateCutPlane(m_Cut);
             });
             m_CustomZ.onEndEdit.AddListener((value) =>
             {
                 if (m_IsUIUpdating) return;
 
-                if (cut.Orientation == CutOrientation.Custom)
+                if (m_Cut.Orientation == CutOrientation.Custom)
                 {
                     int x = 1, y = 0, z = 0;
                     int.TryParse(m_CustomX.text, out x);
                     int.TryParse(m_CustomY.text, out y);
                     int.TryParse(m_CustomZ.text, out z);
-                    cut.Normal = new Vector3(x, y, z);
+                    m_Cut.Normal = new Vector3(x, y, z);
                 }
-                scene.UpdateCutPlane(cut);
+                m_Scene.UpdateCutPlane(m_Cut);
             });
             m_Image.GetComponent<Button>().onClick.AddListener(() =>
             {
@@ -219,6 +221,22 @@ namespace HBP.UI.Module3D
                 m_Position.transform.parent.gameObject.SetActive(true);
                 m_Flip.gameObject.SetActive(m_Cut.Orientation != CutOrientation.Custom);
                 m_CustomValues.gameObject.SetActive(m_Cut.Orientation == CutOrientation.Custom);
+                m_PositionInformation.SetActive(m_Cut.Orientation != CutOrientation.Custom);
+                switch (m_Cut.Orientation)
+                {
+                    case CutOrientation.Axial:
+                        m_PositionTitle.text = "Z";
+                        m_PositionValue.text = m_Cut.Point.z.ToString("N1");
+                        break;
+                    case CutOrientation.Coronal:
+                        m_PositionTitle.text = "Y";
+                        m_PositionValue.text = m_Cut.Point.y.ToString("N1");
+                        break;
+                    case CutOrientation.Sagital:
+                        m_PositionTitle.text = "X";
+                        m_PositionValue.text = m_Cut.Point.x.ToString("N1");
+                        break;
+                }
             }
             else
             {
@@ -235,6 +253,7 @@ namespace HBP.UI.Module3D
         #region Public Methods
         public void Initialize(Base3DScene scene, Cut cut)
         {
+            m_Scene = scene;
             m_Cut = cut;
             m_Image.GetComponent<ImageRatio>().Type = ImageRatio.RatioType.FixedWidth;
             m_Orientation.options = new List<Dropdown.OptionData>();
@@ -243,7 +262,7 @@ namespace HBP.UI.Module3D
                 m_Orientation.options.Add(new Dropdown.OptionData(orientation));
             }
             UpdateUI();
-            AddListeners(scene, cut);
+            AddListeners();
         }
         public void OpenControls()
         {
