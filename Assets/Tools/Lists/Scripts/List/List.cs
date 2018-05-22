@@ -146,6 +146,7 @@ namespace Tools.Unity.Lists
             if (m_ScrollRect.viewport.hasChanged)
             {
                 m_MaximumNumberOfItems = Mathf.CeilToInt(m_ScrollRect.viewport.rect.height / ItemHeight) + NUMBER_OF_ADDITIONAL_ITEMS;
+                m_ScrollRect.verticalNormalizedPosition = Mathf.Clamp(m_ScrollRect.verticalNormalizedPosition, 0f, 1f);
                 m_ScrollRect.viewport.hasChanged = false;
             }
             if (m_ScrollRect.content.hasChanged)
@@ -246,7 +247,7 @@ namespace Tools.Unity.Lists
                 DestroyItem(items[index]);
             }
         }
-        protected virtual void DestroyItem(Item<T> item)
+        protected void DestroyItem(Item<T> item)
         {
             Destroy(item.gameObject);
             m_Items.Remove(item);
