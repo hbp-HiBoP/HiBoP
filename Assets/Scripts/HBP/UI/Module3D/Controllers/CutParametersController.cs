@@ -85,9 +85,10 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void AddListeners()
         {
-            m_Cut.OnUpdateGUITextures.AddListener((texture) =>
+            m_Cut.OnUpdateGUITextures.AddListener((column) =>
             {
                 Destroy(m_Image.sprite);
+                Texture2D texture = column.GUIBrainCutTextures[m_Cut.ID];
                 m_Image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
                 m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
                 m_Image.sprite.texture.anisoLevel = 9;

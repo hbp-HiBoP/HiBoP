@@ -431,14 +431,15 @@ namespace HBP.Module3D
 
                         int id = Sites.Count - 1;
                         Site baseSite = siteList[id].GetComponent<Site>();
-                        Sites[id].Information = baseSite.Information;
+                        Site site = Sites[id];
+                        site.Information = baseSite.Information;
                         if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullID))
                         {
                             SiteStateBySiteID.Add(baseSite.Information.FullID, new SiteState(baseSite.State));
                         }
-                        Sites[id].State = SiteStateBySiteID[baseSite.Information.FullID];
-                        Sites[id].State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(Sites[id]));
-                        Sites[id].IsActive = true;
+                        site.State = SiteStateBySiteID[baseSite.Information.FullID];
+                        site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
+                        site.IsActive = true;
                     }
                 }
             }

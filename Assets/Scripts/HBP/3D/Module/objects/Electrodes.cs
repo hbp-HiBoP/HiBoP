@@ -374,6 +374,45 @@ namespace HBP.Module3D
                 Latencies PatientLatencies = new Latencies(nbPlots, latencies, heights);
                 return PatientLatencies;
             }
+            /// <summary>
+            /// Get an array containing bool values telling if a site is on a plane or not considering a specific precision
+            /// </summary>
+            /// <param name="plane"></param>
+            /// <param name="precision"></param>
+            /// <param name="result"></param>
+            public void GetSitesOnPlane(Plane plane, float precision, out int[] result)
+            {
+                result = new int[NumberOfSites];
+                float[] planeV = new float[6];
+                for (int ii = 0; ii < 3; ++ii)
+                {
+                    planeV[ii] = plane.Point[ii];
+                    planeV[ii + 3] = plane.Normal[ii];
+                }
+                sites_on_plane_RawSiteList(_handle, planeV, precision, result);
+            }
+            /// <summary>
+            /// Returns true if a site is on a place, false otherwise
+            /// </summary>
+            /// <param name="site"></param>
+            /// <param name="plane"></param>
+            /// <param name="precision"></param>
+            /// <returns></returns>
+            public bool IsSiteOnAnyPlane(Site site, IEnumerable<Plane> planes, float precision)
+            {
+                bool result = false;
+                foreach (var plane in planes)
+                {
+                    float[] planeV = new float[6];
+                    for (int ii = 0; ii < 3; ++ii)
+                    {
+                        planeV[ii] = plane.Point[ii];
+                        planeV[ii + 3] = plane.Normal[ii];
+                    }
+                    result |= is_site_on_plane_RawSiteList(_handle, site.Information.GlobalID, planeV, precision) == 1;
+                }
+                return result;
+            }
             #endregion
 
             #region Memory Management
@@ -419,6 +458,12 @@ namespace HBP.Module3D
             // retrieve data
             [DllImport("hbp_export", EntryPoint = "sites_nb_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
             static private extern int sites_nb_RawSiteList(HandleRef handleRawSiteLst);
+            
+            [DllImport("hbp_export", EntryPoint = "is_site_on_plane_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
+            static private extern int is_site_on_plane_RawSiteList(HandleRef handleRawSiteLst, int siteID, float[] planeV, float precision);
+
+            [DllImport("hbp_export", EntryPoint = "sites_on_plane_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
+            static private extern void sites_on_plane_RawSiteList(HandleRef handleRawSiteLst, float[] planeV, float precision, int[] result);
 
             //  memory management
             //delegate IntPtr create_RawPlotList();

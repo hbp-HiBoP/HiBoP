@@ -52,7 +52,7 @@
       "ShowCurvesOfMinimizedColumns": false
     },
     "Cut": {
-      "ShowCutLines": false,
+      "ShowCutLines": true,
       "SimplifiedMeshes": false
     }
   }

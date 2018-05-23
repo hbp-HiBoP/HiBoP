@@ -33,6 +33,8 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_OutOfROI;
         [SerializeField] Toggle m_InMesh;
         [SerializeField] Toggle m_OutOfMesh;
+        [SerializeField] Toggle m_OnPlane;
+        [SerializeField] Toggle m_NotOnPlane;
 
         // Information
         [SerializeField] Toggle m_SiteName;
@@ -92,6 +94,8 @@ namespace HBP.UI.Module3D
             if (m_OutOfROI.isOn) result &= site.State.IsOutOfROI;
             if (m_InMesh.isOn) result &= m_Scene.ColumnManager.SelectedMesh.SimplifiedBoth.IsPointInside(m_Scene.ColumnManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
             if (m_OutOfMesh.isOn) result &= !m_Scene.ColumnManager.SelectedMesh.SimplifiedBoth.IsPointInside(m_Scene.ColumnManager.SelectedImplantation.RawSiteList, site.Information.GlobalID);
+            if (m_OnPlane.isOn) result &= m_Scene.ColumnManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as HBP.Module3D.Plane, 1.0f);
+            if (m_NotOnPlane.isOn) result &= !m_Scene.ColumnManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as HBP.Module3D.Plane, 1.0f);
             return result;
         }
         private bool CheckInformation(Site site)
