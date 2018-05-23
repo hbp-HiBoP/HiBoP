@@ -62,6 +62,9 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_StandardDeviation;
         [SerializeField] Toggle m_StandardDeviationSuperior;
         [SerializeField] InputField m_StandardDeviationValue;
+
+        private Queue<Site> m_MatchingSites = new Queue<Site>();
+        private bool m_UpdateUI;
         #endregion
 
         #region Public Methods
@@ -72,6 +75,10 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
+        private void Update()
+        {
+            m_UpdateUI = true;
+        }
         private bool CheckState(Site site)
         {
             bool result = true;
@@ -118,7 +125,7 @@ namespace HBP.UI.Module3D
                 if (m_Min.isOn) result &= CompareValue(site.Configuration.NormalizedValues.Min(), m_MinSuperior.isOn, m_MinValue.text);
                 if (m_StandardDeviation.isOn) result &= CompareValue(site.Configuration.NormalizedValues.StandardDeviation(), m_StandardDeviationSuperior.isOn, m_StandardDeviationValue.text);
             }
-            else
+            else if (m_Mean.isOn || m_Median.isOn || m_Max.isOn || m_Min.isOn || m_StandardDeviation.isOn)
             {
                 result = false;
             }
@@ -143,19 +150,30 @@ namespace HBP.UI.Module3D
         {
             yield return Ninja.JumpToUnity;
             onBegin.Invoke();
+            yield return Ninja.JumpBack;
             int length = sites.Count;
             for (int i = 0; i < length; ++i)
             {
                 Site site = sites[i];
-                yield return Ninja.JumpBack;
                 bool match = CheckState(site) && CheckPosition(site) && CheckInformation(site) && CheckValues(site);
-                yield return Ninja.JumpToUnity;
                 if (match)
                 {
-                    OnApplyActionOnSite.Invoke(site);
+                    m_MatchingSites.Enqueue(site);
                 }
-                onProgress.Invoke((float)(i + 1) / length);
+                //if (m_UpdateUI || i == length - 1)
+                //{
+                    yield return Ninja.JumpToUnity;
+                    while (m_MatchingSites.Count > 0)
+                    {
+                        Site siteToApply = m_MatchingSites.Dequeue();
+                        OnApplyActionOnSite.Invoke(siteToApply);
+                    }
+                    onProgress.Invoke((float)(i + 1) / length);
+                    m_UpdateUI = false;
+                    yield return Ninja.JumpBack;
+                //}
             }
+            yield return Ninja.JumpToUnity;
             onEnd.Invoke();
         }
         #endregion
