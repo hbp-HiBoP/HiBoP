@@ -160,8 +160,8 @@ namespace HBP.UI.Module3D
                 {
                     m_MatchingSites.Enqueue(site);
                 }
-                //if (m_UpdateUI || i == length - 1)
-                //{
+                if (m_UpdateUI || i == length - 1)
+                {
                     yield return Ninja.JumpToUnity;
                     while (m_MatchingSites.Count > 0)
                     {
@@ -171,7 +171,7 @@ namespace HBP.UI.Module3D
                     onProgress.Invoke((float)(i + 1) / length);
                     m_UpdateUI = false;
                     yield return Ninja.JumpBack;
-                //}
+                }
             }
             yield return Ninja.JumpToUnity;
             onEnd.Invoke();

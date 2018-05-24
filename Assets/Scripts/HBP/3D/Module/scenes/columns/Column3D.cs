@@ -844,20 +844,23 @@ namespace HBP.Module3D
             {
                 if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
                 {
-                    DLLGUIBrainCutTextures[cut.ID].CopyAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
+                    DLLGUIBrainCutTextures[cut.ID].CopyAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines && cut.Orientation != CutOrientation.Custom, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
                     DLLGUIBrainCutTextures[cut.ID].UpdateTexture2D(GUIBrainCutTextures[cut.ID]);
                 }
             }
         }
-        public void ResizeGUIMRITextures()
+        public void ResizeGUIMRITextures(List<Cut> cuts)
         {
             int max = 0;
-            foreach (var texture in DLLGUIBrainCutTextures)
+            foreach (var cut in cuts)
             {
-                int textureMax = texture.TextureSize.Max();
-                if (textureMax > max)
+                if (cut.Orientation != CutOrientation.Custom)
                 {
-                    max = textureMax;
+                    int textureMax = DLLGUIBrainCutTextures[cut.ID].TextureSize.Max();
+                    if (textureMax > max)
+                    {
+                        max = textureMax;
+                    }
                 }
             }
             for (int i = 0; i < DLLGUIBrainCutTextures.Count; ++i)

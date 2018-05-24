@@ -811,7 +811,7 @@ namespace HBP.Module3D
             if (column)
             {
                 column.CreateGUIMRITextures(m_Cuts);
-                column.ResizeGUIMRITextures();
+                column.ResizeGUIMRITextures(m_Cuts);
                 foreach (Cut cut in m_Cuts)
                 {
                     cut.OnUpdateGUITextures.Invoke(column);
