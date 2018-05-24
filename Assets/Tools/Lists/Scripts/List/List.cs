@@ -192,6 +192,8 @@ namespace Tools.Unity.Lists
 
             m_FirstIndexDisplayed = newFirstIndexDisplayed;
             m_LastIndexDisplayed = newLastIndexDisplayed;
+
+            Refresh();
         }
         void UpdateContent()
         {
