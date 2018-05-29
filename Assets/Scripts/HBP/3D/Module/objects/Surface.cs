@@ -448,6 +448,29 @@ namespace HBP.Module3D.DLL
         {
             return is_point_inside_Surface(_handle, rawSiteList.getHandle(), id);
         }
+        /// <summary>
+        /// Returns a cube bbox around the mesh depending on the cuts used
+        /// </summary>
+        /// <param name="cuts"></param>
+        /// <returns></returns>
+        public BBox GetCubeBoundingBox(Cut[] cuts)
+        {
+            float[] planes = new float[cuts.Length * 6];
+            int planesCount = 0;
+            for (int ii = 0; ii < cuts.Length; ++ii)
+            {
+                if (cuts[ii].Orientation != CutOrientation.Custom)
+                {
+                    for (int jj = 0; jj < 3; ++jj)
+                    {
+                        planes[ii * 6 + jj] = cuts[ii].Point[jj];
+                        planes[ii * 6 + jj + 3] = cuts[ii].Normal[jj];
+                    }
+                    planesCount++;
+                }
+            }
+            return new BBox(cube_bounding_box_Surface(_handle, planes, planesCount));
+        }
         #endregion
 
         #region Memory Management
@@ -582,6 +605,8 @@ namespace HBP.Module3D.DLL
         static private extern void UV_Surface(HandleRef handleSurface, float[] texturesUVArray);
         [DllImport("hbp_export", EntryPoint = "bounding_box_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr bounding_box_Surface(HandleRef handleSurface);
+        [DllImport("hbp_export", EntryPoint = "cube_bounding_box_Surface", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr cube_bounding_box_Surface(HandleRef handleSurface, float[] planes, int planesCount);
         [DllImport("hbp_export", EntryPoint = "size_offset_cut_plane_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern float size_offset_cut_plane_Surface(HandleRef handleSurface, float[] planeCut, int nbCuts);
 

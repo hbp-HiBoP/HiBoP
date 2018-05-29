@@ -324,6 +324,29 @@ namespace HBP.Module3D.DLL
             definePlaneWithOrientation_Volume(_handle, normal, (int)orientation, flip);
             plane.Normal = new Vector3(normal[0], normal[1], normal[2]);
         }
+        /// <summary>
+        /// Returns a cube bbox around the mesh depending on the cuts used
+        /// </summary>
+        /// <param name="cuts"></param>
+        /// <returns></returns>
+        public BBox GetCubeBoundingBox(List<Cut> cuts)
+        {
+            float[] planes = new float[cuts.Count * 6];
+            int planesCount = 0;
+            for (int ii = 0; ii < cuts.Count; ++ii)
+            {
+                if (cuts[ii].Orientation != CutOrientation.Custom)
+                {
+                    for (int jj = 0; jj < 3; ++jj)
+                    {
+                        planes[ii * 6 + jj] = cuts[ii].Point[jj];
+                        planes[ii * 6 + jj + 3] = cuts[ii].Normal[jj];
+                    }
+                    planesCount++;
+                }
+            }
+            return new BBox(cube_bounding_box_Volume(_handle, planes, planesCount));
+        }
         #endregion
 
         #region Memory Management
@@ -376,6 +399,9 @@ namespace HBP.Module3D.DLL
 
         [DllImport("hbp_export", EntryPoint = "retrieveExtremeValues_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern void retrieveExtremeValues_Volume(HandleRef handleVolume, float[] extremeValues);
+
+        [DllImport("hbp_export", EntryPoint = "cube_bounding_box_Volume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr cube_bounding_box_Volume(HandleRef handleSurface, float[] planes, int planesCount);
 
         //// memory management        
         //delegate IntPtr create_Volume();

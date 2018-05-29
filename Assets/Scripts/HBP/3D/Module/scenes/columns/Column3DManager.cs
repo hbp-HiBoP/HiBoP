@@ -175,6 +175,10 @@ namespace HBP.Module3D
                 return MRIs[SelectedMRIID];
             }
         }
+        /// <summary>
+        /// Cube bounding box around the mesh, depending on the cuts
+        /// </summary>
+        public DLL.BBox CubeBoundingBox { get; private set; }
 
         private float m_MRICalMinFactor = 0.0f;
         /// <summary>
@@ -954,6 +958,14 @@ namespace HBP.Module3D
             {
                 SelectedColumn.Views.First().IsSelected = true;
             }
+        }
+        /// <summary>
+        /// Update the cube bounding box
+        /// </summary>
+        /// <param name="cuts"></param>
+        public void UpdateCubeBoundingBox(List<Cut> cuts)
+        {
+            CubeBoundingBox = SelectedMRI.Volume.GetCubeBoundingBox(cuts);
         }
         #endregion
     }

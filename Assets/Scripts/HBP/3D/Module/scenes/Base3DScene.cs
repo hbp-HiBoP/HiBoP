@@ -169,7 +169,7 @@ namespace HBP.Module3D
                 return m_DisplayedObjects;
             }
         }
-
+        
         [SerializeField]
         protected Column3DManager m_ColumnManager;
         /// <summary>
@@ -581,6 +581,10 @@ namespace HBP.Module3D
         /// Event called when adding a cut to the scene
         /// </summary>
         public GenericEvent<Cut> OnAddCut = new GenericEvent<Cut>();
+        /// <summary>
+        /// Event called when requesting an update in the cut UI
+        /// </summary>
+        public UnityEvent OnRequestUpdateInCutUI = new UnityEvent();
 
         /// <summary>
         /// Event called when changing the colors of the colormap
@@ -632,6 +636,7 @@ namespace HBP.Module3D
             if (!SceneInformation.AreSitesUpdated)
             {
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                OnRequestUpdateInCutUI.Invoke();
             }
 
             if (m_GeneratorNeedsUpdate && !IsLatencyModeEnabled)
@@ -1813,6 +1818,7 @@ namespace HBP.Module3D
             {
                 ComputeMeshesCut();
             }
+            m_ColumnManager.UpdateCubeBoundingBox(m_Cuts);
 
             ComputeMRITextures();
             ComputeGUITextures();
