@@ -299,6 +299,16 @@ namespace HBP.Module3D.DLL
                 return values;
             }
         }
+        /// <summary>
+        /// Bounding Box of this volume
+        /// </summary>
+        public BBox BoundingBox
+        {
+            get
+            {
+                return new BBox(boundingBox_Volume(_handle));
+            }
+        }
         #endregion
 
         #region Public Methods
