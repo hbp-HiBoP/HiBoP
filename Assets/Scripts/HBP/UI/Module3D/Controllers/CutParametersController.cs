@@ -285,31 +285,22 @@ namespace HBP.UI.Module3D
         }
         public void ShowSites()
         {
-            UnityEngine.Profiling.Profiler.BeginSample("Showing sites");
             foreach (Transform child in m_SitesRectTransform) Destroy(child.gameObject);
             if (m_Cut.Orientation == CutOrientation.Custom) return;
-
-            UnityEngine.Profiling.Profiler.BeginSample("Finding sites on plane");
+            
+            List<Site> sites = new List<Site>();
             int[] result;
             m_Scene.ColumnManager.SelectedColumn.RawElectrodes.GetSitesOnPlane(m_Cut, 1.0f, out result);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.BeginSample("Constructing sites list");
-            List<Site> sites = new List<Site>();
             foreach (var site in m_Scene.ColumnManager.SelectedColumn.Sites)
             {
-                if (result[site.Information.GlobalID] == 1)
+                if (result[site.Information.GlobalID] == 1 && site.IsActive)
                 {
                     sites.Add(site);
                 }
             }
-            UnityEngine.Profiling.Profiler.EndSample();
 
-            UnityEngine.Profiling.Profiler.BeginSample("Finding intersections and computing global values");
             HBP.Module3D.DLL.BBox cube = m_Scene.ColumnManager.CubeBoundingBox;
-            UnityEngine.Profiling.Profiler.BeginSample("Intersection with planes");
             List<Vector3> intersections = cube.IntersectionPointsWithPlane(m_Cut);
-            UnityEngine.Profiling.Profiler.EndSample();
             float xMax = float.MinValue, yMax = float.MinValue, zMax = float.MinValue;
             float xMin = float.MaxValue, yMin = float.MaxValue, zMin = float.MaxValue;
             foreach (var point in intersections)
@@ -324,11 +315,9 @@ namespace HBP.UI.Module3D
             float xRange = xMax - xMin;
             float yRange = yMax - yMin;
             float zRange = zMax - zMin;
-            UnityEngine.Profiling.Profiler.EndSample();
 
             foreach (var site in sites)
             {
-                UnityEngine.Profiling.Profiler.BeginSample("Instantiate sites");
                 float horizontalRatio = 0, verticalRatio = 0;
                 switch (m_Cut.Orientation)
                 {
@@ -349,13 +338,9 @@ namespace HBP.UI.Module3D
                 {
                     horizontalRatio = 1 - horizontalRatio;
                 }
-                RectTransform siteRect = Instantiate(m_SitePrefab, m_SitesRectTransform).GetComponent<RectTransform>();
-                siteRect.anchorMin = new Vector2(horizontalRatio, verticalRatio);
-                siteRect.anchorMax = new Vector2(horizontalRatio, verticalRatio);
-                siteRect.anchoredPosition = Vector2.zero;
-                UnityEngine.Profiling.Profiler.EndSample();
+                CutSite cutSite = Instantiate(m_SitePrefab, m_SitesRectTransform).GetComponent<CutSite>();
+                cutSite.Initialize(m_Scene, site, new Vector2(horizontalRatio, verticalRatio));
             }
-            UnityEngine.Profiling.Profiler.EndSample();
         }
         #endregion
     }

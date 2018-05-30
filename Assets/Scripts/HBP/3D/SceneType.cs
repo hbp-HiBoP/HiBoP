@@ -64,4 +64,4 @@ public enum SiteAction
     Unsuspect = 9
 }
 public enum CutOrientation { Axial = 0, Coronal = 1, Sagital = 2, Custom = 3 } // Same as above
-public enum SiteInformationDisplayMode { Anatomy, IEEG, CCEP }
+public enum SiteInformationDisplayMode { Anatomy, IEEG, CCEP, Light }

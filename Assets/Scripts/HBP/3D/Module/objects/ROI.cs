@@ -310,7 +310,6 @@ namespace HBP.Module3D
         }
         public void ChangeSelectedBubbleSize(float direction)
         {
-            Debug.Log(direction);
             if (Mathf.Abs(direction) > 0.2f)
             {
                 ChangeBubbleSize(SelectedSphereID, direction < 0 ? 0.9f : 1.1f);
