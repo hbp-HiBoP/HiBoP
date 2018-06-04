@@ -146,13 +146,6 @@ namespace HBP.UI.Module3D
             {
                 AddCut(cut);
             });
-            m_Scene.OnRequestUpdateInCutUI.AddListener(() =>
-            {
-                foreach (var controller in m_CutParametersControllers)
-                {
-                    controller.ShowSites();
-                }
-            });
         }
         #endregion
     }

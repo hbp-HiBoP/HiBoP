@@ -210,6 +210,10 @@ namespace HBP.UI.Module3D
                     OpenControls();
                 }
             });
+            m_Scene.OnRequestUpdateInCutUI.AddListener(() =>
+            {
+                ShowSites();
+            });
         }
         private void UpdateUI()
         {
