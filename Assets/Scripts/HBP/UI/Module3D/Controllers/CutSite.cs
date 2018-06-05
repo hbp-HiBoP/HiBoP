@@ -1,8 +1,10 @@
 ﻿using HBP.Module3D;
+using NewTheme.Components;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
@@ -12,6 +14,7 @@ namespace HBP.UI.Module3D
         private bool m_IsInside;
         private Site m_Site;
         private Base3DScene m_Scene;
+        [SerializeField] private Image m_Image;
         [SerializeField] private RectTransform m_RectTransform;
         #endregion
 
@@ -33,6 +36,8 @@ namespace HBP.UI.Module3D
             m_RectTransform.anchorMin = position;
             m_RectTransform.anchorMax = position;
             m_RectTransform.anchoredPosition = Vector2.zero;
+            Color color = m_Site.GetComponent<MeshRenderer>().sharedMaterial.color; // FIXME : Use ThemeElements after the merge
+            m_Image.color = color;
         }
         public void OnPointerEnter(PointerEventData eventData)
         {

@@ -1317,6 +1317,7 @@ namespace HBP.Module3D
             cut.Point = SceneInformation.MeshCenter + cut.Normal * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
 
             SceneInformation.MeshGeometryNeedsUpdate = true;
+            ResetIEEG();
 
             // update cameras cuts display
             OnModifyPlanesCuts.Invoke();
