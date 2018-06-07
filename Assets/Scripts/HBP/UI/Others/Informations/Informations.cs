@@ -56,10 +56,10 @@ namespace HBP.UI.Informations
         }
         public void ChangeOverlayState(bool state)
         {
-            transform.Find("BotBorder").gameObject.SetActive(state);
-            transform.Find("LeftBorder").gameObject.SetActive(state);
-            transform.Find("RightBorder").gameObject.SetActive(state);
-            transform.Find("TopBorder").gameObject.SetActive(state);
+            transform.Find("Borders").Find("BotBorder").gameObject.SetActive(state);
+            transform.Find("Borders").Find("LeftBorder").gameObject.SetActive(state);
+            transform.Find("Borders").Find("RightBorder").gameObject.SetActive(state);
+            transform.Find("Borders").Find("TopBorder").gameObject.SetActive(state);
         }
         #endregion
 

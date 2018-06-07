@@ -47,7 +47,7 @@ namespace HBP.UI.Module3D
         private GameObject m_MinimizedGameObject;
         private List<CutParametersController> m_CutParametersControllers = new List<CutParametersController>();
         private bool m_RectTransformChanged;
-        public Texture2D[] CutTextures { get { return (from cutParameterController in m_CutParametersControllers select cutParameterController.Texture).ToArray(); } }
+        public Tuple<CutOrientation, Texture2D>[] CutTextures { get { return (from cutParameterController in m_CutParametersControllers select new Tuple<CutOrientation, Texture2D>(cutParameterController.Cut.Orientation, cutParameterController.Texture)).ToArray(); } }
         #endregion
 
         #region Private Methods

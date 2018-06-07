@@ -1,9 +1,9 @@
 ﻿using HBP.Module3D;
-using Tools.Unity;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Tools.Unity;
 using Tools.Unity.ResizableGrid;
 using UnityEngine;
 using UnityEngine.UI;
@@ -73,10 +73,11 @@ namespace HBP.UI.Module3D
                 {
                     screenshotsPath += "/";
                 }
-                if (!Directory.Exists(screenshotsPath))
-                {
-                    Directory.CreateDirectory(screenshotsPath);
-                }
+                if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
+                screenshotsPath += ApplicationState.ProjectLoaded.Settings.Name + "/";
+                if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
+                screenshotsPath += m_Scene.Name + "/";
+                if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
                 SaveSceneToPNG(screenshotsPath, multipleFiles);
             });
             informations.OnOpenInformationsWindow.AddListener(() =>
@@ -103,13 +104,11 @@ namespace HBP.UI.Module3D
         private IEnumerator c_SaveSceneToPNG(string path, bool multipleFiles)
         {
             yield return new WaitForEndOfFrame();
-            
+
+            string openedProjectName = ApplicationState.ProjectLoaded.Settings.Name;
+
             if (multipleFiles) // TODO : add iconic scenario and / or scales
             {
-                string screenshotsPath = path + m_Scene.Name;
-                ClassLoaderSaver.GenerateUniqueDirectoryPath(ref screenshotsPath);
-                Directory.CreateDirectory(screenshotsPath);
-                screenshotsPath += "/";
                 // Scene
                 for (int c = 0; c < m_Scene.ColumnManager.Columns.Count; c++)
                 {
@@ -123,7 +122,9 @@ namespace HBP.UI.Module3D
                             {
                                 try
                                 {
-                                    view.ScreenshotTexture.SaveToPNG(screenshotsPath + "C" + c + "V" + v + ".png");
+                                    string viewFilePath = path + string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Label);
+                                    ClassLoaderSaver.GenerateUniqueSavePath(ref viewFilePath);
+                                    view.ScreenshotTexture.SaveToPNG(viewFilePath);
                                 }
                                 catch
                                 {
@@ -136,12 +137,14 @@ namespace HBP.UI.Module3D
                 }
                 // Cuts
                 CutController cutUI = GetComponentInChildren<CutController>();
-                Texture2D[] cutTextures = cutUI.CutTextures;
+                Tuple<CutOrientation, Texture2D>[] cutTextures = cutUI.CutTextures;
                 for (int i = 0; i < cutTextures.Length; i++)
                 {
                     try
                     {
-                        cutTextures[i].SaveToPNG(screenshotsPath + "Cut" + i + ".png");
+                        string cutFilePath = path + string.Format("{0}_{1}_{2}_Cut.png", openedProjectName, m_Scene.Name, cutTextures[i].Object1.ToString());
+                        ClassLoaderSaver.GenerateUniqueSavePath(ref cutFilePath);
+                        cutTextures[i].Object2.SaveToPNG(cutFilePath);
                     }
                     catch
                     {
@@ -151,15 +154,18 @@ namespace HBP.UI.Module3D
                 }
                 // Graph and Trial Matrix
                 Informations.Informations informations = GetComponentInChildren<Informations.Informations>();
+                Informations.SiteInformations siteInformations = informations.GetComponentInChildren<Informations.SiteInformations>();
                 if (!informations.IsMinimized)
                 {
-                    if (!Mathf.Approximately(informations.GetComponent<ZoneResizer>().Ratio, 1.0f))
+                    if (!Mathf.Approximately(siteInformations.GetComponent<ZoneResizer>().Ratio, 1.0f))
                     {
-                        global::Tools.Unity.Graph.Graph graph = informations.transform.GetComponentInChildren<global::Tools.Unity.Graph.Graph>();
+                        global::Tools.Unity.Graph.Graph graph = siteInformations.transform.GetComponentInChildren<global::Tools.Unity.Graph.Graph>();
                         Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
                         try
                         {
-                            graphTexture.SaveToPNG(screenshotsPath + "Graph.png");
+                            string graphFilePath = path + string.Format("{0}_{1}_Graph.png", openedProjectName, m_Scene.Name);
+                            ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
+                            graphTexture.SaveToPNG(graphFilePath);
                         }
                         catch
                         {
@@ -168,7 +174,9 @@ namespace HBP.UI.Module3D
                         }
                         try
                         {
-                            using (StreamWriter sw = new StreamWriter(screenshotsPath + "Graph.svg"))
+                            string graphFilePath = path + string.Format("{0}_{1}_Graph.svg", openedProjectName, m_Scene.Name);
+                            ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
+                            using (StreamWriter sw = new StreamWriter(graphFilePath))
                             {
                                 sw.Write(graph.ToSVG());
                             }
@@ -183,7 +191,9 @@ namespace HBP.UI.Module3D
                         {
                             foreach (var curve in curveValues)
                             {
-                                using (StreamWriter sw = new StreamWriter(screenshotsPath + curve.Key + ".csv"))
+                                string curveFilePath = path + string.Format("{0}_{1}_{2}_Curve.csv", openedProjectName, m_Scene.Name, curve.Key);
+                                ClassLoaderSaver.GenerateUniqueSavePath(ref curveFilePath);
+                                using (StreamWriter sw = new StreamWriter(curveFilePath))
                                 {
                                     sw.Write(curve.Value);
                                 }
@@ -195,9 +205,9 @@ namespace HBP.UI.Module3D
                             yield break;
                         }
                     }
-                    if (!Mathf.Approximately(informations.GetComponent<ZoneResizer>().Ratio, 0.0f))
+                    if (!Mathf.Approximately(siteInformations.GetComponent<ZoneResizer>().Ratio, 0.0f))
                     {
-                        ScrollRect trialMatrixScrollRect = informations.transform.Find("TrialZone").Find("TrialMatrix").GetComponent<ScrollRect>();
+                        ScrollRect trialMatrixScrollRect = siteInformations.transform.Find("TrialMatricesZone").Find("TrialMatrix").GetComponent<ScrollRect>();
                         informations.ChangeOverlayState(false);
                         Sprite mask = trialMatrixScrollRect.viewport.GetComponent<Image>().sprite;
                         trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = null;
@@ -228,7 +238,9 @@ namespace HBP.UI.Module3D
                         }
                         try
                         {
-                            trialMatrixTexture.SaveToPNG(screenshotsPath + "TrialMatrix.png");
+                            string trialMatrixFilePath = path + string.Format("{0}_{1}_TrialMatrix.png", openedProjectName, m_Scene.Name);
+                            ClassLoaderSaver.GenerateUniqueSavePath(ref trialMatrixFilePath);
+                            trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
                         }
                         catch
                         {
@@ -240,13 +252,13 @@ namespace HBP.UI.Module3D
                     }
                 }
                 // Feedback
-                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshots saved", "Screenshots have been saved in " + screenshotsPath);
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Screenshots saved", "Screenshots have been saved in " + path);
             }
             else
             {
                 Rect sceneRect = GetComponent<RectTransform>().ToScreenSpace();
                 Texture2D sceneTexture = Texture2DExtension.ScreenRectToTexture(sceneRect);
-                string screenshotPath = path + m_Scene.Name + ".png";
+                string screenshotPath = path + string.Format("{0}_{1}_fullscene.png", openedProjectName, m_Scene.Name);
                 ClassLoaderSaver.GenerateUniqueSavePath(ref screenshotPath);
                 try
                 {

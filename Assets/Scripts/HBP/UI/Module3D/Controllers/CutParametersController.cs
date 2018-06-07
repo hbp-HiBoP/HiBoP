@@ -14,6 +14,7 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         private Cut m_Cut;
+        public Cut Cut { get { return m_Cut; } }
         private Base3DScene m_Scene;
         private bool m_IsUIUpdating = false;
         public bool AreControlsOpen { get; set; }
