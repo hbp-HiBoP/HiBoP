@@ -1,5 +1,6 @@
 ﻿using CielaSpike;
 using HBP.Module3D;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -130,7 +131,7 @@ public abstract class BaseSiteConditions : MonoBehaviour
         }
         else
         {
-            return false;
+            throw new ParsingValueException(stringValueToCompare);
         }
     }
     private void Update()
@@ -153,13 +154,25 @@ public abstract class BaseSiteConditions : MonoBehaviour
         onBegin.Invoke();
         yield return Ninja.JumpBack;
         int length = sites.Count;
+        Exception exception = null;
         for (int i = 0; i < length; ++i)
         {
-            Site site = sites[i];
-            bool match = CheckConditions(site);
-            if (match)
+            try
             {
-                m_MatchingSites.Enqueue(site);
+                Site site = sites[i];
+                bool match = CheckConditions(site);
+                if (match)
+                {
+                    m_MatchingSites.Enqueue(site);
+                }
+            }
+            catch (Exception e)
+            {
+                exception = e;
+            }
+            if (exception != null)
+            {
+                break;
             }
             if (m_UpdateUI || i == length - 1)
             {
@@ -175,6 +188,10 @@ public abstract class BaseSiteConditions : MonoBehaviour
             }
         }
         yield return Ninja.JumpToUnity;
+        if (exception != null)
+        {
+            ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Warning, exception.ToString(), exception.Message);
+        }
         onEnd.Invoke();
     }
     #endregion

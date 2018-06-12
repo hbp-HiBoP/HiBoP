@@ -76,13 +76,21 @@ namespace HBP.UI.Module3D
                     sites.AddRange(m_Scene.ColumnManager.SelectedColumn.Sites);
                 }
 
-                if (UseAdvanced)
+                try
                 {
-                    m_Coroutine = this.StartCoroutineAsync(m_AdvancedSiteConditions.c_FindSites(sites, OnBeginApply, OnEndApply, OnApplyingActions));
+                    if (UseAdvanced)
+                    {
+                        m_AdvancedSiteConditions.ParseConditions();
+                        m_Coroutine = this.StartCoroutineAsync(m_AdvancedSiteConditions.c_FindSites(sites, OnBeginApply, OnEndApply, OnApplyingActions));
+                    }
+                    else
+                    {
+                        m_Coroutine = this.StartCoroutineAsync(m_BasicSiteConditions.c_FindSites(sites, OnBeginApply, OnEndApply, OnApplyingActions));
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    m_Coroutine = this.StartCoroutineAsync(m_BasicSiteConditions.c_FindSites(sites, OnBeginApply, OnEndApply, OnApplyingActions));
+                    ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
                 }
             }
         }
