@@ -51,6 +51,7 @@ namespace HBP.UI.Module3D
         private bool ParseConditionAndCheckValue(Site site, string s)
         {
             s = s.ToUpper();
+            s = s.Replace(" ", "");
             if (s == TRUE)
             {
                 return true;
@@ -96,7 +97,7 @@ namespace HBP.UI.Module3D
                 string[] array = s.Split('=');
                 if (array.Length == 2)
                 {
-                    return CheckName(site, array[1].Replace("\"", "").Replace(" ", ""));
+                    return CheckName(site, array[1].Replace("\"", ""));
                 }
             }
             else if (s.Contains(PATIENT))
@@ -104,7 +105,7 @@ namespace HBP.UI.Module3D
                 string[] array = s.Split('=');
                 if (array.Length == 2)
                 {
-                    return CheckPatientName(site, array[1].Replace("\"", "").Replace(" ", ""));
+                    return CheckPatientName(site, array[1].Replace("\"", ""));
                 }
             }
             else if (s.Contains(MARS_ATLAS))
@@ -112,7 +113,7 @@ namespace HBP.UI.Module3D
                 string[] array = s.Split('=');
                 if (array.Length == 2)
                 {
-                    return CheckMarsAtlasName(site, array[1].Replace("\"", "").Replace(" ", ""));
+                    return CheckMarsAtlasName(site, array[1].Replace("\"", ""));
                 }
             }
             else if (s.Contains(BROADMAN))
@@ -120,7 +121,7 @@ namespace HBP.UI.Module3D
                 string[] array = s.Split('=');
                 if (array.Length == 2)
                 {
-                    return CheckBroadmanAreaName(site, array[1].Replace("\"", "").Replace(" ", ""));
+                    return CheckBroadmanAreaName(site, array[1].Replace("\"", ""));
                 }
             }
             else if (s.Contains(MEAN))
