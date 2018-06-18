@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.UI;
+﻿using Tools.Unity;
 
 namespace UnityEngine.UI
 {
@@ -21,15 +17,10 @@ namespace UnityEngine.UI
         /// Instantiated blocker
         /// </summary>
         private GameObject m_Blocker;
-
-        /// <summary>
-        /// Content of the DropWindow
-        /// </summary>
-        public RectTransform Content;
         #endregion
 
         #region Events
-        public GenericEvent<bool> OnChangeWindowState = new GenericEvent<bool>();
+        public BoolEvent OnChangeWindowState;
         #endregion
 
         #region Private Methods
@@ -40,26 +31,29 @@ namespace UnityEngine.UI
         #endregion
 
         #region Public Methods
+        public void Open()
+        {
+            m_Blocker = Instantiate(BlockerPrefab, GetTopmostCanvas(GetComponent<RectTransform>()).GetComponent<RectTransform>());
+            m_Blocker.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                ChangeWindowState();
+            });
+            Window.SetActive(true);
+            OnChangeWindowState.Invoke(true);
+        }
+        public void Close()
+        {
+            Destroy(m_Blocker);
+            Window.SetActive(false);
+            OnChangeWindowState.Invoke(false);
+        }
         /// <summary>
         /// Show / Hide the window
         /// </summary>
         public void ChangeWindowState()
         {
-            bool state = !Window.activeSelf;
-            if (state)
-            {
-                m_Blocker = Instantiate(BlockerPrefab, GetTopmostCanvas(GetComponent<RectTransform>()).GetComponent<RectTransform>());
-                m_Blocker.GetComponent<Button>().onClick.AddListener(() =>
-                {
-                    ChangeWindowState();
-                });
-            }
-            else
-            {
-                Destroy(m_Blocker);
-            }
-            Window.SetActive(state);
-            OnChangeWindowState.Invoke(state);
+            if(Window.activeSelf) Close();
+            else Open();
         }
         /// <summary>
         /// Get the topmost canvas of a component

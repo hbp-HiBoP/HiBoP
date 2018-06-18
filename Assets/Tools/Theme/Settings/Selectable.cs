@@ -8,7 +8,7 @@ namespace NewTheme
     {
         #region Properties
         public UnityEngine.UI.Selectable.Transition Transition;
-        public UnityEngine.UI.ColorBlock Colors;
+        public ColorBlock Colors;
         public SpriteState SpriteState;
         public AnimationTriggers AnimationTriggers;
         #endregion
@@ -19,7 +19,7 @@ namespace NewTheme
             UnityEngine.UI.Selectable selectable = gameObject.GetComponent<UnityEngine.UI.Selectable>();
             if (selectable)
             {
-                selectable.colors = Colors;
+                selectable.colors = Colors.Colors;
                 selectable.spriteState = SpriteState;
                 selectable.animationTriggers = AnimationTriggers;
             }

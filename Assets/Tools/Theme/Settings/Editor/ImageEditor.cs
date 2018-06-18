@@ -14,6 +14,10 @@ namespace NewTheme
             SerializedProperty typeProperty = serializedObject.FindProperty("ImageType");
             SerializedProperty preserveAspectProperty = serializedObject.FindProperty("PreserveAspect");
             SerializedProperty fillCenterProperty = serializedObject.FindProperty("FillCenter");
+            SerializedProperty fillMethodProperty = serializedObject.FindProperty("FillMethod");
+            SerializedProperty fillOriginProperty = serializedObject.FindProperty("FillOrigin");
+            SerializedProperty fillAmountProperty = serializedObject.FindProperty("FillAmount");
+            SerializedProperty ClockwiseProperty = serializedObject.FindProperty("Clockwise");
 
             EditorGUILayout.PropertyField(sourceImageProperty);
             EditorGUILayout.PropertyField(materialProperty);
@@ -33,38 +37,35 @@ namespace NewTheme
                     EditorGUILayout.PropertyField(fillCenterProperty);
                     break;
                 case UnityEngine.UI.Image.Type.Filled:
-                    SerializedProperty fillMethodProperty = serializedObject.FindProperty("FillMethod");
-                    SerializedProperty fillOriginProperty = serializedObject.FindProperty("FillOrigin");
-                    SerializedProperty fillAmountProperty = serializedObject.FindProperty("FillAmount");
-                    SerializedProperty ClockwiseProperty = serializedObject.FindProperty("Clockwise");
+
                     EditorGUILayout.PropertyField(fillMethodProperty);
                     UnityEngine.UI.Image.FillMethod fillMethod = (UnityEngine.UI.Image.FillMethod)fillMethodProperty.enumValueIndex;
                     switch (fillMethod)
                     {
                         case UnityEngine.UI.Image.FillMethod.Horizontal:
-                            fillOriginProperty.intValue = EditorGUILayout.IntPopup("Fill Origin",fillOriginProperty.intValue, System.Enum.GetNames(typeof(UnityEngine.UI.Image.OriginHorizontal)), System.Enum.GetValues(typeof(UnityEngine.UI.Image.OriginHorizontal)).OfType<int>().ToArray());
+                            fillOriginProperty.intValue = (int)(UnityEngine.UI.Image.OriginHorizontal)EditorGUILayout.EnumPopup("Fill Origin", (UnityEngine.UI.Image.OriginHorizontal)fillOriginProperty.intValue);
                             EditorGUILayout.PropertyField(fillAmountProperty);
                             EditorGUILayout.PropertyField(preserveAspectProperty);
                             break;
                         case UnityEngine.UI.Image.FillMethod.Vertical:
-                            fillOriginProperty.intValue = EditorGUILayout.IntPopup("Fill Origin", fillOriginProperty.intValue, System.Enum.GetNames(typeof(UnityEngine.UI.Image.OriginVertical)), System.Enum.GetValues(typeof(UnityEngine.UI.Image.OriginVertical)).OfType<int>().ToArray());
+                            fillOriginProperty.intValue = (int)(UnityEngine.UI.Image.OriginVertical)EditorGUILayout.EnumPopup("Fill Origin", (UnityEngine.UI.Image.OriginVertical)fillOriginProperty.intValue);
                             EditorGUILayout.PropertyField(fillAmountProperty);
                             EditorGUILayout.PropertyField(preserveAspectProperty);
                             break;
                         case UnityEngine.UI.Image.FillMethod.Radial90:
-                            fillOriginProperty.intValue = EditorGUILayout.IntPopup("Fill Origin", fillOriginProperty.intValue, System.Enum.GetNames(typeof(UnityEngine.UI.Image.Origin90)), System.Enum.GetValues(typeof(UnityEngine.UI.Image.Origin90)).OfType<int>().ToArray());
+                            fillOriginProperty.intValue = (int)(UnityEngine.UI.Image.Origin90)EditorGUILayout.EnumPopup("Fill Origin", (UnityEngine.UI.Image.Origin90)fillOriginProperty.intValue);
                             EditorGUILayout.PropertyField(fillAmountProperty);
                             EditorGUILayout.PropertyField(ClockwiseProperty);
                             EditorGUILayout.PropertyField(preserveAspectProperty);
                             break;
                         case UnityEngine.UI.Image.FillMethod.Radial180:
-                            fillOriginProperty.intValue = EditorGUILayout.IntPopup("Fill Origin", fillOriginProperty.intValue, System.Enum.GetNames(typeof(UnityEngine.UI.Image.Origin180)), System.Enum.GetValues(typeof(UnityEngine.UI.Image.Origin180)).OfType<int>().ToArray());
+                            fillOriginProperty.intValue = (int)(UnityEngine.UI.Image.Origin180)EditorGUILayout.EnumPopup("Fill Origin", (UnityEngine.UI.Image.Origin180)fillOriginProperty.intValue);
                             EditorGUILayout.PropertyField(fillAmountProperty);
                             EditorGUILayout.PropertyField(ClockwiseProperty);
                             EditorGUILayout.PropertyField(preserveAspectProperty);
                             break;
                         case UnityEngine.UI.Image.FillMethod.Radial360:
-                            fillOriginProperty.intValue = EditorGUILayout.IntPopup("Fill Origin", fillOriginProperty.intValue, System.Enum.GetNames(typeof(UnityEngine.UI.Image.Origin360)), System.Enum.GetValues(typeof(UnityEngine.UI.Image.Origin360)).OfType<int>().ToArray());
+                            fillOriginProperty.intValue = (int)(UnityEngine.UI.Image.Origin360) EditorGUILayout.EnumPopup("Fill Origin", (UnityEngine.UI.Image.Origin360)fillOriginProperty.intValue);
                             EditorGUILayout.PropertyField(fillAmountProperty);
                             EditorGUILayout.PropertyField(ClockwiseProperty);
                             EditorGUILayout.PropertyField(preserveAspectProperty);

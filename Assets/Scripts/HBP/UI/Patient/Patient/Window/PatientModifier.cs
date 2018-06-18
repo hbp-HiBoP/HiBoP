@@ -1,6 +1,5 @@
 ﻿using UnityEngine.UI;
 using UnityEngine;
-using System;
 
 namespace HBP.UI.Anatomy
 {

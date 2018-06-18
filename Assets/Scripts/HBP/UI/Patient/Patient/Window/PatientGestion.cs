@@ -15,8 +15,10 @@ namespace HBP.UI.Anatomy
         #region Properties
         [SerializeField] FolderSelector m_DatabaseFolderSelector;
         [SerializeField] PatientList m_DatabaseList;
+        [SerializeField] PatientList m_ProjectList;
         [SerializeField] Text m_DatabaseCounter;
         [SerializeField] Text m_ProjectCounter;
+        Queue<Patient> m_PatientToAdd;
         #endregion
 
         #region Public Methods
@@ -66,6 +68,7 @@ namespace HBP.UI.Anatomy
         #region Private Methods
         IEnumerator c_DisplayDataBasePatients()
         {
+            m_PatientToAdd = new Queue<Patient>();
             yield return Ninja.JumpToUnity;
             m_DatabaseList.Objects = new Patient[0];
             yield return Ninja.JumpBack;
@@ -73,9 +76,16 @@ namespace HBP.UI.Anatomy
             string[] patients = Patient.GetPatientsDirectories(m_DatabaseFolderSelector.Folder);
             for (int i = 0; i < patients.Length; i++)
             {
-                yield return Ninja.JumpBack;
                 Patient patient = new Patient(patients[i]);
-                yield return Ninja.JumpToUnity;
+                m_PatientToAdd.Enqueue(patient);
+            }
+        }
+        private void Update()
+        {
+            int patientLenght = m_PatientToAdd.Count();
+            for (int i = 0; i < patientLenght; i++)
+            {
+                Patient patient = m_PatientToAdd.Dequeue();
                 if (!Items.Contains(patient)) m_DatabaseList.Add(patient);
             }
         }
@@ -88,6 +98,7 @@ namespace HBP.UI.Anatomy
             m_DatabaseList.OnSelectionChanged.AddListener((patient, i) => m_DatabaseCounter.text = m_DatabaseList.ObjectsSelected.Length.ToString());
 
             // Project list.
+            m_List = m_ProjectList;
             AddItem(ApplicationState.ProjectLoaded.Patients.ToArray());
             (m_List as PatientList).OnAction.AddListener((patient, i) => OpenModifier(patient, true));
             m_List.OnSelectionChanged.AddListener((patient, i) => m_ProjectCounter.text = m_List.ObjectsSelected.Length.ToString());

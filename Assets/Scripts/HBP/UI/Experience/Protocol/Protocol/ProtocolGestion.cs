@@ -2,13 +2,15 @@
 using Tools.CSharp;
 using d = HBP.Data.Experience.Protocol;
 using UnityEngine.UI;
+using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
 	public class ProtocolGestion : ItemGestion<d.Protocol>
     {
         #region Properties
-        Text m_protocolsCounter;
+        [SerializeField] Text m_ProtocolsCounter;
+        [SerializeField] ProtocolList m_ProtocolList;
         #endregion
 
         #region Public Methods
@@ -33,7 +35,7 @@ namespace HBP.UI.Experience.Protocol
         public override void Remove()
         {
             base.Remove();
-            m_protocolsCounter.text = m_List.ObjectsSelected.Count().ToString();
+            m_ProtocolsCounter.text = m_List.ObjectsSelected.Count().ToString();
         }
         public void Import()
         {
@@ -52,20 +54,18 @@ namespace HBP.UI.Experience.Protocol
         public override void Open()
         {
             base.Open();
-            (m_List as ProtocolList).SortByName(ProtocolList.Sorting.Descending);
+            m_ProtocolList.SortByName(ProtocolList.Sorting.Descending);
         }
         #endregion
 
         #region Private Methods
         protected override void SetWindow()
         {
-            m_List = transform.Find("Content").Find("Protocols").Find("List").Find("Display").GetComponent<ProtocolList>();
-            (m_List as ProtocolList).OnAction.AddListener((item, i) => OpenModifier(item, true));
+            m_List = m_ProtocolList;
+            m_ProtocolList.OnAction.AddListener((item, i) => OpenModifier(item, true));
+            m_List.OnSelectionChanged.AddListener((g, b) => m_ProtocolsCounter.text = m_List.ObjectsSelected.Count().ToString());
             AddItem(ApplicationState.ProjectLoaded.Protocols.ToArray());
-
-            m_protocolsCounter = transform.Find("Content").Find("Buttons").Find("ItemSelected").Find("Counter").GetComponent<Text>();
-            m_List.OnSelectionChanged.AddListener((g, b) => m_protocolsCounter.text = m_List.ObjectsSelected.Count().ToString());
         }
-		#endregion
-	}
+        #endregion
+    }
 }

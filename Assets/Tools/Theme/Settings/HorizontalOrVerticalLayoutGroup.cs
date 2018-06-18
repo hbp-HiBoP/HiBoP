@@ -19,13 +19,16 @@ namespace NewTheme
         public override void Set(GameObject gameObject)
         {
             UnityEngine.UI.HorizontalOrVerticalLayoutGroup horizontalOrVerticalLayoutGroup = gameObject.GetComponent<UnityEngine.UI.HorizontalOrVerticalLayoutGroup>();
-            horizontalOrVerticalLayoutGroup.padding = Padding;
-            horizontalOrVerticalLayoutGroup.spacing = Spacing;
-            horizontalOrVerticalLayoutGroup.childAlignment = ChildAlignment;
-            horizontalOrVerticalLayoutGroup.childControlWidth = ChildControlWidth;
-            horizontalOrVerticalLayoutGroup.childControlHeight = ChildControlHeight;
-            horizontalOrVerticalLayoutGroup.childForceExpandWidth = ChildForceExpandWidth;
-            horizontalOrVerticalLayoutGroup.childForceExpandHeight = ChildForceExpandHeight;
+            if(horizontalOrVerticalLayoutGroup)
+            {
+                horizontalOrVerticalLayoutGroup.padding = Padding;
+                horizontalOrVerticalLayoutGroup.spacing = Spacing;
+                horizontalOrVerticalLayoutGroup.childAlignment = ChildAlignment;
+                horizontalOrVerticalLayoutGroup.childControlWidth = ChildControlWidth;
+                horizontalOrVerticalLayoutGroup.childControlHeight = ChildControlHeight;
+                horizontalOrVerticalLayoutGroup.childForceExpandWidth = ChildForceExpandWidth;
+                horizontalOrVerticalLayoutGroup.childForceExpandHeight = ChildForceExpandHeight;
+            }
         }
         #endregion
     }

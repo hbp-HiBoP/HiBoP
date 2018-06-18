@@ -42,10 +42,10 @@ public class LoadingCircle : MonoBehaviour
     bool loading;
     Sprite[] m_Sprites;
 
-    [SerializeField]
-    Text m_LoadingEffectText;
-    [SerializeField]
-    Text m_InformationText;
+    [SerializeField] Image m_IconProgress;
+    [SerializeField] Image m_FillProgress;
+    [SerializeField] Text m_LoadingEffectText;
+    [SerializeField] Text m_InformationText;
     #endregion
 
     #region Public Methods
@@ -144,8 +144,8 @@ public class LoadingCircle : MonoBehaviour
         if(m_Progress != m_LastProgress)
         {
             int percentage = Mathf.Min(Mathf.FloorToInt(m_Progress * 100.0f),100);
-            transform.GetChild(1).GetComponent<Image>().fillAmount = m_Progress;
-            transform.GetChild(2).GetComponent<Image>().sprite = m_Sprites[percentage];
+            m_FillProgress.fillAmount = m_Progress;
+            m_IconProgress.sprite = m_Sprites[percentage];
             m_LastProgress = m_Progress;
         }
         if (m_Text != m_LastText)

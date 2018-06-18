@@ -15,10 +15,10 @@
    id="svg3853"
    version="1.1"
    inkscape:version="0.91 r13725"
-   inkscape:export-filename="D:\UnityProjects\HBP\Assets\Tools\LoadingCircle\Sprites\BackgroundCircle2.png"
+   inkscape:export-filename="D:\UnityProjects\HBP\Assets\Tools\LoadingCircle\Sprites\Circle Mask.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90"
-   sodipodi:docname="BackGroundCircle2.svg">
+   sodipodi:docname="Circle Mask.svg">
   <defs
      id="defs3855" />
   <sodipodi:namedview
@@ -28,9 +28,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4142136"
-     inkscape:cx="142.07677"
-     inkscape:cy="260.27409"
+     inkscape:zoom="1"
+     inkscape:cx="438.82343"
+     inkscape:cy="129.18023"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -48,7 +48,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -58,9 +58,12 @@
      id="layer1"
      transform="translate(0,-540.36219)">
     <path
-       style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:#646464;stroke-width:0.99901962;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 256 1.5 A 254.50049 254.50049 0 0 0 1.5 256 A 254.50049 254.50049 0 0 0 256 510.5 A 254.50049 254.50049 0 0 0 510.5 256 A 254.50049 254.50049 0 0 0 256 1.5 z M 256 26.511719 A 229.489 229.48898 0 0 1 485.48828 256 A 229.489 229.48898 0 0 1 256 485.48828 A 229.489 229.48898 0 0 1 26.511719 256 A 229.489 229.48898 0 0 1 256 26.511719 z M 256 66.421875 A 189.57787 189.57785 0 0 0 66.421875 256 A 189.57787 189.57785 0 0 0 256 445.57812 A 189.57787 189.57785 0 0 0 445.57812 256 A 189.57787 189.57785 0 0 0 256 66.421875 z "
-       transform="translate(0,540.36219)"
-       id="path3787" />
+       style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1.00293922;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 256,541.36219 C 114.61522,541.36246 1.0002706,654.97745 1,796.36223 1.0002872,937.747 114.61523,1051.3619 256,1051.3622 397.38477,1051.3619 510.99971,937.747 511,796.36223 510.99973,654.97745 397.38478,541.36246 256,541.36219 Z m 0,29 c 127.48974,4e-4 225.99961,98.51032 226,226.00004 -3.9e-4,127.48972 -98.51026,225.99957 -226,225.99997 -127.48973,-4e-4 -225.999613,-98.51025 -226,-225.99997 3.87e-4,-127.48972 98.51027,-225.99964 226,-226.00004 z m 0,40 c -105.31827,-1.4e-4 -186.000149,80.68178 -186,186.00004 -1.49e-4,105.31826 80.68173,186.0001 186,185.99996 105.31827,1.4e-4 186.00015,-80.6817 186,-185.99996 1.5e-4,-105.31826 -80.68173,-186.00018 -186,-186.00004 z"
+       id="path3787"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="sssssssssssssss"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
   </g>
 </svg>

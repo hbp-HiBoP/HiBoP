@@ -11,7 +11,7 @@ namespace HBP.UI
         #region Properties
         [SerializeField] protected GameObject m_ModifierPrefab;
         protected System.Collections.Generic.List<ItemModifier<T>> m_Modifiers = new System.Collections.Generic.List<ItemModifier<T>>();
-        protected SelectableList<T> m_List;
+        [SerializeField] protected SelectableList<T> m_List;
         private System.Collections.Generic.List<T> m_Items = new System.Collections.Generic.List<T>();
         protected ReadOnlyCollection<T> Items
         {

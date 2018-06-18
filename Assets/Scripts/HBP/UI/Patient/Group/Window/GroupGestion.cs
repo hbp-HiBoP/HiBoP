@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using HBP.Data;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Anatomy
@@ -7,7 +8,8 @@ namespace HBP.UI.Anatomy
     public class GroupGestion : ItemGestion<Group>
     {
         #region Properties
-        Text m_groupCounter;
+        [SerializeField] Text m_GroupCounter;
+        [SerializeField] GroupList m_GroupList;
         #endregion
 
         #region Public Methods
@@ -19,24 +21,22 @@ namespace HBP.UI.Anatomy
         public override void Remove()
         {
             base.Remove();
-            m_groupCounter.text = m_List.ObjectsSelected.Count().ToString();
+            m_GroupCounter.text = m_GroupList.ObjectsSelected.Count().ToString();
         }
         public override void Open()
         {
             base.Open();
-            (m_List as GroupList).SortByName(GroupList.Sorting.Descending);
+            m_GroupList.SortByName(GroupList.Sorting.Descending);
         }
         #endregion
 
         #region Protected Methods
         protected override void SetWindow()
         {
-            m_List = transform.Find("Content").Find("Groups").Find("List").Find("Display").GetComponent<GroupList>();
-            (m_List as GroupList).OnAction.AddListener((item,i) => OpenModifier(item,true));
+            m_List = m_GroupList;
+            m_GroupList.OnAction.AddListener((item,i) => OpenModifier(item,true));
             AddItem(ApplicationState.ProjectLoaded.Groups.ToArray());
-
-            m_groupCounter = transform.Find("Content").Find("Buttons").Find("ItemSelected").Find("Counter").GetComponent<Text>();
-            m_List.OnSelectionChanged.AddListener((g,b) => m_groupCounter.text = m_List.ObjectsSelected.Count().ToString());
+            m_List.OnSelectionChanged.AddListener((g,b) => m_GroupCounter.text = m_List.ObjectsSelected.Count().ToString());
         }
         #endregion
     }

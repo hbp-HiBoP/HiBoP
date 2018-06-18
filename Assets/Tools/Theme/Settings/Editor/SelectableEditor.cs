@@ -14,7 +14,7 @@ namespace NewTheme
             {
                 case UnityEngine.UI.Selectable.Transition.ColorTint:
                     SerializedProperty colorBlockTransitionProperty = serializedObject.FindProperty("Colors");
-                    EditorGUILayout.PropertyField(colorBlockTransitionProperty);
+                    EditorGUILayout.PropertyField(colorBlockTransitionProperty,true);
                     break;
                 case UnityEngine.UI.Selectable.Transition.SpriteSwap:
                     SerializedProperty spriteStateProerty = serializedObject.FindProperty("SpriteState");

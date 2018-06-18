@@ -2,14 +2,17 @@
 using UnityEngine.UI;
 using Tools.Unity.Lists;
 using HBP.Data.Anatomy;
+using NewTheme.Components;
 
 namespace HBP.UI.Anatomy
 {
     public class MRIItem : ActionnableItem<MRI>
     {
         #region Properties
-        [SerializeField] Text m_NameInputField;
-        [SerializeField] Image m_MRIIcon;
+        [SerializeField] Text m_NameText;
+        [SerializeField] ThemeElement m_MRI;
+
+        [SerializeField] State m_ErrorState;
 
         public override MRI Object
         {
@@ -20,10 +23,9 @@ namespace HBP.UI.Anatomy
             set
             {
                 base.Object = value;
-                m_NameInputField.text = value.Name;
-                Color normalColor = Color.white;
-                Color notInteractableColor = ApplicationState.UserPreferences.Theme.General.NotInteractable;
-                m_MRIIcon.color = value.HasMRI ? normalColor : notInteractableColor;
+                m_NameText.text = value.Name;
+                if (Object.HasMRI) m_MRI.Set();
+                else m_MRI.Set(m_ErrorState);
             }
         }
         #endregion

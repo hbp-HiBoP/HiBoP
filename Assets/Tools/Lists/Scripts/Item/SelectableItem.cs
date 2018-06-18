@@ -29,12 +29,12 @@ namespace Tools.Unity.Lists
         #region Public Methods
         public void Select(bool selected, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
-            m_isLock = true;
+            //m_isLock = true;
             Toggle.ToggleTransition mode = m_Toggle.toggleTransition;
             m_Toggle.toggleTransition = transition;
             m_Toggle.isOn = selected;
             m_Toggle.toggleTransition = mode;
-            m_isLock = false;
+            //m_isLock = false;
         }
         public void ChangeSelectionState()
         {

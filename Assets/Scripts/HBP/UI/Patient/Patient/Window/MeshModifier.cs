@@ -2,20 +2,20 @@
 using HBP.Data.Anatomy;
 using System;
 using Tools.Unity;
+using UnityEngine;
 
 namespace HBP.UI.Anatomy
 {
-    public class MeshModifier : ItemModifier<Mesh>
+    public class MeshModifier : ItemModifier<Data.Anatomy.Mesh>
 {
         #region Properties
-        // General
         enum Type { Single, LeftRight}
-        InputField m_NameInputField;
-        Dropdown m_TypeDropdown;
-        SingleMeshGestion m_SingleMeshGestion;
-        LeftRightMeshGestion m_LeftRightMeshGestion;
-        FileSelector m_TransformationFileSelector;
-        Button m_OKButton;
+        [SerializeField] InputField m_NameInputField;
+        [SerializeField] Dropdown m_TypeDropdown;
+        [SerializeField] SingleMeshGestion m_SingleMeshGestion;
+        [SerializeField] LeftRightMeshGestion m_LeftRightMeshGestion;
+        [SerializeField] FileSelector m_TransformationFileSelector;
+        [SerializeField] Button m_OKButton;
         #endregion
 
         #region Public Methods
@@ -38,7 +38,7 @@ namespace HBP.UI.Anatomy
         #endregion
 
         #region Private Methods
-        protected override void SetFields(Mesh objectToDisplay)
+        protected override void SetFields(Data.Anatomy.Mesh objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_TypeDropdown.value = objectToDisplay is LeftRightMesh ? 1 : 0;
@@ -56,13 +56,9 @@ namespace HBP.UI.Anatomy
         }
         protected override void SetWindow()
         {
-            // Name
-            m_NameInputField = transform.Find("Content").Find("General").Find("Name").Find("InputField").GetComponent<InputField>();
             m_NameInputField.onValueChanged.RemoveAllListeners();
             m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
 
-            // Type
-            m_TypeDropdown = transform.Find("Content").Find("General").Find("Type").Find("Dropdown").GetComponent<Dropdown>();
             string[] labels = Enum.GetNames(typeof(Type));
             m_TypeDropdown.ClearOptions();
             foreach (string label in labels)
@@ -72,15 +68,8 @@ namespace HBP.UI.Anatomy
             m_TypeDropdown.RefreshShownValue();
             m_TypeDropdown.onValueChanged.AddListener(ChangeMeshType);
 
-            // Gestion
-            m_SingleMeshGestion = transform.Find("Content").Find("Files").Find("SingleMesh").GetComponent<SingleMeshGestion>();
-            m_LeftRightMeshGestion = transform.Find("Content").Find("Files").Find("LeftRightMesh").GetComponent<LeftRightMeshGestion>();
-
-            m_TransformationFileSelector = transform.Find("Content").Find("Files").Find("Transformation").Find("FileSelector").GetComponent<FileSelector>();
             m_TransformationFileSelector.onValueChanged.RemoveAllListeners();
             m_TransformationFileSelector.onValueChanged.AddListener((path) => ItemTemp.Transformation = path);
-
-            m_OKButton = transform.Find("Content").Find("Buttons").Find("OK").GetComponent<Button>();
         }
         void ChangeMeshType(int i)
         {

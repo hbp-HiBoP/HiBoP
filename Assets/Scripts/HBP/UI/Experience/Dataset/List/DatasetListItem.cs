@@ -2,8 +2,8 @@
 using UnityEngine.UI;
 using d = HBP.Data.Experience.Dataset;
 using System.Linq;
-using System.Collections.Generic;
 using Tools.Unity.Lists;
+using NewTheme.Components;
 
 namespace HBP.UI.Experience.Dataset
 {
@@ -13,8 +13,9 @@ namespace HBP.UI.Experience.Dataset
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_ProtocolText;
         [SerializeField] Text m_DataInfosText;
-        [SerializeField] Button m_DataInfosButton;
-        [SerializeField] DatasetResumeList m_DatasetResumeList;
+        [SerializeField] DatasetResumeList m_DatasetList;
+
+        [SerializeField] State m_ErrorState;
 
         public override d.Dataset Object
         {
@@ -29,47 +30,39 @@ namespace HBP.UI.Experience.Dataset
                 m_NameText.text = value.Name;
                 m_ProtocolText.text = value.Protocol.Name;
 
-                int nbData = value.Data.Length;
+                int nbData = value.Data.Count((d) => d.isOk);
                 m_DataInfosText.text = nbData.ToString();
-                if(nbData == 0)
-                {
-                    m_DataInfosText.color = ApplicationState.UserPreferences.Theme.General.Error;
-                    m_DataInfosButton.interactable = false;
-                }
-                else
-                {
-                    m_DataInfosText.color = ApplicationState.UserPreferences.Theme.Window.Content.Text.Color;
-                    m_DataInfosButton.interactable = true;
-                }
-                SetResumes();
+                if (nbData == 0) m_DataInfosText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                else m_DataInfosText.GetComponent<ThemeElement>().Set();
+                SetData();
             }
         }
         #endregion
 
         #region Public Methods
-        public void SetResumes()
+        public void SetData()
         {
-            m_DatasetResumeList.Initialize();
-            System.Collections.Generic.List<d.Dataset.Resume> resumes = new System.Collections.Generic.List<d.Dataset.Resume>();
-            string[] names = (from data in m_Object.Data select data.Name).Distinct().ToArray();
-            foreach (var name in names)
-            {
-                d.Dataset.Resume resume = new d.Dataset.Resume();
-                resume.Label = name;
-                d.DataInfo[] data = m_Object.Data.Where((d) => d.Name == name).ToArray();
-                resume.Number = data.Length;
-                if(data.All((d) => d.isOk))
-                {
-                    resume.State = d.Dataset.Resume.StateEnum.OK;
-                }
-                else
-                {
-                    resume.State = data.Any((d) => d.isOk) ? d.Dataset.Resume.StateEnum.Warning : d.Dataset.Resume.StateEnum.Error;
-                }
-                resumes.Add(resume);
-            }
-            resumes.OrderBy((r) => r.Label);
-            m_DatasetResumeList.Objects = resumes.OrderBy((r) => r.Label).ToArray();
+            //m_DatasetList.Initialize();
+            //System.Collections.Generic.List<d.Dataset.Resume> resumes = new System.Collections.Generic.List<d.Dataset.Resume>();
+            //string[] names = (from data in m_Object.Data select data.Name).Distinct().ToArray();
+            //foreach (var name in names)
+            //{
+            //    d.Dataset.Resume resume = new d.Dataset.Resume();
+            //    resume.Label = name;
+            //    d.DataInfo[] data = m_Object.Data.Where((d) => d.Name == name).ToArray();
+            //    resume.Number = data.Length;
+            //    if(data.All((d) => d.isOk))
+            //    {
+            //        resume.State = d.Dataset.Resume.StateEnum.OK;
+            //    }
+            //    else
+            //    {
+            //        resume.State = data.Any((d) => d.isOk) ? d.Dataset.Resume.StateEnum.Warning : d.Dataset.Resume.StateEnum.Error;
+            //    }
+            //    resumes.Add(resume);
+            //}
+            //resumes.OrderBy((r) => r.Label);
+            //m_DatasetList.Objects = resumes.OrderBy((r) => r.Label).ToArray();
         }
         #endregion
 

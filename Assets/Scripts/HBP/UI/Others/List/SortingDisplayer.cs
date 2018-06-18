@@ -1,6 +1,5 @@
 ﻿using NewTheme.Components;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class SortingDisplayer : MonoBehaviour
 {
@@ -28,6 +27,10 @@ public class SortingDisplayer : MonoBehaviour
                     m_DescendingThemeElement.Set();
                     break;
                 case SortingType.Descending:
+                    if (m_AscendingThemeElement == null)
+                    {
+                        Debug.Log(transform.FullName());
+                    }
                     m_AscendingThemeElement.Set();
                     m_DescendingThemeElement.Set(Activated);
                     break;

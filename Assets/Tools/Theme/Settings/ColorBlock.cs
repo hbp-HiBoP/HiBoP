@@ -2,26 +2,37 @@
 
 namespace NewTheme
 {
-    [System.Serializable]
-    public class ColorBlock
+    [CreateAssetMenu(menuName = "Theme/Settings/Color Block")]
+    public class ColorBlock : Settings
     {
-        public Color NormalColor;
-        public Color HighlightedColor;
-        public Color PressedColor;
-        public Color DisabledColor;
+        public UnityEngine.Color NormalColor;
+        public UnityEngine.Color HighlightedColor;
+        public UnityEngine.Color PressedColor;
+        public UnityEngine.Color DisabledColor;
         [Range(1, 5)] public float ColorMultiplier;
         public float FadeDuration;
-
-        public UnityEngine.UI.ColorBlock ToUnityColorBlock()
+        public UnityEngine.UI.ColorBlock Colors
         {
-            UnityEngine.UI.ColorBlock result = new UnityEngine.UI.ColorBlock();
-            result.normalColor = NormalColor.Value;
-            result.highlightedColor = HighlightedColor.Value;
-            result.pressedColor = PressedColor.Value;
-            result.disabledColor = DisabledColor.Value;
-            result.colorMultiplier = ColorMultiplier;
-            result.fadeDuration = FadeDuration;
-            return result;
+            get
+            {
+                UnityEngine.UI.ColorBlock result = new UnityEngine.UI.ColorBlock();
+                result.normalColor = NormalColor;
+                result.highlightedColor = HighlightedColor;
+                result.pressedColor = PressedColor;
+                result.disabledColor = DisabledColor;
+                result.colorMultiplier = ColorMultiplier;
+                result.fadeDuration = FadeDuration;
+                return result;
+            }
+        }
+
+        public override void Set(GameObject gameObject)
+        {
+            UnityEngine.UI.Selectable selectable = gameObject.GetComponent<UnityEngine.UI.Selectable>();
+            if (selectable)
+            {
+                selectable.colors = Colors;
+            }
         }
     }
 }

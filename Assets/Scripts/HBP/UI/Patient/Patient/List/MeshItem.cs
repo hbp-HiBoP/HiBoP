@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using Tools.Unity.Lists;
+using NewTheme.Components;
 
 namespace HBP.UI.Anatomy
 {
@@ -8,9 +9,12 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] Text m_NameInputField;
-        [SerializeField] Image m_Mesh;
-        [SerializeField] Image m_MarsAtlas;
-        [SerializeField] Image m_Transformation;
+        [SerializeField] ThemeElement m_MeshThemeElement;
+        [SerializeField] ThemeElement m_MarsAtlasThemeElement;
+        [SerializeField] ThemeElement m_TransformationThemeElement;
+
+        [SerializeField] State m_ErrorState;
+
         public override Data.Anatomy.Mesh Object
         {
             get
@@ -21,12 +25,12 @@ namespace HBP.UI.Anatomy
             {
                 base.Object = value;
                 m_NameInputField.text = value.Name;
-                //Color normalColor = ApplicationState.GeneralSettings.Theme.Window.Content.Item.Text.Color;
-                Color normalColor = Color.white;
-                Color notInteractableColor = ApplicationState.UserPreferences.Theme.General.NotInteractable;
-                m_Mesh.color = value.HasMesh ? normalColor : notInteractableColor;
-                m_MarsAtlas.color = value.HasMarsAtlas ? normalColor : notInteractableColor;
-                m_Transformation.color = value.HasTransformation ? normalColor : notInteractableColor;
+                if (value.HasMesh) m_MeshThemeElement.Set();
+                else m_MeshThemeElement.Set(m_ErrorState);
+                if (value.HasMarsAtlas) m_MeshThemeElement.Set();
+                else m_MeshThemeElement.Set(m_ErrorState);
+                if (value.HasTransformation) m_TransformationThemeElement.Set();
+                else m_TransformationThemeElement.Set(m_ErrorState);
             }
         }
         #endregion

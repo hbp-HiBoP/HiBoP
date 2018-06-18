@@ -42,7 +42,7 @@
       "ShowWholeProtocol": false,
       "TrialsSynchronization": false,
       "SmoothLine": false,
-      "NumberOfIntermediateValues": 1,
+      "NumberOfIntermediateValues": 5,
       "BlocFormat": 0,
       "LineHeight": 0,
       "LineRatio": 0.0,

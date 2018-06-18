@@ -15,8 +15,8 @@
    id="svg4455"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="circle4.svg"
-   inkscape:export-filename="C:\Users\Adrien\Desktop\circle4.png"
+   sodipodi:docname="Circle.svg"
+   inkscape:export-filename="D:\UnityProjects\HBP\Assets\Tools\LoadingCircle\Sprites\Circle.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -28,17 +28,17 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.5"
-     inkscape:cx="256"
-     inkscape:cy="256"
+     inkscape:zoom="1.4142136"
+     inkscape:cx="203.34728"
+     inkscape:cy="286.45523"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      units="px"
      inkscape:window-width="1920"
-     inkscape:window-height="1017"
-     inkscape:window-x="3832"
-     inkscape:window-y="118"
+     inkscape:window-height="1137"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata4460">
@@ -57,13 +57,13 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-540.36216)">
-    <circle
-       style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:#7d7d7d;stroke-width:0.71635181;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+    <path
+       style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.71635181;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 511,796.36218 c 10e-6,141.3849 -113.6151,255.00002 -255,255.00002 -141.3849,0 -255.00001105,-113.61512 -255,-255.00002 0,-141.3849 113.6151,-255.00002 255,-255.00002 141.3849,0 255,113.61512 255,255.00002 z"
        id="path5003"
-       cx="256"
-       cy="796.36218"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"
-       r="252.64183" />
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="sssss" />
   </g>
 </svg>
