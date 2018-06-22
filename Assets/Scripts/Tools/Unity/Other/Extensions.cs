@@ -3,6 +3,7 @@ using System.IO;
 using UnityEngine.UI;
 using System.Linq;
 using System.Collections.Generic;
+using Tools.CSharp;
 
 namespace Tools.Unity
 {
@@ -66,6 +67,55 @@ namespace Tools.Unity
         public static int GCD(int a, int b)
         {
             return b == 0 ? a : GCD(b, a % b);
+        }
+    }
+
+    public static class PathExtension
+    {
+        public const string PATIENT_DATABASE_TOKEN = "[PATIENT_DATABASE]";
+        public const string LOCALIZER_DATABASE_TOKEN = "[LOCALIZER_DATABASE]";
+        public const string PROJECT_TOKEN = ".";
+
+        public static string ConvertToFullPath(this string path)
+        {
+            if (path.StartsWith(PROJECT_TOKEN))
+            {
+                string localPath = path.Remove(0, PROJECT_TOKEN.Length);
+                return (ApplicationState.ProjectLoadedPath + localPath).StandardizeToPath();
+            }
+            else if (path.StartsWith(PATIENT_DATABASE_TOKEN))
+            {
+                string localPath = path.Remove(0, PATIENT_DATABASE_TOKEN.Length);
+                return (ApplicationState.ProjectLoaded.Settings.PatientDatabase + localPath).StandardizeToPath();
+            }
+            else if (path.StartsWith(LOCALIZER_DATABASE_TOKEN))
+            {
+                string localPath = path.Remove(0, LOCALIZER_DATABASE_TOKEN.Length);
+                return (ApplicationState.ProjectLoaded.Settings.LocalizerDatabase + localPath).StandardizeToPath();
+            }
+            else
+            {
+                return path;
+            }
+        }
+        public static string ConvertToShortPath(this string path)
+        {
+            if (path.StartsWith(ApplicationState.ProjectLoadedPath))
+            {
+                return PROJECT_TOKEN + path.Remove(0, ApplicationState.ProjectLoadedPath.Length);
+            }
+            else if (path.StartsWith(ApplicationState.ProjectLoaded.Settings.PatientDatabase))
+            {
+                return PATIENT_DATABASE_TOKEN + path.Remove(0, ApplicationState.ProjectLoaded.Settings.PatientDatabase.Length);
+            }
+            else if (path.StartsWith(ApplicationState.ProjectLoaded.Settings.LocalizerDatabase))
+            {
+                return LOCALIZER_DATABASE_TOKEN + path.Remove(0, ApplicationState.ProjectLoaded.Settings.LocalizerDatabase.Length);
+            }
+            else
+            {
+                return path;
+            }
         }
     }
 }

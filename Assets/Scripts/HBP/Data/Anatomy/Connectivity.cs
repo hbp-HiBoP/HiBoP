@@ -1,6 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using System.IO;
 using System;
+using Tools.Unity;
 
 namespace HBP.Data.Anatomy
 {
@@ -10,7 +11,18 @@ namespace HBP.Data.Anatomy
         #region Properties
         const string EXTENSION = ".txt";
         [DataMember] public string Name { get; set; }
-        [DataMember] public string File { get; set; }
+        [DataMember] string m_File;
+        public string File
+        {
+            get
+            {
+                return m_File.ConvertToFullPath();
+            }
+            set
+            {
+                m_File = value.ConvertToShortPath();
+            }
+        }
         protected bool m_WasUsable;
         public bool WasUsable
         {
@@ -74,6 +86,7 @@ namespace HBP.Data.Anatomy
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
+            File = File;
             RecalculateUsable();
         }
         #endregion

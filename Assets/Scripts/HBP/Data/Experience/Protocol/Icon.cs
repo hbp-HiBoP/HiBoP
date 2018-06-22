@@ -39,26 +39,11 @@ namespace HBP.Data.Experience.Protocol
         {
             get
             {
-                if (m_IllustrationPath.StartsWith("."))
-                {
-                    string localPath = m_IllustrationPath.Remove(0, 1);
-                    return ApplicationState.ProjectLoadedPath + localPath;
-                }
-                else
-                {
-                    return m_IllustrationPath;
-                }
+                return m_IllustrationPath.ConvertToFullPath();
             }
             set
             {
-                if (m_IllustrationPath.StartsWith(ApplicationState.ProjectLoadedPath))
-                {
-                    m_IllustrationPath = "." + value.Remove(0, ApplicationState.ProjectLoadedPath.Length);
-                }
-                else
-                {
-                    m_IllustrationPath = value;
-                }
+                m_IllustrationPath = value.ConvertToShortPath();
             }
         }
 
@@ -120,6 +105,14 @@ namespace HBP.Data.Experience.Protocol
             Name = icon.Name;
             IllustrationPath = icon.IllustrationPath;
             Window = icon.Window;
+        }
+        #endregion
+
+        #region Serialization
+        [OnDeserialized()]
+        public void OnDeserialized(StreamingContext context)
+        {
+            IllustrationPath = IllustrationPath;
         }
         #endregion
     }

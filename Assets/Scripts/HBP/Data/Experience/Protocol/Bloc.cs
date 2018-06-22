@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using Tools.CSharp;
+using Tools.Unity;
 
 namespace HBP.Data.Experience.Protocol
 {
@@ -45,26 +46,11 @@ namespace HBP.Data.Experience.Protocol
         {
             get
             {
-                if (m_IllustrationPath.StartsWith("."))
-                {
-                    string localPath = m_IllustrationPath.Remove(0, 1);
-                    return ApplicationState.ProjectLoadedPath + localPath;
-                }
-                else
-                {
-                    return m_IllustrationPath;
-                }
+                return m_IllustrationPath.ConvertToFullPath();
             }
             set
             {
-                if (m_IllustrationPath.StartsWith(ApplicationState.ProjectLoadedPath))
-                {
-                    m_IllustrationPath = "." + value.Remove(0, ApplicationState.ProjectLoadedPath.Length);
-                }
-                else
-                {
-                    m_IllustrationPath = value;
-                }
+                m_IllustrationPath = value.ConvertToShortPath();
             }
         }
         /// <summary>
@@ -218,6 +204,14 @@ namespace HBP.Data.Experience.Protocol
         public static bool operator !=(Bloc a, Bloc b)
         {
             return !(a == b);
+        }
+        #endregion
+
+        #region Serialization
+        [OnDeserialized()]
+        public void OnDeserialized(StreamingContext context)
+        {
+            IllustrationPath = IllustrationPath;
         }
         #endregion
     }
