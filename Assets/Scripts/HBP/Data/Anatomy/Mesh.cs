@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using Tools.Unity;
 
 namespace HBP.Data.Anatomy
 {
@@ -39,7 +40,18 @@ namespace HBP.Data.Anatomy
                 return !string.IsNullOrEmpty(Transformation) && File.Exists(Transformation) && (new FileInfo(Transformation).Extension == Anatomy.Transformation.EXTENSION || new FileInfo(Transformation).Extension == ".txt");
             }
         }
-        [DataMember(Order = 5)] public string Transformation { get; set; }
+        [DataMember(Order = 5, Name = "Transformation")] string m_Transformation;
+        public string Transformation
+        {
+            get
+            {
+                return m_Transformation.ConvertToFullPath();
+            }
+            set
+            {
+                m_Transformation = value.ConvertToShortPath();
+            }
+        }
         #endregion
 
         #region Constructor
@@ -201,6 +213,7 @@ namespace HBP.Data.Anatomy
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
+            Transformation = Transformation;
             RecalculateUsable();
         }
         #endregion

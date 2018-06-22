@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 using UnityEngine.Events;
+using Tools.Unity;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -64,8 +65,8 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public string EEG
         {
-            get { return m_EEG; }
-            set { m_EEG = value; m_EEGErrors = GetEEGErrors(); }
+            get { return m_EEG.ConvertToFullPath(); }
+            set { m_EEG = value.ConvertToShortPath(); m_EEGErrors = GetEEGErrors(); }
         }
 
         [DataMember(Name = "POS")] string m_POS;
@@ -74,8 +75,8 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public string POS
         {
-            get { return m_POS; }
-            set { m_POS = value; m_POSErrors = new ErrorType[0]; OnPOSChanged.Invoke(); }
+            get { return m_POS.ConvertToFullPath(); }
+            set { m_POS = value.ConvertToShortPath(); m_POSErrors = new ErrorType[0]; OnPOSChanged.Invoke(); }
         }
         public UnityEvent OnPOSChanged { get; set; }
         
@@ -351,6 +352,16 @@ namespace HBP.Data.Experience.Dataset
                     break;
             }
             return message;
+        }
+        #endregion
+
+        #region Serialization
+        [OnDeserialized()]
+        public void OnDeserialized(StreamingContext context)
+        {
+            // Maybe FIXME
+            EEG = EEG;
+            POS = POS;
         }
         #endregion
     }

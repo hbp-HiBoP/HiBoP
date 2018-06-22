@@ -38,7 +38,7 @@ namespace HBP.UI.Experience.Protocol
         public void Import()
         {
             string l_resultStandalone = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "prov" }, "Please select the protocols file to import");
-            StringExtension.StandardizeToPath(ref l_resultStandalone);
+            l_resultStandalone = l_resultStandalone.StandardizeToPath();
             if (l_resultStandalone != string.Empty)
             {
                 d.Protocol protocol = Tools.Unity.ClassLoaderSaver.LoadFromJson<d.Protocol>(l_resultStandalone);

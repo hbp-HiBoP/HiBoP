@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Linq;
+using Tools.Unity;
 
 namespace HBP.Data.Anatomy
 {
@@ -16,8 +17,30 @@ namespace HBP.Data.Anatomy
         public const string MARS_ATLAS_EXTENSION = ".csv";
         public enum Error { None, PathIsNullOrEmpty, FileNotFound, WrongExtension, CannotReadFile, WrongFormat, CannotReadAllSites };
         [DataMember] public string Name { get; set; }
-        [DataMember] public string File { get; set; }
-        [DataMember] public string MarsAtlas { get; set; }
+        [DataMember(Name = "File")] string m_File;
+        public string File
+        {
+            get
+            {
+                return m_File.ConvertToFullPath();
+            }
+            set
+            {
+                m_File = value.ConvertToShortPath();
+            }
+        }
+        [DataMember(Name = "MarsAtlas")] string m_MarsAtlas;
+        public string MarsAtlas
+        {
+            get
+            {
+                return m_MarsAtlas.ConvertToFullPath();
+            }
+            set
+            {
+                m_MarsAtlas = value.ConvertToShortPath();
+            }
+        }
         [IgnoreDataMember] public List<Site> Sites { get; set; }
         [IgnoreDataMember] public Brain Brain { get; set; }
         protected bool m_WasUsable;
@@ -167,6 +190,8 @@ namespace HBP.Data.Anatomy
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
+            File = File;
+            MarsAtlas = MarsAtlas;
             RecalculateUsable();
         }
         #endregion
