@@ -32,7 +32,7 @@ namespace Tools.Unity
             string l_result = HBP.Module3D.DLL.QtGUI.GetExistingFileName(Extension.Split(','), Message, path);
             if (l_result != string.Empty)
             {
-                StringExtension.StandardizeToPath(ref l_result);
+                l_result = l_result.StandardizeToPath();
                 GetComponent<InputField>().text = l_result;
             }
         }

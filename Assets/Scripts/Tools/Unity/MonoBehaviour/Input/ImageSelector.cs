@@ -51,7 +51,7 @@ namespace Tools.Unity
             string l_result = HBP.Module3D.DLL.QtGUI.GetExistingFileName( EXTENSIONS, Message, m_Path);
             if (l_result != string.Empty)
             {
-                StringExtension.StandardizeToPath(ref l_result);
+                l_result = l_result.StandardizeToPath();
                 Path = l_result;
             }
         }

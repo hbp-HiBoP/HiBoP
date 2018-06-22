@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Collections.Generic;
+using Tools.Unity;
 
 namespace HBP.Data.Anatomy
 {
@@ -12,7 +13,18 @@ namespace HBP.Data.Anatomy
         #region Properties
         public const string EXTENSION = ".nii";
         [DataMember] public string Name { get; set; }
-        [DataMember] public string File { get; set; }
+        [DataMember(Name = "File")] string m_File;
+        public string File
+        {
+            get
+            {
+                return m_File.ConvertToFullPath();
+            }
+            set
+            {
+                m_File = value.ConvertToShortPath();
+            }
+        }
         protected bool m_WasUsable;
         public bool WasUsable
         {
@@ -107,6 +119,7 @@ namespace HBP.Data.Anatomy
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
+            File = File;
             RecalculateUsable();
         }
         #endregion
