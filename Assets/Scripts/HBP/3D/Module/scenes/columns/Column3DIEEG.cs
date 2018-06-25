@@ -434,7 +434,7 @@ namespace HBP.Module3D
                 site.LoadConfiguration(false);
             }
 
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Save the current settings of this scene to the configuration of the linked visualization
@@ -476,7 +476,7 @@ namespace HBP.Module3D
                 site.ResetConfiguration(false);
             }
 
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Update the site mask of the dll with all the masks
@@ -646,23 +646,23 @@ namespace HBP.Module3D
                     }
                     else if (latenciesFile != null)
                     {
-                        if (SelectedSourceID == -1)
+                        if (SelectedSiteID == -1)
                         {
                             site.transform.localScale = Vector3.one;
                             siteType = latenciesFile.IsSiteASource(i) ? SiteType.Source : SiteType.NotASource;
                         }
                         else
                         {
-                            if (i == SelectedSourceID)
+                            if (i == SelectedSiteID)
                             {
                                 site.transform.localScale = Vector3.one;
                                 siteType = SiteType.Source;
                             }
-                            else if (latenciesFile.IsSiteResponsiveForSource(i, SelectedSourceID))
+                            else if (latenciesFile.IsSiteResponsiveForSource(i, SelectedSiteID))
                             {
-                                siteType = latenciesFile.PositiveHeight[SelectedSourceID][i] ? SiteType.NonePos : SiteType.NoneNeg;
-                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SelectedSourceID][i] - 0.25f;
-                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SelectedSourceID][i];
+                                siteType = latenciesFile.PositiveHeight[SelectedSiteID][i] ? SiteType.NonePos : SiteType.NoneNeg;
+                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SelectedSiteID][i] - 0.25f;
+                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SelectedSiteID][i];
                             }
                             else
                             {

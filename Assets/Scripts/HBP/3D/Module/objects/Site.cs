@@ -310,7 +310,23 @@ namespace HBP.Module3D
             }
         }
 
-        public bool IsSelected { get; set; }
+        private bool m_IsSelected;
+        public bool IsSelected
+        {
+            get
+            {
+                return m_IsSelected;
+            }
+            set
+            {
+                if (m_IsSelected != value)
+                {
+                    m_IsSelected = value;
+                    OnSelectSite.Invoke(value);
+                }
+            }
+        }
+        public GenericEvent<bool> OnSelectSite = new GenericEvent<bool>();
 
         /// <summary>
         /// Information about this site
@@ -394,7 +410,7 @@ namespace HBP.Module3D
             State.IsHighlighted = Configuration.IsHighlighted;
             State.IsMarked = Configuration.IsMarked;
             State.IsSuspicious = Configuration.IsSuspicious;
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
 
         public void SaveConfiguration()
@@ -413,7 +429,7 @@ namespace HBP.Module3D
             State.IsHighlighted = false;
             State.IsMarked = false;
             State.IsSuspicious = false;
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
     }

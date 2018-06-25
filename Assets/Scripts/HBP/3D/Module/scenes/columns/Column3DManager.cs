@@ -531,7 +531,7 @@ namespace HBP.Module3D
                 {
                     if (!c.IsSelected)
                     {
-                        c.SelectedSiteID = -1;
+                        c.UnselectSite();
                     }
                 }
             });
@@ -630,7 +630,7 @@ namespace HBP.Module3D
                 {
                     if (!c.IsSelected)
                     {
-                        c.SelectedSiteID = -1;
+                        c.UnselectSite();
                     }
                 }
             });
@@ -878,7 +878,7 @@ namespace HBP.Module3D
                         (column.SelectedSite.State.IsOutOfROI && !data.ShowAllSites && !data.DisplayCCEPMode) ||
                         (column.SelectedSite.State.IsMasked && !data.DisplayCCEPMode))
                     {
-                        column.SelectedSiteID = -1;
+                        column.UnselectSite();
                         if (column.IsSelected)
                         {
                             ApplicationState.Module3D.OnSelectSite.Invoke(null);

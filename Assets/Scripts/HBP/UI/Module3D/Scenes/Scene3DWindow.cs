@@ -14,10 +14,26 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         private Base3DScene m_Scene;
+        [SerializeField] private RectTransform m_RectTransform;
         public GameObject SceneUIPrefab;
         public GameObject CutUIPrefab;
         public GameObject GraphsUIPrefab;
         public GameObject SitesInformationsPrefab;
+        #endregion
+
+        #region Private Methods
+        private void Update()
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                Rect rect = m_RectTransform.ToScreenSpace();
+                Vector3 mousePosition = Input.mousePosition;
+                if (mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height)
+                {
+                    m_Scene.IsSelected = true;
+                }
+            }
+        }
         #endregion
 
         #region Public Methods

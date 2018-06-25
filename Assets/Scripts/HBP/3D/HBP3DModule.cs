@@ -191,7 +191,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when requesting an update in the UI
         /// </summary>
-        public UnityEvent OnRequestUpdateInUI = new UnityEvent();
+        public UnityEvent OnRequestUpdateInToolbar = new UnityEvent();
         /// <summary>
         /// Event called when reseting the IEEG of a scene
         /// </summary>

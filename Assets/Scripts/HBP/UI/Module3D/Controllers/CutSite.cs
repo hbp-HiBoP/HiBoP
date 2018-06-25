@@ -50,7 +50,7 @@ namespace HBP.UI.Module3D
         }
         public void OnPointerDown(PointerEventData eventData)
         {
-            m_Scene.ColumnManager.SelectedColumn.SelectedSiteID = m_Site.Information.GlobalID;
+            m_Site.IsSelected = true;
         }
         #endregion
     }

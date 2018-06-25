@@ -46,7 +46,7 @@ namespace HBP.UI.Module3D
         {
             m_Site.onClick.AddListener(() =>
             {
-                ApplicationState.Module3D.SelectedColumn.SelectedSiteID = Object.Information.GlobalID;
+                Object.IsSelected = true;
             });
 
             m_Excluded.onValueChanged.AddListener((isOn) =>

@@ -233,7 +233,7 @@ namespace HBP.Module3D
                 }
                 SceneInformation.AreSitesUpdated = false;
                 ResetIEEG();
-                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
         /// <summary>
@@ -732,7 +732,7 @@ namespace HBP.Module3D
                 ClickOnSiteCallback();
                 SceneInformation.AreSitesUpdated = false;
                 ApplicationState.Module3D.OnSelectSite.Invoke(site);
-                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
             m_ColumnManager.OnChangeSiteState.AddListener((site) =>
             {
@@ -741,7 +741,7 @@ namespace HBP.Module3D
             m_ColumnManager.OnChangeCCEPParameters.AddListener(() =>
             {
                 SceneInformation.AreSitesUpdated = false;
-                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
             m_ColumnManager.OnUpdateFMRIParameters.AddListener(() =>
             {
@@ -761,7 +761,7 @@ namespace HBP.Module3D
                 }
                 if (IsSelected)
                 {
-                    ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
                 }
             });
         }
@@ -1130,7 +1130,7 @@ namespace HBP.Module3D
             // reset selected plot
             for (int ii = 0; ii < m_ColumnManager.Columns.Count; ++ii)
             {
-                m_ColumnManager.Columns[ii].SelectedSiteID = -1;
+                m_ColumnManager.Columns[ii].UnselectSite();
             }
 
             ResetIEEG();
@@ -1431,7 +1431,7 @@ namespace HBP.Module3D
         {
             m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
             LoadConfiguration();
-            ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             SceneInformation.IsSceneInitialized = true;
             this.StartCoroutineAsync(c_LoadMissingAnatomy());
         }
@@ -1489,7 +1489,7 @@ namespace HBP.Module3D
 
             SceneInformation.AreSitesUpdated = false;
 
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Save the current settings of this scene to the configuration of the linked visualization
@@ -1584,7 +1584,7 @@ namespace HBP.Module3D
                 column.ResetConfiguration();
             }
 
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Save site states of selected column
@@ -2266,22 +2266,22 @@ namespace HBP.Module3D
                             {
                                 Latencies latencyFile = m_ColumnManager.SelectedImplantation.Latencies[columnIEEG.CurrentLatencyFile];
 
-                                if (columnIEEG.SelectedSourceID == -1) // no source selected
+                                if (columnIEEG.SelectedSiteID == -1) // no source selected
                                 {
                                     CCEPLatency = "...";
                                     CCEPAmplitude = "no source selected";
                                 }
-                                else if (columnIEEG.SelectedSourceID == siteID) // site is the source
+                                else if (columnIEEG.SelectedSiteID == siteID) // site is the source
                                 {
                                     CCEPLatency = "0";
                                     CCEPAmplitude = "source";
                                 }
                                 else
                                 {
-                                    if (latencyFile.IsSiteResponsiveForSource(siteID, columnIEEG.SelectedSourceID))
+                                    if (latencyFile.IsSiteResponsiveForSource(siteID, columnIEEG.SelectedSiteID))
                                     {
-                                        CCEPLatency = "" + latencyFile.LatenciesValues[columnIEEG.SelectedSourceID][siteID];
-                                        CCEPAmplitude = "" + latencyFile.LatenciesValues[columnIEEG.SelectedSourceID][siteID];
+                                        CCEPLatency = "" + latencyFile.LatenciesValues[columnIEEG.SelectedSiteID][siteID];
+                                        CCEPAmplitude = "" + latencyFile.LatenciesValues[columnIEEG.SelectedSiteID][siteID];
                                     }
                                     else
                                     {
@@ -2320,7 +2320,7 @@ namespace HBP.Module3D
             bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
             if (!isCollision)
             {
-                m_ColumnManager.SelectedColumn.SelectedSiteID = -1;
+                m_ColumnManager.SelectedColumn.UnselectSite();
                 ROI selectedROI = m_ColumnManager.SelectedColumn.SelectedROI;
                 if (selectedROI)
                 {
@@ -2337,8 +2337,7 @@ namespace HBP.Module3D
 
             if (siteHit)
             {
-                Site site = hit.collider.gameObject.GetComponent<Site>();
-                m_ColumnManager.SelectedColumn.SelectedSiteID = site.Information.GlobalID;
+                m_ColumnManager.SelectedColumn.Sites[hit.collider.gameObject.GetComponent<Site>().Information.GlobalID].IsSelected = true;
             }
             else
             {
@@ -2381,7 +2380,7 @@ namespace HBP.Module3D
 
             if (!siteHit)
             {
-                m_ColumnManager.SelectedColumn.SelectedSiteID = -1;
+                m_ColumnManager.SelectedColumn.UnselectSite();
             }
         }
         #endregion

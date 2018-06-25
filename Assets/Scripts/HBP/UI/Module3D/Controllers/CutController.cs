@@ -102,7 +102,6 @@ namespace HBP.UI.Module3D
             });
             controller.OnOpenControls.AddListener(() =>
             {
-                m_Scene.IsSelected = true;
                 foreach (CutParametersController control in m_CutParametersControllers)
                 {
                     if (control != controller)
@@ -133,7 +132,6 @@ namespace HBP.UI.Module3D
             m_Scene = scene;
             m_AddCutButton.GetComponent<Button>().onClick.AddListener(() =>
             {
-                m_Scene.IsSelected = true;
                 m_Scene.AddCutPlane();
                 m_CutParametersControllers.Last().OpenControls();
             });
