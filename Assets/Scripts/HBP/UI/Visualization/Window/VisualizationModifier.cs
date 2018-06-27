@@ -18,12 +18,12 @@ namespace HBP.UI.Visualization
         List<PatientModifier> m_PatientModifiers = new List<PatientModifier>();
         List<GroupSelection> m_GroupSelectionModifiers = new List<GroupSelection>();
 
-        InputField m_NameInputField;
-        TabGestion m_TabGestion;
-        ColumnModifier m_ColumnModifier;
-        PatientList m_VisualizationPatientsList;
-        PatientList m_ProjectPatientsList;
-        Button m_AddPatientButton, m_RemovePatientButton, m_AddGroupButton, m_SaveButton;
+        [SerializeField] InputField m_NameInputField;
+        [SerializeField] TabGestion m_TabGestion;
+        [SerializeField] ColumnModifier m_ColumnModifier;
+        [SerializeField] PatientList m_VisualizationPatientsList;
+        [SerializeField] PatientList m_ProjectPatientsList;
+        [SerializeField] Button m_AddPatientButton, m_RemovePatientButton, m_AddGroupButton, m_RemoveGroupButton, m_SaveButton;
         #endregion
 
         #region Public Methods
@@ -179,15 +179,6 @@ namespace HBP.UI.Visualization
         }
         protected override void SetWindow()
         {
-            m_NameInputField = transform.Find("Content").Find("General").Find("Name").Find("InputField").GetComponent<InputField>();
-            m_TabGestion = transform.Find("Content").Find("Columns").Find("Fields").Find("Tabs").GetComponent<TabGestion>();
-            m_ColumnModifier = transform.Find("Content").Find("Columns").Find("Fields").Find("Column").GetComponent<ColumnModifier>();
-            m_SaveButton = transform.Find("Content").Find("Buttons").Find("OK").GetComponent<Button>();
-            m_VisualizationPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("Visualization").Find("Display").GetComponent<PatientList>();
-            m_ProjectPatientsList = transform.Find("Content").Find("Patients").Find("Lists").Find("Project").Find("Display").GetComponent<PatientList>();
-            m_AddPatientButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Add").GetComponent<Button>();
-            m_RemovePatientButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("Remove").GetComponent<Button>();
-            m_AddGroupButton = transform.Find("Content").Find("Patients").Find("Lists").Find("Buttons").Find("AddGroup").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {

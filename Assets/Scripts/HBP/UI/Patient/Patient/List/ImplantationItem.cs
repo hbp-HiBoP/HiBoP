@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using Tools.Unity.Lists;
 using HBP.Data.Anatomy;
+using NewTheme.Components;
 
 namespace HBP.UI.Anatomy
 {
@@ -9,8 +10,9 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] Text m_NameInputField;
-        [SerializeField] Image m_ImplantationIcon;
-        [SerializeField] Image m_MarsAtlasIcon;
+        [SerializeField] ThemeElement m_ImplantationThemeElement;
+        [SerializeField] ThemeElement m_MarsAtlasThemeElement;
+        [SerializeField] State m_ErrorState;
 
         public override Implantation Object
         {
@@ -22,10 +24,10 @@ namespace HBP.UI.Anatomy
             {
                 base.Object = value;
                 m_NameInputField.text = value.Name;
-                Color normalColor = Color.white;
-                Color notInteractableColor = ApplicationState.UserPreferences.Theme.General.NotInteractable;
-                m_ImplantationIcon.color = value.HasImplantation ? normalColor : notInteractableColor;
-                m_MarsAtlasIcon.color = value.HasMarsAtlas ? normalColor : notInteractableColor;
+                if (value.HasImplantation) m_ImplantationThemeElement.Set();
+                else m_ImplantationThemeElement.Set(m_ErrorState);
+                if (value.HasMarsAtlas) m_MarsAtlasThemeElement.Set();
+                else m_MarsAtlasThemeElement.Set(m_ErrorState);
             }
         }
         #endregion

@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Linq;
 using Tools.Unity.Lists;
+using NewTheme.Components;
 
 namespace HBP.UI.Visualization
 {
@@ -10,11 +11,8 @@ namespace HBP.UI.Visualization
         #region Properties
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_PatientsText;
-        [SerializeField] Button m_PatientsButton;
-        [SerializeField] LabelList m_PatientsList;
         [SerializeField] Text m_ColumnsText;
-        [SerializeField] Button m_ColumnsButton;
-        [SerializeField] LabelList m_ColumnsList;
+        [SerializeField] State m_ErrorState;
 
         public override Data.Visualization.Visualization Object
         {
@@ -27,36 +25,20 @@ namespace HBP.UI.Visualization
             {
                 base.Object = value;
 
-                // Name.
                 m_NameText.text = value.Name;
 
-                // Patients.
+                ThemeElement patientsThemeElement = m_PatientsText.GetComponent<ThemeElement>();
                 int nbPatients = value.Patients.Count;
                 m_PatientsText.text = nbPatients.ToString();
-                if (nbPatients == 0)
-                {
-                    m_PatientsText.color = ApplicationState.UserPreferences.Theme.General.Error;
-                    m_PatientsButton.interactable = false;
-                }
-                else
-                {
-                    m_PatientsText.color = ApplicationState.UserPreferences.Theme.Window.Content.Text.Color;
-                    m_PatientsButton.interactable = true;
-                }
+                if(nbPatients == 0) patientsThemeElement.Set(m_ErrorState);
+                else patientsThemeElement.Set();
 
                 // Columns.
+                ThemeElement columnsThemeElement = m_ColumnsText.GetComponent<ThemeElement>();
                 int nbColumns = value.Columns.Count;
                 m_ColumnsText.text = nbColumns.ToString();
-                if (nbColumns == 0)
-                {
-                    m_ColumnsText.color = ApplicationState.UserPreferences.Theme.General.Error;
-                    m_ColumnsButton.interactable = false;
-                }
-                else
-                {
-                    m_ColumnsText.color = ApplicationState.UserPreferences.Theme.Window.Content.Text.Color;
-                    m_ColumnsButton.interactable = true;
-                }
+                if (nbColumns == 0) columnsThemeElement.Set(m_ErrorState);
+                else columnsThemeElement.Set();
             }
         }
         #endregion
@@ -64,14 +46,14 @@ namespace HBP.UI.Visualization
         #region Public Methods
         public void SetPatients()
         {
-            m_PatientsList.Initialize();
-            m_PatientsList.Objects = (from patient in m_Object.Patients select patient.Name).ToArray();
+            //m_PatientsList.Initialize();
+            //m_PatientsList.Objects = (from patient in m_Object.Patients select patient.Name).ToArray();
         }
 
         public void SetColumns()
         {
-            m_ColumnsList.Initialize();
-            m_ColumnsList.Objects = (from column in m_Object.Columns select (column.Data + " " + column.Protocol + " " + column.Bloc)).ToArray();
+            //m_ColumnsList.Initialize();
+            //m_ColumnsList.Objects = (from column in m_Object.Columns select (column.Data + " " + column.Protocol + " " + column.Bloc)).ToArray();
         }
         #endregion
     }

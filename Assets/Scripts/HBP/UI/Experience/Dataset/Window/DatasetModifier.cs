@@ -12,11 +12,12 @@ namespace HBP.UI.Experience.Dataset
 	public class DatasetModifier : ItemModifier<d.Dataset> 
 	{
 		#region Properties		
-		DataInfoList m_DataInfoList;
-		InputField m_NameInputField;
-        Dropdown m_ProtocolDropdown;
-        Button m_SaveButton, m_CreateButton, m_RemoveButton;
+		[SerializeField] DataInfoList m_DataInfoList;
+		[SerializeField] InputField m_NameInputField;
+        [SerializeField] Dropdown m_ProtocolDropdown;
+        [SerializeField] Button m_SaveButton, m_CreateButton, m_RemoveButton;
         [SerializeField] GameObject m_DataInfoModifierPrefab;
+        [SerializeField] Text m_Counter;
         List<DataInfoModifier> m_Modifiers = new List<DataInfoModifier>();
         Data.Experience.Protocol.Protocol[] m_Protocols;
         #endregion
@@ -89,16 +90,12 @@ namespace HBP.UI.Experience.Dataset
             m_DataInfoList.Objects = ItemTemp.Data.ToArray();
             m_DataInfoList.OnAction.RemoveAllListeners();
             m_DataInfoList.OnAction.AddListener((dataInfo, i) => OpenDataInfoModifier(dataInfo));
+            m_DataInfoList.OnSelectionChanged.RemoveAllListeners();
+            m_DataInfoList.OnSelectionChanged.AddListener((mesh, i) => m_Counter.text = m_DataInfoList.ObjectsSelected.Length.ToString());
             m_DataInfoList.SortByName(DataInfoList.Sorting.Descending);
         }
         protected override void SetWindow()
         {
-            m_NameInputField = transform.Find("Content").Find("General").Find("Name").Find("InputField").GetComponent<InputField>();
-            m_ProtocolDropdown = transform.Find("Content").Find("General").Find("Protocol").Find("Dropdown").GetComponent<Dropdown>();
-            m_DataInfoList = transform.Find("Content").Find("DataInfo").Find("List").Find("List").Find("Display").GetComponent<DataInfoList>();
-            m_SaveButton = transform.Find("Content").Find("Buttons").Find("OK").GetComponent<Button>();
-            m_CreateButton = transform.Find("Content").Find("DataInfo").Find("List").Find("Buttons").Find("Add").GetComponent<Button>();
-            m_RemoveButton = transform.Find("Content").Find("DataInfo").Find("List").Find("Buttons").Find("Remove").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {

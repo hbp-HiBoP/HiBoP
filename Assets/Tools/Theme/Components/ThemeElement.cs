@@ -19,7 +19,7 @@ namespace NewTheme.Components
             }
             catch(Exception e)
             {
-                Debug.LogError(gameObject.name);
+                Debug.LogError(gameObject.transform.FullName());
                 throw e;
             }
         }
@@ -31,7 +31,7 @@ namespace NewTheme.Components
             }
             catch(Exception e)
             {
-                Debug.LogError(gameObject.name);
+                Debug.LogError(gameObject.transform.FullName());
                 throw e;
             }
         }

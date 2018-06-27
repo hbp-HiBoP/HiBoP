@@ -14,10 +14,10 @@ namespace HBP.UI.Experience.Dataset
         public UnityEvent CanSaveEvent { get; set; }
         public bool CanSave { get; set; }
         public new d.DataInfo ItemTemp { get { return itemTemp; } }
-        InputField m_NameInputField, m_MeasureInputField;
-        Dropdown m_PatientDropdown;
-        Dropdown m_NormalizationDropdown;
-        FileSelector m_EEGFileSelector, m_POSFileSelector;
+        [SerializeField] InputField m_NameInputField, m_MeasureInputField;
+        [SerializeField] Dropdown m_PatientDropdown;
+        [SerializeField] Dropdown m_NormalizationDropdown;
+        [SerializeField] FileSelector m_EEGFileSelector, m_POSFileSelector;
         List<Data.Patient> m_Patients;
         #endregion
 
@@ -77,16 +77,6 @@ namespace HBP.UI.Experience.Dataset
         protected override void SetWindow()
         {
             CanSaveEvent = new UnityEvent();
-
-            Transform general = transform.Find("Content").Find("General");
-            m_NameInputField = general.Find("Name").GetComponentInChildren<InputField>();
-            m_PatientDropdown = general.Find("Patient").GetComponentInChildren<Dropdown>();
-
-            Transform data = transform.Find("Content").Find("Data");
-            m_EEGFileSelector = data.Find("EEG").Find("File").GetComponentInChildren<FileSelector>();
-            m_MeasureInputField = data.Find("EEG").Find("Measure").GetComponentInChildren<InputField>();
-            m_POSFileSelector = data.Find("POS").GetComponentInChildren<FileSelector>();
-            m_NormalizationDropdown = data.Find("Normalization").GetComponentInChildren<Dropdown>();
         }
         void SetPosFile()
         {
