@@ -9,6 +9,7 @@ namespace HBP.UI.Module3D
         [SerializeField] GameObject m_IEEG;
         [SerializeField] GameObject m_CCEP;
         [SerializeField] GameObject m_Atlas;
+        [SerializeField] GameObject m_States;
         [SerializeField] Text m_SiteNameText;
         [SerializeField] Image m_IsExcludedImage;
         [SerializeField] Image m_IsHighlightedImage;
@@ -47,16 +48,25 @@ namespace HBP.UI.Module3D
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
                             m_Atlas.SetActive(true);
+                            m_States.SetActive(true);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.IEEG:
                             m_IEEG.SetActive(true);
                             m_CCEP.SetActive(false);
                             m_Atlas.SetActive(true);
+                            m_States.SetActive(true);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.CCEP:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(true);
                             m_Atlas.SetActive(false);
+                            m_States.SetActive(true);
+                            break;
+                        case Data.Enums.SiteInformationDisplayMode.Light:
+                            m_IEEG.SetActive(false);
+                            m_CCEP.SetActive(false);
+                            m_Atlas.SetActive(false);
+                            m_States.SetActive(false);
                             break;
                     }
                 }
@@ -69,13 +79,18 @@ namespace HBP.UI.Module3D
                     {
                         case Data.Enums.SiteInformationDisplayMode.Anatomy:
                             SetAtlas(siteInfo);
+                            SetStates(siteInfo.Site);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.IEEG:
                             SetIEEG(siteInfo);
                             SetAtlas(siteInfo);
+                            SetStates(siteInfo.Site);
                             break;
                         case Data.Enums.SiteInformationDisplayMode.CCEP:
                             SetCCEP(siteInfo);
+                            SetStates(siteInfo.Site);
+                            break;
+                        case Data.Enums.SiteInformationDisplayMode.Light:
                             break;
                     }
                     ClampToCanvas();
@@ -107,15 +122,18 @@ namespace HBP.UI.Module3D
         void SetSite(HBP.Module3D.Site site)
         {
             m_SiteNameText.text = site.Information.ChannelName;
+        }
+        void SetPatient(Data.Patient patient)
+        {
+            m_PatientText.text = patient.CompleteName;
+        }
+        void SetStates(HBP.Module3D.Site site)
+        {
             m_IsMarkedImage.gameObject.SetActive(site.State.IsMarked);
             m_IsBlackListedImage.gameObject.SetActive(site.State.IsBlackListed);
             m_IsHighlightedImage.gameObject.SetActive(site.State.IsHighlighted);
             m_IsSuspiciousImage.gameObject.SetActive(site.State.IsSuspicious);
             m_IsExcludedImage.gameObject.SetActive(site.State.IsExcluded);
-        }
-        void SetPatient(Data.Patient patient)
-        {
-            m_PatientText.text = patient.CompleteName;
         }
         void SetCCEP(HBP.Module3D.SiteInfo siteInfo)
         {

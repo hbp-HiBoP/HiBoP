@@ -62,10 +62,12 @@ namespace HBP.Module3D
             }
             set
             {
+                bool wasSelected = m_IsSelected;
                 m_IsSelected = value;
-                if (m_IsSelected)
+                OnChangeSelectedState.Invoke(value);
+                if (m_IsSelected && !wasSelected)
                 {
-                    OnSelectColumn.Invoke(this);
+                    ApplicationState.Module3D.OnSelectColumn.Invoke(this);
                 }
             }
         }
@@ -141,48 +143,9 @@ namespace HBP.Module3D
             }
         }
 
-        protected int m_SelectedSiteID = -1;
-        public int SelectedSiteID
-        {
-            get
-            {
-                return m_SelectedSiteID;
-            }
-            set
-            {
-                if (m_SelectedSiteID != value)
-                {
-                    if (m_SelectedSiteID >= 0) SelectedSite.IsSelected = false; // old
-                    m_SelectedSiteID = value;
-                    SelectedSourceID = value;
-                    if (m_SelectedSiteID >= 0) SelectedSite.IsSelected = true; // new
-                    OnSelectSite.Invoke(SelectedSite);
-                    if (m_SelectedSiteID >= 0)
-                    {
-                        SelectedPatientID = SelectedSite.Information.PatientNumber;
-                    }
-                    else
-                    {
-                        SelectedPatientID = -1;
-                    }
-                }
-            }
-        }
-        public Site SelectedSite
-        {
-            get
-            {
-                return m_SelectedSiteID >= 0 ? Sites[m_SelectedSiteID] : null;
-            }
-            set
-            {
-                m_SelectedSiteID = Sites.FindIndex((site) => site == value);
-                SelectedSourceID = m_SelectedSiteID;
-                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
-                SelectedPatientID = value.Information.PatientNumber;
-            }
-        }
-        public int SelectedPatientID { get; protected set; }
+        public Site SelectedSite { get; protected set; }
+        public int SelectedSiteID { get { return SelectedSite != null ? SelectedSite.Information.GlobalID : -1; } }
+        public int SelectedPatientID { get { return SelectedSite != null ? SelectedSite.Information.PatientNumber : -1; } }
 
         protected DLL.RawSiteList m_RawElectrodes = null;  /**< raw format of the plots container dll */
         public DLL.RawSiteList RawElectrodes
@@ -269,19 +232,7 @@ namespace HBP.Module3D
 
             
         // latencies
-        public bool SourceDefined { get { return SelectedSourceID != -1; } }
-        private int m_SelectedSourceID = -1;
-        public int SelectedSourceID
-        {
-            get
-            {
-                return m_SelectedSourceID;
-            }
-            set
-            {
-                m_SelectedSourceID = value;
-            }
-        }
+        public bool SourceDefined { get { return SelectedSiteID != -1; } }
         private int m_CurrentLatencyFile = -1;
         public int CurrentLatencyFile
         {
@@ -301,7 +252,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when this column is selected
         /// </summary>
-        public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
         /// <summary>
         /// Event called when a view is moved
         /// </summary>
@@ -330,6 +281,10 @@ namespace HBP.Module3D
         /// Event called when selecting a site
         /// </summary>
         public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
+        /// <summary>
+        /// Event called each time we change the state of a site
+        /// </summary>
+        public GenericEvent<Site> OnChangeSiteState = new GenericEvent<Site>();
         /// <summary>
         /// Event called when selecting a source or when changing the latency file
         /// </summary>
@@ -425,13 +380,28 @@ namespace HBP.Module3D
 
                         int id = Sites.Count - 1;
                         Site baseSite = siteList[id].GetComponent<Site>();
-                        Sites[id].Information = baseSite.Information;
+                        Site site = Sites[id];
+                        site.Information = baseSite.Information;
                         if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullID))
                         {
                             SiteStateBySiteID.Add(baseSite.Information.FullID, new SiteState(baseSite.State));
                         }
-                        Sites[id].State = SiteStateBySiteID[baseSite.Information.FullID];
-                        Sites[id].IsActive = true;
+                        site.State = SiteStateBySiteID[baseSite.Information.FullID];
+                        site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
+                        site.IsActive = true;
+                        site.OnSelectSite.AddListener((selected) =>
+                        {
+                            if (selected)
+                            {
+                                UnselectSite();
+                                SelectedSite = site;
+                            }
+                            else
+                            {
+                                SelectedSite = null;
+                            }
+                            OnSelectSite.Invoke(SelectedSite);
+                        });
                     }
                 }
             }
@@ -594,23 +564,23 @@ namespace HBP.Module3D
                     }
                     else if (latenciesFile != null)
                     {
-                        if (SelectedSourceID == -1)
+                        if (SelectedSiteID == -1)
                         {
                             site.transform.localScale = Vector3.one;
                             siteType = latenciesFile.IsSiteASource(i) ? SiteType.Source : SiteType.NotASource;
                         }
                         else
                         {
-                            if (i == SelectedSourceID)
+                            if (i == SelectedSiteID)
                             {
                                 site.transform.localScale = Vector3.one;
                                 siteType = SiteType.Source;
                             }
-                            else if (latenciesFile.IsSiteResponsiveForSource(i, SelectedSourceID))
+                            else if (latenciesFile.IsSiteResponsiveForSource(i, SelectedSiteID))
                             {
-                                siteType = latenciesFile.PositiveHeight[SelectedSourceID][i] ? SiteType.NonePos : SiteType.NoneNeg;
-                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SelectedSourceID][i] - 0.25f;
-                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SelectedSourceID][i];
+                                siteType = latenciesFile.PositiveHeight[SelectedSiteID][i] ? SiteType.NonePos : SiteType.NoneNeg;
+                                alpha = site.State.IsHighlighted ? 1.0f : latenciesFile.Transparencies[SelectedSiteID][i] - 0.25f;
+                                site.transform.localScale = Vector3.one * latenciesFile.Sizes[SelectedSiteID][i];
                             }
                             else
                             {
@@ -836,20 +806,22 @@ namespace HBP.Module3D
             {
                 if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
                 {
-                    DLLGUIBrainCutTextures[cut.ID].CopyAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
-                    DLLGUIBrainCutTextures[cut.ID].UpdateTexture2D(GUIBrainCutTextures[cut.ID]);
+                    DLLGUIBrainCutTextures[cut.ID].CopyAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines && cut.Orientation != Data.Enums.CutOrientation.Custom, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
                 }
             }
         }
-        public void ResizeGUIMRITextures()
+        public void ResizeGUIMRITextures(List<Cut> cuts)
         {
             int max = 0;
-            foreach (var texture in DLLGUIBrainCutTextures)
+            foreach (var cut in cuts)
             {
-                int textureMax = texture.TextureSize.Max();
-                if (textureMax > max)
+                if (cut.Orientation != Data.Enums.CutOrientation.Custom)
                 {
-                    max = textureMax;
+                    int textureMax = DLLGUIBrainCutTextures[cut.ID].TextureSize.Max();
+                    if (textureMax > max)
+                    {
+                        max = textureMax;
+                    }
                 }
             }
             for (int i = 0; i < DLLGUIBrainCutTextures.Count; ++i)
@@ -867,17 +839,19 @@ namespace HBP.Module3D
             view.gameObject.name = "View " + m_Views.Count;
             view.LineID = m_Views.Count;
             view.Layer = Layer;
-            view.OnSelectView.AddListener((selectedView) =>
+            view.OnChangeSelectedState.AddListener((selected) =>
             {
-                foreach (View3D v in m_Views)
+                if (selected)
                 {
-                    if (v != selectedView)
+                    foreach (View3D v in m_Views)
                     {
-                        v.IsSelected = false;
+                        if (v != view)
+                        {
+                            v.IsSelected = false;
+                        }
                     }
                 }
-                IsSelected = true;
-                ApplicationState.Module3D.OnSelectView.Invoke(selectedView);
+                IsSelected = selected;
             });
             view.OnMoveView.AddListener(() =>
             {
@@ -952,13 +926,12 @@ namespace HBP.Module3D
             }
         }
 
-        public void SetCurrentSiteAsSource()
+        public void UnselectSite()
         {
-            SelectedSourceID = SelectedSiteID;
-        }
-        public void UndefineSource()
-        {
-            SelectedSourceID = -1;
+            if (SelectedSite)
+            {
+                SelectedSite.IsSelected = false;
+            }
         }
         #endregion
     }

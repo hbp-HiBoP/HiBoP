@@ -80,7 +80,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {
-            if (type == Toolbar.UpdateToolbarType.Column)
+            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
             {
                 Site site = ApplicationState.Module3D.SelectedColumn.SelectedSite;
                 m_Apply.interactable = (site != null);

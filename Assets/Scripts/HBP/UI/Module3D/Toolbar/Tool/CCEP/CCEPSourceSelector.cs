@@ -17,10 +17,6 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnRequestUpdateInUI.AddListener(() =>
-            {
-                UpdateStatus(Toolbar.UpdateToolbarType.Column);
-            });
         }
 
         public override void DefaultState()
@@ -34,14 +30,14 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus(Toolbar.UpdateToolbarType type)
         {
-            if (type == Toolbar.UpdateToolbarType.Column)
+            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
             {
                 if (ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled)
                 {
                     HBP.Module3D.Column3D column = ApplicationState.Module3D.SelectedColumn;
                     if (column.SourceDefined)
                     {
-                        m_Text.text = column.Sites[column.SelectedSourceID].Information.DisplayedName;
+                        m_Text.text = column.Sites[column.SelectedSiteID].Information.DisplayedName;
                     }
                     else
                     {

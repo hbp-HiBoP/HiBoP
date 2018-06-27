@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NewTheme.Components;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -8,6 +9,8 @@ namespace HBP.UI.Module3D
     public class ThresholdHandler : MonoBehaviour, IDragHandler, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
+        [SerializeField] ThemeElement m_ThemeElement;
+        [SerializeField] State m_LeftRightState;
         /// <summary>
         /// RectTransform of this handler
         /// </summary>
@@ -48,7 +51,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Event called when changing the position of the handler
         /// </summary>
-        public UnityEvent OnChangePosition = new UnityEvent();
+        public GenericEvent<float> OnChangePosition = new GenericEvent<float>();
         #endregion
 
         #region Public Methods
@@ -61,18 +64,19 @@ namespace HBP.UI.Module3D
         }
         public void OnDrag(PointerEventData data)
         {
+            float currentPosition = Position;
             Vector2 localPosition = new Vector2(0, 0);
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_ParentRectTransform, data.position, null, out localPosition);
             Position = (localPosition.x / m_ParentRectTransform.rect.width) + 0.5f;
-            OnChangePosition.Invoke();
+            OnChangePosition.Invoke(Position - currentPosition);
         }
         public void OnPointerEnter(PointerEventData data)
         {
-            Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.LeftRightCursor.Texture, ApplicationState.UserPreferences.Theme.General.LeftRightCursor.Offset, CursorMode.Auto);
+            m_ThemeElement.Set(m_LeftRightState);
         }
         public void OnPointerExit(PointerEventData data)
         {
-            Cursor.SetCursor(ApplicationState.UserPreferences.Theme.General.Cursor.Texture, ApplicationState.UserPreferences.Theme.General.Cursor.Offset, CursorMode.Auto);
+            m_ThemeElement.Set();
         }
         #endregion
     }

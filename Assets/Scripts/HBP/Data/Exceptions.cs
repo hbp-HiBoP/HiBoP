@@ -438,3 +438,45 @@ public class FrequencyException : HBPException
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }
+
+[Serializable]
+public class InvalidConditionException : HBPException
+{
+    public InvalidConditionException() { }
+    public InvalidConditionException(string condition) : base("One of your conditions is not valid: \" " + condition + " \". Please fix it.")
+    {
+        Title = "Invalid condition";
+    }
+    public InvalidConditionException(string message, Exception inner) : base(message, inner) { }
+    protected InvalidConditionException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class InvalidBooleanExpressionException : HBPException
+{
+    public InvalidBooleanExpressionException() { }
+    public InvalidBooleanExpressionException(string additionalInformation) : base("The conditional expression you entered is not valid. Please fix it.\n\nAdditional information: " + additionalInformation)
+    {
+        Title = "Invalid expression";
+    }
+    public InvalidBooleanExpressionException(string message, Exception inner) : base(message, inner) { }
+    protected InvalidBooleanExpressionException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class ParsingValueException : HBPException
+{
+    public ParsingValueException() { }
+    public ParsingValueException(string value) : base("The value \"" + value + "\" could not be parsed correctly. Please enter a valid value.")
+    {
+        Title = "Parsing error";
+    }
+    public ParsingValueException(string message, Exception inner) : base(message, inner) { }
+    protected ParsingValueException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}

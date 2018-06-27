@@ -127,6 +127,10 @@ namespace HBP.Module3D
         private double m_DisplayPlanesTimeRemaining = 1;
         private double m_DisplayPlanesTimeStart = 0;
         private double m_DisplayPlanesTimer = 0;
+
+        // Theme
+        [SerializeField] State Selected;
+        [SerializeField] State Clicked;
         #endregion
 
         #region Private Methods
@@ -219,20 +223,20 @@ namespace HBP.Module3D
             {
                 if (m_AssociatedView.IsSelected)
                 {
-                    Camera.backgroundColor = ApplicationState.UserPreferences.Theme.Visualization.View.Clicked;
+                    Camera.GetComponent<NewTheme.Components.ThemeElement>().Set(Clicked);
                 }
                 else if (m_AssociatedColumn.IsSelected)
                 {
-                    Camera.backgroundColor = ApplicationState.UserPreferences.Theme.Visualization.View.Selected;
+                    Camera.GetComponent<NewTheme.Components.ThemeElement>().Set(Selected);
                 }
                 else
                 {
-                    Camera.backgroundColor = ApplicationState.UserPreferences.Theme.Visualization.View.Normal;
+                    Camera.GetComponent<NewTheme.Components.ThemeElement>().Set();
                 }
             }
             else
             {
-                Camera.backgroundColor = ApplicationState.UserPreferences.Theme.Visualization.View.Normal;
+                Camera.GetComponent<NewTheme.Components.ThemeElement>().Set();
             }
             AutomaticCameraRotation();
         }

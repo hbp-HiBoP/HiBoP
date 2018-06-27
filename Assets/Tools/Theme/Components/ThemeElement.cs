@@ -19,8 +19,8 @@ namespace NewTheme.Components
             }
             catch(Exception e)
             {
-                Debug.LogError(gameObject.transform.FullName());
-                throw e;
+                Debug.LogError("Missing theme element at " + gameObject.transform.FullName());
+                //throw e;
             }
         }
         public void Set(State state)

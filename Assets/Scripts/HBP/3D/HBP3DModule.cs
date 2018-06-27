@@ -191,7 +191,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when requesting an update in the UI
         /// </summary>
-        public UnityEvent OnRequestUpdateInUI = new UnityEvent();
+        public UnityEvent OnRequestUpdateInToolbar = new UnityEvent();
         /// <summary>
         /// Event called when reseting the IEEG of a scene
         /// </summary>
@@ -203,10 +203,6 @@ namespace HBP.Module3D
         {
             // Scene Manager
             m_ScenesManager = transform.GetComponentInChildren<ScenesManager>();
-            m_ScenesManager.OnSelectScene.AddListener((s) =>
-            {
-                OnSelectScene.Invoke(s);
-            });
 
             // Graphic Settings
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;

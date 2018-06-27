@@ -35,9 +35,10 @@ namespace HBP.UI.Module3D
             {
                 base.Object = value;
                 UpdateFields();
-                value.State.OnChangeState.AddListener(UpdateFields);
+                value.State.OnChangeState.AddListener(() => m_UpdateRequired = true);
             }
         }
+        private bool m_UpdateRequired;
         #endregion
 
         #region Private Methods
@@ -45,7 +46,7 @@ namespace HBP.UI.Module3D
         {
             m_Site.onClick.AddListener(() =>
             {
-                ApplicationState.Module3D.SelectedColumn.SelectedSiteID = Object.Information.GlobalID;
+                Object.IsSelected = true;
             });
 
             m_Excluded.onValueChanged.AddListener((isOn) =>
@@ -78,6 +79,13 @@ namespace HBP.UI.Module3D
                 m_Site.interactable = Object.IsActive;
             });
         }
+        private void Update()
+        {
+            if (m_UpdateRequired)
+            {
+                UpdateFields();
+            }
+        }
         private void UpdateFields()
         {
             m_Site.GetComponentInChildren<Text>().text = Object.Information.ChannelName;
@@ -89,6 +97,7 @@ namespace HBP.UI.Module3D
             m_Marked.isOn = Object.State.IsMarked;
             m_Highlighted.isOn = Object.State.IsHighlighted;
             m_Suspicious.isOn = Object.State.IsSuspicious;
+            m_UpdateRequired = false;
         }
         #endregion
     }

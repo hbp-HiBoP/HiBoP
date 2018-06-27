@@ -1,45 +1,40 @@
-﻿
-/**
- * \file    ProgressBar.cs
- * \author  Lance Florian
- * \date    09/06/2016
- * \brief   Define ProgressBar class
- */
-
-// system
-using System;
-
-// unity
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-
-namespace HBP.Module3D
+namespace HBP.UI.Module3D
 {
-    /// <summary>
-    /// A progressbar panel UI
-    /// </summary>
     public class ProgressBar : MonoBehaviour
     {
-        private LayoutElement m_fillPanel = null; /**< progessbar fill panel */
-        private RectTransform m_progressBarPanelRectT = null; /**< progress bar panel rect transform */
-        private Text m_stateText = null;
-        
-        public void init()
-        {
-            m_progressBarPanelRectT = transform.Find("progress panel").GetComponent<RectTransform>();
-            m_fillPanel = transform.Find("progress panel").Find("fill panel").GetComponent<LayoutElement>();
-            m_stateText = transform.Find("text panel").Find("state text").GetComponent<Text>();
-        }
+        #region Properties
+        [SerializeField] private RectTransform m_Fill;
+        [SerializeField] private Text m_ProgressText;
+        [SerializeField] private Text m_Message;
+        #endregion
 
-        /// <summary>
-        /// Set the current progressbar state (0 - 1)
-        /// </summary>
-        /// <param name="value"></param>
-        public void setProgessBarState(float value)
+        #region Public Methods
+        public void Open()
         {
-            m_fillPanel.minWidth = m_progressBarPanelRectT.sizeDelta.x * value;
-            m_stateText.text = "" + (Math.Truncate(value * 100)) + " %";
+            if (!gameObject.activeSelf)
+            {
+                gameObject.SetActive(true);
+                m_Fill.anchorMax = new Vector2(0.0f, 1.0f);
+            }
         }
+        public void Close()
+        {
+            if (gameObject.activeSelf)
+            {
+                gameObject.SetActive(false);
+            }
+        }
+        public void Progress(float progress, string message)
+        {
+            m_Fill.anchorMax = new Vector2(progress, 1.0f);
+            m_ProgressText.text = string.Format("{0}%", ((int)(progress * 100)).ToString());
+            m_Message.text = message;
+        }
+        #endregion
     }
 }

@@ -24,7 +24,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Events
-        public GenericEvent<Texture2D> OnUpdateGUITextures = new GenericEvent<Texture2D>();
+        public GenericEvent<Column3D> OnUpdateGUITextures = new GenericEvent<Column3D>();
         public UnityEvent OnUpdateCut = new UnityEvent();
         public UnityEvent OnRemoveCut = new UnityEvent();
         #endregion

@@ -37,6 +37,8 @@ namespace HBP.Module3D
         public bool CollidersUpdated = false;/**< colluders are up to date */
         public bool IsSceneInitialized { get; set; }
         public bool IsSceneDisplayed { get; set; }
+        public bool AreSitesUpdated { get; set; }
+
         // parameters
         public bool MarsAtlasModeEnabled = false;
         public bool CutHolesEnabled = false; /**< cuts holes are enabled */

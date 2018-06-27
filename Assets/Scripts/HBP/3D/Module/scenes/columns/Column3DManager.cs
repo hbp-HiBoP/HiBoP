@@ -175,6 +175,10 @@ namespace HBP.Module3D
                 return MRIs[SelectedMRIID];
             }
         }
+        /// <summary>
+        /// Cube bounding box around the mesh, depending on the cuts
+        /// </summary>
+        public DLL.BBox CubeBoundingBox { get; private set; }
 
         private float m_MRICalMinFactor = 0.0f;
         /// <summary>
@@ -380,7 +384,7 @@ namespace HBP.Module3D
         #endregion
 
         #region Events
-        public GenericEvent<Column3DManager> OnSelectColumnManager = new GenericEvent<Column3DManager>();
+        public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
         /// <summary>
         /// Event called when selecting a column
         /// </summary>
@@ -454,6 +458,10 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
         /// <summary>
+        /// Event called when changing the state of a site
+        /// </summary>
+        public GenericEvent<Site> OnChangeSiteState = new GenericEvent<Site>();
+        /// <summary>
         /// Event called when selecting a source in a column or changing the latency file of a column
         /// </summary>
         public UnityEvent OnChangeCCEPParameters = new UnityEvent();
@@ -470,22 +478,23 @@ namespace HBP.Module3D
             Column3D column = Instantiate(m_Column3DPrefab, transform.Find("Columns")).GetComponent<Column3D>();
             column.gameObject.name = "Column " + Columns.Count;
             column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
-            column.OnSelectColumn.AddListener((selectedColumn) =>
+            column.OnChangeSelectedState.AddListener((selected) =>
             {
-                foreach (Column3D c in m_Columns)
+                if (selected)
                 {
-                    if (c != selectedColumn)
+                    foreach (Column3D c in m_Columns)
                     {
-                        c.IsSelected = false;
-                        foreach (View3D v in c.Views)
+                        if (c != column)
                         {
-                            v.IsSelected = false;
+                            foreach (View3D v in c.Views)
+                            {
+                                v.IsSelected = false;
+                            }
                         }
                     }
                 }
-                OnSelectColumnManager.Invoke(this);
+                OnChangeSelectedState.Invoke(selected);
                 OnSelectColumn.Invoke(column);
-                ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
             });
             column.OnMoveView.AddListener((view) =>
             {
@@ -522,9 +531,13 @@ namespace HBP.Module3D
                 {
                     if (!c.IsSelected)
                     {
-                        c.SelectedSiteID = -1;
+                        c.UnselectSite();
                     }
                 }
+            });
+            column.OnChangeSiteState.AddListener((site) =>
+            {
+                OnChangeSiteState.Invoke(site);
             });
             column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);
@@ -539,22 +552,23 @@ namespace HBP.Module3D
             Column3DIEEG column = Instantiate(m_Column3DIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
             column.gameObject.name = "Column IEEG " + ColumnsIEEG.Count;
             column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
-            column.OnSelectColumn.AddListener((selectedColumn) =>
+            column.OnChangeSelectedState.AddListener((selected) =>
             {
-                foreach (Column3D c in m_Columns)
+                if (selected)
                 {
-                    if (c != selectedColumn)
+                    foreach (Column3D c in m_Columns)
                     {
-                        c.IsSelected = false;
-                        foreach (View3D v in c.Views)
+                        if (c != column)
                         {
-                            v.IsSelected = false;
+                            foreach (View3D v in c.Views)
+                            {
+                                v.IsSelected = false;
+                            }
                         }
                     }
                 }
-                OnSelectColumnManager.Invoke(this);
+                OnChangeSelectedState.Invoke(selected);
                 OnSelectColumn.Invoke(column);
-                ApplicationState.Module3D.OnSelectColumn.Invoke(selectedColumn);
             });
             column.OnMoveView.AddListener((view) =>
             {
@@ -616,9 +630,13 @@ namespace HBP.Module3D
                 {
                     if (!c.IsSelected)
                     {
-                        c.SelectedSiteID = -1;
+                        c.UnselectSite();
                     }
                 }
+            });
+            column.OnChangeSiteState.AddListener((site) =>
+            {
+                OnChangeSiteState.Invoke(site);
             });
             column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);
@@ -706,7 +724,7 @@ namespace HBP.Module3D
         {
             foreach (Mesh3D mesh in Meshes)
             {
-                mesh.SplittedMeshes = new List<DLL.Surface>(MeshSplitNumber);
+                mesh.Split(MeshSplitNumber);
             }
 
             // uv coordinates
@@ -860,7 +878,7 @@ namespace HBP.Module3D
                         (column.SelectedSite.State.IsOutOfROI && !data.ShowAllSites && !data.DisplayCCEPMode) ||
                         (column.SelectedSite.State.IsMasked && !data.DisplayCCEPMode))
                     {
-                        column.SelectedSiteID = -1;
+                        column.UnselectSite();
                         if (column.IsSelected)
                         {
                             ApplicationState.Module3D.OnSelectSite.Invoke(null);
@@ -878,6 +896,8 @@ namespace HBP.Module3D
                 }
                 column.UpdateSitesRendering(data, latencyFile);
             }
+
+            data.AreSitesUpdated = true;
         }
         /// <summary>
         /// Check the integrity of some IEEG parameters and show a warning dialog if required
@@ -938,6 +958,14 @@ namespace HBP.Module3D
             {
                 SelectedColumn.Views.First().IsSelected = true;
             }
+        }
+        /// <summary>
+        /// Update the cube bounding box
+        /// </summary>
+        /// <param name="cuts"></param>
+        public void UpdateCubeBoundingBox(List<Cut> cuts)
+        {
+            CubeBoundingBox = SelectedMRI.Volume.GetCubeBoundingBox(cuts);
         }
         #endregion
     }

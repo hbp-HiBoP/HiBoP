@@ -102,9 +102,10 @@ namespace HBP.Module3D
             {
                 bool wasSelected = m_IsSelected;
                 m_IsSelected = value;
+                OnChangeSelectedState.Invoke(value);
                 if (m_IsSelected && !wasSelected)
                 {
-                    OnSelectScene.Invoke(this);
+                    ApplicationState.Module3D.OnSelectScene.Invoke(this);
                 }
             }
         }
@@ -168,7 +169,7 @@ namespace HBP.Module3D
                 return m_DisplayedObjects;
             }
         }
-
+        
         [SerializeField]
         protected Column3DManager m_ColumnManager;
         /// <summary>
@@ -230,9 +231,9 @@ namespace HBP.Module3D
                         }
                     }
                 }
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
                 ResetIEEG();
-                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
         /// <summary>
@@ -247,7 +248,7 @@ namespace HBP.Module3D
             set
             {
                 SceneInformation.HideBlacklistedSites = value;
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
             }
         }
 
@@ -267,7 +268,7 @@ namespace HBP.Module3D
                 {
                     UpdateCurrentRegionOfInterest(column);
                 }
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
             }
         }
 
@@ -558,7 +559,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when this scene is selected
         /// </summary>
-        public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
+        public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
         /// <summary>
         /// Event called when showing or hiding the scene in the UI
         /// </summary>
@@ -570,7 +571,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when progressing in updating generator.
         /// </summary>
-        public GenericEvent<float, float, string> OnProgressUpdateGenerator = new GenericEvent<float, float, string>();
+        public GenericEvent<float, string> OnProgressUpdateGenerator = new GenericEvent<float, string>();
 
         /// <summary>
         /// Event for updating the planes cuts display in the cameras
@@ -580,6 +581,10 @@ namespace HBP.Module3D
         /// Event called when adding a cut to the scene
         /// </summary>
         public GenericEvent<Cut> OnAddCut = new GenericEvent<Cut>();
+        /// <summary>
+        /// Event called when requesting an update in the cut UI
+        /// </summary>
+        public UnityEvent OnRequestUpdateInCutUI = new UnityEvent();
 
         /// <summary>
         /// Event called when changing the colors of the colormap
@@ -628,6 +633,16 @@ namespace HBP.Module3D
                 UpdateGeometry();
             }
 
+            if (!SceneInformation.AreSitesUpdated)
+            {
+                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                OnRequestUpdateInCutUI.Invoke();
+            }
+
+            if (m_GeneratorNeedsUpdate && !IsLatencyModeEnabled)
+            {
+                OnIEEGOutdated.Invoke(true);
+            }
             if (m_GeneratorNeedsUpdate && !IsLatencyModeEnabled && ApplicationState.UserPreferences.Visualization._3D.AutomaticEEGUpdate)
             {
                 UpdateGenerator();
@@ -652,7 +667,6 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateMRICalValues.AddListener(() =>
             {
-                if (!SceneInformation.IsGeometryUpToDate) return;
                 ResetIEEG();
             });
             m_ColumnManager.OnUpdateIEEGSpan.AddListener((column) =>
@@ -669,7 +683,7 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnUpdateIEEGGain.AddListener((column) =>
             {
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
             });
             m_ColumnManager.OnUpdateIEEGMaximumInfluence.AddListener((column) =>
             {
@@ -682,7 +696,7 @@ namespace HBP.Module3D
                 {
                     ComputeGUITextures();
                 }
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
             });
             m_ColumnManager.OnChangeNumberOfROI.AddListener((column) =>
             {
@@ -708,22 +722,26 @@ namespace HBP.Module3D
             {
                 OnChangeColumnMinimizedState.Invoke();
             });
-            m_ColumnManager.OnSelectColumnManager.AddListener((columnManager) =>
+            m_ColumnManager.OnChangeSelectedState.AddListener((selected) =>
             {
-                IsSelected = true;
+                IsSelected = selected;
                 ComputeGUITextures();
             });
             m_ColumnManager.OnSelectSite.AddListener((site) =>
             {
                 ClickOnSiteCallback();
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                SceneInformation.AreSitesUpdated = false;
                 ApplicationState.Module3D.OnSelectSite.Invoke(site);
-                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_ColumnManager.OnChangeSiteState.AddListener((site) =>
+            {
+                SceneInformation.AreSitesUpdated = false;
             });
             m_ColumnManager.OnChangeCCEPParameters.AddListener(() =>
             {
-                m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-                ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                SceneInformation.AreSitesUpdated = false;
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
             m_ColumnManager.OnUpdateFMRIParameters.AddListener(() =>
             {
@@ -743,7 +761,7 @@ namespace HBP.Module3D
                 }
                 if (IsSelected)
                 {
-                    ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+                    ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
                 }
             });
         }
@@ -771,6 +789,8 @@ namespace HBP.Module3D
         /// <param name="indexColumn"></param>
         private void ComputeIEEGTextures(Column3DIEEG column = null)
         {
+            if (!SceneInformation.IsGeneratorUpToDate) return;
+
             if (column)
             {
                 m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(column);
@@ -796,10 +816,10 @@ namespace HBP.Module3D
             if (column)
             {
                 column.CreateGUIMRITextures(m_Cuts);
-                column.ResizeGUIMRITextures();
+                column.ResizeGUIMRITextures(m_Cuts);
                 foreach (Cut cut in m_Cuts)
                 {
-                    cut.OnUpdateGUITextures.Invoke(column.GUIBrainCutTextures[cut.ID]);
+                    cut.OnUpdateGUITextures.Invoke(column);
                 }
             }
         }
@@ -814,16 +834,12 @@ namespace HBP.Module3D
             // send inf values to overlays
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
-                float maxValue = Math.Max(Math.Abs(m_ColumnManager.ColumnsIEEG[ii].SharedMinInf), Math.Abs(m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf));
-                float minValue = -maxValue;
-                minValue += m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle;
-                maxValue += m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle;
-                OnSendColorMapValues.Invoke(minValue, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle, maxValue, m_ColumnManager.ColumnsIEEG[ii]);
+                OnSendColorMapValues.Invoke(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.SpanMin, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.SpanMax, m_ColumnManager.ColumnsIEEG[ii]);
                 m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID = m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID;
             }
 
             // update plots visibility
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            SceneInformation.AreSitesUpdated = false;
 
             // check validity of plot scale
             m_ColumnManager.CheckIEEGParametersIntegrity();
@@ -1114,7 +1130,7 @@ namespace HBP.Module3D
             // reset selected plot
             for (int ii = 0; ii < m_ColumnManager.Columns.Count; ++ii)
             {
-                m_ColumnManager.Columns[ii].SelectedSiteID = -1;
+                m_ColumnManager.Columns[ii].UnselectSite();
             }
 
             ResetIEEG();
@@ -1293,7 +1309,7 @@ namespace HBP.Module3D
             if (SceneInformation.MeshToDisplay != null)
             {
                 offset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(cut, cut.NumberOfCuts);
-                offset *= 1.05f; // upsize a little bit the bbox for planes
+                //offset *= 1.05f; // upsize a little bit the bbox for planes
             }
             else
                 offset = 0.1f;
@@ -1320,20 +1336,27 @@ namespace HBP.Module3D
             {
                 RemoveCutPlane(cut);
             }
-            Vector3 min = ColumnManager.SelectedMesh.Both.BoundingBox.Min;
-            Vector3 max = ColumnManager.SelectedMesh.Both.BoundingBox.Max;
 
             Cut axialCut = AddCutPlane();
-            axialCut.Position = (site.transform.localPosition.z - (min.z - Mathf.Abs(min.z) * 0.05f)) / ((max.z - min.z) * 1.05f);
+            float axialOffset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts);
+            Vector3 axialMin = SceneInformation.MeshCenter + axialCut.Normal * (-0.5f) * axialOffset * axialCut.NumberOfCuts;
+            Vector3 axialMax = SceneInformation.MeshCenter + axialCut.Normal * 0.5f * axialOffset * axialCut.NumberOfCuts;
+            axialCut.Position = (site.transform.localPosition.z - axialMin.z) / (axialMax.z - axialMin.z);
             UpdateCutPlane(axialCut);
 
-            Cut sagitalCut = AddCutPlane();
-            sagitalCut.Position = 1.0f - ((site.transform.localPosition.y - (min.y - Mathf.Abs(min.y) * 0.05f)) / ((max.y - min.y) * 1.05f));
-            UpdateCutPlane(sagitalCut);
-
             Cut coronalCut = AddCutPlane();
-            coronalCut.Position = 1.0f - ((site.transform.localPosition.x - (min.x - Mathf.Abs(min.x) * 0.05f)) / ((max.x - min.x) * 1.05f));
+            float coronalOffset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts);
+            Vector3 coronalMin = SceneInformation.MeshCenter + coronalCut.Normal * (-0.5f) * coronalOffset * coronalCut.NumberOfCuts;
+            Vector3 coronalMax = SceneInformation.MeshCenter + coronalCut.Normal * 0.5f * coronalOffset * coronalCut.NumberOfCuts;
+            coronalCut.Position = (site.transform.localPosition.y - coronalMin.y) / (coronalMax.y - coronalMin.y);
             UpdateCutPlane(coronalCut);
+
+            Cut sagitalCut = AddCutPlane();
+            float sagitalOffset = SceneInformation.MeshToDisplay.SizeOffsetCutPlane(sagitalCut, sagitalCut.NumberOfCuts);
+            Vector3 sagitalMin = SceneInformation.MeshCenter + sagitalCut.Normal * (-0.5f) * sagitalOffset * sagitalCut.NumberOfCuts;
+            Vector3 sagitalMax = SceneInformation.MeshCenter + sagitalCut.Normal * 0.5f * sagitalOffset * sagitalCut.NumberOfCuts;
+            sagitalCut.Position = (-site.transform.localPosition.x - sagitalMin.x) / (sagitalMax.x - sagitalMin.x);
+            UpdateCutPlane(sagitalCut);
         }
         #endregion
 
@@ -1408,7 +1431,7 @@ namespace HBP.Module3D
         {
             m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
             LoadConfiguration();
-            ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             SceneInformation.IsSceneInitialized = true;
             this.StartCoroutineAsync(c_LoadMissingAnatomy());
         }
@@ -1464,9 +1487,9 @@ namespace HBP.Module3D
             }
             ROICreation = !ROICreation;
 
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            SceneInformation.AreSitesUpdated = false;
 
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Save the current settings of this scene to the configuration of the linked visualization
@@ -1561,7 +1584,7 @@ namespace HBP.Module3D
                 column.ResetConfiguration();
             }
 
-            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInUI.Invoke();
+            if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Save site states of selected column
@@ -1578,7 +1601,7 @@ namespace HBP.Module3D
         public void LoadSiteStatesToSelectedColumn(string path)
         {
             m_ColumnManager.SelectedColumn.LoadSiteStates(path);
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            SceneInformation.AreSitesUpdated = false;
             ResetIEEG(false);
         }
         #endregion
@@ -1803,6 +1826,7 @@ namespace HBP.Module3D
             {
                 ComputeMeshesCut();
             }
+            m_ColumnManager.UpdateCubeBoundingBox(m_Cuts);
 
             ComputeMRITextures();
             ComputeGUITextures();
@@ -2139,9 +2163,8 @@ namespace HBP.Module3D
                 ComputeMRITextures();
                 ComputeGUITextures();
             }
-            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+            SceneInformation.AreSitesUpdated = false;
             ApplicationState.Module3D.OnResetIEEG.Invoke();
-            OnIEEGOutdated.Invoke(!IsLatencyModeEnabled);
         }
         /// <summary>
         /// Send additionnal site info to hight level UI
@@ -2243,22 +2266,22 @@ namespace HBP.Module3D
                             {
                                 Latencies latencyFile = m_ColumnManager.SelectedImplantation.Latencies[columnIEEG.CurrentLatencyFile];
 
-                                if (columnIEEG.SelectedSourceID == -1) // no source selected
+                                if (columnIEEG.SelectedSiteID == -1) // no source selected
                                 {
                                     CCEPLatency = "...";
                                     CCEPAmplitude = "no source selected";
                                 }
-                                else if (columnIEEG.SelectedSourceID == siteID) // site is the source
+                                else if (columnIEEG.SelectedSiteID == siteID) // site is the source
                                 {
                                     CCEPLatency = "0";
                                     CCEPAmplitude = "source";
                                 }
                                 else
                                 {
-                                    if (latencyFile.IsSiteResponsiveForSource(siteID, columnIEEG.SelectedSourceID))
+                                    if (latencyFile.IsSiteResponsiveForSource(siteID, columnIEEG.SelectedSiteID))
                                     {
-                                        CCEPLatency = "" + latencyFile.LatenciesValues[columnIEEG.SelectedSourceID][siteID];
-                                        CCEPAmplitude = "" + latencyFile.LatenciesValues[columnIEEG.SelectedSourceID][siteID];
+                                        CCEPLatency = "" + latencyFile.LatenciesValues[columnIEEG.SelectedSiteID][siteID];
+                                        CCEPAmplitude = "" + latencyFile.LatenciesValues[columnIEEG.SelectedSiteID][siteID];
                                     }
                                     else
                                     {
@@ -2297,7 +2320,7 @@ namespace HBP.Module3D
             bool isCollision = Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask);
             if (!isCollision)
             {
-                m_ColumnManager.SelectedColumn.SelectedSiteID = -1;
+                m_ColumnManager.SelectedColumn.UnselectSite();
                 ROI selectedROI = m_ColumnManager.SelectedColumn.SelectedROI;
                 if (selectedROI)
                 {
@@ -2314,8 +2337,7 @@ namespace HBP.Module3D
 
             if (siteHit)
             {
-                Site site = hit.collider.gameObject.GetComponent<Site>();
-                m_ColumnManager.SelectedColumn.SelectedSiteID = site.Information.GlobalID;
+                m_ColumnManager.SelectedColumn.Sites[hit.collider.gameObject.GetComponent<Site>().Information.GlobalID].IsSelected = true;
             }
             else
             {
@@ -2335,7 +2357,7 @@ namespace HBP.Module3D
                         else if (meshHit || cutHit)
                         {
                             selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hit.point - transform.position, 5.0f);
-                            m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
+                            SceneInformation.AreSitesUpdated = false;
                         }
                         else
                         {
@@ -2358,7 +2380,7 @@ namespace HBP.Module3D
 
             if (!siteHit)
             {
-                m_ColumnManager.SelectedColumn.SelectedSiteID = -1;
+                m_ColumnManager.SelectedColumn.UnselectSite();
             }
         }
         #endregion
@@ -2380,11 +2402,11 @@ namespace HBP.Module3D
         private IEnumerator c_LoadIEEG()
         {
             yield return Ninja.JumpToUnity;
-            OnProgressUpdateGenerator.Invoke(0, 0, "Copy from main generators");
+            float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (m_ColumnManager.MeshSplitNumber + m_Cuts.Count + 1);
+            float currentProgress = 0.0f;
+            OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing");
             yield return Ninja.JumpBack;
-            bool useMultiCPU = true;
             bool addValues = false;
-            bool ratioDistances = true;
 
             // copy from main generators
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
@@ -2401,7 +2423,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
                 yield return Ninja.JumpToUnity;
-                OnProgressUpdateGenerator.Invoke((float)(ii + 1) / (m_ColumnManager.ColumnsIEEG.Count), 0.5f, "Loading column n°" + (ii + 1).ToString());
+                OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
                 yield return Ninja.JumpBack;
 
                 float currentMaxDensity, currentMinInfluence, currentMaxInfluence;
@@ -2416,12 +2438,15 @@ namespace HBP.Module3D
                 // splits
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
+                    yield return Ninja.JumpToUnity;
+                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
+                    yield return Ninja.JumpBack;
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluence);
                     if (m_GeneratorNeedsUpdate) yield break;
 
                     currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
@@ -2442,12 +2467,15 @@ namespace HBP.Module3D
                 // cuts
                 for (int jj = 0; jj < m_Cuts.Count; ++jj)
                 {
+                    yield return Ninja.JumpToUnity;
+                    OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
+                    yield return Ninja.JumpBack;
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, true);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], useMultiCPU, addValues, ratioDistances);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluence);
                     if (m_GeneratorNeedsUpdate) yield break;
 
                     currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity;
@@ -2478,17 +2506,17 @@ namespace HBP.Module3D
 
                 for (int jj = 0; jj < m_ColumnManager.MeshSplitNumber; ++jj)
                 {
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap();
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
                 for (int jj = 0; jj < m_Cuts.Count; ++jj)
                 {
-                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap();
+                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
             }
             yield return Ninja.JumpToUnity;
-            OnProgressUpdateGenerator.Invoke(1.0f, 0.0f, "Finalizing");
+            OnProgressUpdateGenerator.Invoke(1.0f, "Finalizing");
             yield return Ninja.JumpBack;
             yield return new WaitForSeconds(0.1f);
         }

@@ -244,7 +244,7 @@ namespace HBP.Module3D
 
             for (int ii = 0; ii < linesPoints.Count; ii += 2)
             {
-                Debug.DrawRay(offset + linesPoints[ii], linesPoints[ii + 1] - linesPoints[ii], Color.red);
+                Debug.DrawRay(offset + linesPoints[ii], linesPoints[ii + 1] - linesPoints[ii], Color.red, 50);
             }
         }
         /// <summary>

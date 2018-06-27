@@ -133,10 +133,10 @@ namespace HBP.Module3D
             /// <param name="addValues"></param>
             /// <param name="ratioDistances"></param>
             /// <returns></returns>
-            public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, bool ratioDistances = false)
+            public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
             {
                 bool noError = false;
-                noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.MaximumInfluence, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances ? 1 : 0,
+                noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.MaximumInfluence, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
                     IEEGColumn.IEEGParameters.Middle, IEEGColumn.IEEGParameters.SpanMin, IEEGColumn.IEEGParameters.SpanMax) == 1;
                 ApplicationState.DLLDebugManager.check_error();
 
@@ -148,9 +148,9 @@ namespace HBP.Module3D
             /// <summary>
             /// 
             /// </summary>
-            public void AdjustInfluencesToColormap()
+            public void AdjustInfluencesToColormap(Column3DIEEG column3DIEEG)
             {
-                ajustInfluencesToColormap_BrainSurfaceTextureGenerator( _handle);
+                ajustInfluencesToColormap_BrainSurfaceTextureGenerator( _handle, column3DIEEG.IEEGParameters.Middle, column3DIEEG.IEEGParameters.SpanMin, column3DIEEG.IEEGParameters.SpanMax);
             }
             /// <summary>
             /// 
@@ -266,7 +266,7 @@ namespace HBP.Module3D
             static private extern int computeInfluences_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, float[] timelineAmplitudes, int[] dimensions, float maxDistance, int multiCPU,
                 int addValues, int ratioDistances, float middle, float spanMin, float spanMax);
             [DllImport("hbp_export", EntryPoint = "ajustInfluencesToColormap_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void ajustInfluencesToColormap_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator);
+            static private extern void ajustInfluencesToColormap_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, float middle, float min, float max);
             [DllImport("hbp_export", EntryPoint = "synchronizeWithOthersGenerators_BrainSurfaceTextureGenerator", CallingConvention = CallingConvention.Cdecl)]
             static private extern void synchronizeWithOthersGenerators_BrainSurfaceTextureGenerator(HandleRef handleBrainSurfaceTextureGenerator, float sharedMaxDensity, float sharedMinInf, float sharedMaxInf);
 

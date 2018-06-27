@@ -2,9 +2,9 @@
   "General": {
     "Project": {
       "DefaultName": "New project",
-      "DefaultLocation": "D:/HBPProjects",
-      "DefaultPatientDatabase": "Y:/BrainVisaDB/Epilepsy",
-      "DefaultLocalizerDatabase": "Y:/LOCA_DATABASE"
+      "DefaultLocation": "",
+      "DefaultPatientDatabase": "",
+      "DefaultLocalizerDatabase": ""
     },
     "Theme": {},
     "Localization": {},
@@ -12,13 +12,13 @@
       "MultiThreading": true
     },
     "Export": {
-      "DefaultScreenshotsLocation": "C:/Users/Adrien/Desktop/Screenshots"
+      "DefaultScreenshotsLocation": ""
     }
   },
   "Data": {
     "EEG": {
       "Averaging": 1,
-      "Normalization": 1
+      "Normalization": 0
     },
     "Event": {
       "PositionAveraging": 1
@@ -32,17 +32,17 @@
   },
   "Visualization": {
     "_3D": {
-      "AutomaticEEGUpdate": true,
+      "AutomaticEEGUpdate": false,
       "SiteInfluence": 0,
-      "DefaultSelectedMRI": "Preimplantation",
-      "DefaultSelectedMesh": "Grey matter",
-      "DefaultSelectedImplantation": "Patient"
+      "DefaultSelectedMRI": "",
+      "DefaultSelectedMesh": "",
+      "DefaultSelectedImplantation": ""
     },
     "TrialMatrix": {
       "ShowWholeProtocol": false,
       "TrialsSynchronization": false,
       "SmoothLine": false,
-      "NumberOfIntermediateValues": 5,
+      "NumberOfIntermediateValues": 1,
       "BlocFormat": 0,
       "LineHeight": 0,
       "LineRatio": 0.0,
