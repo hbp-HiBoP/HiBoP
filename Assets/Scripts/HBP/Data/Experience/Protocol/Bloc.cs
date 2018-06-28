@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using Tools.CSharp;
@@ -10,23 +9,23 @@ namespace HBP.Data.Experience.Protocol
     /**
     * \class Bloc
     * \author Adrien Gannerie
-    * \version 1.0
-    * \date 05 janvier 2017
+    * \version 2.0
+    * \date 28 juin 2018
     * \brief Bloc in a Protocol.
     * 
     * \details Class which define a bloc in a visualization protocol which contains : 
-    *     - Display informations.
-    *     - Main event.
-    *     - Secondary events.
-    *     - Iconic scenario.
     *     - Unique ID.
+    *     - Name
+    *     - Position.
+    *     - Image.
+    *     - Sorting.
     */
     [DataContract]
     public class Bloc : ICloneable, ICopiable
 	{
         #region Properties
         /// <summary>
-        /// Unique ID.
+        /// Unique ID of the bloc.
         /// </summary>
         [DataMember] public string ID { get; set; }
         /// <summary>
@@ -36,10 +35,10 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Position of the bloc.
         /// </summary>
-        [DataMember] public Position Position { get; set; }
+        [DataMember] public int Position { get; set; }
         [DataMember(Name = "IllustrationPath")] string m_IllustrationPath = "";
         /// <summary>
-        /// illustration path.
+        /// Path of the bloc illustration.
         /// </summary>
         [IgnoreDataMember] public string IllustrationPath
         {
@@ -68,33 +67,9 @@ namespace HBP.Data.Experience.Protocol
             }
         }
         /// <summary>
-        /// Sort lines of the bloc.
+        /// Sorting trials of the bloc.
         /// </summary>
         [DataMember] public string Sort { get; set; }
-        /// <summary>
-        /// Window of the bloc (\a x : time before main event in ms. \a y : time after main event in ms.)
-        /// </summary>
-        [DataMember] public Window Window { get; set; }
-        /// <summary>
-        /// Baseline of the bloc (\a x : start of the Baseline in ms. \a y : end of the Baseline in ms.)
-        /// </summary>
-        [DataMember] public Window Baseline { get; set; }
-        /// <summary>
-        /// Main event of the bloc.
-        /// </summary>
-        public Event MainEvent { get { return Events.FirstOrDefault((e) => e.Type == Event.TypeEnum.Main); } }
-        /// <summary>
-        /// Secondary events of the bloc.
-        /// </summary>
-        public ReadOnlyCollection<Event> SecondaryEvents { get { return new ReadOnlyCollection<Event>(Events.FindAll((e) => e.Type == Event.TypeEnum.Secondary)); } }
-        /// <summary>
-        /// Events of the bloc.
-        /// </summary>
-        [DataMember] public List<Event> Events { get; set; }
-        /// <summary>
-        /// Iconic scenario of the bloc.
-        /// </summary>
-        [DataMember] public Scenario Scenario { get; set; }
         #endregion
 
         #region Constructors
