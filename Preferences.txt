@@ -2,7 +2,7 @@
   "General": {
     "Project": {
       "DefaultName": "New project",
-      "DefaultLocation": "",
+      "DefaultLocation": "D:/HBPProjects",
       "DefaultPatientDatabase": "",
       "DefaultLocalizerDatabase": ""
     },
