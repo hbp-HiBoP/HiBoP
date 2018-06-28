@@ -494,7 +494,7 @@ namespace HBP.Module3D
                     }
                 }
                 OnChangeSelectedState.Invoke(selected);
-                OnSelectColumn.Invoke(column);
+                if (selected) OnSelectColumn.Invoke(column);
             });
             column.OnMoveView.AddListener((view) =>
             {
@@ -568,7 +568,7 @@ namespace HBP.Module3D
                     }
                 }
                 OnChangeSelectedState.Invoke(selected);
-                OnSelectColumn.Invoke(column);
+                if (selected) OnSelectColumn.Invoke(column);
             });
             column.OnMoveView.AddListener((view) =>
             {
