@@ -47,6 +47,10 @@ namespace HBP.UI.Experience.Dataset
 
             m_List.OnSelectionChanged.AddListener((g, b) => m_datasetsCounter.text = m_List.ObjectsSelected.Count().ToString());
         }
+        protected override void SetInteractable(bool interactable)
+        {
+            m_DatasetList.Interactable = interactable;
+        }
         #endregion
     }
 }

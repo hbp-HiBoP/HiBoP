@@ -73,6 +73,10 @@ namespace HBP.UI
             yield return Ninja.JumpToUnity;
             m_ProjectList.SortByName(ProjectList.Sorting.Descending);
         }
+        protected override void SetInteractable(bool interactable)
+        {
+            m_LoadingButton.interactable = interactable;
+        }
         #endregion
     }
 }

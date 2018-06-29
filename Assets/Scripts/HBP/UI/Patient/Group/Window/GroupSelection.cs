@@ -39,17 +39,17 @@ namespace HBP.UI.Anatomy
         protected virtual void OpenModifier(Group item)
         {
             groupList.DeselectAll();
-            RectTransform obj = Instantiate(m_GroupModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            GroupModifier modifier = obj.GetComponent<GroupModifier>();
-            modifier.Open(item, false);
+            GroupModifier modifier = GroupModifier.Open(item, Interactable) as GroupModifier;
             modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
             m_Modifiers.Add(modifier);
         }
         protected virtual void OnCloseModifier(GroupModifier modifier)
         {
             m_Modifiers.Remove(modifier);
+        }
+        protected override void SetInteractable(bool interactable)
+        {
+            groupList.Interactable = interactable;
         }
         #endregion
     }

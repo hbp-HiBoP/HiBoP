@@ -23,11 +23,6 @@ namespace HBP.UI.Anatomy
             base.Remove();
             m_GroupCounter.text = m_GroupList.ObjectsSelected.Count().ToString();
         }
-        public override void Open()
-        {
-            base.Open();
-            m_GroupList.SortByName(GroupList.Sorting.Descending);
-        }
         #endregion
 
         #region Protected Methods
@@ -37,6 +32,11 @@ namespace HBP.UI.Anatomy
             m_GroupList.OnAction.AddListener((item,i) => OpenModifier(item,true));
             AddItem(ApplicationState.ProjectLoaded.Groups.ToArray());
             m_List.OnSelectionChanged.AddListener((g,b) => m_GroupCounter.text = m_List.ObjectsSelected.Count().ToString());
+            m_GroupList.SortByName(GroupList.Sorting.Descending);
+        }
+        protected override void SetInteractable(bool interactable)
+        {
+            m_GroupList.Interactable = interactable;
         }
         #endregion
     }

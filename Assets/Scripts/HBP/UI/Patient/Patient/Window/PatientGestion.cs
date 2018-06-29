@@ -57,15 +57,14 @@ namespace HBP.UI.Anatomy
             m_ProjectCounter.text = m_List.ObjectsSelected.Length.ToString();
             m_DatabaseCounter.text = m_DatabaseList.ObjectsSelected.Length.ToString();
         }
-        public override void SetInteractable(bool interactable)
-        {
-            base.SetInteractable(interactable);
-            m_DatabaseFolderSelector.interactable = interactable;
-            m_DatabaseList.Interactable = interactable;
-        }
         #endregion
 
         #region Private Methods
+        protected override void SetInteractable(bool interactable)
+        {
+            m_DatabaseFolderSelector.interactable = interactable;
+            m_DatabaseList.Interactable = interactable;
+        }
         IEnumerator c_DisplayDataBasePatients()
         {
             m_PatientToAdd = new Queue<Patient>();

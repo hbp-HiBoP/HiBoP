@@ -29,6 +29,12 @@ namespace HBP.UI.Preferences
             m_PatientsDatabaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
             m_LocalizerDatabaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
         }
+        protected override void SetInteractable(bool interactable)
+        {
+            m_NameInputField.interactable = interactable;
+            m_PatientsDatabaseFolderSelector.interactable = interactable;
+            m_LocalizerDatabaseFolderSelector.interactable = interactable;
+        }
         #endregion
     }
 }

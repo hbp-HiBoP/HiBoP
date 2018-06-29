@@ -17,8 +17,6 @@ namespace HBP.UI.Anatomy
         [SerializeField] ImplantationGestion m_ImplantationGestion;
         [SerializeField] ConnectivityGestion m_ConnectivityGestion;
         [SerializeField] OthersGestion m_OthersGestion;
-
-        [SerializeField] Button m_SaveButton;
         #endregion
 
         #region Public Methods
@@ -27,12 +25,9 @@ namespace HBP.UI.Anatomy
             m_MeshGestion.Close();
             m_MRIGestion.Close();
             m_ImplantationGestion.Close();
-            //m_ConnectivityGestion.Close();
+            m_ConnectivityGestion.Close();
             base.Close();
         }
-        #endregion
-
-        #region Protected Methods
         public override void Save()
         {
             m_MeshGestion.Save();
@@ -42,6 +37,9 @@ namespace HBP.UI.Anatomy
             m_OthersGestion.Save();
             base.Save();
         }
+        #endregion
+
+        #region Protected Methods
         protected override void SetFields(Data.Patient objectToDisplay)
         {
             // General.
@@ -64,10 +62,7 @@ namespace HBP.UI.Anatomy
             m_ConnectivityGestion.Set(objectToDisplay);
             m_OthersGestion.Set(objectToDisplay);
         }
-        protected override void Initialize()
-        {
-        }
-        protected override void SetInteractableFields(bool interactable)
+        protected override void SetInteractable(bool interactable)
         {
             m_NameInputField.interactable = interactable;
             m_PlaceInputField.interactable = interactable;
@@ -78,8 +73,6 @@ namespace HBP.UI.Anatomy
             m_ImplantationGestion.interactable = interactable;
             m_ConnectivityGestion.interactable = interactable;
             m_OthersGestion.interactable = interactable;
-
-            m_SaveButton.interactable = interactable;
         }
         #endregion
     }

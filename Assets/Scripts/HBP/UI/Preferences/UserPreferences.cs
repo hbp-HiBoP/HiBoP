@@ -4,19 +4,17 @@ using UnityEngine.Events;
 
 namespace HBP.UI.Preferences
 {
-    public class UserPreferences : Window
+    public class UserPreferences : SavableWindow
     {
         #region Properties
-        public UnityEvent OnSave;
         public UnityEvent OnSetWindow;
         #endregion
 
         #region Public Methods
-        public void Save()
+        public override  void Save()
         {
-            OnSave.Invoke();
             ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, Data.Preferences.UserPreferences.PATH, true);
-            Close();
+            base.Save();
         }
         public override void Close()
         {
@@ -31,6 +29,9 @@ namespace HBP.UI.Preferences
         protected override void Initialize()
         {
             OnSetWindow.Invoke();
+        }
+        protected override void SetInteractable(bool interactable)
+        {
         }
         #endregion
     }

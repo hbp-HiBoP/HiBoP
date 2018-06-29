@@ -16,24 +16,15 @@ namespace HBP.UI
         #region Public Methods
         public void OpenNewProject()
         {
-            RectTransform obj = Instantiate(newProjectPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            obj.GetComponent<HBP.UI.NewProject>().Open();
+            NewProject.Open(true);
         }
         public void OpenLoadProject()
         {
-            RectTransform obj = Instantiate(loadProjectPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            obj.GetComponent<HBP.UI.OpenProject>().Open();
+            OpenProject.Open(true);
         }
         public void OpenSaveProjectAs()
         {
-            RectTransform obj = Instantiate(saveProjectAsPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            obj.GetComponent<HBP.UI.SaveProjectAs>().Open();
+            SaveProjectAs.Open(true);
         }
         #endregion
     }

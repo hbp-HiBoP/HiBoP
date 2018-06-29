@@ -14,7 +14,7 @@ namespace HBP.UI.Experience.Protocol
 
         [SerializeField] InputField m_NameInputField;
         [SerializeField] BlocList m_BlocList;
-        [SerializeField] Button m_SaveButton, m_AddBlocButton, m_RemoveBlocButton;
+        [SerializeField] Button m_AddBlocButton, m_RemoveBlocButton;
         #endregion
 
         #region Public Methods
@@ -34,14 +34,10 @@ namespace HBP.UI.Experience.Protocol
         }
         protected void OpenBlocModifier(d.Bloc bloc)
         {
-            if(bloc.MainEvent == null) bloc.Events.Add(new d.Event("Main", new int[0], d.Event.TypeEnum.Main));
-            RectTransform obj = Instantiate(blocModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            BlocModifier modifier = obj.GetComponent<BlocModifier>();
-            modifier.Open(bloc, true);
+            //if(bloc.MainEvent == null) bloc.Events.Add(new d.Event("Main", new int[0], d.Event.TypeEnum.Main));
+            BlocModifier modifier = BlocModifier.Open(bloc, true) as BlocModifier;
             modifier.OnClose.AddListener(() => OnCloseBlocModifier(modifier));
-            modifier.SaveEvent.AddListener(() => OnSaveBlocModifier(modifier));
+            modifier.OnSave.AddListener(() => OnSaveBlocModifier(modifier));
             m_Modifiers.Add(modifier);
         }
         protected void OnSaveBlocModifier(BlocModifier modifier)
@@ -67,7 +63,7 @@ namespace HBP.UI.Experience.Protocol
         protected override void Initialize()
         {
         }
-        protected override void SetInteractableFields(bool interactable)
+        protected override void SetInteractable(bool interactable)
         {
             m_NameInputField.interactable = interactable;
             m_SaveButton.interactable = interactable;

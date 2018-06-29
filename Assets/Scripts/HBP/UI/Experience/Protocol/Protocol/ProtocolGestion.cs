@@ -51,20 +51,20 @@ namespace HBP.UI.Experience.Protocol
                 AddItem(protocol);
             }
         }
-        public override void Open()
-        {
-            base.Open();
-            m_ProtocolList.SortByName(ProtocolList.Sorting.Descending);
-        }
         #endregion
 
         #region Private Methods
+        protected override void SetInteractable(bool interactable)
+        {
+            m_ProtocolList.Interactable = interactable;
+        }
         protected override void Initialize()
         {
             m_List = m_ProtocolList;
             m_ProtocolList.OnAction.AddListener((item, i) => OpenModifier(item, true));
             m_List.OnSelectionChanged.AddListener((g, b) => m_ProtocolsCounter.text = m_List.ObjectsSelected.Count().ToString());
             AddItem(ApplicationState.ProjectLoaded.Protocols.ToArray());
+            m_ProtocolList.SortByName(ProtocolList.Sorting.Descending);
         }
         #endregion
     }

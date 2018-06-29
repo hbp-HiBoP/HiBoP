@@ -17,7 +17,6 @@ namespace HBP.UI.Anatomy
 
         [SerializeField] InputField m_NameInputField;
 
-        [SerializeField] Button m_SaveButton;
         [SerializeField] Button m_AddButton;
         [SerializeField] Button m_RemoveButton;
 
@@ -57,11 +56,7 @@ namespace HBP.UI.Anatomy
         }
         public void OpenPatientModifier(Patient patientToModify)
         {
-            RectTransform obj = Instantiate(m_PatientModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            PatientModifier patientModifier = obj.GetComponent<PatientModifier>();
-            patientModifier.Open(patientToModify, false);
+            PatientModifier patientModifier = PatientModifier.Open(patientToModify, false) as PatientModifier;
             patientModifier.OnClose.AddListener(() => OnClosePatientModifier(patientModifier));
             m_Modifiers.Add(patientModifier);
         }
@@ -88,10 +83,9 @@ namespace HBP.UI.Anatomy
             m_ProjectPatientsList.OnSelectionChanged.AddListener((patient, i) => m_ProjectPatientsCounter.text = m_ProjectPatientsList.ObjectsSelected.Length.ToString());
             m_GroupPatientsList.OnSelectionChanged.AddListener((patient, i) => m_GroupPatientsCounter.text = m_GroupPatientsList.ObjectsSelected.Length.ToString());
         }
-        protected override void SetInteractableFields(bool interactable)
+        protected override void SetInteractable(bool interactable)
         {
             m_NameInputField.interactable = interactable;
-            m_SaveButton.interactable = interactable;
             m_RemoveButton.interactable = interactable;
             m_AddButton.interactable = interactable;
         }

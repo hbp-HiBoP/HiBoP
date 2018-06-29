@@ -65,7 +65,7 @@ namespace HBP.UI.Experience.Dataset
             m_NormalizationDropdown.onValueChanged.RemoveAllListeners();
             m_NormalizationDropdown.onValueChanged.AddListener((value) => objectToDisplay.Normalization = (d.DataInfo.NormalizationType) value);
         }
-        protected override void SetInteractableFields(bool interactable)
+        protected override void SetInteractable(bool interactable)
         {
             m_NameInputField.interactable = interactable;
             m_PatientDropdown.interactable = interactable;

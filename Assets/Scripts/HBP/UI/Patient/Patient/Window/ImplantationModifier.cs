@@ -11,7 +11,6 @@ namespace HBP.UI.Anatomy
         [SerializeField] InputField m_NameInputField;
         [SerializeField] FileSelector m_FileSelector;
         [SerializeField] FileSelector m_MarsAtlasSelector;
-        [SerializeField] Button m_OKButton;
         #endregion
 
         #region Private Methods
@@ -21,12 +20,11 @@ namespace HBP.UI.Anatomy
             m_FileSelector.File = objectToDisplay.File;
             m_MarsAtlasSelector.File = objectToDisplay.MarsAtlas;
         }
-        protected override void SetInteractableFields(bool interactable)
+        protected override void SetInteractable(bool interactable)
         {
             m_NameInputField.interactable = interactable;
             m_FileSelector.interactable = interactable;
             m_MarsAtlasSelector.interactable = interactable;
-            m_OKButton.interactable = interactable;
         }
         protected override void Initialize()
         {

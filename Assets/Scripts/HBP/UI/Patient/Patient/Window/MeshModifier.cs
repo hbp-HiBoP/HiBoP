@@ -15,7 +15,6 @@ namespace HBP.UI.Anatomy
         [SerializeField] SingleMeshGestion m_SingleMeshGestion;
         [SerializeField] LeftRightMeshGestion m_LeftRightMeshGestion;
         [SerializeField] FileSelector m_TransformationFileSelector;
-        [SerializeField] Button m_OKButton;
         #endregion
 
         #region Public Methods
@@ -32,7 +31,7 @@ namespace HBP.UI.Anatomy
                 Item = new LeftRightMesh(mesh.Name, mesh.Transformation, mesh.ID, mesh.LeftHemisphere, mesh.RightHemisphere, mesh.LeftMarsAtlasHemisphere, mesh.RightMarsAtlasHemisphere);
             }
             Item.RecalculateUsable();
-            SaveEvent.Invoke();
+            OnSave.Invoke();
             base.Close();
         }
         #endregion
@@ -45,14 +44,13 @@ namespace HBP.UI.Anatomy
             m_TypeDropdown.onValueChanged.Invoke(m_TypeDropdown.value);
             m_TransformationFileSelector.File = objectToDisplay.Transformation;
         }
-        protected override void SetInteractableFields(bool interactable)
+        protected override void SetInteractable(bool interactable)
         {
             m_NameInputField.interactable = interactable;
             m_TypeDropdown.interactable = interactable;
             m_SingleMeshGestion.interactable = interactable;
             m_LeftRightMeshGestion.interactable = interactable;
             m_TransformationFileSelector.interactable = interactable;
-            m_OKButton.interactable = interactable;
         }
         protected override void Initialize()
         {

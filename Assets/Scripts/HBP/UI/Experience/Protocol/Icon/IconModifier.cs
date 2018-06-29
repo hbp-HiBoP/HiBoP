@@ -1,16 +1,17 @@
 ﻿using UnityEngine.UI;
 using d = HBP.Data.Experience.Protocol;
 using Tools.Unity;
+using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
     public class IconModifier : ItemModifier<d.Icon>
     {
         #region Properties
-        InputField m_NameInputField;
-        InputField m_MinInputField;
-        InputField m_MaxInputField;
-        ImageSelector m_ImageSelector;
+        [SerializeField] InputField m_NameInputField;
+        [SerializeField] InputField m_MinInputField;
+        [SerializeField] InputField m_MaxInputField;
+        [SerializeField] ImageSelector m_ImageSelector;
         #endregion
 
         protected override void SetFields(d.Icon objectToDisplay)
@@ -26,20 +27,12 @@ namespace HBP.UI.Experience.Protocol
             m_ImageSelector.onValueChanged.AddListener(() => ItemTemp.IllustrationPath = m_ImageSelector.Path);
         }
 
-        protected override void SetInteractableFields(bool interactable)
+        protected override void SetInteractable(bool interactable)
         {
             m_NameInputField.interactable = interactable;
             m_MinInputField.interactable = interactable;
             m_MaxInputField.interactable = interactable;
             m_ImageSelector.interactable = interactable;
-        }
-
-        protected override void Initialize()
-        {
-            m_NameInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Name").GetComponentInChildren<InputField>();
-            m_MinInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Window").Find("Panel").Find("Min").GetComponentInChildren<InputField>();
-            m_MaxInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Window").Find("Panel").Find("Max").GetComponentInChildren<InputField>();
-            m_ImageSelector = transform.Find("Content").Find("General").Find("Fields").Find("Right").GetComponentInChildren<ImageSelector>();
         }
     }
 }

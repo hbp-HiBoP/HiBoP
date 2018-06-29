@@ -9,7 +9,7 @@ namespace HBP.UI.Visualization
 
         public void OpenVisualizationGestion()
         {
-            Instantiate(m_visualizationGestionPrefab, GameObject.Find("Windows").transform, false).GetComponent<VisualizationGestion>().Open();
+            VisualizationGestion.Open(true);
         }
     }
 }

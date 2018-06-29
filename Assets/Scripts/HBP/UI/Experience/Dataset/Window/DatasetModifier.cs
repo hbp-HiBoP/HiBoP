@@ -15,7 +15,7 @@ namespace HBP.UI.Experience.Dataset
 		[SerializeField] DataInfoList m_DataInfoList;
 		[SerializeField] InputField m_NameInputField;
         [SerializeField] Dropdown m_ProtocolDropdown;
-        [SerializeField] Button m_SaveButton, m_CreateButton, m_RemoveButton;
+        [SerializeField] Button m_CreateButton, m_RemoveButton;
         [SerializeField] GameObject m_DataInfoModifierPrefab;
         [SerializeField] Text m_Counter;
         List<DataInfoModifier> m_Modifiers = new List<DataInfoModifier>();
@@ -44,12 +44,8 @@ namespace HBP.UI.Experience.Dataset
         #region Protected Methods
         protected void OpenDataInfoModifier(d.DataInfo dataInfo)
         {
-            RectTransform obj = Instantiate(m_DataInfoModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            DataInfoModifier dataInfoModifier = obj.GetComponent<DataInfoModifier>();
-            dataInfoModifier.Open(dataInfo, true);
-            dataInfoModifier.SaveEvent.AddListener(() => OnSaveDataInfoModifier(dataInfoModifier));
+            DataInfoModifier dataInfoModifier = DataInfoModifier.Open(dataInfo, Interactable) as DataInfoModifier;
+            dataInfoModifier.OnSave.AddListener(() => OnSaveDataInfoModifier(dataInfoModifier));
             dataInfoModifier.OnClose.AddListener(() => OnCloseDataInfoModifier(dataInfoModifier));
             dataInfoModifier.CanSaveEvent.AddListener(() => OnCanSave(dataInfoModifier));
             m_Modifiers.Add(dataInfoModifier);
@@ -94,14 +90,10 @@ namespace HBP.UI.Experience.Dataset
             m_DataInfoList.OnSelectionChanged.AddListener((mesh, i) => m_Counter.text = m_DataInfoList.ObjectsSelected.Length.ToString());
             m_DataInfoList.SortByName(DataInfoList.Sorting.Descending);
         }
-        protected override void Initialize()
-        {
-        }
-        protected override void SetInteractableFields(bool interactable)
+        protected override void SetInteractable(bool interactable)
         {
             m_NameInputField.interactable = interactable;
             m_ProtocolDropdown.interactable = interactable;
-            m_SaveButton.interactable = interactable;
             m_CreateButton.interactable = interactable;
             m_RemoveButton.interactable = interactable;
             m_DataInfoList.Interactable = interactable;

@@ -66,13 +66,9 @@ namespace HBP.UI.Anatomy
         #region Private Methods
         protected void OpenModifier(T item, bool interactable)
         {
-            RectTransform obj = Instantiate(m_ModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            ItemModifier<T> modifier = obj.GetComponent<ItemModifier<T>>();
-            modifier.Open(item, interactable);
+            ItemModifier<T> modifier = ItemModifier<T>.Open(item, true);
             modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
-            modifier.SaveEvent.AddListener(() => OnSaveModifier(modifier));
+            modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
             m_Modifiers.Add(modifier);
         }
         void OnCloseModifier(ItemModifier<T> modifier)

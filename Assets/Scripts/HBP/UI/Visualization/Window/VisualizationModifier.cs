@@ -23,7 +23,7 @@ namespace HBP.UI.Visualization
         [SerializeField] ColumnModifier m_ColumnModifier;
         [SerializeField] PatientList m_VisualizationPatientsList;
         [SerializeField] PatientList m_ProjectPatientsList;
-        [SerializeField] Button m_AddPatientButton, m_RemovePatientButton, m_AddGroupButton, m_RemoveGroupButton, m_SaveButton;
+        [SerializeField] Button m_AddPatientButton, m_RemovePatientButton, m_AddGroupButton, m_RemoveGroupButton;
         #endregion
 
         #region Public Methods
@@ -108,35 +108,23 @@ namespace HBP.UI.Visualization
         }
         public void OpenPatientModifier(Patient patientToModify)
         {
-            RectTransform obj = Instantiate(m_PatientModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            PatientModifier patientModifier = obj.GetComponent<PatientModifier>();
-            patientModifier.Open(patientToModify, false);
+            PatientModifier patientModifier = PatientModifier.Open(patientToModify, Interactable) as PatientModifier;
             patientModifier.OnClose.AddListener(() => OnClosePatientModifier(patientModifier));
             m_PatientModifiers.Add(patientModifier);
         }
         public void OpenAddGroupWindow()
         {
-            SetInteractable(false);
-            Transform groupsSelectionTransform = Instantiate(m_AddGroupPrefab, GameObject.Find("Windows").transform).GetComponent<Transform>();
-            groupsSelectionTransform.localPosition = Vector3.zero;
-            GroupSelection groupSelection = groupsSelectionTransform.GetComponent<GroupSelection>();
-            groupSelection.Open();
-            groupSelection.GroupsSelectedEvent.AddListener((groups) => AddGroups(groups));
-            groupSelection.OnClose.AddListener(() => OnCloseGroupSelection(groupSelection));
-            m_GroupSelectionModifiers.Add(groupSelection);
+            //GroupSelection groupSelection = GroupSelection.Open() as GroupSelection;
+            //groupSelection.GroupsSelectedEvent.AddListener((groups) => AddGroups(groups));
+            //groupSelection.OnClose.AddListener(() => OnCloseGroupSelection(groupSelection));
+            //m_GroupSelectionModifiers.Add(groupSelection);
         }
         public void OpenRemoveGroupWindow()
         {
-            SetInteractable(false);
-            Transform groupsSelectionTransform = Instantiate(m_RemoveGroupPrefab, GameObject.Find("Windows").transform).GetComponent<Transform>();
-            groupsSelectionTransform.localPosition = Vector3.zero;
-            GroupSelection groupSelection = groupsSelectionTransform.GetComponent<GroupSelection>();
-            groupSelection.Open();
-            groupSelection.GroupsSelectedEvent.AddListener((groups) => RemoveGroups(groups));
-            groupSelection.OnClose.AddListener(() => OnCloseGroupSelection(groupSelection));
-            m_GroupSelectionModifiers.Add(groupSelection);
+            //GroupSelection groupSelection = GroupSelection.Open() as GroupSelection;
+            //groupSelection.GroupsSelectedEvent.AddListener((groups) => RemoveGroups(groups));
+            //groupSelection.OnClose.AddListener(() => OnCloseGroupSelection(groupSelection));
+            //m_GroupSelectionModifiers.Add(groupSelection);
         }
         public void RemovePatients()
         {
@@ -177,17 +165,6 @@ namespace HBP.UI.Visualization
                 m_ColumnModifier.SetTab(l_column, ItemTemp.Patients.ToArray());
             }
         }
-        protected override void Initialize()
-        {
-        }
-        protected override void SetInteractableFields(bool interactable)
-        {
-            m_AddPatientButton.interactable = interactable;
-            m_RemovePatientButton.interactable = interactable;
-            m_AddGroupButton.interactable = interactable;
-            m_NameInputField.interactable = interactable;
-            m_SaveButton.interactable = interactable;
-        }
         protected void SetName(Data.Visualization.Visualization objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
@@ -219,6 +196,13 @@ namespace HBP.UI.Visualization
             {
                 m_TabGestion.AddTab();
             }
+        }
+        protected override void SetInteractable(bool interactable)
+        {
+            m_AddPatientButton.interactable = interactable;
+            m_RemovePatientButton.interactable = interactable;
+            m_AddGroupButton.interactable = interactable;
+            m_NameInputField.interactable = interactable;
         }
         #endregion
     }

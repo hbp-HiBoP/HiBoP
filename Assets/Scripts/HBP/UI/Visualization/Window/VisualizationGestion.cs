@@ -7,7 +7,7 @@ namespace HBP.UI.Visualization
     public class VisualizationGestion : ItemGestion<Data.Visualization.Visualization>
     {
         #region Properties
-        [SerializeField] Button m_AddButton, m_RemoveButton, m_OKButton, m_DisplayButton;
+        [SerializeField] Button m_AddButton, m_RemoveButton, m_DisplayButton;
         [SerializeField] VisualizationList m_VisualizationList;
         [SerializeField] Text m_CounterText;
         #endregion
@@ -23,17 +23,15 @@ namespace HBP.UI.Visualization
             ApplicationState.Module3D.LoadScenes(m_List.ObjectsSelected);
             base.Close();
         }
-        public override void SetInteractable(bool interactable)
-        {
-            base.SetInteractable(interactable);
-            m_AddButton.interactable = interactable;
-            m_RemoveButton.interactable = interactable;
-            m_OKButton.interactable = interactable;
-            m_VisualizationList.Interactable = interactable;
-        }
         #endregion
 
         #region Private Methods
+        protected override void SetInteractable(bool interactable)
+        {
+            m_AddButton.interactable = interactable;
+            m_RemoveButton.interactable = interactable;
+            m_VisualizationList.Interactable = interactable;
+        }
         protected override void Initialize()
         {
             m_List = m_VisualizationList;

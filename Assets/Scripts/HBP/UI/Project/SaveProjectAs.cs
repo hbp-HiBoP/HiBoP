@@ -27,6 +27,11 @@ namespace HBP.UI
             m_NameInputField.text = ApplicationState.ProjectLoaded.Settings.Name;
             m_LocationFolderSelector.Folder = ApplicationState.ProjectLoadedLocation;
         }
+        protected override void SetInteractable(bool interactable)
+        {
+            m_NameInputField.interactable = interactable;
+            m_LocationFolderSelector.interactable = interactable;
+        }
         #endregion
     }
 }

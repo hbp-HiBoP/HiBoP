@@ -49,13 +49,9 @@ namespace HBP.UI
         protected virtual void OpenModifier(T item,bool interactable)
         {
             m_List.DeselectAll();
-            RectTransform obj = Instantiate(m_ModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            ItemModifier<T> modifier = obj.GetComponent<ItemModifier<T>>();
-            modifier.Open(item, interactable);
+            ItemModifier<T> modifier = ItemModifier<T>.Open(item, interactable);
             modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
-            modifier.SaveEvent.AddListener(() => OnSaveModifier(modifier));
+            modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
             m_Modifiers.Add(modifier);
         }
         protected virtual void OnCloseModifier(ItemModifier<T> modifier)

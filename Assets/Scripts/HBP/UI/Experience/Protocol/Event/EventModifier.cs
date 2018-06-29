@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 using d = HBP.Data.Experience.Protocol;
 
@@ -7,9 +8,9 @@ namespace HBP.UI.Experience.Protocol
     public class EventModifier : ItemModifier<d.Event>
     {
         #region Properties
-        InputField m_NameInputField;
-        InputField m_CodesInputField;
-        Dropdown m_TypeDropdown;
+        [SerializeField] InputField m_NameInputField;
+        [SerializeField] InputField m_CodesInputField;
+        [SerializeField] Dropdown m_TypeDropdown;
         #endregion
 
         protected override void SetFields(d.Event objectToDisplay)
@@ -35,17 +36,10 @@ namespace HBP.UI.Experience.Protocol
             if (objectToDisplay.Type == d.Event.TypeEnum.Main) m_TypeDropdown.interactable = false;
         }
 
-        protected override void SetInteractableFields(bool interactable)
+        protected override void SetInteractable(bool interactable)
         {
             m_NameInputField.interactable = interactable;
             m_CodesInputField.interactable = interactable;
-        }
-
-        protected override void Initialize()
-        {
-            m_NameInputField = transform.Find("Content").Find("General").Find("Name").GetComponentInChildren<InputField>();
-            m_CodesInputField = transform.Find("Content").Find("General").Find("Codes").GetComponentInChildren<InputField>();
-            m_TypeDropdown = transform.Find("Content").Find("General").Find("Type").GetComponentInChildren<Dropdown>();
         }
     }
 }

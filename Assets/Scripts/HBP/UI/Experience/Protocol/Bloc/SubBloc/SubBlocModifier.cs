@@ -12,7 +12,6 @@ namespace HBP.UI.Experience.Protocol
         // General
         [SerializeField] InputField m_NameInputField;
         [SerializeField] InputField m_PositionInputField;
-        [SerializeField] Button m_SaveButton;
 
         // Timeline
         [SerializeField] InputField m_StartWindowInputField;
@@ -29,6 +28,7 @@ namespace HBP.UI.Experience.Protocol
         // Icons
         [SerializeField] GameObject m_IconModifierPrefab;
         List<IconModifier> m_IconModifiers = new List<IconModifier>();
+        [SerializeField] IconList m_IconList;
         [SerializeField] Button m_AddIconButton, m_RemoveIconButton;
 
         // Treatments
@@ -43,14 +43,14 @@ namespace HBP.UI.Experience.Protocol
         {
             foreach (var modifier in m_EventModifiers) modifier.Close();
             foreach (var modifier in m_IconModifiers) modifier.Close();
-            foreach (var modifier in m_TreatmentModifiers) modifier.Close();
+            //foreach (var modifier in m_TreatmentModifiers) modifier.Close();
             base.Close();
         }
         public override void Save()
         {
             foreach (var modifier in m_EventModifiers) modifier.Save();
             foreach (var modifier in m_IconModifiers) modifier.Save();
-            foreach (var modifier in m_TreatmentModifiers) modifier.Save();
+            //foreach (var modifier in m_TreatmentModifiers) modifier.Save();
             base.Save();
         }
         #endregion
@@ -59,10 +59,8 @@ namespace HBP.UI.Experience.Protocol
         // Events
         protected void OpenEventModifier(d.Event eventToModify)
         {
-            GameObject go = Instantiate(m_EventModifierPrefab, GameObject.Find("Windows").transform);
-            go.transform.localPosition = Vector3.zero;
-            EventModifier modifier = go.GetComponent<EventModifier>();
-            modifier.Open(eventToModify, interactable);
+            EventModifier modifier = EventModifier.Open(eventToModify, Interactable) as EventModifier;
+            m_EventModifiers.Add(modifier);
         }
         protected void OnSaveEventModifier(EventModifier modifier)
         {
@@ -81,12 +79,12 @@ namespace HBP.UI.Experience.Protocol
         }
         protected void OnSaveIconModifier(IconModifier modifier)
         {
-            if (!ItemTemp.Events.Contains(modifier.Item)) ItemTemp.Events.Add(modifier.Item);
-            m_EventList.Objects = ItemTemp.Events.ToArray();
+            if (!ItemTemp.Scenario.Icons.Contains(modifier.Item)) ItemTemp.Scenario.Icons.Add(modifier.Item);
+            m_IconList.Objects = ItemTemp.Scenario.Icons.ToArray();
         }
         protected void OnCloseIconModifier(IconModifier modifier)
         {
-            m_EventModifiers.Remove(modifier);
+            m_IconModifiers.Remove(modifier);
         }
 
         // Treatments
@@ -104,7 +102,7 @@ namespace HBP.UI.Experience.Protocol
         //    m_EventModifiers.Remove(modifier);
         //}
 
-        protected override void SetFields(d.Protocol objectToDisplay)
+        protected override void SetFields(d.SubBloc objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_NameInputField.onEndEdit.AddListener((value) => ItemTemp.Name = value);
@@ -115,12 +113,11 @@ namespace HBP.UI.Experience.Protocol
         protected override void Initialize()
         {
         }
-        protected override void SetInteractableFields(bool interactable)
+        protected override void SetInteractable(bool interactable)
         {
             m_NameInputField.interactable = interactable;
-            m_SaveButton.interactable = interactable;
             m_AddEventButton.interactable = interactable;
-            m_RemoveBlocButton.interactable = interactable;
+            m_RemoveEventButton.interactable = interactable;
         }
         #endregion
     }
