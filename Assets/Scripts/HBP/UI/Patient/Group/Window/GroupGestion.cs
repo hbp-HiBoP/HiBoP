@@ -31,7 +31,7 @@ namespace HBP.UI.Anatomy
         #endregion
 
         #region Protected Methods
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             m_List = m_GroupList;
             m_GroupList.OnAction.AddListener((item,i) => OpenModifier(item,true));

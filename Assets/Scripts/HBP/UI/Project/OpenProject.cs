@@ -48,7 +48,7 @@ namespace HBP.UI
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             m_ProjectList.OnSelectionChanged.AddListener((projectInfo,selected) => m_LoadingButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));

@@ -89,7 +89,7 @@ namespace HBP.UI.Anatomy
                 if (!Items.Contains(patient)) m_DatabaseList.Add(patient);
             }
         }
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             // Database list.            
             m_DatabaseFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayDataBasePatients()));

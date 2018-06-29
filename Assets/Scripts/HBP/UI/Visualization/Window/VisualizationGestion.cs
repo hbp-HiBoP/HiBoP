@@ -34,7 +34,7 @@ namespace HBP.UI.Visualization
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             m_List = m_VisualizationList;
             m_VisualizationList.OnAction.AddListener((visu, type) => OpenModifier(visu,true));

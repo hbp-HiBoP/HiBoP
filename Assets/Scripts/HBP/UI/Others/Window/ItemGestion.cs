@@ -54,7 +54,7 @@ namespace HBP.UI
             obj.localPosition = new Vector3(0, 0, 0);
             ItemModifier<T> modifier = obj.GetComponent<ItemModifier<T>>();
             modifier.Open(item, interactable);
-            modifier.CloseEvent.AddListener(() => OnCloseModifier(modifier));
+            modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
             modifier.SaveEvent.AddListener(() => OnSaveModifier(modifier));
             m_Modifiers.Add(modifier);
         }

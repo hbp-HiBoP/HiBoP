@@ -45,7 +45,7 @@ namespace HBP.UI
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
 		{
             m_NameInputField.text = ApplicationState.UserPreferences.General.Project.DefaultName;
             m_ProjectLocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocation;

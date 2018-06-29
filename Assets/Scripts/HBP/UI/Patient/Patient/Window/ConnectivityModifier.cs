@@ -25,7 +25,7 @@ namespace HBP.UI.Anatomy
             m_FileSelector.interactable = interactable;
             m_OKButton.interactable = interactable;
         }
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             m_NameInputField.onValueChanged.RemoveAllListeners();
             m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);

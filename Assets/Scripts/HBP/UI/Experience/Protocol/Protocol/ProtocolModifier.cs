@@ -40,7 +40,7 @@ namespace HBP.UI.Experience.Protocol
             obj.localPosition = new Vector3(0, 0, 0);
             BlocModifier modifier = obj.GetComponent<BlocModifier>();
             modifier.Open(bloc, true);
-            modifier.CloseEvent.AddListener(() => OnCloseBlocModifier(modifier));
+            modifier.OnClose.AddListener(() => OnCloseBlocModifier(modifier));
             modifier.SaveEvent.AddListener(() => OnSaveBlocModifier(modifier));
             m_Modifiers.Add(modifier);
         }
@@ -64,7 +64,7 @@ namespace HBP.UI.Experience.Protocol
             //blocGrid.Display(objectToDisplay.Blocs.ToArray());
             //blocGrid.OnAction.AddListener((bloc, i) => OnListEvent(bloc, i));
         }
-        protected override void SetWindow()
+        protected override void Initialize()
         {
         }
         protected override void SetInteractableFields(bool interactable)

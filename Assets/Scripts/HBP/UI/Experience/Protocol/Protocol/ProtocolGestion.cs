@@ -59,7 +59,7 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             m_List = m_ProtocolList;
             m_ProtocolList.OnAction.AddListener((item, i) => OpenModifier(item, true));

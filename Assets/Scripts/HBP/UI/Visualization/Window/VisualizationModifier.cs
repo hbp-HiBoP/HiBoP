@@ -113,7 +113,7 @@ namespace HBP.UI.Visualization
             obj.localPosition = new Vector3(0, 0, 0);
             PatientModifier patientModifier = obj.GetComponent<PatientModifier>();
             patientModifier.Open(patientToModify, false);
-            patientModifier.CloseEvent.AddListener(() => OnClosePatientModifier(patientModifier));
+            patientModifier.OnClose.AddListener(() => OnClosePatientModifier(patientModifier));
             m_PatientModifiers.Add(patientModifier);
         }
         public void OpenAddGroupWindow()
@@ -124,7 +124,7 @@ namespace HBP.UI.Visualization
             GroupSelection groupSelection = groupsSelectionTransform.GetComponent<GroupSelection>();
             groupSelection.Open();
             groupSelection.GroupsSelectedEvent.AddListener((groups) => AddGroups(groups));
-            groupSelection.CloseEvent.AddListener(() => OnCloseGroupSelection(groupSelection));
+            groupSelection.OnClose.AddListener(() => OnCloseGroupSelection(groupSelection));
             m_GroupSelectionModifiers.Add(groupSelection);
         }
         public void OpenRemoveGroupWindow()
@@ -135,7 +135,7 @@ namespace HBP.UI.Visualization
             GroupSelection groupSelection = groupsSelectionTransform.GetComponent<GroupSelection>();
             groupSelection.Open();
             groupSelection.GroupsSelectedEvent.AddListener((groups) => RemoveGroups(groups));
-            groupSelection.CloseEvent.AddListener(() => OnCloseGroupSelection(groupSelection));
+            groupSelection.OnClose.AddListener(() => OnCloseGroupSelection(groupSelection));
             m_GroupSelectionModifiers.Add(groupSelection);
         }
         public void RemovePatients()
@@ -177,7 +177,7 @@ namespace HBP.UI.Visualization
                 m_ColumnModifier.SetTab(l_column, ItemTemp.Patients.ToArray());
             }
         }
-        protected override void SetWindow()
+        protected override void Initialize()
         {
         }
         protected override void SetInteractableFields(bool interactable)

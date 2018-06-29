@@ -69,7 +69,7 @@ namespace HBP.UI.Experience.Protocol
             EventModifier eventModifier = obj.GetComponent<EventModifier>();
             eventModifier.Open(event_, true);
             eventModifier.SaveEvent.AddListener(() => OnSaveEventModifier(eventModifier));
-            eventModifier.CloseEvent.AddListener(() => OnCloseEventModifier(eventModifier));
+            eventModifier.OnClose.AddListener(() => OnCloseEventModifier(eventModifier));
             m_EventModifiers.Add(eventModifier);
         }
         protected void OnSaveEventModifier(EventModifier eventModifier)
@@ -103,7 +103,7 @@ namespace HBP.UI.Experience.Protocol
             IconModifier iconModifier = obj.GetComponent<IconModifier>();
             iconModifier.Open(icon, true);
             iconModifier.SaveEvent.AddListener(() => OnSaveIconModifier(iconModifier));
-            iconModifier.CloseEvent.AddListener(() => OnCloseIconModifier(iconModifier));
+            iconModifier.OnClose.AddListener(() => OnCloseIconModifier(iconModifier));
             m_IconModifiers.Add(iconModifier);
         }
         protected void OnSaveIconModifier(IconModifier iconModifier)
@@ -154,7 +154,7 @@ namespace HBP.UI.Experience.Protocol
             m_IconList.Objects = ItemTemp.Scenario.Icons.ToArray();
             m_IconList.OnAction.AddListener((icon, i) => OpenIconModifier(icon));
         }
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             // General.
             m_NameInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Name").GetComponentInChildren<InputField>();

@@ -23,7 +23,7 @@ namespace HBP.UI.Preferences
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             m_NameInputField.text = ApplicationState.ProjectLoaded.Settings.Name;
             m_PatientsDatabaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;

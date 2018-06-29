@@ -50,7 +50,7 @@ namespace HBP.UI.Experience.Dataset
             DataInfoModifier dataInfoModifier = obj.GetComponent<DataInfoModifier>();
             dataInfoModifier.Open(dataInfo, true);
             dataInfoModifier.SaveEvent.AddListener(() => OnSaveDataInfoModifier(dataInfoModifier));
-            dataInfoModifier.CloseEvent.AddListener(() => OnCloseDataInfoModifier(dataInfoModifier));
+            dataInfoModifier.OnClose.AddListener(() => OnCloseDataInfoModifier(dataInfoModifier));
             dataInfoModifier.CanSaveEvent.AddListener(() => OnCanSave(dataInfoModifier));
             m_Modifiers.Add(dataInfoModifier);
         }
@@ -94,7 +94,7 @@ namespace HBP.UI.Experience.Dataset
             m_DataInfoList.OnSelectionChanged.AddListener((mesh, i) => m_Counter.text = m_DataInfoList.ObjectsSelected.Length.ToString());
             m_DataInfoList.SortByName(DataInfoList.Sorting.Descending);
         }
-        protected override void SetWindow()
+        protected override void Initialize()
         {
         }
         protected override void SetInteractableFields(bool interactable)

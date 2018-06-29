@@ -29,7 +29,7 @@ namespace HBP.UI.Anatomy
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             groupList = transform.Find("Content").Find("Groups").Find("List").Find("Display").GetComponent<GroupList>();
             groupList.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
@@ -44,7 +44,7 @@ namespace HBP.UI.Anatomy
             obj.localPosition = new Vector3(0, 0, 0);
             GroupModifier modifier = obj.GetComponent<GroupModifier>();
             modifier.Open(item, false);
-            modifier.CloseEvent.AddListener(() => OnCloseModifier(modifier));
+            modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
             m_Modifiers.Add(modifier);
         }
         protected virtual void OnCloseModifier(GroupModifier modifier)

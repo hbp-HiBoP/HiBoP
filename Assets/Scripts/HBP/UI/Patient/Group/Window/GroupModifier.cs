@@ -62,7 +62,7 @@ namespace HBP.UI.Anatomy
             obj.localPosition = new Vector3(0, 0, 0);
             PatientModifier patientModifier = obj.GetComponent<PatientModifier>();
             patientModifier.Open(patientToModify, false);
-            patientModifier.CloseEvent.AddListener(() => OnClosePatientModifier(patientModifier));
+            patientModifier.OnClose.AddListener(() => OnClosePatientModifier(patientModifier));
             m_Modifiers.Add(patientModifier);
         }
         #endregion
@@ -83,7 +83,7 @@ namespace HBP.UI.Anatomy
             m_ProjectPatientsList.OnAction.AddListener((patient, i) => OpenPatientModifier(patient));
             m_ProjectPatientsList.SortByName(PatientList.Sorting.Descending);
         }
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             m_ProjectPatientsList.OnSelectionChanged.AddListener((patient, i) => m_ProjectPatientsCounter.text = m_ProjectPatientsList.ObjectsSelected.Length.ToString());
             m_GroupPatientsList.OnSelectionChanged.AddListener((patient, i) => m_GroupPatientsCounter.text = m_GroupPatientsList.ObjectsSelected.Length.ToString());

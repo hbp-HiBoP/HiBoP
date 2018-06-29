@@ -64,7 +64,7 @@ namespace HBP.UI.Anatomy
             m_ConnectivityGestion.Set(objectToDisplay);
             m_OthersGestion.Set(objectToDisplay);
         }
-        protected override void SetWindow()
+        protected override void Initialize()
         {
         }
         protected override void SetInteractableFields(bool interactable)

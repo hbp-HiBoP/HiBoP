@@ -41,7 +41,7 @@ namespace HBP.UI.Experience.Protocol
             m_CodesInputField.interactable = interactable;
         }
 
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             m_NameInputField = transform.Find("Content").Find("General").Find("Name").GetComponentInChildren<InputField>();
             m_CodesInputField = transform.Find("Content").Find("General").Find("Codes").GetComponentInChildren<InputField>();

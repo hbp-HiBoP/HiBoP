@@ -34,7 +34,7 @@ namespace HBP.UI.Experience.Protocol
             m_ImageSelector.interactable = interactable;
         }
 
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             m_NameInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Name").GetComponentInChildren<InputField>();
             m_MinInputField = transform.Find("Content").Find("General").Find("Fields").Find("Left").Find("Window").Find("Panel").Find("Min").GetComponentInChildren<InputField>();

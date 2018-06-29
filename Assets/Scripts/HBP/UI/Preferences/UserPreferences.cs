@@ -28,7 +28,7 @@ namespace HBP.UI.Preferences
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             OnSetWindow.Invoke();
         }

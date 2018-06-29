@@ -39,7 +39,7 @@ namespace HBP.UI.Experience.Dataset
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
 		{
             m_List = m_DatasetList;
             (m_List as DatasetList).OnAction.AddListener((dataset, i) => OpenModifier(dataset,true));

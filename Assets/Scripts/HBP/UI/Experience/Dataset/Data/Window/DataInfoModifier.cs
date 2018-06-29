@@ -74,7 +74,7 @@ namespace HBP.UI.Experience.Dataset
             m_POSFileSelector.interactable = interactable;
             m_NormalizationDropdown.interactable = interactable;
         }
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             CanSaveEvent = new UnityEvent();
         }
