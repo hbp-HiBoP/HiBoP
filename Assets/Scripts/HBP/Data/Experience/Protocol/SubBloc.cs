@@ -138,7 +138,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>object cloned.</returns>
         public object Clone()
         {
-            return new SubBloc(Name, Position, Window, Baseline, Events.ToArray().DeepClone().ToList(), Scenario.Clone() as Scenario, Treatments.ToArray().DeepClone().ToList(), ID.Clone() as string);
+            return new SubBloc(Name, Position, Window, Baseline, Events.ToArray().DeepClone(), Scenario.Clone() as Scenario, Treatments.ToArray().DeepClone(), ID.Clone() as string);
         }
         /// <summary>
         /// Operator Equals.

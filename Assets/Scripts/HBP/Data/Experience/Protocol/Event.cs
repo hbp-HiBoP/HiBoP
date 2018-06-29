@@ -10,7 +10,7 @@ namespace HBP.Data.Experience.Protocol
     * \author Adrien Gannerie
     * \version 1.0
     * \date 09 janvier 2017
-    * \brief Protoocol Event.
+    * \brief Protocol Event.
     * 
     * \details Class which define a event in a protocol which contains :
     *     - \a Label.

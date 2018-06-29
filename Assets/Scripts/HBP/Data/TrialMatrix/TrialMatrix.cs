@@ -68,23 +68,24 @@ namespace HBP.Data.TrialMatrix
         #region Private Method
         void Standardize(Bloc[] blocs, Module3D.Site site)
         {
-            // Initiate index.
-            int columnNumber = (from bloc in blocs select bloc.ProtocolBloc.Position.Column).Max();
-            int[] beforeByColumns = new int[columnNumber];
-            int[] afterByColumns = new int[columnNumber];
-            for (int c = 0; c < columnNumber; c++)
-            {
-                beforeByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.Position.Column - 1 == c) select bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
-                afterByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.Position.Column - 1 == c) select bloc.Trials.First().Bloc.ValuesBySite.First().Value.Length - bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
-            }
+            // TODO
+            //// Initiate index.
+            //int columnNumber = (from bloc in blocs select bloc.ProtocolBloc.Position.Column).Max();
+            //int[] beforeByColumns = new int[columnNumber];
+            //int[] afterByColumns = new int[columnNumber];
+            //for (int c = 0; c < columnNumber; c++)
+            //{
+            //    beforeByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.Position.Column - 1 == c) select bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
+            //    afterByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.Position.Column - 1 == c) select bloc.Trials.First().Bloc.ValuesBySite.First().Value.Length - bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
+            //}
 
-            // Standardize blocs
-            foreach (Bloc bloc in blocs)
-            {
-                int col = bloc.ProtocolBloc.Position.Column - 1;
-                bloc.SpacesBefore = beforeByColumns[col] - bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent];
-                bloc.SpacesAfter = afterByColumns[col] - (bloc.Trials.First().Bloc.ValuesBySite.First().Value.Length - bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]);
-            }
+            //// Standardize blocs
+            //foreach (Bloc bloc in blocs)
+            //{
+            //    int col = bloc.ProtocolBloc.Position.Column - 1;
+            //    bloc.SpacesBefore = beforeByColumns[col] - bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent];
+            //    bloc.SpacesAfter = afterByColumns[col] - (bloc.Trials.First().Bloc.ValuesBySite.First().Value.Length - bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]);
+            //}
         }
         void Normalize(Bloc[] blocs, Module3D.Site site)
         {
@@ -98,14 +99,16 @@ namespace HBP.Data.TrialMatrix
         }
         Vector2[] CalculateTimeLimitsByColumn(Bloc[] blocs)
         {
-            int columnNumber = (from bloc in blocs select bloc.ProtocolBloc.Position.Column).Max();
-            Vector2[] limits = new Vector2[columnNumber];
-            for (int i = 0; i < columnNumber; i++)
-            {
-                IEnumerable<Bloc> blocsInColumn = blocs.Where((b) => b.ProtocolBloc.Position.Column - 1 == i);
-                limits[i] = new Vector2(blocsInColumn.Min((b) => b.ProtocolBloc.Window.Start), blocsInColumn.Max((b) => b.ProtocolBloc.Window.End));
-            }
-            return limits;
+            // TODO
+            //int columnNumber = (from bloc in blocs select bloc.ProtocolBloc.Position.Column).Max();
+            //Vector2[] limits = new Vector2[columnNumber];
+            //for (int i = 0; i < columnNumber; i++)
+            //{
+            //    IEnumerable<Bloc> blocsInColumn = blocs.Where((b) => b.ProtocolBloc.Position.Column - 1 == i);
+            //    limits[i] = new Vector2(blocsInColumn.Min((b) => b.ProtocolBloc.Window.Start), blocsInColumn.Max((b) => b.ProtocolBloc.Window.End));
+            //}
+            //return limits;
+            return new Vector2[0];
         }
         Vector2 CalculateValueLimit(IEnumerable<float> values)
         {

@@ -99,45 +99,46 @@ namespace HBP.UI.TrialMatrix
         #region Public Methods
         public void Set(data.TrialMatrix trialMatrix , Texture2D colorMap, Vector2 limits = new Vector2())
         {
-            m_Data = trialMatrix;
+            // TODO
+            //m_Data = trialMatrix;
 
-            Title = trialMatrix.Title;
-            ColorMap = colorMap;
-            UsePrecalculatedLimits = limits == new Vector2();
+            //Title = trialMatrix.Title;
+            //ColorMap = colorMap;
+            //UsePrecalculatedLimits = limits == new Vector2();
 
-            //Organize array
-            data.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.ProtocolBloc.Position.Row).ThenBy(t => t.ProtocolBloc.Position.Column).ToArray();
+            ////Organize array
+            //data.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.ProtocolBloc.Position.Row).ThenBy(t => t.ProtocolBloc.Position.Column).ToArray();
 
-            // Set Legends
-            OnChangeTimeLimits.Invoke(trialMatrix.TimeLimitsByColumn);
+            //// Set Legends
+            //OnChangeTimeLimits.Invoke(trialMatrix.TimeLimitsByColumn);
 
-            //Separate blocs by line
-            List<data.Bloc[]> l_lines = new List<data.Bloc[]>();
-            foreach (var bloc in l_blocs)
-            {
-                if (!l_lines.Exists((a) => a.Contains(bloc)))
-                {
-                    l_lines.Add(System.Array.FindAll(l_blocs, x => x.ProtocolBloc.Position.Row == bloc.ProtocolBloc.Position.Row));
-                }
-            }
+            ////Separate blocs by line
+            //List<data.Bloc[]> l_lines = new List<data.Bloc[]>();
+            //foreach (var bloc in l_blocs)
+            //{
+            //    if (!l_lines.Exists((a) => a.Contains(bloc)))
+            //    {
+            //        l_lines.Add(System.Array.FindAll(l_blocs, x => x.ProtocolBloc.Position.Row == bloc.ProtocolBloc.Position.Row));
+            //    }
+            //}
 
 
-            int maxBlocByRow = 0;
-            foreach (data.Bloc[] line in l_lines)
-            {
-                    int max = line[line.Length - 1].ProtocolBloc.Position.Column;
-                    if (max > maxBlocByRow)
-                    {
-                        maxBlocByRow = max;
-                    }
-            }
+            //int maxBlocByRow = 0;
+            //foreach (data.Bloc[] line in l_lines)
+            //{
+            //        int max = line[line.Length - 1].ProtocolBloc.Position.Column;
+            //        if (max > maxBlocByRow)
+            //        {
+            //            maxBlocByRow = max;
+            //        }
+            //}
 
-            //Generate Line
-            for (int i = 0; i < l_lines.Count; i++)
-            {
-                AddLine(l_lines[i], maxBlocByRow, m_Colormap, Limits);
-            }
-            SelectAllLines();
+            ////Generate Line
+            //for (int i = 0; i < l_lines.Count; i++)
+            //{
+            //    AddLine(l_lines[i], maxBlocByRow, m_Colormap, Limits);
+            //}
+            //SelectAllLines();
         }
         public void SelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc,bool additive)
         {

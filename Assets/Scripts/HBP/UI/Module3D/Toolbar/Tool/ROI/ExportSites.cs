@@ -98,38 +98,39 @@ namespace HBP.UI.Module3D.Tools
 
             for (int i = 0; i < length; ++i)
             {
-                Site site = sites[i];
-                m_Progress = (float)i / (length - 1);
-                m_Message = "Exporting " + site.Information.FullCorrectedID;
-                if (!(site.State.IsExcluded || site.State.IsBlackListed || site.State.IsMasked || site.State.IsOutOfROI))
-                {
-                    Vector3 sitePosition = sitePositions[i];
-                    string EEG = "", POS = "", mainEventName = "", code = "";
-                    if (column is Column3DIEEG)
-                    {
-                        Column3DIEEG columnIEEG = (Column3DIEEG)column;
-                        DataInfo dataInfo = dataInfoByPatient[site.Information.Patient];
-                        EEG = dataInfo.EEG;
-                        POS = dataInfo.POS;
-                        Bloc bloc = columnIEEG.ColumnData.Bloc;
-                        Data.Experience.Protocol.Event mainEvent = bloc.MainEvent;
-                        mainEventName = mainEvent.Name;
-                        code = String.Join(" ", mainEvent.Codes.Select(c => c.ToString()).ToArray());
-                    }
-                    csvBuilder.AppendLine(String.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}",
-                            site.Information.ChannelName,
-                            site.Information.Patient.Name,
-                            site.Information.Patient.Place,
-                            site.Information.Patient.Date,
-                            sitePosition.x.ToString("N2"),
-                            sitePosition.y.ToString("N2"),
-                            sitePosition.z.ToString("N2"),
-                            scene.ColumnManager.SelectedImplantation.Name,
-                            EEG,
-                            POS,
-                            mainEventName,
-                            code));
-                }
+                // TODO
+                //Site site = sites[i];
+                //m_Progress = (float)i / (length - 1);
+                //m_Message = "Exporting " + site.Information.FullCorrectedID;
+                //if (!(site.State.IsExcluded || site.State.IsBlackListed || site.State.IsMasked || site.State.IsOutOfROI))
+                //{
+                //    Vector3 sitePosition = sitePositions[i];
+                //    string EEG = "", POS = "", mainEventName = "", code = "";
+                //    if (column is Column3DIEEG)
+                //    {
+                //        Column3DIEEG columnIEEG = (Column3DIEEG)column;
+                //        DataInfo dataInfo = dataInfoByPatient[site.Information.Patient];
+                //        EEG = dataInfo.EEG;
+                //        POS = dataInfo.POS;
+                //        Bloc bloc = columnIEEG.ColumnData.Bloc;
+                //        Data.Experience.Protocol.Event mainEvent = bloc.MainEvent;
+                //        mainEventName = mainEvent.Name;
+                //        code = String.Join(" ", mainEvent.Codes.Select(c => c.ToString()).ToArray());
+                //    }
+                //    csvBuilder.AppendLine(String.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}",
+                //            site.Information.ChannelName,
+                //            site.Information.Patient.Name,
+                //            site.Information.Patient.Place,
+                //            site.Information.Patient.Date,
+                //            sitePosition.x.ToString("N2"),
+                //            sitePosition.y.ToString("N2"),
+                //            sitePosition.z.ToString("N2"),
+                //            scene.ColumnManager.SelectedImplantation.Name,
+                //            EEG,
+                //            POS,
+                //            mainEventName,
+                //            code));
+                //}
             }
 
             using (StreamWriter sw = new StreamWriter(savePath))

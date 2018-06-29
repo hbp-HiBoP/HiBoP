@@ -70,47 +70,63 @@ namespace HBP.Data.Experience.Protocol
         /// Sorting trials of the bloc.
         /// </summary>
         [DataMember] public string Sort { get; set; }
+        /// <summary>
+        /// The subBlocs of the bloc.
+        /// </summary>
+        [DataMember] public List<SubBloc> SubBlocs { get; set; }
+        public SubBloc MainSubBloc
+        {
+            get
+            {
+                IOrderedEnumerable<SubBloc> orderedBlocs = SubBlocs.OrderBy((subBloc) => subBloc.Position);
+                return orderedBlocs.FirstOrDefault();
+            }
+        }
         #endregion
 
         #region Constructors
         /// <summary>
         /// Create a new bloc instance.
         /// </summary>
-        /// <param name="displayInformations">Display informations.</param>
-        /// <param name="secondaryEvents">Events of the bloc.</param>
-        /// <param name="scenario">Iconic scenario of the bloc.</param>
+        /// <param name="name">Name of the bloc.</param>
+        /// <param name="position">Position of the bloc in the trial matrix.</param>
+        /// <param name="illustrationPath">Illustation path of the bloc.</param>
+        /// <param name="sort">Sorting  of the trials in the bloc.</param>
+        /// <param name="subBlocs">SubBlocs of the bloc.</param>
         /// <param name="id">Unique ID of the bloc.</param>
-        public Bloc(string name, Position position, string illustrationPath, string sort, Window window, Window baseline, List<Event> events, Scenario scenario, string id)
+        public Bloc(string name, int position, string illustrationPath, string sort, IEnumerable<SubBloc> subBlocs, string id)
         {
             ID = id;
             Name = name;
             Position = position;
             IllustrationPath = illustrationPath;
             Sort = sort;
-            Window = window;
-            Baseline = baseline;
-            Events = events;
-            Scenario = scenario;
+            SubBlocs = subBlocs.ToList();
         }
         /// <summary>
         /// Create a new bloc instance with a unique ID.
         /// </summary>
-        /// <param name="displayInformations">Display informations.</param>
-        /// <param name="events">Events of the bloc.</param>
-        /// <param name="scenario">Iconic scenario of the bloc.</param>
-        public Bloc(string name, Position position, string illustrationPath, string sort, Window window, Window Baseline, List<Event> events, Scenario scenario) : this(name,position,illustrationPath,sort,window,Baseline, events, scenario,Guid.NewGuid().ToString())
+        /// <param name="name">Name of the bloc.</param>
+        /// <param name="position">Position of the bloc in the trial matrix.</param>
+        /// <param name="illustrationPath">Illustation path of the bloc.</param>
+        /// <param name="sort">Sorting  of the trials in the bloc.</param>
+        /// <param name="subBlocs">SubBlocs of the bloc.</param>
+        public Bloc(string name, int position, string illustrationPath, string sort, IEnumerable<SubBloc> subBlocs) : this(name, position, illustrationPath, sort, subBlocs, Guid.NewGuid().ToString())
         {
         }
-        public Bloc(Position position) : this ("New bloc",position,"","",new Window(),new Window(),new List<Event>(),new Scenario())
+        /// <summary>
+        /// Create a new bloc instance at a position with default values.
+        /// </summary>
+        public Bloc(int position) : this(string.Empty, position, string.Empty, string.Empty, new List<SubBloc>())
+		{
+		}
+        /// <summary>
+        /// Create a new blocs instance with default values.
+        /// </summary>
+        public Bloc() : this (0)
         {
 
         }
-        /// <summary>
-        /// Create a new bloc instance with default values.
-        /// </summary>
-        public Bloc() : this(string.Empty, new Position(), string.Empty, string.Empty, new Window(), new Window(), new List<Event>(), new Scenario())
-		{
-		}
         #endregion
 
         #region Operators
@@ -126,10 +142,6 @@ namespace HBP.Data.Experience.Protocol
             Position = bloc.Position;
             IllustrationPath = bloc.IllustrationPath;
             Sort = bloc.Sort;
-            Window = bloc.Window;
-            Baseline = bloc.Baseline;
-            Events = bloc.Events;
-            Scenario = bloc.Scenario;
         }
         /// <summary>
         /// Clone the instance.
@@ -137,7 +149,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>object cloned.</returns>
         public object Clone()
         {
-            return new Bloc(Name, Position, IllustrationPath, Sort, Window, Baseline, Events.ToArray().DeepClone().ToList() , Scenario.Clone() as Scenario, ID.Clone() as string);
+            return new Bloc(Name, Position, IllustrationPath, Sort, SubBlocs.ToArray().DeepClone(), ID.Clone() as string);
         }
         /// <summary>
         /// Operator Equals.

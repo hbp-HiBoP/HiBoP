@@ -37,10 +37,12 @@ namespace HBP.UI.TrialMatrix
             int trial = Mathf.Clamp(Mathf.FloorToInt(ratio.y * trials.Length),0,trials.Length-1);
             int sample = Mathf.Clamp(Mathf.FloorToInt(ratio.x * dataBloc.Trials[trial].NormalizedValues.Length),0,trials[trial].NormalizedValues.Length-1);
             float value = trials[trial].NormalizedValues[sample];
-            float latency = dataBloc.ProtocolBloc.Window.Start + ratio.x * (dataBloc.ProtocolBloc.Window.End - dataBloc.ProtocolBloc.Window.Start);
+            // TODO
+            //float latency = dataBloc.ProtocolBloc.Window.Start + ratio.x * (dataBloc.ProtocolBloc.Window.End - dataBloc.ProtocolBloc.Window.Start);
 
             m_ValueText.text = value.ToString("N2") + " mV";
-            m_LatencyText.text = latency.ToString("N2") + " ms";
+            // TODO
+            //m_LatencyText.text = latency.ToString("N2") + " ms";
         }
         #endregion
     }

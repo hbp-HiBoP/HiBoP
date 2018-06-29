@@ -36,48 +36,49 @@ namespace HBP.Data.TrialMatrix
         #region Private Methods
         static IOrderedEnumerable<Line> SortLines(Experience.Protocol.Bloc bloc, IEnumerable<Line> lines)
         {
-            string l_sort = bloc.Sort;
-            string[] l_sortCommands = l_sort.SplitInParts(2).ToArray();
+            // TODO
+            //string l_sort = bloc.Sort;
+            //string[] l_sortCommands = l_sort.SplitInParts(2).ToArray();
             IOrderedEnumerable<Line> l_linesSorted = lines.OrderBy(x => 1);
-            for (int i = 0; i < l_sortCommands.Length; i++)
-            {
-                string l_sortCommand = l_sortCommands[i];
-                if (l_sortCommand.Length == 2)
-                {
-                    int p = int.Parse(l_sortCommand[1].ToString());
+            //for (int i = 0; i < l_sortCommands.Length; i++)
+            //{
+            //    string l_sortCommand = l_sortCommands[i];
+            //    if (l_sortCommand.Length == 2)
+            //    {
+            //        int p = int.Parse(l_sortCommand[1].ToString());
 
-                    if (l_sortCommand[0] == 'C')
-                    {
-                        if (p == 0)
-                        {
-                            // TODO.
-                            l_linesSorted = l_linesSorted.ThenBy(t => bloc.MainEvent.Codes[0]);
-                        }
-                        else
-                        {
-                            if ((p - 1) < bloc.SecondaryEvents.Count)
-                            {
-                                // TODO.
-                                l_linesSorted = l_linesSorted.ThenBy(t => bloc.SecondaryEvents[p-1].Codes[0]);
-                            }
-                        }
-                    }
-                    else if (l_sortCommand[0] == 'L')
-                    {
-                        if (p == 0)
-                        {
-                            l_linesSorted = l_linesSorted.ThenBy(t => t.Bloc.PositionByEvent[bloc.MainEvent]);
-                        }
-                        else
-                        {
-                            if ((p - 1) < bloc.SecondaryEvents.Count)
-                            {
-                                l_linesSorted = l_linesSorted.ThenBy(t => t.Bloc.PositionByEvent[bloc.SecondaryEvents[p - 1]]);
-                            }
-                        }
-                    }
-                }
-            }
+            //        if (l_sortCommand[0] == 'C')
+            //        {
+            //            if (p == 0)
+            //            {
+            //                // TODO.
+            //                l_linesSorted = l_linesSorted.ThenBy(t => bloc.MainEvent.Codes[0]);
+            //            }
+            //            else
+            //            {
+            //                if ((p - 1) < bloc.SecondaryEvents.Count)
+            //                {
+            //                    // TODO.
+            //                    l_linesSorted = l_linesSorted.ThenBy(t => bloc.SecondaryEvents[p-1].Codes[0]);
+            //                }
+            //            }
+            //        }
+            //        else if (l_sortCommand[0] == 'L')
+            //        {
+            //            if (p == 0)
+            //            {
+            //                l_linesSorted = l_linesSorted.ThenBy(t => t.Bloc.PositionByEvent[bloc.MainEvent]);
+            //            }
+            //            else
+            //            {
+            //                if ((p - 1) < bloc.SecondaryEvents.Count)
+            //                {
+            //                    l_linesSorted = l_linesSorted.ThenBy(t => t.Bloc.PositionByEvent[bloc.SecondaryEvents[p - 1]]);
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
             return l_linesSorted;
         }
         #endregion

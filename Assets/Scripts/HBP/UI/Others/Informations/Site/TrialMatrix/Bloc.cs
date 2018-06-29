@@ -75,7 +75,8 @@ namespace HBP.UI.TrialMatrix
             m_ColorMap = colorMap;
             m_Limits = limits;
 
-            name = data.ProtocolBloc.Name + " | " + "Bloc n°" + data.ProtocolBloc.Position.Column;
+            // TODO
+            //name = data.ProtocolBloc.Name + " | " + "Bloc n°" + data.ProtocolBloc.Position.Column;
 
             SetSize();
             SetTexture();
@@ -350,48 +351,50 @@ namespace HBP.UI.TrialMatrix
         }
         void GenerateMainEventIndicator(data.Bloc bloc)
         {
-            GameObject mainEvent = new GameObject();
-            mainEvent.name = "Main event";
-            Image image = mainEvent.AddComponent<Image>();
-            RectTransform rect = mainEvent.GetComponent<RectTransform>();
-            rect.SetParent(transform.GetChild(0));
-            float X = (float)bloc.Trials[0].Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent] / bloc.Trials[0].NormalizedValues.Length;
-            float Xstep = 0.5f / bloc.Trials[0].NormalizedValues.Length;
-            rect.pivot = new Vector2(0, 0);
-            rect.anchorMin = new Vector2(X, 0f);
-            rect.anchorMax = new Vector2(X+ Xstep, 1f);
-            rect.offsetMin = new Vector2(0, 0);
-            rect.offsetMax = new Vector2(0, 0);
-            if (rect.sizeDelta.x < 1) rect.sizeDelta = new Vector2(1.0f, rect.sizeDelta.y);
-            image.color = Color.black;
+            // TODO
+            //GameObject mainEvent = new GameObject();
+            //mainEvent.name = "Main event";
+            //Image image = mainEvent.AddComponent<Image>();
+            //RectTransform rect = mainEvent.GetComponent<RectTransform>();
+            //rect.SetParent(transform.GetChild(0));
+            //float X = (float)bloc.Trials[0].Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent] / bloc.Trials[0].NormalizedValues.Length;
+            //float Xstep = 0.5f / bloc.Trials[0].NormalizedValues.Length;
+            //rect.pivot = new Vector2(0, 0);
+            //rect.anchorMin = new Vector2(X, 0f);
+            //rect.anchorMax = new Vector2(X+ Xstep, 1f);
+            //rect.offsetMin = new Vector2(0, 0);
+            //rect.offsetMax = new Vector2(0, 0);
+            //if (rect.sizeDelta.x < 1) rect.sizeDelta = new Vector2(1.0f, rect.sizeDelta.y);
+            //image.color = Color.black;
         }
         void GenerateSecondaryIndicator(data.Bloc bloc)
         {
-            for (int l = 0; l < bloc.Trials.Length; l++)
-            {
-                foreach (var secondaryEvent in bloc.ProtocolBloc.SecondaryEvents)
-                {
-                    int position = bloc.Trials[l].Bloc.PositionByEvent[secondaryEvent];
-                    if (position > -1)
-                    {
-                        GameObject mainEvent = new GameObject();
-                        mainEvent.name = secondaryEvent.Name + " - " + l;
-                        Image image = mainEvent.AddComponent<Image>();
-                        RectTransform rect = mainEvent.GetComponent<RectTransform>();
-                        rect.SetParent(transform.GetChild(0));
-                        float X = (float)position / bloc.Trials[l].NormalizedValues.Length;
-                        float Xstep = 0.5f / bloc.Trials[l].NormalizedValues.Length;
-                        float Y = (float)l / bloc.Trials.Length;
-                        float Ystep = 1.0f / bloc.Trials.Length;
-                        rect.pivot = new Vector2(0, 0);
-                        rect.anchorMin = new Vector2(X, Y);
-                        rect.anchorMax = new Vector2(X + Xstep, Y + Ystep);
-                        rect.offsetMin = new Vector2(0, 0);
-                        rect.offsetMax = new Vector2(0, 0);
-                        image.color = Color.black;
-                    }
-                }
-            }
+            // TODO
+            //for (int l = 0; l < bloc.Trials.Length; l++)
+            //{
+            //    foreach (var secondaryEvent in bloc.ProtocolBloc.SecondaryEvents)
+            //    {
+            //        int position = bloc.Trials[l].Bloc.PositionByEvent[secondaryEvent];
+            //        if (position > -1)
+            //        {
+            //            GameObject mainEvent = new GameObject();
+            //            mainEvent.name = secondaryEvent.Name + " - " + l;
+            //            Image image = mainEvent.AddComponent<Image>();
+            //            RectTransform rect = mainEvent.GetComponent<RectTransform>();
+            //            rect.SetParent(transform.GetChild(0));
+            //            float X = (float)position / bloc.Trials[l].NormalizedValues.Length;
+            //            float Xstep = 0.5f / bloc.Trials[l].NormalizedValues.Length;
+            //            float Y = (float)l / bloc.Trials.Length;
+            //            float Ystep = 1.0f / bloc.Trials.Length;
+            //            rect.pivot = new Vector2(0, 0);
+            //            rect.anchorMin = new Vector2(X, Y);
+            //            rect.anchorMax = new Vector2(X + Xstep, Y + Ystep);
+            //            rect.offsetMin = new Vector2(0, 0);
+            //            rect.offsetMax = new Vector2(0, 0);
+            //            image.color = Color.black;
+            //        }
+            //    }
+            //}
         }
         int GetTrialAtPosition(Vector3 position)
         {

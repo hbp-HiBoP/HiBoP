@@ -34,13 +34,14 @@ namespace HBP.Data.Visualization
         /// <param name="timeLine">TimeLine of the iconic scenario.</param>
         public IconicScenario(Experience.Protocol.Bloc bloc, float frequency, Timeline timeLine)
         {
-            List<Icon> l_icons = new List<Icon>();
-            foreach(Experience.Protocol.Icon icon in bloc.Scenario.Icons)
-            {
+            // TODO
+            //List<Icon> l_icons = new List<Icon>();
+            //foreach(Experience.Protocol.Icon icon in bloc.Scenario.Icons)
+            //{
 
-                l_icons.Add(new Icon(icon, frequency,timeLine));
-            }
-            SetIcon(l_icons.ToArray());
+            //    l_icons.Add(new Icon(icon, frequency,timeLine));
+            //}
+            //SetIcon(l_icons.ToArray());
         }
         /// <summary>
         /// Create a new iconic scenario instance with default values.

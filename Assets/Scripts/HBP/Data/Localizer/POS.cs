@@ -82,7 +82,7 @@ namespace HBP.Data.Localizer
 		}
         public bool IsCompatible(Experience.Protocol.Protocol protocol)
         {
-            return protocol.Blocs.All(bloc => bloc.MainEvent.Codes.Any(code => m_IndexByCode.ContainsKey(code)));
+            return protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => m_IndexByCode.ContainsKey(code)));
         }
         #endregion
 
