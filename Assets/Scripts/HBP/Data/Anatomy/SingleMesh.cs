@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.Serialization;
+using Tools.Unity;
 
 namespace HBP.Data.Anatomy
 {
@@ -8,8 +9,30 @@ namespace HBP.Data.Anatomy
     public class SingleMesh : Mesh
     {
         #region Properties
-        [DataMember(Order = 1)] public string Path { get; set; }
-        [DataMember(Order = 2)] public string MarsAtlasPath { get; set; }
+        [DataMember(Order = 1, Name = "Path")] string m_Path;
+        public string Path
+        {
+            get
+            {
+                return m_Path.ConvertToFullPath();
+            }
+            set
+            {
+                m_Path = value.ConvertToShortPath();
+            }
+        }
+        [DataMember(Order = 2, Name = "MarsAtlasPath")] string m_MarsAtlasPath;
+        public string MarsAtlasPath
+        {
+            get
+            {
+                return m_MarsAtlasPath.ConvertToFullPath();
+            }
+            set
+            {
+                m_MarsAtlasPath = value.ConvertToShortPath();
+            }
+        }
         public override bool HasMesh
         {
             get
@@ -54,6 +77,16 @@ namespace HBP.Data.Anatomy
             SingleMesh mesh = copy as SingleMesh;
             Path = mesh.Path;
             MarsAtlasPath = mesh.MarsAtlasPath;
+        }
+        #endregion
+
+        #region Serialization
+        [OnDeserialized()]
+        public new void OnDeserialized(StreamingContext context)
+        {
+            Path = Path;
+            MarsAtlasPath = MarsAtlasPath;
+            base.OnDeserialized(context);
         }
         #endregion
     }
