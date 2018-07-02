@@ -11,7 +11,7 @@ namespace HBP.UI.Preferences
         #endregion
 
         #region Public Methods
-        public void Set()
+        public void Initialize()
         {
             Data.Preferences.CutPreferences cutPreferences = ApplicationState.UserPreferences.Visualization.Cut;
 
@@ -24,6 +24,11 @@ namespace HBP.UI.Preferences
 
             cutPreferences.ShowCutLines = m_ShowCutLinesToggle.isOn;
             cutPreferences.SimplifiedMeshes = m_SimplifiedMeshesToggle.isOn;
+        }
+        public void SetInteractable(bool interactable)
+        {
+            m_ShowCutLinesToggle.interactable = interactable;
+            m_SimplifiedMeshesToggle.interactable = interactable;
         }
         #endregion
     }

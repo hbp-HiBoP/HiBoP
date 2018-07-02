@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using Tools.Unity;
 
 namespace HBP.UI.Preferences
 {
@@ -7,13 +8,13 @@ namespace HBP.UI.Preferences
     {
         #region Properties
         [SerializeField] InputField m_DefaultName;
-        [SerializeField] Tools.Unity.FolderSelector m_DefaultLocation;
-        [SerializeField] Tools.Unity.FolderSelector m_DefaultPatientDatabase;
-        [SerializeField] Tools.Unity.FolderSelector m_DefaultLocalizerDatabase;
+        [SerializeField] FolderSelector m_DefaultLocation;
+        [SerializeField] FolderSelector m_DefaultPatientDatabase;
+        [SerializeField] FolderSelector m_DefaultLocalizerDatabase;
         #endregion
 
         #region Public Methods
-        public void Set()
+        public void Initialize()
         {
             Data.Preferences.ProjectPreferences preferences = ApplicationState.UserPreferences.General.Project;
             m_DefaultName.text = preferences.DefaultName;
@@ -29,6 +30,14 @@ namespace HBP.UI.Preferences
             preferences.DefaultLocation = m_DefaultLocation.Folder;
             preferences.DefaultPatientDatabase = m_DefaultPatientDatabase.Folder;
             preferences.DefaultLocalizerDatabase = m_DefaultLocalizerDatabase.Folder;
+        }
+
+        public void SetInteractable(bool interactable)
+        {
+            m_DefaultName.interactable = interactable;
+            m_DefaultLocation.interactable = interactable;
+            m_DefaultPatientDatabase.interactable = interactable;
+            m_DefaultLocalizerDatabase.interactable = interactable;
         }
         #endregion
     }

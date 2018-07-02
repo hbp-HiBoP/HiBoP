@@ -22,12 +22,12 @@ namespace HBP.UI.Experience.Protocol
 
         // Events
         [SerializeField] GameObject m_EventModifierPrefab;
-        List<EventModifier> m_EventModifiers = new List<EventModifier>();
+        List<ItemModifier<d.Event>> m_EventModifiers = new List<ItemModifier<d.Event>>();
         [SerializeField] EventList m_EventList;
         [SerializeField] Button m_AddEventButton, m_RemoveEventButton;
         // Icons
         [SerializeField] GameObject m_IconModifierPrefab;
-        List<IconModifier> m_IconModifiers = new List<IconModifier>();
+        List<ItemModifier<d.Icon>> m_IconModifiers = new List<ItemModifier<d.Icon>>();
         [SerializeField] IconList m_IconList;
         [SerializeField] Button m_AddIconButton, m_RemoveIconButton;
 
@@ -59,15 +59,15 @@ namespace HBP.UI.Experience.Protocol
         // Events
         protected void OpenEventModifier(d.Event eventToModify)
         {
-            EventModifier modifier = EventModifier.Open(eventToModify, Interactable) as EventModifier;
+            ItemModifier<d.Event> modifier = ApplicationState.WindowsManager.OpenModifier(eventToModify, Interactable);
             m_EventModifiers.Add(modifier);
         }
-        protected void OnSaveEventModifier(EventModifier modifier)
+        protected void OnSaveEventModifier(ItemModifier<d.Event> modifier)
         {
             if (!ItemTemp.Events.Contains(modifier.Item)) ItemTemp.Events.Add(modifier.Item);
             m_EventList.Objects = ItemTemp.Events.ToArray();
         }
-        protected void OnCloseEventModifier(EventModifier modifier)
+        protected void OnCloseEventModifier(ItemModifier<d.Event> modifier)
         {
             m_EventModifiers.Remove(modifier);
         }

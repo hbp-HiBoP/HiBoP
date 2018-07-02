@@ -4,20 +4,14 @@ namespace HBP.UI.Experience
 {
     public class ExperienceMenu : MonoBehaviour
     {
-        [SerializeField]
-        GameObject protocolGestionPrefab;
-
-        [SerializeField]
-        GameObject datasetGestionPrefab;
-
         public void OpenProtocolGestion()
         {
-            Protocol.ProtocolGestion.Open(true);
+            ApplicationState.WindowsManager.Open("Protocol gestion window", true);
         }
 
         public void OpenDatasetGestion()
         {
-            Dataset.DatasetModifier.Open(true);
+            ApplicationState.WindowsManager.Open("Dataset gestion window", true);
         }
     }
 }

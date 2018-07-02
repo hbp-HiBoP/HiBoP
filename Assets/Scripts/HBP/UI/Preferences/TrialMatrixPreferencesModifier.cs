@@ -24,7 +24,7 @@ namespace HBP.UI.Preferences
         #endregion
 
         #region Public Methods
-        public void Set()
+        public void Initialize()
         {
             Data.Preferences.TrialMatrixPreferences trialMatrixPreferences = ApplicationState.UserPreferences.Visualization.TrialMatrix;
 
@@ -64,7 +64,17 @@ namespace HBP.UI.Preferences
             trialMatrixPreferences.LineRatio = int.Parse(m_LineRatioInputField.text);
             trialMatrixPreferences.BlocRatio = int.Parse(m_BlocRatioInputField.text);
         }
-
+        public void SetInteractable(bool interactable)
+        {
+            m_ShowWholeProtocolToggle.interactable = interactable;
+            m_TrialSynchronizationToggle.interactable = interactable;
+            m_SmoothLineToggle.interactable = interactable;
+            m_NumberOfIntermediateValuesSlider.interactable = interactable;
+            m_BlocFormatDropdown.interactable = interactable;
+            m_LineHeightInputField.interactable = interactable;
+            m_LineRatioInputField.interactable = interactable;
+            m_BlocRatioInputField.interactable = interactable;
+        }
         public void OnChangeBlocFormat(int value)
         {
             Data.Preferences.TrialMatrixPreferences.BlocFormatType blocFormat = (Data.Preferences.TrialMatrixPreferences.BlocFormatType) m_BlocFormatDropdown.value;

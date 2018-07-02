@@ -9,7 +9,7 @@ namespace HBP.UI.Preferences
         #endregion
 
         #region Public Methods
-        public void Set()
+        public void Initialize()
         {
             Data.Preferences.ExportPreferences preferences = ApplicationState.UserPreferences.General.Export;
             m_DefaultScreenshotsLocation.Folder = preferences.DefaultScreenshotsLocation;
@@ -18,6 +18,10 @@ namespace HBP.UI.Preferences
         {
             Data.Preferences.ExportPreferences preferences = ApplicationState.UserPreferences.General.Export;
             preferences.DefaultScreenshotsLocation = m_DefaultScreenshotsLocation.Folder;
+        }
+        public void SetInteractable(bool interactable)
+        {
+            m_DefaultScreenshotsLocation.interactable = interactable;
         }
         #endregion
     }

@@ -15,7 +15,7 @@ namespace HBP.UI.Visualization
         [SerializeField] GameObject m_AddGroupPrefab;
         [SerializeField] GameObject m_PatientModifierPrefab;
 
-        List<PatientModifier> m_PatientModifiers = new List<PatientModifier>();
+        List<ItemModifier<Patient>> m_PatientModifiers = new List<ItemModifier<Patient>>();
         List<GroupSelection> m_GroupSelectionModifiers = new List<GroupSelection>();
 
         [SerializeField] InputField m_NameInputField;
@@ -108,7 +108,7 @@ namespace HBP.UI.Visualization
         }
         public void OpenPatientModifier(Patient patientToModify)
         {
-            PatientModifier patientModifier = PatientModifier.Open(patientToModify, Interactable) as PatientModifier;
+            ItemModifier<Patient> patientModifier = ApplicationState.WindowsManager.OpenModifier(patientToModify, Interactable);
             patientModifier.OnClose.AddListener(() => OnClosePatientModifier(patientModifier));
             m_PatientModifiers.Add(patientModifier);
         }
@@ -137,7 +137,7 @@ namespace HBP.UI.Visualization
         #endregion
 
         #region Private Methods
-        protected void OnClosePatientModifier(PatientModifier modifier)
+        protected void OnClosePatientModifier(ItemModifier<Patient> modifier)
         {
             m_PatientModifiers.Remove(modifier);
         }

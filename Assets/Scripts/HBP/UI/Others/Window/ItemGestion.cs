@@ -49,7 +49,7 @@ namespace HBP.UI
         protected virtual void OpenModifier(T item,bool interactable)
         {
             m_List.DeselectAll();
-            ItemModifier<T> modifier = ItemModifier<T>.Open(item, interactable);
+            ItemModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable);
             modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
             modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
             m_Modifiers.Add(modifier);

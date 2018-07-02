@@ -17,8 +17,8 @@ namespace HBP.UI.Experience.Protocol
 
         [SerializeField] GameObject EventModifierPrefab;
         [SerializeField] GameObject IconModifierPrefab;
-        List<EventModifier> m_EventModifiers = new List<EventModifier>();
-        List<IconModifier> m_IconModifiers = new List<IconModifier>();
+        List<ItemModifier<d.Event>> m_EventModifiers = new List<ItemModifier<d.Event>>();
+        List<ItemModifier<d.Icon>> m_IconModifiers = new List<ItemModifier<d.Icon>>();
         #endregion
 
         #region Public Methods
@@ -63,12 +63,12 @@ namespace HBP.UI.Experience.Protocol
         #region Private Methods
         protected void OpenEventModifier(d.Event event_)
         {
-            EventModifier eventModifier = EventModifier.Open(event_, Interactable) as EventModifier;
+            ItemModifier<d.Event> eventModifier = ApplicationState.WindowsManager.OpenModifier(event_, Interactable);
             eventModifier.OnSave.AddListener(() => OnSaveEventModifier(eventModifier));
             eventModifier.OnClose.AddListener(() => OnCloseEventModifier(eventModifier));
             m_EventModifiers.Add(eventModifier);
         }
-        protected void OnSaveEventModifier(EventModifier eventModifier)
+        protected void OnSaveEventModifier(ItemModifier<d.Event> eventModifier)
         {
             // TODO
             // Save
@@ -94,12 +94,12 @@ namespace HBP.UI.Experience.Protocol
         }
         protected void OpenIconModifier(d.Icon icon)
         {
-            IconModifier iconModifier = IconModifier.Open(icon, Interactable) as IconModifier;
+            ItemModifier<d.Icon> iconModifier = ApplicationState.WindowsManager.OpenModifier(icon, Interactable);
             iconModifier.OnSave.AddListener(() => OnSaveIconModifier(iconModifier));
             iconModifier.OnClose.AddListener(() => OnCloseIconModifier(iconModifier));
             m_IconModifiers.Add(iconModifier);
         }
-        protected void OnSaveIconModifier(IconModifier iconModifier)
+        protected void OnSaveIconModifier(ItemModifier<d.Icon> iconModifier)
         {
             //if (!ItemTemp.Scenario.Icons.Contains(iconModifier.Item))
             //{
@@ -111,11 +111,11 @@ namespace HBP.UI.Experience.Protocol
             //    m_IconList.UpdateObject(iconModifier.Item);
             //}
         }
-        protected void OnCloseEventModifier(EventModifier modifier)
+        protected void OnCloseEventModifier(ItemModifier<d.Event> modifier)
         {
             m_EventModifiers.Remove(modifier);
         }
-        protected void OnCloseIconModifier(IconModifier modifier)
+        protected void OnCloseIconModifier(ItemModifier<d.Icon> modifier)
         {
             m_IconModifiers.Remove(modifier);
         }

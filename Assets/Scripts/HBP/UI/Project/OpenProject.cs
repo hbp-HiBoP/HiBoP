@@ -75,6 +75,8 @@ namespace HBP.UI
         }
         protected override void SetInteractable(bool interactable)
         {
+            m_LocationFolderSelector.interactable = interactable;
+            m_ProjectList.Interactable = interactable;
             m_LoadingButton.interactable = interactable;
         }
         #endregion

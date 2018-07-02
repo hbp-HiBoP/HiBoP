@@ -13,7 +13,11 @@ namespace HBP.UI.Preferences
         {
 
         }
-        public void Set()
+        public void Initialize()
+        {
+
+        }
+        public void SetInteractable(bool interactable)
         {
 
         }

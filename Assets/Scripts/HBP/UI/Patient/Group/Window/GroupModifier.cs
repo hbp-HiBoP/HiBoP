@@ -13,7 +13,7 @@ namespace HBP.UI.Anatomy
 	{
         #region Properties
         [SerializeField] GameObject m_PatientModifierPrefab;
-        List<PatientModifier> m_Modifiers = new List<PatientModifier>();
+        List<ItemModifier<Patient>> m_Modifiers = new List<ItemModifier<Patient>>();
 
         [SerializeField] InputField m_NameInputField;
 
@@ -56,14 +56,14 @@ namespace HBP.UI.Anatomy
         }
         public void OpenPatientModifier(Patient patientToModify)
         {
-            PatientModifier patientModifier = PatientModifier.Open(patientToModify, false) as PatientModifier;
+            ItemModifier<Patient> patientModifier = ApplicationState.WindowsManager.OpenModifier(patientToModify, false);
             patientModifier.OnClose.AddListener(() => OnClosePatientModifier(patientModifier));
             m_Modifiers.Add(patientModifier);
         }
         #endregion
 
         #region Private Methods
-        protected void OnClosePatientModifier(PatientModifier modifier)
+        protected void OnClosePatientModifier(ItemModifier<Patient> modifier)
         {
             m_Modifiers.Remove(modifier);
         }

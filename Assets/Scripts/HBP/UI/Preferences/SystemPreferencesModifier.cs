@@ -10,7 +10,7 @@ namespace HBP.UI.Preferences
         #endregion
 
         #region Public Methods
-        public void Set()
+        public void Initialize()
         {
             Data.Preferences.SystemPreferences preferences = ApplicationState.UserPreferences.General.System;
             m_MultiThreading.isOn = preferences.MultiThreading;
@@ -19,6 +19,10 @@ namespace HBP.UI.Preferences
         {
             Data.Preferences.SystemPreferences preferences = ApplicationState.UserPreferences.General.System;
             preferences.MultiThreading = m_MultiThreading.isOn;
+        }
+        public void SetInteractable(bool interactable)
+        {
+            m_MultiThreading.interactable = interactable;
         }
         #endregion
     }

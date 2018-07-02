@@ -4,20 +4,14 @@ namespace HBP.UI.Anatomy
 {
     public class PatientMenu : MonoBehaviour
     {
-        [SerializeField]
-        GameObject patientGestionPrefab;
-
-        [SerializeField]
-        GameObject groupGestionPrefab;
-
         public void OpenPatientGestion()
         {
-            PatientGestion.Open(true);
+            ApplicationState.WindowsManager.Open("Patient gestion window");
         }
 
         public void OpenGroupGestion()
         {
-            GroupGestion.Open(true);
+            ApplicationState.WindowsManager.Open("Group gestion window");
         }
     }
 }

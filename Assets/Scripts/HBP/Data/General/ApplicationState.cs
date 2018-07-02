@@ -79,6 +79,11 @@ public static class ApplicationState
     /// </summary>
     public static Tools.Unity.MemoryManager MemoryManager { get; set; }
 
+    /// <summary>
+    /// Windows manager.
+    /// </summary>
+    public static HBP.UI.WindowsManager WindowsManager { get; set; }
+
     static public string DataPath
     {
         get

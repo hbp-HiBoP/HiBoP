@@ -44,7 +44,7 @@ namespace HBP.UI.Experience.Dataset
         #region Protected Methods
         protected void OpenDataInfoModifier(d.DataInfo dataInfo)
         {
-            DataInfoModifier dataInfoModifier = DataInfoModifier.Open(dataInfo, Interactable) as DataInfoModifier;
+            DataInfoModifier dataInfoModifier = ApplicationState.WindowsManager.Open("dataInfo modifier window", Interactable) as DataInfoModifier;
             dataInfoModifier.OnSave.AddListener(() => OnSaveDataInfoModifier(dataInfoModifier));
             dataInfoModifier.OnClose.AddListener(() => OnCloseDataInfoModifier(dataInfoModifier));
             dataInfoModifier.CanSaveEvent.AddListener(() => OnCanSave(dataInfoModifier));

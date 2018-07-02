@@ -15,7 +15,7 @@ namespace HBP.UI.Preferences
         #endregion
 
         #region Private Methods
-        public void Set()
+        public void Initialize()
         {
             Data.Preferences._3DPreferences preferences = ApplicationState.UserPreferences.Visualization._3D;
 
@@ -44,6 +44,14 @@ namespace HBP.UI.Preferences
             preferences.DefaultSelectedMRI = m_DefaultSelectedMRIInputField.text;
             preferences.DefaultSelectedMesh = m_DefaultSelectedMeshInputField.text;
             preferences.DefaultSelectedImplantation = m_DefaultSelectedImplantionInputField.text;
+        }
+        public void SetInteractable(bool interactable)
+        {
+            m_AutomaticEEGUpdateToggle.interactable = interactable;
+            m_SiteInfluenceDropdown.interactable = interactable;
+            m_DefaultSelectedMRIInputField.interactable = interactable;
+            m_DefaultSelectedMeshInputField.interactable = interactable;
+            m_DefaultSelectedImplantionInputField.interactable = interactable;
         }
         #endregion
     }

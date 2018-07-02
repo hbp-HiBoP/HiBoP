@@ -4,27 +4,18 @@ namespace HBP.UI
 {
     public class ProjectMenu : MonoBehaviour
     {
-        #region Properties
-        [SerializeField]
-        GameObject newProjectPrefab;
-        [SerializeField]
-        GameObject loadProjectPrefab;
-        [SerializeField]
-        GameObject saveProjectAsPrefab;
-        #endregion
-
         #region Public Methods
         public void OpenNewProject()
         {
-            NewProject.Open(true);
+            ApplicationState.WindowsManager.Open("New project window");
         }
         public void OpenLoadProject()
         {
-            OpenProject.Open(true);
+            ApplicationState.WindowsManager.Open("Open project window");
         }
         public void OpenSaveProjectAs()
         {
-            SaveProjectAs.Open(true);
+            ApplicationState.WindowsManager.Open("Save project as window");
         }
         #endregion
     }

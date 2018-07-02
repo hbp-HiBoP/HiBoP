@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using HBP.Data.Preferences;
 using Tools.Unity;
+using HBP.UI;
 
 public class ApplicationManager : MonoBehaviour
 {
@@ -17,5 +18,6 @@ public class ApplicationManager : MonoBehaviour
         ApplicationState.LoadingManager = FindObjectOfType<LoadingManager>();
         ApplicationState.TooltipManager = FindObjectOfType<TooltipManager>();
         ApplicationState.MemoryManager = FindObjectOfType<MemoryManager>();
+        ApplicationState.WindowsManager = FindObjectOfType<WindowsManager>();
     }
 }

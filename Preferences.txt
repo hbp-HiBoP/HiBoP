@@ -3,8 +3,8 @@
     "Project": {
       "DefaultName": "New project",
       "DefaultLocation": "D:/HBPProjects",
-      "DefaultPatientDatabase": "",
-      "DefaultLocalizerDatabase": ""
+      "DefaultPatientDatabase": "Y:/BrainVisaDB/Epilepsy",
+      "DefaultLocalizerDatabase": "Y:/LOCA_DATABASE"
     },
     "Theme": {},
     "Localization": {},
@@ -12,7 +12,7 @@
       "MultiThreading": true
     },
     "Export": {
-      "DefaultScreenshotsLocation": ""
+      "DefaultScreenshotsLocation": "D:/ScreenShot"
     }
   },
   "Data": {
@@ -24,15 +24,15 @@
       "PositionAveraging": 1
     },
     "Anatomy": {
-      "SiteNameCorrection": false,
-      "PreloadMeshes": false,
-      "PreloadMRIs": false,
-      "PreloadImplantations": false
+      "SiteNameCorrection": true,
+      "PreloadMeshes": true,
+      "PreloadMRIs": true,
+      "PreloadImplantations": true
     }
   },
   "Visualization": {
     "_3D": {
-      "AutomaticEEGUpdate": false,
+      "AutomaticEEGUpdate": true,
       "SiteInfluence": 0,
       "DefaultSelectedMRI": "",
       "DefaultSelectedMesh": "",

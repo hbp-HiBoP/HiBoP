@@ -11,7 +11,7 @@ namespace HBP.UI.Preferences
         #endregion
 
         #region Public Methods
-        public void Set()
+        public void Initialize()
         {
             Data.Preferences.EventPreferences preferences = ApplicationState.UserPreferences.Data.Event;
 
@@ -24,12 +24,14 @@ namespace HBP.UI.Preferences
             m_PositionAveragingDropdown.value = (int)preferences.PositionAveraging;
             m_PositionAveragingDropdown.RefreshShownValue();
         }
-
         public void Save()
         {
             Data.Preferences.EventPreferences preferences = ApplicationState.UserPreferences.Data.Event;
-
             preferences.PositionAveraging = (Data.Enums.AveragingType) m_PositionAveragingDropdown.value;
+        }
+        public void SetInteractable(bool interactable)
+        {
+            m_PositionAveragingDropdown.interactable = interactable;
         }
         #endregion
     }

@@ -12,7 +12,7 @@ namespace HBP.UI.Preferences
         #endregion
 
         #region Public Methods
-        public void Set()
+        public void Initialize()
         {
             Data.Preferences.EEGPreferences preferences = ApplicationState.UserPreferences.Data.EEG;
 
@@ -38,6 +38,11 @@ namespace HBP.UI.Preferences
         {
             ApplicationState.UserPreferences.Data.EEG.Normalization = (Data.Enums.NormalizationType)m_EEGNormalizationDropdown.value;
             ApplicationState.UserPreferences.Data.EEG.Averaging = (Data.Enums.AveragingType)m_EEGAveragingDropdown.value;
+        }
+        public void SetInteractable(bool interactable)
+        {
+            m_EEGAveragingDropdown.interactable = interactable;
+            m_EEGNormalizationDropdown.interactable = interactable;
         }
         #endregion
     }

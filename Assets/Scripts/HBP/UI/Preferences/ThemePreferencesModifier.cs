@@ -9,12 +9,17 @@ namespace HBP.UI.Preferences
         #endregion
 
         #region Public Methods
-        public void Set()
+        public void Initialize()
         {
 
         }
         public void Save()
         {
+        }
+
+        public void SetInteractable(bool interactable)
+        {
+
         }
         #endregion
     }

@@ -62,12 +62,11 @@ namespace HBP.UI
         }
         protected override void SetInteractable(bool interactable)
         {
-
             m_NameInputField.interactable = interactable;
             m_ProjectLocationFolderSelector.interactable = interactable;
             m_PatientsDatabaseLocationFolderSelector.interactable = interactable;
             m_LocalizerDatabaseLocationFolderSelector.interactable = interactable;
-    }
+        }
         #endregion
     }
 }

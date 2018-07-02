@@ -7,7 +7,12 @@ namespace HBP.UI
     public abstract class SavableWindow : Window, ISavable
     {
         #region Properties
-        public UnityEvent OnSave { get; set; }
+        UnityEvent m_OnSave = new UnityEvent();
+        public UnityEvent OnSave
+        {
+            get { return m_OnSave; }
+            set { m_OnSave = value; }
+        }
         [SerializeField] protected Button m_SaveButton;
         #endregion
 

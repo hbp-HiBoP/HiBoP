@@ -10,7 +10,7 @@ namespace HBP.UI.Experience.Protocol
 	{
         #region Properties
         [SerializeField] GameObject blocModifierPrefab;
-        List<BlocModifier> m_Modifiers = new List<BlocModifier>();
+        List<ItemModifier<d.Bloc>> m_Modifiers = new List<ItemModifier<d.Bloc>>();
 
         [SerializeField] InputField m_NameInputField;
         [SerializeField] BlocList m_BlocList;
@@ -35,12 +35,12 @@ namespace HBP.UI.Experience.Protocol
         protected void OpenBlocModifier(d.Bloc bloc)
         {
             //if(bloc.MainEvent == null) bloc.Events.Add(new d.Event("Main", new int[0], d.Event.TypeEnum.Main));
-            BlocModifier modifier = BlocModifier.Open(bloc, true) as BlocModifier;
+            ItemModifier<d.Bloc> modifier = ApplicationState.WindowsManager.OpenModifier(bloc, true);
             modifier.OnClose.AddListener(() => OnCloseBlocModifier(modifier));
             modifier.OnSave.AddListener(() => OnSaveBlocModifier(modifier));
             m_Modifiers.Add(modifier);
         }
-        protected void OnSaveBlocModifier(BlocModifier modifier)
+        protected void OnSaveBlocModifier(ItemModifier<d.Bloc> modifier)
         {
             if(!ItemTemp.Blocs.Contains(modifier.Item))
             {
@@ -48,7 +48,7 @@ namespace HBP.UI.Experience.Protocol
             }
             //blocGrid.Display(ItemTemp.Blocs.ToArray());
         }
-        protected void OnCloseBlocModifier(BlocModifier modifier)
+        protected void OnCloseBlocModifier(ItemModifier<d.Bloc> modifier)
         {
             m_Modifiers.Remove(modifier);
         }

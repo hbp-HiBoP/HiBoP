@@ -66,7 +66,7 @@ namespace HBP.UI.Anatomy
         #region Private Methods
         protected void OpenModifier(T item, bool interactable)
         {
-            ItemModifier<T> modifier = ItemModifier<T>.Open(item, true);
+            ItemModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, true);
             modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
             modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
             m_Modifiers.Add(modifier);

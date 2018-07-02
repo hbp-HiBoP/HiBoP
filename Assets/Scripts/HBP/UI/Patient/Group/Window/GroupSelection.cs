@@ -10,7 +10,7 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] GameObject m_GroupModifierPrefab;
-        List<GroupModifier> m_Modifiers = new List<GroupModifier>();
+        List<ItemModifier<Group>> m_Modifiers = new List<ItemModifier<Group>>();
         GroupList groupList;
         public GroupsSelected GroupsSelectedEvent = new GroupsSelected();
         #endregion
@@ -39,11 +39,11 @@ namespace HBP.UI.Anatomy
         protected virtual void OpenModifier(Group item)
         {
             groupList.DeselectAll();
-            GroupModifier modifier = GroupModifier.Open(item, Interactable) as GroupModifier;
+            ItemModifier<Group> modifier = ApplicationState.WindowsManager.OpenModifier(item, Interactable);
             modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
             m_Modifiers.Add(modifier);
         }
-        protected virtual void OnCloseModifier(GroupModifier modifier)
+        protected virtual void OnCloseModifier(ItemModifier<Group> modifier)
         {
             m_Modifiers.Remove(modifier);
         }
