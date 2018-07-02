@@ -12,9 +12,9 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] GameObject blocModifierPrefab;
         List<BlocModifier> m_Modifiers = new List<BlocModifier>();
 
-        InputField nameInputField;
-		BlocGrid blocGrid;
-        Button saveButton;
+        [SerializeField] InputField m_NameInputField;
+        [SerializeField] BlocList m_BlocList;
+        [SerializeField] Button m_SaveButton, m_AddBlocButton, m_RemoveBlocButton;
         #endregion
 
         #region Public Methods
@@ -29,7 +29,7 @@ namespace HBP.UI.Experience.Protocol
         #region Private Methods
         protected void OnListEvent(d.Bloc bloc, int type)
         {
-            ItemTemp.Blocs = blocGrid.Objects.ToList();
+            //ItemTemp.Blocs = blocGrid.Objects.ToList();
             if (type == 0 || type == -1) OpenBlocModifier(bloc);
         }
         protected void OpenBlocModifier(d.Bloc bloc)
@@ -50,7 +50,7 @@ namespace HBP.UI.Experience.Protocol
             {
                 ItemTemp.Blocs.Add(modifier.Item);
             }
-            blocGrid.Display(ItemTemp.Blocs.ToArray());
+            //blocGrid.Display(ItemTemp.Blocs.ToArray());
         }
         protected void OnCloseBlocModifier(BlocModifier modifier)
         {
@@ -58,24 +58,21 @@ namespace HBP.UI.Experience.Protocol
         }
         protected override void SetFields(d.Protocol objectToDisplay)
         {
-            nameInputField.text = objectToDisplay.Name;
-            nameInputField.onEndEdit.AddListener((value) => ItemTemp.Name = value);
+            m_NameInputField.text = objectToDisplay.Name;
+            m_NameInputField.onEndEdit.AddListener((value) => ItemTemp.Name = value);
 
-            blocGrid.Display(objectToDisplay.Blocs.ToArray());
-            blocGrid.OnAction.AddListener((bloc, i) => OnListEvent(bloc, i));
+            //blocGrid.Display(objectToDisplay.Blocs.ToArray());
+            //blocGrid.OnAction.AddListener((bloc, i) => OnListEvent(bloc, i));
         }
         protected override void SetWindow()
         {
-            nameInputField = transform.Find("Content").Find("Name").Find("InputField").GetComponent<InputField>();
-            blocGrid = transform.Find("Content").Find("Blocs").Find("List").Find("Display").Find("Viewport").Find("Content").GetComponent<BlocGrid>();
-            saveButton  = transform.Find("Content").Find("Buttons").Find("OK").GetComponent<Button>();
         }
         protected override void SetInteractableFields(bool interactable)
         {
-            nameInputField.interactable = interactable;
-            saveButton.interactable = interactable;
-            // TODO
-            //blocGrid.interactable = interactable;
+            m_NameInputField.interactable = interactable;
+            m_SaveButton.interactable = interactable;
+            m_AddBlocButton.interactable = interactable;
+            m_RemoveBlocButton.interactable = interactable;
         }
         #endregion
     }
