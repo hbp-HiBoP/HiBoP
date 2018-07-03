@@ -43,7 +43,7 @@ namespace HBP.UI.Anatomy
             m_NameInputField.text = objectToDisplay.Name;
             m_TypeDropdown.value = objectToDisplay is LeftRightMesh ? 1 : 0;
             m_TypeDropdown.onValueChanged.Invoke(m_TypeDropdown.value);
-            m_TransformationFileSelector.File = objectToDisplay.Transformation;
+            m_TransformationFileSelector.File = objectToDisplay.SavedTransformation;
         }
         protected override void SetInteractableFields(bool interactable)
         {

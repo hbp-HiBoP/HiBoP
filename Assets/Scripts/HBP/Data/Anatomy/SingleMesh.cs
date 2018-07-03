@@ -21,6 +21,7 @@ namespace HBP.Data.Anatomy
                 m_Path = value.ConvertToShortPath();
             }
         }
+        public string SavedPath { get { return m_Path; } }
         [DataMember(Order = 2, Name = "MarsAtlasPath")] string m_MarsAtlasPath;
         public string MarsAtlasPath
         {
@@ -33,6 +34,7 @@ namespace HBP.Data.Anatomy
                 m_MarsAtlasPath = value.ConvertToShortPath();
             }
         }
+        public string SavedMarsAtlasPath { get { return m_MarsAtlasPath; } }
         public override bool HasMesh
         {
             get
@@ -68,7 +70,7 @@ namespace HBP.Data.Anatomy
         #region Operators
         public override object Clone()
         {
-            return new SingleMesh(Name, Transformation, ID, Path, MarsAtlasPath);
+            return new SingleMesh(Name, m_Transformation, ID, m_Path, m_MarsAtlasPath);
         }
         public override void Copy(object copy)
         {
@@ -77,16 +79,6 @@ namespace HBP.Data.Anatomy
             SingleMesh mesh = copy as SingleMesh;
             Path = mesh.Path;
             MarsAtlasPath = mesh.MarsAtlasPath;
-        }
-        #endregion
-
-        #region Serialization
-        [OnDeserialized()]
-        public new void OnDeserialized(StreamingContext context)
-        {
-            Path = Path;
-            MarsAtlasPath = MarsAtlasPath;
-            base.OnDeserialized(context);
         }
         #endregion
     }

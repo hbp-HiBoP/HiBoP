@@ -17,7 +17,7 @@ namespace HBP.UI.Anatomy
         protected override void SetFields(Connectivity objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
-            m_FileSelector.File = objectToDisplay.File;
+            m_FileSelector.File = objectToDisplay.SavedFile;
         }
         protected override void SetInteractableFields(bool interactable)
         {

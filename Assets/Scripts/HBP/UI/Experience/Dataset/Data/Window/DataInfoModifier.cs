@@ -47,14 +47,14 @@ namespace HBP.UI.Experience.Dataset
             m_MeasureInputField.onValueChanged.RemoveAllListeners();
             m_MeasureInputField.onValueChanged.AddListener((measure) => objectToDisplay.Measure = measure);
             m_EEGFileSelector.DefaultDirectory = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
-            m_EEGFileSelector.File = objectToDisplay.EEG;
+            m_EEGFileSelector.File = objectToDisplay.SavedEEG;
             m_EEGFileSelector.onValueChanged.RemoveAllListeners();
             m_EEGFileSelector.onValueChanged.AddListener((eeg) => objectToDisplay.EEG = eeg);
             m_EEGFileSelector.onValueChanged.AddListener((eeg) => SetPosFile());
 
             // POS.
             SetPosFile();
-            m_POSFileSelector.File = objectToDisplay.POS;
+            m_POSFileSelector.File = objectToDisplay.SavedPOS;
             m_POSFileSelector.onValueChanged.RemoveAllListeners();
             m_POSFileSelector.onValueChanged.AddListener((pos) => objectToDisplay.POS = pos);
 

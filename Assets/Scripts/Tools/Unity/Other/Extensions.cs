@@ -79,50 +79,40 @@ namespace Tools.Unity
 
     public static class PathExtension
     {
-        public const string PATIENT_DATABASE_TOKEN = "[PATIENT_DATABASE]";
-        public const string LOCALIZER_DATABASE_TOKEN = "[LOCALIZER_DATABASE]";
         public const string PROJECT_TOKEN = ".";
 
         public static string ConvertToFullPath(this string path)
         {
-            if (path.StartsWith(PROJECT_TOKEN))
+            string localPath = path;
+            
+            if (localPath.StartsWith(PROJECT_TOKEN))
             {
-                string localPath = path.Remove(0, PROJECT_TOKEN.Length);
-                return (ApplicationState.ProjectLoadedPath + localPath).StandardizeToPath();
+                localPath = path.Remove(0, PROJECT_TOKEN.Length);
+                localPath = ApplicationState.ProjectLoadedPath + localPath;
             }
-            else if (path.StartsWith(PATIENT_DATABASE_TOKEN))
+
+            foreach (var alias in ApplicationState.ProjectLoaded.Settings.Aliases)
             {
-                string localPath = path.Remove(0, PATIENT_DATABASE_TOKEN.Length);
-                return (ApplicationState.ProjectLoaded.Settings.PatientDatabase + localPath).StandardizeToPath();
+                alias.ConvertKeyToValue(ref localPath);
             }
-            else if (path.StartsWith(LOCALIZER_DATABASE_TOKEN))
-            {
-                string localPath = path.Remove(0, LOCALIZER_DATABASE_TOKEN.Length);
-                return (ApplicationState.ProjectLoaded.Settings.LocalizerDatabase + localPath).StandardizeToPath();
-            }
-            else
-            {
-                return path;
-            }
+
+            return localPath;
         }
         public static string ConvertToShortPath(this string path)
         {
-            if (path.StartsWith(ApplicationState.ProjectLoadedPath))
+            string localPath = path;
+
+            if (localPath.StartsWith(ApplicationState.ProjectLoadedPath))
             {
-                return PROJECT_TOKEN + path.Remove(0, ApplicationState.ProjectLoadedPath.Length);
+                localPath = PROJECT_TOKEN + path.Remove(0, ApplicationState.ProjectLoadedPath.Length);
             }
-            else if (path.StartsWith(ApplicationState.ProjectLoaded.Settings.PatientDatabase))
+
+            foreach (var alias in ApplicationState.ProjectLoaded.Settings.Aliases)
             {
-                return PATIENT_DATABASE_TOKEN + path.Remove(0, ApplicationState.ProjectLoaded.Settings.PatientDatabase.Length);
+                alias.ConvertValueToKey(ref localPath);
             }
-            else if (path.StartsWith(ApplicationState.ProjectLoaded.Settings.LocalizerDatabase))
-            {
-                return LOCALIZER_DATABASE_TOKEN + path.Remove(0, ApplicationState.ProjectLoaded.Settings.LocalizerDatabase.Length);
-            }
-            else
-            {
-                return path;
-            }
+
+            return localPath;
         }
     }
 }

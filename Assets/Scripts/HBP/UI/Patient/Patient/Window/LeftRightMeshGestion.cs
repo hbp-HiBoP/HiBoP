@@ -35,19 +35,19 @@ namespace HBP.UI.Anatomy
         }
         public void Set(LeftRightMesh mesh)
         {
-            m_LeftMeshFileSelector.File = mesh.LeftHemisphere;
+            m_LeftMeshFileSelector.File = mesh.SavedLeftHemisphere;
             m_LeftMeshFileSelector.onValueChanged.RemoveAllListeners();
             m_LeftMeshFileSelector.onValueChanged.AddListener((path) => mesh.LeftHemisphere = path);
 
-            m_RightMeshFileSelector.File = mesh.RightHemisphere;
+            m_RightMeshFileSelector.File = mesh.SavedRightHemisphere;
             m_RightMeshFileSelector.onValueChanged.RemoveAllListeners();
             m_RightMeshFileSelector.onValueChanged.AddListener((path) => mesh.RightHemisphere = path);
 
-            m_LeftMarsAtlasFileSelector.File = mesh.LeftMarsAtlasHemisphere;
+            m_LeftMarsAtlasFileSelector.File = mesh.SavedLeftMarsAtlasHemisphere;
             m_LeftMarsAtlasFileSelector.onValueChanged.RemoveAllListeners();
             m_LeftMarsAtlasFileSelector.onValueChanged.AddListener((path) => mesh.LeftMarsAtlasHemisphere = path);
 
-            m_RightMarsAtlasFileSelector.File = mesh.RightMarsAtlasHemisphere;
+            m_RightMarsAtlasFileSelector.File = mesh.SavedRightMarsAtlasHemisphere;
             m_RightMarsAtlasFileSelector.onValueChanged.RemoveAllListeners();
             m_RightMarsAtlasFileSelector.onValueChanged.AddListener((path) => mesh.RightMarsAtlasHemisphere = path);
         }

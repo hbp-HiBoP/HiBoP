@@ -68,6 +68,7 @@ namespace HBP.Data.Experience.Dataset
             get { return m_EEG.ConvertToFullPath(); }
             set { m_EEG = value.ConvertToShortPath(); m_EEGErrors = GetEEGErrors(); }
         }
+        public string SavedEEG { get { return m_EEG; } }
 
         [DataMember(Name = "POS")] string m_POS;
         /// <summary>
@@ -78,6 +79,7 @@ namespace HBP.Data.Experience.Dataset
             get { return m_POS.ConvertToFullPath(); }
             set { m_POS = value.ConvertToShortPath(); m_POSErrors = new ErrorType[0]; OnPOSChanged.Invoke(); }
         }
+        public string SavedPOS { get { return m_POS; } }
         public UnityEvent OnPOSChanged { get; set; }
         
         [DataMember(Name = "Normalization")]
@@ -287,7 +289,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, EEG.Clone() as string, POS.Clone() as string, Normalization);
+            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, m_EEG.Clone() as string, m_EEG.Clone() as string, Normalization);
             dataInfo.OnPOSChanged = OnPOSChanged;
             return dataInfo;
         }
@@ -352,16 +354,6 @@ namespace HBP.Data.Experience.Dataset
                     break;
             }
             return message;
-        }
-        #endregion
-
-        #region Serialization
-        [OnDeserialized()]
-        public void OnDeserialized(StreamingContext context)
-        {
-            // Maybe FIXME
-            EEG = EEG;
-            POS = POS;
         }
         #endregion
     }

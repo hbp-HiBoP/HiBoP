@@ -23,6 +23,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
+                ApplicationState.Module3D.SelectedScene.ResetIEEG();
                 ApplicationState.Module3D.SelectedScene.UpdateGenerator();
                 UpdateInteractable();
             });

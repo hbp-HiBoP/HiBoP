@@ -61,7 +61,7 @@ namespace Tools.Unity
             if (result != string.Empty)
             {
                 result = result.StandardizeToPath();
-                m_InputField.text = result;
+                m_InputField.text = result.ConvertToShortPath();
             }
         }
         #endregion

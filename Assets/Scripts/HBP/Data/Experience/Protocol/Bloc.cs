@@ -148,7 +148,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>object cloned.</returns>
         public object Clone()
         {
-            return new Bloc(Name, Position, IllustrationPath, Sort, Window, Baseline, Events.ToArray().DeepClone().ToList() , Scenario.Clone() as Scenario, ID.Clone() as string);
+            return new Bloc(Name, Position, m_IllustrationPath, Sort, Window, Baseline, Events.ToArray().DeepClone().ToList() , Scenario.Clone() as Scenario, ID.Clone() as string);
         }
         /// <summary>
         /// Operator Equals.
@@ -204,14 +204,6 @@ namespace HBP.Data.Experience.Protocol
         public static bool operator !=(Bloc a, Bloc b)
         {
             return !(a == b);
-        }
-        #endregion
-
-        #region Serialization
-        [OnDeserialized()]
-        public void OnDeserialized(StreamingContext context)
-        {
-            IllustrationPath = IllustrationPath;
         }
         #endregion
     }

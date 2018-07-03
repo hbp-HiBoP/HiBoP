@@ -96,7 +96,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>Icon clone.</returns>
         public object Clone()
         {
-            return new Icon(Name.Clone() as string, IllustrationPath.Clone() as string, new Vector2(Window.Start, Window.End));
+            return new Icon(Name.Clone() as string, m_IllustrationPath.Clone() as string, new Vector2(Window.Start, Window.End));
         }
 
         public void Copy(object copy)
@@ -105,14 +105,6 @@ namespace HBP.Data.Experience.Protocol
             Name = icon.Name;
             IllustrationPath = icon.IllustrationPath;
             Window = icon.Window;
-        }
-        #endregion
-
-        #region Serialization
-        [OnDeserialized()]
-        public void OnDeserialized(StreamingContext context)
-        {
-            IllustrationPath = IllustrationPath;
         }
         #endregion
     }

@@ -23,6 +23,7 @@ namespace HBP.Data.Anatomy
                 m_File = value.ConvertToShortPath();
             }
         }
+        public string SavedFile { get { return m_File; } }
         protected bool m_WasUsable;
         public bool WasUsable
         {
@@ -71,7 +72,7 @@ namespace HBP.Data.Anatomy
         #region Operators
         public object Clone()
         {
-            return new Connectivity(Name, File);
+            return new Connectivity(Name, m_File);
         }
         public void Copy(object copy)
         {
@@ -86,7 +87,6 @@ namespace HBP.Data.Anatomy
         [OnDeserialized()]
         public void OnDeserialized(StreamingContext context)
         {
-            File = File;
             RecalculateUsable();
         }
         #endregion
