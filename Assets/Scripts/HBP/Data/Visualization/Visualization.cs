@@ -408,47 +408,56 @@ namespace HBP.Data.Visualization
         {
             Exception exception = null;
             float progressStep = LOAD_COLUMNS_PROGRESS / (Columns.Count * 2);
-            for (int i = 0; i < Columns.Count; ++i)
+            if (Columns.Any(c => c.Type == Column.ColumnType.iEEG))
             {
-                Column column = Columns[i];
-                if (column.Type == Column.ColumnType.Anatomy) continue;
+                for (int i = 0; i < Columns.Count; ++i)
+                {
+                    Column column = Columns[i];
 
-                yield return Ninja.JumpToUnity;
-                progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
-                yield return Ninja.JumpBack;
-                try
-                {
-                    column.Load(dataInfoByColumn[column]);
+                    yield return Ninja.JumpToUnity;
+                    progress += progressStep;
+                    onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
+                    yield return Ninja.JumpBack;
+
+                    if (column.Type == Column.ColumnType.Anatomy) continue;
+
+                    try
+                    {
+                        column.Load(dataInfoByColumn[column]);
+                    }
+                    catch (Exception e)
+                    {
+                        exception = e;
+                        outPut(progress, exception);
+                        yield break;
+                    }
                 }
-                catch (Exception e)
+                IEnumerable<int> frequencies = Columns.SelectMany(c => c.Frequencies);
+                int maxFrequency = frequencies.Max();
+                for (int i = 0; i < Columns.Count; ++i)
                 {
-                    exception = e;
-                    outPut(progress, exception);
-                    yield break;
+                    Column column = Columns[i];
+                    yield return Ninja.JumpToUnity;
+                    progress += progressStep;
+                    onChangeProgress.Invoke(progress, 1.0f, "Loading timeline of column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
+                    yield return Ninja.JumpBack;
+                    column.SetTimeline(maxFrequency);
+                    yield return Ninja.JumpToUnity;
+                    try
+                    {
+                        column.IconicScenario.LoadIcons();
+                    }
+                    catch (Exception e)
+                    {
+                        exception = e;
+                        outPut(progress, exception);
+                        yield break;
+                    }
                 }
             }
-            IEnumerable<int> frequencies = Columns.SelectMany(c => c.Frequencies);
-            int maxFrequency = frequencies.Max();
-            for (int i = 0; i < Columns.Count; ++i)
+            else
             {
-                Column column = Columns[i];
-                yield return Ninja.JumpToUnity;
-                progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Loading timeline of column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
-                yield return Ninja.JumpBack;
-                column.SetTimeline(maxFrequency);
-                yield return Ninja.JumpToUnity;
-                try
-                {
-                    column.IconicScenario.LoadIcons();
-                }
-                catch (Exception e)
-                {
-                    exception = e;
-                    outPut(progress, exception);
-                    yield break;
-                }
+                progress += LOAD_COLUMNS_PROGRESS;
             }
             outPut(progress, exception);
         }
