@@ -503,6 +503,7 @@ namespace HBP.Module3D
             // Construct sites value array the old way, and set sites masks // maybe FIXME
             IEEGValuesBySiteID = new float[SitesCount][];
             IEEGUnitsBySiteID = new string[SitesCount];
+            int numberOfSitesWithValues = 0;
             foreach (Site site in Sites)
             {
                 Data.Visualization.SiteConfiguration siteConfiguration;
@@ -511,6 +512,7 @@ namespace HBP.Module3D
                     if (siteConfiguration.Values.Length > 0)
                     {
                         IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.NormalizedValues;
+                        numberOfSitesWithValues++;
                         site.State.IsMasked = false; // update mask
                     }
                     else
@@ -528,6 +530,10 @@ namespace HBP.Module3D
                     IEEGUnitsBySiteID[site.Information.GlobalID] = "";
                     site.State.IsMasked = true; // update mask
                 }
+            }
+            if (numberOfSitesWithValues == 0)
+            {
+                throw new NoMatchingSitesException();
             }
 
             IEEGParameters.MinimumAmplitude = float.MaxValue;

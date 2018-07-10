@@ -480,3 +480,16 @@ public class ParsingValueException : HBPException
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }
+
+[Serializable]
+public class NoMatchingSitesException : HBPException
+{
+    public NoMatchingSitesException() : base("No site used in this visualization has a name matching a channel name in the EEG files. Thus the values can not be displayed on the brain. This is not supported.\n\nPlease check your pts or eeg files, or make sure you enabled the automatic site name correction if you need it.")
+    {
+        Title = "No matching sites";
+    }
+    public NoMatchingSitesException(string message, Exception inner) : base(message, inner) { }
+    protected NoMatchingSitesException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}

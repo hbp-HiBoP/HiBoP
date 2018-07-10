@@ -79,7 +79,7 @@ namespace HBP.Data.Localizer
         #endregion
 
         #region Public static Methods
-        public static Bloc Average(Bloc[] blocs, Data.Enums.AveragingType valueAveragingMode, Data.Enums.AveragingType eventPositionAveragingMode )
+        public static Bloc Average(Bloc[] blocs, Enums.AveragingType valueAveragingMode, Enums.AveragingType eventPositionAveragingMode)
         {
             // Initialization Dictionary.
             Bloc bloc = blocs[0];
