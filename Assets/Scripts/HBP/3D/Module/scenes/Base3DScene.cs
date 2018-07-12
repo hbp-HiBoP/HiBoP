@@ -594,6 +594,10 @@ namespace HBP.Module3D
         /// Event for colormap values associated to a column id (params : minValue, middle, maxValue, id)
         /// </summary>
         public GenericEvent<float, float, float, Column3D> OnSendColorMapValues = new GenericEvent<float, float, float, Column3D>();
+        /// <summary>
+        /// Event called when changing the implantation files to use in the scene
+        /// </summary>
+        public UnityEvent OnUpdateSites = new UnityEvent();
 
         /// <summary>
         /// Ask the camera manager to update the target for this scene
@@ -1127,7 +1131,7 @@ namespace HBP.Module3D
                 column.UpdateSites(m_ColumnManager.SelectedImplantation.PatientElectrodesList, m_ColumnManager.SitesPatientParent, m_ColumnManager.SitesList);
                 UpdateCurrentRegionOfInterest(column);
             }
-            // reset selected plot
+            // reset selected site
             for (int ii = 0; ii < m_ColumnManager.Columns.Count; ++ii)
             {
                 m_ColumnManager.Columns[ii].UnselectSite();
@@ -1138,6 +1142,7 @@ namespace HBP.Module3D
             {
                 column.IsRenderingUpToDate = false;
             }
+            OnUpdateSites.Invoke();
         }
         /// <summary>
         /// Update meshes to display
@@ -1325,7 +1330,7 @@ namespace HBP.Module3D
             cut.OnUpdateCut.Invoke();
         }
         /// <summary>
-        /// Create 3 cuts surrounding the selected site. // FIXME : does not work properly yet
+        /// Create 3 cuts surrounding the selected site.
         /// </summary>
         public void CutAroundSelectedSite()
         {
@@ -1430,8 +1435,6 @@ namespace HBP.Module3D
         public void FinalizeInitialization()
         {
             m_ColumnManager.Columns[0].Views[0].IsSelected = true; // Select default view
-            LoadConfiguration();
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             SceneInformation.IsSceneInitialized = true;
             this.StartCoroutineAsync(c_LoadMissingAnatomy());
         }

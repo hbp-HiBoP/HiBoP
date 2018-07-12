@@ -150,8 +150,8 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
             m_SiteList.Initialize();
-            UpdateList();
             m_SiteConditions.Initialize(scene);
+            m_Scene.OnUpdateSites.AddListener(UpdateList);
             m_Scene.ColumnManager.OnSelectColumn.AddListener((c) => UpdateList());
             m_Scene.ColumnManager.OnSelectSite.AddListener(s =>
             {

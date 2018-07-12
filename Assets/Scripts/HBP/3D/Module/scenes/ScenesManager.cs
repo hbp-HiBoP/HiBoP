@@ -110,6 +110,7 @@ namespace HBP.Module3D
                     m_Scenes.Add(scene);
                     scene.FinalizeInitialization();
                     ApplicationState.Module3D.OnAddScene.Invoke(scene);
+                    scene.LoadConfiguration();
                 }
                 catch (Exception e)
                 {
@@ -153,6 +154,7 @@ namespace HBP.Module3D
                     m_Scenes.Add(scene);
                     scene.FinalizeInitialization();
                     ApplicationState.Module3D.OnAddScene.Invoke(scene);
+                    scene.LoadConfiguration();
                 }
                 catch (Exception e)
                 {

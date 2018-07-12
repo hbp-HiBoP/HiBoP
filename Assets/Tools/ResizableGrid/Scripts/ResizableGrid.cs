@@ -318,9 +318,9 @@ namespace Tools.Unity.ResizableGrid
                 column.anchorMax = new Vector2((i == ColumnNumber - 1) ? 1 : m_VerticalHandlers[i].Position, column.anchorMax.y);
                 for (int j = 0; j < ViewNumber; j++)
                 {
-                    if (column.GetComponent<Column>().Views[j] != null)
+                    if (m_Columns[i].Views[j] != null)
                     {
-                        RectTransform view = column.GetComponent<Column>().Views[j].GetComponent<RectTransform>();
+                        RectTransform view = m_Columns[i].Views[j].GetComponent<RectTransform>();
                         view.anchorMin = new Vector2(view.anchorMin.x, (j == ViewNumber - 1) ? 0 : m_HorizontalHandlers[j].Position);
                         view.anchorMax = new Vector2(view.anchorMax.x, (j == 0) ? 1 : m_HorizontalHandlers[j - 1].Position);
                     }
