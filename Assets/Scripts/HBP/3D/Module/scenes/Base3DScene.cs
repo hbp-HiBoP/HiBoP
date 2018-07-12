@@ -1008,11 +1008,6 @@ namespace HBP.Module3D
             }
 
             OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
-
-            foreach (var cut in m_Cuts)
-            {
-                UpdateCutPlane(cut);
-            }
         }
         /// <summary>
         /// Set the MRI to be used
@@ -1177,6 +1172,10 @@ namespace HBP.Module3D
                 SceneInformation.SimplifiedMeshToUse = m_ColumnManager.SelectedMesh.SimplifiedBoth;
                 SceneInformation.MeshToDisplay = m_ColumnManager.SelectedMesh.Both;
             }
+            // get the middle
+            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox.Center;
+
+            UpdateAllCutPlanes();
         }
         /// <summary>
         /// Update the visible state of the scene
@@ -1328,6 +1327,16 @@ namespace HBP.Module3D
             OnModifyPlanesCuts.Invoke();
 
             cut.OnUpdateCut.Invoke();
+        }
+        /// <summary>
+        /// Update the values of all the cut planes
+        /// </summary>
+        public void UpdateAllCutPlanes()
+        {
+            foreach (var cut in m_Cuts)
+            {
+                UpdateCutPlane(cut);
+            }
         }
         /// <summary>
         /// Create 3 cuts surrounding the selected site.
@@ -1682,9 +1691,6 @@ namespace HBP.Module3D
             if (SceneInformation.MeshToDisplay == null) return;
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 0 cutSurface"); // 40%
-
-            // get the middle
-            SceneInformation.MeshCenter = SceneInformation.MeshToDisplay.BoundingBox.Center;
 
             // cut the mesh
             List<DLL.Surface> cuts;
