@@ -306,46 +306,49 @@ namespace HBP.UI.Module3D
             }
 
             HBP.Module3D.DLL.BBox cube = m_Scene.ColumnManager.CubeBoundingBox;
-            List<Vector3> intersections = cube.IntersectionPointsWithPlane(m_Cut);
-            float xMax = float.MinValue, yMax = float.MinValue, zMax = float.MinValue;
-            float xMin = float.MaxValue, yMin = float.MaxValue, zMin = float.MaxValue;
-            foreach (var point in intersections)
+            if (cube != null)
             {
-                if (point.x > xMax) xMax = point.x;
-                if (point.y > yMax) yMax = point.y;
-                if (point.z > zMax) zMax = point.z;
-                if (point.x < xMin) xMin = point.x;
-                if (point.y < yMin) yMin = point.y;
-                if (point.z < zMin) zMin = point.z;
-            }
-            float xRange = xMax - xMin;
-            float yRange = yMax - yMin;
-            float zRange = zMax - zMin;
+                List<Vector3> intersections = cube.IntersectionPointsWithPlane(m_Cut);
+                float xMax = float.MinValue, yMax = float.MinValue, zMax = float.MinValue;
+                float xMin = float.MaxValue, yMin = float.MaxValue, zMin = float.MaxValue;
+                foreach (var point in intersections)
+                {
+                    if (point.x > xMax) xMax = point.x;
+                    if (point.y > yMax) yMax = point.y;
+                    if (point.z > zMax) zMax = point.z;
+                    if (point.x < xMin) xMin = point.x;
+                    if (point.y < yMin) yMin = point.y;
+                    if (point.z < zMin) zMin = point.z;
+                }
+                float xRange = xMax - xMin;
+                float yRange = yMax - yMin;
+                float zRange = zMax - zMin;
 
-            foreach (var site in sites)
-            {
-                float horizontalRatio = 0, verticalRatio = 0;
-                switch (m_Cut.Orientation)
+                foreach (var site in sites)
                 {
-                    case Data.Enums.CutOrientation.Axial:
-                        horizontalRatio = 1 - ((site.transform.position.x - xMin) / xRange);
-                        verticalRatio = (site.transform.position.y - yMin) / yRange;
-                        break;
-                    case Data.Enums.CutOrientation.Coronal:
-                        horizontalRatio = 1 - ((site.transform.position.x - xMin) / xRange);
-                        verticalRatio = (site.transform.position.z - zMin) / zRange;
-                        break;
-                    case Data.Enums.CutOrientation.Sagital:
-                        horizontalRatio = (site.transform.position.y - yMin) / yRange;
-                        verticalRatio = (site.transform.position.z - zMin) / zRange;
-                        break;
+                    float horizontalRatio = 0, verticalRatio = 0;
+                    switch (m_Cut.Orientation)
+                    {
+                        case Data.Enums.CutOrientation.Axial:
+                            horizontalRatio = 1 - ((site.transform.localPosition.x - xMin) / xRange);
+                            verticalRatio = (site.transform.localPosition.y - yMin) / yRange;
+                            break;
+                        case Data.Enums.CutOrientation.Coronal:
+                            horizontalRatio = 1 - ((site.transform.localPosition.x - xMin) / xRange);
+                            verticalRatio = (site.transform.localPosition.z - zMin) / zRange;
+                            break;
+                        case Data.Enums.CutOrientation.Sagital:
+                            horizontalRatio = (site.transform.localPosition.y - yMin) / yRange;
+                            verticalRatio = (site.transform.localPosition.z - zMin) / zRange;
+                            break;
+                    }
+                    if (m_Cut.Flip)
+                    {
+                        horizontalRatio = 1 - horizontalRatio;
+                    }
+                    CutSite cutSite = Instantiate(m_SitePrefab, m_SitesRectTransform).GetComponent<CutSite>();
+                    cutSite.Initialize(m_Scene, site, new Vector2(horizontalRatio, verticalRatio));
                 }
-                if (m_Cut.Flip)
-                {
-                    horizontalRatio = 1 - horizontalRatio;
-                }
-                CutSite cutSite = Instantiate(m_SitePrefab, m_SitesRectTransform).GetComponent<CutSite>();
-                cutSite.Initialize(m_Scene, site, new Vector2(horizontalRatio, verticalRatio));
             }
         }
         #endregion
