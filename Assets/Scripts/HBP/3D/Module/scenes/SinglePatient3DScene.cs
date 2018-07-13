@@ -165,7 +165,12 @@ namespace HBP.Module3D
             // Set Timeline
             progress += loadingIEEGProgress;
             onChangeProgress.Invoke(progress, loadingIEEGTime, "Loading columns");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetColumns());
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetColumns(e => exception = e));
+            if (exception != null)
+            {
+                outPut(exception);
+                yield break;
+            }
 
             // Finalization
             m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);

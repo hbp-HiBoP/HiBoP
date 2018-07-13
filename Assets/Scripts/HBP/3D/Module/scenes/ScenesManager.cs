@@ -95,7 +95,8 @@ namespace HBP.Module3D
                     ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
                     // Add the listeners
                     scene.OnChangeSelectedState.AddListener((selected) =>
-                    {   if (selected)
+                    {
+                        if (selected)
                         {
                             foreach (Base3DScene s in m_Scenes)
                             {

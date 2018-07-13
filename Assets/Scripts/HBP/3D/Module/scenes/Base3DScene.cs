@@ -2656,24 +2656,32 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="patient"></param>
         /// <param name="columnDataList"></param>
-        protected IEnumerator c_SetColumns()
+        protected IEnumerator c_SetColumns(Action<Exception> outPut)
         {
             yield return Ninja.JumpToUnity;
             // update columns number
             m_ColumnManager.InitializeColumns(Visualization.Columns);
             yield return Ninja.JumpBack;
 
-            // update columns names
-            for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
+            try
             {
-                m_ColumnManager.Columns[ii].Label = Visualization.Columns[ii].Name;
+                // update columns names
+                for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
+                {
+                    m_ColumnManager.Columns[ii].Label = Visualization.Columns[ii].Name;
+                }
+
+                // set timelines
+                m_ColumnManager.SetTimelineData(Visualization.Columns);
+
+                // set flag
+                SceneInformation.TimelinesLoaded = true;
             }
-
-            // set timelines
-            m_ColumnManager.SetTimelineData(Visualization.Columns);
-
-            // set flag
-            SceneInformation.TimelinesLoaded = true;
+            catch(Exception e)
+            {
+                outPut(e);
+                yield break;
+            }
         }
         private IEnumerator c_UpdateMeshesColliders()
         {
