@@ -16,6 +16,7 @@ namespace HBP.UI.Module3D
         private Base3DScene m_Scene;
         [SerializeField] private Image m_Image;
         [SerializeField] private RectTransform m_RectTransform;
+        [SerializeField] private GameObject m_SelectionPrefab;
         #endregion
 
         #region Private Methods
@@ -38,6 +39,14 @@ namespace HBP.UI.Module3D
             m_RectTransform.anchoredPosition = Vector2.zero;
             Color color = m_Site.GetComponent<MeshRenderer>().sharedMaterial.color; // FIXME : Use ThemeElements after the merge
             m_Image.color = color;
+            if (site.IsSelected)
+            {
+                RectTransform selectedRectTransform = Instantiate(m_SelectionPrefab, m_RectTransform).GetComponent<RectTransform>();
+                selectedRectTransform.anchorMin = Vector2.zero;
+                selectedRectTransform.anchorMax = Vector2.one;
+                selectedRectTransform.anchoredPosition = Vector2.zero;
+                selectedRectTransform.sizeDelta = new Vector2(6, 6);
+            }
         }
         public void OnPointerEnter(PointerEventData eventData)
         {
