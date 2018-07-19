@@ -161,11 +161,11 @@ namespace HBP.UI.Module3D
             m_MinimizedGameObject.GetComponentInChildren<Text>().text = Column.Label;
             m_MinimizedGameObject.SetActive(false);
 
-            m_Colormap.Initialize(scene, column, this);
-            m_TimeDisplay.Initialize(scene, column, this);
-            m_Icon.Initialize(scene, column, this);
-            m_Label.Initialize(scene, column, this);
-            m_Resizer.Initialize(scene, column, this);
+            m_Colormap.Setup(scene, column, this);
+            m_TimeDisplay.Setup(scene, column, this);
+            m_Icon.Setup(scene, column, this);
+            m_Label.Setup(scene, column, this);
+            m_Resizer.Setup(scene, column, this);
         }
         /// <summary>
         /// Expand this column
@@ -430,16 +430,17 @@ namespace HBP.UI.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
-        /// Update the position of the column label
+        /// Update the position of the overlay
         /// </summary>
-        public void UpdateLabelPosition()
+        public void UpdateOverlayElementsPosition()
         {
             float offset = 0.0f;
-            for (int i = 0; i < m_GridColumn.Views.Count; i++)
+            for (int i = 0; i < m_GridColumn.Views.Count; ++i)
             {
-                if (m_GridColumn.Views[i].GetComponent<View3DUI>().IsViewMinimizedAndColumnNotMinimized)
+                View3DUI view = m_GridColumn.Views[i].GetComponent<View3DUI>();
+                if (view.IsViewMinimizedAndColumnNotMinimized)
                 {
-                    offset += ParentGrid.MinimumViewHeight;
+                    offset += view.GetComponent<RectTransform>().rect.height;
                 }
                 else
                 {

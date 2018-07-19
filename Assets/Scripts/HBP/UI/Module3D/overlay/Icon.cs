@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
-    public class Icon : OverlayElement
+    public class Icon : ColumnOverlayElement
     {
         #region Properties
         [SerializeField]
@@ -22,9 +22,9 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
+        public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
-            base.Initialize(scene, column, columnUI);
+            base.Setup(scene, column, columnUI);
             IsActive = false;
             m_DefaultSprite = m_Image.sprite;
 

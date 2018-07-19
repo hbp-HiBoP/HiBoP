@@ -30,7 +30,7 @@ namespace HBP.UI.Module3D
         /// Feedback for when the iEEG are not up to date
         /// </summary>
         [SerializeField]
-        private GameObject m_IEEGOutdated;
+        private IEEGOutdated m_IEEGOutdated;
         /// <summary>
         /// GameObject to hide a minimized column
         /// </summary>
@@ -73,6 +73,7 @@ namespace HBP.UI.Module3D
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
+            m_IEEGOutdated.Initialize();
             for (int i = 0; i < m_Scene.ColumnManager.Columns.Count; i++)
             {
                 m_ResizableGrid.AddColumn();
@@ -81,13 +82,13 @@ namespace HBP.UI.Module3D
             m_ResizableGrid.AddViewLine();
             for (int i = 0; i < m_ResizableGrid.Columns.Count; i++)
             {
-                //m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>().Initialize(m_Scene, m_Scene.ColumnManager.Columns[i], m_Scene.ColumnManager.Columns[i].Views.Last());
                 Column3DUI columnUI = m_ResizableGrid.Columns[i].GetComponent<Column3DUI>();
                 View3DUI viewUI = m_ResizableGrid.Columns[i].Views.Last().GetComponent<View3DUI>();
                 viewUI.Initialize(m_Scene, m_Scene.ColumnManager.Columns[i], m_Scene.ColumnManager.Columns[i].Views.Last());
                 viewUI.OnChangeViewSize.AddListener(() =>
                 {
-                    columnUI.UpdateLabelPosition();
+                    columnUI.UpdateOverlayElementsPosition();
+                    UpdateOverlayElementsPosition();
                 });
             }
 
@@ -119,7 +120,8 @@ namespace HBP.UI.Module3D
                     viewUI.Initialize(m_Scene, columnUI.Column, columnUI.Column.Views.Last());
                     viewUI.OnChangeViewSize.AddListener(() =>
                     {
-                        columnUI.UpdateLabelPosition();
+                        columnUI.UpdateOverlayElementsPosition();
+                        UpdateOverlayElementsPosition();
                     });
                 }
             });
@@ -152,12 +154,36 @@ namespace HBP.UI.Module3D
             });
             m_Scene.OnIEEGOutdated.AddListener((state) =>
             {
-                m_IEEGOutdated.SetActive(state);
+                m_IEEGOutdated.gameObject.SetActive(state);
             });
         }
         public void OnRectTransformDimensionsChange()
         {
             m_RectTransformChanged = true;
+        }
+        /// <summary>
+        /// Update the position of the overlay
+        /// </summary>
+        public void UpdateOverlayElementsPosition()
+        {
+            if (m_ResizableGrid.ColumnNumber > 0)
+            {
+                Column gridColumn = m_ResizableGrid.Columns[0];
+                float offset = 0.0f;
+                for (int i = gridColumn.Views.Count - 1; i >= 0; --i)
+                {
+                    View3DUI view = gridColumn.Views[i].GetComponent<View3DUI>();
+                    if (view.IsViewMinimizedAndColumnNotMinimized)
+                    {
+                        offset += view.GetComponent<RectTransform>().rect.height;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                m_IEEGOutdated.SetOverlayOffset(offset);
+            }
         }
         #endregion
     }

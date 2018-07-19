@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
-    public class Colormap : OverlayElement
+    public class Colormap : ColumnOverlayElement
     {
         #region Properties
         public Sprite Colormap0;
@@ -83,9 +83,9 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
+        public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
-            base.Initialize(scene, column, columnUI);
+            base.Setup(scene, column, columnUI);
             IsActive = false;
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>

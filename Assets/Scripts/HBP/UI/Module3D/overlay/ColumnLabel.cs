@@ -9,7 +9,7 @@ using Tools.Unity.ResizableGrid;
 
 namespace HBP.UI.Module3D
 {
-    public class ColumnLabel : OverlayElement, IPointerDownHandler, IPointerUpHandler, IDragHandler
+    public class ColumnLabel : ColumnOverlayElement, IPointerDownHandler, IPointerUpHandler, IDragHandler
     {
         #region Properties
         [SerializeField]
@@ -53,9 +53,9 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
+        public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
-            base.Initialize(scene, column, columnUI);
+            base.Setup(scene, column, columnUI);
             IsActive = true;
 
             m_Text.text = column.Label;
