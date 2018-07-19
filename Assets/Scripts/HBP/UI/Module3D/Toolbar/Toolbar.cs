@@ -15,8 +15,6 @@ namespace HBP.UI.Module3D
         /// List of the tools of the toolbar
         /// </summary>
         protected List<Tools.Tool> m_Tools = new List<Tools.Tool>();
-
-        private bool m_UpdateRequired;
         #endregion
 
         #region Private Methods
@@ -55,11 +53,6 @@ namespace HBP.UI.Module3D
             ApplicationState.Module3D.OnSelectColumn.AddListener((column) => OnChangeColumn());
 
             ApplicationState.Module3D.OnSelectView.AddListener((column) => OnChangeView());
-            
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.AddListener(() =>
-            {
-                m_UpdateRequired = true;
-            });
             
             foreach (Tools.Tool tool in m_Tools)
             {
@@ -126,15 +119,7 @@ namespace HBP.UI.Module3D
                 tool.UpdateStatus(type);
             }
         }
-        private void Update()
-        {
-            if (m_UpdateRequired)
-            {
-                UpdateInteractableButtons();
-                UpdateButtonsStatus(UpdateToolbarType.Scene);
-                m_UpdateRequired = false;
-            }
-        }
+
         #endregion
 
         #region Public Methods
@@ -162,6 +147,12 @@ namespace HBP.UI.Module3D
         public virtual void HideToolbarCallback()
         {
 
+        }
+
+        public void UpdateToolbarState()
+        {
+            UpdateInteractableButtons();
+            UpdateButtonsStatus(UpdateToolbarType.Scene);
         }
         #endregion
     }

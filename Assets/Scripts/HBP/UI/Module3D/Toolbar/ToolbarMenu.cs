@@ -181,6 +181,8 @@ namespace HBP.UI.Module3D
         /// Currently used toolbar
         /// </summary>
         public Toolbar CurrentToolbar { get; set; }
+
+        private bool m_UpdateRequired;
         #endregion
 
         #region Private Methods
@@ -188,11 +190,33 @@ namespace HBP.UI.Module3D
         {
             Initialize();
         }
+        private void Update()
+        {
+            if (m_UpdateRequired)
+            {
+                m_SceneSettingsToolbar.UpdateToolbarState();
+                m_DisplaySettingsToolbar.UpdateToolbarState();
+                m_IEEGSettingsToolbar.UpdateToolbarState();
+                m_TimelineToolbar.UpdateToolbarState();
+                m_SiteToolbar.UpdateToolbarState();
+                m_ROIToolbar.UpdateToolbarState();
+                m_TriangleToolbar.UpdateToolbarState();
+                m_ConfigurationToolbar.UpdateToolbarState();
+                m_CCEPToolbar.UpdateToolbarState();
+                m_FMRIToolbar.UpdateToolbarState();
+                m_UpdateRequired = false;
+            }
+        }
         /// <summary>
         /// Initialize the toolbar menu
         /// </summary>
         private void Initialize()
         {
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.AddListener(() =>
+            {
+                m_UpdateRequired = true;
+            });
+
             m_SceneSettingsToolbar.Initialize();
             m_DisplaySettingsToolbar.Initialize();
             m_IEEGSettingsToolbar.Initialize();
