@@ -17,27 +17,16 @@ namespace HBP.UI.Module3D
         #region Properties
         private const int MINIMUM_SIZE_TO_DISPLAY_OVERLAY = 200;
         private const float MINIMIZED_THRESHOLD = 10.0f;
-        private Column3D m_Column;
         /// <summary>
         /// Associated logical column 3D
         /// </summary>
-        public Column3D Column
-        {
-            get
-            {
-                return m_Column;
-            }
-        }
+        public Column3D Column { get; private set; }
 
         private Column m_GridColumn;
-        private ResizableGrid m_ParentGrid;
         /// <summary>
         /// Parent resizable grid
         /// </summary>
-        public ResizableGrid ParentGrid
-        {
-            get { return m_ParentGrid; }
-        }
+        public ResizableGrid ParentGrid { get; private set; }
         /// <summary>
         /// Reference to this object's RectTransform
         /// </summary>
@@ -99,7 +88,7 @@ namespace HBP.UI.Module3D
         {
             get
             {
-                return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
+                return Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
             }
         }
 
@@ -135,7 +124,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Awake()
         {
-            m_ParentGrid = GetComponentInParent<ResizableGrid>();
+            ParentGrid = GetComponentInParent<ResizableGrid>();
             m_GridColumn = GetComponent<Column>();
         }
         private void Update()
@@ -144,7 +133,7 @@ namespace HBP.UI.Module3D
             {
                 UpdateOverlay();
                 m_MinimizedGameObject.SetActive(IsMinimized);
-                m_Column.IsMinimized = IsMinimized;
+                Column.IsMinimized = IsMinimized;
                 m_RectTransformChanged = false;
             }
         }
@@ -166,10 +155,10 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void Initialize(Base3DScene scene, Column3D column)
         {
-            m_Column = column;
+            Column = column;
 
             m_MinimizedGameObject = transform.Find("MinimizedImage").gameObject;
-            m_MinimizedGameObject.GetComponentInChildren<Text>().text = m_Column.Label;
+            m_MinimizedGameObject.GetComponentInChildren<Text>().text = Column.Label;
             m_MinimizedGameObject.SetActive(false);
 
             m_Colormap.Initialize(scene, column, this);
@@ -183,15 +172,15 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void Expand()
         {
-            int id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
-            float minimizedWidth = (m_ParentGrid.MinimumViewWidth / m_ParentGrid.RectTransform.rect.width);
+            int id = ParentGrid.Columns.IndexOf(m_GridColumn);
+            float minimizedWidth = (ParentGrid.MinimumViewWidth / ParentGrid.RectTransform.rect.width);
             if (IsMinimized)
             {
                 float availableWidth = 1.0f;
                 int numberOfExpandedColumns = 0;
-                for (int i = 0; i < m_ParentGrid.Columns.Count; i++)
+                for (int i = 0; i < ParentGrid.Columns.Count; i++)
                 {
-                    Column3DUI col = m_ParentGrid.Columns[i].GetComponent<Column3DUI>();
+                    Column3DUI col = ParentGrid.Columns[i].GetComponent<Column3DUI>();
                     if (!col.IsMinimized || col == this)
                     {
                         numberOfExpandedColumns++;
@@ -202,48 +191,48 @@ namespace HBP.UI.Module3D
                     }
                 }
                 float width = availableWidth / numberOfExpandedColumns;
-                for (int i = 0; i < m_ParentGrid.Columns.Count - 1; i++)
+                for (int i = 0; i < ParentGrid.Columns.Count - 1; i++)
                 {
-                    Column3DUI col = m_ParentGrid.Columns[i].GetComponent<Column3DUI>();
+                    Column3DUI col = ParentGrid.Columns[i].GetComponent<Column3DUI>();
                     if (!col.IsMinimized || col == this)
                     {
                         if (i == 0)
                         {
-                            m_ParentGrid.VerticalHandlers[i].Position = width;
+                            ParentGrid.VerticalHandlers[i].Position = width;
                         }
                         else
                         {
-                            m_ParentGrid.VerticalHandlers[i].Position = m_ParentGrid.VerticalHandlers[i - 1].Position + width;
+                            ParentGrid.VerticalHandlers[i].Position = ParentGrid.VerticalHandlers[i - 1].Position + width;
                         }
                     }
                     else
                     {
                         if (i == 0)
                         {
-                            m_ParentGrid.VerticalHandlers[i].Position = minimizedWidth;
+                            ParentGrid.VerticalHandlers[i].Position = minimizedWidth;
                         }
                         else
                         {
-                            m_ParentGrid.VerticalHandlers[i].Position = m_ParentGrid.VerticalHandlers[i - 1].Position + minimizedWidth;
+                            ParentGrid.VerticalHandlers[i].Position = ParentGrid.VerticalHandlers[i - 1].Position + minimizedWidth;
                         }
                     }
-                    m_ParentGrid.SetVerticalHandlersPosition(i);
+                    ParentGrid.SetVerticalHandlersPosition(i);
                 }
-                m_ParentGrid.UpdateAnchors();
+                ParentGrid.UpdateAnchors();
             }
             else
             {
                 if (id != 0)
                 {
-                    m_ParentGrid.VerticalHandlers[id - 1].Position = 0.0f;
-                    m_ParentGrid.SetVerticalHandlersPosition(id - 1);
+                    ParentGrid.VerticalHandlers[id - 1].Position = 0.0f;
+                    ParentGrid.SetVerticalHandlersPosition(id - 1);
                 }
-                if (id != m_ParentGrid.Columns.Count - 1)
+                if (id != ParentGrid.Columns.Count - 1)
                 {
-                    m_ParentGrid.VerticalHandlers[id].Position = 1.0f;
-                    m_ParentGrid.SetVerticalHandlersPosition(id);
+                    ParentGrid.VerticalHandlers[id].Position = 1.0f;
+                    ParentGrid.SetVerticalHandlersPosition(id);
                 }
-                m_ParentGrid.UpdateAnchors();
+                ParentGrid.UpdateAnchors();
             }
         }
         /// <summary>
@@ -253,30 +242,30 @@ namespace HBP.UI.Module3D
         {
             if (IsMinimized) return;
             
-            int id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
-            float minimizedWidth = (m_ParentGrid.MinimumViewWidth / m_ParentGrid.RectTransform.rect.width);
+            int id = ParentGrid.Columns.IndexOf(m_GridColumn);
+            float minimizedWidth = (ParentGrid.MinimumViewWidth / ParentGrid.RectTransform.rect.width);
 
             float totalWidth = 0.0f, availableWidth = 1.0f;
             List<float> widths = new List<float>();
-            for (int i = 0; i < m_ParentGrid.Columns.Count; i++)
+            for (int i = 0; i < ParentGrid.Columns.Count; i++)
             {
-                Column3DUI col = m_ParentGrid.Columns[i].GetComponent<Column3DUI>();
+                Column3DUI col = ParentGrid.Columns[i].GetComponent<Column3DUI>();
                 if (!col.IsMinimized && col != this)
                 {
                     if (i == 0)
                     {
-                        totalWidth += m_ParentGrid.VerticalHandlers[i].Position;
-                        widths.Add(m_ParentGrid.VerticalHandlers[i].Position);
+                        totalWidth += ParentGrid.VerticalHandlers[i].Position;
+                        widths.Add(ParentGrid.VerticalHandlers[i].Position);
                     }
-                    else if (i == m_ParentGrid.VerticalHandlers.Count)
+                    else if (i == ParentGrid.VerticalHandlers.Count)
                     {
-                        totalWidth += (1.0f - m_ParentGrid.VerticalHandlers[i - 1].Position);
-                        widths.Add(1.0f - m_ParentGrid.VerticalHandlers[i - 1].Position);
+                        totalWidth += (1.0f - ParentGrid.VerticalHandlers[i - 1].Position);
+                        widths.Add(1.0f - ParentGrid.VerticalHandlers[i - 1].Position);
                     }
                     else
                     {
-                        totalWidth += (m_ParentGrid.VerticalHandlers[i].Position - m_ParentGrid.VerticalHandlers[i - 1].Position);
-                        widths.Add(m_ParentGrid.VerticalHandlers[i].Position - m_ParentGrid.VerticalHandlers[i - 1].Position);
+                        totalWidth += (ParentGrid.VerticalHandlers[i].Position - ParentGrid.VerticalHandlers[i - 1].Position);
+                        widths.Add(ParentGrid.VerticalHandlers[i].Position - ParentGrid.VerticalHandlers[i - 1].Position);
                     }
                 }
                 else
@@ -292,25 +281,25 @@ namespace HBP.UI.Module3D
 
             while (true)
             {
-                id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
-                if (id == m_ParentGrid.Columns.Count - 1) break;
+                id = ParentGrid.Columns.IndexOf(m_GridColumn);
+                if (id == ParentGrid.Columns.Count - 1) break;
 
-                m_ParentGrid.SwapColumns(m_ParentGrid.Columns[id], m_ParentGrid.Columns[id + 1]);
+                ParentGrid.SwapColumns(ParentGrid.Columns[id], ParentGrid.Columns[id + 1]);
             }
 
             int widthIndex = 0;
-            for (int i = 0; i < m_ParentGrid.Columns.Count - 1; i++)
+            for (int i = 0; i < ParentGrid.Columns.Count - 1; i++)
             {
-                Column3DUI col = m_ParentGrid.Columns[i].GetComponent<Column3DUI>();
+                Column3DUI col = ParentGrid.Columns[i].GetComponent<Column3DUI>();
                 if (!col.IsMinimized && col != this)
                 {
                     if (i == 0)
                     {
-                        m_ParentGrid.VerticalHandlers[i].Position = widths[widthIndex];
+                        ParentGrid.VerticalHandlers[i].Position = widths[widthIndex];
                     }
                     else
                     {
-                        m_ParentGrid.VerticalHandlers[i].Position = m_ParentGrid.VerticalHandlers[i - 1].Position + widths[widthIndex];
+                        ParentGrid.VerticalHandlers[i].Position = ParentGrid.VerticalHandlers[i - 1].Position + widths[widthIndex];
                     }
                     widthIndex++;
                 }
@@ -318,16 +307,16 @@ namespace HBP.UI.Module3D
                 {
                     if (i == 0)
                     {
-                        m_ParentGrid.VerticalHandlers[i].Position = minimizedWidth;
+                        ParentGrid.VerticalHandlers[i].Position = minimizedWidth;
                     }
                     else
                     {
-                        m_ParentGrid.VerticalHandlers[i].Position = m_ParentGrid.VerticalHandlers[i - 1].Position + minimizedWidth;
+                        ParentGrid.VerticalHandlers[i].Position = ParentGrid.VerticalHandlers[i - 1].Position + minimizedWidth;
                     }
                 }
-                m_ParentGrid.SetVerticalHandlersPosition(i);
+                ParentGrid.SetVerticalHandlersPosition(i);
             }
-            m_ParentGrid.UpdateAnchors();
+            ParentGrid.UpdateAnchors();
         }
         /// <summary>
         /// Move the column in a specific direction
@@ -335,15 +324,15 @@ namespace HBP.UI.Module3D
         /// <param name="direction"></param>
         public void Move(int direction)
         {
-            int id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
+            int id = ParentGrid.Columns.IndexOf(m_GridColumn);
             int goalID = id + direction;
 
             while (true)
             {
-                id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
-                if ((id == m_ParentGrid.Columns.Count - 1 && direction > 0) || (id == 0 && direction < 0) || id == goalID) break;
+                id = ParentGrid.Columns.IndexOf(m_GridColumn);
+                if ((id == ParentGrid.Columns.Count - 1 && direction > 0) || (id == 0 && direction < 0) || id == goalID) break;
 
-                m_ParentGrid.SwapColumns(m_ParentGrid.Columns[id], m_ParentGrid.Columns[id + (int)Mathf.Sign(direction) * 1]);
+                ParentGrid.SwapColumns(ParentGrid.Columns[id], ParentGrid.Columns[id + (int)Mathf.Sign(direction) * 1]);
             }
         }
         /// <summary>
@@ -351,15 +340,15 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void SwapColumnWithHoveredColumn()
         {
-            foreach (Column column in m_ParentGrid.Columns)
+            foreach (Column column in ParentGrid.Columns)
             {
                 Column3DUI columnUI = column.GetComponent<Column3DUI>();
                 if (columnUI.IsHovered)
                 {
                     if (columnUI.IsLeftBorderHovered)
                     {
-                        int id1 = m_ParentGrid.Columns.IndexOf(m_GridColumn);
-                        int id2 = m_ParentGrid.Columns.IndexOf(column);
+                        int id1 = ParentGrid.Columns.IndexOf(m_GridColumn);
+                        int id2 = ParentGrid.Columns.IndexOf(column);
                         if (id1 > id2)
                         {
                             Move(id2 - id1);
@@ -371,8 +360,8 @@ namespace HBP.UI.Module3D
                     }
                     else if (columnUI.IsRightBorderHovered)
                     {
-                        int id1 = m_ParentGrid.Columns.IndexOf(m_GridColumn);
-                        int id2 = m_ParentGrid.Columns.IndexOf(column);
+                        int id1 = ParentGrid.Columns.IndexOf(m_GridColumn);
+                        int id2 = ParentGrid.Columns.IndexOf(column);
                         if (id1 > id2)
                         {
                             Move(id2 - id1 + 1);
@@ -384,7 +373,7 @@ namespace HBP.UI.Module3D
                     }
                     else
                     {
-                        m_ParentGrid.SwapColumns(m_GridColumn, column);
+                        ParentGrid.SwapColumns(m_GridColumn, column);
                     }
                     return;
                 }
@@ -396,10 +385,10 @@ namespace HBP.UI.Module3D
         public void UpdateBorderVisibility(bool forceInactive = false)
         {
             UnityEngine.Profiling.Profiler.BeginSample("border visibility");
-            int id = m_ParentGrid.Columns.IndexOf(m_GridColumn);
+            int id = ParentGrid.Columns.IndexOf(m_GridColumn);
             if (forceInactive)
             {
-                foreach (Column column in m_ParentGrid.Columns)
+                foreach (Column column in ParentGrid.Columns)
                 {
                     Column3DUI columnUI = column.GetComponent<Column3DUI>();
                     columnUI.m_Middle.gameObject.SetActive(false);
@@ -409,10 +398,10 @@ namespace HBP.UI.Module3D
             }
             else
             {
-                foreach (Column column in m_ParentGrid.Columns)
+                foreach (Column column in ParentGrid.Columns)
                 {
                     Column3DUI columnUI = column.GetComponent<Column3DUI>();
-                    int columnID = m_ParentGrid.Columns.IndexOf(column);
+                    int columnID = ParentGrid.Columns.IndexOf(column);
                     if (columnUI == this) continue;
 
                     bool columnHovered = columnUI.IsHovered;
@@ -450,7 +439,7 @@ namespace HBP.UI.Module3D
             {
                 if (m_GridColumn.Views[i].GetComponent<View3DUI>().IsViewMinimizedAndColumnNotMinimized)
                 {
-                    offset += m_ParentGrid.MinimumViewHeight;
+                    offset += ParentGrid.MinimumViewHeight;
                 }
                 else
                 {

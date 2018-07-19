@@ -13,6 +13,7 @@ namespace HBP.UI.Module3D
     public class CutController : MonoBehaviour
     {
         #region Properties
+        private const float MINIMIZED_THRESHOLD = 100.0f;
         /// <summary>
         /// Associated scene
         /// </summary>
@@ -48,6 +49,14 @@ namespace HBP.UI.Module3D
         private List<CutParametersController> m_CutParametersControllers = new List<CutParametersController>();
         private bool m_RectTransformChanged;
         public Tuple<Data.Enums.CutOrientation, Texture2D>[] CutTextures { get { return (from cutParameterController in m_CutParametersControllers select new Tuple<Data.Enums.CutOrientation, Texture2D>(cutParameterController.Cut.Orientation, cutParameterController.Texture)).ToArray(); } }
+        
+        public bool IsMinimized
+        {
+            get
+            {
+                return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -60,14 +69,7 @@ namespace HBP.UI.Module3D
         {
             if (m_RectTransformChanged)
             {
-                if (GetComponent<RectTransform>().rect.width < 3 * m_ParentGrid.MinimumViewWidth)
-                {
-                    m_MinimizedGameObject.SetActive(true);
-                }
-                else
-                {
-                    m_MinimizedGameObject.SetActive(false);
-                }
+                m_MinimizedGameObject.SetActive(IsMinimized);
                 m_RectTransformChanged = false;
             }
             if (Input.GetMouseButtonDown(0) && m_CutParametersControllers.Any(c => c.AreControlsOpen))

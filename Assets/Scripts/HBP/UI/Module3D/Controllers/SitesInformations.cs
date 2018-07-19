@@ -11,6 +11,7 @@ namespace HBP.UI.Module3D
     public class SitesInformations : MonoBehaviour
     {
         #region Properties
+        private const float MINIMIZED_THRESHOLD = 270.0f;
         private Base3DScene m_Scene;
         private RectTransform m_RectTransform;
         private ResizableGrid m_ParentGrid;
@@ -116,6 +117,14 @@ namespace HBP.UI.Module3D
                 UpdateList();
             }
         }
+
+        public bool IsMinimized
+        {
+            get
+            {
+                return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -128,14 +137,7 @@ namespace HBP.UI.Module3D
         {
             if (m_RectTransformChanged)
             {
-                if (GetComponent<RectTransform>().rect.width < 3 * m_ParentGrid.MinimumViewWidth)
-                {
-                    m_MinimizedGameObject.SetActive(true);
-                }
-                else
-                {
-                    m_MinimizedGameObject.SetActive(false);
-                }
+                m_MinimizedGameObject.SetActive(IsMinimized);
                 m_RectTransformChanged = false;
             }
         }

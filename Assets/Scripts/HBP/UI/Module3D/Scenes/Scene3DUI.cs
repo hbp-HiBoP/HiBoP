@@ -14,6 +14,7 @@ namespace HBP.UI.Module3D
     public class Scene3DUI : MonoBehaviour
     {
         #region Properties
+        private const float MINIMIZED_THRESHOLD = 200.0f;
         /// <summary>
         /// Associated logical Base3DScene
         /// </summary>
@@ -22,6 +23,7 @@ namespace HBP.UI.Module3D
         /// Linked resizable grid
         /// </summary>
         private ResizableGrid m_ResizableGrid;
+        private RectTransform m_RectTransform;
 
         [SerializeField] private ProgressBar m_ProgressBar;
         /// <summary>
@@ -35,25 +37,29 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private GameObject m_MinimizedGameObject;
         private bool m_RectTransformChanged;
+        /// <summary>
+        /// Is the scene minimzed ?
+        /// </summary>
+        public bool IsMinimized
+        {
+            get
+            {
+                return Mathf.Abs(m_RectTransform.rect.width - m_ResizableGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
+            }
+        }
         #endregion
 
         #region Private Methods
         private void Awake()
         {
+            m_RectTransform = GetComponent<RectTransform>();
             m_ResizableGrid = GetComponent<ResizableGrid>();
         }
         private void Update()
         {
             if (m_RectTransformChanged)
             {
-                if (GetComponent<RectTransform>().rect.width < 5 * m_ResizableGrid.MinimumViewWidth)
-                {
-                    m_MinimizedGameObject.SetActive(true);
-                }
-                else
-                {
-                    m_MinimizedGameObject.SetActive(false);
-                }
+                m_MinimizedGameObject.SetActive(IsMinimized);
                 m_RectTransformChanged = false;
             }
         }
