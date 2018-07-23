@@ -161,6 +161,10 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Base3DScene> OnRemoveScene = new GenericEvent<Base3DScene>();
         /// <summary>
+        /// Event called after all new scenes have been opened and initialized
+        /// </summary>
+        public UnityEvent OnFinishedAddingNewScenes = new UnityEvent();
+        /// <summary>
         /// Event called when changing the selected scene
         /// </summary>
         public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
@@ -367,6 +371,7 @@ namespace HBP.Module3D
                 }
                 loadingCircle.Close();
             }
+            OnFinishedAddingNewScenes.Invoke();
         }
         IEnumerator c_LoadScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress = null)
         {

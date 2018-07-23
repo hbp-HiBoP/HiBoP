@@ -216,6 +216,10 @@ namespace HBP.UI.Module3D
             {
                 m_UpdateRequired = true;
             });
+            ApplicationState.Module3D.OnFinishedAddingNewScenes.AddListener(() =>
+            {
+                CurrentToolbar.ShowToolbarCallback();
+            });
 
             m_SceneSettingsToolbar.Initialize();
             m_DisplaySettingsToolbar.Initialize();
