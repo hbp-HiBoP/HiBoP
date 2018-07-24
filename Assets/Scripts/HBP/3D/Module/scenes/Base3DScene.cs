@@ -2343,6 +2343,7 @@ namespace HBP.Module3D
             bool meshHit = hit.transform.parent.gameObject.name == "Brains" || hit.transform.parent.gameObject.name == "Erased Brains";
             bool siteHit = hit.collider.GetComponent<Site>() != null;
             bool roiHit = hit.collider.GetComponent<Sphere>() != null;
+            Vector3 hitPoint = hit.point - transform.position;
 
             if (siteHit)
             {
@@ -2365,7 +2366,7 @@ namespace HBP.Module3D
                         }
                         else if (meshHit || cutHit)
                         {
-                            selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hit.point - transform.position, 5.0f);
+                            selectedROI.AddBubble(m_ColumnManager.SelectedColumn.Layer, "Bubble", hitPoint, 5.0f);
                             SceneInformation.AreSitesUpdated = false;
                         }
                         else
@@ -2380,7 +2381,7 @@ namespace HBP.Module3D
                     {
                         if (m_TriEraser.IsEnabled && m_TriEraser.IsClickAvailable)
                         {
-                            m_TriEraser.EraseTriangles(ray.direction, hit.point);
+                            m_TriEraser.EraseTriangles(ray.direction, hitPoint);
                             UpdateMeshesFromDLL();
                         }
                     }

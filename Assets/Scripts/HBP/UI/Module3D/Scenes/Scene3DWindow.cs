@@ -6,6 +6,7 @@ using System.Linq;
 using Tools.Unity;
 using Tools.Unity.ResizableGrid;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
@@ -30,7 +31,20 @@ namespace HBP.UI.Module3D
                 Vector3 mousePosition = Input.mousePosition;
                 if (mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height)
                 {
-                    m_Scene.IsSelected = true;
+                    PointerEventData pointerData = new PointerEventData(EventSystem.current)
+                    {
+                        pointerId = -1,
+                        position = Input.mousePosition
+                    };
+                    List<RaycastResult> raycastResults = new List<RaycastResult>();
+                    EventSystem.current.RaycastAll(pointerData, raycastResults);
+                    if (raycastResults.Count > 0)
+                    {
+                        if (raycastResults[0].gameObject.GetComponentInParent<Scene3DWindow>() == this)
+                        {
+                            m_Scene.IsSelected = true;
+                        }
+                    }
                 }
             }
         }
