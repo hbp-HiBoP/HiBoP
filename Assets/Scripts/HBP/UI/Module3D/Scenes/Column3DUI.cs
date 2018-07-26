@@ -70,7 +70,6 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private RectTransform m_RightBorder;
 
-        private bool m_RectTransformChanged;
         /// <summary>
         /// Does the column UI have enough space to display the overlay ?
         /// </summary>
@@ -129,12 +128,12 @@ namespace HBP.UI.Module3D
         }
         private void Update()
         {
-            if (m_RectTransformChanged)
+            if (m_RectTransform.hasChanged)
             {
                 UpdateOverlay();
                 m_MinimizedGameObject.SetActive(IsMinimized);
                 Column.IsMinimized = IsMinimized;
-                m_RectTransformChanged = false;
+                m_RectTransform.hasChanged = false;
             }
         }
         private void UpdateOverlay()
@@ -146,10 +145,6 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public void OnRectTransformDimensionsChange()
-        {
-            m_RectTransformChanged = true;
-        }
         /// <summary>
         /// Initialize this column UI
         /// </summary>

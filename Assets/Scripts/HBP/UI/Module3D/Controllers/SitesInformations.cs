@@ -135,19 +135,15 @@ namespace HBP.UI.Module3D
         }
         private void Update()
         {
-            if (m_RectTransformChanged)
+            if (m_RectTransform.hasChanged)
             {
                 m_MinimizedGameObject.SetActive(IsMinimized);
-                m_RectTransformChanged = false;
+                m_RectTransform.hasChanged = false;
             }
         }
         #endregion
 
         #region Public Methods
-        public void OnRectTransformDimensionsChange()
-        {
-            m_RectTransformChanged = true;
-        }
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;

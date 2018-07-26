@@ -70,7 +70,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         {
             m_UsingRenderTexture = value;
             m_RawImage.enabled = value;
-            OnRectTransformDimensionsChange();
+            m_RectTransform.hasChanged = true;
         }
     }
 
@@ -105,8 +105,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             return IsMinimizedHorizontally || IsMinimzedVertically;
         }
     }
-    
-    private bool m_RectTransformChanged = false;
     #endregion
 
     #region Events
@@ -126,7 +124,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     }
     private void Update()
     {
-        if (m_RectTransformChanged)
+        if (m_RectTransform.hasChanged)
         {
             m_MinimizedGameObject.SetActive(IsViewMinimizedAndColumnNotMinimized);
             m_View.IsMinimized = IsMinimized;
@@ -151,7 +149,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             }
 
             OnChangeViewSize.Invoke();
-            m_RectTransformChanged = false;
+            m_RectTransform.hasChanged = false;
         }
         DeselectView();
         SendRayToScene();
@@ -271,10 +269,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     {
         m_PointerIsInView = false;
         ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
-    }
-    public void OnRectTransformDimensionsChange()
-    {
-        m_RectTransformChanged = true;
     }
     /// <summary>
     /// Initialize this view

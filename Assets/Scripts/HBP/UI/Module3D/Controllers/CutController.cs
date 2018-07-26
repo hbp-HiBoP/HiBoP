@@ -47,7 +47,6 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private GameObject m_MinimizedGameObject;
         private List<CutParametersController> m_CutParametersControllers = new List<CutParametersController>();
-        private bool m_RectTransformChanged;
         public Tuple<Data.Enums.CutOrientation, Texture2D>[] CutTextures { get { return (from cutParameterController in m_CutParametersControllers select new Tuple<Data.Enums.CutOrientation, Texture2D>(cutParameterController.Cut.Orientation, cutParameterController.Texture)).ToArray(); } }
         
         public bool IsMinimized
@@ -67,10 +66,10 @@ namespace HBP.UI.Module3D
         }
         private void Update()
         {
-            if (m_RectTransformChanged)
+            if (m_RectTransform.hasChanged)
             {
                 m_MinimizedGameObject.SetActive(IsMinimized);
-                m_RectTransformChanged = false;
+                m_RectTransform.hasChanged = false;
             }
             if (Input.GetMouseButtonDown(0) && m_CutParametersControllers.Any(c => c.AreControlsOpen))
             {
@@ -125,10 +124,6 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public void OnRectTransformDimensionsChange()
-        {
-            m_RectTransformChanged = true;
-        }
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;

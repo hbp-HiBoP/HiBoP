@@ -36,7 +36,6 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private GameObject m_MinimizedGameObject;
-        private bool m_RectTransformChanged;
         /// <summary>
         /// Is the scene minimzed ?
         /// </summary>
@@ -57,10 +56,10 @@ namespace HBP.UI.Module3D
         }
         private void Update()
         {
-            if (m_RectTransformChanged)
+            if (m_RectTransform.hasChanged)
             {
                 m_MinimizedGameObject.SetActive(IsMinimized);
-                m_RectTransformChanged = false;
+                m_RectTransform.hasChanged = false;
             }
         }
         #endregion
@@ -156,10 +155,6 @@ namespace HBP.UI.Module3D
             {
                 m_IEEGOutdated.gameObject.SetActive(state);
             });
-        }
-        public void OnRectTransformDimensionsChange()
-        {
-            m_RectTransformChanged = true;
         }
         /// <summary>
         /// Update the position of the overlay

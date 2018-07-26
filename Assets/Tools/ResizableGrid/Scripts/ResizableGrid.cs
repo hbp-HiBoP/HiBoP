@@ -166,8 +166,6 @@ namespace Tools.Unity.ResizableGrid
         /// </summary>
         public bool IsHandlerClicked { get; set; }
 
-        private bool m_RectTransformChanged;
-
         public GameObject ViewPrefab;
         public GameObject ColumnPrefab;
         public GameObject VerticalHandlerPrefab;
@@ -178,7 +176,7 @@ namespace Tools.Unity.ResizableGrid
         #region Private Methods
         private void Update()
         {
-            if (m_RectTransformChanged)
+            if (m_RectTransform.hasChanged)
             {
                 m_MinimumViewHeight = Mathf.Min(MINIMUM_VIEW_HEIGHT_DEFAULT, m_RectTransform.rect.height / ViewNumber);
                 m_MinimumViewWidth = Mathf.Min(MINIMUM_VIEW_WIDTH_DEFAULT, m_RectTransform.rect.width / ColumnNumber);
@@ -186,12 +184,8 @@ namespace Tools.Unity.ResizableGrid
                 SetVerticalHandlersPosition();
                 SetHorizontalHandlersPosition();
                 UpdateAnchors();
-                m_RectTransformChanged = false;
+                m_RectTransform.hasChanged = false;
             }
-        }
-        private void OnRectTransformDimensionsChange()
-        {
-            m_RectTransformChanged = true;
         }
         /// <summary>
         /// Update the position constraints on the handlers depending on the number of columns and views

@@ -29,7 +29,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Update()
         {
-            if (m_RectTransformChanged)
+            if (m_RectTransform.hasChanged)
             {
                 if (m_RectTransform.rect.width < 40)
                 {
@@ -43,7 +43,7 @@ namespace HBP.UI.Module3D
                     m_Text.gameObject.SetActive(true);
                     m_Right.gameObject.SetActive(true);
                 }
-                m_RectTransformChanged = false;
+                m_RectTransform.hasChanged = false;
             }
             if (m_CurrentImage)
             {
@@ -91,11 +91,6 @@ namespace HBP.UI.Module3D
         public void OnDrag(PointerEventData eventData)
         {
             m_ColumnUI.UpdateBorderVisibility();
-        }
-
-        public void OnRectTransformDimensionsChange()
-        {
-            m_RectTransformChanged = true;
         }
         #endregion
     }
