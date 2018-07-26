@@ -70,63 +70,50 @@ public class Shortcut3D : MonoBehaviour
             Column3D column = scene.ColumnManager.SelectedColumn;
             if (column)
             {
-                Site site = column.SelectedSite;
-                if (site)
+                Site selectedSite = column.SelectedSite;
+                if (selectedSite)
                 {
+                    List<Site> sites = new List<Site>();
+                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                    {
+                        foreach (Transform siteTransform in selectedSite.transform.parent)
+                        {
+                            sites.Add(siteTransform.GetComponent<Site>());
+                        }
+                    }
+                    else if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt))
+                    {
+                        foreach (Transform electrode in selectedSite.transform.parent.parent)
+                        {
+                            foreach (Transform siteTransform in electrode)
+                            {
+                                sites.Add(siteTransform.GetComponent<Site>());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        sites.Add(selectedSite);
+                    }
                     if (Input.GetKeyDown(KeyCode.Alpha1))
                     {
-                        if (site.State.IsExcluded)
-                        {
-                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Include);
-                        }
-                        else
-                        {
-                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Exclude);
-                        }
+                        foreach (var site in sites) site.State.IsExcluded = !site.State.IsExcluded;
                     }
                     else if (Input.GetKeyDown(KeyCode.Alpha2))
                     {
-                        if (site.State.IsHighlighted)
-                        {
-                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Unhighlight);
-                        }
-                        else
-                        {
-                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Highlight);
-                        }
+                        foreach (var site in sites) site.State.IsHighlighted = !site.State.IsHighlighted;
                     }
                     else if (Input.GetKeyDown(KeyCode.Alpha3))
                     {
-                        if (site.State.IsBlackListed)
-                        {
-                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Unblacklist);
-                        }
-                        else
-                        {
-                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Blacklist);
-                        }
+                        foreach (var site in sites) site.State.IsBlackListed = !site.State.IsBlackListed;
                     }
                     else if (Input.GetKeyDown(KeyCode.Alpha4))
                     {
-                        if (site.State.IsMarked)
-                        {
-                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Unmark);
-                        }
-                        else
-                        {
-                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Mark);
-                        }
+                        foreach (var site in sites) site.State.IsMarked = !site.State.IsMarked;
                     }
                     else if (Input.GetKeyDown(KeyCode.Alpha5))
                     {
-                        if (site.State.IsSuspicious)
-                        {
-                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Unsuspect);
-                        }
-                        else
-                        {
-                            scene.ChangeSiteState(HBP.Data.Enums.SiteAction.Suspect);
-                        }
+                        foreach (var site in sites) site.State.IsSuspicious = !site.State.IsSuspicious;
                     }
                 }
             }

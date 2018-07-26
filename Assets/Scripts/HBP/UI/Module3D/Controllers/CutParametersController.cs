@@ -211,7 +211,7 @@ namespace HBP.UI.Module3D
                     OpenControls();
                 }
             });
-            m_Scene.OnRequestUpdateInCutUI.AddListener(() =>
+            m_Scene.OnSitesRenderingUpdated.AddListener(() =>
             {
                 ShowSites();
             });

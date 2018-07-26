@@ -473,9 +473,18 @@ namespace HBP.Module3D
             BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
             BrainColorTexture = Texture2Dutility.GenerateColorScheme();
         }
-        private void AddBaseColumn()
+        private void AddColumn(Data.Visualization.Column.ColumnType type)
         {
-            Column3D column = Instantiate(m_Column3DPrefab, transform.Find("Columns")).GetComponent<Column3D>();
+            Column3D column = null;
+            switch (type)
+            {
+                case Data.Visualization.Column.ColumnType.Anatomy:
+                    column = Instantiate(m_Column3DPrefab, transform.Find("Columns")).GetComponent<Column3D>();
+                    break;
+                case Data.Visualization.Column.ColumnType.iEEG:
+                    column = Instantiate(m_Column3DIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
+                    break;
+            }
             column.gameObject.name = "Column " + Columns.Count;
             column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
             column.OnChangeSelectedState.AddListener((selected) =>
@@ -539,123 +548,39 @@ namespace HBP.Module3D
             {
                 OnChangeSiteState.Invoke(site);
             });
-            column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
-            column.ResetSplitsNumber(MeshSplitNumber);
-            m_Columns.Add(column);
-            OnAddColumn.Invoke();
-        }
-        /// <summary>
-        /// Add a IEEG column to this scene
-        /// </summary>
-        private void AddIEEGColumn()
-        {
-            Column3DIEEG column = Instantiate(m_Column3DIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
-            column.gameObject.name = "Column IEEG " + ColumnsIEEG.Count;
-            column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
-            column.OnChangeSelectedState.AddListener((selected) =>
+            if (type == Data.Visualization.Column.ColumnType.iEEG)
             {
-                if (selected)
+                Column3DIEEG columnIEEG = column as Column3DIEEG;
+                columnIEEG.IEEGParameters.OnUpdateSpanValues.AddListener(() =>
                 {
-                    foreach (Column3D c in m_Columns)
-                    {
-                        if (c != column)
-                        {
-                            foreach (View3D v in c.Views)
-                            {
-                                v.IsSelected = false;
-                            }
-                        }
-                    }
-                }
-                OnChangeSelectedState.Invoke(selected);
-                if (selected) OnSelectColumn.Invoke(column);
-            });
-            column.OnMoveView.AddListener((view) =>
-            {
-                SynchronizeViewsToReferenceView(view);
-            });
-            column.IEEGParameters.OnUpdateSpanValues.AddListener(() =>
-            {
-                OnUpdateIEEGSpan.Invoke(column);
-                column.IsRenderingUpToDate = false;
-            });
-            column.IEEGParameters.OnUpdateAlphaValues.AddListener(() =>
-            {
-                OnUpdateIEEGAlpha.Invoke(column);
-                column.IsRenderingUpToDate = false;
-            });
-            column.IEEGParameters.OnUpdateGain.AddListener(() =>
-            {
-                OnUpdateIEEGGain.Invoke(column);
-                column.IsRenderingUpToDate = false;
-            });
-            column.IEEGParameters.OnUpdateMaximumInfluence.AddListener(() =>
-            {
-                OnUpdateIEEGMaximumInfluence.Invoke(column);
-                column.IsRenderingUpToDate = false;
-            });
-            column.OnUpdateCurrentTimelineID.AddListener(() =>
-            {
-                OnUpdateColumnTimelineID.Invoke(column);
-                column.IsRenderingUpToDate = false;
-            });
-            column.OnChangeNumberOfROI.AddListener(() =>
-            {
-                OnChangeNumberOfROI.Invoke(column);
-            });
-            column.OnChangeNumberOfVolumeInROI.AddListener(() =>
-            {
-                OnChangeNumberOfVolumeInROI.Invoke(column);
-            });
-            column.OnSelectROI.AddListener(() =>
-            {
-                OnSelectROI.Invoke(column);
-            });
-            column.OnChangeROIVolumeRadius.AddListener(() =>
-            {
-                OnChangeROIVolumeRadius.Invoke(column);
-            });
-            column.OnChangeMinimizedState.AddListener(() =>
-            {
-                OnChangeColumnMinimizedState.Invoke();
-            });
-            column.OnChangeCCEPParameters.AddListener(() =>
-            {
-                OnChangeCCEPParameters.Invoke();
-            });
-            column.OnSelectSite.AddListener((site) =>
-            {
-                OnSelectSite.Invoke(site);
-                foreach (Column3D c in m_Columns)
+                    OnUpdateIEEGSpan.Invoke(columnIEEG);
+                    column.IsRenderingUpToDate = false;
+                });
+                columnIEEG.IEEGParameters.OnUpdateAlphaValues.AddListener(() =>
                 {
-                    if (!c.IsSelected)
-                    {
-                        c.UnselectSite();
-                    }
-                }
-            });
-            column.OnChangeSiteState.AddListener((site) =>
-            {
-                OnChangeSiteState.Invoke(site);
-            });
-            column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
-            column.ResetSplitsNumber(MeshSplitNumber);
-            m_Columns.Add(column);
-            OnAddColumn.Invoke();
-        }
-        /// <summary>
-        /// Remove the last IEEG Column of this scene
-        /// </summary>
-        private void RemoveIEEGColumn()
-        {
-            if (ColumnsIEEG.Count > 0)
-            {
-                Column3DIEEG column = ColumnsIEEG[ColumnsIEEG.Count - 1];
-                int columnID = m_Columns.IndexOf(column);
-                Destroy(m_Columns[columnID]);
-                m_Columns.RemoveAt(columnID);
-                OnRemoveColumn.Invoke(column);
+                    OnUpdateIEEGAlpha.Invoke(columnIEEG);
+                    column.IsRenderingUpToDate = false;
+                });
+                columnIEEG.IEEGParameters.OnUpdateGain.AddListener(() =>
+                {
+                    OnUpdateIEEGGain.Invoke(columnIEEG);
+                    column.IsRenderingUpToDate = false;
+                });
+                columnIEEG.IEEGParameters.OnUpdateMaximumInfluence.AddListener(() =>
+                {
+                    OnUpdateIEEGMaximumInfluence.Invoke(columnIEEG);
+                    column.IsRenderingUpToDate = false;
+                });
+                columnIEEG.OnUpdateCurrentTimelineID.AddListener(() =>
+                {
+                    OnUpdateColumnTimelineID.Invoke(columnIEEG);
+                    column.IsRenderingUpToDate = false;
+                });
             }
+            column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
+            column.ResetSplitsNumber(MeshSplitNumber);
+            m_Columns.Add(column);
+            OnAddColumn.Invoke();
         }
         /// <summary>
         /// Synchronize all the cameras from the same view line
@@ -803,15 +728,7 @@ namespace HBP.Module3D
         {
             foreach (Data.Visualization.Column column in columns)
             {
-                switch (column.Type)
-                {
-                    case Data.Visualization.Column.ColumnType.Anatomy:
-                        AddBaseColumn();
-                        break;
-                    case Data.Visualization.Column.ColumnType.iEEG:
-                        AddIEEGColumn();
-                        break;
-                }
+                AddColumn(column.Type);
             }
         }
         /// <summary>

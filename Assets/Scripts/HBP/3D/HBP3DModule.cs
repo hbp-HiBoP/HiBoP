@@ -196,10 +196,6 @@ namespace HBP.Module3D
         /// Event called when requesting an update in the UI
         /// </summary>
         public UnityEvent OnRequestUpdateInToolbar = new UnityEvent();
-        /// <summary>
-        /// Event called when reseting the IEEG of a scene
-        /// </summary>
-        public UnityEvent OnResetIEEG = new UnityEvent();
         #endregion
 
         #region Private Methods

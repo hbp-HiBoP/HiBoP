@@ -582,9 +582,9 @@ namespace HBP.Module3D
         /// </summary>
         public GenericEvent<Cut> OnAddCut = new GenericEvent<Cut>();
         /// <summary>
-        /// Event called when requesting an update in the cut UI
+        /// Event called when updating the sites rendering
         /// </summary>
-        public UnityEvent OnRequestUpdateInCutUI = new UnityEvent();
+        public UnityEvent OnSitesRenderingUpdated = new UnityEvent();
 
         /// <summary>
         /// Event called when changing the colors of the colormap
@@ -640,7 +640,7 @@ namespace HBP.Module3D
             if (!SceneInformation.AreSitesUpdated)
             {
                 m_ColumnManager.UpdateAllColumnsSitesRendering(SceneInformation);
-                OnRequestUpdateInCutUI.Invoke();
+                OnSitesRenderingUpdated.Invoke();
             }
 
             if (m_GeneratorNeedsUpdate && !IsLatencyModeEnabled)
@@ -740,7 +740,7 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnChangeSiteState.AddListener((site) =>
             {
-                SceneInformation.AreSitesUpdated = false;
+                ResetIEEG(false);
             });
             m_ColumnManager.OnChangeCCEPParameters.AddListener(() =>
             {
@@ -1843,247 +1843,6 @@ namespace HBP.Module3D
 
             SceneInformation.IsGeometryUpToDate = true;
         }
-        /// <summary>
-        /// Update the sites masks
-        /// </summary>
-        /// <param name="allColumns">Do we apply the action on all the columns ?</param>
-        /// <param name="siteGameObject">GameObject of the site on which we apply the action</param>
-        /// <param name="action"> 0 : excluded / 1 : included / 2 : blacklisted / 3 : unblacklist / 4 : highlight / 5 : unhighlight / 6 : marked / 7 : unmarked </param>
-        /// <param name="range"> 0 : a plot / 1 : all plots from an electrode / 2 : all plots from a patient / 3 : all highlighted / 4 : all unhighlighted 
-        /// / 5 : all plots / 6 : in ROI / 7 : not in ROI / 8 : names filter / 9 : mars filter / 10 : broadman filter </param>
-        public void UpdateSitesMasks(bool allColumns, Data.Enums.SiteAction action = Data.Enums.SiteAction.Exclude, Data.Enums.SiteFilter filter = Data.Enums.SiteFilter.Site, string nameFilter = "")
-        {
-            Site selectedSite = null;
-            if (m_ColumnManager.SelectedColumn.SelectedSite)
-            {
-                selectedSite = m_ColumnManager.SelectedColumn.SelectedSite;
-            }
-
-            List<Column3D> columns = new List<Column3D>(); // List of columns we inspect
-            if (allColumns)
-            {
-                columns = m_ColumnManager.Columns.ToList();
-            }
-            else
-            {
-                columns.Add(m_ColumnManager.SelectedColumn);
-            }
-
-            List<Site> sites = new List<Site>();
-            // Build the list of the sites on which we apply actions
-            foreach (Column3D column in columns)
-            {
-                Site columnSelectedSite = null;
-                if (selectedSite)
-                {
-                    columnSelectedSite = column.Sites.FirstOrDefault(s => s.Information.GlobalID == selectedSite.Information.GlobalID);
-                }
-                switch(filter)
-                {
-                    case Data.Enums.SiteFilter.Site:
-                        {
-                            sites.Add(columnSelectedSite);
-                        }
-                        break;
-                    case Data.Enums.SiteFilter.Electrode:
-                        {
-                            Transform parentElectrode = columnSelectedSite.transform.parent;
-                            for (int jj = 0; jj < parentElectrode.childCount; ++jj)
-                            {
-                                sites.Add(parentElectrode.GetChild(jj).GetComponent<Site>());
-                            }
-                        }
-                        break;
-                    case Data.Enums.SiteFilter.Patient:
-                        {
-                            Transform parentPatient = columnSelectedSite.transform.parent.parent;
-                            for (int jj = 0; jj < parentPatient.childCount; ++jj)
-                            {
-                                Transform parentElectrode = parentPatient.GetChild(jj);
-                                for (int kk = 0; kk < parentElectrode.childCount; kk++)
-                                {
-                                    sites.Add(parentElectrode.GetChild(kk).GetComponent<Site>());
-                                }
-                            }
-                        }
-                        break;
-                    case Data.Enums.SiteFilter.Highlighted:
-                        {
-                            foreach (Site site in column.Sites)
-                            {
-                                if (site.State.IsHighlighted)
-                                    sites.Add(site);
-                            }
-                        }
-                        break;
-                    case Data.Enums.SiteFilter.Unhighlighted:
-                        {
-                            foreach (Site site in column.Sites)
-                            {
-                                if (!site.State.IsHighlighted)
-                                    sites.Add(site);
-                            }
-                        }
-                        break;
-                    case Data.Enums.SiteFilter.Suspicious:
-                        {
-                            foreach (Site site in column.Sites)
-                            {
-                                if (site.State.IsSuspicious)
-                                    sites.Add(site);
-                            }
-                        }
-                        break;
-                    case Data.Enums.SiteFilter.Unsuspicious:
-                        {
-                            foreach (Site site in column.Sites)
-                            {
-                                if (!site.State.IsSuspicious)
-                                    sites.Add(site);
-                            }
-                        }
-                        break;
-                    case Data.Enums.SiteFilter.All:
-                        {
-                            foreach (Site site in column.Sites)
-                            {
-                                sites.Add(site);
-                            }
-                        }
-                        break;
-                    case Data.Enums.SiteFilter.InRegionOfInterest:
-                        {
-                            foreach (Site site in column.Sites)
-                            {
-                                if (!site.State.IsOutOfROI)
-                                    sites.Add(site);
-                            }
-                        }
-                        break;
-                    case Data.Enums.SiteFilter.OutOfRegionOfInterest:
-                        {
-                            foreach (Site site in column.Sites)
-                            {
-                                if (site.State.IsOutOfROI)
-                                    sites.Add(site);
-                            }
-                        }
-                        break;
-                    case Data.Enums.SiteFilter.Name:
-                        {
-                            foreach (Site site in column.Sites)
-                            {
-                                if (site.Information.FullID.ToLower().Contains(nameFilter.ToLower()))
-                                    sites.Add(site);
-                            }
-                        }
-                        break;
-                    case Data.Enums.SiteFilter.MarsAtlas:
-                        {
-                            foreach (Site site in column.Sites)
-                            {
-                                if (ApplicationState.Module3D.MarsAtlasIndex.FullName(site.Information.MarsAtlasIndex).ToLower().Contains(nameFilter.ToLower()))
-                                    sites.Add(site);
-                            }
-                        }
-                        break;
-                    case Data.Enums.SiteFilter.Broadman:
-                        {
-                            foreach (Site site in column.Sites)
-                            {
-                                if (ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(site.Information.MarsAtlasIndex).ToLower().Contains(nameFilter.ToLower()))
-                                    sites.Add(site);
-                            }
-                        }
-                        break;
-                }
-            }
-
-            // Apply action
-            foreach (Site site in sites)
-            {
-                switch (action)
-                {
-                    case Data.Enums.SiteAction.Include:
-                        site.State.IsExcluded = false;
-                        break;
-                    case Data.Enums.SiteAction.Exclude:
-                        site.State.IsExcluded = true;
-                        break;
-                    case Data.Enums.SiteAction.Blacklist:
-                        site.State.IsBlackListed = true;
-                        break;
-                    case Data.Enums.SiteAction.Unblacklist:
-                        site.State.IsBlackListed = false;
-                        break;
-                    case Data.Enums.SiteAction.Highlight:
-                        site.State.IsHighlighted = true;
-                        break;
-                    case Data.Enums.SiteAction.Unhighlight:
-                        site.State.IsHighlighted = false;
-                        break;
-                    case Data.Enums.SiteAction.Mark:
-                        site.State.IsMarked = true;
-                        break;
-                    case Data.Enums.SiteAction.Unmark:
-                        site.State.IsMarked = false;
-                        break;
-                    case Data.Enums.SiteAction.Suspect:
-                        site.State.IsSuspicious = true;
-                        break;
-                    case Data.Enums.SiteAction.Unsuspect:
-                        site.State.IsSuspicious = false;
-                        break;
-                    default:
-                        break;
-                }
-            }
-            ResetIEEG(false);
-        }
-        /// <summary>
-        /// Change the state of a site
-        /// </summary>
-        public void ChangeSiteState(Data.Enums.SiteAction action, Site site = null)
-        {
-            if (site == null) site = m_ColumnManager.SelectedColumn.SelectedSite;
-            if (site)
-            {
-                switch (action)
-                {
-                    case Data.Enums.SiteAction.Include:
-                        site.State.IsExcluded = false;
-                        break;
-                    case Data.Enums.SiteAction.Exclude:
-                        site.State.IsExcluded = true;
-                        break;
-                    case Data.Enums.SiteAction.Blacklist:
-                        site.State.IsBlackListed = true;
-                        break;
-                    case Data.Enums.SiteAction.Unblacklist:
-                        site.State.IsBlackListed = false;
-                        break;
-                    case Data.Enums.SiteAction.Highlight:
-                        site.State.IsHighlighted = true;
-                        break;
-                    case Data.Enums.SiteAction.Unhighlight:
-                        site.State.IsHighlighted = false;
-                        break;
-                    case Data.Enums.SiteAction.Mark:
-                        site.State.IsMarked = true;
-                        break;
-                    case Data.Enums.SiteAction.Unmark:
-                        site.State.IsMarked = false;
-                        break;
-                    case Data.Enums.SiteAction.Suspect:
-                        site.State.IsSuspicious = true;
-                        break;
-                    case Data.Enums.SiteAction.Unsuspect:
-                        site.State.IsSuspicious = false;
-                        break;
-                }
-                ResetIEEG(false);
-            }              
-        }
         public void ApplySelectedColumnSiteStatesToOtherColumns()
         {
             Column3D selectedColumn = m_ColumnManager.SelectedColumn;
@@ -2166,15 +1925,14 @@ namespace HBP.Module3D
         public void ResetIEEG(bool hardReset = true)
         {
             if (!SceneInformation.IsGeometryUpToDate) return;
+            m_GeneratorNeedsUpdate = true;
+            SceneInformation.AreSitesUpdated = false;
             if (hardReset)
             {
                 SceneInformation.IsGeneratorUpToDate = false;
-                m_GeneratorNeedsUpdate = true;
                 ComputeMRITextures();
                 ComputeGUITextures();
             }
-            SceneInformation.AreSitesUpdated = false;
-            ApplicationState.Module3D.OnResetIEEG.Invoke();
         }
         /// <summary>
         /// Send additionnal site info to hight level UI

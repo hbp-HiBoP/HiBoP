@@ -43,12 +43,6 @@ namespace HBP.UI.Module3D.Tools
                 UpdateStatus(Toolbar.UpdateToolbarType.Column);
                 ListenerLock = false;
             });
-            ApplicationState.Module3D.OnResetIEEG.AddListener(() =>
-            {
-                ListenerLock = true;
-                UpdateStatus(Toolbar.UpdateToolbarType.Column);
-                ListenerLock = false;
-            });
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
                 if (ListenerLock) return;
