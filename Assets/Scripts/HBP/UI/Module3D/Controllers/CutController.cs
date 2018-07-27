@@ -93,13 +93,13 @@ namespace HBP.UI.Module3D
             {
                 if (m_CutParametersControllers.All(c => !c.AreControlsOpen))
                 {
-                    m_Scene.CuttingMesh = false;
+                    m_Scene.CuttingSimplifiedMesh = false;
                 }
             });
             cut.OnRemoveCut.AddListener(() =>
             {
                 m_CutParametersControllers.Remove(controller);
-                m_Scene.CuttingMesh = false;
+                m_Scene.CuttingSimplifiedMesh = false;
             });
             controller.OnOpenControls.AddListener(() =>
             {
@@ -115,7 +115,7 @@ namespace HBP.UI.Module3D
             {
                 if (m_CutParametersControllers.All(c => !c.AreControlsOpen))
                 {
-                    m_Scene.CuttingMesh = false;
+                    m_Scene.CuttingSimplifiedMesh = false;
                 }
             });
             controller.CloseControls();

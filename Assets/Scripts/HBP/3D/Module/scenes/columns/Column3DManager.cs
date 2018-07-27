@@ -633,11 +633,11 @@ namespace HBP.Module3D
 
             //ResetSplitsNumber(1);
         }
-        public void InitializeColumnsMeshes(GameObject meshes)
+        public void InitializeColumnsMeshes(GameObject meshes, bool useSimplifiedMeshes)
         {
             foreach (Column3D column in m_Columns)
             {
-                column.InitializeColumnMeshes(meshes);
+                column.InitializeColumnMeshes(meshes, useSimplifiedMeshes);
             }
         }
         /// <summary>

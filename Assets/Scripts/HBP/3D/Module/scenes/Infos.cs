@@ -45,6 +45,7 @@ namespace HBP.Module3D
         public int LastPlaneModifiedID = 0;
 
         // surface
+        public bool UseSimplifiedMeshes { get; set; }
         public MeshPart MeshPartToDisplay = MeshPart.Both; /**< mesh part to be displayed in the scene */
         public DLL.Surface MeshToDisplay = null; /**< reference of the mesh to be displayed */
         public DLL.Surface SimplifiedMeshToUse = null;

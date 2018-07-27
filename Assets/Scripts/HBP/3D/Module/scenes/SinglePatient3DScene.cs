@@ -173,7 +173,7 @@ namespace HBP.Module3D
             }
 
             // Finalization
-            m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
+            m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent, SceneInformation.UseSimplifiedMeshes);
             OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
 
             outPut(exception);

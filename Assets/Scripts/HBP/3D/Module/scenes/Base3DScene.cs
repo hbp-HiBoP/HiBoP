@@ -479,7 +479,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Are we cutting the mesh of this scene ?
         /// </summary>
-        public bool CuttingMesh
+        public bool CuttingSimplifiedMesh
         {
             get
             {
@@ -901,7 +901,7 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("Update Columns Meshes");
             foreach (Column3D column in m_ColumnManager.Columns)
             {
-                column.UpdateColumnMeshes(m_DisplayedObjects.BrainSurfaceMeshes);
+                column.UpdateColumnMeshes(m_DisplayedObjects.BrainSurfaceMeshes, SceneInformation.UseSimplifiedMeshes);
             }
             UnityEngine.Profiling.Profiler.EndSample();
         }
@@ -1290,7 +1290,7 @@ namespace HBP.Module3D
         /// <param name="position"></param>
         public void UpdateCutPlane(Cut cut)
         {
-            if (!CuttingMesh) CuttingMesh = true;
+            if (!CuttingSimplifiedMesh && SceneInformation.UseSimplifiedMeshes) CuttingSimplifiedMesh = true;
 
             if (cut.Orientation == Data.Enums.CutOrientation.Custom || !SceneInformation.MRILoaded)
             {
@@ -1431,9 +1431,10 @@ namespace HBP.Module3D
             // Init materials
             SharedMaterials.Brain.AddSceneMaterials(this);
 
-            // set meshes layer
+            // Set default SceneInformation values
             SceneInformation.MeshesLayerName = "Default";
             SceneInformation.HiddenMeshesLayerName = "Hidden Meshes";
+            SceneInformation.UseSimplifiedMeshes = ApplicationState.UserPreferences.Visualization.Cut.SimplifiedMeshes;
 
             AddListeners();
             InitializeSceneGameObjects();
@@ -1665,10 +1666,10 @@ namespace HBP.Module3D
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.parent = m_DisplayedObjects.BrainSurfaceMeshesParent.transform;
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.localPosition = Vector3.zero;
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
-                if (!ApplicationState.UserPreferences.Visualization.Cut.SimplifiedMeshes) m_DisplayedObjects.BrainSurfaceMeshes[ii].AddComponent<MeshCollider>();
+                if (!SceneInformation.UseSimplifiedMeshes) m_DisplayedObjects.BrainSurfaceMeshes[ii].AddComponent<MeshCollider>();
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].SetActive(true);
             }
-            if (ApplicationState.UserPreferences.Visualization.Cut.SimplifiedMeshes)
+            if (SceneInformation.UseSimplifiedMeshes)
             {
                 // mesh collider
                 m_DisplayedObjects.SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab);
@@ -1773,7 +1774,10 @@ namespace HBP.Module3D
             {
                 column.ChangeMeshesLayer(LayerMask.NameToLayer(column.Layer));
             }
-            m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
+            if (SceneInformation.UseSimplifiedMeshes)
+            {
+                m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
+            }
             UnityEngine.Profiling.Profiler.EndSample();
         }
         public void ComputeSimplifyMeshCut()
@@ -1831,8 +1835,11 @@ namespace HBP.Module3D
             SceneInformation.IsGeometryUpToDate = false;
             UpdateMeshesInformation();
             
-            ComputeSimplifyMeshCut();
-            if (!CuttingMesh)
+            if (SceneInformation.UseSimplifiedMeshes)
+            {
+                ComputeSimplifyMeshCut();
+            }
+            if (!CuttingSimplifiedMesh)
             {
                 ComputeMeshesCut();
             }
@@ -1911,7 +1918,7 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateGenerator()
         {
-            if (SceneInformation.MeshGeometryNeedsUpdate || !SceneInformation.IsGeometryUpToDate || CuttingMesh || m_UpdatingGenerator) // if update cut plane is pending, cancel action
+            if (SceneInformation.MeshGeometryNeedsUpdate || !SceneInformation.IsGeometryUpToDate || CuttingSimplifiedMesh || m_UpdatingGenerator) // if update cut plane is pending, cancel action
                 return;
 
             OnIEEGOutdated.Invoke(false);
@@ -2450,7 +2457,7 @@ namespace HBP.Module3D
                 yield return new WaitForSeconds(0.05f);
             }
             m_UpdatingColliders = true;
-            if (ApplicationState.UserPreferences.Visualization.Cut.SimplifiedMeshes)
+            if (SceneInformation.UseSimplifiedMeshes)
             {
                 yield return Ninja.JumpToUnity;
                 m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;

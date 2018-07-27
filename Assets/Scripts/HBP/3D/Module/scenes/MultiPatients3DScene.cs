@@ -120,7 +120,7 @@ namespace HBP.Module3D
                 yield break;
             }
 
-            m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent);
+            m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent, SceneInformation.UseSimplifiedMeshes);
             // update scenes cameras
             OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
 
