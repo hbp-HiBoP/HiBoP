@@ -17,14 +17,11 @@ using System.Linq;
 using System.Collections;
 using CielaSpike;
 using Tools.Unity;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace HBP.Module3D
 {
     /// <summary>
-    /// Interface class for controling the 3D module. Never uses other GameObject than this one from outside of the module
+    /// Interface class for controling the 3D module
     /// </summary>
     public class HBP3DModule : MonoBehaviour
     {
@@ -41,7 +38,7 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        /// Current selected scene
+        /// Currently selected scene
         /// </summary>
         public Base3DScene SelectedScene
         {
@@ -51,7 +48,7 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Current selected column
+        /// Currently selected column
         /// </summary>
         public Column3D SelectedColumn
         {
@@ -65,7 +62,7 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Current selected view
+        /// Currently selected view
         /// </summary>
         public View3D SelectedView
         {
@@ -74,28 +71,20 @@ namespace HBP.Module3D
                 return m_ScenesManager.SelectedScene.ColumnManager.SelectedColumn.SelectedView;
             }
         }
-        
-        /// <summary>
-        /// Using simplified colliders allows better performances but colliders are not precise
-        /// </summary>
-        public static bool UseSimplifiedMeshes = true;
 
+        /// <summary>
+        /// Maximum number of views a user can add to a scene
+        /// </summary>
         public const int MAXIMUM_VIEW_NUMBER = 5;
-        public const int MAXIMUM_COLUMN_NUMBER = 8;
         /// <summary>
         /// Space between scenes in world space
         /// </summary>
-        public const int SPACE_BETWEEN_SCENES_AND_COLUMNS = 3000;
+        public const int SPACE_BETWEEN_SCENES_GAME_OBJECTS = 3000;
 
         /// <summary>
-        /// Number of scenes that have been loaded in this instance of HiBoP (to apply a unique ID to each scene)
+        /// Number of scenes that have been loaded in this instance of HiBoP (allowing to place them in the 3D space)
         /// </summary>
         public int NumberOfScenesLoadedSinceStart { get; set; }
-
-        /// <summary>
-        /// Number of columns that have been instanciated in this instance of HiBoP (to apply a unique ID to each column)
-        /// </summary>
-        public int NumberOfColumnsSinceStart { get; set; }
 
         /// <summary>
         /// List of all the loaded visualizations
@@ -123,87 +112,80 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when hovering a site to display its information
         /// </summary>
-        public GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
+        [HideInInspector] public GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
         /// <summary>
         /// Event called when changing the value of the timeline of the selected column
         /// </summary>
-        public UnityEvent OnUpdateSelectedColumnTimeLineID = new UnityEvent();
-        /// <summary>
-        /// Invoked whend we load a single patient scene from the mutli patients scene (params : id patient)
-        /// </summary>   
-        public GenericEvent<Data.Visualization.Visualization, Data.Patient> OnLoadSinglePatientSceneFromMultiPatientsScene = new GenericEvent<Data.Visualization.Visualization, Data.Patient>();
+        [HideInInspector] public UnityEvent OnUpdateSelectedColumnTimeLineID = new UnityEvent();
         /// <summary>
         /// Event called when adding or removing a ROI
         /// </summary>
-        public UnityEvent OnChangeNumberOfROI = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeNumberOfROI = new UnityEvent();
         /// <summary>
         /// Event called when adding or removing a bubble in a ROI
         /// </summary>
-        public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
         /// <summary>
         /// Event called when selecting a ROI
         /// </summary>
-        public UnityEvent OnSelectROI = new UnityEvent();
+        [HideInInspector] public UnityEvent OnSelectROI = new UnityEvent();
         /// <summary>
         /// Event called when selecting a volume of a ROI
         /// </summary>
-        public UnityEvent OnSelectROIVolume = new UnityEvent();
+        [HideInInspector] public UnityEvent OnSelectROIVolume = new UnityEvent();
         /// <summary>
         /// Event called when changing the radius of a volume of a ROI
         /// </summary>
-        public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
         /// <summary>
         /// Event called when a scene is added
         /// </summary>
-        public GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event called when a scene is removed
         /// </summary>
-        public GenericEvent<Base3DScene> OnRemoveScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public GenericEvent<Base3DScene> OnRemoveScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event called after all new scenes have been opened and initialized
         /// </summary>
-        public UnityEvent OnFinishedAddingNewScenes = new UnityEvent();
+        [HideInInspector] public UnityEvent OnFinishedAddingNewScenes = new UnityEvent();
         /// <summary>
         /// Event called when changing the selected scene
         /// </summary>
-        public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event called when minimizing a scene
         /// </summary>
-        public GenericEvent<Base3DScene> OnMinimizeScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public GenericEvent<Base3DScene> OnMinimizeScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event called when changing the selected column
         /// </summary>
-        public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        [HideInInspector] public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
         /// <summary>
         /// Event called when changing the selected view
         /// </summary>
-        public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
+        [HideInInspector] public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
         /// <summary>
         /// Event called when changing the selected site
         /// </summary>
-        public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
+        [HideInInspector] public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
         /// <summary>
         /// Event called when updating the invisible part of the brain (erasing triangles, reset ...)
         /// </summary>
-        public UnityEvent OnModifyInvisiblePart = new UnityEvent();
+        [HideInInspector] public UnityEvent OnModifyInvisiblePart = new UnityEvent();
         /// <summary>
         /// Event called when the timeline is stopped because it reached the end
         /// </summary>
-        public UnityEvent OnStopTimelinePlay = new UnityEvent();
+        [HideInInspector] public UnityEvent OnStopTimelinePlay = new UnityEvent();
         /// <summary>
         /// Event called when requesting an update in the UI
         /// </summary>
-        public UnityEvent OnRequestUpdateInToolbar = new UnityEvent();
+        [HideInInspector] public UnityEvent OnRequestUpdateInToolbar = new UnityEvent();
         #endregion
 
         #region Private Methods
         void Awake()
         {
-            // Scene Manager
-            m_ScenesManager = transform.GetComponentInChildren<ScenesManager>();
-
             // Graphic Settings
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
             QualitySettings.antiAliasing = 8;
@@ -213,12 +195,7 @@ namespace HBP.Module3D
             #if UNITY_EDITOR
                 dataDirectory = Application.dataPath + "/Data/";
             #endif
-
-            MarsAtlasIndex = new DLL.MarsAtlasIndex();
-            if (!MarsAtlasIndex.LoadMarsAtlasIndexFile(dataDirectory + "MarsAtlas/mars_atlas_index.csv"))
-            {
-                UnityEngine.Debug.LogError("Can't load mars atlas index.");
-            }
+            MarsAtlasIndex = new DLL.MarsAtlasIndex(dataDirectory + "MarsAtlas/mars_atlas_index.csv");
         }
         void OnDestroy()
         {
@@ -228,18 +205,17 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Load a visualization
+        /// Load a list of visualizations into 3D scenes
         /// </summary>
-        /// <param name="visualization"></param>
-        /// <returns></returns>
+        /// <param name="visualizations">Visualizations to be loaded</param>
         public void LoadScenes(IEnumerable<Data.Visualization.Visualization> visualizations)
         {
             this.StartCoroutineAsync(c_Load(visualizations));
         }
         /// <summary>
-        /// Remove a visualization and its associated scene
+        /// Remove every scenes corresponding to a visualization
         /// </summary>
-        /// <param name="visualization"></param>
+        /// <param name="visualization">Visualization corresponding to the scenes to be removed</param>
         public void RemoveScene(Data.Visualization.Visualization visualization)
         {
             Base3DScene[] scenes = m_ScenesManager.Scenes.Where(s => s.Visualization == visualization).ToArray();
@@ -249,18 +225,18 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Remove a visualization and its associated scene
+        /// Remove a scene
         /// </summary>
-        /// <param name="visualization"></param>
+        /// <param name="scene">Scene to be removed</param>
         public void RemoveScene(Base3DScene scene)
         {
             m_ScenesManager.RemoveScene(scene);
         }
         /// <summary>
-        /// Load a visualization with a reference visualization and a patient
+        /// Load a single patient scene extracted from a visualization
         /// </summary>
-        /// <param name="visualization"></param>
-        /// <param name="patient"></param>
+        /// <param name="visualization">Visualization from which the new visualization will be extracted</param>
+        /// <param name="patient">Patient of the new visualization</param>
         public void LoadSinglePatientSceneFromMultiPatientScene(Data.Visualization.Visualization visualization, Data.Patient patient)
         {
             m_ScenesManager.Scenes.FirstOrDefault(s => s.Visualization == visualization).SaveConfiguration();
@@ -268,6 +244,7 @@ namespace HBP.Module3D
             visualizationToLoad.Name = patient.Name;
             visualizationToLoad.RemoveAllPatients();
             visualizationToLoad.AddPatient(patient);
+            // FIXME : replace hardcoded strings with user preferences values
             if (patient.Brain.Meshes.FirstOrDefault(m => m.Name == "Grey matter") != null)
             {
                 visualizationToLoad.Configuration.MeshName = "Grey matter";
@@ -295,7 +272,7 @@ namespace HBP.Module3D
             LoadScenes(new Data.Visualization.Visualization[] { visualizationToLoad });
         }
         /// <summary>
-        /// Save all the configurations of the scene
+        /// Save all the configurations of the scenes
         /// </summary>
         public void SaveConfigurations()
         {
@@ -318,6 +295,9 @@ namespace HBP.Module3D
             IEnumerable<string> visualizationIDs = (from scene in scenes select scene.Visualization.ID);
             LoadScenes(from visualization in ApplicationState.ProjectLoaded.Visualizations where visualizationIDs.Contains(visualization.ID) select visualization);
         }
+        /// <summary>
+        /// Remove all scenes
+        /// </summary>
         public void RemoveAllScenes()
         {
             List<Base3DScene> scenes = m_ScenesManager.Scenes.ToList();
@@ -329,6 +309,11 @@ namespace HBP.Module3D
         #endregion
 
         #region Coroutines
+        /// <summary>
+        /// Coroutine used to load visualizations one by one
+        /// </summary>
+        /// <param name="visualizations">Visualizations to be loaded</param>
+        /// <returns></returns>
         public IEnumerator c_Load(IEnumerable<Data.Visualization.Visualization> visualizations)
         {
             foreach (Data.Visualization.Visualization visualization in visualizations)
@@ -369,6 +354,12 @@ namespace HBP.Module3D
             }
             OnFinishedAddingNewScenes.Invoke();
         }
+        /// <summary>
+        /// Coroutine to load a visualization asynchronously
+        /// </summary>
+        /// <param name="visualization">Visualization to be loaded</param>
+        /// <param name="onChangeProgress">Event to update the loading circle</param>
+        /// <returns></returns>
         IEnumerator c_LoadScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress = null)
         {
             if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, string>();
@@ -392,105 +383,4 @@ namespace HBP.Module3D
         }
         #endregion
     }
-
-#if UNITY_EDITOR
-    public class EditorMenuActions
-    {
-        [MenuItem("Before building/Copy data to build directory")]
-        static void CoptyDataToBuildDirectory()
-        {
-            string buildDataPath = Module3D.DLL.QtGUI.GetExistingDirectoryName("Select Build directory where data will be copied");
-            if (buildDataPath.Length > 0)
-            {
-                FileUtil.DeleteFileOrDirectory(buildDataPath + "/Data");
-                FileUtil.CopyFileOrDirectory(ApplicationState.DataPath, buildDataPath + "/Data");
-            }            
-        }
-
-        [MenuItem("Debug test/Load patient from debug launcher")]
-        static void LoadPatientFromDebugLauncher()
-        {
-            if (!EditorApplication.isPlaying)
-            {
-                UnityEngine.Debug.Log("Only in play mode.");
-                return;
-            }
-        }        
-
-        [MenuItem("Debug test/Focus on single patient scene")]
-        static void FocusOnSinglePatientScene()
-        {
-            if (!EditorApplication.isPlaying)
-            {
-                UnityEngine.Debug.Log("Only in play mode.");
-                return;
-            }
-        }
-
-        [MenuItem("Debug test/Focus on multi-patients scene")]
-        static void FocusOnMultiPatientsScene()
-        {
-            if (!EditorApplication.isPlaying)
-            {
-                UnityEngine.Debug.Log("Only in play mode.");
-                return;
-            }
-        }
-
-        [MenuItem("Debug test/Focus on both scenes")]
-        static void FocusOnBothScenes()
-        {
-            if (!EditorApplication.isPlaying)
-            {
-                UnityEngine.Debug.Log("Only in play mode.");
-                return;
-            }
-        }
-
-        [MenuItem("Debug test/Launch hibop debug launcher editor")]
-        static void OpenDebugLauncherEditor()
-        {
-            Process process = new Process();
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.CreateNoWindow = true;
-            process.StartInfo.FileName = Application.dataPath + "/../tools/HiBoP_Tools.exe";
-            process.StartInfo.Arguments = "EditorLauncher";
-            process.Start();
-        }
-
-        [MenuItem("Debug test/File dialog")]
-        static void OpenDebugFileDialogEditor()
-        {
-            {
-                Process proc = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = Application.dataPath + "/../tools/HiBoP_Tools.exe",
-                        Arguments = "FileDialog get_existing_file_names \"message test\" \"Images files (*.jpg *.png)\"", // TODO
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        CreateNoWindow = true
-                    }
-                };
-                proc.Start();
-            }
-            {
-                Process proc = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = Application.dataPath + "/../tools/HiBoP_Tools.exe",
-                        Arguments = "FileDialog get_existing_file_name \"message test\" \"MRI files (*.nii)\"",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        CreateNoWindow = true
-                    }
-                };
-                proc.Start();
-            }
-        }
-    }
-#endif
 }

@@ -53,7 +53,7 @@
     },
     "Cut": {
       "ShowCutLines": false,
-      "SimplifiedMeshes": false
+      "SimplifiedMeshes": true
     }
   }
 }

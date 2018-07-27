@@ -76,7 +76,7 @@ namespace HBP.Module3D
             
             int sceneID = ApplicationState.Module3D.NumberOfScenesLoadedSinceStart;
             gameObject.name = "SinglePatient Scene (" + sceneID + ")";
-            transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_AND_COLUMNS * sceneID, transform.position.y, transform.position.z);
+            transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * sceneID, transform.position.y, transform.position.z);
 
             // Checking MNI
             onChangeProgress.Invoke(progress, 0.0f, "Loading MNI");

@@ -486,7 +486,6 @@ namespace HBP.Module3D
                     break;
             }
             column.gameObject.name = "Column " + Columns.Count;
-            column.ID = ++ApplicationState.Module3D.NumberOfColumnsSinceStart;
             column.OnChangeSelectedState.AddListener((selected) =>
             {
                 if (selected)

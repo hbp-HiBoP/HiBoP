@@ -163,6 +163,16 @@ namespace HBP.Module3D
         /// </summary>
         public class MarsAtlasIndex : CppDLLImportBase
         {
+            #region Constructors
+            public MarsAtlasIndex(string path) : base()
+            {
+                if (!LoadMarsAtlasIndexFile(path))
+                {
+                    Debug.LogError("Can't load mars atlas index.");
+                }
+            }
+            #endregion
+
             #region Public Methods
             /// <summary>
             /// 

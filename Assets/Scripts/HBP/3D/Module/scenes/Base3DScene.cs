@@ -1665,10 +1665,10 @@ namespace HBP.Module3D
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.parent = m_DisplayedObjects.BrainSurfaceMeshesParent.transform;
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.localPosition = Vector3.zero;
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
-                if (!HBP3DModule.UseSimplifiedMeshes) m_DisplayedObjects.BrainSurfaceMeshes[ii].AddComponent<MeshCollider>();
+                if (!ApplicationState.UserPreferences.Visualization.Cut.SimplifiedMeshes) m_DisplayedObjects.BrainSurfaceMeshes[ii].AddComponent<MeshCollider>();
                 m_DisplayedObjects.BrainSurfaceMeshes[ii].SetActive(true);
             }
-            if (HBP3DModule.UseSimplifiedMeshes)
+            if (ApplicationState.UserPreferences.Visualization.Cut.SimplifiedMeshes)
             {
                 // mesh collider
                 m_DisplayedObjects.SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab);
@@ -2450,7 +2450,7 @@ namespace HBP.Module3D
                 yield return new WaitForSeconds(0.05f);
             }
             m_UpdatingColliders = true;
-            if (HBP3DModule.UseSimplifiedMeshes)
+            if (ApplicationState.UserPreferences.Visualization.Cut.SimplifiedMeshes)
             {
                 yield return Ninja.JumpToUnity;
                 m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
