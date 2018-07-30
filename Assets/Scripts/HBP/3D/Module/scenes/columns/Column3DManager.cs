@@ -377,94 +377,92 @@ namespace HBP.Module3D
         public Texture2D BrainColorTexture = null;
 
         // Column 3D Prefabs
-        [SerializeField]
-        private GameObject m_Column3DPrefab;
-        [SerializeField]
-        private GameObject m_Column3DIEEGPrefab;
+        [SerializeField] private GameObject m_Column3DPrefab;
+        [SerializeField] private GameObject m_Column3DIEEGPrefab;
         #endregion
 
         #region Events
-        public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
         /// <summary>
         /// Event called when selecting a column
         /// </summary>
-        public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        [HideInInspector] public GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
         /// <summary>
         /// Event called when adding a column
         /// </summary>
-        public UnityEvent OnAddColumn = new UnityEvent();
+        [HideInInspector] public UnityEvent OnAddColumn = new UnityEvent();
         /// <summary>
         /// Event called when removing a column
         /// </summary>
-        public GenericEvent<Column3D> OnRemoveColumn = new GenericEvent<Column3D>();
+        [HideInInspector] public GenericEvent<Column3D> OnRemoveColumn = new GenericEvent<Column3D>();
         /// <summary>
         /// Event called when adding a line of views
         /// </summary>
-        public UnityEvent OnAddViewLine = new UnityEvent();
+        [HideInInspector] public UnityEvent OnAddViewLine = new UnityEvent();
         /// <summary>
         /// Event called when removing a line of views
         /// </summary>
-        public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
+        [HideInInspector] public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
         /// <summary>
         /// Event called when changing the values of the MRI Cal Values
         /// </summary>
-        public UnityEvent OnUpdateMRICalValues = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateMRICalValues = new UnityEvent();
         /// <summary>
         /// Event called when updating the alpha or cal values of the FMRI
         /// </summary>
-        public UnityEvent OnUpdateFMRIParameters = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateFMRIParameters = new UnityEvent();
         /// <summary>
         /// Event called when changing the number of ROIs of this scene
         /// </summary>
-        public GenericEvent<Column3D> OnChangeNumberOfROI = new GenericEvent<Column3D>();
+        [HideInInspector] public GenericEvent<Column3D> OnChangeNumberOfROI = new GenericEvent<Column3D>();
         /// <summary>
         /// Event called when changing the number of volumes in a ROI of this scene
         /// </summary>
-        public GenericEvent<Column3D> OnChangeNumberOfVolumeInROI = new GenericEvent<Column3D>();
+        [HideInInspector] public GenericEvent<Column3D> OnChangeNumberOfVolumeInROI = new GenericEvent<Column3D>();
         /// <summary>
         /// Event called when selecting a ROI in a column
         /// </summary>
-        public GenericEvent<Column3D> OnSelectROI = new GenericEvent<Column3D>();
+        [HideInInspector] public GenericEvent<Column3D> OnSelectROI = new GenericEvent<Column3D>();
         /// <summary>
         /// Event called when changing the radius of a volume in a ROI
         /// </summary>
-        public GenericEvent<Column3D> OnChangeROIVolumeRadius = new GenericEvent<Column3D>();
+        [HideInInspector] public GenericEvent<Column3D> OnChangeROIVolumeRadius = new GenericEvent<Column3D>();
         /// <summary>
         /// Event called when changing the IEEG span values
         /// </summary>
-        public GenericEvent<Column3DIEEG> OnUpdateIEEGSpan = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGSpan = new GenericEvent<Column3DIEEG>();
         /// <summary>
         /// Event called when changing the transparency of the IEEG
         /// </summary>
-        public GenericEvent<Column3DIEEG> OnUpdateIEEGAlpha = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGAlpha = new GenericEvent<Column3DIEEG>();
         /// <summary>
         /// Event called when changing the gain of the sphere representing the sites
         /// </summary>
-        public GenericEvent<Column3DIEEG> OnUpdateIEEGGain = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGGain = new GenericEvent<Column3DIEEG>();
         /// <summary>
         /// Event called when changing the influence of each site on the texture
         /// </summary>
-        public GenericEvent<Column3DIEEG> OnUpdateIEEGMaximumInfluence = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateIEEGMaximumInfluence = new GenericEvent<Column3DIEEG>();
         /// <summary>
         /// Event called when changing the timeline ID of a column
         /// </summary>
-        public GenericEvent<Column3DIEEG> OnUpdateColumnTimelineID = new GenericEvent<Column3DIEEG>();
+        [HideInInspector] public GenericEvent<Column3DIEEG> OnUpdateColumnTimelineID = new GenericEvent<Column3DIEEG>();
         /// <summary>
         /// Event called when minimizing a column
         /// </summary>
-        public UnityEvent OnChangeColumnMinimizedState = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeColumnMinimizedState = new UnityEvent();
         /// <summary>
         /// Event called when selecting a site in a column
         /// </summary>
-        public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
+        [HideInInspector] public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
         /// <summary>
         /// Event called when changing the state of a site
         /// </summary>
-        public GenericEvent<Site> OnChangeSiteState = new GenericEvent<Site>();
+        [HideInInspector] public GenericEvent<Site> OnChangeSiteState = new GenericEvent<Site>();
         /// <summary>
         /// Event called when selecting a source in a column or changing the latency file of a column
         /// </summary>
-        public UnityEvent OnChangeCCEPParameters = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeCCEPParameters = new UnityEvent();
         #endregion
 
         #region Private Methods

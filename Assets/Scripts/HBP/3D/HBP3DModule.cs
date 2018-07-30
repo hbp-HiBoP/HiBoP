@@ -6,13 +6,10 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
-using HBP.UI.Module3D;
 using System.Linq;
 using System.Collections;
 using CielaSpike;
@@ -124,13 +121,9 @@ namespace HBP.Module3D
 
         [SerializeField] private Transform m_ScenesParent;
         /// <summary>
-        /// Prefab corresponding to a single patient scene
+        /// Prefab corresponding to a scene
         /// </summary>
-        [SerializeField] private GameObject m_SinglePatientScenePrefab;
-        /// <summary>
-        /// Prefab corresponding to a multi patient scene
-        /// </summary>
-        [SerializeField] private GameObject m_MultiPatientsScenePrefab;
+        [SerializeField] private GameObject m_ScenePrefab;
         #endregion
 
         #region Events
@@ -394,7 +387,7 @@ namespace HBP.Module3D
             Exception exception = null;
 
             yield return Ninja.JumpToUnity;
-            Base3DScene scene = Instantiate(visualization.Patients.Count == 1 ? m_SinglePatientScenePrefab : m_MultiPatientsScenePrefab, m_ScenesParent).GetComponent<Base3DScene>();
+            Base3DScene scene = Instantiate(m_ScenePrefab, m_ScenesParent).GetComponent<Base3DScene>();
             scene.Initialize(visualization);
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress, (e) => exception = e));
             if (exception == null)

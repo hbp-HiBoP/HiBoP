@@ -15,62 +15,18 @@ using System.Collections.ObjectModel;
 // unity
 using UnityEngine;
 using UnityEngine.Events;
-using HBP.UI.Module3D;
 using UnityEngine.Rendering;
 using System.Collections;
 using CielaSpike;
-using Tools.Unity;
 using HBP.Data.Visualization;
 
 namespace HBP.Module3D
 {
-    #region Struct
-    /// <summary>
-    /// Site info to be send to the UI
-    /// </summary>
-    public class SiteInfo
-    {
-        public SiteInfo(Site site, bool enabled, Vector3 position, Data.Enums.SiteInformationDisplayMode mode = Data.Enums.SiteInformationDisplayMode.IEEG, string IEEGAmplitude = "", string IEEGUnit ="", string CCEPAmplitude = "", string CCEPLatency = "")
-        {
-            Site = site;
-            Enabled = enabled;
-            Position = position;
-            this.IEEGAmplitude = IEEGAmplitude;
-            this.IEEGUnit = IEEGUnit;
-            this.CCEPAmplitude = CCEPAmplitude;
-            this.CCEPLatency = CCEPLatency;
-            Mode = mode;
-        }
-
-        public Site Site { get; set; }
-        public bool Enabled { get; set; }
-        public Vector3 Position { get; set; }
-        public string IEEGAmplitude { get; set; }
-        public string IEEGUnit { get; set; }
-        public string CCEPAmplitude { get; set; }
-        public string CCEPLatency { get; set; }
-        public Data.Enums.SiteInformationDisplayMode Mode { get; set; }
-    }
-
-    /// <summary>
-    /// IRM cal values
-    /// </summary>
-    public struct MRICalValues
-    {
-        public float min;
-        public float max;
-        public float loadedCalMin;
-        public float loadedCalMax;
-        public float computedCalMin;
-        public float computedCalMax;
-    }
-    #endregion
-
     /// <summary>
     /// Class containing all the DLL data and the displayable Gameobjects of a 3D scene.
     /// </summary>
     [AddComponentMenu("Scenes/Base 3D Scene")]
-    public abstract class Base3DScene : MonoBehaviour, IConfigurable
+    public class Base3DScene : MonoBehaviour, IConfigurable
     {
         #region Properties
         /// <summary>
@@ -86,8 +42,14 @@ namespace HBP.Module3D
         /// <summary>
         /// Type of the scene (Single / Multi)
         /// </summary>
-        public abstract Data.Enums.SceneType Type { get; }
-        
+        public Data.Enums.SceneType Type
+        {
+            get
+            {
+                return Visualization.Patients.Count > 1 ? Data.Enums.SceneType.MultiPatients : Data.Enums.SceneType.SinglePatient;
+            }
+        }
+
         private bool m_IsSelected;
         /// <summary>
         /// Is this scene selected ?
@@ -109,7 +71,7 @@ namespace HBP.Module3D
                 }
             }
         }
-        
+
         /// <summary>
         /// List of the patients in this scene
         /// </summary>
@@ -120,24 +82,13 @@ namespace HBP.Module3D
                 return new ReadOnlyCollection<Data.Patient>(Visualization.Patients);
             }
         }
-        
-        protected Visualization m_Visualization;
+
         /// <summary>
         /// Visualization associated to this scene
         /// </summary>
-        public virtual Visualization Visualization
-        {
-            get
-            {
-                return m_Visualization;
-            }
-            set
-            {
-                m_Visualization = value;
-            }
-        }
+        public Visualization Visualization { get; private set; }
 
-        protected List<Cut> m_Cuts = new List<Cut>();
+        private List<Cut> m_Cuts = new List<Cut>();
         /// <summary>
         /// Cuts planes list
         /// </summary>
@@ -161,9 +112,9 @@ namespace HBP.Module3D
         /// <summary>
         /// Displayable objects of the scene
         /// </summary>
-        [SerializeField] protected DisplayedObjects m_DisplayedObjects;
-                
-        [SerializeField] protected Column3DManager m_ColumnManager;
+        [SerializeField] private DisplayedObjects m_DisplayedObjects;
+
+        [SerializeField] private Column3DManager m_ColumnManager;
         /// <summary>
         /// Column data manager
         /// </summary>
@@ -267,7 +218,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Handles triangle erasing
         /// </summary>
-        protected TriEraser m_TriEraser = new TriEraser();
+        private TriEraser m_TriEraser = new TriEraser();
         /// <summary>
         /// Is the triangle eraser enabled ?
         /// </summary>
@@ -528,99 +479,93 @@ namespace HBP.Module3D
         /// Lock when updating colliders
         /// </summary>
         private bool m_UpdatingColliders = false;
-        
-        protected const int LOADING_MESH_WEIGHT = 2500;
-        protected const int LOADING_MRI_WEIGHT = 1500;
-        protected const int LOADING_IMPLANTATIONS_WEIGHT = 50;
-        protected const int LOADING_MNI_WEIGHT = 100;
-        protected const int LOADING_IEEG_WEIGHT = 15;
 
-        [SerializeField]
-        protected GameObject m_BrainPrefab;
-        [SerializeField]
-        protected GameObject m_SimplifiedBrainPrefab;
-        [SerializeField]
-        protected GameObject m_InvisibleBrainPrefab;
-        [SerializeField]
-        protected GameObject m_CutPrefab;
-        [SerializeField]
-        protected GameObject m_SitePrefab;
+        private const int LOADING_MESH_WEIGHT = 2500;
+        private const int LOADING_MRI_WEIGHT = 1500;
+        private const int LOADING_IMPLANTATIONS_WEIGHT = 50;
+        private const int LOADING_MNI_WEIGHT = 100;
+        private const int LOADING_IEEG_WEIGHT = 15;
+
+        [SerializeField] private GameObject m_BrainPrefab;
+        [SerializeField] private GameObject m_SimplifiedBrainPrefab;
+        [SerializeField] private GameObject m_InvisibleBrainPrefab;
+        [SerializeField] private GameObject m_CutPrefab;
+        [SerializeField] private GameObject m_SitePrefab;
         #endregion
 
         #region Events
         /// <summary>
         /// Event called when this scene is selected
         /// </summary>
-        public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
         /// <summary>
         /// Event called when showing or hiding the scene in the UI
         /// </summary>
-        public GenericEvent<bool> OnChangeVisibleState = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnChangeVisibleState = new GenericEvent<bool>();
         /// <summary>
         /// Event called when reseting the view positions in the UI
         /// </summary>
-        public UnityEvent OnResetViewPositions = new UnityEvent();
+        [HideInInspector] public UnityEvent OnResetViewPositions = new UnityEvent();
         /// <summary>
         /// Event called when progressing in updating generator.
         /// </summary>
-        public GenericEvent<float, string> OnProgressUpdateGenerator = new GenericEvent<float, string>();
-
+        [HideInInspector] public GenericEvent<float, string> OnProgressUpdateGenerator = new GenericEvent<float, string>();
         /// <summary>
         /// Event for updating the planes cuts display in the cameras
         /// </summary>
-        public UnityEvent OnModifyPlanesCuts = new UnityEvent();
+        [HideInInspector] public UnityEvent OnModifyPlanesCuts = new UnityEvent();
         /// <summary>
         /// Event called when adding a cut to the scene
         /// </summary>
-        public GenericEvent<Cut> OnAddCut = new GenericEvent<Cut>();
+        [HideInInspector] public GenericEvent<Cut> OnAddCut = new GenericEvent<Cut>();
         /// <summary>
         /// Event called when updating the sites rendering
         /// </summary>
-        public UnityEvent OnSitesRenderingUpdated = new UnityEvent();
-
+        [HideInInspector] public UnityEvent OnSitesRenderingUpdated = new UnityEvent();
         /// <summary>
         /// Event called when changing the colors of the colormap
         /// </summary>
-        public GenericEvent<Data.Enums.ColorType> OnChangeColormap = new GenericEvent<Data.Enums.ColorType>();
+        [HideInInspector] public GenericEvent<Data.Enums.ColorType> OnChangeColormap = new GenericEvent<Data.Enums.ColorType>();
         /// <summary>
         /// Event for colormap values associated to a column id (params : minValue, middle, maxValue, id)
         /// </summary>
-        public GenericEvent<float, float, float, Column3D> OnSendColorMapValues = new GenericEvent<float, float, float, Column3D>();
+        [HideInInspector] public GenericEvent<float, float, float, Column3D> OnSendColorMapValues = new GenericEvent<float, float, float, Column3D>();
         /// <summary>
         /// Event called when changing the implantation files to use in the scene
         /// </summary>
-        public UnityEvent OnUpdateSites = new UnityEvent();
-
+        [HideInInspector] public UnityEvent OnUpdateSites = new UnityEvent();
         /// <summary>
         /// Ask the camera manager to update the target for this scene
         /// </summary>
-        public GenericEvent<Vector3> OnUpdateCameraTarget = new GenericEvent<Vector3>();
-
-        public UnityEvent OnChangeColumnMinimizedState = new UnityEvent();
+        [HideInInspector] public GenericEvent<Vector3> OnUpdateCameraTarget = new GenericEvent<Vector3>();
+        /// <summary>
+        /// Event called when a column is minimized or expanded
+        /// </summary>
+        [HideInInspector] public UnityEvent OnChangeColumnMinimizedState = new UnityEvent();
         /// <summary>
         /// Event called when site is clicked to dipslay additionnal infomation.
         /// </summary>
-        public GenericEvent<IEnumerable<Site>> OnRequestSiteInformation = new GenericEvent<IEnumerable<Site>>();
+        [HideInInspector] public GenericEvent<IEnumerable<Site>> OnRequestSiteInformation = new GenericEvent<IEnumerable<Site>>();
         /// <summary>
         /// Event called when updating a ROI
         /// </summary>
-        public UnityEvent OnUpdateROI = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateROI = new UnityEvent();
         /// <summary>
         /// Event called when requesting a screenshot of the scene
         /// </summary>
-        public GenericEvent<bool> OnRequestScreenshot = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnRequestScreenshot = new GenericEvent<bool>();
         /// <summary>
         /// Event called when updating the generator state
         /// </summary>
-        public GenericEvent<bool> OnUpdatingGenerator = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnUpdatingGenerator = new GenericEvent<bool>();
         /// <summary>
         /// Event called when ieeg are outdated or not anymore
         /// </summary>
-        public GenericEvent<bool> OnIEEGOutdated = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnIEEGOutdated = new GenericEvent<bool>();
         #endregion
 
         #region Private Methods
-        protected void Update()
+        private void Update()
         {
             if (!SceneInformation.IsSceneInitialized) return;
 
@@ -857,8 +802,10 @@ namespace HBP.Module3D
         /// <summary>
         /// Init gameobjects of the scene
         /// </summary>
-        protected void InitializeSceneGameObjects()
+        private void InitializeSceneGameObjects()
         {
+            transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * ApplicationState.Module3D.NumberOfScenesLoadedSinceStart, transform.position.y, transform.position.z);
+
             // Mark brain mesh as dynamic
             m_BrainPrefab.GetComponent<MeshFilter>().sharedMesh.MarkDynamic();
 
@@ -874,7 +821,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Update the surface meshes from the DLL
         /// </summary>
-        protected void UpdateMeshesFromDLL()
+        private void UpdateMeshesFromDLL()
         {
             for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
             {
@@ -891,7 +838,7 @@ namespace HBP.Module3D
         /// Generate the split number regarding all meshes
         /// </summary>
         /// <param name="meshes"></param>
-        protected void GenerateSplit(IEnumerable<DLL.Surface> meshes)
+        private void GenerateSplits(IEnumerable<DLL.Surface> meshes)
         {
             int maxVertices = (from mesh in meshes select mesh.NumberOfVertices).Max();
             int splits = (maxVertices / 65000) + (((maxVertices % 60000) != 0) ? 3 : 2);
@@ -1406,8 +1353,9 @@ namespace HBP.Module3D
         public void Initialize(Visualization visualization)
         {
             SceneInformation = new SceneStatesInfo();
-            
+
             Visualization = visualization;
+            gameObject.name = Visualization.Name;
 
             // Init materials
             SharedMaterials.Brain.AddSceneMaterials(this);
@@ -1450,7 +1398,7 @@ namespace HBP.Module3D
             if (!string.IsNullOrEmpty(Visualization.Configuration.MeshName)) UpdateMeshToDisplay(Visualization.Configuration.MeshName);
             if (!string.IsNullOrEmpty(Visualization.Configuration.MRIName)) UpdateMRIToDisplay(Visualization.Configuration.MRIName);
             if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) UpdateSites(Visualization.Configuration.ImplantationName);
-            
+
             foreach (Data.Visualization.Cut cut in Visualization.Configuration.Cuts)
             {
                 Cut newCut = AddCutPlane();
@@ -1633,7 +1581,7 @@ namespace HBP.Module3D
 
             m_ColumnManager.MeshSplitNumber = nbSplits;
 
-            if(m_DisplayedObjects.BrainSurfaceMeshes.Count > 0)
+            if (m_DisplayedObjects.BrainSurfaceMeshes.Count > 0)
                 for (int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
                     Destroy(m_DisplayedObjects.BrainSurfaceMeshes[ii]);
 
@@ -1749,7 +1697,7 @@ namespace HBP.Module3D
             SceneInformation.MeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
 
             UnityEngine.Profiling.Profiler.EndSample();
-            
+
             UnityEngine.Profiling.Profiler.BeginSample("Changing layers");
             foreach (Column3D column in m_ColumnManager.Columns)
             {
@@ -1796,7 +1744,7 @@ namespace HBP.Module3D
             // enable cuts gameobject
             for (int ii = 0; ii < Cuts.Count; ++ii)
                 m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
-            
+
             SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
             SceneInformation.MeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
 
@@ -1815,7 +1763,7 @@ namespace HBP.Module3D
         {
             SceneInformation.IsGeometryUpToDate = false;
             UpdateMeshesInformation();
-            
+
             if (SceneInformation.UseSimplifiedMeshes)
             {
                 ComputeSimplifyMeshCut();
@@ -1861,7 +1809,7 @@ namespace HBP.Module3D
             {
                 m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = column.BrainCutTextures[ii];
             }
-            
+
             if (!column.IsRenderingUpToDate)
             {
                 for (int i = 0; i < column.BrainSurfaceMeshes.Count; i++)
@@ -1878,7 +1826,7 @@ namespace HBP.Module3D
                     }
                 }
             }
-            
+
             UnityEngine.Profiling.Profiler.EndSample();
             column.IsRenderingUpToDate = true;
             return true;
@@ -2150,13 +2098,161 @@ namespace HBP.Module3D
         /// <param name="onChangeProgress"></param>
         /// <param name="outPut"></param>
         /// <returns></returns>
-        public abstract IEnumerator c_Initialize(Visualization visualization, GenericEvent<float, float, string> onChangeProgress, Action<Exception> outPut);
+        public IEnumerator c_Initialize(Visualization visualization, GenericEvent<float, float, string> onChangeProgress, Action<Exception> outPut)
+        {
+            Exception exception = null;
+
+            // Find all usable implantations
+            List<string> usableImplantations = visualization.FindUsableImplantations();
+
+            // Compute progress variables
+            float progress = 1.0f;
+            float totalTime = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
+            if (Type == Data.Enums.SceneType.SinglePatient)
+            {
+                totalTime = Patients[0].Brain.Meshes.Count * LOADING_MESH_WEIGHT + Patients[0].Brain.MRIs.Count * LOADING_MRI_WEIGHT + usableImplantations.Count * LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT;
+                loadingMeshProgress = LOADING_MESH_WEIGHT / totalTime;
+                loadingMeshTime = LOADING_MESH_WEIGHT / 1000.0f;
+                loadingMRIProgress = LOADING_MRI_WEIGHT / totalTime;
+                loadingMRITime = LOADING_MRI_WEIGHT / 1000.0f;
+                loadingImplantationsProgress = LOADING_IMPLANTATIONS_WEIGHT / totalTime;
+                loadingImplantationsTime = LOADING_IMPLANTATIONS_WEIGHT / 1000.0f;
+                loadingMNIProgress = LOADING_MNI_WEIGHT / totalTime;
+                loadingMNITime = LOADING_MNI_WEIGHT / 1000.0f;
+                loadingIEEGProgress = LOADING_IEEG_WEIGHT / totalTime;
+                loadingIEEGTime = LOADING_IEEG_WEIGHT / 1000.0f;
+            }
+            else
+            {
+                totalTime = usableImplantations.Count * LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + Patients.Count * LOADING_IEEG_WEIGHT;
+                loadingImplantationsProgress = (Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / totalTime;
+                loadingImplantationsTime = (Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / 1000.0f;
+                loadingMNIProgress = LOADING_MNI_WEIGHT / totalTime;
+                loadingMNITime = LOADING_MNI_WEIGHT / 1000.0f;
+                loadingIEEGProgress = (Patients.Count * LOADING_IEEG_WEIGHT) / totalTime;
+                loadingIEEGTime = (Patients.Count * LOADING_IEEG_WEIGHT) / 1000.0f;
+            }
+            yield return Ninja.JumpToUnity;
+            onChangeProgress.Invoke(progress, 0.0f, "");
+
+            // Checking MNI
+            onChangeProgress.Invoke(progress, 0.0f, "Loading MNI");
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.Loaded || watch.ElapsedMilliseconds > 5000; });
+            watch.Stop();
+            if (watch.ElapsedMilliseconds > 5000)
+            {
+                outPut(new CanNotLoadMNI());
+                yield break;
+            }
+
+            // Loading MNI
+            progress += loadingMNIProgress;
+            onChangeProgress.Invoke(progress, loadingMNITime, "Loading MNI objects");
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects(e => exception = e));
+            if (exception != null)
+            {
+                outPut(exception);
+                yield break;
+            }
+
+            // Loading Meshes
+            if (Type == Data.Enums.SceneType.SinglePatient)
+            {
+                for (int i = 0; i < Patients[0].Brain.Meshes.Count; ++i)
+                {
+                    Data.Anatomy.Mesh mesh = Patients[0].Brain.Meshes[i];
+                    progress += loadingMeshProgress;
+                    onChangeProgress.Invoke(progress, loadingMeshTime, "Loading Mesh: " + mesh.Name + " [" + (i + 1).ToString() + "/" + Patients[0].Brain.Meshes.Count + "]");
+                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, e => exception = e));
+                }
+                if (exception != null)
+                {
+                    outPut(exception);
+                    yield break;
+                }
+
+                if (m_ColumnManager.Meshes.Count > 0)
+                {
+                    if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMeshes)
+                    {
+                        GenerateSplits(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
+                    }
+                    else
+                    {
+                        ResetSplitsNumber(10);
+                    }
+                }
+                else
+                {
+                    ResetSplitsNumber(3);
+                }
+                SceneInformation.MeshesLoaded = true;
+            }
+            else
+            {
+                ResetSplitsNumber(3);
+                SceneInformation.MeshesLoaded = true;
+            }
+            SceneInformation.MeshGeometryNeedsUpdate = true;
+
+            // Loading MRIs
+            if (Type == Data.Enums.SceneType.SinglePatient)
+            {
+                for (int i = 0; i < Patients[0].Brain.MRIs.Count; ++i)
+                {
+                    Data.Anatomy.MRI mri = Patients[0].Brain.MRIs[i];
+                    progress += loadingMRIProgress;
+                    onChangeProgress.Invoke(progress, loadingMRITime, "Loading MRI: " + mri.Name + " [" + (i + 1).ToString() + "/" + Patients[0].Brain.MRIs.Count + "]");
+                    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri, e => exception = e));
+                }
+                if (exception != null)
+                {
+                    outPut(exception);
+                    yield break;
+                }
+                SceneInformation.MRILoaded = true;
+            }
+            else
+            {
+                SceneInformation.MRILoaded = true;
+            }
+
+            // Loading Sites
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients, usableImplantations, (i) =>
+            {
+                progress += loadingImplantationsProgress;
+                onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations [" + (i + 1).ToString() + "/" + usableImplantations.Count + "]");
+            }, e => exception = e));
+            if (exception != null)
+            {
+                outPut(exception);
+                yield break;
+            }
+
+            // Loading Columns
+            m_ColumnManager.Initialize(Cuts.Count);
+            progress += loadingIEEGProgress;
+            onChangeProgress.Invoke(progress, loadingIEEGTime, "Loading columns");
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(e => exception = e));
+            if (exception != null)
+            {
+                outPut(exception);
+                yield break;
+            }
+
+            // Finalization
+            m_ColumnManager.InitializeColumnsMeshes(m_DisplayedObjects.BrainSurfaceMeshesParent, SceneInformation.UseSimplifiedMeshes);
+            OnUpdateCameraTarget.Invoke(m_ColumnManager.SelectedMesh.Both.BoundingBox.Center);
+            outPut(exception);
+        }
         /// <summary>
         /// Reset the volume of the scene
         /// </summary>
         /// <param name="pathNIIBrainVolumeFile"></param>
         /// <returns></returns>
-        protected IEnumerator c_LoadBrainVolume(Data.Anatomy.MRI mri, Action<Exception> outPut)
+        private IEnumerator c_LoadBrainVolume(Data.Anatomy.MRI mri, Action<Exception> outPut)
         {
             try
             {
@@ -2196,7 +2292,7 @@ namespace HBP.Module3D
         /// <param name="pathGIIBrainFiles"></param>
         /// <param name="transformation"></param>
         /// <returns></returns>
-        protected IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh, Action<Exception> outPut)
+        private IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh, Action<Exception> outPut)
         {
             SceneInformation.MeshesLoaded = false;
             try
@@ -2267,7 +2363,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="pathsElectrodesPtsFile"></param>
         /// <returns></returns>
-        protected IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle, Action<Exception> outPut)
+        private IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle, Action<Exception> outPut)
         {
             SceneInformation.SitesLoaded = false;
 
@@ -2289,8 +2385,7 @@ namespace HBP.Module3D
                         m_ColumnManager.Implantations.Add(implantation3D);
                         if (Type == Data.Enums.SceneType.SinglePatient)
                         {
-                            SinglePatient3DScene scene = this as SinglePatient3DScene;
-                            implantation3D.LoadLatencies(scene.Patient);
+                            implantation3D.LoadLatencies(Patients[0]);
                         }
                     }
                     else
@@ -2314,7 +2409,7 @@ namespace HBP.Module3D
         /// Load MNI
         /// </summary>
         /// <returns></returns>
-        protected IEnumerator c_LoadMNIObjects(Action<Exception> outPut)
+        private IEnumerator c_LoadMNIObjects(Action<Exception> outPut)
         {
             try
             {
@@ -2334,7 +2429,7 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="patient"></param>
         /// <param name="columnDataList"></param>
-        protected IEnumerator c_LoadColumns(Action<Exception> outPut)
+        private IEnumerator c_LoadColumns(Action<Exception> outPut)
         {
             yield return Ninja.JumpToUnity;
             // update columns number
@@ -2365,7 +2460,7 @@ namespace HBP.Module3D
         /// Load missing anatomy if not preloaded
         /// </summary>
         /// <returns></returns>
-        protected IEnumerator c_LoadMissingAnatomy()
+        private IEnumerator c_LoadMissingAnatomy()
         {
             yield return Ninja.JumpBack;
             foreach (var mesh in m_ColumnManager.Meshes)
@@ -2417,7 +2512,7 @@ namespace HBP.Module3D
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
             }
-            
+
             // Do your threaded task
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
@@ -2525,7 +2620,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         private IEnumerator c_UpdateMeshesColliders()
         {
-            while(m_UpdatingColliders)
+            while (m_UpdatingColliders)
             {
                 yield return new WaitForSeconds(0.05f);
             }
@@ -2560,4 +2655,46 @@ namespace HBP.Module3D
         }
         #endregion
     }
+
+    #region Struct
+    /// <summary>
+    /// Site info to be send to the UI
+    /// </summary>
+    public class SiteInfo
+    {
+        public SiteInfo(Site site, bool enabled, Vector3 position, Data.Enums.SiteInformationDisplayMode mode = Data.Enums.SiteInformationDisplayMode.IEEG, string IEEGAmplitude = "", string IEEGUnit ="", string CCEPAmplitude = "", string CCEPLatency = "")
+        {
+            Site = site;
+            Enabled = enabled;
+            Position = position;
+            this.IEEGAmplitude = IEEGAmplitude;
+            this.IEEGUnit = IEEGUnit;
+            this.CCEPAmplitude = CCEPAmplitude;
+            this.CCEPLatency = CCEPLatency;
+            Mode = mode;
+        }
+
+        public Site Site { get; set; }
+        public bool Enabled { get; set; }
+        public Vector3 Position { get; set; }
+        public string IEEGAmplitude { get; set; }
+        public string IEEGUnit { get; set; }
+        public string CCEPAmplitude { get; set; }
+        public string CCEPLatency { get; set; }
+        public Data.Enums.SiteInformationDisplayMode Mode { get; set; }
+    }
+
+    /// <summary>
+    /// IRM cal values
+    /// </summary>
+    public struct MRICalValues
+    {
+        public float min;
+        public float max;
+        public float loadedCalMin;
+        public float loadedCalMax;
+        public float computedCalMin;
+        public float computedCalMax;
+    }
+    #endregion
 }
