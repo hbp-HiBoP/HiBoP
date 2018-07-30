@@ -158,20 +158,12 @@ namespace HBP.Module3D
         /// </summary>
         public SceneStatesInfo SceneInformation { get; set; }
 
-        protected DisplayedObjects3DView m_DisplayedObjects = null;
         /// <summary>
         /// Displayable objects of the scene
         /// </summary>
-        public DisplayedObjects3DView DisplayedObjects
-        {
-            get
-            {
-                return m_DisplayedObjects;
-            }
-        }
-        
-        [SerializeField]
-        protected Column3DManager m_ColumnManager;
+        [SerializeField] protected DisplayedObjects m_DisplayedObjects;
+                
+        [SerializeField] protected Column3DManager m_ColumnManager;
         /// <summary>
         /// Column data manager
         /// </summary>
@@ -870,21 +862,11 @@ namespace HBP.Module3D
             // Mark brain mesh as dynamic
             m_BrainPrefab.GetComponent<MeshFilter>().sharedMesh.MarkDynamic();
 
-            // init parents 
-            m_DisplayedObjects.MeshesParent = transform.Find("Meshes").gameObject;
-            m_DisplayedObjects.SitesMeshesParent = transform.Find("Sites").gameObject;
-            m_DisplayedObjects.BrainSurfaceMeshesParent = transform.Find("Meshes").Find("Brains").gameObject;
-            m_DisplayedObjects.InvisibleBrainMeshesParent = transform.Find("Meshes").Find("Erased Brains").gameObject;
-            m_DisplayedObjects.BrainCutMeshesParent = transform.Find("Meshes").Find("Cuts").gameObject;
-
-            // init lights
-            m_DisplayedObjects.SharedDirectionalLight = transform.parent.Find("Global Light").gameObject;
-            m_DisplayedObjects.SharedSpotlight = transform.parent.Find("Global Spotlight").gameObject;
-
-            // init default planes
-            m_Cuts = new List<Cut>();
+            // Cuts
             m_DisplayedObjects.BrainCutMeshes = new List<GameObject>();
+            m_Cuts = new List<Cut>();
 
+            // Default colors
             UpdateBrainSurfaceColor(m_ColumnManager.BrainColor);
             UpdateColormap(m_ColumnManager.Colormap, false);
             UpdateBrainCutColor(m_ColumnManager.BrainCutColor, true);
@@ -1423,7 +1405,6 @@ namespace HBP.Module3D
         /// <param name="visualization"></param>
         public void Initialize(Visualization visualization)
         {
-            m_DisplayedObjects = new DisplayedObjects3DView();
             SceneInformation = new SceneStatesInfo();
             
             Visualization = visualization;
@@ -2162,6 +2143,244 @@ namespace HBP.Module3D
         #endregion
 
         #region Coroutines
+        /// <summary>
+        /// Initialize the scene
+        /// </summary>
+        /// <param name="visualization"></param>
+        /// <param name="onChangeProgress"></param>
+        /// <param name="outPut"></param>
+        /// <returns></returns>
+        public abstract IEnumerator c_Initialize(Visualization visualization, GenericEvent<float, float, string> onChangeProgress, Action<Exception> outPut);
+        /// <summary>
+        /// Reset the volume of the scene
+        /// </summary>
+        /// <param name="pathNIIBrainVolumeFile"></param>
+        /// <returns></returns>
+        protected IEnumerator c_LoadBrainVolume(Data.Anatomy.MRI mri, Action<Exception> outPut)
+        {
+            try
+            {
+                if (mri.Usable)
+                {
+
+                    MRI3D mri3D = new MRI3D(mri);
+                    if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMRIs)
+                    {
+                        if (mri3D.IsLoaded)
+                        {
+                            m_ColumnManager.MRIs.Add(mri3D);
+                        }
+                        else
+                        {
+                            throw new CanNotLoadNIIFile(mri.File);
+                        }
+                    }
+                    else
+                    {
+                        string name = !string.IsNullOrEmpty(Visualization.Configuration.MeshName) ? Visualization.Configuration.MeshName : Type == Data.Enums.SceneType.SinglePatient ? "Preimplantation" : "MNI";
+                        if (mri3D.Name == name) mri3D.Load();
+                        m_ColumnManager.MRIs.Add(mri3D);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                outPut(new CanNotLoadNIIFile(mri.File));
+                yield break;
+            }
+            yield return SceneInformation.MRILoaded;
+        }
+        /// <summary>
+        /// Reset the meshes of the scene with GII files
+        /// </summary>
+        /// <param name="pathGIIBrainFiles"></param>
+        /// <param name="transformation"></param>
+        /// <returns></returns>
+        protected IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh, Action<Exception> outPut)
+        {
+            SceneInformation.MeshesLoaded = false;
+            try
+            {
+                if (mesh.Usable)
+                {
+                    if (mesh is Data.Anatomy.LeftRightMesh)
+                    {
+                        LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
+
+                        if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMeshes)
+                        {
+                            if (mesh3D.IsLoaded)
+                            {
+                                m_ColumnManager.Meshes.Add(mesh3D);
+                            }
+                            else
+                            {
+                                SceneInformation.MeshesLoaded = false;
+                                throw new CanNotLoadGIIFile(mesh.Name);
+                            }
+                        }
+                        else
+                        {
+                            string name = !string.IsNullOrEmpty(Visualization.Configuration.MeshName) ? Visualization.Configuration.MeshName : "Grey matter";
+                            if (mesh3D.Name == name) mesh3D.Load();
+                            m_ColumnManager.Meshes.Add(mesh3D);
+                        }
+                    }
+                    else if (mesh is Data.Anatomy.SingleMesh)
+                    {
+                        SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
+
+                        if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMeshes)
+                        {
+                            if (mesh3D.IsLoaded)
+                            {
+                                m_ColumnManager.Meshes.Add(mesh3D);
+                            }
+                            else
+                            {
+                                SceneInformation.MeshesLoaded = false;
+                                throw new CanNotLoadGIIFile(mesh.Name);
+                            }
+                        }
+                        else
+                        {
+                            string name = !string.IsNullOrEmpty(Visualization.Configuration.MeshName) ? Visualization.Configuration.MeshName : "Grey matter";
+                            if (mesh3D.Name == name) mesh3D.Load();
+                            m_ColumnManager.Meshes.Add(mesh3D);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("Mesh not handled.");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                outPut(new CanNotLoadGIIFile(mesh.Name));
+                yield break;
+            }
+            yield return true;
+        }
+        /// <summary>
+        /// Reset all the sites with a new list of pts files
+        /// </summary>
+        /// <param name="pathsElectrodesPtsFile"></param>
+        /// <returns></returns>
+        protected IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle, Action<Exception> outPut)
+        {
+            SceneInformation.SitesLoaded = false;
+
+            for (int i = 0; i < commonImplantations.Count; ++i)
+            {
+                yield return Ninja.JumpToUnity;
+                updateCircle(i);
+                yield return Ninja.JumpBack;
+                string implantationName = commonImplantations[i];
+                try
+                {
+                    IEnumerable<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).File);
+                    IEnumerable<string> marsAtlasFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).MarsAtlas);
+                    IEnumerable<string> patientIDs = (from patient in patients select patient.ID);
+
+                    Implantation3D implantation3D = new Implantation3D(implantationName, ptsFiles, marsAtlasFiles, patientIDs);
+                    if (implantation3D.IsLoaded)
+                    {
+                        m_ColumnManager.Implantations.Add(implantation3D);
+                        if (Type == Data.Enums.SceneType.SinglePatient)
+                        {
+                            SinglePatient3DScene scene = this as SinglePatient3DScene;
+                            implantation3D.LoadLatencies(scene.Patient);
+                        }
+                    }
+                    else
+                    {
+                        throw new CanNotLoadImplantation(implantationName);
+                    }
+                }
+                catch
+                {
+                    outPut(new CanNotLoadImplantation(implantationName));
+                    yield break;
+                }
+            }
+
+            SceneInformation.SitesLoaded = true;
+            yield return Ninja.JumpToUnity;
+            UpdateSites("");
+            yield return Ninja.JumpBack;
+        }
+        /// <summary>
+        /// Load MNI
+        /// </summary>
+        /// <returns></returns>
+        protected IEnumerator c_LoadMNIObjects(Action<Exception> outPut)
+        {
+            try
+            {
+                m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.GreyMatter.Clone()));
+                m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.WhiteMatter.Clone()));
+                m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter.Clone()));
+                m_ColumnManager.MRIs.Add(ApplicationState.Module3D.MNIObjects.MRI);
+            }
+            catch
+            {
+                outPut(new CanNotLoadMNI());
+                yield break;
+            }
+        }
+        /// <summary>
+        /// Define the timeline data with a patient and a list of column data
+        /// </summary>
+        /// <param name="patient"></param>
+        /// <param name="columnDataList"></param>
+        protected IEnumerator c_LoadColumns(Action<Exception> outPut)
+        {
+            yield return Ninja.JumpToUnity;
+            // update columns number
+            m_ColumnManager.InitializeColumns(Visualization.Columns);
+            yield return Ninja.JumpBack;
+
+            try
+            {
+                // update columns names
+                for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
+                {
+                    m_ColumnManager.Columns[ii].Label = Visualization.Columns[ii].Name;
+                }
+
+                // set timelines
+                m_ColumnManager.SetTimelineData(Visualization.Columns);
+
+                // set flag
+                SceneInformation.TimelinesLoaded = true;
+            }
+            catch (Exception e)
+            {
+                outPut(e);
+                yield break;
+            }
+        }
+        /// <summary>
+        /// Load missing anatomy if not preloaded
+        /// </summary>
+        /// <returns></returns>
+        protected IEnumerator c_LoadMissingAnatomy()
+        {
+            yield return Ninja.JumpBack;
+            foreach (var mesh in m_ColumnManager.Meshes)
+            {
+                if (!mesh.IsLoaded) mesh.Load();
+            }
+            foreach (var mri in m_ColumnManager.MRIs)
+            {
+                if (!mri.IsLoaded) mri.Load();
+            }
+        }
+        /// <summary>
+        /// Start the update of the generators for the iEEG signal on the brain
+        /// </summary>
+        /// <returns></returns>
         private IEnumerator c_ComputeGenerators()
         {
             m_UpdatingGenerator = true;
@@ -2175,6 +2394,10 @@ namespace HBP.Module3D
                 ComputeGUITextures();
             }
         }
+        /// <summary>
+        /// Compute the iEEG values on the brain
+        /// </summary>
+        /// <returns></returns>
         private IEnumerator c_LoadIEEG()
         {
             yield return Ninja.JumpToUnity;
@@ -2297,159 +2520,9 @@ namespace HBP.Module3D
             yield return new WaitForSeconds(0.1f);
         }
         /// <summary>
-        /// Reset the volume of the scene
-        /// </summary>
-        /// <param name="pathNIIBrainVolumeFile"></param>
-        /// <returns></returns>
-        protected IEnumerator c_LoadBrainVolume(Data.Anatomy.MRI mri, Action<Exception> outPut)
-        {
-            try
-            {
-                if (mri.Usable)
-                {
-
-                    MRI3D mri3D = new MRI3D(mri);
-                    if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMRIs)
-                    {
-                        if (mri3D.IsLoaded)
-                        {
-                            m_ColumnManager.MRIs.Add(mri3D);
-                        }
-                        else
-                        {
-                            throw new CanNotLoadNIIFile(mri.File);
-                        }
-                    }
-                    else
-                    {
-                        string name = !string.IsNullOrEmpty(Visualization.Configuration.MeshName) ? Visualization.Configuration.MeshName : Type == Data.Enums.SceneType.SinglePatient ? "Preimplantation" : "MNI";
-                        if (mri3D.Name == name) mri3D.Load();
-                        m_ColumnManager.MRIs.Add(mri3D);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                outPut(new CanNotLoadNIIFile(mri.File));
-                yield break;
-            }
-            yield return SceneInformation.MRILoaded;
-        }
-        /// <summary>
-        /// Reset all the sites with a new list of pts files
-        /// </summary>
-        /// <param name="pathsElectrodesPtsFile"></param>
-        /// <returns></returns>
-        protected IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle, Action<Exception> outPut)
-        {
-            SceneInformation.SitesLoaded = false;
-
-            for (int i = 0; i < commonImplantations.Count; ++i)
-            {
-                yield return Ninja.JumpToUnity;
-                updateCircle(i);
-                yield return Ninja.JumpBack;
-                string implantationName = commonImplantations[i];
-                try
-                {
-                    IEnumerable<string> ptsFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).File);
-                    IEnumerable<string> marsAtlasFiles = (from patient in patients select patient.Brain.Implantations.Find((imp) => imp.Name == implantationName).MarsAtlas);
-                    IEnumerable<string> patientIDs = (from patient in patients select patient.ID);
-
-                    Implantation3D implantation3D = new Implantation3D(implantationName, ptsFiles, marsAtlasFiles, patientIDs);
-                    if (implantation3D.IsLoaded)
-                    {
-                        m_ColumnManager.Implantations.Add(implantation3D);
-                        if (Type == Data.Enums.SceneType.SinglePatient)
-                        {
-                            SinglePatient3DScene scene = this as SinglePatient3DScene;
-                            implantation3D.LoadLatencies(scene.Patient);
-                        }
-                    }
-                    else
-                    {
-                        throw new CanNotLoadImplantation(implantationName);
-                    }
-                }
-                catch
-                {
-                    outPut(new CanNotLoadImplantation(implantationName));
-                    yield break;
-                }
-            }
-
-            SceneInformation.SitesLoaded = true;
-            yield return Ninja.JumpToUnity;
-            UpdateSites("");
-            yield return Ninja.JumpBack;
-        }
-        /// <summary>
-        /// Load MNI
+        /// Update the colliders
         /// </summary>
         /// <returns></returns>
-        protected IEnumerator c_LoadMNIObjects(Action<Exception> outPut)
-        {
-            try
-            {
-                m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.GreyMatter.Clone()));
-                m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.WhiteMatter.Clone()));
-                m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter.Clone()));
-                m_ColumnManager.MRIs.Add(ApplicationState.Module3D.MNIObjects.MRI);
-            }
-            catch
-            {
-                outPut(new CanNotLoadMNI());
-                yield break;
-            }
-        }
-        /// <summary>
-        /// Load missing anatomy if not preloaded
-        /// </summary>
-        /// <returns></returns>
-        protected IEnumerator c_LoadMissingAnatomy()
-        {
-            yield return Ninja.JumpBack;
-            foreach (var mesh in m_ColumnManager.Meshes)
-            {
-                if (!mesh.IsLoaded) mesh.Load();
-            }
-            foreach (var mri in m_ColumnManager.MRIs)
-            {
-                if (!mri.IsLoaded) mri.Load();
-            }
-        }
-        /// <summary>
-        /// Define the timeline data with a patient and a list of column data
-        /// </summary>
-        /// <param name="patient"></param>
-        /// <param name="columnDataList"></param>
-        protected IEnumerator c_SetColumns(Action<Exception> outPut)
-        {
-            yield return Ninja.JumpToUnity;
-            // update columns number
-            m_ColumnManager.InitializeColumns(Visualization.Columns);
-            yield return Ninja.JumpBack;
-
-            try
-            {
-                // update columns names
-                for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
-                {
-                    m_ColumnManager.Columns[ii].Label = Visualization.Columns[ii].Name;
-                }
-
-                // set timelines
-                m_ColumnManager.SetTimelineData(Visualization.Columns);
-
-                // set flag
-                SceneInformation.TimelinesLoaded = true;
-            }
-            catch(Exception e)
-            {
-                outPut(e);
-                yield break;
-            }
-        }
         private IEnumerator c_UpdateMeshesColliders()
         {
             while(m_UpdatingColliders)

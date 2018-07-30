@@ -204,9 +204,9 @@ namespace HBP.Module3D
             RenderSettings.ambientIntensity = AmbientIntensity;
             RenderSettings.skybox = null;
             RenderSettings.ambientLight = AmbientLight;
-            m_AssociatedScene.DisplayedObjects.SharedDirectionalLight.transform.eulerAngles = transform.eulerAngles;
-            m_AssociatedScene.DisplayedObjects.SharedSpotlight.transform.eulerAngles = transform.eulerAngles;
-            m_AssociatedScene.DisplayedObjects.SharedSpotlight.transform.position = transform.position;
+            ApplicationState.Module3D.SharedDirectionalLight.transform.eulerAngles = transform.eulerAngles;
+            ApplicationState.Module3D.SharedSpotlight.transform.eulerAngles = transform.eulerAngles;
+            ApplicationState.Module3D.SharedSpotlight.transform.position = transform.position;
             m_AssociatedColumn.SelectRing.SelectRingFaceCamera(Camera);
         }
         private void OnPreRender()

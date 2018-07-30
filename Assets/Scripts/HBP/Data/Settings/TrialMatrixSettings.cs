@@ -71,7 +71,7 @@
         {
             if (Normalization != type)
             {
-                if (ApplicationState.Module3D.ScenesManager.Scenes.Count > 0)
+                if (ApplicationState.Module3D.Scenes.Count > 0)
                 {
                     ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Baseline settings changed", "You need to reload the open visualizations in order to apply the changes made to the baseline normalization.\n\nWould you like to reload ?", () =>
                     {

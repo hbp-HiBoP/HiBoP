@@ -26,17 +26,6 @@ namespace HBP.Module3D
     public class HBP3DModule : MonoBehaviour
     {
         #region Properties
-        [SerializeField, Candlelight.PropertyBackingField]
-        private ScenesManager m_ScenesManager;
-        /// <summary>
-        /// Reference to the scene manager
-        /// </summary>
-        public ScenesManager ScenesManager
-        {
-            get { return m_ScenesManager; }
-            set { m_ScenesManager = value; }
-        }
-
         /// <summary>
         /// Currently selected scene
         /// </summary>
@@ -44,7 +33,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_ScenesManager.SelectedScene;
+                return m_Scenes.FirstOrDefault(s => s.IsSelected);
             }
         }
         /// <summary>
@@ -54,11 +43,12 @@ namespace HBP.Module3D
         {
             get
             {
-                if (m_ScenesManager.SelectedScene)
+                Base3DScene scene = SelectedScene;
+                if (scene)
                 {
-                    return m_ScenesManager.SelectedScene.ColumnManager.SelectedColumn;
+                    return scene.ColumnManager.SelectedColumn;
                 }
-                else return null;
+                return null;
             }
         }
         /// <summary>
@@ -68,7 +58,12 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_ScenesManager.SelectedScene.ColumnManager.SelectedColumn.SelectedView;
+                Column3D column = SelectedColumn;
+                if (column)
+                {
+                    return column.SelectedView;
+                }
+                return null;
             }
         }
 
@@ -86,6 +81,17 @@ namespace HBP.Module3D
         /// </summary>
         public int NumberOfScenesLoadedSinceStart { get; set; }
 
+        private List<Base3DScene> m_Scenes = new List<Base3DScene>();
+        /// <summary>
+        /// List of loaded scenes
+        /// </summary>
+        public ReadOnlyCollection<Base3DScene> Scenes
+        {
+            get
+            {
+                return new ReadOnlyCollection<Base3DScene>(m_Scenes);
+            }
+        }
         /// <summary>
         /// List of all the loaded visualizations
         /// </summary>
@@ -93,7 +99,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return new ReadOnlyCollection<Data.Visualization.Visualization>((from scene in m_ScenesManager.Scenes select scene.Visualization).ToList());
+                return new ReadOnlyCollection<Data.Visualization.Visualization>((from scene in Scenes select scene.Visualization).ToList());
             }
         }
 
@@ -106,6 +112,25 @@ namespace HBP.Module3D
         /// MNI Objects
         /// </summary>
         public MNIObjects MNIObjects;
+        
+        /// <summary>
+        /// Shared directional light between all scenes
+        /// </summary>
+        public GameObject SharedDirectionalLight;
+        /// <summary>
+        /// Shared spotlight between all scenes
+        /// </summary>
+        public GameObject SharedSpotlight;
+
+        [SerializeField] private Transform m_ScenesParent;
+        /// <summary>
+        /// Prefab corresponding to a single patient scene
+        /// </summary>
+        [SerializeField] private GameObject m_SinglePatientScenePrefab;
+        /// <summary>
+        /// Prefab corresponding to a multi patient scene
+        /// </summary>
+        [SerializeField] private GameObject m_MultiPatientsScenePrefab;
         #endregion
 
         #region Events
@@ -218,10 +243,10 @@ namespace HBP.Module3D
         /// <param name="visualization">Visualization corresponding to the scenes to be removed</param>
         public void RemoveScene(Data.Visualization.Visualization visualization)
         {
-            Base3DScene[] scenes = m_ScenesManager.Scenes.Where(s => s.Visualization == visualization).ToArray();
+            Base3DScene[] scenes = Scenes.Where(s => s.Visualization == visualization).ToArray();
             foreach (var scene in scenes)
             {
-                m_ScenesManager.RemoveScene(scene);
+                RemoveScene(scene);
             }
         }
         /// <summary>
@@ -230,7 +255,9 @@ namespace HBP.Module3D
         /// <param name="scene">Scene to be removed</param>
         public void RemoveScene(Base3DScene scene)
         {
-            m_ScenesManager.RemoveScene(scene);
+            ApplicationState.Module3D.OnRemoveScene.Invoke(scene);
+            Destroy(scene.gameObject);
+            m_Scenes.Remove(scene);
         }
         /// <summary>
         /// Load a single patient scene extracted from a visualization
@@ -239,7 +266,7 @@ namespace HBP.Module3D
         /// <param name="patient">Patient of the new visualization</param>
         public void LoadSinglePatientSceneFromMultiPatientScene(Data.Visualization.Visualization visualization, Data.Patient patient)
         {
-            m_ScenesManager.Scenes.FirstOrDefault(s => s.Visualization == visualization).SaveConfiguration();
+            Scenes.FirstOrDefault(s => s.Visualization == visualization).SaveConfiguration();
             Data.Visualization.Visualization visualizationToLoad = visualization.Clone() as Data.Visualization.Visualization;
             visualizationToLoad.Name = patient.Name;
             visualizationToLoad.RemoveAllPatients();
@@ -276,7 +303,7 @@ namespace HBP.Module3D
         /// </summary>
         public void SaveConfigurations()
         {
-            foreach (var scene in m_ScenesManager.Scenes)
+            foreach (var scene in Scenes)
             {
                 scene.SaveConfiguration();
             }
@@ -287,7 +314,7 @@ namespace HBP.Module3D
         public void ReloadScenes()
         {
             SaveConfigurations();
-            List<Base3DScene> scenes = m_ScenesManager.Scenes.ToList();
+            List<Base3DScene> scenes = Scenes.ToList();
             foreach (Base3DScene scene in scenes)
             {
                 RemoveScene(scene);
@@ -300,7 +327,7 @@ namespace HBP.Module3D
         /// </summary>
         public void RemoveAllScenes()
         {
-            List<Base3DScene> scenes = m_ScenesManager.Scenes.ToList();
+            List<Base3DScene> scenes = Scenes.ToList();
             foreach (Base3DScene scene in scenes)
             {
                 RemoveScene(scene);
@@ -367,16 +394,40 @@ namespace HBP.Module3D
             Exception exception = null;
 
             yield return Ninja.JumpToUnity;
-            if (visualization.Patients.Count == 1)
+            Base3DScene scene = Instantiate(visualization.Patients.Count == 1 ? m_SinglePatientScenePrefab : m_MultiPatientsScenePrefab, m_ScenesParent).GetComponent<Base3DScene>();
+            scene.Initialize(visualization);
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(scene.c_Initialize(visualization, onChangeProgress, (e) => exception = e));
+            if (exception == null)
             {
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddSinglePatientScene(visualization, onChangeProgress, (e) => exception = e));
+                try
+                {
+                    ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
+                    // Add the listeners
+                    scene.OnChangeSelectedState.AddListener((selected) =>
+                    {
+                        if (selected)
+                        {
+                            foreach (Base3DScene s in m_Scenes)
+                            {
+                                if (s != scene)
+                                {
+                                    s.IsSelected = false;
+                                }
+                            }
+                        }
+                    });
+                    // Add the scene to the list
+                    m_Scenes.Add(scene);
+                    scene.FinalizeInitialization();
+                    ApplicationState.Module3D.OnAddScene.Invoke(scene);
+                    scene.LoadConfiguration();
+                }
+                catch (Exception e)
+                {
+                    exception = e;
+                }
             }
             else
-            {
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(m_ScenesManager.c_AddMultiPatientsScene(visualization, onChangeProgress, (e) => exception = e));
-            }
-
-            if (exception != null)
             {
                 throw exception;
             }

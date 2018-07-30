@@ -104,27 +104,4 @@ namespace HBP.Module3D
         }
         #endregion
     }
-
-    /// <summary>
-    /// All columns common GO objects displayed in the 3D scene
-    /// </summary>
-    public class DisplayedObjects3DView
-    {
-        // Parents objects
-        public GameObject MeshesParent = null;
-        public GameObject BrainSurfaceMeshesParent = null;  /**< brain surface meshes parent of the scene */
-        public GameObject InvisibleBrainMeshesParent = null;
-        public GameObject BrainCutMeshesParent = null;      /**< brain cut meshes parent of the scene */
-        public GameObject SitesMeshesParent = null;         /**< sites meshes parent of the scene */
-
-        // lights
-        public GameObject SharedDirectionalLight = null;            /**< shared light between all the scene cameras */
-        public GameObject SharedSpotlight = null;
-
-        // Lists of GameObjects to be displayed 
-        public List<GameObject> BrainSurfaceMeshes = new List<GameObject>();  /**< brain surface meshes of the scene */
-        public List<GameObject> BrainCutMeshes = null;      /**< brain cut meshes of the scene */
-        public List<GameObject> InvisibleBrainSurfaceMeshes = null;
-        public GameObject SimplifiedBrain;
-    }
 }

@@ -27,7 +27,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                Base3DScene scene = ApplicationState.Module3D.ScenesManager.SelectedScene;
+                Base3DScene scene = ApplicationState.Module3D.SelectedScene;
                 scene.SaveConfiguration();
                 ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Informational, "Configuration saved", "The configuration of the selected scene has been saved in the visualization <color=#3080ffff>" + scene.Name + "</color>.\n\nPlease save the project to apply changes in the project files.");
             });
@@ -35,13 +35,13 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.ScenesManager.SelectedScene.LoadConfiguration();
+                ApplicationState.Module3D.SelectedScene.LoadConfiguration();
             });
             m_Reset.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.ScenesManager.SelectedScene.ResetConfiguration();
+                ApplicationState.Module3D.SelectedScene.ResetConfiguration();
             });
         }
         public override void DefaultState()

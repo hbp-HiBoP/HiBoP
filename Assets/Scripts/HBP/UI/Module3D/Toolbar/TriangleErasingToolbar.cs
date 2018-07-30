@@ -40,14 +40,14 @@ namespace HBP.UI.Module3D
         }
         public override void ShowToolbarCallback()
         {
-            foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.ScenesManager.Scenes)
+            foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
             {
                 scene.IsTriangleErasingEnabled = true;
             }
         }
         public override void HideToolbarCallback()
         {
-            foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.ScenesManager.Scenes)
+            foreach (HBP.Module3D.Base3DScene scene in ApplicationState.Module3D.Scenes)
             {
                 scene.IsTriangleErasingEnabled = false;
             }

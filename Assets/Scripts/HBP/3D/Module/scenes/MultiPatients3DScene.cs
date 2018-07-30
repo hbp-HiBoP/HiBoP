@@ -45,7 +45,7 @@ namespace HBP.Module3D
         /// Reset the scene : reload MRI, sites, and regenerate textures
         /// </summary>
         /// <param name="data"></param>
-        public IEnumerator c_Initialize(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, Action<Exception> outPut)
+        public override IEnumerator c_Initialize(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress, Action<Exception> outPut)
         {
             Exception exception = null;
 
@@ -113,7 +113,7 @@ namespace HBP.Module3D
 
             progress += loadingIEEGProgress;
             onChangeProgress.Invoke(progress, loadingIEEGTime, "Loading columns");
-            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_SetColumns(e => exception = e));
+            yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(e => exception = e));
             if (exception != null)
             {
                 outPut(exception);
