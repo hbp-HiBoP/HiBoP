@@ -8,23 +8,23 @@ namespace HBP.Module3D
         /// <summary>
         /// Parent of all meshes
         /// </summary>
-        public GameObject MeshesParent = null;
+        public GameObject MeshesParent;
         /// <summary>
         /// Parent of surface meshes
         /// </summary>
-        public GameObject BrainSurfaceMeshesParent = null;
+        public GameObject BrainSurfaceMeshesParent;
         /// <summary>
         /// Parent of the invisible surface meshes
         /// </summary>
-        public GameObject InvisibleBrainMeshesParent = null;
+        public GameObject InvisibleBrainMeshesParent;
         /// <summary>
         /// Parent of the cut meshes
         /// </summary>
-        public GameObject BrainCutMeshesParent = null;
+        public GameObject BrainCutMeshesParent;
         /// <summary>
         /// Parent of the sites
         /// </summary>
-        public GameObject SitesMeshesParent = null;
+        public GameObject SitesMeshesParent;
 
         /// <summary>
         /// Meshes of the brain surface
@@ -33,11 +33,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Meshes of the cuts
         /// </summary>
-        [HideInInspector] public List<GameObject> BrainCutMeshes = null;
+        [HideInInspector] public List<GameObject> BrainCutMeshes = new List<GameObject>();
         /// <summary>
         /// Meshes of the invisible surface
         /// </summary>
-        [HideInInspector] public List<GameObject> InvisibleBrainSurfaceMeshes = null;
+        [HideInInspector] public List<GameObject> InvisibleBrainSurfaceMeshes = new List<GameObject>();
         /// <summary>
         /// Simplified brain
         /// </summary>

@@ -36,11 +36,11 @@ namespace HBP.Module3D
         /// </summary>
         public bool CollidersNeedUpdate = true;
         /// <summary>
-        /// Is the scene completely initialized ?
+        /// Is the scene initialized (everything loaded and setup, missing first update) ?
         /// </summary>
         public bool IsSceneInitialized = false;
         /// <summary>
-        /// Is the scene displayed ?
+        /// Is the scene completely initialized (including a first pass in the update) ?
         /// </summary>
         public bool IsSceneCompletelyLoaded = false;
         /// <summary>

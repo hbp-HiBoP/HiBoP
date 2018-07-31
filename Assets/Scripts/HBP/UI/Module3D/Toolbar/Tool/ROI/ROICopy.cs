@@ -35,7 +35,7 @@ namespace HBP.UI.Module3D.Tools
 
                 foreach (Column3D column in ApplicationState.Module3D.SelectedScene.ColumnManager.Columns)
                 {
-                    ApplicationState.Module3D.SelectedScene.UpdateCurrentRegionOfInterest(column);
+                    ApplicationState.Module3D.SelectedScene.UpdateSitesROIMask(column);
                 }
             });
         }

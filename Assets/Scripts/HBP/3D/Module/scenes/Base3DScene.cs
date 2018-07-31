@@ -195,7 +195,7 @@ namespace HBP.Module3D
                 SceneInformation.ShowAllSites = value;
                 foreach (var column in ColumnManager.Columns)
                 {
-                    UpdateCurrentRegionOfInterest(column);
+                    UpdateSitesROIMask(column);
                 }
                 SceneInformation.AreSitesUpdated = false;
             }
@@ -648,22 +648,22 @@ namespace HBP.Module3D
             });
             m_ColumnManager.OnChangeNumberOfROI.AddListener((column) =>
             {
-                UpdateCurrentRegionOfInterest(column);
+                UpdateSitesROIMask(column);
                 ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
             });
             m_ColumnManager.OnChangeNumberOfVolumeInROI.AddListener((column) =>
             {
-                UpdateCurrentRegionOfInterest(column);
+                UpdateSitesROIMask(column);
                 ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
             });
             m_ColumnManager.OnSelectROI.AddListener((column) =>
             {
-                UpdateCurrentRegionOfInterest(column);
+                UpdateSitesROIMask(column);
                 ApplicationState.Module3D.OnSelectROI.Invoke();
             });
             m_ColumnManager.OnChangeROIVolumeRadius.AddListener((column) =>
             {
-                UpdateCurrentRegionOfInterest(column);
+                UpdateSitesROIMask(column);
                 ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
             });
             m_ColumnManager.OnChangeSelectedState.AddListener((selected) =>
@@ -817,10 +817,6 @@ namespace HBP.Module3D
 
             // Mark brain mesh as dynamic
             m_BrainPrefab.GetComponent<MeshFilter>().sharedMesh.MarkDynamic();
-
-            // Cuts
-            m_DisplayedObjects.BrainCutMeshes = new List<GameObject>();
-            m_Cuts = new List<Cut>();
 
             // Default colors
             UpdateBrainSurfaceColor(m_ColumnManager.BrainColor);
@@ -1053,7 +1049,7 @@ namespace HBP.Module3D
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.UpdateSites(m_ColumnManager.SelectedImplantation.PatientElectrodesList, m_ColumnManager.SitesPatientParent, m_ColumnManager.SitesList);
-                UpdateCurrentRegionOfInterest(column);
+                UpdateSitesROIMask(column);
             }
             // reset selected site
             for (int ii = 0; ii < m_ColumnManager.Columns.Count; ++ii)
@@ -1369,7 +1365,7 @@ namespace HBP.Module3D
             InitializeSceneGameObjects();
         }
         /// <summary>
-        /// Set up the scene to display it properly (and load configurations)
+        /// Set up the scene to display it properly
         /// </summary>
         public void FinalizeInitialization()
         {
@@ -1527,24 +1523,6 @@ namespace HBP.Module3D
             }
 
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-        }
-        /// <summary>
-        /// Save site states of selected column
-        /// </summary>
-        /// <param name="path"></param>
-        public void SaveSiteStatesOfSelectedColumn(string path)
-        {
-            m_ColumnManager.SelectedColumn.SaveSiteStates(path);
-        }
-        /// <summary>
-        /// Load site states to selected column
-        /// </summary>
-        /// <param name="path"></param>
-        public void LoadSiteStatesToSelectedColumn(string path)
-        {
-            m_ColumnManager.SelectedColumn.LoadSiteStates(path);
-            SceneInformation.AreSitesUpdated = false;
-            ResetIEEG(false);
         }
         #endregion
 
@@ -1866,7 +1844,7 @@ namespace HBP.Module3D
         /// 
         /// </summary>
         /// <param name="idColumn"></param>
-        public void UpdateCurrentRegionOfInterest(Column3D column)
+        public void UpdateSitesROIMask(Column3D column)
         {
             if (column.SelectedROI == null)
             {
