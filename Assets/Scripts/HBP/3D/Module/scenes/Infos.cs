@@ -22,40 +22,75 @@ namespace HBP.Module3D
     [System.Serializable]    
     public class SceneStatesInfo
     {
-        public enum MeshPart { Left, Right, Both, None };
-
         #region Properties
-        // state
-        public bool DisplayCCEPMode = false; // TEST
-        public bool IsROICreationModeEnabled = false; /**< is the ROI creation mode enabled ? */
-
-        public bool TimelinesLoaded = false; /**< timelines have been loaded */
-        public bool SitesLoaded = false; /**< electrodes have been loaded */
-        public bool MeshesLoaded = false;    /**< meshes have been loaded */
-        public bool MRILoaded = false;    /**< volume has been loaded */
-
-        public bool CollidersUpdated = false;/**< colluders are up to date */
-        public bool IsSceneInitialized { get; set; }
-        public bool IsSceneDisplayed { get; set; }
-        public bool AreSitesUpdated { get; set; }
-
-        // parameters
+        /// <summary>
+        /// Is the scene in CCEP mode ?
+        /// </summary>
+        public bool DisplayCCEPMode = false;
+        /// <summary>
+        /// Allow the user to add and edit ROI on the scene
+        /// </summary>
+        public bool IsROICreationModeEnabled = false;
+        /// <summary>
+        /// Does the colliders need an update ?
+        /// </summary>
+        public bool CollidersNeedUpdate = true;
+        /// <summary>
+        /// Is the scene completely initialized ?
+        /// </summary>
+        public bool IsSceneInitialized = false;
+        /// <summary>
+        /// Is the scene displayed ?
+        /// </summary>
+        public bool IsSceneDisplayed = false;
+        /// <summary>
+        /// Are the sites up to date ?
+        /// </summary>
+        public bool AreSitesUpdated = false;
+        /// <summary>
+        /// Is the Mars Atlas mode enabled ?
+        /// </summary>
         public bool MarsAtlasModeEnabled = false;
-        public bool CutHolesEnabled = false; /**< cuts holes are enabled */
+        /// <summary>
+        /// Are we cutting the holes ?
+        /// </summary>
+        public bool CutHolesEnabled = false;
+        /// <summary>
+        /// Last modified plane (used to display the cut circles)
+        /// </summary>
         public int LastPlaneModifiedID = 0;
-
-        // surface
+        /// <summary>
+        /// Does this scene use simplified meshes ?
+        /// </summary>
         public bool UseSimplifiedMeshes { get; set; }
-        public MeshPart MeshPartToDisplay = MeshPart.Both; /**< mesh part to be displayed in the scene */
-        public DLL.Surface MeshToDisplay = null; /**< reference of the mesh to be displayed */
+        /// <summary>
+        /// Mesh part to be displayed in the scene
+        /// </summary>
+        public Data.Enums.MeshPart MeshPartToDisplay = Data.Enums.MeshPart.Both;
+        /// <summary>
+        /// Mesh being displayed in the scene
+        /// </summary>
+        public DLL.Surface MeshToDisplay = null;
+        /// <summary>
+        /// Simplified mesh to be used in the scene
+        /// </summary>
         public DLL.Surface SimplifiedMeshToUse = null;
-        public Vector3 MeshCenter = new Vector3(0, 0, 0); /**< center of the loaded mesh */
-
-        // loop check        
-        public bool MeshGeometryNeedsUpdate = true; /**< cut planes meshes must be updated */
-
-        public bool IsGeometryUpToDate = false;
+        /// <summary>
+        /// Center of the loaded mesh
+        /// </summary>
+        public Vector3 MeshCenter = new Vector3(0, 0, 0);
+        /// <summary>
+        /// Center of the loaded mri
+        /// </summary>
+        public Vector3 VolumeCenter = new Vector3(0, 0, 0);
+        /// <summary>
+        /// Does the mesh geometry need an update (cut, changing the mesh etc.)
+        /// </summary>
+        public bool MeshGeometryNeedsUpdate = true;
         private bool m_IsGeneratorUpToDate = false;
+        /// <summary>
+        /// Is the iEEG generator up to date ?
+        /// </summary>
         public bool IsGeneratorUpToDate
         {
             get
@@ -70,38 +105,27 @@ namespace HBP.Module3D
                     OnUpdateGeneratorState.Invoke(value);
                 }
             }
-        }
- 
-        // others                
-        public string MeshesLayerName; /**< layer name of all the meshes of the scene */
+        }      
+        /// <summary>
+        /// Name of the layer containing the meshes
+        /// </summary>
+        public string MeshesLayerName;
+        /// <summary>
+        /// Name of the layer containing the hidden meshes (e.g. the surface mesh when cutting)
+        /// </summary>
         public string HiddenMeshesLayerName;
+        /// <summary>
+        /// Hide blacklisted sites
+        /// </summary>
         public bool HideBlacklistedSites = false;
+        /// <summary>
+        /// Show all sites even if they are not in a ROI
+        /// </summary>
         public bool ShowAllSites = false;
-
-        // work     
-        public Vector3 VolumeCenter = new Vector3(0, 0, 0); /**< center of the loaded volume */
         #endregion
 
         #region Events
         public GenericEvent<bool> OnUpdateGeneratorState = new GenericEvent<bool>();
-        #endregion
-
-        #region Public Methods
-        public void Reset()
-        {
-            // state
-            DisplayCCEPMode = false; 
-            IsROICreationModeEnabled = false;
-            TimelinesLoaded = false; 
-            SitesLoaded = false;
-            MeshesLoaded = false;
-            MRILoaded = false; 
-            CollidersUpdated = false;
-
-            // loop check  
-            MeshGeometryNeedsUpdate = true;
-            IsGeneratorUpToDate = false;      
-        }
         #endregion
     }
 }

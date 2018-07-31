@@ -166,9 +166,6 @@ namespace HBP.Module3D
         {
             m_AssociatedScene.OnModifyPlanesCuts.AddListener(() =>
             {
-                if (!m_AssociatedScene.SceneInformation.MRILoaded)
-                    return;
-
                 m_PlanesCutsCirclesVertices = new List<Vector3[]>();
                 for (int ii = 0; ii < m_AssociatedScene.Cuts.Count; ++ii)
                 {

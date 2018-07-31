@@ -25,7 +25,6 @@ namespace HBP.Module3D
     /// <summary>
     /// Class containing all the DLL data and the displayable Gameobjects of a 3D scene.
     /// </summary>
-    [AddComponentMenu("Scenes/Base 3D Scene")]
     public class Base3DScene : MonoBehaviour, IConfigurable
     {
         #region Properties
@@ -121,16 +120,6 @@ namespace HBP.Module3D
         public Column3DManager ColumnManager { get { return m_ColumnManager; } }
 
         /// <summary>
-        /// ID of the selected column of this scene
-        /// </summary>
-        public int SelectedColumnID
-        {
-            get
-            {
-                return m_ColumnManager.SelectedColumnID;
-            }
-        }
-        /// <summary>
         /// Are cut holes in MRI enabled ?
         /// </summary>
         public bool CutHolesEnabled
@@ -141,8 +130,6 @@ namespace HBP.Module3D
             }
             set
             {
-                if (!SceneInformation.MeshesLoaded || !SceneInformation.MRILoaded) return;
-
                 SceneInformation.CutHolesEnabled = value;
                 SceneInformation.MeshGeometryNeedsUpdate = true;
                 ResetIEEG();
@@ -194,7 +181,6 @@ namespace HBP.Module3D
                 SceneInformation.AreSitesUpdated = false;
             }
         }
-
         /// <summary>
         /// Are all sites shown ?
         /// </summary>
@@ -418,7 +404,7 @@ namespace HBP.Module3D
             }
         }
 
-        private bool m_CuttingMesh;
+        private bool m_CuttingSimplifiedMesh;
         /// <summary>
         /// Are we cutting the mesh of this scene ?
         /// </summary>
@@ -426,13 +412,13 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_CuttingMesh;
+                return m_CuttingSimplifiedMesh;
             }
             set
             {
-                if (m_CuttingMesh != value)
+                if (m_CuttingSimplifiedMesh != value)
                 {
-                    m_CuttingMesh = value;
+                    m_CuttingSimplifiedMesh = value;
                     SceneInformation.MeshGeometryNeedsUpdate = true;
                 }
             }
@@ -539,17 +525,9 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public GenericEvent<Vector3> OnUpdateCameraTarget = new GenericEvent<Vector3>();
         /// <summary>
-        /// Event called when a column is minimized or expanded
-        /// </summary>
-        [HideInInspector] public UnityEvent OnChangeColumnMinimizedState = new UnityEvent();
-        /// <summary>
         /// Event called when site is clicked to dipslay additionnal infomation.
         /// </summary>
         [HideInInspector] public GenericEvent<IEnumerable<Site>> OnRequestSiteInformation = new GenericEvent<IEnumerable<Site>>();
-        /// <summary>
-        /// Event called when updating a ROI
-        /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateROI = new UnityEvent();
         /// <summary>
         /// Event called when requesting a screenshot of the scene
         /// </summary>
@@ -572,6 +550,7 @@ namespace HBP.Module3D
             if (SceneInformation.MeshGeometryNeedsUpdate)
             {
                 UpdateGeometry();
+                SceneInformation.MeshGeometryNeedsUpdate = false;
             }
 
             if (!SceneInformation.AreSitesUpdated)
@@ -658,10 +637,6 @@ namespace HBP.Module3D
             {
                 UpdateCurrentRegionOfInterest(column);
                 ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
-            });
-            m_ColumnManager.OnChangeColumnMinimizedState.AddListener(() =>
-            {
-                OnChangeColumnMinimizedState.Invoke();
             });
             m_ColumnManager.OnChangeSelectedState.AddListener((selected) =>
             {
@@ -863,7 +838,7 @@ namespace HBP.Module3D
 
             SharedMaterials.Brain.BrainMaterials[this].SetTexture("_ColorTex", ColumnManager.BrainColorMapTexture);
 
-            if (SceneInformation.IsGeometryUpToDate && SceneInformation.IsGeneratorUpToDate)
+            if (SceneInformation.IsGeneratorUpToDate)
             {
                 ComputeIEEGTextures();
                 ComputeGUITextures();
@@ -905,10 +880,8 @@ namespace HBP.Module3D
         /// Set the mesh part to be displayed in the scene
         /// </summary>
         /// <param name="meshPartToDisplay"></param>
-        public void UpdateMeshPartToDisplay(SceneStatesInfo.MeshPart meshPartToDisplay)
+        public void UpdateMeshPartToDisplay(Data.Enums.MeshPart meshPartToDisplay)
         {
-            if (!SceneInformation.IsGeometryUpToDate) return;
-
             SceneInformation.MeshPartToDisplay = meshPartToDisplay;
             SceneInformation.MeshGeometryNeedsUpdate = true;
             ResetIEEG();
@@ -923,8 +896,6 @@ namespace HBP.Module3D
         /// <param name="meshTypeToDisplay"></param>
         public void UpdateMeshToDisplay(string meshName)
         {
-            if (!SceneInformation.IsGeometryUpToDate) return;
-
             int meshID = m_ColumnManager.Meshes.FindIndex(m => m.Name == meshName);
             if (meshID == -1) meshID = 0;
 
@@ -944,8 +915,6 @@ namespace HBP.Module3D
         /// <param name="mriID"></param>
         public void UpdateMRIToDisplay(string mriName)
         {
-            if (!SceneInformation.IsGeometryUpToDate) return;
-
             int mriID = m_ColumnManager.MRIs.FindIndex(m => m.Name == mriName);
             if (mriID == -1) mriID = 0;
 
@@ -990,63 +959,60 @@ namespace HBP.Module3D
             m_ColumnManager.SelectedImplantationID = implantationID > 0 ? implantationID : 0;
             DLL.PatientElectrodesList electrodesList = m_ColumnManager.SelectedImplantation.PatientElectrodesList;
 
-            if (SceneInformation.SitesLoaded)
+            int currPlotNb = 0;
+            for (int ii = 0; ii < electrodesList.NumberOfPatients; ++ii)
             {
-                int currPlotNb = 0;
-                for (int ii = 0; ii < electrodesList.NumberOfPatients; ++ii)
+                int patientSiteID = 0;
+                string patientID = electrodesList.PatientName(ii);
+                Data.Patient patient = Visualization.Patients.FirstOrDefault((p) => p.ID == patientID);
+
+                // create plot patient parent
+                m_ColumnManager.SitesPatientParent.Add(new GameObject("P" + ii + " - " + patientID));
+                m_ColumnManager.SitesPatientParent[m_ColumnManager.SitesPatientParent.Count - 1].transform.SetParent(m_DisplayedObjects.SitesMeshesParent.transform);
+                m_ColumnManager.SitesPatientParent[m_ColumnManager.SitesPatientParent.Count - 1].transform.localPosition = Vector3.zero;
+                m_ColumnManager.SitesElectrodesParent.Add(new List<GameObject>(electrodesList.NumberOfElectrodesInPatient(ii)));
+
+                for (int jj = 0; jj < electrodesList.NumberOfElectrodesInPatient(ii); ++jj)
                 {
-                    int patientSiteID = 0;
-                    string patientID = electrodesList.PatientName(ii);
-                    Data.Patient patient = Visualization.Patients.FirstOrDefault((p) => p.ID == patientID);
+                    // create plot electrode parent
+                    m_ColumnManager.SitesElectrodesParent[ii].Add(new GameObject(electrodesList.ElectrodeName(ii, jj)));
+                    m_ColumnManager.SitesElectrodesParent[ii][m_ColumnManager.SitesElectrodesParent[ii].Count - 1].transform.SetParent(m_ColumnManager.SitesPatientParent[ii].transform);
+                    m_ColumnManager.SitesElectrodesParent[ii][m_ColumnManager.SitesElectrodesParent[ii].Count - 1].transform.localPosition = Vector3.zero;
 
-                    // create plot patient parent
-                    m_ColumnManager.SitesPatientParent.Add(new GameObject("P" + ii + " - " + patientID));
-                    m_ColumnManager.SitesPatientParent[m_ColumnManager.SitesPatientParent.Count - 1].transform.SetParent(m_DisplayedObjects.SitesMeshesParent.transform);
-                    m_ColumnManager.SitesPatientParent[m_ColumnManager.SitesPatientParent.Count - 1].transform.localPosition = Vector3.zero;
-                    m_ColumnManager.SitesElectrodesParent.Add(new List<GameObject>(electrodesList.NumberOfElectrodesInPatient(ii)));
-
-                    for (int jj = 0; jj < electrodesList.NumberOfElectrodesInPatient(ii); ++jj)
+                    for (int kk = 0; kk < electrodesList.NumberOfSitesInElectrode(ii, jj); ++kk)
                     {
-                        // create plot electrode parent
-                        m_ColumnManager.SitesElectrodesParent[ii].Add(new GameObject(electrodesList.ElectrodeName(ii, jj)));
-                        m_ColumnManager.SitesElectrodesParent[ii][m_ColumnManager.SitesElectrodesParent[ii].Count - 1].transform.SetParent(m_ColumnManager.SitesPatientParent[ii].transform);
-                        m_ColumnManager.SitesElectrodesParent[ii][m_ColumnManager.SitesElectrodesParent[ii].Count - 1].transform.localPosition = Vector3.zero;
+                        Vector3 invertedPosition = electrodesList.SitePosition(ii, jj, kk);
+                        invertedPosition.x = -invertedPosition.x;
 
-                        for (int kk = 0; kk < electrodesList.NumberOfSitesInElectrode(ii, jj); ++kk)
-                        {
-                            Vector3 invertedPosition = electrodesList.SitePosition(ii, jj, kk);
-                            invertedPosition.x = -invertedPosition.x;
+                        GameObject siteGameObject = Instantiate(m_SitePrefab);
+                        siteGameObject.name = electrodesList.SiteName(ii, jj, kk);
 
-                            GameObject siteGameObject = Instantiate(m_SitePrefab);
-                            siteGameObject.name = electrodesList.SiteName(ii, jj, kk);
+                        siteGameObject.transform.SetParent(m_ColumnManager.SitesElectrodesParent[ii][jj].transform);
+                        siteGameObject.transform.localPosition = invertedPosition;
+                        siteGameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
 
-                            siteGameObject.transform.SetParent(m_ColumnManager.SitesElectrodesParent[ii][jj].transform);
-                            siteGameObject.transform.localPosition = invertedPosition;
-                            siteGameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
+                        siteGameObject.SetActive(true);
+                        siteGameObject.layer = LayerMask.NameToLayer("Inactive");
 
-                            siteGameObject.SetActive(true);
-                            siteGameObject.layer = LayerMask.NameToLayer("Inactive");
+                        Site site = siteGameObject.GetComponent<Site>();
+                        site.Information.Patient = patient;
+                        site.Information.Name = siteGameObject.name;
+                        site.Information.SitePatientID = patientSiteID++;
+                        site.Information.PatientNumber = ii;
+                        site.Information.ElectrodeNumber = jj;
+                        site.Information.SiteNumber = kk;
+                        site.Information.GlobalID = currPlotNb++;
+                        site.Information.MarsAtlasIndex = electrodesList.MarsAtlasLabelOfSite(ii, jj, kk);
+                        site.State.IsBlackListed = false;
+                        site.State.IsHighlighted = false;
+                        site.State.IsExcluded = false;
+                        site.State.IsOutOfROI = true;
+                        site.State.IsMarked = false;
+                        site.State.IsMasked = false;
+                        site.State.IsSuspicious = false;
+                        site.IsActive = true;
 
-                            Site site = siteGameObject.GetComponent<Site>();
-                            site.Information.Patient = patient;
-                            site.Information.Name = siteGameObject.name;
-                            site.Information.SitePatientID = patientSiteID++;
-                            site.Information.PatientNumber = ii;
-                            site.Information.ElectrodeNumber = jj;
-                            site.Information.SiteNumber = kk;
-                            site.Information.GlobalID = currPlotNb++;
-                            site.Information.MarsAtlasIndex = electrodesList.MarsAtlasLabelOfSite(ii, jj, kk);
-                            site.State.IsBlackListed = false;
-                            site.State.IsHighlighted = false;
-                            site.State.IsExcluded = false;
-                            site.State.IsOutOfROI = true;
-                            site.State.IsMarked = false;
-                            site.State.IsMasked = false;
-                            site.State.IsSuspicious = false;
-                            site.IsActive = true;
-
-                            m_ColumnManager.SitesList.Add(siteGameObject);
-                        }
+                        m_ColumnManager.SitesList.Add(siteGameObject);
                     }
                 }
             }
@@ -1221,7 +1187,7 @@ namespace HBP.Module3D
         {
             if (!CuttingSimplifiedMesh && SceneInformation.UseSimplifiedMeshes) CuttingSimplifiedMesh = true;
 
-            if (cut.Orientation == Data.Enums.CutOrientation.Custom || !SceneInformation.MRILoaded)
+            if (cut.Orientation == Data.Enums.CutOrientation.Custom)
             {
                 if (cut.Normal.x == 0 && cut.Normal.y == 0 && cut.Normal.z == 0)
                 {
@@ -1625,7 +1591,7 @@ namespace HBP.Module3D
             // cut the mesh
             List<DLL.Surface> cuts;
             if (Cuts.Count > 0)
-                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(Cuts.ToArray(), SceneInformation.CutHolesEnabled, StrongCuts));
+                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled, StrongCuts));
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.MeshToDisplay.Clone() };
 
@@ -1693,8 +1659,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < Cuts.Count; ++ii)
                 m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
 
-            SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
-            SceneInformation.MeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
+            SceneInformation.CollidersNeedUpdate = true; // colliders are now longer up to date
 
             UnityEngine.Profiling.Profiler.EndSample();
 
@@ -1716,7 +1681,7 @@ namespace HBP.Module3D
             // cut the mesh
             List<DLL.Surface> cuts;
             if (Cuts.Count > 0)
-                cuts = new List<DLL.Surface>(SceneInformation.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled, StrongCuts)); //Maybe FIXME : do not allow holes
+                cuts = new List<DLL.Surface>(SceneInformation.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled, StrongCuts));
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.SimplifiedMeshToUse.Clone() };
 
@@ -1745,8 +1710,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < Cuts.Count; ++ii)
                 m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
 
-            SceneInformation.CollidersUpdated = false; // colliders are now longer up to date
-            SceneInformation.MeshGeometryNeedsUpdate = false;   // planes are now longer requested to be updated 
+            SceneInformation.CollidersNeedUpdate = true; // colliders are now longer up to date
 
             UnityEngine.Profiling.Profiler.BeginSample("Changing layers");
             foreach (Column3D column in m_ColumnManager.Columns)
@@ -1761,7 +1725,6 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateGeometry()
         {
-            SceneInformation.IsGeometryUpToDate = false;
             UpdateMeshesInformation();
 
             if (SceneInformation.UseSimplifiedMeshes)
@@ -1776,8 +1739,6 @@ namespace HBP.Module3D
 
             ComputeMRITextures();
             ComputeGUITextures();
-
-            SceneInformation.IsGeometryUpToDate = true;
         }
         public void ApplySelectedColumnSiteStatesToOtherColumns()
         {
@@ -1797,10 +1758,9 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="indexColumn"></param>
         /// <returns></returns>
-        public bool UpdateColumnRendering(Column3D column)
+        public void UpdateColumnRendering(Column3D column)
         {
-            if (!SceneInformation.IsGeometryUpToDate)
-                return false;
+            if (SceneInformation.MeshGeometryNeedsUpdate) return;
 
             UnityEngine.Profiling.Profiler.BeginSample("TEST-updateColumnRender");
 
@@ -1829,25 +1789,24 @@ namespace HBP.Module3D
 
             UnityEngine.Profiling.Profiler.EndSample();
             column.IsRenderingUpToDate = true;
-            return true;
         }
         /// <summary>
         /// Update the brain and the cuts meshes colliders
         /// </summary>
         public void UpdateMeshesColliders()
         {
-            if (!SceneInformation.MeshesLoaded || !SceneInformation.MRILoaded || SceneInformation.CollidersUpdated)
-                return;
-
-            this.StartCoroutineAsync(c_UpdateMeshesColliders());
-            SceneInformation.CollidersUpdated = true;
+            if (SceneInformation.CollidersNeedUpdate)
+            {
+                this.StartCoroutineAsync(c_UpdateMeshesColliders());
+                SceneInformation.CollidersNeedUpdate = false;
+            }
         }
         /// <summary>
         /// Update the textures generator
         /// </summary>
         public void UpdateGenerator()
         {
-            if (SceneInformation.MeshGeometryNeedsUpdate || !SceneInformation.IsGeometryUpToDate || CuttingSimplifiedMesh || m_UpdatingGenerator) // if update cut plane is pending, cancel action
+            if (SceneInformation.MeshGeometryNeedsUpdate || CuttingSimplifiedMesh || m_UpdatingGenerator) // if update cut plane is pending, cancel action
                 return;
 
             OnIEEGOutdated.Invoke(false);
@@ -1860,7 +1819,6 @@ namespace HBP.Module3D
         /// </summary>
         public void ResetIEEG(bool hardReset = true)
         {
-            if (!SceneInformation.IsGeometryUpToDate) return;
             m_GeneratorNeedsUpdate = true;
             SceneInformation.AreSitesUpdated = false;
             if (hardReset)
@@ -1911,7 +1869,6 @@ namespace HBP.Module3D
                     column.Sites[ii].State.IsOutOfROI = maskROI[ii];
             }
             ResetIEEG(false);
-            OnUpdateROI.Invoke();
         }
         /// <summary>
         /// Manage the mouse movments event in the scene
@@ -1921,8 +1878,6 @@ namespace HBP.Module3D
         /// /// <param name="idColumn"></param>
         public void PassiveRaycastOnScene(Ray ray, Column3D column)
         {
-            if (!SceneInformation.MRILoaded) return;
-
             // update colliders if necessary
             UpdateMeshesColliders();
 
@@ -2013,8 +1968,6 @@ namespace HBP.Module3D
         /// <param name="ray"></param>
         public void ClickOnScene(Ray ray)
         {
-            if (!SceneInformation.MRILoaded) return;
-
             int layerMask = 0;
             layerMask |= 1 << LayerMask.NameToLayer(m_ColumnManager.SelectedColumn.Layer);
             layerMask |= 1 << LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
@@ -2188,12 +2141,10 @@ namespace HBP.Module3D
                 {
                     ResetSplitsNumber(3);
                 }
-                SceneInformation.MeshesLoaded = true;
             }
             else
             {
                 ResetSplitsNumber(3);
-                SceneInformation.MeshesLoaded = true;
             }
             SceneInformation.MeshGeometryNeedsUpdate = true;
 
@@ -2212,11 +2163,6 @@ namespace HBP.Module3D
                     outPut(exception);
                     yield break;
                 }
-                SceneInformation.MRILoaded = true;
-            }
-            else
-            {
-                SceneInformation.MRILoaded = true;
             }
 
             // Loading Sites
@@ -2284,7 +2230,6 @@ namespace HBP.Module3D
                 outPut(new CanNotLoadNIIFile(mri.File));
                 yield break;
             }
-            yield return SceneInformation.MRILoaded;
         }
         /// <summary>
         /// Reset the meshes of the scene with GII files
@@ -2294,7 +2239,6 @@ namespace HBP.Module3D
         /// <returns></returns>
         private IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh, Action<Exception> outPut)
         {
-            SceneInformation.MeshesLoaded = false;
             try
             {
                 if (mesh.Usable)
@@ -2311,7 +2255,6 @@ namespace HBP.Module3D
                             }
                             else
                             {
-                                SceneInformation.MeshesLoaded = false;
                                 throw new CanNotLoadGIIFile(mesh.Name);
                             }
                         }
@@ -2334,7 +2277,6 @@ namespace HBP.Module3D
                             }
                             else
                             {
-                                SceneInformation.MeshesLoaded = false;
                                 throw new CanNotLoadGIIFile(mesh.Name);
                             }
                         }
@@ -2365,8 +2307,6 @@ namespace HBP.Module3D
         /// <returns></returns>
         private IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle, Action<Exception> outPut)
         {
-            SceneInformation.SitesLoaded = false;
-
             for (int i = 0; i < commonImplantations.Count; ++i)
             {
                 yield return Ninja.JumpToUnity;
@@ -2399,8 +2339,7 @@ namespace HBP.Module3D
                     yield break;
                 }
             }
-
-            SceneInformation.SitesLoaded = true;
+            
             yield return Ninja.JumpToUnity;
             UpdateSites("");
             yield return Ninja.JumpBack;
@@ -2446,9 +2385,6 @@ namespace HBP.Module3D
 
                 // set timelines
                 m_ColumnManager.SetTimelineData(Visualization.Columns);
-
-                // set flag
-                SceneInformation.TimelinesLoaded = true;
             }
             catch (Exception e)
             {

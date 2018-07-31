@@ -27,12 +27,12 @@ namespace HBP.UI.Module3D.Tools
         /// <param name="left">Is the left mesh displayed ?</param>
         /// <param name="right">Is the right mesh displayed ?</param>
         /// <returns>Mesh part enum identifier</returns>
-        private SceneStatesInfo.MeshPart GetMeshPart(bool left, bool right)
+        private Data.Enums.MeshPart GetMeshPart(bool left, bool right)
         {
-            if (left && right) return SceneStatesInfo.MeshPart.Both;
-            if (left && !right) return SceneStatesInfo.MeshPart.Left;
-            if (!left && right) return SceneStatesInfo.MeshPart.Right;
-            return SceneStatesInfo.MeshPart.None;
+            if (left && right) return Data.Enums.MeshPart.Both;
+            if (left && !right) return Data.Enums.MeshPart.Left;
+            if (!left && right) return Data.Enums.MeshPart.Right;
+            return Data.Enums.MeshPart.None;
         }
         #endregion
 
@@ -47,7 +47,7 @@ namespace HBP.UI.Module3D.Tools
                 {
                     if (m_Left.isOn || m_Right.isOn)
                     {
-                        SceneStatesInfo.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
+                        Data.Enums.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
                         ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
                     }
                     else
@@ -57,7 +57,7 @@ namespace HBP.UI.Module3D.Tools
                 }
                 else
                 {
-                    SceneStatesInfo.MeshPart mesh = GetMeshPart(true, true);
+                    Data.Enums.MeshPart mesh = GetMeshPart(true, true);
                     ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
                 }
             });
@@ -70,7 +70,7 @@ namespace HBP.UI.Module3D.Tools
                 {
                     if (m_Left.isOn || m_Right.isOn)
                     {
-                        SceneStatesInfo.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
+                        Data.Enums.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
                         ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
                     }
                     else
@@ -80,7 +80,7 @@ namespace HBP.UI.Module3D.Tools
                 }
                 else
                 {
-                    SceneStatesInfo.MeshPart mesh = GetMeshPart(true, true);
+                    Data.Enums.MeshPart mesh = GetMeshPart(true, true);
                     ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
                 }
             });
@@ -114,19 +114,19 @@ namespace HBP.UI.Module3D.Tools
                 {
                     switch (scene.SceneInformation.MeshPartToDisplay)
                     {
-                        case SceneStatesInfo.MeshPart.Left:
+                        case Data.Enums.MeshPart.Left:
                             m_Left.isOn = true;
                             m_Right.isOn = false;
                             break;
-                        case SceneStatesInfo.MeshPart.Right:
+                        case Data.Enums.MeshPart.Right:
                             m_Left.isOn = false;
                             m_Right.isOn = true;
                             break;
-                        case SceneStatesInfo.MeshPart.Both:
+                        case Data.Enums.MeshPart.Both:
                             m_Left.isOn = true;
                             m_Right.isOn = true;
                             break;
-                        case SceneStatesInfo.MeshPart.None:
+                        case Data.Enums.MeshPart.None:
                             m_Left.isOn = false;
                             m_Right.isOn = false;
                             break;
@@ -149,15 +149,15 @@ namespace HBP.UI.Module3D.Tools
                 }
                 else
                 {
-                    if (selectedScene.SceneInformation.MeshPartToDisplay == SceneStatesInfo.MeshPart.Both)
+                    if (selectedScene.SceneInformation.MeshPartToDisplay == Data.Enums.MeshPart.Both)
                     {
                         m_Left.isOn = true;
                         m_Right.isOn = true;
                     }
                     else
                     {
-                        m_Left.isOn = (selectedScene.SceneInformation.MeshPartToDisplay == SceneStatesInfo.MeshPart.Left);
-                        m_Right.isOn = (selectedScene.SceneInformation.MeshPartToDisplay == SceneStatesInfo.MeshPart.Right);
+                        m_Left.isOn = (selectedScene.SceneInformation.MeshPartToDisplay == Data.Enums.MeshPart.Left);
+                        m_Right.isOn = (selectedScene.SceneInformation.MeshPartToDisplay == Data.Enums.MeshPart.Right);
                     }
                 }
             }

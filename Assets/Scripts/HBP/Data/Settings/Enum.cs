@@ -29,4 +29,5 @@
     }
     public enum CutOrientation { Axial = 0, Coronal = 1, Sagital = 2, Custom = 3 } // Same as above
     public enum SiteInformationDisplayMode { Anatomy, IEEG, CCEP, Light }
+    public enum MeshPart { Left, Right, Both, None };
 }

@@ -60,11 +60,11 @@ namespace HBP.Data.Visualization
         }
 
         [DataMember(Name = "Mesh Part")]
-        private Module3D.SceneStatesInfo.MeshPart m_MeshPart = Module3D.SceneStatesInfo.MeshPart.Both;
+        private Enums.MeshPart m_MeshPart = Enums.MeshPart.Both;
         /// <summary>
         /// Mesh part to display
         /// </summary>
-        public Module3D.SceneStatesInfo.MeshPart MeshPart
+        public Enums.MeshPart MeshPart
         {
             get
             {
