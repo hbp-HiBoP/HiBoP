@@ -793,10 +793,6 @@ namespace HBP.Module3D
                         (column.SelectedSite.State.IsMasked && !data.DisplayCCEPMode))
                     {
                         column.UnselectSite();
-                        if (column.IsSelected)
-                        {
-                            ApplicationState.Module3D.OnSelectSite.Invoke(null);
-                        }
                     }
                 }
             }

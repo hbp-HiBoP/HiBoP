@@ -184,10 +184,6 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
         /// <summary>
-        /// Event called when changing the selected site
-        /// </summary>
-        [HideInInspector] public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
-        /// <summary>
         /// Event called when updating the invisible part of the brain (erasing triangles, reset ...)
         /// </summary>
         [HideInInspector] public UnityEvent OnModifyInvisiblePart = new UnityEvent();

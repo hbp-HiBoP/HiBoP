@@ -425,6 +425,34 @@ namespace HBP.Module3D
         }
 
         /// <summary>
+        /// Site to compare with when using the comparing site feature
+        /// </summary>
+        private Site m_SiteToCompare = null;
+        private bool m_ComparingSites;
+        /// <summary>
+        /// Are we comparing sites ?
+        /// </summary>
+        public bool ComparingSites
+        {
+            get
+            {
+                return m_ComparingSites;
+            }
+            set
+            {
+                m_ComparingSites = value;
+                if (m_ComparingSites)
+                {
+                    m_SiteToCompare = ColumnManager.SelectedColumn.SelectedSite;
+                }
+                else
+                {
+                    m_SiteToCompare = null;
+                }
+            }
+        }
+
+        /// <summary>
         /// Ambient mode (rendering)
         /// </summary>
         public AmbientMode AmbientMode = AmbientMode.Flat;
@@ -569,10 +597,10 @@ namespace HBP.Module3D
             }
             OnUpdatingGenerator.Invoke(m_UpdatingGenerator);
 
-            if (!SceneInformation.IsSceneDisplayed)
+            if (!SceneInformation.IsSceneCompletelyLoaded)
             {
                 UpdateVisibleState(true);
-                SceneInformation.IsSceneDisplayed = true;
+                SceneInformation.IsSceneCompletelyLoaded = true;
             }
         }
         /// <summary>
@@ -647,7 +675,6 @@ namespace HBP.Module3D
             {
                 ClickOnSiteCallback();
                 SceneInformation.AreSitesUpdated = false;
-                ApplicationState.Module3D.OnSelectSite.Invoke(site);
                 ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
             m_ColumnManager.OnChangeSiteState.AddListener((site) =>
@@ -769,9 +796,16 @@ namespace HBP.Module3D
         {
             if (m_ColumnManager.SelectedColumn.SelectedSiteID == -1) return;
 
-            if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG)
+            if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG && !IsLatencyModeEnabled)
             {
-                SendAdditionalSiteInfoRequest();
+                Column3DIEEG column = (Column3DIEEG)m_ColumnManager.SelectedColumn;
+                if (column.SelectedSiteID != -1)
+                {
+                    List<Site> sites = new List<Site>();
+                    sites.Add(column.SelectedSite);
+                    if (m_SiteToCompare != null) sites.Add(m_SiteToCompare);
+                    OnRequestSiteInformation.Invoke(sites);
+                }
             }
         }
         /// <summary>
@@ -1044,15 +1078,15 @@ namespace HBP.Module3D
                 LeftRightMesh3D selectedMesh = (LeftRightMesh3D)m_ColumnManager.SelectedMesh;
                 switch (SceneInformation.MeshPartToDisplay)
                 {
-                    case SceneStatesInfo.MeshPart.Left:
+                    case Data.Enums.MeshPart.Left:
                         SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
                         SceneInformation.MeshToDisplay = selectedMesh.Left;
                         break;
-                    case SceneStatesInfo.MeshPart.Right:
+                    case Data.Enums.MeshPart.Right:
                         SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
                         SceneInformation.MeshToDisplay = selectedMesh.Right;
                         break;
-                    case SceneStatesInfo.MeshPart.Both:
+                    case Data.Enums.MeshPart.Both:
                         SceneInformation.SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
                         SceneInformation.MeshToDisplay = selectedMesh.Both;
                         break;
@@ -1446,7 +1480,7 @@ namespace HBP.Module3D
             UpdateBrainSurfaceColor(Data.Enums.ColorType.BrainColor);
             UpdateBrainCutColor(Data.Enums.ColorType.Default);
             UpdateColormap(Data.Enums.ColorType.MatLab);
-            UpdateMeshPartToDisplay(SceneStatesInfo.MeshPart.Both);
+            UpdateMeshPartToDisplay(Data.Enums.MeshPart.Both);
             EdgeMode = false;
             StrongCuts = false;
             HideBlacklistedSites = false;
@@ -1826,23 +1860,6 @@ namespace HBP.Module3D
                 SceneInformation.IsGeneratorUpToDate = false;
                 ComputeMRITextures();
                 ComputeGUITextures();
-            }
-        }
-        /// <summary>
-        /// Send additionnal site info to hight level UI
-        /// </summary>
-        public void SendAdditionalSiteInfoRequest(Site previousSite = null)
-        {
-            if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG && !IsLatencyModeEnabled)
-            {
-                Column3DIEEG column = (Column3DIEEG)m_ColumnManager.SelectedColumn;
-                if (column.SelectedSiteID != -1)
-                {
-                    List<Site> sites = new List<Site>();
-                    sites.Add(column.SelectedSite);
-                    if (previousSite != null) sites.Add(previousSite);
-                    OnRequestSiteInformation.Invoke(sites);
-                }
             }
         }
         /// <summary>

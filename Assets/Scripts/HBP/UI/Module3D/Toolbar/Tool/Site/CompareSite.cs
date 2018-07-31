@@ -12,36 +12,15 @@ namespace HBP.UI.Module3D.Tools
         #region Properties
         [SerializeField]
         private Toggle m_Toggle;
-
-        private Site m_LastSelectedSite;
         #endregion
 
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnSelectSite.AddListener((site) =>
-            {
-                if (!site)
-                {
-                    m_Toggle.interactable = false;
-                    m_Toggle.isOn = false;
-                    return;
-                }
-                else
-                {
-                    m_Toggle.interactable = true;
-                }
-
-                if (m_Toggle.isOn)
-                {
-                    ApplicationState.Module3D.SelectedScene.SendAdditionalSiteInfoRequest(m_LastSelectedSite);
-                    m_Toggle.isOn = false;
-                }
-            });
-
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
-                m_LastSelectedSite = isOn ? ApplicationState.Module3D.SelectedColumn.SelectedSite : null;
+                ApplicationState.Module3D.SelectedScene.ComparingSites = isOn;
+                UpdateInteractable();
             });
         }
         public override void DefaultState()
@@ -52,8 +31,16 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             bool isSiteSelected = ApplicationState.Module3D.SelectedColumn.SelectedSite != null;
+            bool isComparingSites = ApplicationState.Module3D.SelectedScene.ComparingSites;
 
-            m_Toggle.interactable = isSiteSelected;
+            m_Toggle.interactable = isSiteSelected || isComparingSites;
+        }
+        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        {
+            if (type == Toolbar.UpdateToolbarType.Scene)
+            {
+                m_Toggle.isOn = ApplicationState.Module3D.SelectedScene.ComparingSites;
+            }
         }
         #endregion
     }

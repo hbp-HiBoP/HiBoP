@@ -42,7 +42,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Is the scene displayed ?
         /// </summary>
-        public bool IsSceneDisplayed = false;
+        public bool IsSceneCompletelyLoaded = false;
         /// <summary>
         /// Are the sites up to date ?
         /// </summary>

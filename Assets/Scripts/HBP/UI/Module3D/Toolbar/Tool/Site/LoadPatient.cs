@@ -19,11 +19,6 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnSelectSite.AddListener((site) =>
-            {
-                UpdateInteractable();
-            });
-
             m_Button.onClick.AddListener(() =>
             {
                 Base3DScene scene = ApplicationState.Module3D.SelectedScene;

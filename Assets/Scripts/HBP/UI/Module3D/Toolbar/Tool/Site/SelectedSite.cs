@@ -17,17 +17,6 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnSelectSite.AddListener((site) =>
-            {
-                if (site)
-                {
-                    m_Text.text = site.Information.DisplayedName;
-                }
-                else
-                {
-                    DefaultState();
-                }
-            });
         }
         public override void DefaultState()
         {
