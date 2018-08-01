@@ -28,8 +28,7 @@ namespace HBP.Data.Visualization
         #region Properties
         [DataMember] public string Name { get; set; }
 
-        public enum ColumnType { Anatomy, iEEG }
-        [DataMember] public ColumnType Type { get; set; }
+        [DataMember] public Enums.ColumnType Type { get; set; }
 
         [DataMember(Name = "Dataset")]
         private string datasetID;
@@ -102,7 +101,7 @@ namespace HBP.Data.Visualization
         /// <param name="dataLabel">Label of the data to use in the visualization Column.</param>
         /// <param name="protocol">Protocol to use in the visualization Column.</param>
         /// <param name="bloc">Bloc of the Protocol to use in the visualization Column.</param>
-        public Column(string name, Dataset dataset, string dataLabel, Protocol protocol, Bloc bloc, ColumnType type, ColumnConfiguration configuration)
+        public Column(string name, Dataset dataset, string dataLabel, Protocol protocol, Bloc bloc, Enums.ColumnType type, ColumnConfiguration configuration)
         {
             Name = name;
             Dataset = dataset;
@@ -138,12 +137,12 @@ namespace HBP.Data.Visualization
                 Configuration = new ColumnConfiguration();
             }
             Name = "Column n°" + column;
-            Type = ColumnType.iEEG;
+            Type = Enums.ColumnType.iEEG;
         }
         /// <summary>
         /// Create a new Column instance with default values.
         /// </summary>
-        public Column():this("New column", new Dataset(), string.Empty,new Protocol(),new Bloc(), ColumnType.iEEG, new ColumnConfiguration())
+        public Column():this("New column", new Dataset(), string.Empty,new Protocol(),new Bloc(), Enums.ColumnType.iEEG, new ColumnConfiguration())
         {
         }
         #endregion
@@ -255,9 +254,9 @@ namespace HBP.Data.Visualization
         {
             switch (Type)
             {
-                case ColumnType.Anatomy:
+                case Enums.ColumnType.Anatomy:
                     return true;
-                case ColumnType.iEEG:
+                case Enums.ColumnType.iEEG:
                     return Dataset.Data.Any((data) => data.Name == Data && data.Patient == patient && data.isOk);
                 default:
                     return false;

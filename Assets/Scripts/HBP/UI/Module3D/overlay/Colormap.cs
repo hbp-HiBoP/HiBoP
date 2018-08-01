@@ -90,7 +90,7 @@ namespace HBP.UI.Module3D
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                if (column.Type == Column3D.ColumnType.IEEG)
+                if (column.Type == Data.Enums.ColumnType.iEEG)
                 {
                     IsActive = value;
                 }

@@ -42,7 +42,7 @@ namespace HBP.UI.Visualization
         #region Private Methods
         void OnChangeType()
         {
-            m_Column.Type = (Column.ColumnType)m_TypeDropdown.value;
+            m_Column.Type = (Data.Enums.ColumnType)m_TypeDropdown.value;
             SetProtocolDropdown();
         }
         void SetTypeDropdown()
@@ -50,10 +50,10 @@ namespace HBP.UI.Visualization
             m_TypeDropdown.onValueChanged.RemoveAllListeners();
             m_TypeDropdown.onValueChanged.AddListener((index) => OnChangeType());
             m_TypeDropdown.interactable = true;
-            m_TypeDropdown.options = (from type in Enum.GetNames(typeof(Column.ColumnType)) select new Dropdown.OptionData(type, null)).ToList();
+            m_TypeDropdown.options = (from type in Enum.GetNames(typeof(Data.Enums.ColumnType)) select new Dropdown.OptionData(type, null)).ToList();
             SetType(m_Column.Type);
         }
-        void SetType(Column.ColumnType type)
+        void SetType(Data.Enums.ColumnType type)
         {
             m_TypeDropdown.value = (int)type;
             OnChangeType();
@@ -71,7 +71,7 @@ namespace HBP.UI.Visualization
             m_ProtocolDropdown.onValueChanged.AddListener((index) => OnChangeProtocol());
 
             m_Protocols = ApplicationState.ProjectLoaded.Protocols.ToArray();
-            if (m_Protocols.Length > 0 && m_Column.Type == Column.ColumnType.iEEG)
+            if (m_Protocols.Length > 0 && m_Column.Type == Data.Enums.ColumnType.iEEG)
             {
                 m_ProtocolDropdown.interactable = true;
                 m_ProtocolDropdown.options = (from protocol in m_Protocols select new Dropdown.OptionData(protocol.Name, null)).ToList();

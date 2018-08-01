@@ -194,7 +194,7 @@ namespace HBP.Module3D
             if (Mathf.Approximately(min, mid) && Mathf.Approximately(min, max) && Mathf.Approximately(mid, max))
             {
                 float amplitude = m_MaximumAmplitude - m_MinimumAmplitude;
-                float middle = column.IEEGValuesForHistogram.Median();
+                float middle = column.IEEGValuesOfUnmaskedSites.Median();
                 mid = middle;
                 min = Mathf.Clamp(middle - 0.05f * amplitude, m_MinimumAmplitude, m_MaximumAmplitude);
                 max = Mathf.Clamp(middle + 0.05f * amplitude, m_MinimumAmplitude, m_MaximumAmplitude);

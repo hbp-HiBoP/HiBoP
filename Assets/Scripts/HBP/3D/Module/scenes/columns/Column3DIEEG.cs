@@ -24,18 +24,25 @@ namespace HBP.Module3D
     public class Column3DIEEG : Column3D, IConfigurable
     {
         #region Properties
-        public override ColumnType Type
+        /// <summary>
+        /// Type of the column
+        /// </summary>
+        public override Data.Enums.ColumnType Type
         {
             get
             {
-                return ColumnType.IEEG;
+                return Data.Enums.ColumnType.iEEG;
             }
         }
-        // data
-        public Data.Visualization.Column ColumnData = null;
-
-        // IEEG
+        /// <summary>
+        /// Column data
+        /// </summary>
+        public Data.Visualization.Column ColumnData;
+        
         private int m_CurrentTimeLineID = 0;
+        /// <summary>
+        /// Current timeline index
+        /// </summary>
         public int CurrentTimeLineID
         {
             get
@@ -59,9 +66,21 @@ namespace HBP.Module3D
                 }
             }
         }
+        /// <summary>
+        /// Max timeline index
+        /// </summary>
         public int MaxTimeLineID { get; set; }
+        /// <summary>
+        /// Min timeline time value
+        /// </summary>
         public float MinTimeLine { get; set; }
+        /// <summary>
+        /// Max timeline time value
+        /// </summary>
         public float MaxTimeLine { get; set; }
+        /// <summary>
+        /// Current timeline time value
+        /// </summary>
         public float CurrentTimeLine
         {
             get
@@ -69,6 +88,9 @@ namespace HBP.Module3D
                 return ColumnData.TimeLine.Step * CurrentTimeLineID + MinTimeLine;
             }
         }
+        /// <summary>
+        /// Timeline time unit
+        /// </summary>
         public string TimeLineUnite
         {
             get
@@ -76,7 +98,13 @@ namespace HBP.Module3D
                 return ColumnData.TimeLine.Start.Unite;
             }
         }
+        /// <summary>
+        /// Shared minimum influence (for iEEG on the surface)
+        /// </summary>
         public float SharedMinInf = 0f;
+        /// <summary>
+        /// Shared maximum influence (for iEEG of the surface)
+        /// </summary>
         public float SharedMaxInf = 0f;
 
         /// <summary>
@@ -84,7 +112,10 @@ namespace HBP.Module3D
         /// </summary>
         public bool IsTimelineLooping { get; set; }
 
-        private float m_TimeSinceLastSample = 0.0f;
+        /// <summary>
+        /// Time since the last timelineID
+        /// </summary>
+        private float m_TimeSinceLastTimelineID = 0.0f;
         private bool m_IsTimelinePlaying = false;
         /// <summary>
         /// Is the timeline incrementing automatically ?
@@ -98,7 +129,7 @@ namespace HBP.Module3D
             set
             {
                 m_IsTimelinePlaying = value;
-                m_TimeSinceLastSample = 0.0f;
+                m_TimeSinceLastTimelineID = 0.0f;
             }
         }
 
@@ -117,6 +148,9 @@ namespace HBP.Module3D
                 m_TimelineStep = value;
             }
         }
+        /// <summary>
+        /// Time interval between two timeline updates
+        /// </summary>
         private float TimelineInterval
         {
             get
@@ -137,7 +171,9 @@ namespace HBP.Module3D
             }
         }
 
-        //  amplitudes
+        /// <summary>
+        /// Length of the timeline
+        /// </summary>
         public int TimelineLength
         {
             get
@@ -145,6 +181,9 @@ namespace HBP.Module3D
                 return ColumnData.TimeLine.Lenght;
             }
         }
+        /// <summary>
+        /// Number of sites
+        /// </summary>
         public int SitesCount
         {
             get
@@ -152,6 +191,9 @@ namespace HBP.Module3D
                 return Sites.Count;
             }
         }
+        /// <summary>
+        /// Dimensions of the EEG array (used for the DLL)
+        /// </summary>
         public int[] EEGDimensions
         {
             get
@@ -159,14 +201,31 @@ namespace HBP.Module3D
                 return new int[] { TimelineLength, 1, SitesCount };
             }
         }
-        public float[] IEEGValues = new float[0]; /**< amplitudes 1D array (to be sent to the DLL) */
-        public float[] IEEGValuesForHistogram = new float[0];
+        /// <summary>
+        /// Values of the iEEG signal in a 1D array (used for the DLL)
+        /// </summary>
+        public float[] IEEGValues = new float[0];
+        /// <summary>
+        /// Values of the iEEG signal of the sites that are not masked (and have correct values)
+        /// </summary>
+        public float[] IEEGValuesOfUnmaskedSites = new float[0];
+        /// <summary>
+        /// iEEG values by site global ID
+        /// </summary>
         public float[][] IEEGValuesBySiteID;
+        /// <summary>
+        /// Units of the iEEG values of each site
+        /// </summary>
         public string[] IEEGUnitsBySiteID = new string[0];
 
-        //  plots
-        private List<Vector3> m_ElectrodesSizeScale = null;  /**< scale of the plots of this column */
-        private List<bool> m_ElectrodesPositiveColor = null; /**< is positive color ? */
+        /// <summary>
+        /// Size of each site
+        /// </summary>
+        private List<Vector3> m_ElectrodesSizeScale;
+        /// <summary>
+        /// Does the site have a positive value ?
+        /// </summary>
+        private List<bool> m_ElectrodesPositiveColor;
         #endregion
 
         #region Events
@@ -178,11 +237,11 @@ namespace HBP.Module3D
         {
             if (IsTimelinePlaying)
             {
-                m_TimeSinceLastSample += Time.deltaTime;
-                if (m_TimeSinceLastSample > TimelineInterval)
+                m_TimeSinceLastTimelineID += Time.deltaTime;
+                while (m_TimeSinceLastTimelineID > TimelineInterval)
                 {
                     CurrentTimeLineID++;
-                    m_TimeSinceLastSample = 0.0f;
+                    m_TimeSinceLastTimelineID -= TimelineInterval;
                     if (CurrentTimeLineID >= MaxTimeLineID && !IsTimelineLooping)
                     {
                         IsTimelinePlaying = false;
@@ -192,18 +251,137 @@ namespace HBP.Module3D
                 }
             }
         }
+        /// <summary>
+        /// Set EED Data for each site
+        /// </summary>
+        private void SetEEGData()
+        {
+            if (ColumnData == null) return;
+
+            MinTimeLine = ColumnData.TimeLine.Start.Value;
+            MaxTimeLine = ColumnData.TimeLine.End.Value;
+            MaxTimeLineID = ColumnData.TimeLine.Lenght - 1;
+
+            // Construct sites value array the old way, and set sites masks // maybe FIXME
+            IEEGValuesBySiteID = new float[SitesCount][];
+            IEEGUnitsBySiteID = new string[SitesCount];
+            int numberOfSitesWithValues = 0;
+            foreach (Site site in Sites)
+            {
+                Data.Visualization.SiteConfiguration siteConfiguration;
+                if (ColumnData.Configuration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out siteConfiguration))
+                {
+                    if (siteConfiguration.Values.Length > 0)
+                    {
+                        IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.NormalizedValues;
+                        numberOfSitesWithValues++;
+                        site.State.IsMasked = false; // update mask
+                    }
+                    else
+                    {
+                        IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
+                        site.State.IsMasked = true; // update mask
+                    }
+                    site.Configuration = siteConfiguration;
+                    IEEGUnitsBySiteID[site.Information.GlobalID] = siteConfiguration.Unit;
+                }
+                else
+                {
+                    ColumnData.Configuration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
+                    IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
+                    IEEGUnitsBySiteID[site.Information.GlobalID] = "";
+                    site.State.IsMasked = true; // update mask
+                }
+            }
+            if (numberOfSitesWithValues == 0)
+            {
+                throw new NoMatchingSitesException();
+            }
+
+            IEEGParameters.MinimumAmplitude = float.MaxValue;
+            IEEGParameters.MaximumAmplitude = float.MinValue;
+
+            int length = TimelineLength * SitesCount;
+            IEEGValues = new float[length];
+            List<float> iEEGNotMasked = new List<float>();
+            for (int s = 0; s < Sites.Count; ++s)
+            {
+                for (int t = 0; t < TimelineLength; ++t)
+                {
+                    float val = IEEGValuesBySiteID[s][t];
+                    IEEGValues[t * SitesCount + s] = val;
+                }
+                if (!Sites[s].State.IsMasked)
+                {
+                    for (int t = 0; t < TimelineLength; ++t)
+                    {
+                        float val = IEEGValuesBySiteID[s][t];
+                        iEEGNotMasked.Add(val);
+
+                        //update min/ max values
+                        if (val > IEEGParameters.MaximumAmplitude)
+                            IEEGParameters.MaximumAmplitude = val;
+                        else if (val < IEEGParameters.MinimumAmplitude)
+                            IEEGParameters.MinimumAmplitude = val;
+                    }
+                }
+            }
+            IEEGValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
+        }
+        /// <summary>
+        /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
+        /// </summary>
+        private void UpdateSitesSizeAndColorForIEEG(SceneStatesInfo data)
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("update_sites_size_and_color_arrays_for_IEEG");
+
+            float diffMin = IEEGParameters.SpanMin - IEEGParameters.Middle;
+            float diffMax = IEEGParameters.SpanMax - IEEGParameters.Middle;
+
+            for (int ii = 0; ii < Sites.Count; ++ii)
+            {
+                if ((Sites[ii].State.IsOutOfROI && !data.ShowAllSites) || Sites[ii].State.IsMasked)
+                    continue;
+
+                float value = IEEGValuesBySiteID[ii][CurrentTimeLineID];
+                if (value < IEEGParameters.SpanMin)
+                    value = IEEGParameters.SpanMin;
+                if (value > IEEGParameters.SpanMax)
+                    value = IEEGParameters.SpanMax;
+
+                value -= IEEGParameters.Middle;
+
+                if (value < 0)
+                {
+                    m_ElectrodesPositiveColor[ii] = false;
+                    value = 0.5f + 2 * (value / diffMin);
+                }
+                else if (value > 0)
+                {
+                    m_ElectrodesPositiveColor[ii] = true;
+                    value = 0.5f + 2 * (value / diffMax);
+                }
+                else
+                {
+                    m_ElectrodesPositiveColor[ii] = false;
+                    value = 0.5f;
+                }
+
+                m_ElectrodesSizeScale[ii] = new Vector3(value, value, value);
+            }
+
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
         #endregion
 
         #region Public Methods
         public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             base.UpdateSites(sites, sitesPatientParent, siteList);
-
-            // plots
+            
             m_ElectrodesSizeScale = new List<Vector3>(m_RawElectrodes.NumberOfSites);
             m_ElectrodesPositiveColor = new List<bool>(m_RawElectrodes.NumberOfSites);
-
-            // masks
+            
             for (int ii = 0; ii < m_RawElectrodes.NumberOfSites; ii++)
             {
                 m_ElectrodesSizeScale.Add(new Vector3(1, 1, 1));
@@ -284,88 +462,11 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateDLLSitesMask()
         {
-            bool isROI = m_ROIs.Count > 0; // (transform.parent.GetComponent<Base3DScene>().Type == SceneType.SinglePatient) ? false : (m_SelectedROI.NumberOfBubbles == 0);
+            bool isROI = m_ROIs.Count > 0;
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
                 m_RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || Sites[ii].State.IsExcluded || (Sites[ii].State.IsOutOfROI && isROI)));
             }
-        }
-        /// <summary>
-        /// Set EED Data for each site
-        /// </summary>
-        public void SetEEGData()
-        {
-            if (ColumnData == null) return;
-
-            MinTimeLine = ColumnData.TimeLine.Start.Value;
-            MaxTimeLine = ColumnData.TimeLine.End.Value;
-            MaxTimeLineID = ColumnData.TimeLine.Lenght - 1;
-
-            // Construct sites value array the old way, and set sites masks // maybe FIXME
-            IEEGValuesBySiteID = new float[SitesCount][];
-            IEEGUnitsBySiteID = new string[SitesCount];
-            int numberOfSitesWithValues = 0;
-            foreach (Site site in Sites)
-            {
-                Data.Visualization.SiteConfiguration siteConfiguration;
-                if (ColumnData.Configuration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out siteConfiguration))
-                {
-                    if (siteConfiguration.Values.Length > 0)
-                    {
-                        IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.NormalizedValues;
-                        numberOfSitesWithValues++;
-                        site.State.IsMasked = false; // update mask
-                    }
-                    else
-                    {
-                        IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
-                        site.State.IsMasked = true; // update mask
-                    }
-                    site.Configuration = siteConfiguration;
-                    IEEGUnitsBySiteID[site.Information.GlobalID] = siteConfiguration.Unit;
-                }
-                else
-                {
-                    ColumnData.Configuration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
-                    IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
-                    IEEGUnitsBySiteID[site.Information.GlobalID] = "";
-                    site.State.IsMasked = true; // update mask
-                }
-            }
-            if (numberOfSitesWithValues == 0)
-            {
-                throw new NoMatchingSitesException();
-            }
-
-            IEEGParameters.MinimumAmplitude = float.MaxValue;
-            IEEGParameters.MaximumAmplitude = float.MinValue;
-
-            int length = TimelineLength * SitesCount;
-            IEEGValues = new float[length];
-            List<float> iEEGHistogramme = new List<float>();
-            for (int s = 0; s < Sites.Count; ++s)
-            {
-                for (int t = 0; t < TimelineLength; ++t)
-                {
-                    float val = IEEGValuesBySiteID[s][t];
-                    IEEGValues[t * SitesCount + s] = val;                   
-                }
-                if (!Sites[s].State.IsMasked)
-                {
-                    for (int t = 0; t < TimelineLength; ++t)
-                    {
-                        float val = IEEGValuesBySiteID[s][t];
-                        iEEGHistogramme.Add(val);
-
-                        //update min/ max values
-                        if (val > IEEGParameters.MaximumAmplitude)
-                            IEEGParameters.MaximumAmplitude = val;
-                        else if (val < IEEGParameters.MinimumAmplitude)
-                            IEEGParameters.MinimumAmplitude = val;
-                    }
-                }
-            }
-            IEEGValuesForHistogram = iEEGHistogramme.ToArray();
         }
         /// <summary>
         /// Specify a new columnData to be associated with the columnd3DView
@@ -375,50 +476,6 @@ namespace HBP.Module3D
         {
             ColumnData = newColumnData;
             SetEEGData();
-        }
-        /// <summary>
-        /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
-        /// </summary>
-        public void UpdateSitesSizeAndColorForIEEG(SceneStatesInfo data)
-        {
-            UnityEngine.Profiling.Profiler.BeginSample("update_sites_size_and_color_arrays_for_IEEG");
-
-            float diffMin = IEEGParameters.SpanMin - IEEGParameters.Middle;
-            float diffMax = IEEGParameters.SpanMax - IEEGParameters.Middle;
-
-            for (int ii = 0; ii < Sites.Count; ++ii)
-            {
-                if ((Sites[ii].State.IsOutOfROI && !data.ShowAllSites) || Sites[ii].State.IsMasked)
-                    continue;
-
-                float value = IEEGValuesBySiteID[ii][CurrentTimeLineID];
-                if (value < IEEGParameters.SpanMin)
-                    value = IEEGParameters.SpanMin;
-                if (value > IEEGParameters.SpanMax)
-                    value = IEEGParameters.SpanMax;
-
-                value -= IEEGParameters.Middle;
-
-                if (value < 0)
-                {
-                    m_ElectrodesPositiveColor[ii] = false;
-                    value = 0.5f + 2 * (value / diffMin);
-                }
-                else if (value > 0)
-                {
-                    m_ElectrodesPositiveColor[ii] = true;
-                    value = 0.5f + 2 * (value / diffMax);
-                }
-                else
-                {
-                    m_ElectrodesPositiveColor[ii] = false;
-                    value = 0.5f;
-                }
-
-                m_ElectrodesSizeScale[ii] = new Vector3(value, value, value);
-            }
-
-            UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
         /// Update the plots rendering (iEEG or CCEP)

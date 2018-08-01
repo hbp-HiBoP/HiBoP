@@ -117,7 +117,7 @@ namespace HBP.UI.Module3D
             }
             else
             {
-                float[] iEEGValues = column.IEEGValuesForHistogram;
+                float[] iEEGValues = column.IEEGValuesOfUnmaskedSites;
                 if (!m_IEEGHistogram)
                 {
                     m_IEEGHistogram = new Texture2D(1, 1);
@@ -268,7 +268,7 @@ namespace HBP.UI.Module3D
             {
                 foreach (var column in s.ColumnManager.Columns)
                 {
-                    if (column.Type == Column3D.ColumnType.IEEG)
+                    if (column.Type == Data.Enums.ColumnType.iEEG)
                     {
                         Column3DIEEG columnIEEG = column as Column3DIEEG;
                         m_HistogramByColumn.Remove(columnIEEG);

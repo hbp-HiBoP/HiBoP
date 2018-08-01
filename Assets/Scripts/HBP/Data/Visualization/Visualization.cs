@@ -334,7 +334,7 @@ namespace HBP.Data.Visualization
             float progressStep = FIND_FILES_TO_READ_PROGRESS / (Columns.Count);
             foreach (var column in Columns)
             {
-                if (column.Type == Column.ColumnType.Anatomy) continue;
+                if (column.Type == Data.Enums.ColumnType.Anatomy) continue;
 
                 // Update progress;
                 yield return Ninja.JumpToUnity;
@@ -408,7 +408,7 @@ namespace HBP.Data.Visualization
         {
             Exception exception = null;
             float progressStep = LOAD_COLUMNS_PROGRESS / (Columns.Count * 2);
-            if (Columns.Any(c => c.Type == Column.ColumnType.iEEG))
+            if (Columns.Any(c => c.Type == Data.Enums.ColumnType.iEEG))
             {
                 for (int i = 0; i < Columns.Count; ++i)
                 {
@@ -419,7 +419,7 @@ namespace HBP.Data.Visualization
                     onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
                     yield return Ninja.JumpBack;
 
-                    if (column.Type == Column.ColumnType.Anatomy) continue;
+                    if (column.Type == Data.Enums.ColumnType.Anatomy) continue;
 
                     try
                     {
@@ -465,14 +465,14 @@ namespace HBP.Data.Visualization
         {
             Exception exception = null;
             float progressStep = STANDARDIZE_COLUMNS_PROGRESS / Columns.Count;
-            int[] maxBeforeEnumerable = (from column in Columns where column.Type == Column.ColumnType.iEEG select column.TimeLine.MainEvent.Position).ToArray();
-            int[] maxAfterEnumerable = (from column in Columns where column.Type == Column.ColumnType.iEEG select column.TimeLine.Lenght - column.TimeLine.MainEvent.Position).ToArray();
+            int[] maxBeforeEnumerable = (from column in Columns where column.Type == Data.Enums.ColumnType.iEEG select column.TimeLine.MainEvent.Position).ToArray();
+            int[] maxAfterEnumerable = (from column in Columns where column.Type == Data.Enums.ColumnType.iEEG select column.TimeLine.Lenght - column.TimeLine.MainEvent.Position).ToArray();
             int maxBefore = maxBeforeEnumerable.Length > 0 ? maxBeforeEnumerable.Max() : 0;
             int maxAfter = maxAfterEnumerable.Length > 0 ? maxAfterEnumerable.Max() : 0;
             for (int i = 0; i < Columns.Count; ++i)
             {
                 Column column = Columns[i];
-                if (column.Type == Column.ColumnType.Anatomy) continue;
+                if (column.Type == Enums.ColumnType.Anatomy) continue;
 
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;

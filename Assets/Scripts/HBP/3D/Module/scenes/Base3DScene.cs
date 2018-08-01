@@ -795,7 +795,7 @@ namespace HBP.Module3D
         {
             if (m_ColumnManager.SelectedColumn.SelectedSiteID == -1) return;
 
-            if (m_ColumnManager.SelectedColumn.Type == Column3D.ColumnType.IEEG && !IsLatencyModeEnabled)
+            if (m_ColumnManager.SelectedColumn.Type == Data.Enums.ColumnType.iEEG && !IsLatencyModeEnabled)
             {
                 Column3DIEEG column = (Column3DIEEG)m_ColumnManager.SelectedColumn;
                 if (column.SelectedSiteID != -1)
@@ -1785,7 +1785,7 @@ namespace HBP.Module3D
             {
                 for (int i = 0; i < column.BrainSurfaceMeshes.Count; i++)
                 {
-                    if (column.Type != Column3D.ColumnType.IEEG || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
+                    if (column.Type != Data.Enums.ColumnType.iEEG || !SceneInformation.IsGeneratorUpToDate || SceneInformation.DisplayCCEPMode)
                     {
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv2 = m_ColumnManager.UVNull[i];
                         column.BrainSurfaceMeshes[i].GetComponent<MeshFilter>().mesh.uv3 = m_ColumnManager.UVNull[i];
@@ -1897,10 +1897,10 @@ namespace HBP.Module3D
 
             switch (column.Type)
             {
-                case Column3D.ColumnType.Base:
+                case Data.Enums.ColumnType.Anatomy:
                     ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, Data.Enums.SiteInformationDisplayMode.Anatomy));
                     break;
-                case Column3D.ColumnType.IEEG:
+                case Data.Enums.ColumnType.iEEG:
                     Column3DIEEG columnIEEG = column as Column3DIEEG;
                     int siteID = site.Information.GlobalID;
 

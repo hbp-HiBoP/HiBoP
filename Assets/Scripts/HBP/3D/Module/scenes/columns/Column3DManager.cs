@@ -47,7 +47,7 @@ namespace HBP.Module3D
         /// <summary>
         /// IEEG Columns of the scene
         /// </summary>
-        public List<Column3DIEEG> ColumnsIEEG { get { return (from column in m_Columns where column.Type == Column3D.ColumnType.IEEG select (Column3DIEEG)column).ToList(); } }
+        public List<Column3DIEEG> ColumnsIEEG { get { return (from column in m_Columns where column.Type == Data.Enums.ColumnType.iEEG select (Column3DIEEG)column).ToList(); } }
 
         public ReadOnlyCollection<View3D> Views
         {
@@ -469,15 +469,15 @@ namespace HBP.Module3D
         /// Add a column to the scene
         /// </summary>
         /// <param name="type"></param>
-        private void AddColumn(Data.Visualization.Column.ColumnType type)
+        private void AddColumn(Data.Enums.ColumnType type)
         {
             Column3D column = null;
             switch (type)
             {
-                case Data.Visualization.Column.ColumnType.Anatomy:
+                case Data.Enums.ColumnType.Anatomy:
                     column = Instantiate(m_Column3DPrefab, transform.Find("Columns")).GetComponent<Column3D>();
                     break;
-                case Data.Visualization.Column.ColumnType.iEEG:
+                case Data.Enums.ColumnType.iEEG:
                     column = Instantiate(m_Column3DIEEGPrefab, transform.Find("Columns")).GetComponent<Column3DIEEG>();
                     break;
             }
@@ -543,7 +543,7 @@ namespace HBP.Module3D
             {
                 OnChangeSiteState.Invoke(site);
             });
-            if (type == Data.Visualization.Column.ColumnType.iEEG)
+            if (type == Data.Enums.ColumnType.iEEG)
             {
                 Column3DIEEG columnIEEG = column as Column3DIEEG;
                 columnIEEG.IEEGParameters.OnUpdateSpanValues.AddListener(() =>
@@ -622,11 +622,6 @@ namespace HBP.Module3D
             DLLCommonBrainTextureGeneratorList = new List<DLL.MRIBrainGenerator>(MeshSplitNumber);
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
                 DLLCommonBrainTextureGeneratorList.Add(new DLL.MRIBrainGenerator());
-
-            for (int c = 0; c < m_Columns.Count; c++)
-            {
-                m_Columns[c].ResetSplitsNumber(nbSplits);
-            }
         }
         /// <summary>
         /// Reset color schemes of every columns
@@ -678,7 +673,7 @@ namespace HBP.Module3D
         {
             for (int c = 0; c < Columns.Count; c++)
             {
-                if (columnDataList[c].Type == Data.Visualization.Column.ColumnType.iEEG)
+                if (columnDataList[c].Type == Data.Enums.ColumnType.iEEG)
                 {
                     ((Column3DIEEG)Columns[c]).SetColumnData(columnDataList[c]);
                 }

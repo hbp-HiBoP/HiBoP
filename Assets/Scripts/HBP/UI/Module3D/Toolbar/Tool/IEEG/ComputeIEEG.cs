@@ -43,7 +43,7 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateInteractable()
         {
             bool isCCEP = ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled;
-            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == Column3D.ColumnType.IEEG;
+            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
             bool isGeneratorUpToDate = ApplicationState.Module3D.SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
             m_Compute.interactable = !isCCEP && isColumnIEEG;

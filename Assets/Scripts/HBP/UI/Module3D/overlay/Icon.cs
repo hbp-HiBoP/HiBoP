@@ -30,7 +30,7 @@ namespace HBP.UI.Module3D
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                if (column.Type == Column3D.ColumnType.IEEG)
+                if (column.Type == Data.Enums.ColumnType.iEEG)
                 {
                     IsActive = value;
                 }
@@ -39,10 +39,10 @@ namespace HBP.UI.Module3D
 
             switch (column.Type)
             {
-                case Column3D.ColumnType.Base:
+                case Data.Enums.ColumnType.Anatomy:
                     IsActive = false;
                     break;
-                case Column3D.ColumnType.IEEG:
+                case Data.Enums.ColumnType.iEEG:
                     Column3DIEEG col = (Column3DIEEG)column;
                     m_Icons = col.ColumnData.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
 

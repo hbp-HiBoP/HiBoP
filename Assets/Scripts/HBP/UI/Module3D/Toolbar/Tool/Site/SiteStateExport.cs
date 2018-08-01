@@ -1,12 +1,6 @@
-﻿using HBP.Module3D;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using Tools.Unity;
+﻿using Tools.Unity;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
-using T = Tools.Unity;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -54,7 +48,7 @@ namespace HBP.UI.Module3D.Tools
             if (!string.IsNullOrEmpty(savePath))
             {
                 ApplicationState.Module3D.SelectedColumn.SaveSiteStates(savePath);
-                ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Informational, "Site states saves", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saves", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
             }
         }
         private void LoadSiteStatesToSelectedColumn()

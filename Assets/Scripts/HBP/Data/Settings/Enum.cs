@@ -5,7 +5,7 @@
     public enum SiteInfluenceType { Constant, Linear, Quadratic }
     public enum DisplayableError { LeftMeshEmpty, RightMeshEmpty, PreimplantationMRIEmpty, ImplantationEmpty }
     public enum SceneType { SinglePatient, MultiPatients };
-    public enum CameraType { EEG, fMRI };
+    public enum ColumnType { Anatomy, iEEG }
     public enum ColorType // For now, integers matter because of the link with the dll.
     {
         Grayscale = 0,

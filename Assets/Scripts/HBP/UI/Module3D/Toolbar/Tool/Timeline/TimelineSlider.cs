@@ -126,7 +126,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG;
+            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
             bool areAmplitudesComputed = ApplicationState.Module3D.SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
             m_Slider.interactable = isColumnIEEG && areAmplitudesComputed;
@@ -136,7 +136,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
             {
-                if (ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
+                if (ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
                 {
                     HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
                     m_Slider.maxValue = column.MaxTimeLineID;

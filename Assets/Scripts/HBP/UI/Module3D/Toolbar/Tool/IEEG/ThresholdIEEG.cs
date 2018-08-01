@@ -46,7 +46,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG;
+            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
 
             m_Button.interactable = isColumnIEEG;
         }
@@ -56,7 +56,7 @@ namespace HBP.UI.Module3D.Tools
             if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
             {
                 HBP.Module3D.Column3D selectedColumn = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
-                if (selectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
+                if (selectedColumn.Type == Data.Enums.ColumnType.iEEG)
                 {
                     m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DIEEG)selectedColumn).IEEGParameters);
                 }

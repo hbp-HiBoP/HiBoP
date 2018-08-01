@@ -22,19 +22,23 @@ namespace HBP.Module3D
     public class Column3D : MonoBehaviour
     {
         #region Properties
-        public enum ColumnType
-        {
-            Base, IEEG
-        }
-        public virtual ColumnType Type
+        /// <summary>
+        /// Type of the column
+        /// </summary>
+        public virtual Data.Enums.ColumnType Type
         {
             get
             {
-                return ColumnType.Base;
+                return Data.Enums.ColumnType.Anatomy;
             }
         }
-        
+        /// <summary>
+        /// Name of the column
+        /// </summary>
         public string Label { get; set; }
+        /// <summary>
+        /// Layer on which the objects of this column are displayed
+        /// </summary>
         public string Layer { get; protected set; }
 
         private bool m_IsSelected;
@@ -60,6 +64,9 @@ namespace HBP.Module3D
         }
 
         private bool m_IsMinimized;
+        /// <summary>
+        /// Is the columns minimized
+        /// </summary>
         public bool IsMinimized
         {
             get
@@ -92,9 +99,19 @@ namespace HBP.Module3D
             }
         }
 
+        /// <summary>
+        /// Parent of the meshes displayed in this column
+        /// </summary>
         [SerializeField] private Transform m_BrainSurfaceMeshesParent;
+        /// <summary>
+        /// Prefab for the brain surface
+        /// </summary>
         [SerializeField] private GameObject m_BrainPrefab;
+
         private List<GameObject> m_BrainSurfaceMeshes = new List<GameObject>();
+        /// <summary>
+        /// Surface meshes displayed in this column
+        /// </summary>
         public List<GameObject> BrainSurfaceMeshes
         {
             get
@@ -103,8 +120,14 @@ namespace HBP.Module3D
             }
         }
 
-        public GameObject ViewPrefab;
+        /// <summary>
+        /// View prefab
+        /// </summary>
+        [SerializeField] protected GameObject m_ViewPrefab;
         protected List<View3D> m_Views = new List<View3D>();
+        /// <summary>
+        /// Views of this column
+        /// </summary>
         public ReadOnlyCollection<View3D> Views
         {
             get
@@ -112,7 +135,9 @@ namespace HBP.Module3D
                 return new ReadOnlyCollection<View3D>(m_Views);
             }
         }
-
+        /// <summary>
+        /// Currently selected view
+        /// </summary>
         public View3D SelectedView
         {
             get
@@ -128,11 +153,23 @@ namespace HBP.Module3D
             }
         }
 
+        /// <summary>
+        /// Currently selected site
+        /// </summary>
         public Site SelectedSite { get; protected set; }
+        /// <summary>
+        /// Currently selected site ID
+        /// </summary>
         public int SelectedSiteID { get { return SelectedSite != null ? SelectedSite.Information.GlobalID : -1; } }
+        /// <summary>
+        /// ID of the patient which site is currently selected
+        /// </summary>
         public int SelectedPatientID { get { return SelectedSite != null ? SelectedSite.Information.PatientNumber : -1; } }
 
-        protected RawSiteList m_RawElectrodes = null;  /**< raw format of the plots container dll */
+        protected RawSiteList m_RawElectrodes = new RawSiteList();
+        /// <summary>
+        /// Raw site list
+        /// </summary>
         public RawSiteList RawElectrodes
         {
             get
@@ -140,18 +177,33 @@ namespace HBP.Module3D
                 return m_RawElectrodes;
             }
         }
-        public List<List<List<GameObject>>> SitesGameObjects = null; /**< plots GO list with order : patient/electrode/plot */
-        public List<Site> Sites = null; /**< plots list */
+        /// <summary>
+        /// Sites GameObjects. List order is Patient > Electrode > Site
+        /// </summary>
+        public List<List<List<GameObject>>> SitesGameObjects;
+        /// <summary>
+        /// Sites of this column
+        /// </summary>
+        public List<Site> Sites;
+        /// <summary>
+        /// Site state by site ID. Used when changing the implantation
+        /// </summary>
         public Dictionary<string, SiteState> SiteStateBySiteID = new Dictionary<string, SiteState>();
 
-        // select plot
         [SerializeField] protected SiteRing m_SelectRing;
+        /// <summary>
+        /// Selection ring feedback
+        /// </summary>
         public SiteRing SelectRing { get { return m_SelectRing; } }
 
-        // ROI
-        [SerializeField]
-        protected Transform m_ROIParent;
+        /// <summary>
+        /// Parent for ROI GameObjects
+        /// </summary>
+        [SerializeField] protected Transform m_ROIParent;
         protected List<ROI> m_ROIs = new List<ROI>();
+        /// <summary>
+        /// List of the ROIs of this column
+        /// </summary>
         public ReadOnlyCollection<ROI> ROIs
         {
             get
@@ -160,6 +212,9 @@ namespace HBP.Module3D
             }
         }
         protected ROI m_SelectedROI = null;
+        /// <summary>
+        /// Currently selected ROI
+        /// </summary>
         public ROI SelectedROI
         {
             get
@@ -186,6 +241,9 @@ namespace HBP.Module3D
                 OnSelectROI.Invoke();
             }
         }
+        /// <summary>
+        /// ID of the currently selected ROI
+        /// </summary>
         public int SelectedROIID
         {
             get
@@ -197,11 +255,15 @@ namespace HBP.Module3D
                 SelectedROI = value == -1 ? null : m_ROIs[value];
             }
         }
-        [SerializeField]
-        private GameObject m_ROIPrefab;
+        /// <summary>
+        /// Prefab for the ROI
+        /// </summary>
+        [SerializeField] private GameObject m_ROIPrefab;
 
-        // generators
-        public List<MRIBrainGenerator> DLLBrainTextureGenerators = new List<DLL.MRIBrainGenerator>();
+        /// <summary>
+        /// Texture generator for the brain surface
+        /// </summary>
+        public List<MRIBrainGenerator> DLLBrainTextureGenerators = new List<MRIBrainGenerator>();
 
         private CutTexturesUtility m_CutTextures = new CutTexturesUtility();
         /// <summary>
@@ -215,9 +277,14 @@ namespace HBP.Module3D
             }
         }
 
-        // latencies
+        /// <summary>
+        /// Is a source defined ?
+        /// </summary>
         public bool SourceDefined { get { return SelectedSiteID != -1; } }
         private int m_CurrentLatencyFile = -1;
+        /// <summary>
+        /// Currently selected latency file
+        /// </summary>
         public int CurrentLatencyFile
         {
             get
@@ -277,12 +344,12 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Base init class of the column
+        /// Initialize the column with a view and the sites
         /// </summary>
         /// <param name="idColumn"></param>
-        /// <param name="nbCuts"></param>
         /// <param name="sites"></param>
-        /// <param name="plotsGO"></param>
+        /// <param name="sitesPatientParent"></param>
+        /// <param name="siteList"></param>
         public void Initialize(int idColumn, PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             Layer = "Column" + idColumn;
@@ -291,6 +358,12 @@ namespace HBP.Module3D
             AddView();
             IsRenderingUpToDate = false;
         }
+        /// <summary>
+        /// Update the sites for this column
+        /// </summary>
+        /// <param name="sites"></param>
+        /// <param name="sitesPatientParent"></param>
+        /// <param name="siteList"></param>
         public virtual void UpdateSites(PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             GameObject patientPlotsParent = transform.Find("Sites").gameObject;
@@ -299,7 +372,6 @@ namespace HBP.Module3D
                 Destroy(patientSite.gameObject);
             }
 
-            m_RawElectrodes = new RawSiteList();
             sites.ExtractRawSiteList(m_RawElectrodes);
 
             SitesGameObjects = new List<List<List<GameObject>>>(sitesPatientParent.Count);
@@ -389,6 +461,10 @@ namespace HBP.Module3D
                 }
             }
         }
+        /// <summary>
+        /// Change the layer of the brain meshes (invisible when cutting)
+        /// </summary>
+        /// <param name="layer"></param>
         public void ChangeMeshesLayer(int layer)
         {
             foreach (var mesh in m_BrainSurfaceMeshes)
@@ -396,19 +472,30 @@ namespace HBP.Module3D
                 mesh.layer = layer;
             }
         }
+        /// <summary>
+        /// Reset the brain texture generators;
+        /// </summary>
+        /// <param name="nbSplits"></param>
         public void ResetSplitsNumber(int nbSplits)
         {
-            // generators dll
-            //      brain
-            DLLBrainTextureGenerators = new List<DLL.MRIBrainGenerator>(nbSplits);
+            DLLBrainTextureGenerators = new List<MRIBrainGenerator>(nbSplits);
             for (int ii = 0; ii < nbSplits; ++ii)
-                DLLBrainTextureGenerators.Add(new DLL.MRIBrainGenerator());
+                DLLBrainTextureGenerators.Add(new MRIBrainGenerator());
         }
+        /// <summary>
+        /// Reset the cut textures generators
+        /// </summary>
+        /// <param name="nbCuts"></param>
         public void UpdateCutsPlanesNumber(int nbCuts)
         {
             CutTextures.Resize(nbCuts);
             IsRenderingUpToDate = false;
         }
+        /// <summary>
+        /// Update the shape and color of the sites of this column
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="latenciesFile"></param>
         public virtual void UpdateSitesRendering(SceneStatesInfo data, Latencies latenciesFile)
         {
             if (data.DisplayCCEPMode) // CCEP
@@ -530,6 +617,10 @@ namespace HBP.Module3D
                 m_SelectRing.SetSelectedSite(selectedSite, selectedSite.transform.localScale);
             }
         }
+        /// <summary>
+        /// Save the states of the sites of this column to a file
+        /// </summary>
+        /// <param name="path"></param>
         public void SaveSiteStates(string path)
         {
             try
@@ -548,6 +639,10 @@ namespace HBP.Module3D
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Can not save site states", "Please verify your rights.");
             }
         }
+        /// <summary>
+        /// Load the states of the sites to this column from a file
+        /// </summary>
+        /// <param name="path"></param>
         public void LoadSiteStates(string path)
         {
             try
@@ -627,9 +722,12 @@ namespace HBP.Module3D
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Can not load site states", "Please verify your files and try again.");
             }
         }
+        /// <summary>
+        /// Add a view to this column
+        /// </summary>
         public void AddView()
         {
-            View3D view = Instantiate(ViewPrefab, transform.Find("Views")).GetComponent<View3D>();
+            View3D view = Instantiate(m_ViewPrefab, transform.Find("Views")).GetComponent<View3D>();
             view.gameObject.name = "View " + m_Views.Count;
             view.LineID = m_Views.Count;
             view.Layer = Layer;
@@ -653,11 +751,20 @@ namespace HBP.Module3D
             });
             m_Views.Add(view);
         }
+        /// <summary>
+        /// Remove a view from this column
+        /// </summary>
+        /// <param name="lineID"></param>
         public void RemoveView(int lineID)
         {
             Destroy(m_Views[lineID].gameObject);
             m_Views.RemoveAt(lineID);
         }
+        /// <summary>
+        /// Add a ROI to this column
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public ROI AddROI(string name = ROI.DEFAULT_ROI_NAME)
         {
             GameObject roiGameObject = Instantiate(m_ROIPrefab, m_ROIParent);
@@ -677,6 +784,10 @@ namespace HBP.Module3D
 
             return roi;
         }
+        /// <summary>
+        /// Create a new ROI using the parameters of another ROI
+        /// </summary>
+        /// <param name="roi"></param>
         public void CopyROI(ROI roi)
         {
             ROI newROI = AddROI();
@@ -686,6 +797,9 @@ namespace HBP.Module3D
                 newROI.AddBubble(Layer, "Bubble", bubble.Position, bubble.Radius);
             }
         }
+        /// <summary>
+        /// Remove the currently selected ROI
+        /// </summary>
         public void RemoveSelectedROI()
         {
             Destroy(m_SelectedROI.gameObject);
@@ -701,6 +815,11 @@ namespace HBP.Module3D
                 SelectedROI = null;
             }
         }
+        /// <summary>
+        /// Move the selected sphere by delta
+        /// </summary>
+        /// <param name="camera"></param>
+        /// <param name="delta"></param>
         public void MoveSelectedROISphere(Camera camera, Vector3 delta)
         {
             if (m_SelectedROI)
@@ -715,6 +834,9 @@ namespace HBP.Module3D
                 }
             }
         }
+        /// <summary>
+        /// Unselect the selected site
+        /// </summary>
         public void UnselectSite()
         {
             if (SelectedSite)
