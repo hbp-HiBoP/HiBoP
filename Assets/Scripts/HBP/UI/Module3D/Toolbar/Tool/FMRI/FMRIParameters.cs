@@ -44,7 +44,7 @@ namespace HBP.UI.Module3D.Tools
                 float floatValue;
                 if (float.TryParse(value, out floatValue))
                 {
-                    scene.ColumnManager.FMRICalMin = Mathf.Clamp(floatValue, scene.ColumnManager.FMRI.Volume.ExtremeValues.computedCalMin, scene.ColumnManager.FMRI.Volume.ExtremeValues.computedCalMax); ;
+                    scene.ColumnManager.FMRICalMin = Mathf.Clamp(floatValue, scene.ColumnManager.FMRI.Volume.ExtremeValues.ComputedCalMin, scene.ColumnManager.FMRI.Volume.ExtremeValues.ComputedCalMax); ;
                     m_CalMinSlider.value = scene.ColumnManager.FMRICalMinFactor;
                 }
                 UpdateStatus(Toolbar.UpdateToolbarType.Scene);
@@ -66,7 +66,7 @@ namespace HBP.UI.Module3D.Tools
                 float floatValue;
                 if (float.TryParse(value, out floatValue))
                 {
-                    scene.ColumnManager.FMRICalMax = Mathf.Clamp(floatValue, scene.ColumnManager.FMRI.Volume.ExtremeValues.computedCalMin, scene.ColumnManager.FMRI.Volume.ExtremeValues.computedCalMax);
+                    scene.ColumnManager.FMRICalMax = Mathf.Clamp(floatValue, scene.ColumnManager.FMRI.Volume.ExtremeValues.ComputedCalMin, scene.ColumnManager.FMRI.Volume.ExtremeValues.ComputedCalMax);
                     m_CalMaxSlider.value = scene.ColumnManager.FMRICalMax;
                 }
                 UpdateStatus(Toolbar.UpdateToolbarType.Scene);
@@ -118,8 +118,8 @@ namespace HBP.UI.Module3D.Tools
                 if (hasFMRI)
                 {
                     MRICalValues calValues = scene.ColumnManager.FMRI.Volume.ExtremeValues;
-                    m_MinText.text = calValues.computedCalMin.ToString("N2");
-                    m_MaxText.text = calValues.computedCalMax.ToString("N2");
+                    m_MinText.text = calValues.ComputedCalMin.ToString("N2");
+                    m_MaxText.text = calValues.ComputedCalMax.ToString("N2");
                     m_CalMinInputField.text = scene.ColumnManager.FMRICalMin.ToString("N2");
                     m_CalMaxInputField.text = scene.ColumnManager.FMRICalMax.ToString("N2");
                     m_CalMinSlider.value = scene.ColumnManager.FMRICalMinFactor;

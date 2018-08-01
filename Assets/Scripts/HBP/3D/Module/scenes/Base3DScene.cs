@@ -611,7 +611,7 @@ namespace HBP.Module3D
             m_TriEraser.OnModifyInvisiblePart.AddListener(() =>
             {
                 ResetIEEG();
-                ApplicationState.Module3D.OnModifyInvisiblePart.Invoke();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
             m_ColumnManager.OnUpdateMRICalValues.AddListener(() =>
             {
@@ -2593,15 +2593,15 @@ namespace HBP.Module3D
     /// </summary>
     public class SiteInfo
     {
-        public SiteInfo(Site site, bool enabled, Vector3 position, Data.Enums.SiteInformationDisplayMode mode = Data.Enums.SiteInformationDisplayMode.IEEG, string IEEGAmplitude = "", string IEEGUnit ="", string CCEPAmplitude = "", string CCEPLatency = "")
+        public SiteInfo(Site site, bool enabled, Vector3 position, Data.Enums.SiteInformationDisplayMode mode = Data.Enums.SiteInformationDisplayMode.IEEG, string ieegAmplitude = "", string ieegUnit ="", string ccepAmplitude = "", string ccepLatency = "")
         {
             Site = site;
             Enabled = enabled;
             Position = position;
-            this.IEEGAmplitude = IEEGAmplitude;
-            this.IEEGUnit = IEEGUnit;
-            this.CCEPAmplitude = CCEPAmplitude;
-            this.CCEPLatency = CCEPLatency;
+            IEEGAmplitude = ieegAmplitude;
+            IEEGUnit = ieegUnit;
+            CCEPAmplitude = ccepAmplitude;
+            CCEPLatency = ccepLatency;
             Mode = mode;
         }
 
@@ -2620,12 +2620,12 @@ namespace HBP.Module3D
     /// </summary>
     public struct MRICalValues
     {
-        public float min;
-        public float max;
-        public float loadedCalMin;
-        public float loadedCalMax;
-        public float computedCalMin;
-        public float computedCalMax;
+        public float Min;
+        public float Max;
+        public float LoadedCalMin;
+        public float LoadedCalMax;
+        public float ComputedCalMin;
+        public float ComputedCalMax;
     }
     #endregion
 }

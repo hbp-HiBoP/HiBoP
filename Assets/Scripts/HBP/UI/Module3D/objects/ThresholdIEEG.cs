@@ -48,66 +48,56 @@ namespace HBP.UI.Module3D
         /// </summary>
         private bool m_Initialized = false;
 
+        private Dictionary<Column3DIEEG, Sprite> m_HistogramByColumn = new Dictionary<Column3DIEEG, Sprite>();
+
         /// <summary>
         /// IEEG Histogram
         /// </summary>
-        [SerializeField]
-        private Image m_Histogram;
+        [SerializeField] private Image m_Histogram;
         /// <summary>
         /// Symmetry toggle
         /// </summary>
-        [SerializeField]
-        private Toggle m_SymmetryToggle;
+        [SerializeField] private Toggle m_SymmetryToggle;
         /// <summary>
         /// Text field for the min value
         /// </summary>
-        [SerializeField]
-        private Text m_MinText;
+        [SerializeField] private Text m_MinText;
         /// <summary>
         /// Text field for the max value
         /// </summary>
-        [SerializeField]
-        private Text m_MaxText;
+        [SerializeField] private Text m_MaxText;
         /// <summary>
         /// Input field for the span min value
         /// </summary>
-        [SerializeField]
-        private InputField m_SpanMinInput;
+        [SerializeField] private InputField m_SpanMinInput;
         /// <summary>
         /// Input field for the middle value
         /// </summary>
-        [SerializeField]
-        private InputField m_MiddleInput;
+        [SerializeField] private InputField m_MiddleInput;
         /// <summary>
         /// Input field for the span max value
         /// </summary>
-        [SerializeField]
-        private InputField m_SpanMaxInput;
+        [SerializeField] private InputField m_SpanMaxInput;
         /// <summary>
         /// Input field for the amplitude
         /// </summary>
-        [SerializeField]
-        private InputField m_AmplitudeInput;
+        [SerializeField] private InputField m_AmplitudeInput;
         /// <summary>
         /// Zone in which the handlers can move
         /// </summary>
-        [SerializeField]
-        private RectTransform m_HandlerZone;
+        [SerializeField] private RectTransform m_HandlerZone;
         /// <summary>
         /// Handler responsible for the minimum value
         /// </summary>
-        [SerializeField]
-        private ThresholdHandler m_MinHandler;
+        [SerializeField] private ThresholdHandler m_MinHandler;
         /// <summary>
         /// Handler responsible for the middle value
         /// </summary>
-        [SerializeField]
-        private ThresholdHandler m_MidHandler;
+        [SerializeField] private ThresholdHandler m_MidHandler;
         /// <summary>
         /// Handler responsible for the maximum value
         /// </summary>
-        [SerializeField]
-        private ThresholdHandler m_MaxHandler;
+        [SerializeField] private ThresholdHandler m_MaxHandler;
 
         public GenericEvent<float, float, float> OnChangeValues = new GenericEvent<float, float, float>();
         #endregion
@@ -119,22 +109,31 @@ namespace HBP.UI.Module3D
         private void UpdateIEEGHistogram()
         {
             UnityEngine.Profiling.Profiler.BeginSample("IEEG HISTOGRAM");
-            float[] iEEGValues = ((Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGValuesForHistogram;
-            if (!m_IEEGHistogram)
+            Column3DIEEG column = (Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
+            Sprite histogramSprite;
+            if (m_HistogramByColumn.TryGetValue(column, out histogramSprite))
             {
-                m_IEEGHistogram = new Texture2D(1, 1);
-            }
-            if(iEEGValues.Length > 0)
-            {
-                HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(iEEGValues, 4 * 110, 4 * 110, m_MinAmplitude, m_MaxAmplitude).UpdateTexture2D(m_IEEGHistogram);
+                m_Histogram.sprite = histogramSprite;
             }
             else
             {
-                m_IEEGHistogram = Texture2D.blackTexture;
+                float[] iEEGValues = column.IEEGValuesForHistogram;
+                if (!m_IEEGHistogram)
+                {
+                    m_IEEGHistogram = new Texture2D(1, 1);
+                }
+                if (iEEGValues.Length > 0)
+                {
+                    HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(iEEGValues, 4 * 110, 4 * 110, m_MinAmplitude, m_MaxAmplitude).UpdateTexture2D(m_IEEGHistogram);
+                }
+                else
+                {
+                    m_IEEGHistogram = Texture2D.blackTexture;
+                }
+                histogramSprite = Sprite.Create(m_IEEGHistogram, new Rect(0, 0, m_IEEGHistogram.width, m_IEEGHistogram.height), new Vector2(0.5f, 0.5f), 400f);
+                m_Histogram.sprite = histogramSprite;
+                m_HistogramByColumn.Add(column, histogramSprite);
             }
-
-            Destroy(m_Histogram.sprite);
-            m_Histogram.sprite = Sprite.Create(m_IEEGHistogram, new Rect(0, 0, m_IEEGHistogram.width, m_IEEGHistogram.height), new Vector2(0.5f, 0.5f), 400f);
             UnityEngine.Profiling.Profiler.EndSample();
         }
         #endregion
@@ -262,6 +261,18 @@ namespace HBP.UI.Module3D
                     m_SpanMinInput.text = SpanMin.ToString("N3");
                     m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
                     m_AmplitudeInput.text = (SpanMax - SpanMin).ToString("N3");
+                }
+            });
+
+            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            {
+                foreach (var column in s.ColumnManager.Columns)
+                {
+                    if (column.Type == Column3D.ColumnType.IEEG)
+                    {
+                        Column3DIEEG columnIEEG = column as Column3DIEEG;
+                        m_HistogramByColumn.Remove(columnIEEG);
+                    }
                 }
             });
         }

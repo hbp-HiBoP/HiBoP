@@ -289,12 +289,12 @@ namespace HBP.Module3D.DLL
                 float[] valuesF = new float[6];
                 retrieveExtremeValues_Volume(_handle, valuesF);
 
-                values.min = valuesF[0];
-                values.max = valuesF[1];
-                values.loadedCalMin = valuesF[2];
-                values.loadedCalMax = valuesF[3];
-                values.computedCalMin = valuesF[4];
-                values.computedCalMax = valuesF[5];
+                values.Min = valuesF[0];
+                values.Max = valuesF[1];
+                values.LoadedCalMin = valuesF[2];
+                values.LoadedCalMax = valuesF[3];
+                values.ComputedCalMin = valuesF[4];
+                values.ComputedCalMax = valuesF[5];
 
                 return values;
             }

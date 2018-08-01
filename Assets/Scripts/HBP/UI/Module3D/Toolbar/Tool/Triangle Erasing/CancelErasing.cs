@@ -17,13 +17,6 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnModifyInvisiblePart.AddListener(() =>
-            {
-                if (ApplicationState.Module3D.SelectedScene)
-                {
-                    UpdateInteractable();
-                }
-            });
             m_Button.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;

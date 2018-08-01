@@ -269,7 +269,7 @@ namespace HBP.Module3D
             get
             {
                 if (FMRI == null) return 0;
-                return m_FMRICalMinFactor * (FMRI.Volume.ExtremeValues.computedCalMax - FMRI.Volume.ExtremeValues.computedCalMin) + FMRI.Volume.ExtremeValues.computedCalMin;
+                return m_FMRICalMinFactor * (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin) + FMRI.Volume.ExtremeValues.ComputedCalMin;
             }
             set
             {
@@ -278,7 +278,7 @@ namespace HBP.Module3D
                     FMRICalMinFactor = 0;
                     return;
                 }
-                FMRICalMinFactor = (value - FMRI.Volume.ExtremeValues.computedCalMin) / (FMRI.Volume.ExtremeValues.computedCalMax - FMRI.Volume.ExtremeValues.computedCalMin);
+                FMRICalMinFactor = (value - FMRI.Volume.ExtremeValues.ComputedCalMin) / (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin);
             }
         }
 
@@ -306,7 +306,7 @@ namespace HBP.Module3D
             get
             {
                 if (FMRI == null) return 0;
-                return m_FMRICalMaxFactor * (FMRI.Volume.ExtremeValues.computedCalMax - FMRI.Volume.ExtremeValues.computedCalMin) + FMRI.Volume.ExtremeValues.computedCalMin;
+                return m_FMRICalMaxFactor * (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin) + FMRI.Volume.ExtremeValues.ComputedCalMin;
             }
             set
             {
@@ -315,7 +315,7 @@ namespace HBP.Module3D
                     FMRICalMaxFactor = 1.0f;
                     return;
                 }
-                FMRICalMaxFactor = (value - FMRI.Volume.ExtremeValues.computedCalMin) / (FMRI.Volume.ExtremeValues.computedCalMax - FMRI.Volume.ExtremeValues.computedCalMin);
+                FMRICalMaxFactor = (value - FMRI.Volume.ExtremeValues.ComputedCalMin) / (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin);
             }
         }
 
