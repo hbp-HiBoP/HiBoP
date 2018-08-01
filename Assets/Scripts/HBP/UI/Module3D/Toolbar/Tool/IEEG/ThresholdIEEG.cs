@@ -28,12 +28,13 @@ namespace HBP.UI.Module3D.Tools
                 {
                     foreach (HBP.Module3D.Column3DIEEG column in ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG)
                     {
-                        column.IEEGParameters.SetSpanValues(min, mid, max);
+                        column.IEEGParameters.SetSpanValues(min, mid, max, column);
                     }
                 }
                 else
                 {
-                    ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.SetSpanValues(min, mid, max);
+                    HBP.Module3D.Column3DIEEG column = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
+                    column.IEEGParameters.SetSpanValues(min, mid, max, column);
                 }
             });
         }

@@ -12,6 +12,7 @@ using UnityEngine.Events;
 using System.Linq;
 using System;
 using System.IO;
+using HBP.Module3D.DLL;
 
 namespace HBP.Module3D
 {
@@ -32,22 +33,9 @@ namespace HBP.Module3D
                 return ColumnType.Base;
             }
         }
-
-        [SerializeField, Candlelight.PropertyBackingField]
-        protected string m_Label;
-        public string Label
-        {
-            get { return m_Label; }
-            set { m_Label = value; }
-        }
-
-        [SerializeField, Candlelight.PropertyBackingField]
-        protected string m_Layer;
-        public string Layer
-        {
-            get { return m_Layer; }
-            set { m_Layer = value; }
-        }
+        
+        public string Label { get; set; }
+        public string Layer { get; protected set; }
 
         private bool m_IsSelected;
         /// <summary>
@@ -104,10 +92,8 @@ namespace HBP.Module3D
             }
         }
 
-        [SerializeField]
-        private Transform m_BrainSurfaceMeshesParent;
-        [SerializeField]
-        private GameObject m_BrainPrefab;
+        [SerializeField] private Transform m_BrainSurfaceMeshesParent;
+        [SerializeField] private GameObject m_BrainPrefab;
         private List<GameObject> m_BrainSurfaceMeshes = new List<GameObject>();
         public List<GameObject> BrainSurfaceMeshes
         {
@@ -146,8 +132,8 @@ namespace HBP.Module3D
         public int SelectedSiteID { get { return SelectedSite != null ? SelectedSite.Information.GlobalID : -1; } }
         public int SelectedPatientID { get { return SelectedSite != null ? SelectedSite.Information.PatientNumber : -1; } }
 
-        protected DLL.RawSiteList m_RawElectrodes = null;  /**< raw format of the plots container dll */
-        public DLL.RawSiteList RawElectrodes
+        protected RawSiteList m_RawElectrodes = null;  /**< raw format of the plots container dll */
+        public RawSiteList RawElectrodes
         {
             get
             {
@@ -159,7 +145,7 @@ namespace HBP.Module3D
         public Dictionary<string, SiteState> SiteStateBySiteID = new Dictionary<string, SiteState>();
 
         // select plot
-        protected SiteRing m_SelectRing = null;
+        [SerializeField] protected SiteRing m_SelectRing;
         public SiteRing SelectRing { get { return m_SelectRing; } }
 
         // ROI
@@ -215,21 +201,20 @@ namespace HBP.Module3D
         private GameObject m_ROIPrefab;
 
         // generators
-        public List<DLL.MRITextureCutGenerator> DLLMRITextureCutGenerators = null;
-        public List<DLL.MRIBrainGenerator> DLLBrainTextureGenerators = new List<DLL.MRIBrainGenerator>();
+        public List<MRIBrainGenerator> DLLBrainTextureGenerators = new List<DLL.MRIBrainGenerator>();
 
-        //public DLL.Texture DLLBrainColorScheme = null;          /**< brain colorscheme dll texture */
-        public DLL.Texture DLLCutColorScheme = null;            /**< cut colorscheme dll texture */
-        public DLL.Texture DLLCutFMRIColorScheme = null;        /**< cut colorscheme dll texture */
-        public List<DLL.Texture> DLLBrainCutTextures = null;    /**< list of cut DLL textures */
-        public List<DLL.Texture> DLLGUIBrainCutTextures = null; /**< list of GUI DLL cut textures| */
-        //  texture 2D
-        //public DLL.Texture DLLBrainMainColor = null;            /**< main color dll texture of the brain mesh */
-        public Texture2D BrainColorSchemeTexture = null;        /**< brain colorscheme unity 2D texture  */
-        public List<Texture2D> BrainCutTextures = null;         /**< list of cut textures */
-        public List<Texture2D> GUIBrainCutTextures = null;      /**< list of GUI cut textures */
+        private CutTexturesUtility m_CutTextures = new CutTexturesUtility();
+        /// <summary>
+        /// Cut Textures Utility
+        /// </summary>
+        public CutTexturesUtility CutTextures
+        {
+            get
+            {
+                return m_CutTextures;
+            }
+        }
 
-            
         // latencies
         public bool SourceDefined { get { return SelectedSiteID != -1; } }
         private int m_CurrentLatencyFile = -1;
@@ -251,43 +236,43 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when this column is selected
         /// </summary>
-        public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
         /// <summary>
         /// Event called when a view is moved
         /// </summary>
-        public GenericEvent<View3D> OnMoveView = new GenericEvent<View3D>();
+        [HideInInspector] public GenericEvent<View3D> OnMoveView = new GenericEvent<View3D>();
         /// <summary>
         /// Event called when changing the number of ROIs of this column
         /// </summary>
-        public UnityEvent OnChangeNumberOfROI = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeNumberOfROI = new UnityEvent();
         /// <summary>
         /// Event called when changing the number of volume in a ROI of this column
         /// </summary>
-        public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
         /// <summary>
         /// Event called when selecting a ROI
         /// </summary>
-        public UnityEvent OnSelectROI = new UnityEvent();
+        [HideInInspector] public UnityEvent OnSelectROI = new UnityEvent();
         /// <summary>
         /// Event called when changing the radius of a volume in a ROI
         /// </summary>
-        public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
         /// <summary>
         /// Event called when minimizing a column
         /// </summary>
-        public UnityEvent OnChangeMinimizedState = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeMinimizedState = new UnityEvent();
         /// <summary>
         /// Event called when selecting a site
         /// </summary>
-        public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
+        [HideInInspector] public GenericEvent<Site> OnSelectSite = new GenericEvent<Site>();
         /// <summary>
         /// Event called each time we change the state of a site
         /// </summary>
-        public GenericEvent<Site> OnChangeSiteState = new GenericEvent<Site>();
+        [HideInInspector] public GenericEvent<Site> OnChangeSiteState = new GenericEvent<Site>();
         /// <summary>
         /// Event called when selecting a source or when changing the latency file
         /// </summary>
-        public UnityEvent OnChangeCCEPParameters = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeCCEPParameters = new UnityEvent();
         #endregion
 
         #region Public Methods
@@ -298,53 +283,15 @@ namespace HBP.Module3D
         /// <param name="nbCuts"></param>
         /// <param name="sites"></param>
         /// <param name="plotsGO"></param>
-        public virtual void Initialize(int idColumn, int nbCuts, DLL.PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
+        public void Initialize(int idColumn, PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
-            // scene
             Layer = "Column" + idColumn;
-
-            // select ring
-            m_SelectRing = gameObject.GetComponentInChildren<SiteRing>();
             m_SelectRing.SetLayer(Layer);
-            
-            // sites
             UpdateSites(sites, sitesPatientParent, siteList);
-
-            // generators dll
-            DLLMRITextureCutGenerators = new List<DLL.MRITextureCutGenerator>(nbCuts);
-            for (int ii = 0; ii < nbCuts; ++ii)
-            {                
-                DLLMRITextureCutGenerators.Add(new DLL.MRITextureCutGenerator());
-            }
-
-            // DLL textures
-            DLLCutColorScheme = new DLL.Texture();
-            DLLCutFMRIColorScheme = new DLL.Texture();
-            DLLGUIBrainCutTextures = new List<DLL.Texture>(nbCuts);
-            DLLBrainCutTextures = new List<DLL.Texture>(nbCuts);
-            for (int ii = 0; ii < nbCuts; ++ii)
-            {
-                DLLGUIBrainCutTextures.Add(new DLL.Texture());
-                DLLBrainCutTextures.Add(new DLL.Texture());
-            }
-
-            // textures 2D
-            BrainColorSchemeTexture = Texture2Dutility.GenerateColorScheme();
-            BrainCutTextures = new List<Texture2D>(nbCuts);
-            GUIBrainCutTextures = new List<Texture2D>(nbCuts);
-            for (int ii = 0; ii < nbCuts; ++ii)
-            {
-                BrainCutTextures.Add(Texture2Dutility.GenerateCut());
-                GUIBrainCutTextures.Add(Texture2Dutility.GenerateGUI());
-            }
-
-            // view
             AddView();
-
-            // update rendering
             IsRenderingUpToDate = false;
         }
-        public virtual void UpdateSites(DLL.PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
+        public virtual void UpdateSites(PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             GameObject patientPlotsParent = transform.Find("Sites").gameObject;
             foreach (Transform patientSite in patientPlotsParent.transform)
@@ -352,7 +299,7 @@ namespace HBP.Module3D
                 Destroy(patientSite.gameObject);
             }
 
-            m_RawElectrodes = new DLL.RawSiteList();
+            m_RawElectrodes = new RawSiteList();
             sites.ExtractRawSiteList(m_RawElectrodes);
 
             SitesGameObjects = new List<List<List<GameObject>>>(sitesPatientParent.Count);
@@ -442,7 +389,6 @@ namespace HBP.Module3D
                 }
             }
         }
-
         public void ChangeMeshesLayer(int layer)
         {
             foreach (var mesh in m_BrainSurfaceMeshes)
@@ -450,37 +396,6 @@ namespace HBP.Module3D
                 mesh.layer = layer;
             }
         }
-        /// <summary>
-        ///  Clean all allocated data
-        /// </summary>
-        public virtual void Clear()
-        {
-            DLLCutColorScheme.Dispose();
-            DLLCutFMRIColorScheme.Dispose();
-            Destroy(BrainColorSchemeTexture);
-
-            // DLL
-            // generators
-            for (int ii = 0; ii < DLLBrainTextureGenerators.Count; ++ii)
-            {
-                DLLBrainTextureGenerators[ii].Dispose();
-            }
-            for (int ii = 0; ii < DLLMRITextureCutGenerators.Count; ++ii)
-            {
-                DLLMRITextureCutGenerators[ii].Dispose();
-            }
-
-            // textures 2D
-            for (int ii = 0; ii < BrainCutTextures.Count; ++ii)
-                Destroy(BrainCutTextures[ii]);
-
-            // plots
-            m_RawElectrodes.Dispose();
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="nbSplits"></param>
         public void ResetSplitsNumber(int nbSplits)
         {
             // generators dll
@@ -489,52 +404,10 @@ namespace HBP.Module3D
             for (int ii = 0; ii < nbSplits; ++ii)
                 DLLBrainTextureGenerators.Add(new DLL.MRIBrainGenerator());
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="nbCuts"></param>
-        public virtual void UpdateCutsPlanesNumber(int diffCuts)
+        public void UpdateCutsPlanesNumber(int nbCuts)
         {
-            if (diffCuts < 0)
-            {
-                for (int ii = 0; ii < -diffCuts; ++ii)
-                {
-                    // GO textures
-                    BrainCutTextures.Add(Texture2Dutility.GenerateCut());                    
-                    GUIBrainCutTextures.Add(Texture2Dutility.GenerateGUI());
-
-                    // DLL textures
-                    DLLBrainCutTextures.Add(new DLL.Texture());
-                    DLLGUIBrainCutTextures.Add(new DLL.Texture());
-
-                    // DLL generators
-                    DLLMRITextureCutGenerators.Add(new DLL.MRITextureCutGenerator());
-                }
-            }
-            else if (diffCuts > 0)
-            {
-                for (int ii = 0; ii < diffCuts; ++ii)
-                {
-                    // GO textures          
-                    Destroy(BrainCutTextures[BrainCutTextures.Count - 1]);
-                    BrainCutTextures.RemoveAt(BrainCutTextures.Count - 1);
-                    Destroy(GUIBrainCutTextures[GUIBrainCutTextures.Count - 1]);
-                    GUIBrainCutTextures.RemoveAt(GUIBrainCutTextures.Count - 1);
-                    
-                    // DLL textures
-                    DLLBrainCutTextures.RemoveAt(DLLBrainCutTextures.Count - 1);
-                    DLLGUIBrainCutTextures.RemoveAt(DLLGUIBrainCutTextures.Count - 1);
-
-                    // DLL generators
-                    DLLMRITextureCutGenerators[DLLMRITextureCutGenerators.Count - 1].Dispose();
-                    DLLMRITextureCutGenerators.RemoveAt(DLLMRITextureCutGenerators.Count - 1);
-                }
-            }
-
-            if (diffCuts != 0)
-            {
-                IsRenderingUpToDate = false;
-            }
+            CutTextures.Resize(nbCuts);
+            IsRenderingUpToDate = false;
         }
         public virtual void UpdateSitesRendering(SceneStatesInfo data, Latencies latenciesFile)
         {
@@ -754,84 +627,6 @@ namespace HBP.Module3D
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Can not load site states", "Please verify your files and try again.");
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="colormap"></param>
-        /// <param name="colorBrainCut"></param>
-        public void ResetColorSchemes(Data.Enums.ColorType colormap, Data.Enums.ColorType colorBrainCut)
-        {
-            DLLCutColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap); 
-            DLLCutFMRIColorScheme = DLL.Texture.Generate2DColorTexture(colorBrainCut, colormap);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="geometryGenerator"></param>
-        /// <param name="volume"></param>
-        /// <param name="indexCut"></param>
-        /// <param name="MRICalMinFactor"></param>
-        /// <param name="MRICalMaxFactor"></param>
-        public void CreateMRITexture(DLL.MRIGeometryCutGenerator geometryGenerator, DLL.Volume volume, int indexCut, float MRICalMinFactor, float MRICalMaxFactor)
-        {
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture reset 0  ");
-            DLL.MRITextureCutGenerator textureGenerator = DLLMRITextureCutGenerators[indexCut];
-            textureGenerator.Reset(geometryGenerator);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture fill_texture_with_volume 1  ");
-            textureGenerator.FillTextureWithVolume(volume, DLLCutColorScheme, MRICalMinFactor, MRICalMaxFactor);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture updateTexture 2  ");
-            textureGenerator.UpdateTexture(DLLBrainCutTextures[indexCut]);
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-Column3DView create_MRI_texture update_texture_2D 3  ");
-            DLLBrainCutTextures[indexCut].UpdateTexture2D(BrainCutTextures[indexCut]); // update mesh cut 2D texture
-            UnityEngine.Profiling.Profiler.EndSample();
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="indexCut"></param>
-        /// <param name="orientation"></param>
-        /// <param name="flip"></param>
-        /// <param name="cuts"></param>
-        /// <param name="drawLines"></param>
-        public void CreateGUIMRITextures(List<Cut> cuts)
-        {
-            foreach (Cut cut in cuts)
-            {
-                if (DLLBrainCutTextures[cut.ID].TextureSize[0] > 0)
-                {
-                    DLLGUIBrainCutTextures[cut.ID].CopyAndRotate(DLLBrainCutTextures[cut.ID], cut.Orientation.ToString(), cut.Flip, ApplicationState.UserPreferences.Visualization.Cut.ShowCutLines && cut.Orientation != Data.Enums.CutOrientation.Custom, cut.ID, cuts, DLLMRITextureCutGenerators[cut.ID]);
-                }
-            }
-        }
-        public void ResizeGUIMRITextures(List<Cut> cuts)
-        {
-            int max = 0;
-            foreach (var cut in cuts)
-            {
-                if (cut.Orientation != Data.Enums.CutOrientation.Custom)
-                {
-                    int textureMax = DLLGUIBrainCutTextures[cut.ID].TextureSize.Max();
-                    if (textureMax > max)
-                    {
-                        max = textureMax;
-                    }
-                }
-            }
-            for (int i = 0; i < DLLGUIBrainCutTextures.Count; ++i)
-            {
-                DLLGUIBrainCutTextures[i].ResizeToSquare(max);
-                DLLGUIBrainCutTextures[i].UpdateTexture2D(GUIBrainCutTextures[i]);
-            }
-        }
-        /// <summary>
-        /// 
-        /// </summary>
         public void AddView()
         {
             View3D view = Instantiate(ViewPrefab, transform.Find("Views")).GetComponent<View3D>();
@@ -858,15 +653,11 @@ namespace HBP.Module3D
             });
             m_Views.Add(view);
         }
-        /// <summary>
-        /// 
-        /// </summary>
         public void RemoveView(int lineID)
         {
             Destroy(m_Views[lineID].gameObject);
             m_Views.RemoveAt(lineID);
         }
-
         public ROI AddROI(string name = ROI.DEFAULT_ROI_NAME)
         {
             GameObject roiGameObject = Instantiate(m_ROIPrefab, m_ROIParent);
@@ -924,7 +715,6 @@ namespace HBP.Module3D
                 }
             }
         }
-
         public void UnselectSite()
         {
             if (SelectedSite)

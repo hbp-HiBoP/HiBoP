@@ -280,7 +280,7 @@ namespace HBP.UI.Module3D
         /// Update IEEG values
         /// </summary>
         /// <param name="values">IEEG data values</param>
-        public void UpdateIEEGValues(Column3DIEEG.IEEGDataParameters values)
+        public void UpdateIEEGValues(IEEGDataParameters values)
         {
             m_Initialized = false;
 

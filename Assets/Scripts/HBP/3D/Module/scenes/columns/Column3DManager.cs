@@ -75,8 +75,7 @@ namespace HBP.Module3D
                 return viewNumber;
             }
         }
-
-        // Sites
+        
         /// <summary>
         /// List of the implantation3Ds of the scene
         /// </summary>
@@ -107,20 +106,7 @@ namespace HBP.Module3D
         /// List of the electrode gameObjects that contain sites
         /// </summary>
         public List<List<GameObject>> SitesElectrodesParent = new List<List<GameObject>>();
-
-        // textures
-        public List<Vector2[]> UVNull = null;                   /**< null uv vectors */ // // new List<Vector2[]>(); 
-
-        public List<DLL.MRIBrainGenerator> DLLCommonBrainTextureGeneratorList = null; /**< common generators for each brain part  */
-
-        // Common columns cut textures 
-        //  textures 2D
-        public List<Texture2D> RightGUICutTextures = null;                  /**< list of rotated cut textures| */
-
-        //  generator DLL
-        public List<DLL.MRIGeometryCutGenerator> DLLMRIGeometryCutGeneratorList = null;      
         
-        // surface
         /// <summary>
         /// List of all the mesh3Ds of the scene
         /// </summary>
@@ -150,9 +136,8 @@ namespace HBP.Module3D
         /// <summary>
         /// List of the surfaces for the cuts
         /// </summary>
-        public List<DLL.Surface> DLLCutsList = null;
-
-        // volume
+        public List<DLL.Surface> DLLCutsList = new List<DLL.Surface>();
+        
         /// <summary>
         /// List of the MRIs of the scene
         /// </summary>
@@ -180,6 +165,20 @@ namespace HBP.Module3D
         /// </summary>
         public DLL.BBox CubeBoundingBox { get; private set; }
 
+        /// <summary>
+        /// Null UV vector
+        /// </summary>
+        public List<Vector2[]> UVNull;
+
+        /// <summary>
+        /// Common generator for each brain part
+        /// </summary>
+        public List<DLL.MRIBrainGenerator> DLLCommonBrainTextureGeneratorList = new List<DLL.MRIBrainGenerator>();
+        /// <summary>
+        /// Geometry generator for cuts
+        /// </summary>
+        public List<DLL.MRIGeometryCutGenerator> DLLMRIGeometryCutGeneratorList = new List<DLL.MRIGeometryCutGenerator>();      
+        
         private float m_MRICalMinFactor = 0.0f;
         /// <summary>
         /// MRI Cal Min Value
@@ -318,11 +317,7 @@ namespace HBP.Module3D
                 FMRICalMaxFactor = (value - FMRI.Volume.ExtremeValues.ComputedCalMin) / (FMRI.Volume.ExtremeValues.ComputedCalMax - FMRI.Volume.ExtremeValues.ComputedCalMin);
             }
         }
-
-        // UV coordinates
-        public List<Vector2[]> UVCoordinatesSplits = null; // uv coordinates for each brain mesh split
-
-        // textures
+        
         private Data.Enums.ColorType m_BrainColor = Data.Enums.ColorType.BrainColor;
         /// <summary>
         /// Brain surface color
@@ -373,10 +368,9 @@ namespace HBP.Module3D
             }
         }
 
-        public Texture2D BrainColorMapTexture = null;
-        public Texture2D BrainColorTexture = null;
-
-        // Column 3D Prefabs
+        public Texture2D BrainColorMapTexture;
+        public Texture2D BrainColorTexture;
+        
         [SerializeField] private GameObject m_Column3DPrefab;
         [SerializeField] private GameObject m_Column3DIEEGPrefab;
         #endregion
@@ -471,6 +465,10 @@ namespace HBP.Module3D
             BrainColorMapTexture = Texture2Dutility.GenerateColorScheme();
             BrainColorTexture = Texture2Dutility.GenerateColorScheme();
         }
+        /// <summary>
+        /// Add a column to the scene
+        /// </summary>
+        /// <param name="type"></param>
         private void AddColumn(Data.Visualization.Column.ColumnType type)
         {
             Column3D column = null;
@@ -574,7 +572,7 @@ namespace HBP.Module3D
                     column.IsRenderingUpToDate = false;
                 });
             }
-            column.Initialize(m_Columns.Count, 0, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
+            column.Initialize(m_Columns.Count, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);
             m_Columns.Add(column);
             OnAddColumn.Invoke();
@@ -599,38 +597,10 @@ namespace HBP.Module3D
 
         #region Public Method
         /// <summary>
-        /// Reset all data.
+        /// Initialize the meshes of each column
         /// </summary>
-        public void Initialize(int cutPlanesNb)
-        {
-            // surfaces
-            DLLCutsList = new List<DLL.Surface>();
-
-            // cuts
-            //  textures 2D            
-            RightGUICutTextures = new List<Texture2D>(cutPlanesNb);
-
-            //  DLL generators
-            DLLMRIGeometryCutGeneratorList = new List<DLL.MRIGeometryCutGenerator>(cutPlanesNb);
-            for (int ii = 0; ii < cutPlanesNb; ++ii)
-            {                
-                RightGUICutTextures.Add(new Texture2D(1, 1));                
-                DLLMRIGeometryCutGeneratorList.Add(new DLL.MRIGeometryCutGenerator());
-            }
-
-            if (m_Columns != null)
-            {
-                for (int c = 0; c < m_Columns.Count; c++)
-                {
-                    m_Columns[c].Clear();
-                    Destroy(m_Columns[c].gameObject);
-                }
-                m_Columns.Clear();
-            }
-            else m_Columns = new List<Column3D>();
-
-            //ResetSplitsNumber(1);
-        }
+        /// <param name="meshes"></param>
+        /// <param name="useSimplifiedMeshes"></param>
         public void InitializeColumnsMeshes(GameObject meshes, bool useSimplifiedMeshes)
         {
             foreach (Column3D column in m_Columns)
@@ -649,11 +619,6 @@ namespace HBP.Module3D
                 mesh.Split(MeshSplitNumber);
             }
 
-            // uv coordinates
-            UVCoordinatesSplits = new List<Vector2[]>(Enumerable.Repeat(new Vector2[0], MeshSplitNumber));
-
-            // brain
-            //  generators
             DLLCommonBrainTextureGeneratorList = new List<DLL.MRIBrainGenerator>(MeshSplitNumber);
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
                 DLLCommonBrainTextureGeneratorList.Add(new DLL.MRIBrainGenerator());
@@ -664,56 +629,32 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// 
+        /// Reset color schemes of every columns
         /// </summary>
         public void ResetColors()
         {
             for (int ii = 0; ii < m_Columns.Count; ++ii)
-                Columns[ii].ResetColorSchemes(Colormap, BrainCutColor);
+                Columns[ii].CutTextures.ResetColorSchemes(Colormap, BrainCutColor);
         }
         /// <summary>
-        /// Update the number of cut planes for every column
+        /// Update the number of cut planes for every columns
         /// </summary>
         /// <param name="nbCuts"></param>
         public void UpdateCutNumber(int nbCuts)
         {
-            // update common
-            int diffCuts = DLLMRIGeometryCutGeneratorList.Count - nbCuts;
-            if (diffCuts < 0)
+            while (DLLMRIGeometryCutGeneratorList.Count < nbCuts)
             {
-                // textures 2D
-                for (int ii = 0; ii < -diffCuts; ++ii)
-                {
-                    // GO textures        
-                    RightGUICutTextures.Add(new Texture2D(1, 1));
-                    int id = RightGUICutTextures.Count - 1;
-                    RightGUICutTextures[id].filterMode = FilterMode.Trilinear; // TODO : test performances with this parameter
-                    RightGUICutTextures[id].wrapMode = TextureWrapMode.Clamp;
-                    RightGUICutTextures[id].anisoLevel = 9; // TODO : test performances with this parameter
-                    RightGUICutTextures[id].mipMapBias = -2; // never superior to -1 (colorscheme 8 texture glitch)    
-
-                    // DLL generators       
-                    DLLMRIGeometryCutGeneratorList.Add(new DLL.MRIGeometryCutGenerator());
-                }
+                DLLMRIGeometryCutGeneratorList.Add(new DLL.MRIGeometryCutGenerator());
             }
-            else if (diffCuts > 0)
-            {                
-                for (int ii = 0; ii < diffCuts; ++ii)
-                {
-                    // GO textures
-                    Destroy(RightGUICutTextures[RightGUICutTextures.Count - 1]);
-                    RightGUICutTextures.RemoveAt(RightGUICutTextures.Count - 1);
-
-                    // DLL generators
-                    DLLMRIGeometryCutGeneratorList[DLLMRIGeometryCutGeneratorList.Count - 1].Dispose();
-                    DLLMRIGeometryCutGeneratorList.RemoveAt(DLLMRIGeometryCutGeneratorList.Count - 1);
-                }
+            while (DLLMRIGeometryCutGeneratorList.Count > nbCuts)
+            {
+                DLLMRIGeometryCutGeneratorList.Last().Dispose();
+                DLLMRIGeometryCutGeneratorList.RemoveAt(DLLMRIGeometryCutGeneratorList.Count - 1);
             }
 
-            // update columns
             for (int c = 0; c < m_Columns.Count; c++)
             {
-                m_Columns[c].UpdateCutsPlanesNumber(diffCuts);
+                m_Columns[c].UpdateCutsPlanesNumber(nbCuts);
             }
         }
         /// <summary>
@@ -749,17 +690,10 @@ namespace HBP.Module3D
         /// <param name="indexCut"></param>
         public void CreateMRITexture(Column3D column, int cutID)
         {
-            column.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor);
+            column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor);
             if (FMRI != null)
             {
-                UnityEngine.Profiling.Profiler.BeginSample("Compute FMRI textures");
-                DLL.MRITextureCutGenerator generator = column.DLLMRITextureCutGenerators[cutID];
-                generator.FillTextureWithFMRI(column, FMRI.Volume, m_FMRICalMinFactor, m_FMRICalMaxFactor, m_FMRIAlpha);
-
-                DLL.Texture cutTexture = column.DLLBrainCutTextures[cutID];
-                generator.UpdateTextureWithFMRI(cutTexture);
-                cutTexture.UpdateTexture2D(column.BrainCutTextures[cutID]);
-                UnityEngine.Profiling.Profiler.EndSample();
+                column.CutTextures.ColorCutsTexturesWithFMRI(FMRI.Volume, cutID, m_FMRICalMinFactor, m_FMRICalMaxFactor, m_FMRIAlpha);
             }
         }
         /// <summary>
@@ -771,13 +705,10 @@ namespace HBP.Module3D
         /// <param name="thresholdInfluence"></param>
         /// <param name="alphaMin"></param>
         /// <param name="alphaMax"></param>
-        public bool ComputeSurfaceBrainUVWithIEEG(Column3DIEEG column)
+        public void ComputeSurfaceBrainUVWithIEEG(Column3DIEEG column)
         {
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
-                if(!column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(SelectedMesh.SplittedMeshes[ii], column))
-                    return false;
-
-            return true;
+                column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(SelectedMesh.SplittedMeshes[ii], column);
         }
         /// <summary>
         /// Update the plot rendering parameters for all columns
@@ -808,36 +739,6 @@ namespace HBP.Module3D
             }
 
             data.AreSitesUpdated = true;
-        }
-        /// <summary>
-        /// Check the integrity of some IEEG parameters and show a warning dialog if required
-        /// </summary>
-        public void CheckIEEGParametersIntegrity()
-        {
-            List<Column3DIEEG> invalidColumns = new List<Column3DIEEG>();
-            foreach (var column in ColumnsIEEG)
-            {
-                float diffMin = column.IEEGParameters.SpanMin - column.IEEGParameters.Middle;
-                float diffMax = column.IEEGParameters.SpanMax - column.IEEGParameters.Middle;
-                if (diffMin == 0 && diffMax == 0)
-                {
-                    invalidColumns.Add(column);
-                }
-            }
-            if (invalidColumns.Count > 0)
-            {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Warning, "Invalid iEEG span values", "The difference between Span Min, Middle and Span Max of some columns is equal to zero.");
-            }
-        }
-        /// <summary>
-        /// Update the visiblity of the ROI for all columns
-        /// </summary>
-        /// <param name="visible"></param>
-        public void UpdateROIVisibility(bool visible)
-        {
-            for(int ii = 0; ii < m_Columns.Count; ++ii)
-                if (m_Columns[ii].SelectedROI != null)
-                    m_Columns[ii].SelectedROI.SetRenderingState(visible);
         }
         /// <summary>
         /// Add a view to every columns

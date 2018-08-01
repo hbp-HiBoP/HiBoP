@@ -477,7 +477,9 @@ namespace HBP.Module3D
             set
             {
                 SceneInformation.IsROICreationModeEnabled = value;
-                ColumnManager.UpdateROIVisibility(value);
+                for (int ii = 0; ii < ColumnManager.Columns.Count; ++ii)
+                    if (ColumnManager.Columns[ii].SelectedROI != null)
+                        ColumnManager.Columns[ii].SelectedROI.SetRenderingState(value);
             }
         }
 
@@ -737,14 +739,14 @@ namespace HBP.Module3D
             if (column)
             {
                 m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(column);
-                column.ColorCutsTexturesWithIEEG();
+                column.CutTextures.ColorCutsTexturesWithIEEG(column);
             }
             else
             {
                 foreach (Column3DIEEG col in m_ColumnManager.ColumnsIEEG)
                 {
                     m_ColumnManager.ComputeSurfaceBrainUVWithIEEG(col);
-                    col.ColorCutsTexturesWithIEEG();
+                    col.CutTextures.ColorCutsTexturesWithIEEG(col);
                 }
             }
         }
@@ -758,8 +760,8 @@ namespace HBP.Module3D
             Column3D column = m_ColumnManager.SelectedColumn;
             if (column)
             {
-                column.CreateGUIMRITextures(m_Cuts);
-                column.ResizeGUIMRITextures(m_Cuts);
+                column.CutTextures.CreateGUIMRITextures(m_Cuts);
+                column.CutTextures.ResizeGUIMRITextures(m_Cuts);
                 foreach (Cut cut in m_Cuts)
                 {
                     cut.OnUpdateGUITextures.Invoke(column);
@@ -783,9 +785,6 @@ namespace HBP.Module3D
 
             // update plots visibility
             SceneInformation.AreSitesUpdated = false;
-
-            // check validity of plot scale
-            m_ColumnManager.CheckIEEGParametersIntegrity();
 
             OnIEEGOutdated.Invoke(false);
         }
@@ -1779,7 +1778,7 @@ namespace HBP.Module3D
             // update cuts textures
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
-                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = column.BrainCutTextures[ii];
+                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<Renderer>().material.mainTexture = column.CutTextures.BrainCutTextures[ii];
             }
 
             if (!column.IsRenderingUpToDate)
@@ -2173,7 +2172,6 @@ namespace HBP.Module3D
             }
 
             // Loading Columns
-            m_ColumnManager.Initialize(Cuts.Count);
             progress += loadingIEEGProgress;
             onChangeProgress.Invoke(progress, loadingIEEGTime, "Loading columns");
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(e => exception = e));
@@ -2496,16 +2494,16 @@ namespace HBP.Module3D
                     OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
                     yield return Ninja.JumpBack;
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
+                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, ApplicationState.UserPreferences.General.System.MultiThreading);
+                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluence);
+                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluence);
                     if (m_GeneratorNeedsUpdate) yield break;
 
-                    currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity;
-                    currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MinimumInfluence;
-                    currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumInfluence;
+                    currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].MaximumDensity;
+                    currentMinInfluence = m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].MinimumInfluence;
+                    currentMaxInfluence = m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].MaximumInfluence;
 
                     if (currentMaxDensity > maxDensity)
                         maxDensity = currentMaxDensity;
@@ -2525,7 +2523,7 @@ namespace HBP.Module3D
                 }
                 for (int jj = 0; jj < m_Cuts.Count; ++jj)
                 {
-                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
+                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
 
@@ -2536,7 +2534,7 @@ namespace HBP.Module3D
                 }
                 for (int jj = 0; jj < m_Cuts.Count; ++jj)
                 {
-                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
+                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
             }

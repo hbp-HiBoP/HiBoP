@@ -158,10 +158,10 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="column"></param>
             /// <param name="volume"></param>
-            public void FillTextureWithFMRI(Column3D column, Volume volume, float calMin, float calMax, float alpha)
+            public void FillTextureWithFMRI(Texture colorScheme, Volume volume, float calMin, float calMax, float alpha)
             {
                 bool noError = false;
-                noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), column.DLLCutFMRIColorScheme.getHandle(), calMin, calMax, alpha) ==1;
+                noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), colorScheme.getHandle(), calMin, calMax, alpha) ==1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
