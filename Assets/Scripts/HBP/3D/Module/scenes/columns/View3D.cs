@@ -11,7 +11,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Camera 3D associated to the view
         /// </summary>
-        private Camera3D m_Camera3D;
+        [SerializeField] private Camera3D m_Camera3D;
         /// <summary>
         /// Physical camera component of this view
         /// </summary>
@@ -181,7 +181,9 @@ namespace HBP.Module3D
                 m_Camera3D.Camera.targetTexture = value;
             }
         }
-
+        /// <summary>
+        /// Get the texture for the screenshot
+        /// </summary>
         public Texture2D ScreenshotTexture
         {
             get
@@ -253,6 +255,9 @@ namespace HBP.Module3D
             }
         }
 
+        /// <summary>
+        /// Display the rotation circles when dragging the brain
+        /// </summary>
         public bool DisplayRotationCircles
         {
             get
@@ -274,6 +279,9 @@ namespace HBP.Module3D
         /// </summary>
         private int m_RegularCullingMask;
 
+        /// <summary>
+        /// Is the scene initialized ?
+        /// </summary>
         private bool m_Initialized = false;
         #endregion
 
@@ -281,24 +289,23 @@ namespace HBP.Module3D
         /// <summary>
         /// Event called when we select this view
         /// </summary>
-        public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
         /// <summary>
         /// Event called when the camera is moved (rotation, strafe, zoom)
         /// </summary>
-        public UnityEvent OnMoveView = new UnityEvent();
+        [HideInInspector] public UnityEvent OnMoveView = new UnityEvent();
         #endregion
 
         #region Private Methods
         private void Awake()
         {
-            m_Camera3D = transform.GetComponentInChildren<Camera3D>();
             Default();
         }
         private void Start()
         {
             int layer = 0;
             layer |= 1 << LayerMask.NameToLayer(Layer);
-            layer |= 1 << LayerMask.NameToLayer("Default");
+            layer |= 1 << LayerMask.NameToLayer(HBP3DModule.DEFAULT_MESHES_LAYER);
 
             m_RegularCullingMask = layer;
             m_MinimizedCullingMask = 0;

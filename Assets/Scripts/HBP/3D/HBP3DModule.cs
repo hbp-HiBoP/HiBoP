@@ -23,6 +23,9 @@ namespace HBP.Module3D
     public class HBP3DModule : MonoBehaviour
     {
         #region Properties
+        public const string DEFAULT_MESHES_LAYER = "Default";
+        public const string HIDDEN_MESHES_LAYER = "Hidden Meshes";
+
         /// <summary>
         /// Currently selected scene
         /// </summary>

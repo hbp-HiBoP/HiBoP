@@ -1356,8 +1356,8 @@ namespace HBP.Module3D
             SharedMaterials.Brain.AddSceneMaterials(this);
 
             // Set default SceneInformation values
-            SceneInformation.MeshesLayerName = "Default";
-            SceneInformation.HiddenMeshesLayerName = "Hidden Meshes";
+            SceneInformation.MeshesLayerName = HBP3DModule.DEFAULT_MESHES_LAYER;
+            SceneInformation.HiddenMeshesLayerName = HBP3DModule.HIDDEN_MESHES_LAYER;
             SceneInformation.UseSimplifiedMeshes = ApplicationState.UserPreferences.Visualization.Cut.SimplifiedMeshes;
 
             AddListeners();
