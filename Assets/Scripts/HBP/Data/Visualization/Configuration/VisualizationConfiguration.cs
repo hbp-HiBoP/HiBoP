@@ -230,11 +230,11 @@ namespace HBP.Data.Visualization
         }
 
         [DataMember(Name = "Camera Type")]
-        private Module3D.CameraControl m_CameraType = Module3D.CameraControl.Trackball;
+        private Enums.CameraControl m_CameraType = Enums.CameraControl.Trackball;
         /// <summary>
         /// Camera control type
         /// </summary>
-        public Module3D.CameraControl CameraType
+        public Enums.CameraControl CameraType
         {
             get
             {

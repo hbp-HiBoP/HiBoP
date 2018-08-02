@@ -381,11 +381,11 @@ namespace HBP.Module3D
             }
         }
 
-        private CameraControl m_CameraType = CameraControl.Trackball;
+        private Data.Enums.CameraControl m_CameraType = Data.Enums.CameraControl.Trackball;
         /// <summary>
         /// Camera Control type
         /// </summary>
-        public CameraControl CameraType
+        public Data.Enums.CameraControl CameraType
         {
             get
             {
@@ -451,19 +451,6 @@ namespace HBP.Module3D
                 }
             }
         }
-
-        /// <summary>
-        /// Ambient mode (rendering)
-        /// </summary>
-        public AmbientMode AmbientMode = AmbientMode.Flat;
-        /// <summary>
-        /// Ambient intensity (rendering)
-        /// </summary>
-        public float AmbientIntensity = 1;
-        /// <summary>
-        /// Ambient light (rendering)
-        /// </summary>
-        public Color AmbientLight = new Color(0.2f, 0.2f, 0.2f, 1);
 
         /// <summary>
         /// Is ROI creation mode activated ?
@@ -1481,7 +1468,7 @@ namespace HBP.Module3D
             HideBlacklistedSites = false;
             m_ColumnManager.MRICalMinFactor = 0.0f;
             m_ColumnManager.MRICalMaxFactor = 1.0f;
-            CameraType = CameraControl.Trackball;
+            CameraType = Data.Enums.CameraControl.Trackball;
 
             switch (Type)
             {

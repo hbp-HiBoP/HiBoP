@@ -143,7 +143,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Camera rotation type
         /// </summary>
-        public CameraControl CameraType
+        public Data.Enums.CameraControl CameraType
         {
             get
             {
