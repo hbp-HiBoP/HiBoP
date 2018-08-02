@@ -194,16 +194,16 @@ namespace HBP.UI.Module3D
         {
             if (m_UpdateRequired)
             {
-                m_SceneSettingsToolbar.UpdateToolbarState();
-                m_DisplaySettingsToolbar.UpdateToolbarState();
-                m_IEEGSettingsToolbar.UpdateToolbarState();
-                m_TimelineToolbar.UpdateToolbarState();
-                m_SiteToolbar.UpdateToolbarState();
-                m_ROIToolbar.UpdateToolbarState();
-                m_TriangleToolbar.UpdateToolbarState();
-                m_ConfigurationToolbar.UpdateToolbarState();
-                m_CCEPToolbar.UpdateToolbarState();
-                m_FMRIToolbar.UpdateToolbarState();
+                m_SceneSettingsToolbar.UpdateToolbar();
+                m_DisplaySettingsToolbar.UpdateToolbar();
+                m_IEEGSettingsToolbar.UpdateToolbar();
+                m_TimelineToolbar.UpdateToolbar();
+                m_SiteToolbar.UpdateToolbar();
+                m_ROIToolbar.UpdateToolbar();
+                m_TriangleToolbar.UpdateToolbar();
+                m_ConfigurationToolbar.UpdateToolbar();
+                m_CCEPToolbar.UpdateToolbar();
+                m_FMRIToolbar.UpdateToolbar();
                 m_UpdateRequired = false;
             }
         }

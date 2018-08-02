@@ -73,18 +73,15 @@ namespace HBP.UI.Module3D.Tools
             m_Toggle.interactable = isColumnIEEG && areAmplitudesComputed;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
+            if (ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                if (ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
-                {
-                    m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IsTimelineLooping;
-                }
-                else
-                {
-                    m_Toggle.isOn = false;
-                }
+                m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IsTimelineLooping;
+            }
+            else
+            {
+                m_Toggle.isOn = false;
             }
         }
         #endregion

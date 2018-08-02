@@ -104,35 +104,32 @@ namespace HBP.UI.Module3D.Tools
             m_Left.interactable = isMeshLeftRight;
             m_Right.interactable = isMeshLeftRight;
         }
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Scene)
+            ChangeBrainTypeCallback();
+            Base3DScene scene = ApplicationState.Module3D.SelectedScene;
+            if (scene != null)
             {
-                ChangeBrainTypeCallback();
-                Base3DScene scene = ApplicationState.Module3D.SelectedScene;
-                if (scene != null)
+                switch (scene.SceneInformation.MeshPartToDisplay)
                 {
-                    switch (scene.SceneInformation.MeshPartToDisplay)
-                    {
-                        case Data.Enums.MeshPart.Left:
-                            m_Left.isOn = true;
-                            m_Right.isOn = false;
-                            break;
-                        case Data.Enums.MeshPart.Right:
-                            m_Left.isOn = false;
-                            m_Right.isOn = true;
-                            break;
-                        case Data.Enums.MeshPart.Both:
-                            m_Left.isOn = true;
-                            m_Right.isOn = true;
-                            break;
-                        case Data.Enums.MeshPart.None:
-                            m_Left.isOn = false;
-                            m_Right.isOn = false;
-                            break;
-                        default:
-                            break;
-                    }
+                    case Data.Enums.MeshPart.Left:
+                        m_Left.isOn = true;
+                        m_Right.isOn = false;
+                        break;
+                    case Data.Enums.MeshPart.Right:
+                        m_Left.isOn = false;
+                        m_Right.isOn = true;
+                        break;
+                    case Data.Enums.MeshPart.Both:
+                        m_Left.isOn = true;
+                        m_Right.isOn = true;
+                        break;
+                    case Data.Enums.MeshPart.None:
+                        m_Left.isOn = false;
+                        m_Right.isOn = false;
+                        break;
+                    default:
+                        break;
                 }
             }
         }

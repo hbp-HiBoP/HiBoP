@@ -40,12 +40,9 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.interactable = true;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Scene)
-            {
-                m_Dropdown.value = m_ColormapIndices.FindIndex((c) => c == ApplicationState.Module3D.SelectedScene.ColumnManager.Colormap);
-            }
+            m_Dropdown.value = m_ColormapIndices.FindIndex((c) => c == ApplicationState.Module3D.SelectedScene.ColumnManager.Colormap);
         }
         #endregion
     }

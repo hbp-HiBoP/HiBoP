@@ -133,18 +133,15 @@ namespace HBP.UI.Module3D.Tools
             m_Plus.interactable = isColumnIEEG && areAmplitudesComputed;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
+            if (ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                if (ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
-                {
-                    m_InputField.text = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).TimelineStep.ToString();
-                }
-                else
-                {
-                    m_InputField.text = "1";
-                }
+                m_InputField.text = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).TimelineStep.ToString();
+            }
+            else
+            {
+                m_InputField.text = "1";
             }
         }
         #endregion

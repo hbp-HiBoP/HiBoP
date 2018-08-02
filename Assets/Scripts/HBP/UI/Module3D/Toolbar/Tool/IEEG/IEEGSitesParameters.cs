@@ -76,21 +76,18 @@ namespace HBP.UI.Module3D.Tools
             m_InputField.interactable = isColumnIEEG;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
+            if (ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                if (ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
-                {
-                    HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
-                    m_Slider.value = selectedColumn.IEEGParameters.Gain;
-                    m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString("N2");
-                }
-                else
-                {
-                    m_Slider.value = 0.5f;
-                    m_InputField.text = "15.00";
-                }
+                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
+                m_Slider.value = selectedColumn.IEEGParameters.Gain;
+                m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString("N2");
+            }
+            else
+            {
+                m_Slider.value = 0.5f;
+                m_InputField.text = "15.00";
             }
         }
         #endregion

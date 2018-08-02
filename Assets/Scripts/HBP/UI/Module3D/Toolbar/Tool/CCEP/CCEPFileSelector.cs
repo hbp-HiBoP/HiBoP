@@ -37,21 +37,18 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.interactable = isCCEP;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
+            m_Dropdown.options.Clear();
+            if (ApplicationState.Module3D.SelectedScene.Type == Data.Enums.SceneType.SinglePatient)
             {
-                m_Dropdown.options.Clear();
-                if (ApplicationState.Module3D.SelectedScene.Type == Data.Enums.SceneType.SinglePatient)
+                foreach (HBP.Module3D.Latencies latencies in ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedImplantation.Latencies)
                 {
-                    foreach (HBP.Module3D.Latencies latencies in ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedImplantation.Latencies)
-                    {
-                        m_Dropdown.options.Add(new Dropdown.OptionData(latencies.Name));
-                    }
-                    m_Dropdown.value = ApplicationState.Module3D.SelectedColumn.CurrentLatencyFile != -1 ? ApplicationState.Module3D.SelectedColumn.CurrentLatencyFile : 0;
+                    m_Dropdown.options.Add(new Dropdown.OptionData(latencies.Name));
                 }
-                m_Dropdown.RefreshShownValue();
+                m_Dropdown.value = ApplicationState.Module3D.SelectedColumn.CurrentLatencyFile != -1 ? ApplicationState.Module3D.SelectedColumn.CurrentLatencyFile : 0;
             }
+            m_Dropdown.RefreshShownValue();
         }
         #endregion
     }

@@ -71,12 +71,12 @@ namespace HBP.UI.Module3D
 
             m_Views.OnClick.AddListener(() =>
             {
-                UpdateInteractableButtons();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
 
             m_StandardViews.OnClick.AddListener(() =>
             {
-                UpdateInteractableButtons();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
         }
         #endregion

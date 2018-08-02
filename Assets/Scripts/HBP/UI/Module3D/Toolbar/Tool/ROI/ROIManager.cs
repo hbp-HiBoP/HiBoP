@@ -183,13 +183,10 @@ namespace HBP.UI.Module3D.Tools
             m_VolumeSelector.interactable = hasVolume;
             m_RemoveVolume.interactable = hasVolume;
         }
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
-            {
-                UpdateROIDropdownOptions();
-                UpdateSelectedROIUI();
-            }
+            UpdateROIDropdownOptions();
+            UpdateSelectedROIUI();
         }
         #endregion
     }

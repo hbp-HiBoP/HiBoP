@@ -57,22 +57,19 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.interactable = true;
             m_InputField.interactable = isZoneModeEnabled;
         }
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Scene)
+            m_Dropdown.value = (int)ApplicationState.Module3D.SelectedScene.TriangleErasingMode;
+            m_InputField.text = ApplicationState.Module3D.SelectedScene.TriangleErasingZoneDegrees.ToString();
+            if (ApplicationState.Module3D.SelectedScene.TriangleErasingMode != TriEraser.Mode.Zone)
             {
-                m_Dropdown.value = (int)ApplicationState.Module3D.SelectedScene.TriangleErasingMode;
-                m_InputField.text = ApplicationState.Module3D.SelectedScene.TriangleErasingZoneDegrees.ToString();
-                if (ApplicationState.Module3D.SelectedScene.TriangleErasingMode != TriEraser.Mode.Zone)
-                {
-                    m_InputField.gameObject.SetActive(false);
-                    m_InputFieldParent.gameObject.SetActive(false);
-                }
-                else
-                {
-                    m_InputField.gameObject.SetActive(true);
-                    m_InputFieldParent.gameObject.SetActive(true);
-                }
+                m_InputField.gameObject.SetActive(false);
+                m_InputFieldParent.gameObject.SetActive(false);
+            }
+            else
+            {
+                m_InputField.gameObject.SetActive(true);
+                m_InputFieldParent.gameObject.SetActive(true);
             }
         }
         #endregion

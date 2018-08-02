@@ -52,13 +52,10 @@ namespace HBP.UI.Module3D.Tools
             m_Slider.interactable = true;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Scene)
-            {
-                m_Toggle.isOn = ApplicationState.Module3D.SelectedScene.AutomaticRotation;
-                m_Slider.value = ApplicationState.Module3D.SelectedScene.AutomaticRotationSpeed;
-            }
+            m_Toggle.isOn = ApplicationState.Module3D.SelectedScene.AutomaticRotation;
+            m_Slider.value = ApplicationState.Module3D.SelectedScene.AutomaticRotationSpeed;
         }
         #endregion
     }

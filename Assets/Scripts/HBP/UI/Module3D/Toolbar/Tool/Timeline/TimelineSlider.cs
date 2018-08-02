@@ -132,32 +132,29 @@ namespace HBP.UI.Module3D.Tools
             m_Slider.interactable = isColumnIEEG && areAmplitudesComputed;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
+            if (ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                if (ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
-                {
-                    HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
-                    m_Slider.maxValue = column.MaxTimeLineID;
-                    m_Slider.value = column.CurrentTimeLineID;
-                    m_Min.text = column.ColumnData.TimeLine.Start.RawValue.ToString("N2") + column.TimeLineUnite;
-                    m_Max.text = column.ColumnData.TimeLine.End.RawValue.ToString("N2") + column.TimeLineUnite;
-                    m_Current.text = column.CurrentTimeLineID + " (" + column.CurrentTimeLine.ToString("N2") + column.TimeLineUnite + ")";
-                    m_RawTimeline.anchorMin = new Vector2((column.ColumnData.TimeLine.Start.RawValue - column.MinTimeLine) / (column.MaxTimeLine - column.MinTimeLine), 0);
-                    m_RawTimeline.anchorMax = new Vector2(1 - ((column.MaxTimeLine - column.ColumnData.TimeLine.End.RawValue) / (column.MaxTimeLine - column.MinTimeLine)), 1);
-                    ShowEvents(column);
-                }
-                else
-                {
-                    m_Min.text = "Min";
-                    m_Max.text = "Max";
-                    m_Current.text = "Current Time";
-                    m_Slider.value = 0;
-                    m_RawTimeline.anchorMin = new Vector2(0, 0);
-                    m_RawTimeline.anchorMax = new Vector2(1, 1);
-                    DeleteEvents();
-                }
+                HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
+                m_Slider.maxValue = column.MaxTimeLineID;
+                m_Slider.value = column.CurrentTimeLineID;
+                m_Min.text = column.ColumnData.TimeLine.Start.RawValue.ToString("N2") + column.TimeLineUnite;
+                m_Max.text = column.ColumnData.TimeLine.End.RawValue.ToString("N2") + column.TimeLineUnite;
+                m_Current.text = column.CurrentTimeLineID + " (" + column.CurrentTimeLine.ToString("N2") + column.TimeLineUnite + ")";
+                m_RawTimeline.anchorMin = new Vector2((column.ColumnData.TimeLine.Start.RawValue - column.MinTimeLine) / (column.MaxTimeLine - column.MinTimeLine), 0);
+                m_RawTimeline.anchorMax = new Vector2(1 - ((column.MaxTimeLine - column.ColumnData.TimeLine.End.RawValue) / (column.MaxTimeLine - column.MinTimeLine)), 1);
+                ShowEvents(column);
+            }
+            else
+            {
+                m_Min.text = "Min";
+                m_Max.text = "Max";
+                m_Current.text = "Current Time";
+                m_Slider.value = 0;
+                m_RawTimeline.anchorMin = new Vector2(0, 0);
+                m_RawTimeline.anchorMax = new Vector2(1, 1);
+                DeleteEvents();
             }
         }
         #endregion

@@ -51,15 +51,12 @@ namespace HBP.UI.Module3D.Tools
             m_Button.interactable = isColumnIEEG;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
+            HBP.Module3D.Column3D selectedColumn = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
+            if (selectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                HBP.Module3D.Column3D selectedColumn = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
-                if (selectedColumn.Type == Data.Enums.ColumnType.iEEG)
-                {
-                    m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DIEEG)selectedColumn).IEEGParameters);
-                }
+                m_ThresholdIEEG.UpdateIEEGValues(((HBP.Module3D.Column3DIEEG)selectedColumn).IEEGParameters);
             }
         }
         #endregion

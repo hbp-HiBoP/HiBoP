@@ -39,22 +39,19 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Dropdown.interactable = true;
         }
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Scene)
+            Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
+            m_Dropdown.options.Clear();
+            if (selectedScene != null)
             {
-                Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
-                m_Dropdown.options.Clear();
-                if (selectedScene != null)
+                foreach (Mesh3D mesh in selectedScene.ColumnManager.Meshes)
                 {
-                    foreach (Mesh3D mesh in selectedScene.ColumnManager.Meshes)
-                    {
-                        m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString()));
-                    }
-                    m_Dropdown.value = selectedScene.ColumnManager.SelectedMeshID;
+                    m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString()));
                 }
-                m_Dropdown.RefreshShownValue();
+                m_Dropdown.value = selectedScene.ColumnManager.SelectedMeshID;
             }
+            m_Dropdown.RefreshShownValue();
         }
         #endregion
     }
