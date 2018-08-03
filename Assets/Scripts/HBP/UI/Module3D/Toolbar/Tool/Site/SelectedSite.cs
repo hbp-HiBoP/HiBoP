@@ -28,7 +28,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateStatus()
         {
-            Site site = ApplicationState.Module3D.SelectedColumn.SelectedSite;
+            Site site = SelectedColumn.SelectedSite;
             m_Text.text = site ? site.Information.DisplayedName : "No site selected";
         }
         #endregion

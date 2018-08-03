@@ -19,19 +19,19 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Button.onClick.AddListener(() =>
             {
-                foreach (Column3D column in ApplicationState.Module3D.SelectedScene.ColumnManager.Columns)
+                foreach (Column3D column in SelectedScene.ColumnManager.Columns)
                 {
-                    if (column == ApplicationState.Module3D.SelectedColumn) continue;
+                    if (column == SelectedColumn) continue;
 
-                    foreach (ROI roi in ApplicationState.Module3D.SelectedColumn.ROIs)
+                    foreach (ROI roi in SelectedColumn.ROIs)
                     {
                         column.CopyROI(roi);
                     }
                 }
 
-                foreach (Column3D column in ApplicationState.Module3D.SelectedScene.ColumnManager.Columns)
+                foreach (Column3D column in SelectedScene.ColumnManager.Columns)
                 {
-                    ApplicationState.Module3D.SelectedScene.UpdateSitesROIMask(column);
+                    SelectedScene.UpdateSitesROIMask(column);
                 }
             });
         }
@@ -41,7 +41,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool hasROI = ApplicationState.Module3D.SelectedColumn.ROIs.Count > 0;
+            bool hasROI = SelectedColumn.ROIs.Count > 0;
 
             m_Button.interactable = hasROI;
         }

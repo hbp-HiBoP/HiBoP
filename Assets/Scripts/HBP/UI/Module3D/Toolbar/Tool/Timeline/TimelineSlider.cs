@@ -91,20 +91,20 @@ namespace HBP.UI.Module3D.Tools
                 int val = (int)value;
                 if (IsGlobal)
                 {
-                    foreach (HBP.Module3D.Column3DIEEG column in ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG)
+                    foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
                     {
                         column.CurrentTimeLineID = val;
                     }
                 }
                 else
                 {
-                    ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).CurrentTimeLineID = val;
+                    ((HBP.Module3D.Column3DIEEG)SelectedColumn).CurrentTimeLineID = val;
                 }
             });
             ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.AddListener(() =>
             {
                 ListenerLock = true;
-                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn;
+                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
                 if (selectedColumn)
                 {
                     m_Current.text = selectedColumn.CurrentTimeLineID + " (" + selectedColumn.CurrentTimeLine.ToString("N2") + selectedColumn.TimeLineUnite + ")";
@@ -126,17 +126,17 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
-            bool areAmplitudesComputed = ApplicationState.Module3D.SelectedScene.SceneInformation.IsGeneratorUpToDate;
+            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool areAmplitudesComputed = SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
             m_Slider.interactable = isColumnIEEG && areAmplitudesComputed;
         }
 
         public override void UpdateStatus()
         {
-            if (ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
+            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
+                HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)SelectedColumn);
                 m_Slider.maxValue = column.MaxTimeLineID;
                 m_Slider.value = column.CurrentTimeLineID;
                 m_Min.text = column.ColumnData.TimeLine.Start.RawValue.ToString("N2") + column.TimeLineUnite;

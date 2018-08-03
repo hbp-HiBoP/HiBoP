@@ -25,7 +25,7 @@ namespace HBP.UI.Module3D.Tools
             m_Dropdown.onValueChanged.AddListener((value) =>
             {
                 Data.Enums.ColorType color = m_ColormapIndices[value];
-                ApplicationState.Module3D.SelectedScene.UpdateColormap(color);
+                SelectedScene.UpdateColormap(color);
             });
         }
 
@@ -42,7 +42,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            m_Dropdown.value = m_ColormapIndices.FindIndex((c) => c == ApplicationState.Module3D.SelectedScene.ColumnManager.Colormap);
+            m_Dropdown.value = m_ColormapIndices.FindIndex((c) => c == SelectedScene.ColumnManager.Colormap);
         }
         #endregion
     }

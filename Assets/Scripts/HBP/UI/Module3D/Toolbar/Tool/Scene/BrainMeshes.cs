@@ -48,7 +48,7 @@ namespace HBP.UI.Module3D.Tools
                     if (m_Left.isOn || m_Right.isOn)
                     {
                         Data.Enums.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
-                        ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
+                        SelectedScene.UpdateMeshPartToDisplay(mesh);
                     }
                     else
                     {
@@ -58,7 +58,7 @@ namespace HBP.UI.Module3D.Tools
                 else
                 {
                     Data.Enums.MeshPart mesh = GetMeshPart(true, true);
-                    ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
+                    SelectedScene.UpdateMeshPartToDisplay(mesh);
                 }
             });
 
@@ -71,7 +71,7 @@ namespace HBP.UI.Module3D.Tools
                     if (m_Left.isOn || m_Right.isOn)
                     {
                         Data.Enums.MeshPart mesh = GetMeshPart(m_Left.isOn, m_Right.isOn);
-                        ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
+                        SelectedScene.UpdateMeshPartToDisplay(mesh);
                     }
                     else
                     {
@@ -81,7 +81,7 @@ namespace HBP.UI.Module3D.Tools
                 else
                 {
                     Data.Enums.MeshPart mesh = GetMeshPart(true, true);
-                    ApplicationState.Module3D.SelectedScene.UpdateMeshPartToDisplay(mesh);
+                    SelectedScene.UpdateMeshPartToDisplay(mesh);
                 }
             });
         }
@@ -94,12 +94,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isMeshLeftRight = false;
-            Base3DScene scene = ApplicationState.Module3D.SelectedScene;
-            if (scene != null)
-            {
-                isMeshLeftRight = scene.ColumnManager.SelectedMesh is LeftRightMesh3D;
-            }
+            bool isMeshLeftRight = SelectedScene.ColumnManager.SelectedMesh is LeftRightMesh3D;
 
             m_Left.interactable = isMeshLeftRight;
             m_Right.interactable = isMeshLeftRight;
@@ -107,55 +102,47 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateStatus()
         {
             ChangeBrainTypeCallback();
-            Base3DScene scene = ApplicationState.Module3D.SelectedScene;
-            if (scene != null)
+            switch (SelectedScene.SceneInformation.MeshPartToDisplay)
             {
-                switch (scene.SceneInformation.MeshPartToDisplay)
-                {
-                    case Data.Enums.MeshPart.Left:
-                        m_Left.isOn = true;
-                        m_Right.isOn = false;
-                        break;
-                    case Data.Enums.MeshPart.Right:
-                        m_Left.isOn = false;
-                        m_Right.isOn = true;
-                        break;
-                    case Data.Enums.MeshPart.Both:
-                        m_Left.isOn = true;
-                        m_Right.isOn = true;
-                        break;
-                    case Data.Enums.MeshPart.None:
-                        m_Left.isOn = false;
-                        m_Right.isOn = false;
-                        break;
-                    default:
-                        break;
-                }
+                case Data.Enums.MeshPart.Left:
+                    m_Left.isOn = true;
+                    m_Right.isOn = false;
+                    break;
+                case Data.Enums.MeshPart.Right:
+                    m_Left.isOn = false;
+                    m_Right.isOn = true;
+                    break;
+                case Data.Enums.MeshPart.Both:
+                    m_Left.isOn = true;
+                    m_Right.isOn = true;
+                    break;
+                case Data.Enums.MeshPart.None:
+                    m_Left.isOn = false;
+                    m_Right.isOn = false;
+                    break;
+                default:
+                    break;
             }
         }
         public void ChangeBrainTypeCallback()
         {
-            Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
-            if (selectedScene != null)
+            m_IsMeshLeftRight = SelectedScene.ColumnManager.SelectedMesh is LeftRightMesh3D;
+            if (!m_IsMeshLeftRight)
             {
-                m_IsMeshLeftRight = selectedScene.ColumnManager.SelectedMesh is LeftRightMesh3D;
-                if (!m_IsMeshLeftRight)
+                m_Left.isOn = false;
+                m_Right.isOn = false;
+            }
+            else
+            {
+                if (SelectedScene.SceneInformation.MeshPartToDisplay == Data.Enums.MeshPart.Both)
                 {
-                    m_Left.isOn = false;
-                    m_Right.isOn = false;
+                    m_Left.isOn = true;
+                    m_Right.isOn = true;
                 }
                 else
                 {
-                    if (selectedScene.SceneInformation.MeshPartToDisplay == Data.Enums.MeshPart.Both)
-                    {
-                        m_Left.isOn = true;
-                        m_Right.isOn = true;
-                    }
-                    else
-                    {
-                        m_Left.isOn = (selectedScene.SceneInformation.MeshPartToDisplay == Data.Enums.MeshPart.Left);
-                        m_Right.isOn = (selectedScene.SceneInformation.MeshPartToDisplay == Data.Enums.MeshPart.Right);
-                    }
+                    m_Left.isOn = (SelectedScene.SceneInformation.MeshPartToDisplay == Data.Enums.MeshPart.Left);
+                    m_Right.isOn = (SelectedScene.SceneInformation.MeshPartToDisplay == Data.Enums.MeshPart.Right);
                 }
             }
         }

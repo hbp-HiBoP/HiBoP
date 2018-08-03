@@ -19,7 +19,7 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
-                ApplicationState.Module3D.SelectedScene.ComparingSites = isOn;
+                SelectedScene.ComparingSites = isOn;
                 UpdateInteractable();
             });
         }
@@ -30,14 +30,14 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isSiteSelected = ApplicationState.Module3D.SelectedColumn.SelectedSite != null;
-            bool isComparingSites = ApplicationState.Module3D.SelectedScene.ComparingSites;
+            bool isSiteSelected = SelectedColumn.SelectedSite != null;
+            bool isComparingSites = SelectedScene.ComparingSites;
 
             m_Toggle.interactable = isSiteSelected || isComparingSites;
         }
         public override void UpdateStatus()
         {
-            m_Toggle.isOn = ApplicationState.Module3D.SelectedScene.ComparingSites;
+            m_Toggle.isOn = SelectedScene.ComparingSites;
         }
         #endregion
     }

@@ -19,7 +19,7 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Button.onClick.AddListener(() =>
             {
-                ApplicationState.Module3D.SelectedScene.CutAroundSelectedSite();
+                SelectedScene.CutAroundSelectedSite();
             });
         }
         public override void DefaultState()
@@ -28,7 +28,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isInteractable = ApplicationState.Module3D.SelectedColumn.SelectedSite != null;
+            bool isInteractable = SelectedColumn.SelectedSite != null;
 
             m_Button.interactable = isInteractable;
         }

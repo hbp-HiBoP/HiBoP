@@ -23,15 +23,15 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.ResetIEEG();
-                ApplicationState.Module3D.SelectedScene.UpdateGenerator();
+                SelectedScene.ResetIEEG();
+                SelectedScene.UpdateGenerator();
                 UpdateInteractable();
             });
             m_Remove.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.ResetIEEG();
+                SelectedScene.ResetIEEG();
                 UpdateInteractable();
             });
         }
@@ -42,9 +42,9 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isCCEP = ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled;
-            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
-            bool isGeneratorUpToDate = ApplicationState.Module3D.SelectedScene.SceneInformation.IsGeneratorUpToDate;
+            bool isCCEP = SelectedScene.IsLatencyModeEnabled;
+            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isGeneratorUpToDate = SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
             m_Compute.interactable = !isCCEP && isColumnIEEG;
             m_Remove.interactable = !isCCEP && isColumnIEEG && isGeneratorUpToDate;

@@ -47,7 +47,7 @@ namespace HBP.UI.Module3D.Tools
             string savePath = HBP.Module3D.DLL.QtGUI.GetSavedFileName(new string[] { "csv" }, "Save site states to", Application.dataPath);
             if (!string.IsNullOrEmpty(savePath))
             {
-                ApplicationState.Module3D.SelectedColumn.SaveSiteStates(savePath);
+                SelectedColumn.SaveSiteStates(savePath);
                 ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saves", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
             }
         }
@@ -56,7 +56,7 @@ namespace HBP.UI.Module3D.Tools
             string loadPath = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "csv" }, "Load site states", Application.dataPath);
             if (!string.IsNullOrEmpty(loadPath))
             {
-                ApplicationState.Module3D.SelectedColumn.LoadSiteStates(loadPath);
+                SelectedColumn.LoadSiteStates(loadPath);
             }
         }
         #endregion

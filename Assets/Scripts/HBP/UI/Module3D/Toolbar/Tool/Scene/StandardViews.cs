@@ -22,17 +22,16 @@ namespace HBP.UI.Module3D.Tools
             m_Button.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
-
-                Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
-                while (selectedScene.ColumnManager.ViewLineNumber > 3)
+                
+                while (SelectedScene.ColumnManager.ViewLineNumber > 3)
                 {
-                    selectedScene.ColumnManager.RemoveViewLine();
+                    SelectedScene.ColumnManager.RemoveViewLine();
                 }
-                while (selectedScene.ColumnManager.ViewLineNumber < 3)
+                while (SelectedScene.ColumnManager.ViewLineNumber < 3)
                 {
-                    selectedScene.ColumnManager.AddViewLine();
+                    SelectedScene.ColumnManager.AddViewLine();
                 }
-                foreach (Column3D column in selectedScene.ColumnManager.Columns)
+                foreach (Column3D column in SelectedScene.ColumnManager.Columns)
                 {
                     foreach (View3D view in column.Views)
                     {

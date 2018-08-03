@@ -22,7 +22,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.CameraType = (Data.Enums.CameraControl)value;
+                SelectedScene.CameraType = (Data.Enums.CameraControl)value;
             });
         }
         public override void DefaultState()
@@ -36,7 +36,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateStatus()
         {
-            m_Dropdown.value = (int)ApplicationState.Module3D.SelectedScene.CameraType;
+            m_Dropdown.value = (int)SelectedScene.CameraType;
         }
         #endregion
     }

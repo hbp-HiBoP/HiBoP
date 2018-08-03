@@ -21,7 +21,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.ResetTriangleErasing();
+                SelectedScene.ResetTriangleErasing();
             });
         }
         public override void DefaultState()
@@ -30,7 +30,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool haveTrianglesBeenErased = ApplicationState.Module3D.SelectedScene.HasInvisibleTriangles;
+            bool haveTrianglesBeenErased = SelectedScene.HasInvisibleTriangles;
 
             m_Button.interactable = haveTrianglesBeenErased;
         }

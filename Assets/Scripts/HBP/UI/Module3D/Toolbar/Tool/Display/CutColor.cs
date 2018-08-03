@@ -29,7 +29,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 Data.Enums.ColorType color = m_CutColorIndices[value];
-                ApplicationState.Module3D.SelectedScene.UpdateBrainCutColor(color);
+                SelectedScene.UpdateBrainCutColor(color);
                 OnChangeValue.Invoke(color);
             });
         }
@@ -47,7 +47,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            m_Dropdown.value = m_CutColorIndices.FindIndex((c) => c == ApplicationState.Module3D.SelectedScene.ColumnManager.BrainCutColor);
+            m_Dropdown.value = m_CutColorIndices.FindIndex((c) => c == SelectedScene.ColumnManager.BrainCutColor);
         }
         #endregion
     }

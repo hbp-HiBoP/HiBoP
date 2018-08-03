@@ -21,7 +21,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.EdgeMode = isOn;
+                SelectedScene.EdgeMode = isOn;
             });
         }
 
@@ -38,7 +38,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            m_Toggle.isOn = ApplicationState.Module3D.SelectedScene.EdgeMode;
+            m_Toggle.isOn = SelectedScene.EdgeMode;
         }
         #endregion
     }

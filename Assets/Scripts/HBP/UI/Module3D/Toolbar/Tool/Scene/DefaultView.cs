@@ -21,8 +21,8 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                int lineID = ApplicationState.Module3D.SelectedView.LineID;
-                foreach (Column3D column in ApplicationState.Module3D.SelectedScene.ColumnManager.Columns)
+                int lineID = SelectedView.LineID;
+                foreach (Column3D column in SelectedScene.ColumnManager.Columns)
                 {
                     foreach (View3D view in column.Views)
                     {

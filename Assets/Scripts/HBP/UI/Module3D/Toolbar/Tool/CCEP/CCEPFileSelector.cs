@@ -21,7 +21,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedColumn.CurrentLatencyFile = value;
+                SelectedColumn.CurrentLatencyFile = value;
             });
         }
 
@@ -32,7 +32,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isCCEP = ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled && ApplicationState.Module3D.SelectedScene.Type == Data.Enums.SceneType.SinglePatient;
+            bool isCCEP = SelectedScene.IsLatencyModeEnabled && SelectedScene.Type == Data.Enums.SceneType.SinglePatient;
 
             m_Dropdown.interactable = isCCEP;
         }
@@ -40,13 +40,13 @@ namespace HBP.UI.Module3D.Tools
         public override void UpdateStatus()
         {
             m_Dropdown.options.Clear();
-            if (ApplicationState.Module3D.SelectedScene.Type == Data.Enums.SceneType.SinglePatient)
+            if (SelectedScene.Type == Data.Enums.SceneType.SinglePatient)
             {
-                foreach (HBP.Module3D.Latencies latencies in ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedImplantation.Latencies)
+                foreach (HBP.Module3D.Latencies latencies in SelectedScene.ColumnManager.SelectedImplantation.Latencies)
                 {
                     m_Dropdown.options.Add(new Dropdown.OptionData(latencies.Name));
                 }
-                m_Dropdown.value = ApplicationState.Module3D.SelectedColumn.CurrentLatencyFile != -1 ? ApplicationState.Module3D.SelectedColumn.CurrentLatencyFile : 0;
+                m_Dropdown.value = SelectedColumn.CurrentLatencyFile != -1 ? SelectedColumn.CurrentLatencyFile : 0;
             }
             m_Dropdown.RefreshShownValue();
         }

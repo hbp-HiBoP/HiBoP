@@ -25,7 +25,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.UpdateMRIToDisplay(m_Dropdown.options[value].text);
+                SelectedScene.UpdateMRIToDisplay(m_Dropdown.options[value].text);
                 OnChangeValue.Invoke(value);
             });
         }
@@ -40,16 +40,12 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateStatus()
         {
-            Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
             m_Dropdown.options.Clear();
-            if (selectedScene != null)
+            foreach (MRI3D mri in SelectedScene.ColumnManager.MRIs)
             {
-                foreach (MRI3D mri in selectedScene.ColumnManager.MRIs)
-                {
-                    m_Dropdown.options.Add(new Dropdown.OptionData(mri.Name));
-                }
-                m_Dropdown.value = selectedScene.ColumnManager.SelectedMRIID;
+                m_Dropdown.options.Add(new Dropdown.OptionData(mri.Name));
             }
+            m_Dropdown.value = SelectedScene.ColumnManager.SelectedMRIID;
             m_Dropdown.RefreshShownValue();
         }
         #endregion

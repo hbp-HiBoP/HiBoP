@@ -52,7 +52,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool hasROI = ApplicationState.Module3D.SelectedColumn.ROIs.Count > 0;
+            bool hasROI = SelectedColumn.ROIs.Count > 0;
 
             m_Button.interactable = hasROI;
         }
@@ -69,10 +69,8 @@ namespace HBP.UI.Module3D.Tools
 
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
             csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,EEG,POS,MainEvent,Codes");
-
-            Base3DScene scene = ApplicationState.Module3D.SelectedScene;
-            Column3D column = scene.ColumnManager.SelectedColumn;
-            List<Site> sites = column.Sites;
+            
+            List<Site> sites = SelectedColumn.Sites;
             int length = sites.Count;
             List<Vector3> sitePositions = new List<Vector3>();
             yield return Ninja.JumpToUnity;
@@ -83,10 +81,10 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
                 {
-                    if (column is Column3DIEEG)
+                    if (SelectedColumn is Column3DIEEG)
                     {
-                        Column3DIEEG columnIEEG = (Column3DIEEG)column;
-                        DataInfo dataInfo = scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnData);
+                        Column3DIEEG columnIEEG = (Column3DIEEG)SelectedColumn;
+                        DataInfo dataInfo = SelectedScene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
                 }
@@ -101,9 +99,9 @@ namespace HBP.UI.Module3D.Tools
                 {
                     Vector3 sitePosition = sitePositions[i];
                     string EEG = "", POS = "", mainEventName = "", code = "";
-                    if (column is Column3DIEEG)
+                    if (SelectedColumn is Column3DIEEG)
                     {
-                        Column3DIEEG columnIEEG = (Column3DIEEG)column;
+                        Column3DIEEG columnIEEG = (Column3DIEEG)SelectedColumn;
                         DataInfo dataInfo = dataInfoByPatient[site.Information.Patient];
                         EEG = dataInfo.EEG;
                         POS = dataInfo.POS;
@@ -120,7 +118,7 @@ namespace HBP.UI.Module3D.Tools
                             sitePosition.x.ToString("N2"),
                             sitePosition.y.ToString("N2"),
                             sitePosition.z.ToString("N2"),
-                            scene.ColumnManager.SelectedImplantation.Name,
+                            SelectedScene.ColumnManager.SelectedImplantation.Name,
                             EEG,
                             POS,
                             mainEventName,
@@ -136,7 +134,7 @@ namespace HBP.UI.Module3D.Tools
             yield return Ninja.JumpToUnity;
             m_Circle.Close();
             m_Circle = null;
-            ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Sites exported", "The sites of the selected ROI (" + column.SelectedROI.Name + ") have been sucessfully exported to " + savePath);
+            ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Informational, "Sites exported", "The sites of the selected ROI (" + SelectedColumn.SelectedROI.Name + ") have been sucessfully exported to " + savePath);
         }
         #endregion
     }

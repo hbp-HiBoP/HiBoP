@@ -30,12 +30,11 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            if (ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled)
+            if (SelectedScene.IsLatencyModeEnabled)
             {
-                HBP.Module3D.Column3D column = ApplicationState.Module3D.SelectedColumn;
-                if (column.SourceDefined)
+                if (SelectedColumn.SourceDefined)
                 {
-                    m_Text.text = column.Sites[column.SelectedSiteID].Information.DisplayedName;
+                    m_Text.text = SelectedColumn.Sites[SelectedColumn.SelectedSiteID].Information.DisplayedName;
                 }
                 else
                 {

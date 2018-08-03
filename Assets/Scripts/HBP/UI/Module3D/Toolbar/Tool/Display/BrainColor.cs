@@ -27,7 +27,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 Data.Enums.ColorType color = m_BrainColorIndices[value];
-                ApplicationState.Module3D.SelectedScene.UpdateBrainSurfaceColor(color);
+                SelectedScene.UpdateBrainSurfaceColor(color);
             });
         }
 
@@ -44,7 +44,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            m_Dropdown.value = m_BrainColorIndices.FindIndex((c) => c == ApplicationState.Module3D.SelectedScene.ColumnManager.BrainColor);
+            m_Dropdown.value = m_BrainColorIndices.FindIndex((c) => c == SelectedScene.ColumnManager.BrainColor);
         }
         #endregion
     }

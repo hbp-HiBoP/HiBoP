@@ -22,7 +22,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.UpdateSites(m_Dropdown.options[value].text);
+                SelectedScene.UpdateSites(m_Dropdown.options[value].text);
             });
         }
         public override void DefaultState()
@@ -36,15 +36,14 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateStatus()
         {
-            Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
             m_Dropdown.options.Clear();
-            if (selectedScene != null)
+            if (SelectedScene != null)
             {
-                foreach (Implantation3D implantation in selectedScene.ColumnManager.Implantations)
+                foreach (Implantation3D implantation in SelectedScene.ColumnManager.Implantations)
                 {
                     m_Dropdown.options.Add(new Dropdown.OptionData(implantation.Name));
                 }
-                m_Dropdown.value = selectedScene.ColumnManager.SelectedImplantationID;
+                m_Dropdown.value = SelectedScene.ColumnManager.SelectedImplantationID;
             }
             m_Dropdown.RefreshShownValue();
         }

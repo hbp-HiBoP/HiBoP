@@ -25,10 +25,10 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
+                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
                 if (IsGlobal)
                 {
-                    foreach (HBP.Module3D.Column3DIEEG column in ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG)
+                    foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
                     {
                         column.IEEGParameters.Gain = value;
                     }
@@ -44,10 +44,10 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
 
                 float val = float.Parse(value);
-                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
+                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
                 if (IsGlobal)
                 {
-                    foreach (HBP.Module3D.Column3DIEEG column in ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG)
+                    foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
                     {
                         column.IEEGParameters.MaximumInfluence = val;
                     }
@@ -70,7 +70,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
 
             m_Slider.interactable = isColumnIEEG;
             m_InputField.interactable = isColumnIEEG;
@@ -78,9 +78,9 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            if (ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
+            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
+                HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
                 m_Slider.value = selectedColumn.IEEGParameters.Gain;
                 m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString("N2");
             }

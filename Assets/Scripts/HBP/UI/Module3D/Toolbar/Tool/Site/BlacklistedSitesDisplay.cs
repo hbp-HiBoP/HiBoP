@@ -19,7 +19,7 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
-                ApplicationState.Module3D.SelectedScene.HideBlacklistedSites = isOn;
+                SelectedScene.HideBlacklistedSites = isOn;
             });
         }
         public override void DefaultState()
@@ -33,7 +33,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateStatus()
         {
-            m_Toggle.isOn = ApplicationState.Module3D.SelectedScene.SceneInformation.HideBlacklistedSites;
+            m_Toggle.isOn = SelectedScene.SceneInformation.HideBlacklistedSites;
         }
         #endregion
     }

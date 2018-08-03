@@ -22,7 +22,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.IsMarsAtlasEnabled = isOn;
+                SelectedScene.IsMarsAtlasEnabled = isOn;
             });
         }
         public override void DefaultState()
@@ -32,23 +32,17 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool canUseMarsAtlas = false;
-            Base3DScene scene = ApplicationState.Module3D.SelectedScene;
-            if (scene != null)
-            {
-                canUseMarsAtlas = scene.ColumnManager.SelectedMesh.IsMarsAtlasLoaded;
-            }
+            bool canUseMarsAtlas = SelectedScene.ColumnManager.SelectedMesh.IsMarsAtlasLoaded;
 
             m_Toggle.interactable = canUseMarsAtlas;
         }
         public override void UpdateStatus()
         {
-            m_Toggle.isOn = ApplicationState.Module3D.SelectedScene.IsMarsAtlasEnabled;
+            m_Toggle.isOn = SelectedScene.IsMarsAtlasEnabled;
         }
         public void ChangeBrainTypeCallback()
         {
-            Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
-            if (!selectedScene.ColumnManager.SelectedMesh.IsMarsAtlasLoaded && ApplicationState.Module3D.SelectedScene.IsMarsAtlasEnabled)
+            if (!SelectedScene.ColumnManager.SelectedMesh.IsMarsAtlasLoaded && SelectedScene.IsMarsAtlasEnabled)
             {
                 m_Toggle.isOn = false;
             }

@@ -34,8 +34,8 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
-            bool areAmplitudesComputed = ApplicationState.Module3D.SelectedScene.SceneInformation.IsGeneratorUpToDate;
+            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
+            bool areAmplitudesComputed = SelectedScene.SceneInformation.IsGeneratorUpToDate;
 
             m_Toggle.interactable = isColumnIEEG && areAmplitudesComputed;
         }
