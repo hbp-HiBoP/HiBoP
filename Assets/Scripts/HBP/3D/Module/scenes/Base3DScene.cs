@@ -635,37 +635,16 @@ namespace HBP.Module3D
                 }
                 SceneInformation.AreSitesUpdated = false;
             });
-            m_ColumnManager.OnChangeNumberOfROI.AddListener((column) =>
-            {
-                UpdateSitesROIMask(column);
-                ApplicationState.Module3D.OnChangeNumberOfROI.Invoke();
-            });
-            m_ColumnManager.OnChangeNumberOfVolumeInROI.AddListener((column) =>
-            {
-                UpdateSitesROIMask(column);
-                ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.Invoke();
-            });
-            m_ColumnManager.OnSelectROI.AddListener((column) =>
-            {
-                UpdateSitesROIMask(column);
-                ApplicationState.Module3D.OnSelectROI.Invoke();
-            });
-            m_ColumnManager.OnChangeROIVolumeRadius.AddListener((column) =>
-            {
-                UpdateSitesROIMask(column);
-                ApplicationState.Module3D.OnChangeROIVolumeRadius.Invoke();
-            });
+            m_ColumnManager.OnChangeNumberOfROI.AddListener(UpdateSitesROIMask);
+            m_ColumnManager.OnChangeNumberOfVolumeInROI.AddListener(UpdateSitesROIMask);
+            m_ColumnManager.OnSelectROI.AddListener(UpdateSitesROIMask);
+            m_ColumnManager.OnChangeROIVolumeRadius.AddListener(UpdateSitesROIMask);
             m_ColumnManager.OnChangeSelectedState.AddListener((selected) =>
             {
                 IsSelected = selected;
                 ComputeGUITextures();
             });
-            m_ColumnManager.OnSelectSite.AddListener((site) =>
-            {
-                ClickOnSiteCallback();
-                SceneInformation.AreSitesUpdated = false;
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
-            });
+            m_ColumnManager.OnSelectSite.AddListener(ClickOnSiteCallback);
             m_ColumnManager.OnChangeSiteState.AddListener((site) =>
             {
                 ResetIEEG(false);
@@ -778,20 +757,18 @@ namespace HBP.Module3D
         /// <summary>
         /// Actions to perform when clicking on a site
         /// </summary>
-        private void ClickOnSiteCallback()
+        private void ClickOnSiteCallback(Site site)
         {
-            if (m_ColumnManager.SelectedColumn.SelectedSiteID == -1) return;
+            if (!site) return;
 
             if (m_ColumnManager.SelectedColumn.Type == Data.Enums.ColumnType.iEEG && !IsLatencyModeEnabled)
             {
-                Column3DIEEG column = (Column3DIEEG)m_ColumnManager.SelectedColumn;
-                if (column.SelectedSiteID != -1)
-                {
-                    List<Site> sites = new List<Site>();
-                    sites.Add(column.SelectedSite);
-                    if (m_SiteToCompare != null) sites.Add(m_SiteToCompare);
-                    OnRequestSiteInformation.Invoke(sites);
-                }
+                List<Site> sites = new List<Site>();
+                sites.Add(site);
+                if (m_SiteToCompare != null) sites.Add(m_SiteToCompare);
+                OnRequestSiteInformation.Invoke(sites);
+                SceneInformation.AreSitesUpdated = false;
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
         }
         /// <summary>
@@ -1850,6 +1827,7 @@ namespace HBP.Module3D
                     column.Sites[ii].State.IsOutOfROI = maskROI[ii];
             }
             ResetIEEG(false);
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Manage the mouse movments event in the scene

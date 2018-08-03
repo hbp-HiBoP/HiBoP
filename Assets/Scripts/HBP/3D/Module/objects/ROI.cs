@@ -94,7 +94,7 @@ namespace HBP.Module3D
                 m_Spheres[SelectedSphereID].GetComponent<Sphere>().Selected = false;
             }
             SelectedSphereID = -1;
-            ApplicationState.Module3D.OnSelectROIVolume.Invoke();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
 
@@ -215,7 +215,7 @@ namespace HBP.Module3D
                 m_Spheres[sphereID].GetComponent<Sphere>().Selected = true;
                 SelectedSphereID = sphereID;
             }
-            ApplicationState.Module3D.OnSelectROIVolume.Invoke();
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// 

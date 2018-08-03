@@ -86,39 +86,6 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnChangeNumberOfROI.AddListener(() =>
-            {
-                UpdateROIDropdownOptions();
-                UpdateInteractable();
-            });
-            ApplicationState.Module3D.OnSelectROI.AddListener(() =>
-            {
-                UpdateSelectedROIUI();
-            });
-            ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.AddListener(() =>
-            {
-                UpdateVolumeDropdownOptions();
-                UpdateInteractable();
-            });
-            ApplicationState.Module3D.OnSelectROIVolume.AddListener(() =>
-            {
-                ListenerLock = true;
-                Column3D column = ApplicationState.Module3D.SelectedColumn;
-                if (column != null)
-                {
-                    ROI roi = column.SelectedROI;
-                    if (roi != null)
-                    {
-                        m_VolumeSelector.value = roi.SelectedSphereID + 1;
-                        UpdateInteractable();
-                    }
-                }
-                ListenerLock = false;
-            });
-            ApplicationState.Module3D.OnChangeROIVolumeRadius.AddListener(() =>
-            {
-                UpdateVolumeDropdownOptions();
-            });
             m_AddROI.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;

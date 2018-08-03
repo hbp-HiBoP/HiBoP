@@ -17,10 +17,6 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnChangeNumberOfROI.AddListener(() =>
-            {
-                UpdateInteractable();
-            });
             m_Button.onClick.AddListener(() =>
             {
                 foreach (Column3D column in ApplicationState.Module3D.SelectedScene.ColumnManager.Columns)

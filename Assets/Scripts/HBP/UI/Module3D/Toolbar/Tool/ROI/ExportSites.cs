@@ -37,10 +37,6 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnChangeNumberOfROI.AddListener(() =>
-            {
-                UpdateInteractable();
-            });
             m_Button.onClick.AddListener(() =>
             {
                 string savePath = HBP.Module3D.DLL.QtGUI.GetSavedFileName(new string[] { "csv" }, "Save sites to", Application.dataPath);

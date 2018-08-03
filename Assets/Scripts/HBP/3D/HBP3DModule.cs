@@ -139,26 +139,6 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public UnityEvent OnUpdateSelectedColumnTimeLineID = new UnityEvent();
         /// <summary>
-        /// Event called when adding or removing a ROI
-        /// </summary>
-        [HideInInspector] public UnityEvent OnChangeNumberOfROI = new UnityEvent();
-        /// <summary>
-        /// Event called when adding or removing a bubble in a ROI
-        /// </summary>
-        [HideInInspector] public UnityEvent OnChangeNumberOfVolumeInROI = new UnityEvent();
-        /// <summary>
-        /// Event called when selecting a ROI
-        /// </summary>
-        [HideInInspector] public UnityEvent OnSelectROI = new UnityEvent();
-        /// <summary>
-        /// Event called when selecting a volume of a ROI
-        /// </summary>
-        [HideInInspector] public UnityEvent OnSelectROIVolume = new UnityEvent();
-        /// <summary>
-        /// Event called when changing the radius of a volume of a ROI
-        /// </summary>
-        [HideInInspector] public UnityEvent OnChangeROIVolumeRadius = new UnityEvent();
-        /// <summary>
         /// Event called when a scene is added
         /// </summary>
         [HideInInspector] public GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
