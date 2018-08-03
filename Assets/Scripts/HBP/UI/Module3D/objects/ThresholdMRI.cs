@@ -23,13 +23,13 @@ namespace HBP.UI.Module3D
         /// </summary>
         private float m_MRICalMax = 1.0f;
 
-        private Dictionary<MRI3D, Sprite> m_HistogramByMRI = new Dictionary<MRI3D, Sprite>();
+        private Dictionary<MRI3D, Texture2D> m_HistogramByMRI = new Dictionary<MRI3D, Texture2D>();
 
         /// <summary>
         /// MRI Histogram
         /// </summary>
         [SerializeField]
-        private Image m_Histogram;
+        private RawImage m_Histogram;
         /// <summary>
         /// Zone in which the handlers can move
         /// </summary>
@@ -74,6 +74,19 @@ namespace HBP.UI.Module3D
                 m_MRICalMax = m_MaxHandler.Position;
                 ApplicationState.Module3D.SelectedScene.ColumnManager.MRICalMaxFactor = m_MRICalMax;
             });
+
+            ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
+            {
+                foreach (var mri in s.ColumnManager.MRIs)
+                {
+                    Texture2D texture;
+                    if (m_HistogramByMRI.TryGetValue(mri, out texture))
+                    {
+                        Destroy(texture);
+                        m_HistogramByMRI.Remove(mri);
+                    }
+                }
+            });
         }
         /// <summary>
         /// Update MRI Histogram Texture
@@ -82,23 +95,16 @@ namespace HBP.UI.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("HISTOGRAM MRI");
             MRI3D mri3D = ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedMRI;
-            Sprite histogramSprite;
-            if (m_HistogramByMRI.TryGetValue(mri3D, out histogramSprite))
-            {
-                m_Histogram.sprite = histogramSprite;
-            }
-            else
+            if (!m_HistogramByMRI.TryGetValue(mri3D, out m_MRIHistogram))
             {
                 if (!m_MRIHistogram)
                 {
                     m_MRIHistogram = new Texture2D(1, 1);
                 }
                 HBP.Module3D.DLL.Texture.GenerateDistributionHistogram(mri3D.Volume, 4 * 110, 4 * 110, m_MRICalMin, m_MRICalMax).UpdateTexture2D(m_MRIHistogram);
-                
-                histogramSprite = Sprite.Create(m_MRIHistogram, new Rect(0, 0, m_MRIHistogram.width, m_MRIHistogram.height), new Vector2(0.5f, 0.5f), 400f);
-                m_Histogram.sprite = histogramSprite;
-                m_HistogramByMRI.Add(mri3D, histogramSprite);
+                m_HistogramByMRI.Add(mri3D, m_MRIHistogram);
             }
+            m_Histogram.texture = m_MRIHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
         }
         #endregion

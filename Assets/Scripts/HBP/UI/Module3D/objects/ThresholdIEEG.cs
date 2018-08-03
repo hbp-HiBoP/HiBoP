@@ -48,12 +48,12 @@ namespace HBP.UI.Module3D
         /// </summary>
         private bool m_Initialized = false;
 
-        private Dictionary<Column3DIEEG, Sprite> m_HistogramByColumn = new Dictionary<Column3DIEEG, Sprite>();
+        private Dictionary<Column3DIEEG, Texture2D> m_HistogramByColumn = new Dictionary<Column3DIEEG, Texture2D>();
 
         /// <summary>
         /// IEEG Histogram
         /// </summary>
-        [SerializeField] private Image m_Histogram;
+        [SerializeField] private RawImage m_Histogram;
         /// <summary>
         /// Symmetry toggle
         /// </summary>
@@ -109,13 +109,8 @@ namespace HBP.UI.Module3D
         private void UpdateIEEGHistogram()
         {
             UnityEngine.Profiling.Profiler.BeginSample("IEEG HISTOGRAM");
-            Column3DIEEG column = (Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn;
-            Sprite histogramSprite;
-            if (m_HistogramByColumn.TryGetValue(column, out histogramSprite))
-            {
-                m_Histogram.sprite = histogramSprite;
-            }
-            else
+            Column3DIEEG column = (Column3DIEEG)ApplicationState.Module3D.SelectedColumn;
+            if (!m_HistogramByColumn.TryGetValue(column, out m_IEEGHistogram))
             {
                 float[] iEEGValues = column.IEEGValuesOfUnmaskedSites;
                 if (!m_IEEGHistogram)
@@ -130,10 +125,9 @@ namespace HBP.UI.Module3D
                 {
                     m_IEEGHistogram = Texture2D.blackTexture;
                 }
-                histogramSprite = Sprite.Create(m_IEEGHistogram, new Rect(0, 0, m_IEEGHistogram.width, m_IEEGHistogram.height), new Vector2(0.5f, 0.5f), 400f);
-                m_Histogram.sprite = histogramSprite;
-                m_HistogramByColumn.Add(column, histogramSprite);
+                m_HistogramByColumn.Add(column, m_IEEGHistogram);
             }
+            m_Histogram.texture = m_IEEGHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
         }
         #endregion
@@ -266,12 +260,13 @@ namespace HBP.UI.Module3D
 
             ApplicationState.Module3D.OnRemoveScene.AddListener((s) =>
             {
-                foreach (var column in s.ColumnManager.Columns)
+                foreach (var column in s.ColumnManager.ColumnsIEEG)
                 {
-                    if (column.Type == Data.Enums.ColumnType.iEEG)
+                    Texture2D texture;
+                    if (m_HistogramByColumn.TryGetValue(column, out texture))
                     {
-                        Column3DIEEG columnIEEG = column as Column3DIEEG;
-                        m_HistogramByColumn.Remove(columnIEEG);
+                        Destroy(texture);
+                        m_HistogramByColumn.Remove(column);
                     }
                 }
             });
