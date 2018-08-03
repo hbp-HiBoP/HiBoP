@@ -759,17 +759,15 @@ namespace HBP.Module3D
         /// </summary>
         private void ClickOnSiteCallback(Site site)
         {
-            if (!site) return;
-
-            if (m_ColumnManager.SelectedColumn.Type == Data.Enums.ColumnType.iEEG && !IsLatencyModeEnabled)
+            if (m_ColumnManager.SelectedColumn.Type == Data.Enums.ColumnType.iEEG && !IsLatencyModeEnabled && site)
             {
                 List<Site> sites = new List<Site>();
                 sites.Add(site);
-                if (m_SiteToCompare != null) sites.Add(m_SiteToCompare);
+                if (m_SiteToCompare) sites.Add(m_SiteToCompare);
                 OnRequestSiteInformation.Invoke(sites);
-                SceneInformation.AreSitesUpdated = false;
-                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             }
+            SceneInformation.AreSitesUpdated = false;
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Init gameobjects of the scene

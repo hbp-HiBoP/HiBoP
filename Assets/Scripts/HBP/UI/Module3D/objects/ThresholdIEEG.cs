@@ -148,7 +148,7 @@ namespace HBP.UI.Module3D
             {
                 float val = float.Parse(value);
                 if (val > Middle) val = Middle;
-                m_SpanMinInput.text = val.ToString("N3");
+                m_SpanMinInput.text = val.ToString("N2");
                 m_SpanMinFactor = (val - m_MinAmplitude) / m_Amplitude;
 
                 m_MinHandler.Position = m_SpanMinFactor;
@@ -165,7 +165,7 @@ namespace HBP.UI.Module3D
             {
                 float val = float.Parse(value);
                 val = Mathf.Clamp(val, SpanMin, SpanMax);
-                m_MiddleInput.text = val.ToString("N3");
+                m_MiddleInput.text = val.ToString("N2");
                 m_MiddleFactor = (val - m_MinAmplitude) / m_Amplitude;
 
                 m_MidHandler.Position = m_MiddleFactor;
@@ -184,7 +184,7 @@ namespace HBP.UI.Module3D
             {
                 float val = float.Parse(value);
                 if (val < Middle) val = Middle;
-                m_SpanMaxInput.text = val.ToString("N3");
+                m_SpanMaxInput.text = val.ToString("N2");
                 m_SpanMaxFactor = (val - m_MinAmplitude) / m_Amplitude;
 
                 m_MaxHandler.Position = m_SpanMaxFactor;
@@ -200,11 +200,11 @@ namespace HBP.UI.Module3D
             m_AmplitudeInput.onEndEdit.AddListener((value) =>
             {
                 float val = float.Parse(value);
-                m_AmplitudeInput.text = val.ToString("N3");
+                m_AmplitudeInput.text = val.ToString("N2");
                 float minVal = Middle - val;
                 float maxVal = Middle + val;
-                m_SpanMinInput.text = minVal.ToString("N3");
-                m_SpanMaxInput.text = maxVal.ToString("N3");
+                m_SpanMinInput.text = minVal.ToString("N2");
+                m_SpanMaxInput.text = maxVal.ToString("N2");
                 m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
                 m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
             });
@@ -212,32 +212,32 @@ namespace HBP.UI.Module3D
             m_MinHandler.OnChangePosition.AddListener((deplacement) =>
             {
                 m_SpanMinFactor = m_MinHandler.Position;
-                m_SpanMinInput.text = SpanMin.ToString("N3");
+                m_SpanMinInput.text = SpanMin.ToString("N2");
                 m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
                 if (m_SymmetryToggle.isOn)
                 {
                     m_MaxHandler.Position = m_MidHandler.Position + (m_MidHandler.Position - m_MinHandler.Position);
                     m_SpanMaxFactor = m_MaxHandler.Position;
-                    m_SpanMaxInput.text = SpanMax.ToString("N3");
+                    m_SpanMaxInput.text = SpanMax.ToString("N2");
                     m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
-                    m_AmplitudeInput.text = (SpanMax - SpanMin).ToString("N3");
+                    m_AmplitudeInput.text = (SpanMax - SpanMin).ToString("N2");
                 }
             });
 
             m_MidHandler.OnChangePosition.AddListener((deplacement) =>
             {
                 m_MiddleFactor = m_MidHandler.Position;
-                m_MiddleInput.text = Middle.ToString("N3");
+                m_MiddleInput.text = Middle.ToString("N2");
                 if (m_SymmetryToggle.isOn)
                 {
                     m_MinHandler.Position += deplacement;
                     m_SpanMinFactor = m_MinHandler.Position;
-                    m_SpanMinInput.text = SpanMin.ToString("N3");
+                    m_SpanMinInput.text = SpanMin.ToString("N2");
                     m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
 
                     m_MaxHandler.Position += deplacement;
                     m_SpanMaxFactor = m_MaxHandler.Position;
-                    m_SpanMaxInput.text = SpanMax.ToString("N3");
+                    m_SpanMaxInput.text = SpanMax.ToString("N2");
                     m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
                 }
                 m_MiddleInput.onEndEdit.Invoke(m_MiddleInput.text);
@@ -246,15 +246,15 @@ namespace HBP.UI.Module3D
             m_MaxHandler.OnChangePosition.AddListener((deplacement) =>
             {
                 m_SpanMaxFactor = m_MaxHandler.Position;
-                m_SpanMaxInput.text = SpanMax.ToString("N3");
+                m_SpanMaxInput.text = SpanMax.ToString("N2");
                 m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
                 if (m_SymmetryToggle.isOn)
                 {
                     m_MinHandler.Position = m_MidHandler.Position - (m_MaxHandler.Position - m_MidHandler.Position);
                     m_SpanMinFactor = m_MinHandler.Position;
-                    m_SpanMinInput.text = SpanMin.ToString("N3");
+                    m_SpanMinInput.text = SpanMin.ToString("N2");
                     m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
-                    m_AmplitudeInput.text = (SpanMax - SpanMin).ToString("N3");
+                    m_AmplitudeInput.text = (SpanMax - SpanMin).ToString("N2");
                 }
             });
 
@@ -286,21 +286,17 @@ namespace HBP.UI.Module3D
             m_MiddleFactor = (values.Middle - m_MinAmplitude) / m_Amplitude;
             m_SpanMaxFactor = (values.SpanMax - m_MinAmplitude) / m_Amplitude;
 
-            m_MinText.text = m_MinAmplitude.ToString("N3");
-            m_MaxText.text = m_MaxAmplitude.ToString("N3");
-            m_SpanMinInput.text = values.SpanMin.ToString("N3");
-            m_MiddleInput.text = values.Middle.ToString("N3");
-            m_SpanMaxInput.text = values.SpanMax.ToString("N3");
-            m_AmplitudeInput.text = ((values.SpanMax - values.SpanMin) / 2).ToString("N3");
+            m_MinText.text = m_MinAmplitude.ToString("N2");
+            m_MaxText.text = m_MaxAmplitude.ToString("N2");
+            m_SpanMinInput.text = values.SpanMin.ToString("N2");
+            m_MiddleInput.text = values.Middle.ToString("N2");
+            m_SpanMaxInput.text = values.SpanMax.ToString("N2");
+            m_AmplitudeInput.text = ((values.SpanMax - values.SpanMin) / 2).ToString("N2");
 
-            m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
             m_MiddleInput.onEndEdit.Invoke(m_MiddleInput.text);
+            m_SpanMinInput.onEndEdit.Invoke(m_SpanMinInput.text);
             m_SpanMaxInput.onEndEdit.Invoke(m_SpanMaxInput.text);
-
-            m_MinHandler.MaximumPosition = m_MidHandler.Position;
-            m_MidHandler.MinimumPosition = m_MinHandler.Position;
-            m_MidHandler.MaximumPosition = m_MaxHandler.Position;
-            m_MaxHandler.MinimumPosition = m_MidHandler.Position;
+            m_MiddleInput.onEndEdit.Invoke(m_MiddleInput.text);
 
             UpdateIEEGHistogram();
 
