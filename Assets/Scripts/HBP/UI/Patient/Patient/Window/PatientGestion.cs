@@ -17,7 +17,6 @@ namespace HBP.UI.Anatomy
         [SerializeField] PatientList m_DatabaseList;
         [SerializeField] PatientList m_ProjectList;
         [SerializeField] Text m_DatabaseCounter;
-        [SerializeField] Text m_ProjectCounter;
         Queue<Patient> m_PatientToAdd;
         #endregion
 
@@ -46,7 +45,6 @@ namespace HBP.UI.Anatomy
             AddItem(patientsToAdd);
             m_List.Select(patientsToAdd);
             m_DatabaseList.Remove(patientsToAdd);
-            m_ProjectCounter.text = m_List.ObjectsSelected.Length.ToString();
             m_DatabaseCounter.text = m_DatabaseList.ObjectsSelected.Length.ToString();
         }
         public override void Remove()
@@ -54,7 +52,6 @@ namespace HBP.UI.Anatomy
             m_DatabaseList.Add(m_List.ObjectsSelected);
             m_DatabaseList.Select(m_List.ObjectsSelected);
             base.Remove();
-            m_ProjectCounter.text = m_List.ObjectsSelected.Length.ToString();
             m_DatabaseCounter.text = m_DatabaseList.ObjectsSelected.Length.ToString();
         }
         #endregion
@@ -62,6 +59,7 @@ namespace HBP.UI.Anatomy
         #region Private Methods
         protected override void SetInteractable(bool interactable)
         {
+            base.SetInteractable(interactable);
             m_DatabaseFolderSelector.interactable = interactable;
             m_DatabaseList.Interactable = interactable;
         }
@@ -90,17 +88,17 @@ namespace HBP.UI.Anatomy
         }
         protected override void Initialize()
         {
-            // Database list.            
+            // Database list.  
+            m_DatabaseList.Initialize();
             m_DatabaseFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayDataBasePatients()));
             m_DatabaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
             m_DatabaseList.OnAction.AddListener((patient, i) => OpenModifier(patient, false));
-            m_DatabaseList.OnSelectionChanged.AddListener((patient, i) => m_DatabaseCounter.text = m_DatabaseList.ObjectsSelected.Length.ToString());
+            m_DatabaseList.OnSelectionChanged.AddListener(() => m_DatabaseCounter.text = m_DatabaseList.NumberOfItemSelected.ToString());
 
             // Project list.
             m_List = m_ProjectList;
+            base.Initialize();
             AddItem(ApplicationState.ProjectLoaded.Patients.ToArray());
-            (m_List as PatientList).OnAction.AddListener((patient, i) => OpenModifier(patient, true));
-            m_List.OnSelectionChanged.AddListener((patient, i) => m_ProjectCounter.text = m_List.ObjectsSelected.Length.ToString());
         }
         #endregion
     }

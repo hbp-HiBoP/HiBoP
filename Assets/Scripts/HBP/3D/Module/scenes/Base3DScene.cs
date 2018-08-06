@@ -2446,7 +2446,7 @@ namespace HBP.Module3D
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluence);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     if (m_GeneratorNeedsUpdate) yield break;
 
                     currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
@@ -2475,7 +2475,7 @@ namespace HBP.Module3D
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluence);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     if (m_GeneratorNeedsUpdate) yield break;
 
                     currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLMRITextureCutGenerators[jj].MaximumDensity;
@@ -2533,7 +2533,7 @@ namespace HBP.Module3D
                 {
 
                     MRI3D mri3D = new MRI3D(mri);
-                    if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMRIs)
+                    if (ApplicationState.UserPreferences.Data.Anatomy.MRIPreloading)
                     {
                         if (mri3D.IsLoaded)
                         {

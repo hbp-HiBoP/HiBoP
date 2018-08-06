@@ -26,6 +26,10 @@ namespace HBP.UI.Anatomy
         #endregion
 
         #region Public Methods
+        public void Initialize()
+        {
+     
+        }
         public void Save()
         {
             m_Patient.Brain.Epilepsy.Type = (Epilepsy.EpilepsyType) m_EpilepsyDropdown.value;

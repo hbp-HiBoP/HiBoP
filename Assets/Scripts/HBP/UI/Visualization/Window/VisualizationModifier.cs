@@ -11,13 +11,6 @@ namespace HBP.UI.Visualization
     public class VisualizationModifier : ItemModifier<Data.Visualization.Visualization>
     {
         #region Properties
-        [SerializeField] GameObject m_RemoveGroupPrefab;
-        [SerializeField] GameObject m_AddGroupPrefab;
-        [SerializeField] GameObject m_PatientModifierPrefab;
-
-        List<ItemModifier<Patient>> m_PatientModifiers = new List<ItemModifier<Patient>>();
-        List<GroupSelection> m_GroupSelectionModifiers = new List<GroupSelection>();
-
         [SerializeField] InputField m_NameInputField;
         [SerializeField] TabGestion m_TabGestion;
         [SerializeField] ColumnModifier m_ColumnModifier;
@@ -42,14 +35,6 @@ namespace HBP.UI.Visualization
             {
                 base.Save();
             }
-        }
-        public override void Close()
-        {
-            foreach (var modifier in m_PatientModifiers.ToArray()) modifier.Close();
-            m_PatientModifiers.Clear();
-            foreach (var modifier in m_GroupSelectionModifiers.ToArray()) modifier.Close();
-            m_GroupSelectionModifiers.Clear();
-            base.Close();
         }
         public void AddColumn()
         { 
@@ -110,14 +95,14 @@ namespace HBP.UI.Visualization
         {
             ItemModifier<Patient> patientModifier = ApplicationState.WindowsManager.OpenModifier(patientToModify, Interactable);
             patientModifier.OnClose.AddListener(() => OnClosePatientModifier(patientModifier));
-            m_PatientModifiers.Add(patientModifier);
+            m_SubWindows.Add(patientModifier);
         }
         public void OpenAddGroupWindow()
         {
-            //GroupSelection groupSelection = GroupSelection.Open() as GroupSelection;
-            //groupSelection.GroupsSelectedEvent.AddListener((groups) => AddGroups(groups));
-            //groupSelection.OnClose.AddListener(() => OnCloseGroupSelection(groupSelection));
-            //m_GroupSelectionModifiers.Add(groupSelection);
+            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Add Group Selection",Interactable);
+            groupSelection.GroupsSelectedEvent.AddListener((groups) => AddGroups(groups));
+            groupSelection.OnClose.AddListener(() => OnCloseGroupSelection(groupSelection));
+            m_SubWindows.Add(groupSelection);
         }
         public void OpenRemoveGroupWindow()
         {
@@ -137,13 +122,19 @@ namespace HBP.UI.Visualization
         #endregion
 
         #region Private Methods
+        protected override void Initialize()
+        {
+            base.Initialize();
+            m_VisualizationPatientsList.Initialize();
+            m_ProjectPatientsList.Initialize();
+        }
         protected void OnClosePatientModifier(ItemModifier<Patient> modifier)
         {
-            m_PatientModifiers.Remove(modifier);
+            m_SubWindows.Remove(modifier);
         }
         protected void OnCloseGroupSelection(GroupSelection groupSelection)
         {
-            m_GroupSelectionModifiers.Remove(groupSelection);
+            m_SubWindows.Remove(groupSelection);
         }
         protected void SwapColumns(int i1, int i2)
         {
@@ -199,6 +190,7 @@ namespace HBP.UI.Visualization
         }
         protected override void SetInteractable(bool interactable)
         {
+            base.SetInteractable(interactable);
             m_AddPatientButton.interactable = interactable;
             m_RemovePatientButton.interactable = interactable;
             m_AddGroupButton.interactable = interactable;

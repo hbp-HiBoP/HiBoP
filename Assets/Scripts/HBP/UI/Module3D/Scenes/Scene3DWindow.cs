@@ -80,7 +80,7 @@ namespace HBP.UI.Module3D
             });
             scene.OnRequestScreenshot.AddListener((multipleFiles) =>
             {
-                string screenshotsPath = ApplicationState.UserPreferences.General.Export.DefaultScreenshotsLocation;
+                string screenshotsPath = ApplicationState.UserPreferences.General.Project.DefaultExportLocation;
                 if (string.IsNullOrEmpty(screenshotsPath))
                 {
                     screenshotsPath = Path.GetFullPath(Application.dataPath + "/../Screenshots/");

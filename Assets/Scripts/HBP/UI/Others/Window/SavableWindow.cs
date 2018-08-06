@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
+using UnityEngine.Events;
+using System.Linq;
 
 namespace HBP.UI
 {
     public abstract class SavableWindow : Window, ISavable
     {
         #region Properties
-        UnityEvent m_OnSave = new UnityEvent();
+        protected UnityEvent m_OnSave = new UnityEvent();
         public UnityEvent OnSave
         {
             get { return m_OnSave; }
@@ -19,6 +20,7 @@ namespace HBP.UI
         #region Public Methods
         public virtual void Save()
         {
+            foreach (var savableSubWindow in m_SubWindows.OfType<SavableWindow>()) savableSubWindow.Save();
             OnSave.Invoke();
             base.Close();
         }

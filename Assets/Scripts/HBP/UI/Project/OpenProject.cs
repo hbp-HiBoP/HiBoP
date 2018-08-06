@@ -50,7 +50,8 @@ namespace HBP.UI
         #region Private Methods
         protected override void Initialize()
         {
-            m_ProjectList.OnSelectionChanged.AddListener((projectInfo,selected) => m_LoadingButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
+            m_ProjectList.Initialize();
+            m_ProjectList.OnSelectionChanged.AddListener(() => m_LoadingButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
             m_LocationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(DisplayProjects(value)));

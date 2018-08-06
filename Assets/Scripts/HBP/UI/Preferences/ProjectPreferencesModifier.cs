@@ -11,6 +11,7 @@ namespace HBP.UI.Preferences
         [SerializeField] FolderSelector m_DefaultLocation;
         [SerializeField] FolderSelector m_DefaultPatientDatabase;
         [SerializeField] FolderSelector m_DefaultLocalizerDatabase;
+        [SerializeField] FolderSelector m_DefaultExportDatabase;
         #endregion
 
         #region Public Methods
@@ -21,6 +22,7 @@ namespace HBP.UI.Preferences
             m_DefaultLocation.Folder = preferences.DefaultLocation;
             m_DefaultPatientDatabase.Folder = preferences.DefaultPatientDatabase;
             m_DefaultLocalizerDatabase.Folder = preferences.DefaultLocalizerDatabase;
+            m_DefaultExportDatabase.Folder = preferences.DefaultExportLocation;
         }
 
         public void Save()
@@ -30,6 +32,7 @@ namespace HBP.UI.Preferences
             preferences.DefaultLocation = m_DefaultLocation.Folder;
             preferences.DefaultPatientDatabase = m_DefaultPatientDatabase.Folder;
             preferences.DefaultLocalizerDatabase = m_DefaultLocalizerDatabase.Folder;
+            preferences.DefaultExportLocation = m_DefaultExportDatabase.Folder;
         }
 
         public void SetInteractable(bool interactable)
@@ -38,6 +41,7 @@ namespace HBP.UI.Preferences
             m_DefaultLocation.interactable = interactable;
             m_DefaultPatientDatabase.interactable = interactable;
             m_DefaultLocalizerDatabase.interactable = interactable;
+            m_DefaultExportDatabase.interactable = interactable;
         }
         #endregion
     }

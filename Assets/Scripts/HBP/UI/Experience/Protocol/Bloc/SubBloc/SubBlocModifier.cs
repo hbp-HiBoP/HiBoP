@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Linq;
 using d = HBP.Data.Experience.Protocol;
 using System.Collections.Generic;
 
@@ -79,8 +78,8 @@ namespace HBP.UI.Experience.Protocol
         }
         protected void OnSaveIconModifier(IconModifier modifier)
         {
-            if (!ItemTemp.Scenario.Icons.Contains(modifier.Item)) ItemTemp.Scenario.Icons.Add(modifier.Item);
-            m_IconList.Objects = ItemTemp.Scenario.Icons.ToArray();
+            if (!ItemTemp.Icons.Contains(modifier.Item)) ItemTemp.Icons.Add(modifier.Item);
+            m_IconList.Objects = ItemTemp.Icons.ToArray();
         }
         protected void OnCloseIconModifier(IconModifier modifier)
         {

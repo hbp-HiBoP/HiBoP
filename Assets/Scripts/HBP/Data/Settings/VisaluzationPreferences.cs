@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace HBP.Data.Preferences
 {
@@ -28,23 +27,31 @@ namespace HBP.Data.Preferences
     public class _3DPreferences
     {
         [DataMember] public bool AutomaticEEGUpdate { get; set; }
-        [DataMember] public Enums.SiteInfluenceType SiteInfluence { get; set; }
-        [DataMember] public string DefaultSelectedMRI { get; set; }
-        [DataMember] public string DefaultSelectedMesh { get; set; }
-        [DataMember] public string DefaultSelectedImplantation { get; set; }
+        [DataMember] public Enums.SiteInfluenceByDistanceType SiteInfluenceByDistance { get; set; }
+        [DataMember] public string DefaultSelectedMRIInSinglePatientVisualization { get; set; }
+        [DataMember] public string DefaultSelectedMeshInSinglePatientVisualization { get; set; }
+        [DataMember] public string DefaultSelectedImplantationInSinglePatientVisualization { get; set; }
+        [DataMember] public string DefaultSelectedMRIInMultiPatientsVisualization { get; set; }
+        [DataMember] public string DefaultSelectedMeshInMultiPatientsVisualization { get; set; }
+        [DataMember] public string DefaultSelectedImplantationInMultiPatientsVisualization { get; set; }
     }
 
     [DataContract]
     public class TrialMatrixPreferences
     {
-        public enum BlocFormatType {[Description("Line height")] LineHeight, [Description("Line height")] LineRatio, [Description("Bloc ratio")] BlocRatio }
+        public const int MINIMUM_TRIAL_HEIGHT = 5;
+        public const int MAXIMUM_TRIAL_HEIGHT = 50;
+        public const float MINIMUM_TRIAL_RATIO = 0.02f;
+        public const float MAXIMUM_TRIAL_RATIO = 0.2f;
+        public const float MINIMUM_BLOC_RATIO = 0.1f;
+        public const float MAXIMUM_BLOC_RATIO = 2.0f;
         [DataMember] public bool ShowWholeProtocol { get; set; }
         [DataMember] public bool TrialsSynchronization { get; set; }
-        [DataMember] public bool SmoothLine { get; set; }
+        [DataMember] public bool TrialSmoothing { get; set; }
         [DataMember] public int NumberOfIntermediateValues { get; set; }
-        [DataMember] public BlocFormatType BlocFormat { get; set; }
-        [DataMember] public int LineHeight { get; set; }
-        [DataMember] public float LineRatio { get; set; }
+        [DataMember] public Enums.BlocFormatType BlocFormat { get; set; }
+        [DataMember] public int TrialHeight { get; set; }
+        [DataMember] public float TrialRatio { get; set; }
         [DataMember] public float BlocRatio { get; set; }
     }
 

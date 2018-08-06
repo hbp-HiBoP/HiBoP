@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using HBP.Data.Preferences;
 using System.Collections.Generic;
 using data = HBP.Data.TrialMatrix;
 using System.Collections.ObjectModel;
@@ -240,13 +239,13 @@ namespace HBP.UI.TrialMatrix
         {
             switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocFormat)
             {
-                case TrialMatrixPreferences.BlocFormatType.LineHeight:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.LineHeight * m_Data.Trials.Length;
+                case HBP.Data.Enums.BlocFormatType.TrialHeight:
+                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * m_Data.Trials.Length;
                     break;
-                case TrialMatrixPreferences.BlocFormatType.LineRatio:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.LineRatio * m_RectTransform.rect.width * m_Data.Trials.Length;
+                case HBP.Data.Enums.BlocFormatType.TrialRatio:
+                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * m_Data.Trials.Length;
                     break;
-                case TrialMatrixPreferences.BlocFormatType.BlocRatio:
+                case HBP.Data.Enums.BlocFormatType.BlocRatio:
                     m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
                     break;
             }
@@ -255,7 +254,7 @@ namespace HBP.UI.TrialMatrix
         {
             float[][] lines = ExtractDataFromLines(m_Data.Trials);
 
-            if(ApplicationState.UserPreferences.Visualization.TrialMatrix.SmoothLine)
+            if(ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialSmoothing)
             {
                 lines = SmoothLines(lines, ApplicationState.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues);
             }

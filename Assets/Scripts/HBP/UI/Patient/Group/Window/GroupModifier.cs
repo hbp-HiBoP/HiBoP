@@ -80,11 +80,13 @@ namespace HBP.UI.Anatomy
         }
         protected override void Initialize()
         {
-            m_ProjectPatientsList.OnSelectionChanged.AddListener((patient, i) => m_ProjectPatientsCounter.text = m_ProjectPatientsList.ObjectsSelected.Length.ToString());
-            m_GroupPatientsList.OnSelectionChanged.AddListener((patient, i) => m_GroupPatientsCounter.text = m_GroupPatientsList.ObjectsSelected.Length.ToString());
+            base.Initialize();
+            m_ProjectPatientsList.OnSelectionChanged.AddListener(() => m_ProjectPatientsCounter.text = m_ProjectPatientsList.NumberOfItemSelected.ToString());
+            m_GroupPatientsList.OnSelectionChanged.AddListener(() => m_GroupPatientsCounter.text = m_GroupPatientsList.NumberOfItemSelected.ToString());
         }
         protected override void SetInteractable(bool interactable)
         {
+            base.SetInteractable(interactable);
             m_NameInputField.interactable = interactable;
             m_RemoveButton.interactable = interactable;
             m_AddButton.interactable = interactable;

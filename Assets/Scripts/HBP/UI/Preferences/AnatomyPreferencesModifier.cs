@@ -16,16 +16,16 @@ namespace HBP.UI.Preferences
         public void Save()
         {
             ApplicationState.UserPreferences.Data.Anatomy.SiteNameCorrection = m_SiteNameCorrectionToggle.isOn;
-            ApplicationState.UserPreferences.Data.Anatomy.PreloadMeshes = m_PreloadMeshesToggle.isOn;
-            ApplicationState.UserPreferences.Data.Anatomy.PreloadMRIs = m_PreloadMRIsToggle.isOn;
-            ApplicationState.UserPreferences.Data.Anatomy.PreloadImplantations = m_PreloadImplantationsToggle.isOn;
+            ApplicationState.UserPreferences.Data.Anatomy.MeshPreloading = m_PreloadMeshesToggle.isOn;
+            ApplicationState.UserPreferences.Data.Anatomy.MRIPreloading = m_PreloadMRIsToggle.isOn;
+            ApplicationState.UserPreferences.Data.Anatomy.ImplantationPreloading = m_PreloadImplantationsToggle.isOn;
         }
         public void Initialize()
         {
             m_SiteNameCorrectionToggle.isOn = ApplicationState.UserPreferences.Data.Anatomy.SiteNameCorrection;
-            m_PreloadMeshesToggle.isOn = ApplicationState.UserPreferences.Data.Anatomy.PreloadMeshes;
-            m_PreloadMRIsToggle.isOn = ApplicationState.UserPreferences.Data.Anatomy.PreloadMRIs;
-            m_PreloadImplantationsToggle.isOn = ApplicationState.UserPreferences.Data.Anatomy.PreloadImplantations;
+            m_PreloadMeshesToggle.isOn = ApplicationState.UserPreferences.Data.Anatomy.MeshPreloading;
+            m_PreloadMRIsToggle.isOn = ApplicationState.UserPreferences.Data.Anatomy.MRIPreloading;
+            m_PreloadImplantationsToggle.isOn = ApplicationState.UserPreferences.Data.Anatomy.ImplantationPreloading;
         }
         public void SetInteractable(bool interactable)
         {

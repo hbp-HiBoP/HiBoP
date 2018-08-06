@@ -124,7 +124,7 @@ namespace Tools.Unity.Lists
         }
         public virtual bool Initialize()
         {
-            if (!m_Initialized)
+            if(!m_Initialized)
             {
                 m_Objects = new System.Collections.Generic.List<T>();
                 m_Items = new System.Collections.Generic.List<Item<T>>();

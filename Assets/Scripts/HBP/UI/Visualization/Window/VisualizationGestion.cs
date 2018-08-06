@@ -28,16 +28,19 @@ namespace HBP.UI.Visualization
         #region Private Methods
         protected override void SetInteractable(bool interactable)
         {
+            base.SetInteractable(interactable);
             m_AddButton.interactable = interactable;
             m_RemoveButton.interactable = interactable;
             m_VisualizationList.Interactable = interactable;
         }
         protected override void Initialize()
         {
+            base.Initialize();
             m_List = m_VisualizationList;
+            m_VisualizationList.Initialize();
             m_VisualizationList.OnAction.AddListener((visu, type) => OpenModifier(visu,true));
-            m_VisualizationList.OnSelectionChanged.AddListener((visu,selected) => SetDisplay());
-            m_VisualizationList.OnSelectionChanged.AddListener((visu, selected) => m_CounterText.text = m_VisualizationList.ObjectsSelected.Length.ToString());
+            m_VisualizationList.OnSelectionChanged.AddListener(() => SetDisplay());
+            m_VisualizationList.OnSelectionChanged.AddListener(() => m_CounterText.text = m_VisualizationList.ObjectsSelected.Length.ToString());
             AddItem(ApplicationState.ProjectLoaded.Visualizations.ToArray());
             SetDisplay();
         }

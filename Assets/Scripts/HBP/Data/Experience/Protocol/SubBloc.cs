@@ -63,7 +63,7 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Iconic scenario of the SubBloc.
         /// </summary>
-        [DataMember] public Scenario Scenario { get; set; }
+        [DataMember] public List<Icon> Icons { get; set; }
         /// <summary>
         /// Treatments of the subBloc.
         /// </summary>
@@ -82,7 +82,7 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="scenario">Iconic Scenario of the subBloc.</param>
         /// <param name="treatments">Treatments of the subBloc.</param>
         /// <param name="id">Unique ID of the subBloc.</param>
-        public SubBloc(string name, int position, Window window, Window baseline, IEnumerable<Event> events, Scenario scenario, IEnumerable<Treatment> treatments, string id)
+        public SubBloc(string name, int position, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments, string id)
         {
             ID = id;
             Name = name;
@@ -90,7 +90,7 @@ namespace HBP.Data.Experience.Protocol
             Window = window;
             Baseline = baseline;
             Events = events.ToList();
-            Scenario = scenario;
+            Icons = icons.ToList();
             Treatments = treatments.ToList();
         }
         /// <summary>
@@ -104,13 +104,13 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="scenario">Iconic Scenario of the subBloc.</param>
         /// <param name="treatments">Treatments of the subBloc.</param>
         /// <param name="id">Unique ID of the subBloc.</param>
-        public SubBloc(string name, int position, Window window, Window baseline, IEnumerable<Event> events, Scenario scenario, IEnumerable<Treatment> treatments) : this(name, position, window, baseline, events, scenario, treatments, Guid.NewGuid().ToString())
+        public SubBloc(string name, int position, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments) : this(name, position, window, baseline, events, icons, treatments, Guid.NewGuid().ToString())
         {
         }
         /// <summary>
         /// Create a new SubBloc with default value.
         /// </summary>
-        public SubBloc() : this(string.Empty, 0, new Window(), new Window(), new List<Event>(), new Scenario(), new List<Treatment>())
+        public SubBloc() : this(string.Empty, 0, new Window(), new Window(), new List<Event>(), new List<Icon>(), new List<Treatment>())
         {
         }
         #endregion
@@ -129,7 +129,7 @@ namespace HBP.Data.Experience.Protocol
             Window = subBloc.Window;
             Baseline = subBloc.Baseline;
             Events = subBloc.Events;
-            Scenario = subBloc.Scenario;
+            Icons = subBloc.Icons;
             Treatments = subBloc.Treatments;
         }
         /// <summary>
@@ -138,7 +138,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>object cloned.</returns>
         public object Clone()
         {
-            return new SubBloc(Name, Position, Window, Baseline, Events.ToArray().DeepClone(), Scenario.Clone() as Scenario, Treatments.ToArray().DeepClone(), ID.Clone() as string);
+            return new SubBloc(Name, Position, Window, Baseline, Events.DeepClone(), Icons.DeepClone(), Treatments.DeepClone(), ID.Clone() as string);
         }
         /// <summary>
         /// Operator Equals.

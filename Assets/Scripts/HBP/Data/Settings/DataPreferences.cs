@@ -57,8 +57,8 @@ namespace HBP.Data.Preferences
     public class AnatomyPreferences
     {
         [DataMember] public bool SiteNameCorrection { get; set; }
-        [DataMember] public bool PreloadMeshes { get; set; }
-        [DataMember] public bool PreloadMRIs { get; set; }
-        [DataMember] public bool PreloadImplantations { get; set; }
+        [DataMember] public bool MeshPreloading { get; set; }
+        [DataMember] public bool MRIPreloading { get; set; }
+        [DataMember] public bool ImplantationPreloading { get; set; }
     }
 }

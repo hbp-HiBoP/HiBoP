@@ -7,11 +7,11 @@ using UnityEngine.UI;
 
 namespace Tools.Unity.Lists
 {
-    public class SelectableList<T> : List<T>
+    public class SelectableList<T> : List<T>, ISelectionCountable
     {
         #region Properties
-        protected GenericEvent<T, bool> m_OnSelectionChanged = new GenericEvent<T, bool>();
-        public virtual GenericEvent<T, bool> OnSelectionChanged
+        protected UnityEvent m_OnSelectionChanged = new UnityEvent();
+        public virtual UnityEvent OnSelectionChanged
         {
             get { return m_OnSelectionChanged; }
         }
@@ -48,6 +48,10 @@ namespace Tools.Unity.Lists
                     }
                 }
             }
+        }
+        public int NumberOfItemSelected
+        {
+            get { return ObjectsSelected.Length; }
         }
         #endregion
 
@@ -138,7 +142,7 @@ namespace Tools.Unity.Lists
         }
         public override bool Initialize()
         {
-            if (base.Initialize())
+            if(base.Initialize())
             {
                 m_SelectedStateByObject = new Dictionary<T, bool>();
                 return true;
@@ -180,7 +184,7 @@ namespace Tools.Unity.Lists
             {
                 m_SelectedStateByObject[obj] = selected;
             }
-            OnSelectionChanged.Invoke(obj, selected);
+            OnSelectionChanged.Invoke();
         }
         #endregion
     }

@@ -87,7 +87,7 @@ namespace HBP.UI.Experience.Dataset
             m_DataInfoList.OnAction.RemoveAllListeners();
             m_DataInfoList.OnAction.AddListener((dataInfo, i) => OpenDataInfoModifier(dataInfo));
             m_DataInfoList.OnSelectionChanged.RemoveAllListeners();
-            m_DataInfoList.OnSelectionChanged.AddListener((mesh, i) => m_Counter.text = m_DataInfoList.ObjectsSelected.Length.ToString());
+            m_DataInfoList.OnSelectionChanged.AddListener(() => m_Counter.text = m_DataInfoList.ObjectsSelected.Length.ToString());
             m_DataInfoList.SortByName(DataInfoList.Sorting.Descending);
         }
         protected override void SetInteractable(bool interactable)

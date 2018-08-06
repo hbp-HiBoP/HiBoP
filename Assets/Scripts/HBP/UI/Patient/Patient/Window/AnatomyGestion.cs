@@ -11,7 +11,6 @@ namespace HBP.UI.Anatomy
         #region Properties
         protected abstract SelectableListWithItemAction<T> List {  get; }
         System.Collections.Generic.List<ItemModifier<T>> m_Modifiers = new System.Collections.Generic.List<ItemModifier<T>>();
-        [SerializeField] GameObject m_ModifierPrefab;
         [SerializeField] Text m_Counter;
         [SerializeField] Button m_AddButton;
         [SerializeField] Button m_RemoveButton;
@@ -34,13 +33,7 @@ namespace HBP.UI.Anatomy
         public virtual void Set(Data.Patient patient)
         {
             m_Patient = patient;
-            List.Initialize();
-
-            List.OnSelectionChanged.RemoveAllListeners();
-            List.OnSelectionChanged.AddListener((mesh, i) => m_Counter.text = List.ObjectsSelected.Length.ToString());
-
-            List.OnAction.RemoveAllListeners();
-            List.OnAction.AddListener((item, i) => OpenModifier(item, interactable));
+            Initialize();
         }
         public virtual void SetActive(bool active)
         {
@@ -61,12 +54,21 @@ namespace HBP.UI.Anatomy
             foreach (var modifier in m_Modifiers.ToArray()) modifier.Close();
             m_Modifiers.Clear();
         }
+        public virtual void Initialize()
+        {
+            List.Initialize();
+            List.OnSelectionChanged.RemoveAllListeners();
+            List.OnSelectionChanged.AddListener(() => m_Counter.text = List.NumberOfItemSelected.ToString());
+
+            List.OnAction.RemoveAllListeners();
+            List.OnAction.AddListener((item, i) => OpenModifier(item, interactable));
+        }
         #endregion
 
         #region Private Methods
         protected void OpenModifier(T item, bool interactable)
         {
-            ItemModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, true);
+            ItemModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable);
             modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
             modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
             m_Modifiers.Add(modifier);

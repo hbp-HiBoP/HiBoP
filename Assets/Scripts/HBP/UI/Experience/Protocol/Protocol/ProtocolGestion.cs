@@ -1,16 +1,16 @@
-﻿using System.Linq;
+﻿using UnityEngine;
+using UnityEngine.UI;
+using System.Linq;
 using Tools.CSharp;
 using d = HBP.Data.Experience.Protocol;
-using UnityEngine.UI;
-using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
 	public class ProtocolGestion : ItemGestion<d.Protocol>
     {
         #region Properties
-        [SerializeField] Text m_ProtocolsCounter;
         [SerializeField] ProtocolList m_ProtocolList;
+        [SerializeField] Button m_ImportButton;
         #endregion
 
         #region Public Methods
@@ -32,11 +32,6 @@ namespace HBP.UI.Experience.Protocol
                 base.Save();
             }
         }
-        public override void Remove()
-        {
-            base.Remove();
-            m_ProtocolsCounter.text = m_List.ObjectsSelected.Count().ToString();
-        }
         public void Import()
         {
             string l_resultStandalone = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "prov" }, "Please select the protocols file to import");
@@ -54,17 +49,17 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Private Methods
-        protected override void SetInteractable(bool interactable)
-        {
-            m_ProtocolList.Interactable = interactable;
-        }
         protected override void Initialize()
         {
             m_List = m_ProtocolList;
-            m_ProtocolList.OnAction.AddListener((item, i) => OpenModifier(item, true));
-            m_List.OnSelectionChanged.AddListener((g, b) => m_ProtocolsCounter.text = m_List.ObjectsSelected.Count().ToString());
+            base.Initialize();
             AddItem(ApplicationState.ProjectLoaded.Protocols.ToArray());
             m_ProtocolList.SortByName(ProtocolList.Sorting.Descending);
+        }
+        protected override void SetInteractable(bool interactable)
+        {
+            base.SetInteractable(interactable);
+            m_ImportButton.interactable = interactable;
         }
         #endregion
     }

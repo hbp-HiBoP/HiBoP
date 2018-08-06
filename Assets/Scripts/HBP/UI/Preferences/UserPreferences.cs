@@ -10,7 +10,6 @@ namespace HBP.UI.Preferences
         [SerializeField] ThemePreferencesModifier m_ThemePreferencesModifier;
         [SerializeField] LocalizationPreferencesModifier m_LocalizationPreferencesModifier;
         [SerializeField] SystemPreferencesModifier m_SystemPreferencesModifier;
-        [SerializeField] ExportPreferencesModifier m_ExportPreferencesModifier;
         [SerializeField] EEGPreferencesModifier m_EEGPreferencesModifier;
         [SerializeField] EventPreferencesModifier m_EventPreferencesModifier;
         [SerializeField] AnatomyPreferencesModifier m_AnatomyPreferencesModifier;
@@ -27,7 +26,6 @@ namespace HBP.UI.Preferences
             m_ThemePreferencesModifier.Save();
             m_LocalizationPreferencesModifier.Save();
             m_SystemPreferencesModifier.Save();
-            m_ExportPreferencesModifier.Save();
             m_EEGPreferencesModifier.Save();
             m_EventPreferencesModifier.Save();
             m_AnatomyPreferencesModifier.Save();
@@ -52,7 +50,6 @@ namespace HBP.UI.Preferences
             m_ThemePreferencesModifier.Initialize();
             m_LocalizationPreferencesModifier.Initialize();
             m_SystemPreferencesModifier.Initialize();
-            m_ExportPreferencesModifier.Initialize();
             m_EEGPreferencesModifier.Initialize();
             m_EventPreferencesModifier.Initialize();
             m_AnatomyPreferencesModifier.Initialize();
@@ -67,7 +64,6 @@ namespace HBP.UI.Preferences
             m_ThemePreferencesModifier.SetInteractable(interactable);
             m_LocalizationPreferencesModifier.SetInteractable(interactable);
             m_SystemPreferencesModifier.SetInteractable(interactable);
-            m_ExportPreferencesModifier.SetInteractable(interactable);
             m_EEGPreferencesModifier.SetInteractable(interactable);
             m_EventPreferencesModifier.SetInteractable(interactable);
             m_AnatomyPreferencesModifier.SetInteractable(interactable);

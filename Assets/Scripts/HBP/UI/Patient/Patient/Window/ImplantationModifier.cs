@@ -22,12 +22,14 @@ namespace HBP.UI.Anatomy
         }
         protected override void SetInteractable(bool interactable)
         {
+            base.SetInteractable(interactable);
             m_NameInputField.interactable = interactable;
             m_FileSelector.interactable = interactable;
             m_MarsAtlasSelector.interactable = interactable;
         }
         protected override void Initialize()
         {
+            base.Initialize();
             m_NameInputField.onValueChanged.RemoveAllListeners();
             m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
 

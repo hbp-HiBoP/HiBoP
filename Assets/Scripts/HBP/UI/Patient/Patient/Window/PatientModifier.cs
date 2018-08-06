@@ -40,6 +40,15 @@ namespace HBP.UI.Anatomy
         #endregion
 
         #region Protected Methods
+        protected override void Initialize()
+        {
+            base.Initialize();
+            m_MeshGestion.Initialize();
+            m_MRIGestion.Initialize();
+            m_ImplantationGestion.Initialize();
+            m_ConnectivityGestion.Initialize();
+            m_OthersGestion.Initialize();
+        }
         protected override void SetFields(Data.Patient objectToDisplay)
         {
             // General.
@@ -73,6 +82,8 @@ namespace HBP.UI.Anatomy
             m_ImplantationGestion.interactable = interactable;
             m_ConnectivityGestion.interactable = interactable;
             m_OthersGestion.interactable = interactable;
+
+            m_SaveButton.interactable = interactable;
         }
         #endregion
     }

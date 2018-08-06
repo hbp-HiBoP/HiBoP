@@ -4,15 +4,14 @@
       "DefaultName": "New project",
       "DefaultLocation": "D:/HBPProjects",
       "DefaultPatientDatabase": "Y:/BrainVisaDB/Epilepsy",
-      "DefaultLocalizerDatabase": "Y:/LOCA_DATABASE"
+      "DefaultLocalizerDatabase": "Y:/LOCA_DATABASE",
+      "DefaultExportLocation": "D:/ScreenShot"
     },
     "Theme": {},
     "Localization": {},
     "System": {
-      "MultiThreading": true
-    },
-    "Export": {
-      "DefaultScreenshotsLocation": "D:/ScreenShot"
+      "MultiThreading": true,
+      "MemoryCacheLimit": 19583
     }
   },
   "Data": {
@@ -25,28 +24,31 @@
     },
     "Anatomy": {
       "SiteNameCorrection": true,
-      "PreloadMeshes": true,
-      "PreloadMRIs": true,
-      "PreloadImplantations": true
+      "MeshPreloading": false,
+      "MRIPreloading": false,
+      "ImplantationPreloading": false
     }
   },
   "Visualization": {
     "_3D": {
       "AutomaticEEGUpdate": true,
-      "SiteInfluence": 0,
-      "DefaultSelectedMRI": "",
-      "DefaultSelectedMesh": "",
-      "DefaultSelectedImplantation": ""
+      "SiteInfluenceByDistance": 0,
+      "DefaultSelectedMRIInSinglePatientVisualization": null,
+      "DefaultSelectedMeshInSinglePatientVisualization": null,
+      "DefaultSelectedImplantationInSinglePatientVisualization": null,
+      "DefaultSelectedMRIInMultiPatientsVisualization": null,
+      "DefaultSelectedMeshInMultiPatientsVisualization": null,
+      "DefaultSelectedImplantationInMultiPatientsVisualization": null
     },
     "TrialMatrix": {
       "ShowWholeProtocol": false,
       "TrialsSynchronization": false,
-      "SmoothLine": false,
+      "TrialSmoothing": false,
       "NumberOfIntermediateValues": 1,
       "BlocFormat": 0,
-      "LineHeight": 0,
-      "LineRatio": 0.0,
-      "BlocRatio": 0.0
+      "TrialHeight": 5,
+      "TrialRatio": 0.02,
+      "BlocRatio": 0.1
     },
     "Graph": {
       "ShowCurvesOfMinimizedColumns": false

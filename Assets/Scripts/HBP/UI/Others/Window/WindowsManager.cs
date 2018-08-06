@@ -47,9 +47,17 @@ namespace HBP.UI
         }
         public ItemModifier<T> OpenModifier<T>(T itemToModify, bool interactable) where T : ICopiable, ICloneable
         {
-            ItemModifier<T> modifier = Referencer.GetPrefab(typeof(ItemModifier<T>)).GetComponent<ItemModifier<T>>();
-            modifier.Item = itemToModify;
-            modifier.Interactable = interactable;
+            ItemModifier<T> modifier = default(ItemModifier<T>);
+            GameObject prefab = Referencer.GetPrefab(typeof(ItemModifier<T>));
+            if (prefab)
+            {
+                GameObject go = Instantiate(prefab, Container);
+                go.transform.localPosition = Vector3.zero;
+
+                modifier = go.GetComponent<ItemModifier<T>>();
+                modifier.Item = itemToModify;
+                modifier.Interactable = interactable;
+            }
             OnOpen(modifier);
             return modifier;
         }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using UnityEngine;
+using System.Reflection;
+using System.Collections.Generic;
 
 namespace HBP.UI
 {
@@ -17,7 +19,7 @@ namespace HBP.UI
         }
         public GameObject GetPrefab(Type type) 
         {
-            GameObject result = Prefabs.FirstOrDefault((prefab) => prefab.GetComponent(type.Name) != null);
+            GameObject result = Prefabs.FirstOrDefault((prefab) => prefab.GetComponent(type) != null);
             if(result == null) Debug.LogWarning("The prefab can not be found.");
             return result;
         }

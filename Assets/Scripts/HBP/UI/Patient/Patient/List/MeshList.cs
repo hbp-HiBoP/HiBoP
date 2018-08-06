@@ -4,7 +4,7 @@ using Tools.Unity.Lists;
 
 namespace HBP.UI.Anatomy
 {
-    public class MeshList : Tools.Unity.Lists.SelectableListWithItemAction<Mesh>
+    public class MeshList : SelectableListWithItemAction<Mesh>
     {
         #region Properties
         enum OrderBy { None, Name, DescendingName, Mesh, DescendingMesh, MarsAtlas, DescendingMarsAtlas, Transformation, DescendingTransformation }
