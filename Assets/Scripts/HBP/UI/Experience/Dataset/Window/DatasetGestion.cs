@@ -10,6 +10,20 @@ namespace HBP.UI.Experience.Dataset
         #region Properties
         [SerializeField] Text m_datasetsCounter;
         [SerializeField] DatasetList m_DatasetList;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+                m_DatasetList.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -46,10 +60,6 @@ namespace HBP.UI.Experience.Dataset
             AddItem(ApplicationState.ProjectLoaded.Datasets.ToArray());
 
             m_List.OnSelectionChanged.AddListener(() => m_datasetsCounter.text = m_List.ObjectsSelected.Count().ToString());
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            m_DatasetList.Interactable = interactable;
         }
         #endregion
     }

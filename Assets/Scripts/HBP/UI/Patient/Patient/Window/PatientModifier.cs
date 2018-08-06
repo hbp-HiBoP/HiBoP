@@ -17,6 +17,31 @@ namespace HBP.UI.Anatomy
         [SerializeField] ImplantationGestion m_ImplantationGestion;
         [SerializeField] ConnectivityGestion m_ConnectivityGestion;
         [SerializeField] OthersGestion m_OthersGestion;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_NameInputField.interactable = value;
+                m_PlaceInputField.interactable = value;
+                m_DateInputField.interactable = value;
+
+                m_MeshGestion.interactable = value;
+                m_MRIGestion.interactable = value;
+                m_ImplantationGestion.interactable = value;
+                m_ConnectivityGestion.interactable = value;
+                m_OthersGestion.interactable = value;
+
+                m_SaveButton.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -70,20 +95,6 @@ namespace HBP.UI.Anatomy
             m_ImplantationGestion.Set(objectToDisplay);
             m_ConnectivityGestion.Set(objectToDisplay);
             m_OthersGestion.Set(objectToDisplay);
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            m_NameInputField.interactable = interactable;
-            m_PlaceInputField.interactable = interactable;
-            m_DateInputField.interactable = interactable;
-
-            m_MeshGestion.interactable = interactable;
-            m_MRIGestion.interactable = interactable;
-            m_ImplantationGestion.interactable = interactable;
-            m_ConnectivityGestion.interactable = interactable;
-            m_OthersGestion.interactable = interactable;
-
-            m_SaveButton.interactable = interactable;
         }
         #endregion
     }

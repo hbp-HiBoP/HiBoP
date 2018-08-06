@@ -8,13 +8,21 @@ namespace HBP.UI
     public abstract class SavableWindow : Window, ISavable
     {
         #region Properties
-        protected UnityEvent m_OnSave = new UnityEvent();
-        public UnityEvent OnSave
-        {
-            get { return m_OnSave; }
-            set { m_OnSave = value; }
-        }
+        public UnityEvent OnSave { get; set; }
         [SerializeField] protected Button m_SaveButton;
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+                m_SaveButton.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -29,12 +37,9 @@ namespace HBP.UI
         #region Protected Methods
         protected override void Initialize()
         {
-            base.Initialize();
+            OnSave = new UnityEvent();
             m_SaveButton.onClick.AddListener(Save);
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            m_SaveButton.interactable = interactable;
+            base.Initialize();
         }
         #endregion
     }

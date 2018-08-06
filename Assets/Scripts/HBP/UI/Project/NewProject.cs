@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using HBP.Data.General;
 using Tools.Unity;
 using System.Linq;
+using HBP.Data.Preferences;
 
 namespace HBP.UI
 {
@@ -16,6 +17,24 @@ namespace HBP.UI
         [SerializeField] FolderSelector m_ProjectLocationFolderSelector;
         [SerializeField] FolderSelector m_PatientsDatabaseLocationFolderSelector;
         [SerializeField] FolderSelector m_LocalizerDatabaseLocationFolderSelector;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_NameInputField.interactable = value;
+                m_ProjectLocationFolderSelector.interactable = value;
+                m_PatientsDatabaseLocationFolderSelector.interactable = value;
+                m_LocalizerDatabaseLocationFolderSelector.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -45,27 +64,22 @@ namespace HBP.UI
         #endregion
 
         #region Private Methods
-        protected override void Initialize()
+        protected override void SetFields()
 		{
-            m_NameInputField.text = ApplicationState.UserPreferences.General.Project.DefaultName;
-            m_ProjectLocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocation;
-            m_PatientsDatabaseLocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultPatientDatabase;
-            m_LocalizerDatabaseLocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocalizerDatabase;
+            ProjectPreferences preferences = ApplicationState.UserPreferences.General.Project;
+
+            m_NameInputField.text = preferences.DefaultName;
+            m_ProjectLocationFolderSelector.Folder = preferences.DefaultLocation;
+            m_PatientsDatabaseLocationFolderSelector.Folder = preferences.DefaultPatientDatabase;
+            m_LocalizerDatabaseLocationFolderSelector.Folder = preferences.DefaultLocalizerDatabase;
         }
-        protected void CreateNewProject()
+        void CreateNewProject()
         {
-            Data.Preferences.ProjectSettings settings = new Data.Preferences.ProjectSettings(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
+            ProjectSettings settings = new ProjectSettings(m_NameInputField.text, m_PatientsDatabaseLocationFolderSelector.Folder, m_LocalizerDatabaseLocationFolderSelector.Folder);
             ApplicationState.ProjectLoaded = new Project(settings);
             ApplicationState.ProjectLoadedLocation = m_ProjectLocationFolderSelector.Folder;
             FindObjectOfType<ProjectLoaderSaver>().SaveAndReload();
             Close();
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            m_NameInputField.interactable = interactable;
-            m_ProjectLocationFolderSelector.interactable = interactable;
-            m_PatientsDatabaseLocationFolderSelector.interactable = interactable;
-            m_LocalizerDatabaseLocationFolderSelector.interactable = interactable;
         }
         #endregion
     }

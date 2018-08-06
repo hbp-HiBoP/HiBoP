@@ -25,6 +25,7 @@ namespace Tools.Unity
                 StringExtension.StandardizeToPath(ref l_result);
                 m_Inputfield.text = l_result;
             }
+            Debug.Log(l_result);
         }
         #endregion
     }

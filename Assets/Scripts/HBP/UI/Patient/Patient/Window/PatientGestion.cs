@@ -18,6 +18,22 @@ namespace HBP.UI.Anatomy
         [SerializeField] PatientList m_ProjectList;
         [SerializeField] Text m_DatabaseCounter;
         Queue<Patient> m_PatientToAdd;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_DatabaseFolderSelector.interactable = value;
+                m_DatabaseList.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -57,12 +73,6 @@ namespace HBP.UI.Anatomy
         #endregion
 
         #region Private Methods
-        protected override void SetInteractable(bool interactable)
-        {
-            base.SetInteractable(interactable);
-            m_DatabaseFolderSelector.interactable = interactable;
-            m_DatabaseList.Interactable = interactable;
-        }
         IEnumerator c_DisplayDataBasePatients()
         {
             m_PatientToAdd = new Queue<Patient>();

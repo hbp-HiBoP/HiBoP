@@ -15,6 +15,24 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] InputField m_NameInputField;
         [SerializeField] BlocList m_BlocList;
         [SerializeField] Button m_AddBlocButton, m_RemoveBlocButton;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_NameInputField.interactable = value;
+                m_SaveButton.interactable = value;
+                m_AddBlocButton.interactable = value;
+                m_RemoveBlocButton.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -59,16 +77,6 @@ namespace HBP.UI.Experience.Protocol
 
             //blocGrid.Display(objectToDisplay.Blocs.ToArray());
             //blocGrid.OnAction.AddListener((bloc, i) => OnListEvent(bloc, i));
-        }
-        protected override void Initialize()
-        {
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            m_NameInputField.interactable = interactable;
-            m_SaveButton.interactable = interactable;
-            m_AddBlocButton.interactable = interactable;
-            m_RemoveBlocButton.interactable = interactable;
         }
         #endregion
     }

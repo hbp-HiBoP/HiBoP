@@ -17,6 +17,30 @@ namespace HBP.UI.Preferences
         [SerializeField] TrialMatrixPreferencesModifier m_TrialMatrixPreferencesModifier;
         [SerializeField] GraphPreferencesModifier m_GraphPreferencesModifier;
         [SerializeField] CutPreferencesModifier m_CutPreferencesModifier;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+            set
+            {
+                base.Interactable = value;
+
+                m_ProjectPreferencesModifier.Interactable = value;
+                m_ThemePreferencesModifier.Interactable = value;
+                m_LocalizationPreferencesModifier.Interactable = value;
+                m_SystemPreferencesModifier.Interactable = value;
+                m_EEGPreferencesModifier.Interactable = value;
+                m_EventPreferencesModifier.Interactable = value;
+                m_AnatomyPreferencesModifier.Interactable = value;
+                m_3DPreferencesModifier.Interactable = value;
+                m_TrialMatrixPreferencesModifier.Interactable = value;
+                m_GraphPreferencesModifier.Interactable = value;
+                m_CutPreferencesModifier.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -38,39 +62,25 @@ namespace HBP.UI.Preferences
         }
         public override void Close()
         {
-            base.Close();
             Theme.Theme.UpdateThemeElements(ApplicationState.UserPreferences.Theme);
+            base.Close();
         }
         #endregion
 
         #region Private Methods
-        protected override void Initialize()
+        protected override void SetFields()
         {
-            m_ProjectPreferencesModifier.Initialize();
-            m_ThemePreferencesModifier.Initialize();
-            m_LocalizationPreferencesModifier.Initialize();
-            m_SystemPreferencesModifier.Initialize();
-            m_EEGPreferencesModifier.Initialize();
-            m_EventPreferencesModifier.Initialize();
-            m_AnatomyPreferencesModifier.Initialize();
-            m_3DPreferencesModifier.Initialize();
-            m_TrialMatrixPreferencesModifier.Initialize();
-            m_GraphPreferencesModifier.Initialize();
-            m_CutPreferencesModifier.Initialize();
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            m_ProjectPreferencesModifier.SetInteractable(interactable);
-            m_ThemePreferencesModifier.SetInteractable(interactable);
-            m_LocalizationPreferencesModifier.SetInteractable(interactable);
-            m_SystemPreferencesModifier.SetInteractable(interactable);
-            m_EEGPreferencesModifier.SetInteractable(interactable);
-            m_EventPreferencesModifier.SetInteractable(interactable);
-            m_AnatomyPreferencesModifier.SetInteractable(interactable);
-            m_3DPreferencesModifier.SetInteractable(interactable);
-            m_TrialMatrixPreferencesModifier.SetInteractable(interactable);
-            m_GraphPreferencesModifier.SetInteractable(interactable);
-            m_CutPreferencesModifier.SetInteractable(interactable);
+            m_ProjectPreferencesModifier.SetFields();
+            m_ThemePreferencesModifier.SetFields();
+            m_LocalizationPreferencesModifier.SetFields();
+            m_SystemPreferencesModifier.SetFields();
+            m_EEGPreferencesModifier.SetFields();
+            m_EventPreferencesModifier.SetFields();
+            m_AnatomyPreferencesModifier.SetFields();
+            m_3DPreferencesModifier.SetFields();
+            m_TrialMatrixPreferencesModifier.SetFields();
+            m_GraphPreferencesModifier.SetFields();
+            m_CutPreferencesModifier.SetFields();
         }
         #endregion
     }

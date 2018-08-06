@@ -14,6 +14,19 @@ namespace HBP.UI
         {
             get { return new ReadOnlyCollection<T>(m_Items); }
         }
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+                m_List.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -39,11 +52,6 @@ namespace HBP.UI
             m_List.Initialize();
             m_List.OnAction.AddListener((item, i) => OpenModifier(item, Interactable));
 
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            base.SetInteractable(interactable);
-            m_List.Interactable = interactable;
         }
         protected virtual void OpenModifier(T item,bool interactable)
         {

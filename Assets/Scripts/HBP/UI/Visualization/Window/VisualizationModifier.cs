@@ -17,6 +17,24 @@ namespace HBP.UI.Visualization
         [SerializeField] PatientList m_VisualizationPatientsList;
         [SerializeField] PatientList m_ProjectPatientsList;
         [SerializeField] Button m_AddPatientButton, m_RemovePatientButton, m_AddGroupButton, m_RemoveGroupButton;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_AddPatientButton.interactable = value;
+                m_RemovePatientButton.interactable = value;
+                m_AddGroupButton.interactable = value;
+                m_NameInputField.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -187,14 +205,6 @@ namespace HBP.UI.Visualization
             {
                 m_TabGestion.AddTab();
             }
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            base.SetInteractable(interactable);
-            m_AddPatientButton.interactable = interactable;
-            m_RemovePatientButton.interactable = interactable;
-            m_AddGroupButton.interactable = interactable;
-            m_NameInputField.interactable = interactable;
         }
         #endregion
     }

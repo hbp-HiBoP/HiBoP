@@ -7,31 +7,42 @@ namespace NewTheme.Components
     public class ThemeElement : MonoBehaviour
     {
         #region Properties
+        public State ActualState;
         public Element Element;
         #endregion
 
         #region Public Methods
         public void Set()
         {
+            if(name == "Label" && transform.parent.parent.name == "Number of intermediate values")
+            {
+                Debug.Log("Set()");
+            }
             try
             {
-                Element.Set(gameObject);
+                ActualState = Element.Set(gameObject);
             }
             catch(Exception e)
             {
+                ActualState = null;
                 Debug.LogError("Missing theme element at " + gameObject.transform.FullName());
-                //throw e;
+                throw e;
             }
         }
         public void Set(State state)
         {
+            if (name == "Label" && transform.parent.parent.name == "Number of intermediate values")
+            {
+                Debug.Log("Set() "+ state.name);
+            }
             try
             {
-                Element.Set(gameObject, state);
+                ActualState = Element.Set(gameObject, state);
             }
             catch(Exception e)
             {
-                Debug.LogError(gameObject.transform.FullName());
+                ActualState = null;
+                Debug.LogError("Missing theme element at " + gameObject.transform.FullName());
                 throw e;
             }
         }
@@ -40,7 +51,7 @@ namespace NewTheme.Components
         #region Private Methods
         void Awake()
         {
-            Set();
+           Set();
         }
         #endregion
     }

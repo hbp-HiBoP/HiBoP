@@ -19,6 +19,33 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] GameObject IconModifierPrefab;
         List<ItemModifier<d.Event>> m_EventModifiers = new List<ItemModifier<d.Event>>();
         List<ItemModifier<d.Icon>> m_IconModifiers = new List<ItemModifier<d.Icon>>();
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+                m_NameInputField.interactable = value;
+                m_ImageFileSelector.interactable = value;
+                m_SortInputField.interactable = value;
+                m_WindowMinInputField.interactable = value;
+                m_WindowMaxInputField.interactable = value;
+                m_BaselineMinInputField.interactable = value;
+                m_BaselineMaxInputField.interactable = value;
+                m_ImageFileSelector.interactable = value;
+                m_AddEventButton.interactable = value;
+                m_RemoveEventButton.interactable = value;
+                m_AddIconButton.interactable = value;
+                m_RemoveIconButton.interactable = value;
+                m_IconList.Interactable = value;
+                m_EventList.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -146,23 +173,6 @@ namespace HBP.UI.Experience.Protocol
             //m_EventList.OnAction.AddListener((e, i) => OpenEventModifier(e));
             //m_IconList.Objects = ItemTemp.Scenario.Icons.ToArray();
             //m_IconList.OnAction.AddListener((icon, i) => OpenIconModifier(icon));
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            m_NameInputField.interactable = interactable;
-            m_ImageFileSelector.interactable = interactable;
-            m_SortInputField.interactable = interactable;
-            m_WindowMinInputField.interactable = interactable;
-            m_WindowMaxInputField.interactable = interactable;
-            m_BaselineMinInputField.interactable = interactable;
-            m_BaselineMaxInputField.interactable = interactable;
-            m_ImageFileSelector.interactable = interactable;
-            m_AddEventButton.interactable = interactable;
-            m_RemoveEventButton.interactable = interactable;
-            m_AddIconButton.interactable = interactable;
-            m_RemoveIconButton.interactable = interactable;
-            m_IconList.Interactable = interactable;
-            m_EventList.Interactable = interactable;
         }
         #endregion
     }

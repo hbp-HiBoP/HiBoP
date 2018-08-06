@@ -11,6 +11,21 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] InputField m_NameInputField;
         [SerializeField] InputField m_CodesInputField;
         [SerializeField] Dropdown m_TypeDropdown;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+                m_NameInputField.interactable = value;
+                m_CodesInputField.interactable = value;
+            }
+        }
         #endregion
 
         protected override void SetFields(d.Event objectToDisplay)
@@ -34,12 +49,6 @@ namespace HBP.UI.Experience.Protocol
             m_TypeDropdown.onValueChanged.RemoveAllListeners();
             m_TypeDropdown.onValueChanged.AddListener((i) => ItemTemp.Type = (d.Event.TypeEnum)i);
             if (objectToDisplay.Type == d.Event.TypeEnum.Main) m_TypeDropdown.interactable = false;
-        }
-
-        protected override void SetInteractable(bool interactable)
-        {
-            m_NameInputField.interactable = interactable;
-            m_CodesInputField.interactable = interactable;
         }
     }
 }

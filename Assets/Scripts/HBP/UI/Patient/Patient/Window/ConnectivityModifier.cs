@@ -10,6 +10,22 @@ namespace HBP.UI.Anatomy
         #region Properties
         [SerializeField] InputField m_NameInputField;
         [SerializeField] FileSelector m_FileSelector;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_NameInputField.interactable = value;
+                m_FileSelector.interactable = value;
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -17,12 +33,6 @@ namespace HBP.UI.Anatomy
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_FileSelector.File = objectToDisplay.File;
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            base.SetInteractable(interactable);
-            m_NameInputField.interactable = interactable;
-            m_FileSelector.interactable = interactable;
         }
         protected override void Initialize()
         {

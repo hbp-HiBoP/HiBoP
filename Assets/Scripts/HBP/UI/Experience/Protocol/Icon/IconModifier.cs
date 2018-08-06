@@ -12,6 +12,23 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] InputField m_MinInputField;
         [SerializeField] InputField m_MaxInputField;
         [SerializeField] ImageSelector m_ImageSelector;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+                m_NameInputField.interactable = value;
+                m_MinInputField.interactable = value;
+                m_MaxInputField.interactable = value;
+                m_ImageSelector.interactable = value;
+            }
+        }
         #endregion
 
         protected override void SetFields(d.Icon objectToDisplay)
@@ -25,14 +42,6 @@ namespace HBP.UI.Experience.Protocol
             m_MaxInputField.onValueChanged.AddListener((max) => ItemTemp.Window = new Tools.CSharp.Window(ItemTemp.Window.Start, int.Parse(max)));
             m_ImageSelector.Path = objectToDisplay.IllustrationPath;
             m_ImageSelector.onValueChanged.AddListener(() => ItemTemp.IllustrationPath = m_ImageSelector.Path);
-        }
-
-        protected override void SetInteractable(bool interactable)
-        {
-            m_NameInputField.interactable = interactable;
-            m_MinInputField.interactable = interactable;
-            m_MaxInputField.interactable = interactable;
-            m_ImageSelector.interactable = interactable;
         }
     }
 }

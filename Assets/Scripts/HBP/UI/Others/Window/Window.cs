@@ -9,14 +9,13 @@ namespace HBP.UI
     {
         #region Properties
         protected UnityEvent m_OnClose = new UnityEvent();
-        public virtual UnityEvent OnClose
+        public UnityEvent OnClose
         {
             get { return m_OnClose; }
-            set { m_OnClose = value; }
         }
 
         protected bool m_Interactable;
-        public bool Interactable
+        public virtual bool Interactable
         {
             get
             {
@@ -25,7 +24,6 @@ namespace HBP.UI
             set
             {
                 m_Interactable = value;
-                SetInteractable(value);
             }
         }
 
@@ -47,10 +45,14 @@ namespace HBP.UI
         {
             Initialize();
         }
-        protected abstract void SetInteractable(bool interactable);
         protected virtual void Initialize()
         {
             m_CloseButton.onClick.AddListener(Close);
+            SetFields();
+        }
+        protected virtual void SetFields()
+        {
+
         }
         #endregion
     }

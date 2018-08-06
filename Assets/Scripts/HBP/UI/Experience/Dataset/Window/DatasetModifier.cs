@@ -20,10 +20,28 @@ namespace HBP.UI.Experience.Dataset
         [SerializeField] Text m_Counter;
         List<DataInfoModifier> m_Modifiers = new List<DataInfoModifier>();
         Data.Experience.Protocol.Protocol[] m_Protocols;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+                m_NameInputField.interactable = value;
+                m_ProtocolDropdown.interactable = value;
+                m_CreateButton.interactable = value;
+                m_RemoveButton.interactable = value;
+                m_DataInfoList.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods			
-		public void Add()
+        public void Add()
 		{
             OpenDataInfoModifier(new d.DataInfo());
 		}
@@ -89,14 +107,6 @@ namespace HBP.UI.Experience.Dataset
             m_DataInfoList.OnSelectionChanged.RemoveAllListeners();
             m_DataInfoList.OnSelectionChanged.AddListener(() => m_Counter.text = m_DataInfoList.ObjectsSelected.Length.ToString());
             m_DataInfoList.SortByName(DataInfoList.Sorting.Descending);
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            m_NameInputField.interactable = interactable;
-            m_ProtocolDropdown.interactable = interactable;
-            m_CreateButton.interactable = interactable;
-            m_RemoveButton.interactable = interactable;
-            m_DataInfoList.Interactable = interactable;
         }
         #endregion
     }

@@ -10,6 +10,23 @@ namespace HBP.UI.Visualization
         [SerializeField] Button m_AddButton, m_RemoveButton, m_DisplayButton;
         [SerializeField] VisualizationList m_VisualizationList;
         [SerializeField] Text m_CounterText;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_AddButton.interactable = value;
+                m_RemoveButton.interactable = value;
+                m_VisualizationList.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -26,13 +43,6 @@ namespace HBP.UI.Visualization
         #endregion
 
         #region Private Methods
-        protected override void SetInteractable(bool interactable)
-        {
-            base.SetInteractable(interactable);
-            m_AddButton.interactable = interactable;
-            m_RemoveButton.interactable = interactable;
-            m_VisualizationList.Interactable = interactable;
-        }
         protected override void Initialize()
         {
             base.Initialize();

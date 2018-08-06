@@ -25,6 +25,23 @@ namespace HBP.UI.Anatomy
 
         [SerializeField] PatientList m_ProjectPatientsList;
         [SerializeField] Text m_ProjectPatientsCounter;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_NameInputField.interactable = value;
+                m_RemoveButton.interactable = value;
+                m_AddButton.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -83,13 +100,6 @@ namespace HBP.UI.Anatomy
             base.Initialize();
             m_ProjectPatientsList.OnSelectionChanged.AddListener(() => m_ProjectPatientsCounter.text = m_ProjectPatientsList.NumberOfItemSelected.ToString());
             m_GroupPatientsList.OnSelectionChanged.AddListener(() => m_GroupPatientsCounter.text = m_GroupPatientsList.NumberOfItemSelected.ToString());
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            base.SetInteractable(interactable);
-            m_NameInputField.interactable = interactable;
-            m_RemoveButton.interactable = interactable;
-            m_AddButton.interactable = interactable;
         }
         #endregion
     }

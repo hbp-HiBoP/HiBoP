@@ -14,6 +14,23 @@ namespace HBP.UI
 		[SerializeField] FolderSelector m_LocationFolderSelector;
 		[SerializeField] ProjectList m_ProjectList;
         [SerializeField] Button m_LoadingButton;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_LocationFolderSelector.interactable = value;
+                m_ProjectList.Interactable = value;
+                m_LoadingButton.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -54,10 +71,18 @@ namespace HBP.UI
             m_ProjectList.OnSelectionChanged.AddListener(() => m_LoadingButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
-            m_LocationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(DisplayProjects(value)));
+            m_LocationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayProjects(value)));
+        }
+        protected override void SetFields()
+        {
+            base.SetFields();
+
             m_LocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocation;
         }
-        IEnumerator DisplayProjects(string path)
+        #endregion
+
+        #region Coroutines
+        IEnumerator c_DisplayProjects(string path)
         {
             yield return Ninja.JumpToUnity;
             m_LoadingButton.interactable = false;
@@ -73,12 +98,6 @@ namespace HBP.UI
             }
             yield return Ninja.JumpToUnity;
             m_ProjectList.SortByName(ProjectList.Sorting.Descending);
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            m_LocationFolderSelector.interactable = interactable;
-            m_ProjectList.Interactable = interactable;
-            m_LoadingButton.interactable = interactable;
         }
         #endregion
     }

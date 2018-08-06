@@ -8,10 +8,26 @@ namespace HBP.UI.Preferences
         #region Properties
         [SerializeField] Toggle m_ShowCutLinesToggle;
         [SerializeField] Toggle m_SimplifiedMeshesToggle;
+
+        protected bool m_Interactable;
+        public virtual bool Interactable
+        {
+            get
+            {
+                return m_Interactable;
+            }
+            set
+            {
+                m_Interactable = value;
+
+                m_ShowCutLinesToggle.interactable = value;
+                m_SimplifiedMeshesToggle.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
-        public void Initialize()
+        public void SetFields()
         {
             Data.Preferences.CutPreferences cutPreferences = ApplicationState.UserPreferences.Visualization.Cut;
 
@@ -24,11 +40,6 @@ namespace HBP.UI.Preferences
 
             cutPreferences.ShowCutLines = m_ShowCutLinesToggle.isOn;
             cutPreferences.SimplifiedMeshes = m_SimplifiedMeshesToggle.isOn;
-        }
-        public void SetInteractable(bool interactable)
-        {
-            m_ShowCutLinesToggle.interactable = interactable;
-            m_SimplifiedMeshesToggle.interactable = interactable;
         }
         #endregion
     }

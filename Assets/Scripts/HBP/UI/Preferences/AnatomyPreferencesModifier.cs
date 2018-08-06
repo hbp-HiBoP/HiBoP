@@ -10,29 +10,42 @@ namespace HBP.UI.Preferences
         [SerializeField] Toggle m_PreloadMeshesToggle;
         [SerializeField] Toggle m_PreloadMRIsToggle;
         [SerializeField] Toggle m_PreloadImplantationsToggle;
+
+        protected bool m_Interactable;
+        public virtual bool Interactable
+        {
+            get
+            {
+                return m_Interactable;
+            }
+            set
+            {
+                m_Interactable = value;
+
+                m_SiteNameCorrectionToggle.interactable = value;
+                m_PreloadMeshesToggle.interactable = value;
+                m_PreloadMRIsToggle.interactable = value;
+                m_PreloadImplantationsToggle.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
         public void Save()
         {
-            ApplicationState.UserPreferences.Data.Anatomy.SiteNameCorrection = m_SiteNameCorrectionToggle.isOn;
-            ApplicationState.UserPreferences.Data.Anatomy.MeshPreloading = m_PreloadMeshesToggle.isOn;
-            ApplicationState.UserPreferences.Data.Anatomy.MRIPreloading = m_PreloadMRIsToggle.isOn;
-            ApplicationState.UserPreferences.Data.Anatomy.ImplantationPreloading = m_PreloadImplantationsToggle.isOn;
+            Data.Preferences.AnatomyPreferences preferences = ApplicationState.UserPreferences.Data.Anatomy;
+            preferences.SiteNameCorrection = m_SiteNameCorrectionToggle.isOn;
+            preferences.MeshPreloading = m_PreloadMeshesToggle.isOn;
+            preferences.MRIPreloading = m_PreloadMRIsToggle.isOn;
+            preferences.ImplantationPreloading = m_PreloadImplantationsToggle.isOn;
         }
-        public void Initialize()
+        public void SetFields()
         {
-            m_SiteNameCorrectionToggle.isOn = ApplicationState.UserPreferences.Data.Anatomy.SiteNameCorrection;
-            m_PreloadMeshesToggle.isOn = ApplicationState.UserPreferences.Data.Anatomy.MeshPreloading;
-            m_PreloadMRIsToggle.isOn = ApplicationState.UserPreferences.Data.Anatomy.MRIPreloading;
-            m_PreloadImplantationsToggle.isOn = ApplicationState.UserPreferences.Data.Anatomy.ImplantationPreloading;
-        }
-        public void SetInteractable(bool interactable)
-        {
-            m_SiteNameCorrectionToggle.interactable = interactable;
-            m_PreloadMeshesToggle.interactable = interactable;
-            m_PreloadMRIsToggle.interactable = interactable;
-            m_PreloadImplantationsToggle.interactable = interactable;
+            Data.Preferences.AnatomyPreferences preferences = ApplicationState.UserPreferences.Data.Anatomy;
+            m_SiteNameCorrectionToggle.isOn = preferences.SiteNameCorrection;
+            m_PreloadMeshesToggle.isOn = preferences.MeshPreloading;
+            m_PreloadMRIsToggle.isOn = preferences.MRIPreloading;
+            m_PreloadImplantationsToggle.isOn = preferences.ImplantationPreloading;
         }
         #endregion
     }

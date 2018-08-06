@@ -276,6 +276,18 @@
             The postprocessor will be destroyed when uninstalling Nested Prefabs.
             </summary>
         </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabsPostprocessor.IgnoreFolder(System.String)">
+            <summary>
+            Ignores processing of prefabs in the folder.
+            </summary>
+            <param name="path">The path to the folder.</param>
+        </member>
+        <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabsPostprocessor.IgnorePattern(System.String)">
+            <summary>
+            Ignores processing of prefabs that contain the given pattern.
+            </summary>
+            <param name="pattern">Pattern to ignore.</param>
+        </member>
         <member name="M:VisualDesignCafe.Editor.Prefabs.NestedPrefabsPostprocessor.Destroy">
             <summary>
             Destroys the postprocessor. Should only be used during Uninstall.
@@ -962,7 +974,7 @@
             List of ignored components and properties.
             </summary>
         </member>
-        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.#ctor(System.Int32,UnityEngine.Object,VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo,VisualDesignCafe.Editor.Prefabs.Comparing.IgnoreList)">
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ComponentInfo.#ctor(System.Int32,UnityEngine.Object,VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo,VisualDesignCafe.Editor.Prefabs.Comparing.IgnoreList,System.Boolean)">
             <summary>
             Creates a new class holding cached information about the component.
             </summary>
@@ -1027,7 +1039,7 @@
             ObjectInfo class of the root GameObject in this prefab.
             </summary>
         </member>
-        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.Object">
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.GameObject">
             <summary>
             The GameObject's properties as a ComponentInfo.
             </summary>
@@ -1083,12 +1095,19 @@
             Is this object the root of a prefab or nested prefab?
             </summary>
         </member>
+        <member name="P:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.OverridesOnly">
+            <summary>
+            Is this object only cached because it has overridden components?
+            If true all other components have to be ignored and only the overridden components
+            have to be cached.
+            </summary>
+        </member>
         <member name="F:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.IsReloadedFromModelPrefab">
             <summary>
             Is the prefab being reloaded from the original model prefab?
             </summary>
         </member>
-        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.#ctor(UnityEngine.GameObject,UnityEngine.Transform,VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo,VisualDesignCafe.Editor.Prefabs.Comparing.IgnoreList,System.Boolean,System.Boolean,System.Boolean)">
+        <member name="M:VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo.#ctor(UnityEngine.GameObject,UnityEngine.Transform,VisualDesignCafe.Editor.Prefabs.Comparing.ObjectInfo,VisualDesignCafe.Editor.Prefabs.Comparing.IgnoreList,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
             Creates a new serialized representation of the GameObject,
             can be used to compare GameObjects against each other to find modifications.

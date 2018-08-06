@@ -8,6 +8,21 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] GroupList m_GroupList;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_GroupList.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -25,11 +40,6 @@ namespace HBP.UI.Anatomy
             base.Initialize();
             AddItem(ApplicationState.ProjectLoaded.Groups.ToArray());
             m_GroupList.SortByName(GroupList.Sorting.Descending);
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            base.SetInteractable(interactable);
-            m_GroupList.Interactable = interactable;
         }
         #endregion
     }

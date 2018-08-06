@@ -19,6 +19,25 @@ namespace HBP.UI.Experience.Dataset
         [SerializeField] Dropdown m_NormalizationDropdown;
         [SerializeField] FileSelector m_EEGFileSelector, m_POSFileSelector;
         List<Data.Patient> m_Patients;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+                m_NameInputField.interactable = value;
+                m_PatientDropdown.interactable = value;
+                m_MeasureInputField.interactable = value;
+                m_EEGFileSelector.interactable = value;
+                m_POSFileSelector.interactable = value;
+                m_NormalizationDropdown.interactable = value;
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -65,18 +84,10 @@ namespace HBP.UI.Experience.Dataset
             m_NormalizationDropdown.onValueChanged.RemoveAllListeners();
             m_NormalizationDropdown.onValueChanged.AddListener((value) => objectToDisplay.Normalization = (d.DataInfo.NormalizationType) value);
         }
-        protected override void SetInteractable(bool interactable)
-        {
-            m_NameInputField.interactable = interactable;
-            m_PatientDropdown.interactable = interactable;
-            m_MeasureInputField.interactable = interactable;
-            m_EEGFileSelector.interactable = interactable;
-            m_POSFileSelector.interactable = interactable;
-            m_NormalizationDropdown.interactable = interactable;
-        }
         protected override void Initialize()
         {
             CanSaveEvent = new UnityEvent();
+            base.Initialize();
         }
         void SetPosFile()
         {

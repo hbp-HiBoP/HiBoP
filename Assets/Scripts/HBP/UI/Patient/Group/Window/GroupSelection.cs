@@ -13,6 +13,21 @@ namespace HBP.UI.Anatomy
         List<ItemModifier<Group>> m_Modifiers = new List<ItemModifier<Group>>();
         GroupList groupList;
         public GroupsSelected GroupsSelectedEvent = new GroupsSelected();
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                groupList.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -46,10 +61,6 @@ namespace HBP.UI.Anatomy
         protected virtual void OnCloseModifier(ItemModifier<Group> modifier)
         {
             m_Modifiers.Remove(modifier);
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            groupList.Interactable = interactable;
         }
         #endregion
     }

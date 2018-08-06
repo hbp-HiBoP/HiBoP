@@ -1,4 +1,5 @@
 ﻿using System;
+using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,30 +9,34 @@ namespace HBP.UI.Preferences
     {
         #region Properties
         [SerializeField] Dropdown m_PositionAveragingDropdown;
+
+        protected bool m_Interactable;
+        public virtual bool Interactable
+        {
+            get
+            {
+                return m_Interactable;
+            }
+            set
+            {
+                m_Interactable = value;
+
+                m_PositionAveragingDropdown.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
-        public void Initialize()
+        public void SetFields()
         {
             Data.Preferences.EventPreferences preferences = ApplicationState.UserPreferences.Data.Event;
 
-            string[] averagingType = Enum.GetNames(typeof(Data.Enums.AveragingType));
-            m_PositionAveragingDropdown.ClearOptions();
-            foreach (string type in averagingType)
-            {
-                m_PositionAveragingDropdown.options.Add(new Dropdown.OptionData(type));
-            }
-            m_PositionAveragingDropdown.value = (int)preferences.PositionAveraging;
-            m_PositionAveragingDropdown.RefreshShownValue();
+            m_PositionAveragingDropdown.Set(typeof(Data.Enums.AveragingType), (int)preferences.PositionAveraging);
         }
         public void Save()
         {
             Data.Preferences.EventPreferences preferences = ApplicationState.UserPreferences.Data.Event;
             preferences.PositionAveraging = (Data.Enums.AveragingType) m_PositionAveragingDropdown.value;
-        }
-        public void SetInteractable(bool interactable)
-        {
-            m_PositionAveragingDropdown.interactable = interactable;
         }
         #endregion
     }

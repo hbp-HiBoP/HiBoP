@@ -35,6 +35,22 @@ namespace HBP.UI.Experience.Protocol
         //List<TreatmentModifier> m_TreatmentModifiers = new List<TreatmentModifier>();
         [SerializeField] Button m_AddTreatmentButton, m_RemoveTreatmentButton;
 
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+                m_NameInputField.interactable = value;
+                m_AddEventButton.interactable = value;
+                m_RemoveEventButton.interactable = value;
+            }
+        }
+
         #endregion
 
         #region Public Methods
@@ -108,15 +124,6 @@ namespace HBP.UI.Experience.Protocol
 
             //blocGrid.Display(objectToDisplay.Blocs.ToArray());
             //blocGrid.OnAction.AddListener((bloc, i) => OnListEvent(bloc, i));
-        }
-        protected override void Initialize()
-        {
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            m_NameInputField.interactable = interactable;
-            m_AddEventButton.interactable = interactable;
-            m_RemoveEventButton.interactable = interactable;
         }
         #endregion
     }

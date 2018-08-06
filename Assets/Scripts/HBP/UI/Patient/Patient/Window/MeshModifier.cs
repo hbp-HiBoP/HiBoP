@@ -15,6 +15,25 @@ namespace HBP.UI.Anatomy
         [SerializeField] SingleMeshGestion m_SingleMeshGestion;
         [SerializeField] LeftRightMeshGestion m_LeftRightMeshGestion;
         [SerializeField] FileSelector m_TransformationFileSelector;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_NameInputField.interactable = value;
+                m_TypeDropdown.interactable = value;
+                m_SingleMeshGestion.interactable = value;
+                m_LeftRightMeshGestion.interactable = value;
+                m_TransformationFileSelector.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -43,15 +62,6 @@ namespace HBP.UI.Anatomy
             m_TypeDropdown.value = objectToDisplay is LeftRightMesh ? 1 : 0;
             m_TypeDropdown.onValueChanged.Invoke(m_TypeDropdown.value);
             m_TransformationFileSelector.File = objectToDisplay.Transformation;
-        }
-        protected override void SetInteractable(bool interactable)
-        {
-            base.SetInteractable(interactable);
-            m_NameInputField.interactable = interactable;
-            m_TypeDropdown.interactable = interactable;
-            m_SingleMeshGestion.interactable = interactable;
-            m_LeftRightMeshGestion.interactable = interactable;
-            m_TransformationFileSelector.interactable = interactable;
         }
         protected override void Initialize()
         {
