@@ -29,7 +29,7 @@ public class SortingDisplayer : MonoBehaviour
                 case SortingType.Descending:
                     if (m_AscendingThemeElement == null)
                     {
-                        Debug.Log(transform.FullName());
+                        Debug.Log(transform.GetFullName());
                     }
                     m_AscendingThemeElement.Set();
                     m_DescendingThemeElement.Set(Activated);

@@ -26,6 +26,7 @@ namespace HBP.UI.Preferences
             }
             set
             {
+                Debug.Log("Interactable");
                 base.Interactable = value;
 
                 m_ProjectPreferencesModifier.Interactable = value;
@@ -70,6 +71,7 @@ namespace HBP.UI.Preferences
         #region Private Methods
         protected override void SetFields()
         {
+            Debug.Log("SetFields");
             m_ProjectPreferencesModifier.SetFields();
             m_ThemePreferencesModifier.SetFields();
             m_LocalizationPreferencesModifier.SetFields();

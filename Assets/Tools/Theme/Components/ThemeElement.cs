@@ -21,7 +21,7 @@ namespace NewTheme.Components
             catch(Exception e)
             {
                 ActualState = null;
-                Debug.LogError("Missing theme element at " + gameObject.transform.FullName());
+                Debug.LogError("Missing theme element at " + gameObject.transform.GetFullName());
                 throw e;
             }
         }
@@ -34,7 +34,7 @@ namespace NewTheme.Components
             catch(Exception e)
             {
                 ActualState = null;
-                Debug.LogError("Missing theme element at " + gameObject.transform.FullName());
+                Debug.LogError("Missing theme element at " + gameObject.transform.GetFullName());
                 throw e;
             }
         }
@@ -43,7 +43,7 @@ namespace NewTheme.Components
         #region Private Methods
         void Awake()
         {
-           Set();
+            Set();
         }
         #endregion
     }

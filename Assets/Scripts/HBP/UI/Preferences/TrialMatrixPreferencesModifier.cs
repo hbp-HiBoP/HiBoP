@@ -57,6 +57,7 @@ namespace HBP.UI.Preferences
             m_SmoothTrialToggle.isOn = preferences.TrialSmoothing;
 
             // Intermediate values.
+            Debug.Log("SetIntermediateValuesSlider");
             m_NumberOfIntermediateValuesSlider.interactable = m_SmoothTrialToggle.isOn && m_Interactable;
             m_NumberOfIntermediateValuesSlider.value = preferences.NumberOfIntermediateValues;
 
