@@ -67,16 +67,23 @@ namespace HBP.UI
         #region Private Methods
         protected override void Initialize()
         {
+            // Initialize project list.
             m_ProjectList.Initialize();
             m_ProjectList.OnSelectionChanged.AddListener(() => m_LoadingButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
+            // Initialise location folder selector.
             m_LocationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayProjects(value)));
+
+            // Base method.
+            base.Initialize();
         }
         protected override void SetFields()
         {
+            // Base method.
             base.SetFields();
 
+            // Set location folder selector.
             m_LocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocation;
         }
         #endregion
