@@ -14,10 +14,6 @@ namespace NewTheme.Components
         #region Public Methods
         public void Set()
         {
-            if(name == "Label" && transform.parent.parent.name == "Number of intermediate values")
-            {
-                Debug.Log("Set()");
-            }
             try
             {
                 ActualState = Element.Set(gameObject);
@@ -31,10 +27,6 @@ namespace NewTheme.Components
         }
         public void Set(State state)
         {
-            if (name == "Label" && transform.parent.parent.name == "Number of intermediate values")
-            {
-                Debug.Log("Set() "+ state.name);
-            }
             try
             {
                 ActualState = Element.Set(gameObject, state);
