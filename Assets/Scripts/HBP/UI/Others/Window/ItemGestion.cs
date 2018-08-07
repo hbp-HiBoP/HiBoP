@@ -48,10 +48,9 @@ namespace HBP.UI
         #region Protected Methods
         protected override void Initialize()
         {
-            base.Initialize();
             m_List.Initialize();
             m_List.OnAction.AddListener((item, i) => OpenModifier(item, Interactable));
-
+            base.Initialize();
         }
         protected virtual void OpenModifier(T item,bool interactable)
         {

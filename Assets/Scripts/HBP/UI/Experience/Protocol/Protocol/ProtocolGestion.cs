@@ -11,6 +11,8 @@ namespace HBP.UI.Experience.Protocol
         #region Properties
         [SerializeField] ProtocolList m_ProtocolList;
         [SerializeField] Button m_ImportButton;
+        [SerializeField] Button m_CreateProtocolButton;
+        [SerializeField] Button m_RemoveProtocolButton;
 
         public override bool Interactable
         {
@@ -24,6 +26,8 @@ namespace HBP.UI.Experience.Protocol
                 base.Interactable = value;
 
                 m_ImportButton.interactable = value;
+                m_CreateProtocolButton.interactable = value;
+                m_RemoveProtocolButton.interactable = value;
             }
         }
         #endregion
@@ -66,10 +70,16 @@ namespace HBP.UI.Experience.Protocol
         #region Private Methods
         protected override void Initialize()
         {
+            Debug.Log("Initialize");
             m_List = m_ProtocolList;
             base.Initialize();
+        }
+        protected override void SetFields()
+        {
+            Debug.Log("SetFields");
             AddItem(ApplicationState.ProjectLoaded.Protocols.ToArray());
             m_ProtocolList.SortByName(ProtocolList.Sorting.Descending);
+            base.SetFields();
         }
         #endregion
     }
