@@ -73,12 +73,12 @@ namespace HBP.UI
                     m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            Refresh();
         }
         public void SortByGroups()
         {
@@ -105,12 +105,12 @@ namespace HBP.UI
                 default:
                     break;
             }
-            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            Refresh();
         }
         public void SortByProtocols()
         {
@@ -119,12 +119,12 @@ namespace HBP.UI
                 case OrderBy.DescendingProtocols: SortByProtocols(Sorting.Ascending); break;
                 default: SortByProtocols(Sorting.Descending); break;
             }
-            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            Refresh();
         }
         public void SortByProtocols(Sorting sorting)
         {
@@ -141,12 +141,12 @@ namespace HBP.UI
                     m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            Refresh();
         }
         public void SortByDatasets()
         {
@@ -172,12 +172,12 @@ namespace HBP.UI
                     m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            Refresh();
         }
         public void SortByVisualizations()
         {
@@ -202,12 +202,12 @@ namespace HBP.UI
                     m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            Refresh();
         }
         #endregion
     }
