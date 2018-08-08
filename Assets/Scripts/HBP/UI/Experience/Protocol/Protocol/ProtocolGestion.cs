@@ -70,13 +70,11 @@ namespace HBP.UI.Experience.Protocol
         #region Private Methods
         protected override void Initialize()
         {
-            Debug.Log("Initialize");
             m_List = m_ProtocolList;
             base.Initialize();
         }
         protected override void SetFields()
         {
-            Debug.Log("SetFields");
             AddItem(ApplicationState.ProjectLoaded.Protocols.ToArray());
             m_ProtocolList.SortByName(ProtocolList.Sorting.Descending);
             base.SetFields();
