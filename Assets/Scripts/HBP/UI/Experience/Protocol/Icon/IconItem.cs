@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Data.Experience.Protocol;
-using Tools.CSharp;
 
 namespace HBP.UI.Experience.Protocol
 {
