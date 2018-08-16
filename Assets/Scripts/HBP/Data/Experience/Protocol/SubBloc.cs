@@ -32,7 +32,7 @@ namespace HBP.Data.Experience.Protocol
         /// ID of the SubBloc.
         /// </summary>
         [DataMember] public string ID { get; set; }
-        /// <summary>
+        /// <summary> 
         /// Name of the SubBloc.
         /// </summary>
         [DataMember] public string Name { get; set; }
