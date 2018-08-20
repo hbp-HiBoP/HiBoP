@@ -24,17 +24,16 @@ namespace HBP.Data.Experience.Protocol
         private const char SEPARATOR = ',';
 
         /** Name of the code. */
-        [DataMember]
-		public string Name { get; set; }
+        [DataMember] public string Name { get; set; }
 
         /** Codes of the event. */
-        [DataMember]
-		public List<int> Codes { get; set; }
+        [DataMember] public List<int> Codes { get; set; }
 
         public enum TypeEnum { Main, Secondary}
-        [DataMember]
-        /** Type of the event. */
-        public TypeEnum Type { get; set; }
+        /// <summary>
+        /// Type of event.
+        /// </summary>
+        [DataMember] public TypeEnum Type { get; set; }
 
         /** Codes of the event in a string with code separate with ','. */
         [IgnoreDataMember]

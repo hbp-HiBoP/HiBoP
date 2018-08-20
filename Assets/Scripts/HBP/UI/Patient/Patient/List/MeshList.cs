@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using HBP.Data.Anatomy;
 using Tools.Unity.Lists;
 using UnityEngine;
 
@@ -20,7 +19,7 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public override bool Add(Data.Anatomy.Mesh objectToAdd)
         {
-            if (base.Add(objectToAdd))
+            if(base.Add(objectToAdd))
             {
                 SortByNone();
                 return true;

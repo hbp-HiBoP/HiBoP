@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class EventGestion : Gestion<Data.Experience.Protocol.Event, Data.Experience.Protocol.SubBloc>
+    public class EventGestion : Gestion<Data.Experience.Protocol.Event, SubBloc>
     {
         #region Properties
         [SerializeField] EventList m_List;
@@ -13,7 +13,7 @@ namespace HBP.UI.Experience.Protocol
         #endregion
 
         #region Public Methods
-        public override void Set(Data.Experience.Protocol.SubBloc subBloc)
+        public override void Set(SubBloc subBloc)
         {
             base.Set(subBloc);
             List.Objects = m_ParentObject.Events.ToArray();

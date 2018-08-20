@@ -13,11 +13,27 @@ namespace HBP.Data.Experience.Protocol
     * \details Class which define a treatment to apply at a subBloc.
     */
     [DataContract]
-    public abstract class Treatment : ICloneable, ICopiable
+    public class Treatment : ICloneable, ICopiable
     {
+        #region Properties
+        #endregion
+
+        #region Constructors
+        public Treatment()
+        {
+
+        }
+        #endregion
+
         #region Operators
-        public abstract object Clone();
-        public abstract void Copy(object copy);
+        public object Clone()
+        {
+            return this;
+        }
+        public void Copy(object copy)
+        {
+
+        }
         #endregion
     }
 }
