@@ -1,5 +1,6 @@
 ﻿using d = HBP.Data.Experience.Dataset;
 using System.Linq;
+using UnityEngine;
 
 namespace HBP.UI.Experience.Dataset
 {
@@ -9,13 +10,16 @@ namespace HBP.UI.Experience.Dataset
         enum OrderBy { None, Name, DescendingName, Protocol, DescendingProtocol, Data, DescendingData }
         OrderBy m_OrderBy = OrderBy.None;
 
-        public enum Sorting { Ascending, Descending }
-        public SortingDisplayer m_NameSortingDisplayer;
-        public SortingDisplayer m_ProtocolSortingDisplayer;
-        public SortingDisplayer m_DataSortingDisplayer;
+        [SerializeField] SortingDisplayer m_NameSortingDisplayer;
+        [SerializeField] SortingDisplayer m_ProtocolSortingDisplayer;
+        [SerializeField] SortingDisplayer m_DataSortingDisplayer;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -35,6 +39,9 @@ namespace HBP.UI.Experience.Dataset
             m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
         public void SortByName()
         {
             switch (m_OrderBy)
@@ -43,6 +50,11 @@ namespace HBP.UI.Experience.Dataset
                 default: SortByName(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by protocol.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByProtocol(Sorting sorting)
         {
             switch (sorting)
@@ -62,6 +74,9 @@ namespace HBP.UI.Experience.Dataset
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by protocol.
+        /// </summary>
         public void SortByProtocol()
         {
             switch (m_OrderBy)
@@ -70,6 +85,11 @@ namespace HBP.UI.Experience.Dataset
                 default: SortByProtocol(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by data.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByData(Sorting sorting)
         {
             switch (sorting)
@@ -89,6 +109,9 @@ namespace HBP.UI.Experience.Dataset
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by data.
+        /// </summary>
         public void SortByData()
         {
             switch (m_OrderBy)
@@ -96,6 +119,18 @@ namespace HBP.UI.Experience.Dataset
                 case OrderBy.DescendingData: SortByData(Sorting.Ascending); break;
                 default: SortByData(Sorting.Descending); break;
             }
+        }
+
+        /// <summary>
+        /// Sort by none.
+        /// </summary>
+        public void SortByNone()
+        {
+            m_OrderBy = OrderBy.None;
+
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         #endregion
     }

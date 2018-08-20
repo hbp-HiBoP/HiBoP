@@ -1,6 +1,7 @@
 ﻿using HBP.Data.Anatomy;
 using Tools.Unity.Lists;
 using System.Linq;
+using UnityEngine;
 
 namespace HBP.UI.Anatomy
 {
@@ -9,21 +10,17 @@ namespace HBP.UI.Anatomy
         #region Properties
         enum OrderBy { None, Name, DescendingName, Path, DescendingPath }
         OrderBy m_OrderBy = OrderBy.None;
-        public enum Sorting { Ascending, Descending}
-        public SortingDisplayer m_NameSortingDisplayer;
-        public SortingDisplayer m_PathSortingDisplayer;
-        public SortingDisplayer m_MarsAtlasSortingDisplayer;
+
+        [SerializeField] SortingDisplayer m_NameSortingDisplayer;
+        [SerializeField] SortingDisplayer m_PathSortingDisplayer;
+        [SerializeField] SortingDisplayer m_MarsAtlasSortingDisplayer;
         #endregion
 
         #region SortingMethods
-        public void SortByName()
-        {
-            switch (m_OrderBy)
-            {
-                case OrderBy.DescendingName: SortByName(Sorting.Ascending); break;
-                default: SortByName(Sorting.Descending); break;
-            }
-        }
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -43,14 +40,22 @@ namespace HBP.UI.Anatomy
             m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
-        public void SortByPath()
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
+        public void SortByName()
         {
             switch (m_OrderBy)
             {
-                case OrderBy.DescendingPath: SortByPath(Sorting.Ascending); break;
-                default: SortByPath(Sorting.Descending); break;
+                case OrderBy.DescendingName: SortByName(Sorting.Ascending); break;
+                default: SortByName(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by path.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByPath(Sorting sorting)
         {
             switch (sorting)
@@ -70,14 +75,22 @@ namespace HBP.UI.Anatomy
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
-        public void SortByMarsAtlas()
+        /// <summary>
+        /// Sort by path.
+        /// </summary>
+        public void SortByPath()
         {
             switch (m_OrderBy)
             {
-                case OrderBy.DescendingPath: SortByMarsAtlas(Sorting.Ascending); break;
-                default: SortByMarsAtlas(Sorting.Descending); break;
+                case OrderBy.DescendingPath: SortByPath(Sorting.Ascending); break;
+                default: SortByPath(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by Mars atlas.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByMarsAtlas(Sorting sorting)
         {
             switch (sorting)
@@ -97,6 +110,21 @@ namespace HBP.UI.Anatomy
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by Mars atlas.
+        /// </summary>
+        public void SortByMarsAtlas()
+        {
+            switch (m_OrderBy)
+            {
+                case OrderBy.DescendingPath: SortByMarsAtlas(Sorting.Ascending); break;
+                default: SortByMarsAtlas(Sorting.Descending); break;
+            }
+        }
+
+        /// <summary>
+        /// Sort by none.
+        /// </summary>
         public void SortByNone()
         {
             m_OrderBy = OrderBy.None;

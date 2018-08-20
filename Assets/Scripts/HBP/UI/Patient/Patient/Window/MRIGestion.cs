@@ -5,7 +5,7 @@ using Tools.Unity.Lists;
 
 namespace HBP.UI.Anatomy
 {
-    public class MRIGestion : AnatomyGestion<MRI>
+    public class MRIGestion : Gestion<MRI,Data.Patient>
     {
         #region Properties
         [SerializeField] MRIList m_List;
@@ -16,22 +16,17 @@ namespace HBP.UI.Anatomy
         public override void Set(Data.Patient patient)
         {
             base.Set(patient);
-            List.Objects = m_Patient.Brain.MRIs.ToArray();
-            m_List.SortByName(MRIList.Sorting.Descending);
-        }
-        public override void SetActive(bool active)
-        {
-            base.SetActive(active);
+            List.Objects = m_ParentObject.Brain.MRIs.ToArray();
             m_List.SortByName(MRIList.Sorting.Descending);
         }
         public override void RemoveItem()
         {
             base.RemoveItem();
-            m_Patient.Brain.MRIs = List.Objects.ToList();
+            m_ParentObject.Brain.MRIs = List.Objects.ToList();
         }
         public override void Save()
         {
-            m_Patient.Brain.MRIs = List.Objects.ToList();
+            m_ParentObject.Brain.MRIs = List.Objects.ToList();
         }
         #endregion
 

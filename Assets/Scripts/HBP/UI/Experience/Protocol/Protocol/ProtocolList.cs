@@ -1,5 +1,6 @@
 ﻿using d = HBP.Data.Experience.Protocol;
 using System.Linq;
+using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -9,12 +10,15 @@ namespace HBP.UI.Experience.Protocol
         enum OrderBy { None, Name, DescendingName, Blocs, DescendingBlocs }
         OrderBy m_OrderBy = OrderBy.None;
 
-        public enum Sorting { Ascending, Descending }
-        public SortingDisplayer m_NameSortingDisplayer;
-        public SortingDisplayer m_BlocsSortingDisplayer;
+        [SerializeField] SortingDisplayer m_NameSortingDisplayer;
+        [SerializeField] SortingDisplayer m_BlocsSortingDisplayer;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -33,6 +37,9 @@ namespace HBP.UI.Experience.Protocol
             Refresh();
             m_BlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
         public void SortByName()
         {
             switch (m_OrderBy)
@@ -41,6 +48,11 @@ namespace HBP.UI.Experience.Protocol
                 default: SortByName(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by blocs.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByBlocs(Sorting sorting)
         {
             switch (sorting)
@@ -59,6 +71,9 @@ namespace HBP.UI.Experience.Protocol
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by blocs
+        /// </summary>
         public void SortByBlocs()
         {
             switch (m_OrderBy)
@@ -66,6 +81,15 @@ namespace HBP.UI.Experience.Protocol
                 case OrderBy.DescendingBlocs: SortByBlocs(Sorting.Ascending); break;
                 default: SortByBlocs(Sorting.Descending); break;
             }
+        }
+
+        /// <summary>
+        /// Sort by none.
+        /// </summary>
+        public void SortByNone()
+        {
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_BlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         #endregion
     }

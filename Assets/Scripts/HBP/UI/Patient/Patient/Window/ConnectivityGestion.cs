@@ -2,10 +2,11 @@
 using HBP.Data.Anatomy;
 using UnityEngine;
 using Tools.Unity.Lists;
+using HBP.Data;
 
 namespace HBP.UI.Anatomy
 {
-    public class ConnectivityGestion : AnatomyGestion<Connectivity>
+    public class ConnectivityGestion : Gestion<Connectivity, Patient>
     {
         #region Properties
         [SerializeField] ConnectivityList m_List;
@@ -16,7 +17,7 @@ namespace HBP.UI.Anatomy
         public override void Set(Data.Patient patient)
         {
             base.Set(patient);
-            List.Objects = m_Patient.Brain.Connectivities.ToArray();
+            List.Objects = m_ParentObject.Brain.Connectivities.ToArray();
             m_List.SortByName(ConnectivityList.Sorting.Descending);
         }
         public override void SetActive(bool active)
@@ -27,11 +28,11 @@ namespace HBP.UI.Anatomy
         public override void RemoveItem()
         {
             base.RemoveItem();
-            m_Patient.Brain.Connectivities = List.Objects.ToList();
+            m_ParentObject.Brain.Connectivities = List.Objects.ToList();
         }
         public override void Save()
         {
-            m_Patient.Brain.Connectivities = List.Objects.ToList();
+            m_ParentObject.Brain.Connectivities = List.Objects.ToList();
         }
         #endregion
 

@@ -4,9 +4,9 @@ using UnityEngine.UI;
 using Tools.Unity.Lists;
 using System;
 
-namespace HBP.UI.Anatomy
+namespace HBP.UI
 {
-    public abstract class AnatomyGestion<T> : MonoBehaviour where T: ICopiable, ICloneable, new()
+    public abstract class Gestion<T,P> : MonoBehaviour where T: ICopiable, ICloneable, new()
     {
         #region Properties
         protected abstract SelectableListWithItemAction<T> List {  get; }
@@ -14,7 +14,7 @@ namespace HBP.UI.Anatomy
         [SerializeField] Text m_Counter;
         [SerializeField] Button m_AddButton;
         [SerializeField] Button m_RemoveButton;
-        protected Data.Patient m_Patient;
+        protected P m_ParentObject;
         bool m_Interactable;
         public virtual bool interactable
         {
@@ -30,9 +30,9 @@ namespace HBP.UI.Anatomy
         #endregion
 
         #region Public Methods
-        public virtual void Set(Data.Patient patient)
+        public virtual void Set(P patientObject)
         {
-            m_Patient = patient;
+            m_ParentObject = patientObject;
             Initialize();
         }
         public virtual void SetActive(bool active)

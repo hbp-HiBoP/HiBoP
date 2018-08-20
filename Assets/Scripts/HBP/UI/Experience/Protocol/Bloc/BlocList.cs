@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using UnityEngine;
 using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
@@ -9,14 +10,17 @@ namespace HBP.UI.Experience.Protocol
         enum OrderBy { None, Name, DescendingName, Position, DescendingPosition , SubBlocs, DescendingSubBlocs, Image, DescendingImage }
         OrderBy m_OrderBy = OrderBy.None;
 
-        public enum Sorting { Ascending, Descending }
-        public SortingDisplayer m_NameSortingDisplayer;
-        public SortingDisplayer m_PositionSortingDisplayer;
-        public SortingDisplayer m_SubBlocsSortingDisplayer;
-        public SortingDisplayer m_ImageSortingDisplayer;
+        [SerializeField] SortingDisplayer m_NameSortingDisplayer;
+        [SerializeField] SortingDisplayer m_PositionSortingDisplayer;
+        [SerializeField] SortingDisplayer m_SubBlocsSortingDisplayer;
+        [SerializeField] SortingDisplayer m_ImageSortingDisplayer;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -37,6 +41,9 @@ namespace HBP.UI.Experience.Protocol
             m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
         public void SortByName()
         {
             switch (m_OrderBy)
@@ -45,6 +52,11 @@ namespace HBP.UI.Experience.Protocol
                 default: SortByName(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by position.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByPosition(Sorting sorting)
         {
             switch (sorting)
@@ -65,6 +77,9 @@ namespace HBP.UI.Experience.Protocol
             m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by position.
+        /// </summary>
         public void SortByPosition()
         {
             switch (m_OrderBy)
@@ -73,6 +88,11 @@ namespace HBP.UI.Experience.Protocol
                 default: SortByPosition(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort vy sub-blocs.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortBySubBlocs(Sorting sorting)
         {
             switch (sorting)
@@ -93,6 +113,9 @@ namespace HBP.UI.Experience.Protocol
             m_PositionSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by sub-blocs.
+        /// </summary>
         public void SortBySubBlocs()
         {
             switch (m_OrderBy)
@@ -101,6 +124,11 @@ namespace HBP.UI.Experience.Protocol
                 default: SortBySubBlocs(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by image.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByImage(Sorting sorting)
         {
             switch (sorting)
@@ -121,6 +149,9 @@ namespace HBP.UI.Experience.Protocol
             m_PositionSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by image.
+        /// </summary>
         public void SortByImage()
         {
             switch (m_OrderBy)
@@ -129,7 +160,19 @@ namespace HBP.UI.Experience.Protocol
                 default: SortByImage(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by none.
+        /// </summary>
+        public void SortByNone()
+        {
+            m_OrderBy = OrderBy.None;
+
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_PositionSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        }
         #endregion
     }
-
 }

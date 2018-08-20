@@ -12,6 +12,8 @@ namespace Tools.Unity.Lists
         public GameObject ItemPrefab;
         public float ItemHeight;
 
+        public enum Sorting { Ascending, Descending};
+
         protected System.Collections.Generic.List<Item<T>> m_Items;
         protected int m_NumberOfItems;
 

@@ -8,13 +8,16 @@ namespace HBP.UI.Experience.Dataset
         enum OrderBy { None, Name, DescendingName, Patient, DescendingPatient, State, DescendingState }
         OrderBy m_OrderBy = OrderBy.None;
         
-        public enum Sorting { Ascending, Descending}
         public SortingDisplayer m_NameSortingDisplayer;
         public SortingDisplayer m_PatientSortingDisplayer;
         public SortingDisplayer m_StateSortingDisplayer;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -34,6 +37,9 @@ namespace HBP.UI.Experience.Dataset
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
         public void SortByName()
         {
             switch (m_OrderBy)
@@ -42,6 +48,11 @@ namespace HBP.UI.Experience.Dataset
                 default: SortByName(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by patient.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByPatient(Sorting sorting)
         {
             switch (sorting)
@@ -61,6 +72,9 @@ namespace HBP.UI.Experience.Dataset
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by patient.
+        /// </summary>
         public void SortByPatient()
         {
             switch (m_OrderBy)
@@ -69,6 +83,11 @@ namespace HBP.UI.Experience.Dataset
                 default: SortByPatient(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by state.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByState(Sorting sorting)
         {
             switch (sorting)
@@ -88,6 +107,9 @@ namespace HBP.UI.Experience.Dataset
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by sate.
+        /// </summary>
         public void SortByState()
         {
             switch (m_OrderBy)
@@ -95,6 +117,18 @@ namespace HBP.UI.Experience.Dataset
                 case OrderBy.DescendingState: SortByState(Sorting.Ascending); break;
                 default: SortByState(Sorting.Descending); break;
             }
+        }
+
+        /// <summary>
+        /// Sort by none.
+        /// </summary>
+        public void SortByNone()
+        {
+            m_OrderBy = OrderBy.None;
+
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         #endregion
     }

@@ -12,12 +12,11 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] InputField m_NameInputField;
         [SerializeField] InputField m_PositionInputField;
 
-        // Timeline
-        [SerializeField] InputField m_StartWindowInputField;
-        [SerializeField] InputField m_EndWindowInputField;
+        [SerializeField] Slider m_StartWindowSlider;
+        [SerializeField] Slider m_EndWindowSlider;
 
-        [SerializeField] InputField m_StartBaselineInputField;
-        [SerializeField] InputField m_EndBaselineInputField;
+        [SerializeField] Slider m_StartBaselineSlider;
+        [SerializeField] Slider m_EndBaselineSlider;
 
         // Events
         [SerializeField] GameObject m_EventModifierPrefab;
@@ -45,7 +44,16 @@ namespace HBP.UI.Experience.Protocol
             set
             {
                 base.Interactable = value;
+
                 m_NameInputField.interactable = value;
+                m_PositionInputField.interactable = value;
+
+                m_StartWindowSlider.interactable = value;
+                m_EndWindowSlider.interactable = value;
+
+                m_StartBaselineSlider.interactable = value;
+                m_EndBaselineSlider.interactable = value;
+
                 m_AddEventButton.interactable = value;
                 m_RemoveEventButton.interactable = value;
             }

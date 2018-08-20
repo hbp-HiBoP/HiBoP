@@ -1,6 +1,7 @@
 ﻿using HBP.Data.Anatomy;
 using Tools.Unity.Lists;
 using System.Linq;
+using UnityEngine;
 
 namespace HBP.UI.Anatomy
 {
@@ -9,12 +10,16 @@ namespace HBP.UI.Anatomy
         #region Properties
         enum OrderBy { None, Name, DescendingName, Path, DescendingPath }
         OrderBy m_OrderBy = OrderBy.None;
-        public enum Sorting { Ascending, Descending}
-        public SortingDisplayer m_NameSortingDisplayer;
-        public SortingDisplayer m_PathSortingDisplayer;
+
+        [SerializeField] SortingDisplayer m_NameSortingDisplayer;
+        [SerializeField] SortingDisplayer m_PathSortingDisplayer;
         #endregion
 
         #region SortingMethods
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -33,6 +38,9 @@ namespace HBP.UI.Anatomy
             Refresh();
             m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
         public void SortByName()
         {
             switch (m_OrderBy)
@@ -41,6 +49,11 @@ namespace HBP.UI.Anatomy
                 default: SortByName(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by path.
+        /// </summary>
+        /// <param name="sorting"></param>
         public void SortByPath(Sorting sorting)
         {
             switch (sorting)
@@ -59,6 +72,9 @@ namespace HBP.UI.Anatomy
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by path.
+        /// </summary>
         public void SortByPath()
         {
             switch (m_OrderBy)
@@ -67,9 +83,14 @@ namespace HBP.UI.Anatomy
                 default: SortByPath(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by none.
+        /// </summary>
         public void SortByNone()
         {
             m_OrderBy = OrderBy.None;
+
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }

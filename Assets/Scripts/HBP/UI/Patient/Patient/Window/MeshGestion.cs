@@ -5,7 +5,7 @@ using Tools.Unity.Lists;
 
 namespace HBP.UI.Anatomy
 {
-    public class MeshGestion : AnatomyGestion<Data.Anatomy.Mesh>
+    public class MeshGestion : Gestion<Data.Anatomy.Mesh, Data.Patient>
     {
         #region Properties
         [SerializeField] MeshList m_List;
@@ -16,7 +16,7 @@ namespace HBP.UI.Anatomy
         public override void Set(Data.Patient patient)
         {
             base.Set(patient);
-            List.Objects = m_Patient.Brain.Meshes.ToArray();
+            List.Objects = m_ParentObject.Brain.Meshes.ToArray();
             m_List.SortByName(MeshList.Sorting.Descending);
         }
         public override void SetActive(bool active)
@@ -31,11 +31,11 @@ namespace HBP.UI.Anatomy
         public override void RemoveItem()
         {
             base.RemoveItem();
-            m_Patient.Brain.Meshes = List.Objects.ToList();
+            m_ParentObject.Brain.Meshes = List.Objects.ToList();
         }
         public override void Save()
         {
-            m_Patient.Brain.Meshes = List.Objects.ToList();
+            m_ParentObject.Brain.Meshes = List.Objects.ToList();
         }
         #endregion
 
