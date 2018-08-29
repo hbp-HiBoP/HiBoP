@@ -10,14 +10,16 @@ using UnityEngine;
 
 namespace HBP.UI.Anatomy
 {
-    public class PatientGestion : ItemGestion<Patient>
+    public class PatientGestion : SavableWindow
     {
         #region Properties
         [SerializeField] FolderSelector m_DatabaseFolderSelector;
-        [SerializeField] PatientList m_DatabaseList;
-        [SerializeField] PatientList m_ProjectList;
+        [SerializeField] PatientListGestion m_DatabaseListGestion;
         [SerializeField] Text m_DatabaseCounter;
         Queue<Patient> m_PatientToAdd;
+
+        [SerializeField] PatientListGestion m_ProjectListGestion;
+        [SerializeField] Text m_ProjectCounter;
 
         public override bool Interactable
         {
@@ -31,7 +33,9 @@ namespace HBP.UI.Anatomy
                 base.Interactable = value;
 
                 m_DatabaseFolderSelector.interactable = value;
-                m_DatabaseList.Interactable = value;
+                m_DatabaseListGestion.Interactable = value;
+
+                m_ProjectListGestion.Interactable = value;
             }
         }
         #endregion
@@ -41,9 +45,9 @@ namespace HBP.UI.Anatomy
         {
             if (DataManager.HasData)
             {
-                ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
-                    ApplicationState.ProjectLoaded.SetPatients(Items.ToArray());
+                    ApplicationState.ProjectLoaded.SetPatients(m_ProjectListGestion.Items);
                     base.Save();
                     DataManager.Clear();
                     ApplicationState.Module3D.ReloadScenes();
@@ -51,24 +55,29 @@ namespace HBP.UI.Anatomy
             }
             else
             {
-                ApplicationState.ProjectLoaded.SetPatients(Items.ToArray());
+                ApplicationState.ProjectLoaded.SetPatients(m_ProjectListGestion.Items);
                 base.Save();
             }
         }
+        public void Create()
+        {
+            m_ProjectListGestion.Create();
+        }
         public void Add()
         {
-            IEnumerable<Patient> patientsToAdd = m_DatabaseList.ObjectsSelected.DeepClone();
-            AddItem(patientsToAdd);
-            m_List.Select(patientsToAdd);
-            m_DatabaseList.Remove(patientsToAdd);
-            m_DatabaseCounter.text = m_DatabaseList.ObjectsSelected.Length.ToString();
+            IEnumerable<Patient> patientsToAdd = m_DatabaseListGestion.List.ObjectsSelected.DeepClone();
+            m_ProjectListGestion.Add(patientsToAdd);
+            m_ProjectListGestion.List.Select(patientsToAdd);
+            m_ProjectCounter.text = m_ProjectListGestion.List.ObjectsSelected.Length.ToString();
+            m_DatabaseListGestion.Remove(patientsToAdd);
+            m_DatabaseCounter.text = m_DatabaseListGestion.List.ObjectsSelected.Length.ToString();
         }
-        public override void Remove()
+        public void Remove()
         {
-            m_DatabaseList.Add(m_List.ObjectsSelected);
-            m_DatabaseList.Select(m_List.ObjectsSelected);
-            base.Remove();
-            m_DatabaseCounter.text = m_DatabaseList.ObjectsSelected.Length.ToString();
+            m_DatabaseListGestion.Add(m_ProjectListGestion.List.ObjectsSelected);
+            m_DatabaseListGestion.List.Select(m_ProjectListGestion.List.ObjectsSelected);
+            m_DatabaseCounter.text = m_DatabaseListGestion.List.ObjectsSelected.Length.ToString();
+            m_ProjectCounter.text = m_ProjectListGestion.List.ObjectsSelected.Length.ToString();
         }
         #endregion
 
@@ -77,7 +86,7 @@ namespace HBP.UI.Anatomy
         {
             m_PatientToAdd = new Queue<Patient>();
             yield return Ninja.JumpToUnity;
-            m_DatabaseList.Objects = new Patient[0];
+            m_DatabaseListGestion.Items = new List<Patient>();
             yield return Ninja.JumpBack;
 
             string[] patients = Patient.GetPatientsDirectories(m_DatabaseFolderSelector.Folder);
@@ -93,22 +102,21 @@ namespace HBP.UI.Anatomy
             for (int i = 0; i < patientLenght; i++)
             {
                 Patient patient = m_PatientToAdd.Dequeue();
-                if (!Items.Contains(patient)) m_DatabaseList.Add(patient);
+                if (!m_DatabaseListGestion.Items.Contains(patient)) m_DatabaseListGestion.Add(patient);
             }
         }
         protected override void Initialize()
         {
             // Database list.  
-            m_DatabaseList.Initialize();
+            m_DatabaseListGestion.Initialize();
+            m_DatabaseListGestion.Interactable = false;
             m_DatabaseFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayDataBasePatients()));
             m_DatabaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
-            m_DatabaseList.OnAction.AddListener((patient, i) => OpenModifier(patient, false));
-            m_DatabaseList.OnSelectionChanged.AddListener(() => m_DatabaseCounter.text = m_DatabaseList.NumberOfItemSelected.ToString());
 
             // Project list.
-            m_List = m_ProjectList;
+            m_ProjectListGestion.Initialize();
+            m_ProjectListGestion.Items = ApplicationState.ProjectLoaded.Patients.ToList();
             base.Initialize();
-            AddItem(ApplicationState.ProjectLoaded.Patients.ToArray());
         }
         #endregion
     }

@@ -7,11 +7,11 @@ namespace HBP.UI.Experience.Protocol
     public class BlocList : Tools.Unity.Lists.SelectableListWithItemAction<d.Bloc>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Position, DescendingPosition , SubBlocs, DescendingSubBlocs, Image, DescendingImage }
+        enum OrderBy { None, Name, DescendingName, Order, DescendingOrder , SubBlocs, DescendingSubBlocs, Image, DescendingImage }
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
-        [SerializeField] SortingDisplayer m_PositionSortingDisplayer;
+        [SerializeField] SortingDisplayer m_OrderSortingDisplayer;
         [SerializeField] SortingDisplayer m_SubBlocsSortingDisplayer;
         [SerializeField] SortingDisplayer m_ImageSortingDisplayer;
         #endregion
@@ -37,7 +37,7 @@ namespace HBP.UI.Experience.Protocol
                     break;
             }
             Refresh();
-            m_PositionSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
@@ -57,19 +57,19 @@ namespace HBP.UI.Experience.Protocol
         /// Sort by position.
         /// </summary>
         /// <param name="sorting">Sorting</param>
-        public void SortByPosition(Sorting sorting)
+        public void SortByOrder(Sorting sorting)
         {
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Position).ToList();
-                    m_OrderBy = OrderBy.Position;
-                    m_PositionSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Order).ToList();
+                    m_OrderBy = OrderBy.Order;
+                    m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Position).ToList();
-                    m_OrderBy = OrderBy.DescendingPosition;
-                    m_PositionSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Order).ToList();
+                    m_OrderBy = OrderBy.DescendingOrder;
+                    m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
             Refresh();
@@ -80,12 +80,12 @@ namespace HBP.UI.Experience.Protocol
         /// <summary>
         /// Sort by position.
         /// </summary>
-        public void SortByPosition()
+        public void SortByOrder()
         {
             switch (m_OrderBy)
             {
-                case OrderBy.DescendingPosition: SortByPosition(Sorting.Ascending); break;
-                default: SortByPosition(Sorting.Descending); break;
+                case OrderBy.DescendingOrder: SortByOrder(Sorting.Ascending); break;
+                default: SortByOrder(Sorting.Descending); break;
             }
         }
 
@@ -110,7 +110,7 @@ namespace HBP.UI.Experience.Protocol
             }
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PositionSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
@@ -146,7 +146,7 @@ namespace HBP.UI.Experience.Protocol
             }
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PositionSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
@@ -169,7 +169,7 @@ namespace HBP.UI.Experience.Protocol
             m_OrderBy = OrderBy.None;
 
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PositionSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }

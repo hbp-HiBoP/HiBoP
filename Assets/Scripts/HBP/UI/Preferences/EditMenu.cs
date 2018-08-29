@@ -7,11 +7,11 @@ namespace HBP.UI.Preferences
         #region Public Methods
         public void OpenPreferences()
         {
-            ApplicationState.WindowsManager.Open("User preferences window");
+            ApplicationState.WindowsManager.Open("User Preferences Window");
         }
         public void OpenProjectPreferences()
         {
-            ApplicationState.WindowsManager.Open("Project preferences window");
+            ApplicationState.WindowsManager.Open("Project Preferences Window");
         }
         #endregion
     }

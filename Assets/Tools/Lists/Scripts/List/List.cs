@@ -14,7 +14,7 @@ namespace Tools.Unity.Lists
 
         public enum Sorting { Ascending, Descending};
 
-        protected System.Collections.Generic.List<Item<T>> m_Items;
+        protected System.Collections.Generic.List<Item<T>> m_Items = new System.Collections.Generic.List<Item<T>>();
         protected int m_NumberOfItems;
 
         protected System.Collections.Generic.List<T> m_Objects = new System.Collections.Generic.List<T>();

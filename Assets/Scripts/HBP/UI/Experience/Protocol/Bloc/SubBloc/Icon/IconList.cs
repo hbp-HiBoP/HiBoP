@@ -11,9 +11,9 @@ namespace HBP.UI.Experience.Protocol
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
-        [SerializeField] SortingDisplayer m_IllustrationSortingDisplayer;
         [SerializeField] SortingDisplayer m_StartSortingDisplayer;
         [SerializeField] SortingDisplayer m_EndSortingDisplayer;
+        [SerializeField] SortingDisplayer m_IllustrationSortingDisplayer;
         #endregion
 
         #region Public Methods

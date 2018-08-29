@@ -6,12 +6,12 @@ namespace HBP.UI.Experience
     {
         public void OpenProtocolGestion()
         {
-            ApplicationState.WindowsManager.Open("Protocol gestion window", true);
+            ApplicationState.WindowsManager.Open("Protocol Gestion Window", true);
         }
 
         public void OpenDatasetGestion()
         {
-            ApplicationState.WindowsManager.Open("Dataset gestion window", true);
+            ApplicationState.WindowsManager.Open("Dataset Gestion Window", true);
         }
     }
 }

@@ -37,9 +37,9 @@ namespace HBP.Data.Experience.Protocol
         /// </summary>
         [DataMember] public string Name { get; set; }
         /// <summary>
-        /// Position of the SubBloc in the Bloc.
+        /// Order of the SubBloc in the Bloc.
         /// </summary>
-        [DataMember] public int Position { get; set; }
+        [DataMember] public int Order { get; set; }
         /// <summary>
         /// Window of the SubBloc (\a x : time before main event in ms. \a y : time after main event in ms.)
         /// </summary>
@@ -86,7 +86,7 @@ namespace HBP.Data.Experience.Protocol
         {
             ID = id;
             Name = name;
-            Position = position;
+            Order = position;
             Window = window;
             Baseline = baseline;
             Events = events.ToList();
@@ -125,7 +125,7 @@ namespace HBP.Data.Experience.Protocol
             SubBloc subBloc = copy as SubBloc;
             ID = subBloc.ID;
             Name = subBloc.Name;
-            Position = subBloc.Position;
+            Order = subBloc.Order;
             Window = subBloc.Window;
             Baseline = subBloc.Baseline;
             Events = subBloc.Events;
@@ -138,7 +138,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>object cloned.</returns>
         public object Clone()
         {
-            return new SubBloc(Name, Position, Window, Baseline, Events.DeepClone(), Icons.DeepClone(), Treatments.DeepClone(), ID.Clone() as string);
+            return new SubBloc(Name, Order, Window, Baseline, Events.DeepClone(), Icons.DeepClone(), Treatments.DeepClone(), ID.Clone() as string);
         }
         /// <summary>
         /// Operator Equals.

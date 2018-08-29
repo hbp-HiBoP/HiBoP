@@ -8,9 +8,9 @@ namespace HBP.UI.Experience.Protocol
 	{
         #region Properties
         [SerializeField] Text m_NameText;
-        [SerializeField] Text m_PositionText;
         [SerializeField] Text m_SubBlocsText;
         [SerializeField] Image m_Image;
+        [SerializeField] Text m_OrderText;
 
         public override Bloc Object
         {
@@ -22,9 +22,9 @@ namespace HBP.UI.Experience.Protocol
             {
                 base.Object = value;
                 m_NameText.text = value.Name;
-                m_PositionText.text = value.Position.ToString();
-                m_SubBlocsText.text = value.SubBlocs.ToString();
-                //m_Image.sprite = value.IllustrationPath TO DO illustration.
+                m_OrderText.text = value.Order.ToString();
+                m_SubBlocsText.text = value.SubBlocs.Count.ToString();
+                //m_Image.sprite = value.IllustrationPath TO DO illustration
             }
         }
         #endregion

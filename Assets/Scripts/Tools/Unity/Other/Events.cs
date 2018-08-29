@@ -10,4 +10,5 @@ namespace Tools.Unity
     [Serializable] public class Vector2ArrayEvent : UnityEvent<Vector2[]> {}
     [Serializable] public class StringEvent : UnityEvent<String> { }
     [Serializable] public class Texture2DEvent : UnityEvent<Texture2D> { }
+    [Serializable] public class SavableWindowEvent : UnityEvent<HBP.UI.SavableWindow> { }
 }

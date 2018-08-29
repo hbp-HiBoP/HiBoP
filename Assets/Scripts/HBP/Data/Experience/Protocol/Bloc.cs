@@ -16,7 +16,7 @@ namespace HBP.Data.Experience.Protocol
     * \details Class which define a bloc in a visualization protocol which contains : 
     *     - Unique ID.
     *     - Name
-    *     - Position.
+    *     - Order.
     *     - Image.
     *     - Sorting.
     */
@@ -35,7 +35,7 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Position of the bloc.
         /// </summary>
-        [DataMember] public int Position { get; set; }
+        [DataMember] public int Order { get; set; }
         [DataMember(Name = "IllustrationPath")] string m_IllustrationPath = "";
         /// <summary>
         /// Path of the bloc illustration.
@@ -78,7 +78,7 @@ namespace HBP.Data.Experience.Protocol
         {
             get
             {
-                IOrderedEnumerable<SubBloc> orderedBlocs = SubBlocs.OrderBy((subBloc) => subBloc.Position);
+                IOrderedEnumerable<SubBloc> orderedBlocs = SubBlocs.OrderBy((subBloc) => subBloc.Order);
                 return orderedBlocs.FirstOrDefault();
             }
         }
@@ -89,16 +89,16 @@ namespace HBP.Data.Experience.Protocol
         /// Create a new bloc instance.
         /// </summary>
         /// <param name="name">Name of the bloc.</param>
-        /// <param name="position">Position of the bloc in the trial matrix.</param>
+        /// <param name="order">Order of the bloc in the trial matrix.</param>
         /// <param name="illustrationPath">Illustation path of the bloc.</param>
         /// <param name="sort">Sorting  of the trials in the bloc.</param>
         /// <param name="subBlocs">SubBlocs of the bloc.</param>
         /// <param name="id">Unique ID of the bloc.</param>
-        public Bloc(string name, int position, string illustrationPath, string sort, IEnumerable<SubBloc> subBlocs, string id)
+        public Bloc(string name, int order, string illustrationPath, string sort, IEnumerable<SubBloc> subBlocs, string id)
         {
             ID = id;
             Name = name;
-            Position = position;
+            Order = order;
             IllustrationPath = illustrationPath;
             Sort = sort;
             SubBlocs = subBlocs.ToList();
@@ -107,17 +107,17 @@ namespace HBP.Data.Experience.Protocol
         /// Create a new bloc instance with a unique ID.
         /// </summary>
         /// <param name="name">Name of the bloc.</param>
-        /// <param name="position">Position of the bloc in the trial matrix.</param>
+        /// <param name="order">Order of the bloc in the trial matrix.</param>
         /// <param name="illustrationPath">Illustation path of the bloc.</param>
         /// <param name="sort">Sorting  of the trials in the bloc.</param>
         /// <param name="subBlocs">SubBlocs of the bloc.</param>
-        public Bloc(string name, int position, string illustrationPath, string sort, IEnumerable<SubBloc> subBlocs) : this(name, position, illustrationPath, sort, subBlocs, Guid.NewGuid().ToString())
+        public Bloc(string name, int order, string illustrationPath, string sort, IEnumerable<SubBloc> subBlocs) : this(name, order, illustrationPath, sort, subBlocs, Guid.NewGuid().ToString())
         {
         }
         /// <summary>
         /// Create a new bloc instance at a position with default values.
         /// </summary>
-        public Bloc(int position) : this(string.Empty, position, string.Empty, string.Empty, new List<SubBloc>())
+        public Bloc(int order) : this(string.Empty, order, string.Empty, string.Empty, new List<SubBloc>())
 		{
 		}
         /// <summary>
@@ -137,11 +137,13 @@ namespace HBP.Data.Experience.Protocol
         public void Copy(object copy)
         {
             Bloc bloc = copy as Bloc;
+
             ID = bloc.ID;
             Name = bloc.Name;
-            Position = bloc.Position;
+            Order = bloc.Order;
             IllustrationPath = bloc.IllustrationPath;
             Sort = bloc.Sort;
+            SubBlocs = bloc.SubBlocs;
         }
         /// <summary>
         /// Clone the instance.
@@ -149,7 +151,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>object cloned.</returns>
         public object Clone()
         {
-            return new Bloc(Name, Position, IllustrationPath, Sort, SubBlocs.ToArray().DeepClone(), ID.Clone() as string);
+            return new Bloc(Name, Order, IllustrationPath, Sort, SubBlocs.ToArray().DeepClone(), ID.Clone() as string);
         }
         /// <summary>
         /// Operator Equals.

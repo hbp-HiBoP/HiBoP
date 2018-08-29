@@ -23,26 +23,24 @@ namespace HBP.Data.Experience.Protocol
     {
         #region Properties
         public const string EXTENSION = ".prov";
+
         /// <summary>
-        /// Unique ID.
+        /// Unique ID of the protocol.
         /// </summary>
-        [DataMember]
-        public string ID { get; set; }
+        [DataMember] public string ID { get; set; }
         /// <summary>
         /// Name of the protocol.
         /// </summary>
-        [DataMember]
-        public string Name { get; set; }
+        [DataMember] public string Name { get; set; }
         /// <summary>
         /// Blocs of the protocol.
         /// </summary>
-        [DataMember]
-        public List<Bloc> Blocs { get; set; }
+        [DataMember] public List<Bloc> Blocs { get; set; }
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Create a new protocol instance.
+        /// Create a new protocol.
         /// </summary>
         /// <param name="name">Name of the protocol.</param>
         /// <param name="blocs">Blocs of the protocol.</param>
@@ -54,7 +52,7 @@ namespace HBP.Data.Experience.Protocol
             ID = id;
         }
         /// <summary>
-        /// Create a new protocol instance.
+        /// Create a new protocol.
         /// </summary>
         /// <param name="name">Name of the protocol.</param>
         /// <param name="blocs">Blocs of the protocol.</param>

@@ -34,9 +34,9 @@ namespace HBP.UI
         #region Public Methods
         public virtual void Close()
         {
-            foreach (var subWindow in m_SubWindows) subWindow.Close();
+            foreach (var subWindow in m_SubWindows.ToArray()) subWindow.Close();
             OnClose.Invoke();
-            Destroy(gameObject);        
+            Destroy(gameObject);
         }
         #endregion
 
