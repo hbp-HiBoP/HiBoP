@@ -33,7 +33,7 @@ namespace HBP.UI.Anatomy
                 base.Interactable = value;
 
                 m_DatabaseFolderSelector.interactable = value;
-                m_DatabaseListGestion.Interactable = value;
+                m_DatabaseListGestion.Interactable = false;
 
                 m_ProjectListGestion.Interactable = value;
             }
@@ -108,13 +108,12 @@ namespace HBP.UI.Anatomy
         protected override void Initialize()
         {
             // Database list.  
-            m_DatabaseListGestion.Initialize();
-            m_DatabaseListGestion.Interactable = false;
+            m_DatabaseListGestion.Initialize(m_SubWindows);
             m_DatabaseFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayDataBasePatients()));
             m_DatabaseFolderSelector.Folder = ApplicationState.ProjectLoaded.Settings.PatientDatabase;
 
             // Project list.
-            m_ProjectListGestion.Initialize();
+            m_ProjectListGestion.Initialize(m_SubWindows);
             m_ProjectListGestion.Items = ApplicationState.ProjectLoaded.Patients.ToList();
             base.Initialize();
         }

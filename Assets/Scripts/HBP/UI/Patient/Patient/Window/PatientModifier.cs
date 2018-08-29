@@ -58,17 +58,17 @@ namespace HBP.UI.Anatomy
         {
             base.Initialize();
 
+            m_MeshListGestion.Initialize(m_SubWindows);
+            m_ImplantationListGestion.Initialize(m_SubWindows);
+            m_MRIListGestion.Initialize(m_SubWindows);
+            m_ConnectivityListGestion.Initialize(m_SubWindows);
+
             m_NameInputField.onValueChanged.RemoveAllListeners();
             m_NameInputField.onValueChanged.AddListener((value) => ItemTemp.Name = value);
             m_PlaceInputField.onValueChanged.RemoveAllListeners();
             m_PlaceInputField.onValueChanged.AddListener((value) => ItemTemp.Place = value);
             m_DateInputField.onValueChanged.RemoveAllListeners();
             m_DateInputField.onValueChanged.AddListener((value) => ItemTemp.Date = int.Parse(value));
-
-            m_MeshListGestion.Initialize(m_SubWindows);
-            m_ImplantationListGestion.Initialize(m_SubWindows);
-            m_MRIListGestion.Initialize(m_SubWindows);
-            m_ConnectivityListGestion.Initialize(m_SubWindows);
 
             m_OthersGestion.Initialize();
         }
@@ -77,6 +77,8 @@ namespace HBP.UI.Anatomy
             m_NameInputField.text = objectToDisplay.Name;
             m_PlaceInputField.text = objectToDisplay.Place;
             m_DateInputField.text = objectToDisplay.Date.ToString();
+
+
             m_MeshListGestion.Items = objectToDisplay.Brain.Meshes;
             m_ImplantationListGestion.Items = objectToDisplay.Brain.Implantations;
             m_MRIListGestion.Items = objectToDisplay.Brain.MRIs;
