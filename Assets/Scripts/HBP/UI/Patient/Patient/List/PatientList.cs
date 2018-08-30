@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using HBP.Data;
 using UnityEngine;
 
 namespace HBP.UI.Anatomy
@@ -21,7 +22,13 @@ namespace HBP.UI.Anatomy
         [SerializeField] SortingDisplayer m_ConnectivitySortingDisplayer;
         #endregion
 
-        #region SortingMethods
+        #region Public Methods
+        public override bool Add(Patient obj)
+        {
+            SortByNone();
+            return base.Add(obj);
+        }
+
         /// <summary>
         /// Sort by name.
         /// </summary>

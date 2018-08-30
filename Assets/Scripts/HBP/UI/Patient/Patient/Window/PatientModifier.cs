@@ -40,14 +40,32 @@ namespace HBP.UI.Anatomy
             {
                 base.Interactable = value;
 
+                // General.
                 m_NameInputField.interactable = value;
                 m_PlaceInputField.interactable = value;
                 m_DateInputField.interactable = value;
 
+                // Mesh.
                 m_MeshListGestion.Interactable = value;
+                m_AddMeshButton.interactable = value;
+                m_RemoveMeshButton.interactable = value;
+
+                // MRI.
                 m_MRIListGestion.Interactable = value;
+                m_AddMRIButton.interactable = value;
+                m_RemoveMRIButton.interactable = value;
+
+                // Implantation.
                 m_ImplantationListGestion.Interactable = value;
+                m_AddImplantationButton.interactable = value;
+                m_RemoveImplantationButton.interactable = value;
+
+                // Connectivity.
                 m_ConnectivityListGestion.Interactable = value;
+                m_AddConnectivityButton.interactable = value;
+                m_RemoveConnectivityButton.interactable = value;
+
+                // Others.
                 m_OthersGestion.interactable = value;
             }
         }

@@ -27,8 +27,8 @@ namespace HBP.UI.Anatomy
                 m_NameInputField.text = value.Name;
                 if (value.HasMesh) m_MeshThemeElement.Set();
                 else m_MeshThemeElement.Set(m_ErrorState);
-                if (value.HasMarsAtlas) m_MeshThemeElement.Set();
-                else m_MeshThemeElement.Set(m_ErrorState);
+                if (value.HasMarsAtlas) m_MarsAtlasThemeElement.Set();
+                else m_MarsAtlasThemeElement.Set(m_ErrorState);
                 if (value.HasTransformation) m_TransformationThemeElement.Set();
                 else m_TransformationThemeElement.Set(m_ErrorState);
             }

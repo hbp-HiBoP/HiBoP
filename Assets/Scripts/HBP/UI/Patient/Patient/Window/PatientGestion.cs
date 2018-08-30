@@ -76,6 +76,7 @@ namespace HBP.UI.Anatomy
         {
             m_DatabaseListGestion.Add(m_ProjectListGestion.List.ObjectsSelected);
             m_DatabaseListGestion.List.Select(m_ProjectListGestion.List.ObjectsSelected);
+            m_ProjectListGestion.RemoveSelected();
             m_DatabaseCounter.text = m_DatabaseListGestion.List.ObjectsSelected.Length.ToString();
             m_ProjectCounter.text = m_ProjectListGestion.List.ObjectsSelected.Length.ToString();
         }
