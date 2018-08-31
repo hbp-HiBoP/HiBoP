@@ -84,7 +84,7 @@ namespace Tools.Unity.Components
         {
             foreach (T item in List.ObjectsSelected) Remove(item);
         }
-        public void Create()
+        public virtual void Create()
         {
             OpenModifier(new T(), m_Interactable);
         }

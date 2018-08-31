@@ -41,7 +41,7 @@ namespace HBP.UI.Anatomy
         {
             if (m_TypeDropdown.value == (int)Type.Single)
             {
-                SingleMesh mesh = (SingleMesh)ItemTemp;
+                SingleMesh mesh = (SingleMesh) ItemTemp;
                 Item = new SingleMesh(mesh.Name, mesh.Transformation, mesh.ID, mesh.Path, mesh.MarsAtlasPath);
             }
             else if (m_TypeDropdown.value == (int)Type.LeftRight)
@@ -59,23 +59,17 @@ namespace HBP.UI.Anatomy
         protected override void SetFields(Data.Anatomy.Mesh objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
-            m_TypeDropdown.value = objectToDisplay is LeftRightMesh ? 1 : 0;
-            m_TypeDropdown.onValueChanged.Invoke(m_TypeDropdown.value);
+            DropdownExtension.Set(m_TypeDropdown, typeof(Type), objectToDisplay is LeftRightMesh ? 1 : 0);
             m_TransformationFileSelector.File = objectToDisplay.Transformation;
         }
         protected override void Initialize()
         {
             base.Initialize();
+
             m_NameInputField.onValueChanged.RemoveAllListeners();
             m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
 
-            string[] labels = Enum.GetNames(typeof(Type));
-            m_TypeDropdown.ClearOptions();
-            foreach (string label in labels)
-            {
-                m_TypeDropdown.options.Add(new Dropdown.OptionData(label));
-            }
-            m_TypeDropdown.RefreshShownValue();
+            m_TypeDropdown.onValueChanged.RemoveAllListeners();
             m_TypeDropdown.onValueChanged.AddListener(ChangeMeshType);
 
             m_TransformationFileSelector.onValueChanged.RemoveAllListeners();

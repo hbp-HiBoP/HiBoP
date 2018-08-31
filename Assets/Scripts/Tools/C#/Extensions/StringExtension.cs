@@ -29,7 +29,8 @@ namespace Tools.CSharp
         }
         public static string CamelCaseToWords(this string camelCase)
         {
-            return Regex.Replace(camelCase, @"\B[A-Z]", m => " " + m.ToString().ToLower());
+            return Regex.Replace(camelCase, @"\B[A-Z][a-z]", m => " " + m.ToString().ToLower());
+            //return Regex.Replace(camelCase, @"\B[A-Z]", m => " " + m.ToString().ToLower());
         }
     }
 

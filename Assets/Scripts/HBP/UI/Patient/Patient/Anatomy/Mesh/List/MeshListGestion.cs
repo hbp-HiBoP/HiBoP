@@ -30,6 +30,10 @@ namespace HBP.UI.Anatomy
             base.List = List;
             base.Initialize();
         }
+        public override void Create()
+        {
+            OpenModifier(new Data.Anatomy.LeftRightMesh(), m_Interactable);
+        }
         #endregion
     }
 }

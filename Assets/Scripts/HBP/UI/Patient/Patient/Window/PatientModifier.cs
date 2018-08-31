@@ -66,7 +66,7 @@ namespace HBP.UI.Anatomy
                 m_RemoveConnectivityButton.interactable = value;
 
                 // Others.
-                m_OthersGestion.interactable = value;
+                m_OthersGestion.Interactable = value;
             }
         }
         #endregion

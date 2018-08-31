@@ -1,7 +1,7 @@
-﻿using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Data.Anatomy;
+using Tools.Unity;
 
 namespace HBP.UI.Anatomy
 {
@@ -9,9 +9,11 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] Dropdown m_EpilepsyDropdown;
-        Data.Patient m_Patient;
-        bool m_Interactable;
-        public bool interactable
+
+        protected Data.Patient m_Patient;
+
+        protected bool m_Interactable;
+        public bool Interactable
         {
             get
             {
@@ -20,7 +22,7 @@ namespace HBP.UI.Anatomy
             set
             {
                 m_Interactable = value;
-                m_EpilepsyDropdown.interactable = interactable;
+                m_EpilepsyDropdown.interactable = Interactable;
             }
         }
         #endregion
@@ -37,8 +39,7 @@ namespace HBP.UI.Anatomy
         public void Set(Data.Patient patient)
         {
             m_Patient = patient;
-            m_EpilepsyDropdown.options = (from type in System.Enum.GetNames(typeof(Epilepsy.EpilepsyType)) select new Dropdown.OptionData(type)).ToList();
-            m_EpilepsyDropdown.value = (int) patient.Brain.Epilepsy.Type;
+            m_EpilepsyDropdown.Set(typeof(Epilepsy.EpilepsyType), (int)patient.Brain.Epilepsy.Type);
         }
         public void SetActive(bool active)
         {
