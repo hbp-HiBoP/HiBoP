@@ -105,6 +105,7 @@ namespace Tools.Unity.Lists
             {
                 (item as SelectableItem<T>).Select(true, transition);
             }
+            OnSelectionChanged.Invoke();
         }
         public virtual void Select(IEnumerable<T> objectsToSelect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
@@ -121,6 +122,7 @@ namespace Tools.Unity.Lists
             {
                 (item as SelectableItem<T>).Select(false, transition);
             }
+            OnSelectionChanged.Invoke();
         }
         public virtual void Deselect(IEnumerable<T> objectsToDeselect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
