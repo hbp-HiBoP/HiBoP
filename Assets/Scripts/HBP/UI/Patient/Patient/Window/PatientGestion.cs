@@ -4,7 +4,6 @@ using CielaSpike;
 using Tools.Unity;
 using Tools.CSharp;
 using HBP.Data;
-using UnityEngine.UI;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,11 +14,8 @@ namespace HBP.UI.Anatomy
         #region Properties
         [SerializeField] FolderSelector m_DatabaseFolderSelector;
         [SerializeField] PatientListGestion m_DatabaseListGestion;
-        [SerializeField] Text m_DatabaseCounter;
-        Queue<Patient> m_PatientToAdd;
-
         [SerializeField] PatientListGestion m_ProjectListGestion;
-        [SerializeField] Text m_ProjectCounter;
+        Queue<Patient> m_PatientToAdd;
 
         public override bool Interactable
         {
@@ -58,6 +54,7 @@ namespace HBP.UI.Anatomy
                 ApplicationState.ProjectLoaded.SetPatients(m_ProjectListGestion.Items);
                 base.Save();
             }
+            FindObjectOfType<MenuButtonState>().SetInteractables();
         }
         public void Create()
         {
@@ -68,17 +65,13 @@ namespace HBP.UI.Anatomy
             IEnumerable<Patient> patientsToAdd = m_DatabaseListGestion.List.ObjectsSelected.DeepClone();
             m_ProjectListGestion.Add(patientsToAdd);
             m_ProjectListGestion.List.Select(patientsToAdd);
-            m_ProjectCounter.text = m_ProjectListGestion.List.ObjectsSelected.Length.ToString();
             m_DatabaseListGestion.Remove(patientsToAdd);
-            m_DatabaseCounter.text = m_DatabaseListGestion.List.ObjectsSelected.Length.ToString();
         }
         public void Remove()
         {
             m_DatabaseListGestion.Add(m_ProjectListGestion.List.ObjectsSelected);
             m_DatabaseListGestion.List.Select(m_ProjectListGestion.List.ObjectsSelected);
             m_ProjectListGestion.RemoveSelected();
-            m_DatabaseCounter.text = m_DatabaseListGestion.List.ObjectsSelected.Length.ToString();
-            m_ProjectCounter.text = m_ProjectListGestion.List.ObjectsSelected.Length.ToString();
         }
         #endregion
 

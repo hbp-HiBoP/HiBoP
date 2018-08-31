@@ -1,13 +1,15 @@
 ﻿using UnityEngine;
 using System.Linq;
-using HBP.Data;
+using UnityEngine.UI;
 
 namespace HBP.UI.Anatomy
 {
-    public class GroupGestion : ItemGestion<Group>
+    public class GroupGestion : SavableWindow
     {
         #region Properties
-        [SerializeField] GroupList m_GroupList;
+        [SerializeField] GroupListGestion m_GroupListGestion;
+        [SerializeField] Button m_AddButton;
+        [SerializeField] Button m_RemoveButton;
 
         public override bool Interactable
         {
@@ -15,12 +17,13 @@ namespace HBP.UI.Anatomy
             {
                 return base.Interactable;
             }
-
             set
             {
                 base.Interactable = value;
 
-                m_GroupList.Interactable = value;
+                m_GroupListGestion.Interactable = value;
+                m_AddButton.interactable = value;
+                m_RemoveButton.interactable = value;
             }
         }
         #endregion
@@ -28,18 +31,17 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public override void Save()
         {
-            ApplicationState.ProjectLoaded.SetGroups(Items.ToArray());
+            ApplicationState.ProjectLoaded.SetGroups(m_GroupListGestion.Items);
             base.Save();
         }
         #endregion
 
-        #region Protected Methods
-        protected override void Initialize()
+        #region Private Methods
+        protected override void SetFields()
         {
-            m_List = m_GroupList;
-            base.Initialize();
-            AddItem(ApplicationState.ProjectLoaded.Groups.ToArray());
-            m_GroupList.SortByName(GroupList.Sorting.Descending);
+            m_GroupListGestion.Initialize(m_SubWindows);
+            m_GroupListGestion.Items = ApplicationState.ProjectLoaded.Groups.ToList();
+            base.SetFields();
         }
         #endregion
     }
