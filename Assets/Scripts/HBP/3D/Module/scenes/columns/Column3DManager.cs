@@ -137,6 +137,10 @@ namespace HBP.Module3D
         /// List of the surfaces for the cuts
         /// </summary>
         public List<DLL.Surface> DLLCutsList = new List<DLL.Surface>();
+        /// <summary>
+        /// List of the surfaces for the cuts of the simplified mesh
+        /// </summary>
+        public List<DLL.Surface> DLLCutsListSimplified = new List<DLL.Surface>();
         
         /// <summary>
         /// List of the MRIs of the scene

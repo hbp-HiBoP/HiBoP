@@ -225,7 +225,7 @@ namespace HBP.Module3D.DLL
         /// <param name="mode"></param>
         /// <param name="degrees"></param>
         /// <returns></returns>
-        public Surface UpdateVisibilityMask(Vector3 rayDirection, Vector3 hitPoint, TriEraser.Mode mode, float degrees)
+        public Surface UpdateVisibilityMask(Vector3 rayDirection, Vector3 hitPoint, Data.Enums.TriEraserMode mode, float degrees)
         {
             float[] hitPointArray = new float[3], rayDirectionArray = new float[3];
             hitPointArray[0] = hitPoint.x;

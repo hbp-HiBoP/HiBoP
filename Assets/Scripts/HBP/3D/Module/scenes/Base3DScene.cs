@@ -216,7 +216,11 @@ namespace HBP.Module3D
             }
             set
             {
-                m_TriEraser.IsEnabled = value;
+                if (m_TriEraser.IsEnabled != value)
+                {
+                    m_TriEraser.IsEnabled = value;
+                    SceneInformation.CollidersNeedUpdate = true;
+                }
             }
         }
         /// <summary>
@@ -242,7 +246,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Mode of the triangle eraser
         /// </summary>
-        public TriEraser.Mode TriangleErasingMode
+        public Data.Enums.TriEraserMode TriangleErasingMode
         {
             get
             {
@@ -250,10 +254,10 @@ namespace HBP.Module3D
             }
             set
             {
-                TriEraser.Mode previousMode = m_TriEraser.CurrentMode;
+                Data.Enums.TriEraserMode previousMode = m_TriEraser.CurrentMode;
                 m_TriEraser.CurrentMode = value;
 
-                if (value == TriEraser.Mode.Expand || value == TriEraser.Mode.Invert)
+                if (value == Data.Enums.TriEraserMode.Expand || value == Data.Enums.TriEraserMode.Invert)
                 {
                     m_TriEraser.EraseTriangles(new Vector3(), new Vector3());
                     UpdateMeshesFromDLL();
@@ -793,6 +797,9 @@ namespace HBP.Module3D
             {
                 m_ColumnManager.SelectedMesh.SplittedMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
+            UnityEngine.Profiling.Profiler.BeginSample("Update Simplified Mesh");
+            if (SceneInformation.UseSimplifiedMeshes) m_ColumnManager.DLLCutsListSimplified[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
+            UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("Update Columns Meshes");
             foreach (Column3D column in m_ColumnManager.Columns)
             {
@@ -1288,6 +1295,7 @@ namespace HBP.Module3D
             }
 
             m_TriEraser.Reset(m_DisplayedObjects.InvisibleBrainSurfaceMeshes, m_ColumnManager.DLLCutsList[0], m_ColumnManager.SelectedMesh.SplittedMeshes);
+            if (SceneInformation.UseSimplifiedMeshes) m_TriEraser.ResetSimplified(m_ColumnManager.DLLCutsListSimplified[0]);
 
             if (updateGO)
                 UpdateMeshesFromDLL();
@@ -1596,8 +1604,6 @@ namespace HBP.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 3 update cut brain mesh object mesh filter"); // 6%
 
-            ResetTriangleErasing(false);
-
             // update brain mesh object mesh filter
             UpdateMeshesFromDLL();
 
@@ -1658,25 +1664,24 @@ namespace HBP.Module3D
             else
                 cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.SimplifiedMeshToUse.Clone() };
 
-            if (m_ColumnManager.DLLCutsList.Count != cuts.Count)
-                m_ColumnManager.DLLCutsList = cuts;
+            if (m_ColumnManager.DLLCutsListSimplified.Count != cuts.Count)
+                m_ColumnManager.DLLCutsListSimplified = cuts;
             else
             {
                 // swap DLL pointer
                 for (int ii = 0; ii < cuts.Count; ++ii)
-                    m_ColumnManager.DLLCutsList[ii].SwapDLLHandle(cuts[ii]);
+                    m_ColumnManager.DLLCutsListSimplified[ii].SwapDLLHandle(cuts[ii]);
             }
 
-            m_ColumnManager.DLLCutsList[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
+            m_ColumnManager.DLLCutsListSimplified[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
             m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh.RecalculateNormals();
-            ResetTriangleErasing(false);
 
             // update cuts generators
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
                 m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
-                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii + 1]);
-                m_ColumnManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsListSimplified[ii + 1]);
+                m_ColumnManager.DLLCutsListSimplified[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
 
             // enable cuts gameobject
@@ -1709,6 +1714,7 @@ namespace HBP.Module3D
                 ComputeMeshesCut();
             }
             m_ColumnManager.UpdateCubeBoundingBox(m_Cuts);
+            ResetTriangleErasing(false);
 
             ComputeMRITextures();
             ComputeGUITextures();
@@ -2512,6 +2518,7 @@ namespace HBP.Module3D
         /// <returns></returns>
         private IEnumerator c_UpdateMeshesColliders()
         {
+            Debug.Log("updating colliders");
             while (m_UpdatingColliders)
             {
                 yield return new WaitForSeconds(0.05f);

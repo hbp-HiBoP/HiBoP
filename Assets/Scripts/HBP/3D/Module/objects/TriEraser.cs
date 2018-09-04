@@ -25,11 +25,6 @@ namespace HBP.Module3D
     public class TriEraser
     {
         #region Properties
-        public enum Mode
-        {
-            OneTri, Cylinder, Zone, Invert, Expand
-        }; /**< modes id */
-
         private bool m_IsEnabled = false;
         public bool IsEnabled
         {
@@ -44,8 +39,8 @@ namespace HBP.Module3D
                     m_BrainInvisibleMeshesGO[ii].SetActive(m_IsEnabled);
             }
         }
-        private Mode m_CurrentMode = Mode.OneTri;
-        public Mode CurrentMode
+        private Data.Enums.TriEraserMode m_CurrentMode = Data.Enums.TriEraserMode.OneTri;
+        public Data.Enums.TriEraserMode CurrentMode
         {
             get
             {
@@ -78,13 +73,17 @@ namespace HBP.Module3D
             }
         }
 
+        // Regular Mesh
         int[] m_FullMask;
-        private List<int[]> m_SplittedMasks = null;
+        private List<int[]> m_SplittedMasks = new List<int[]>();
+        private DLL.Surface m_BrainMeshDLL;
+        private List<DLL.Surface> m_BrainMeshesSplittedDLL = new List<DLL.Surface>();
+        private List<GameObject> m_BrainInvisibleMeshesGO = new List<GameObject>();
 
-        private DLL.Surface m_BrainMeshDLL = null;
-        private List<DLL.Surface> m_BrainMeshesSplittedDLL = null;
-
-        private List<GameObject> m_BrainInvisibleMeshesGO = null;
+        // Simplified Mesh
+        bool m_EraseTrianglesOfSimplifiedMesh = false;
+        int[] m_SimplifiedFullMask;
+        private DLL.Surface m_SimplifiedBrainMeshDLL;
 
         /// <summary>
         /// Check if the current mode of the tri eraser needs clicks on the scene
@@ -93,7 +92,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return (m_CurrentMode != Mode.Expand) && (m_CurrentMode != Mode.Invert);
+                return (m_CurrentMode != Data.Enums.TriEraserMode.Expand) && (m_CurrentMode != Data.Enums.TriEraserMode.Invert);
             }
         }
         private bool m_MeshHasInvisibleTriangles = false;
@@ -144,6 +143,17 @@ namespace HBP.Module3D
             m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
             OnModifyInvisiblePart.Invoke();
         }
+        public void ResetSimplified(DLL.Surface simplifiedMeshDLL)
+        {
+            m_SimplifiedBrainMeshDLL = simplifiedMeshDLL;
+
+            m_SimplifiedFullMask = new int[m_SimplifiedBrainMeshDLL.NumberOfTriangles];
+            for (int ii = 0; ii < m_SimplifiedFullMask.Length; ++ii)
+                m_SimplifiedFullMask[ii] = 1;
+            m_SimplifiedBrainMeshDLL.UpdateVisibilityMask(m_SimplifiedFullMask);
+
+            m_EraseTrianglesOfSimplifiedMesh = true;
+        }
         /// <summary>
         /// Erase triangles and update the invisible part mesh GO
         /// </summary>
@@ -157,9 +167,13 @@ namespace HBP.Module3D
             m_FullMask = m_BrainMeshDLL.VisibilityMask;
             for (int ii = 0; ii < m_BrainMeshesSplittedDLL.Count; ++ii)
                 m_SplittedMasks[ii] = m_BrainMeshesSplittedDLL[ii].VisibilityMask;
+            if (m_EraseTrianglesOfSimplifiedMesh) m_SimplifiedFullMask = m_SimplifiedBrainMeshDLL.VisibilityMask;
 
             // apply rays and retrieve mask
-            /*DLL.Surface brainInvisibleFullMeshDLL = */m_BrainMeshDLL.UpdateVisibilityMask(rayDirection, hitPoint, m_CurrentMode, m_Degrees);
+            m_BrainMeshDLL.UpdateVisibilityMask(rayDirection, hitPoint, m_CurrentMode, m_Degrees);
+            UnityEngine.Profiling.Profiler.BeginSample("Salut j'erase les triangles du simplified");
+            if (m_EraseTrianglesOfSimplifiedMesh) m_SimplifiedBrainMeshDLL.UpdateVisibilityMask(rayDirection, hitPoint, m_CurrentMode, m_Degrees);
+            UnityEngine.Profiling.Profiler.EndSample();
             int[] newFullMask = m_BrainMeshDLL.VisibilityMask;
 
             // split it
