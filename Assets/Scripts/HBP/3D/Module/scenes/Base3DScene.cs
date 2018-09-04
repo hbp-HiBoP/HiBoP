@@ -797,9 +797,7 @@ namespace HBP.Module3D
             {
                 m_ColumnManager.SelectedMesh.SplittedMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh);
             }
-            UnityEngine.Profiling.Profiler.BeginSample("Update Simplified Mesh");
             if (SceneInformation.UseSimplifiedMeshes) m_ColumnManager.DLLCutsListSimplified[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
-            UnityEngine.Profiling.Profiler.EndSample();
             UnityEngine.Profiling.Profiler.BeginSample("Update Columns Meshes");
             foreach (Column3D column in m_ColumnManager.Columns)
             {
@@ -2518,7 +2516,6 @@ namespace HBP.Module3D
         /// <returns></returns>
         private IEnumerator c_UpdateMeshesColliders()
         {
-            Debug.Log("updating colliders");
             while (m_UpdatingColliders)
             {
                 yield return new WaitForSeconds(0.05f);

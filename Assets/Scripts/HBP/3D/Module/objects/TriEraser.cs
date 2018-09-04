@@ -64,25 +64,26 @@ namespace HBP.Module3D
             }
         }
 
-        private bool m_CanCancelLastAction = false;
         public bool CanCancelLastAction
         {
             get
             {
-                return m_CanCancelLastAction;
+                return m_FullMasksStack.Count > 0;
             }
         }
 
+        private const int MAX_STACK_SIZE = 20;
+
         // Regular Mesh
-        int[] m_FullMask;
-        private List<int[]> m_SplittedMasks = new List<int[]>();
+        private Tools.CSharp.LimitedSizeStack<int[]> m_FullMasksStack = new Tools.CSharp.LimitedSizeStack<int[]>(MAX_STACK_SIZE);
+        private Tools.CSharp.LimitedSizeStack<List<int[]>> m_SplittedMasksStack = new Tools.CSharp.LimitedSizeStack<List<int[]>>(MAX_STACK_SIZE);
         private DLL.Surface m_BrainMeshDLL;
         private List<DLL.Surface> m_BrainMeshesSplittedDLL = new List<DLL.Surface>();
         private List<GameObject> m_BrainInvisibleMeshesGO = new List<GameObject>();
 
         // Simplified Mesh
-        bool m_EraseTrianglesOfSimplifiedMesh = false;
-        int[] m_SimplifiedFullMask;
+        private bool m_EraseTrianglesOfSimplifiedMesh = false;
+        private Tools.CSharp.LimitedSizeStack<int[]> m_SimplifiedFullMasksStack = new Tools.CSharp.LimitedSizeStack<int[]>(MAX_STACK_SIZE);
         private DLL.Surface m_SimplifiedBrainMeshDLL;
 
         /// <summary>
@@ -123,12 +124,13 @@ namespace HBP.Module3D
             m_BrainMeshesSplittedDLL = brainMeshesSplittedDLL;
             m_BrainMeshDLL = brainMeshDLL;
 
-            m_FullMask = new int[m_BrainMeshDLL.NumberOfTriangles];
-            for (int ii = 0; ii < m_FullMask.Length; ++ii)
-                m_FullMask[ii] = 1;
-            m_BrainMeshDLL.UpdateVisibilityMask(m_FullMask);
+            int[] fullMask = new int[m_BrainMeshDLL.NumberOfTriangles];
+            for (int ii = 0; ii < fullMask.Length; ++ii)
+                fullMask[ii] = 1;
+            m_BrainMeshDLL.UpdateVisibilityMask(fullMask);
 
-            m_SplittedMasks = new List<int[]>(m_BrainMeshesSplittedDLL.Count);
+            m_FullMasksStack.Clear();
+
             for (int ii = 0; ii < m_BrainMeshesSplittedDLL.Count; ++ii)
             {
                 int[] mask = new int[m_BrainMeshesSplittedDLL[ii].NumberOfTriangles];
@@ -136,10 +138,9 @@ namespace HBP.Module3D
                     mask[jj] = 1;
 
                 m_BrainMeshesSplittedDLL[ii].UpdateVisibilityMask(mask); // return an empty mesh
-                m_SplittedMasks.Add(mask);                
             }
+            m_SplittedMasksStack.Clear();
 
-            m_CanCancelLastAction = false;
             m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
             OnModifyInvisiblePart.Invoke();
         }
@@ -147,10 +148,12 @@ namespace HBP.Module3D
         {
             m_SimplifiedBrainMeshDLL = simplifiedMeshDLL;
 
-            m_SimplifiedFullMask = new int[m_SimplifiedBrainMeshDLL.NumberOfTriangles];
-            for (int ii = 0; ii < m_SimplifiedFullMask.Length; ++ii)
-                m_SimplifiedFullMask[ii] = 1;
-            m_SimplifiedBrainMeshDLL.UpdateVisibilityMask(m_SimplifiedFullMask);
+            int[] simplifiedFullMask = new int[m_SimplifiedBrainMeshDLL.NumberOfTriangles];
+            for (int ii = 0; ii < simplifiedFullMask.Length; ++ii)
+                simplifiedFullMask[ii] = 1;
+            m_SimplifiedBrainMeshDLL.UpdateVisibilityMask(simplifiedFullMask);
+
+            m_SimplifiedFullMasksStack.Clear();
 
             m_EraseTrianglesOfSimplifiedMesh = true;
         }
@@ -164,22 +167,22 @@ namespace HBP.Module3D
             hitPoint.x = -hitPoint.x;
 
             // save current masks
-            m_FullMask = m_BrainMeshDLL.VisibilityMask;
+            m_FullMasksStack.Push(m_BrainMeshDLL.VisibilityMask);
+            List<int[]> splittedMasks = new List<int[]>(m_BrainMeshesSplittedDLL.Count);
             for (int ii = 0; ii < m_BrainMeshesSplittedDLL.Count; ++ii)
-                m_SplittedMasks[ii] = m_BrainMeshesSplittedDLL[ii].VisibilityMask;
-            if (m_EraseTrianglesOfSimplifiedMesh) m_SimplifiedFullMask = m_SimplifiedBrainMeshDLL.VisibilityMask;
+                splittedMasks.Add(m_BrainMeshesSplittedDLL[ii].VisibilityMask);
+            m_SplittedMasksStack.Push(splittedMasks);
+            if (m_EraseTrianglesOfSimplifiedMesh) m_SimplifiedFullMasksStack.Push(m_SimplifiedBrainMeshDLL.VisibilityMask);
 
             // apply rays and retrieve mask
             m_BrainMeshDLL.UpdateVisibilityMask(rayDirection, hitPoint, m_CurrentMode, m_Degrees);
-            UnityEngine.Profiling.Profiler.BeginSample("Salut j'erase les triangles du simplified");
             if (m_EraseTrianglesOfSimplifiedMesh) m_SimplifiedBrainMeshDLL.UpdateVisibilityMask(rayDirection, hitPoint, m_CurrentMode, m_Degrees);
-            UnityEngine.Profiling.Profiler.EndSample();
             int[] newFullMask = m_BrainMeshDLL.VisibilityMask;
 
             // split it
             int nbSplits = m_BrainMeshesSplittedDLL.Count;            
-            int size = m_FullMask.Length / nbSplits;
-            int lastSize = size + m_FullMask.Length % nbSplits;
+            int size = m_FullMasksStack.Peek().Length / nbSplits;
+            int lastSize = size + m_FullMasksStack.Peek().Length % nbSplits;
 
             int currId = 0;
             List<int[]> newSplittedMasks = new List<int[]>(nbSplits);
@@ -200,7 +203,6 @@ namespace HBP.Module3D
                 brainInvisibleMeshesDLL.UpdateMeshFromDLL(m_BrainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
             }
 
-            m_CanCancelLastAction = true;
             m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
             OnModifyInvisiblePart.Invoke();
         }
@@ -209,14 +211,16 @@ namespace HBP.Module3D
         /// </summary>
         public void CancelLastAction()
         {
-            m_BrainMeshDLL.UpdateVisibilityMask(m_FullMask);
+            m_BrainMeshDLL.UpdateVisibilityMask(m_FullMasksStack.Pop());
+            if (m_EraseTrianglesOfSimplifiedMesh) m_SimplifiedBrainMeshDLL.UpdateVisibilityMask(m_SimplifiedFullMasksStack.Pop());
+
+            List<int[]> splittedMasks = m_SplittedMasksStack.Pop();
             for (int ii = 0; ii < m_BrainMeshesSplittedDLL.Count; ++ii)
             {
-                DLL.Surface brainInvisibleMeshesDLL = m_BrainMeshesSplittedDLL[ii].UpdateVisibilityMask(m_SplittedMasks[ii]);
+                DLL.Surface brainInvisibleMeshesDLL = m_BrainMeshesSplittedDLL[ii].UpdateVisibilityMask(splittedMasks[ii]);
                 brainInvisibleMeshesDLL.UpdateMeshFromDLL(m_BrainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
             }
 
-            m_CanCancelLastAction = false;
             m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
             OnModifyInvisiblePart.Invoke();
         }
