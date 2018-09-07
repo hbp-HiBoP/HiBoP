@@ -30,38 +30,35 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Reference to this object's RectTransform
         /// </summary>
-        [SerializeField]
-        private RectTransform m_RectTransform;
+        [SerializeField] private RectTransform m_RectTransform;
         /// <summary>
         /// GameObject to hide a minimized column
         /// </summary>
-        [SerializeField]
-        private GameObject m_MinimizedGameObject;
+        [SerializeField] private GameObject m_MinimizedGameObject;
         /// <summary>
         /// Associated label
         /// </summary>
-        [SerializeField]
-        private ColumnLabel m_Label;
+        [SerializeField] private ColumnLabel m_Label;
         /// <summary>
         /// Associated colormap
         /// </summary>
-        [SerializeField]
-        private Colormap m_Colormap;
+        [SerializeField] private Colormap m_Colormap;
         /// <summary>
         /// Associated timeline
         /// </summary>
-        [SerializeField]
-        private TimeDisplay m_TimeDisplay;
+        [SerializeField] private TimeDisplay m_TimeDisplay;
         /// <summary>
         /// Associated Icon
         /// </summary>
-        [SerializeField]
-        private Icon m_Icon;
+        [SerializeField] private Icon m_Icon;
+        /// <summary>
+        /// Information about the column
+        /// </summary>
+        [SerializeField] private ColumnInformation m_Information;
         /// <summary>
         /// Column resizer
         /// </summary>
-        [SerializeField]
-        private ColumnResizer m_Resizer;
+        [SerializeField] private ColumnResizer m_Resizer;
         
         [SerializeField]
         private RectTransform m_Middle;
@@ -141,6 +138,7 @@ namespace HBP.UI.Module3D
             m_Colormap.HandleEnoughSpace();
             m_TimeDisplay.HandleEnoughSpace();
             m_Icon.HandleEnoughSpace();
+            m_Information.HandleEnoughSpace();
         }
         #endregion
 
@@ -152,13 +150,13 @@ namespace HBP.UI.Module3D
         {
             Column = column;
 
-            m_MinimizedGameObject = transform.Find("MinimizedImage").gameObject;
             m_MinimizedGameObject.GetComponentInChildren<Text>().text = Column.Label;
             m_MinimizedGameObject.SetActive(false);
 
             m_Colormap.Setup(scene, column, this);
             m_TimeDisplay.Setup(scene, column, this);
             m_Icon.Setup(scene, column, this);
+            m_Information.Setup(scene, column, this);
             m_Label.Setup(scene, column, this);
             m_Resizer.Setup(scene, column, this);
         }
@@ -429,24 +427,41 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void UpdateOverlayElementsPosition()
         {
-            float offset = 0.0f;
+            // Top
+            float topOffset = 0.0f;
             for (int i = 0; i < m_GridColumn.Views.Count; ++i)
             {
                 View3DUI view = m_GridColumn.Views[i].GetComponent<View3DUI>();
                 if (view.IsViewMinimizedAndColumnNotMinimized)
                 {
-                    offset += view.GetComponent<RectTransform>().rect.height;
+                    topOffset -= view.GetComponent<RectTransform>().rect.height;
                 }
                 else
                 {
                     break;
                 }
             }
-            m_Label.SetOverlayOffset(-offset);
-            m_Colormap.SetOverlayOffset(-offset);
-            m_TimeDisplay.SetOverlayOffset(-offset);
-            m_Icon.SetOverlayOffset(-offset);
-            m_Resizer.SetOverlayOffset(-offset);
+            m_Label.SetOverlayOffset(topOffset);
+            m_Colormap.SetOverlayOffset(topOffset);
+            m_TimeDisplay.SetOverlayOffset(topOffset);
+            m_Icon.SetOverlayOffset(topOffset);
+            m_Resizer.SetOverlayOffset(topOffset);
+
+            // Bottom
+            float bottomOffset = 0.0f;
+            for (int i = m_GridColumn.Views.Count - 1; i >= 0; --i)
+            {
+                View3DUI view = m_GridColumn.Views[i].GetComponent<View3DUI>();
+                if (view.IsViewMinimizedAndColumnNotMinimized)
+                {
+                    bottomOffset += view.GetComponent<RectTransform>().rect.height;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            m_Information.SetOverlayOffset(bottomOffset);
         }
         #endregion
     }
