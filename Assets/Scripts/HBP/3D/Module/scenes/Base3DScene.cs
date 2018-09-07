@@ -1179,7 +1179,7 @@ namespace HBP.Module3D
         /// <param name="customNormal"></param>
         /// <param name="idPlane"></param>
         /// <param name="position"></param>
-        public void UpdateCutPlane(Cut cut)
+        public void UpdateCutPlane(Cut cut, bool changedByUser = false)
         {
             if (!CuttingSimplifiedMesh && SceneInformation.UseSimplifiedMeshes) CuttingSimplifiedMesh = true;
 
@@ -1197,7 +1197,7 @@ namespace HBP.Module3D
                 cut.Normal = plane.Normal;
             }
 
-            SceneInformation.LastPlaneModifiedID = cut.ID;
+            if (changedByUser) SceneInformation.LastPlaneModifiedID = cut.ID;
 
             // Cuts base on the mesh
             float offset;
