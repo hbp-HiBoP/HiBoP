@@ -59,12 +59,12 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.File).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.HasConnectivity).ToList();
                     m_OrderBy = OrderBy.Path;
                     m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.File).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.HasConnectivity).ToList();
                     m_OrderBy = OrderBy.DescendingPath;
                     m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

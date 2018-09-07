@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using Tools.Unity.Lists;
 using HBP.Data.Anatomy;
+using NewTheme.Components;
 
 namespace HBP.UI.Anatomy
 {
@@ -9,7 +10,8 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] Text m_NameInputField;
-        [SerializeField] Image m_ConnectivityIcon;
+        [SerializeField] ThemeElement m_ConnectivityThemeElement;
+        [SerializeField] State m_ErrorState;
 
         public override Connectivity Object
         {
@@ -21,9 +23,8 @@ namespace HBP.UI.Anatomy
             {
                 base.Object = value;
                 m_NameInputField.text = value.Name;
-                Color normalColor = Color.white;
-                Color notInteractableColor = ApplicationState.UserPreferences.Theme.General.NotInteractable;
-                m_ConnectivityIcon.color = value.HasConnectivity ? normalColor : notInteractableColor;
+                if (value.HasConnectivity) m_ConnectivityThemeElement.Set();
+                else m_ConnectivityThemeElement.Set(m_ErrorState);
             }
         }
         #endregion

@@ -13,8 +13,11 @@ namespace Tools.Unity.Components
         #region Public Methods
         public void OnValueChanged(bool isOn)
         {
-            if (isOn) OnIsOn.Invoke();
-            else OnIsOff.Invoke();
+            if(isActiveAndEnabled)
+            {
+                if (isOn) OnIsOn.Invoke();
+                else OnIsOff.Invoke();
+            }
         }
         #endregion
     }

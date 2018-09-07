@@ -268,7 +268,7 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
             m_Cut = cut;
-            m_Image.GetComponent<ImageRatio>().Type = ImageRatio.RatioType.FixedWidth;
+            m_Image.GetComponent<global::Tools.Unity.Components.ImageRatio>().Type = global::Tools.Unity.Components.ImageRatio.ControlType.WidthControlsHeight;
             m_Orientation.options = new List<Dropdown.OptionData>();
             foreach (var orientation in Enum.GetNames(typeof(Data.Enums.CutOrientation)))
             {

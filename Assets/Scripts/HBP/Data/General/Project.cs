@@ -333,20 +333,28 @@ namespace HBP.Data.General
         {
             if(!string.IsNullOrEmpty(path))
             {
-                DirectoryInfo directory = new DirectoryInfo(path);
-                if(directory.Exists)
+                try
                 {
-                    DirectoryInfo[] directories = directory.GetDirectories();
-                    if (directories.Any((d) => d.Name == "Patients")
-                        && directories.Any((d) => d.Name == "Groups")
-                        && directories.Any((d) => d.Name == "Protocols")
-                        && directories.Any((d) => d.Name == "Datasets")
-                        && directories.Any((d) => d.Name == "Visualizations")
-                        && directory.GetFiles().Count((f) => f.Extension == ProjectSettings.EXTENSION) == 1)
+                    DirectoryInfo directory = new DirectoryInfo(path);
+                    if (directory.Exists)
                     {
-                        return true;
+                        DirectoryInfo[] directories = directory.GetDirectories();
+                        if (directories.Any((d) => d.Name == "Patients")
+                            && directories.Any((d) => d.Name == "Groups")
+                            && directories.Any((d) => d.Name == "Protocols")
+                            && directories.Any((d) => d.Name == "Datasets")
+                            && directories.Any((d) => d.Name == "Visualizations")
+                            && directory.GetFiles().Count((f) => f.Extension == ProjectSettings.EXTENSION) == 1)
+                        {
+                            return true;
+                        }
                     }
                 }
+                catch(Exception e)
+                {
+                    UnityEngine.Debug.LogWarning(e);
+                    return false;
+                }               
             }
             return false;
         }

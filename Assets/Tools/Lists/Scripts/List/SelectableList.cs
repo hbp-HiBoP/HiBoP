@@ -15,6 +15,7 @@ namespace Tools.Unity.Lists
         {
             get { return m_OnSelectionChanged; }
         }
+        public BoolEvent OnAllSelected = new BoolEvent();
         public virtual T[] ObjectsSelected
         {
             get
@@ -53,6 +54,7 @@ namespace Tools.Unity.Lists
         {
             get { return ObjectsSelected.Length; }
         }
+        protected bool m_AllSelected;
         #endregion
 
         #region Public Methods
@@ -61,6 +63,7 @@ namespace Tools.Unity.Lists
             if (base.Add(obj))
             {
                 m_SelectedStateByObject.Add(obj, false);
+                OnSelectionChangeCallBack();
                 return true;
             }
             return false;
@@ -105,7 +108,7 @@ namespace Tools.Unity.Lists
             {
                 (item as SelectableItem<T>).Select(true, transition);
             }
-            OnSelectionChanged.Invoke();
+            OnSelectionChangeCallBack();
         }
         public virtual void Select(IEnumerable<T> objectsToSelect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
@@ -122,7 +125,7 @@ namespace Tools.Unity.Lists
             {
                 (item as SelectableItem<T>).Select(false, transition);
             }
-            OnSelectionChanged.Invoke();
+            OnSelectionChangeCallBack();
         }
         public virtual void Deselect(IEnumerable<T> objectsToDeselect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
@@ -186,7 +189,17 @@ namespace Tools.Unity.Lists
             {
                 m_SelectedStateByObject[obj] = selected;
             }
+            OnSelectionChangeCallBack();
+        }
+        protected virtual void OnSelectionChangeCallBack()
+        {
             OnSelectionChanged.Invoke();
+            bool allSelected = Objects.Length == ObjectsSelected.Length;
+            if (m_AllSelected != allSelected)
+            {
+                m_AllSelected = allSelected;
+                OnAllSelected.Invoke(allSelected);
+            }
         }
         #endregion
     }

@@ -61,12 +61,12 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.File).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.HasImplantation).ToList();
                     m_OrderBy = OrderBy.Path;
                     m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.File).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.HasImplantation).ToList();
                     m_OrderBy = OrderBy.DescendingPath;
                     m_PathSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -96,12 +96,12 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.MarsAtlas).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.HasMarsAtlas).ToList();
                     m_OrderBy = OrderBy.Path;
                     m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.MarsAtlas).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.HasMarsAtlas).ToList();
                     m_OrderBy = OrderBy.DescendingPath;
                     m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

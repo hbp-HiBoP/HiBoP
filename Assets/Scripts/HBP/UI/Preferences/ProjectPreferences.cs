@@ -9,6 +9,7 @@ namespace HBP.UI.Preferences
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
+        [SerializeField] InputField m_LocationInputField;
         [SerializeField] FolderSelector m_PatientsDatabaseFolderSelector;
         [SerializeField] FolderSelector m_LocalizerDatabaseFolderSelector;
 
@@ -25,6 +26,7 @@ namespace HBP.UI.Preferences
                 m_NameInputField.interactable = value;
                 m_PatientsDatabaseFolderSelector.interactable = value;
                 m_LocalizerDatabaseFolderSelector.interactable = value;
+                m_LocationInputField.interactable = false;
             }
         }
         #endregion
@@ -45,6 +47,7 @@ namespace HBP.UI.Preferences
         {        
             ProjectSettings settings = ApplicationState.ProjectLoaded.Settings;
             m_NameInputField.text = settings.Name;
+            m_LocationInputField.text = ApplicationState.ProjectLoadedLocation;
             m_PatientsDatabaseFolderSelector.Folder = settings.PatientDatabase;
             m_LocalizerDatabaseFolderSelector.Folder = settings.LocalizerDatabase;
         }

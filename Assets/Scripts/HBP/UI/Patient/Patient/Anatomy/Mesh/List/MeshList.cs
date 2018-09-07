@@ -168,12 +168,12 @@ namespace HBP.UI.Anatomy
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Transformation).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.HasTransformation).ToList();
                     m_OrderBy = OrderBy.Transformation;
                     m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Transformation).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.HasTransformation).ToList();
                     m_OrderBy = OrderBy.DescendingTransformation;
                     m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
