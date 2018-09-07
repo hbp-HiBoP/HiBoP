@@ -76,7 +76,13 @@ namespace HBP.UI.Module3D
             for (int i = 0; i < m_Scene.ColumnManager.Columns.Count; i++)
             {
                 m_ResizableGrid.AddColumn();
-                m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>().Initialize(m_Scene, m_Scene.ColumnManager.Columns[i]);
+                Column3DUI columnUI = m_ResizableGrid.Columns.Last().GetComponent<Column3DUI>();
+                columnUI.Initialize(m_Scene, m_Scene.ColumnManager.Columns[i]);
+                columnUI.OnChangeColumnSize.AddListener(() =>
+                {
+                    columnUI.UpdateOverlayElementsPosition();
+                    UpdateOverlayElementsPosition();
+                });
             }
             m_ResizableGrid.AddViewLine();
             for (int i = 0; i < m_ResizableGrid.Columns.Count; i++)
@@ -163,21 +169,38 @@ namespace HBP.UI.Module3D
         {
             if (m_ResizableGrid.ColumnNumber > 0)
             {
+                // Vertical
                 Column gridColumn = m_ResizableGrid.Columns[0];
-                float offset = 0.0f;
+                float verticalOffset = 0.0f;
                 for (int i = gridColumn.Views.Count - 1; i >= 0; --i)
                 {
                     View3DUI view = gridColumn.Views[i].GetComponent<View3DUI>();
                     if (view.IsViewMinimizedAndColumnNotMinimized)
                     {
-                        offset += view.GetComponent<RectTransform>().rect.height;
+                        verticalOffset += view.GetComponent<RectTransform>().rect.height;
                     }
                     else
                     {
                         break;
                     }
                 }
-                m_IEEGOutdated.SetOverlayOffset(offset);
+                m_IEEGOutdated.SetVerticalOffset(verticalOffset);
+
+                // Horizontal
+                float horizontalOffset = 0.0f;
+                for (int i = m_ResizableGrid.Columns.Count - 1; i >= 0; --i)
+                {
+                    Column3DUI column = m_ResizableGrid.Columns[i].GetComponent<Column3DUI>();
+                    if (column.IsMinimized)
+                    {
+                        horizontalOffset -= column.GetComponent<RectTransform>().rect.width;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                m_IEEGOutdated.SetHorizontalOffset(horizontalOffset);
             }
         }
         #endregion

@@ -60,12 +60,9 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField] private ColumnResizer m_Resizer;
         
-        [SerializeField]
-        private RectTransform m_Middle;
-        [SerializeField]
-        private RectTransform m_LeftBorder;
-        [SerializeField]
-        private RectTransform m_RightBorder;
+        [SerializeField] private RectTransform m_Middle;
+        [SerializeField] private RectTransform m_LeftBorder;
+        [SerializeField] private RectTransform m_RightBorder;
 
         /// <summary>
         /// Does the column UI have enough space to display the overlay ?
@@ -117,6 +114,13 @@ namespace HBP.UI.Module3D
         }
         #endregion
 
+        #region Events
+        /// <summary>
+        /// Event called when changing the minimized state of the view
+        /// </summary>
+        public UnityEvent OnChangeColumnSize = new UnityEvent();
+        #endregion
+
         #region Private Methods
         private void Awake()
         {
@@ -130,6 +134,7 @@ namespace HBP.UI.Module3D
                 UpdateOverlay();
                 m_MinimizedGameObject.SetActive(IsMinimized);
                 Column.IsMinimized = IsMinimized;
+                OnChangeColumnSize.Invoke();
                 m_RectTransform.hasChanged = false;
             }
         }
@@ -441,11 +446,11 @@ namespace HBP.UI.Module3D
                     break;
                 }
             }
-            m_Label.SetOverlayOffset(topOffset);
-            m_Colormap.SetOverlayOffset(topOffset);
-            m_TimeDisplay.SetOverlayOffset(topOffset);
-            m_Icon.SetOverlayOffset(topOffset);
-            m_Resizer.SetOverlayOffset(topOffset);
+            m_Label.SetVerticalOffset(topOffset);
+            m_Colormap.SetVerticalOffset(topOffset);
+            m_TimeDisplay.SetVerticalOffset(topOffset);
+            m_Icon.SetVerticalOffset(topOffset);
+            m_Resizer.SetVerticalOffset(topOffset);
 
             // Bottom
             float bottomOffset = 0.0f;
@@ -461,7 +466,7 @@ namespace HBP.UI.Module3D
                     break;
                 }
             }
-            m_Information.SetOverlayOffset(bottomOffset);
+            m_Information.SetVerticalOffset(bottomOffset);
         }
         #endregion
     }

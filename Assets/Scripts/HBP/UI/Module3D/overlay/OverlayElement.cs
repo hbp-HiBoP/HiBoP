@@ -8,6 +8,7 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         protected RectTransform m_RectTransform;
+        protected float m_InitialAnchoredX;
         protected float m_InitialAnchoredY;
         #endregion
 
@@ -15,11 +16,16 @@ namespace HBP.UI.Module3D
         public void Initialize()
         {
             m_RectTransform = GetComponent<RectTransform>();
+            m_InitialAnchoredX = m_RectTransform.anchoredPosition.x;
             m_InitialAnchoredY = m_RectTransform.anchoredPosition.y;
         }
-        public void SetOverlayOffset(float offset)
+        public void SetVerticalOffset(float offset)
         {
             m_RectTransform.anchoredPosition = new Vector2(m_RectTransform.anchoredPosition.x, m_InitialAnchoredY + offset);
+        }
+        public void SetHorizontalOffset(float offset)
+        {
+            m_RectTransform.anchoredPosition = new Vector2(m_InitialAnchoredX + offset, m_RectTransform.anchoredPosition.y);
         }
         #endregion
     }
