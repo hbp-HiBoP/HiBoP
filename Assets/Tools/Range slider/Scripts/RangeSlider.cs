@@ -10,10 +10,12 @@ public class RangeSlider : MonoBehaviour
     #endregion
 
     #region Public Methods
-    private void Start()
+    private void Awake()
     {
         LeftSlider.onValueChanged.AddListener(OnChangeLeftValue);
         RightSlider.onValueChanged.AddListener(OnChangeRightValue);
+        OnChangeLeftValue(LeftSlider.value);
+        OnChangeRightValue(RightSlider.value);
     }
     #endregion
 

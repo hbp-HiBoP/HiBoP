@@ -110,7 +110,7 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Create a new SubBloc with default value.
         /// </summary>
-        public SubBloc() : this(string.Empty, 0, new Window(), new Window(), new List<Event>(), new List<Icon>(), new List<Treatment>())
+        public SubBloc() : this(string.Empty, 0, new Window(-300,300), new Window(-300,0), new List<Event>(), new List<Icon>(), new List<Treatment>())
         {
         }
         #endregion
