@@ -57,14 +57,24 @@ This document is the user manual of the Human Intracranial Brain Observations Pl
 \caption{\label{projectDirectory}Project directory hierarchy}
 \end{figure}
 \subsection{Settings}
-\paragraph{} The .settings file at the root of the projet folder describes some project settings (Figure \ref{projectSettings}). This file contains a default path for the anatomical data of the patients and a default path for the functional data (iEEG).
+\paragraph{} The .settings file at the root of the projet folder describes some project settings (Figure \ref{projectSettings}). This file contains the name of the project, a default path for the anatomical data of the patients and a default path for the functional data (iEEG), as well as aliases to shorten paths in other files.
 \begin{figure}[H]
 \begin{lstlisting}
 {
   "ID": "41001a8a-23a5-409b-8b87-099dbb727a18",
   "Name": "ProjectName",
   "PatientDatabase": "Y:/BrainVisaDB/Epilepsy",
-  "LocalizerDatabase": "Y:/LOCA_DATABASE"
+  "LocalizerDatabase": "Y:/LOCA_DATABASE",
+  "Aliases": [
+    {
+      "Key": "[PATIENT_DATABASE]",
+      "Value": "Y:/BrainVisaDB/Epilepsy"
+    },
+    {
+      "Key": "[LOCALIZERS_DATABASE]",
+      "Value": "Y:/LOCA_DATABASE"
+    }
+  ]
 }
 \end{lstlisting}
 \caption{\label{projectSettings}Example project settings file}
@@ -205,7 +215,7 @@ The rest of the .prov file is straightforward : you can ask HiBoP to show .png o
 \end{figure}
 \subsection{Datasets}
 \paragraph{} This subfolder contains .dataset files, which summarize and link together anatomical and functional data for a given cognitive task (Figure \ref{datasetFile}).
-A dataset is a list of data information, each of them connecting one patient (and its anatomical data) with functional data (.eeg and .pos files) for a single experiment. Each data information can be normalized indepently from what is set in the preferences (see Section \ref{preferences} for detailed information about normalization).
+A dataset is a list of data information, each of them connecting one patient (and its anatomical data) with functional data (.eeg and .pos files) for a single experiment. Each data information can be normalized independently from what is set in the preferences (see Section \ref{preferences} for detailed information about normalization).
 \begin{figure}[H]
 \begin{lstlisting}
 {
@@ -243,7 +253,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \caption{\label{datasetFile}Example dataset file}
 \end{figure}
 \subsection{Visualizations}
-\paragraph{} This subfolder contains .visualization files (Figure \ref{visualizationFile}), which describe the contents of a visualization: it is composed of patients and columns. Each column allow one to visualize either the anatomy of the chosen patients or iEEG data for a specific protocol/bloc/dataset/data. The also stores the configuration of the visualization or of a particular column or site.
+\paragraph{} This subfolder contains .visualization files (Figure \ref{visualizationFile}), which describe the contents of a visualization: it is composed of patients and columns. Each column allow one to visualize either the anatomy of the chosen patients or iEEG data for a specific protocol/bloc/dataset/data. The file also stores the configuration of the visualization or of a particular column or site.
 \begin{figure}[H]
 \begin{lstlisting}
 {
@@ -361,7 +371,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{center}
 \caption{\label{patientModifierUI}Patient modifier}
 \end{figure}
-\paragraph{} If you want to add a mesh, you can use the "+" button located to the left; if you want to edit a mesh, you can double click the mesh item, and this will open a mesh modifier window (Figure \ref{meshModifierUI}) which will allow you to edit the path to the GIfTI files or to the transformation file.
+\paragraph{} If you want to add a mesh, you can use the "+" button located to the left; if you want to edit a mesh, you can double click the mesh item, and this will open a mesh modifier window (Figure \ref{meshModifierUI}) which will allow you to edit the path to the GIfTI files or to the transformation file. Adding and editing other types of anatomical data is very similar.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{MeshModifier.png}
@@ -417,7 +427,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{center}
 \caption{\label{datasetModifierUI}Dataset modifier}
 \end{figure}
-\paragraph{} A data information has a name and is linked to a patient. A single dataset can not have two data information with the same pair [name, patient]. In order to visualize different data from the same dataset in the same column of a visualization, you have to give them the same name (thus the two patients concerned by these data will be different). Then, you have to fill in the paths to the functional data files (.eeg and .pos). The label in front of the EEG file path corresponds to the label of the data you want to extract from the EEG file (usually, it is "EEG data"). You can also change how this particular data will be normalized (this overwrites the global parameter for normalization).
+\paragraph{} A data information has a name and is linked to a patient. A single dataset can not have two data information with the same pair [name, patient]. Data are identified by their names, so if you want to visualize data of several patients in the same column, you have to give them the same name (since their respective patient will be different, the pairs [name, patient] will be different). Then, you have to fill in the paths to the functional data files (.eeg and .pos). The label in front of the EEG file path corresponds to the label of the data you want to extract from the EEG file (usually, it is "EEG data"). You can also change how this particular data will be normalized (this overwrites the global parameter for normalization).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{DataInfoModifier.png}
