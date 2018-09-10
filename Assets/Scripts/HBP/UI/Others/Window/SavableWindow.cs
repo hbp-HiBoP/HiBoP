@@ -28,7 +28,7 @@ namespace HBP.UI
         #region Public Methods
         public virtual void Save()
         {
-            foreach (var savableSubWindow in m_SubWindows.OfType<SavableWindow>()) savableSubWindow.Save();
+            foreach (var savableSubWindow in m_SubWindows.OfType<SavableWindow>().ToArray()) savableSubWindow.Save();
             OnSave.Invoke();
             base.Close();
         }

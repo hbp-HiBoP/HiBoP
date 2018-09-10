@@ -6,12 +6,12 @@ namespace HBP.UI.Anatomy
     {
         public void OpenPatientGestion()
         {
-            ApplicationState.WindowsManager.Open("Patient Gestion Window");
+            ApplicationState.WindowsManager.Open("Patient gestion window");
         }
 
         public void OpenGroupGestion()
         {
-            ApplicationState.WindowsManager.Open("Group Gestion Window");
+            ApplicationState.WindowsManager.Open("Group gestion window");
         }
     }
 }

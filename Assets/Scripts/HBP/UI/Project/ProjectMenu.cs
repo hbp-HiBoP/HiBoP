@@ -7,15 +7,15 @@ namespace HBP.UI
         #region Public Methods
         public void OpenNewProject()
         {
-            ApplicationState.WindowsManager.Open("New Project Window");
+            ApplicationState.WindowsManager.Open("New project window");
         }
         public void OpenLoadProject()
         {
-            ApplicationState.WindowsManager.Open("Open Project Window");
+            ApplicationState.WindowsManager.Open("Open project window");
         }
         public void OpenSaveProjectAs()
         {
-            ApplicationState.WindowsManager.Open("Save Project As Window");
+            ApplicationState.WindowsManager.Open("Save project as window");
         }
         #endregion
     }
