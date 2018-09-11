@@ -305,32 +305,126 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{figure}
 \section{HiBoP description}\label{UI}
 \paragraph{} This section will describe in details how to use HiBoP to create a HiBoP project and how to visualize the iEEG data. To open HiBoP, double click on HiBoP.exe (for Windows; for Linux and MacOS, read the README.md file located next to the executable). If you have any doubt about what an interface element does, you can hover it for a second and a tooltip will appear telling you what it does.
-\subsection{Preferences}\label{preferences}
-\paragraph{} A lot of global parameters shared through all projects can be set using the preference menu (Figure \ref{preferencesUI}). These parameters are stored in a file located next to the HiBoP executable (GeneralSettings.txt).
+\subsection{User Preferences}\label{preferences}
+\paragraph{} A lot of global parameters shared through all projects can be set using the preferences menu (Figure \ref{preferencesUI}). The menu contains 3 tabs each containing submenus. These parameters are stored in a file located next to the HiBoP executable (UserPreferences.txt).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{Preferences.png}
 \end{center}
-\caption{\label{preferencesUI}Preferences}
+\caption{\label{preferencesUI}User Preferences}
 \end{figure}
 \begin{itemize}
-\item \textbf{Default Name} : Default name for a new project
-\item \textbf{Projects} : Default path to search for projects
-\item \textbf{Patients} : Default path to patients database
-\item \textbf{Localizers} : Default path to functional data
-\item \textbf{Screenshots} : Default path to save screenshots
-\item \textbf{Site name correction} : Change the name of a certain patern of site names (for instance "xp4" becomes "X'4")
-\item \textbf{Automatic iEEG Update} : Update the iEEG values on the brain automatically if they are outdated
-\item \textbf{Event position} : How to average the secondary events position
-\item \textbf{Value} : How to average the values
-\item \textbf{Type} : Show every matrices of a selected protocol or only blocs chosen in columns
-\item \textbf{Smoothing} : Should the matrices be smoothed horizontally (to have a better resolution)
-\item \textbf{Normalization by baseline} : The following formula is applied to each value $v$ $$v = \frac{v - \mu_{b}}{\sigma_{b}}$$ where $b$ is an array of the baseline values depending on this parameter, $\mu_b$ is their mean and $\sigma_b$ is their standard deviation
-\item \textbf{Bloc format} : How the trial matrices should be displayed (parameters depend on this parameter, try yourself to see which one is better for you)
-\item \textbf{Trial synchronization} : Should the matrices be synchronized when selecting specific trials
-\item \textbf{Theme} : Theme of the software (light theme is still under development)
-\item \textbf{Cut lines} : Should the cut lines appear on the cuts ?
-\item \textbf{Hide curve when column hidden} : Should the curves of the hidden column appear ?
+\item \textbf{General}
+\begin{itemize}
+\item \textbf{Project}
+\begin{itemize}
+\item \textbf{General}
+\begin{itemize}
+\item \textbf{Default name}: Default name for a new project
+\item \textbf{Default location}: Default path to search for projects
+\end{itemize}
+\item \textbf{Database}
+\begin{itemize}
+\item \textbf{Default patient database}: Default path to the patient database
+\item \textbf{Default localizer database}: Default path to functional data
+\end{itemize}
+\item \textbf{Export}
+\begin{itemize}
+\item \textbf{Default location}: Default path to save screenshots
+\end{itemize}
+\end{itemize}
+\item \textbf{System}
+\begin{itemize}
+\item \textbf{Performance}
+\begin{itemize}
+\item \textbf{Enable multithreading}: Enable multithreading for calculation (e.g. EEG signal on the brain mesh)
+\item \textbf{Memory cache limit}: Maximum amount of memory taken by HiBoP
+\end{itemize}
+\end{itemize}
+\end{itemize}
+\item \textbf{Data}
+\begin{itemize}
+\item \textbf{EEG}
+\begin{itemize}
+\item \textbf{Processing}
+\begin{itemize}
+\item \textbf{Averaging method}: Method to average the data (mean or median)
+\item \textbf{Normalizing method}: The following formula is applied to each value $v$ $$v = \frac{v - \mu_{b}}{\sigma_{b}}$$ where $b$ is an array of the baseline values depending on this parameter, $\mu_b$ is their mean and $\sigma_b$ is their standard deviation
+\end{itemize}
+\end{itemize}
+\item \textbf{Event}
+\begin{itemize}
+\item \textbf{Processing}
+\begin{itemize}
+\item \textbf{Position averaging method}: Method to average the position of the secondary events (mean or median)
+\end{itemize}
+\end{itemize}
+\item \textbf{Anatomy}
+\begin{itemize}
+\item \textbf{Performances}
+\begin{itemize}
+\item \textbf{Enable mesh preloading}: Preload every meshes at the start of a visualization
+\item \textbf{Enable MRI preloading}: Preload every MRIs at the start of a visualization
+\item \textbf{Enable implantation preloading}: Preload every implantations at the start of a visualization
+\end{itemize}
+\item \textbf{Processing}
+\begin{itemize}
+\item \textbf{Enable site name correction}: Change the name of a certain patern of site names (for instance "xp4" becomes "X'4")
+\end{itemize}
+\end{itemize}
+\end{itemize}
+\item \textbf{Visualization}
+\begin{itemize}
+\item \textbf{3D}
+\begin{itemize}
+\item \textbf{EEG}
+\begin{itemize}
+\item \textbf{Enable automatic EEG update}: Triggers the update of the brain activity on the brain each time a parameter is changed in the visualization
+\item \textbf{Site influence by distance}: Controls how a site influence its environment (constant amplitude, linear decrease or quadratic decrease)
+\end{itemize}
+\item \textbf{Single/Multi patient visualization}
+\begin{itemize}
+\item \textbf{Default selected MRI}: Select the MRI corresponding to this name when loading a new visualization, or the first in the list if the name does not match any
+\item \textbf{Default selected mesh}: Select the mesh corresponding to this name when loading a new visualization, or the first in the list if the name does not match any
+\item \textbf{Default selected implantation}: Select the implantation corresponding to this name when loading a new visualization, or the first in the list if the name does not match any
+\end{itemize}
+\end{itemize}
+\item \textbf{Trial Matrix}
+\begin{itemize}
+\item \textbf{General}
+\begin{itemize}
+\item \textbf{Show whole protocol}: Display the matrices of all blocs of a protocol even if no column is set with some blocs of the protocol
+\item \textbf{Enable trials synchronization}: Synchronize selected trials when comparing matrices of two sites
+\end{itemize}
+\item \textbf{Smoothing}
+\begin{itemize}
+\item \textbf{Enable trial smoothing}: Smoothes the trials of a matrix
+\item \textbf{Number of intermediate values}: Number of values to be added between two real values during smoothing process
+\end{itemize}
+\item \textbf{Format}
+\begin{itemize}
+\item \textbf{Bloc format}: Changes how a bloc of the matrix is rendered (trials height in pixels, trial ratio or bloc ratio)
+\end{itemize}
+\end{itemize}
+\item \textbf{Graph}
+\begin{itemize}
+\item \textbf{General}
+\begin{itemize}
+\item \textbf{Show curves of minimized columns}: Display all curves even if the corresponding column is minimized
+\end{itemize}
+\end{itemize}
+\item \textbf{Cut}
+\begin{itemize}
+\item \textbf{Display}
+\begin{itemize}
+\item \textbf{Enable cut lines}: Display other cuts by lines on cut textures
+\end{itemize}
+\item \textbf{Performance}
+\begin{itemize}
+\item \textbf{Enable simplified mesh during cuts}: Change the currently used mesh to a simplified one to optimize the cutting process
+\end{itemize}
+\end{itemize}
+\end{itemize}
 \end{itemize}
 \subsection{Project management}
 \subsubsection{Creating, opening and saving a project}
