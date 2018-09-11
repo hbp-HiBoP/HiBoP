@@ -507,6 +507,33 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{center}
 \caption{\label{cut}Cut parameters panel}
 \end{figure}
+\subsubsection{Sites list}\label{sitesList}
+\paragraph{} A list of all the sites of the scene is available in the corresponding panel (Figure \ref{sitesListPanel}). This list displays all sites found in the PTS files and their states, even if they do not have a corresponding channel in an EEG file (sites with no value will have their name in grey and will not be selectable). You can filter the sites by name, patient name and states.  Available states are :
+\begin{itemize}
+\item Excluded : an excluded site is not in the iEEG computations, but it remains visible in the scene
+\item Highlighted : a highlighted site appears without transparency in the scene
+\item Marked : a marked site appears in green when the iEEG are not computed (the behaviour is the same as an included site)
+\item Blacklisted : a blacklisted site is barely visible and not included in any calculation
+\item Suspicious : a suspicious site appears orange in the scene
+\end{itemize}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{SitesList.png}
+\end{center}
+\caption{\label{sitesListPanel}Sites list panel}
+\end{figure}
+\paragraph{} This panel also allows you to change the states of some sites directly. You can achieve this in 3 different ways :
+\begin{itemize}
+\item You can click on the dots to set or unset the state of a specific site in the list.
+\item You can use the submenu "Apply state on sites". There, you can filter sites using specific conditions concerning their current states, their location, information about them or their EEG signal, and apply states by selecting the icons of the states and clicking on the apply button. This process correspond to the "Basic" way of setting multiple states at once (Figure \ref{basicStates}).
+\item The "Advanced" way can be accessed through the Advanced tab of the aforementioned submenu. While the Basic tab can only filter sites with a global AND between all conditions (which means that all conditions must be fulfilled for a site in order to apply the states), the Advanced tab can be used to create more complex conditions. You can click on the "?" icon to have a detailed description on how it works, alongside examples.
+\end{itemize}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{BasicStates.png}
+\end{center}
+\caption{\label{basicStates}Apply state on sites submenu (in this example, sites that are in the selected ROI (Section \ref{roi}) and which values have a mean above 110 will be marked suspicious)}
+\end{figure}
 \paragraph{} The following sections will explain the different functionalities of each toolbar.
 \subsubsection{Scene settings}
 \begin{figure}[H]
@@ -516,7 +543,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{figure}
 \begin{itemize}
 \item Display both parts, only the left part or only the right part of the selected mesh (only works for left-right meshes).
-\item Display mars atlas on the mesh (only works if the mars atlas field of the mesh is filled).
+\item Display mars atlas on the mesh (only works if the mars atlas field of the mesh is valid).
 \item Display the edges of the mesh.
 \item Switch between the soft cut mode (keep everything behind a cut) and the hard cut mode (cut everything in front of a cut).
 \item Change the colormap of the iEEG values.
@@ -540,8 +567,8 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Reset the size of the views (if resized using the handlers).
 \item Automatic rotation of the brain (you can set the rotation speed with the slider).
 \item Change the camera behaviour (T = trackball camera, O = orbital camera).
-\item Take a raw screenshot of the scene which will be saved in the default screenshot directory (set in preferences).
-\item Save the scene as files in a directory named after the name of the visualization in the default screenshot directory (one image per opened view, one image per cut, one image and one svg for the graph, one image for the trial matrices, one csv for each curve containing the values).
+\item Take a raw screenshot of the scene which will be saved in the default export directory (set in user preferences).
+\item Save the scene as files in a directory named after the name of the visualization in the default export directory (one image per opened view, one image per cut, one image and one svg for the graph, one image for the trial matrices, one csv for each curve containing the values).
 \end{itemize}
 \subsubsection{iEEG settings}
 \begin{figure}[H]
@@ -554,7 +581,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Change the size of the sites
 \item Change the size of the influence sphere of the sites (to compute the iEEG on the brain surface)
 \item Change the transparency of the iEEG value on the brain surface
-\item Change the threshold values for the iEEG (anything less than the minimum value will be of the same color as the minimum value, the same apply for the maximum value; the rest of the values will increase linearly from minimum to middle, then decrease linearly from middle to maximum). You can change these values by either using the sliders or editing the numbers in the boxes.
+\item Change the threshold values for the iEEG (anything less than the minimum value will be of the same color as the minimum value, the same apply for the maximum value; the rest of the values will increase linearly from minimum to middle and then increase linearly from middle to maximum). You can change these values by either using the sliders or editing the numbers in the boxes. There are 2 modes : the symmetric mode allows you to set the middle value and the amplitude, whereas the asymmetric mode allows you to set each value independently.
 \item Compute the iEEG values on the brain surface or clean the brain.
 \end{itemize}
 \subsubsection{Timeline}
@@ -580,22 +607,14 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Selected site name.
 \item Display all sites in the scene.
 \item Hide blacklisted sites.
-\item Change the state of some sites (you can select which sites using filters). Available states are :
-\begin{itemize}
-\item Excluded : an excluded site is not in the iEEG computations, but it remains visible in the scene
-\item Highlighted : a highlighted site appears without transparency in the scene
-\item Marked : a marked site appears in another color when the iEEG are not computed (the behaviour is the same as an included site)
-\item Blacklisted : a blacklisted site will be barely visible and not included in any calculation
-\end{itemize}
-\item Display a list of all sites with their respective state. Click on the name of a site to select it.
 \item Compare two sites : select a site, click on this button, then select another site to compare them.
 \item Load the single patient scene corresponding to the patient whose site is selected.
-\item Cut approximately around the select site.
+\item Cut the brain mesh around the select site.
 \item Copy the states of the sites of the selected column to every other columns.
 \item Save the states of the sites in a .csv file.
 \item Load a .csv file with the states of the sites to the selected column.
 \end{itemize}
-\subsubsection{Regions of Interest}
+\subsubsection{Regions of Interest}\label{roi}
 \paragraph{} Regions of Interest (ROI) are useful if you only want to study a small group of sites. They are composed of multiple spheres with different positions and radiuses. If the option "Show All Sites" of the sites toolbar is not enabled, only the sites of the selected ROI will be included in the iEEG computations on the brain. A curve will also be generated for the selected ROI of each column (section \ref{graphs}).
 \begin{figure}[H]
 \begin{center}
@@ -612,8 +631,9 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Copy the selected ROI to other columns.
 \item Save the selected ROI to a .roi file.
 \item Load a .roi file to the selected column.
+\item Export information about each site in the selected ROI (.csv file).
 \end{itemize}
-\paragraph{} After adding a ROI to the selected column, you can left click on the mesh to add spheres to this ROI. You can select a sphere using either the toolbar or by left clicking on it. You can change the size of the selected sphere with the scroll wheel.
+\paragraph{} After adding a ROI to the selected column, you can left click on the mesh to add spheres to this ROI. You can select a sphere using either the toolbar or by left clicking on it. You can change the position of the selected sphere by draging and droping it and its size using the scroll wheel.
 \subsubsection{CCEP}
 \paragraph{} This toolbar will allow you to enable CCEP mode (which will disable iEEG mode) and choose from the Connectivity files which one you want to display. To select a source, simply select the site you want as source.
 \subsubsection{fMRI}
@@ -721,7 +741,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{itemize}
 \paragraph{} Once you have selected the patients you want to study (using the boxes next to their names; a red name means this patient does not match one of the parameters you chose), you can create a HiBoP project using these patients, export these patients to BIDS format, export the anatomical files (section \ref{exportAnatomical}) or the functional files (section \ref{exportFunctional}) to another folder.
 \subsubsection{Anatomical data}\label{exportAnatomical}
-\paragraph{} If you click on the "Export patients" button, you will see the window presented in figure \ref{dbManagerExportPatient}. There you can filter the patients even further and choose which files you want to export (MRI, Implantations, Meshes etc.). When you are ready to export, click on the "Start export" button and select the folder that will be containing your exported anatomical database. You can cancel the export at any time.
+\paragraph{} If you click on the "Export patients" button, you will see the window presented in figure \ref{dbManagerExportPatient}. There you can choose which files you want to export (MRI, Implantations, Meshes etc.) or you can export the whole database (even files which are not recognized by the database manager). When you are ready to export, click on the "Start export" button and select the folder that will be containing your exported anatomical database. You can cancel the export at any time.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{ExportPatient.png}
@@ -729,11 +749,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \caption{\label{dbManagerExportPatient}Export patients window}
 \end{figure}
 \subsubsection{Functional data}\label{exportFunctional}
-\paragraph{} Exporting functional data is very similar to exporting anatomical data (Figure \ref{dbManagerExportLoca}). The main difference concerns which file you want to export:
-\begin{itemize}
-\item \textbf{copy all files}: this option will export anything found in the functional database no matter what you selected in the filters (for the patients you checked).
-\item \textbf{minimal copy}: this option will only export what has been checked (e.g. if you checked VISU, f50f150, sm0 it will only export the files corresponding to these parameters).
-\end{itemize}
+\paragraph{} Exporting functional data is very similar to exporting anatomical data (Figure \ref{dbManagerExportLoca}).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{ExportLoca.png}
