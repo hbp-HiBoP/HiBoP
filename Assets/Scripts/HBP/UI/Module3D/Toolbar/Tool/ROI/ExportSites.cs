@@ -21,7 +21,7 @@ namespace HBP.UI.Module3D.Tools
 
         private LoadingCircle m_Circle;
         private float m_Progress;
-        private string m_Message;
+        private LoadingText m_Message;
         #endregion
 
         #region Private Methods
@@ -64,7 +64,7 @@ namespace HBP.UI.Module3D.Tools
             yield return Ninja.JumpToUnity;
             m_Circle = ApplicationState.LoadingManager.Open();
             m_Progress = 0;
-            m_Message = "Exporting sites";
+            m_Message = new LoadingText("Exporting sites");
             yield return Ninja.JumpBack;
 
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
@@ -94,7 +94,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 Site site = sites[i];
                 m_Progress = (float)i / (length - 1);
-                m_Message = "Exporting " + site.Information.FullCorrectedID;
+                m_Message = new LoadingText("Exporting ", site.Information.FullCorrectedID);
                 if (!(site.State.IsExcluded || site.State.IsBlackListed || site.State.IsMasked || site.State.IsOutOfROI))
                 {
                     Vector3 sitePosition = sitePositions[i];
@@ -108,9 +108,9 @@ namespace HBP.UI.Module3D.Tools
                         Bloc bloc = columnIEEG.ColumnData.Bloc;
                         Data.Experience.Protocol.Event mainEvent = bloc.MainEvent;
                         mainEventName = mainEvent.Name;
-                        code = String.Join(" ", mainEvent.Codes.Select(c => c.ToString()).ToArray());
+                        code = string.Join(" ", mainEvent.Codes.Select(c => c.ToString()).ToArray());
                     }
-                    csvBuilder.AppendLine(String.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}",
+                    csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}",
                             site.Information.ChannelName,
                             site.Information.Patient.Name,
                             site.Information.Patient.Place,

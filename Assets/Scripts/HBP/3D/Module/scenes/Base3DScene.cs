@@ -778,7 +778,7 @@ namespace HBP.Module3D
         /// </summary>
         private void InitializeSceneGameObjects()
         {
-            transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * ApplicationState.Module3D.NumberOfScenesLoadedSinceStart, transform.position.y, transform.position.z);
+            transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
 
             // Mark brain mesh as dynamic
             m_BrainPrefab.GetComponent<MeshFilter>().sharedMesh.MarkDynamic();
@@ -2012,7 +2012,7 @@ namespace HBP.Module3D
         /// <param name="onChangeProgress"></param>
         /// <param name="outPut"></param>
         /// <returns></returns>
-        public IEnumerator c_Initialize(Visualization visualization, GenericEvent<float, float, string> onChangeProgress, Action<Exception> outPut)
+        public IEnumerator c_Initialize(Visualization visualization, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
             Exception exception = null;
 
@@ -2047,10 +2047,10 @@ namespace HBP.Module3D
                 loadingIEEGTime = (Patients.Count * LOADING_IEEG_WEIGHT) / 1000.0f;
             }
             yield return Ninja.JumpToUnity;
-            onChangeProgress.Invoke(progress, 0.0f, "");
+            onChangeProgress.Invoke(progress, 0.0f, new LoadingText());
 
             // Checking MNI
-            onChangeProgress.Invoke(progress, 0.0f, "Loading MNI");
+            onChangeProgress.Invoke(progress, 0.0f, new LoadingText("Loading MNI"));
             System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
             watch.Start();
             yield return new WaitUntil(delegate { return ApplicationState.Module3D.MNIObjects.Loaded || watch.ElapsedMilliseconds > 5000; });
@@ -2063,7 +2063,7 @@ namespace HBP.Module3D
 
             // Loading MNI
             progress += loadingMNIProgress;
-            onChangeProgress.Invoke(progress, loadingMNITime, "Loading MNI objects");
+            onChangeProgress.Invoke(progress, loadingMNITime, new LoadingText("Loading MNI objects"));
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadMNIObjects(e => exception = e));
             if (exception != null)
             {
@@ -2078,7 +2078,7 @@ namespace HBP.Module3D
                 {
                     Data.Anatomy.Mesh mesh = Patients[0].Brain.Meshes[i];
                     progress += loadingMeshProgress;
-                    onChangeProgress.Invoke(progress, loadingMeshTime, "Loading Mesh: " + mesh.Name + " [" + (i + 1).ToString() + "/" + Patients[0].Brain.Meshes.Count + "]");
+                    onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", mesh.Name, " [" + (i + 1).ToString() + "/" + Patients[0].Brain.Meshes.Count + "]"));
                     yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainSurface(mesh, e => exception = e));
                 }
                 if (exception != null)
@@ -2116,7 +2116,7 @@ namespace HBP.Module3D
                 {
                     Data.Anatomy.MRI mri = Patients[0].Brain.MRIs[i];
                     progress += loadingMRIProgress;
-                    onChangeProgress.Invoke(progress, loadingMRITime, "Loading MRI: " + mri.Name + " [" + (i + 1).ToString() + "/" + Patients[0].Brain.MRIs.Count + "]");
+                    onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", mri.Name, " [" + (i + 1).ToString() + "/" + Patients[0].Brain.MRIs.Count + "]"));
                     yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadBrainVolume(mri, e => exception = e));
                 }
                 if (exception != null)
@@ -2130,7 +2130,7 @@ namespace HBP.Module3D
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadImplantations(visualization.Patients, usableImplantations, (i) =>
             {
                 progress += loadingImplantationsProgress;
-                onChangeProgress.Invoke(progress, loadingImplantationsTime, "Loading implantations [" + (i + 1).ToString() + "/" + usableImplantations.Count + "]");
+                onChangeProgress.Invoke(progress, loadingImplantationsTime, new LoadingText("Loading implantations ", "", "[" + (i + 1).ToString() + "/" + usableImplantations.Count + "]"));
             }, e => exception = e));
             if (exception != null)
             {
@@ -2140,7 +2140,7 @@ namespace HBP.Module3D
 
             // Loading Columns
             progress += loadingIEEGProgress;
-            onChangeProgress.Invoke(progress, loadingIEEGTime, "Loading columns");
+            onChangeProgress.Invoke(progress, loadingIEEGTime, new LoadingText("Loading columns"));
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadColumns(e => exception = e));
             if (exception != null)
             {

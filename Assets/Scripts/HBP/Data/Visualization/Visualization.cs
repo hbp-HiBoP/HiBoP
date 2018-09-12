@@ -191,9 +191,9 @@ namespace HBP.Data.Visualization
         /// Load the visualization.
         /// </summary>
         /// <returns></returns>
-        public IEnumerator c_Load(GenericEvent<float,float,string> onChangeProgress = null)
+        public IEnumerator c_Load(GenericEvent<float,float, LoadingText> onChangeProgress = null)
         {
-            if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, string>();
+            if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, LoadingText>();
 
             float progress = 0.0f;
 
@@ -326,7 +326,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Private Methods
-        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, string> onChangeProgress, Action<Dictionary<Column, DataInfo[]>, float, Exception> outPut)
+        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Dictionary<Column, DataInfo[]>, float, Exception> outPut)
         {
             Exception exception = null;
             // Find files to read.
@@ -339,7 +339,7 @@ namespace HBP.Data.Visualization
                 // Update progress;
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0.0f, "Finding files to read.");
+                onChangeProgress.Invoke(progress, 0.0f, new LoadingText("Finding files to read."));
                 yield return Ninja.JumpBack;
 
                 // Work.
@@ -362,7 +362,7 @@ namespace HBP.Data.Visualization
             }
             outPut(dataInfoByColumn, progress, exception);
         }
-        IEnumerator c_LoadData(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_LoadData(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
             string additionalInformation = "";
@@ -374,7 +374,7 @@ namespace HBP.Data.Visualization
                 DataInfo dataInfo = dataInfoCollection[i];
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Loading <color=blue>" + dataInfo.Name + "</color> for <color=blue>" + dataInfo.Patient.Name + "</color> [" + (i + 1).ToString() + "/" + dataInfoCollection.Length + "]");
+                onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading ", dataInfo.Name + " for " + dataInfo.Patient.Name, " [" + (i + 1).ToString() + "/" + dataInfoCollection.Length + "]"));
                 yield return Ninja.JumpBack;
                 try
                 {
@@ -396,7 +396,7 @@ namespace HBP.Data.Visualization
             }
             yield return Ninja.JumpToUnity;
             progress += progressStep;
-            onChangeProgress.Invoke(progress, 1.0f, "Normalizing data");
+            onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Normalizing data"));
             yield return Ninja.JumpBack;
             if (exception == null)
             {
@@ -404,7 +404,7 @@ namespace HBP.Data.Visualization
             }
             outPut(progress, exception);
         }
-        IEnumerator c_LoadColumns(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_LoadColumns(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
             float progressStep = LOAD_COLUMNS_PROGRESS / (Columns.Count * 2);
@@ -416,7 +416,7 @@ namespace HBP.Data.Visualization
 
                     yield return Ninja.JumpToUnity;
                     progress += progressStep;
-                    onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
+                    onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
                     yield return Ninja.JumpBack;
 
                     if (column.Type == Data.Enums.ColumnType.Anatomy) continue;
@@ -439,7 +439,7 @@ namespace HBP.Data.Visualization
                     Column column = Columns[i];
                     yield return Ninja.JumpToUnity;
                     progress += progressStep;
-                    onChangeProgress.Invoke(progress, 1.0f, "Loading timeline of column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
+                    onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading timeline of column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
                     yield return Ninja.JumpBack;
                     column.SetTimeline(maxFrequency);
                     yield return Ninja.JumpToUnity;
@@ -461,7 +461,7 @@ namespace HBP.Data.Visualization
             }
             outPut(progress, exception);
         }
-        IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
             float progressStep = STANDARDIZE_COLUMNS_PROGRESS / Columns.Count;
@@ -476,7 +476,7 @@ namespace HBP.Data.Visualization
 
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
+                onChangeProgress.Invoke(progress, 0, new LoadingText("Standardize column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
                 yield return Ninja.JumpBack;
                 try
                 {

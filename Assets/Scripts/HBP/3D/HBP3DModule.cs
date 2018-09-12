@@ -106,7 +106,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Mars atlas index (to get name of mars atlas, broadman etc)
         /// </summary>
-        public DLL.MarsAtlasIndex MarsAtlasIndex;
+        public DLL.MarsAtlasIndex MarsAtlasIndex { get; private set; }
 
         /// <summary>
         /// MNI Objects
@@ -317,7 +317,7 @@ namespace HBP.Module3D
 
                 yield return Ninja.JumpToUnity;
                 LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();
-                GenericEvent<float, float, string> OnChangeLoadingProgress = new GenericEvent<float, float, string>();
+                GenericEvent<float, float, LoadingText> OnChangeLoadingProgress = new GenericEvent<float, float, LoadingText>();
                 OnChangeLoadingProgress.AddListener((progress, time, message) => { loadingCircle.ChangePercentage(progress / 2.0f, time, message); });
                 Task visualizationLoadingTask;
                 yield return this.StartCoroutineAsync(visualization.c_Load(OnChangeLoadingProgress), out visualizationLoadingTask);
@@ -355,9 +355,9 @@ namespace HBP.Module3D
         /// <param name="visualization">Visualization to be loaded</param>
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <returns></returns>
-        IEnumerator c_LoadScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, string> onChangeProgress = null)
+        IEnumerator c_LoadScene(Data.Visualization.Visualization visualization, GenericEvent<float, float, LoadingText> onChangeProgress = null)
         {
-            if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, string>();
+            if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, LoadingText>();
 
             Exception exception = null;
 
@@ -369,7 +369,6 @@ namespace HBP.Module3D
             {
                 try
                 {
-                    ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++;
                     // Add the listeners
                     scene.OnChangeSelectedState.AddListener((selected) =>
                     {

@@ -578,6 +578,11 @@ namespace HBP.Module3D
                         site.transform.localScale = Vector3.one;
                         siteType = SiteType.Excluded;
                     }
+                    else if (site.State.IsSuspicious)
+                    {
+                        site.transform.localScale = Vector3.one;
+                        siteType = SiteType.Suspicious;
+                    }
                     else if (data.IsGeneratorUpToDate)
                     {
                         site.transform.localScale = m_ElectrodesSizeScale[i];
@@ -586,7 +591,7 @@ namespace HBP.Module3D
                     else
                     {
                         site.transform.localScale = Vector3.one;
-                        siteType = site.State.IsSuspicious ? SiteType.Suspicious : site.State.IsMarked ? SiteType.Marked : SiteType.Normal;
+                        siteType = site.State.IsMarked ? SiteType.Marked : SiteType.Normal;
                     }
                     if (!activity) site.IsActive = true;
                     site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType);

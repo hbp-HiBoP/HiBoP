@@ -372,16 +372,16 @@ namespace HBP.Data.General
             }
             return projectsDirectories.FirstOrDefault((project) => new ProjectInfo(project).Settings.ID == ID);
         }
-        public IEnumerator c_Load(ProjectInfo projectInfo, GenericEvent<float,float,string> OnChangeProgress = null)
+        public IEnumerator c_Load(ProjectInfo projectInfo, GenericEvent<float,float, LoadingText> OnChangeProgress = null)
         {
             // Initialize progress.
             float progress = 0.0f;
             float progressStep = 1.0f / ( 1 + projectInfo.Patients + projectInfo.Groups + projectInfo.Protocols + projectInfo.Datasets + projectInfo.Visualizations);
-            if (OnChangeProgress == null) OnChangeProgress = new GenericEvent<float, float, string>();
+            if (OnChangeProgress == null) OnChangeProgress = new GenericEvent<float, float, LoadingText>();
             Action<float> outPut = (value) => progress = value;
 
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(progress, 0, "Loading project");
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading project"));
             yield return Ninja.JumpBack;
 
             if (!Directory.Exists(projectInfo.Path)) throw new DirectoryNotFoundException(projectInfo.Path); // Test if the directory exist.
@@ -398,17 +398,17 @@ namespace HBP.Data.General
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_CheckDatasets(OnChangeProgress));
             
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(2, 0, "Project succesfully loaded.");
+            OnChangeProgress.Invoke(2, 0, new LoadingText("Project succesfully loaded."));
         }
-        public IEnumerator c_Save(string path, GenericEvent<float, float, string> OnChangeProgress = null)
+        public IEnumerator c_Save(string path, GenericEvent<float, float, LoadingText> OnChangeProgress = null)
         {
             float progress = 0.0f;
             float progressStep = 1.0f / ( 4 + Patients.Count + Groups.Count + Protocols.Count + Datasets.Count + Visualizations.Count);
-            if (OnChangeProgress == null) OnChangeProgress = new GenericEvent<float, float, string>();
+            if (OnChangeProgress == null) OnChangeProgress = new GenericEvent<float, float, LoadingText>();
             Action<float> outPut = (value) => progress = value;
 
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(progress, 0, "Saving project.");
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving project."));
             yield return Ninja.JumpBack;
 
             if (String.IsNullOrEmpty(path)) throw new ArgumentNullException(path);
@@ -418,7 +418,7 @@ namespace HBP.Data.General
             progress += progressStep;
 
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(progress, 0, "Saving project.");
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving project."));
             yield return Ninja.JumpBack;
 
             yield return c_SaveSettings(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
@@ -431,7 +431,7 @@ namespace HBP.Data.General
 
             // Deleting old directories.
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(progress, 0, "Finalizing.");
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Finalizing."));
             yield return Ninja.JumpBack;
 
             if (Directory.Exists(oldProjectDirectory))
@@ -458,16 +458,16 @@ namespace HBP.Data.General
             progress += progressStep;
 
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(1, 0, "Project succesfully saved.");
+            OnChangeProgress.Invoke(1, 0, new LoadingText("Project succesfully saved."));
         }
         #endregion
 
         #region Private Methods
-        IEnumerator c_LoadSettings(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadSettings(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             yield return Ninja.JumpBack;
             // Loading settings file.
-            OnChangeProgress.Invoke(progress, 0, "Loading settings");
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading settings"));
 
             FileInfo[] settingsFiles = projectDirectory.GetFiles("*" + ProjectSettings.EXTENSION, SearchOption.TopDirectoryOnly);
             if (settingsFiles.Length == 0) throw new SettingsFileNotFoundException(); // Test if settings files found.
@@ -483,7 +483,7 @@ namespace HBP.Data.General
             progress += progressStep;
             outPut(progress);
         }
-        IEnumerator c_LoadPatients(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadPatients(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             yield return Ninja.JumpBack;
             // Load patients.
@@ -493,7 +493,7 @@ namespace HBP.Data.General
             for (int i = 0; i < patientFiles.Length; ++i)
             {
                 FileInfo patientFile = patientFiles[i];
-                OnChangeProgress.Invoke(progress, 0, "Loading patient <color=blue>" + Path.GetFileNameWithoutExtension(patientFile.Name) + "</color> [" + (i + 1).ToString() + "/" + patientFiles.Length + "]");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
                 try
                 {
                     patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(patientFile.FullName));
@@ -507,7 +507,7 @@ namespace HBP.Data.General
             SetPatients(patients.ToArray());
             outPut(progress);
         }
-        IEnumerator c_LoadGroups(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadGroups(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             yield return Ninja.JumpBack;
             // Load groups.
@@ -517,7 +517,7 @@ namespace HBP.Data.General
             for (int i = 0; i < groupFiles.Length; ++i)
             {
                 FileInfo groupFile = groupFiles[i];
-                OnChangeProgress.Invoke(progress, 0, "Loading group <color=blue>" + Path.GetFileNameWithoutExtension(groupFile.Name) + "</color> [" + (i + 1).ToString() + "/" + groupFiles.Length + "]");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading group ", Path.GetFileNameWithoutExtension(groupFile.Name), " [" + (i + 1).ToString() + "/" + groupFiles.Length + "]"));
                 try
                 {
                     groups.Add(ClassLoaderSaver.LoadFromJson<Group>(groupFile.FullName));
@@ -531,7 +531,7 @@ namespace HBP.Data.General
             SetGroups(groups.ToArray());
             outPut(progress);
         }
-        IEnumerator c_LoadProtocols(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadProtocols(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             yield return Ninja.JumpBack;
             //Load Protocols
@@ -541,7 +541,7 @@ namespace HBP.Data.General
             for (int i = 0; i < protocolFiles.Length; ++i)
             {
                 FileInfo protocolFile = protocolFiles[i];
-                OnChangeProgress.Invoke(progress, 0, "Loading protocol <color=blue>" + Path.GetFileNameWithoutExtension(protocolFile.Name) + "</color> [" + (i + 1).ToString() + "/" + protocolFiles.Length + "]");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading protocol ", Path.GetFileNameWithoutExtension(protocolFile.Name), " [" + (i + 1).ToString() + "/" + protocolFiles.Length + "]"));
                 try
                 {
                     protocols.Add(ClassLoaderSaver.LoadFromJson<Protocol>(protocolFile.FullName));
@@ -555,7 +555,7 @@ namespace HBP.Data.General
             SetProtocols(protocols.ToArray());
             outPut(progress);
         }
-        IEnumerator c_LoadDatasets(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadDatasets(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             yield return Ninja.JumpBack;
             //Load Datasets
@@ -565,7 +565,7 @@ namespace HBP.Data.General
             for (int i = 0; i < datasetFiles.Length; ++i)
             {
                 FileInfo datasetFile = datasetFiles[i];
-                OnChangeProgress.Invoke(progress, 0, "Loading dataset <color=blue>" + Path.GetFileNameWithoutExtension(datasetFile.Name) + "</color> [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading dataset ", Path.GetFileNameWithoutExtension(datasetFile.Name), " [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]"));
                 try
                 {
                     datasets.Add(ClassLoaderSaver.LoadFromJson<Dataset>(datasetFile.FullName));
@@ -579,7 +579,7 @@ namespace HBP.Data.General
             SetDatasets(datasets.ToArray());
             outPut(progress);
         }
-        IEnumerator c_LoadVisualizations(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadVisualizations(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             yield return Ninja.JumpBack;
             //Load Visualizations
@@ -590,7 +590,7 @@ namespace HBP.Data.General
             for (int i = 0; i < visualizationFiles.Length; ++i)
             {
                 FileInfo visualizationFile = visualizationFiles[i];
-                OnChangeProgress.Invoke(progress, 0, "Loading visualization <color=blue>" + Path.GetFileNameWithoutExtension(visualizationFile.Name) + "</color> [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading visualization ", Path.GetFileNameWithoutExtension(visualizationFile.Name), " [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]"));
                 try
                 {
                     visualizations.Add(ClassLoaderSaver.LoadFromJson<Visualization.Visualization>(visualizationFile.FullName));
@@ -604,7 +604,7 @@ namespace HBP.Data.General
             SetVisualizations(visualizations.ToArray());
             outPut(progress);
         }
-        IEnumerator c_CheckDatasets(GenericEvent<float, float, string> OnChangeProgress)
+        IEnumerator c_CheckDatasets(GenericEvent<float, float, LoadingText> OnChangeProgress)
         {
             yield return Ninja.JumpBack;
             int count = 1;
@@ -622,16 +622,16 @@ namespace HBP.Data.General
 
                     // DEBUG
                     yield return Ninja.JumpToUnity;
-                    OnChangeProgress.Invoke(progress, 0, "Checking <color=blue>" + data.Name + " | " + dataset.Protocol.Name + " | " + data.Patient.Name + "</color> [" + count + "/" + length + "]");
+                    OnChangeProgress.Invoke(progress, 0, new LoadingText("Checking ", data.Name + " | " + dataset.Protocol.Name + " | " + data.Patient.Name, " [" + count + "/" + length + "]"));
                     yield return Ninja.JumpBack;
                 }
             }
         }
-        IEnumerator c_SaveSettings(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_SaveSettings(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             // Save settings
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(progress, 0, "Saving settings.");
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving settings"));
             yield return Ninja.JumpBack;
 
             try
@@ -645,14 +645,14 @@ namespace HBP.Data.General
             progress += progressStep;
             outPut(progress);
         }
-        IEnumerator c_SavePatients(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_SavePatients(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             DirectoryInfo patientDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Patients");
             // Save patients
             foreach (Patient patient in Patients)
             {
                 yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Saving patient <color=blue>" + patient.ID +"</color>.");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving patient ", patient.ID));
                 yield return Ninja.JumpBack;
 
                 try
@@ -667,14 +667,14 @@ namespace HBP.Data.General
             }
             outPut(progress);
         }
-        IEnumerator c_SaveGroups(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_SaveGroups(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             // Save groups
             DirectoryInfo groupDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Groups");
             foreach (Group group in Groups)
             {
                 yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Saving group <color=blue>" + group.Name + "</color>.");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving group ", group.Name));
                 yield return Ninja.JumpBack;
 
                 try
@@ -689,14 +689,14 @@ namespace HBP.Data.General
             }
             outPut(progress);
         }
-        IEnumerator c_SaveProtocols(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_SaveProtocols(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             // Save protocols
             DirectoryInfo protocolDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Protocols");
             foreach (Protocol protocol in Protocols)
             {
                 yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Saving protocol <color=blue>" + protocol.Name + "</color>.");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving protocol ", protocol.Name));
                 yield return Ninja.JumpBack;
 
                 try
@@ -711,14 +711,14 @@ namespace HBP.Data.General
             }
             outPut(progress);
         }
-        IEnumerator c_SaveDatasets(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_SaveDatasets(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             //Save datasets
             DirectoryInfo datasetDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Datasets");
             foreach (Dataset dataset in Datasets)
             {
                 yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Saving dataset <color=blue>" + dataset.Name +"</color>.");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving dataset ", dataset.Name));
                 yield return Ninja.JumpBack;
 
                 try
@@ -733,7 +733,7 @@ namespace HBP.Data.General
             }
             outPut(progress);
         }
-        IEnumerator c_SaveVisualizations(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_SaveVisualizations(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             DirectoryInfo visualizationDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Visualizations");
 
@@ -741,7 +741,7 @@ namespace HBP.Data.General
             foreach (Visualization.Visualization visualization in Visualizations)
             {
                 yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Saving visualization <color=blue>" + visualization.Name + "</color>.");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving visualization ", visualization.Name));
                 yield return Ninja.JumpBack;
 
                 try
