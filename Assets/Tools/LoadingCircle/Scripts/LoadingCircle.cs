@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -139,8 +140,10 @@ public class LoadingCircle : MonoBehaviour
             StopCoroutine(m_TextCoroutine);
             loading = false;
             m_PrefixText.text = Text.Prefix;
+            m_PrefixText.SetLayoutElementMinimumWidthToContainWholeText();
             m_InformationText.text = Text.Message;
             m_SuffixText.text = Text.Suffix;
+            m_SuffixText.SetLayoutElementMinimumWidthToContainWholeText();
             m_LastText = Text;
         }
     }

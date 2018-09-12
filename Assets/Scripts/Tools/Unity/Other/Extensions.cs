@@ -115,4 +115,24 @@ namespace Tools.Unity
             return localPath;
         }
     }
+
+    public static class TextExtension
+    {
+        public static void SetLayoutElementMinimumWidthToContainWholeText(this Text text)
+        {
+            LayoutElement layoutElement = text.GetComponent<LayoutElement>();
+            if (layoutElement)
+            {
+                int totalWidth = 0;
+                CharacterInfo charInfo = new CharacterInfo();
+                char[] stringArray = text.text.ToCharArray();
+                foreach (var c in stringArray)
+                {
+                    text.font.GetCharacterInfo(c, out charInfo, text.fontSize);
+                    totalWidth += charInfo.advance;
+                }
+                text.GetComponent<LayoutElement>().minWidth = totalWidth;
+            }
+        }
+    }
 }
