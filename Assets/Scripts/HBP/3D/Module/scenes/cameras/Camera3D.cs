@@ -328,22 +328,25 @@ namespace HBP.Module3D
                     m_PlaneMaterial.SetPass(0);
                     {
                         int ii = m_AssociatedScene.SceneInformation.LastPlaneModifiedID;
-                        for (int jj = 0; jj < m_PlanesCutsCirclesVertices[ii].Length; ++jj)
+                        if (ii < m_PlanesCutsCirclesVertices.Count)
                         {
+                            for (int jj = 0; jj < m_PlanesCutsCirclesVertices[ii].Length; ++jj)
+                            {
+                                GL.Begin(GL.LINES);
+                                GL.Vertex(m_PlanesCutsCirclesVertices[ii][jj]);
+                                GL.Vertex(m_PlanesCutsCirclesVertices[ii][(jj + 1) % m_PlanesCutsCirclesVertices[ii].Length]);
+                                GL.End();
+                            }
+
                             GL.Begin(GL.LINES);
-                            GL.Vertex(m_PlanesCutsCirclesVertices[ii][jj]);
-                            GL.Vertex(m_PlanesCutsCirclesVertices[ii][(jj + 1) % m_PlanesCutsCirclesVertices[ii].Length]);
+                            GL.Vertex(m_PlanesCutsCirclesVertices[ii][m_PlanesCutsCirclesVertices[ii].Length / 8]);
+                            GL.Vertex(m_PlanesCutsCirclesVertices[ii][5 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
+                            GL.End();
+                            GL.Begin(GL.LINES);
+                            GL.Vertex(m_PlanesCutsCirclesVertices[ii][3 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
+                            GL.Vertex(m_PlanesCutsCirclesVertices[ii][7 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
                             GL.End();
                         }
-
-                        GL.Begin(GL.LINES);
-                        GL.Vertex(m_PlanesCutsCirclesVertices[ii][m_PlanesCutsCirclesVertices[ii].Length / 8]);
-                        GL.Vertex(m_PlanesCutsCirclesVertices[ii][5 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
-                        GL.End();
-                        GL.Begin(GL.LINES);
-                        GL.Vertex(m_PlanesCutsCirclesVertices[ii][3 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
-                        GL.Vertex(m_PlanesCutsCirclesVertices[ii][7 * m_PlanesCutsCirclesVertices[ii].Length / 8]);
-                        GL.End();
                     }
                 }
                 else
