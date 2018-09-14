@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class RangeSlider : MonoBehaviour
@@ -16,6 +17,15 @@ public class RangeSlider : MonoBehaviour
         RightSlider.onValueChanged.AddListener(OnChangeRightValue);
         OnChangeLeftValue(LeftSlider.value);
         OnChangeRightValue(RightSlider.value);
+    }
+    public void OnDrag(BaseEventData eventData)
+    {
+        PointerEventData pointerEventData = (PointerEventData) eventData;
+        RectTransform fillAreaRectTransform = (FillRect.parent as RectTransform);
+        Rect fillAreaRect = fillAreaRectTransform.rect;
+        float ratio = pointerEventData.delta.x / fillAreaRect.width;
+        LeftSlider.normalizedValue += ratio;
+        RightSlider.normalizedValue += ratio;
     }
     #endregion
 

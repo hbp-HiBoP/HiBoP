@@ -13,8 +13,7 @@ namespace HBP.UI.Experience.Dataset
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_ProtocolText;
         [SerializeField] Text m_DataInfosText;
-        [SerializeField] DatasetResumeList m_DatasetList;
-
+        //[SerializeField] DatasetResumeList m_DatasetList;
         [SerializeField] State m_ErrorState;
 
         public override d.Dataset Object
@@ -34,7 +33,7 @@ namespace HBP.UI.Experience.Dataset
                 m_DataInfosText.text = nbData.ToString();
                 if (nbData == 0) m_DataInfosText.GetComponent<ThemeElement>().Set(m_ErrorState);
                 else m_DataInfosText.GetComponent<ThemeElement>().Set();
-                SetData();
+                //SetData();
             }
         }
         #endregion

@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using d = HBP.Data.Experience.Dataset;
-using UnityEngine.UI;
 using UnityEngine;
 
 namespace HBP.UI.Experience.Dataset
@@ -8,8 +7,7 @@ namespace HBP.UI.Experience.Dataset
 	public class DatasetGestion : ItemGestion<d.Dataset>
     {
         #region Properties
-        [SerializeField] Text m_datasetsCounter;
-        [SerializeField] DatasetList m_DatasetList;
+        [SerializeField] DatasetListGestion m_datasetListGestion;
 
         public override bool Interactable
         {
@@ -21,7 +19,7 @@ namespace HBP.UI.Experience.Dataset
             set
             {
                 base.Interactable = value;
-                m_DatasetList.Interactable = value;
+                m_datasetListGestion.Interactable = value;
             }
         }
         #endregion
@@ -45,21 +43,14 @@ namespace HBP.UI.Experience.Dataset
                 base.Save();
             }
         }
-        public override void Remove()
-        {
-            base.Remove();
-            m_datasetsCounter.text = m_List.ObjectsSelected.Count().ToString();
-        }
         #endregion
 
         #region Private Methods
-        protected override void Initialize()
+        protected override void SetFields()
 		{
-            m_List = m_DatasetList;
-            (m_List as DatasetList).OnAction.AddListener((dataset, i) => OpenModifier(dataset,true));
-            AddItem(ApplicationState.ProjectLoaded.Datasets.ToArray());
-
-            m_List.OnSelectionChanged.AddListener(() => m_datasetsCounter.text = m_List.ObjectsSelected.Count().ToString());
+            m_datasetListGestion.Initialize(m_SubWindows);
+            m_datasetListGestion.Items = ApplicationState.ProjectLoaded.Datasets.ToList();
+            base.SetFields();
         }
         #endregion
     }
