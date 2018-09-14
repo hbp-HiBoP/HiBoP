@@ -1,11 +1,11 @@
 ﻿using HBP.Module3D;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class Shortcut3D : MonoBehaviour
+public class ShortcutManager : MonoBehaviour
 {
-    enum Direction { Left, Right }
     const float DELAY = 0.2f;
     float m_Timer = 0.0f;
 
@@ -15,12 +15,12 @@ public class Shortcut3D : MonoBehaviour
 		if((Input.GetKey(KeyCode.LeftArrow) && m_Timer >= DELAY) || Input.GetKeyDown(KeyCode.LeftArrow))
         {
             m_Timer = 0;
-            ChangeSiteSelection(Direction.Left);
+            ChangeSiteSelection(HBP.Data.Enums.SiteNavigationDirection.Left);
         }
         else if((Input.GetKey(KeyCode.RightArrow) && m_Timer >= DELAY) || Input.GetKeyDown(KeyCode.RightArrow))
         {
             m_Timer = 0;
-            ChangeSiteSelection(Direction.Right);
+            ChangeSiteSelection(HBP.Data.Enums.SiteNavigationDirection.Right);
         }
 
         if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
@@ -29,7 +29,7 @@ public class Shortcut3D : MonoBehaviour
         }
 	}
 
-    void ChangeSiteSelection(Direction direction)
+    void ChangeSiteSelection(HBP.Data.Enums.SiteNavigationDirection direction)
     {
         Base3DScene scene = ApplicationState.Module3D.SelectedScene;
         if (scene != null)
@@ -45,11 +45,11 @@ public class Shortcut3D : MonoBehaviour
                 {
                     switch (direction)
                     {
-                        case Direction.Left:
+                        case HBP.Data.Enums.SiteNavigationDirection.Left:
                             id--;
                             if (id < 0) id = selectedColumn.Sites.Count - 1;
                             break;
-                        case Direction.Right:
+                        case HBP.Data.Enums.SiteNavigationDirection.Right:
                             id++;
                             if (id > selectedColumn.Sites.Count - 1) id = 0;
                             break;
@@ -97,23 +97,28 @@ public class Shortcut3D : MonoBehaviour
                     }
                     if (Input.GetKeyDown(KeyCode.Alpha1))
                     {
-                        foreach (var site in sites) site.State.IsExcluded = !site.State.IsExcluded;
+                        bool allExcluded = sites.All(s => s.State.IsExcluded);
+                        foreach (var site in sites) site.State.IsExcluded = !allExcluded;
                     }
                     else if (Input.GetKeyDown(KeyCode.Alpha2))
                     {
-                        foreach (var site in sites) site.State.IsHighlighted = !site.State.IsHighlighted;
+                        bool allHighlighted = sites.All(s => s.State.IsHighlighted);
+                        foreach (var site in sites) site.State.IsHighlighted = !allHighlighted;
                     }
                     else if (Input.GetKeyDown(KeyCode.Alpha3))
                     {
-                        foreach (var site in sites) site.State.IsBlackListed = !site.State.IsBlackListed;
+                        bool allBlacklisted = sites.All(s => s.State.IsBlackListed);
+                        foreach (var site in sites) site.State.IsBlackListed = !allBlacklisted;
                     }
                     else if (Input.GetKeyDown(KeyCode.Alpha4))
                     {
-                        foreach (var site in sites) site.State.IsMarked = !site.State.IsMarked;
+                        bool allMarked = sites.All(s => s.State.IsMarked);
+                        foreach (var site in sites) site.State.IsMarked = !allMarked;
                     }
                     else if (Input.GetKeyDown(KeyCode.Alpha5))
                     {
-                        foreach (var site in sites) site.State.IsSuspicious = !site.State.IsSuspicious;
+                        bool allSuspicious = sites.All(s => s.State.IsSuspicious);
+                        foreach (var site in sites) site.State.IsSuspicious = !allSuspicious;
                     }
                 }
             }

@@ -32,4 +32,5 @@
     public enum SiteInformationDisplayMode { Anatomy, IEEG, CCEP, Light }
     public enum MeshPart { Left, Right, Both, None };
     public enum TriEraserMode { OneTri, Cylinder, Zone, Invert, Expand };
+    public enum SiteNavigationDirection { Left, Right }
 }
