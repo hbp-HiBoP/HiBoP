@@ -25,7 +25,7 @@ namespace HBP.Module3D
         #region Properties
         public const string DEFAULT_MESHES_LAYER = "Default";
         public const string HIDDEN_MESHES_LAYER = "Hidden Meshes";
-
+        
         /// <summary>
         /// Currently selected scene
         /// </summary>

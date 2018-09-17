@@ -19,6 +19,7 @@ using UnityEngine.Rendering;
 using System.Collections;
 using CielaSpike;
 using HBP.Data.Visualization;
+using Tools.Unity;
 
 namespace HBP.Module3D
 {
@@ -1625,7 +1626,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
             {
                 m_ColumnManager.UVNull.Add(new Vector2[m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
-                Extensions.ArrayExtensions.Fill(m_ColumnManager.UVNull[ii], new Vector2(0.01f, 1f));
+                m_ColumnManager.UVNull[ii].Fill(new Vector2(0.01f, 1f));
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
