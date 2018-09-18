@@ -141,7 +141,7 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Is the latency mode enabled ?
+        /// Is the latency (CCEP) mode enabled ?
         /// </summary>
         public bool IsLatencyModeEnabled
         {
@@ -488,22 +488,52 @@ namespace HBP.Module3D
         /// </summary>
         private bool m_UpdatingColliders = false;
 
+        /// <summary>
+        /// Weight of the mesh loading step
+        /// </summary>
         private const int LOADING_MESH_WEIGHT = 2500;
+        /// <summary>
+        /// Weight of the MRI loading step
+        /// </summary>
         private const int LOADING_MRI_WEIGHT = 1500;
+        /// <summary>
+        /// Weight of the implantation loading step
+        /// </summary>
         private const int LOADING_IMPLANTATIONS_WEIGHT = 50;
+        /// <summary>
+        /// Weight of the MNI copy step
+        /// </summary>
         private const int LOADING_MNI_WEIGHT = 100;
+        /// <summary>
+        /// Weight of the iEEG setup step
+        /// </summary>
         private const int LOADING_IEEG_WEIGHT = 15;
 
+        /// <summary>
+        /// Prefab for the 3D brain mesh part
+        /// </summary>
         [SerializeField] private GameObject m_BrainPrefab;
+        /// <summary>
+        /// Prefab for the 3D simplified brain mesh
+        /// </summary>
         [SerializeField] private GameObject m_SimplifiedBrainPrefab;
+        /// <summary>
+        /// Prefab for the 3D invisible brain mesh part
+        /// </summary>
         [SerializeField] private GameObject m_InvisibleBrainPrefab;
+        /// <summary>
+        /// Prefab for the 3D cut
+        /// </summary>
         [SerializeField] private GameObject m_CutPrefab;
+        /// <summary>
+        /// Prefab for the 3D site
+        /// </summary>
         [SerializeField] private GameObject m_SitePrefab;
         #endregion
 
         #region Events
         /// <summary>
-        /// Event called when this scene is selected
+        /// Event called when this scene is selected or deselected
         /// </summary>
         [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
         /// <summary>
@@ -515,7 +545,7 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public UnityEvent OnResetViewPositions = new UnityEvent();
         /// <summary>
-        /// Event called when progressing in updating generator.
+        /// Event called when progressing in updating generator
         /// </summary>
         [HideInInspector] public GenericEvent<float, string> OnProgressUpdateGenerator = new GenericEvent<float, string>();
         /// <summary>
@@ -534,10 +564,6 @@ namespace HBP.Module3D
         /// Event called when changing the colors of the colormap
         /// </summary>
         [HideInInspector] public GenericEvent<Data.Enums.ColorType> OnChangeColormap = new GenericEvent<Data.Enums.ColorType>();
-        /// <summary>
-        /// Event for colormap values associated to a column id (params : minValue, middle, maxValue, id)
-        /// </summary>
-        [HideInInspector] public GenericEvent<float, float, float, Column3D> OnSendColorMapValues = new GenericEvent<float, float, float, Column3D>();
         /// <summary>
         /// Event called when changing the implantation files to use in the scene
         /// </summary>
@@ -682,11 +708,8 @@ namespace HBP.Module3D
             });
         }
         /// <summary>
-        /// 
-        /// When to call ?  changes in DLLCutColorScheme, MRICalMinFactor, MRICalMaxFactor
+        /// Compute the textures for the MRI (3D)
         /// </summary>
-        /// <param name="indexCut"></param>
-        /// <param name="indexColumn"></param>
         private void ComputeMRITextures()
         {
             foreach (Column3D column in m_ColumnManager.Columns)
@@ -698,11 +721,9 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// 
-        /// When to call ? changes in IEEGColumn.currentTimeLineID, IEEGColumn.alphaMin, IEEGColumn.alphaMax / DLLCutColorScheme
+        /// Compute the textures for the MRI (3D) with the iEEG activity
         /// </summary>
-        /// <param name="indexCut"></param>
-        /// <param name="indexColumn"></param>
+        /// <param name="column">Specific column to update. If null, every columns will be updated.</param>
         private void ComputeIEEGTextures(Column3DIEEG column = null)
         {
             if (!SceneInformation.IsGeneratorUpToDate) return;
@@ -722,10 +743,8 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Compute textures to be displayed on the UI
+        /// Compute the texture for the MRI (GUI)
         /// </summary>
-        /// <param name="indexCut"></param>
-        /// <param name="indexColumn"></param>
         private void ComputeGUITextures()
         {
             Column3D column = m_ColumnManager.SelectedColumn;
@@ -750,7 +769,7 @@ namespace HBP.Module3D
             // send inf values to overlays
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
-                OnSendColorMapValues.Invoke(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.SpanMin, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.Middle, m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.SpanMax, m_ColumnManager.ColumnsIEEG[ii]);
+                m_ColumnManager.ColumnsIEEG[ii].SendColormapValues();
                 m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID = m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID;
             }
 
@@ -760,8 +779,9 @@ namespace HBP.Module3D
             OnIEEGOutdated.Invoke(false);
         }
         /// <summary>
-        /// Actions to perform when clicking on a site
+        /// Actions to perform after clicking on a site
         /// </summary>
+        /// <param name="site">Site that has been selected</param>
         private void ClickOnSiteCallback(Site site)
         {
             if (m_ColumnManager.SelectedColumn.Type == Data.Enums.ColumnType.iEEG && !IsLatencyModeEnabled && site)
@@ -775,9 +795,9 @@ namespace HBP.Module3D
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
-        /// Init gameobjects of the scene
+        /// Initialize some parameters of the scene
         /// </summary>
-        private void InitializeSceneGameObjects()
+        private void InitializeParameters()
         {
             transform.position = new Vector3(HBP3DModule.SPACE_BETWEEN_SCENES_GAME_OBJECTS * ApplicationState.Module3D.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
 
@@ -809,13 +829,228 @@ namespace HBP.Module3D
         /// <summary>
         /// Generate the split number regarding all meshes
         /// </summary>
-        /// <param name="meshes"></param>
+        /// <param name="meshes">Meshes loaded</param>
         private void GenerateSplits(IEnumerable<DLL.Surface> meshes)
         {
             int maxVertices = (from mesh in meshes select mesh.NumberOfVertices).Max();
             int splits = (maxVertices / 65000) + (((maxVertices % 60000) != 0) ? 3 : 2);
             if (splits < 3) splits = 3;
             ResetSplitsNumber(splits);
+        }
+        /// <summary>
+        /// Reset the number of splits of the brain mesh
+        /// </summary>
+        /// <param name="nbSplits">Number of splits</param>
+        private void ResetSplitsNumber(int nbSplits)
+        {
+            if (m_ColumnManager.MeshSplitNumber == nbSplits) return;
+
+            m_ColumnManager.MeshSplitNumber = nbSplits;
+
+            if (m_DisplayedObjects.BrainSurfaceMeshes.Count > 0)
+                for (int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
+                    Destroy(m_DisplayedObjects.BrainSurfaceMeshes[ii]);
+
+            // reset meshes
+            m_DisplayedObjects.BrainSurfaceMeshes = new List<GameObject>(m_ColumnManager.MeshSplitNumber);
+            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
+            {
+                m_DisplayedObjects.BrainSurfaceMeshes.Add(Instantiate(m_BrainPrefab));
+                m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.BrainMaterials[this];
+                m_DisplayedObjects.BrainSurfaceMeshes[ii].name = "brain_" + ii;
+                m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.parent = m_DisplayedObjects.BrainSurfaceMeshesParent.transform;
+                m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.localPosition = Vector3.zero;
+                m_DisplayedObjects.BrainSurfaceMeshes[ii].layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
+                if (!SceneInformation.UseSimplifiedMeshes) m_DisplayedObjects.BrainSurfaceMeshes[ii].AddComponent<MeshCollider>();
+                m_DisplayedObjects.BrainSurfaceMeshes[ii].SetActive(true);
+            }
+            if (SceneInformation.UseSimplifiedMeshes)
+            {
+                // mesh collider
+                m_DisplayedObjects.SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab);
+                m_DisplayedObjects.SimplifiedBrain.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.SimplifiedBrainMaterials[this];
+                m_DisplayedObjects.SimplifiedBrain.transform.name = "brain_simplified";
+                m_DisplayedObjects.SimplifiedBrain.transform.parent = m_DisplayedObjects.BrainSurfaceMeshesParent.transform;
+                m_DisplayedObjects.SimplifiedBrain.transform.localPosition = Vector3.zero;
+                m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
+                m_DisplayedObjects.SimplifiedBrain.AddComponent<MeshCollider>();
+                m_DisplayedObjects.SimplifiedBrain.SetActive(true);
+            }
+
+            m_ColumnManager.ResetSplitsNumber(nbSplits);
+        }
+        /// <summary>
+        /// Compute the cuts of the regular meshes
+        /// </summary>
+        private void ComputeMeshesCut()
+        {
+            if (SceneInformation.MeshToDisplay == null) return;
+
+            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 0 cutSurface"); // 40%
+
+            // cut the mesh
+            List<DLL.Surface> cuts;
+            if (Cuts.Count > 0)
+                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled, StrongCuts));
+            else
+                cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.MeshToDisplay.Clone() };
+
+            if (m_ColumnManager.DLLCutsList.Count != cuts.Count)
+                m_ColumnManager.DLLCutsList = cuts;
+            else
+            {
+                // swap DLL pointer
+                for (int ii = 0; ii < cuts.Count; ++ii)
+                    m_ColumnManager.DLLCutsList[ii].SwapDLLHandle(cuts[ii]);
+            }
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 1 splitToSurfaces"); // 2%
+
+            // split the cut mesh         
+            m_ColumnManager.SelectedMesh.SplittedMeshes = new List<DLL.Surface>(m_ColumnManager.DLLCutsList[0].SplitToSurfaces(m_ColumnManager.MeshSplitNumber));
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 2 reset brain texture generator"); // 11%
+
+            // reset brain texture generator
+            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
+            {
+                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume);
+                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
+            }
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 3 update cut brain mesh object mesh filter"); // 6%
+
+            // update brain mesh object mesh filter
+            UpdateMeshesFromDLL();
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 4 update cuts generators"); // 17%
+
+
+            // update cuts generators
+            for (int ii = 0; ii < Cuts.Count; ++ii)
+            {
+                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
+                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii + 1]);
+                m_ColumnManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+            }
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 5 create null uv2/uv3 arrays"); // 0%
+
+            // create null uv2/uv3 arrays
+            m_ColumnManager.UVNull = new List<Vector2[]>(m_ColumnManager.MeshSplitNumber);
+            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
+            {
+                m_ColumnManager.UVNull.Add(new Vector2[m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
+                m_ColumnManager.UVNull[ii].Fill(new Vector2(0.01f, 1f));
+            }
+
+            UnityEngine.Profiling.Profiler.EndSample();
+            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 6 end"); // 0%
+
+
+            // enable cuts gameobject
+            for (int ii = 0; ii < Cuts.Count; ++ii)
+                m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
+
+            SceneInformation.CollidersNeedUpdate = true; // colliders are now longer up to date
+
+            UnityEngine.Profiling.Profiler.EndSample();
+
+            UnityEngine.Profiling.Profiler.BeginSample("Changing layers");
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                column.ChangeMeshesLayer(LayerMask.NameToLayer(column.Layer));
+            }
+            if (SceneInformation.UseSimplifiedMeshes)
+            {
+                m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
+            }
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+        /// <summary>
+        /// Compute the cuts of the simplified meshes
+        /// </summary>
+        private void ComputeSimplifyMeshCut()
+        {
+            if (SceneInformation.SimplifiedMeshToUse == null) return;
+
+            // cut the mesh
+            List<DLL.Surface> cuts;
+            if (Cuts.Count > 0)
+                cuts = new List<DLL.Surface>(SceneInformation.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled, StrongCuts));
+            else
+                cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.SimplifiedMeshToUse.Clone() };
+
+            if (m_ColumnManager.DLLCutsListSimplified.Count != cuts.Count)
+                m_ColumnManager.DLLCutsListSimplified = cuts;
+            else
+            {
+                // swap DLL pointer
+                for (int ii = 0; ii < cuts.Count; ++ii)
+                    m_ColumnManager.DLLCutsListSimplified[ii].SwapDLLHandle(cuts[ii]);
+            }
+
+            m_ColumnManager.DLLCutsListSimplified[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
+            m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh.RecalculateNormals();
+
+            // update cuts generators
+            for (int ii = 0; ii < Cuts.Count; ++ii)
+            {
+                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
+                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsListSimplified[ii + 1]);
+                m_ColumnManager.DLLCutsListSimplified[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+            }
+
+            // enable cuts gameobject
+            for (int ii = 0; ii < Cuts.Count; ++ii)
+                m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
+
+            SceneInformation.CollidersNeedUpdate = true; // colliders are now longer up to date
+
+            UnityEngine.Profiling.Profiler.BeginSample("Changing layers");
+            foreach (Column3D column in m_ColumnManager.Columns)
+            {
+                column.ChangeMeshesLayer(LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName));
+            }
+            m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+        /// <summary>
+        /// Update the mesh geometry
+        /// </summary>
+        private void UpdateGeometry()
+        {
+            UpdateMeshesInformation();
+
+            if (SceneInformation.UseSimplifiedMeshes)
+            {
+                ComputeSimplifyMeshCut();
+            }
+            if (!CuttingSimplifiedMesh)
+            {
+                ComputeMeshesCut();
+            }
+            m_ColumnManager.UpdateCubeBoundingBox(m_Cuts);
+            ResetTriangleErasing(false);
+
+            ComputeMRITextures();
+            ComputeGUITextures();
+        }
+        /// <summary>
+        /// Update the brain and the cuts meshes colliders
+        /// </summary>
+        private void UpdateMeshesColliders()
+        {
+            if (SceneInformation.CollidersNeedUpdate)
+            {
+                this.StartCoroutineAsync(c_UpdateMeshesColliders());
+                SceneInformation.CollidersNeedUpdate = false;
+            }
         }
         #endregion
 
@@ -876,7 +1111,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Set the mesh part to be displayed in the scene
         /// </summary>
-        /// <param name="meshPartToDisplay"></param>
+        /// <param name="meshPartToDisplay">Mesh part to be displayed</param>
         public void UpdateMeshPartToDisplay(Data.Enums.MeshPart meshPartToDisplay)
         {
             SceneInformation.MeshPartToDisplay = meshPartToDisplay;
@@ -890,7 +1125,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Set the mesh type to be displayed in the scene
         /// </summary>
-        /// <param name="meshTypeToDisplay"></param>
+        /// <param name="meshName">Name of the mesh to be displayed</param>
         public void UpdateMeshToDisplay(string meshName)
         {
             int meshID = m_ColumnManager.Meshes.FindIndex(m => m.Name == meshName);
@@ -909,7 +1144,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Set the MRI to be used
         /// </summary>
-        /// <param name="mriID"></param>
+        /// <param name="mriName">Name of the MRI to be used</param>
         public void UpdateMRIToDisplay(string mriName)
         {
             int mriID = m_ColumnManager.MRIs.FindIndex(m => m.Name == mriName);
@@ -925,9 +1160,9 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Update the gameobjects of the sites
+        /// Set the implantation to be used
         /// </summary>
-        /// <param name="implantationID"></param>
+        /// <param name="implantationName">Name of the implantation to use</param>
         public void UpdateSites(string implantationName)
         {
             // destroy previous electrodes gameobjects
@@ -1072,7 +1307,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Update the visible state of the scene
         /// </summary>
-        /// <param name="state"></param>
+        /// <param name="state">Visible or not visible</param>
         public void UpdateVisibleState(bool state)
         {
             OnChangeVisibleState.Invoke(state);
@@ -1088,6 +1323,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Add a new cut plane
         /// </summary>
+        /// <returns>Newly created cut</returns>
         public Cut AddCutPlane()
         {
             // Add new cut
@@ -1150,8 +1386,9 @@ namespace HBP.Module3D
             return cut;
         }
         /// <summary>
-        /// Remove the last cut plane
+        /// Remove a cut plane
         /// </summary>
+        /// <param name="cut">Cut to be removed</param>
         public void RemoveCutPlane(Cut cut)
         {
             Cuts.Remove(cut);
@@ -1174,12 +1411,8 @@ namespace HBP.Module3D
         /// <summary>
         /// Update a cut plane
         /// </summary>
-        /// <param name="orientationID"></param>
-        /// <param name="flip"></param>
-        /// <param name="removeFrontPlane"></param>
-        /// <param name="customNormal"></param>
-        /// <param name="idPlane"></param>
-        /// <param name="position"></param>
+        /// <param name="cut">Cut to be updated</param>
+        /// <param name="changedByUser">Has the cut been updated by the user or programatically ?</param>
         public void UpdateCutPlane(Cut cut, bool changedByUser = false)
         {
             if (!CuttingSimplifiedMesh && SceneInformation.UseSimplifiedMeshes) CuttingSimplifiedMesh = true;
@@ -1231,7 +1464,7 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Create 3 cuts surrounding the selected site.
+        /// Create 3 cuts surrounding the selected site
         /// </summary>
         public void CutAroundSelectedSite()
         {
@@ -1270,7 +1503,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Reset invisible brain and triangle eraser
         /// </summary>
-        /// <param name="updateGO"></param>
+        /// <param name="updateGO">Do we need to update the meshes from DLL ?</param>
         public void ResetTriangleErasing(bool updateGO = true)
         {
             // destroy previous GO
@@ -1313,7 +1546,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Initialize the scene with the corresponding visualization
         /// </summary>
-        /// <param name="visualization"></param>
+        /// <param name="visualization">Visualization to be loaded in this scene</param>
         public void Initialize(Visualization visualization)
         {
             SceneInformation = new SceneStatesInfo();
@@ -1330,7 +1563,7 @@ namespace HBP.Module3D
             SceneInformation.UseSimplifiedMeshes = ApplicationState.UserPreferences.Visualization.Cut.SimplifiedMeshes;
 
             AddListeners();
-            InitializeSceneGameObjects();
+            InitializeParameters();
         }
         /// <summary>
         /// Set up the scene to display it properly
@@ -1344,6 +1577,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Load the visualization configuration from the loaded visualization
         /// </summary>
+        /// <param name="firstCall">Has this method not been called by another load method ?</param>
         public void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration(false);
@@ -1439,6 +1673,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Reset the settings of the loaded scene
         /// </summary>
+        /// <param name="firstCall">Has this method not been called by another load method ?</param>
         public void ResetConfiguration(bool firstCall = true)
         {
             UpdateBrainSurfaceColor(Data.Enums.ColorType.BrainColor);
@@ -1518,206 +1753,8 @@ namespace HBP.Module3D
             ResetIEEG();
         }
         /// <summary>
-        /// Reset the number of splits of the brain mesh
+        /// Copy the states of the sites of the selected column to all other columns
         /// </summary>
-        /// <param name="nbSplits">Number of splits</param>
-        public void ResetSplitsNumber(int nbSplits)
-        {
-            if (m_ColumnManager.MeshSplitNumber == nbSplits) return;
-
-            m_ColumnManager.MeshSplitNumber = nbSplits;
-
-            if (m_DisplayedObjects.BrainSurfaceMeshes.Count > 0)
-                for (int ii = 0; ii < m_DisplayedObjects.BrainSurfaceMeshes.Count; ++ii)
-                    Destroy(m_DisplayedObjects.BrainSurfaceMeshes[ii]);
-
-            // reset meshes
-            m_DisplayedObjects.BrainSurfaceMeshes = new List<GameObject>(m_ColumnManager.MeshSplitNumber);
-            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
-            {
-                m_DisplayedObjects.BrainSurfaceMeshes.Add(Instantiate(m_BrainPrefab));
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.BrainMaterials[this];
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].name = "brain_" + ii;
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.parent = m_DisplayedObjects.BrainSurfaceMeshesParent.transform;
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].transform.localPosition = Vector3.zero;
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
-                if (!SceneInformation.UseSimplifiedMeshes) m_DisplayedObjects.BrainSurfaceMeshes[ii].AddComponent<MeshCollider>();
-                m_DisplayedObjects.BrainSurfaceMeshes[ii].SetActive(true);
-            }
-            if (SceneInformation.UseSimplifiedMeshes)
-            {
-                // mesh collider
-                m_DisplayedObjects.SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab);
-                m_DisplayedObjects.SimplifiedBrain.GetComponent<Renderer>().sharedMaterial = SharedMaterials.Brain.SimplifiedBrainMaterials[this];
-                m_DisplayedObjects.SimplifiedBrain.transform.name = "brain_simplified";
-                m_DisplayedObjects.SimplifiedBrain.transform.parent = m_DisplayedObjects.BrainSurfaceMeshesParent.transform;
-                m_DisplayedObjects.SimplifiedBrain.transform.localPosition = Vector3.zero;
-                m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
-                m_DisplayedObjects.SimplifiedBrain.AddComponent<MeshCollider>();
-                m_DisplayedObjects.SimplifiedBrain.SetActive(true);
-            }
-
-            m_ColumnManager.ResetSplitsNumber(nbSplits);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        public void ComputeMeshesCut()
-        {
-            if (SceneInformation.MeshToDisplay == null) return;
-
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 0 cutSurface"); // 40%
-
-            // cut the mesh
-            List<DLL.Surface> cuts;
-            if (Cuts.Count > 0)
-                cuts = new List<DLL.Surface>(SceneInformation.MeshToDisplay.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled, StrongCuts));
-            else
-                cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.MeshToDisplay.Clone() };
-
-            if (m_ColumnManager.DLLCutsList.Count != cuts.Count)
-                m_ColumnManager.DLLCutsList = cuts;
-            else
-            {
-                // swap DLL pointer
-                for (int ii = 0; ii < cuts.Count; ++ii)
-                    m_ColumnManager.DLLCutsList[ii].SwapDLLHandle(cuts[ii]);
-            }
-
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 1 splitToSurfaces"); // 2%
-
-            // split the cut mesh         
-            m_ColumnManager.SelectedMesh.SplittedMeshes = new List<DLL.Surface>(m_ColumnManager.DLLCutsList[0].SplitToSurfaces(m_ColumnManager.MeshSplitNumber));
-
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 2 reset brain texture generator"); // 11%
-
-            // reset brain texture generator
-            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
-            {
-                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].Reset(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume);
-                m_ColumnManager.DLLCommonBrainTextureGeneratorList[ii].ComputeUVMainWithVolume(m_ColumnManager.SelectedMesh.SplittedMeshes[ii], m_ColumnManager.SelectedMRI.Volume, m_ColumnManager.MRICalMinFactor, m_ColumnManager.MRICalMaxFactor);
-            }
-
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 3 update cut brain mesh object mesh filter"); // 6%
-
-            // update brain mesh object mesh filter
-            UpdateMeshesFromDLL();
-
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 4 update cuts generators"); // 17%
-
-
-            // update cuts generators
-            for (int ii = 0; ii < Cuts.Count; ++ii)
-            {
-                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
-                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsList[ii + 1]);
-                m_ColumnManager.DLLCutsList[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
-            }
-
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 5 create null uv2/uv3 arrays"); // 0%
-
-            // create null uv2/uv3 arrays
-            m_ColumnManager.UVNull = new List<Vector2[]>(m_ColumnManager.MeshSplitNumber);
-            for (int ii = 0; ii < m_ColumnManager.MeshSplitNumber; ++ii)
-            {
-                m_ColumnManager.UVNull.Add(new Vector2[m_DisplayedObjects.BrainSurfaceMeshes[ii].GetComponent<MeshFilter>().mesh.vertexCount]);
-                m_ColumnManager.UVNull[ii].Fill(new Vector2(0.01f, 1f));
-            }
-
-            UnityEngine.Profiling.Profiler.EndSample();
-            UnityEngine.Profiling.Profiler.BeginSample("TEST-SP3DScene-Update compute_meshes_cuts 6 end"); // 0%
-
-
-            // enable cuts gameobject
-            for (int ii = 0; ii < Cuts.Count; ++ii)
-                m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
-
-            SceneInformation.CollidersNeedUpdate = true; // colliders are now longer up to date
-
-            UnityEngine.Profiling.Profiler.EndSample();
-
-            UnityEngine.Profiling.Profiler.BeginSample("Changing layers");
-            foreach (Column3D column in m_ColumnManager.Columns)
-            {
-                column.ChangeMeshesLayer(LayerMask.NameToLayer(column.Layer));
-            }
-            if (SceneInformation.UseSimplifiedMeshes)
-            {
-                m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName);
-            }
-            UnityEngine.Profiling.Profiler.EndSample();
-        }
-        public void ComputeSimplifyMeshCut()
-        {
-            if (SceneInformation.SimplifiedMeshToUse == null) return;
-
-            // cut the mesh
-            List<DLL.Surface> cuts;
-            if (Cuts.Count > 0)
-                cuts = new List<DLL.Surface>(SceneInformation.SimplifiedMeshToUse.Cut(Cuts.ToArray(), !SceneInformation.CutHolesEnabled, StrongCuts));
-            else
-                cuts = new List<DLL.Surface>() { (DLL.Surface)SceneInformation.SimplifiedMeshToUse.Clone() };
-
-            if (m_ColumnManager.DLLCutsListSimplified.Count != cuts.Count)
-                m_ColumnManager.DLLCutsListSimplified = cuts;
-            else
-            {
-                // swap DLL pointer
-                for (int ii = 0; ii < cuts.Count; ++ii)
-                    m_ColumnManager.DLLCutsListSimplified[ii].SwapDLLHandle(cuts[ii]);
-            }
-
-            m_ColumnManager.DLLCutsListSimplified[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
-            m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh.RecalculateNormals();
-
-            // update cuts generators
-            for (int ii = 0; ii < Cuts.Count; ++ii)
-            {
-                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].Reset(m_ColumnManager.SelectedMRI.Volume, Cuts[ii]);
-                m_ColumnManager.DLLMRIGeometryCutGeneratorList[ii].UpdateCutMeshUV(ColumnManager.DLLCutsListSimplified[ii + 1]);
-                m_ColumnManager.DLLCutsListSimplified[ii + 1].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
-            }
-
-            // enable cuts gameobject
-            for (int ii = 0; ii < Cuts.Count; ++ii)
-                m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
-
-            SceneInformation.CollidersNeedUpdate = true; // colliders are now longer up to date
-
-            UnityEngine.Profiling.Profiler.BeginSample("Changing layers");
-            foreach (Column3D column in m_ColumnManager.Columns)
-            {
-                column.ChangeMeshesLayer(LayerMask.NameToLayer(SceneInformation.HiddenMeshesLayerName));
-            }
-            m_DisplayedObjects.SimplifiedBrain.layer = LayerMask.NameToLayer(SceneInformation.MeshesLayerName);
-            UnityEngine.Profiling.Profiler.EndSample();
-        }
-        /// <summary>
-        /// Update the mesh geometry
-        /// </summary>
-        public void UpdateGeometry()
-        {
-            UpdateMeshesInformation();
-
-            if (SceneInformation.UseSimplifiedMeshes)
-            {
-                ComputeSimplifyMeshCut();
-            }
-            if (!CuttingSimplifiedMesh)
-            {
-                ComputeMeshesCut();
-            }
-            m_ColumnManager.UpdateCubeBoundingBox(m_Cuts);
-            ResetTriangleErasing(false);
-
-            ComputeMRITextures();
-            ComputeGUITextures();
-        }
         public void ApplySelectedColumnSiteStatesToOtherColumns()
         {
             Column3D selectedColumn = m_ColumnManager.SelectedColumn;
@@ -1732,9 +1769,9 @@ namespace HBP.Module3D
             ResetIEEG(false);
         }
         /// <summary>
-        /// Update the data render corresponding to the column
+        /// Update the data rendering for a column
         /// </summary>
-        /// <param name="indexColumn"></param>
+        /// <param name="column">Column to be updated</param>
         /// <returns></returns>
         public void UpdateColumnRendering(Column3D column)
         {
@@ -1769,18 +1806,7 @@ namespace HBP.Module3D
             column.IsRenderingUpToDate = true;
         }
         /// <summary>
-        /// Update the brain and the cuts meshes colliders
-        /// </summary>
-        public void UpdateMeshesColliders()
-        {
-            if (SceneInformation.CollidersNeedUpdate)
-            {
-                this.StartCoroutineAsync(c_UpdateMeshesColliders());
-                SceneInformation.CollidersNeedUpdate = false;
-            }
-        }
-        /// <summary>
-        /// Update the textures generator
+        /// Update the textures generator for iEEG
         /// </summary>
         public void UpdateGenerator()
         {
@@ -1795,6 +1821,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Function to be called everytime we want to reset IEEG
         /// </summary>
+        /// <param name="hardReset">Do we need to hard reset (delete the activity on the brain) ?</param>
         public void ResetIEEG(bool hardReset = true)
         {
             m_GeneratorNeedsUpdate = true;
@@ -1807,9 +1834,9 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// 
+        /// Update the ROI mask of the sites of a column
         /// </summary>
-        /// <param name="idColumn"></param>
+        /// <param name="column">Column to update</param>
         public void UpdateSitesROIMask(Column3D column)
         {
             if (column.SelectedROI == null)
@@ -1833,11 +1860,10 @@ namespace HBP.Module3D
             ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
-        /// Manage the mouse movments event in the scene
+        /// Passive raycast on the scene (to hover sites for instance)
         /// </summary>
-        /// <param name="ray"></param>
-        /// <param name="mousePosition"></param>
-        /// /// <param name="idColumn"></param>
+        /// <param name="ray">Ray of the raycast</param>
+        /// <param name="column">Column on which the raycast in performed</param>
         public void PassiveRaycastOnScene(Ray ray, Column3D column)
         {
             // update colliders if necessary
@@ -1927,7 +1953,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Manage the clicks on the scene
         /// </summary>
-        /// <param name="ray"></param>
+        /// <param name="ray">Ray of the raycast</param>
         public void ClickOnScene(Ray ray)
         {
             int layerMask = 0;
@@ -2009,9 +2035,9 @@ namespace HBP.Module3D
         /// <summary>
         /// Initialize the scene
         /// </summary>
-        /// <param name="visualization"></param>
-        /// <param name="onChangeProgress"></param>
-        /// <param name="outPut"></param>
+        /// <param name="visualization">Visualization to load in the scene</param>
+        /// <param name="onChangeProgress">Event to update the loading circle</param>
+        /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns></returns>
         public IEnumerator c_Initialize(Visualization visualization, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
@@ -2155,9 +2181,10 @@ namespace HBP.Module3D
             outPut(exception);
         }
         /// <summary>
-        /// Reset the volume of the scene
+        /// Load a MRI to the scene
         /// </summary>
-        /// <param name="pathNIIBrainVolumeFile"></param>
+        /// <param name="mri">MRI to load</param>
+        /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns></returns>
         private IEnumerator c_LoadBrainVolume(Data.Anatomy.MRI mri, Action<Exception> outPut)
         {
@@ -2193,10 +2220,10 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Reset the meshes of the scene with GII files
+        /// Load a mesh to the scene
         /// </summary>
-        /// <param name="pathGIIBrainFiles"></param>
-        /// <param name="transformation"></param>
+        /// <param name="mesh">Mesh to be loaded</param>
+        /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns></returns>
         private IEnumerator c_LoadBrainSurface(Data.Anatomy.Mesh mesh, Action<Exception> outPut)
         {
@@ -2262,9 +2289,12 @@ namespace HBP.Module3D
             yield return true;
         }
         /// <summary>
-        /// Reset all the sites with a new list of pts files
+        /// Load the implantation files to the scene
         /// </summary>
-        /// <param name="pathsElectrodesPtsFile"></param>
+        /// <param name="patients">Patients to load implantations from</param>
+        /// <param name="commonImplantations">List of the implantations that are in all patients of the visualization</param>
+        /// <param name="updateCircle">Action to update the loading circle</param>
+        /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns></returns>
         private IEnumerator c_LoadImplantations(IEnumerable<Data.Patient> patients, List<string> commonImplantations, Action<int> updateCircle, Action<Exception> outPut)
         {
@@ -2306,8 +2336,9 @@ namespace HBP.Module3D
             yield return Ninja.JumpBack;
         }
         /// <summary>
-        /// Load MNI
+        /// Copy the MNI objects references to this scene
         /// </summary>
+        /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns></returns>
         private IEnumerator c_LoadMNIObjects(Action<Exception> outPut)
         {
@@ -2325,10 +2356,10 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Define the timeline data with a patient and a list of column data
+        /// Load the iEEG values to the columns
         /// </summary>
-        /// <param name="patient"></param>
-        /// <param name="columnDataList"></param>
+        /// <param name="outPut">Action to execute if an exception is raised</param>
+        /// <returns></returns>
         private IEnumerator c_LoadColumns(Action<Exception> outPut)
         {
             yield return Ninja.JumpToUnity;
@@ -2552,46 +2583,4 @@ namespace HBP.Module3D
         }
         #endregion
     }
-
-    #region Struct
-    /// <summary>
-    /// Site info to be send to the UI
-    /// </summary>
-    public class SiteInfo
-    {
-        public SiteInfo(Site site, bool enabled, Vector3 position, Data.Enums.SiteInformationDisplayMode mode = Data.Enums.SiteInformationDisplayMode.IEEG, string ieegAmplitude = "", string ieegUnit ="", string ccepAmplitude = "", string ccepLatency = "")
-        {
-            Site = site;
-            Enabled = enabled;
-            Position = position;
-            IEEGAmplitude = ieegAmplitude;
-            IEEGUnit = ieegUnit;
-            CCEPAmplitude = ccepAmplitude;
-            CCEPLatency = ccepLatency;
-            Mode = mode;
-        }
-
-        public Site Site { get; set; }
-        public bool Enabled { get; set; }
-        public Vector3 Position { get; set; }
-        public string IEEGAmplitude { get; set; }
-        public string IEEGUnit { get; set; }
-        public string CCEPAmplitude { get; set; }
-        public string CCEPLatency { get; set; }
-        public Data.Enums.SiteInformationDisplayMode Mode { get; set; }
-    }
-
-    /// <summary>
-    /// IRM cal values
-    /// </summary>
-    public struct MRICalValues
-    {
-        public float Min;
-        public float Max;
-        public float LoadedCalMin;
-        public float LoadedCalMax;
-        public float ComputedCalMin;
-        public float ComputedCalMax;
-    }
-    #endregion
 }

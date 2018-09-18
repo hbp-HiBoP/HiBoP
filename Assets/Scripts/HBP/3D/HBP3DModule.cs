@@ -1,11 +1,4 @@
-﻿/**
- * \file    HiBoP_3DModule_API.cs
- * \author  Lance Florian and Adrien Gannerie
- * \date    01/2016 - 04/2017
- * \brief   Define the HiBoP_3DModule_API class
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
@@ -18,12 +11,19 @@ using Tools.Unity;
 namespace HBP.Module3D
 {
     /// <summary>
-    /// Interface class for controling the 3D module
+    /// Base class of the 3D module
+    /// Used to control everything from the outside
     /// </summary>
     public class HBP3DModule : MonoBehaviour
     {
         #region Properties
+        /// <summary>
+        /// Default layer string for the visible meshes layer
+        /// </summary>
         public const string DEFAULT_MESHES_LAYER = "Default";
+        /// <summary>
+        /// Default layer string for the invisible meshes layer
+        /// </summary>
         public const string HIDDEN_MESHES_LAYER = "Hidden Meshes";
         
         /// <summary>
@@ -77,7 +77,7 @@ namespace HBP.Module3D
         public const int SPACE_BETWEEN_SCENES_GAME_OBJECTS = 3000;
 
         /// <summary>
-        /// Number of scenes that have been loaded in this instance of HiBoP (allowing to place them in the 3D space)
+        /// Number of scenes that have been loaded in this instance of HiBoP
         /// </summary>
         public int NumberOfScenesLoadedSinceStart { get; set; }
 
@@ -109,7 +109,7 @@ namespace HBP.Module3D
         public DLL.MarsAtlasIndex MarsAtlasIndex { get; private set; }
 
         /// <summary>
-        /// MNI Objects
+        /// MNI Objects (Mesh and MRI)
         /// </summary>
         public MNIObjects MNIObjects;
         
@@ -122,6 +122,9 @@ namespace HBP.Module3D
         /// </summary>
         public GameObject SharedSpotlight;
 
+        /// <summary>
+        /// Parent gameobject of every scenes
+        /// </summary>
         [SerializeField] private Transform m_ScenesParent;
         /// <summary>
         /// Prefab corresponding to a scene
@@ -134,10 +137,6 @@ namespace HBP.Module3D
         /// Event called when hovering a site to display its information
         /// </summary>
         [HideInInspector] public GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
-        /// <summary>
-        /// Event called when changing the value of the timeline of the selected column
-        /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateSelectedColumnTimeLineID = new UnityEvent();
         /// <summary>
         /// Event called when a scene is added
         /// </summary>
@@ -166,6 +165,10 @@ namespace HBP.Module3D
         /// Event called when changing the selected view
         /// </summary>
         [HideInInspector] public GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
+        /// <summary>
+        /// Event called when changing the value of the timeline of the selected column
+        /// </summary>
+        [HideInInspector] public UnityEvent OnUpdateSelectedColumnTimeLineID = new UnityEvent();
         /// <summary>
         /// Event called when the timeline is stopped because it reached the end
         /// </summary>

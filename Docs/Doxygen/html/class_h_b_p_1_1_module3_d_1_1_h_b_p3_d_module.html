@@ -78,7 +78,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Interface class for controling the 3D module  
+<p>Base class of the 3D module Used to control everything from the outside  
  <a href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#details">More...</a></p>
 <div class="dynheader">
 Inheritance diagram for HBP.Module3D.HBP3DModule:</div>
@@ -118,11 +118,11 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:afeba045779c4949d7d228b05ab5a622e"><td class="memItemLeft" align="right" valign="top"><a id="afeba045779c4949d7d228b05ab5a622e"></a>
-const string&#160;</td><td class="memItemRight" valign="bottom"><b>DEFAULT_MESHES_LAYER</b> = &quot;Default&quot;</td></tr>
+<tr class="memitem:afeba045779c4949d7d228b05ab5a622e"><td class="memItemLeft" align="right" valign="top">const string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#afeba045779c4949d7d228b05ab5a622e">DEFAULT_MESHES_LAYER</a> = &quot;Default&quot;</td></tr>
+<tr class="memdesc:afeba045779c4949d7d228b05ab5a622e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default layer string for the visible meshes layer  <a href="#afeba045779c4949d7d228b05ab5a622e">More...</a><br /></td></tr>
 <tr class="separator:afeba045779c4949d7d228b05ab5a622e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a65d0a3929a2a8ca29d5fca32e954c0dc"><td class="memItemLeft" align="right" valign="top"><a id="a65d0a3929a2a8ca29d5fca32e954c0dc"></a>
-const string&#160;</td><td class="memItemRight" valign="bottom"><b>HIDDEN_MESHES_LAYER</b> = &quot;Hidden Meshes&quot;</td></tr>
+<tr class="memitem:a65d0a3929a2a8ca29d5fca32e954c0dc"><td class="memItemLeft" align="right" valign="top">const string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#a65d0a3929a2a8ca29d5fca32e954c0dc">HIDDEN_MESHES_LAYER</a> = &quot;Hidden Meshes&quot;</td></tr>
+<tr class="memdesc:a65d0a3929a2a8ca29d5fca32e954c0dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default layer string for the invisible meshes layer  <a href="#a65d0a3929a2a8ca29d5fca32e954c0dc">More...</a><br /></td></tr>
 <tr class="separator:a65d0a3929a2a8ca29d5fca32e954c0dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7f36cc78c5e6e1d934022756c1d2aff"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#ae7f36cc78c5e6e1d934022756c1d2aff">MAXIMUM_VIEW_NUMBER</a> = 5</td></tr>
 <tr class="memdesc:ae7f36cc78c5e6e1d934022756c1d2aff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum number of views a user can add to a scene  <a href="#ae7f36cc78c5e6e1d934022756c1d2aff">More...</a><br /></td></tr>
@@ -131,7 +131,7 @@ const string&#160;</td><td class="memItemRight" valign="bottom"><b>HIDDEN_MESHES
 <tr class="memdesc:af67d856b853aefdff268f7c16bc2c2f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Space between scenes in world space  <a href="#af67d856b853aefdff268f7c16bc2c2f8">More...</a><br /></td></tr>
 <tr class="separator:af67d856b853aefdff268f7c16bc2c2f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a71c6dd413b592f5033feac7847eabfb0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_m_n_i_objects.html">MNIObjects</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#a71c6dd413b592f5033feac7847eabfb0">MNIObjects</a></td></tr>
-<tr class="memdesc:a71c6dd413b592f5033feac7847eabfb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">MNI Objects  <a href="#a71c6dd413b592f5033feac7847eabfb0">More...</a><br /></td></tr>
+<tr class="memdesc:a71c6dd413b592f5033feac7847eabfb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">MNI Objects (Mesh and MRI)  <a href="#a71c6dd413b592f5033feac7847eabfb0">More...</a><br /></td></tr>
 <tr class="separator:a71c6dd413b592f5033feac7847eabfb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3f9dbacac1f20e778409d5637ed73b7a"><td class="memItemLeft" align="right" valign="top">GameObject&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#a3f9dbacac1f20e778409d5637ed73b7a">SharedDirectionalLight</a></td></tr>
 <tr class="memdesc:a3f9dbacac1f20e778409d5637ed73b7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shared directional light between all scenes  <a href="#a3f9dbacac1f20e778409d5637ed73b7a">More...</a><br /></td></tr>
@@ -142,9 +142,6 @@ const string&#160;</td><td class="memItemRight" valign="bottom"><b>HIDDEN_MESHES
 <tr class="memitem:aab7b9b97f4c0fad92c78e68b3882a888"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_site_info.html">SiteInfo</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#aab7b9b97f4c0fad92c78e68b3882a888">OnDisplaySiteInformation</a> = new <a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt;<a class="el" href="class_h_b_p_1_1_module3_d_1_1_site_info.html">SiteInfo</a>&gt;()</td></tr>
 <tr class="memdesc:aab7b9b97f4c0fad92c78e68b3882a888"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when hovering a site to display its information  <a href="#aab7b9b97f4c0fad92c78e68b3882a888">More...</a><br /></td></tr>
 <tr class="separator:aab7b9b97f4c0fad92c78e68b3882a888"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb02ecc257fa859466e875b80122e275"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#acb02ecc257fa859466e875b80122e275">OnUpdateSelectedColumnTimeLineID</a> = new UnityEvent()</td></tr>
-<tr class="memdesc:acb02ecc257fa859466e875b80122e275"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when changing the value of the timeline of the selected column  <a href="#acb02ecc257fa859466e875b80122e275">More...</a><br /></td></tr>
-<tr class="separator:acb02ecc257fa859466e875b80122e275"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd31c5318b27e0d2b0a4542c5e4a39f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_base3_d_scene.html">Base3DScene</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#acd31c5318b27e0d2b0a4542c5e4a39f5">OnAddScene</a> = new <a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt;<a class="el" href="class_h_b_p_1_1_module3_d_1_1_base3_d_scene.html">Base3DScene</a>&gt;()</td></tr>
 <tr class="memdesc:acd31c5318b27e0d2b0a4542c5e4a39f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when a scene is added  <a href="#acd31c5318b27e0d2b0a4542c5e4a39f5">More...</a><br /></td></tr>
 <tr class="separator:acd31c5318b27e0d2b0a4542c5e4a39f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -166,6 +163,9 @@ const string&#160;</td><td class="memItemRight" valign="bottom"><b>HIDDEN_MESHES
 <tr class="memitem:ae9d609297ec82062415d88eade9576ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_view3_d.html">View3D</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#ae9d609297ec82062415d88eade9576ff">OnSelectView</a> = new <a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt;<a class="el" href="class_h_b_p_1_1_module3_d_1_1_view3_d.html">View3D</a>&gt;()</td></tr>
 <tr class="memdesc:ae9d609297ec82062415d88eade9576ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when changing the selected view  <a href="#ae9d609297ec82062415d88eade9576ff">More...</a><br /></td></tr>
 <tr class="separator:ae9d609297ec82062415d88eade9576ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb02ecc257fa859466e875b80122e275"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#acb02ecc257fa859466e875b80122e275">OnUpdateSelectedColumnTimeLineID</a> = new UnityEvent()</td></tr>
+<tr class="memdesc:acb02ecc257fa859466e875b80122e275"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when changing the value of the timeline of the selected column  <a href="#acb02ecc257fa859466e875b80122e275">More...</a><br /></td></tr>
+<tr class="separator:acb02ecc257fa859466e875b80122e275"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad57ace69a9e777a8a0edbaa34f0919b6"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#ad57ace69a9e777a8a0edbaa34f0919b6">OnStopTimelinePlay</a> = new UnityEvent()</td></tr>
 <tr class="memdesc:ad57ace69a9e777a8a0edbaa34f0919b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when the timeline is stopped because it reached the end  <a href="#ad57ace69a9e777a8a0edbaa34f0919b6">More...</a><br /></td></tr>
 <tr class="separator:ad57ace69a9e777a8a0edbaa34f0919b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -185,7 +185,7 @@ Properties</h2></td></tr>
 <tr class="memdesc:acebc20c73d9e020bd162270061ba1f99"><td class="mdescLeft">&#160;</td><td class="mdescRight">Currently selected view  <a href="#acebc20c73d9e020bd162270061ba1f99">More...</a><br /></td></tr>
 <tr class="separator:acebc20c73d9e020bd162270061ba1f99"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad20faff1c1ba80dd86729ac8873b0a4f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#ad20faff1c1ba80dd86729ac8873b0a4f">NumberOfScenesLoadedSinceStart</a><code> [get, set]</code></td></tr>
-<tr class="memdesc:ad20faff1c1ba80dd86729ac8873b0a4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of scenes that have been loaded in this instance of HiBoP (allowing to place them in the 3D space)  <a href="#ad20faff1c1ba80dd86729ac8873b0a4f">More...</a><br /></td></tr>
+<tr class="memdesc:ad20faff1c1ba80dd86729ac8873b0a4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of scenes that have been loaded in this instance of HiBoP  <a href="#ad20faff1c1ba80dd86729ac8873b0a4f">More...</a><br /></td></tr>
 <tr class="separator:ad20faff1c1ba80dd86729ac8873b0a4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae3d78ce6f3d03e6fed2715a115e2278d"><td class="memItemLeft" align="right" valign="top">ReadOnlyCollection&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_base3_d_scene.html">Base3DScene</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#ae3d78ce6f3d03e6fed2715a115e2278d">Scenes</a><code> [get]</code></td></tr>
 <tr class="memdesc:ae3d78ce6f3d03e6fed2715a115e2278d"><td class="mdescLeft">&#160;</td><td class="mdescRight">List of loaded scenes  <a href="#ae3d78ce6f3d03e6fed2715a115e2278d">More...</a><br /></td></tr>
@@ -198,7 +198,7 @@ Properties</h2></td></tr>
 <tr class="separator:afa859420963287258c06b25e76ebf051"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Interface class for controling the 3D module </p>
+<div class="textblock"><p>Base class of the 3D module Used to control everything from the outside </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a96cd4ba38d6937477a2a6ba74516f681"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a96cd4ba38d6937477a2a6ba74516f681">&#9670;&nbsp;</a></span>c_Load()</h2>
@@ -400,6 +400,38 @@ Properties</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="afeba045779c4949d7d228b05ab5a622e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afeba045779c4949d7d228b05ab5a622e">&#9670;&nbsp;</a></span>DEFAULT_MESHES_LAYER</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const string HBP.Module3D.HBP3DModule.DEFAULT_MESHES_LAYER = &quot;Default&quot;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Default layer string for the visible meshes layer </p>
+
+</div>
+</div>
+<a id="a65d0a3929a2a8ca29d5fca32e954c0dc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65d0a3929a2a8ca29d5fca32e954c0dc">&#9670;&nbsp;</a></span>HIDDEN_MESHES_LAYER</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const string HBP.Module3D.HBP3DModule.HIDDEN_MESHES_LAYER = &quot;Hidden Meshes&quot;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Default layer string for the invisible meshes layer </p>
+
+</div>
+</div>
 <a id="ae7f36cc78c5e6e1d934022756c1d2aff"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae7f36cc78c5e6e1d934022756c1d2aff">&#9670;&nbsp;</a></span>MAXIMUM_VIEW_NUMBER</h2>
 
@@ -428,7 +460,7 @@ Properties</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>MNI Objects </p>
+<p>MNI Objects (Mesh and MRI) </p>
 
 </div>
 </div>
@@ -701,7 +733,7 @@ Properties</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Number of scenes that have been loaded in this instance of HiBoP (allowing to place them in the 3D space) </p>
+<p>Number of scenes that have been loaded in this instance of HiBoP </p>
 
 </div>
 </div>
@@ -826,7 +858,7 @@ Properties</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following file:<ul>
-<li>Assets/Scripts/HBP/3D/HBP3DModule.cs</li>
+<li>D:/HBP/HiBoP/Assets/Scripts/HBP/3D/HBP3DModule.cs</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

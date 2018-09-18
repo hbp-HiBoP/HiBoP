@@ -33,4 +33,5 @@
     public enum MeshPart { Left, Right, Both, None };
     public enum TriEraserMode { OneTri, Cylinder, Zone, Invert, Expand };
     public enum SiteNavigationDirection { Left, Right }
+    public enum SiteType { Normal, Positive, Negative, Excluded, Source, NotASource, NoLatencyData, BlackListed, NonePos, NoneNeg, Marked, Suspicious };
 }

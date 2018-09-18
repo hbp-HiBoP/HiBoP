@@ -15,6 +15,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using HBP.Module3D.DLL;
 using Tools.CSharp;
+using HBP.Data.Enums;
 
 namespace HBP.Module3D
 {
@@ -229,7 +230,11 @@ namespace HBP.Module3D
         #endregion
 
         #region Events
-        public UnityEvent OnUpdateCurrentTimelineID = new UnityEvent();
+        /// <summary>
+        /// Events to send the computed values for the colormap of this column
+        /// </summary>
+        [HideInInspector] public GenericEvent<float, float, float> OnSendColorMapValues = new GenericEvent<float, float, float>();
+        [HideInInspector] public UnityEvent OnUpdateCurrentTimelineID = new UnityEvent();
         #endregion
 
         #region Private Methods
@@ -375,6 +380,10 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
+        public void SendColormapValues()
+        {
+            OnSendColorMapValues.Invoke(IEEGParameters.SpanMin, IEEGParameters.Middle, IEEGParameters.SpanMax);
+        }
         public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             base.UpdateSites(sites, sitesPatientParent, siteList);

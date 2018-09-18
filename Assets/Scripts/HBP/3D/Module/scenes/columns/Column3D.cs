@@ -13,6 +13,7 @@ using System.Linq;
 using System;
 using System.IO;
 using HBP.Module3D.DLL;
+using HBP.Data.Enums;
 
 namespace HBP.Module3D
 {

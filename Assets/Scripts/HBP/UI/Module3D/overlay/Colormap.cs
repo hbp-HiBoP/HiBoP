@@ -98,14 +98,15 @@ namespace HBP.UI.Module3D
 
             scene.OnChangeColormap.AddListener((color) => m_Icon.sprite = m_SpriteByColorType[color]);
 
-            scene.OnSendColorMapValues.AddListener((min, mid, max, col) =>
+            if (column is Column3DIEEG)
             {
-                if (col != column) return;
-
-                m_Min.text = min.ToString("0.0");
-                m_Mid.text = mid.ToString("0.0");
-                m_Max.text = max.ToString("0.0");
-            });
+                (column as Column3DIEEG).OnSendColorMapValues.AddListener((min, mid, max) =>
+                {
+                    m_Min.text = min.ToString("0.0");
+                    m_Mid.text = mid.ToString("0.0");
+                    m_Max.text = max.ToString("0.0");
+                });
+            }
         }
         #endregion
     }

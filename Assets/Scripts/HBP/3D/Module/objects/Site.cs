@@ -3,6 +3,7 @@
 
 
 // unity
+using HBP.Data.Enums;
 using System;
 /**
 * \file    Site.cs
@@ -15,7 +16,6 @@ using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
-    public enum SiteType { Normal, Positive, Negative, Excluded, Source, NotASource, NoLatencyData, BlackListed, NonePos, NoneNeg, Marked, Suspicious };
     /// <summary>
     /// Structure containing informations related to the site shaders (not used for now, shader uniform too slow)
     /// </summary>
