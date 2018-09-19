@@ -24,6 +24,14 @@ public class RangeSlider : MonoBehaviour
         RectTransform fillAreaRectTransform = (FillRect.parent as RectTransform);
         Rect fillAreaRect = fillAreaRectTransform.rect;
         float ratio = pointerEventData.delta.x / fillAreaRect.width;
+        if(ratio > 0)
+        {
+            ratio = Mathf.Clamp01(ratio + RightSlider.normalizedValue) - RightSlider.normalizedValue;
+        }
+        else
+        {
+            ratio = Mathf.Clamp01(ratio + LeftSlider.normalizedValue) - LeftSlider.normalizedValue;
+        }
         LeftSlider.normalizedValue += ratio;
         RightSlider.normalizedValue += ratio;
     }
