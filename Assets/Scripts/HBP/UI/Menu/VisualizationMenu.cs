@@ -6,7 +6,7 @@ namespace HBP.UI.Visualization
     {
         public void OpenVisualizationGestion()
         {
-            ApplicationState.WindowsManager.Open("Visualization Gestion Window");
+            ApplicationState.WindowsManager.Open("Visualization gestion window");
         }
     }
 }

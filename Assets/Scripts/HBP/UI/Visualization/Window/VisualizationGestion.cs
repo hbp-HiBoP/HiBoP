@@ -4,12 +4,11 @@ using System.Linq;
 
 namespace HBP.UI.Visualization
 {
-    public class VisualizationGestion : ItemGestion<Data.Visualization.Visualization>
+    public class VisualizationGestion : SavableWindow
     {
         #region Properties
         [SerializeField] Button m_AddButton, m_RemoveButton, m_DisplayButton;
-        [SerializeField] VisualizationList m_VisualizationList;
-        [SerializeField] Text m_CounterText;
+        [SerializeField] VisualizationListGestion m_VisualizationListGestion;
 
         public override bool Interactable
         {
@@ -24,7 +23,7 @@ namespace HBP.UI.Visualization
 
                 m_AddButton.interactable = value;
                 m_RemoveButton.interactable = value;
-                m_VisualizationList.Interactable = value;
+                m_VisualizationListGestion.Interactable = value;
             }
         }
         #endregion
@@ -32,12 +31,12 @@ namespace HBP.UI.Visualization
         #region Public Methods
         public override void Save()
         {
-            ApplicationState.ProjectLoaded.SetVisualizations(Items.ToArray());
+            ApplicationState.ProjectLoaded.SetVisualizations(m_VisualizationListGestion.Items);
             base.Save();
         }
         public void Display()
         {
-            ApplicationState.Module3D.LoadScenes(m_List.ObjectsSelected);
+            ApplicationState.Module3D.LoadScenes(m_VisualizationListGestion.List.ObjectsSelected);
             base.Close();
         }
         #endregion
@@ -45,18 +44,16 @@ namespace HBP.UI.Visualization
         #region Private Methods
         protected override void Initialize()
         {
-            base.Initialize();
-            m_List = m_VisualizationList;
-            m_VisualizationList.Initialize();
-            m_VisualizationList.OnAction.AddListener((visu, type) => OpenModifier(visu,true));
-            m_VisualizationList.OnSelectionChanged.AddListener(() => SetDisplay());
-            m_VisualizationList.OnSelectionChanged.AddListener(() => m_CounterText.text = m_VisualizationList.ObjectsSelected.Length.ToString());
-            AddItem(ApplicationState.ProjectLoaded.Visualizations.ToArray());
+            m_VisualizationListGestion.Initialize(m_SubWindows);
+            m_VisualizationListGestion.Items = ApplicationState.ProjectLoaded.Visualizations.ToList();
+            m_VisualizationListGestion.List.OnSelectionChanged.AddListener(() => SetDisplay());
             SetDisplay();
+
+            base.Initialize();
         }
         void SetDisplay()
         {
-            Data.Visualization.Visualization[] visualizationsSelected = m_List.ObjectsSelected;
+            Data.Visualization.Visualization[] visualizationsSelected = m_VisualizationListGestion.List.ObjectsSelected;
             m_DisplayButton.interactable = (visualizationsSelected.Length > 0 && visualizationsSelected.All(v => v.IsVisualizable));
         }   
         #endregion
