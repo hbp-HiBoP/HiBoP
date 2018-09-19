@@ -267,15 +267,8 @@ namespace HBP.Module3D.DLL
                 }
             }
 
-            // removeFrontPlane construction
-            List<int> removeFrontPlane = new List<int>();
-            for (int i = 0; i < cutPlanes.Length; i++)
-            {
-                removeFrontPlane.Add(cutPlanes[i].RemoveFrontPlane);
-            }
-
             // do the cut            
-            HandleRef pCutMultiSurface = new HandleRef(this, cut_Surface(_handle, removeFrontPlane.ToArray(), planes, cutPlanes.Length, noHoles?1:0, strongCuts?1:0));
+            HandleRef pCutMultiSurface = new HandleRef(this, cut_Surface(_handle, planes, cutPlanes.Length, noHoles?1:0, strongCuts?1:0));
 
             // move data            
             int nbMultiSurface =nb_MultiSurface(pCutMultiSurface);
@@ -563,7 +556,7 @@ namespace HBP.Module3D.DLL
         [DllImport("hbp_export", EntryPoint = "merge_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void merge_Surface(HandleRef handleSurface, HandleRef handleSurfaceToAdd);
         [DllImport("hbp_export", EntryPoint = "cut_Surface", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr cut_Surface(HandleRef handleSurface, int[] removeFrontPlane, float[] planes, int nbPlanes, int noHoles, int strongCuts);
+        static private extern IntPtr cut_Surface(HandleRef handleSurface, float[] planes, int nbPlanes, int noHoles, int strongCuts);
         [DllImport("hbp_export", EntryPoint = "split_to_surfaces_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr split_to_surfaces_Surface(HandleRef handleSurface, int nbSubSurfaces);
         [DllImport("hbp_export", EntryPoint = "middle_Surface", CallingConvention = CallingConvention.Cdecl)]

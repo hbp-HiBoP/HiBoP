@@ -1322,25 +1322,21 @@ namespace HBP.Module3D
                 case 0:
                     cut.Orientation = Data.Enums.CutOrientation.Axial;
                     cut.Flip = false;
-                    cut.RemoveFrontPlane = 0;
                     cut.Position = 0.5f;
                     break;
                 case 1:
                     cut.Orientation = Data.Enums.CutOrientation.Coronal;
                     cut.Flip = false;
-                    cut.RemoveFrontPlane = 0;
                     cut.Position = 0.5f;
                     break;
                 case 2:
                     cut.Orientation = Data.Enums.CutOrientation.Sagital;
                     cut.Flip = false;
-                    cut.RemoveFrontPlane = 0;
                     cut.Position = 0.5f;
                     break;
                 default:
                     cut.Orientation = Data.Enums.CutOrientation.Axial;
                     cut.Flip = false;
-                    cut.RemoveFrontPlane = 0;
                     cut.Position = 0.5f;
                     break;
             }
