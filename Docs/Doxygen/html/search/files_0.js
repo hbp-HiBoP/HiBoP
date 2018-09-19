@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['base3dscene_2ecs',['Base3DScene.cs',['../_base3_d_scene_8cs.html',1,'']]]
+  ['debugmemory_2ecs',['DebugMemory.cs',['../_debug_memory_8cs.html',1,'']]],
+  ['dlldebugmanager_2ecs',['DLLDebugManager.cs',['../_d_l_l_debug_manager_8cs.html',1,'']]]
 ];

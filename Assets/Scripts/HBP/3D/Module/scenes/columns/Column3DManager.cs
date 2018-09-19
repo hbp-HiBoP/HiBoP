@@ -267,6 +267,9 @@ namespace HBP.Module3D
                 }
             }
         }
+        /// <summary>
+        /// Cal min value of the FMRI
+        /// </summary>
         public float FMRICalMin
         {
             get
@@ -304,6 +307,9 @@ namespace HBP.Module3D
                 }
             }
         }
+        /// <summary>
+        /// Cal max value of the FMRI
+        /// </summary>
         public float FMRICalMax
         {
             get
@@ -372,14 +378,29 @@ namespace HBP.Module3D
             }
         }
 
+        /// <summary>
+        /// Colormap texture
+        /// </summary>
         public Texture2D BrainColorMapTexture;
+        /// <summary>
+        /// Brain texture
+        /// </summary>
         public Texture2D BrainColorTexture;
         
+        /// <summary>
+        /// Prefab for the Column3D
+        /// </summary>
         [SerializeField] private GameObject m_Column3DPrefab;
+        /// <summary>
+        /// Prefab for the Column3DIEEG
+        /// </summary>
         [SerializeField] private GameObject m_Column3DIEEGPrefab;
         #endregion
 
         #region Events
+        /// <summary>
+        /// Event called when changing the selected state of the column manager
+        /// </summary>
         [HideInInspector] public GenericEvent<bool> OnChangeSelectedState = new GenericEvent<bool>();
         /// <summary>
         /// Event called when selecting a column
@@ -410,21 +431,9 @@ namespace HBP.Module3D
         /// </summary>
         [HideInInspector] public UnityEvent OnUpdateFMRIParameters = new UnityEvent();
         /// <summary>
-        /// Event called when changing the number of ROIs of this scene
+        /// Event called when updating the ROI mask for this column
         /// </summary>
-        [HideInInspector] public GenericEvent<Column3D> OnChangeNumberOfROI = new GenericEvent<Column3D>();
-        /// <summary>
-        /// Event called when changing the number of volumes in a ROI of this scene
-        /// </summary>
-        [HideInInspector] public GenericEvent<Column3D> OnChangeNumberOfVolumeInROI = new GenericEvent<Column3D>();
-        /// <summary>
-        /// Event called when selecting a ROI in a column
-        /// </summary>
-        [HideInInspector] public GenericEvent<Column3D> OnSelectROI = new GenericEvent<Column3D>();
-        /// <summary>
-        /// Event called when changing the radius of a volume in a ROI
-        /// </summary>
-        [HideInInspector] public GenericEvent<Column3D> OnChangeROIVolumeRadius = new GenericEvent<Column3D>();
+        [HideInInspector] public UnityEvent OnUpdateROIMask = new UnityEvent();
         /// <summary>
         /// Event called when changing the IEEG span values
         /// </summary>
@@ -472,7 +481,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Add a column to the scene
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="type">Type of the column</param>
         private void AddColumn(Data.Enums.ColumnType type)
         {
             Column3D column = null;
@@ -508,21 +517,9 @@ namespace HBP.Module3D
             {
                 SynchronizeViewsToReferenceView(view);
             });
-            column.OnChangeNumberOfROI.AddListener(() =>
+            column.OnUpdateROIMask.AddListener(() =>
             {
-                OnChangeNumberOfROI.Invoke(column);
-            });
-            column.OnChangeNumberOfVolumeInROI.AddListener(() =>
-            {
-                OnChangeNumberOfVolumeInROI.Invoke(column);
-            });
-            column.OnSelectROI.AddListener(() =>
-            {
-                OnSelectROI.Invoke(column);
-            });
-            column.OnChangeROIVolumeRadius.AddListener(() =>
-            {
-                OnChangeROIVolumeRadius.Invoke(column);
+                OnUpdateROIMask.Invoke();
             });
             column.OnChangeMinimizedState.AddListener(() =>
             {
@@ -582,8 +579,9 @@ namespace HBP.Module3D
             OnAddColumn.Invoke();
         }
         /// <summary>
-        /// Synchronize all the cameras from the same view line
+        /// Synchronize all cameras from the same view line
         /// </summary>
+        /// <param name="referenceView">View to synchronize with</param>
         private void SynchronizeViewsToReferenceView(View3D referenceView)
         {
             foreach (Column3D column in Columns)
@@ -603,8 +601,8 @@ namespace HBP.Module3D
         /// <summary>
         /// Initialize the meshes of each column
         /// </summary>
-        /// <param name="meshes"></param>
-        /// <param name="useSimplifiedMeshes"></param>
+        /// <param name="meshes">Parent of the meshes</param>
+        /// <param name="useSimplifiedMeshes">Are we using simplified meshes ?</param>
         public void InitializeColumnsMeshes(GameObject meshes, bool useSimplifiedMeshes)
         {
             foreach (Column3D column in m_Columns)
@@ -615,7 +613,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Reset the number of meshes splits for the brain
         /// </summary>
-        /// <param name="nbSplits"></param>
+        /// <param name="nbSplits">Number of splits</param>
         public void ResetSplitsNumber(int nbSplits)
         {
             foreach (Mesh3D mesh in Meshes)
@@ -638,7 +636,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Update the number of cut planes for every columns
         /// </summary>
-        /// <param name="nbCuts"></param>
+        /// <param name="nbCuts">Number of cuts</param>
         public void UpdateCutNumber(int nbCuts)
         {
             while (DLLMRIGeometryCutGeneratorList.Count < nbCuts)
@@ -657,10 +655,9 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Initialize the columns for this scene
+        /// Initialize the columns for the scene
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="number"></param>
+        /// <param name="columns">List of columns data</param>
         public void InitializeColumns(IEnumerable<Data.Visualization.Column> columns)
         {
             foreach (Data.Visualization.Column column in columns)
@@ -671,8 +668,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Set timeline data for all columns
         /// </summary>
-        /// <param name="patient"></param>
-        /// <param name="columnDataList"></param>
+        /// <param name="columnDataList">List of the columns data</param>
         public void SetTimelineData(List<Data.Visualization.Column> columnDataList)
         {
             for (int c = 0; c < Columns.Count; c++)
@@ -684,9 +680,10 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Create the cut mesh texture dll and texture2D
+        /// Create the MRI texture of the cut
         /// </summary>
-        /// <param name="indexCut"></param>
+        /// <param name="column">Column for which the texture will be created</param>
+        /// <param name="cutID">ID of the cut used to create the texture</param>
         public void CreateMRITexture(Column3D column, int cutID)
         {
             column.CutTextures.CreateMRITexture(DLLMRIGeometryCutGeneratorList[cutID], SelectedMRI.Volume, cutID, MRICalMinFactor, MRICalMaxFactor);
@@ -696,22 +693,18 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Compute the amplitudes textures coordinates for the brain mesh
-        /// When to call ? changes in IEEGColumn.currentTimeLineID, IEEGColumn.alphaMin, IEEGColumn.alphaMax
+        /// Compute the UVs of the brain for the iEEG activity of a column
         /// </summary>
-        /// <param name="whiteInflatedMeshes"></param>
-        /// <param name="indexColumn"></param>
-        /// <param name="thresholdInfluence"></param>
-        /// <param name="alphaMin"></param>
-        /// <param name="alphaMax"></param>
+        /// <param name="column">Column on which to compute the UVs</param>
         public void ComputeSurfaceBrainUVWithIEEG(Column3DIEEG column)
         {
             for (int ii = 0; ii < MeshSplitNumber; ++ii)
                 column.DLLBrainTextureGenerators[ii].ComputeSurfaceUVIEEG(SelectedMesh.SplittedMeshes[ii], column);
         }
         /// <summary>
-        /// Update the plot rendering parameters for all columns
+        /// Update the sites rendering for all columns
         /// </summary>
+        /// <param name="data">Information about the scene</param>
         public void UpdateAllColumnsSitesRendering(SceneStatesInfo data)
         {
             foreach (Column3D column in Columns) // unselect hidden sites
@@ -772,7 +765,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Update the cube bounding box
         /// </summary>
-        /// <param name="cuts"></param>
+        /// <param name="cuts">Cuts used for the cube bounding box</param>
         public void UpdateCubeBoundingBox(List<Cut> cuts)
         {
             CubeBoundingBox = SelectedMRI.Volume.GetCubeBoundingBox(cuts);

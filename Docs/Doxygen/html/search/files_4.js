@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['mricutgenerator_2ecs',['MRICutGenerator.cs',['../_m_r_i_cut_generator_8cs.html',1,'']]]
+  ['qtwidgets_2ecs',['QtWidgets.cs',['../_qt_widgets_8cs.html',1,'']]]
 ];

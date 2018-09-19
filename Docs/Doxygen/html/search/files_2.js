@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['electrodes_2ecs',['Electrodes.cs',['../_electrodes_8cs.html',1,'']]]
+  ['mricutgenerator_2ecs',['MRICutGenerator.cs',['../_m_r_i_cut_generator_8cs.html',1,'']]]
 ];

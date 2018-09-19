@@ -1,21 +1,9 @@
-﻿
-/**
- * \file    Base3DScene.cs
- * \author  Lance Florian
- * \date    2015
- * \brief   Define Base3DScene and ComputeGeneratorsJob classes
- */
-
-// system
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections.ObjectModel;
-
-// unity
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Rendering;
 using System.Collections;
 using CielaSpike;
 using HBP.Data.Visualization;
@@ -196,7 +184,7 @@ namespace HBP.Module3D
                 SceneInformation.ShowAllSites = value;
                 foreach (var column in ColumnManager.Columns)
                 {
-                    UpdateSitesROIMask(column);
+                    column.UpdateROIMask();
                 }
                 SceneInformation.AreSitesUpdated = false;
             }
@@ -316,7 +304,7 @@ namespace HBP.Module3D
                 {
                     foreach (View3D view in column.Views)
                     {
-                        view.EdgeMode = m_EdgeMode;
+                        view.ShowEdges = m_EdgeMode;
                     }
                 }
             }
@@ -666,10 +654,11 @@ namespace HBP.Module3D
                 }
                 SceneInformation.AreSitesUpdated = false;
             });
-            m_ColumnManager.OnChangeNumberOfROI.AddListener(UpdateSitesROIMask);
-            m_ColumnManager.OnChangeNumberOfVolumeInROI.AddListener(UpdateSitesROIMask);
-            m_ColumnManager.OnSelectROI.AddListener(UpdateSitesROIMask);
-            m_ColumnManager.OnChangeROIVolumeRadius.AddListener(UpdateSitesROIMask);
+            m_ColumnManager.OnUpdateROIMask.AddListener(() =>
+            {
+                ResetIEEG(false);
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
+            });
             m_ColumnManager.OnChangeSelectedState.AddListener((selected) =>
             {
                 IsSelected = selected;
@@ -1251,7 +1240,7 @@ namespace HBP.Module3D
             foreach (Column3D column in m_ColumnManager.Columns)
             {
                 column.UpdateSites(m_ColumnManager.SelectedImplantation.PatientElectrodesList, m_ColumnManager.SitesPatientParent, m_ColumnManager.SitesList);
-                UpdateSitesROIMask(column);
+                column.UpdateROIMask();
             }
             // reset selected site
             for (int ii = 0; ii < m_ColumnManager.Columns.Count; ++ii)
@@ -1673,7 +1662,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Reset the settings of the loaded scene
         /// </summary>
-        /// <param name="firstCall">Has this method not been called by another load method ?</param>
+        /// <param name="firstCall">Has this method not been called by another reset method ?</param>
         public void ResetConfiguration(bool firstCall = true)
         {
             UpdateBrainSurfaceColor(Data.Enums.ColorType.BrainColor);
@@ -1832,32 +1821,6 @@ namespace HBP.Module3D
                 ComputeMRITextures();
                 ComputeGUITextures();
             }
-        }
-        /// <summary>
-        /// Update the ROI mask of the sites of a column
-        /// </summary>
-        /// <param name="column">Column to update</param>
-        public void UpdateSitesROIMask(Column3D column)
-        {
-            if (column.SelectedROI == null)
-            {
-                for (int ii = 0; ii < column.Sites.Count; ++ii)
-                    column.Sites[ii].State.IsOutOfROI = true;
-            }
-            else
-            {
-                bool[] maskROI = new bool[m_ColumnManager.SitesList.Count];
-
-                // update mask ROI
-                for (int ii = 0; ii < maskROI.Length; ++ii)
-                    maskROI[ii] = column.Sites[ii].State.IsOutOfROI;
-
-                column.SelectedROI.UpdateMask(column.RawElectrodes, maskROI);
-                for (int ii = 0; ii < column.Sites.Count; ++ii)
-                    column.Sites[ii].State.IsOutOfROI = maskROI[ii];
-            }
-            ResetIEEG(false);
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Passive raycast on the scene (to hover sites for instance)

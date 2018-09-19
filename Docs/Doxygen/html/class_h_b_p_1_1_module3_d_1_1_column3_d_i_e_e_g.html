@@ -78,7 +78,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A 3D column view IEGG, containing all necessary data concerning a data column  
+<p>Column 3D iEEG class (functional iEEG data)  
  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#details">More...</a></p>
 <div class="dynheader">
 Inheritance diagram for HBP.Module3D.Column3DIEEG:</div>
@@ -86,52 +86,55 @@ Inheritance diagram for HBP.Module3D.Column3DIEEG:</div>
  <div class="center">
   <img src="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.png" usemap="#HBP.Module3D.Column3DIEEG_map" alt=""/>
   <map id="HBP.Module3D.Column3DIEEG_map" name="HBP.Module3D.Column3DIEEG_map">
-<area href="class_h_b_p_1_1_module3_d_1_1_column3_d.html" title="Column 3D view base class " alt="HBP.Module3D.Column3D" shape="rect" coords="0,56,189,80"/>
+<area href="class_h_b_p_1_1_module3_d_1_1_column3_d.html" title="Column 3D base class (anatomical data only) " alt="HBP.Module3D.Column3D" shape="rect" coords="0,56,189,80"/>
 <area href="interface_h_b_p_1_1_module3_d_1_1_i_configurable.html" alt="HBP.Module3D.IConfigurable" shape="rect" coords="199,56,388,80"/>
 </map>
  </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a04192f0840fbf17726f5c73bfc3a2c41"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#a04192f0840fbf17726f5c73bfc3a2c41">SendColormapValues</a> ()</td></tr>
+<tr class="memdesc:a04192f0840fbf17726f5c73bfc3a2c41"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send colormap values to the overlay  <a href="#a04192f0840fbf17726f5c73bfc3a2c41">More...</a><br /></td></tr>
+<tr class="separator:a04192f0840fbf17726f5c73bfc3a2c41"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a572ab3b89b363611f2971e4e5301026c"><td class="memItemLeft" align="right" valign="top">override void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#a572ab3b89b363611f2971e4e5301026c">UpdateSites</a> (<a class="el" href="class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_patient_electrodes_list.html">PatientElectrodesList</a> sites, List&lt; GameObject &gt; sitesPatientParent, List&lt; GameObject &gt; siteList)</td></tr>
-<tr class="memdesc:a572ab3b89b363611f2971e4e5301026c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the sites for this column  <a href="#a572ab3b89b363611f2971e4e5301026c">More...</a><br /></td></tr>
+<tr class="memdesc:a572ab3b89b363611f2971e4e5301026c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the implantation for this column  <a href="#a572ab3b89b363611f2971e4e5301026c">More...</a><br /></td></tr>
 <tr class="separator:a572ab3b89b363611f2971e4e5301026c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78555432d0b2dfa232abab0df952fa14"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#a78555432d0b2dfa232abab0df952fa14">LoadConfiguration</a> (bool firstCall=true)</td></tr>
-<tr class="memdesc:a78555432d0b2dfa232abab0df952fa14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load the visualization configuration from the loaded visualization  <a href="#a78555432d0b2dfa232abab0df952fa14">More...</a><br /></td></tr>
+<tr class="memdesc:a78555432d0b2dfa232abab0df952fa14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load the column configuration from the loaded column data  <a href="#a78555432d0b2dfa232abab0df952fa14">More...</a><br /></td></tr>
 <tr class="separator:a78555432d0b2dfa232abab0df952fa14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0bf400096a06bc28636191fa80327d38"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#a0bf400096a06bc28636191fa80327d38">SaveConfiguration</a> ()</td></tr>
-<tr class="memdesc:a0bf400096a06bc28636191fa80327d38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Save the current settings of this scene to the configuration of the linked visualization  <a href="#a0bf400096a06bc28636191fa80327d38">More...</a><br /></td></tr>
+<tr class="memdesc:a0bf400096a06bc28636191fa80327d38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Save the current settings of this column to the configuration of the linked column data  <a href="#a0bf400096a06bc28636191fa80327d38">More...</a><br /></td></tr>
 <tr class="separator:a0bf400096a06bc28636191fa80327d38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac83b1e82a52638df4db4fbb205337e93"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#ac83b1e82a52638df4db4fbb205337e93">ResetConfiguration</a> (bool firstCall=true)</td></tr>
-<tr class="memdesc:ac83b1e82a52638df4db4fbb205337e93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset the settings of the loaded scene  <a href="#ac83b1e82a52638df4db4fbb205337e93">More...</a><br /></td></tr>
+<tr class="memdesc:ac83b1e82a52638df4db4fbb205337e93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset the settings of the loaded column  <a href="#ac83b1e82a52638df4db4fbb205337e93">More...</a><br /></td></tr>
 <tr class="separator:ac83b1e82a52638df4db4fbb205337e93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aebf662635925986ba048ad1273cf75b5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#aebf662635925986ba048ad1273cf75b5">UpdateDLLSitesMask</a> ()</td></tr>
 <tr class="memdesc:aebf662635925986ba048ad1273cf75b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the site mask of the dll with all the masks  <a href="#aebf662635925986ba048ad1273cf75b5">More...</a><br /></td></tr>
 <tr class="separator:aebf662635925986ba048ad1273cf75b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1fe124a58535fbe495e3066f9c9d7d78"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#a1fe124a58535fbe495e3066f9c9d7d78">SetColumnData</a> (<a class="el" href="class_h_b_p_1_1_data_1_1_visualization_1_1_column.html">Data.Visualization.Column</a> newColumnData)</td></tr>
-<tr class="memdesc:a1fe124a58535fbe495e3066f9c9d7d78"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specify a new columnData to be associated with the columnd3DView  <a href="#a1fe124a58535fbe495e3066f9c9d7d78">More...</a><br /></td></tr>
-<tr class="separator:a1fe124a58535fbe495e3066f9c9d7d78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0cdbc2c178a0aeb9228782e9457f6221"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#a0cdbc2c178a0aeb9228782e9457f6221">SetColumnData</a> (<a class="el" href="class_h_b_p_1_1_data_1_1_visualization_1_1_column.html">Data.Visualization.Column</a> columnData)</td></tr>
+<tr class="memdesc:a0cdbc2c178a0aeb9228782e9457f6221"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specify a column data for this column  <a href="#a0cdbc2c178a0aeb9228782e9457f6221">More...</a><br /></td></tr>
+<tr class="separator:a0cdbc2c178a0aeb9228782e9457f6221"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a064dd12cffcccd5dee22f0df3ee624"><td class="memItemLeft" align="right" valign="top">override void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#a8a064dd12cffcccd5dee22f0df3ee624">UpdateSitesRendering</a> (<a class="el" href="class_h_b_p_1_1_module3_d_1_1_scene_states_info.html">SceneStatesInfo</a> data, <a class="el" href="class_h_b_p_1_1_module3_d_1_1_latencies.html">Latencies</a> latenciesFile)</td></tr>
-<tr class="memdesc:a8a064dd12cffcccd5dee22f0df3ee624"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the plots rendering (iEEG or CCEP)  <a href="#a8a064dd12cffcccd5dee22f0df3ee624">More...</a><br /></td></tr>
+<tr class="memdesc:a8a064dd12cffcccd5dee22f0df3ee624"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the shape and color of the sites of this column  <a href="#a8a064dd12cffcccd5dee22f0df3ee624">More...</a><br /></td></tr>
 <tr class="separator:a8a064dd12cffcccd5dee22f0df3ee624"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html">HBP.Module3D.Column3D</a></td></tr>
 <tr class="memitem:aab3752f8144866fdf7f5c3bbdedc2591 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#aab3752f8144866fdf7f5c3bbdedc2591">Initialize</a> (int idColumn, <a class="el" href="class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_patient_electrodes_list.html">PatientElectrodesList</a> sites, List&lt; GameObject &gt; sitesPatientParent, List&lt; GameObject &gt; siteList)</td></tr>
-<tr class="memdesc:aab3752f8144866fdf7f5c3bbdedc2591 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the column with a view and the sites  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#aab3752f8144866fdf7f5c3bbdedc2591">More...</a><br /></td></tr>
+<tr class="memdesc:aab3752f8144866fdf7f5c3bbdedc2591 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the column  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#aab3752f8144866fdf7f5c3bbdedc2591">More...</a><br /></td></tr>
 <tr class="separator:aab3752f8144866fdf7f5c3bbdedc2591 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8980df6a318756227bbd356dd1947821 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a8980df6a318756227bbd356dd1947821">InitializeColumnMeshes</a> (GameObject brainMeshesParent, bool useSimplifiedMeshes)</td></tr>
-<tr class="memdesc:a8980df6a318756227bbd356dd1947821 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the meshes for this column  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a8980df6a318756227bbd356dd1947821">More...</a><br /></td></tr>
+<tr class="memdesc:a8980df6a318756227bbd356dd1947821 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the column specific meshes (differents UVs for the iEEG signal)  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a8980df6a318756227bbd356dd1947821">More...</a><br /></td></tr>
 <tr class="separator:a8980df6a318756227bbd356dd1947821 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6735664d819471e123121e509d47ae3 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#af6735664d819471e123121e509d47ae3">UpdateColumnMeshes</a> (List&lt; GameObject &gt; brainMeshes, bool useSimplifiedMeshes)</td></tr>
 <tr class="memdesc:af6735664d819471e123121e509d47ae3 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the meshes of this column  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#af6735664d819471e123121e509d47ae3">More...</a><br /></td></tr>
 <tr class="separator:af6735664d819471e123121e509d47ae3 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57fe6d4919df048e1b5b944fac575651 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a57fe6d4919df048e1b5b944fac575651">ChangeMeshesLayer</a> (int layer)</td></tr>
-<tr class="memdesc:a57fe6d4919df048e1b5b944fac575651 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change the layer of the brain meshes (invisible when cutting)  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a57fe6d4919df048e1b5b944fac575651">More...</a><br /></td></tr>
+<tr class="memdesc:a57fe6d4919df048e1b5b944fac575651 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change the layer of the brain meshes  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a57fe6d4919df048e1b5b944fac575651">More...</a><br /></td></tr>
 <tr class="separator:a57fe6d4919df048e1b5b944fac575651 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27a94b9efdff45bc30b3b2118385e81f inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a27a94b9efdff45bc30b3b2118385e81f">ResetSplitsNumber</a> (int nbSplits)</td></tr>
-<tr class="memdesc:a27a94b9efdff45bc30b3b2118385e81f inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset the brain texture generators;  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a27a94b9efdff45bc30b3b2118385e81f">More...</a><br /></td></tr>
+<tr class="memdesc:a27a94b9efdff45bc30b3b2118385e81f inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset the splits number  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a27a94b9efdff45bc30b3b2118385e81f">More...</a><br /></td></tr>
 <tr class="separator:a27a94b9efdff45bc30b3b2118385e81f inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a015af1835267eba13c8d9d8e334f2aa2 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a015af1835267eba13c8d9d8e334f2aa2">UpdateCutsPlanesNumber</a> (int nbCuts)</td></tr>
-<tr class="memdesc:a015af1835267eba13c8d9d8e334f2aa2 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset the cut textures generators  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a015af1835267eba13c8d9d8e334f2aa2">More...</a><br /></td></tr>
+<tr class="memdesc:a015af1835267eba13c8d9d8e334f2aa2 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the number of cuts  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a015af1835267eba13c8d9d8e334f2aa2">More...</a><br /></td></tr>
 <tr class="separator:a015af1835267eba13c8d9d8e334f2aa2 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a03b55f9c418bfba66fb4b82ba88c126d inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a03b55f9c418bfba66fb4b82ba88c126d">SaveSiteStates</a> (string path)</td></tr>
 <tr class="memdesc:a03b55f9c418bfba66fb4b82ba88c126d inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Save the states of the sites of this column to a file  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a03b55f9c418bfba66fb4b82ba88c126d">More...</a><br /></td></tr>
@@ -157,6 +160,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a01aab9d2469bb57174e86d2fbc9334eb inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a01aab9d2469bb57174e86d2fbc9334eb">MoveSelectedROISphere</a> (Camera camera, Vector3 delta)</td></tr>
 <tr class="memdesc:a01aab9d2469bb57174e86d2fbc9334eb inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move the selected sphere by delta  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a01aab9d2469bb57174e86d2fbc9334eb">More...</a><br /></td></tr>
 <tr class="separator:a01aab9d2469bb57174e86d2fbc9334eb inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8863d52b9194203a1e994d2299417cc inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#aa8863d52b9194203a1e994d2299417cc">UpdateROIMask</a> ()</td></tr>
+<tr class="memdesc:aa8863d52b9194203a1e994d2299417cc inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> mask for this column  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#aa8863d52b9194203a1e994d2299417cc">More...</a><br /></td></tr>
+<tr class="separator:aa8863d52b9194203a1e994d2299417cc inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3cd0a3625e0c6654140ace312dff3185 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a3cd0a3625e0c6654140ace312dff3185">UnselectSite</a> ()</td></tr>
 <tr class="memdesc:a3cd0a3625e0c6654140ace312dff3185 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unselect the selected site  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a3cd0a3625e0c6654140ace312dff3185">More...</a><br /></td></tr>
 <tr class="separator:a3cd0a3625e0c6654140ace312dff3185 inherit pub_methods_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -184,8 +190,11 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:afb471f6a7b1a5c7aca4c03e75249f254"><td class="memItemLeft" align="right" valign="top">string []&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#afb471f6a7b1a5c7aca4c03e75249f254">IEEGUnitsBySiteID</a> = new string[0]</td></tr>
 <tr class="memdesc:afb471f6a7b1a5c7aca4c03e75249f254"><td class="mdescLeft">&#160;</td><td class="mdescRight">Units of the iEEG values of each site  <a href="#afb471f6a7b1a5c7aca4c03e75249f254">More...</a><br /></td></tr>
 <tr class="separator:afb471f6a7b1a5c7aca4c03e75249f254"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57f4aff048ec428fa706370e0f06ae19"><td class="memItemLeft" align="right" valign="top"><a id="a57f4aff048ec428fa706370e0f06ae19"></a>
-UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><b>OnUpdateCurrentTimelineID</b> = new UnityEvent()</td></tr>
+<tr class="memitem:af9d9f74a99691f44b043fcbcb80f433c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt; float, float, float &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#af9d9f74a99691f44b043fcbcb80f433c">OnSendColorMapValues</a> = new <a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt;float, float, float&gt;()</td></tr>
+<tr class="memdesc:af9d9f74a99691f44b043fcbcb80f433c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Events to send the computed values for the colormap of this column  <a href="#af9d9f74a99691f44b043fcbcb80f433c">More...</a><br /></td></tr>
+<tr class="separator:af9d9f74a99691f44b043fcbcb80f433c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57f4aff048ec428fa706370e0f06ae19"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#a57f4aff048ec428fa706370e0f06ae19">OnUpdateCurrentTimelineID</a> = new UnityEvent()</td></tr>
+<tr class="memdesc:a57f4aff048ec428fa706370e0f06ae19"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when updating the current timeline ID  <a href="#a57f4aff048ec428fa706370e0f06ae19">More...</a><br /></td></tr>
 <tr class="separator:a57f4aff048ec428fa706370e0f06ae19"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d')"><img src="closed.png" alt="-"/>&#160;Public Attributes inherited from <a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html">HBP.Module3D.Column3D</a></td></tr>
 <tr class="memitem:a2293167b30799a904737a2bc8ca1aa15 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">List&lt; List&lt; List&lt; GameObject &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a2293167b30799a904737a2bc8ca1aa15">SitesGameObjects</a></td></tr>
@@ -206,18 +215,9 @@ UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><b>OnUpdateCurrent
 <tr class="memitem:acd5ad4d7fb8b7c6f9814a6417995177d inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_view3_d.html">View3D</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#acd5ad4d7fb8b7c6f9814a6417995177d">OnMoveView</a> = new <a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt;<a class="el" href="class_h_b_p_1_1_module3_d_1_1_view3_d.html">View3D</a>&gt;()</td></tr>
 <tr class="memdesc:acd5ad4d7fb8b7c6f9814a6417995177d inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when a view is moved  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#acd5ad4d7fb8b7c6f9814a6417995177d">More...</a><br /></td></tr>
 <tr class="separator:acd5ad4d7fb8b7c6f9814a6417995177d inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab4540d313bad04bf414e177d948a3309 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#ab4540d313bad04bf414e177d948a3309">OnChangeNumberOfROI</a> = new UnityEvent()</td></tr>
-<tr class="memdesc:ab4540d313bad04bf414e177d948a3309 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when changing the number of ROIs of this column  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#ab4540d313bad04bf414e177d948a3309">More...</a><br /></td></tr>
-<tr class="separator:ab4540d313bad04bf414e177d948a3309 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a273758160a67cab7a60eb15362852d1f inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a273758160a67cab7a60eb15362852d1f">OnChangeNumberOfVolumeInROI</a> = new UnityEvent()</td></tr>
-<tr class="memdesc:a273758160a67cab7a60eb15362852d1f inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when changing the number of volume in a <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> of this column  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a273758160a67cab7a60eb15362852d1f">More...</a><br /></td></tr>
-<tr class="separator:a273758160a67cab7a60eb15362852d1f inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a889849909b393d45b73a08b61b218ae9 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a889849909b393d45b73a08b61b218ae9">OnSelectROI</a> = new UnityEvent()</td></tr>
-<tr class="memdesc:a889849909b393d45b73a08b61b218ae9 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when selecting a <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a>  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a889849909b393d45b73a08b61b218ae9">More...</a><br /></td></tr>
-<tr class="separator:a889849909b393d45b73a08b61b218ae9 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6859a6c8e882f99b17dda500af954673 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a6859a6c8e882f99b17dda500af954673">OnChangeROIVolumeRadius</a> = new UnityEvent()</td></tr>
-<tr class="memdesc:a6859a6c8e882f99b17dda500af954673 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when changing the radius of a volume in a <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a>  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a6859a6c8e882f99b17dda500af954673">More...</a><br /></td></tr>
-<tr class="separator:a6859a6c8e882f99b17dda500af954673 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2da4bf2f81d2f42f725437382fd05a4 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#ad2da4bf2f81d2f42f725437382fd05a4">OnUpdateROIMask</a> = new UnityEvent()</td></tr>
+<tr class="memdesc:ad2da4bf2f81d2f42f725437382fd05a4 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when updating the <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> mask for this column  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#ad2da4bf2f81d2f42f725437382fd05a4">More...</a><br /></td></tr>
+<tr class="separator:ad2da4bf2f81d2f42f725437382fd05a4 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb9a46edec130022c50ee2182e9e3bd8 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#adb9a46edec130022c50ee2182e9e3bd8">OnChangeMinimizedState</a> = new UnityEvent()</td></tr>
 <tr class="memdesc:adb9a46edec130022c50ee2182e9e3bd8 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when minimizing a column  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#adb9a46edec130022c50ee2182e9e3bd8">More...</a><br /></td></tr>
 <tr class="separator:adb9a46edec130022c50ee2182e9e3bd8 inherit pub_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -269,16 +269,13 @@ Properties</h2></td></tr>
 <tr class="memitem:a829c83ee7be5822d69664feb6116788d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#a829c83ee7be5822d69664feb6116788d">TimelineLength</a><code> [get]</code></td></tr>
 <tr class="memdesc:a829c83ee7be5822d69664feb6116788d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of the timeline  <a href="#a829c83ee7be5822d69664feb6116788d">More...</a><br /></td></tr>
 <tr class="separator:a829c83ee7be5822d69664feb6116788d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae2176efb767fd333e8c910d334c38202"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#ae2176efb767fd333e8c910d334c38202">SitesCount</a><code> [get]</code></td></tr>
-<tr class="memdesc:ae2176efb767fd333e8c910d334c38202"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of sites  <a href="#ae2176efb767fd333e8c910d334c38202">More...</a><br /></td></tr>
-<tr class="separator:ae2176efb767fd333e8c910d334c38202"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4b4ca72af0619a0a1ff08691b9eadcd0"><td class="memItemLeft" align="right" valign="top">int []&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#a4b4ca72af0619a0a1ff08691b9eadcd0">EEGDimensions</a><code> [get]</code></td></tr>
 <tr class="memdesc:a4b4ca72af0619a0a1ff08691b9eadcd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dimensions of the EEG array (used for the <a class="el" href="namespace_h_b_p_1_1_module3_d_1_1_d_l_l.html">DLL</a>)  <a href="#a4b4ca72af0619a0a1ff08691b9eadcd0">More...</a><br /></td></tr>
 <tr class="separator:a4b4ca72af0619a0a1ff08691b9eadcd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td colspan="2" onclick="javascript:toggleInherit('properties_class_h_b_p_1_1_module3_d_1_1_column3_d')"><img src="closed.png" alt="-"/>&#160;Properties inherited from <a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html">HBP.Module3D.Column3D</a></td></tr>
-<tr class="memitem:a4ce7a5fe426acc22c687845cf72b9492 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">virtual Data.Enums.ColumnType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a4ce7a5fe426acc22c687845cf72b9492">Type</a><code> [get]</code></td></tr>
-<tr class="memdesc:a4ce7a5fe426acc22c687845cf72b9492 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of the column  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a4ce7a5fe426acc22c687845cf72b9492">More...</a><br /></td></tr>
-<tr class="separator:a4ce7a5fe426acc22c687845cf72b9492 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f695765aae400e18745a802e88b50c3 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">virtual ColumnType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a9f695765aae400e18745a802e88b50c3">Type</a><code> [get]</code></td></tr>
+<tr class="memdesc:a9f695765aae400e18745a802e88b50c3 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of the column  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a9f695765aae400e18745a802e88b50c3">More...</a><br /></td></tr>
+<tr class="separator:a9f695765aae400e18745a802e88b50c3 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02affc0d4d79a7d688a805734613d9cf inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a02affc0d4d79a7d688a805734613d9cf">Label</a><code> [get, set]</code></td></tr>
 <tr class="memdesc:a02affc0d4d79a7d688a805734613d9cf inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the column  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a02affc0d4d79a7d688a805734613d9cf">More...</a><br /></td></tr>
 <tr class="separator:a02affc0d4d79a7d688a805734613d9cf inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -289,7 +286,7 @@ Properties</h2></td></tr>
 <tr class="memdesc:a98fc916fe5cfb5e1a4093631066cf782 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is this column selected ?  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a98fc916fe5cfb5e1a4093631066cf782">More...</a><br /></td></tr>
 <tr class="separator:a98fc916fe5cfb5e1a4093631066cf782 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d0d780cd0d50a6b27308858df8ded82 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a4d0d780cd0d50a6b27308858df8ded82">IsMinimized</a><code> [get, set]</code></td></tr>
-<tr class="memdesc:a4d0d780cd0d50a6b27308858df8ded82 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is the columns minimized  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a4d0d780cd0d50a6b27308858df8ded82">More...</a><br /></td></tr>
+<tr class="memdesc:a4d0d780cd0d50a6b27308858df8ded82 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is this column minimized ?  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a4d0d780cd0d50a6b27308858df8ded82">More...</a><br /></td></tr>
 <tr class="separator:a4d0d780cd0d50a6b27308858df8ded82 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2d4868eb503c3771660861003da0b14 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#ad2d4868eb503c3771660861003da0b14">IsRenderingUpToDate</a><code> [get, set]</code></td></tr>
 <tr class="memdesc:ad2d4868eb503c3771660861003da0b14 inherit properties_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Does the column rendering need to be updated ?  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#ad2d4868eb503c3771660861003da0b14">More...</a><br /></td></tr>
@@ -363,7 +360,7 @@ List&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html">ROI</a> &
 <tr class="separator:aa1e600d2bcdd2f02ffd97aca841e48ad inherit pro_attribs_class_h_b_p_1_1_module3_d_1_1_column3_d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A 3D column view IEGG, containing all necessary data concerning a data column </p>
+<div class="textblock"><p>Column 3D iEEG class (functional iEEG data) </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a78555432d0b2dfa232abab0df952fa14"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a78555432d0b2dfa232abab0df952fa14">&#9670;&nbsp;</a></span>LoadConfiguration()</h2>
@@ -381,7 +378,13 @@ List&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html">ROI</a> &
       </table>
 </div><div class="memdoc">
 
-<p>Load the visualization configuration from the loaded visualization </p>
+<p>Load the column configuration from the loaded column data </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">firstCall</td><td>Has this method not been called by another load method ?</td></tr>
+  </table>
+  </dd>
+</dl>
 
 <p>Implements <a class="el" href="interface_h_b_p_1_1_module3_d_1_1_i_configurable.html#ae521a40480fc3be40275135d428d66c5">HBP.Module3D.IConfigurable</a>.</p>
 
@@ -403,7 +406,13 @@ List&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html">ROI</a> &
       </table>
 </div><div class="memdoc">
 
-<p>Reset the settings of the loaded scene </p>
+<p>Reset the settings of the loaded column </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">firstCall</td><td>Has this method not been called by another reset method ?</td></tr>
+  </table>
+  </dd>
+</dl>
 
 <p>Implements <a class="el" href="interface_h_b_p_1_1_module3_d_1_1_i_configurable.html#a04c4b92f98a4f3b8c95eb598a7e5d173">HBP.Module3D.IConfigurable</a>.</p>
 
@@ -424,14 +433,33 @@ List&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html">ROI</a> &
       </table>
 </div><div class="memdoc">
 
-<p>Save the current settings of this scene to the configuration of the linked visualization </p>
+<p>Save the current settings of this column to the configuration of the linked column data </p>
 
 <p>Implements <a class="el" href="interface_h_b_p_1_1_module3_d_1_1_i_configurable.html#a45d2eea88dc01ade221cd696e9dc1f5b">HBP.Module3D.IConfigurable</a>.</p>
 
 </div>
 </div>
-<a id="a1fe124a58535fbe495e3066f9c9d7d78"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1fe124a58535fbe495e3066f9c9d7d78">&#9670;&nbsp;</a></span>SetColumnData()</h2>
+<a id="a04192f0840fbf17726f5c73bfc3a2c41"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a04192f0840fbf17726f5c73bfc3a2c41">&#9670;&nbsp;</a></span>SendColormapValues()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void HBP.Module3D.Column3DIEEG.SendColormapValues </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Send colormap values to the overlay </p>
+
+</div>
+</div>
+<a id="a0cdbc2c178a0aeb9228782e9457f6221"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0cdbc2c178a0aeb9228782e9457f6221">&#9670;&nbsp;</a></span>SetColumnData()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -440,16 +468,16 @@ List&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html">ROI</a> &
           <td class="memname">void HBP.Module3D.Column3DIEEG.SetColumnData </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="class_h_b_p_1_1_data_1_1_visualization_1_1_column.html">Data.Visualization.Column</a>&#160;</td>
-          <td class="paramname"><em>newColumnData</em></td><td>)</td>
+          <td class="paramname"><em>columnData</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Specify a new columnData to be associated with the columnd3DView </p>
+<p>Specify a column data for this column </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">columnData</td><td></td></tr>
+    <tr><td class="paramname">columnData</td><td>Column data to use</td></tr>
   </table>
   </dd>
 </dl>
@@ -515,12 +543,12 @@ List&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html">ROI</a> &
 </table>
 </div><div class="memdoc">
 
-<p>Update the sites for this column </p>
+<p>Update the implantation for this column </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sites</td><td></td></tr>
-    <tr><td class="paramname">sitesPatientParent</td><td></td></tr>
-    <tr><td class="paramname">siteList</td><td></td></tr>
+    <tr><td class="paramname">sites</td><td>List of the sites (<a class="el" href="namespace_h_b_p_1_1_module3_d_1_1_d_l_l.html">DLL</a>)</td></tr>
+    <tr><td class="paramname">sitesPatientParent</td><td>List of the gameobjects for the sites corresponding to the patients</td></tr>
+    <tr><td class="paramname">siteList</td><td>List of the sites gameobjects</td></tr>
   </table>
   </dd>
 </dl>
@@ -563,7 +591,14 @@ List&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html">ROI</a> &
 </table>
 </div><div class="memdoc">
 
-<p>Update the plots rendering (iEEG or CCEP) </p>
+<p>Update the shape and color of the sites of this column </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">data</td><td>Information about the scene</td></tr>
+    <tr><td class="paramname">latenciesFile</td><td>CCEP files</td></tr>
+  </table>
+  </dd>
+</dl>
 
 <p>Reimplemented from <a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a47d37746716c310eb907198b8969aec8">HBP.Module3D.Column3D</a>.</p>
 
@@ -647,6 +682,38 @@ List&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html">ROI</a> &
 </div><div class="memdoc">
 
 <p>Values of the iEEG signal of the sites that are not masked (and have correct values) </p>
+
+</div>
+</div>
+<a id="af9d9f74a99691f44b043fcbcb80f433c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9d9f74a99691f44b043fcbcb80f433c">&#9670;&nbsp;</a></span>OnSendColorMapValues</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt;float, float, float&gt; HBP.Module3D.Column3DIEEG.OnSendColorMapValues = new <a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt;float, float, float&gt;()</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Events to send the computed values for the colormap of this column </p>
+
+</div>
+</div>
+<a id="a57f4aff048ec428fa706370e0f06ae19"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a57f4aff048ec428fa706370e0f06ae19">&#9670;&nbsp;</a></span>OnUpdateCurrentTimelineID</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">UnityEvent HBP.Module3D.Column3DIEEG.OnUpdateCurrentTimelineID = new UnityEvent()</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Event called when updating the current timeline ID </p>
 
 </div>
 </div>
@@ -896,30 +963,6 @@ List&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html">ROI</a> &
 </div><div class="memdoc">
 
 <p>Min timeline time value </p>
-
-</div>
-</div>
-<a id="ae2176efb767fd333e8c910d334c38202"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae2176efb767fd333e8c910d334c38202">&#9670;&nbsp;</a></span>SitesCount</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">int HBP.Module3D.Column3DIEEG.SitesCount</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">get</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Number of sites </p>
 
 </div>
 </div>

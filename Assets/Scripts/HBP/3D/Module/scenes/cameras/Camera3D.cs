@@ -1,11 +1,13 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityStandardAssets.ImageEffects;
 
 namespace HBP.Module3D
 {
+    /// <summary>
+    /// Camera of the 3D scene
+    /// </summary>
     public class Camera3D : MonoBehaviour
     {
         #region Properties
@@ -160,6 +162,9 @@ namespace HBP.Module3D
         /// </summary>
         private List<Vector3[]> m_PlanesCutsCirclesVertices = new List<Vector3[]>();
         
+        /// <summary>
+        /// Material of the cuts
+        /// </summary>
         [SerializeField] private Material m_PlaneMaterial;
         /// <summary>
         /// Do we display cut circle ?
@@ -313,7 +318,7 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// 
+        /// Draw the GL objects (cut and rotation circles)
         /// </summary>
         private void DrawGL()
         {
@@ -393,10 +398,9 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Strafe hozizontally the camera position and target with the same vector.
+        /// Strafe the camera horizontally (keeping the same camera direction)
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="amount"></param>
+        /// <param name="amount">Strafe distance</param>
         public void HorizontalStrafe(float amount)
         {
             Vector3 strafe = - transform.right * amount * m_Speed;
@@ -405,10 +409,9 @@ namespace HBP.Module3D
             LocalTarget = LocalTarget + strafe;
         }
         /// <summary>
-        /// Strafe vertically the camera position and target with the same vector.
+        /// Strafe the camera vertically (keeping the same camera direction)
         /// </summary>
-        /// <param name="left"></param>
-        /// <param name="amount"></param>
+        /// <param name="amount">Strafe distance</param>
         public void VerticalStrafe(float amount)
         {
             Vector3 strafe = - transform.up * amount * m_Speed;
@@ -417,15 +420,9 @@ namespace HBP.Module3D
             LocalTarget = LocalTarget + strafe;
         }
         /// <summary>
-        /// Rotate the camera
+        /// Rotate the camera horizontally
         /// </summary>
-        /// <param name="amountX"></param>
-        /// <param name="amountY"></param>
-        /// <summary>
-        /// Turn horizontally around the camera target
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="amount"></param>
+        /// <param name="amount">Rotation amount</param>
         public void HorizontalRotation(float amount)
         {
             switch (Type)
@@ -443,10 +440,9 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Turn vertically around the camera target
+        /// Rotate the camera vertically
         /// </summary>
-        /// <param name="up"></param>
-        /// <param name="amount"></param>
+        /// <param name="amount">Rotation amount</param>
         public void VerticalRotation(float amount)
         {
             transform.RotateAround(Target, transform.right, -amount * m_Speed);

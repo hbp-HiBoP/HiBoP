@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['edgemode',['EdgeMode',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_edge_mode.html',1,'HBP.UI.Module3D.Tools.EdgeMode'],['../class_h_b_p_1_1_module3_d_1_1_base3_d_scene.html#af44e5c9a782c580d9248c890bd01467f',1,'HBP.Module3D.Base3DScene.EdgeMode()'],['../class_h_b_p_1_1_module3_d_1_1_view3_d.html#a5f2862a4bf6669b3c0f3a08a695dc57c',1,'HBP.Module3D.View3D.EdgeMode()'],['../class_h_b_p_1_1_data_1_1_visualization_1_1_visualization_configuration.html#a34f1a9d00b8567d00a6441c227d0bf02',1,'HBP.Data.Visualization.VisualizationConfiguration.EdgeMode()']]],
+  ['edgemode',['EdgeMode',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_edge_mode.html',1,'HBP.UI.Module3D.Tools.EdgeMode'],['../class_h_b_p_1_1_module3_d_1_1_base3_d_scene.html#af44e5c9a782c580d9248c890bd01467f',1,'HBP.Module3D.Base3DScene.EdgeMode()'],['../class_h_b_p_1_1_data_1_1_visualization_1_1_visualization_configuration.html#a34f1a9d00b8567d00a6441c227d0bf02',1,'HBP.Data.Visualization.VisualizationConfiguration.EdgeMode()']]],
   ['editmenu',['EditMenu',['../class_h_b_p_1_1_u_i_1_1_preferences_1_1_edit_menu.html',1,'HBP::UI::Preferences']]],
   ['eeg',['EEG',['../class_elan_1_1_e_e_g.html',1,'Elan.EEG'],['../class_h_b_p_1_1_data_1_1_experience_1_1_dataset_1_1_data_info.html#aea75182a9df25d5aaf6faf013d93b5b5',1,'HBP.Data.Experience.Dataset.DataInfo.EEG()']]],
   ['eegdimensions',['EEGDimensions',['../class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html#a4b4ca72af0619a0a1ff08691b9eadcd0',1,'HBP::Module3D::Column3DIEEG']]],

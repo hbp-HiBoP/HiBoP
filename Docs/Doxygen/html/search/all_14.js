@@ -13,7 +13,7 @@ var searchData=
   ['verticalrotation',['VerticalRotation',['../class_h_b_p_1_1_module3_d_1_1_camera3_d.html#ab15eaae14d3d4c8ccef367415abd6010',1,'HBP::Module3D::Camera3D']]],
   ['verticalstrafe',['VerticalStrafe',['../class_h_b_p_1_1_module3_d_1_1_camera3_d.html#a8b94234fc3500908197ec1b401a8ba89',1,'HBP::Module3D::Camera3D']]],
   ['verticaluifitter',['VerticalUIFitter',['../class_vertical_u_i_fitter.html',1,'']]],
-  ['view',['View',['../class_h_b_p_1_1_data_1_1_visualization_1_1_view.html',1,'HBP.Data.Visualization.View'],['../class_tools_1_1_unity_1_1_resizable_grid_1_1_view.html',1,'Tools.Unity.ResizableGrid.View']]],
+  ['view',['View',['../class_tools_1_1_unity_1_1_resizable_grid_1_1_view.html',1,'Tools.Unity.ResizableGrid.View'],['../class_h_b_p_1_1_data_1_1_visualization_1_1_view.html',1,'HBP.Data.Visualization.View']]],
   ['view3d',['View3D',['../class_h_b_p_1_1_module3_d_1_1_view3_d.html',1,'HBP::Module3D']]],
   ['view3dui',['View3DUI',['../class_view3_d_u_i.html',1,'']]],
   ['viewlinenumber',['ViewLineNumber',['../class_h_b_p_1_1_module3_d_1_1_column3_d_manager.html#ab9efecb3b5eaa643b5d53c45c65759df',1,'HBP::Module3D::Column3DManager']]],

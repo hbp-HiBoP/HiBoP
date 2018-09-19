@@ -1,26 +1,13 @@
-﻿// system
-using CielaSpike;
-/**
-* \file    Column3DViewIEEG.cs
-* \author  Lance Florian
-* \date    2015
-* \brief   Define Column3DViewIEEG class
-*/
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-// unity
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Module3D.DLL;
-using Tools.CSharp;
 using HBP.Data.Enums;
 
 namespace HBP.Module3D
 {
     /// <summary>
-    /// A 3D column view IEGG, containing all necessary data concerning a data column
+    /// Column 3D iEEG class (functional iEEG data)
     /// </summary>
     public class Column3DIEEG : Column3D, IConfigurable
     {
@@ -183,23 +170,13 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Number of sites
-        /// </summary>
-        public int SitesCount
-        {
-            get
-            {
-                return Sites.Count;
-            }
-        }
-        /// <summary>
         /// Dimensions of the EEG array (used for the DLL)
         /// </summary>
         public int[] EEGDimensions
         {
             get
             {
-                return new int[] { TimelineLength, 1, SitesCount };
+                return new int[] { TimelineLength, 1, Sites.Count };
             }
         }
         /// <summary>
@@ -234,6 +211,9 @@ namespace HBP.Module3D
         /// Events to send the computed values for the colormap of this column
         /// </summary>
         [HideInInspector] public GenericEvent<float, float, float> OnSendColorMapValues = new GenericEvent<float, float, float>();
+        /// <summary>
+        /// Event called when updating the current timeline ID
+        /// </summary>
         [HideInInspector] public UnityEvent OnUpdateCurrentTimelineID = new UnityEvent();
         #endregion
 
@@ -257,7 +237,7 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Set EED Data for each site
+        /// Set EEG Data for each site
         /// </summary>
         private void SetEEGData()
         {
@@ -268,8 +248,8 @@ namespace HBP.Module3D
             MaxTimeLineID = ColumnData.TimeLine.Lenght - 1;
 
             // Construct sites value array the old way, and set sites masks // maybe FIXME
-            IEEGValuesBySiteID = new float[SitesCount][];
-            IEEGUnitsBySiteID = new string[SitesCount];
+            IEEGValuesBySiteID = new float[Sites.Count][];
+            IEEGUnitsBySiteID = new string[Sites.Count];
             int numberOfSitesWithValues = 0;
             foreach (Site site in Sites)
             {
@@ -306,7 +286,7 @@ namespace HBP.Module3D
             IEEGParameters.MinimumAmplitude = float.MaxValue;
             IEEGParameters.MaximumAmplitude = float.MinValue;
 
-            int length = TimelineLength * SitesCount;
+            int length = TimelineLength * Sites.Count;
             IEEGValues = new float[length];
             List<float> iEEGNotMasked = new List<float>();
             for (int s = 0; s < Sites.Count; ++s)
@@ -314,7 +294,7 @@ namespace HBP.Module3D
                 for (int t = 0; t < TimelineLength; ++t)
                 {
                     float val = IEEGValuesBySiteID[s][t];
-                    IEEGValues[t * SitesCount + s] = val;
+                    IEEGValues[t * Sites.Count + s] = val;
                 }
                 if (!Sites[s].State.IsMasked)
                 {
@@ -336,6 +316,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Update sites sizes and colors arrays for iEEG (to be called before the rendering update)
         /// </summary>
+        /// <param name="data">Information about the scene</param>
         private void UpdateSitesSizeAndColorForIEEG(SceneStatesInfo data)
         {
             UnityEngine.Profiling.Profiler.BeginSample("update_sites_size_and_color_arrays_for_IEEG");
@@ -380,10 +361,19 @@ namespace HBP.Module3D
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Send colormap values to the overlay
+        /// </summary>
         public void SendColormapValues()
         {
             OnSendColorMapValues.Invoke(IEEGParameters.SpanMin, IEEGParameters.Middle, IEEGParameters.SpanMax);
         }
+        /// <summary>
+        /// Update the implantation for this column
+        /// </summary>
+        /// <param name="sites">List of the sites (DLL)</param>
+        /// <param name="sitesPatientParent">List of the gameobjects for the sites corresponding to the patients</param>
+        /// <param name="siteList">List of the sites gameobjects</param>
         public override void UpdateSites(PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             base.UpdateSites(sites, sitesPatientParent, siteList);
@@ -400,8 +390,9 @@ namespace HBP.Module3D
             SetEEGData();
         }
         /// <summary>
-        /// Load the visualization configuration from the loaded visualization
+        /// Load the column configuration from the loaded column data
         /// </summary>
+        /// <param name="firstCall">Has this method not been called by another load method ?</param>
         public void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration(false);
@@ -425,7 +416,7 @@ namespace HBP.Module3D
             if (firstCall) ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
-        /// Save the current settings of this scene to the configuration of the linked visualization
+        /// Save the current settings of this column to the configuration of the linked column data
         /// </summary>
         public void SaveConfiguration()
         {
@@ -447,8 +438,9 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Reset the settings of the loaded scene
+        /// Reset the settings of the loaded column
         /// </summary>
+        /// <param name="firstCall">Has this method not been called by another reset method ?</param>
         public void ResetConfiguration(bool firstCall = true)
         {
             IEEGParameters.Gain = 1.0f;
@@ -478,17 +470,19 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// Specify a new columnData to be associated with the columnd3DView
+        /// Specify a column data for this column
         /// </summary>
-        /// <param name="columnData"></param>
-        public void SetColumnData(Data.Visualization.Column newColumnData)
+        /// <param name="columnData">Column data to use</param>
+        public void SetColumnData(Data.Visualization.Column columnData)
         {
-            ColumnData = newColumnData;
+            ColumnData = columnData;
             SetEEGData();
         }
         /// <summary>
-        /// Update the plots rendering (iEEG or CCEP)
+        /// Update the shape and color of the sites of this column
         /// </summary>
+        /// <param name="data">Information about the scene</param>
+        /// <param name="latenciesFile">CCEP files</param>
         public override void UpdateSitesRendering(SceneStatesInfo data, Latencies latenciesFile)
         {
             UpdateSitesSizeAndColorForIEEG(data);

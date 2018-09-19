@@ -7,7 +7,7 @@ var searchData=
   ['versionmenu',['VersionMenu',['../class_h_b_p_1_1_u_i_1_1_version_menu.html',1,'HBP::UI']]],
   ['verticalhandler',['VerticalHandler',['../class_tools_1_1_unity_1_1_resizable_grid_1_1_vertical_handler.html',1,'Tools::Unity::ResizableGrid']]],
   ['verticaluifitter',['VerticalUIFitter',['../class_vertical_u_i_fitter.html',1,'']]],
-  ['view',['View',['../class_h_b_p_1_1_data_1_1_visualization_1_1_view.html',1,'HBP.Data.Visualization.View'],['../class_tools_1_1_unity_1_1_resizable_grid_1_1_view.html',1,'Tools.Unity.ResizableGrid.View']]],
+  ['view',['View',['../class_tools_1_1_unity_1_1_resizable_grid_1_1_view.html',1,'Tools.Unity.ResizableGrid.View'],['../class_h_b_p_1_1_data_1_1_visualization_1_1_view.html',1,'HBP.Data.Visualization.View']]],
   ['view3d',['View3D',['../class_h_b_p_1_1_module3_d_1_1_view3_d.html',1,'HBP::Module3D']]],
   ['view3dui',['View3DUI',['../class_view3_d_u_i.html',1,'']]],
   ['views',['Views',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_views.html',1,'HBP::UI::Module3D::Tools']]],

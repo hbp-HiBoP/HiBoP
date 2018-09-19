@@ -79,7 +79,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>Column 3D view base class  
+<p>Column 3D base class (anatomical data only)  
  <a href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#details">More...</a></p>
 <div class="dynheader">
 Inheritance diagram for HBP.Module3D.Column3D:</div>
@@ -87,32 +87,32 @@ Inheritance diagram for HBP.Module3D.Column3D:</div>
  <div class="center">
   <img src="class_h_b_p_1_1_module3_d_1_1_column3_d.png" usemap="#HBP.Module3D.Column3D_map" alt=""/>
   <map id="HBP.Module3D.Column3D_map" name="HBP.Module3D.Column3D_map">
-<area href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html" title="A 3D column view IEGG, containing all necessary data concerning a data column " alt="HBP.Module3D.Column3DIEEG" shape="rect" coords="0,112,189,136"/>
+<area href="class_h_b_p_1_1_module3_d_1_1_column3_d_i_e_e_g.html" title="Column 3D iEEG class (functional iEEG data) " alt="HBP.Module3D.Column3DIEEG" shape="rect" coords="0,112,189,136"/>
 </map>
  </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aab3752f8144866fdf7f5c3bbdedc2591"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#aab3752f8144866fdf7f5c3bbdedc2591">Initialize</a> (int idColumn, <a class="el" href="class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_patient_electrodes_list.html">PatientElectrodesList</a> sites, List&lt; GameObject &gt; sitesPatientParent, List&lt; GameObject &gt; siteList)</td></tr>
-<tr class="memdesc:aab3752f8144866fdf7f5c3bbdedc2591"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the column with a view and the sites  <a href="#aab3752f8144866fdf7f5c3bbdedc2591">More...</a><br /></td></tr>
+<tr class="memdesc:aab3752f8144866fdf7f5c3bbdedc2591"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the column  <a href="#aab3752f8144866fdf7f5c3bbdedc2591">More...</a><br /></td></tr>
 <tr class="separator:aab3752f8144866fdf7f5c3bbdedc2591"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acab90608cfa659a77b09aecfdf48b3e8"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#acab90608cfa659a77b09aecfdf48b3e8">UpdateSites</a> (<a class="el" href="class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_patient_electrodes_list.html">PatientElectrodesList</a> sites, List&lt; GameObject &gt; sitesPatientParent, List&lt; GameObject &gt; siteList)</td></tr>
-<tr class="memdesc:acab90608cfa659a77b09aecfdf48b3e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the sites for this column  <a href="#acab90608cfa659a77b09aecfdf48b3e8">More...</a><br /></td></tr>
+<tr class="memdesc:acab90608cfa659a77b09aecfdf48b3e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the implantation for this column  <a href="#acab90608cfa659a77b09aecfdf48b3e8">More...</a><br /></td></tr>
 <tr class="separator:acab90608cfa659a77b09aecfdf48b3e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8980df6a318756227bbd356dd1947821"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a8980df6a318756227bbd356dd1947821">InitializeColumnMeshes</a> (GameObject brainMeshesParent, bool useSimplifiedMeshes)</td></tr>
-<tr class="memdesc:a8980df6a318756227bbd356dd1947821"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the meshes for this column  <a href="#a8980df6a318756227bbd356dd1947821">More...</a><br /></td></tr>
+<tr class="memdesc:a8980df6a318756227bbd356dd1947821"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the column specific meshes (differents UVs for the iEEG signal)  <a href="#a8980df6a318756227bbd356dd1947821">More...</a><br /></td></tr>
 <tr class="separator:a8980df6a318756227bbd356dd1947821"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6735664d819471e123121e509d47ae3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#af6735664d819471e123121e509d47ae3">UpdateColumnMeshes</a> (List&lt; GameObject &gt; brainMeshes, bool useSimplifiedMeshes)</td></tr>
 <tr class="memdesc:af6735664d819471e123121e509d47ae3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the meshes of this column  <a href="#af6735664d819471e123121e509d47ae3">More...</a><br /></td></tr>
 <tr class="separator:af6735664d819471e123121e509d47ae3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57fe6d4919df048e1b5b944fac575651"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a57fe6d4919df048e1b5b944fac575651">ChangeMeshesLayer</a> (int layer)</td></tr>
-<tr class="memdesc:a57fe6d4919df048e1b5b944fac575651"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change the layer of the brain meshes (invisible when cutting)  <a href="#a57fe6d4919df048e1b5b944fac575651">More...</a><br /></td></tr>
+<tr class="memdesc:a57fe6d4919df048e1b5b944fac575651"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change the layer of the brain meshes  <a href="#a57fe6d4919df048e1b5b944fac575651">More...</a><br /></td></tr>
 <tr class="separator:a57fe6d4919df048e1b5b944fac575651"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27a94b9efdff45bc30b3b2118385e81f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a27a94b9efdff45bc30b3b2118385e81f">ResetSplitsNumber</a> (int nbSplits)</td></tr>
-<tr class="memdesc:a27a94b9efdff45bc30b3b2118385e81f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset the brain texture generators;  <a href="#a27a94b9efdff45bc30b3b2118385e81f">More...</a><br /></td></tr>
+<tr class="memdesc:a27a94b9efdff45bc30b3b2118385e81f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset the splits number  <a href="#a27a94b9efdff45bc30b3b2118385e81f">More...</a><br /></td></tr>
 <tr class="separator:a27a94b9efdff45bc30b3b2118385e81f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a015af1835267eba13c8d9d8e334f2aa2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a015af1835267eba13c8d9d8e334f2aa2">UpdateCutsPlanesNumber</a> (int nbCuts)</td></tr>
-<tr class="memdesc:a015af1835267eba13c8d9d8e334f2aa2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset the cut textures generators  <a href="#a015af1835267eba13c8d9d8e334f2aa2">More...</a><br /></td></tr>
+<tr class="memdesc:a015af1835267eba13c8d9d8e334f2aa2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the number of cuts  <a href="#a015af1835267eba13c8d9d8e334f2aa2">More...</a><br /></td></tr>
 <tr class="separator:a015af1835267eba13c8d9d8e334f2aa2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a47d37746716c310eb907198b8969aec8"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a47d37746716c310eb907198b8969aec8">UpdateSitesRendering</a> (<a class="el" href="class_h_b_p_1_1_module3_d_1_1_scene_states_info.html">SceneStatesInfo</a> data, <a class="el" href="class_h_b_p_1_1_module3_d_1_1_latencies.html">Latencies</a> latenciesFile)</td></tr>
 <tr class="memdesc:a47d37746716c310eb907198b8969aec8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the shape and color of the sites of this column  <a href="#a47d37746716c310eb907198b8969aec8">More...</a><br /></td></tr>
@@ -141,6 +141,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a01aab9d2469bb57174e86d2fbc9334eb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a01aab9d2469bb57174e86d2fbc9334eb">MoveSelectedROISphere</a> (Camera camera, Vector3 delta)</td></tr>
 <tr class="memdesc:a01aab9d2469bb57174e86d2fbc9334eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move the selected sphere by delta  <a href="#a01aab9d2469bb57174e86d2fbc9334eb">More...</a><br /></td></tr>
 <tr class="separator:a01aab9d2469bb57174e86d2fbc9334eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8863d52b9194203a1e994d2299417cc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#aa8863d52b9194203a1e994d2299417cc">UpdateROIMask</a> ()</td></tr>
+<tr class="memdesc:aa8863d52b9194203a1e994d2299417cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update the <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> mask for this column  <a href="#aa8863d52b9194203a1e994d2299417cc">More...</a><br /></td></tr>
+<tr class="separator:aa8863d52b9194203a1e994d2299417cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3cd0a3625e0c6654140ace312dff3185"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a3cd0a3625e0c6654140ace312dff3185">UnselectSite</a> ()</td></tr>
 <tr class="memdesc:a3cd0a3625e0c6654140ace312dff3185"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unselect the selected site  <a href="#a3cd0a3625e0c6654140ace312dff3185">More...</a><br /></td></tr>
 <tr class="separator:a3cd0a3625e0c6654140ace312dff3185"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -165,18 +168,9 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:acd5ad4d7fb8b7c6f9814a6417995177d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_view3_d.html">View3D</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#acd5ad4d7fb8b7c6f9814a6417995177d">OnMoveView</a> = new <a class="el" href="class_unity_engine_1_1_events_1_1_generic_event.html">GenericEvent</a>&lt;<a class="el" href="class_h_b_p_1_1_module3_d_1_1_view3_d.html">View3D</a>&gt;()</td></tr>
 <tr class="memdesc:acd5ad4d7fb8b7c6f9814a6417995177d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when a view is moved  <a href="#acd5ad4d7fb8b7c6f9814a6417995177d">More...</a><br /></td></tr>
 <tr class="separator:acd5ad4d7fb8b7c6f9814a6417995177d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab4540d313bad04bf414e177d948a3309"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#ab4540d313bad04bf414e177d948a3309">OnChangeNumberOfROI</a> = new UnityEvent()</td></tr>
-<tr class="memdesc:ab4540d313bad04bf414e177d948a3309"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when changing the number of ROIs of this column  <a href="#ab4540d313bad04bf414e177d948a3309">More...</a><br /></td></tr>
-<tr class="separator:ab4540d313bad04bf414e177d948a3309"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a273758160a67cab7a60eb15362852d1f"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a273758160a67cab7a60eb15362852d1f">OnChangeNumberOfVolumeInROI</a> = new UnityEvent()</td></tr>
-<tr class="memdesc:a273758160a67cab7a60eb15362852d1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when changing the number of volume in a <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> of this column  <a href="#a273758160a67cab7a60eb15362852d1f">More...</a><br /></td></tr>
-<tr class="separator:a273758160a67cab7a60eb15362852d1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a889849909b393d45b73a08b61b218ae9"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a889849909b393d45b73a08b61b218ae9">OnSelectROI</a> = new UnityEvent()</td></tr>
-<tr class="memdesc:a889849909b393d45b73a08b61b218ae9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when selecting a <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a>  <a href="#a889849909b393d45b73a08b61b218ae9">More...</a><br /></td></tr>
-<tr class="separator:a889849909b393d45b73a08b61b218ae9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6859a6c8e882f99b17dda500af954673"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a6859a6c8e882f99b17dda500af954673">OnChangeROIVolumeRadius</a> = new UnityEvent()</td></tr>
-<tr class="memdesc:a6859a6c8e882f99b17dda500af954673"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when changing the radius of a volume in a <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a>  <a href="#a6859a6c8e882f99b17dda500af954673">More...</a><br /></td></tr>
-<tr class="separator:a6859a6c8e882f99b17dda500af954673"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2da4bf2f81d2f42f725437382fd05a4"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#ad2da4bf2f81d2f42f725437382fd05a4">OnUpdateROIMask</a> = new UnityEvent()</td></tr>
+<tr class="memdesc:ad2da4bf2f81d2f42f725437382fd05a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when updating the <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> mask for this column  <a href="#ad2da4bf2f81d2f42f725437382fd05a4">More...</a><br /></td></tr>
+<tr class="separator:ad2da4bf2f81d2f42f725437382fd05a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb9a46edec130022c50ee2182e9e3bd8"><td class="memItemLeft" align="right" valign="top">UnityEvent&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#adb9a46edec130022c50ee2182e9e3bd8">OnChangeMinimizedState</a> = new UnityEvent()</td></tr>
 <tr class="memdesc:adb9a46edec130022c50ee2182e9e3bd8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when minimizing a column  <a href="#adb9a46edec130022c50ee2182e9e3bd8">More...</a><br /></td></tr>
 <tr class="separator:adb9a46edec130022c50ee2182e9e3bd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -216,9 +210,9 @@ List&lt; <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html">ROI</a> &
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="properties"></a>
 Properties</h2></td></tr>
-<tr class="memitem:a4ce7a5fe426acc22c687845cf72b9492"><td class="memItemLeft" align="right" valign="top">virtual Data.Enums.ColumnType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a4ce7a5fe426acc22c687845cf72b9492">Type</a><code> [get]</code></td></tr>
-<tr class="memdesc:a4ce7a5fe426acc22c687845cf72b9492"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of the column  <a href="#a4ce7a5fe426acc22c687845cf72b9492">More...</a><br /></td></tr>
-<tr class="separator:a4ce7a5fe426acc22c687845cf72b9492"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f695765aae400e18745a802e88b50c3"><td class="memItemLeft" align="right" valign="top">virtual ColumnType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a9f695765aae400e18745a802e88b50c3">Type</a><code> [get]</code></td></tr>
+<tr class="memdesc:a9f695765aae400e18745a802e88b50c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of the column  <a href="#a9f695765aae400e18745a802e88b50c3">More...</a><br /></td></tr>
+<tr class="separator:a9f695765aae400e18745a802e88b50c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02affc0d4d79a7d688a805734613d9cf"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a02affc0d4d79a7d688a805734613d9cf">Label</a><code> [get, set]</code></td></tr>
 <tr class="memdesc:a02affc0d4d79a7d688a805734613d9cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the column  <a href="#a02affc0d4d79a7d688a805734613d9cf">More...</a><br /></td></tr>
 <tr class="separator:a02affc0d4d79a7d688a805734613d9cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -229,7 +223,7 @@ Properties</h2></td></tr>
 <tr class="memdesc:a98fc916fe5cfb5e1a4093631066cf782"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is this column selected ?  <a href="#a98fc916fe5cfb5e1a4093631066cf782">More...</a><br /></td></tr>
 <tr class="separator:a98fc916fe5cfb5e1a4093631066cf782"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d0d780cd0d50a6b27308858df8ded82"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#a4d0d780cd0d50a6b27308858df8ded82">IsMinimized</a><code> [get, set]</code></td></tr>
-<tr class="memdesc:a4d0d780cd0d50a6b27308858df8ded82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is the columns minimized  <a href="#a4d0d780cd0d50a6b27308858df8ded82">More...</a><br /></td></tr>
+<tr class="memdesc:a4d0d780cd0d50a6b27308858df8ded82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is this column minimized ?  <a href="#a4d0d780cd0d50a6b27308858df8ded82">More...</a><br /></td></tr>
 <tr class="separator:a4d0d780cd0d50a6b27308858df8ded82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2d4868eb503c3771660861003da0b14"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_h_b_p_1_1_module3_d_1_1_column3_d.html#ad2d4868eb503c3771660861003da0b14">IsRenderingUpToDate</a><code> [get, set]</code></td></tr>
 <tr class="memdesc:ad2d4868eb503c3771660861003da0b14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Does the column rendering need to be updated ?  <a href="#ad2d4868eb503c3771660861003da0b14">More...</a><br /></td></tr>
@@ -278,7 +272,7 @@ Properties</h2></td></tr>
 <tr class="separator:aeb4be733c7267474982ec6f41b9bd5a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Column 3D view base class </p>
+<div class="textblock"><p>Column 3D base class (anatomical data only) </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a10e4fe0201e17f0cf6deb7009578e6e6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a10e4fe0201e17f0cf6deb7009578e6e6">&#9670;&nbsp;</a></span>AddROI()</h2>
@@ -299,11 +293,11 @@ Properties</h2></td></tr>
 <p>Add a <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> to this column </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">name</td><td></td></tr>
+    <tr><td class="paramname">name</td><td>Name of the new <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd></dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Newly created <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a></dd></dl>
 
 </div>
 </div>
@@ -342,10 +336,10 @@ Properties</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Change the layer of the brain meshes (invisible when cutting) </p>
+<p>Change the layer of the brain meshes </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">layer</td><td></td></tr>
+    <tr><td class="paramname">layer</td><td>New layer for the meshes</td></tr>
   </table>
   </dd>
 </dl>
@@ -371,7 +365,7 @@ Properties</h2></td></tr>
 <p>Create a new <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> using the parameters of another <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">roi</td><td></td></tr>
+    <tr><td class="paramname">roi</td><td><a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> to copy parameters from</td></tr>
   </table>
   </dd>
 </dl>
@@ -416,13 +410,13 @@ Properties</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Initialize the column with a view and the sites </p>
+<p>Initialize the column </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">idColumn</td><td></td></tr>
-    <tr><td class="paramname">sites</td><td></td></tr>
-    <tr><td class="paramname">sitesPatientParent</td><td></td></tr>
-    <tr><td class="paramname">siteList</td><td></td></tr>
+    <tr><td class="paramname">idColumn</td><td>ID of the column</td></tr>
+    <tr><td class="paramname">sites</td><td>List of sites (<a class="el" href="namespace_h_b_p_1_1_module3_d_1_1_d_l_l.html">DLL</a>)</td></tr>
+    <tr><td class="paramname">sitesPatientParent</td><td>List of the gameobjects for the sites corresponding to the patients</td></tr>
+    <tr><td class="paramname">siteList</td><td>List of the sites gameobjects</td></tr>
   </table>
   </dd>
 </dl>
@@ -455,10 +449,11 @@ Properties</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Set the meshes for this column </p>
+<p>Initialize the column specific meshes (differents UVs for the iEEG signal) </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">brainMeshesParent</td><td></td></tr>
+    <tr><td class="paramname">brainMeshesParent</td><td>Parent of the main meshes</td></tr>
+    <tr><td class="paramname">useSimplifiedMeshes</td><td>Are we using simplified meshes ?</td></tr>
   </table>
   </dd>
 </dl>
@@ -484,7 +479,7 @@ Properties</h2></td></tr>
 <p>Load the states of the sites to this column from a file </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">path</td><td></td></tr>
+    <tr><td class="paramname">path</td><td>Path of the file to load data from</td></tr>
   </table>
   </dd>
 </dl>
@@ -520,8 +515,8 @@ Properties</h2></td></tr>
 <p>Move the selected sphere by delta </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">camera</td><td></td></tr>
-    <tr><td class="paramname">delta</td><td></td></tr>
+    <tr><td class="paramname">camera</td><td>Reference camera</td></tr>
+    <tr><td class="paramname">delta</td><td>Distance and direction of the movement</td></tr>
   </table>
   </dd>
 </dl>
@@ -566,7 +561,7 @@ Properties</h2></td></tr>
 <p>Remove a view from this column </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">lineID</td><td></td></tr>
+    <tr><td class="paramname">lineID</td><td>ID of the view line to be removed</td></tr>
   </table>
   </dd>
 </dl>
@@ -589,10 +584,10 @@ Properties</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Reset the brain texture generators; </p>
+<p>Reset the splits number </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">nbSplits</td><td></td></tr>
+    <tr><td class="paramname">nbSplits</td><td>Number of splits</td></tr>
   </table>
   </dd>
 </dl>
@@ -618,7 +613,7 @@ Properties</h2></td></tr>
 <p>Save the states of the sites of this column to a file </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">path</td><td></td></tr>
+    <tr><td class="paramname">path</td><td>Path where to save the data</td></tr>
   </table>
   </dd>
 </dl>
@@ -673,7 +668,8 @@ Properties</h2></td></tr>
 <p>Update the meshes of this column </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">brainMeshes</td><td></td></tr>
+    <tr><td class="paramname">brainMeshes</td><td>Parent of the main meshes</td></tr>
+    <tr><td class="paramname">useSimplifiedMeshes</td><td>Are we using simplified meshes ?</td></tr>
   </table>
   </dd>
 </dl>
@@ -696,13 +692,32 @@ Properties</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Reset the cut textures generators </p>
+<p>Update the number of cuts </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">nbCuts</td><td></td></tr>
+    <tr><td class="paramname">nbCuts</td><td>Number of cuts</td></tr>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="aa8863d52b9194203a1e994d2299417cc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8863d52b9194203a1e994d2299417cc">&#9670;&nbsp;</a></span>UpdateROIMask()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void HBP.Module3D.Column3D.UpdateROIMask </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Update the <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> mask for this column </p>
 
 </div>
 </div>
@@ -746,12 +761,12 @@ Properties</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Update the sites for this column </p>
+<p>Update the implantation for this column </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sites</td><td></td></tr>
-    <tr><td class="paramname">sitesPatientParent</td><td></td></tr>
-    <tr><td class="paramname">siteList</td><td></td></tr>
+    <tr><td class="paramname">sites</td><td>List of the sites (<a class="el" href="namespace_h_b_p_1_1_module3_d_1_1_d_l_l.html">DLL</a>)</td></tr>
+    <tr><td class="paramname">sitesPatientParent</td><td>List of the gameobjects for the sites corresponding to the patients</td></tr>
+    <tr><td class="paramname">siteList</td><td>List of the sites gameobjects</td></tr>
   </table>
   </dd>
 </dl>
@@ -797,8 +812,8 @@ Properties</h2></td></tr>
 <p>Update the shape and color of the sites of this column </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">data</td><td></td></tr>
-    <tr><td class="paramname">latenciesFile</td><td></td></tr>
+    <tr><td class="paramname">data</td><td>Information about the scene</td></tr>
+    <tr><td class="paramname">latenciesFile</td><td>CCEP files</td></tr>
   </table>
   </dd>
 </dl>
@@ -904,54 +919,6 @@ Properties</h2></td></tr>
 
 </div>
 </div>
-<a id="ab4540d313bad04bf414e177d948a3309"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab4540d313bad04bf414e177d948a3309">&#9670;&nbsp;</a></span>OnChangeNumberOfROI</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">UnityEvent HBP.Module3D.Column3D.OnChangeNumberOfROI = new UnityEvent()</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Event called when changing the number of ROIs of this column </p>
-
-</div>
-</div>
-<a id="a273758160a67cab7a60eb15362852d1f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a273758160a67cab7a60eb15362852d1f">&#9670;&nbsp;</a></span>OnChangeNumberOfVolumeInROI</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">UnityEvent HBP.Module3D.Column3D.OnChangeNumberOfVolumeInROI = new UnityEvent()</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Event called when changing the number of volume in a <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> of this column </p>
-
-</div>
-</div>
-<a id="a6859a6c8e882f99b17dda500af954673"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6859a6c8e882f99b17dda500af954673">&#9670;&nbsp;</a></span>OnChangeROIVolumeRadius</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">UnityEvent HBP.Module3D.Column3D.OnChangeROIVolumeRadius = new UnityEvent()</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Event called when changing the radius of a volume in a <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> </p>
-
-</div>
-</div>
 <a id="a28e0a4169d8b9686a60de0f185fd2917"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a28e0a4169d8b9686a60de0f185fd2917">&#9670;&nbsp;</a></span>OnChangeSelectedState</h2>
 
@@ -1000,22 +967,6 @@ Properties</h2></td></tr>
 
 </div>
 </div>
-<a id="a889849909b393d45b73a08b61b218ae9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a889849909b393d45b73a08b61b218ae9">&#9670;&nbsp;</a></span>OnSelectROI</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">UnityEvent HBP.Module3D.Column3D.OnSelectROI = new UnityEvent()</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Event called when selecting a <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> </p>
-
-</div>
-</div>
 <a id="a24dab0b8e5b100ef8ff8d3e50280078d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a24dab0b8e5b100ef8ff8d3e50280078d">&#9670;&nbsp;</a></span>OnSelectSite</h2>
 
@@ -1029,6 +980,22 @@ Properties</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Event called when selecting a site </p>
+
+</div>
+</div>
+<a id="ad2da4bf2f81d2f42f725437382fd05a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2da4bf2f81d2f42f725437382fd05a4">&#9670;&nbsp;</a></span>OnUpdateROIMask</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">UnityEvent HBP.Module3D.Column3D.OnUpdateROIMask = new UnityEvent()</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Event called when updating the <a class="el" href="class_h_b_p_1_1_module3_d_1_1_r_o_i.html" title="Define a ROI containing bubbles ">ROI</a> mask for this column </p>
 
 </div>
 </div>
@@ -1173,7 +1140,7 @@ Properties</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Is the columns minimized </p>
+<p>Is this column minimized ? </p>
 
 </div>
 </div>
@@ -1513,8 +1480,8 @@ Properties</h2></td></tr>
 
 </div>
 </div>
-<a id="a4ce7a5fe426acc22c687845cf72b9492"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ce7a5fe426acc22c687845cf72b9492">&#9670;&nbsp;</a></span>Type</h2>
+<a id="a9f695765aae400e18745a802e88b50c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f695765aae400e18745a802e88b50c3">&#9670;&nbsp;</a></span>Type</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1523,7 +1490,7 @@ Properties</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual Data.Enums.ColumnType HBP.Module3D.Column3D.Type</td>
+          <td class="memname">virtual ColumnType HBP.Module3D.Column3D.Type</td>
         </tr>
       </table>
   </td>

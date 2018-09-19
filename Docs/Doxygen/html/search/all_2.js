@@ -1,7 +1,6 @@
 var searchData=
 [
   ['base3dscene',['Base3DScene',['../class_h_b_p_1_1_module3_d_1_1_base3_d_scene.html',1,'HBP::Module3D']]],
-  ['base3dscene_2ecs',['Base3DScene.cs',['../_base3_d_scene_8cs.html',1,'']]],
   ['baseline',['Baseline',['../class_h_b_p_1_1_data_1_1_experience_1_1_protocol_1_1_bloc.html#ac30655dc5af726a58c59667f0b5089cc',1,'HBP::Data::Experience::Protocol::Bloc']]],
   ['basesiteconditions',['BaseSiteConditions',['../class_base_site_conditions.html',1,'']]],
   ['basicsiteconditions',['BasicSiteConditions',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_basic_site_conditions.html',1,'HBP::UI::Module3D']]],
@@ -24,6 +23,8 @@ var searchData=
   ['boundingbox',['BoundingBox',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_surface.html#a0f5dc321fd5c6cc911c888dd3f452a3f',1,'HBP.Module3D.DLL.Surface.BoundingBox()'],['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_volume.html#aa2fa2d813e56b5cd698c9d4bd3dda57a',1,'HBP.Module3D.DLL.Volume.BoundingBox()']]],
   ['brain',['Brain',['../struct_h_b_p_1_1_module3_d_1_1_shared_materials_1_1_brain.html',1,'HBP.Module3D.SharedMaterials.Brain'],['../class_h_b_p_1_1_data_1_1_anatomy_1_1_brain.html',1,'HBP.Data.Anatomy.Brain'],['../class_h_b_p_1_1_data_1_1_patient.html#a00597b714ea6a2eb4e4e941c7e46d2cb',1,'HBP.Data.Patient.Brain()']]],
   ['braincolor',['BrainColor',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_brain_color.html',1,'HBP.UI.Module3D.Tools.BrainColor'],['../class_h_b_p_1_1_module3_d_1_1_column3_d_manager.html#a4fec9028bc68b20daab6c5b974a5aefc',1,'HBP.Module3D.Column3DManager.BrainColor()'],['../class_h_b_p_1_1_data_1_1_visualization_1_1_visualization_configuration.html#a1298dffc07a6eca1e4f94e84fd32a842',1,'HBP.Data.Visualization.VisualizationConfiguration.BrainColor()']]],
+  ['braincolormaptexture',['BrainColorMapTexture',['../class_h_b_p_1_1_module3_d_1_1_column3_d_manager.html#a1483ba3d190081a897bb044305f2fe38',1,'HBP::Module3D::Column3DManager']]],
+  ['braincolortexture',['BrainColorTexture',['../class_h_b_p_1_1_module3_d_1_1_column3_d_manager.html#a41b187ed15d64109d0eab0a7fa95e27b',1,'HBP::Module3D::Column3DManager']]],
   ['braincutcolor',['BrainCutColor',['../class_h_b_p_1_1_module3_d_1_1_column3_d_manager.html#a4998b782b319924163925c4b19b529df',1,'HBP.Module3D.Column3DManager.BrainCutColor()'],['../class_h_b_p_1_1_data_1_1_visualization_1_1_visualization_configuration.html#aadc0a3aabbd1e853e9c86bcb94172d87',1,'HBP.Data.Visualization.VisualizationConfiguration.BrainCutColor()']]],
   ['braincutmeshes',['BrainCutMeshes',['../class_h_b_p_1_1_module3_d_1_1_displayed_objects.html#a0d6dd7c85295e71bc348baa1ed15f1f8',1,'HBP::Module3D::DisplayedObjects']]],
   ['braincutmeshesparent',['BrainCutMeshesParent',['../class_h_b_p_1_1_module3_d_1_1_displayed_objects.html#a644b2e662e014fe47b977f44a5da424e',1,'HBP::Module3D::DisplayedObjects']]],

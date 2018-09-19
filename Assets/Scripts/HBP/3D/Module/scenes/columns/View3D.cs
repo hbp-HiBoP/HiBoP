@@ -128,7 +128,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Set the edge mode
         /// </summary>
-        public bool EdgeMode
+        public bool ShowEdges
         {
             get
             {
@@ -210,7 +210,7 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        /// Aspect ration of the camera
+        /// Aspect ratio of the camera
         /// </summary>
         public float Aspect
         {
@@ -331,7 +331,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Synchronize the camera of this view using the camera from a reference view
         /// </summary>
-        /// <param name="reference"></param>
+        /// <param name="reference">Reference view</param>
         public void SynchronizeCamera(View3D reference)
         {
             m_Camera3D.transform.localPosition = reference.m_Camera3D.transform.localPosition;
@@ -340,15 +340,18 @@ namespace HBP.Module3D
         /// <summary>
         /// Set the viewport of the camera
         /// </summary>
-        /// <param name="viewport">Viewport</param>
+        /// <param name="x">X position of the viewport</param>
+        /// <param name="y">Y position of the viewport</param>
+        /// <param name="width">Width of the viewport</param>
+        /// <param name="height">Height of the viewport</param>
         public void SetViewport(float x, float y, float width, float height)
         {
             m_Camera3D.Camera.rect = new Rect(x / Screen.width, y / Screen.height, width / Screen.width, height / Screen.height);
         }
         /// <summary>
-        /// Rotate the camera around
+        /// Rotate the camera by a specific amount
         /// </summary>
-        /// <param name="amountX">Distance</param>
+        /// <param name="amount">Distance and direction of the rotation</param>
         public void RotateCamera(Vector2 amount)
         {
             m_Camera3D.HorizontalRotation(amount.x);
@@ -356,9 +359,9 @@ namespace HBP.Module3D
             OnMoveView.Invoke();
         }
         /// <summary>
-        /// Strafe the camera
+        /// Strafe the camera by a specific amount
         /// </summary>
-        /// <param name="amount">Distance</param>
+        /// <param name="amount">Distance and direction of the strafe</param>
         public void StrafeCamera(Vector2 amount)
         {
             m_Camera3D.HorizontalStrafe(amount.x);
@@ -366,19 +369,20 @@ namespace HBP.Module3D
             OnMoveView.Invoke();
         }
         /// <summary>
-        /// Zoom with the camera
+        /// Zoom with the camera by a specific amount
         /// </summary>
-        /// <param name="amount">Distance</param>
+        /// <param name="amount">Distance of the zoom</param>
         public void ZoomCamera(float amount)
         {
             m_Camera3D.Zoom(5*amount);
             OnMoveView.Invoke();
         }
         /// <summary>
-        /// Set camera settings
+        /// Set the camera settings
         /// </summary>
-        /// <param name="position"></param>
-        /// <param name="rotation"></param>
+        /// <param name="position">Position of the camera</param>
+        /// <param name="rotation">Rotation of the camera</param>
+        /// <param name="target">Target of the camera</param>
         public void SetCamera(Vector3 position, Quaternion rotation, Vector3 target)
         {
             m_Camera3D.transform.localPosition = position;

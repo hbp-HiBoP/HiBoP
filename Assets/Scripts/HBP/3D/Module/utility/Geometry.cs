@@ -1,40 +1,33 @@
-﻿
-
-/**
- * \file    Geometry.cs
- * \author  Lance Florian
- * \date    2015
- * \brief   Define Plane, BBox and Geometry classes
- */
-
-// system
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-
-// unity
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace HBP.Module3D
 {
     /// <summary>
-    /// BBox simple class with a min and max 3D points
+    /// Bounding box simple class with a min and max 3D points
     /// </summary>
     public struct BBox
     {
         #region Properties
-        public Vector3 Min; /**< min point of the bBox */
-        public Vector3 Max; /**< max point of the bBox */
+        /// <summary>
+        /// Minimum point of the bounding box
+        /// </summary>
+        public Vector3 Min;
+        /// <summary>
+        /// Maximum point of the bounding box
+        /// </summary>
+        public Vector3 Max;
         #endregion
 
-        #region Public Methods
+        #region Constructors
         /// <summary>
-        ///  Constructor of the bounding box
+        /// Constructor of the bounding box
         /// </summary>
-        /// <param name="bboxArray"></param>
+        /// <param name="bboxArray">Dimensions (Xmin, Ymin, Zmin, Xmax, Ymax, Zmax)</param>
         public BBox(float[] bboxArray)
         {
-            this.Min = new Vector3(bboxArray[0], bboxArray[1], bboxArray[2]);
-            this.Max = new Vector3(bboxArray[3], bboxArray[4], bboxArray[5]);
+            Min = new Vector3(bboxArray[0], bboxArray[1], bboxArray[2]);
+            Max = new Vector3(bboxArray[3], bboxArray[4], bboxArray[5]);
         }
         #endregion
     }
@@ -46,11 +39,17 @@ namespace HBP.Module3D
     public class Plane
     {
         #region Properties
+        /// <summary>
+        /// Point on the plane
+        /// </summary>
         public Vector3 Point { get; set; }
+        /// <summary>
+        /// Normal to the plane
+        /// </summary>
         public Vector3 Normal { get; set; }
         #endregion
 
-        #region Public Methods
+        #region Constructors
         /// <summary>
         /// Plane default constructor
         /// </summary>
@@ -62,17 +61,20 @@ namespace HBP.Module3D
         /// <summary>
         /// Plane constructor
         /// </summary>
-        /// <param name="point"></param>
-        /// <param name="normal"></param>
+        /// <param name="point">Point on the plane</param>
+        /// <param name="normal">Normal to the plane</param>
         public Plane(Vector3 point, Vector3 normal)
         {
             Point = point;
             Normal = normal;
         }
+        #endregion
+
+        #region Public Methods
         /// <summary>
         /// Convert to float array for DLL use
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Array of values (PointX, PointY, PointZ, NormalX, NormalY, NormalZ)</returns>
         public float[] ConvertToArray()
         {
             return new float[] { Point[0], Point[1], Point[2], Normal[0], Normal[1], Normal[2] };
@@ -80,35 +82,38 @@ namespace HBP.Module3D
         #endregion
     }
 
+    /// <summary>
+    /// Static geometry methods
+    /// </summary>
     public class Geometry
     {
         #region Public Methods
         /// <summary>
-        /// 
+        /// Create a circle mesh
         /// </summary>
-        /// <param name="center"></param>
-        /// <param name="ray"></param>
-        /// <param name="nbVerticesOnCircle"></param>
-        /// <returns></returns>
-        public static Vector3[] Create3DCirclePoints(Vector3 center, float ray, int nbVerticesOnCircle)
+        /// <param name="center">Center of the circle</param>
+        /// <param name="radius">Radius of the circle</param>
+        /// <param name="nbVerticesOnCircle">Number of vertices used for the circle</param>
+        /// <returns>Array of points of the circle</returns>
+        public static Vector3[] Create3DCirclePoints(Vector3 center, float radius, int nbVerticesOnCircle)
         {
             Vector3[] verts = new Vector3[nbVerticesOnCircle];
-            float angle = 360.0f / (float)(verts.Length - 1);
+            float angle = 360.0f / (verts.Length - 1);
 
             for (int ii = 0; ii < verts.Length; ++ii)
             {
-                verts[ii] = center + Quaternion.AngleAxis(angle * (float)(ii - 1), Vector3.back) * Vector3.up * ray;
+                verts[ii] = center + Quaternion.AngleAxis(angle * (ii - 1), Vector3.back) * Vector3.up * radius;
             }
 
             return verts;
         }
         /// <summary>
-        /// 
+        /// Create a sphere mesh
         /// </summary>
-        /// <param name="radius"></param>
-        /// <param name="nbLong"></param>
-        /// <param name="nbLat"></param>
-        /// <returns></returns>
+        /// <param name="radius">Radius of the sphere</param>
+        /// <param name="nbLong">Number of longitudinal segments</param>
+        /// <param name="nbLat">Number of latitudinal segments</param>
+        /// <returns>Sphere mesh</returns>
         public static Mesh CreateSphereMesh(float radius, int nbLong = 24, int nbLat = 16)
         {
             Mesh mesh = new Mesh();
@@ -209,9 +214,9 @@ namespace HBP.Module3D
             return mesh;
         }
         /// <summary>
-        /// 
+        /// Display the normals of a gameobject
         /// </summary>
-        /// <param name="obj"></param>
+        /// <param name="obj">Object to display the normals</param>
         public static void DisplayNormalDebug(GameObject obj)
         {
             Vector3[] normals = obj.GetComponent<MeshFilter>().mesh.normals;
@@ -234,10 +239,10 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// 
+        /// Display a bounding box
         /// </summary>
-        /// <param name="bbox"></param>
-        /// <param name="offset"></param>
+        /// <param name="bbox">Bounding box to display</param>
+        /// <param name="offset">Offset for the center of the bouding box</param>
         public static void DisplayBBoxDebug(DLL.BBox bbox, Vector3 offset)
         {
             List<Vector3> linesPoints = bbox.LinesPairPoints;
@@ -248,11 +253,11 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// 
+        /// Display the intersection between a bouding box and a plane
         /// </summary>
-        /// <param name="bbox"></param>
-        /// <param name="plane"></param>
-        /// <param name="offset"></param>
+        /// <param name="bbox">Bounding box of the intersection</param>
+        /// <param name="plane">Plane of the intersection</param>
+        /// <param name="offset">Offset for the center of the intersection</param>
         public static void DisplayBBoxPlaneIntersection(DLL.BBox bbox, Plane plane, Vector3 offset)
         {
             List<Vector3> interLinesPoints = bbox.IntersectionLinesWithPlane(plane);
@@ -263,11 +268,11 @@ namespace HBP.Module3D
             }
         }
         /// <summary>
-        /// 
+        /// Display a bouding box using open gl
         /// </summary>
-        /// <param name="mat"></param>
-        /// <param name="bbox"></param>
-        /// <param name="offset"></param>
+        /// <param name="mat">Material to be used</param>
+        /// <param name="bbox">Bounding box to display</param>
+        /// <param name="offset">Offset for the center of the bouding box</param>
         public static void DisplayBBoxGL(Material mat, DLL.BBox bbox, Vector3 offset)
         {
             GL.PushMatrix();
@@ -307,18 +312,18 @@ namespace HBP.Module3D
             GL.PopMatrix();
         }
         /// <summary>
-        /// 
+        /// Create a tetrahedron mesh
         /// </summary>
-        /// <param name="size"></param>
-        /// <returns></returns>
-        public static Mesh CreateTetrahedronMesh(float size)
+        /// <param name="height">Height of the tetrahedron</param>
+        /// <returns>The mesh of the tetrahedron</returns>
+        public static Mesh CreateTetrahedronMesh(float height)
         {
             Mesh mesh = new Mesh();
 
             Vector3 p0 = new Vector3(0, 0, 0);
-            Vector3 p1 = new Vector3(size, 0, 0);
-            Vector3 p2 = new Vector3(size * 0.5f, 0, Mathf.Sqrt(size * 0.75f));
-            Vector3 p3 = new Vector3(size * 0.5f, Mathf.Sqrt(size * 0.75f), Mathf.Sqrt(size * 0.75f) / 3);
+            Vector3 p1 = new Vector3(height, 0, 0);
+            Vector3 p2 = new Vector3(height * 0.5f, 0, Mathf.Sqrt(height * 0.75f));
+            Vector3 p3 = new Vector3(height * 0.5f, Mathf.Sqrt(height * 0.75f), Mathf.Sqrt(height * 0.75f) / 3);
 
             mesh.vertices = new Vector3[]{
             p0,p1,p2,
@@ -339,14 +344,14 @@ namespace HBP.Module3D
             return mesh;
         }
         /// <summary>
-        /// 
+        /// Create a tube mesh
         /// </summary>
-        /// <param name="radius"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="nbSides"></param>
-        /// <returns></returns>
-        public static Mesh CreateTube(float radius = 1.7f, float width = 0.15f, float height = 0.1f, int nbSides = 60)
+        /// <param name="outerRadius">Outer radius of the tube</param>
+        /// <param name="innerRadius">Inner radius of the tube</param>
+        /// <param name="height">Height of the tube</param>
+        /// <param name="nbSides">Number of sides</param>
+        /// <returns>Mesh of the tube</returns>
+        public static Mesh CreateTube(float outerRadius = 1.7f, float innerRadius = 0.15f, float height = 0.1f, int nbSides = 60)
         {
             Mesh mesh = new Mesh();
 
@@ -354,10 +359,10 @@ namespace HBP.Module3D
             //int nbSides = 24;
 
             // Outter shell is at radius1 + radius2 / 2, inner shell at radius1 - radius2 / 2
-            float bottomRadius1 = radius; // .5
-            float bottomRadius2 = width; // .15
-            float topRadius1 = radius;
-            float topRadius2 = width;
+            float bottomRadius1 = outerRadius; // .5
+            float bottomRadius2 = innerRadius; // .15
+            float topRadius1 = outerRadius;
+            float topRadius2 = innerRadius;
 
             int nbVerticesCap = nbSides * 2 + 2;
             int nbVerticesSides = nbSides * 2 + 2;

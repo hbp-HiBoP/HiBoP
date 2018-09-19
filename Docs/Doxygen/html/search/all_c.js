@@ -10,6 +10,7 @@ var searchData=
   ['nifti_2ecs',['NIFTI.cs',['../_n_i_f_t_i_8cs.html',1,'']]],
   ['noisesample',['NoiseSample',['../struct_noise_sample.html',1,'']]],
   ['nomatchingsitesexception',['NoMatchingSitesException',['../class_no_matching_sites_exception.html',1,'']]],
+  ['normal',['Normal',['../class_h_b_p_1_1_module3_d_1_1_plane.html#aa2d4714bbb66002a3d1b1007ac9c425c',1,'HBP::Module3D::Plane']]],
   ['normalization',['Normalization',['../class_h_b_p_1_1_data_1_1_experience_1_1_dataset_1_1_data_info.html#a5463bdfc52ac4078a9f4fddbb910352a',1,'HBP.Data.Experience.Dataset.DataInfo.Normalization()'],['../class_h_b_p_1_1_data_1_1_preferences_1_1_trial_matrix_settings.html#ad76913cf5819f5a341036798a7ca66a2',1,'HBP.Data.Preferences.TrialMatrixSettings.Normalization()']]],
   ['normalizationtype',['NormalizationType',['../class_h_b_p_1_1_data_1_1_experience_1_1_dataset_1_1_data_info.html#a8aa5a2c254dc0f5052d272cdc0edbbbd',1,'HBP::Data::Experience::Dataset::DataInfo']]],
   ['notraycasttargeteventtrigger',['NotRaycastTargetEventTrigger',['../class_tools_1_1_unity_1_1_components_1_1_not_raycast_target_event_trigger.html',1,'Tools::Unity::Components']]],
