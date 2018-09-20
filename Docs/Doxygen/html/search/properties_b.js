@@ -4,6 +4,7 @@ var searchData=
   ['normal',['Normal',['../class_h_b_p_1_1_module3_d_1_1_plane.html#aa2d4714bbb66002a3d1b1007ac9c425c',1,'HBP::Module3D::Plane']]],
   ['normalization',['Normalization',['../class_h_b_p_1_1_data_1_1_experience_1_1_dataset_1_1_data_info.html#a5463bdfc52ac4078a9f4fddbb910352a',1,'HBP.Data.Experience.Dataset.DataInfo.Normalization()'],['../class_h_b_p_1_1_data_1_1_preferences_1_1_trial_matrix_settings.html#ad76913cf5819f5a341036798a7ca66a2',1,'HBP.Data.Preferences.TrialMatrixSettings.Normalization()']]],
   ['numberofbubbles',['NumberOfBubbles',['../class_h_b_p_1_1_module3_d_1_1_r_o_i.html#aa5d2fadacd9606f24d12b163bc841251',1,'HBP::Module3D::ROI']]],
+  ['numberofcuts',['NumberOfCuts',['../class_h_b_p_1_1_module3_d_1_1_cut.html#af48504e25e790c0b04d64548fbe0eef3',1,'HBP::Module3D::Cut']]],
   ['numberofpatients',['NumberOfPatients',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_patient_electrodes_list.html#a5dfa8c9c7a1865498bbb91a78a13881c',1,'HBP::Module3D::DLL::PatientElectrodesList']]],
   ['numberofscenesloadedsincestart',['NumberOfScenesLoadedSinceStart',['../class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#ad20faff1c1ba80dd86729ac8873b0a4f',1,'HBP::Module3D::HBP3DModule']]],
   ['numberofsites',['NumberOfSites',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_raw_site_list.html#a0d2a2ed709b17311b050bd613b5dffe1',1,'HBP::Module3D::DLL::RawSiteList']]],

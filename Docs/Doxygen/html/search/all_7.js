@@ -70,5 +70,6 @@ var searchData=
   ['groupmodifier',['GroupModifier',['../class_h_b_p_1_1_u_i_1_1_anatomy_1_1_group_modifier.html',1,'HBP::UI::Anatomy']]],
   ['groups',['Groups',['../class_h_b_p_1_1_data_1_1_general_1_1_project.html#ab6c6a9ed0b4784630fe5349a0c244236',1,'HBP::Data::General::Project']]],
   ['groupselection',['GroupSelection',['../class_h_b_p_1_1_u_i_1_1_anatomy_1_1_group_selection.html',1,'HBP::UI::Anatomy']]],
-  ['groupsselected',['GroupsSelected',['../class_h_b_p_1_1_u_i_1_1_anatomy_1_1_groups_selected.html',1,'HBP::UI::Anatomy']]]
+  ['groupsselected',['GroupsSelected',['../class_h_b_p_1_1_u_i_1_1_anatomy_1_1_groups_selected.html',1,'HBP::UI::Anatomy']]],
+  ['guibraincuttextures',['GUIBrainCutTextures',['../class_h_b_p_1_1_module3_d_1_1_cut_textures_utility.html#a7c1779eb2aaa13acec0a8d40b9a09c38',1,'HBP::Module3D::CutTexturesUtility']]]
 ];

@@ -1,20 +1,46 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace HBP.Module3D
 {
+    /// <summary>
+    /// Contains the textures for the cuts and methods to compute them
+    /// </summary>
     public class CutTexturesUtility
     {
         #region Properties
+        /// <summary>
+        /// Color scheme for the cut
+        /// </summary>
         public DLL.Texture DLLCutColorScheme;
+        /// <summary>
+        /// Color scheme for the FMRI
+        /// </summary>
         public DLL.Texture DLLCutFMRIColorScheme;
+        /// <summary>
+        /// Generator for the MRI textures of the cuts
+        /// </summary>
         public List<DLL.MRITextureCutGenerator> DLLMRITextureCutGenerators = new List<DLL.MRITextureCutGenerator>();
+        /// <summary>
+        /// DLL textures for the cuts for the 3D
+        /// </summary>
         public List<DLL.Texture> DLLBrainCutTextures = new List<DLL.Texture>();
+        /// <summary>
+        /// DLL textures for the cuts for the GUI
+        /// </summary>
         public List<DLL.Texture> DLLGUIBrainCutTextures = new List<DLL.Texture>();
+        /// <summary>
+        /// Unity textures for the cuts for the 3D
+        /// </summary>
         public List<Texture2D> BrainCutTextures = new List<Texture2D>();
+        /// <summary>
+        /// Unity textures for the cuts for the GUI
+        /// </summary>
         public List<Texture2D> GUIBrainCutTextures = new List<Texture2D>();
+        /// <summary>
+        /// Size of the cuts arrays
+        /// </summary>
         public int Size { get; private set; }
         #endregion
 
@@ -31,7 +57,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Resize every lists
         /// </summary>
-        /// <param name="size"></param>
+        /// <param name="size">New size for the lists</param>
         public void Resize(int size)
         {
             while (Size < size)
@@ -86,7 +112,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Create MRI textures for the GUI
         /// </summary>
-        /// <param name="cuts">Cuts</param>
+        /// <param name="cuts">Cuts of these textures</param>
         public void CreateGUIMRITextures(List<Cut> cuts)
         {
             foreach (Cut cut in cuts)
@@ -100,7 +126,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Resize the MRI textures for the GUI to squares
         /// </summary>
-        /// <param name="cuts">Cuts</param>
+        /// <param name="cuts">Cuts of these textures</param>
         public void ResizeGUIMRITextures(List<Cut> cuts)
         {
             int max = 0;
@@ -145,11 +171,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Color cuts with FMRI
         /// </summary>
-        /// <param name="volume"></param>
-        /// <param name="indexCut"></param>
-        /// <param name="FMRICalMinFactor"></param>
-        /// <param name="FMRICalMaxFactor"></param>
-        /// <param name="FMRIAlpha"></param>
+        /// <param name="volume">FMRI volume</param>
+        /// <param name="indexCut">Index of the cut</param>
+        /// <param name="FMRICalMinFactor">FMRI Cal Min Factor</param>
+        /// <param name="FMRICalMaxFactor">FMRI Cal Max Factor</param>
+        /// <param name="FMRIAlpha">Transparency of the FMRI</param>
         public void ColorCutsTexturesWithFMRI(DLL.Volume volume, int indexCut, float FMRICalMinFactor, float FMRICalMaxFactor, float FMRIAlpha)
         {
             UnityEngine.Profiling.Profiler.BeginSample("Compute FMRI textures");

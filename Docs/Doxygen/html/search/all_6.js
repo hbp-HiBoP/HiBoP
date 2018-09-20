@@ -11,6 +11,7 @@ var searchData=
   ['findelectrodename',['FindElectrodeName',['../class_h_b_p_1_1_data_1_1_anatomy_1_1_electrode.html#a6fbfa88bac330659e499089e4ec6737f',1,'HBP::Data::Anatomy::Electrode']]],
   ['findexepath',['FindExePath',['../class_doxy_runner.html#a0923bf6769c3b99b4fb8e9ce67877a94',1,'DoxyRunner']]],
   ['findusableimplantations',['FindUsableImplantations',['../class_h_b_p_1_1_data_1_1_visualization_1_1_visualization.html#a1f9dff26c1affe5a628a5ffbd21207fe',1,'HBP::Data::Visualization::Visualization']]],
+  ['flip',['Flip',['../class_h_b_p_1_1_module3_d_1_1_cut.html#a205a62a37b199b131ccf1ec47ae4b4b3',1,'HBP::Module3D::Cut']]],
   ['fliptriangles',['FlipTriangles',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_surface.html#a069211903807b838f20e3c785594c011',1,'HBP::Module3D::DLL::Surface']]],
   ['floatevent',['FloatEvent',['../class_tools_1_1_unity_1_1_float_event.html',1,'Tools::Unity']]],
   ['fmri',['FMRI',['../class_h_b_p_1_1_module3_d_1_1_column3_d_manager.html#ac0ff92682cf7be2f023c0b65aec2f25f',1,'HBP::Module3D::Column3DManager']]],

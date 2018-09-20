@@ -28,6 +28,7 @@ var searchData=
   ['braincutcolor',['BrainCutColor',['../class_h_b_p_1_1_module3_d_1_1_column3_d_manager.html#a4998b782b319924163925c4b19b529df',1,'HBP.Module3D.Column3DManager.BrainCutColor()'],['../class_h_b_p_1_1_data_1_1_visualization_1_1_visualization_configuration.html#aadc0a3aabbd1e853e9c86bcb94172d87',1,'HBP.Data.Visualization.VisualizationConfiguration.BrainCutColor()']]],
   ['braincutmeshes',['BrainCutMeshes',['../class_h_b_p_1_1_module3_d_1_1_displayed_objects.html#a0d6dd7c85295e71bc348baa1ed15f1f8',1,'HBP::Module3D::DisplayedObjects']]],
   ['braincutmeshesparent',['BrainCutMeshesParent',['../class_h_b_p_1_1_module3_d_1_1_displayed_objects.html#a644b2e662e014fe47b977f44a5da424e',1,'HBP::Module3D::DisplayedObjects']]],
+  ['braincuttextures',['BrainCutTextures',['../class_h_b_p_1_1_module3_d_1_1_cut_textures_utility.html#a6671c795569eb3900af47a0790e418fd',1,'HBP::Module3D::CutTexturesUtility']]],
   ['brainmeshes',['BrainMeshes',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_brain_meshes.html',1,'HBP::UI::Module3D::Tools']]],
   ['brainselector',['BrainSelector',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_brain_selector.html',1,'HBP::UI::Module3D::Tools']]],
   ['brainsurfacemeshes',['BrainSurfaceMeshes',['../class_h_b_p_1_1_module3_d_1_1_column3_d.html#a1513d5354b9ccae81ff306a79a6d9271',1,'HBP.Module3D.Column3D.BrainSurfaceMeshes()'],['../class_h_b_p_1_1_module3_d_1_1_displayed_objects.html#abc73b71de23525d3298f32ed12fc02cd',1,'HBP.Module3D.DisplayedObjects.BrainSurfaceMeshes()']]],

@@ -15,6 +15,7 @@ var searchData=
   ['normalizationtype',['NormalizationType',['../class_h_b_p_1_1_data_1_1_experience_1_1_dataset_1_1_data_info.html#a8aa5a2c254dc0f5052d272cdc0edbbbd',1,'HBP::Data::Experience::Dataset::DataInfo']]],
   ['notraycasttargeteventtrigger',['NotRaycastTargetEventTrigger',['../class_tools_1_1_unity_1_1_components_1_1_not_raycast_target_event_trigger.html',1,'Tools::Unity::Components']]],
   ['numberofbubbles',['NumberOfBubbles',['../class_h_b_p_1_1_module3_d_1_1_r_o_i.html#aa5d2fadacd9606f24d12b163bc841251',1,'HBP::Module3D::ROI']]],
+  ['numberofcuts',['NumberOfCuts',['../class_h_b_p_1_1_module3_d_1_1_cut.html#af48504e25e790c0b04d64548fbe0eef3',1,'HBP::Module3D::Cut']]],
   ['numberofelectrodesinpatient',['NumberOfElectrodesInPatient',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_patient_electrodes_list.html#a971eba04b27df919f21cbe0ee29d5e6c',1,'HBP::Module3D::DLL::PatientElectrodesList']]],
   ['numberofpatients',['NumberOfPatients',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_patient_electrodes_list.html#a5dfa8c9c7a1865498bbb91a78a13881c',1,'HBP::Module3D::DLL::PatientElectrodesList']]],
   ['numberofscenesloadedsincestart',['NumberOfScenesLoadedSinceStart',['../class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#ad20faff1c1ba80dd86729ac8873b0a4f',1,'HBP::Module3D::HBP3DModule']]],
