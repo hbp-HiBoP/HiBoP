@@ -49,14 +49,14 @@ namespace HBP.UI.Module3D.Tools
                 {
                     foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
                     {
-                        column.IEEGParameters.MaximumInfluence = val;
+                        column.IEEGParameters.InfluenceDistance = val;
                     }
                 }
                 else
                 {
-                    selectedColumn.IEEGParameters.MaximumInfluence = val;
+                    selectedColumn.IEEGParameters.InfluenceDistance = val;
                 }
-                m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString("N2");
+                m_InputField.text = selectedColumn.IEEGParameters.InfluenceDistance.ToString("N2");
             });
         }
 
@@ -82,7 +82,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
                 m_Slider.value = selectedColumn.IEEGParameters.Gain;
-                m_InputField.text = selectedColumn.IEEGParameters.MaximumInfluence.ToString("N2");
+                m_InputField.text = selectedColumn.IEEGParameters.InfluenceDistance.ToString("N2");
             }
             else
             {

@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace HBP.Module3D
 {
+    /// <summary>
+    /// List of all the objects displayed in the scene
+    /// </summary>
     public class DisplayedObjects : MonoBehaviour
     {
         /// <summary>

@@ -9,7 +9,7 @@ var searchData=
   ['resizer',['Resizer',['../class_tools_1_1_unity_1_1_window_1_1_resizer.html',1,'Tools::Unity::Window']]],
   ['resume',['Resume',['../struct_h_b_p_1_1_data_1_1_experience_1_1_dataset_1_1_dataset_1_1_resume.html',1,'HBP::Data::Experience::Dataset::Dataset']]],
   ['ring',['Ring',['../struct_h_b_p_1_1_module3_d_1_1_shared_materials_1_1_ring.html',1,'HBP::Module3D::SharedMaterials']]],
-  ['roi',['ROI',['../struct_h_b_p_1_1_module3_d_1_1_shared_materials_1_1_r_o_i.html',1,'HBP.Module3D.SharedMaterials.ROI'],['../class_h_b_p_1_1_module3_d_1_1_r_o_i.html',1,'HBP.Module3D.ROI'],['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_r_o_i.html',1,'HBP.Module3D.DLL.ROI']]],
+  ['roi',['ROI',['../class_h_b_p_1_1_module3_d_1_1_r_o_i.html',1,'HBP.Module3D.ROI'],['../struct_h_b_p_1_1_module3_d_1_1_shared_materials_1_1_r_o_i.html',1,'HBP.Module3D.SharedMaterials.ROI'],['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_r_o_i.html',1,'HBP.Module3D.DLL.ROI']]],
   ['roicopy',['ROICopy',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_r_o_i_copy.html',1,'HBP::UI::Module3D::Tools']]],
   ['roiexport',['ROIExport',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_r_o_i_export.html',1,'HBP::UI::Module3D::Tools']]],
   ['roiinformations',['ROIInformations',['../class_h_b_p_1_1_u_i_1_1_informations_1_1_r_o_i_informations.html',1,'HBP::UI::Informations']]],

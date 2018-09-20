@@ -201,7 +201,7 @@ namespace HBP.Module3D
             public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
             {
                 bool noError = false;
-                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.MaximumInfluence,
+                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.InfluenceDistance,
                     multiCPU?1:0, addValues?1:0, ratioDistances, IEEGColumn.IEEGParameters.Middle, IEEGColumn.IEEGParameters.SpanMin, IEEGColumn.IEEGParameters.SpanMax)== 1;
                 ApplicationState.DLLDebugManager.check_error();
 

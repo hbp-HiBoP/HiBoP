@@ -2,7 +2,6 @@ var searchData=
 [
   ['c_5finitialize',['c_Initialize',['../class_h_b_p_1_1_module3_d_1_1_base3_d_scene.html#ac18b73091ba55ed06d9586638745b626',1,'HBP::Module3D::Base3DScene']]],
   ['c_5fload',['c_Load',['../class_h_b_p_1_1_module3_d_1_1_h_b_p3_d_module.html#a96cd4ba38d6937477a2a6ba74516f681',1,'HBP.Module3D.HBP3DModule.c_Load()'],['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_transformation.html#add81afe2cdaa44ec61bd59cfaede0437',1,'HBP.Module3D.DLL.Transformation.c_Load()'],['../class_h_b_p_1_1_data_1_1_visualization_1_1_visualization.html#aac9a3c0d6e0e96a6881ee49089450b87',1,'HBP.Data.Visualization.Visualization.c_Load()']]],
-  ['callgc',['callGC',['../class_h_b_p_1_1_module3_d_1_1_debug_memory.html#a4d84fd88715e4a488111498f3de03846',1,'HBP::Module3D::DebugMemory']]],
   ['cancellastaction',['CancelLastAction',['../class_h_b_p_1_1_module3_d_1_1_tri_eraser.html#afbbd39054f07bba8e623357bbc4f8359',1,'HBP::Module3D::TriEraser']]],
   ['cancellasttriangleerasingaction',['CancelLastTriangleErasingAction',['../class_h_b_p_1_1_module3_d_1_1_base3_d_scene.html#abef130af36c27bfd0fbd2edf661b81b1',1,'HBP::Module3D::Base3DScene']]],
   ['changebubblesize',['ChangeBubbleSize',['../class_h_b_p_1_1_module3_d_1_1_r_o_i.html#aeaeefa03e5a7a1804ed4e261dd0d5cce',1,'HBP::Module3D::ROI']]],

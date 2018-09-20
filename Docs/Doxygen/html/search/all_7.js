@@ -1,7 +1,6 @@
 var searchData=
 [
   ['gain',['Gain',['../class_h_b_p_1_1_module3_d_1_1_i_e_e_g_data_parameters.html#ac437596b9242ec51f9313c6b5a960e42',1,'HBP.Module3D.IEEGDataParameters.Gain()'],['../class_h_b_p_1_1_data_1_1_visualization_1_1_column_configuration.html#a3c064428eeecb11a3ef3e3c07b164f1f',1,'HBP.Data.Visualization.ColumnConfiguration.Gain()']]],
-  ['gameobjectscount',['GameObjectsCount',['../class_h_b_p_1_1_module3_d_1_1_debug_memory.html#a2c0a10de96ec3c61e2360420e3016934',1,'HBP::Module3D::DebugMemory']]],
   ['generalpreferences',['GeneralPreferences',['../class_h_b_p_1_1_data_1_1_preferences_1_1_general_preferences.html',1,'HBP::Data::Preferences']]],
   ['generaltheme',['GeneralTheme',['../class_h_b_p_1_1_u_i_1_1_theme_1_1_theme_1_1_general_theme.html',1,'HBP::UI::Theme::Theme']]],
   ['generate1dcolortexture',['Generate1DColorTexture',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_texture.html#af6da41aa2b5e1a045d43999cd4617ef9',1,'HBP::Module3D::DLL::Texture']]],

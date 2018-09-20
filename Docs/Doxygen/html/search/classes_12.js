@@ -21,13 +21,13 @@ var searchData=
   ['threadedjob',['ThreadedJob',['../class_h_b_p_1_1_module3_d_1_1_threaded_job.html',1,'HBP::Module3D']]],
   ['thresholdhandler',['ThresholdHandler',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_threshold_handler.html',1,'HBP::UI::Module3D']]],
   ['thresholdieeg',['ThresholdIEEG',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_threshold_i_e_e_g.html',1,'HBP.UI.Module3D.ThresholdIEEG'],['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_threshold_i_e_e_g.html',1,'HBP.UI.Module3D.Tools.ThresholdIEEG']]],
-  ['thresholdmri',['ThresholdMRI',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_threshold_m_r_i.html',1,'HBP.UI.Module3D.Tools.ThresholdMRI'],['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_threshold_m_r_i.html',1,'HBP.UI.Module3D.ThresholdMRI']]],
+  ['thresholdmri',['ThresholdMRI',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_threshold_m_r_i.html',1,'HBP.UI.Module3D.ThresholdMRI'],['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_threshold_m_r_i.html',1,'HBP.UI.Module3D.Tools.ThresholdMRI']]],
   ['tickmark',['TickMark',['../class_tools_1_1_unity_1_1_graph_1_1_tick_mark.html',1,'Tools::Unity::Graph']]],
   ['timebloc',['TimeBloc',['../class_h_b_p_1_1_u_i_1_1_trial_matrix_1_1_time_bloc.html',1,'HBP::UI::TrialMatrix']]],
   ['timedisplay',['TimeDisplay',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_time_display.html',1,'HBP::UI::Module3D']]],
   ['timeexecution',['TimeExecution',['../class_h_b_p_1_1_module3_d_1_1_time_execution.html',1,'HBP::Module3D']]],
   ['timelegend',['TimeLegend',['../class_h_b_p_1_1_u_i_1_1_trial_matrix_1_1_time_legend.html',1,'HBP::UI::TrialMatrix']]],
-  ['timeline',['TimeLine',['../class_time_line.html',1,'TimeLine'],['../class_h_b_p_1_1_data_1_1_visualization_1_1_timeline.html',1,'HBP.Data.Visualization.Timeline']]],
+  ['timeline',['Timeline',['../class_h_b_p_1_1_data_1_1_visualization_1_1_timeline.html',1,'HBP.Data.Visualization.Timeline'],['../class_time_line.html',1,'TimeLine']]],
   ['timelineglobal',['TimelineGlobal',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_timeline_global.html',1,'HBP::UI::Module3D::Tools']]],
   ['timelineloop',['TimelineLoop',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_timeline_loop.html',1,'HBP::UI::Module3D::Tools']]],
   ['timelineplay',['TimelinePlay',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_timeline_play.html',1,'HBP::UI::Module3D::Tools']]],
@@ -49,7 +49,7 @@ var searchData=
   ['tooltipmanager',['TooltipManager',['../class_tools_1_1_unity_1_1_tooltip_manager.html',1,'Tools::Unity']]],
   ['track',['Track',['../class_elan_1_1_track.html',1,'Elan']]],
   ['transformation',['Transformation',['../class_h_b_p_1_1_data_1_1_anatomy_1_1_transformation.html',1,'HBP.Data.Anatomy.Transformation'],['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_transformation.html',1,'HBP.Module3D.DLL.Transformation']]],
-  ['trialmatrix',['TrialMatrix',['../class_h_b_p_1_1_data_1_1_trial_matrix_1_1_trial_matrix.html',1,'HBP.Data.TrialMatrix.TrialMatrix'],['../class_h_b_p_1_1_u_i_1_1_trial_matrix_1_1_trial_matrix.html',1,'HBP.UI.TrialMatrix.TrialMatrix']]],
+  ['trialmatrix',['TrialMatrix',['../class_h_b_p_1_1_u_i_1_1_trial_matrix_1_1_trial_matrix.html',1,'HBP.UI.TrialMatrix.TrialMatrix'],['../class_h_b_p_1_1_data_1_1_trial_matrix_1_1_trial_matrix.html',1,'HBP.Data.TrialMatrix.TrialMatrix']]],
   ['trialmatrixlist',['TrialMatrixList',['../class_h_b_p_1_1_u_i_1_1_trial_matrix_1_1_trial_matrix_list.html',1,'HBP::UI::TrialMatrix']]],
   ['trialmatrixpreferences',['TrialMatrixPreferences',['../class_h_b_p_1_1_data_1_1_preferences_1_1_trial_matrix_preferences.html',1,'HBP::Data::Preferences']]],
   ['trialmatrixpreferencesmodifier',['TrialMatrixPreferencesModifier',['../class_h_b_p_1_1_u_i_1_1_preferences_1_1_trial_matrix_preferences_modifier.html',1,'HBP::UI::Preferences']]],
@@ -58,5 +58,5 @@ var searchData=
   ['triangleerasingmode',['TriangleErasingMode',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_triangle_erasing_mode.html',1,'HBP::UI::Module3D::Tools']]],
   ['triangleerasingtoolbar',['TriangleErasingToolbar',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_triangle_erasing_toolbar.html',1,'HBP::UI::Module3D']]],
   ['trieraser',['TriEraser',['../class_h_b_p_1_1_module3_d_1_1_tri_eraser.html',1,'HBP::Module3D']]],
-  ['tuple',['Tuple',['../class_eppy_1_1_tuple.html',1,'Eppy.Tuple&lt; T1, T2 &gt;'],['../struct_tuple.html',1,'Tuple&lt; T1, T2 &gt;'],['../class_eppy_1_1_tuple.html',1,'Eppy.Tuple&lt; T1, T2, T3, T4 &gt;'],['../class_eppy_1_1_tuple.html',1,'Eppy.Tuple&lt; T1, T2, T3 &gt;']]]
+  ['tuple',['Tuple',['../class_eppy_1_1_tuple.html',1,'Eppy.Tuple&lt; T1, T2, T3, T4 &gt;'],['../struct_tuple.html',1,'Tuple&lt; T1, T2 &gt;'],['../class_eppy_1_1_tuple.html',1,'Eppy.Tuple&lt; T1, T2 &gt;'],['../class_eppy_1_1_tuple.html',1,'Eppy.Tuple&lt; T1, T2, T3 &gt;']]]
 ];

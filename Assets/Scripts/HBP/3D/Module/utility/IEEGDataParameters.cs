@@ -6,27 +6,36 @@ using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
+    /// <summary>
+    /// Class containing the parameters for the iEEG of a column
+    /// </summary>
     public class IEEGDataParameters
     {
         #region Properties
-        private const float MIN_INFLUENCE = 0.0f;
-        private const float MAX_INFLUENCE = 50.0f;
-        private float m_MaximumInfluence = 15.0f;
         /// <summary>
-        /// Maximum influence amplitude of a site
+        /// Minimum influence distance
         /// </summary>
-        public float MaximumInfluence
+        private const float MIN_INFLUENCE = 0.0f;
+        /// <summary>
+        /// Maximum influence distance
+        /// </summary>
+        private const float MAX_INFLUENCE = 50.0f;
+        private float m_InfluenceDistance = 15.0f;
+        /// <summary>
+        /// Influence distance of a site (sphere around the site to color the mesh)
+        /// </summary>
+        public float InfluenceDistance
         {
             get
             {
-                return m_MaximumInfluence;
+                return m_InfluenceDistance;
             }
             set
             {
                 float val = Mathf.Clamp(value, MIN_INFLUENCE, MAX_INFLUENCE);
-                if (m_MaximumInfluence != val)
+                if (m_InfluenceDistance != val)
                 {
-                    m_MaximumInfluence = val;
+                    m_InfluenceDistance = val;
                     OnUpdateMaximumInfluence.Invoke();
                 }
             }
@@ -182,11 +191,12 @@ namespace HBP.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Set the span values of the IEEG column
+        /// Set the span values
         /// </summary>
-        /// <param name="min"></param>
-        /// <param name="middle"></param>
-        /// <param name="max"></param>
+        /// <param name="min">Span min value</param>
+        /// <param name="mid">Middle value</param>
+        /// <param name="max">Span max value</param>
+        /// <param name="column">Column associated with these parameters</param>
         public void SetSpanValues(float min, float mid, float max, Column3DIEEG column)
         {
             if (min > max) min = max;

@@ -2425,7 +2425,7 @@ namespace HBP.Module3D
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, ApplicationState.UserPreferences.General.System.MultiThreading);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluence);
                     if (m_GeneratorNeedsUpdate) yield break;
@@ -2454,7 +2454,7 @@ namespace HBP.Module3D
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].InitializeOctree(m_ColumnManager.ColumnsIEEG[ii].RawElectrodes);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.MaximumInfluence, ApplicationState.UserPreferences.General.System.MultiThreading);
+                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluence);
                     if (m_GeneratorNeedsUpdate) yield break;

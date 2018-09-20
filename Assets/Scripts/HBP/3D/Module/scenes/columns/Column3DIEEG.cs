@@ -397,7 +397,7 @@ namespace HBP.Module3D
         {
             if (firstCall) ResetConfiguration(false);
             IEEGParameters.Gain = ColumnData.Configuration.Gain;
-            IEEGParameters.MaximumInfluence = ColumnData.Configuration.MaximumInfluence;
+            IEEGParameters.InfluenceDistance = ColumnData.Configuration.MaximumInfluence;
             IEEGParameters.AlphaMin = ColumnData.Configuration.Alpha;
             IEEGParameters.SetSpanValues(ColumnData.Configuration.SpanMin, ColumnData.Configuration.Middle, ColumnData.Configuration.SpanMax, this);
             foreach (Data.Visualization.RegionOfInterest roi in ColumnData.Configuration.RegionsOfInterest)
@@ -421,7 +421,7 @@ namespace HBP.Module3D
         public void SaveConfiguration()
         {
             ColumnData.Configuration.Gain = IEEGParameters.Gain;
-            ColumnData.Configuration.MaximumInfluence = IEEGParameters.MaximumInfluence;
+            ColumnData.Configuration.MaximumInfluence = IEEGParameters.InfluenceDistance;
             ColumnData.Configuration.Alpha = IEEGParameters.AlphaMin;
             ColumnData.Configuration.SpanMin = IEEGParameters.SpanMin;
             ColumnData.Configuration.Middle = IEEGParameters.Middle;
@@ -444,7 +444,7 @@ namespace HBP.Module3D
         public void ResetConfiguration(bool firstCall = true)
         {
             IEEGParameters.Gain = 1.0f;
-            IEEGParameters.MaximumInfluence = 15.0f;
+            IEEGParameters.InfluenceDistance = 15.0f;
             IEEGParameters.AlphaMin = 0.8f;
             IEEGParameters.SetSpanValues(0, 0, 0, this);
             while (m_ROIs.Count > 0)

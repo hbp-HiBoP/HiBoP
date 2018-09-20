@@ -23,24 +23,39 @@ namespace HBP.Module3D
     public class Latencies
     {
         #region Properties
+        /// <summary>
+        /// Name of the CCEP
+        /// </summary>
         public string Name;
 
-        bool[] m_StimulationPlots = null;
-        public int[][] LatenciesValues = null;
-        public float[][] Heights = null;
+        /// <summary>
+        /// True if site is a source
+        /// </summary>
+        bool[] m_StimulationPlots;
+        /// <summary>
+        /// Values of the latencies between two sites
+        /// </summary>
+        public int[][] LatenciesValues;
+        /// <summary>
+        /// Values of the height between two sites
+        /// </summary>
+        public float[][] Heights;
 
-        public float[][] Transparencies = null; // for latency
-        public float[][] Sizes = null;          // for height
-        public bool[][] PositiveHeight = null;  // for height
+        /// <summary>
+        /// Transparency of the sites (for latency)
+        /// </summary>
+        public float[][] Transparencies;
+        /// <summary>
+        /// Size of the sites (for height)
+        /// </summary>
+        public float[][] Sizes;
+        /// <summary>
+        /// Is the height of the site positive ?
+        /// </summary>
+        public bool[][] PositiveHeight;
         #endregion
 
-        #region Public Methods
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="nbPlots"></param>
-        /// <param name="latencies1D"></param>
-        /// <param name="heights1D"></param>
+        #region Constructors
         public Latencies(int nbPlots, int[] latencies1D, float[] heights1D)
         {
             m_StimulationPlots = new bool[nbPlots];
@@ -49,7 +64,7 @@ namespace HBP.Module3D
             Transparencies = new float[nbPlots][];
             Sizes = new float[nbPlots][];
             PositiveHeight = new bool[nbPlots][];
-            
+
             int id = 0;
             for (int ii = 0; ii < nbPlots; ++ii)
             {
@@ -86,29 +101,35 @@ namespace HBP.Module3D
 
                         if (heights1D[id] > maxHeight)
                             maxHeight = heights1D[id];
-                    }                    
+                    }
                 }
 
                 float max;
 
-                
-                if (Math.Abs(minHeight) > Math.Abs(maxHeight)) {
+
+                if (Math.Abs(minHeight) > Math.Abs(maxHeight))
+                {
                     max = Math.Abs(minHeight);
                 }
-                else {
+                else
+                {
                     max = Math.Abs(maxHeight);
                 }
 
                 // now computes transparencies and sizes values 
                 for (int jj = 0; jj < nbPlots; ++jj)
                 {
-                    if (LatenciesValues[ii][jj] != 0 && LatenciesValues[ii][jj] != -1) {
+                    if (LatenciesValues[ii][jj] != 0 && LatenciesValues[ii][jj] != -1)
+                    {
                         Transparencies[ii][jj] = 1f - (0.9f * LatenciesValues[ii][jj] / maxLatency);
                         Sizes[ii][jj] = Math.Abs(Heights[ii][jj]) / max;
-                    }                    
+                    }
                 }
             }
         }
+        #endregion
+
+        #region Public Methods
         /// <summary>
         /// 
         /// </summary>

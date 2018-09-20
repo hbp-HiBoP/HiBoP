@@ -44,7 +44,7 @@ var searchData=
   ['retrieve_5ferror_5fmessage',['retrieve_error_message',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_d_l_l_debug_manager.html#a93c5635f733f09f9a6af569edc442933',1,'HBP::Module3D::DLL::DLLDebugManager']]],
   ['retrievedlloutput',['retrieveDLLOutput',['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_d_l_l_debug_manager.html#a776e251f14fa0b2d17ba20defafae3d6',1,'HBP::Module3D::DLL::DLLDebugManager']]],
   ['ring',['Ring',['../struct_h_b_p_1_1_module3_d_1_1_shared_materials_1_1_ring.html',1,'HBP::Module3D::SharedMaterials']]],
-  ['roi',['ROI',['../struct_h_b_p_1_1_module3_d_1_1_shared_materials_1_1_r_o_i.html',1,'HBP.Module3D.SharedMaterials.ROI'],['../class_h_b_p_1_1_module3_d_1_1_r_o_i.html',1,'HBP.Module3D.ROI'],['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_r_o_i.html',1,'HBP.Module3D.DLL.ROI'],['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_r_o_i.html#a93c5db24396a26843b58ef5554fe7fe3',1,'HBP.Module3D.DLL.ROI.ROI()']]],
+  ['roi',['ROI',['../class_h_b_p_1_1_module3_d_1_1_r_o_i.html',1,'HBP.Module3D.ROI'],['../struct_h_b_p_1_1_module3_d_1_1_shared_materials_1_1_r_o_i.html',1,'HBP.Module3D.SharedMaterials.ROI'],['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_r_o_i.html',1,'HBP.Module3D.DLL.ROI'],['../class_h_b_p_1_1_module3_d_1_1_d_l_l_1_1_r_o_i.html#a93c5db24396a26843b58ef5554fe7fe3',1,'HBP.Module3D.DLL.ROI.ROI()']]],
   ['roi_2ecs',['ROI.cs',['../_r_o_i_8cs.html',1,'']]],
   ['roicopy',['ROICopy',['../class_h_b_p_1_1_u_i_1_1_module3_d_1_1_tools_1_1_r_o_i_copy.html',1,'HBP::UI::Module3D::Tools']]],
   ['roicreation',['ROICreation',['../class_h_b_p_1_1_module3_d_1_1_base3_d_scene.html#a943b8e20fa683176fd9a1e704405f38c',1,'HBP::Module3D::Base3DScene']]],

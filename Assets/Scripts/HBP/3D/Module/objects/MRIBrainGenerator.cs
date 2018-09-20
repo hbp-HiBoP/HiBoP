@@ -136,7 +136,7 @@ namespace HBP.Module3D
             public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
             {
                 bool noError = false;
-                noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.MaximumInfluence, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
+                noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
                     IEEGColumn.IEEGParameters.Middle, IEEGColumn.IEEGParameters.SpanMin, IEEGColumn.IEEGParameters.SpanMax) == 1;
                 ApplicationState.DLLDebugManager.check_error();
 
