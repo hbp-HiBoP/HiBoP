@@ -18,10 +18,10 @@ namespace Tools.Unity
         {
             BuildProjectAndZipIt(@"D:/HBP/HiBoP_builds/", false, BuildTarget.StandaloneWindows64);
             BuildProjectAndZipIt(@"D:/HBP/HiBoP_builds/", false, BuildTarget.StandaloneLinux64);
-            BuildProjectAndZipIt(@"D:/HBP/HiBoP_builds/", false, BuildTarget.StandaloneOSXIntel64);
+            BuildProjectAndZipIt(@"D:/HBP/HiBoP_builds/", false, BuildTarget.StandaloneOSX);
         }
 
-        public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target) // FIXME : some libraries are not copied in linux .so.X.X.X
+        public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target)
         {
             string buildName = Application.productName;
             switch (target)
@@ -32,7 +32,7 @@ namespace Tools.Unity
                 case BuildTarget.StandaloneLinux64:
                     buildName += " linux64";
                     break;
-                case BuildTarget.StandaloneOSXIntel64:
+                case BuildTarget.StandaloneOSX:
                     buildName += " macos64";
                     break;
             }
@@ -47,7 +47,7 @@ namespace Tools.Unity
                 case BuildTarget.StandaloneLinux64:
                     hibopName += ".x86_64";
                     break;
-                case BuildTarget.StandaloneOSXIntel64:
+                case BuildTarget.StandaloneOSX:
                     hibopName += ".app";
                     dataDirectory += hibopName + "/";
                     break;
@@ -72,19 +72,23 @@ namespace Tools.Unity
                 case BuildTarget.StandaloneLinux64:
                     CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "linux/"), new DirectoryInfo(buildDirectory + m_Tools));
                     break;
-                case BuildTarget.StandaloneOSXIntel64:
+                case BuildTarget.StandaloneOSX:
                     CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "macos/"), new DirectoryInfo(buildDirectory));
                     break;
             }
             CopyFilesRecursively(new DirectoryInfo(projectPath + m_Data), new DirectoryInfo(dataDirectory + m_DataBuild));
-            if (target == BuildTarget.StandaloneOSXIntel64)
+            if (target == BuildTarget.StandaloneOSX)
             {
-                DirectoryInfo pluginsDirectory = new DirectoryInfo(dataDirectory + "Contents/Plugins/");
-                CopyFilesRecursively(pluginsDirectory, new DirectoryInfo(dataDirectory + "Contents/Frameworks/MonoEmbedRuntime/osx/"));
-                foreach (FileInfo plugin in pluginsDirectory.GetFiles())
+                DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/MacOS");
+                DirectoryInfo newPluginsDirectory = new DirectoryInfo(dataDirectory + "Contents/Frameworks/MonoEmbedRuntime/osx/");
+                Directory.CreateDirectory(newPluginsDirectory.FullName);
+                CopyFilesRecursively(pluginsDirectory, newPluginsDirectory);
+                Debug.Log(pluginsDirectory.FullName);
+                foreach (var file in newPluginsDirectory.GetFiles("*.meta"))
                 {
-                    plugin.Delete();
+                    file.Delete();
                 }
+                new DirectoryInfo(dataDirectory + "Contents/Plugins/x86_64").Delete(true);
             }
 
             FileInfo readme = new FileInfo(projectPath + "README.md");
@@ -150,7 +154,7 @@ namespace Tools.Unity
                 }
                 if (m_MacOSX)
                 {
-                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneOSXIntel64);
+                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneOSX);
                 }
                 Close();
             }

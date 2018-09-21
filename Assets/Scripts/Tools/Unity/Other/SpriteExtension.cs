@@ -11,7 +11,7 @@ namespace Tools.Unity
 
         public static bool LoadSpriteFromFile(out Sprite sprite, string path)
         {
-            sprite = new Sprite();
+            sprite = null;
             Texture2D texture;
             if (LoadTexture2DFromFile(out texture, path))
             {

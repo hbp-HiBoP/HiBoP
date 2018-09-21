@@ -29,7 +29,7 @@ public class ThemeChecker
 
         foreach (Graphic graphic in Resources.FindObjectsOfTypeAll(typeof(Graphic)) as Graphic[])
         {
-            if (PrefabUtility.GetPrefabParent(graphic.gameObject) == null && PrefabUtility.GetPrefabObject(graphic.gameObject) != null)
+            if (PrefabUtility.GetCorrespondingObjectFromSource(graphic.gameObject) == null && PrefabUtility.GetPrefabObject(graphic.gameObject) != null)
                 continue;
 
             if (graphic.GetComponent<Mask>())
@@ -42,7 +42,7 @@ public class ThemeChecker
         }
         foreach (Selectable selectable in Resources.FindObjectsOfTypeAll(typeof(Selectable)) as Selectable[])
         {
-            if(PrefabUtility.GetPrefabParent(selectable.gameObject) == null && PrefabUtility.GetPrefabObject(selectable.gameObject) != null)
+            if(PrefabUtility.GetCorrespondingObjectFromSource(selectable.gameObject) == null && PrefabUtility.GetPrefabObject(selectable.gameObject) != null)
                 continue;
 
             elements.Add(selectable);
