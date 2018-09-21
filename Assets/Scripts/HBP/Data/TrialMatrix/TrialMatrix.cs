@@ -32,7 +32,7 @@ namespace HBP.Data.TrialMatrix
                 List<Bloc> blocs = new List<Bloc>();
                 foreach (var bloc in protocol.Blocs)
                 {
-                    if (scene.Visualization.Columns.Exists((c) => c.Bloc == bloc))
+                    if (scene.Visualization.IEEGColumns.Any((c) => c.Bloc == bloc))
                     {
                         blocs.Add(new Bloc(bloc, blocsByProtocolBloc[bloc], site));
                     }

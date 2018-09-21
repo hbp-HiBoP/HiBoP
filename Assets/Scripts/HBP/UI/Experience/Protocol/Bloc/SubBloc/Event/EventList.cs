@@ -63,12 +63,12 @@ namespace HBP.UI.Experience.Protocol
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_Objects = m_Objects.OrderBy((elt) => elt.Codes.Min()).ToList();
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Codes.Count).ToList();
                     m_OrderBy = OrderBy.Code;
                     m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Codes.Min()).ToList();
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Codes.Count).ToList();
                     m_OrderBy = OrderBy.DescendingCode;
                     m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
@@ -100,19 +100,19 @@ namespace HBP.UI.Experience.Protocol
             {
                 case Sorting.Ascending:
                     m_Objects = m_Objects.OrderBy((elt) => elt.Type).ToList();
-                    m_OrderBy = OrderBy.Code;
-                    m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+                    m_OrderBy = OrderBy.Type;
+                    m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
                     m_Objects = m_Objects.OrderByDescending((elt) => elt.Type).ToList();
-                    m_OrderBy = OrderBy.DescendingCode;
-                    m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+                    m_OrderBy = OrderBy.DescendingType;
+                    m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
 
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by type.

@@ -39,6 +39,11 @@ namespace HBP.UI.Anatomy
         #endregion
 
         #region Public Methods
+        public override void Save()
+        {
+            ItemTemp.Patients = m_GroupPatientListGestion.Items;
+            base.Save();
+        }
         public void AddPatients()
 		{
             m_GroupPatientListGestion.Add(m_ProjectPatientListGestion.List.ObjectsSelected);

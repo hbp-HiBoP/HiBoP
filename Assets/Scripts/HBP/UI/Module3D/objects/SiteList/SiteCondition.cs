@@ -26,19 +26,19 @@ namespace HBP.UI.Module3D
             switch (Target)
             {
                 case ConditionTarget.Mean:
-                    target = site.Configuration.NormalizedValues.Mean();
+                    target = site.Data.NormalizedValues.Mean();
                     break;
                 case ConditionTarget.Median:
-                    target = site.Configuration.NormalizedValues.Median();
+                    target = site.Data.NormalizedValues.Median();
                     break;
                 case ConditionTarget.StandardDeviation:
-                    target = site.Configuration.NormalizedValues.StandardDeviation();
+                    target = site.Data.NormalizedValues.StandardDeviation();
                     break;
                 case ConditionTarget.Max:
-                    target = site.Configuration.NormalizedValues.Max();
+                    target = site.Data.NormalizedValues.Max();
                     break;
                 case ConditionTarget.Min:
-                    target = site.Configuration.NormalizedValues.Min();
+                    target = site.Data.NormalizedValues.Min();
                     break;
             }
             switch (Comparator)

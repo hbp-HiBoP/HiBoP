@@ -799,19 +799,12 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="type"></param>
         /// <param name="number"></param>
-        public void InitializeColumns(IEnumerable<Data.Visualization.Column> columns)
+        public void InitializeColumns(IEnumerable<Data.Visualization.BaseColumn> columns)
         {
-            foreach (Data.Visualization.Column column in columns)
+            foreach (Data.Visualization.BaseColumn column in columns)
             {
-                switch (column.Type)
-                {
-                    case Data.Visualization.Column.ColumnType.Anatomy:
-                        AddBaseColumn();
-                        break;
-                    case Data.Visualization.Column.ColumnType.iEEG:
-                        AddIEEGColumn();
-                        break;
-                }
+                if (column is Data.Visualization.IEEGColumn) AddIEEGColumn();
+                else AddBaseColumn();
             }
         }
         /// <summary>
@@ -819,13 +812,13 @@ namespace HBP.Module3D
         /// </summary>
         /// <param name="patient"></param>
         /// <param name="columnDataList"></param>
-        public void SetTimelineData(List<Data.Visualization.Column> columnDataList)
+        public void SetTimelineData(List<Data.Visualization.BaseColumn> columnDataList)
         {
             for (int c = 0; c < Columns.Count; c++)
             {
-                if (columnDataList[c].Type == Data.Visualization.Column.ColumnType.iEEG)
+                if (columnDataList[c] is Data.Visualization.IEEGColumn)
                 {
-                    ((Column3DIEEG)Columns[c]).SetColumnData(columnDataList[c]);
+                    ((Column3DIEEG)Columns[c]).SetColumnData(columnDataList[c] as Data.Visualization.IEEGColumn);
                 }
             }
         }

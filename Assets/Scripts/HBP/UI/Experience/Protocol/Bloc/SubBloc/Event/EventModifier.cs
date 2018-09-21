@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 using d = HBP.Data.Experience.Protocol;
@@ -24,6 +24,7 @@ namespace HBP.UI.Experience.Protocol
                 base.Interactable = value;
                 m_NameInputField.interactable = value;
                 m_CodesInputField.interactable = value;
+                m_TypeDropdown.interactable = (ItemTemp.Type != d.Event.TypeEnum.Main) && value;
             }
         }
         #endregion
@@ -31,24 +32,22 @@ namespace HBP.UI.Experience.Protocol
         protected override void SetFields(d.Event objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
+            m_CodesInputField.text = objectToDisplay.CodesString;
+            m_TypeDropdown.Set(typeof(d.Event.TypeEnum), (int) objectToDisplay.Type);
+        }
+
+        protected override void Initialize()
+        {
+            base.Initialize();
+
             m_NameInputField.onValueChanged.RemoveAllListeners();
             m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
 
-            m_CodesInputField.text = objectToDisplay.CodesString;
             m_CodesInputField.onValueChanged.RemoveAllListeners();
             m_CodesInputField.onValueChanged.AddListener((codes) => ItemTemp.CodesString = codes);
 
-            string[] types = Enum.GetNames(typeof(d.Event.TypeEnum));
-            m_TypeDropdown.ClearOptions();
-            foreach (string i_type in types)
-            {
-                m_TypeDropdown.options.Add(new Dropdown.OptionData(i_type));
-            }
-            m_TypeDropdown.value = (int) ItemTemp.Type;
-            m_TypeDropdown.RefreshShownValue();
             m_TypeDropdown.onValueChanged.RemoveAllListeners();
-            m_TypeDropdown.onValueChanged.AddListener((i) => ItemTemp.Type = (d.Event.TypeEnum)i);
-            if (objectToDisplay.Type == d.Event.TypeEnum.Main) m_TypeDropdown.interactable = false;
+            m_TypeDropdown.onValueChanged.AddListener((i) => ItemTemp.Type = (d.Event.TypeEnum) i);
         }
     }
 }

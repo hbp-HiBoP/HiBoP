@@ -32,7 +32,7 @@ namespace HBP.Module3D
             }
         }
         // data
-        public Data.Visualization.Column ColumnData = null;
+        public Data.Visualization.IEEGColumn ColumnData = null;
 
         // IEEG
         private int m_CurrentTimeLineID = 0;
@@ -66,14 +66,14 @@ namespace HBP.Module3D
         {
             get
             {
-                return ColumnData.TimeLine.Step * CurrentTimeLineID + MinTimeLine;
+                return ColumnData.Data.TimeLine.Step * CurrentTimeLineID + MinTimeLine;
             }
         }
         public string TimeLineUnite
         {
             get
             {
-                return ColumnData.TimeLine.Start.Unite;
+                return ColumnData.Data.TimeLine.Start.Unite;
             }
         }
         public float SharedMinInf = 0f;
@@ -341,7 +341,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return ColumnData.TimeLine.Lenght;
+                return ColumnData.Data.TimeLine.Lenght;
             }
         }
         public int SitesCount
@@ -417,11 +417,11 @@ namespace HBP.Module3D
         public void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration(false);
-            IEEGParameters.Gain = ColumnData.Configuration.Gain;
-            IEEGParameters.MaximumInfluence = ColumnData.Configuration.MaximumInfluence;
-            IEEGParameters.AlphaMin = ColumnData.Configuration.Alpha;
-            IEEGParameters.SetSpanValues(ColumnData.Configuration.SpanMin, ColumnData.Configuration.Middle, ColumnData.Configuration.SpanMax);
-            foreach (Data.Visualization.RegionOfInterest roi in ColumnData.Configuration.RegionsOfInterest)
+            IEEGParameters.Gain = ColumnData.IEEGConfiguration.Gain;
+            IEEGParameters.MaximumInfluence = ColumnData.IEEGConfiguration.MaximumInfluence;
+            IEEGParameters.AlphaMin = ColumnData.IEEGConfiguration.Alpha;
+            IEEGParameters.SetSpanValues(ColumnData.IEEGConfiguration.SpanMin, ColumnData.IEEGConfiguration.Middle, ColumnData.IEEGConfiguration.SpanMax);
+            foreach (Data.Visualization.RegionOfInterest roi in ColumnData.BaseConfiguration.RegionsOfInterest)
             {
                 ROI newROI = AddROI(roi.Name);
                 foreach (Data.Visualization.Sphere sphere in roi.Spheres)
@@ -441,18 +441,18 @@ namespace HBP.Module3D
         /// </summary>
         public void SaveConfiguration()
         {
-            ColumnData.Configuration.Gain = IEEGParameters.Gain;
-            ColumnData.Configuration.MaximumInfluence = IEEGParameters.MaximumInfluence;
-            ColumnData.Configuration.Alpha = IEEGParameters.AlphaMin;
-            ColumnData.Configuration.SpanMin = IEEGParameters.SpanMin;
-            ColumnData.Configuration.Middle = IEEGParameters.Middle;
-            ColumnData.Configuration.SpanMax = IEEGParameters.SpanMax;
+            ColumnData.IEEGConfiguration.Gain = IEEGParameters.Gain;
+            ColumnData.IEEGConfiguration.MaximumInfluence = IEEGParameters.MaximumInfluence;
+            ColumnData.IEEGConfiguration.Alpha = IEEGParameters.AlphaMin;
+            ColumnData.IEEGConfiguration.SpanMin = IEEGParameters.SpanMin;
+            ColumnData.IEEGConfiguration.Middle = IEEGParameters.Middle;
+            ColumnData.IEEGConfiguration.SpanMax = IEEGParameters.SpanMax;
             List<Data.Visualization.RegionOfInterest> rois = new List<Data.Visualization.RegionOfInterest>();
             foreach (ROI roi in m_ROIs)
             {
                 rois.Add(new Data.Visualization.RegionOfInterest(roi));
             }
-            ColumnData.Configuration.RegionsOfInterest = rois;
+            ColumnData.BaseConfiguration.RegionsOfInterest = rois;
             foreach (Site site in Sites)
             {
                 site.SaveConfiguration();
@@ -496,21 +496,22 @@ namespace HBP.Module3D
         {
             if (ColumnData == null) return;
 
-            MinTimeLine = ColumnData.TimeLine.Start.Value;
-            MaxTimeLine = ColumnData.TimeLine.End.Value;
-            MaxTimeLineID = ColumnData.TimeLine.Lenght - 1;
+            MinTimeLine = ColumnData.Data.TimeLine.Start.Value;
+            MaxTimeLine = ColumnData.Data.TimeLine.End.Value;
+            MaxTimeLineID = ColumnData.Data.TimeLine.Lenght - 1;
 
             // Construct sites value array the old way, and set sites masks // maybe FIXME
             IEEGValuesBySiteID = new float[SitesCount][];
             IEEGUnitsBySiteID = new string[SitesCount];
             foreach (Site site in Sites)
             {
-                Data.Visualization.SiteConfiguration siteConfiguration;
-                if (ColumnData.Configuration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out siteConfiguration))
+                // Data;
+                Data.Visualization.SiteData siteData;
+                if (ColumnData.Data.DataBySite.TryGetValue(site.Information.FullCorrectedID, out siteData))
                 {
-                    if (siteConfiguration.Values.Length > 0)
+                    if (siteData.Values.Length > 0)
                     {
-                        IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.NormalizedValues;
+                        IEEGValuesBySiteID[site.Information.GlobalID] = siteData.NormalizedValues;
                         site.State.IsMasked = false; // update mask
                     }
                     else
@@ -518,15 +519,24 @@ namespace HBP.Module3D
                         IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
                         site.State.IsMasked = true; // update mask
                     }
-                    site.Configuration = siteConfiguration;
-                    IEEGUnitsBySiteID[site.Information.GlobalID] = siteConfiguration.Unit;
+                    IEEGUnitsBySiteID[site.Information.GlobalID] = siteData.Unit;
                 }
                 else
                 {
-                    ColumnData.Configuration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
                     IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
                     IEEGUnitsBySiteID[site.Information.GlobalID] = "";
                     site.State.IsMasked = true; // update mask
+                }
+
+                // Configuration
+                Data.Visualization.SiteConfiguration siteConfiguration;
+                if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out siteConfiguration))
+                {
+                    site.Configuration = siteConfiguration;
+                }
+                else
+                {
+                    ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration); // TODO creation des sites configurations au chargement de la VISU d'apres le PTS.
                 }
             }
 
@@ -564,7 +574,7 @@ namespace HBP.Module3D
         /// Specify a new columnData to be associated with the columnd3DView
         /// </summary>
         /// <param name="columnData"></param>
-        public void SetColumnData(Data.Visualization.Column newColumnData)
+        public void SetColumnData(Data.Visualization.IEEGColumn newColumnData)
         {
             ColumnData = newColumnData;
             m_IEEGParameters.Column = this;

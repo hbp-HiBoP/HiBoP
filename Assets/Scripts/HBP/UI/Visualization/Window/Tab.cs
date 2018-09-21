@@ -1,51 +1,60 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
+using UnityEngine.Events;
+//using UnityEngine.EventSystems;
 
 namespace HBP.UI.Visualization
 {
-    public class Tab : MonoBehaviour, IBeginDragHandler, IDropHandler, IEndDragHandler, IDragHandler
+    [RequireComponent(typeof(Toggle))]
+    public class Tab : MonoBehaviour //, IBeginDragHandler, IDropHandler
     {
-        #region Attributs
-        private Toggle m_toggle;
-        public bool IsOn { get { return m_toggle.isOn; } set { m_toggle.isOn = value; } }
+        #region Properties
+        [SerializeField] Text m_Text;
+        public string Title
+        {
+            get { return m_Text.text;  }
+            set { m_Text.text = value; }
+        }
 
+        Toggle m_Toggle;
+        public ToggleGroup Group
+        {
+            get { return m_Toggle.group; }
+            set { m_Toggle.group = value; }
+        }
+        public bool IsActive
+        {
+            get { return m_Toggle.isOn; }
+            set { m_Toggle.isOn = value; }
+        }
+
+        UnityEvent<bool> m_OnValueChanged = new Toggle.ToggleEvent();
+        public UnityEvent<bool> OnValueChanged
+        {
+            get { return m_OnValueChanged; }
+        }
         #endregion
 
         #region Events
-        public void OnBeginDrag(PointerEventData data)
-        {
-            GetComponentInParent<TabGestion>().OnBeginDrag(data.pointerCurrentRaycast.gameObject.transform.parent.parent);
-        }
+        //public void OnBeginDrag(PointerEventData data)
+        //{
+        //    Debug.Log("OnBeginDrag");
+        //    GetComponentInParent<TabGestion>().OnBeginDrag(data.pointerCurrentRaycast.gameObject.transform.parent.parent);
+        //}
 
-        public void OnDrop(PointerEventData data)
-        {
-            GetComponentInParent<TabGestion>().OnEndDrag(data.pointerCurrentRaycast.gameObject.transform.parent.parent);
-        }
-
-        public void OnDrag(PointerEventData data)
-        {
-        }
-
-        public void OnEndDrag(PointerEventData data)
-        {
-        }
-
-        public void OnChangeState()
-        {
-            if(IsOn)
-            {
-                m_toggle.group.GetComponent<TabGestion>().OnChangeSelectedTab();
-            }
-        }
+        //public void OnDrop(PointerEventData data)
+        //{
+        //    Debug.Log("OnDrop");
+        //    GetComponentInParent<TabGestion>().OnEndDrag(data.pointerCurrentRaycast.gameObject.transform.parent.parent);
+        //}
         #endregion
 
         #region Private Methods
         void Awake()
         {
-            m_toggle = GetComponent<Toggle>();
+            m_Toggle = GetComponent<Toggle>();
+            m_Toggle.onValueChanged.AddListener((value) => OnValueChanged.Invoke(value));
         }
         #endregion
-
     }
 }

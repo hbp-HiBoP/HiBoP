@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using Tools.CSharp;
+using Tools.Unity;
+using UnityEngine;
 
 namespace HBP.Data.Experience.Protocol
 {
@@ -64,6 +66,20 @@ namespace HBP.Data.Experience.Protocol
                 {
                     m_IllustrationPath = value;
                 }
+            }
+        }
+
+        Sprite m_Image;
+        public Sprite Image
+        {
+            get
+            {
+                if (!m_Image)
+                {
+                    Sprite sprite;
+                    if (SpriteExtension.LoadSpriteFromFile(out sprite, IllustrationPath)) m_Image = sprite;
+                }
+                return m_Image;
             }
         }
         /// <summary>

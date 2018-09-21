@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace HBP.UI
 {
@@ -23,8 +24,11 @@ namespace HBP.UI
         #region Public Methods
         public override void Save()
         {
+            foreach (var savableSubWindow in m_SubWindows.OfType<SavableWindow>().ToArray()) savableSubWindow.Save();
             Item.Copy(ItemTemp);
-            base.Save();
+            OnSave.Invoke();
+            base.Close();
+
         }
         #endregion
 

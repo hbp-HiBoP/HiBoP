@@ -69,9 +69,9 @@ public abstract class BaseSiteConditions : MonoBehaviour
     }
     protected bool CheckMean(Site site, bool superior, string stringValue)
     {
-        if (site.Configuration.NormalizedValues.Length > 0)
+        if (site.Data.NormalizedValues.Length > 0)
         {
-            return CompareValue(site.Configuration.NormalizedValues.Mean(), superior, stringValue);
+            return CompareValue(site.Data.NormalizedValues.Mean(), superior, stringValue);
         }
         else
         {
@@ -80,9 +80,9 @@ public abstract class BaseSiteConditions : MonoBehaviour
     }
     protected bool CheckMedian(Site site, bool superior, string stringValue)
     {
-        if (site.Configuration.NormalizedValues.Length > 0)
+        if (site.Data.NormalizedValues.Length > 0)
         {
-            return CompareValue(site.Configuration.NormalizedValues.Median(), superior, stringValue);
+            return CompareValue(site.Data.NormalizedValues.Median(), superior, stringValue);
         }
         else
         {
@@ -91,9 +91,9 @@ public abstract class BaseSiteConditions : MonoBehaviour
     }
     protected bool CheckMax(Site site, bool superior, string stringValue)
     {
-        if (site.Configuration.NormalizedValues.Length > 0)
+        if (site.Data.NormalizedValues.Length > 0)
         {
-            return CompareValue(site.Configuration.NormalizedValues.Max(), superior, stringValue);
+            return CompareValue(site.Data.NormalizedValues.Max(), superior, stringValue);
         }
         else
         {
@@ -102,9 +102,9 @@ public abstract class BaseSiteConditions : MonoBehaviour
     }
     protected bool CheckMin(Site site, bool superior, string stringValue)
     {
-        if (site.Configuration.NormalizedValues.Length > 0)
+        if (site.Data.NormalizedValues.Length > 0)
         {
-            return CompareValue(site.Configuration.NormalizedValues.Min(), superior, stringValue);
+            return CompareValue(site.Data.NormalizedValues.Min(), superior, stringValue);
         }
         else
         {
@@ -113,9 +113,9 @@ public abstract class BaseSiteConditions : MonoBehaviour
     }
     protected bool CheckStandardDeviation(Site site, bool superior, string stringValue)
     {
-        if (site.Configuration.NormalizedValues.Length > 0)
+        if (site.Data.NormalizedValues.Length > 0)
         {
-            return CompareValue(site.Configuration.NormalizedValues.StandardDeviation(), superior, stringValue);
+            return CompareValue(site.Data.NormalizedValues.StandardDeviation(), superior, stringValue);
         }
         else
         {

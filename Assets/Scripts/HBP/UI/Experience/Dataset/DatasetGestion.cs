@@ -1,13 +1,14 @@
 ﻿using System.Linq;
-using d = HBP.Data.Experience.Dataset;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace HBP.UI.Experience.Dataset
 {
-	public class DatasetGestion : ItemGestion<d.Dataset>
+	public class DatasetGestion : SavableWindow
     {
         #region Properties
         [SerializeField] DatasetListGestion m_datasetListGestion;
+        [SerializeField] Button m_CreateDatasetButton, m_RemoveDatasetButton;
 
         public override bool Interactable
         {
@@ -19,7 +20,10 @@ namespace HBP.UI.Experience.Dataset
             set
             {
                 base.Interactable = value;
+
                 m_datasetListGestion.Interactable = value;
+                m_CreateDatasetButton.interactable = value;
+                m_RemoveDatasetButton.interactable = value;
             }
         }
         #endregion
@@ -31,7 +35,7 @@ namespace HBP.UI.Experience.Dataset
             {
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
-                    ApplicationState.ProjectLoaded.SetDatasets(Items.ToArray());
+                    ApplicationState.ProjectLoaded.SetDatasets(m_datasetListGestion.Items);
                     base.Save();
                     DataManager.Clear();
                     ApplicationState.Module3D.ReloadScenes();
@@ -39,7 +43,7 @@ namespace HBP.UI.Experience.Dataset
             }
             else
             {
-                ApplicationState.ProjectLoaded.SetDatasets(Items.ToArray());
+                ApplicationState.ProjectLoaded.SetDatasets(m_datasetListGestion.Items);
                 base.Save();
             }
         }

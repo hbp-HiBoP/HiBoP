@@ -18,7 +18,7 @@ namespace HBP.UI.Informations
 
         [SerializeField] Graph m_Graph;
         [SerializeField] List<ColumnColor> m_Colors;
-        Dictionary<Column, GroupCurveData> m_CurvesByColumn = new Dictionary<Column, GroupCurveData>(); 
+        Dictionary<BaseColumn, GroupCurveData> m_CurvesByColumn = new Dictionary<BaseColumn, GroupCurveData>(); 
         #endregion
 
         #region Public Methods

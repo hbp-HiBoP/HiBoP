@@ -342,6 +342,8 @@ namespace HBP.Module3D
         /// Configuration of this site
         /// </summary>
         public Data.Visualization.SiteConfiguration Configuration { get; set; }
+
+        public Data.Visualization.SiteData Data { get; set; }
         #endregion
 
         #region Private Methods

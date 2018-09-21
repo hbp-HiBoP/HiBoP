@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using HBP.Data.Experience.Dataset;
 using NewTheme.Components;
+using Tools.Unity;
 
 namespace HBP.UI.Experience.Dataset
 {
@@ -14,7 +15,7 @@ namespace HBP.UI.Experience.Dataset
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_PatientText;
 		[SerializeField] ThemeElement m_StateThemeElement;
-        [SerializeField] Text m_ErrorText;
+        [SerializeField] Tooltip m_ErrorText;
 
         [SerializeField] State m_OKState;
         [SerializeField] State m_ErrorState;
@@ -30,7 +31,7 @@ namespace HBP.UI.Experience.Dataset
                 base.Object = value;
                 m_NameText.text = value.Name;
                 m_PatientText.text = value.Patient.Name;
-                m_ErrorText.text = Object.GetErrorsMessage();
+                m_ErrorText.Text = Object.GetErrorsMessage();
                 m_StateThemeElement.Set(value.isOk? m_OKState : m_ErrorState);
             }
         }

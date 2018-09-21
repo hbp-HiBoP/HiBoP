@@ -71,7 +71,16 @@ namespace HBP.Data.Visualization
         /// Columns of the visualization.
         /// </summary>
         [DataMember(Order = 5)]
-        public List<Column> Columns { get; set; }
+        public List<BaseColumn> Columns { get; set; }
+
+        public ReadOnlyCollection<IEEGColumn> IEEGColumns
+        {
+            get { return new ReadOnlyCollection<IEEGColumn>(Columns.OfType<IEEGColumn>().ToArray()); }
+        }
+        public ReadOnlyCollection<AnatomicColumn> AnatomicColumns
+        {
+            get { return new ReadOnlyCollection<AnatomicColumn>(Columns.OfType<AnatomicColumn>().ToArray()); }
+        }
 
         /// <summary>
         /// Test if the visualization is visualizable;
@@ -98,7 +107,7 @@ namespace HBP.Data.Visualization
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
         /// <param name="id">Unique ID.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id, VisualizationConfiguration configuration)
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<BaseColumn> columns, string id, VisualizationConfiguration configuration)
         {
             Name = name;
             Columns = columns.ToList();
@@ -112,7 +121,7 @@ namespace HBP.Data.Visualization
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
         /// <param name="id">Unique ID.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string id) : this(name, patients, columns, id, new VisualizationConfiguration())
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<BaseColumn> columns, string id) : this(name, patients, columns, id, new VisualizationConfiguration())
         {
         }
         /// <summary>
@@ -120,13 +129,13 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <param name="name">Name of the visualization.</param>
         /// <param name="columns">Columns of the visualization.</param>
-        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns) : this(name, patients, columns, Guid.NewGuid().ToString())
+        public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<BaseColumn> columns) : this(name, patients, columns, Guid.NewGuid().ToString())
         {
         }
         /// <summary>
         /// Create a new visualization instance with default value.
         /// </summary>
-        public Visualization() : this("Unknown", new Patient[0], new Column[0])
+        public Visualization() : this("Unknown", new Patient[0], new BaseColumn[0])
         {
 
         }
@@ -200,7 +209,7 @@ namespace HBP.Data.Visualization
             Exception exception = null;
 
             // Find dataInfo.
-            Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
+            Dictionary<IEEGColumn, DataInfo[]> dataInfoByColumn = new Dictionary<IEEGColumn, DataInfo[]>();
             yield return Ninja.JumpToUnity;
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_FindDataInfoToRead(progress, onChangeProgress, (value, progressValue, e) => { dataInfoByColumn = value; progress = progressValue; exception = e; }));
             yield return Ninja.JumpBack;
@@ -239,7 +248,7 @@ namespace HBP.Data.Visualization
         /// <param name="index2">Index of the second column to swap.</param>
         public void SwapColumns(int index1,int index2)
         {
-            Column tmp = Columns[index1];
+            BaseColumn tmp = Columns[index1];
             Columns[index1] = Columns[index2];
             Columns[index2] = tmp;
         }
@@ -248,9 +257,9 @@ namespace HBP.Data.Visualization
         /// </summary>
         /// <param name="column">Column</param>
         /// <returns>DataInfo of the column.</returns>
-        public IEnumerable<DataInfo> GetDataInfo(Column column)
+        public IEnumerable<DataInfo> GetDataInfo(IEEGColumn column)
         {
-            return column.Dataset.Data.Where((data) => (column.Data == data.Name && Patients.Contains(data.Patient)));
+            return column.Dataset.Data.Where((data) => (column.DataName == data.Name && Patients.Contains(data.Patient)));
         }
         /// <summary>
         /// Get the DataInfo used by the column for a specific Patient.
@@ -258,7 +267,7 @@ namespace HBP.Data.Visualization
         /// <param name="patient">Patient concerned.</param>
         /// <param name="column">Column concerned.</param>
         /// <returns>DataInfo used by the column for the specific Patient.</returns>
-        public DataInfo GetDataInfo(Patient patient, Column column)
+        public DataInfo GetDataInfo(Patient patient, IEEGColumn column)
         {
             return GetDataInfo(column).First((dataInfo) => dataInfo.Patient == patient);
         }
@@ -269,7 +278,7 @@ namespace HBP.Data.Visualization
         /// <returns></returns>
         public IEnumerable<DataInfo> GetDataInfo(Patient patient)
         {
-            return Columns.Select(c => GetDataInfo(patient, c)).Distinct();
+            return IEEGColumns.Select(c => GetDataInfo(patient, c)).Distinct();
         }
         /// <summary>
         /// Find implantations that are usable in all patients
@@ -307,7 +316,7 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            Column[] columns = (from column in Columns select column.Clone() as Column).ToArray();
+            BaseColumn[] columns = (from column in Columns select column.Clone() as BaseColumn).ToArray();
             return new Visualization(Name, Patients, columns, ID, Configuration.Clone());
         }
         /// <summary>
@@ -326,16 +335,14 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Private Methods
-        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, string> onChangeProgress, Action<Dictionary<Column, DataInfo[]>, float, Exception> outPut)
+        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, string> onChangeProgress, Action<Dictionary<IEEGColumn, DataInfo[]>, float, Exception> outPut)
         {
             Exception exception = null;
             // Find files to read.
-            Dictionary<Column, DataInfo[]> dataInfoByColumn = new Dictionary<Column, DataInfo[]>();
-            float progressStep = FIND_FILES_TO_READ_PROGRESS / (Columns.Count);
-            foreach (var column in Columns)
+            Dictionary<IEEGColumn, DataInfo[]> dataInfoByColumn = new Dictionary<IEEGColumn, DataInfo[]>();
+            float progressStep = FIND_FILES_TO_READ_PROGRESS / (IEEGColumns.Count);
+            foreach (var column in IEEGColumns)
             {
-                if (column.Type == Column.ColumnType.Anatomy) continue;
-
                 // Update progress;
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
@@ -350,7 +357,7 @@ namespace HBP.Data.Visualization
                     {
                         if (!dataInfoForThisColumn.Exists((dataInfo) => dataInfo.Patient == patient))
                         {
-                            throw new CannotFindDataInfoException(patient.ID, column.Data);
+                            throw new CannotFindDataInfoException(patient.ID, column.DataName);
                         }
                     }
                     dataInfoByColumn.Add(column, GetDataInfo(column).ToArray());
@@ -362,7 +369,7 @@ namespace HBP.Data.Visualization
             }
             outPut(dataInfoByColumn, progress, exception);
         }
-        IEnumerator c_LoadData(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_LoadData(Dictionary<IEEGColumn, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
             string additionalInformation = "";
@@ -404,14 +411,15 @@ namespace HBP.Data.Visualization
             }
             outPut(progress, exception);
         }
-        IEnumerator c_LoadColumns(Dictionary<Column, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_LoadColumns(Dictionary<IEEGColumn, DataInfo[]> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
-            float progressStep = LOAD_COLUMNS_PROGRESS / (Columns.Count * 2);
-            for (int i = 0; i < Columns.Count; ++i)
+            IEEGColumn[] columns = IEEGColumns.ToArray();
+
+            float progressStep = LOAD_COLUMNS_PROGRESS / (columns.Length * 2);
+            for (int i = 0; i < columns.Length; ++i)
             {
-                Column column = Columns[i];
-                if (column.Type == Column.ColumnType.Anatomy) continue;
+                IEEGColumn column = columns[i];
 
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
@@ -419,7 +427,7 @@ namespace HBP.Data.Visualization
                 yield return Ninja.JumpBack;
                 try
                 {
-                    column.Load(dataInfoByColumn[column]);
+                    column.Data.Load(dataInfoByColumn[column]);
                 }
                 catch (Exception e)
                 {
@@ -428,20 +436,20 @@ namespace HBP.Data.Visualization
                     yield break;
                 }
             }
-            IEnumerable<int> frequencies = Columns.SelectMany(c => c.Frequencies);
+            IEnumerable<int> frequencies = columns.SelectMany(c => c.Data.Frequencies);
             int maxFrequency = frequencies.Max();
-            for (int i = 0; i < Columns.Count; ++i)
+            for (int i = 0; i < columns.Length; ++i)
             {
-                Column column = Columns[i];
+                IEEGColumn column = columns[i];
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
                 onChangeProgress.Invoke(progress, 1.0f, "Loading timeline of column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
                 yield return Ninja.JumpBack;
-                column.SetTimeline(maxFrequency);
+                column.Data.SetTimeline(maxFrequency);
                 yield return Ninja.JumpToUnity;
                 try
                 {
-                    column.IconicScenario.LoadIcons();
+                    column.Data.IconicScenario.LoadIcons();
                 }
                 catch (Exception e)
                 {
@@ -454,16 +462,16 @@ namespace HBP.Data.Visualization
         }
         IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
         {
+            IEEGColumn[] columns = IEEGColumns.ToArray();
             Exception exception = null;
-            float progressStep = STANDARDIZE_COLUMNS_PROGRESS / Columns.Count;
-            int[] maxBeforeEnumerable = (from column in Columns where column.Type == Column.ColumnType.iEEG select column.TimeLine.MainEvent.Position).ToArray();
-            int[] maxAfterEnumerable = (from column in Columns where column.Type == Column.ColumnType.iEEG select column.TimeLine.Lenght - column.TimeLine.MainEvent.Position).ToArray();
+            float progressStep = STANDARDIZE_COLUMNS_PROGRESS / columns.Length;
+            int[] maxBeforeEnumerable = columns.Select(column => column.Data.TimeLine.MainEvent.Position).ToArray();
+            int[] maxAfterEnumerable = columns.Select(column => column.Data.TimeLine.Lenght - column.Data.TimeLine.MainEvent.Position).ToArray();
             int maxBefore = maxBeforeEnumerable.Length > 0 ? maxBeforeEnumerable.Max() : 0;
             int maxAfter = maxAfterEnumerable.Length > 0 ? maxAfterEnumerable.Max() : 0;
-            for (int i = 0; i < Columns.Count; ++i)
+            for (int i = 0; i < columns.Length; ++i)
             {
-                Column column = Columns[i];
-                if (column.Type == Column.ColumnType.Anatomy) continue;
+                IEEGColumn column = columns[i];
 
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
@@ -471,7 +479,7 @@ namespace HBP.Data.Visualization
                 yield return Ninja.JumpBack;
                 try
                 {
-                    column.Standardize(maxBefore, maxAfter);
+                    column.Data.Standardize(maxBefore, maxAfter);
                 }
                 catch (Exception e)
                 {

@@ -99,7 +99,7 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Create a new instance of icon with default value.
         /// </summary>
-        public Icon() : this(string.Empty,string.Empty,Vector2.zero)
+        public Icon() : this(string.Empty,string.Empty, new Vector2(-300,300))
         {
         }
         #endregion

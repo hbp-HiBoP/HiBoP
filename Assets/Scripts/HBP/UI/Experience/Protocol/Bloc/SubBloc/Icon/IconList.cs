@@ -159,7 +159,7 @@ namespace HBP.UI.Experience.Protocol
         {
             switch (m_OrderBy)
             {
-                case OrderBy.DescendingStart: SortByEnd(Sorting.Ascending); break;
+                case OrderBy.DescendingEnd: SortByEnd(Sorting.Ascending); break;
                 default: SortByEnd(Sorting.Descending); break;
             }
         }
@@ -169,7 +169,10 @@ namespace HBP.UI.Experience.Protocol
         /// </summary>
         public void SortByNone()
         {
-
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_IllustrationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_StartSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         #endregion
     }

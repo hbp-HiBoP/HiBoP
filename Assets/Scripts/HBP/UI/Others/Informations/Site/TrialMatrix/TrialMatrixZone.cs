@@ -46,7 +46,7 @@ namespace HBP.UI.Informations
             // Test is a single trial can be selected.
             m_TrialCanBeSelect = sites.All((site) => site.Information.Patient == sites.FirstOrDefault().Information.Patient);
 
-            IEnumerable<Protocol> protocols = (from column in m_Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Protocol).Distinct();
+            IEnumerable<Protocol> protocols = (from column in m_Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Dataset.Protocol).Distinct();
             foreach (Protocol protocol in protocols)
             {
                 m_InformationByProtocol[protocol] = new ProtocolInformation();
@@ -97,7 +97,7 @@ namespace HBP.UI.Informations
         void Generate(Site[] sites)
         {
             // Find protocols to display
-            IEnumerable<Protocol> protocols = (from column in m_Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Protocol).Distinct();
+            IEnumerable<Protocol> protocols = (from column in m_Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Dataset.Protocol).Distinct();
 
             // Generate trialMatrix and create the dictionary
             foreach (Protocol protocol in protocols)
@@ -131,7 +131,7 @@ namespace HBP.UI.Informations
         }
         void Display()
         {
-            IEnumerable<Protocol> protocols = (from column in m_Scene.ColumnManager.ColumnsIEEG where !column.IsMinimized select column.ColumnData.Protocol).Distinct();
+            IEnumerable<Protocol> protocols = (from column in m_Scene.ColumnManager.ColumnsIEEG where !column.IsMinimized select column.ColumnData.Dataset.Protocol).Distinct();
             Dictionary<Protocol,ProtocolInformation> informationByProtocol = m_InformationByProtocol.Where(protocol => protocols.Contains(protocol.Key)).ToDictionary(pair => pair.Key, pair => pair.Value);
             Texture2D colorMap = m_Scene.ColumnManager.BrainColorMapTexture.RotateTexture();
             colorMap.wrapMode = TextureWrapMode.Clamp;

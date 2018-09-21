@@ -1,88 +1,31 @@
-﻿using UnityEngine;
-using System;
+﻿using System.Linq;
 using System.Runtime.Serialization;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace HBP.Data.Visualization
 {
-    /**
-    * \class SiteConfiguration
-    * \author Adrien Gannerie
-    * \version 1.0
-    * \date 28 avril 2017
-    * \brief Configuration of a site.
-    * 
-    * \details SiteConfiguration is a class which define the configuration of a site and contains:
-    *   - \a Unique ID.
-    *   - \a IsMasked.
-    *   - \a IsExcluded.
-    *   - \a IsBlackListed.
-    *   - \a IsHighligted.
-    *   - \a IsMarked
-    *   - \a Color.
-    */
     [DataContract]
-    public class SiteConfiguration : ICloneable
+    public class SiteData
     {
         #region Properties
-        /// <summary>
-        /// The site is excluded ?
-        /// </summary>
-        [DataMember] public bool IsExcluded { get; set; }
-
-        /// <summary>
-        /// The site is blacklisted ?
-        /// </summary>
-        [DataMember] public bool IsBlacklisted { get; set; }
-
-        /// <summary>
-        /// The site is highlighted ?
-        /// </summary>
-        [DataMember] public bool IsHighlighted { get; set; }
-
-        /// <summary>
-        /// The site is marked ?
-        /// </summary>
-        [DataMember] public bool IsMarked { get; set; }
-
-        /// <summary>
-        /// The site is suspicious ?
-        /// </summary>
-        [DataMember] public bool IsSuspicious { get; set; }
-
-        [IgnoreDataMember] public float[] Values { get; set; }
-        [IgnoreDataMember] public float[] NormalizedValues { get; set; }
-        [IgnoreDataMember] public string Unit { get; set; }
+        public float[] Values { get; set; }
+        public float[] NormalizedValues { get; set; }
+        public string Unit { get; set; }
+        public int Frequency { get; set; }
         #endregion
 
-        #region Constructors
-        public SiteConfiguration(float[] values,float[] normalizedValues,string unit, bool isExcluded, bool isBlacklisted, bool isHighlighted, bool isMarked, bool isSuspicious)
+        #region constructors
+        public SiteData(IEnumerable<float> values, IEnumerable<float> normalizedValues, string unit, int frequency)
         {
-            Values = values;
-            NormalizedValues = normalizedValues;
+            Values = values.ToArray();
+            NormalizedValues = normalizedValues.ToArray();
             Unit = unit;
-            IsExcluded = isExcluded;
-            IsBlacklisted = isBlacklisted;
-            IsHighlighted = isHighlighted;
-            IsMarked = isMarked;
-            IsSuspicious = isSuspicious;
+            Frequency = frequency;
         }
-        public SiteConfiguration(Color color) : this(new float[0],new float[0],"", false, false, false, false, false) { }
-        public SiteConfiguration() : this(new Color()) { }
         #endregion
 
         #region Public Methods
-        public object Clone()
-        {
-            return new SiteConfiguration(Values, NormalizedValues, Unit, IsExcluded, IsBlacklisted, IsHighlighted, IsMarked, IsSuspicious);
-        }
-        public void LoadSerializedConfiguration(SiteConfiguration configuration)
-        {
-            IsBlacklisted = configuration.IsBlacklisted;
-            IsExcluded = configuration.IsExcluded;
-            IsHighlighted = configuration.IsHighlighted;
-            IsMarked = configuration.IsMarked;
-            IsSuspicious = configuration.IsSuspicious;
-        }
         public void Resize(int diffBefore, int diffAfter)
         {
             if (Values.Length == 0) return;

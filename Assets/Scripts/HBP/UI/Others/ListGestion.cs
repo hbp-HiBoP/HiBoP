@@ -56,11 +56,11 @@ namespace Tools.Unity.Components
             OnOpenSavableWindow.AddListener((window) => windows.Add(window));
             OnCloseSavableWindow.AddListener((window) => windows.Remove(window));
         }
-        public void Add(IEnumerable<T> items)
+        public virtual void Add(IEnumerable<T> items)
         {
             foreach (var item in items) Add(item);
         }
-        public void Add(T item)
+        public virtual void Add(T item)
         {
             if(!Items.Contains(item))
             {
@@ -68,7 +68,7 @@ namespace Tools.Unity.Components
                 List.Add(item);
             }
         }
-        public void Remove(T item)
+        public virtual void Remove(T item)
         {
             if(Items.Contains(item))
             {
@@ -76,11 +76,11 @@ namespace Tools.Unity.Components
                 List.Remove(item);
             }
         }
-        public void Remove(IEnumerable<T> items)
+        public virtual void Remove(IEnumerable<T> items)
         {
             foreach (var item in items) Remove(item);
         }
-        public void RemoveSelected()
+        public virtual void RemoveSelected()
         {
             foreach (T item in List.ObjectsSelected) Remove(item);
         }
@@ -91,7 +91,7 @@ namespace Tools.Unity.Components
         #endregion
 
         #region Private Methods
-        protected void OpenModifier(T item, bool interactable)
+        protected virtual void OpenModifier(T item, bool interactable)
         {
             ItemModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable);
             modifier.OnClose.AddListener(() => OnCloseModifier(modifier));

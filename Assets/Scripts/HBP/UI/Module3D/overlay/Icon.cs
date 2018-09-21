@@ -44,7 +44,7 @@ namespace HBP.UI.Module3D
                     break;
                 case Column3D.ColumnType.IEEG:
                     Column3DIEEG col = (Column3DIEEG)column;
-                    m_Icons = col.ColumnData.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
+                    m_Icons = col.ColumnData.Data.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
 
                     col.OnUpdateCurrentTimelineID.AddListener(() =>
                     {

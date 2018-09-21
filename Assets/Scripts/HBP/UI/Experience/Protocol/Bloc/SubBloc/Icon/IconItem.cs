@@ -11,10 +11,11 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField] Text m_NameText;
-        [SerializeField] Text m_WindowText;
+
+        [SerializeField] Text m_StartText;
+        [SerializeField] Text m_EndText;
 
         [SerializeField] Image m_ImageIcon;
-        [SerializeField] Image m_IllustrationImage;
 
         public override Icon Object
         {
@@ -26,10 +27,13 @@ namespace HBP.UI.Experience.Protocol
             set
             {
                 base.Object = value;
+
                 m_NameText.text = value.Name;
+
+                m_StartText.text = value.Window.Start.ToString();
+                m_EndText.text = value.Window.End.ToString();
+
                 m_ImageIcon.sprite = value.Image;
-                m_IllustrationImage.sprite = value.Image;
-                m_WindowText.text = value.Window.Start.ToString() + "ms to " + value.Window.End.ToString() + "ms";
             }
         }
         #endregion

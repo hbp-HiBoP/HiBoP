@@ -56,10 +56,14 @@ namespace HBP.Data.Experience.Protocol
             Codes = codes.ToList();
             Type = type;
         }
+        public Event(TypeEnum type) : this("",new int[0],type)
+        {
+
+        }
         /// <summary>
         /// Create a new instance with a empty label and no codes.
         /// </summary>
-        public Event() : this(string.Empty,new int[0],TypeEnum.Main)
+        public Event() : this(TypeEnum.Main)
 		{
 		}
         #endregion

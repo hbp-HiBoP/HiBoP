@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Data.Experience.Protocol;
-
+using NewTheme.Components;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -19,6 +19,8 @@ namespace HBP.UI.Experience.Protocol
 
         [SerializeField] Text m_OrderText;
 
+        [SerializeField] State m_ErrorState;
+
         public override SubBloc Object
         {
             get
@@ -32,6 +34,21 @@ namespace HBP.UI.Experience.Protocol
 
                 m_StartWindowText.text = value.Window.Start.ToString();
                 m_EndWindowText.text = value.Window.End.ToString();
+
+                int nbEvents = value.Events.Count;
+                m_EventsText.text = nbEvents.ToString();
+                if (nbEvents == 0) m_EventsText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                else m_EventsText.GetComponent<ThemeElement>().Set();
+
+                int nbIcons = value.Icons.Count;
+                m_IconsText.text = nbIcons.ToString();
+                if (nbIcons == 0) m_IconsText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                else m_IconsText.GetComponent<ThemeElement>().Set();
+
+                int nbTreatments = value.Treatments.Count;
+                m_TreatmentsText.text = nbTreatments.ToString();
+                if (nbTreatments == 0) m_TreatmentsText.GetComponent<ThemeElement>().Set(m_ErrorState);
+                else m_TreatmentsText.GetComponent<ThemeElement>().Set();
 
                 m_OrderText.text = value.Order.ToString();
             }

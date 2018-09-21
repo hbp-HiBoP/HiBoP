@@ -2,7 +2,6 @@
 using System.Linq;
 using System.IO;
 using System.Collections.Generic;
-using Eppy;
 
 namespace HBP.Data.Localizer
 {
@@ -64,7 +63,7 @@ namespace HBP.Data.Localizer
             FileInfo posFile = new FileInfo(path);
             if (posFile.Extension != EXTENSION) throw new Exception("Wrong extension");
 
-            IEnumerable<Tuple<int,int,int>> lineInfo = from pair in m_IndexByCode from tuple in pair.Value select new Tuple<int, int,int>(pair.Key,tuple.Object1,tuple.Object2);
+            IEnumerable<Tuple<int,int,int>> lineInfo = from pair in m_IndexByCode from tuple in pair.Value select new Tuple<int, int,int>(pair.Key,tuple.Item1,tuple.Item2);
             IOrderedEnumerable<Tuple<int,int,int>> sortedIndexAndCode = lineInfo.OrderBy((tuple) => tuple.Item2);
             IEnumerable<string> lines = sortedIndexAndCode.Select((tuple) => GenerateLine(tuple.Item1, tuple.Item2, tuple.Item3));
             using (StreamWriter streamWriter = new StreamWriter(posFile.FullName))
@@ -78,7 +77,7 @@ namespace HBP.Data.Localizer
         }
 		public IEnumerable<int> GetIndexes(int code)
 		{
-            return m_IndexByCode.ContainsKey(code) ? from tuple in m_IndexByCode[code] where tuple.Object2 == 0 select tuple.Object1 : new List<int>();
+            return m_IndexByCode.ContainsKey(code) ? from tuple in m_IndexByCode[code] where tuple.Item2 == 0 select tuple.Item1 : new List<int>();
 		}
         public bool IsCompatible(Experience.Protocol.Protocol protocol)
         {

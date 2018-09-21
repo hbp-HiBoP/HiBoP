@@ -8,6 +8,7 @@ namespace HBP.Data.Enums
     public enum BlocFormatType {[Description("Trial height")] TrialHeight, [Description("Trial ratio")] TrialRatio, [Description("Bloc ratio")] BlocRatio }
     public enum DisplayableError { LeftMeshEmpty, RightMeshEmpty, PreimplantationMRIEmpty, ImplantationEmpty }
     public enum SceneType { SinglePatient, MultiPatients };
+    public enum ColumnType { Anatomic, iEEG }
     public enum CameraType { EEG, fMRI };
     public enum ColorType // For now, integers matter because of the link with the dll.
     {

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Tools.Unity;
+﻿using Tools.Unity;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -56,20 +52,20 @@ namespace HBP.UI.Module3D.Tools
 
             GameObject mainEvent = Instantiate(m_MainEventPrefab, m_Events);
             RectTransform mainEventRectTransform = mainEvent.GetComponent<RectTransform>();
-            Data.Visualization.Event mainEventData = column.ColumnData.TimeLine.MainEvent;
-            float mainEventPosition = (float)mainEventData.Position / (column.ColumnData.TimeLine.Lenght-1);
+            Data.Visualization.Event mainEventData = column.ColumnData.Data.TimeLine.MainEvent;
+            float mainEventPosition = (float)mainEventData.Position / (column.ColumnData.Data.TimeLine.Lenght-1);
             mainEventRectTransform.anchorMin = new Vector2(mainEventPosition, mainEventRectTransform.anchorMin.y);
             mainEventRectTransform.anchorMax = new Vector2(mainEventPosition, mainEventRectTransform.anchorMax.y);
-            mainEvent.GetComponent<Tooltip>().Text = mainEventData.Label + " | " + mainEventData.Position + " (" + (column.ColumnData.TimeLine.Step * mainEventData.Position + column.MinTimeLine).ToString("N2") + column.TimeLineUnite + ")";
+            mainEvent.GetComponent<Tooltip>().Text = mainEventData.Label + " | " + mainEventData.Position + " (" + (column.ColumnData.Data.TimeLine.Step * mainEventData.Position + column.MinTimeLine).ToString("N2") + column.TimeLineUnite + ")";
 
-            foreach (Data.Visualization.Event timelineEvent in column.ColumnData.TimeLine.SecondaryEvents)
+            foreach (Data.Visualization.Event timelineEvent in column.ColumnData.Data.TimeLine.SecondaryEvents)
             {
                 GameObject secondaryEvent = Instantiate(m_SecondaryEventPrefab, m_Events);
                 RectTransform secondaryEventRectTransform = secondaryEvent.GetComponent<RectTransform>();
-                float secondaryEventPosition = (float)timelineEvent.Position / (column.ColumnData.TimeLine.Lenght - 1);
+                float secondaryEventPosition = (float)timelineEvent.Position / (column.ColumnData.Data.TimeLine.Lenght - 1);
                 secondaryEventRectTransform.anchorMin = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMin.y);
                 secondaryEventRectTransform.anchorMax = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMax.y);
-                secondaryEvent.GetComponent<Tooltip>().Text = timelineEvent.Label + " | " + timelineEvent.Position + " (" + (column.ColumnData.TimeLine.Step * timelineEvent.Position + column.MinTimeLine).ToString("N2") + column.TimeLineUnite + ")" + " | " + (timelineEvent.AttendanceRate * 100).ToString("N2") +"%";
+                secondaryEvent.GetComponent<Tooltip>().Text = timelineEvent.Label + " | " + timelineEvent.Position + " (" + (column.ColumnData.Data.TimeLine.Step * timelineEvent.Position + column.MinTimeLine).ToString("N2") + column.TimeLineUnite + ")" + " | " + (timelineEvent.AttendanceRate * 100).ToString("N2") +"%";
             }
         }
         private void DeleteEvents()
@@ -141,11 +137,11 @@ namespace HBP.UI.Module3D.Tools
                     HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn);
                     m_Slider.maxValue = column.MaxTimeLineID;
                     m_Slider.value = column.CurrentTimeLineID;
-                    m_Min.text = column.ColumnData.TimeLine.Start.RawValue.ToString("N2") + column.TimeLineUnite;
-                    m_Max.text = column.ColumnData.TimeLine.End.RawValue.ToString("N2") + column.TimeLineUnite;
+                    m_Min.text = column.ColumnData.Data.TimeLine.Start.RawValue.ToString("N2") + column.TimeLineUnite;
+                    m_Max.text = column.ColumnData.Data.TimeLine.End.RawValue.ToString("N2") + column.TimeLineUnite;
                     m_Current.text = column.CurrentTimeLineID + " (" + column.CurrentTimeLine.ToString("N2") + column.TimeLineUnite + ")";
-                    m_RawTimeline.anchorMin = new Vector2((column.ColumnData.TimeLine.Start.RawValue - column.MinTimeLine) / (column.MaxTimeLine - column.MinTimeLine), 0);
-                    m_RawTimeline.anchorMax = new Vector2(1 - ((column.MaxTimeLine - column.ColumnData.TimeLine.End.RawValue) / (column.MaxTimeLine - column.MinTimeLine)), 1);
+                    m_RawTimeline.anchorMin = new Vector2((column.ColumnData.Data.TimeLine.Start.RawValue - column.MinTimeLine) / (column.MaxTimeLine - column.MinTimeLine), 0);
+                    m_RawTimeline.anchorMax = new Vector2(1 - ((column.MaxTimeLine - column.ColumnData.Data.TimeLine.End.RawValue) / (column.MaxTimeLine - column.MinTimeLine)), 1);
                     ShowEvents(column);
                 }
                 else

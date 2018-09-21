@@ -11,7 +11,7 @@ namespace HBP.UI.Experience.Dataset
     public class DataInfoModifier : ItemModifier<d.DataInfo>
     {
         #region Properties
-        public UnityEvent CanSaveEvent { get; set; }
+        public UnityEvent OnCanSave { get; set; }
         public bool CanSave { get; set; }
         public new d.DataInfo ItemTemp { get { return itemTemp; } }
         [SerializeField] InputField m_NameInputField, m_MeasureInputField;
@@ -43,7 +43,7 @@ namespace HBP.UI.Experience.Dataset
         #region Private Methods
         public override void Save()
         {
-            CanSaveEvent.Invoke();
+            OnCanSave.Invoke();
             if (CanSave) base.Save();
             else ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, "Data already exists", "A data for this patient with the same name already exists.");
         }
@@ -51,42 +51,51 @@ namespace HBP.UI.Experience.Dataset
         {
             // Name.
             m_NameInputField.text = objectToDisplay.Name;
-            m_NameInputField.onValueChanged.RemoveAllListeners();
-            m_NameInputField.onValueChanged.AddListener((name) => objectToDisplay.Name = name);
 
             // Patient.
             m_Patients = ApplicationState.ProjectLoaded.Patients.ToList();
             m_PatientDropdown.options = (from patient in m_Patients select new Dropdown.OptionData(patient.CompleteName, null)).ToList();
             m_PatientDropdown.value = m_Patients.IndexOf(objectToDisplay.Patient);
-            m_PatientDropdown.onValueChanged.RemoveAllListeners();
-            m_PatientDropdown.onValueChanged.AddListener((i) => objectToDisplay.Patient = m_Patients[i]);
+
 
             // EEG.
             m_MeasureInputField.text = objectToDisplay.Measure;
-            m_MeasureInputField.onValueChanged.RemoveAllListeners();
-            m_MeasureInputField.onValueChanged.AddListener((measure) => objectToDisplay.Measure = measure);
             m_EEGFileSelector.DefaultDirectory = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
             m_EEGFileSelector.File = objectToDisplay.EEG;
-            m_EEGFileSelector.onValueChanged.RemoveAllListeners();
-            m_EEGFileSelector.onValueChanged.AddListener((eeg) => objectToDisplay.EEG = eeg);
-            m_EEGFileSelector.onValueChanged.AddListener((eeg) => SetPosFile());
 
             // POS.
             SetPosFile();
             m_POSFileSelector.File = objectToDisplay.POS;
-            m_POSFileSelector.onValueChanged.RemoveAllListeners();
-            m_POSFileSelector.onValueChanged.AddListener((pos) => objectToDisplay.POS = pos);
 
             // Normalization.
             m_NormalizationDropdown.options = (from name in System.Enum.GetNames(typeof(d.DataInfo.NormalizationType)) select new Dropdown.OptionData(name, null)).ToList();
             m_NormalizationDropdown.value = (int) objectToDisplay.Normalization;
-            m_NormalizationDropdown.RefreshShownValue();
-            m_NormalizationDropdown.onValueChanged.RemoveAllListeners();
-            m_NormalizationDropdown.onValueChanged.AddListener((value) => objectToDisplay.Normalization = (d.DataInfo.NormalizationType) value);
+
         }
         protected override void Initialize()
         {
-            CanSaveEvent = new UnityEvent();
+            OnCanSave = new UnityEvent();
+
+            m_NameInputField.onValueChanged.RemoveAllListeners();
+            m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
+
+            m_PatientDropdown.onValueChanged.RemoveAllListeners();
+            m_PatientDropdown.onValueChanged.AddListener((i) => ItemTemp.Patient = m_Patients[i]);
+
+            m_MeasureInputField.onValueChanged.RemoveAllListeners();
+            m_MeasureInputField.onValueChanged.AddListener((measure) => ItemTemp.Measure = measure);
+
+            m_EEGFileSelector.onValueChanged.RemoveAllListeners();
+            m_EEGFileSelector.onValueChanged.AddListener((eeg) => ItemTemp.EEG = eeg);
+            m_EEGFileSelector.onValueChanged.AddListener((eeg) => SetPosFile());
+
+            m_POSFileSelector.onValueChanged.RemoveAllListeners();
+            m_POSFileSelector.onValueChanged.AddListener((pos) => ItemTemp.POS = pos);
+
+            m_NormalizationDropdown.RefreshShownValue();
+            m_NormalizationDropdown.onValueChanged.RemoveAllListeners();
+            m_NormalizationDropdown.onValueChanged.AddListener((value) => ItemTemp.Normalization = (d.DataInfo.NormalizationType)value);
+
             base.Initialize();
         }
         void SetPosFile()

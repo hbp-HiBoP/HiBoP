@@ -16,7 +16,7 @@ namespace HBP.UI.Visualization
         [SerializeField] PatientListGestion m_VisualizationPatientsListGestion, m_ProjectPatientsListGestion;
         [SerializeField] Button m_AddPatientButton, m_RemovePatientButton, m_AddGroupButton, m_RemoveGroupButton;
 
-        [SerializeField] TabGestion m_TabGestion;
+        [SerializeField] TabManager m_TabGestion;
         [SerializeField] ColumnModifier m_ColumnModifier;
 
         public override bool Interactable
@@ -88,15 +88,16 @@ namespace HBP.UI.Visualization
             m_SubWindows.Add(groupSelection);
         }
         public void AddColumn()
-        { 
-            ItemTemp.Columns.Add(new Column(ItemTemp.Columns.Count + 1, ItemTemp.Patients, ApplicationState.ProjectLoaded.Datasets));
-            m_TabGestion.AddTab();
+        {
+            BaseColumn column = new IEEGColumn("Column n°"+(ItemTemp.Columns.Count + 1), new BaseConfiguration(), ItemTemp.Patients);
+            ItemTemp.Columns.Add(column);
+            m_TabGestion.AddTab(column.Name);
         }
         public void RemoveColumn()
         {
-            Toggle toggle = new List<Toggle>(m_TabGestion.ToggleGroup.ActiveToggles())[0];
-            ItemTemp.Columns.RemoveAt(toggle.transform.GetSiblingIndex() - 1);
-            m_TabGestion.RemoveTab();
+            int index = m_TabGestion.ActiveTabIndex;
+            ItemTemp.Columns.RemoveAt(index);
+            m_TabGestion.RemoveTab(index);
         }
         #endregion
 
@@ -113,8 +114,8 @@ namespace HBP.UI.Visualization
             m_ProjectPatientsListGestion.Initialize(m_SubWindows);
 
             // Tabs.
-            m_TabGestion.OnSwapColumnsEvent.AddListener((column1, column2) => ItemTemp.SwapColumns(column1, column2));
-            m_TabGestion.OnChangeSelectedTabEvent.AddListener(() => SelectColumn());
+            m_TabGestion.OnSwapColumns.AddListener((column1, column2) => ItemTemp.SwapColumns(column1, column2));
+            m_TabGestion.OnActiveTabChanged.AddListener(SelectColumn);
         }
         protected override void SetFields(Data.Visualization.Visualization objectToDisplay)
         {
@@ -123,14 +124,6 @@ namespace HBP.UI.Visualization
             m_VisualizationPatientsListGestion.Items = ItemTemp.Patients.ToList();
             m_ProjectPatientsListGestion.Items = ApplicationState.ProjectLoaded.Patients.Where(p => !objectToDisplay.Patients.Contains(p)).ToList();
 
-            if (objectToDisplay.Columns.Count == 0)
-            {
-                if(true) // TODO
-                {
-
-                }
-                objectToDisplay.Columns.Add(new Column(objectToDisplay.Columns.Count + 1, objectToDisplay.Patients, ApplicationState.ProjectLoaded.Datasets));
-            }
             for (int i = 0; i < objectToDisplay.Columns.Count; i++)
             {
                 m_TabGestion.AddTab();
@@ -162,8 +155,8 @@ namespace HBP.UI.Visualization
         }
         protected void SelectColumn()
         {
-            Column column = ItemTemp.Columns[m_TabGestion.ToggleGroup.ActiveToggles().First().transform.GetSiblingIndex() - 1];
-            m_ColumnModifier.SetTab(column, ItemTemp.Patients.ToArray());
+            int index = m_TabGestion.ActiveTabIndex;
+            m_ColumnModifier.SetTab(Item.Columns[index], ItemTemp.Patients);
         }
         #endregion
     }

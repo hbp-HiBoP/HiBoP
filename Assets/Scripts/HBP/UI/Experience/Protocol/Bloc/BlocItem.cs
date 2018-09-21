@@ -24,7 +24,7 @@ namespace HBP.UI.Experience.Protocol
                 m_NameText.text = value.Name;
                 m_OrderText.text = value.Order.ToString();
                 m_SubBlocsText.text = value.SubBlocs.Count.ToString();
-                //m_Image.sprite = value.IllustrationPath TO DO illustration
+                m_Image.sprite = value.Image;
             }
         }
         #endregion

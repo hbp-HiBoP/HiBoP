@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -54,8 +55,8 @@ namespace Tools.CSharp.BooleanExpressionParser
                 Tuple<TokenType, string> value;
                 if (m_SymbolToOperator.TryGetValue(character, out value))
                 {
-                    Type = value.Object1;
-                    Value = value.Object2;
+                    Type = value.Item1;
+                    Value = value.Item2;
                 }
                 else
                 {
