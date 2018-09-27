@@ -136,7 +136,7 @@ public static class DataManager
         float standardDeviation = 1;
         foreach (var bloc in m_DataByRequest[dataRequest].Blocs)
         {
-            foreach (var pair in bloc.BaselineValuesBySite)
+            foreach (var pair in bloc.BaselineValuesBySite) 
             {
                 average = pair.Value.Mean();
                 standardDeviation = pair.Value.StandardDeviation();

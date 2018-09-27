@@ -1443,9 +1443,9 @@ namespace HBP.Module3D
             if (firstCall) ResetConfiguration(false);
             UpdateBrainSurfaceColor(Visualization.Configuration.BrainColor);
             UpdateBrainCutColor(Visualization.Configuration.BrainCutColor);
-            UpdateColormap(Visualization.Configuration.Colormap);
+            UpdateColormap(Visualization.Configuration.EEGColormap);
             UpdateMeshPartToDisplay(Visualization.Configuration.MeshPart);
-            EdgeMode = Visualization.Configuration.EdgeMode;
+            EdgeMode = Visualization.Configuration.ShowEdges;
             StrongCuts = Visualization.Configuration.StrongCuts;
             HideBlacklistedSites = Visualization.Configuration.HideBlacklistedSites;
             ShowAllSites = Visualization.Configuration.ShowAllSites;
@@ -1498,12 +1498,12 @@ namespace HBP.Module3D
         {
             Visualization.Configuration.BrainColor = m_ColumnManager.BrainColor;
             Visualization.Configuration.BrainCutColor = m_ColumnManager.BrainCutColor;
-            Visualization.Configuration.Colormap = m_ColumnManager.Colormap;
+            Visualization.Configuration.EEGColormap = m_ColumnManager.Colormap;
             Visualization.Configuration.MeshPart = SceneInformation.MeshPartToDisplay;
             Visualization.Configuration.MeshName = m_ColumnManager.SelectedMesh.Name;
             Visualization.Configuration.MRIName = m_ColumnManager.SelectedMRI.Name;
             Visualization.Configuration.ImplantationName = m_ColumnManager.SelectedImplantation.Name;
-            Visualization.Configuration.EdgeMode = EdgeMode;
+            Visualization.Configuration.ShowEdges = EdgeMode;
             Visualization.Configuration.StrongCuts = StrongCuts;
             Visualization.Configuration.HideBlacklistedSites = HideBlacklistedSites;
             Visualization.Configuration.ShowAllSites = ShowAllSites;

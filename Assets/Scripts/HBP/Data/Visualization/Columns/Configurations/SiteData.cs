@@ -1,27 +1,25 @@
-﻿using System.Linq;
-using System.Runtime.Serialization;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace HBP.Data.Visualization
 {
-    [DataContract]
     public class SiteData
     {
         #region Properties
-        public float[] Values { get; set; }
-        public float[] NormalizedValues { get; set; }
         public string Unit { get; set; }
         public int Frequency { get; set; }
+        public float[] Values { get; set; }
         #endregion
 
         #region constructors
-        public SiteData(IEnumerable<float> values, IEnumerable<float> normalizedValues, string unit, int frequency)
+        public SiteData(float[] values, string unit, int frequency)
         {
-            Values = values.ToArray();
-            NormalizedValues = normalizedValues.ToArray();
+            Values = values;
             Unit = unit;
             Frequency = frequency;
+        }
+        public SiteData() : this(new float[0], "", 0)
+        {
+
         }
         #endregion
 
@@ -29,29 +27,11 @@ namespace HBP.Data.Visualization
         public void Resize(int diffBefore, int diffAfter)
         {
             if (Values.Length == 0) return;
-
-            float[] values = new float[Values.Length + diffBefore + diffAfter];
-            float[] normalizedValues = new float[NormalizedValues.Length + diffBefore + diffAfter];
-            for (int i = 0; i < diffBefore; ++i)
-            {
-                values[i] = Values[0];
-                normalizedValues[i] = NormalizedValues[0];
-            }
-            for (int i = 0; i < Values.Length; ++i)
-            {
-                values[diffBefore + i] = Values[i];
-            }
-            for (int i = 0; i < NormalizedValues.Length; ++i)
-            {
-                normalizedValues[diffBefore + i] = NormalizedValues[i];
-            }
-            for (int i = 0; i < diffAfter; ++i)
-            {
-                values[diffBefore + Values.Length + i] = Values[Values.Length - 1];
-                normalizedValues[diffBefore + NormalizedValues.Length + i] = NormalizedValues[Values.Length - 1];
-            }
-            Values = values;
-            NormalizedValues = normalizedValues;
+            float[] resizedValues = new float[Values.Length + diffBefore + diffAfter];
+            for (int i = 0; i < diffBefore; ++i) resizedValues[i] = Values[0];
+            for (int i = 0; i < Values.Length; ++i) resizedValues[diffBefore + i] = Values[i];
+            for (int i = 0; i < diffAfter; ++i) resizedValues[diffBefore + Values.Length + i] = Values[Values.Length - 1];
+            Values = resizedValues;
         }
         /// <summary>
         /// Resize the values array using homemade "interpolation"
@@ -68,7 +48,6 @@ namespace HBP.Data.Visualization
             for (int i = 0; i < before; ++i)
             {
                 values[i] = Values[0];
-                normalizedValues[i] = NormalizedValues[0];
             }
             for (int i = before; i < size - after; ++i)
             {
@@ -77,15 +56,12 @@ namespace HBP.Data.Visualization
                 int highIndex = Mathf.CeilToInt(floatIndex);
                 float percentage = highIndex - floatIndex;
                 values[i] = percentage * Values[lowIndex] + (1 - percentage) * Values[highIndex];
-                normalizedValues[i] = percentage * NormalizedValues[lowIndex] + (1 - percentage) * NormalizedValues[highIndex];
             }
             for (int i = size - after; i < size; ++i)
             {
                 values[i] = Values[Values.Length - 1];
-                normalizedValues[i] = NormalizedValues[NormalizedValues.Length - 1];
             }
             Values = values;
-            NormalizedValues = normalizedValues;
         }
         #endregion
     }

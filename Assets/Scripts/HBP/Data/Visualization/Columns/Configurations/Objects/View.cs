@@ -1,20 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using UnityEngine;
 
 namespace HBP.Data.Visualization
 {
     [DataContract]
-    public class View
+    public struct View
     {
         #region Properties
-        [DataMember]
-        public SerializableVector3 Position { get; set; }
-        [DataMember]
-        public SerializableQuaternion Rotation { get; set; }
-        [DataMember]
-        public SerializableVector3 Target { get; set; }
+        [DataMember] public SerializableVector3 Position { get; set; }
+        [DataMember] public SerializableQuaternion Rotation { get; set; }
+        [DataMember] public SerializableVector3 Target { get; set; }
         #endregion
 
         #region Constructors

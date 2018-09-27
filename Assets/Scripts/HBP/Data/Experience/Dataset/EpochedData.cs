@@ -28,19 +28,18 @@ namespace HBP.Data.Experience
         #region Constructors
         public EpochedData(Protocol.Bloc bloc, Dataset.Data data)
         {
-            // TODO
-            //// Find index for all the events of the blocs.
-            //Dictionary<Protocol.Event, int[]> indexByEvent = FindIndexByEvent(bloc.Events, data.POS);
+            // Find index for all the events of the blocs.
+            Dictionary<Protocol.Event, int[]> indexByEvent = FindIndexByEvent(bloc.Events, data.POS);
 
-            //// Calcul number of samples before and after the main event.
-            //int numberOfSamplesBeforeMainEvent, numberOfSamplesAfterMainEvent;
-            //int BaselineNumberOfSamplesBeforeMainEvent, BaselineNumberOfSamplesAfterMainEvent;
-            //CalculateNumberOfSamples(bloc.Window, data.Frequency, out numberOfSamplesBeforeMainEvent, out numberOfSamplesAfterMainEvent);
-            //CalculateNumberOfSamples(bloc.Baseline, data.Frequency, out BaselineNumberOfSamplesBeforeMainEvent, out BaselineNumberOfSamplesAfterMainEvent);
+            // Calcul number of samples before and after the main event.
+            int numberOfSamplesBeforeMainEvent, numberOfSamplesAfterMainEvent;
+            int BaselineNumberOfSamplesBeforeMainEvent, BaselineNumberOfSamplesAfterMainEvent;
+            CalculateNumberOfSamples(bloc.Window, data.Frequency, out numberOfSamplesBeforeMainEvent, out numberOfSamplesAfterMainEvent);
+            CalculateNumberOfSamples(bloc.Baseline, data.Frequency, out BaselineNumberOfSamplesBeforeMainEvent, out BaselineNumberOfSamplesAfterMainEvent);
 
-            //// Generate blocs.
-            //Blocs = (from index in indexByEvent[bloc.MainEvent] where (index + numberOfSamplesBeforeMainEvent >= 0 && index + numberOfSamplesAfterMainEvent < data.ValuesBySite.Values.First().Length)select new Localizer.Bloc(index + numberOfSamplesBeforeMainEvent, index + numberOfSamplesAfterMainEvent, index + BaselineNumberOfSamplesBeforeMainEvent, index + BaselineNumberOfSamplesAfterMainEvent, indexByEvent, data)).ToArray();
-            //Frequency = data.Frequency;
+            // Generate blocs.
+            Blocs = (from index in indexByEvent[bloc.MainEvent] where (index + numberOfSamplesBeforeMainEvent >= 0 && index + numberOfSamplesAfterMainEvent < data.ValuesBySite.Values.First().Length) select new Localizer.Bloc(index + numberOfSamplesBeforeMainEvent, index + numberOfSamplesAfterMainEvent, index + BaselineNumberOfSamplesBeforeMainEvent, index + BaselineNumberOfSamplesAfterMainEvent, indexByEvent, data)).ToArray();
+            Frequency = data.Frequency;
         }
         #endregion
 
@@ -49,6 +48,7 @@ namespace HBP.Data.Experience
         {
             return (from e in events select new KeyValuePair<Protocol.Event, int[]>(e, pos.GetIndexes(e.Codes).ToArray())).ToDictionary((pair) => pair.Key, (k) => k.Value);
         }
+
         void CalculateNumberOfSamples(Tools.CSharp.Window window, float frequency, out int numberOfSamplesBeforeMainEvent, out int numberOfSamplesAfterMainEvent)
         {
             numberOfSamplesBeforeMainEvent = Mathf.CeilToInt((window.Start) * 0.001f * frequency);

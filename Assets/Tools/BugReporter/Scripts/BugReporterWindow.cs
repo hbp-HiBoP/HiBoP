@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using HBP.UI;
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Mail;
@@ -8,64 +7,41 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace Tools.Unity
 {
-    public class BugReporterWindow : MonoBehaviour
+    public class BugReporterWindow : SavableWindow
     {
         #region Properties
-        [SerializeField]
-        private Button m_SubmitButton;
-        [SerializeField]
-        private Button m_CancelButton;
-        [SerializeField]
-        private Button m_CloseButton;
-        [SerializeField]
-        private InputField m_ReporterName;
-        [SerializeField]
-        private InputField m_Description;
-        [SerializeField]
-        private InputField m_MailAdress;
+        [SerializeField] InputField m_NameInputField;
+        [SerializeField] InputField m_EmailInputField;
+        [SerializeField] InputField m_DescriptionInputField;
         #endregion
 
-        #region Events
-        public GenericEvent<bool> OnCloseWindow = new GenericEvent<bool>();
+        #region Public Methods
+        public override void Save()
+        {
+            try
+            {
+                SendMail();
+            }
+            catch (Exception e)
+            {
+                if (e is SmtpException)
+                {
+                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "The report could not be sent", "Please check your internet connection and try again.");
+                }
+                else
+                {
+                    ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.Source, e.Message);
+                }
+            }
+            base.Save();
+        }
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            m_SubmitButton.onClick.AddListener(() =>
-            {
-                try
-                {
-                    SendMail();
-                    OnCloseWindow.Invoke(true);
-                }
-                catch (Exception e)
-                {
-                    OnCloseWindow.Invoke(false);
-                    if (e is SmtpException)
-                    {
-                        ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "The report could not be sent", "Please check your internet connection and try again.");
-                    }
-                    else
-                    {
-                        ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.Source, e.Message);
-                    }
-                }
-            });
-            m_CancelButton.onClick.AddListener(() =>
-            {
-                OnCloseWindow.Invoke(false);
-            });
-            m_CloseButton.onClick.AddListener(() =>
-            {
-                OnCloseWindow.Invoke(false);
-            });
-        }
         private void SendMail()
         {
             MailMessage mail = new MailMessage();
@@ -97,10 +73,10 @@ namespace Tools.Unity
                 SystemInfo.maxTextureSize
             );
             bodyBuilder.AppendLine(" ");
-            bodyBuilder.AppendLine(m_ReporterName.text);
-            bodyBuilder.AppendLine(m_MailAdress.text);
+            bodyBuilder.AppendLine(m_NameInputField.text);
+            bodyBuilder.AppendLine(m_EmailInputField.text);
             bodyBuilder.AppendLine(" ");
-            bodyBuilder.AppendLine(m_Description.text);
+            bodyBuilder.AppendLine(m_DescriptionInputField.text);
             mail.Body = bodyBuilder.ToString();
 
             string logFile = "";
@@ -132,6 +108,7 @@ namespace Tools.Unity
             smtpServer.EnableSsl = true;
             ServicePointManager.ServerCertificateValidationCallback = delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) { return true; };
             smtpServer.Send(mail);
+            ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Bug report successfully sent.", "The issue will be adressed as soon as possible. If you've entered your contact information, we may contact you for further information concerning the bug you encountered.");
         }
         #endregion
     }
