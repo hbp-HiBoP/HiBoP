@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using HBP.Data.Experience.Protocol;
 using Tools.Unity.Components;
+using d = HBP.Data.Experience.Protocol;
 using UnityEngine;
 
 namespace HBP.UI.Experience.Protocol
 {
-    public class EventListGestion : ListGestion<Data.Experience.Protocol.Event>
+    public class EventListGestion : ListGestion<d.Event>
     {
         #region Properties
         [SerializeField] new EventList List;
-        public override List<Data.Experience.Protocol.Event> Items
+        public override List<d.Event> Items
         {
             get
             {
@@ -34,30 +34,30 @@ namespace HBP.UI.Experience.Protocol
         }
         public override void Create()
         {
-            if (m_Items.Any((e) => e.Type == Data.Experience.Protocol.Event.TypeEnum.Main))
+            if (m_Items.Any((e) => e.Type == Data.Enums.MainSecondaryEnum.Main))
             {
-                OpenModifier(new Data.Experience.Protocol.Event(Data.Experience.Protocol.Event.TypeEnum.Secondary), Interactable);
+                OpenModifier(new d.Event(Data.Enums.MainSecondaryEnum.Secondary), Interactable);
             }
             else base.Create();
         }
-        public override void Remove(Data.Experience.Protocol.Event item)
+        public override void Remove(d.Event item)
         {
             base.Remove(item);
-            if (m_Items.All((e) => e.Type != Data.Experience.Protocol.Event.TypeEnum.Main))
+            if (m_Items.All((e) => e.Type != Data.Enums.MainSecondaryEnum.Main))
             {
-                Data.Experience.Protocol.Event firstEvent = m_Items.FirstOrDefault();
-                if (firstEvent != null) firstEvent.Type = Data.Experience.Protocol.Event.TypeEnum.Main;
+                d.Event firstEvent = m_Items.FirstOrDefault();
+                if (firstEvent != null) firstEvent.Type = Data.Enums.MainSecondaryEnum.Main;
             }
         }
-        protected override void OnSaveModifier(ItemModifier<Data.Experience.Protocol.Event> modifier)
+        protected override void OnSaveModifier(ItemModifier<d.Event> modifier)
         {
-            if(modifier.Item.Type == Data.Experience.Protocol.Event.TypeEnum.Main)
+            if(modifier.Item.Type == Data.Enums.MainSecondaryEnum.Main)
             {
                 foreach (var item in Items)
                 {
                     if(modifier.Item != item)
                     {
-                        item.Type = Data.Experience.Protocol.Event.TypeEnum.Secondary;
+                        item.Type = Data.Enums.MainSecondaryEnum.Secondary;
                     }
                 }
             }

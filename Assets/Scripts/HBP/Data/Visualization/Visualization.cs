@@ -444,27 +444,27 @@ namespace HBP.Data.Visualization
                     yield break;
                 }
             }            
-            int maxFrequency = columns.Max(column => column.Data.Frequencies.Max());
-            for (int i = 0; i < columnsLength; ++i)
-            {
-                IEEGColumn column = columns[i];
-                yield return Ninja.JumpToUnity;
-                progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Loading timeline of column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
-                yield return Ninja.JumpBack;
-                column.Data.SetTimeline(maxFrequency);
-                yield return Ninja.JumpToUnity;
-                try
-                {
-                    column.Data.IconicScenario.LoadIcons();
-                }
-                catch (Exception e)
-                {
-                    exception = e;
-                    outPut(progress, exception);
-                    yield break;
-                }
-            }
+            // int maxFrequency = columns.Max(column => column.Data.Frequencies.Max()); TODO
+            //for (int i = 0; i < columnsLength; ++i)
+            //{
+            //    IEEGColumn column = columns[i];
+            //    yield return Ninja.JumpToUnity;
+            //    progress += progressStep;
+            //    onChangeProgress.Invoke(progress, 1.0f, "Loading timeline of column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
+            //    yield return Ninja.JumpBack;
+            //    column.Data.SetTimeline(maxFrequency);
+            //    yield return Ninja.JumpToUnity;
+            //    try
+            //    {
+            //        column.Data.IconicScenario.LoadIcons();
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        exception = e;
+            //        outPut(progress, exception);
+            //        yield break;
+            //    }
+            //}
             outPut(progress, exception);
         }
         IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)

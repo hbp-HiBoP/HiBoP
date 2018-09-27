@@ -31,7 +31,7 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// ID of the SubBloc.
         /// </summary>
-        [DataMember] public string ID { get; set; }
+        [DataMember] public string ID { get; private set; }
         /// <summary> 
         /// Name of the SubBloc.
         /// </summary>
@@ -40,6 +40,10 @@ namespace HBP.Data.Experience.Protocol
         /// Order of the SubBloc in the Bloc.
         /// </summary>
         [DataMember] public int Order { get; set; }
+        /// <summary>
+        /// Type of SubBloc.
+        /// </summary>
+        [DataMember] public Enums.MainSecondaryEnum Type { get; set; }
         /// <summary>
         /// Window of the SubBloc (\a x : time before main event in ms. \a y : time after main event in ms.)
         /// </summary>
@@ -51,11 +55,11 @@ namespace HBP.Data.Experience.Protocol
         /// <summary>
         /// Main event of the SubBloc.
         /// </summary>
-        public Event MainEvent { get { return Events.FirstOrDefault((e) => e.Type == Event.TypeEnum.Main); } }
+        public Event MainEvent { get { return Events.FirstOrDefault((e) => e.Type == Enums.MainSecondaryEnum.Main); } }
         /// <summary>
         /// Secondary events of the SubBloc.
         /// </summary>
-        public ReadOnlyCollection<Event> SecondaryEvents { get { return new ReadOnlyCollection<Event>(Events.FindAll((e) => e.Type == Event.TypeEnum.Secondary)); } }
+        public ReadOnlyCollection<Event> SecondaryEvents { get { return new ReadOnlyCollection<Event>(Events.FindAll((e) => e.Type == Enums.MainSecondaryEnum.Secondary)); } }
         /// <summary>
         /// Events of the SubBloc.
         /// </summary>
@@ -82,11 +86,12 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="scenario">Iconic Scenario of the subBloc.</param>
         /// <param name="treatments">Treatments of the subBloc.</param>
         /// <param name="id">Unique ID of the subBloc.</param>
-        public SubBloc(string name, int position, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments, string id)
+        public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments, string id)
         {
             ID = id;
             Name = name;
-            Order = position;
+            Order = order;
+            Type = type;
             Window = window;
             Baseline = baseline;
             Events = events.ToList();
@@ -104,14 +109,18 @@ namespace HBP.Data.Experience.Protocol
         /// <param name="scenario">Iconic Scenario of the subBloc.</param>
         /// <param name="treatments">Treatments of the subBloc.</param>
         /// <param name="id">Unique ID of the subBloc.</param>
-        public SubBloc(string name, int position, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments) : this(name, position, window, baseline, events, icons, treatments, Guid.NewGuid().ToString())
+        public SubBloc(string name, int order, Enums.MainSecondaryEnum type, Window window, Window baseline, IEnumerable<Event> events, IEnumerable<Icon> icons, IEnumerable<Treatment> treatments) : this(name, order, type, window, baseline, events, icons, treatments, Guid.NewGuid().ToString())
         {
         }
         /// <summary>
         /// Create a new SubBloc with default value.
         /// </summary>
-        public SubBloc() : this(string.Empty, 0, new Window(-300,300), new Window(-300,0), new List<Event>(), new List<Icon>(), new List<Treatment>())
+        public SubBloc() : this(string.Empty, 0, Enums.MainSecondaryEnum.Main, new Window(-300,300), new Window(-300,0), new List<Event>(), new List<Icon>(), new List<Treatment>())
         {
+        }
+        public SubBloc(Enums.MainSecondaryEnum type) : this()
+        {
+            Type = type;
         }
         #endregion
 
@@ -126,6 +135,7 @@ namespace HBP.Data.Experience.Protocol
             ID = subBloc.ID;
             Name = subBloc.Name;
             Order = subBloc.Order;
+            Type = subBloc.Type;
             Window = subBloc.Window;
             Baseline = subBloc.Baseline;
             Events = subBloc.Events;
@@ -138,7 +148,7 @@ namespace HBP.Data.Experience.Protocol
         /// <returns>object cloned.</returns>
         public object Clone()
         {
-            return new SubBloc(Name, Order, Window, Baseline, Events.DeepClone(), Icons.DeepClone(), Treatments.DeepClone(), ID.Clone() as string);
+            return new SubBloc(Name, Order, Type, Window, Baseline, Events.DeepClone(), Icons.DeepClone(), Treatments.DeepClone(), ID.Clone() as string);
         }
         /// <summary>
         /// Operator Equals.

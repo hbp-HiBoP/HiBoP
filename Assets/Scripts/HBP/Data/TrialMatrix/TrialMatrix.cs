@@ -20,48 +20,48 @@ namespace HBP.Data.TrialMatrix
         #region Constructor
         public TrialMatrix(Protocol protocol, DataInfo dataInfo, Dictionary<Experience.Protocol.Bloc,Localizer.Bloc[]> blocsByProtocolBloc, Module3D.Site site, Base3DScene scene)
         {
-            // Genreate blocs.
-            UnityEngine.Profiling.Profiler.BeginSample("Generate blocs");
-            Bloc[] trialMatrixBlocs;
-            if (ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
-            {
-                trialMatrixBlocs = (from bloc in protocol.Blocs select new Bloc(bloc, blocsByProtocolBloc[bloc], site)).ToArray();
-            }
-            else
-            {
-                List<Bloc> blocs = new List<Bloc>();
-                foreach (var bloc in protocol.Blocs)
-                {
-                    if (scene.Visualization.IEEGColumns.Any((c) => c.Bloc == bloc))
-                    {
-                        blocs.Add(new Bloc(bloc, blocsByProtocolBloc[bloc], site));
-                    }
-                }
-                trialMatrixBlocs = blocs.ToArray();
-            }
-            UnityEngine.Profiling.Profiler.EndSample();
+            //// Genreate blocs.
+            //UnityEngine.Profiling.Profiler.BeginSample("Generate blocs");
+            //Bloc[] trialMatrixBlocs;
+            //if (ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
+            //{
+            //    trialMatrixBlocs = (from bloc in protocol.Blocs select new Bloc(bloc, blocsByProtocolBloc[bloc], site)).ToArray();
+            //}
+            //else
+            //{
+            //    List<Bloc> blocs = new List<Bloc>();
+            //    foreach (var bloc in protocol.Blocs)
+            //    {
+            //        if (scene.Visualization.IEEGColumns.Any((c) => c.Bloc == bloc))
+            //        {
+            //            blocs.Add(new Bloc(bloc, blocsByProtocolBloc[bloc], site));
+            //        }
+            //    }
+            //    trialMatrixBlocs = blocs.ToArray();
+            //}
+            //UnityEngine.Profiling.Profiler.EndSample();
 
-            Normalize(trialMatrixBlocs, site);
+            //Normalize(trialMatrixBlocs, site);
 
-            // Calculate values limits.
-            UnityEngine.Profiling.Profiler.BeginSample("calculate values");
-            List<float> values = new List<float>();
-            foreach (Bloc bloc in trialMatrixBlocs) foreach (Line line in bloc.Trials) values.AddRange(line.Bloc.NormalizedValuesBySite[site.Information.FullCorrectedID]);
-            Limits = CalculateValueLimit(values.ToArray());
-            UnityEngine.Profiling.Profiler.EndSample();
+            //// Calculate values limits.
+            //UnityEngine.Profiling.Profiler.BeginSample("calculate values");
+            //List<float> values = new List<float>();
+            //foreach (Bloc bloc in trialMatrixBlocs) foreach (Line line in bloc.Trials) values.AddRange(line.Bloc.NormalizedValuesBySite[site.Information.FullCorrectedID]);
+            //Limits = CalculateValueLimit(values.ToArray());
+            //UnityEngine.Profiling.Profiler.EndSample();
 
-            //Standardize Blocs
-            UnityEngine.Profiling.Profiler.BeginSample("standardize blocs");
-            Standardize(trialMatrixBlocs, site);
-            UnityEngine.Profiling.Profiler.EndSample();
+            ////Standardize Blocs
+            //UnityEngine.Profiling.Profiler.BeginSample("standardize blocs");
+            //Standardize(trialMatrixBlocs, site);
+            //UnityEngine.Profiling.Profiler.EndSample();
 
-            // Set properties
-            UnityEngine.Profiling.Profiler.BeginSample("set properties");
-            Title = "Site: " + site.Information.ChannelName + "   |   Patient: " + dataInfo.Patient.CompleteName + "   |   Protocol: " + protocol.Name + "   |   Data: " + dataInfo.Name;
-            Blocs = trialMatrixBlocs.ToArray();
-            TimeLimitsByColumn = CalculateTimeLimitsByColumn(trialMatrixBlocs);
-            Protocol = protocol;
-            UnityEngine.Profiling.Profiler.EndSample();
+            //// Set properties
+            //UnityEngine.Profiling.Profiler.BeginSample("set properties");
+            //Title = "Site: " + site.Information.ChannelName + "   |   Patient: " + dataInfo.Patient.CompleteName + "   |   Protocol: " + protocol.Name + "   |   Data: " + dataInfo.Name;
+            //Blocs = trialMatrixBlocs.ToArray();
+            //TimeLimitsByColumn = CalculateTimeLimitsByColumn(trialMatrixBlocs);
+            //Protocol = protocol;
+            //UnityEngine.Profiling.Profiler.EndSample();
         }
         #endregion
 

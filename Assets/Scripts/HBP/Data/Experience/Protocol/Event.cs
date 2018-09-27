@@ -26,14 +26,15 @@ namespace HBP.Data.Experience.Protocol
         /** Name of the code. */
         [DataMember] public string Name { get; set; }
 
-        /** Codes of the event. */
+        /// <summary>
+        ///  Codes of the event.
+        /// </summary>
         [DataMember] public List<int> Codes { get; set; }
 
-        public enum TypeEnum { Main, Secondary}
         /// <summary>
         /// Type of event.
         /// </summary>
-        [DataMember] public TypeEnum Type { get; set; }
+        [DataMember] public Enums.MainSecondaryEnum Type { get; set; }
 
         /** Codes of the event in a string with code separate with ','. */
         [IgnoreDataMember]
@@ -50,20 +51,20 @@ namespace HBP.Data.Experience.Protocol
         /// </summary>
         /// <param name="label">Label of the event.</param>
         /// <param name="codes">Codes of the event.</param>
-        public Event(string label, int[] codes, TypeEnum type)
+        public Event(string label, int[] codes, Enums.MainSecondaryEnum type)
         {
             Name = label;
             Codes = codes.ToList();
             Type = type;
         }
-        public Event(TypeEnum type) : this("",new int[0],type)
+        public Event(Enums.MainSecondaryEnum type) : this("",new int[0],type)
         {
 
         }
         /// <summary>
         /// Create a new instance with a empty label and no codes.
         /// </summary>
-        public Event() : this(TypeEnum.Main)
+        public Event() : this(Enums.MainSecondaryEnum.Main)
 		{
 		}
         #endregion

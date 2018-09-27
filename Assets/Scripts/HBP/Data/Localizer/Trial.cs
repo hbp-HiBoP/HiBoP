@@ -34,7 +34,6 @@ namespace HBP.Data.Localizer
         #region Constructors
         public SubTrial(float[] values, Tuple<int, int> researchZone, Dictionary<Event, int[]> positionByEvent, Experience.Protocol.SubBloc subBloc, float frequency) : this(false, new Dictionary<Event, EventPosition>(), new float[0])
         {
-           // TODO
             //foreach (var e in subBloc.Events)
             //{
             //    positionByEvent[e].FirstOrDefault()
@@ -49,11 +48,9 @@ namespace HBP.Data.Localizer
         #endregion
 
         #region Private Methods
-        Tuple<int, int> GetNumberOfSamples(Tools.CSharp.Window window, float frequency, out int numberOfSamplesBeforeMainEvent, out int numberOfSamplesAfterMainEvent)
+        Tuple<int, int> GetNumberOfSamples(Tools.CSharp.Window window, int frequency)
         {
-            numberOfSamplesBeforeMainEvent = UnityEngine.Mathf.CeilToInt((window.Start) * 0.001f * frequency);
-            numberOfSamplesAfterMainEvent = UnityEngine.Mathf.FloorToInt((window.End) * 0.001f * frequency);
-            return new Tuple<int, int>(numberOfSamplesBeforeMainEvent, numberOfSamplesAfterMainEvent);
+            return new Tuple<int, int>(UnityEngine.Mathf.CeilToInt((window.Start) * 0.001f * frequency), UnityEngine.Mathf.FloorToInt((window.End) * 0.001f * frequency));
         }
         #endregion
     }

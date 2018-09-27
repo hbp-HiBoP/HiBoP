@@ -32,8 +32,8 @@ namespace HBP.UI.Experience.Protocol
 
                 switch (m_Object.Type)
                 {
-                    case Data.Experience.Protocol.Event.TypeEnum.Main: m_TypeText.text = "M"; break;
-                    case Data.Experience.Protocol.Event.TypeEnum.Secondary: m_TypeText.text = "S"; break;
+                    case Data.Enums.MainSecondaryEnum.Main: m_TypeText.text = "M"; break;
+                    case Data.Enums.MainSecondaryEnum.Secondary: m_TypeText.text = "S"; break;
                 }
             }
         }

@@ -511,7 +511,7 @@ namespace HBP.Module3D
                 {
                     if (siteData.Values.Length > 0)
                     {
-                        IEEGValuesBySiteID[site.Information.GlobalID] = siteData.NormalizedValues;
+                        IEEGValuesBySiteID[site.Information.GlobalID] = siteData.Values;
                         site.State.IsMasked = false; // update mask
                     }
                     else

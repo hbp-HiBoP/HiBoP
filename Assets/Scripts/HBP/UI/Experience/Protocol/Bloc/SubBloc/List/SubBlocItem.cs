@@ -18,6 +18,7 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] Text m_TreatmentsText;
 
         [SerializeField] Text m_OrderText;
+        [SerializeField] Text m_TypeText;
 
         [SerializeField] State m_ErrorState;
 
@@ -51,6 +52,12 @@ namespace HBP.UI.Experience.Protocol
                 else m_TreatmentsText.GetComponent<ThemeElement>().Set();
 
                 m_OrderText.text = value.Order.ToString();
+
+                switch (m_Object.Type)
+                {
+                    case Data.Enums.MainSecondaryEnum.Main: m_TypeText.text = "M"; break;
+                    case Data.Enums.MainSecondaryEnum.Secondary: m_TypeText.text = "S"; break;
+                }
             }
         }
         #endregion

@@ -62,4 +62,5 @@ namespace HBP.Data.Enums
     }
     public enum CutOrientation { Axial = 0, Coronal = 1, Sagital = 2, Custom = 3 } // Same as above
     public enum SiteInformationDisplayMode { Anatomy, IEEG, CCEP, Light }
+    public enum MainSecondaryEnum { Main, Secondary }
 }

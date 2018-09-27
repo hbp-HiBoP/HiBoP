@@ -16,6 +16,7 @@ namespace HBP.UI.Experience.Protocol
             Treatments, DescendingTreatments,
             StartWindow, DescendingStartWindow,
             EndWindow, DescendingEndWindow,
+            Type, DescendingType,
             /*StartBaseline, DescendingStartBaseline,
             EndBaseline, DescendingEndBaseline*/
         }
@@ -34,6 +35,7 @@ namespace HBP.UI.Experience.Protocol
         [SerializeField] SortingDisplayer m_EventsSortingDisplayer;
         [SerializeField] SortingDisplayer m_IconsSortingDisplayer;
         [SerializeField] SortingDisplayer m_TreatmentsSortingDisplayer;
+        [SerializeField] SortingDisplayer m_TypeSortingDisplayer;
         #endregion
 
         #region Public Methods
@@ -66,6 +68,7 @@ namespace HBP.UI.Experience.Protocol
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by name.
@@ -108,6 +111,7 @@ namespace HBP.UI.Experience.Protocol
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by position.
@@ -193,6 +197,7 @@ namespace HBP.UI.Experience.Protocol
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by image.
@@ -234,6 +239,7 @@ namespace HBP.UI.Experience.Protocol
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by end window.
@@ -357,6 +363,7 @@ namespace HBP.UI.Experience.Protocol
             //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by events.
@@ -398,6 +405,7 @@ namespace HBP.UI.Experience.Protocol
             //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by icons.
@@ -439,6 +447,7 @@ namespace HBP.UI.Experience.Protocol
             //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         /// <summary>
         /// Sort by treatments.
@@ -449,6 +458,48 @@ namespace HBP.UI.Experience.Protocol
             {
                 case OrderBy.DescendingTreatments: SortByTreatments(Sorting.Ascending); break;
                 default: SortByTreatments(Sorting.Descending); break;
+            }
+        }
+
+        /// <summary>
+        /// Sort by type.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
+        public void SortByType(Sorting sorting)
+        {
+            switch (sorting)
+            {
+                case Sorting.Ascending:
+                    m_Objects = m_Objects.OrderByDescending((elt) => elt.Type).ToList();
+                    m_OrderBy = OrderBy.Type;
+                    m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
+                    break;
+                case Sorting.Descending:
+                    m_Objects = m_Objects.OrderBy((elt) => elt.Type).ToList();
+                    m_OrderBy = OrderBy.DescendingType;
+                    m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
+                    break;
+            }
+            Refresh();
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            //m_StartBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            //m_EndBaselineSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        }
+        /// <summary>
+        /// Sort by type.
+        /// </summary>
+        public void SortByType()
+        {
+            switch (m_OrderBy)
+            {
+                case OrderBy.DescendingType: SortByType(Sorting.Ascending); break;
+                default: SortByType(Sorting.Descending); break;
             }
         }
 
@@ -468,6 +519,7 @@ namespace HBP.UI.Experience.Protocol
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         #endregion
     }

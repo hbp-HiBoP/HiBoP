@@ -37,9 +37,9 @@ namespace HBP.UI.Experience.Protocol
             m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
 
             m_StartWindowSlider.value = objectToDisplay.Window.Start;
-            m_StartWindowSlider.onValueChanged.AddListener((min) => ItemTemp.Window = new Tools.CSharp.Window(min, ItemTemp.Window.End));
+            m_StartWindowSlider.onValueChanged.AddListener((min) => ItemTemp.Window = new Tools.CSharp.Window((int) min, ItemTemp.Window.End));
             m_EndWindowSlider.value = objectToDisplay.Window.End;
-            m_EndWindowSlider.onValueChanged.AddListener((max) => ItemTemp.Window = new Tools.CSharp.Window(ItemTemp.Window.Start, max));
+            m_EndWindowSlider.onValueChanged.AddListener((max) => ItemTemp.Window = new Tools.CSharp.Window(ItemTemp.Window.Start, (int) max));
             m_ImageSelector.Path = objectToDisplay.IllustrationPath;
             m_ImageSelector.onValueChanged.AddListener(() => ItemTemp.IllustrationPath = m_ImageSelector.Path);
         }

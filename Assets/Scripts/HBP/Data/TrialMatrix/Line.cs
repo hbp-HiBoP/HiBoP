@@ -18,7 +18,7 @@ namespace HBP.Data.TrialMatrix
         {
             Bloc = bloc;
             m_Site = site;
-            NormalizedValues = bloc.ValuesBySite[site];
+            //NormalizedValues = bloc.ValuesBySite[site];
         }
         #endregion
 
@@ -29,7 +29,7 @@ namespace HBP.Data.TrialMatrix
         }
         public void UpdateValues()
         {
-            NormalizedValues = Bloc.NormalizedValuesBySite[m_Site];
+            //NormalizedValues = Bloc.NormalizedValuesBySite[m_Site];
         }
         #endregion
 

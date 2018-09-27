@@ -28,83 +28,83 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public void Load(IEnumerable<DataInfo> columnData)
         {
-            foreach (DataInfo dataInfo in columnData)
-            {
-                Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
-                int dataFrequency = UnityEngine.Mathf.RoundToInt(epochedData.Frequency);
-                Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs, ApplicationState.UserPreferences.Data.EEG.Averaging, ApplicationState.UserPreferences.Data.Event.PositionAveraging);
+            //foreach (DataInfo dataInfo in columnData)
+            //{
+            //    Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
+            //    int dataFrequency = UnityEngine.Mathf.RoundToInt(epochedData.Frequency);
+            //    Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs, ApplicationState.UserPreferences.Data.EEG.Averaging, ApplicationState.UserPreferences.Data.Event.PositionAveraging);
 
-                foreach (var site in averagedBloc.UnitBySite.Keys)
-                {
-                    DataBySite.Add(site,
-                        new SiteData(averagedBloc.SubBlocs[0].ValuesBySite[site], // TODO
-                        averagedBloc.SubBlocs[0].NormalizedValuesBySite[site],
-                        averagedBloc.UnitBySite[site], dataFrequency));
-                }
-            }
+            //    //foreach (var site in averagedBloc.UnitBySite.Keys)
+            //    //{
+            //    //    DataBySite.Add(site,
+            //    //        new SiteData(averagedBloc.SubBlocs[0].ValuesBySite[site], // TODO
+            //    //        averagedBloc.SubBlocs[0].NormalizedValuesBySite[site],
+            //    //        averagedBloc.UnitBySite[site], dataFrequency));
+            //    //}
+            //}
         }
         public void SetTimeline(int maxFrequency)
         {
-            // TODO
-            Frequencies.Add(maxFrequency);
-            Frequencies = Frequencies.Distinct().ToList();
-            Event mainEvent = new Event();
-            List<Event> secondaryEvents = new List<Event>(Bloc.SecondaryEvents.Count);
-            switch (ApplicationState.UserPreferences.Data.Event.PositionAveraging)
-            {
-                case Enums.AveragingType.Mean:
-                    mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Item1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Item2)).ToArray().Mean()));
-                    for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
-                    {
-                        List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in m_Blocs where bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2) >= 0 select bloc).ToList();
-                        if (blocWhereEventFound.Count > 0)
-                        {
-                            float rate = (float)blocWhereEventFound.Count / m_Blocs.Count;
-                            secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, UnityEngine.Mathf.RoundToInt((from bloc in blocWhereEventFound select bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2)).ToArray().Mean()), rate));
-                        }
-                    }
-                    break;
-                case Enums.AveragingType.Median:
-                    mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Item1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Item2)).ToArray().Median()));
-                    for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
-                    {
-                        List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in m_Blocs where bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2) >= 0 select bloc).ToList();
-                        if (blocWhereEventFound.Count > 0)
-                        {
-                            float rate = (float)blocWhereEventFound.Count / m_Blocs.Count;
-                            secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, UnityEngine.Mathf.RoundToInt((from bloc in blocWhereEventFound select bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2)).ToArray().Median()), rate));
-                        }
-                    }
-                    break;
-            }
+            //// TODO
+            //Frequencies.Add(maxFrequency);
+            //Frequencies = Frequencies.Distinct().ToList();
+            //Event mainEvent = new Event();
+            //List<Event> secondaryEvents = new List<Event>(Bloc.SecondaryEvents.Count);
+            //switch (ApplicationState.UserPreferences.Data.Event.PositionAveraging)
+            //{
+            //    case Enums.AveragingType.Mean:
+            //        mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Item1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Item2)).ToArray().Mean()));
+            //        for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
+            //        {
+            //            List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in m_Blocs where bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2) >= 0 select bloc).ToList();
+            //            if (blocWhereEventFound.Count > 0)
+            //            {
+            //                float rate = (float)blocWhereEventFound.Count / m_Blocs.Count;
+            //                secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, UnityEngine.Mathf.RoundToInt((from bloc in blocWhereEventFound select bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2)).ToArray().Mean()), rate));
+            //            }
+            //        }
+            //        break;
+            //    case Enums.AveragingType.Median:
+            //        mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Item1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Item2)).ToArray().Median()));
+            //        for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
+            //        {
+            //            List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in m_Blocs where bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2) >= 0 select bloc).ToList();
+            //            if (blocWhereEventFound.Count > 0)
+            //            {
+            //                float rate = (float)blocWhereEventFound.Count / m_Blocs.Count;
+            //                secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, UnityEngine.Mathf.RoundToInt((from bloc in blocWhereEventFound select bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2)).ToArray().Median()), rate));
+            //            }
+            //        }
+            //        break;
+            //}
 
-            // Timeline
-            TimeLineByFrequency = new Dictionary<int, Timeline>();
-            IconicScenarioByFrequency = new Dictionary<int, IconicScenario>();
-            foreach (int frequency in Frequencies)
-            {
-                TimeLineByFrequency.Add(frequency, new Timeline(Bloc.Window, mainEvent, secondaryEvents.ToArray(), frequency));
-                IconicScenarioByFrequency.Add(frequency, new IconicScenario(Bloc, frequency, TimeLineByFrequency[frequency]));
-            }
-            TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents.ToArray(), maxFrequency);
-            IconicScenario = new IconicScenario(Bloc, maxFrequency, TimeLine);
+            //// Timeline
+            //TimeLineByFrequency = new Dictionary<int, Timeline>();
+            //IconicScenarioByFrequency = new Dictionary<int, IconicScenario>();
+            //foreach (int frequency in Frequencies)
+            //{
+            //    TimeLineByFrequency.Add(frequency, new Timeline(Bloc.Window, mainEvent, secondaryEvents.ToArray(), frequency));
+            //    IconicScenarioByFrequency.Add(frequency, new IconicScenario(Bloc, frequency, TimeLineByFrequency[frequency]));
+            //}
+            //TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents.ToArray(), maxFrequency);
+            //IconicScenario = new IconicScenario(Bloc, maxFrequency, TimeLine);
 
-            // Resampling taking frequencies into account
-            if (Frequencies.Count > 1)
-            {
-                //int maxSize = (from siteConfiguration in Configuration.ConfigurationBySite.Values select siteConfiguration.Values).Max(v => v.Length);
-                foreach (var siteConfiguration in Configuration.ConfigurationBySite.Values)
-                {
-                    int frequency;
-                    if (m_FrequencyBySiteConfiguration.TryGetValue(siteConfiguration, out frequency))
-                    {
-                        Timeline timeline = TimeLineByFrequency[frequency];
-                        int samplesBefore = (int)((timeline.Start.RawValue - TimeLine.Start.RawValue) / TimeLine.Step);
-                        int samplesAfter = (int)((TimeLine.End.RawValue - timeline.End.RawValue) / TimeLine.Step);
-                        siteConfiguration.ResizeValues(TimeLine.Lenght, samplesBefore, samplesAfter);
-                    }
-                }
-            }
+            //// Resampling taking frequencies into account
+            //if (Frequencies.Count > 1)
+            //{
+            //    //int maxSize = (from siteConfiguration in Configuration.ConfigurationBySite.Values select siteConfiguration.Values).Max(v => v.Length);
+            //    foreach (var siteConfiguration in Configuration.ConfigurationBySite.Values)
+            //    {
+            //        int frequency;
+            //        if (m_FrequencyBySiteConfiguration.TryGetValue(siteConfiguration, out frequency))
+            //        {
+            //            Timeline timeline = TimeLineByFrequency[frequency];
+            //            int samplesBefore = (int)((timeline.Start.RawValue - TimeLine.Start.RawValue) / TimeLine.Step);
+            //            int samplesAfter = (int)((TimeLine.End.RawValue - timeline.End.RawValue) / TimeLine.Step);
+            //            siteConfiguration.ResizeValues(TimeLine.Lenght, samplesBefore, samplesAfter);
+            //        }
+            //    }
+            //}
         }
         /// <summary>
         /// Dispose the data of the column
