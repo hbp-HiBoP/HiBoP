@@ -20,6 +20,7 @@ namespace HBP.UI
         public void Save(string path)
         {
             ApplicationState.Module3D.SaveConfigurations();
+            ApplicationState.ProjectLoadedLocation = path;
             this.StartCoroutineAsync(c_Save(path));
         }
         public void Save()
@@ -60,7 +61,7 @@ namespace HBP.UI
             }
             loadingCircle.Close();
         }
-        IEnumerator c_Save(string path)
+        public IEnumerator c_Save(string path)
         {
             yield return Ninja.JumpToUnity;
             LoadingCircle loadingCircle = ApplicationState.LoadingManager.Open();

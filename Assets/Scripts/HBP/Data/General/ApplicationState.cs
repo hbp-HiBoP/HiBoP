@@ -22,19 +22,24 @@ public static class ApplicationState
     public static string ProjectLoadedLocation { get; set; }
 
     /// <summary>
+    /// TMP folder to store the open projects
+    /// </summary>
+    public static string ProjectTMPFolder { get; set; }
+
+    /// <summary>
     /// Full path to the loaded project
     /// </summary>
-    public static string ProjectLoadedPath
+    public static string ProjectLoadedTMPFullPath
     {
         get
         {
-            if (ProjectLoaded == null || string.IsNullOrEmpty(ProjectLoadedLocation))
+            if (ProjectLoaded == null || string.IsNullOrEmpty(ProjectTMPFolder))
             {
                 return ".";
             }
             else
             {
-                return ProjectLoadedLocation + System.IO.Path.DirectorySeparatorChar + ProjectLoaded.Settings.Name;
+                return ProjectTMPFolder + System.IO.Path.DirectorySeparatorChar + "Project";
             }
         }
     }

@@ -89,7 +89,7 @@ namespace Tools.Unity
             if (localPath.StartsWith(PROJECT_TOKEN))
             {
                 localPath = path.Remove(0, PROJECT_TOKEN.Length);
-                localPath = ApplicationState.ProjectLoadedPath + localPath;
+                localPath = ApplicationState.ProjectLoadedTMPFullPath + localPath;
             }
 
             foreach (var alias in ApplicationState.ProjectLoaded.Settings.Aliases)
@@ -103,9 +103,9 @@ namespace Tools.Unity
         {
             string localPath = path;
 
-            if (localPath.StartsWith(ApplicationState.ProjectLoadedPath))
+            if (localPath.StartsWith(ApplicationState.ProjectLoadedTMPFullPath))
             {
-                localPath = PROJECT_TOKEN + path.Remove(0, ApplicationState.ProjectLoadedPath.Length);
+                localPath = PROJECT_TOKEN + path.Remove(0, ApplicationState.ProjectLoadedTMPFullPath.Length);
             }
 
             foreach (var alias in ApplicationState.ProjectLoaded.Settings.Aliases)

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using HBP.Data.Preferences;
 using Tools.Unity;
+using System.IO;
 
 public class ApplicationManager : MonoBehaviour
 {
@@ -17,5 +18,27 @@ public class ApplicationManager : MonoBehaviour
         ApplicationState.LoadingManager = FindObjectOfType<LoadingManager>();
         ApplicationState.TooltipManager = FindObjectOfType<TooltipManager>();
         ApplicationState.MemoryManager = FindObjectOfType<MemoryManager>();
+        ApplicationState.ProjectTMPFolder = GetProjectTMPDirectory();
+    }
+
+    private void OnDestroy()
+    {
+        string tmpDir = Application.dataPath + "/" + ".tmp";
+        if (Directory.Exists(tmpDir))
+        {
+            Directory.Delete(tmpDir, true);
+        }
+    }
+
+    private string GetProjectTMPDirectory()
+    {
+        string tmpDir = Application.dataPath + "/" + ".tmp";
+        if (Directory.Exists(tmpDir))
+        {
+            Directory.Delete(tmpDir, true);
+        }
+        DirectoryInfo di = Directory.CreateDirectory(tmpDir);
+        di.Attributes |= FileAttributes.Hidden;
+        return tmpDir;
     }
 }

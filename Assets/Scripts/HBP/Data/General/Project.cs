@@ -11,6 +11,7 @@ using HBP.Data.Experience.Protocol;
 using CielaSpike;
 using Tools.Unity;
 using UnityEngine.Events;
+using Ionic.Zip;
 
 namespace HBP.Data.General
 {
@@ -33,6 +34,21 @@ namespace HBP.Data.General
     public class Project
     {
         #region Properties
+        /// <summary>
+        /// Project extension.
+        /// </summary>
+        public const string EXTENSION = ".hibop";
+        /// <summary>
+        /// Project file
+        /// </summary>
+        public string FileName
+        {
+            get
+            {
+                return Settings.Name + EXTENSION;
+            }
+        }
+
         ProjectSettings m_Settings = new ProjectSettings();
         /// <summary>
         /// Settings of the project.
@@ -331,24 +347,7 @@ namespace HBP.Data.General
         #region Public Methods
         public static bool IsProject(string path)
         {
-            if(!string.IsNullOrEmpty(path))
-            {
-                DirectoryInfo directory = new DirectoryInfo(path);
-                if(directory.Exists)
-                {
-                    DirectoryInfo[] directories = directory.GetDirectories();
-                    if (directories.Any((d) => d.Name == "Patients")
-                        && directories.Any((d) => d.Name == "Groups")
-                        && directories.Any((d) => d.Name == "Protocols")
-                        && directories.Any((d) => d.Name == "Datasets")
-                        && directories.Any((d) => d.Name == "Visualizations")
-                        && directory.GetFiles().Count((f) => f.Extension == ProjectSettings.EXTENSION) == 1)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return new FileInfo(path).Extension == EXTENSION;
         }
         public static IEnumerable<string> GetProject(string path)
         {
@@ -357,8 +356,8 @@ namespace HBP.Data.General
                 DirectoryInfo directory = new DirectoryInfo(path);
                 if(directory.Exists)
                 {
-                    DirectoryInfo[] directories = directory.GetDirectories();
-                    return from dir in directories where IsProject(dir.FullName) select dir.FullName;
+                    FileInfo[] files = directory.GetFiles("*" + EXTENSION);
+                    return from file in files where IsProject(file.FullName) select file.FullName;
                 }
             }
             return new string[0];
@@ -384,9 +383,16 @@ namespace HBP.Data.General
             OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading project"));
             yield return Ninja.JumpBack;
 
-            if (!Directory.Exists(projectInfo.Path)) throw new DirectoryNotFoundException(projectInfo.Path); // Test if the directory exist.
-            if (!IsProject(projectInfo.Path)) throw new DirectoryNotProjectException(projectInfo.Path); // Test if the directory is a project.
-            DirectoryInfo projectDirectory = new DirectoryInfo(projectInfo.Path);
+            // Unzipping
+            if (Directory.Exists(ApplicationState.ProjectLoadedTMPFullPath)) Directory.Delete(ApplicationState.ProjectLoadedTMPFullPath, true);
+            using (ZipFile zip = ZipFile.Read(projectInfo.Path))
+            {
+                zip.ExtractAll(ApplicationState.ProjectLoadedTMPFullPath, ExtractExistingFileAction.OverwriteSilently);
+            }
+
+            if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
+            if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
+            DirectoryInfo projectDirectory = new DirectoryInfo(ApplicationState.ProjectLoadedTMPFullPath);
 
             yield return Ninja.JumpToUnity;
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSettings(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
@@ -413,49 +419,58 @@ namespace HBP.Data.General
 
             if (String.IsNullOrEmpty(path)) throw new ArgumentNullException(path);
             if (!Directory.Exists(path)) throw new DirectoryNotFoundException(path);
-            DirectoryInfo projectDirectory = Directory.CreateDirectory(path + Path.DirectorySeparatorChar + Settings.Name + "-temp");
-            string oldProjectDirectory = GetProject(path, Settings.ID);
+            DirectoryInfo tmpProjectDirectory = Directory.CreateDirectory(ApplicationState.ProjectLoadedTMPFullPath + "-temp");
+            string oldTMPProjectDirectory = ApplicationState.ProjectLoadedTMPFullPath;
             progress += progressStep;
 
             yield return Ninja.JumpToUnity;
             OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving project."));
             yield return Ninja.JumpBack;
 
-            yield return c_SaveSettings(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_SavePatients(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_SaveGroups(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_SaveProtocols(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_SaveDatasets(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_SaveVisualizations(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            CopyIcons(oldProjectDirectory + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Icons", projectDirectory.FullName + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Icons");
+            yield return c_SaveSettings(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            yield return c_SavePatients(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            yield return c_SaveGroups(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            yield return c_SaveProtocols(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            yield return c_SaveDatasets(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            yield return c_SaveVisualizations(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            CopyIcons(oldTMPProjectDirectory + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Icons", tmpProjectDirectory.FullName + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Icons");
 
             // Deleting old directories.
             yield return Ninja.JumpToUnity;
             OnChangeProgress.Invoke(progress, 0, new LoadingText("Finalizing."));
             yield return Ninja.JumpBack;
 
-            if (Directory.Exists(oldProjectDirectory))
+            if (Directory.Exists(oldTMPProjectDirectory))
             {
                 try
                 {
-                    Directory.Delete(oldProjectDirectory,true);
+                    Directory.Delete(oldTMPProjectDirectory,true);
                 }
                 catch
                 {
-                    throw new CanNotDeleteOldProjectDirectory(oldProjectDirectory);
+                    throw new CanNotDeleteOldProjectDirectory(oldTMPProjectDirectory);
                 }
             }
             progress += progressStep;
 
             try
             {
-                projectDirectory.MoveTo(path + Path.DirectorySeparatorChar + Settings.Name);
+                tmpProjectDirectory.MoveTo(oldTMPProjectDirectory);
             }
             catch
             {
                 throw new CanNotRenameProjectDirectory();
             }
             progress += progressStep;
+
+            // Zipping
+            string filePath = path + Path.DirectorySeparatorChar + FileName;
+            if (File.Exists(filePath)) File.Delete(filePath);
+            using (ZipFile zip = new ZipFile(filePath))
+            {
+                zip.AddDirectory(oldTMPProjectDirectory);
+                zip.Save();
+            }
 
             yield return Ninja.JumpToUnity;
             OnChangeProgress.Invoke(1, 0, new LoadingText("Project succesfully saved."));
