@@ -5,6 +5,7 @@ using HBP.Data.Experience.Protocol;
 using HBP.Data.Preferences;
 using System.Linq;
 using Tools.CSharp;
+using System;
 
 public static class DataManager
 {
@@ -83,7 +84,7 @@ public static class DataManager
                     break;
                 case DataInfo.NormalizationType.Protocol:
                     IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize = from dataRequest in dataRequestCollection select new Tuple<DataRequest, bool>(dataRequest, m_NormalizeByRequest[dataRequest] != HBP.Data.Enums.NormalizationType.Protocol);
-                    if (dataRequestAndNeedToNormalize.Any((tuple) => tuple.Object2))
+                    if (dataRequestAndNeedToNormalize.Any((tuple) => tuple.Item2))
                     {
                         NormalizeByProtocol(dataRequestAndNeedToNormalize);
                     }
@@ -102,7 +103,7 @@ public static class DataManager
                             break;
                         case HBP.Data.Enums.NormalizationType.Protocol:
                             IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize2 = from dataRequest in dataRequestCollection select new Tuple<DataRequest, bool>(dataRequest, m_NormalizeByRequest[dataRequest] != HBP.Data.Enums.NormalizationType.Protocol);
-                            if (dataRequestAndNeedToNormalize2.Any((tuple) => tuple.Object2))
+                            if (dataRequestAndNeedToNormalize2.Any((tuple) => tuple.Item2))
                             {
                                 NormalizeByProtocol(dataRequestAndNeedToNormalize2);
                             }
@@ -179,7 +180,7 @@ public static class DataManager
 
         foreach (var tuple in dataRequestAndNeedToNormalize)
         {
-            EpochedData epochedData = m_DataByRequest[tuple.Object1];
+            EpochedData epochedData = m_DataByRequest[tuple.Item1];
             foreach (var line in epochedData.Blocs)
             {
                 foreach (var site in line.BaselineValuesBySite.Keys)
@@ -196,9 +197,9 @@ public static class DataManager
         }
         foreach (var tuple in dataRequestAndNeedToNormalize)
         {
-            if (tuple.Object2)
+            if (tuple.Item2)
             {
-                EpochedData epochedData = m_DataByRequest[tuple.Object1];
+                EpochedData epochedData = m_DataByRequest[tuple.Item1];
                 foreach (var line in epochedData.Blocs)
                 {
                     foreach (var site in line.BaselineValuesBySite.Keys)
@@ -206,7 +207,7 @@ public static class DataManager
                         line.Normalize(averageBySite[site], standardDeviationBySite[site], site);
                     }
                 }
-                m_NormalizeByRequest[tuple.Object1] = HBP.Data.Enums.NormalizationType.Protocol;
+                m_NormalizeByRequest[tuple.Item1] = HBP.Data.Enums.NormalizationType.Protocol;
             }
         }
     }

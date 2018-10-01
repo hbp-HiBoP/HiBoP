@@ -1,4 +1,5 @@
 ﻿using HBP.Module3D;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -172,9 +173,9 @@ namespace HBP.UI.Module3D
                 {
                     try
                     {
-                        string cutFilePath = path + string.Format("{0}_{1}_{2}_Cut.png", openedProjectName, m_Scene.Name, cutTextures[i].Object1.ToString());
+                        string cutFilePath = path + string.Format("{0}_{1}_{2}_Cut.png", openedProjectName, m_Scene.Name, cutTextures[i].Item1.ToString());
                         ClassLoaderSaver.GenerateUniqueSavePath(ref cutFilePath);
-                        cutTextures[i].Object2.SaveToPNG(cutFilePath);
+                        cutTextures[i].Item2.SaveToPNG(cutFilePath);
                     }
                     catch
                     {

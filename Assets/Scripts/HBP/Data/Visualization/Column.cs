@@ -192,26 +192,26 @@ namespace HBP.Data.Visualization
             switch (ApplicationState.UserPreferences.Data.Event.PositionAveraging)
             {
                 case Enums.AveragingType.Mean:
-                    mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Object1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Object2)).ToArray().Mean()));
+                    mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Item1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Item2)).ToArray().Mean()));
                     for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
                     {
-                        List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in m_Blocs where bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2) >= 0 select bloc).ToList();
+                        List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in m_Blocs where bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2) >= 0 select bloc).ToList();
                         if (blocWhereEventFound.Count > 0)
                         {
                             float rate = (float)blocWhereEventFound.Count / m_Blocs.Count;
-                            secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, UnityEngine.Mathf.RoundToInt((from bloc in blocWhereEventFound select bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2)).ToArray().Mean()), rate));
+                            secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, UnityEngine.Mathf.RoundToInt((from bloc in blocWhereEventFound select bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2)).ToArray().Mean()), rate));
                         }
                     }
                     break;
                 case Enums.AveragingType.Median:
-                    mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Object1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Object2)).ToArray().Median()));
+                    mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Item1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Item2)).ToArray().Median()));
                     for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
                     {
-                        List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in m_Blocs where bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2) >= 0 select bloc).ToList();
+                        List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in m_Blocs where bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2) >= 0 select bloc).ToList();
                         if (blocWhereEventFound.Count > 0)
                         {
                             float rate = (float)blocWhereEventFound.Count / m_Blocs.Count;
-                            secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, UnityEngine.Mathf.RoundToInt((from bloc in blocWhereEventFound select bloc.Object1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Object2)).ToArray().Median()), rate));
+                            secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, UnityEngine.Mathf.RoundToInt((from bloc in blocWhereEventFound select bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2)).ToArray().Median()), rate));
                         }
                     }
                     break;
