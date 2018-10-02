@@ -203,7 +203,7 @@ namespace HBP.Module3D
             /// </summary>
             ~Texture()
             {
-                pixelsHandle2.Free();
+                if (pixelsHandle2.IsAllocated) pixelsHandle2.Free();
             }
             /// <summary>
             /// Init a texture by loading an image.

@@ -657,11 +657,10 @@ namespace HBP.Module3D
             public string SiteName(int patientId, int electrodeId, int siteId)
             {
                 int length = 8;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
+                StringBuilder str = new StringBuilder(length);
                 site_name_PatientElectrodesList(_handle, patientId, electrodeId, siteId, str, length);
 
-                return str.ToString().Replace("?", string.Empty);
+                return str.ToString();
             }
             /// <summary>
             /// Reset the input raw site list with PatientElectrodesList data
@@ -687,11 +686,10 @@ namespace HBP.Module3D
             public string PatientName(int patientId)
             {
                 int length = 30;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
+                StringBuilder str = new StringBuilder(length);
                 patient_name_PatientElectrodesList(_handle, patientId, str, length);
 
-                return str.ToString().Replace("?", string.Empty);
+                return str.ToString();
             }
             /// <summary>
             /// Return the electrode name
@@ -702,11 +700,10 @@ namespace HBP.Module3D
             public string ElectrodeName(int patientId, int electrodeId)
             {
                 int length = 30;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
+                StringBuilder str = new StringBuilder(length);
                 electrode_name_PatientElectrodesList(_handle, patientId, electrodeId, str, length);
 
-                return str.ToString().Replace("?", string.Empty);
+                return str.ToString();
             }
             /// <summary>
             /// 

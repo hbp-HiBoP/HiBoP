@@ -182,7 +182,7 @@ namespace HBP.Module3D
                 if (m_UVAmplitudesV.Length != m_nbVertices)
                 {
                     m_UVAmplitudesV = new Vector2[m_nbVertices];
-                    m_UVAmplitudesHandle.Free();
+                    if (m_UVAmplitudesHandle.IsAllocated) m_UVAmplitudesHandle.Free();
                     m_UVAmplitudesHandle = GCHandle.Alloc(m_UVAmplitudesV, GCHandleType.Pinned); 
                 }
                 updateUVAmplitudes_BrainSurfaceTextureGenerator(_handle, m_UVAmplitudesHandle.AddrOfPinnedObject());
@@ -191,7 +191,7 @@ namespace HBP.Module3D
                 if (m_UVAlphaV.Length != m_nbVertices)
                 {
                     m_UVAlphaV = new Vector2[m_nbVertices];
-                    m_UVAlphaHandle.Free();
+                    if (m_UVAlphaHandle.IsAllocated) m_UVAlphaHandle.Free();
                     m_UVAlphaHandle = GCHandle.Alloc(m_UVAlphaV, GCHandleType.Pinned);
                 }
                 updateUVAlpha_BrainSurfaceTextureGenerator(_handle, m_UVAlphaHandle.AddrOfPinnedObject());
