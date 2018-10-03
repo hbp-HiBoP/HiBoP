@@ -75,22 +75,10 @@ namespace HBP.Module3D
         /// Visualization associated to this scene
         /// </summary>
         public Visualization Visualization { get; private set; }
-
-        private List<Cut> m_Cuts = new List<Cut>();
         /// <summary>
         /// Cuts planes list
         /// </summary>
-        public List<Cut> Cuts
-        {
-            get
-            {
-                return m_Cuts;
-            }
-            private set
-            {
-                m_Cuts = value;
-            }
-        }
+        public List<Cut> Cuts { get; private set; } = new List<Cut>();
 
         /// <summary>
         /// Information about the scene
@@ -703,7 +691,7 @@ namespace HBP.Module3D
         {
             foreach (Column3D column in m_ColumnManager.Columns)
             {
-                foreach (Cut cut in m_Cuts)
+                foreach (Cut cut in Cuts)
                 {
                     m_ColumnManager.CreateMRITexture(column, cut.ID);
                 }
@@ -739,9 +727,9 @@ namespace HBP.Module3D
             Column3D column = m_ColumnManager.SelectedColumn;
             if (column)
             {
-                column.CutTextures.CreateGUIMRITextures(m_Cuts);
-                column.CutTextures.ResizeGUIMRITextures(m_Cuts);
-                foreach (Cut cut in m_Cuts)
+                column.CutTextures.CreateGUIMRITextures(Cuts);
+                column.CutTextures.ResizeGUIMRITextures(Cuts);
+                foreach (Cut cut in Cuts)
                 {
                     cut.OnUpdateGUITextures.Invoke(column);
                 }
@@ -1024,7 +1012,7 @@ namespace HBP.Module3D
             {
                 ComputeMeshesCut();
             }
-            m_ColumnManager.UpdateCubeBoundingBox(m_Cuts);
+            m_ColumnManager.UpdateCubeBoundingBox(Cuts);
             ResetTriangleErasing(false);
 
             ComputeMRITextures();
@@ -1443,7 +1431,7 @@ namespace HBP.Module3D
         /// </summary>
         public void UpdateAllCutPlanes()
         {
-            foreach (var cut in m_Cuts)
+            foreach (var cut in Cuts)
             {
                 UpdateCutPlane(cut);
             }
@@ -1456,7 +1444,7 @@ namespace HBP.Module3D
             Site site = ColumnManager.SelectedColumn.SelectedSite;
             if (!site) return;
 
-            foreach (var cut in m_Cuts.ToList())
+            foreach (var cut in Cuts.ToList())
             {
                 RemoveCutPlane(cut);
             }
@@ -1637,7 +1625,7 @@ namespace HBP.Module3D
             Visualization.Configuration.CameraType = CameraType;
 
             List<Data.Visualization.Cut> cuts = new List<Data.Visualization.Cut>();
-            foreach (Cut cut in m_Cuts)
+            foreach (Cut cut in Cuts)
             {
                 cuts.Add(new Data.Visualization.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
             }
@@ -1688,9 +1676,9 @@ namespace HBP.Module3D
                     break;
             }
 
-            while (m_Cuts.Count > 0)
+            while (Cuts.Count > 0)
             {
-                RemoveCutPlane(m_Cuts.Last());
+                RemoveCutPlane(Cuts.Last());
             }
 
             while (m_ColumnManager.Views.Count > 1)
@@ -2383,7 +2371,7 @@ namespace HBP.Module3D
         private IEnumerator c_LoadIEEG()
         {
             yield return Ninja.JumpToUnity;
-            float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (m_ColumnManager.MeshSplitNumber + m_Cuts.Count + 1);
+            float totalProgress = m_ColumnManager.ColumnsIEEG.Count * (m_ColumnManager.MeshSplitNumber + Cuts.Count + 1);
             float currentProgress = 0.0f;
             OnProgressUpdateGenerator.Invoke(currentProgress / totalProgress, "Initializing");
             yield return Ninja.JumpBack;
@@ -2446,7 +2434,7 @@ namespace HBP.Module3D
                 }
 
                 // cuts
-                for (int jj = 0; jj < m_Cuts.Count; ++jj)
+                for (int jj = 0; jj < Cuts.Count; ++jj)
                 {
                     yield return Ninja.JumpToUnity;
                     OnProgressUpdateGenerator.Invoke(++currentProgress / totalProgress, "Loading " + m_ColumnManager.ColumnsIEEG[ii].Label);
@@ -2479,7 +2467,7 @@ namespace HBP.Module3D
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
-                for (int jj = 0; jj < m_Cuts.Count; ++jj)
+                for (int jj = 0; jj < Cuts.Count; ++jj)
                 {
                     m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].SynchronizeWithOthersGenerators(maxDensity, m_ColumnManager.ColumnsIEEG[ii].SharedMinInf, m_ColumnManager.ColumnsIEEG[ii].SharedMaxInf);
                     if (m_GeneratorNeedsUpdate) yield break;
@@ -2490,7 +2478,7 @@ namespace HBP.Module3D
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
                     if (m_GeneratorNeedsUpdate) yield break;
                 }
-                for (int jj = 0; jj < m_Cuts.Count; ++jj)
+                for (int jj = 0; jj < Cuts.Count; ++jj)
                 {
                     m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].AdjustInfluencesToColormap(m_ColumnManager.ColumnsIEEG[ii]);
                     if (m_GeneratorNeedsUpdate) yield break;

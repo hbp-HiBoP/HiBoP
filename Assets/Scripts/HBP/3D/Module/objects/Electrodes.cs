@@ -211,11 +211,10 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string Hemisphere(int label)
             {
-                int length = 3;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                hemisphere_MarsAtlasIndex(_handle, label, str, length);
-                return str.ToString().Replace("?", string.Empty);
+                if (label < 0) return "not found";
+
+                IntPtr result = hemisphere_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// 
@@ -224,11 +223,10 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string Lobe(int label)
             {
-                int length = 15;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                lobe_MarsAtlasIndex(_handle, label, str, length);
-                return str.ToString().Replace("?", string.Empty);
+                if (label < 0) return "not found";
+
+                IntPtr result = lobe_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// 
@@ -237,11 +235,10 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string NameFS(int label)
             {
-                int length = 30;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                nameFS_MarsAtlasIndex(_handle, label, str, length);
-                return str.ToString().Replace("?", string.Empty);
+                if (label < 0) return "not found";
+
+                IntPtr result = nameFS_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// 
@@ -250,11 +247,10 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string Name(int label)
             {
-                int length = 10;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                name_MarsAtlasIndex(_handle, label, str, length);
-                return str.ToString().Replace("?", string.Empty);
+                if (label < 0) return "not found";
+
+                IntPtr result = name_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// 
@@ -265,12 +261,8 @@ namespace HBP.Module3D
             {
                 if (label < 0) return "not found";
 
-                int length = 50;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                fullName_MarsAtlasIndex(_handle, label, str, length);
-
-                return str.ToString().Replace("?", string.Empty);
+                IntPtr result = fullName_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// 
@@ -281,11 +273,8 @@ namespace HBP.Module3D
             {
                 if (label < 0) return "not found";
 
-                int length = 100;
-                StringBuilder str = new StringBuilder();
-                str.Append('?', length);
-                BA_MarsAtlasIndex(_handle, label, str, length);
-                return str.ToString().Replace("?", string.Empty);
+                IntPtr result = BA_MarsAtlasIndex(_handle, label);
+                return Marshal.PtrToStringAnsi(result);
             }
             #endregion
 
@@ -317,17 +306,17 @@ namespace HBP.Module3D
             static private extern int load_MarsAtlasIndex(HandleRef marsAtlasIndex, string pathFile);
             // retrieve data
             [DllImport("hbp_export", EntryPoint = "hemisphere_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void hemisphere_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder hemisphere, int length);
+            static private extern IntPtr hemisphere_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
             [DllImport("hbp_export", EntryPoint = "lobe_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void lobe_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder lobe, int length);
+            static private extern IntPtr lobe_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
             [DllImport("hbp_export", EntryPoint = "nameFS_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void nameFS_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder nameFS, int length);
+            static private extern IntPtr nameFS_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
             [DllImport("hbp_export", EntryPoint = "name_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void name_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder name, int length);
+            static private extern IntPtr name_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
             [DllImport("hbp_export", EntryPoint = "fullName_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void fullName_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder fullName, int length);
+            static private extern IntPtr fullName_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
             [DllImport("hbp_export", EntryPoint = "BA_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void BA_MarsAtlasIndex(HandleRef marsAtlasIndex, int label, StringBuilder BA, int length);
+            static private extern IntPtr BA_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
 
             #endregion
 

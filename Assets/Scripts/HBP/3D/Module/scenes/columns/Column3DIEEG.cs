@@ -120,22 +120,10 @@ namespace HBP.Module3D
                 m_TimeSinceLastTimelineID = 0.0f;
             }
         }
-
-        private int m_TimelineStep = 1;
         /// <summary>
         /// Timeline step
         /// </summary>
-        public int TimelineStep
-        {
-            get
-            {
-                return m_TimelineStep;
-            }
-            set
-            {
-                m_TimelineStep = value;
-            }
-        }
+        public int TimelineStep { get; set; } = 1;
         /// <summary>
         /// Time interval between two timeline updates
         /// </summary>
@@ -143,21 +131,13 @@ namespace HBP.Module3D
         {
             get
             {
-                return 1.0f / m_TimelineStep;
+                return 1.0f / TimelineStep;
             }
         }
-        
-        private IEEGDataParameters m_IEEGParameters = new IEEGDataParameters();
         /// <summary>
         /// IEEG Parameters
         /// </summary>
-        public IEEGDataParameters IEEGParameters
-        {
-            get
-            {
-                return m_IEEGParameters;
-            }
-        }
+        public IEEGDataParameters IEEGParameters { get; } = new IEEGDataParameters();
 
         /// <summary>
         /// Length of the timeline

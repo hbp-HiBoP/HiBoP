@@ -75,22 +75,10 @@ namespace HBP.Module3D
                 }
             }
         }
-
-        private bool m_IsRenderingUpToDate = false;
         /// <summary>
         /// Does the column rendering need to be updated ?
         /// </summary>
-        public bool IsRenderingUpToDate
-        {
-            get
-            {
-                return m_IsRenderingUpToDate;
-            }
-            set
-            {
-                m_IsRenderingUpToDate = value;
-            }
-        }
+        public bool IsRenderingUpToDate { get; set; } = false;
 
         /// <summary>
         /// Parent of the meshes displayed in this column
@@ -100,18 +88,10 @@ namespace HBP.Module3D
         /// Prefab for the brain surface
         /// </summary>
         [SerializeField] private GameObject m_BrainPrefab;
-
-        private List<GameObject> m_BrainSurfaceMeshes = new List<GameObject>();
         /// <summary>
         /// Surface meshes displayed in this column
         /// </summary>
-        public List<GameObject> BrainSurfaceMeshes
-        {
-            get
-            {
-                return m_BrainSurfaceMeshes;
-            }
-        }
+        public List<GameObject> BrainSurfaceMeshes { get; private set; } = new List<GameObject>();
 
         /// <summary>
         /// View prefab
@@ -257,18 +237,10 @@ namespace HBP.Module3D
         /// Texture generator for the brain surface
         /// </summary>
         public List<MRIBrainGenerator> DLLBrainTextureGenerators = new List<MRIBrainGenerator>();
-
-        private CutTexturesUtility m_CutTextures = new CutTexturesUtility();
         /// <summary>
         /// Cut Textures Utility
         /// </summary>
-        public CutTexturesUtility CutTextures
-        {
-            get
-            {
-                return m_CutTextures;
-            }
-        }
+        public CutTexturesUtility CutTextures { get; } = new CutTexturesUtility();
 
         /// <summary>
         /// Is a source defined ?
@@ -412,7 +384,7 @@ namespace HBP.Module3D
         /// <param name="useSimplifiedMeshes">Are we using simplified meshes ?</param>
         public void InitializeColumnMeshes(GameObject brainMeshesParent, bool useSimplifiedMeshes)
         {
-            m_BrainSurfaceMeshes = new List<GameObject>();
+            BrainSurfaceMeshes = new List<GameObject>();
             foreach (Transform meshPart in brainMeshesParent.transform)
             {
                 if (meshPart.GetComponent<MeshCollider>() == null || !useSimplifiedMeshes) // if the gameobject does not have mesh collider
@@ -439,8 +411,8 @@ namespace HBP.Module3D
             {
                 if (brainMeshes[i].GetComponent<MeshCollider>() == null || !useSimplifiedMeshes) // if the gameobject does not have mesh collider
                 {
-                    DestroyImmediate(m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh);
-                    m_BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMeshes[i].GetComponent<MeshFilter>().mesh);
+                    DestroyImmediate(BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh);
+                    BrainSurfaceMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMeshes[i].GetComponent<MeshFilter>().mesh);
                 }
             }
         }
@@ -450,7 +422,7 @@ namespace HBP.Module3D
         /// <param name="layer">New layer for the meshes</param>
         public void ChangeMeshesLayer(int layer)
         {
-            foreach (var mesh in m_BrainSurfaceMeshes)
+            foreach (var mesh in BrainSurfaceMeshes)
             {
                 mesh.layer = layer;
             }

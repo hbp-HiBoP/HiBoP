@@ -50,6 +50,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.CutAroundSite m_CutAroundSite;
+        /// <summary>
+        /// Open the Interactive Viewer from HBP
+        /// </summary>
+        [SerializeField]
+        private Tools.OpenInteractiveViewer m_OpenInteractiveViewer;
         #endregion
 
         #region Private Methods
@@ -67,6 +72,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_SiteStateCopy);
             m_Tools.Add(m_SiteStateExport);
             m_Tools.Add(m_CutAroundSite);
+            m_Tools.Add(m_OpenInteractiveViewer);
         }
         #endregion
     }
