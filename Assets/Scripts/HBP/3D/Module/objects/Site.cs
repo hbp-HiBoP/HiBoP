@@ -121,7 +121,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return Patient.ID + "_" + Name;
+                return PatientID + "_" + Name;
             }
         }
         public string FullCorrectedID

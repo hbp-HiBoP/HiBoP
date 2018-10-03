@@ -656,11 +656,8 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string SiteName(int patientId, int electrodeId, int siteId)
             {
-                int length = 8;
-                StringBuilder str = new StringBuilder(length);
-                site_name_PatientElectrodesList(_handle, patientId, electrodeId, siteId, str, length);
-
-                return str.ToString();
+                IntPtr result = site_name_PatientElectrodesList(_handle, patientId, electrodeId, siteId);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// Reset the input raw site list with PatientElectrodesList data
@@ -685,11 +682,8 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string PatientName(int patientId)
             {
-                int length = 30;
-                StringBuilder str = new StringBuilder(length);
-                patient_name_PatientElectrodesList(_handle, patientId, str, length);
-
-                return str.ToString();
+                IntPtr result = patient_name_PatientElectrodesList(_handle, patientId);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// Return the electrode name
@@ -699,11 +693,8 @@ namespace HBP.Module3D
             /// <returns></returns>
             public string ElectrodeName(int patientId, int electrodeId)
             {
-                int length = 30;
-                StringBuilder str = new StringBuilder(length);
-                electrode_name_PatientElectrodesList(_handle, patientId, electrodeId, str, length);
-
-                return str.ToString();
+                IntPtr result = electrode_name_PatientElectrodesList(_handle, patientId, electrodeId);
+                return Marshal.PtrToStringAnsi(result);
             }
             /// <summary>
             /// 
@@ -795,7 +786,7 @@ namespace HBP.Module3D
 
             // retrieve data
             [DllImport("hbp_export", EntryPoint = "site_name_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
-            static private extern int site_name_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, int siteId, StringBuilder name, int length);
+            static private extern IntPtr site_name_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, int siteId);
 
             [DllImport("hbp_export", EntryPoint = "site_pos_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
             static private extern void site_pos_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, int siteId, float[] position);
@@ -819,10 +810,10 @@ namespace HBP.Module3D
             static private extern int electrode_sites_nb_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId);
 
             [DllImport("hbp_export", EntryPoint = "patient_name_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void patient_name_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, StringBuilder name, int length);
+            static private extern IntPtr patient_name_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId);
 
             [DllImport("hbp_export", EntryPoint = "electrode_name_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
-            static private extern void electrode_name_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, StringBuilder name, int length);
+            static private extern IntPtr electrode_name_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId);
 
             [DllImport("hbp_export", EntryPoint = "site_mars_atlas_label_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
             static private extern int site_mars_atlas_label_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, int siteId);
