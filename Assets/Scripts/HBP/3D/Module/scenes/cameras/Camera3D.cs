@@ -173,15 +173,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Time before the cut circle disappear
         /// </summary>
-        private double m_DisplayPlanesTimeRemaining = 1;
-        /// <summary>
-        /// Time at which circles started to be displayed
-        /// </summary>
-        private double m_DisplayPlanesTimeStart = 0;
+        private float m_DisplayPlanesTimeRemaining = 1f;
         /// <summary>
         /// Time since we begin to display circles
         /// </summary>
-        private double m_DisplayPlanesTimer = 0;
+        private float m_DisplayPlanesTimer = 0f;
 
         /// <summary>
         /// Ambient mode for the camera
@@ -252,7 +248,6 @@ namespace HBP.Module3D
                         m_PlanesCutsCirclesVertices[ii][jj] += point;
                     }
                 }
-                m_DisplayPlanesTimeStart = (float)TimeExecution.GetWorldTime();
                 m_DisplayPlanesTimer = 0;
                 m_DisplayCutsCircles = true;
             });
@@ -327,9 +322,9 @@ namespace HBP.Module3D
 
             if (m_DisplayCutsCircles)
             {
-                m_DisplayPlanesTimer = TimeExecution.GetWorldTime() - m_DisplayPlanesTimeStart;
-                if (m_DisplayPlanesTimeRemaining > m_DisplayPlanesTimer)
+                if (m_DisplayPlanesTimer < m_DisplayPlanesTimeRemaining)
                 {
+                    m_DisplayPlanesTimer += Time.deltaTime;
                     m_PlaneMaterial.SetPass(0);
                     {
                         int ii = m_AssociatedScene.SceneInformation.LastPlaneModifiedID;

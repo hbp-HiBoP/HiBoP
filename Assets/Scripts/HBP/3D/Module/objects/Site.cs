@@ -101,12 +101,12 @@ namespace HBP.Module3D
         public Data.Patient Patient { get; set; }
         public string Name { get; set; }
 
-        public int GlobalID { get; set; }        /**< global site id (all patients) */
-        public int SitePatientID { get; set; }    /**< site id of the patient */
+        public int GlobalID { get; set; }
+        public int SitePatientID { get; set; }
 
-        public int PatientNumber { get; set; }       /**< patient id */
-        public int ElectrodeNumber { get; set; }     /**< electrode id of the patient */
-        public int SiteNumber { get; set; }        /**< site id of the electrode */
+        public int PatientNumber { get; set; }
+        public int ElectrodeNumber { get; set; }
+        public int SiteNumber { get; set; }
 
         private int m_MarsAtlasIndex;
         public int MarsAtlasIndex
@@ -189,18 +189,7 @@ namespace HBP.Module3D
             IsSuspicious = state.IsSuspicious;
         }
         public SiteState() { }
-        private bool m_IsMasked;
-        public bool IsMasked
-        {
-            get
-            {
-                return m_IsMasked;
-            }
-            set
-            {
-                m_IsMasked = value;
-            }
-        }
+        public bool IsMasked { get; set; }
         private bool m_IsExcluded;
         public bool IsExcluded
         {
@@ -227,18 +216,7 @@ namespace HBP.Module3D
                 OnChangeState.Invoke();
             }
         }
-        private bool m_IsOutOfROI;
-        public bool IsOutOfROI
-        {
-            get
-            {
-                return m_IsOutOfROI;
-            }
-            set
-            {
-                m_IsOutOfROI = value;
-            }
-        }
+        public bool IsOutOfROI { get; set; }
         private bool m_IsHighlighted;
         public bool IsHighlighted
         {
