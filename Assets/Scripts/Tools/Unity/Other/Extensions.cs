@@ -168,4 +168,19 @@ namespace Tools.Unity
             Array.Copy(destinationArray, 0, destinationArray, copyLength, destinationArray.Length - copyLength);
         }
     }
+
+    public static class DirectoryInfoExtensions
+    {
+        public static void CopyFilesRecursively(this DirectoryInfo source, DirectoryInfo target)
+        {
+            if (!source.Exists) return;
+
+            if (!target.Exists) Directory.CreateDirectory(target.FullName);
+
+            foreach (DirectoryInfo dir in source.GetDirectories())
+                CopyFilesRecursively(dir, target.CreateSubdirectory(dir.Name));
+            foreach (FileInfo file in source.GetFiles())
+                file.CopyTo(Path.Combine(target.FullName, file.Name), true);
+        }
+    }
 }

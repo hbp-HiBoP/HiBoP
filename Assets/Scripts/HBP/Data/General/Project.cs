@@ -773,21 +773,7 @@ namespace HBP.Data.General
         }
         void CopyIcons(string oldIconsDirectoryPath, string newIconsDirectoryPath)
         {
-            DirectoryInfo oldIconsDirectory = new DirectoryInfo(oldIconsDirectoryPath);
-
-            if (!Directory.Exists(newIconsDirectoryPath))
-            {
-                Directory.CreateDirectory(newIconsDirectoryPath);
-            }
-
-            if (!oldIconsDirectory.Exists) return;
-
-            FileInfo[] icons = oldIconsDirectory.GetFiles();
-            foreach (FileInfo icon in icons)
-            {
-                string newIconPath = Path.Combine(newIconsDirectoryPath, icon.Name);
-                icon.CopyTo(newIconPath, true);
-            }
+            new DirectoryInfo(oldIconsDirectoryPath).CopyFilesRecursively(new DirectoryInfo(newIconsDirectoryPath));
         }
         #endregion
     }

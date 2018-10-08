@@ -23,7 +23,7 @@ public class ApplicationManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        string tmpDir = Application.dataPath + "/" + ".tmp";
+        string tmpDir = ApplicationState.ProjectLoadedTMPFullPath;
         if (Directory.Exists(tmpDir))
         {
             Directory.Delete(tmpDir, true);
@@ -33,12 +33,11 @@ public class ApplicationManager : MonoBehaviour
     private string GetProjectTMPDirectory()
     {
         string tmpDir = Application.dataPath + "/" + ".tmp";
-        if (Directory.Exists(tmpDir))
+        if (!Directory.Exists(tmpDir))
         {
-            Directory.Delete(tmpDir, true);
+            DirectoryInfo di = Directory.CreateDirectory(tmpDir);
+            di.Attributes |= FileAttributes.Hidden;
         }
-        DirectoryInfo di = Directory.CreateDirectory(tmpDir);
-        di.Attributes |= FileAttributes.Hidden;
         return tmpDir;
     }
 }

@@ -67,23 +67,22 @@ namespace Tools.Unity
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:
-                    CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "windows/"), new DirectoryInfo(buildDirectory + m_Tools));
+                    new DirectoryInfo(projectPath + m_Tools + "windows/").CopyFilesRecursively(new DirectoryInfo(buildDirectory + m_Tools));
                     break;
                 case BuildTarget.StandaloneLinux64:
-                    CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "linux/"), new DirectoryInfo(buildDirectory + m_Tools));
+                    new DirectoryInfo(projectPath + m_Tools + "linux/").CopyFilesRecursively(new DirectoryInfo(buildDirectory + m_Tools));
                     break;
                 case BuildTarget.StandaloneOSX:
-                    CopyFilesRecursively(new DirectoryInfo(projectPath + m_Tools + "macos/"), new DirectoryInfo(buildDirectory));
+                    new DirectoryInfo(projectPath + m_Tools + "macos/").CopyFilesRecursively(new DirectoryInfo(buildDirectory));
                     break;
             }
-            CopyFilesRecursively(new DirectoryInfo(projectPath + m_Data), new DirectoryInfo(dataDirectory + m_DataBuild));
+            new DirectoryInfo(projectPath + m_Data).CopyFilesRecursively(new DirectoryInfo(dataDirectory + m_DataBuild));
             if (target == BuildTarget.StandaloneOSX)
             {
                 DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/MacOS");
                 DirectoryInfo newPluginsDirectory = new DirectoryInfo(dataDirectory + "Contents/Frameworks/MonoEmbedRuntime/osx/");
                 Directory.CreateDirectory(newPluginsDirectory.FullName);
-                CopyFilesRecursively(pluginsDirectory, newPluginsDirectory);
-                Debug.Log(pluginsDirectory.FullName);
+                pluginsDirectory.CopyFilesRecursively(newPluginsDirectory);
                 foreach (var file in newPluginsDirectory.GetFiles("*.meta"))
                 {
                     file.Delete();
@@ -96,16 +95,6 @@ namespace Tools.Unity
 
             FileInfo documentation = new FileInfo(projectPath + "Docs/LaTeX/HiBoP_user_manual.pdf");
             documentation.CopyTo(buildDirectory + documentation.Name);
-        }
-
-        public static void CopyFilesRecursively(DirectoryInfo source, DirectoryInfo target)
-        {
-            if (!source.Exists) return;
-
-            foreach (DirectoryInfo dir in source.GetDirectories())
-                CopyFilesRecursively(dir, target.CreateSubdirectory(dir.Name));
-            foreach (FileInfo file in source.GetFiles())
-                file.CopyTo(Path.Combine(target.FullName, file.Name), true);
         }
     }
 

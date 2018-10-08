@@ -12,6 +12,11 @@ using UnityEngine;
 public static class ApplicationState
 {
     /// <summary>
+    /// ID of this instance of HiBoP
+    /// </summary>
+    public static string InstanceID { get; private set; } = System.Guid.NewGuid().ToString();
+
+    /// <summary>
     /// Project loaded on the application.
     /// </summary>
     public static HBP.Data.General.Project ProjectLoaded { get; set; }
@@ -33,14 +38,7 @@ public static class ApplicationState
     {
         get
         {
-            if (ProjectLoaded == null || string.IsNullOrEmpty(ProjectTMPFolder))
-            {
-                return ".";
-            }
-            else
-            {
-                return ProjectTMPFolder + System.IO.Path.DirectorySeparatorChar + "Project";
-            }
+            return System.IO.Path.Combine(ProjectTMPFolder, InstanceID);
         }
     }
 
