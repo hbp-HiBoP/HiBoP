@@ -108,7 +108,22 @@ namespace HBP.Module3D
         public int ElectrodeNumber { get; set; }     /**< electrode id of the patient */
         public int SiteNumber { get; set; }        /**< site id of the electrode */
 
-        public int MarsAtlasIndex { get; set; }   /**< label (corresponding index) mars atlas */
+        private int m_MarsAtlasIndex;
+        public int MarsAtlasIndex
+        {
+            get
+            {
+                return m_MarsAtlasIndex;
+            }
+            set
+            {
+                m_MarsAtlasIndex = value;
+                MarsAtlasName = ApplicationState.Module3D.MarsAtlasIndex.FullName(value);
+                BroadmanAreaName = ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(value);
+            }
+        }
+        public string MarsAtlasName { get; private set; }
+        public string BroadmanAreaName { get; private set; }
 
         public string PatientID
         {

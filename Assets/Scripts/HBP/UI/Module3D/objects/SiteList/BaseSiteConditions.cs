@@ -61,11 +61,11 @@ public abstract class BaseSiteConditions : MonoBehaviour
     }
     protected bool CheckMarsAtlasName(Site site, string marsAtlasName)
     {
-        return ApplicationState.Module3D.MarsAtlasIndex.FullName(site.Information.MarsAtlasIndex).ToLower().Contains(marsAtlasName.ToLower());
+        return site.Information.MarsAtlasName.ToLower().Contains(marsAtlasName.ToLower());
     }
     protected bool CheckBroadmanAreaName(Site site, string broadmanAreaName)
     {
-        return ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(site.Information.MarsAtlasIndex).ToLower().Contains(broadmanAreaName.ToLower());
+        return site.Information.BroadmanAreaName.ToLower().Contains(broadmanAreaName.ToLower());
     }
     protected bool CheckMean(Site site, bool superior, string stringValue)
     {

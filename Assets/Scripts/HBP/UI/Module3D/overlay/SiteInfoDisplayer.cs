@@ -151,7 +151,7 @@ namespace HBP.UI.Module3D
         {
             if (siteInfo.Site)
             {
-                string marsAtlasText = ApplicationState.Module3D.MarsAtlasIndex.FullName(siteInfo.Site.Information.MarsAtlasIndex);
+                string marsAtlasText = siteInfo.Site.Information.MarsAtlasName;
                 if (marsAtlasText != "No_info" && marsAtlasText != "not found")
                 {
                     m_MarsAtlasText.transform.parent.gameObject.SetActive(true);
@@ -161,7 +161,7 @@ namespace HBP.UI.Module3D
                 {
                     m_MarsAtlasText.transform.parent.gameObject.SetActive(false);
                 }
-                string broadmanText = ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(siteInfo.Site.Information.MarsAtlasIndex);
+                string broadmanText = siteInfo.Site.Information.BroadmanAreaName;
                 if (broadmanText != "No_info" && broadmanText != "not found")
                 {
                     m_BroadmanText.transform.parent.gameObject.SetActive(true);
