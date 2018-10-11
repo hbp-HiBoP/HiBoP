@@ -1,8 +1,6 @@
 ﻿using System;
-using UnityEngine;
-using UnityEngine.Events;
 
-namespace Tools.Unity
+namespace UnityEngine.Events
 {
     [Serializable] public class BoolEvent : UnityEvent<Boolean> { }
     [Serializable] public class FloatEvent : UnityEvent<float> { }

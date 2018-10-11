@@ -57,12 +57,12 @@ namespace HBP.UI.Preferences
             m_SmoothTrialToggle.isOn = preferences.TrialSmoothing;
 
             // Intermediate values.
-            m_NumberOfIntermediateValuesSlider.interactable = m_SmoothTrialToggle.isOn && m_Interactable;
+            m_NumberOfIntermediateValuesSlider.interactable = preferences.TrialSmoothing;
             m_NumberOfIntermediateValuesSlider.value = preferences.NumberOfIntermediateValues;
-
 
             // Bloc format.
             m_BlocFormatDropdown.Set(typeof(Data.Enums.BlocFormatType), (int) preferences.BlocFormat);
+            m_BlocFormatDropdown.onValueChanged.AddListener(OnChangeBlocFormat);
             OnChangeBlocFormat(m_BlocFormatDropdown.value);
 
             // Trial height.

@@ -2533,7 +2533,7 @@ namespace HBP.Module3D
                 {
 
                     MRI3D mri3D = new MRI3D(mri);
-                    if (ApplicationState.UserPreferences.Data.Anatomy.MRIPreloading)
+                    if (ApplicationState.UserPreferences.Data.Anatomic.MRIPreloading)
                     {
                         if (mri3D.IsLoaded)
                         {

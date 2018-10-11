@@ -128,7 +128,7 @@ namespace HBP.Module3D
         {
             get
             {
-                if (ApplicationState.UserPreferences.Data.Anatomy.SiteNameCorrection)
+                if (ApplicationState.UserPreferences.Data.Anatomic.SiteNameCorrection)
                 {
                     string siteName = Name.ToUpper();
                     int prime = siteName.LastIndexOf('P');

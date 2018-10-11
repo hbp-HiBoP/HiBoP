@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.Data.Localizer;
+using UnityEngine;
 
 namespace HBP.Data.Visualization
 {
@@ -6,18 +7,18 @@ namespace HBP.Data.Visualization
     {
         #region Properties
         public string Unit { get; set; }
-        public int Frequency { get; set; }
+        public Frequency Frequency { get; set; }
         public float[] Values { get; set; }
         #endregion
 
         #region constructors
-        public SiteData(float[] values, string unit, int frequency)
+        public SiteData(float[] values, string unit, Frequency frequency)
         {
             Values = values;
             Unit = unit;
             Frequency = frequency;
         }
-        public SiteData() : this(new float[0], "", 0)
+        public SiteData() : this(new float[0], "",  new Frequency())
         {
 
         }

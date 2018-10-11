@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Tools.CSharp
+namespace Tools.Unity
 {
     public static class Vector2Extension
     {
@@ -22,6 +22,10 @@ namespace Tools.CSharp
         public static Vector2 Abs(this Vector2 vector)
         {
             return new Vector2(Mathf.Abs(vector.x), Mathf.Abs(vector.y));
+        }
+        public static float Range(this Vector2 vector)
+        {
+            return vector.y - vector.x;
         }
     }
 }

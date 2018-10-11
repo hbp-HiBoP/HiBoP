@@ -2,28 +2,29 @@
 using System.Linq;
 using System.Collections.Generic;
 using Tools.CSharp;
+using HBP.Data.Experience.Dataset;
 
 namespace HBP.Data.TrialMatrix
 {
     public class Line
     {
         #region Attributs
-        public Localizer.Bloc Bloc { get; set; }
+        public Trial Trial { get; set; }
         string m_Site;
         public float[] NormalizedValues { get; set; }
         #endregion
 
         #region Constructor
-        public Line(Localizer.Bloc bloc, string site)
+        public Line(Trial bloc, string site)
         {
-            Bloc = bloc;
+            Trial = bloc;
             m_Site = site;
             //NormalizedValues = bloc.ValuesBySite[site];
         }
         #endregion
 
         #region Public Methods
-        public static IEnumerable<Line> MakeLines(Experience.Protocol.Bloc bloc, IEnumerable<Localizer.Bloc> blocs, Module3D.Site site)
+        public static IEnumerable<Line> MakeLines(Experience.Protocol.Bloc bloc, IEnumerable<Trial> blocs, Module3D.Site site)
         {
             return SortLines(bloc, (from b in blocs select new Line(b, site.Information.FullCorrectedID)));
         }

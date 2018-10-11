@@ -96,38 +96,38 @@ namespace HBP.UI.Informations
         #region Private Methods
         void Generate(Site[] sites)
         {
-            // Find protocols to display
-            IEnumerable<Protocol> protocols = (from column in m_Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Dataset.Protocol).Distinct();
+            //// Find protocols to display
+            //IEnumerable<Protocol> protocols = (from column in m_Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Dataset.Protocol).Distinct();
 
-            // Generate trialMatrix and create the dictionary
-            foreach (Protocol protocol in protocols)
-            {
-                m_InformationByProtocol[protocol].TrialMatrixByDataInfoBySite = new Dictionary<Site, Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>>();
+            //// Generate trialMatrix and create the dictionary
+            //foreach (Protocol protocol in protocols)
+            //{
+            //    m_InformationByProtocol[protocol].TrialMatrixByDataInfoBySite = new Dictionary<Site, Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>>();
 
-                Dictionary<Site, IEnumerable<DataInfo>> dataInfoBySite = sites.ToDictionary(s => s, s => m_Scene.Visualization.GetDataInfo(s.Information.Patient).Where(d => ApplicationState.ProjectLoaded.Datasets.First(ds => ds.Data.Contains(d)).Protocol == protocol));
-                IEnumerable<DataInfo> dataInfoToRead = dataInfoBySite.Values.SelectMany(d => d).Distinct();
+            //    Dictionary<Site, IEnumerable<DataInfo>> dataInfoBySite = sites.ToDictionary(s => s, s => m_Scene.Visualization.GetDataInfo(s.Information.Patient).Where(d => ApplicationState.ProjectLoaded.Datasets.First(ds => ds.Data.Contains(d)).Protocol == protocol));
+            //    IEnumerable<DataInfo> dataInfoToRead = dataInfoBySite.Values.SelectMany(d => d).Distinct();
 
-                Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>> epochedBlocsByProtocolBlocByDataInfo = new Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>>();
-                foreach (var data in dataInfoToRead)
-                {
-                    Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]> epochedBlocsByProtocolBloc = new Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>();
-                    foreach (var bloc in protocol.Blocs)
-                    {
-                        epochedBlocsByProtocolBloc.Add(bloc, DataManager.GetData(data, bloc).Blocs);
-                    }
-                    epochedBlocsByProtocolBlocByDataInfo.Add(data, epochedBlocsByProtocolBloc);
-                }
+            //    Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>> epochedBlocsByProtocolBlocByDataInfo = new Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>>();
+            //    foreach (var data in dataInfoToRead)
+            //    {
+            //        Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]> epochedBlocsByProtocolBloc = new Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>();
+            //        foreach (var bloc in protocol.Blocs)
+            //        {
+            //            epochedBlocsByProtocolBloc.Add(bloc, DataManager.GetData(data, bloc).Blocs);
+            //        }
+            //        epochedBlocsByProtocolBlocByDataInfo.Add(data, epochedBlocsByProtocolBloc);
+            //    }
 
-                foreach (var site in sites)
-                {
-                    m_InformationByProtocol[protocol].TrialMatrixByDataInfoBySite[site] = new Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>();
-                    foreach (var dataInfo in dataInfoBySite[site])
-                    {
-                        Data.TrialMatrix.TrialMatrix trialMatrix = new Data.TrialMatrix.TrialMatrix(protocol, dataInfo, epochedBlocsByProtocolBlocByDataInfo[dataInfo], site, m_Scene);
-                        m_InformationByProtocol[protocol].TrialMatrixByDataInfoBySite[site][dataInfo] = trialMatrix;
-                    }
-                }
-            }
+            //    foreach (var site in sites)
+            //    {
+            //        m_InformationByProtocol[protocol].TrialMatrixByDataInfoBySite[site] = new Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>();
+            //        foreach (var dataInfo in dataInfoBySite[site])
+            //        {
+            //            Data.TrialMatrix.TrialMatrix trialMatrix = new Data.TrialMatrix.TrialMatrix(protocol, dataInfo, epochedBlocsByProtocolBlocByDataInfo[dataInfo], site, m_Scene);
+            //            m_InformationByProtocol[protocol].TrialMatrixByDataInfoBySite[site][dataInfo] = trialMatrix;
+            //        }
+            //    }
+            //}
         }
         void Display()
         {

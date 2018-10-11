@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using Tools.Unity;
 using System.IO;
+using HBP.Data.Localizer;
 
 namespace HBP.Data.Visualization
 {
@@ -85,18 +86,18 @@ namespace HBP.Data.Visualization
         /// <param name="icon">Icon.</param>
         /// <param name="frequency">Frequency of the data.</param>
         /// <param name="timeLine">Time line of the bloc.</param>
-        public Icon(Experience.Protocol.Icon icon, float frequency,Timeline timeLine)
+        public Icon(Experience.Protocol.Icon icon, Frequency frequency,Timeline timeLine)
         {
             Label = icon.Name;
             IllustrationPath = icon.IllustrationPath;
-            StartPosition = Mathf.Clamp(Mathf.FloorToInt((icon.Window.Start) * 0.001f * frequency) + timeLine.MainEvent.Position,0, timeLine.Lenght - 1);
-            EndPosition = Mathf.Clamp(Mathf.FloorToInt((icon.Window.End) * 0.001f * frequency) + timeLine.MainEvent.Position,0,timeLine.Lenght-1);
+            StartPosition = Mathf.Clamp(frequency.ConvertToFlooredNumberOfSamples(icon.Window.Start) + timeLine.MainEvent.Position,0, timeLine.Lenght - 1);
+            EndPosition = Mathf.Clamp(frequency.ConvertToFlooredNumberOfSamples(icon.Window.End) + timeLine.MainEvent.Position,0,timeLine.Lenght-1);
         }
 
         /// <summary>
         /// Create a new icon instance with default value;
         /// </summary>
-        public Icon() : this(new Experience.Protocol.Icon(),0.0f,new Timeline())
+        public Icon() : this(new Experience.Protocol.Icon(),new Frequency() ,new Timeline())
         {
         }
 

@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.IO;
+using UnityEngine.Events;
 using System.Collections.Generic;
 using d = HBP.Data.TrialMatrix;
-using UnityEngine.Profiling;
-using Tools.Unity;
 
 namespace HBP.UI.TrialMatrix
 {

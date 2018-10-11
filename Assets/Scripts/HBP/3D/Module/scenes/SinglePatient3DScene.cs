@@ -119,7 +119,7 @@ namespace HBP.Module3D
 
             if (m_ColumnManager.Meshes.Count > 0)
             {
-                if (ApplicationState.UserPreferences.Data.Anatomy.MeshPreloading)
+                if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                 {
                     GenerateSplit(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
                 }
@@ -190,7 +190,7 @@ namespace HBP.Module3D
                     {
                         LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
 
-                        if (ApplicationState.UserPreferences.Data.Anatomy.MeshPreloading)
+                        if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                         {
                             if (mesh3D.IsLoaded)
                             {
@@ -213,7 +213,7 @@ namespace HBP.Module3D
                     {
                         SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
 
-                        if (ApplicationState.UserPreferences.Data.Anatomy.MeshPreloading)
+                        if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                         {
                             if (mesh3D.IsLoaded)
                             {

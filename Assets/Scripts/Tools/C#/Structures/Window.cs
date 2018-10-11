@@ -54,6 +54,14 @@ namespace Tools.CSharp
         {
             return !window1.Equals(window2);
         }
+        public Vector2 ToVector2()
+        {
+            return new Vector2(Start, End);
+        }
+        public Vector2Int ToVector2Int()
+        {
+            return new Vector2Int(Start, End);
+        }
         #endregion
     }
 

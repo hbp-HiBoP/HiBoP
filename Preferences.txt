@@ -19,14 +19,17 @@
       "Averaging": 1,
       "Normalization": 0
     },
-    "Event": {
-      "PositionAveraging": 1
+    "Protocol": {
+      "PositionAveraging": 1,
+      "MinLimit": -1500.0,
+      "MaxLimit": 1500.0,
+      "Step": 100
     },
-    "Anatomy": {
-      "SiteNameCorrection": true,
-      "MeshPreloading": true,
-      "MRIPreloading": true,
-      "ImplantationPreloading": true
+    "Anatomic": {
+      "SiteNameCorrection": false,
+      "MeshPreloading": false,
+      "MRIPreloading": false,
+      "ImplantationPreloading": false
     }
   },
   "Visualization": {

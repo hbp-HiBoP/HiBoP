@@ -1,4 +1,5 @@
-﻿using Tools.Unity;
+﻿using HBP.Data.Preferences;
+using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 using d = HBP.Data.Experience.Protocol;
@@ -50,11 +51,8 @@ namespace HBP.UI.Experience.Protocol
             m_OrderInputField.onEndEdit.AddListener((value) => ItemTemp.Order = int.Parse(value));
             m_TypeDropdown.onValueChanged.AddListener((value) => ItemTemp.Type = (Data.Enums.MainSecondaryEnum) value);
 
-            m_WindowSlider.OnMinValueChanged.AddListener((value) => ItemTemp.Window = new Tools.CSharp.Window((int)value, ItemTemp.Window.End));
-            m_WindowSlider.OnMaxValueChanged.AddListener((value) => ItemTemp.Window = new Tools.CSharp.Window(ItemTemp.Window.Start, (int)value));
-
-            m_BaselineSlider.OnMinValueChanged.AddListener((value) => ItemTemp.Baseline = new Tools.CSharp.Window((int)value, ItemTemp.Baseline.End));
-            m_BaselineSlider.OnMaxValueChanged.AddListener((value) => ItemTemp.Baseline = new Tools.CSharp.Window(ItemTemp.Baseline.Start, (int)value));
+            m_WindowSlider.onValueChanged.AddListener((min,max) => ItemTemp.Window = new Tools.CSharp.Window((int) min, (int) max));
+            m_BaselineSlider.onValueChanged.AddListener((min,max) => ItemTemp.Baseline = new Tools.CSharp.Window((int) min, (int) max));
 
             m_EventListGestion.Initialize(m_SubWindows);
             m_IconListGestion.Initialize(m_SubWindows);
@@ -66,11 +64,18 @@ namespace HBP.UI.Experience.Protocol
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_TypeDropdown.Set(typeof(Data.Enums.MainSecondaryEnum), (int)objectToDisplay.Type);
 
-            m_WindowSlider.MinValue = objectToDisplay.Window.Start;
-            m_WindowSlider.MaxValue = objectToDisplay.Window.End;
+            ProtocolPreferences preferences = ApplicationState.UserPreferences.Data.Protocol;
+            m_WindowSlider.minLimit = preferences.MinLimit;
+            m_WindowSlider.maxLimit = preferences.MaxLimit;
+            m_WindowSlider.step = preferences.Step;
+            m_WindowSlider.minValue = objectToDisplay.Window.Start;
+            m_WindowSlider.maxValue = objectToDisplay.Window.End;
 
-            m_BaselineSlider.MinValue = objectToDisplay.Baseline.Start;
-            m_BaselineSlider.MaxValue = objectToDisplay.Baseline.End;
+            m_BaselineSlider.minLimit = preferences.MinLimit;
+            m_BaselineSlider.maxLimit = preferences.MaxLimit;
+            m_BaselineSlider.step = preferences.Step;
+            m_BaselineSlider.minValue = objectToDisplay.Baseline.Start;
+            m_BaselineSlider.maxValue = objectToDisplay.Baseline.End;
 
             m_EventListGestion.Items = objectToDisplay.Events;
             m_IconListGestion.Items = objectToDisplay.Icons;

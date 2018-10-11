@@ -3,7 +3,7 @@
 namespace HBP.Data.Enums
 {
     public enum AveragingType { Mean, Median }
-    public enum NormalizationType { None, Trial, Bloc, Protocol }
+    public enum NormalizationType { None, SubTrial, Trial, SubBloc, Bloc, Protocol }
     public enum SiteInfluenceByDistanceType { Constant, Linear, Quadratic }
     public enum BlocFormatType {[Description("Trial height")] TrialHeight, [Description("Trial ratio")] TrialRatio, [Description("Bloc ratio")] BlocRatio }
     public enum DisplayableError { LeftMeshEmpty, RightMeshEmpty, PreimplantationMRIEmpty, ImplantationEmpty }

@@ -30,14 +30,14 @@ namespace HBP.UI.Preferences
         #region Public Methods
         public void SetFields()
         {
-            Data.Preferences.EEGPreferences preferences = ApplicationState.UserPreferences.Data.EEG;
+            Data.Preferences.EEGPrefrences preferences = ApplicationState.UserPreferences.Data.EEG;
 
             m_EEGNormalizationDropdown.Set(typeof(Data.Enums.NormalizationType), (int)preferences.Normalization);
             m_EEGAveragingDropdown.Set(typeof(Data.Enums.AveragingType), (int)preferences.Averaging); 
         }
         public void Save()
         {
-            Data.Preferences.EEGPreferences preferences = ApplicationState.UserPreferences.Data.EEG;
+            Data.Preferences.EEGPrefrences preferences = ApplicationState.UserPreferences.Data.EEG;
 
             preferences.Normalization = (Data.Enums.NormalizationType) m_EEGNormalizationDropdown.value;
             preferences.Averaging = (Data.Enums.AveragingType) m_EEGAveragingDropdown.value;

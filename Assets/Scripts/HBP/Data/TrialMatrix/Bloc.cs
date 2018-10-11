@@ -26,10 +26,10 @@ namespace HBP.Data.TrialMatrix
             ProtocolBloc = protocolBloc;
             Trials = lines;
         }
-        public Bloc(Experience.Protocol.Bloc protocolBloc, IEnumerable<Localizer.Bloc> blocs, Module3D.Site site)
+        public Bloc(Experience.Protocol.Bloc protocolBloc, IEnumerable<HBP.Data.Experience.Dataset.Trial> blocs, Module3D.Site site)
         {
-            ProtocolBloc = protocolBloc;
-            Trials = Line.MakeLines(protocolBloc, blocs, site).ToArray();
+            //ProtocolBloc = protocolBloc;
+            //Trials = Line.MakeLines(protocolBloc, blocs, site).ToArray();
         }
         public Bloc() : this(new Experience.Protocol.Bloc(),new Line[0])
         {

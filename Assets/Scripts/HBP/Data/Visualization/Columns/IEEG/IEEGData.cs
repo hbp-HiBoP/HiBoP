@@ -1,4 +1,5 @@
 ﻿using HBP.Data.Experience.Dataset;
+using HBP.Data.Localizer;
 using System;
 using System.Collections.Generic;
 
@@ -16,32 +17,32 @@ namespace HBP.Data.Visualization
         /// </summary>
         public IconicScenario IconicScenario { get; set; }
 
-        public Dictionary<int, Timeline> TimeLineByFrequency { get; set; }
-        public Dictionary<int, IconicScenario> IconicScenarioByFrequency { get; set; }
+        public Dictionary<Frequency, Timeline> TimeLineByFrequency { get; set; }
+        public Dictionary<Frequency, IconicScenario> IconicScenarioByFrequency { get; set; }
 
         public Dictionary<string, SiteData> DataBySite = new Dictionary<string, SiteData>();
         #endregion
 
         #region Constructors
+
         #endregion
 
         #region Public Methods
-        public void Load(IEnumerable<DataInfo> columnData)
+        public void Load(IEnumerable<DataInfo> columnData, Data.Experience.Protocol.Bloc bloc)
         {
-            //foreach (DataInfo dataInfo in columnData)
-            //{
-            //    Experience.EpochedData epochedData = DataManager.GetData(dataInfo, Bloc);
-            //    int dataFrequency = UnityEngine.Mathf.RoundToInt(epochedData.Frequency);
-            //    Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs, ApplicationState.UserPreferences.Data.EEG.Averaging, ApplicationState.UserPreferences.Data.Event.PositionAveraging);
+            foreach (DataInfo dataInfo in columnData)
+            {
+                EpochedData epochedData = DataManager.GetData(dataInfo, bloc);      
+                Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs, ApplicationState.UserPreferences.Data.EEG.Averaging, ApplicationState.UserPreferences.Data.Event.PositionAveraging);
 
-            //    //foreach (var site in averagedBloc.UnitBySite.Keys)
-            //    //{
-            //    //    DataBySite.Add(site,
-            //    //        new SiteData(averagedBloc.SubBlocs[0].ValuesBySite[site], // TODO
-            //    //        averagedBloc.SubBlocs[0].NormalizedValuesBySite[site],
-            //    //        averagedBloc.UnitBySite[site], dataFrequency));
-            //    //}
-            //}
+                //foreach (var site in averagedBloc.UnitBySite.Keys)
+                //{
+                //    DataBySite.Add(site,
+                //        new SiteData(averagedBloc.SubBlocs[0].ValuesBySite[site], // TODO
+                //        averagedBloc.SubBlocs[0].NormalizedValuesBySite[site],
+                //        averagedBloc.UnitBySite[site], dataFrequency));
+                //}
+            }
         }
         public void SetTimeline(int maxFrequency)
         {

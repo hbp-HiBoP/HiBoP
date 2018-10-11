@@ -98,7 +98,7 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public enum NormalizationType
         {
-            None, Trial, Bloc, Protocol, Auto
+            None, SubTrial, Trial, SubBloc, Bloc, Protocol, Auto
         }
 
         ErrorType[] m_NameErrors;

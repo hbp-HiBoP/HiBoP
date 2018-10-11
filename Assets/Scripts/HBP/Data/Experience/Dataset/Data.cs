@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using HBP.Data.Localizer;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -22,19 +23,19 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Site values.
         /// </summary>
-        public Dictionary<string,float[]> ValuesBySite { get; set; }
+        public Dictionary<string,float[]> ValuesByChannel { get; set; }
         /// <summary>
         /// Site values.
         /// </summary>
-        public Dictionary<string, string> UnitBySite { get; set; }
+        public Dictionary<string, string> UnitByChannel { get; set; }
         /// <summary>
         /// POS file which containts plot anatomy informations.
         /// </summary>
-        public Localizer.POS POS { get; set; }
+        public POS POS { get; set; }
         /// <summary>
         /// Frequency of data.
         /// </summary>
-        public float Frequency { get; set; }
+        public Frequency Frequency { get; set; }
         /// <summary>
         /// Patient of the data.
         /// </summary>
@@ -45,7 +46,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new Data instance with default values.
         /// </summary>
-        public Data(): this(new Dictionary < string, float[] >(), new Dictionary<string, string>(), new Localizer.POS(), 0, new Patient())
+        public Data(): this(new Dictionary < string, float[] >(), new Dictionary<string, string>(), new POS(),  new Frequency(), new Patient())
         {
         }
         /// <summary>
@@ -56,10 +57,10 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="pos">POS file.</param>
         /// <param name="frequency">Values frequency.</param>
         /// <param name="patient">Patient.</param>
-        public Data(Dictionary<string,float[]> valuesBySite, Dictionary<string,string> unitBySite, Localizer.POS pos, float frequency, Patient patient)
+        public Data(Dictionary<string,float[]> valuesBySite, Dictionary<string,string> unitBySite, POS pos, Frequency frequency, Patient patient)
         {
-            ValuesBySite = valuesBySite;
-            UnitBySite = unitBySite;
+            ValuesByChannel = valuesBySite;
+            UnitByChannel = unitBySite;
             POS = pos;
             Frequency = frequency;
             Patient = patient;
@@ -80,12 +81,12 @@ namespace HBP.Data.Experience.Dataset
                 if (track.Channel >= 0 && track.Measure >= 0)
                 {
                     string ID = info.Patient.ID + "_" + channel.Label;
-                    ValuesBySite.Add(ID,elanFile.EEG.GetFloatData(track)); // fixme
-                    UnitBySite.Add(ID, channel.Unit);
+                    ValuesByChannel.Add(ID,elanFile.EEG.GetFloatData(track)); // fixme
+                    UnitByChannel.Add(ID, channel.Unit);
                 }
             }
-            POS = new Localizer.POS(info.POS, elanFile.EEG.SamplingFrequency);
-            Frequency = elanFile.EEG.SamplingFrequency;
+            POS = new Localizer.POS(info.POS, new Frequency(elanFile.EEG.SamplingFrequency));
+            Frequency = new Frequency(elanFile.EEG.SamplingFrequency);
             Patient = info.Patient;
             elanFile.Dispose();
         }

@@ -11,7 +11,7 @@ namespace HBP.UI.Preferences
         [SerializeField] LocalizationPreferencesModifier m_LocalizationPreferencesModifier;
         [SerializeField] SystemPreferencesModifier m_SystemPreferencesModifier;
         [SerializeField] EEGPreferencesModifier m_EEGPreferencesModifier;
-        [SerializeField] EventPreferencesModifier m_EventPreferencesModifier;
+        [SerializeField] ProtocolPreferencesModifier m_EventPreferencesModifier;
         [SerializeField] AnatomyPreferencesModifier m_AnatomyPreferencesModifier;
         [SerializeField] _3DPreferencesModifier m_3DPreferencesModifier;
         [SerializeField] TrialMatrixPreferencesModifier m_TrialMatrixPreferencesModifier;

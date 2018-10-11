@@ -33,7 +33,7 @@ namespace HBP.UI.Preferences
         #region Public Methods
         public void Save()
         {
-            Data.Preferences.AnatomyPreferences preferences = ApplicationState.UserPreferences.Data.Anatomy;
+            Data.Preferences.AnatomicPreferences preferences = ApplicationState.UserPreferences.Data.Anatomic;
             preferences.SiteNameCorrection = m_SiteNameCorrectionToggle.isOn;
             preferences.MeshPreloading = m_PreloadMeshesToggle.isOn;
             preferences.MRIPreloading = m_PreloadMRIsToggle.isOn;
@@ -41,7 +41,7 @@ namespace HBP.UI.Preferences
         }
         public void SetFields()
         {
-            Data.Preferences.AnatomyPreferences preferences = ApplicationState.UserPreferences.Data.Anatomy;
+            Data.Preferences.AnatomicPreferences preferences = ApplicationState.UserPreferences.Data.Anatomic;
             m_SiteNameCorrectionToggle.isOn = preferences.SiteNameCorrection;
             m_PreloadMeshesToggle.isOn = preferences.MeshPreloading;
             m_PreloadMRIsToggle.isOn = preferences.MRIPreloading;

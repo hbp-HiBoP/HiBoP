@@ -1,58 +1,79 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Collections.Generic;
+using HBP.Data.Localizer;
 
-namespace HBP.Data.Experience
+namespace HBP.Data.Experience.Dataset
 {
-    /**
-    * \class EpochedData
-    * \author Adrien Gannerie
-    * \version 1.0
-    * \date 05 mai 2017
-    * \brief Data epoched from a Data.
-    */
     public class EpochedData
     {
         #region Properties
-        public float Frequency { get; set; }
-        public Localizer.Bloc[] Blocs { get; set; }
         public bool IsValid
         {
             get
             {
-                return Blocs.Length > 0;
+                return Trials.Length > 0 && Trials.Any(t => t.IsValid);
             }
         }
+        public Frequency Frequency { get; set; }
+        public Trial[] Trials { get; set; }
+        public Dictionary<string, string> UnitByChannel { get; set; } // Maybe one day use this.
         #endregion
 
-        #region Constructors
-        public EpochedData(Protocol.Bloc bloc, Dataset.Data data)
+        #region Constructor
+        public EpochedData(Data data, Protocol.Bloc bloc) : this(data.ValuesByChannel, data.UnitByChannel, data.POS, data.Frequency, bloc) { }
+        public EpochedData(Dictionary<string,float[]> valuesByChannel, Dictionary<string,string> unitByChannel, POS pos, Frequency frequency, Protocol.Bloc bloc)
         {
-            //// Find index for all the events of the blocs.
-            //Dictionary<Protocol.Event, int[]> indexByEvent = FindIndexByEvent(bloc.Events, data.POS);
+            // Find all occurences for each event.
+            Dictionary<Protocol.Event,EventOccurences> occurencesByEvent = bloc.SubBlocs.SelectMany((s) => s.Events).ToDictionary((e) => e, (e) => new EventOccurences(e.Codes.ToDictionary((c) => c, (c) => pos.GetOccurences(c).ToArray())));
 
-            //// Calcul number of samples before and after the main event.
-            //int numberOfSamplesBeforeMainEvent, numberOfSamplesAfterMainEvent;
-            //int BaselineNumberOfSamplesBeforeMainEvent, BaselineNumberOfSamplesAfterMainEvent;
-            //CalculateNumberOfSamples(bloc.Window, data.Frequency, out numberOfSamplesBeforeMainEvent, out numberOfSamplesAfterMainEvent);
-            //CalculateNumberOfSamples(bloc.Baseline, data.Frequency, out BaselineNumberOfSamplesBeforeMainEvent, out BaselineNumberOfSamplesAfterMainEvent);
+            // Get all occurences for the mainEvent of the mainSubBloc.
+            POS.Occurence[] MainSubBlocMainEventOccurences = occurencesByEvent[bloc.MainSubBloc.MainEvent].GetOccurences();
 
-            //// Generate blocs.
-            //Blocs = (from index in indexByEvent[bloc.MainEvent] where (index + numberOfSamplesBeforeMainEvent >= 0 && index + numberOfSamplesAfterMainEvent < data.ValuesBySite.Values.First().Length) select new Localizer.Bloc(index + numberOfSamplesBeforeMainEvent, index + numberOfSamplesAfterMainEvent, index + BaselineNumberOfSamplesBeforeMainEvent, index + BaselineNumberOfSamplesAfterMainEvent, indexByEvent, data)).ToArray();
-            //Frequency = data.Frequency;
+            // Initialize loop.
+            List<Trial> trials = new List<Trial>(MainSubBlocMainEventOccurences.Length);
+            int startIndex, endIndex;
+
+            // All main event position but the last one.
+            for (int i = 0; i < MainSubBlocMainEventOccurences.Length; i++)
+            {
+                startIndex = (i - 1 < 0) ? 0 : MainSubBlocMainEventOccurences[i - 1].Index;
+                endIndex = (i + 1 >= MainSubBlocMainEventOccurences.Length) ? int.MaxValue : MainSubBlocMainEventOccurences[i + 1].Index;
+                trials.Add(new Trial(valuesByChannel, startIndex, MainSubBlocMainEventOccurences[i] , endIndex, occurencesByEvent, bloc, frequency));
+            }
+
+            UnitByChannel = unitByChannel;
+            Frequency = frequency;
         }
         #endregion
 
-        #region Private Methods
-        Dictionary<Protocol.Event,int[]> FindIndexByEvent(IEnumerable<Protocol.Event> events, Localizer.POS pos)
+        #region Structs
+        public struct EventOccurences
         {
-            return (from e in events select new KeyValuePair<Protocol.Event, int[]>(e, pos.GetIndexes(e.Codes).ToArray())).ToDictionary((pair) => pair.Key, (k) => k.Value);
-        }
+            #region Properties
+            Dictionary<int, POS.Occurence[]> m_OccurencesByCode;
+            #endregion
 
-        void CalculateNumberOfSamples(Tools.CSharp.Window window, float frequency, out int numberOfSamplesBeforeMainEvent, out int numberOfSamplesAfterMainEvent)
-        {
-            numberOfSamplesBeforeMainEvent = Mathf.CeilToInt((window.Start) * 0.001f * frequency);
-            numberOfSamplesAfterMainEvent = Mathf.FloorToInt((window.End) * 0.001f * frequency);
+            #region Constructors
+            public EventOccurences(Dictionary<int, POS.Occurence[]> occurencesByCode)
+            {
+                m_OccurencesByCode = occurencesByCode;
+            }
+            #endregion
+
+            #region Public Methods
+            public POS.Occurence[] GetOccurences()
+            {
+                return m_OccurencesByCode.SelectMany((kv) => kv.Value).ToArray();
+            }
+            public POS.Occurence[] GetOccurences(int code)
+            {
+                return m_OccurencesByCode[code];
+            }
+            public POS.Occurence[] GetOccurences(int start, int end)
+            {
+                return m_OccurencesByCode.SelectMany((kv) => kv.Value.Where(o => o.Index >= start && o.Index <= end)).ToArray();
+            }
+            #endregion
         }
         #endregion
     }

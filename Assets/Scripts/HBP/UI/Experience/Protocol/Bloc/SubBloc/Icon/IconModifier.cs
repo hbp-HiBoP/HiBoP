@@ -9,8 +9,7 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
-        [SerializeField] Slider m_StartWindowSlider;
-        [SerializeField] Slider m_EndWindowSlider;
+        [SerializeField] RangeSlider m_WindowSlider;
         [SerializeField] ImageSelector m_ImageSelector;
 
         public override bool Interactable
@@ -24,24 +23,32 @@ namespace HBP.UI.Experience.Protocol
             {
                 base.Interactable = value;
                 m_NameInputField.interactable = value;
-                m_StartWindowSlider.interactable = value;
-                m_EndWindowSlider.interactable = value;
+                m_WindowSlider.interactable = value;
                 m_ImageSelector.interactable = value;
             }
         }
         #endregion
-
+        protected override void Initialize()
+        {
+            base.Initialize();
+            m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
+            m_WindowSlider.onValueChanged.AddListener((min,max) => ItemTemp.Window = new Tools.CSharp.Window((int) min, (int) max));
+            m_ImageSelector.onValueChanged.AddListener(() => ItemTemp.IllustrationPath = m_ImageSelector.Path);
+        }
         protected override void SetFields(d.Icon objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
-            m_NameInputField.onValueChanged.AddListener((name) => ItemTemp.Name = name);
 
-            m_StartWindowSlider.value = objectToDisplay.Window.Start;
-            m_StartWindowSlider.onValueChanged.AddListener((min) => ItemTemp.Window = new Tools.CSharp.Window((int) min, ItemTemp.Window.End));
-            m_EndWindowSlider.value = objectToDisplay.Window.End;
-            m_EndWindowSlider.onValueChanged.AddListener((max) => ItemTemp.Window = new Tools.CSharp.Window(ItemTemp.Window.Start, (int) max));
+            Data.Preferences.ProtocolPreferences preferences = ApplicationState.UserPreferences.Data.Protocol;
+
+            m_WindowSlider.minLimit = preferences.MinLimit;
+            m_WindowSlider.maxLimit = preferences.MaxLimit;
+            m_WindowSlider.step = preferences.Step;
+
+            m_WindowSlider.minValue = objectToDisplay.Window.Start;
+            m_WindowSlider.maxValue = objectToDisplay.Window.End;
+
             m_ImageSelector.Path = objectToDisplay.IllustrationPath;
-            m_ImageSelector.onValueChanged.AddListener(() => ItemTemp.IllustrationPath = m_ImageSelector.Path);
         }
     }
 }

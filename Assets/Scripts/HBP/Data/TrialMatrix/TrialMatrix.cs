@@ -18,7 +18,7 @@ namespace HBP.Data.TrialMatrix
         #endregion
 
         #region Constructor
-        public TrialMatrix(Protocol protocol, DataInfo dataInfo, Dictionary<Experience.Protocol.Bloc,Localizer.Bloc[]> blocsByProtocolBloc, Module3D.Site site, Base3DScene scene)
+        public TrialMatrix(Protocol protocol, DataInfo dataInfo, Dictionary<Experience.Protocol.Bloc,Trial[]> blocsByProtocolBloc, Module3D.Site site, Base3DScene scene)
         {
             //// Genreate blocs.
             //UnityEngine.Profiling.Profiler.BeginSample("Generate blocs");
