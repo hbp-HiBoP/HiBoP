@@ -1,26 +1,27 @@
 ﻿using HBP.Data.Experience.Dataset;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HBP.Data.Visualization
 {
-    public class SiteData
+    public class EventData
     {
         #region Properties
-        public SiteTrial[] Trials { get; set; }
-        public string Unit { get; set; }
+        public Dictionary<Event, EventInformation> InformationsByEvent { get; set; }
         #endregion
 
         #region constructors
-        public SiteData(EpochedData epochedData, string site)
+        public EventData(EpochedData epochedData, string site)
         {
+            epochedData.
             Trials = epochedData.Trials.Select(t => new SiteTrial(t, site)).ToArray();
         }
-        public SiteData(SiteTrial[] trials, string unit)
+        public EventData(SiteTrial[] trials, string unit)
         {
             Trials = trials;
             Unit = unit;
         }
-        public SiteData() : this(new SiteTrial[0], "")
+        public EventData() : this(new SiteTrial[0], "")
         {
 
         }

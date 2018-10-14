@@ -1,6 +1,5 @@
 ﻿using HBP.Data.Experience.Dataset;
 using HBP.Data.Localizer;
-using System;
 using System.Collections.Generic;
 
 namespace HBP.Data.Visualization
@@ -20,6 +19,7 @@ namespace HBP.Data.Visualization
         public Dictionary<Frequency, Timeline> TimeLineByFrequency { get; set; }
         public Dictionary<Frequency, IconicScenario> IconicScenarioByFrequency { get; set; }
 
+        public Dictionary<Patient, PatientData> DataByPatient = new Dictionary<Patient, PatientData>();
         public Dictionary<string, SiteData> DataBySite = new Dictionary<string, SiteData>();
         #endregion
 

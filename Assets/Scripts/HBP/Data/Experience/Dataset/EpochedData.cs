@@ -19,7 +19,7 @@ namespace HBP.Data.Experience.Dataset
         public Dictionary<string, string> UnitByChannel { get; set; } // Maybe one day use this.
         #endregion
 
-        #region Constructor
+        #region Constructors
         public EpochedData(Data data, Protocol.Bloc bloc) : this(data.ValuesByChannel, data.UnitByChannel, data.POS, data.Frequency, bloc) { }
         public EpochedData(Dictionary<string,float[]> valuesByChannel, Dictionary<string,string> unitByChannel, POS pos, Frequency frequency, Protocol.Bloc bloc)
         {
