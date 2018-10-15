@@ -68,20 +68,20 @@ namespace HBP.UI.Informations
                 {
                     foreach (TrialMatrix.TrialMatrix trial in m_TrialMatrixList.TrialMatrix)
                     {
-                        trial.SelectLines(lines, bloc.Data.ProtocolBloc, additive);
+                        trial.SelectTrials(lines, bloc.Data.ProtocolBloc, additive);
                     }
                 }
                 else
                 {
                     foreach (var trialMatrix in m_TrialMatrixList.TrialMatrix)
                     {
-                        foreach (var line in trialMatrix.Lines)
+                        foreach (var line in trialMatrix.Blocs)
                         {
                             foreach (var b in line.Blocs)
                             {
                                 if (b == bloc)
                                 {
-                                    trialMatrix.SelectLines(lines, bloc.Data.ProtocolBloc, additive);
+                                    trialMatrix.SelectTrials(lines, bloc.Data.ProtocolBloc, additive);
                                     goto @out;
                                 }
                             }

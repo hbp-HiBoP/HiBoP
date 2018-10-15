@@ -51,7 +51,7 @@ namespace HBP.UI.TrialMatrix
             {
                 m_Limits = value;
                 OnChangeLimits.Invoke(value);
-                foreach (Line line in Lines)
+                foreach (Bloc line in Blocs)
                 {
                     foreach (Bloc bloc in line.Blocs)
                     {
@@ -78,21 +78,18 @@ namespace HBP.UI.TrialMatrix
         }
         public BoolEvent OnChangeUsePrecalculatedLimits;
 
-        List<Line> m_Lines = new List<Line>();
-        public ReadOnlyCollection<Line> Lines
+        List<Bloc> m_Blocs = new List<Bloc>();
+        public ReadOnlyCollection<Bloc> Blocs
         {
-            get { return new ReadOnlyCollection<Line>(m_Lines); }
+            get { return new ReadOnlyCollection<Bloc>(m_Blocs); }
         }
 
         public Vector2ArrayEvent OnChangeTimeLimits;
 
-        [SerializeField] GameObject m_LinePrefab;
-        [SerializeField] RectTransform m_LinesRectTransform;
-        data.TrialMatrix m_Data;
-        public data.TrialMatrix Data
-        {
-            get { return m_Data; }
-        }
+        [SerializeField] GameObject m_BlocPrefab;
+        [SerializeField] RectTransform m_BlocsRectTransform;
+
+        public data.TrialMatrix Data { get; private set; }
         #endregion
 
         #region Public Methods
@@ -139,33 +136,33 @@ namespace HBP.UI.TrialMatrix
             //}
             //SelectAllLines();
         }
-        public void SelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc,bool additive)
+        public void SelectTrials(int[] trials, Data.Experience.Protocol.Bloc data,bool additive)
         {
-            foreach(Line line in this.m_Lines)
+            foreach(Bloc bloc in m_Blocs)
             {
-                line.SelectLines(lines, bloc, additive);
+                bloc.SelectLines(trials, data, additive);
             }
         }
-        public void SelectAllLines()
+        public void SelectAllTrials()
         {
             foreach(data.Bloc bloc in Data.Blocs)
             {
-                int[] linesSelected = new int[bloc.Trials.Length];
-                for (int i = 0; i < linesSelected.Length; i++)
+                int[] selectedTrials = new int[bloc.Trials.Length];
+                for (int i = 0; i < selectedTrials.Length; i++)
                 {
-                    linesSelected[i] = i;
+                    selectedTrials[i] = i;
                 }
-                SelectLines(linesSelected, bloc.ProtocolBloc, true);
+                SelectTrials(selectedTrials, bloc.ProtocolBloc, true);
             }
         }
         #endregion
 
         #region Private Methods
-        void AddLine(data.Bloc[] blocsInLine,int max,Texture2D colorMap,Vector2 limits)
+        void AddBloc(data.Bloc data, Texture2D colorMap, Vector2 limits)
         {
-            Line lines = (Instantiate(m_LinePrefab, m_LinesRectTransform) as GameObject).GetComponent<Line>();
-            lines.Set(blocsInLine,max, colorMap,limits);
-            this.m_Lines.Add(lines);
+            Bloc bloc = Instantiate(m_BlocPrefab, m_BlocsRectTransform).GetComponent<Bloc>();
+            bloc.Set(data, colorMap, limits);
+            m_Blocs.Add(bloc);
         }
         #endregion
     }

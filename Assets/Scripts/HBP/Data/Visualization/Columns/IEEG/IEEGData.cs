@@ -28,20 +28,18 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Public Methods
-        public void Load(IEnumerable<DataInfo> columnData, Data.Experience.Protocol.Bloc bloc)
+        public void Load(IEnumerable<DataInfo> columnData, Experience.Protocol.Bloc bloc)
         {
             foreach (DataInfo dataInfo in columnData)
             {
-                EpochedData epochedData = DataManager.GetData(dataInfo, bloc);      
-                Localizer.Bloc averagedBloc = Localizer.Bloc.Average(epochedData.Blocs, ApplicationState.UserPreferences.Data.EEG.Averaging, ApplicationState.UserPreferences.Data.Event.PositionAveraging);
-
-                //foreach (var site in averagedBloc.UnitBySite.Keys)
-                //{
-                //    DataBySite.Add(site,
-                //        new SiteData(averagedBloc.SubBlocs[0].ValuesBySite[site], // TODO
-                //        averagedBloc.SubBlocs[0].NormalizedValuesBySite[site],
-                //        averagedBloc.UnitBySite[site], dataFrequency));
-                //}
+                EpochedData epochedData = DataManager.GetData(dataInfo, bloc);
+                // Values
+                foreach (var site in epochedData.UnitByChannel.Keys)
+                {
+                    DataBySite.Add(site, new SiteData(epochedData, site));
+                }
+                // Events
+                DataByPatient.Add(dataInfo.Patient, new PatientData(epochedData));
             }
         }
         public void SetTimeline(int maxFrequency)

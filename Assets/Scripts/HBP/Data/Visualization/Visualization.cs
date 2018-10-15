@@ -435,7 +435,7 @@ namespace HBP.Data.Visualization
                 yield return Ninja.JumpBack;
                 try
                 {
-                    column.Data.Load(dataInfoByColumn[column]);
+                    column.Data.Load(dataInfoByColumn[column], column.Bloc);
                 }
                 catch (Exception e)
                 {
