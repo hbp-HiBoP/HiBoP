@@ -427,6 +427,7 @@ namespace HBP.Data.General
             OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving project."));
             yield return Ninja.JumpBack;
 
+            //yield return c_EmbedDataIntoProjectFile(tmpProjectDirectory, oldTMPProjectDirectory, OnChangeProgress);
             yield return c_SaveSettings(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
             yield return c_SavePatients(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
             yield return c_SaveGroups(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
@@ -774,6 +775,105 @@ namespace HBP.Data.General
         void CopyIcons(string oldIconsDirectoryPath, string newIconsDirectoryPath)
         {
             new DirectoryInfo(oldIconsDirectoryPath).CopyFilesRecursively(new DirectoryInfo(newIconsDirectoryPath));
+        }
+        IEnumerator c_EmbedDataIntoProjectFile(DirectoryInfo projectDirectory, string oldProjectDirectory, GenericEvent<float, float, LoadingText> OnChangeProgress)
+        {
+            DirectoryInfo dataDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Data"));
+
+            float progress = 0.0f;
+            float progressStep = 1.0f / (Patients.Count + Datasets.Count);
+
+            yield return Ninja.JumpToUnity;
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Copying data"));
+            yield return Ninja.JumpBack;
+
+            // Save Patient Data
+            if (Patients.Count > 0)
+            {
+                DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Anatomy"));
+                foreach (var patient in Patients)
+                {
+                    yield return Ninja.JumpToUnity;
+                    progress += progressStep;
+                    OnChangeProgress.Invoke(progress, 0, new LoadingText("Copying ", patient.Name, " anatomical data"));
+                    yield return Ninja.JumpBack;
+
+                    DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(patientsDirectory.FullName, patient.ID));
+                    if (patient.Brain.Meshes.Count > 0)
+                    {
+                        DirectoryInfo meshesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Meshes"));
+                        foreach (var mesh in patient.Brain.Meshes)
+                        {
+                            if (mesh is Anatomy.SingleMesh)
+                            {
+                                Anatomy.SingleMesh singleMesh = mesh as Anatomy.SingleMesh;
+                                singleMesh.Path = singleMesh.Path.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                singleMesh.MarsAtlasPath = singleMesh.MarsAtlasPath.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            }
+                            else if (mesh is Anatomy.LeftRightMesh)
+                            {
+                                Anatomy.LeftRightMesh singleMesh = mesh as Anatomy.LeftRightMesh;
+                                singleMesh.LeftHemisphere = singleMesh.LeftHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                singleMesh.RightHemisphere = singleMesh.RightHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                singleMesh.LeftMarsAtlasHemisphere = singleMesh.LeftMarsAtlasHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                singleMesh.RightMarsAtlasHemisphere = singleMesh.RightMarsAtlasHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            }
+                            mesh.Transformation = mesh.Transformation.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                        }
+                    }
+                    if (patient.Brain.MRIs.Count > 0)
+                    {
+                        DirectoryInfo mriDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "MRIs"));
+                        foreach (var mri in patient.Brain.MRIs)
+                        {
+                            mri.File = mri.File.CopyToDirectory(mriDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                        }
+                    }
+                    if (patient.Brain.Implantations.Count > 0)
+                    {
+                        DirectoryInfo implantationsDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Implantations"));
+                        foreach (var implantation in patient.Brain.Implantations)
+                        {
+                            implantation.File = implantation.File.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            implantation.MarsAtlas = implantation.MarsAtlas.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                        }
+                    }
+                    if (patient.Brain.Connectivities.Count > 0)
+                    {
+                        DirectoryInfo connectivitiesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Connectivities"));
+                        foreach (var connectivity in patient.Brain.Connectivities)
+                        {
+                            connectivity.File = connectivity.File.CopyToDirectory(connectivitiesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                        }
+                    }
+                }
+            }
+            // Save Localizer Data
+            if (Datasets.Count > 0)
+            {
+                DirectoryInfo localizersDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Functional"));
+                foreach (var dataset in Datasets)
+                {
+                    if (dataset.Data.Length > 0)
+                    {
+                        yield return Ninja.JumpToUnity;
+                        progress += progressStep;
+                        OnChangeProgress.Invoke(progress, 0, new LoadingText("Copying ", dataset.Name));
+                        yield return Ninja.JumpBack;
+
+                        DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(localizersDirectory.FullName, dataset.Name));
+                        foreach (var data in dataset.Data)
+                        {
+                            DirectoryInfo dataInfoDirectory = new DirectoryInfo(Path.Combine(datasetDirectory.FullName, data.Name));
+                            if (!dataInfoDirectory.Exists) dataInfoDirectory = Directory.CreateDirectory(dataInfoDirectory.FullName);
+                            data.EEGHeader.CopyToDirectory(dataInfoDirectory);
+                            string eeg = data.EEG.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            string pos = data.POS.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            data.SetPathsWithoutCheckingErrors(eeg, pos);
+                        }
+                    }
+                }
+            }
         }
         #endregion
     }

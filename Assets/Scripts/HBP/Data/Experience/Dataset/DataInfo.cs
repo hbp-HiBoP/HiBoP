@@ -69,6 +69,13 @@ namespace HBP.Data.Experience.Dataset
             set { m_EEG = value.ConvertToShortPath(); m_EEGErrors = GetEEGErrors(); }
         }
         public string SavedEEG { get { return m_EEG; } }
+        public string EEGHeader
+        {
+            get
+            {
+                return EEG + Elan.EEG.HEADER_EXTENSION;
+            }
+        }
 
         [DataMember(Name = "POS")] string m_POS;
         /// <summary>
@@ -133,6 +140,11 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
+        public void SetPathsWithoutCheckingErrors(string eeg, string pos)
+        {
+            m_EEG = eeg.ConvertToShortPath();
+            m_POS = pos.ConvertToShortPath();
+        }
         public ErrorType[] GetErrors(Protocol.Protocol protocol)
         {
             GetNameErrors();
@@ -194,13 +206,13 @@ namespace HBP.Data.Experience.Dataset
                     }
                     else
                     {
-                        if (!File.Exists(EEGFile.FullName + Elan.EEG.HEADER_EXTENSION))
+                        if (!File.Exists(EEGHeader))
                         {
                             errors.Add(ErrorType.EEGHeaderNotExist);
                         }
                         else
                         {
-                            if (!(new FileInfo(EEGFile.FullName + Elan.EEG.HEADER_EXTENSION).Length > 0))
+                            if (!(new FileInfo(EEGHeader).Length > 0))
                             {
                                 errors.Add(ErrorType.EEGHeaderEmpty);
                             }
