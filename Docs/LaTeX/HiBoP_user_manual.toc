@@ -10,6 +10,10 @@
 \contentsline {paragraph}{}{4}
 \contentsline {subsection}{\numberline {1.4}Protocols}{5}
 \contentsline {paragraph}{}{5}
+\contentsline {paragraph}{}{5}
+\contentsline {paragraph}{}{5}
+\contentsline {paragraph}{}{5}
+\contentsline {paragraph}{}{5}
 \contentsline {subsection}{\numberline {1.5}Datasets}{6}
 \contentsline {paragraph}{}{6}
 \contentsline {subsection}{\numberline {1.6}Visualizations}{7}
@@ -59,38 +63,38 @@
 \contentsline {subsubsection}{\numberline {2.3.8}Regions of Interest}{24}
 \contentsline {paragraph}{}{24}
 \contentsline {paragraph}{}{24}
-\contentsline {subsubsection}{\numberline {2.3.9}CCEP}{24}
-\contentsline {paragraph}{}{24}
+\contentsline {subsubsection}{\numberline {2.3.9}CCEP}{25}
+\contentsline {paragraph}{}{25}
 \contentsline {subsubsection}{\numberline {2.3.10}fMRI}{25}
 \contentsline {subsubsection}{\numberline {2.3.11}Triangle eraser}{25}
 \contentsline {subsubsection}{\numberline {2.3.12}Configuration}{25}
 \contentsline {paragraph}{}{25}
 \contentsline {subsection}{\numberline {2.4}Graphs and Trial Matrices}{25}
 \contentsline {paragraph}{}{25}
-\contentsline {subsubsection}{\numberline {2.4.1}Graphs}{25}
+\contentsline {subsubsection}{\numberline {2.4.1}Graphs}{26}
 \contentsline {paragraph}{}{26}
 \contentsline {paragraph}{}{26}
-\contentsline {subsubsection}{\numberline {2.4.2}Trial matrices}{26}
-\contentsline {paragraph}{}{26}
+\contentsline {subsubsection}{\numberline {2.4.2}Trial matrices}{27}
+\contentsline {paragraph}{}{27}
 \contentsline {section}{\numberline {A}HiBoP Database Manager}{27}
 \contentsline {paragraph}{}{27}
-\contentsline {subsection}{\numberline {A.1}Anatomical data}{27}
-\contentsline {paragraph}{}{27}
-\contentsline {subsection}{\numberline {A.2}Functional data}{28}
+\contentsline {subsection}{\numberline {A.1}Anatomical data}{28}
 \contentsline {paragraph}{}{28}
-\contentsline {subsection}{\numberline {A.3}Exporting data}{29}
+\contentsline {subsection}{\numberline {A.2}Functional data}{29}
 \contentsline {paragraph}{}{29}
+\contentsline {subsection}{\numberline {A.3}Exporting data}{30}
 \contentsline {paragraph}{}{30}
-\contentsline {paragraph}{}{30}
-\contentsline {subsubsection}{\numberline {A.3.1}Anatomical data}{30}
-\contentsline {paragraph}{}{30}
-\contentsline {subsubsection}{\numberline {A.3.2}Functional data}{31}
 \contentsline {paragraph}{}{31}
-\contentsline {subsection}{\numberline {A.4}Resources files}{31}
 \contentsline {paragraph}{}{31}
-\contentsline {section}{\numberline {B}HiBoP Database Hierarchy}{32}
+\contentsline {subsubsection}{\numberline {A.3.1}Anatomical data}{31}
+\contentsline {paragraph}{}{31}
+\contentsline {subsubsection}{\numberline {A.3.2}Functional data}{32}
 \contentsline {paragraph}{}{32}
-\contentsline {subsection}{\numberline {B.1}Anatomical database}{33}
+\contentsline {subsection}{\numberline {A.4}Resources files}{32}
+\contentsline {paragraph}{}{32}
+\contentsline {section}{\numberline {B}HiBoP Database Hierarchy}{33}
 \contentsline {paragraph}{}{33}
-\contentsline {subsection}{\numberline {B.2}Functional database}{34}
+\contentsline {subsection}{\numberline {B.1}Anatomical database}{34}
 \contentsline {paragraph}{}{34}
+\contentsline {subsection}{\numberline {B.2}Functional database}{35}
+\contentsline {paragraph}{}{35}

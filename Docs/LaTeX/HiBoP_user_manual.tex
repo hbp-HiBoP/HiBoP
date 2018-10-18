@@ -20,17 +20,17 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-This document is the user manual of the Human Intracranial Brain Observations Player (HiBoP). HiBoP is being developed by the Centre de Recherche en Neurosciences de Lyon (CRNL), with funds from the Human Brain Project (HBP) to visualize large datasets of intracranial electroencephalography (iEEG) data. This document was written for the 2.0.12c version of HiBoP.
+This document is the user manual of the Human Intracranial Brain Observations Player (HiBoP). HiBoP is being developed by the Centre de Recherche en Neurosciences de Lyon (CRNL), with funds from the Human Brain Project (HBP) to visualize large datasets of intracranial electroencephalography (iEEG) data. This document was written for the 2.1.0 version of HiBoP.
 \end{abstract}
 \tableofcontents
 \section{HiBoP project} \label{data}
 \paragraph{} A \textbf{Project} links together anatomical and functional data from a set of patients. If you have an anatomical description of the patients (3D mesh of the brain, MRI and coordinates of the sites of the electrodes) and the respective iEEG data, you can visualize them in 4D (3D space + time). The first thing to do with HiBoP is to create or open a Project. This can be done within HiBoP (section \ref{UI}), but also using a third-party software which automatically generates the files and the hierarchy, such as the HiBoP Database Manager (appendix \ref{bddmanager}).
-\paragraph{} On your Hard Drive, the Project consists of a folder with several subfolders (Figure \ref{projectDirectory}). Each file in this subfolder is encoded with the json format, and thus can be edited (at your own risks) using any text editor. However this is not recommended, as any coma missing may cause the file to be incorrectly interpreted.
+\paragraph{} On your Hard Drive, the Project consists of a .hibop file. This file is in reality a zip archive containing several subfolders (Figure \ref{projectDirectory}). The contents of this archive can be extracted using an unzipping software. Each file is encoded with the json format, and thus can be edited (at your own risks) using any text editor. However this is not recommended, as any coma missing may cause the file to be incorrectly interpreted. You can then zip the folder again and rename the extension from .zip to .hibop.
 \begin{figure}[H]
 \framebox[\textwidth]{%
 \begin{minipage}{0.9\textwidth}
 \dirtree{%
-	.1 ProjectName/.
+	.1 ProjectName.hibop/.
 	.2 ProjectName.settings.
 	.2 Datasets/.
 	.3 DatasetName.dataset.
@@ -57,7 +57,7 @@ This document is the user manual of the Human Intracranial Brain Observations Pl
 \caption{\label{projectDirectory}Project directory hierarchy}
 \end{figure}
 \subsection{Settings}
-\paragraph{} The .settings file at the root of the projet folder describes some project settings (Figure \ref{projectSettings}). This file contains the name of the project, a default path for the anatomical data of the patients and a default path for the functional data (iEEG), as well as aliases to shorten paths in other files.
+\paragraph{} The .settings file at the root of the project archive describes some project settings (Figure \ref{projectSettings}). This file contains the name of the project, a default path for the anatomical data of the patients and a default path for the functional data (iEEG), as well as aliases to shorten paths in other files.
 \begin{figure}[H]
 \begin{lstlisting}
 {
@@ -149,69 +149,68 @@ This document is the user manual of the Human Intracranial Brain Observations Pl
 \end{figure}
 \subsection{Protocols}
 \paragraph{} This subfolder contains .prov files (Figure \ref{provFile}). The .prov extension stands for \textbf{protocol visualization}. Typically, a functional data file in HiBoP is a set of time series (one for each channel) with data for each sample from the beginning to the end of the recording session. Such data are stored in the .eeg/.eeg.ent\footnote{\label{ELAN}ELAN format – ELAN is freely available at http://elan.lyon.inserm.fr} files.
-In addition, information about the events of the experimental paradigm is stored in .pos files : event codes occurred at specific samples (e.g. an event of type « 10 » occurred at sample 134567).
-The .prov file instructs HiBoP on how to epoch the data based on the .pos file. The idea is to create blocs of epochs, each of them centered around a specific type of events, called \textbf{main events} (i.e. consider all events with code « 10 » and extract for each of them a window ranging from 200 ms before to 700 ms after that event). Prov files define the blocs you want to visualize (code of the main event), how you want to call them, how you want to sort epochs within a bloc, etc.
-When you define a new bloc, you must specify the main event (its code) and you can specify secondary events. Secondary events are useful when you want to sort trials: say that the task shows a picture (of type 10 = faces, 20 = landscapes, or 30 = fruits) and that participants have to press one or two buttons to specify whether the picture shows a fruit (1 = « yes », 2 = « no »). You would create for instance a bloc with all epochs around an event of type « 10 » (faces) and sort those epochs according to reaction time (the latency of event 1 or 2 relative to event 10 within each epoch). To do that in HiBoP, you would specify a secondary event in the « face » bloc with type 1 and 2 (i.e. all events of type 1 or 2), then write the « sorting rule » C0L1: which means that you want to sort trials according to the code of the main event (here 10, so no sorting necessary), then for all ex-aequos epochs, use the relative latency of the secondary event (1 or 2, relative to the main event 10).
-You could set the main event to 10 and 20 and 30 to include in your bloc « faces », « landscapes » and « fruits », then the « sorting rule » C0L1 would sort trials according to the main event code first (all faces, then all landscapes, then all fruits) and then, within a given category, sort according to reaction time (secondary event 1 and 2)
-The baseline is used for the trial matrices, which can include a baseline correction. This baseline correction is described in preferences (section \ref{preferences}).
-The rest of the .prov file is straightforward : you can ask HiBoP to show .png or .jpg files at specific latencies relative to the main event.
+\paragraph{} In addition, information about the events of the experimental paradigm is stored in .pos files: event codes occurred at specific samples (e.g. an event of type 10 occurred at sample 134567).
+\paragraph{} The .prov file instructs HiBoP on how to epoch the data based on the .pos file. It consists of blocs which contain a list of subblocs. Each bloc or subbloc will be sorted using first their respective order and then alphabetically using their respective names.
+\paragraph{} Each subbloc is centered around a specific event, called \textbf{main event}, for a specific time window (for instance, consider all events with code 10 and extract for each of them a window ranging from 200ms before to 700ms after that event). You can specify secondary events which do not interfere in the epoching. You can also set a baseline window, which is used for the baseline correction (described in more details in Section \ref{preferences}). 
+\paragraph{} Each bloc also has a sorting method, which is used to sort the trials obtained from the epoching according to specific conditions (code of the main event, latency of the secondary event...). The rest of the .prov file is straightforward : you can ask HiBoP to show images (.png or .jpg) at specific time windows, or to associate an image to a bloc.
 \begin{figure}[H]
 \begin{lstlisting}
 {
-  "ID": "{9fd88c3e-ce7f-4c1c-83b1-f4d1edcbfe5a}",
-  "Name": "LEC1",
+  "ID": "ae8d96d8-eb58-4927-b8b9-8d9ba8ec0208",
+  "Name": "VISU",
   "Blocs": [
     {
-      "IllustrationPath": "./Protocols/Icons/LEC1_SEM.jpg",
-      "ID": "d3ce596a-8918-4ba1-829d-5aa73efe060e",
-      "Name": "SEMAN",
-      "Position": {
-        "Row": 1,
-        "Column": 1
-      },
+      "IllustrationPath": "./Protocols/Icons/VISU_FRUIT.jpg",
+      "ID": "7aebbbee-e2d1-4b65-9337-b2ce67322ae6",
+      "Name": "FRUIT",
+      "Order": 0,
       "Sort": "C0L1",
-      "Window": {
-        "Start": -500.0,
-        "End": 3500.0
-      },
-      "Baseline": {
-        "Start": -200.0,
-        "End": 0.0
-      },
-      "Events": [
+      "SubBlocs": [
         {
-          "Name": "SEM",
-          "Codes": [
-            10
-          ],
-          "Type": 0
-        },
-        {
-          "Name": "RESPONSE",
-          "Codes": [
-            1,
-            2
-          ],
-          "Type": 1
-        }
-      ],
-      "Scenario": {
-        "Icons": [
-          {
-            "IllustrationPath": "./Protocols/Icons/LEC1_SEM.jpg",
-            "Name": "PIC",
-            "Window": {
-              "Start": 0.0,
-              "End": 2000.0
+          "ID": "32a8f1c1-de0d-4c10-86e2-427f82cdceb7",
+          "Name": "FRUIT",
+          "Order": 0,
+          "Window": {
+            "Start": -500.0,
+            "End": 1000.0
+          },
+          "Baseline": {
+            "Start": -200.0,
+            "End": 0.0
+          },
+          "Events": [
+            {
+              "Name": "FRUIT",
+              "Codes": [
+                80
+              ],
+              "Type": 0
+            },
+            {
+              "Name": "RESPONSE",
+              "Codes": [
+                1
+              ],
+              "Type": 0
             }
-          }
-        ]
-      }
+          ],
+          "Icons": [
+            {
+              "IllustrationPath": "./Protocols/Icons/VISU_FRUIT.jpg",
+              "Name": "PIC",
+              "Window": {
+                "Start": 0.0,
+                "End": 200.0
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
 \end{lstlisting}
-\caption{\label{provFile}Example prov file (one bloc of the LEC1 LOCA)}
+\caption{\label{provFile}Example prov file (one bloc of the VISU LOCA)}
 \end{figure}
 \subsection{Datasets}
 \paragraph{} This subfolder contains .dataset files, which summarize and link together anatomical and functional data for a given cognitive task (Figure \ref{datasetFile}).
@@ -306,7 +305,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \section{HiBoP description}\label{UI}
 \paragraph{} This section will describe in details how to use HiBoP to create a HiBoP project and how to visualize the iEEG data. To open HiBoP, double click on HiBoP.exe (for Windows; for Linux and MacOS, read the README.md file located next to the executable). If you have any doubt about what an interface element does, you can hover it for a second and a tooltip will appear telling you what it does.
 \subsection{User Preferences}\label{preferences}
-\paragraph{} A lot of global parameters shared through all projects can be set using the preferences menu (Figure \ref{preferencesUI}). The menu contains 3 tabs each containing submenus. These parameters are stored in a file located next to the HiBoP executable (UserPreferences.txt).
+\paragraph{} A lot of global parameters shared through all projects can be set using the preferences menu (Figure \ref{preferencesUI}). The menu contains 3 tabs each containing submenus. These parameters are stored in a file located next to the HiBoP executable (Preferences.txt).
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{Preferences.png}
@@ -707,6 +706,7 @@ A dataset is a list of data information, each of them connecting one patient (an
 \item Copy the states of the sites of the selected column to every other columns.
 \item Save the states of the sites in a .csv file.
 \item Load a .csv file with the states of the sites to the selected column.
+\item Open the HBP Interactive Viewer centered around the selected site.
 \end{itemize}
 \subsubsection{Regions of Interest}\label{roi}
 \paragraph{} Regions of Interest (ROI) are useful if you only want to study a small group of sites. They are composed of multiple spheres with different positions and radiuses. If the option "Show All Sites" of the sites toolbar is not enabled, only the sites of the selected ROI will be included in the iEEG computations on the brain. A curve will also be generated for the selected ROI of each column (section \ref{graphs}).
