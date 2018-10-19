@@ -26,66 +26,11 @@ namespace HBP.Module3D
         /// Column data
         /// </summary>
         public Data.Visualization.Column ColumnData;
-        
-        private int m_CurrentTimeLineID = 0;
         /// <summary>
-        /// Current timeline index
+        /// Timeline of this column
         /// </summary>
-        public int CurrentTimeLineID
-        {
-            get
-            {
-                return m_CurrentTimeLineID;
-            }
-            set
-            {
-                if (IsTimelineLooping)
-                {
-                    m_CurrentTimeLineID = (value % (MaxTimeLineID + 1) + (MaxTimeLineID + 1)) % (MaxTimeLineID + 1);
-                }
-                else
-                {
-                    m_CurrentTimeLineID = Mathf.Clamp(value, 0, MaxTimeLineID);
-                }
-                OnUpdateCurrentTimelineID.Invoke();
-                if (IsSelected)
-                {
-                    ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.Invoke();
-                }
-            }
-        }
-        /// <summary>
-        /// Max timeline index
-        /// </summary>
-        public int MaxTimeLineID { get; set; }
-        /// <summary>
-        /// Min timeline time value
-        /// </summary>
-        public float MinTimeLine { get; set; }
-        /// <summary>
-        /// Max timeline time value
-        /// </summary>
-        public float MaxTimeLine { get; set; }
-        /// <summary>
-        /// Current timeline time value
-        /// </summary>
-        public float CurrentTimeLine
-        {
-            get
-            {
-                return ColumnData.TimeLine.Step * CurrentTimeLineID + MinTimeLine;
-            }
-        }
-        /// <summary>
-        /// Timeline time unit
-        /// </summary>
-        public string TimeLineUnite
-        {
-            get
-            {
-                return ColumnData.TimeLine.Start.Unite;
-            }
-        }
+        public Timeline Timeline { get; private set; }
+
         /// <summary>
         /// Shared minimum influence (for iEEG on the surface)
         /// </summary>
@@ -96,59 +41,10 @@ namespace HBP.Module3D
         public float SharedMaxInf = 0f;
 
         /// <summary>
-        /// Is the column data looping ?
-        /// </summary>
-        public bool IsTimelineLooping { get; set; }
-
-        /// <summary>
-        /// Time since the last timelineID
-        /// </summary>
-        private float m_TimeSinceLastTimelineID = 0.0f;
-        private bool m_IsTimelinePlaying = false;
-        /// <summary>
-        /// Is the timeline incrementing automatically ?
-        /// </summary>
-        public bool IsTimelinePlaying
-        {
-            get
-            {
-                return m_IsTimelinePlaying;
-            }
-            set
-            {
-                m_IsTimelinePlaying = value;
-                m_TimeSinceLastTimelineID = 0.0f;
-            }
-        }
-        /// <summary>
-        /// Timeline step
-        /// </summary>
-        public int TimelineStep { get; set; } = 1;
-        /// <summary>
-        /// Time interval between two timeline updates
-        /// </summary>
-        private float TimelineInterval
-        {
-            get
-            {
-                return 1.0f / TimelineStep;
-            }
-        }
-        /// <summary>
         /// IEEG Parameters
         /// </summary>
         public IEEGDataParameters IEEGParameters { get; } = new IEEGDataParameters();
 
-        /// <summary>
-        /// Length of the timeline
-        /// </summary>
-        public int TimelineLength
-        {
-            get
-            {
-                return ColumnData.TimeLine.Lenght;
-            }
-        }
         /// <summary>
         /// Dimensions of the EEG array (used for the DLL)
         /// </summary>
@@ -156,7 +52,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return new int[] { TimelineLength, 1, Sites.Count };
+                return new int[] { Timeline.Length, 1, Sites.Count };
             }
         }
         /// <summary>
@@ -200,21 +96,7 @@ namespace HBP.Module3D
         #region Private Methods
         private void Update()
         {
-            if (IsTimelinePlaying)
-            {
-                m_TimeSinceLastTimelineID += Time.deltaTime;
-                while (m_TimeSinceLastTimelineID > TimelineInterval)
-                {
-                    CurrentTimeLineID++;
-                    m_TimeSinceLastTimelineID -= TimelineInterval;
-                    if (CurrentTimeLineID >= MaxTimeLineID && !IsTimelineLooping)
-                    {
-                        IsTimelinePlaying = false;
-                        CurrentTimeLineID = 0;
-                        ApplicationState.Module3D.OnStopTimelinePlay.Invoke();
-                    }
-                }
-            }
+            Timeline.Play();
         }
         /// <summary>
         /// Set EEG Data for each site
@@ -222,10 +104,6 @@ namespace HBP.Module3D
         private void SetEEGData()
         {
             if (ColumnData == null) return;
-
-            MinTimeLine = ColumnData.TimeLine.Start.Value;
-            MaxTimeLine = ColumnData.TimeLine.End.Value;
-            MaxTimeLineID = ColumnData.TimeLine.Lenght - 1;
 
             // Construct sites value array the old way, and set sites masks // maybe FIXME
             IEEGValuesBySiteID = new float[Sites.Count][];
@@ -244,7 +122,7 @@ namespace HBP.Module3D
                     }
                     else
                     {
-                        IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
+                        IEEGValuesBySiteID[site.Information.GlobalID] = new float[Timeline.Length];
                         site.State.IsMasked = true; // update mask
                     }
                     site.Configuration = siteConfiguration;
@@ -253,7 +131,7 @@ namespace HBP.Module3D
                 else
                 {
                     ColumnData.Configuration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
-                    IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
+                    IEEGValuesBySiteID[site.Information.GlobalID] = new float[Timeline.Length];
                     IEEGUnitsBySiteID[site.Information.GlobalID] = "";
                     site.State.IsMasked = true; // update mask
                 }
@@ -266,19 +144,19 @@ namespace HBP.Module3D
             IEEGParameters.MinimumAmplitude = float.MaxValue;
             IEEGParameters.MaximumAmplitude = float.MinValue;
 
-            int length = TimelineLength * Sites.Count;
+            int length = Timeline.Length * Sites.Count;
             IEEGValues = new float[length];
             List<float> iEEGNotMasked = new List<float>();
             for (int s = 0; s < Sites.Count; ++s)
             {
-                for (int t = 0; t < TimelineLength; ++t)
+                for (int t = 0; t < Timeline.Length; ++t)
                 {
                     float val = IEEGValuesBySiteID[s][t];
                     IEEGValues[t * Sites.Count + s] = val;
                 }
                 if (!Sites[s].State.IsMasked)
                 {
-                    for (int t = 0; t < TimelineLength; ++t)
+                    for (int t = 0; t < Timeline.Length; ++t)
                     {
                         float val = IEEGValuesBySiteID[s][t];
                         iEEGNotMasked.Add(val);
@@ -309,7 +187,7 @@ namespace HBP.Module3D
                 if ((Sites[ii].State.IsOutOfROI && !data.ShowAllSites) || Sites[ii].State.IsMasked)
                     continue;
 
-                float value = IEEGValuesBySiteID[ii][CurrentTimeLineID];
+                float value = IEEGValuesBySiteID[ii][Timeline.CurrentIndex];
                 if (value < IEEGParameters.SpanMin)
                     value = IEEGParameters.SpanMin;
                 if (value > IEEGParameters.SpanMax)
@@ -456,6 +334,22 @@ namespace HBP.Module3D
         public void SetColumnData(Data.Visualization.Column columnData)
         {
             ColumnData = columnData;
+            Timeline = new Timeline()
+            {
+                Length = ColumnData.TimeLine.Lenght,
+                Unit = ColumnData.TimeLine.Start.Unite,
+                MinTime = ColumnData.TimeLine.Start.Value,
+                MaxTime = ColumnData.TimeLine.End.Value,
+                TimeStep = ColumnData.TimeLine.Step
+            };
+            Timeline.OnUpdateCurrentIndex.AddListener(() =>
+            {
+                OnUpdateCurrentTimelineID.Invoke();
+                if (IsSelected)
+                {
+                    ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.Invoke();
+                }
+            });
             SetEEGData();
         }
         /// <summary>

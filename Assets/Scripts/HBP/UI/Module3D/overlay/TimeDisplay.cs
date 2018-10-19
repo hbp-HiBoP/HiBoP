@@ -36,7 +36,7 @@ namespace HBP.UI.Module3D
                     Column3DIEEG col = (Column3DIEEG)column;
                     col.OnUpdateCurrentTimelineID.AddListener(() =>
                     {
-                        m_Text.text = col.CurrentTimeLineID.ToString() + " (" + col.CurrentTimeLine.ToString("N2") + col.TimeLineUnite + ")";
+                        m_Text.text = col.Timeline.CurrentIndex.ToString() + " (" + col.Timeline.CurrentTime.ToString("N2") + col.Timeline.Unit + ")";
                     });
                     break;
                 default:

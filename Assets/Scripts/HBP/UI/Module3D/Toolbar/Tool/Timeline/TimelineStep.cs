@@ -57,7 +57,7 @@ namespace HBP.UI.Module3D.Tools
                 }
                 foreach (HBP.Module3D.Column3DIEEG column in columns)
                 {
-                    column.CurrentTimeLineID -= column.TimelineStep;
+                    column.Timeline.CurrentIndex -= column.Timeline.Step;
                 }
             });
 
@@ -76,7 +76,7 @@ namespace HBP.UI.Module3D.Tools
                 }
                 foreach (HBP.Module3D.Column3DIEEG column in columns)
                 {
-                    column.CurrentTimeLineID += column.TimelineStep;
+                    column.Timeline.CurrentIndex += column.Timeline.Step;
                 }
             });
 
@@ -110,7 +110,7 @@ namespace HBP.UI.Module3D.Tools
 
                 foreach (HBP.Module3D.Column3DIEEG column in columns)
                 {
-                    column.TimelineStep = step;
+                    column.Timeline.Step = step;
                 }
             });
         }
@@ -137,7 +137,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                m_InputField.text = ((HBP.Module3D.Column3DIEEG)SelectedColumn).TimelineStep.ToString();
+                m_InputField.text = ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline.Step.ToString();
             }
             else
             {

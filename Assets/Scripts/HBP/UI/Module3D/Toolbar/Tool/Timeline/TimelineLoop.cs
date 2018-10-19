@@ -54,7 +54,7 @@ namespace HBP.UI.Module3D.Tools
 
                 foreach (HBP.Module3D.Column3DIEEG column in columns)
                 {
-                    column.IsTimelineLooping = m_Toggle.isOn;
+                    column.Timeline.IsLooping = m_Toggle.isOn;
                 }
             });
         }
@@ -77,7 +77,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)SelectedColumn).IsTimelineLooping;
+                m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline.IsLooping;
             }
             else
             {

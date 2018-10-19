@@ -672,9 +672,9 @@ namespace HBP.Module3D
                 {
                     foreach (Column3DIEEG column in m_ColumnManager.ColumnsIEEG)
                     {
-                        column.IsTimelineLooping = false;
-                        column.IsTimelinePlaying = false;
-                        column.CurrentTimeLineID = column.CurrentTimeLineID;
+                        column.Timeline.IsLooping = false;
+                        column.Timeline.IsPlaying = false;
+                        column.Timeline.OnUpdateCurrentIndex.Invoke();
                         column.IsRenderingUpToDate = false;
                     }
                 }
@@ -747,7 +747,7 @@ namespace HBP.Module3D
             for (int ii = 0; ii < m_ColumnManager.ColumnsIEEG.Count; ++ii)
             {
                 m_ColumnManager.ColumnsIEEG[ii].SendColormapValues();
-                m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID = m_ColumnManager.ColumnsIEEG[ii].CurrentTimeLineID;
+                m_ColumnManager.ColumnsIEEG[ii].Timeline.OnUpdateCurrentIndex.Invoke();
             }
 
             // update plots visibility
@@ -1849,7 +1849,7 @@ namespace HBP.Module3D
                     string iEEGUnit = columnIEEG.IEEGUnitsBySiteID[siteID];
                     if (columnIEEG.IEEGValuesBySiteID.Length > 0)
                     {
-                        iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.CurrentTimeLineID];
+                        iEEGActivity = columnIEEG.IEEGValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
                     }
                     bool amplitudesComputed = SceneInformation.IsGeneratorUpToDate;
                     switch (Type)

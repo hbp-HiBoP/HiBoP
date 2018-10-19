@@ -59,7 +59,7 @@ namespace HBP.UI.Module3D.Tools
 
                 foreach (HBP.Module3D.Column3DIEEG column in columns)
                 {
-                    column.IsTimelinePlaying = m_Toggle.isOn;
+                    column.Timeline.IsPlaying = m_Toggle.isOn;
                 }
             });
         }
@@ -82,7 +82,7 @@ namespace HBP.UI.Module3D.Tools
         {
             if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)SelectedColumn).IsTimelinePlaying;
+                m_Toggle.isOn = ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline.IsPlaying;
             }
             else
             {

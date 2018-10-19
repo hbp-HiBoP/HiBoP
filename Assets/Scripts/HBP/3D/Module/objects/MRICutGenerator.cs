@@ -220,7 +220,7 @@ namespace HBP.Module3D
             public bool FillTextureWithIEEG(Column3DIEEG IEEGColumn, DLL.Texture colorScheme)
             {
                 bool noError = false;
-                noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, IEEGColumn.CurrentTimeLineID, colorScheme.getHandle(), 
+                noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, IEEGColumn.Timeline.CurrentIndex, colorScheme.getHandle(), 
                 IEEGColumn.IEEGParameters.AlphaMin, IEEGColumn.IEEGParameters.AlphaMax, new float[] { 0, 0, 0 })==1;
                 ApplicationState.DLLDebugManager.check_error();
 

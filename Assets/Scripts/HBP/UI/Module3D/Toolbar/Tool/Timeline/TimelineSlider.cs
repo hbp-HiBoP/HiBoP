@@ -60,7 +60,7 @@ namespace HBP.UI.Module3D.Tools
             float mainEventPosition = (float)mainEventData.Position / (column.ColumnData.TimeLine.Lenght-1);
             mainEventRectTransform.anchorMin = new Vector2(mainEventPosition, mainEventRectTransform.anchorMin.y);
             mainEventRectTransform.anchorMax = new Vector2(mainEventPosition, mainEventRectTransform.anchorMax.y);
-            mainEvent.GetComponent<Tooltip>().Text = mainEventData.Label + " | " + mainEventData.Position + " (" + (column.ColumnData.TimeLine.Step * mainEventData.Position + column.MinTimeLine).ToString("N2") + column.TimeLineUnite + ")";
+            mainEvent.GetComponent<Tooltip>().Text = mainEventData.Label + " | " + mainEventData.Position + " (" + (column.ColumnData.TimeLine.Step * mainEventData.Position + column.Timeline.MinTime).ToString("N2") + column.Timeline.Unit + ")";
 
             foreach (Data.Visualization.Event timelineEvent in column.ColumnData.TimeLine.SecondaryEvents)
             {
@@ -69,7 +69,7 @@ namespace HBP.UI.Module3D.Tools
                 float secondaryEventPosition = (float)timelineEvent.Position / (column.ColumnData.TimeLine.Lenght - 1);
                 secondaryEventRectTransform.anchorMin = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMin.y);
                 secondaryEventRectTransform.anchorMax = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMax.y);
-                secondaryEvent.GetComponent<Tooltip>().Text = timelineEvent.Label + " | " + timelineEvent.Position + " (" + (column.ColumnData.TimeLine.Step * timelineEvent.Position + column.MinTimeLine).ToString("N2") + column.TimeLineUnite + ")" + " | " + (timelineEvent.AttendanceRate * 100).ToString("N2") +"%";
+                secondaryEvent.GetComponent<Tooltip>().Text = timelineEvent.Label + " | " + timelineEvent.Position + " (" + (column.ColumnData.TimeLine.Step * timelineEvent.Position + column.Timeline.MinTime).ToString("N2") + column.Timeline.Unit + ")" + " | " + (timelineEvent.AttendanceRate * 100).ToString("N2") +"%";
             }
         }
         private void DeleteEvents()
@@ -93,12 +93,12 @@ namespace HBP.UI.Module3D.Tools
                 {
                     foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
                     {
-                        column.CurrentTimeLineID = val;
+                        column.Timeline.CurrentIndex = val;
                     }
                 }
                 else
                 {
-                    ((HBP.Module3D.Column3DIEEG)SelectedColumn).CurrentTimeLineID = val;
+                    ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline.CurrentIndex = val;
                 }
             });
             ApplicationState.Module3D.OnUpdateSelectedColumnTimeLineID.AddListener(() =>
@@ -107,8 +107,8 @@ namespace HBP.UI.Module3D.Tools
                 HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
                 if (selectedColumn)
                 {
-                    m_Current.text = selectedColumn.CurrentTimeLineID + " (" + selectedColumn.CurrentTimeLine.ToString("N2") + selectedColumn.TimeLineUnite + ")";
-                    m_Slider.value = selectedColumn.CurrentTimeLineID;
+                    m_Current.text = selectedColumn.Timeline.CurrentIndex + " (" + selectedColumn.Timeline.CurrentIndex.ToString("N2") + selectedColumn.Timeline.Unit + ")";
+                    m_Slider.value = selectedColumn.Timeline.CurrentIndex;
                 }
                 ListenerLock = false;
             });
@@ -137,13 +137,13 @@ namespace HBP.UI.Module3D.Tools
             if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
                 HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)SelectedColumn);
-                m_Slider.maxValue = column.MaxTimeLineID;
-                m_Slider.value = column.CurrentTimeLineID;
-                m_Min.text = column.ColumnData.TimeLine.Start.RawValue.ToString("N2") + column.TimeLineUnite;
-                m_Max.text = column.ColumnData.TimeLine.End.RawValue.ToString("N2") + column.TimeLineUnite;
-                m_Current.text = column.CurrentTimeLineID + " (" + column.CurrentTimeLine.ToString("N2") + column.TimeLineUnite + ")";
-                m_RawTimeline.anchorMin = new Vector2((column.ColumnData.TimeLine.Start.RawValue - column.MinTimeLine) / (column.MaxTimeLine - column.MinTimeLine), 0);
-                m_RawTimeline.anchorMax = new Vector2(1 - ((column.MaxTimeLine - column.ColumnData.TimeLine.End.RawValue) / (column.MaxTimeLine - column.MinTimeLine)), 1);
+                m_Slider.maxValue = column.Timeline.Length - 1;
+                m_Slider.value = column.Timeline.CurrentIndex;
+                m_Min.text = column.ColumnData.TimeLine.Start.RawValue.ToString("N2") + column.Timeline.Unit;
+                m_Max.text = column.ColumnData.TimeLine.End.RawValue.ToString("N2") + column.Timeline.Unit;
+                m_Current.text = column.Timeline.CurrentIndex + " (" + column.Timeline.CurrentTime.ToString("N2") + column.Timeline.Unit + ")";
+                m_RawTimeline.anchorMin = new Vector2((column.ColumnData.TimeLine.Start.RawValue - column.Timeline.MinTime) / (column.Timeline.MaxTime - column.Timeline.MinTime), 0);
+                m_RawTimeline.anchorMax = new Vector2(1 - ((column.Timeline.MaxTime - column.ColumnData.TimeLine.End.RawValue) / (column.Timeline.MaxTime - column.Timeline.MinTime)), 1);
                 ShowEvents(column);
             }
             else
