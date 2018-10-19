@@ -492,19 +492,25 @@ A dataset is a list of data information, each of them connecting one patient (an
 \end{center}
 \caption{\label{protocolGestionUI}Protocols manager}
 \end{figure}
-\paragraph{} Editing a protocol consists of defining the blocs for this protocol. This is done with the protocol modifier window (Figure \ref{protocolModifierUI}). There are two types of blocs in a protocol: a main bloc (first column) will be used for metadata and main epoching, whereas a secondary bloc (second and third columns) will be used to epoch around a second or a third main event (this is used if you want to hide a pause between two important data). To create a new bloc, click on an empty box. To edit a bloc, double click on an existing bloc.
+\paragraph{} Editing a protocol consists of defining the blocs for this protocol. This is done with the protocol modifier window (Figure \ref{protocolModifierUI}). To create a new bloc, click on an empty box. To edit a bloc, double click on an existing bloc.
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.3]{ProtocolModifier.png}
+\includegraphics[scale=0.4]{ProtocolModifier.png}
 \end{center}
 \caption{\label{protocolModifierUI}Protocol modifier}
 \end{figure}
-\paragraph{} A bloc can be edited with the bloc modifier window (Figure \ref{blocModifierUI}). There you can specify the name, the sorting method, the window and the baseline window, as well as events and icons for the iconic scenario, which can be edited by double clicking on them. To add an illustration to the bloc, you can click on the icon placeholder in the general category.
+\paragraph{} A bloc can be edited with the bloc modifier window (Figure \ref{blocModifierUI}). There you can specify the name, the sorting method, and define the subblocs using the subbloc modifier window (Figure \ref{subBlocModifierUI}). There, you can edit the name, the order, the type (main or secondary), the window, the baseline window, the events and the iconic scenario of the subbloc.
 \begin{figure}[H]
 \begin{center}
 \includegraphics[scale=0.5]{BlocModifier.png}
 \end{center}
 \caption{\label{blocModifierUI}Bloc modifier}
+\end{figure}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.5]{SubBlocModifier.png}
+\end{center}
+\caption{\label{subBlocModifierUI}SubBloc modifier}
 \end{figure}
 \paragraph{} When your protocols are correctly defined, you are ready to create your datasets. This will be done using the datasets manager window (Figure \ref{datasetGestionUI}).
 \begin{figure}[H]
