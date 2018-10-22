@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -42,25 +43,27 @@ namespace HBP.Module3D
         }
 
         /// <summary>
-        /// Minimum time of the timeline
+        /// Subtimelines of this timeline
         /// </summary>
-        public float MinTime { get; set; }
+        private SubTimeline[] m_SubTimelines;
         /// <summary>
-        /// Maximum time of the timeline
+        /// Current subtimeline compared to the position of the current index
         /// </summary>
-        public float MaxTime { get; set; }
-        /// <summary>
-        /// Time of a step
-        /// </summary>
-        public float TimeStep { get; set; }
-        /// <summary>
-        /// Current time of the timeline
-        /// </summary>
-        public float CurrentTime
+        public SubTimeline CurrentSubtimeline
         {
             get
             {
-                return TimeStep * CurrentIndex + MinTime;
+                return m_SubTimelines.FirstOrDefault(s => s.GlobalMinIndex <= m_CurrentIndex && s.GlobalMaxIndex >= m_CurrentIndex);
+            }
+        }
+        /// <summary>
+        /// Get the current times of each timeline
+        /// </summary>
+        public float[] CurrentTimes
+        {
+            get
+            {
+                return m_SubTimelines.Select(s => s.GetCurrentTime(m_CurrentIndex)).ToArray();
             }
         }
 
@@ -102,7 +105,30 @@ namespace HBP.Module3D
         public UnityEvent OnUpdateCurrentIndex = new UnityEvent();
         #endregion
 
+        #region Constructors
+        // TODO : DELETE THIS CONSTRUCTOR, THIS IS ONLY FOR DEBUG PURPOSES
+        public Timeline(Data.Visualization.Timeline timeline)
+        {
+            Length = timeline.Lenght;
+            Unit = timeline.Start.Unite;
+            m_SubTimelines = new SubTimeline[]
+            {
+                new SubTimeline()
+                {
+                    GlobalMinIndex = 0,
+                    GlobalMaxIndex = Length - 1,
+                    MinTime = timeline.Start.Value,
+                    MaxTime = timeline.End.Value,
+                    TimeStep = timeline.Step
+                }
+            };
+        }
+        #endregion
+
         #region Public Methods
+        /// <summary>
+        /// Play the timeline
+        /// </summary>
         public void Play()
         {
             if (IsPlaying)
@@ -120,6 +146,44 @@ namespace HBP.Module3D
                     }
                 }
             }
+        }
+        #endregion
+    }
+
+    public class SubTimeline
+    {
+        #region Properties
+        /// <summary>
+        /// Min index of the subtimeline from the start of the global timeline
+        /// </summary>
+        public int GlobalMinIndex { get; set; }
+        /// <summary>
+        /// Max index of the subtimeline from the start of the global timeline
+        /// </summary>
+        public int GlobalMaxIndex { get; set; }
+        /// <summary>
+        /// Minimum time of the timeline
+        /// </summary>
+        public float MinTime { get; set; }
+        /// <summary>
+        /// Maximum time of the timeline
+        /// </summary>
+        public float MaxTime { get; set; }
+        /// <summary>
+        /// Time of a step
+        /// </summary>
+        public float TimeStep { get; set; }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Get the time of the current global index in this timeline
+        /// </summary>
+        /// <param name="globalIndex">Global index</param>
+        /// <returns></returns>
+        public float GetCurrentTime(int globalIndex)
+        {
+            return TimeStep * (globalIndex - GlobalMinIndex) + MinTime;
         }
         #endregion
     }

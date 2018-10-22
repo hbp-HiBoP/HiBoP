@@ -334,14 +334,7 @@ namespace HBP.Module3D
         public void SetColumnData(Data.Visualization.Column columnData)
         {
             ColumnData = columnData;
-            Timeline = new Timeline()
-            {
-                Length = ColumnData.TimeLine.Lenght,
-                Unit = ColumnData.TimeLine.Start.Unite,
-                MinTime = ColumnData.TimeLine.Start.Value,
-                MaxTime = ColumnData.TimeLine.End.Value,
-                TimeStep = ColumnData.TimeLine.Step
-            };
+            Timeline = new Timeline(ColumnData.TimeLine);
             Timeline.OnUpdateCurrentIndex.AddListener(() =>
             {
                 OnUpdateCurrentTimelineID.Invoke();

@@ -60,7 +60,7 @@ namespace HBP.UI.Module3D.Tools
             float mainEventPosition = (float)mainEventData.Position / (column.ColumnData.TimeLine.Lenght-1);
             mainEventRectTransform.anchorMin = new Vector2(mainEventPosition, mainEventRectTransform.anchorMin.y);
             mainEventRectTransform.anchorMax = new Vector2(mainEventPosition, mainEventRectTransform.anchorMax.y);
-            mainEvent.GetComponent<Tooltip>().Text = mainEventData.Label + " | " + mainEventData.Position + " (" + (column.ColumnData.TimeLine.Step * mainEventData.Position + column.Timeline.MinTime).ToString("N2") + column.Timeline.Unit + ")";
+            mainEvent.GetComponent<Tooltip>().Text = mainEventData.Label + " | " + mainEventData.Position + " (" + (column.ColumnData.TimeLine.Step * mainEventData.Position + column.Timeline.CurrentSubtimeline.MinTime).ToString("N2") + column.Timeline.Unit + ")";
 
             foreach (Data.Visualization.Event timelineEvent in column.ColumnData.TimeLine.SecondaryEvents)
             {
@@ -69,7 +69,7 @@ namespace HBP.UI.Module3D.Tools
                 float secondaryEventPosition = (float)timelineEvent.Position / (column.ColumnData.TimeLine.Lenght - 1);
                 secondaryEventRectTransform.anchorMin = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMin.y);
                 secondaryEventRectTransform.anchorMax = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMax.y);
-                secondaryEvent.GetComponent<Tooltip>().Text = timelineEvent.Label + " | " + timelineEvent.Position + " (" + (column.ColumnData.TimeLine.Step * timelineEvent.Position + column.Timeline.MinTime).ToString("N2") + column.Timeline.Unit + ")" + " | " + (timelineEvent.AttendanceRate * 100).ToString("N2") +"%";
+                secondaryEvent.GetComponent<Tooltip>().Text = timelineEvent.Label + " | " + timelineEvent.Position + " (" + (column.ColumnData.TimeLine.Step * timelineEvent.Position + column.Timeline.CurrentSubtimeline.MinTime).ToString("N2") + column.Timeline.Unit + ")" + " | " + (timelineEvent.AttendanceRate * 100).ToString("N2") +"%";
             }
         }
         private void DeleteEvents()
@@ -141,9 +141,9 @@ namespace HBP.UI.Module3D.Tools
                 m_Slider.value = column.Timeline.CurrentIndex;
                 m_Min.text = column.ColumnData.TimeLine.Start.RawValue.ToString("N2") + column.Timeline.Unit;
                 m_Max.text = column.ColumnData.TimeLine.End.RawValue.ToString("N2") + column.Timeline.Unit;
-                m_Current.text = column.Timeline.CurrentIndex + " (" + column.Timeline.CurrentTime.ToString("N2") + column.Timeline.Unit + ")";
-                m_RawTimeline.anchorMin = new Vector2((column.ColumnData.TimeLine.Start.RawValue - column.Timeline.MinTime) / (column.Timeline.MaxTime - column.Timeline.MinTime), 0);
-                m_RawTimeline.anchorMax = new Vector2(1 - ((column.Timeline.MaxTime - column.ColumnData.TimeLine.End.RawValue) / (column.Timeline.MaxTime - column.Timeline.MinTime)), 1);
+                m_Current.text = column.Timeline.CurrentIndex + " (" + column.Timeline.CurrentTimes[0].ToString("N2") + column.Timeline.Unit + ")";
+                m_RawTimeline.anchorMin = new Vector2((column.ColumnData.TimeLine.Start.RawValue - column.Timeline.CurrentSubtimeline.MinTime) / (column.Timeline.CurrentSubtimeline.MaxTime - column.Timeline.CurrentSubtimeline.MinTime), 0);
+                m_RawTimeline.anchorMax = new Vector2(1 - ((column.Timeline.CurrentSubtimeline.MaxTime - column.ColumnData.TimeLine.End.RawValue) / (column.Timeline.CurrentSubtimeline.MaxTime - column.Timeline.CurrentSubtimeline.MinTime)), 1);
                 ShowEvents(column);
             }
             else
