@@ -11,22 +11,12 @@ namespace HBP.UI.Module3D.Tools
     public class TimelineSlider : Tool
     {
         #region Properties
-        [SerializeField]
-        private Slider m_Slider;
-        [SerializeField]
-        private Text m_Min;
-        [SerializeField]
-        private Text m_Current;
-        [SerializeField]
-        private Text m_Max;
-        [SerializeField]
-        private RectTransform m_Events;
-        [SerializeField]
-        private RectTransform m_RawTimeline;
-        [SerializeField]
-        private GameObject m_MainEventPrefab;
-        [SerializeField]
-        private GameObject m_SecondaryEventPrefab;
+        [SerializeField] private Slider m_Slider;
+        [SerializeField] private RectTransform m_SubTimelines;
+        [SerializeField] private RectTransform m_Events;
+        [SerializeField] private GameObject m_TimelinePrefab;
+        [SerializeField] private GameObject m_MainEventPrefab;
+        [SerializeField] private GameObject m_SecondaryEventPrefab;
 
         private bool m_IsGlobal = false;
         /// <summary>
@@ -50,10 +40,24 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Private Methods
-        private void ShowEvents(HBP.Module3D.Column3DIEEG column)
+        private void ShowSubTimelines()
+        {
+            DeleteSubTimelines();
+
+            HBP.Module3D.Timeline timeline = ((HBP.Module3D.Column3DIEEG)SelectedColumn).Timeline;
+            m_Slider.maxValue = timeline.Length - 1;
+            m_Slider.value = timeline.CurrentIndex;
+            foreach (var subTimeline in timeline.SubTimelines)
+            {
+                SubTimeline subTl = Instantiate(m_TimelinePrefab, m_SubTimelines).GetComponent<SubTimeline>();
+                subTl.Initialize(timeline, subTimeline);
+            }
+        }
+        private void ShowEvents()
         {
             DeleteEvents();
 
+            HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)SelectedColumn);
             GameObject mainEvent = Instantiate(m_MainEventPrefab, m_Events);
             RectTransform mainEventRectTransform = mainEvent.GetComponent<RectTransform>();
             Data.Visualization.Event mainEventData = column.ColumnData.TimeLine.MainEvent;
@@ -70,6 +74,13 @@ namespace HBP.UI.Module3D.Tools
                 secondaryEventRectTransform.anchorMin = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMin.y);
                 secondaryEventRectTransform.anchorMax = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMax.y);
                 secondaryEvent.GetComponent<Tooltip>().Text = timelineEvent.Label + " | " + timelineEvent.Position + " (" + (column.ColumnData.TimeLine.Step * timelineEvent.Position + column.Timeline.CurrentSubtimeline.MinTime).ToString("N2") + column.Timeline.Unit + ")" + " | " + (timelineEvent.AttendanceRate * 100).ToString("N2") +"%";
+            }
+        }
+        private void DeleteSubTimelines()
+        {
+            foreach (Transform subTimeline in m_SubTimelines)
+            {
+                Destroy(subTimeline.gameObject);
             }
         }
         private void DeleteEvents()
@@ -107,8 +118,11 @@ namespace HBP.UI.Module3D.Tools
                 HBP.Module3D.Column3DIEEG selectedColumn = (HBP.Module3D.Column3DIEEG)SelectedColumn;
                 if (selectedColumn)
                 {
-                    m_Current.text = selectedColumn.Timeline.CurrentIndex + " (" + selectedColumn.Timeline.CurrentIndex.ToString("N2") + selectedColumn.Timeline.Unit + ")";
                     m_Slider.value = selectedColumn.Timeline.CurrentIndex;
+                    foreach (Transform subTimeline in m_SubTimelines)
+                    {
+                        subTimeline.GetComponent<SubTimeline>().UpdateTime();
+                    }
                 }
                 ListenerLock = false;
             });
@@ -116,11 +130,9 @@ namespace HBP.UI.Module3D.Tools
 
         public override void DefaultState()
         {
-            m_Min.text = "Min";
-            m_Max.text = "Max";
-            m_Current.text = "Current Time";
             m_Slider.value = 0;
             m_Slider.interactable = false;
+            DeleteSubTimelines();
             DeleteEvents();
         }
 
@@ -136,24 +148,13 @@ namespace HBP.UI.Module3D.Tools
         {
             if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)SelectedColumn);
-                m_Slider.maxValue = column.Timeline.Length - 1;
-                m_Slider.value = column.Timeline.CurrentIndex;
-                m_Min.text = column.ColumnData.TimeLine.Start.RawValue.ToString("N2") + column.Timeline.Unit;
-                m_Max.text = column.ColumnData.TimeLine.End.RawValue.ToString("N2") + column.Timeline.Unit;
-                m_Current.text = column.Timeline.CurrentIndex + " (" + column.Timeline.CurrentTimes[0].ToString("N2") + column.Timeline.Unit + ")";
-                m_RawTimeline.anchorMin = new Vector2((column.ColumnData.TimeLine.Start.RawValue - column.Timeline.CurrentSubtimeline.MinTime) / (column.Timeline.CurrentSubtimeline.MaxTime - column.Timeline.CurrentSubtimeline.MinTime), 0);
-                m_RawTimeline.anchorMax = new Vector2(1 - ((column.Timeline.CurrentSubtimeline.MaxTime - column.ColumnData.TimeLine.End.RawValue) / (column.Timeline.CurrentSubtimeline.MaxTime - column.Timeline.CurrentSubtimeline.MinTime)), 1);
-                ShowEvents(column);
+                ShowSubTimelines();
+                ShowEvents();
             }
             else
             {
-                m_Min.text = "Min";
-                m_Max.text = "Max";
-                m_Current.text = "Current Time";
                 m_Slider.value = 0;
-                m_RawTimeline.anchorMin = new Vector2(0, 0);
-                m_RawTimeline.anchorMax = new Vector2(1, 1);
+                DeleteSubTimelines();
                 DeleteEvents();
             }
         }

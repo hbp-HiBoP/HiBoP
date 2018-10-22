@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -47,6 +48,10 @@ namespace HBP.Module3D
         /// </summary>
         private SubTimeline[] m_SubTimelines;
         /// <summary>
+        /// Subtimelines of this timeline
+        /// </summary>
+        public ReadOnlyCollection<SubTimeline> SubTimelines { get { return new ReadOnlyCollection<SubTimeline>(m_SubTimelines); } }
+        /// <summary>
         /// Current subtimeline compared to the position of the current index
         /// </summary>
         public SubTimeline CurrentSubtimeline
@@ -54,16 +59,6 @@ namespace HBP.Module3D
             get
             {
                 return m_SubTimelines.FirstOrDefault(s => s.GlobalMinIndex <= m_CurrentIndex && s.GlobalMaxIndex >= m_CurrentIndex);
-            }
-        }
-        /// <summary>
-        /// Get the current times of each timeline
-        /// </summary>
-        public float[] CurrentTimes
-        {
-            get
-            {
-                return m_SubTimelines.Select(s => s.GetCurrentTime(m_CurrentIndex)).ToArray();
             }
         }
 
@@ -113,14 +108,8 @@ namespace HBP.Module3D
             Unit = timeline.Start.Unite;
             m_SubTimelines = new SubTimeline[]
             {
-                new SubTimeline()
-                {
-                    GlobalMinIndex = 0,
-                    GlobalMaxIndex = Length - 1,
-                    MinTime = timeline.Start.Value,
-                    MaxTime = timeline.End.Value,
-                    TimeStep = timeline.Step
-                }
+                new SubTimeline(0, (Length - 1) / 3, -250, 250),
+                new SubTimeline(((Length - 1) / 3) + 1, Length - 1, -500, 500)
             };
         }
         #endregion
@@ -175,15 +164,35 @@ namespace HBP.Module3D
         public float TimeStep { get; set; }
         #endregion
 
+        #region Constructors
+        public SubTimeline(int globalMinIndex, int globalMaxIndex, float minTime, float maxTime)
+        {
+            GlobalMinIndex = globalMinIndex;
+            GlobalMaxIndex = globalMaxIndex;
+            MinTime = minTime;
+            MaxTime = maxTime;
+            TimeStep = (maxTime - minTime) / (globalMaxIndex - globalMinIndex);
+        }
+        #endregion
+
         #region Public Methods
         /// <summary>
         /// Get the time of the current global index in this timeline
         /// </summary>
         /// <param name="globalIndex">Global index</param>
         /// <returns></returns>
-        public float GetCurrentTime(int globalIndex)
+        public float GetLocalTime(int globalIndex)
         {
-            return TimeStep * (globalIndex - GlobalMinIndex) + MinTime;
+            return TimeStep * GetLocalIndex(globalIndex) + MinTime;
+        }
+        /// <summary>
+        /// Get the index value relative to the minimum index of the subtimeline
+        /// </summary>
+        /// <param name="globalIndex"></param>
+        /// <returns></returns>
+        public int GetLocalIndex(int globalIndex)
+        {
+            return globalIndex - GlobalMinIndex;
         }
         #endregion
     }
