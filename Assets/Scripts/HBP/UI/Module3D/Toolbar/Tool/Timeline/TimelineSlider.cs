@@ -50,7 +50,7 @@ namespace HBP.UI.Module3D.Tools
             foreach (var subTimeline in timeline.SubTimelines)
             {
                 SubTimeline subTl = Instantiate(m_TimelinePrefab, m_SubTimelines).GetComponent<SubTimeline>();
-                subTl.Initialize(timeline, subTimeline);
+                subTl.Initialize(timeline, subTimeline, m_Slider.handleRect.rect.width);
             }
         }
         private void ShowEvents()
@@ -121,7 +121,7 @@ namespace HBP.UI.Module3D.Tools
                     m_Slider.value = selectedColumn.Timeline.CurrentIndex;
                     foreach (Transform subTimeline in m_SubTimelines)
                     {
-                        subTimeline.GetComponent<SubTimeline>().UpdateTime();
+                        subTimeline.GetComponent<SubTimeline>().UpdateCurrentTime();
                     }
                 }
                 ListenerLock = false;

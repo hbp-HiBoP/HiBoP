@@ -16,17 +16,20 @@ namespace HBP.UI.Module3D.Tools
         #endregion
 
         #region Public Methods
-        public void Initialize(HBP.Module3D.Timeline timeline, HBP.Module3D.SubTimeline subTimeline)
+        public void Initialize(HBP.Module3D.Timeline timeline, HBP.Module3D.SubTimeline subTimeline, float offset)
         {
             m_Timeline = timeline;
             m_SubTimeline = subTimeline;
             m_MinText.text = subTimeline.MinTime.ToString("N2") + timeline.Unit;
             m_MaxText.text = subTimeline.MaxTime.ToString("N2") + timeline.Unit;
-            UpdateTime();
-            GetComponent<RectTransform>().anchorMin = new Vector2((float)subTimeline.GlobalMinIndex / (timeline.Length - 1), 0);
-            GetComponent<RectTransform>().anchorMax = new Vector2((float)subTimeline.GlobalMaxIndex / (timeline.Length - 1), 1);
+            UpdateCurrentTime();
+            float begin = (float)subTimeline.GlobalMinIndex / (timeline.Length - 1);
+            float end =(float)subTimeline.GlobalMaxIndex / (timeline.Length - 1);
+            GetComponent<RectTransform>().anchorMin = new Vector2(begin, 0);
+            GetComponent<RectTransform>().anchorMax = new Vector2(end, 1);
+            GetComponent<RectTransform>().sizeDelta = new Vector2(offset, 0);
         }
-        public void UpdateTime()
+        public void UpdateCurrentTime()
         {
             if (m_Timeline.CurrentSubtimeline == m_SubTimeline)
             {
