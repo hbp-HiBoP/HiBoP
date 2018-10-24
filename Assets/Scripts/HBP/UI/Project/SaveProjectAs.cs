@@ -9,6 +9,22 @@ namespace HBP.UI
         #region Properties
         [SerializeField] InputField m_NameInputField;
         [SerializeField] FolderSelector m_LocationFolderSelector;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_NameInputField.interactable = value;
+                m_LocationFolderSelector.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -22,7 +38,7 @@ namespace HBP.UI
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             m_NameInputField.text = ApplicationState.ProjectLoaded.Settings.Name;
             m_LocationFolderSelector.Folder = ApplicationState.ProjectLoadedLocation;

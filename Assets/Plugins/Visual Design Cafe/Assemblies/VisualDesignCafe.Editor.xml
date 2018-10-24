@@ -228,13 +228,13 @@
             </summary>
             <param name="url"></param>
         </member>
-        <member name="M:VisualDesignCafe.Editor.EditorWebRequest.Send(System.Action)">
+        <member name="M:VisualDesignCafe.Editor.EditorWebRequest.Send(System.Action{VisualDesignCafe.Editor.EditorWebRequest})">
             <summary>
             Sends the request.
             </summary>
             <param name="response"></param>
         </member>
-        <member name="M:VisualDesignCafe.Editor.EditorWebRequest.OnDownloadCompleted(System.Object,System.Net.DownloadDataCompletedEventArgs,System.Action)">
+        <member name="M:VisualDesignCafe.Editor.EditorWebRequest.OnDownloadCompleted(System.Object,System.Net.DownloadDataCompletedEventArgs,System.Action{VisualDesignCafe.Editor.EditorWebRequest})">
             <summary>
             Called when the request was sent and a response was received (or the request failed).
             </summary>

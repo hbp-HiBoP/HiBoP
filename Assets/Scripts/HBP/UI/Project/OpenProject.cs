@@ -14,6 +14,23 @@ namespace HBP.UI
 		[SerializeField] FolderSelector m_LocationFolderSelector;
 		[SerializeField] ProjectList m_ProjectList;
         [SerializeField] Button m_LoadingButton;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                m_LocationFolderSelector.interactable = value;
+                m_ProjectList.Interactable = value;
+                m_LoadingButton.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -48,15 +65,31 @@ namespace HBP.UI
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
         {
-            m_ProjectList.OnSelectionChanged.AddListener((projectInfo,selected) => m_LoadingButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
+            // Initialize project list.
+            m_ProjectList.Initialize();
+            m_ProjectList.OnSelectionChanged.AddListener(() => m_LoadingButton.interactable = m_ProjectList.ObjectsSelected.Length > 0);
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
-            m_LocationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(DisplayProjects(value)));
+            // Initialise location folder selector.
+            m_LocationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayProjects(value)));
+
+            // Base method.
+            base.Initialize();
+        }
+        protected override void SetFields()
+        {
+            // Base method.
+            base.SetFields();
+
+            // Set location folder selector.
             m_LocationFolderSelector.Folder = ApplicationState.UserPreferences.General.Project.DefaultLocation;
         }
-        IEnumerator DisplayProjects(string path)
+        #endregion
+
+        #region Coroutines
+        IEnumerator c_DisplayProjects(string path)
         {
             yield return Ninja.JumpToUnity;
             m_LoadingButton.interactable = false;

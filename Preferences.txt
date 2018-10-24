@@ -2,17 +2,16 @@
   "General": {
     "Project": {
       "DefaultName": "New project",
-      "DefaultLocation": "D:/HBPProjects",
-      "DefaultPatientDatabase": "",
-      "DefaultLocalizerDatabase": ""
+      "DefaultLocation": "D:\\HBPProjects",
+      "DefaultPatientDatabase": "Y:\\BrainVisaDB\\Epilepsy",
+      "DefaultLocalizerDatabase": "Y:\\LOCA_DATABASE",
+      "DefaultExportLocation": "D:\\HBP\\Screenshots"
     },
     "Theme": {},
     "Localization": {},
     "System": {
-      "MultiThreading": true
-    },
-    "Export": {
-      "DefaultScreenshotsLocation": ""
+      "MultiThreading": true,
+      "MemoryCacheLimit": 32659
     }
   },
   "Data": {
@@ -20,39 +19,45 @@
       "Averaging": 1,
       "Normalization": 0
     },
-    "Event": {
-      "PositionAveraging": 1
+    "Protocol": {
+      "PositionAveraging": 1,
+      "MinLimit": -1500.0,
+      "MaxLimit": 1500.0,
+      "Step": 50
     },
-    "Anatomy": {
+    "Anatomic": {
       "SiteNameCorrection": true,
-      "PreloadMeshes": false,
-      "PreloadMRIs": false,
-      "PreloadImplantations": false
+      "MeshPreloading": true,
+      "MRIPreloading": true,
+      "ImplantationPreloading": true
     }
   },
   "Visualization": {
     "_3D": {
       "AutomaticEEGUpdate": false,
-      "SiteInfluence": 2,
-      "DefaultSelectedMRI": "",
-      "DefaultSelectedMesh": "",
-      "DefaultSelectedImplantation": ""
+      "SiteInfluenceByDistance": 2,
+      "DefaultSelectedMRIInSinglePatientVisualization": "Preimplantation",
+      "DefaultSelectedMeshInSinglePatientVisualization": "Grey matter",
+      "DefaultSelectedImplantationInSinglePatientVisualization": "Patient",
+      "DefaultSelectedMRIInMultiPatientsVisualization": "MNI",
+      "DefaultSelectedMeshInMultiPatientsVisualization": "MNI Grey matter",
+      "DefaultSelectedImplantationInMultiPatientsVisualization": "MNI"
     },
     "TrialMatrix": {
       "ShowWholeProtocol": false,
       "TrialsSynchronization": false,
-      "SmoothLine": false,
+      "TrialSmoothing": false,
       "NumberOfIntermediateValues": 1,
       "BlocFormat": 0,
-      "LineHeight": 0,
-      "LineRatio": 0.0,
-      "BlocRatio": 0.0
+      "TrialHeight": 5,
+      "TrialRatio": 0.02,
+      "BlocRatio": 0.1
     },
     "Graph": {
       "ShowCurvesOfMinimizedColumns": false
     },
     "Cut": {
-      "ShowCutLines": false,
+      "ShowCutLines": true,
       "SimplifiedMeshes": true
     }
   }

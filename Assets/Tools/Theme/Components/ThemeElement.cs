@@ -7,6 +7,7 @@ namespace NewTheme.Components
     public class ThemeElement : MonoBehaviour
     {
         #region Properties
+        public State ActualState;
         public Element Element;
         #endregion
 
@@ -15,23 +16,25 @@ namespace NewTheme.Components
         {
             try
             {
-                Element.Set(gameObject);
+                ActualState = Element.Set(gameObject);
             }
             catch(Exception e)
             {
-                Debug.LogError("Missing theme element at " + gameObject.transform.FullName());
-                //throw e;
+                ActualState = null;
+                Debug.LogError("Missing theme element at " + gameObject.transform.GetFullName());
+                throw e;
             }
         }
         public void Set(State state)
         {
             try
             {
-                Element.Set(gameObject, state);
+                ActualState = Element.Set(gameObject, state);
             }
             catch(Exception e)
             {
-                Debug.LogError(gameObject.transform.FullName());
+                ActualState = null;
+                Debug.LogError("Missing theme element at " + gameObject.transform.GetFullName());
                 throw e;
             }
         }

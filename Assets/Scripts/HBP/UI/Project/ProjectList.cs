@@ -1,5 +1,6 @@
 ﻿using HBP.Data.General;
 using System.Linq;
+using UnityEngine;
 
 namespace HBP.UI
 {
@@ -8,25 +9,20 @@ namespace HBP.UI
         #region Properties
         enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Groups, DescendingGroups, Protocols, DescendingProtocols, Datasets, DescendingDatasets, Visualizations, DescendingVisualizations }
         OrderBy m_OrderBy = OrderBy.None;
-        public enum Sorting { Ascending, Descending };
-        public SortingDisplayer m_NameSortingDisplayer;
-        public SortingDisplayer m_PatientSortingDisplayer;
-        public SortingDisplayer m_GroupSortingDisplayer;
-        public SortingDisplayer m_ProtocolSortingDisplayer;
-        public SortingDisplayer m_DatasetSortingDisplayer;
-        public SortingDisplayer m_VisualizationSortingDisplayer;
 
+        [SerializeField] SortingDisplayer m_NameSortingDisplayer;
+        [SerializeField] SortingDisplayer m_PatientSortingDisplayer;
+        [SerializeField] SortingDisplayer m_GroupSortingDisplayer;
+        [SerializeField] SortingDisplayer m_ProtocolSortingDisplayer;
+        [SerializeField] SortingDisplayer m_DatasetSortingDisplayer;
+        [SerializeField] SortingDisplayer m_VisualizationSortingDisplayer;
         #endregion
 
         #region Public Methods
-        public void SortByName()
-        {
-            switch (m_OrderBy)
-            {
-                case OrderBy.DescendingName: SortByName(Sorting.Ascending); break;
-                default: SortByName(Sorting.Descending); break;
-            }
-        }
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -49,15 +45,22 @@ namespace HBP.UI
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             Refresh();
         }
-        public void SortByPatients()
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
+        public void SortByName()
         {
             switch (m_OrderBy)
             {
-                case OrderBy.DescendingPatients: SortByPatients(Sorting.Ascending); break;
-                default: SortByPatients(Sorting.Descending); break;
+                case OrderBy.DescendingName: SortByName(Sorting.Ascending); break;
+                default: SortByName(Sorting.Descending); break;
             }
-
         }
+
+        /// <summary>
+        /// Sort by patients.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByPatients(Sorting sorting)
         {
             switch (sorting)
@@ -73,21 +76,29 @@ namespace HBP.UI
                     m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            Refresh();
         }
-        public void SortByGroups()
+        /// <summary>
+        /// Sort by patients.
+        /// </summary>
+        public void SortByPatients()
         {
             switch (m_OrderBy)
             {
-                case OrderBy.DescendingGroups: SortByGroups(Sorting.Ascending); break;
-                default: SortByGroups(Sorting.Descending); break;
+                case OrderBy.DescendingPatients: SortByPatients(Sorting.Ascending); break;
+                default: SortByPatients(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by groups.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByGroups(Sorting sorting)
         {
             switch (sorting)
@@ -105,27 +116,29 @@ namespace HBP.UI
                 default:
                     break;
             }
-            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            Refresh();
         }
-        public void SortByProtocols()
+        /// <summary>
+        /// Sort by groups.
+        /// </summary>
+        public void SortByGroups()
         {
             switch (m_OrderBy)
             {
-                case OrderBy.DescendingProtocols: SortByProtocols(Sorting.Ascending); break;
-                default: SortByProtocols(Sorting.Descending); break;
+                case OrderBy.DescendingGroups: SortByGroups(Sorting.Ascending); break;
+                default: SortByGroups(Sorting.Descending); break;
             }
-            Refresh();
-            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
+        /// <summary>
+        /// Sort by protocols.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByProtocols(Sorting sorting)
         {
             switch (sorting)
@@ -141,22 +154,35 @@ namespace HBP.UI
                     m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            Refresh();
         }
-        public void SortByDatasets()
+        /// <summary>
+        /// Sort by protocols.
+        /// </summary>
+        public void SortByProtocols()
         {
             switch (m_OrderBy)
             {
-                case OrderBy.DescendingDatasets: SortByDatasets(Sorting.Ascending); break;
-                default: SortByDatasets(Sorting.Descending); break;
+                case OrderBy.DescendingProtocols: SortByProtocols(Sorting.Ascending); break;
+                default: SortByProtocols(Sorting.Descending); break;
             }
-
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            Refresh();
         }
+
+        /// <summary>
+        /// Sort by datasets.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByDatasets(Sorting sorting)
         {
             switch (sorting)
@@ -172,21 +198,30 @@ namespace HBP.UI
                     m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            Refresh();
         }
-        public void SortByVisualizations()
+        /// <summary>
+        /// Sort by datasets.
+        /// </summary>
+        public void SortByDatasets()
         {
             switch (m_OrderBy)
             {
-                case OrderBy.DescendingVisualizations: SortByVisualizations(Sorting.Ascending); break;
-                default: SortByVisualizations(Sorting.Descending); break;
+                case OrderBy.DescendingDatasets: SortByDatasets(Sorting.Ascending); break;
+                default: SortByDatasets(Sorting.Descending); break;
             }
+
         }
+
+        /// <summary>
+        /// Sort by visualizations.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByVisualizations(Sorting sorting)
         {
             switch (sorting)
@@ -202,13 +237,38 @@ namespace HBP.UI
                     m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
-            Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            Refresh();
         }
+        /// <summary>
+        /// Sort by visualizations.
+        /// </summary>
+        public void SortByVisualizations()
+        {
+            switch (m_OrderBy)
+            {
+                case OrderBy.DescendingVisualizations: SortByVisualizations(Sorting.Ascending); break;
+                default: SortByVisualizations(Sorting.Descending); break;
+            }
+        }
+
+        /// <summary>
+        /// Sort by none.
+        /// </summary>
+        public void SortByNone()
+        {
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_OrderBy = OrderBy.None;
+         }
         #endregion
     }
 }

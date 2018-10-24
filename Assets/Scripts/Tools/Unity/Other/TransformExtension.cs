@@ -5,7 +5,7 @@ using UnityEngine;
 
 public static class TransformExtension
 {
-    public static string FullName( this Transform transform)
+    public static string GetFullName( this Transform transform)
     {
         StringBuilder stringBuilder = new StringBuilder();
         List<string> names = new List<string>();

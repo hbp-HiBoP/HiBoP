@@ -1,42 +1,47 @@
-﻿using System.Linq;
-using HBP.Data;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Linq;
 using UnityEngine.UI;
 
 namespace HBP.UI.Anatomy
 {
-    public class GroupGestion : ItemGestion<Group>
+    public class GroupGestion : SavableWindow
     {
         #region Properties
-        [SerializeField] Text m_GroupCounter;
-        [SerializeField] GroupList m_GroupList;
+        [SerializeField] GroupListGestion m_GroupListGestion;
+        [SerializeField] Button m_AddButton;
+        [SerializeField] Button m_RemoveButton;
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+            set
+            {
+                base.Interactable = value;
+
+                m_GroupListGestion.Interactable = value;
+                m_AddButton.interactable = value;
+                m_RemoveButton.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
         public override void Save()
         {
-            ApplicationState.ProjectLoaded.SetGroups(Items.ToArray());
+            ApplicationState.ProjectLoaded.SetGroups(m_GroupListGestion.Items);
             base.Save();
-        }
-        public override void Remove()
-        {
-            base.Remove();
-            m_GroupCounter.text = m_GroupList.ObjectsSelected.Count().ToString();
-        }
-        public override void Open()
-        {
-            base.Open();
-            m_GroupList.SortByName(GroupList.Sorting.Descending);
         }
         #endregion
 
-        #region Protected Methods
-        protected override void SetWindow()
+        #region Private Methods
+        protected override void SetFields()
         {
-            m_List = m_GroupList;
-            m_GroupList.OnAction.AddListener((item,i) => OpenModifier(item,true));
-            AddItem(ApplicationState.ProjectLoaded.Groups.ToArray());
-            m_List.OnSelectionChanged.AddListener((g,b) => m_GroupCounter.text = m_List.ObjectsSelected.Count().ToString());
+            m_GroupListGestion.Initialize(m_SubWindows);
+            m_GroupListGestion.Items = ApplicationState.ProjectLoaded.Groups.ToList();
+            base.SetFields();
         }
         #endregion
     }

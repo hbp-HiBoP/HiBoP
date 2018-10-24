@@ -7,20 +7,33 @@ namespace HBP.UI.Preferences
     {
         #region Properties
         [SerializeField] Toggle m_ShowCurvesOfMinimizedColumns;
+
+        protected bool m_Interactable;
+        public virtual bool Interactable
+        {
+            get
+            {
+                return m_Interactable;
+            }
+            set
+            {
+                m_Interactable = value;
+
+                m_ShowCurvesOfMinimizedColumns.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
-        public void Set()
+        public void SetFields()
         {
-            Data.Preferences.GraphPreferences graphPreferences = ApplicationState.UserPreferences.Visualization.Graph;
-
-            m_ShowCurvesOfMinimizedColumns.isOn = graphPreferences.ShowCurvesOfMinimizedColumns;
+            Data.Preferences.GraphPreferences preferences = ApplicationState.UserPreferences.Visualization.Graph;
+            m_ShowCurvesOfMinimizedColumns.isOn = preferences.ShowCurvesOfMinimizedColumns;
         }
         public void Save()
         {
-            Data.Preferences.GraphPreferences graphPreferences = ApplicationState.UserPreferences.Visualization.Graph;
-
-            graphPreferences.ShowCurvesOfMinimizedColumns = m_ShowCurvesOfMinimizedColumns.isOn;
+            Data.Preferences.GraphPreferences preferences = ApplicationState.UserPreferences.Visualization.Graph;
+            preferences.ShowCurvesOfMinimizedColumns = m_ShowCurvesOfMinimizedColumns.isOn;
         }
         #endregion
     }

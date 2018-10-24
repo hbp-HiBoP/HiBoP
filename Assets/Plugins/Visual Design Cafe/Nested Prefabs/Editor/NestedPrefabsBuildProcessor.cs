@@ -12,37 +12,40 @@ using UnityEditor;
 using UnityEditor.Build;
 using VisualDesignCafe.Editor.Prefabs.Building;
 
-public class NestedPrefabsBuildProcessor : IPreprocessBuild, IPostprocessBuild
+namespace VisualDesignCafe.NestedPrefabs
 {
-
-    /// <summary>
-    /// The order in which the processors are called. Lower numbers are called first.
-    /// </summary>
-    public int callbackOrder
+    public class NestedPrefabsBuildProcessor : IPreprocessBuild, IPostprocessBuild
     {
-        get
+
+        /// <summary>
+        /// The order in which the processors are called. Lower numbers are called first.
+        /// </summary>
+        public int callbackOrder
         {
-            return int.MinValue;
+            get
+            {
+                return int.MinValue;
+            }
         }
-    }
 
-    /// <summary>
-    /// Called by Unity after building.
-    /// Restores all nested prefab data.
-    /// </summary>
-    public void OnPostprocessBuild( BuildTarget target, string path )
-    {
-        BuildUtility.PostprocessBuild();
-    }
+        /// <summary>
+        /// Called by Unity after building.
+        /// Restores all nested prefab data.
+        /// </summary>
+        public void OnPostprocessBuild( BuildTarget target, string path )
+        {
+            BuildUtility.PostprocessBuild();
+        }
 
-    /// <summary>
-    /// Called by Unity before a build is started.
-    /// Prepares the project for building by (temporarily) removing all nested prefab data.
-    /// </summary>
-    public void OnPreprocessBuild( BuildTarget target, string path )
-    {
-        BuildUtility.PreprocessBuild();
-    }
+        /// <summary>
+        /// Called by Unity before a build is started.
+        /// Prepares the project for building by (temporarily) removing all nested prefab data.
+        /// </summary>
+        public void OnPreprocessBuild( BuildTarget target, string path )
+        {
+            BuildUtility.PreprocessBuild();
+        }
 
+    }
 }
 #endif

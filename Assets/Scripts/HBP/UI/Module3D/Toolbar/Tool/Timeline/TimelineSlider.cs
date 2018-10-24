@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Tools.Unity;
+﻿using Tools.Unity;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D.Tools
@@ -60,20 +56,20 @@ namespace HBP.UI.Module3D.Tools
             HBP.Module3D.Column3DIEEG column = ((HBP.Module3D.Column3DIEEG)SelectedColumn);
             GameObject mainEvent = Instantiate(m_MainEventPrefab, m_Events);
             RectTransform mainEventRectTransform = mainEvent.GetComponent<RectTransform>();
-            Data.Visualization.Event mainEventData = column.ColumnData.TimeLine.MainEvent;
-            float mainEventPosition = (float)mainEventData.Position / (column.ColumnData.TimeLine.Lenght-1);
+            Data.Visualization.Event mainEventData = column.ColumnIEEGData.Data.TimeLine.MainEvent;
+            float mainEventPosition = (float)mainEventData.Position / (column.ColumnIEEGData.Data.TimeLine.Lenght-1);
             mainEventRectTransform.anchorMin = new Vector2(mainEventPosition, mainEventRectTransform.anchorMin.y);
             mainEventRectTransform.anchorMax = new Vector2(mainEventPosition, mainEventRectTransform.anchorMax.y);
-            mainEvent.GetComponent<Tooltip>().Text = mainEventData.Label + " | " + mainEventData.Position + " (" + (column.ColumnData.TimeLine.Step * mainEventData.Position + column.Timeline.CurrentSubtimeline.MinTime).ToString("N2") + column.Timeline.Unit + ")";
+            mainEvent.GetComponent<Tooltip>().Text = mainEventData.Label + " | " + mainEventData.Position + " (" + (column.ColumnIEEGData.Data.TimeLine.Step * mainEventData.Position + column.Timeline.CurrentSubtimeline.MinTime).ToString("N2") + column.Timeline.Unit + ")";
 
-            foreach (Data.Visualization.Event timelineEvent in column.ColumnData.TimeLine.SecondaryEvents)
+            foreach (Data.Visualization.Event timelineEvent in column.ColumnIEEGData.Data.TimeLine.SecondaryEvents)
             {
                 GameObject secondaryEvent = Instantiate(m_SecondaryEventPrefab, m_Events);
                 RectTransform secondaryEventRectTransform = secondaryEvent.GetComponent<RectTransform>();
-                float secondaryEventPosition = (float)timelineEvent.Position / (column.ColumnData.TimeLine.Lenght - 1);
+                float secondaryEventPosition = (float)timelineEvent.Position / (column.ColumnIEEGData.Data.TimeLine.Lenght - 1);
                 secondaryEventRectTransform.anchorMin = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMin.y);
                 secondaryEventRectTransform.anchorMax = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMax.y);
-                secondaryEvent.GetComponent<Tooltip>().Text = timelineEvent.Label + " | " + timelineEvent.Position + " (" + (column.ColumnData.TimeLine.Step * timelineEvent.Position + column.Timeline.CurrentSubtimeline.MinTime).ToString("N2") + column.Timeline.Unit + ")" + " | " + (timelineEvent.AttendanceRate * 100).ToString("N2") +"%";
+                secondaryEvent.GetComponent<Tooltip>().Text = timelineEvent.Label + " | " + timelineEvent.Position + " (" + (column.ColumnIEEGData.Data.TimeLine.Step * timelineEvent.Position + column.Timeline.CurrentSubtimeline.MinTime).ToString("N2") + column.Timeline.Unit + ")" + " | " + (timelineEvent.AttendanceRate * 100).ToString("N2") +"%";
             }
         }
         private void DeleteSubTimelines()

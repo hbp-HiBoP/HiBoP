@@ -4,6 +4,82 @@
         <name>NestedPrefabs.Package</name>
     </assembly>
     <members>
+        <member name="P:VisualDesignCafe.PackageManager.PackageManager.HasNewVersion">
+            <summary>
+            Is a new version of Nested Prefabs available?
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.PackageManager.PackageManager.NewBuildNumber">
+            <summary>
+            The build number of the new update.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.PackageManager.PackageManager.NewVersionCode">
+            <summary>
+            The version code of the new update.
+            </summary>
+        </member>
+        <member name="P:VisualDesignCafe.PackageManager.PackageManager.Changelog">
+            <summary>
+            The changelog for the new update.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.PackageManager.PackageManager.Open">
+            <summary>
+            Opens the package manger window and sends a request to the 
+            server to retreive the package info.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.PackageManager.PackageManager.Open(System.String,System.Int32,VisualDesignCafe.PackageManager.Changelog)">
+            <summary>
+            Opens the package manager window. Will send a new web request to 
+            the server to retreive the package info if none was given.
+            </summary>
+            <param name="versionCode">Version code of the new update, or 'null' if not available</param>
+            <param name="buildNumber">Build Number of the new update, or '0' if not available.</param>
+            <param name="changelog">Changelog for the new update, or 'null' if not available.</param>
+        </member>
+        <member name="M:VisualDesignCafe.PackageManager.PackageManager.CheckForUpdates(System.Action)">
+            <summary>
+            Checks if there is a new update available.
+            </summary>
+            <param name="callback">Callback to invoke after receiving the package info.</param>
+        </member>
+        <member name="M:VisualDesignCafe.PackageManager.PackageManager.DownloadIcon">
+            <summary>
+            Downloads the icon of the package.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.PackageManager.PackageManager.DrawTitle">
+            <summary>
+            Draws the title of the package.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.PackageManager.PackageManager.DrawDownloadButton">
+            <summary>
+            Draws the download button.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.PackageManager.PackageManager.DrawChangelog">
+            <summary>
+            Draws the changelog.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.LicenseWindow.DrawTitle">
+            <summary>
+            Draws the title of the package.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.LicenseWindow.DrawActivateButton">
+            <summary>
+            Draws the download button.
+            </summary>
+        </member>
+        <member name="M:VisualDesignCafe.NestedPrefabs.LicenseWindow.DownloadIcon">
+            <summary>
+            Downloads the icon of the package.
+            </summary>
+        </member>
         <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsAnalytics.SendDownloadEvent">
             <summary>
             Sends a Download Update event.
@@ -129,7 +205,7 @@
             <param name="rect"></param>
         </member>
         <!-- Badly formed XML comment ignored for member "M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.DrawButtons(UnityEngine.Rect)" -->
-        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.OnDownloadCompleted">
+        <member name="M:VisualDesignCafe.NestedPrefabs.NestedPrefabsDownloader.OnDownloadCompleted(VisualDesignCafe.Editor.EditorWebRequest)">
             <summary>
             Called when the download was completed.
             </summary>

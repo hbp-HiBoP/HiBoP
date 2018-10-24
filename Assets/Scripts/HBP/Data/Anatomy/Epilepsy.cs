@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 
 namespace HBP.Data.Anatomy
@@ -20,7 +21,7 @@ namespace HBP.Data.Anatomy
         /// <summary>
         /// Type of epilepsy.
         /// </summary>
-		public enum EpilepsyType { None,IGE,IPE,SGE,SPE,Unknown}
+		public enum EpilepsyType { [Description("None")] None, [Description("Idiopathic generalized epilepsy")] IGE, [Description("Intractable partial epilepsy")] IPE, [Description("Secondary generalized epilepsy")] SGE,SPE,Unknown}
         /// <summary>
         /// Type of this epilepsy.
         /// </summary>

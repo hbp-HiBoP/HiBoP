@@ -1,76 +1,52 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(Image))]
-public class ImageRatio : LayoutElement
+namespace Tools.Unity.Components
 {
-    #region Properties
-    public enum RatioType { FixedHeight, FixedWidth }
-    public RatioType Type;
-    Sprite m_LastSprite;
-    Image m_Image;
-    #endregion
+    [RequireComponent(typeof(Image))]
+    public class ImageRatio : LayoutElement
+    {
+        #region Properties
+        public enum ControlType { HeightControlsWidth, WidthControlsHeight }
+        public ControlType Type;
+        Image m_Image;
+        RectTransform m_RectTransform;
+        #endregion
 
-    #region Public Methods
-    public override void CalculateLayoutInputHorizontal()
-    {
-        base.CalculateLayoutInputHorizontal();
-        Set();
-    }
-    public override void CalculateLayoutInputVertical()
-    {
-        base.CalculateLayoutInputVertical();
-        Set();
-    }
-    #endregion
-
-    #region Private Methods
-    protected override void OnEnable()
-    {
-        m_Image = GetComponent<Image>();
-    }
-    void Update ()
-	{
-        if (m_LastSprite != m_Image.sprite) Set();
-    }
-    void Set()
-    {
-        if (m_Image.sprite == null) return;
-
-        if (Type == RatioType.FixedHeight)
+        #region Public Methods
+        public override void CalculateLayoutInputHorizontal()
         {
-            float ratio = (float)m_Image.sprite.texture.height / m_Image.sprite.texture.width;
-            float height = 0;
-            if (flexibleHeight == 0)
-            {
-                height = preferredHeight;
-            }
-            else
-            {
-                height = (transform as RectTransform).rect.height;
-            }
-            float result = height / ratio;
-            minWidth = result / ratio;
-            preferredWidth = minWidth;
+            base.CalculateLayoutInputHorizontal();
+            CalculateLayoutParameters();
         }
-        else if (Type == RatioType.FixedWidth)
+        #endregion
+
+        #region Private Methods
+        protected override void OnEnable()
         {
-            float ratio = (float)m_Image.sprite.texture.width / m_Image.sprite.texture.height;
-            float width = 0;
-            if (flexibleWidth == 0)
-            {
-                width = preferredWidth;
-            }
-            else
-            {
-                width = (transform as RectTransform).rect.width;
-            }
-            float result = width / ratio;
-            minHeight = result / ratio;
-            preferredHeight = minHeight;
+            m_RectTransform = GetComponent<RectTransform>();
+            m_Image = GetComponent<Image>();
         }
+        void CalculateLayoutParameters()
+        {
+            switch (Type)
+            {
+                case ControlType.HeightControlsWidth:
+                    float width = m_Image.sprite == null ? m_RectTransform.rect.height : m_RectTransform.rect.height * m_Image.sprite.texture.width / m_Image.sprite.texture.height;
+                    minWidth = width;
+                    preferredWidth = width;
+                    flexibleWidth = -1;
+                    break;
+                case ControlType.WidthControlsHeight:
+                    float height = m_Image.sprite == null ? m_RectTransform.rect.width : m_RectTransform.rect.width * m_Image.sprite.texture.height / m_Image.sprite.texture.width;
+                    minHeight = height;
+                    preferredHeight = height;
+                    flexibleHeight = -1;
+                    break;
+                default:
+                    break;
+            }
+        }
+        #endregion
     }
-	#endregion
 }

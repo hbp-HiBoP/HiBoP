@@ -2,6 +2,7 @@
 using HBP.Data.Preferences;
 using Tools.Unity;
 using System.IO;
+using HBP.UI;
 
 public class ApplicationManager : MonoBehaviour
 {
@@ -18,6 +19,7 @@ public class ApplicationManager : MonoBehaviour
         ApplicationState.LoadingManager = FindObjectOfType<LoadingManager>();
         ApplicationState.TooltipManager = FindObjectOfType<TooltipManager>();
         ApplicationState.MemoryManager = FindObjectOfType<MemoryManager>();
+        ApplicationState.WindowsManager = FindObjectOfType<WindowsManager>();
         ApplicationState.ProjectTMPFolder = GetProjectTMPDirectory();
     }
 

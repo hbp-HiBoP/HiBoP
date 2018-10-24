@@ -1556,9 +1556,9 @@ namespace HBP.Module3D
             if (firstCall) ResetConfiguration(false);
             UpdateBrainSurfaceColor(Visualization.Configuration.BrainColor);
             UpdateBrainCutColor(Visualization.Configuration.BrainCutColor);
-            UpdateColormap(Visualization.Configuration.Colormap);
+            UpdateColormap(Visualization.Configuration.EEGColormap);
             UpdateMeshPartToDisplay(Visualization.Configuration.MeshPart);
-            EdgeMode = Visualization.Configuration.EdgeMode;
+            EdgeMode = Visualization.Configuration.ShowEdges;
             StrongCuts = Visualization.Configuration.StrongCuts;
             HideBlacklistedSites = Visualization.Configuration.HideBlacklistedSites;
             ShowAllSites = Visualization.Configuration.ShowAllSites;
@@ -1611,12 +1611,12 @@ namespace HBP.Module3D
         {
             Visualization.Configuration.BrainColor = m_ColumnManager.BrainColor;
             Visualization.Configuration.BrainCutColor = m_ColumnManager.BrainCutColor;
-            Visualization.Configuration.Colormap = m_ColumnManager.Colormap;
+            Visualization.Configuration.EEGColormap = m_ColumnManager.Colormap;
             Visualization.Configuration.MeshPart = SceneInformation.MeshPartToDisplay;
             Visualization.Configuration.MeshName = m_ColumnManager.SelectedMesh.Name;
             Visualization.Configuration.MRIName = m_ColumnManager.SelectedMRI.Name;
             Visualization.Configuration.ImplantationName = m_ColumnManager.SelectedImplantation.Name;
-            Visualization.Configuration.EdgeMode = EdgeMode;
+            Visualization.Configuration.ShowEdges = EdgeMode;
             Visualization.Configuration.StrongCuts = StrongCuts;
             Visualization.Configuration.HideBlacklistedSites = HideBlacklistedSites;
             Visualization.Configuration.ShowAllSites = ShowAllSites;
@@ -1838,7 +1838,7 @@ namespace HBP.Module3D
 
             switch (column.Type)
             {
-                case Data.Enums.ColumnType.Anatomy:
+                case Data.Enums.ColumnType.Anatomic:
                     ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(site, true, Input.mousePosition, Data.Enums.SiteInformationDisplayMode.Anatomy));
                     break;
                 case Data.Enums.ColumnType.iEEG:
@@ -2063,7 +2063,7 @@ namespace HBP.Module3D
 
                 if (m_ColumnManager.Meshes.Count > 0)
                 {
-                    if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMeshes)
+                    if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                     {
                         GenerateSplits(from mesh3D in m_ColumnManager.Meshes select mesh3D.Both);
                     }
@@ -2141,7 +2141,7 @@ namespace HBP.Module3D
                 {
 
                     MRI3D mri3D = new MRI3D(mri);
-                    if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMRIs)
+                    if (ApplicationState.UserPreferences.Data.Anatomic.MRIPreloading)
                     {
                         if (mri3D.IsLoaded)
                         {
@@ -2182,7 +2182,7 @@ namespace HBP.Module3D
                     {
                         LeftRightMesh3D mesh3D = new LeftRightMesh3D((Data.Anatomy.LeftRightMesh)mesh);
 
-                        if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMeshes)
+                        if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                         {
                             if (mesh3D.IsLoaded)
                             {
@@ -2204,7 +2204,7 @@ namespace HBP.Module3D
                     {
                         SingleMesh3D mesh3D = new SingleMesh3D((Data.Anatomy.SingleMesh)mesh);
 
-                        if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMeshes)
+                        if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
                         {
                             if (mesh3D.IsLoaded)
                             {
@@ -2310,20 +2310,15 @@ namespace HBP.Module3D
         private IEnumerator c_LoadColumns(Action<Exception> outPut)
         {
             yield return Ninja.JumpToUnity;
-            // update columns number
             m_ColumnManager.InitializeColumns(Visualization.Columns);
             yield return Ninja.JumpBack;
 
             try
             {
-                // update columns names
-                for (int ii = 0; ii < Visualization.Columns.Count; ++ii)
+                foreach (var columnIEEG in m_ColumnManager.ColumnsIEEG)
                 {
-                    m_ColumnManager.Columns[ii].Label = Visualization.Columns[ii].Name;
+                    columnIEEG.ComputeEEGData();
                 }
-
-                // set timelines
-                m_ColumnManager.SetTimelineData(Visualization.Columns);
             }
             catch (Exception e)
             {
@@ -2415,7 +2410,7 @@ namespace HBP.Module3D
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluence);
+                    m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     if (m_GeneratorNeedsUpdate) yield break;
 
                     currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].DLLBrainTextureGenerators[jj].MaximumDensity;
@@ -2444,7 +2439,7 @@ namespace HBP.Module3D
                     if (m_GeneratorNeedsUpdate) yield break;
                     m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].ComputeDistances(m_ColumnManager.ColumnsIEEG[ii].IEEGParameters.InfluenceDistance, ApplicationState.UserPreferences.General.System.MultiThreading);
                     if (m_GeneratorNeedsUpdate) yield break;
-                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluence);
+                    m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].ComputeInfluences(m_ColumnManager.ColumnsIEEG[ii], ApplicationState.UserPreferences.General.System.MultiThreading, addValues, (int)ApplicationState.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     if (m_GeneratorNeedsUpdate) yield break;
 
                     currentMaxDensity = m_ColumnManager.ColumnsIEEG[ii].CutTextures.DLLMRITextureCutGenerators[jj].MaximumDensity;

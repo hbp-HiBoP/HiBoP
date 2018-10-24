@@ -22,13 +22,23 @@ namespace HBP.Module3D
         {
             get
             {
-                return ColumnType.Anatomy;
+                return ColumnType.Anatomic;
             }
         }
         /// <summary>
+        /// Column data of this column 3D
+        /// </summary>
+        public Data.Visualization.BaseColumn ColumnData { get; private set; }
+        /// <summary>
         /// Name of the column
         /// </summary>
-        public string Label { get; set; }
+        public string Label
+        {
+            get
+            {
+                return ColumnData.Name;
+            }
+        }
         /// <summary>
         /// Layer on which the objects of this column are displayed
         /// </summary>
@@ -303,9 +313,10 @@ namespace HBP.Module3D
         /// <param name="sites">List of sites (DLL)</param>
         /// <param name="sitesPatientParent">List of the gameobjects for the sites corresponding to the patients</param>
         /// <param name="siteList">List of the sites gameobjects</param>
-        public void Initialize(int idColumn, PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
+        public void Initialize(int idColumn, Data.Visualization.BaseColumn baseColumn, PatientElectrodesList sites, List<GameObject> sitesPatientParent, List<GameObject> siteList)
         {
             Layer = "Column" + idColumn;
+            ColumnData = baseColumn;
             m_SelectRing.SetLayer(Layer);
             UpdateSites(sites, sitesPatientParent, siteList);
             AddView();
@@ -353,12 +364,23 @@ namespace HBP.Module3D
                         Site baseSite = siteList[id].GetComponent<Site>();
                         Site site = Sites[id];
                         site.Information = baseSite.Information;
+                        // State
                         if (!SiteStateBySiteID.ContainsKey(baseSite.Information.FullID))
                         {
                             SiteStateBySiteID.Add(baseSite.Information.FullID, new SiteState(baseSite.State));
                         }
                         site.State = SiteStateBySiteID[baseSite.Information.FullID];
                         site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
+                        // Configuration
+                        Data.Visualization.SiteConfiguration siteConfiguration;
+                        if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out siteConfiguration))
+                        {
+                            site.Configuration = siteConfiguration;
+                        }
+                        else
+                        {
+                            ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration); // TODO creation des sites configurations au chargement de la VISU d'apres le PTS.
+                        }
                         site.IsActive = true;
                         site.OnSelectSite.AddListener((selected) =>
                         {

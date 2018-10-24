@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,35 +9,38 @@ namespace HBP.UI.Preferences
         #region Properties
         [SerializeField] Dropdown m_EEGAveragingDropdown;
         [SerializeField] Dropdown m_EEGNormalizationDropdown;
+
+        protected bool m_Interactable;
+        public virtual bool Interactable
+        {
+            get
+            {
+                return m_Interactable;
+            }
+            set
+            {
+                m_Interactable = value;
+
+                m_EEGAveragingDropdown.interactable = value;
+                m_EEGNormalizationDropdown.interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
-        public void Set()
+        public void SetFields()
         {
-            Data.Preferences.EEGPreferences preferences = ApplicationState.UserPreferences.Data.EEG;
+            Data.Preferences.EEGPrefrences preferences = ApplicationState.UserPreferences.Data.EEG;
 
-            string[] normalizationType = Enum.GetNames(typeof(Data.Enums.NormalizationType));
-            m_EEGNormalizationDropdown.ClearOptions();
-            foreach (string type in normalizationType)
-            {
-                m_EEGNormalizationDropdown.options.Add(new Dropdown.OptionData(type));
-            }
-            m_EEGNormalizationDropdown.value = (int)preferences.Normalization;
-            m_EEGNormalizationDropdown.RefreshShownValue();
-
-            string[] averagingType = Enum.GetNames(typeof(Data.Enums.AveragingType));
-            m_EEGAveragingDropdown.ClearOptions();
-            foreach (string type in averagingType)
-            {
-                m_EEGAveragingDropdown.options.Add(new Dropdown.OptionData(type));
-            }
-            m_EEGAveragingDropdown.value = (int)preferences.Averaging;
-            m_EEGAveragingDropdown.RefreshShownValue();
+            m_EEGNormalizationDropdown.Set(typeof(Data.Enums.NormalizationType), (int)preferences.Normalization);
+            m_EEGAveragingDropdown.Set(typeof(Data.Enums.AveragingType), (int)preferences.Averaging); 
         }
         public void Save()
         {
-            ApplicationState.UserPreferences.Data.EEG.Normalization = (Data.Enums.NormalizationType)m_EEGNormalizationDropdown.value;
-            ApplicationState.UserPreferences.Data.EEG.Averaging = (Data.Enums.AveragingType)m_EEGAveragingDropdown.value;
+            Data.Preferences.EEGPrefrences preferences = ApplicationState.UserPreferences.Data.EEG;
+
+            preferences.Normalization = (Data.Enums.NormalizationType) m_EEGNormalizationDropdown.value;
+            preferences.Averaging = (Data.Enums.AveragingType) m_EEGAveragingDropdown.value;
         }
         #endregion
     }

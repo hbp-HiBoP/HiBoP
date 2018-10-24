@@ -1,5 +1,6 @@
 ﻿using HBP.Data;
 using System.Linq;
+using UnityEngine;
 
 namespace HBP.UI.Anatomy
 {
@@ -12,12 +13,15 @@ namespace HBP.UI.Anatomy
         enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients }
         OrderBy m_OrderBy = OrderBy.None;
 
-        public enum Sorting { Ascending, Descending}
-        public SortingDisplayer m_NameSortingDisplayer;
-        public SortingDisplayer m_PatientsSortingDisplayer;
+        [SerializeField] SortingDisplayer m_NameSortingDisplayer;
+        [SerializeField] SortingDisplayer m_PatientsSortingDisplayer;
         #endregion
 
         #region Public methods
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -36,6 +40,9 @@ namespace HBP.UI.Anatomy
             Refresh();
             m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
         public void SortByName()
         {
             switch (m_OrderBy)
@@ -44,6 +51,11 @@ namespace HBP.UI.Anatomy
                 default: SortByName(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by patients.
+        /// </summary>
+        /// <param name="sorting"></param>
         public void SortByPatients(Sorting sorting)
         {
             switch (sorting)
@@ -62,6 +74,9 @@ namespace HBP.UI.Anatomy
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by patients.
+        /// </summary>
         public void SortByPatients()
         {
             switch (m_OrderBy)
@@ -69,6 +84,15 @@ namespace HBP.UI.Anatomy
                 case OrderBy.DescendingPatients: SortByPatients(Sorting.Ascending); break;
                 default: SortByPatients(Sorting.Descending); break;
             }
+        }
+
+        /// <summary>
+        /// Sort by none.
+        /// </summary>
+        public void SortByNone()
+        {
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         #endregion
     }

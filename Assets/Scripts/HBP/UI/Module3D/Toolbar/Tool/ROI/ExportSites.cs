@@ -68,7 +68,7 @@ namespace HBP.UI.Module3D.Tools
             yield return Ninja.JumpBack;
 
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
-            csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,EEG,POS,MainEvent,Codes");
+            csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,EEG,POS");
             
             List<Site> sites = SelectedColumn.Sites;
             int length = sites.Count;
@@ -84,7 +84,7 @@ namespace HBP.UI.Module3D.Tools
                     if (SelectedColumn is Column3DIEEG)
                     {
                         Column3DIEEG columnIEEG = (Column3DIEEG)SelectedColumn;
-                        DataInfo dataInfo = SelectedScene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnData);
+                        DataInfo dataInfo = SelectedScene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
                         dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                     }
                 }
@@ -98,19 +98,15 @@ namespace HBP.UI.Module3D.Tools
                 if (!(site.State.IsExcluded || site.State.IsBlackListed || site.State.IsMasked || site.State.IsOutOfROI))
                 {
                     Vector3 sitePosition = sitePositions[i];
-                    string EEG = "", POS = "", mainEventName = "", code = "";
+                    string EEG = "", POS = "";
                     if (SelectedColumn is Column3DIEEG)
                     {
                         Column3DIEEG columnIEEG = (Column3DIEEG)SelectedColumn;
                         DataInfo dataInfo = dataInfoByPatient[site.Information.Patient];
                         EEG = dataInfo.EEG;
                         POS = dataInfo.POS;
-                        Bloc bloc = columnIEEG.ColumnData.Bloc;
-                        Data.Experience.Protocol.Event mainEvent = bloc.MainEvent;
-                        mainEventName = mainEvent.Name;
-                        code = string.Join(" ", mainEvent.Codes.Select(c => c.ToString()).ToArray());
                     }
-                    csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}",
+                    csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}",
                             site.Information.ChannelName,
                             site.Information.Patient.Name,
                             site.Information.Patient.Place,
@@ -120,9 +116,7 @@ namespace HBP.UI.Module3D.Tools
                             sitePosition.z.ToString("N2"),
                             SelectedScene.ColumnManager.SelectedImplantation.Name,
                             EEG,
-                            POS,
-                            mainEventName,
-                            code));
+                            POS));
                 }
             }
 

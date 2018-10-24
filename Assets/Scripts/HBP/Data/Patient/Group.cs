@@ -32,17 +32,10 @@ namespace HBP.Data
         /** Patients. */
         [DataMember(Name = "Patients",Order = 3)]
         private List<string> patientsID;
-        private List<Patient> patients
+        public List<Patient> Patients
         {
             get { return (from patient in ApplicationState.ProjectLoaded.Patients where patientsID.Contains(patient.ID) select patient).ToList(); }
             set { patientsID = (from patient in value select patient.ID).ToList(); }
-        }
-        /// <summary>
-        /// Patients in the group.
-        /// </summary>
-        public ReadOnlyCollection<Patient> Patients
-        {
-            get { return new ReadOnlyCollection<Patient>((from patient in ApplicationState.ProjectLoaded.Patients where patientsID.Contains(patient.ID) select patient).ToList()); }
         }
         #endregion
 
@@ -56,7 +49,7 @@ namespace HBP.Data
         public Group(string name, Patient[] patientsInTheGroup,string id)
         {
             Name = name;
-            patients = patientsInTheGroup.ToList();
+            Patients = patientsInTheGroup.ToList();
             ID = id;
         }
         /// <summary>
@@ -155,7 +148,7 @@ namespace HBP.Data
         {
             Group group = copy as Group;
             Name = group.Name;
-            patients = group.Patients.ToList();
+            Patients = group.Patients.ToList();
             ID = group.ID;
         }
         /// <summary>

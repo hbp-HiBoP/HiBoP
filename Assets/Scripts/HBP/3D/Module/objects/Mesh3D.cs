@@ -67,7 +67,7 @@ namespace HBP.Module3D
         {
             m_Mesh = mesh;
             Name = mesh.Name;
-            if (ApplicationState.UserPreferences.Data.Anatomy.PreloadMeshes)
+            if (ApplicationState.UserPreferences.Data.Anatomic.MeshPreloading)
             {
                 Load();
             }

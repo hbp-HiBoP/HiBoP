@@ -143,7 +143,7 @@ namespace HBP.Module3D
         {
             get
             {
-                if (ApplicationState.UserPreferences.Data.Anatomy.SiteNameCorrection)
+                if (ApplicationState.UserPreferences.Data.Anatomic.SiteNameCorrection)
                 {
                     string siteName = Name.ToUpper();
                     int prime = siteName.LastIndexOf('P');
@@ -335,6 +335,9 @@ namespace HBP.Module3D
         /// Configuration of this site
         /// </summary>
         public Data.Visualization.SiteConfiguration Configuration { get; set; }
+
+        public Data.Experience.Dataset.BlocChannelData Data { get; set; }
+        public Data.Experience.Dataset.BlocChannelStatistics Statistics { get; set; }
         #endregion
 
         #region Private Methods

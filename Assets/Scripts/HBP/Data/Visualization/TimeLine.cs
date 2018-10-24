@@ -1,4 +1,5 @@
-﻿using Tools.CSharp;
+﻿using HBP.Data.Localizer;
+using Tools.CSharp;
 
 namespace HBP.Data.Visualization
 {
@@ -101,12 +102,12 @@ namespace HBP.Data.Visualization
         /// <param name="mainEvent">Main Event.</param>
         /// <param name="secondaryEvents">Secondary Events.</param>
         /// <param name="frequency">Frequency of the data.</param>
-		public Timeline(Window window, Event mainEvent, Event[] secondaryEvents, float frequency)
+		public Timeline(Window window, Event mainEvent, Event[] secondaryEvents, Frequency frequency)
 		{
-            int start = UnityEngine.Mathf.CeilToInt(window.Start * 0.001f * frequency);
-            int end = UnityEngine.Mathf.FloorToInt(window.End * 0.001f * frequency);
+            int start = frequency.ConvertToCeiledNumberOfSamples(window.Start);
+            int end = frequency.ConvertToFlooredNumberOfSamples(window.End);
             Lenght = end - start + 1;
-            Step = 1000 / frequency;
+            Step = frequency.ConvertNumberOfSamplesToMilliseconds(1);
             Start = new Limit(window.Start, start * Step, "ms",0);
             End = new Limit(window.End, end * Step, "ms",(Lenght-1));
             MainEvent = mainEvent;
@@ -115,7 +116,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Create a new TimeLine instance with default values.
         /// </summary>
-        public Timeline() : this(new Window() , new Event(),new Event[0],0.0F)
+        public Timeline() : this(new Window() , new Event(),new Event[0], new Frequency(0))
         {
         }
         #endregion

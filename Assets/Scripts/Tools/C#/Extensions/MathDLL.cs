@@ -1,9 +1,17 @@
 ﻿using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace Tools.CSharp
 {
     public static class MathDLL
     {
+        public static Vector2 CalculateValueLimit(this float[] array, float Zscore = 1.959964f)
+        {
+            float absStandardDeviation = Mathf.Abs(array.StandardDeviation());
+            float mean = array.Mean();
+            float offset = Zscore * absStandardDeviation;
+            return new Vector2(mean - offset, mean + offset);
+        }
         public static float StandardDeviation(this float[] array)
         {
             if (array.Length == 0)

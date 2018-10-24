@@ -1,35 +1,39 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Tools.Unity.Lists;
-using System.Collections.Generic;
 
 namespace HBP.UI
 {
-    public abstract class ItemGestion<T> : Window where T : ICloneable, ICopiable, new()
+    public abstract class ItemGestion<T> : SavableWindow where T : ICloneable, ICopiable, new()
     {
         #region Properties
-        [SerializeField] protected GameObject m_ModifierPrefab;
-        protected System.Collections.Generic.List<ItemModifier<T>> m_Modifiers = new System.Collections.Generic.List<ItemModifier<T>>();
-        [SerializeField] protected SelectableList<T> m_List;
-        private System.Collections.Generic.List<T> m_Items = new System.Collections.Generic.List<T>();
+        protected SelectableListWithItemAction<T> m_List;
+        protected System.Collections.Generic.List<T> m_Items = new System.Collections.Generic.List<T>();
         protected ReadOnlyCollection<T> Items
         {
             get { return new ReadOnlyCollection<T>(m_Items); }
         }
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+                m_List.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
-        public virtual void Save()
+        public override void Save()
         {
             FindObjectOfType<MenuButtonState>().SetInteractables();
-            Close();
-        }
-        public override void Close()
-        {
-            foreach (var modifier in m_Modifiers.ToArray()) modifier.Close();
-            m_Modifiers.Clear();
-            base.Close();
+            base.Save();
         }
         public virtual void Create()
         {
@@ -37,30 +41,28 @@ namespace HBP.UI
         }
         public virtual void Remove()
         {
-            T[] itemsToRemove = m_List.ObjectsSelected;
-            foreach(T item in itemsToRemove)
-            {
-                RemoveItem(item);
-            }
+            foreach(T item in m_List.ObjectsSelected) RemoveItem(item);
         }
         #endregion
 
         #region Protected Methods
+        protected override void Initialize()
+        {
+            m_List.Initialize();
+            m_List.OnAction.AddListener((item, i) => OpenModifier(item, Interactable));
+            base.Initialize();
+        }
         protected virtual void OpenModifier(T item,bool interactable)
         {
             m_List.DeselectAll();
-            RectTransform obj = Instantiate(m_ModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            ItemModifier<T> modifier = obj.GetComponent<ItemModifier<T>>();
-            modifier.Open(item, interactable);
-            modifier.CloseEvent.AddListener(() => OnCloseModifier(modifier));
-            modifier.SaveEvent.AddListener(() => OnSaveModifier(modifier));
-            m_Modifiers.Add(modifier);
+            ItemModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable);
+            modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
+            modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
+            m_SubWindows.Add(modifier);
         }
         protected virtual void OnCloseModifier(ItemModifier<T> modifier)
         {
-            m_Modifiers.Remove(modifier);
+            m_SubWindows.Remove(modifier);
         }
         protected virtual void OnSaveModifier(ItemModifier<T> modifier)
         {

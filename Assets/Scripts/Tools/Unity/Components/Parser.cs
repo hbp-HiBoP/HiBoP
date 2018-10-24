@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 
 namespace Tools.Unity.Components
 {
@@ -9,18 +10,29 @@ namespace Tools.Unity.Components
 
         public StringEvent OnStringResult;
         public FloatEvent OnFloatResult;
+        public IntEvent OnIntResult;
         #endregion
 
         #region Public Methods
-        public void ParseToFloat(string value)
+        public void ParseFromString(string value)
         {
-            float result;
-            if(float.TryParse(value,out result))
+            float floatResult;
+            if(float.TryParse(value,out floatResult))
             {
-                OnFloatResult.Invoke(result);
+                OnFloatResult.Invoke(floatResult);
+            }
+            int intResult;
+            if (int.TryParse(value, out intResult))
+            {
+                OnIntResult.Invoke(intResult);
             }
         }
-        public void Parse(float value)
+        public void ParseFromInt(int value)
+        {
+            string result = value.ToString(Format);
+            OnStringResult.Invoke(result);
+        }
+        public void ParseFromFloat(float value)
         {
             string result = value.ToString(Format);
             OnStringResult.Invoke(result);

@@ -27,6 +27,15 @@ namespace Tools.Unity
             }
         }
 
+        [SerializeField, Candlelight.PropertyBackingField]
+        private bool m_FollowMouse;
+        public bool FollowMouse
+        {
+            get { return m_FollowMouse; }
+            set { m_FollowMouse = value; }
+        }
+
+
         private bool m_Entered = false;
         private float m_TimeSinceEntered = 0.0f;
         #endregion
@@ -39,7 +48,7 @@ namespace Tools.Unity
                 m_TimeSinceEntered += Time.deltaTime;
                 if ((m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY || (ApplicationState.TooltipManager.TooltipHasBeenDisplayedRecently && m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY/3)) && !ApplicationState.TooltipManager.IsTooltipDisplayed)
                 {
-                    ApplicationState.TooltipManager.ShowTooltip(m_Text, Input.mousePosition + new Vector3(0, -20, 0));
+                    ApplicationState.TooltipManager.ShowTooltip(m_Text, m_FollowMouse);
                 }
                 if (Input.GetAxis("Mouse X") !=0 && Input.GetAxis("Mouse Y") != 0)
                 {

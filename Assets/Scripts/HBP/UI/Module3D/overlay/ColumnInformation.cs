@@ -22,16 +22,16 @@ namespace HBP.UI.Module3D
 
             switch (column.Type)
             {
-                case Data.Enums.ColumnType.Anatomy:
+                case Data.Enums.ColumnType.Anatomic:
                     IsActive = false;
                     break;
                 case Data.Enums.ColumnType.iEEG:
                     IsActive = true;
                     Column3DIEEG col = (Column3DIEEG)column;
-                    m_Protocol.text = col.ColumnData.Protocol.Name;
-                    m_Bloc.text = col.ColumnData.Bloc.Name;
-                    m_Dataset.text = col.ColumnData.Dataset.Name;
-                    m_Data.text = col.ColumnData.Data;
+                    m_Protocol.text = col.ColumnIEEGData.Dataset.Protocol.Name;
+                    m_Bloc.text = col.ColumnIEEGData.Bloc.Name;
+                    m_Dataset.text = col.ColumnIEEGData.Dataset.Name;
+                    m_Data.text = col.ColumnIEEGData.DataName;
                     break;
             }
         }

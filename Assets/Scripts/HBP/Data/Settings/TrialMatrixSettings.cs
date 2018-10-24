@@ -5,9 +5,9 @@
         #region Properties
         public enum TrialsSynchronizationType { Disable, Enable }
         public enum TrialMatrixType { Simplified, Complete }
-        public enum SmoothingType { None, Line }
+        public enum SmoothingType { None, Trial }
         public enum NormalizationType { None, Trial, Bloc, Protocol }
-        public enum BlocFormatType { ConstantLine, LineRatio, BlocRatio }
+        public enum BlocFormatType { ConstantTrial, TrialRatio, BlocRatio }
 
         /// <summary>
         /// Type of trial matrix smoothing.
@@ -53,7 +53,7 @@
         /// <param name="constantLineHeight">Constant height of a line in a trial matrix.</param>
         /// <param name="lineHeightByWidth">Ratio height by width of a line in a trial matrix.</param>
         /// <param name="heightByWidth">Ratio height by width of a bloc in a trial matrix.</param>
-        public TrialMatrixSettings(SmoothingType smoothing = SmoothingType.Line,NormalizationType baseline = NormalizationType.Protocol,BlocFormatType blocformat = BlocFormatType.LineRatio,int constantLineHeight = 3,float lineHeightByWidth = 0.05f,float heightByWidth = 0.3f, TrialsSynchronizationType trialsSynchronization = TrialsSynchronizationType.Enable, TrialMatrixType type = TrialMatrixType.Complete)
+        public TrialMatrixSettings(SmoothingType smoothing = SmoothingType.Trial,NormalizationType baseline = NormalizationType.Protocol,BlocFormatType blocformat = BlocFormatType.TrialRatio,int constantLineHeight = 3,float lineHeightByWidth = 0.05f,float heightByWidth = 0.3f, TrialsSynchronizationType trialsSynchronization = TrialsSynchronizationType.Enable, TrialMatrixType type = TrialMatrixType.Complete)
         {
             Smoothing = smoothing;
             Normalization = baseline;

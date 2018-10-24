@@ -108,7 +108,15 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public enum NormalizationType
         {
-            None, Trial, Bloc, Protocol, Auto
+            None, SubTrial, Trial, SubBloc, Bloc, Protocol, Auto
+        }
+
+        public Dataset Dataset
+        {
+            get
+            {
+                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault((d) => d.Data.Contains(this));
+            }
         }
 
         ErrorType[] m_NameErrors;
@@ -301,7 +309,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, m_EEG.Clone() as string, m_EEG.Clone() as string, Normalization);
+            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, m_EEG.Clone() as string, m_POS.Clone() as string, Normalization);
             dataInfo.OnPOSChanged = OnPOSChanged;
             return dataInfo;
         }

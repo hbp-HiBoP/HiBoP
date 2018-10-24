@@ -39,12 +39,12 @@ namespace HBP.UI.Module3D
 
             switch (column.Type)
             {
-                case Data.Enums.ColumnType.Anatomy:
+                case Data.Enums.ColumnType.Anatomic:
                     IsActive = false;
                     break;
                 case Data.Enums.ColumnType.iEEG:
                     Column3DIEEG col = (Column3DIEEG)column;
-                    m_Icons = col.ColumnData.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
+                    m_Icons = col.ColumnIEEGData.Data.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
 
                     col.OnUpdateCurrentTimelineID.AddListener(() =>
                     {

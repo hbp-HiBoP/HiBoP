@@ -10,9 +10,24 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] GameObject m_GroupModifierPrefab;
-        List<GroupModifier> m_Modifiers = new List<GroupModifier>();
+        List<ItemModifier<Group>> m_Modifiers = new List<ItemModifier<Group>>();
         GroupList groupList;
         public GroupsSelected GroupsSelectedEvent = new GroupsSelected();
+
+        public override bool Interactable
+        {
+            get
+            {
+                return base.Interactable;
+            }
+
+            set
+            {
+                base.Interactable = value;
+
+                groupList.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -29,7 +44,7 @@ namespace HBP.UI.Anatomy
         #endregion
 
         #region Private Methods
-        protected override void SetWindow()
+        protected override void Initialize()
         {
             groupList = transform.Find("Content").Find("Groups").Find("List").Find("Display").GetComponent<GroupList>();
             groupList.Objects = ApplicationState.ProjectLoaded.Groups.ToArray();
@@ -39,15 +54,11 @@ namespace HBP.UI.Anatomy
         protected virtual void OpenModifier(Group item)
         {
             groupList.DeselectAll();
-            RectTransform obj = Instantiate(m_GroupModifierPrefab).GetComponent<RectTransform>();
-            obj.SetParent(GameObject.Find("Windows").transform);
-            obj.localPosition = new Vector3(0, 0, 0);
-            GroupModifier modifier = obj.GetComponent<GroupModifier>();
-            modifier.Open(item, false);
-            modifier.CloseEvent.AddListener(() => OnCloseModifier(modifier));
+            ItemModifier<Group> modifier = ApplicationState.WindowsManager.OpenModifier(item, Interactable);
+            modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
             m_Modifiers.Add(modifier);
         }
-        protected virtual void OnCloseModifier(GroupModifier modifier)
+        protected virtual void OnCloseModifier(ItemModifier<Group> modifier)
         {
             m_Modifiers.Remove(modifier);
         }

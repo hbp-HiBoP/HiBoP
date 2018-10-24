@@ -10,7 +10,6 @@ namespace HBP.Data.Preferences
         [DataMember] public ThemePreferences Theme { get; set; }
         [DataMember] public LocalizationPreferences Localization { get; set; }
         [DataMember] public SystemPreferences System { get; set; }
-        [DataMember] public ExportPreferences Export { get; set; }
         #endregion
 
         #region Constructors
@@ -20,7 +19,6 @@ namespace HBP.Data.Preferences
             Theme = new ThemePreferences();
             Localization = new LocalizationPreferences();
             System = new SystemPreferences();
-            Export = new ExportPreferences();
         }
         #endregion
     }
@@ -32,6 +30,7 @@ namespace HBP.Data.Preferences
         [DataMember] public string DefaultLocation { get; set; }
         [DataMember] public string DefaultPatientDatabase { get; set; }
         [DataMember] public string DefaultLocalizerDatabase { get; set; }
+        [DataMember] public string DefaultExportLocation { get; set; }
         #endregion
 
         #region Constructors
@@ -41,6 +40,7 @@ namespace HBP.Data.Preferences
             DefaultLocation = string.Empty;
             DefaultPatientDatabase = string.Empty;
             DefaultLocalizerDatabase = string.Empty;
+            DefaultExportLocation = string.Empty;
         }
         #endregion
     }
@@ -59,26 +59,14 @@ namespace HBP.Data.Preferences
     {
         #region Properties
         [DataMember] public bool MultiThreading { get; set; }
+        [DataMember] public int MemoryCacheLimit { get; set; }
         #endregion
 
         #region Constructors
         public SystemPreferences()
         {
             MultiThreading = true;
-        }
-        #endregion
-    }
-    [DataContract]
-    public class ExportPreferences
-    {
-        #region Properties
-        [DataMember] public string DefaultScreenshotsLocation { get; set; }
-        #endregion
-
-        #region Constructors
-        public ExportPreferences()
-        {
-            DefaultScreenshotsLocation = string.Empty;
+            MemoryCacheLimit = UnityEngine.SystemInfo.systemMemorySize;
         }
         #endregion
     }

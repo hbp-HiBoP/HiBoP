@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Data.Localizer;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace HBP.Data.Visualization
@@ -32,20 +33,21 @@ namespace HBP.Data.Visualization
         /// <param name="bloc">Bloc of the iconic scenario.</param>
         /// <param name="frequency">Frequency used.</param>
         /// <param name="timeLine">TimeLine of the iconic scenario.</param>
-        public IconicScenario(Experience.Protocol.Bloc bloc, float frequency, Timeline timeLine)
+        public IconicScenario(Experience.Protocol.Bloc bloc, Frequency frequency, Timeline timeLine)
         {
-            List<Icon> l_icons = new List<Icon>();
-            foreach(Experience.Protocol.Icon icon in bloc.Scenario.Icons)
-            {
+            // TODO
+            //List<Icon> l_icons = new List<Icon>();
+            //foreach(Experience.Protocol.Icon icon in bloc.Scenario.Icons)
+            //{
 
-                l_icons.Add(new Icon(icon, frequency,timeLine));
-            }
-            SetIcon(l_icons.ToArray());
+            //    l_icons.Add(new Icon(icon, frequency,timeLine));
+            //}
+            //SetIcon(l_icons.ToArray());
         }
         /// <summary>
         /// Create a new iconic scenario instance with default values.
         /// </summary>
-        public IconicScenario() : this(new Experience.Protocol.Bloc(),0.0f,new Timeline())
+        public IconicScenario() : this(new Experience.Protocol.Bloc(), new Frequency(0) ,new Timeline())
         {
 
         }

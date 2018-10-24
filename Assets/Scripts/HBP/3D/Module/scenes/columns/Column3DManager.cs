@@ -482,12 +482,13 @@ namespace HBP.Module3D
         /// Add a column to the scene
         /// </summary>
         /// <param name="type">Type of the column</param>
-        private void AddColumn(Data.Enums.ColumnType type)
+        private void AddColumn(Data.Visualization.BaseColumn baseColumn)
         {
             Column3D column = null;
+            Data.Enums.ColumnType type = baseColumn is Data.Visualization.IEEGColumn ? Data.Enums.ColumnType.iEEG : Data.Enums.ColumnType.Anatomic;
             switch (type)
             {
-                case Data.Enums.ColumnType.Anatomy:
+                case Data.Enums.ColumnType.Anatomic:
                     column = Instantiate(m_Column3DPrefab, transform.Find("Columns")).GetComponent<Column3D>();
                     break;
                 case Data.Enums.ColumnType.iEEG:
@@ -573,7 +574,7 @@ namespace HBP.Module3D
                     column.IsRenderingUpToDate = false;
                 });
             }
-            column.Initialize(m_Columns.Count, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
+            column.Initialize(m_Columns.Count, baseColumn, SelectedImplantation.PatientElectrodesList, SitesPatientParent, SitesList);
             column.ResetSplitsNumber(MeshSplitNumber);
             m_Columns.Add(column);
             OnAddColumn.Invoke();
@@ -657,26 +658,14 @@ namespace HBP.Module3D
         /// <summary>
         /// Initialize the columns for the scene
         /// </summary>
-        /// <param name="columns">List of columns data</param>
-        public void InitializeColumns(IEnumerable<Data.Visualization.Column> columns)
+
+        /// <param name="type"></param>
+        /// <param name="number"></param>
+        public void InitializeColumns(IEnumerable<Data.Visualization.BaseColumn> columns)
         {
-            foreach (Data.Visualization.Column column in columns)
+            foreach (Data.Visualization.BaseColumn column in columns)
             {
-                AddColumn(column.Type);
-            }
-        }
-        /// <summary>
-        /// Set timeline data for all columns
-        /// </summary>
-        /// <param name="columnDataList">List of the columns data</param>
-        public void SetTimelineData(List<Data.Visualization.Column> columnDataList)
-        {
-            for (int c = 0; c < Columns.Count; c++)
-            {
-                if (columnDataList[c].Type == Data.Enums.ColumnType.iEEG)
-                {
-                    ((Column3DIEEG)Columns[c]).SetColumnData(columnDataList[c]);
-                }
+                AddColumn(column);
             }
         }
         /// <summary>

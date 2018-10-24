@@ -10,50 +10,33 @@ using System;
 public static class DataManager
 {
     #region Properties
-    static Dictionary<DataRequest, EpochedData> m_DataByRequest = new Dictionary<DataRequest, EpochedData>();
-    static Dictionary<DataRequest, HBP.Data.Enums.NormalizationType> m_NormalizeByRequest = new Dictionary<DataRequest, HBP.Data.Enums.NormalizationType>();
+    // Data.
+    static Dictionary<Request, Data> m_DataByRequest = new Dictionary<Request, Data>();
+    static Dictionary<BlocRequest, BlocData> m_BlocDataByRequest = new Dictionary<BlocRequest, BlocData>();
+
+    static Dictionary<ChannelRequest, ChannelData> m_ChannelDataByRequest = new Dictionary<ChannelRequest, ChannelData>();
+    static Dictionary<BlocChannelRequest, BlocChannelData> m_BlocChannelDataByRequest = new Dictionary<BlocChannelRequest, BlocChannelData>();
+    
+    // Statistics.
+    static Dictionary<ChannelRequest, ChannelStatistics> m_ChannelStatisticsByRequest = new Dictionary<ChannelRequest, ChannelStatistics>();
+    static Dictionary<BlocChannelRequest, BlocChannelStatistics> m_BlocChannelStatisticsByRequest = new Dictionary<BlocChannelRequest, BlocChannelStatistics>();
+
+    static Dictionary<Request, EventsStatistics> m_EventsStatisticsByRequest = new Dictionary<Request, EventsStatistics>();
+    static Dictionary<BlocRequest, BlocEventsStatistics> m_BlocEventsStatisticsByRequest = new Dictionary<BlocRequest, BlocEventsStatistics>();
+
+    static Dictionary<BlocRequest, HBP.Data.Enums.NormalizationType> m_NormalizeByRequest = new Dictionary<BlocRequest, HBP.Data.Enums.NormalizationType>();
     public static bool HasData { get { return m_DataByRequest.Count > 0; } }
     #endregion
 
     #region Public Methods
-    public static EpochedData GetData(DataInfo dataInfo,Bloc bloc)
-    {
-        DataRequest request = new DataRequest(dataInfo, bloc);
-        if (IsRequestValid(request))
-        {
-            EpochedData result;
-            if (m_DataByRequest.TryGetValue(request, out result))
-            {
-                return result;
-            }
-            else
-            {
-                Load(request.DataInfo);
-                return m_DataByRequest[request];
-            }
-        }
-        else
-        {
-            return null;
-        }
-    }
+    // General.
     public static void Load(DataInfo dataInfo)
     {
-        Data data = new Data(dataInfo);
-        Protocol protocol = ApplicationState.ProjectLoaded.Datasets.First((d) => d.Data.Contains(dataInfo)).Protocol;
-        foreach (var bloc in protocol.Blocs)
-        {
-            m_DataByRequest.Add(new DataRequest(dataInfo, bloc), new EpochedData(bloc, data));
-            m_NormalizeByRequest.Add(new DataRequest(dataInfo, bloc), HBP.Data.Enums.NormalizationType.None);
-        }
+        Load(new Request(dataInfo));
     }
     public static void UnLoad(DataInfo dataInfo)
     {
-        foreach (var dataRequest in m_DataByRequest.Keys.Where((d) => d.DataInfo == dataInfo)) 
-        {
-            m_DataByRequest.Remove(dataRequest);
-            m_NormalizeByRequest.Remove(dataRequest);
-        }
+        UnLoad(new Request(dataInfo));
     }
     public static void Reload(DataInfo dataInfo)
     {
@@ -63,27 +46,80 @@ public static class DataManager
     public static void Clear()
     {
         m_DataByRequest.Clear();
-        m_NormalizeByRequest.Clear();
+        m_BlocDataByRequest.Clear();
+
+        m_ChannelDataByRequest.Clear();
+        m_BlocChannelDataByRequest.Clear();
+
+        m_ChannelStatisticsByRequest.Clear();
+        m_BlocChannelStatisticsByRequest.Clear();
+
+        m_EventsStatisticsByRequest.Clear();
+        m_BlocEventsStatisticsByRequest.Clear();
     }
+
+    // Data.
+    public static Data GetData(DataInfo dataInfo)
+    {
+        return GetData(new Request(dataInfo));
+    }
+    public static BlocData GetData(DataInfo dataInfo,Bloc bloc)
+    {
+        return GetData(new BlocRequest(dataInfo, bloc));
+    }
+    public static ChannelData GetData(DataInfo dataInfo, string channel)
+    {
+        return GetData(new ChannelRequest(dataInfo, channel));
+    }
+    public static BlocChannelData GetData(DataInfo dataInfo, Bloc bloc, string channel)
+    {
+        return GetData(new BlocChannelRequest(dataInfo, bloc, channel));
+
+    }
+
+    // Statistics.
+    public static ChannelStatistics GetStatistics(DataInfo dataInfo, string channel)
+    {
+        return GetStatistics(new ChannelRequest(dataInfo, channel));
+    }
+    public static BlocChannelStatistics GetStatistics(DataInfo dataInfo, Bloc bloc, string channel)
+    {
+        return GetStatistics(new BlocChannelRequest(dataInfo, bloc, channel));
+    }
+    public static EventsStatistics GetEventsStatistics(DataInfo dataInfo)
+    {
+        return GetEventsStatistics(new Request(dataInfo));
+    }
+    public static BlocEventsStatistics GetEventsStatistics(DataInfo dataInfo, Bloc bloc)
+    {
+        return GetEventsStatistics(new BlocRequest(dataInfo, bloc));
+    }
+
     public static void NormalizeData()
     {
         IEnumerable<DataInfo> dataInfoCollection = m_DataByRequest.Select((d) => d.Key.DataInfo).Distinct();
         foreach (var dataInfo in dataInfoCollection)
         {
-            IEnumerable<DataRequest> dataRequestCollection = m_DataByRequest.Where((d) => d.Key.DataInfo == dataInfo).Select((d) => d.Key);
+            IEnumerable<BlocRequest> dataRequestCollection = m_BlocDataByRequest.Where((d) => d.Key.DataInfo == dataInfo).Select((d) => d.Key);
             switch (dataInfo.Normalization)
             {
                 case DataInfo.NormalizationType.None:
-                    foreach(var request in dataRequestCollection) if(m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.None) NormalizeByNone(request);
+                    foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.None) NormalizeByNone(request);
+                    break;
+                case DataInfo.NormalizationType.SubTrial:
+                    foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.SubTrial) NormalizeBySubTrial(request);
                     break;
                 case DataInfo.NormalizationType.Trial:
-                    foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Trial) NormalizeByTrial(request);
+                    foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Trial) NormalizeByTrial(request);
+                    break;
+                case DataInfo.NormalizationType.SubBloc:
+                    foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.SubBloc) NormalizeBySubBloc(request);
                     break;
                 case DataInfo.NormalizationType.Bloc:
-                    foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Bloc) NormalizeByBloc(request);
+                    foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Bloc) NormalizeByBloc(request);
                     break;
                 case DataInfo.NormalizationType.Protocol:
-                    IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize = from dataRequest in dataRequestCollection select new Tuple<DataRequest, bool>(dataRequest, m_NormalizeByRequest[dataRequest] != HBP.Data.Enums.NormalizationType.Protocol);
+                    IEnumerable<Tuple<BlocRequest, bool>> dataRequestAndNeedToNormalize = from request in dataRequestCollection select new Tuple<BlocRequest, bool>(request, m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Protocol);
                     if (dataRequestAndNeedToNormalize.Any((tuple) => tuple.Item2))
                     {
                         NormalizeByProtocol(dataRequestAndNeedToNormalize);
@@ -93,16 +129,22 @@ public static class DataManager
                     switch (ApplicationState.UserPreferences.Data.EEG.Normalization)
                     {
                         case HBP.Data.Enums.NormalizationType.None:
-                            foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.None) NormalizeByNone(request);
+                            foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.None) NormalizeByNone(request);
+                            break;
+                        case HBP.Data.Enums.NormalizationType.SubTrial:
+                            foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.SubTrial) NormalizeBySubTrial(request);
                             break;
                         case HBP.Data.Enums.NormalizationType.Trial:
-                            foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Trial) NormalizeByTrial(request);
+                            foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Trial) NormalizeByTrial(request);
+                            break;
+                        case HBP.Data.Enums.NormalizationType.SubBloc:
+                            foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.SubBloc) NormalizeBySubBloc(request);
                             break;
                         case HBP.Data.Enums.NormalizationType.Bloc:
-                            foreach (var request in dataRequestCollection)  if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Bloc) NormalizeByBloc(request);
+                            foreach (var request in dataRequestCollection) if (m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Bloc) NormalizeByBloc(request);
                             break;
                         case HBP.Data.Enums.NormalizationType.Protocol:
-                            IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize2 = from dataRequest in dataRequestCollection select new Tuple<DataRequest, bool>(dataRequest, m_NormalizeByRequest[dataRequest] != HBP.Data.Enums.NormalizationType.Protocol);
+                            IEnumerable<Tuple<BlocRequest, bool>> dataRequestAndNeedToNormalize2 = from request in dataRequestCollection select new Tuple<BlocRequest, bool>(request, m_NormalizeByRequest[request] != HBP.Data.Enums.NormalizationType.Protocol);
                             if (dataRequestAndNeedToNormalize2.Any((tuple) => tuple.Item2))
                             {
                                 NormalizeByProtocol(dataRequestAndNeedToNormalize2);
@@ -116,113 +158,459 @@ public static class DataManager
     #endregion
 
     #region Private Methods
-    static bool IsRequestValid(DataRequest request)
+    static void Load(Request request)
     {
-        return ApplicationState.ProjectLoaded.Datasets.First((d) => d.Data.Contains(request.DataInfo)).Protocol.Blocs.Contains(request.Bloc);
-    }
-    static void NormalizeByNone(DataRequest dataRequest)
-    {
-        float average = 0;
-        float standardDeviation = 1;
-        foreach (var bloc in m_DataByRequest[dataRequest].Blocs)
+        if (request.IsValid && !m_DataByRequest.ContainsKey(request))
         {
-            bloc.Normalize(average, standardDeviation);
-        }
-        m_NormalizeByRequest[dataRequest] = HBP.Data.Enums.NormalizationType.None;
-    }
-    static void NormalizeByTrial(DataRequest dataRequest)
-    {
-        float average = 0;
-        float standardDeviation = 1;
-        foreach (var bloc in m_DataByRequest[dataRequest].Blocs)
-        {
-            foreach (var pair in bloc.BaselineValuesBySite)
+            Data data = new Data(request.DataInfo);
+            m_DataByRequest.Add(request, data);
+
+            Protocol protocol = request.DataInfo.Dataset.Protocol;
+            foreach (var bloc in protocol.Blocs)
             {
-                average = pair.Value.Mean();
-                standardDeviation = pair.Value.StandardDeviation();
-                bloc.Normalize(average, standardDeviation, pair.Key);
+                m_BlocDataByRequest.Add(new BlocRequest(request.DataInfo, bloc), data.DataByBloc[bloc]);
             }
         }
-        m_NormalizeByRequest[dataRequest] = HBP.Data.Enums.NormalizationType.Trial;
     }
-    static void NormalizeByBloc(DataRequest dataRequest)
+    static void UnLoad(Request request)
     {
-        Dictionary<string, List<float>> BaselineBySite = new Dictionary<string, List<float>>();
-        Dictionary<string, float> averageBySite = new Dictionary<string, float>();
-        Dictionary<string, float> standardDeviationBySite = new Dictionary<string, float>();
-        foreach (var line in m_DataByRequest[dataRequest].Blocs)
+        if(request.IsValid && m_DataByRequest.ContainsKey(request))
         {
-            foreach (var site in line.BaselineValuesBySite.Keys)
+            m_DataByRequest.Remove(request);
+
+            IEnumerable<ChannelRequest> channelDataRequestsToRemove = m_ChannelDataByRequest.Keys.Where(k => k.DataInfo == request.DataInfo);
+            foreach (var channelDataRequest in channelDataRequestsToRemove)
             {
-                if (!BaselineBySite.ContainsKey(site)) BaselineBySite[site] = new List<float>();
-                BaselineBySite[site].AddRange(line.BaselineValuesBySite[site]);
+                m_ChannelDataByRequest.Remove(channelDataRequest);
+            }
+
+            IEnumerable<BlocChannelRequest> blocChannelDataRequestsToRemove = m_BlocChannelDataByRequest.Keys.Where(k => k.DataInfo == request.DataInfo);
+            foreach (var blocChannelDataRequest in blocChannelDataRequestsToRemove)
+            {
+                m_BlocChannelDataByRequest.Remove(blocChannelDataRequest);
+            }
+
+            IEnumerable<BlocRequest> blocDataRequestsToRemove = m_BlocDataByRequest.Keys.Where(k => k.DataInfo == request.DataInfo);
+            foreach (var blocDataRequest in blocDataRequestsToRemove)
+            {
+                m_BlocDataByRequest.Remove(blocDataRequest);
             }
         }
-        foreach (var site in BaselineBySite.Keys)
+    }
+    
+    static Data GetData(Request request)
+    {
+        if (request.IsValid)
         {
-            averageBySite[site] = BaselineBySite[site].ToArray().Mean();
-            standardDeviationBySite[site] = BaselineBySite[site].ToArray().StandardDeviation();
-        }
-        foreach (var line in m_DataByRequest[dataRequest].Blocs)
-        {
-            foreach (var site in line.ValuesBySite.Keys)
+            Data result;
+            if (m_DataByRequest.TryGetValue(request, out result))
             {
-                line.Normalize(averageBySite[site], standardDeviationBySite[site], site);
+                return result;
+            }
+            else
+            {
+                Load(request);
+                return m_DataByRequest[request];
             }
         }
-        m_NormalizeByRequest[dataRequest] = HBP.Data.Enums.NormalizationType.Bloc;
+        else
+        {
+            return null;
+        }
     }
-    static void NormalizeByProtocol(IEnumerable<Tuple<DataRequest, bool>> dataRequestAndNeedToNormalize)
+    static BlocData GetData(BlocRequest request)
     {
-        Dictionary<string, List<float>> baselineBySite = new Dictionary<string, List<float>>();
-        Dictionary<string, float> averageBySite = new Dictionary<string, float>();
-        Dictionary<string, float> standardDeviationBySite = new Dictionary<string, float>();
+        if (request.IsValid)
+        {
+            BlocData result;
+            if (m_BlocDataByRequest.TryGetValue(request, out result))
+            {
+                return result;
+            }
+            else
+            {
+                Load(request.DataInfo);
+                return m_BlocDataByRequest[request];
+            }
+        }
+        else
+        {
+            return null;
+        }
+    }
+    static ChannelData GetData(ChannelRequest request)
+    {
+        if (request.IsValid)
+        {
+            ChannelData result;
+            if (m_ChannelDataByRequest.TryGetValue(request, out result))
+            {
+                return result;
+            }
+            else
+            {
+                Request dataRequest = new Request(request.DataInfo);
+                if (!m_DataByRequest.ContainsKey(dataRequest))
+                {
+                    Load(dataRequest);
+                }
+                ChannelData channelData = new ChannelData(m_DataByRequest[dataRequest], request.Channel);
+                m_ChannelDataByRequest.Add(request, channelData);
+                return channelData;
+            }
+        }
+        else
+        {
+            return null;
+        }
+    }
+    static BlocChannelData GetData(BlocChannelRequest request)
+    {
+        if (request.IsValid)
+        {
+            BlocChannelData result;
+            if (m_BlocChannelDataByRequest.TryGetValue(request, out result))
+            {
+                return result;
+            }
+            else
+            {
+                Request dataRequest = new Request(request.DataInfo);
+                if (!m_DataByRequest.ContainsKey(dataRequest))
+                {
+                    Load(dataRequest);
+                }
+                BlocRequest blocDataRequest = new BlocRequest(request.DataInfo, request.Bloc);
+                BlocChannelData blocChannelData = new BlocChannelData(m_BlocDataByRequest[blocDataRequest], request.Channel);
+                m_BlocChannelDataByRequest.Add(request, blocChannelData);
+                return blocChannelData;
+            }
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    // Statistics.
+    static ChannelStatistics GetStatistics(ChannelRequest request)
+    {
+        if (request.IsValid)
+        {
+            ChannelStatistics result;
+            if (m_ChannelStatisticsByRequest.TryGetValue(request, out result))
+            {
+                return result;
+            }
+            else
+            {
+                ChannelData channelData = GetData(request);
+                ChannelStatistics channelStatistics = new ChannelStatistics(channelData);
+                m_ChannelStatisticsByRequest.Add(request, channelStatistics);
+                return channelStatistics;
+            }
+        }
+        else
+        {
+            return null;
+        }
+    }
+    static BlocChannelStatistics GetStatistics(BlocChannelRequest request)
+    {
+        if (request.IsValid)
+        {
+            BlocChannelStatistics result;
+            if (m_BlocChannelStatisticsByRequest.TryGetValue(request, out result))
+            {
+                return result;
+            }
+            else
+            {
+                BlocChannelData blocChannelData = GetData(request);
+                BlocChannelStatistics blocChannelStatistics = new BlocChannelStatistics(blocChannelData);
+                m_BlocChannelStatisticsByRequest.Add(request, blocChannelStatistics);
+                return blocChannelStatistics;
+            }
+        }
+        else
+        {
+            return null;
+        }
+    }
+    static EventsStatistics GetEventsStatistics(Request request)
+    {
+        if (request.IsValid)
+        {
+            EventsStatistics result;
+            if (m_EventsStatisticsByRequest.TryGetValue(request, out result))
+            {
+                return result;
+            }
+            else
+            {
+                EventsStatistics eventsStatistics = new EventsStatistics(request.DataInfo);
+                foreach (var pair in eventsStatistics.EventsStatisticsByBloc) m_BlocEventsStatisticsByRequest.Add(new BlocRequest(request.DataInfo, pair.Key), pair.Value);
+                m_EventsStatisticsByRequest.Add(request, eventsStatistics);
+                return eventsStatistics;
+            }
+        }
+        else return null;
+    }
+    static BlocEventsStatistics GetEventsStatistics(BlocRequest request)
+    {
+        if (request.IsValid)
+        {
+            BlocEventsStatistics result;
+            if (m_BlocEventsStatisticsByRequest.TryGetValue(request, out result))
+            {
+                return result;
+            }
+            else
+            {
+                BlocEventsStatistics blocEventsStatistics = new BlocEventsStatistics(request.DataInfo,request.Bloc);
+                m_BlocEventsStatisticsByRequest.Add(request, blocEventsStatistics);
+                return result;
+            }
+        }
+        else return null;
+    }
+
+    static void NormalizeByNone(BlocRequest request)
+    {
+        BlocData blocData = GetData(request);
+        foreach (var trial in blocData.Trials)
+        {
+            foreach (var subTrial in trial.SubTrialBySubBloc.Values)
+            {
+                subTrial.Normalize(0, 1);
+            }
+        }
+        m_NormalizeByRequest[request] = HBP.Data.Enums.NormalizationType.None;
+    }
+    static void NormalizeBySubTrial(BlocRequest request)
+    {
+        BlocData blocData = GetData(request);
+        foreach (var trial in blocData.Trials)
+        {
+            foreach (var subTrial in trial.SubTrialBySubBloc.Values)
+            {
+                foreach (var pair in subTrial.BaselineValuesByChannel)
+                {
+                    subTrial.Normalize(pair.Value.Mean(), pair.Value.StandardDeviation(), pair.Key);
+                }
+            }
+        }
+        m_NormalizeByRequest[request] = HBP.Data.Enums.NormalizationType.SubTrial;
+    }
+    static void NormalizeByTrial(BlocRequest request)
+    {
+        BlocData epochedData = GetData(request);
+        foreach (var trial in epochedData.Trials)
+        {
+            Dictionary<string, List<float>> baselineByChannel = new Dictionary<string, List<float>>();
+            foreach (var subTrial in trial.SubTrialBySubBloc.Values)
+            {
+                foreach (var channel in subTrial.BaselineValuesByChannel.Keys)
+                {
+                    if (!baselineByChannel.ContainsKey(channel)) baselineByChannel[channel] = new List<float>();
+                    baselineByChannel[channel].AddRange(subTrial.BaselineValuesByChannel[channel]);
+                }
+            }
+
+            float average, standardDeviation;
+            foreach (var channel in baselineByChannel.Keys)
+            {
+                average = baselineByChannel[channel].ToArray().Mean();
+                standardDeviation = baselineByChannel[channel].ToArray().StandardDeviation();
+                foreach (var subTrial in trial.SubTrialBySubBloc.Values)
+                {
+                    subTrial.Normalize(average, standardDeviation, channel);
+                }
+            }
+        }
+        m_NormalizeByRequest[request] = HBP.Data.Enums.NormalizationType.Trial;
+    }
+    static void NormalizeBySubBloc(BlocRequest request)
+    {
+        Dictionary<string, List<float>> baselineByChannel;
+        BlocData epochedData = GetData(request);
+        foreach (var subBloc in request.Bloc.SubBlocs)
+        {
+            baselineByChannel = new Dictionary<string, List<float>>();
+            foreach (var trial in epochedData.Trials)
+            {
+                SubTrial subTrial = trial.SubTrialBySubBloc[subBloc];
+                foreach (var channel in subTrial.BaselineValuesByChannel.Keys)
+                {
+                    if (!baselineByChannel.ContainsKey(channel)) baselineByChannel[channel] = new List<float>();
+                    baselineByChannel[channel].AddRange(subTrial.BaselineValuesByChannel[channel]);
+                }
+            }
+
+            float average, standardDeviation;
+            foreach (var channel in baselineByChannel.Keys)
+            {
+                average = baselineByChannel[channel].ToArray().Mean();
+                standardDeviation = baselineByChannel[channel].ToArray().StandardDeviation();
+                foreach (var trial in epochedData.Trials)
+                {
+                    SubTrial subTrial = trial.SubTrialBySubBloc[subBloc];
+                    subTrial.Normalize(average, standardDeviation, channel);
+                }
+            }
+        }
+        m_NormalizeByRequest[request] = HBP.Data.Enums.NormalizationType.SubBloc;
+    }
+    static void NormalizeByBloc(BlocRequest request)
+    {
+        Dictionary<string, List<float>> baselineByChannel = new Dictionary<string, List<float>>();
+        BlocData epochedData = m_BlocDataByRequest[request];
+        foreach (var trial in epochedData.Trials)
+        {
+            foreach (var subTrial in trial.SubTrialBySubBloc.Values)
+            {
+                foreach (var channel in subTrial.BaselineValuesByChannel.Keys)
+                {
+                    if (!baselineByChannel.ContainsKey(channel)) baselineByChannel[channel] = new List<float>();
+                    baselineByChannel[channel].AddRange(subTrial.BaselineValuesByChannel[channel]);
+                }
+            }
+        }
+
+        float average, standardDeviation;
+        foreach (var channel in baselineByChannel.Keys)
+        {
+            average = baselineByChannel[channel].ToArray().Mean();
+            standardDeviation = baselineByChannel[channel].ToArray().StandardDeviation();
+            foreach (var trial in epochedData.Trials)
+            {
+                foreach (var subTrial in trial.SubTrialBySubBloc.Values)
+                {
+                    subTrial.Normalize(average, standardDeviation, channel);
+                }
+            }
+        }
+        m_NormalizeByRequest[request] = HBP.Data.Enums.NormalizationType.Bloc;
+    }
+    static void NormalizeByProtocol(IEnumerable<Tuple<BlocRequest, bool>> dataRequestAndNeedToNormalize)
+    {
+        Dictionary<string, List<float>> baselineByChannel = new Dictionary<string, List<float>>();
 
         foreach (var tuple in dataRequestAndNeedToNormalize)
         {
-            EpochedData epochedData = m_DataByRequest[tuple.Item1];
-            foreach (var line in epochedData.Blocs)
+            BlocData epochedData = m_BlocDataByRequest[tuple.Item1];
+            foreach (var trial in epochedData.Trials)
             {
-                foreach (var site in line.BaselineValuesBySite.Keys)
+                foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                 {
-                    if (!baselineBySite.ContainsKey(site)) baselineBySite[site] = new List<float>();
-                    baselineBySite[site].AddRange(line.BaselineValuesBySite[site]);
-                }
-            }
-        }
-        foreach (var site in baselineBySite.Keys)
-        {
-            averageBySite[site] = baselineBySite[site].ToArray().Mean();
-            standardDeviationBySite[site] = baselineBySite[site].ToArray().StandardDeviation();
-        }
-        foreach (var tuple in dataRequestAndNeedToNormalize)
-        {
-            if (tuple.Item2)
-            {
-                EpochedData epochedData = m_DataByRequest[tuple.Item1];
-                foreach (var line in epochedData.Blocs)
-                {
-                    foreach (var site in line.BaselineValuesBySite.Keys)
+                    foreach (var channel in subTrial.BaselineValuesByChannel.Keys)
                     {
-                        line.Normalize(averageBySite[site], standardDeviationBySite[site], site);
+                        if (!baselineByChannel.ContainsKey(channel)) baselineByChannel[channel] = new List<float>();
+                        baselineByChannel[channel].AddRange(subTrial.BaselineValuesByChannel[channel]);
                     }
                 }
-                m_NormalizeByRequest[tuple.Item1] = HBP.Data.Enums.NormalizationType.Protocol;
             }
+        }
+
+        float average, standardDeviation;
+        foreach (var channel in baselineByChannel.Keys)
+        {
+            average = baselineByChannel[channel].ToArray().Mean();
+            standardDeviation = baselineByChannel[channel].ToArray().StandardDeviation();
+            foreach (var tuple in dataRequestAndNeedToNormalize)
+            {
+                if (tuple.Item2)
+                {
+                    BlocData epochedData = m_BlocDataByRequest[tuple.Item1];
+                    foreach (var trial in epochedData.Trials)
+                    {
+                        foreach (var subTrial in trial.SubTrialBySubBloc.Values)
+                        {
+                            subTrial.Normalize(average, standardDeviation, channel);
+                        }
+                    }
+                }
+            }
+        }
+
+        foreach (var tuple in dataRequestAndNeedToNormalize)
+        {
+            if (tuple.Item2) m_NormalizeByRequest[tuple.Item1] = HBP.Data.Enums.NormalizationType.Protocol;
         }
     }
     #endregion
 
     #region Private struct
-    struct DataRequest
+    struct Request
     {
-        public DataInfo DataInfo;
-        public Bloc Bloc;
+        public DataInfo DataInfo { get; set; }
+        public bool IsValid
+        {
+            get
+            {
+                return DataInfo != null && DataInfo.isOk;
+            }
+        }
 
-        public DataRequest(DataInfo dataInfo, Bloc bloc)
+        public Request(DataInfo dataInfo)
+        {
+            DataInfo = dataInfo;
+        }
+    }
+    struct BlocRequest
+    {
+        public DataInfo DataInfo { get; set; }
+        public Bloc Bloc { get; set; }
+        public bool IsValid
+        {
+            get
+            {
+                return DataInfo.Dataset.Protocol.Blocs.Contains(Bloc);
+            }
+        }
+
+        public BlocRequest(DataInfo dataInfo, Bloc bloc)
         {
             DataInfo = dataInfo;
             Bloc = bloc;
+        }
+    }
+    struct ChannelRequest
+    {
+        public DataInfo DataInfo { get; set; }
+        public string Channel { get; set; }
+        public bool IsValid
+        {
+            get
+            {
+                return DataInfo != null && DataInfo.isOk; // AddTestOnChannel
+            }
+        }
+
+        public ChannelRequest(DataInfo dataInfo, string channel)
+        {
+            DataInfo = dataInfo;
+            Channel = channel;
+        }
+    }
+    struct BlocChannelRequest
+    {
+        public DataInfo DataInfo { get; set; }
+        public Bloc Bloc { get; set; }
+        public string Channel { get; set; }
+        public bool IsValid
+        {
+            get
+            {
+                return DataInfo.Dataset.Protocol.Blocs.Contains(Bloc); // AddTestOnChannel
+            }
+        }
+
+        public BlocChannelRequest(DataInfo dataInfo, Bloc bloc, string channel)
+        {
+            DataInfo = dataInfo;
+            Bloc = bloc;
+            Channel = channel;
         }
     }
     #endregion

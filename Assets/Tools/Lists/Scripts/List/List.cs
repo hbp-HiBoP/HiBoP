@@ -12,7 +12,9 @@ namespace Tools.Unity.Lists
         public GameObject ItemPrefab;
         public float ItemHeight;
 
-        protected System.Collections.Generic.List<Item<T>> m_Items;
+        public enum Sorting { Ascending, Descending};
+
+        protected System.Collections.Generic.List<Item<T>> m_Items = new System.Collections.Generic.List<Item<T>>();
         protected int m_NumberOfItems;
 
         protected System.Collections.Generic.List<T> m_Objects = new System.Collections.Generic.List<T>();
@@ -124,7 +126,7 @@ namespace Tools.Unity.Lists
         }
         public virtual bool Initialize()
         {
-            if (!m_Initialized)
+            if(!m_Initialized)
             {
                 m_Objects = new System.Collections.Generic.List<T>();
                 m_Items = new System.Collections.Generic.List<Item<T>>();

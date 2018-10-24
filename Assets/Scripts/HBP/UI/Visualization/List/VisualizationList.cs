@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using UnityEngine;
 
 namespace HBP.UI.Visualization
 {
@@ -8,13 +9,16 @@ namespace HBP.UI.Visualization
         enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Columns, DescendingColumns }
         OrderBy m_OrderBy = OrderBy.None;
 
-        public enum Sorting { Ascending, Descending}
-        public SortingDisplayer m_NameSortingDisplayer;
-        public SortingDisplayer m_PatientsSortingDisplayer;
-        public SortingDisplayer m_ColumnsSortingDisplayer;
+        [SerializeField] SortingDisplayer m_NameSortingDisplayer;
+        [SerializeField] SortingDisplayer m_PatientsSortingDisplayer;
+        [SerializeField] SortingDisplayer m_ColumnsSortingDisplayer;
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -34,6 +38,9 @@ namespace HBP.UI.Visualization
             m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by name.
+        /// </summary>
         public void SortByName()
         {
             switch (m_OrderBy)
@@ -42,6 +49,11 @@ namespace HBP.UI.Visualization
                 default: SortByName(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by patients.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByPatients(Sorting sorting)
         {
             switch (sorting)
@@ -61,6 +73,9 @@ namespace HBP.UI.Visualization
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by patients.
+        /// </summary>
         public void SortByPatients()
         {
             switch (m_OrderBy)
@@ -69,6 +84,11 @@ namespace HBP.UI.Visualization
                 default: SortByPatients(Sorting.Descending); break;
             }
         }
+
+        /// <summary>
+        /// Sort by columns.
+        /// </summary>
+        /// <param name="sorting">Sorting</param>
         public void SortByColumns(Sorting sorting)
         {
             switch (sorting)
@@ -88,6 +108,9 @@ namespace HBP.UI.Visualization
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+        /// <summary>
+        /// Sort by columns.
+        /// </summary>
         public void SortByColumns()
         {
             switch (m_OrderBy)
@@ -95,6 +118,16 @@ namespace HBP.UI.Visualization
                 case OrderBy.DescendingColumns: SortByColumns(Sorting.Ascending); break;
                 default: SortByColumns(Sorting.Descending); break;
             }
+        }
+
+        /// <summary>
+        /// Sort by none.
+        /// </summary>
+        public void SortByNone()
+        {
+            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+            m_ColumnsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
         #endregion
     }

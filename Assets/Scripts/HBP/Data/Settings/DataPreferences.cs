@@ -1,4 +1,6 @@
 ﻿using System.Runtime.Serialization;
+using HBP.Data.Enums;
+using UnityEngine;
 
 namespace HBP.Data.Preferences
 {
@@ -6,31 +8,31 @@ namespace HBP.Data.Preferences
     public class DataPreferences
     {
         #region Properties
-        [DataMember] public EEGPreferences EEG { get; set; }
-        [DataMember] public EventPreferences Event { get; set; }
-        [DataMember] public AnatomyPreferences Anatomy { get; set; }
+        [DataMember] public EEGPrefrences EEG { get; set; }
+        [DataMember] public ProtocolPreferences Protocol { get; set; }
+        [DataMember] public AnatomicPreferences Anatomic { get; set; }
         #endregion
 
         #region Constructors
         public DataPreferences()
         {
-            EEG = new EEGPreferences();
-            Event = new EventPreferences();
-            Anatomy = new AnatomyPreferences();
+            EEG = new EEGPrefrences();
+            Protocol = new ProtocolPreferences();
+            Anatomic = new AnatomicPreferences();
         }
         #endregion
     }
 
     [DataContract]
-    public class EEGPreferences
+    public class EEGPrefrences
     {
         #region Properties
-        [DataMember] public Enums.AveragingType Averaging { get; set; }
-        [DataMember] public Enums.NormalizationType Normalization { get; set; }
+        [DataMember] public AveragingType Averaging { get; set; }
+        [DataMember] public NormalizationType Normalization { get; set; }
         #endregion
 
         #region Constructors
-        public EEGPreferences()
+        public EEGPrefrences()
         {
             Averaging = Enums.AveragingType.Median;
             Normalization = Enums.NormalizationType.None;
@@ -39,26 +41,50 @@ namespace HBP.Data.Preferences
     }
 
     [DataContract]
-    public class EventPreferences
+    public class ProtocolPreferences
     {
         #region Properties
-        [DataMember] public Enums.AveragingType PositionAveraging { get; set; }
+        [DataMember] public AveragingType PositionAveraging { get; set; }
+        [DataMember] public float MinLimit { get; set; }
+        [DataMember] public float MaxLimit{ get; set; }
+        [DataMember] public int Step { get; set; }
         #endregion
 
         #region Constructors
-        public EventPreferences()
+        public ProtocolPreferences() : this(AveragingType.Median, -1500, 1500, 50)
         {
-            PositionAveraging = Enums.AveragingType.Median;
+        }
+        public ProtocolPreferences(AveragingType positionAveraging, float minLimit, float maxLimit, int step)
+        {
+            PositionAveraging = positionAveraging;
+            MinLimit = minLimit;
+            MaxLimit = maxLimit;
+            Step = step;
         }
         #endregion
     }
 
     [DataContract]
-    public class AnatomyPreferences
+    public class AnatomicPreferences
     {
+        #region Properties
         [DataMember] public bool SiteNameCorrection { get; set; }
-        [DataMember] public bool PreloadMeshes { get; set; }
-        [DataMember] public bool PreloadMRIs { get; set; }
-        [DataMember] public bool PreloadImplantations { get; set; }
+        [DataMember] public bool MeshPreloading { get; set; }
+        [DataMember] public bool MRIPreloading { get; set; }
+        [DataMember] public bool ImplantationPreloading { get; set; }
+        #endregion
+
+        #region Constructors
+        public AnatomicPreferences(bool siteNameCorrection, bool meshPreloading, bool mRIPreloading, bool implantationPreloading)
+        {
+            SiteNameCorrection = siteNameCorrection;
+            MeshPreloading = meshPreloading;
+            MRIPreloading = mRIPreloading;
+            ImplantationPreloading = implantationPreloading;
+        }
+        public AnatomicPreferences() : this(false,false,false,false)
+        {
+        }
+        #endregion
     }
 }

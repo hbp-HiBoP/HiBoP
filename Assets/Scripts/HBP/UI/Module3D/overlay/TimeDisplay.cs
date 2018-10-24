@@ -29,7 +29,7 @@ namespace HBP.UI.Module3D
 
             switch (column.Type)
             {
-                case Data.Enums.ColumnType.Anatomy:
+                case Data.Enums.ColumnType.Anatomic:
                     IsActive = false;
                     break;
                 case Data.Enums.ColumnType.iEEG:

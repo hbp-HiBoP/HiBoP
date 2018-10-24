@@ -235,13 +235,13 @@ namespace HBP.Data.General
         // Protocols.
         public void SetProtocols(IEnumerable<Protocol> protocols)
         {
-            this.m_Protocols = new List<Protocol>();
+            m_Protocols = new List<Protocol>();
             AddProtocol(protocols);
             RemoveDataset((from dataset in m_Datasets where !m_Protocols.Any(p => p == dataset.Protocol) select dataset).ToArray());
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
-                Column[] columnsToRemove = (from column in visualization.Columns where !m_Protocols.Any(p => p == column.Protocol) select column).ToArray();
-                foreach (Column column in columnsToRemove)
+                IEEGColumn[] columnsToRemove = visualization.Columns.Where(c => c is IEEGColumn).Select(c => c as IEEGColumn).Where(c => !m_Protocols.Any(p => p == c.Dataset.Protocol)).ToArray();
+                foreach (BaseColumn column in columnsToRemove)
                 {
                     visualization.Columns.Remove(column);
                 }
@@ -263,7 +263,7 @@ namespace HBP.Data.General
             m_Datasets.RemoveAll((d) => d.Protocol == protocol);
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
-                visualization.Columns.RemoveAll((column) => column.Protocol == protocol);
+                visualization.Columns.RemoveAll((column) => (column is IEEGColumn) && (column as IEEGColumn).Dataset.Protocol == protocol);
             }
             m_Protocols.Remove(protocol);
         }
@@ -281,8 +281,8 @@ namespace HBP.Data.General
             AddDataset(datasets);
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
-                Column[] columnsToRemove = (from column in visualization.Columns where !m_Datasets.Any(d => d == column.Dataset) select column).ToArray();
-                foreach (Column column in columnsToRemove)
+                BaseColumn[] columnsToRemove = visualization.Columns.Where(column => column is IEEGColumn && !m_Datasets.Any(d => d == (column as IEEGColumn).Dataset)).ToArray();
+                foreach (BaseColumn column in columnsToRemove)
                 {
                     visualization.Columns.Remove(column);
                 }
@@ -303,7 +303,7 @@ namespace HBP.Data.General
         {
             foreach (Visualization.Visualization visualization in m_Visualizations)
             {
-                visualization.Columns.RemoveAll((column) => column.Dataset == dataset);
+                visualization.Columns.RemoveAll((column) => (column is IEEGColumn) && (column as IEEGColumn).Dataset == dataset);
             }
             m_Datasets.Remove(dataset);
         }

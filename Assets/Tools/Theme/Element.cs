@@ -7,16 +7,16 @@ namespace NewTheme
     public class Element : ScriptableObject
     {
         #region Properties
-        public State Default;
+        public State DefaultState;
         public SettingByState[] SettingsByState;
         #endregion
 
         #region Public Methods
-        public void Set(GameObject gameObject)
+        public State Set(GameObject gameObject)
         {
-            Set(gameObject, Default);
+            return Set(gameObject, DefaultState);
         }
-        public void Set(GameObject gameObject, State state)
+        public State Set(GameObject gameObject, State state)
         {
             SettingByState settingsByState = SettingsByState.FirstOrDefault((s) => s.State == state);
             if(settingsByState != null)
@@ -25,7 +25,9 @@ namespace NewTheme
                 {
                     if (setting) setting.Set(gameObject);
                 }
+                return state;
             }
+            return null;
         }
         #endregion
 

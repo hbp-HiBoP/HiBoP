@@ -58,7 +58,7 @@ public class ThemeChecker
         {
             if (!element.GetComponent<NewTheme.Components.ThemeElement>())
             {
-                fullNames.Add(element.transform.FullName());
+                fullNames.Add(element.transform.GetFullName());
             }
         }
         fullNames.Sort();

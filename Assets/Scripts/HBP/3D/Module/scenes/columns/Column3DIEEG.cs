@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using HBP.Module3D.DLL;
 using HBP.Data.Enums;
+using System.Linq;
 
 namespace HBP.Module3D
 {
@@ -15,17 +16,23 @@ namespace HBP.Module3D
         /// <summary>
         /// Type of the column
         /// </summary>
-        public override Data.Enums.ColumnType Type
+        public override ColumnType Type
         {
             get
             {
-                return Data.Enums.ColumnType.iEEG;
+                return ColumnType.iEEG;
             }
         }
         /// <summary>
         /// Column data
         /// </summary>
-        public Data.Visualization.Column ColumnData;
+        public Data.Visualization.IEEGColumn ColumnIEEGData
+        {
+            get
+            {
+                return ColumnData as Data.Visualization.IEEGColumn;
+            }
+        }
         /// <summary>
         /// Timeline of this column
         /// </summary>
@@ -103,7 +110,7 @@ namespace HBP.Module3D
         /// </summary>
         private void SetEEGData()
         {
-            if (ColumnData == null) return;
+            if (ColumnIEEGData == null) return;
 
             // Construct sites value array the old way, and set sites masks // maybe FIXME
             IEEGValuesBySiteID = new float[Sites.Count][];
@@ -111,13 +118,14 @@ namespace HBP.Module3D
             int numberOfSitesWithValues = 0;
             foreach (Site site in Sites)
             {
-                Data.Visualization.SiteConfiguration siteConfiguration;
-                if (ColumnData.Configuration.ConfigurationBySite.TryGetValue(site.Information.FullCorrectedID, out siteConfiguration))
+                Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics;
+                if (ColumnIEEGData.Data.StatisticsBySite.TryGetValue(site.Information.FullCorrectedID, out blocChannelStatistics))
                 {
-                    if (siteConfiguration.Values.Length > 0)
+                    float[] values = blocChannelStatistics.Trial.AllValues;
+                    if (values.Length > 0)
                     {
-                        IEEGValuesBySiteID[site.Information.GlobalID] = siteConfiguration.NormalizedValues;
                         numberOfSitesWithValues++;
+                        IEEGValuesBySiteID[site.Information.GlobalID] = values;
                         site.State.IsMasked = false; // update mask
                     }
                     else
@@ -125,12 +133,10 @@ namespace HBP.Module3D
                         IEEGValuesBySiteID[site.Information.GlobalID] = new float[Timeline.Length];
                         site.State.IsMasked = true; // update mask
                     }
-                    site.Configuration = siteConfiguration;
-                    IEEGUnitsBySiteID[site.Information.GlobalID] = siteConfiguration.Unit;
+                    IEEGUnitsBySiteID[site.Information.GlobalID] = DataManager.GetData(ColumnIEEGData.Dataset.Data.FirstOrDefault((data) => (ColumnIEEGData.DataName == data.Name && data.Patient == site.Information.Patient))).UnitByChannel[site.Information.FullCorrectedID];
                 }
                 else
                 {
-                    ColumnData.Configuration.ConfigurationBySite.Add(site.Information.FullCorrectedID, site.Configuration);
                     IEEGValuesBySiteID[site.Information.GlobalID] = new float[Timeline.Length];
                     IEEGUnitsBySiteID[site.Information.GlobalID] = "";
                     site.State.IsMasked = true; // update mask
@@ -254,11 +260,11 @@ namespace HBP.Module3D
         public void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration(false);
-            IEEGParameters.Gain = ColumnData.Configuration.Gain;
-            IEEGParameters.InfluenceDistance = ColumnData.Configuration.MaximumInfluence;
-            IEEGParameters.AlphaMin = ColumnData.Configuration.Alpha;
-            IEEGParameters.SetSpanValues(ColumnData.Configuration.SpanMin, ColumnData.Configuration.Middle, ColumnData.Configuration.SpanMax, this);
-            foreach (Data.Visualization.RegionOfInterest roi in ColumnData.Configuration.RegionsOfInterest)
+            IEEGParameters.Gain = ColumnIEEGData.IEEGConfiguration.Gain;
+            IEEGParameters.InfluenceDistance = ColumnIEEGData.IEEGConfiguration.MaximumInfluence;
+            IEEGParameters.AlphaMin = ColumnIEEGData.IEEGConfiguration.Alpha;
+            IEEGParameters.SetSpanValues(ColumnIEEGData.IEEGConfiguration.SpanMin, ColumnIEEGData.IEEGConfiguration.Middle, ColumnIEEGData.IEEGConfiguration.SpanMax, this);
+            foreach (Data.Visualization.RegionOfInterest roi in ColumnIEEGData.BaseConfiguration.RegionsOfInterest)
             {
                 ROI newROI = AddROI(roi.Name);
                 foreach (Data.Visualization.Sphere sphere in roi.Spheres)
@@ -278,18 +284,18 @@ namespace HBP.Module3D
         /// </summary>
         public void SaveConfiguration()
         {
-            ColumnData.Configuration.Gain = IEEGParameters.Gain;
-            ColumnData.Configuration.MaximumInfluence = IEEGParameters.InfluenceDistance;
-            ColumnData.Configuration.Alpha = IEEGParameters.AlphaMin;
-            ColumnData.Configuration.SpanMin = IEEGParameters.SpanMin;
-            ColumnData.Configuration.Middle = IEEGParameters.Middle;
-            ColumnData.Configuration.SpanMax = IEEGParameters.SpanMax;
+            ColumnIEEGData.IEEGConfiguration.Gain = IEEGParameters.Gain;
+            ColumnIEEGData.IEEGConfiguration.MaximumInfluence = IEEGParameters.InfluenceDistance;
+            ColumnIEEGData.IEEGConfiguration.Alpha = IEEGParameters.AlphaMin;
+            ColumnIEEGData.IEEGConfiguration.SpanMin = IEEGParameters.SpanMin;
+            ColumnIEEGData.IEEGConfiguration.Middle = IEEGParameters.Middle;
+            ColumnIEEGData.IEEGConfiguration.SpanMax = IEEGParameters.SpanMax;
             List<Data.Visualization.RegionOfInterest> rois = new List<Data.Visualization.RegionOfInterest>();
             foreach (ROI roi in m_ROIs)
             {
                 rois.Add(new Data.Visualization.RegionOfInterest(roi));
             }
-            ColumnData.Configuration.RegionsOfInterest = rois;
+            ColumnIEEGData.BaseConfiguration.RegionsOfInterest = rois;
             foreach (Site site in Sites)
             {
                 site.SaveConfiguration();
@@ -331,10 +337,9 @@ namespace HBP.Module3D
         /// Specify a column data for this column
         /// </summary>
         /// <param name="columnData">Column data to use</param>
-        public void SetColumnData(Data.Visualization.Column columnData)
+        public void ComputeEEGData()
         {
-            ColumnData = columnData;
-            Timeline = new Timeline(ColumnData.TimeLine);
+            Timeline = new Timeline(ColumnIEEGData.Data.TimeLine);
             Timeline.OnUpdateCurrentIndex.AddListener(() =>
             {
                 OnUpdateCurrentTimelineID.Invoke();
