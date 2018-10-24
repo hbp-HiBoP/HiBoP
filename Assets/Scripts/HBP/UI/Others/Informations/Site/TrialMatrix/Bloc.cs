@@ -4,6 +4,7 @@ using UnityEngine.Events;
 using System.Collections.Generic;
 using d = HBP.Data.TrialMatrix;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -24,8 +25,21 @@ namespace HBP.UI.TrialMatrix
         }
         public StringEvent OnChangeTitle;
 
-        List<SubBloc> blocs = new List<SubBloc>();
-        public ReadOnlyCollection<SubBloc> SubBlocs { get { return new ReadOnlyCollection<SubBloc>(blocs); } }
+        List<int> m_SelectedTrials = new List<int>();
+        public int[] SelectedTrials
+        {
+            get
+            {
+                return m_SelectedTrials.ToArray();
+            }
+            set
+            {
+                m_SelectedTrials = value.ToList();
+            }
+        }
+
+        List<SubBloc> m_SubBlocs = new List<SubBloc>();
+        public ReadOnlyCollection<SubBloc> SubBlocs { get { return new ReadOnlyCollection<SubBloc>(m_SubBlocs); } }
         #endregion
 
         #region Public Methods
@@ -46,14 +60,11 @@ namespace HBP.UI.TrialMatrix
             //    }
             //}
         }
-        public void SelectLines(int[] lines, Data.Experience.Protocol.Bloc bloc,bool additive)
+        public void SelectLines(int[] trials,bool additive)
         {
-            foreach(SubBloc l_bloc in blocs)
+            foreach(SubBloc subBloc in m_SubBlocs)
             {
-                if(l_bloc.Data.ProtocolBloc == bloc)
-                {
-                    l_bloc.SelectLines(lines,additive);
-                }
+                subBloc.SelectTrials(trials, additive);
             }
         }
         #endregion
@@ -64,7 +75,7 @@ namespace HBP.UI.TrialMatrix
             SubBloc instantiateBloc = (Instantiate(SubBlocPrefab) as GameObject).GetComponent<SubBloc>();
             instantiateBloc.Set(bloc, colorMap, limits);
             instantiateBloc.transform.SetParent(SubBlocsRectTransform);
-            blocs.Add(instantiateBloc);
+            m_SubBlocs.Add(instantiateBloc);
         }
         void AddEmpty()
         {

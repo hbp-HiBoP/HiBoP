@@ -136,25 +136,6 @@ namespace HBP.UI.TrialMatrix
             //}
             //SelectAllLines();
         }
-        public void SelectTrials(int[] trials, Data.Experience.Protocol.Bloc data,bool additive)
-        {
-            foreach(Bloc bloc in m_Blocs)
-            {
-                bloc.SelectLines(trials, data, additive);
-            }
-        }
-        public void SelectAllTrials()
-        {
-            foreach(data.Bloc bloc in Data.Blocs)
-            {
-                int[] selectedTrials = new int[bloc.SubBlocs.Length];
-                for (int i = 0; i < selectedTrials.Length; i++)
-                {
-                    selectedTrials[i] = i;
-                }
-                SelectTrials(selectedTrials, bloc.ProtocolBloc, true);
-            }
-        }
         #endregion
 
         #region Private Methods

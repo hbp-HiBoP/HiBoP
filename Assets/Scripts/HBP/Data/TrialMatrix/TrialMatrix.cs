@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
 using Tools.CSharp;
-using System;
 
 namespace HBP.Data.TrialMatrix
 {
@@ -15,7 +15,7 @@ namespace HBP.Data.TrialMatrix
         public Bloc[] Blocs { get; set; }
         public Vector2 Limits { get; set; }
         public Protocol Protocol { get; set; }
-        public Vector2[] TimeLimitsByColumn { get; set; }
+        public Dictionary<int,Vector2> TimeLimitsByColumn { get; set; }
         #endregion
 
         #region Constructor
@@ -69,18 +69,27 @@ namespace HBP.Data.TrialMatrix
                 }
             }
         }
-        Vector2[] CalculateTimeLimitsByColumn(Bloc[] blocs)
+        Dictionary<int,Vector2> CalculateTimeLimitsByColumn(IEnumerable<Bloc> blocs)
         {
-            // TODO
-            //int columnNumber = (from bloc in blocs select bloc.ProtocolBloc.Position.Column).Max();
-            //Vector2[] limits = new Vector2[columnNumber];
-            //for (int i = 0; i < columnNumber; i++)
-            //{
-            //    IEnumerable<Bloc> blocsInColumn = blocs.Where((b) => b.ProtocolBloc.Position.Column - 1 == i);
-            //    limits[i] = new Vector2(blocsInColumn.Min((b) => b.ProtocolBloc.Window.Start), blocsInColumn.Max((b) => b.ProtocolBloc.Window.End));
-            //}
-            //return limits;
-            return new Vector2[0];
+            Dictionary<int, List<SubBloc>> subBlocsByColumns = new Dictionary<int, List<SubBloc>>();
+            foreach (var bloc in blocs)
+            {
+                int mainSubBlocPosition = bloc.ProtocolBloc.MainSubBlocPosition;
+                for (int i = 0; i < bloc.SubBlocs.Length; i++)
+                {
+                    int column = i - mainSubBlocPosition;
+                    if (!subBlocsByColumns.ContainsKey(column)) subBlocsByColumns[column] = new List<SubBloc>();
+                    subBlocsByColumns[i - mainSubBlocPosition].Add(bloc.SubBlocs[i]);
+                }
+            }
+
+            Dictionary<int, Vector2> timeLimitsByColumns = new Dictionary<int, Vector2>();
+            foreach (var pair in subBlocsByColumns)
+            {
+                List<SubBloc> subBlocs = subBlocsByColumns[pair.Key];
+                timeLimitsByColumns.Add(pair.Key, new Vector2(subBlocs.Min(s => s.SubBlocProtocol.Window.Start), subBlocs.Max(s => s.SubBlocProtocol.Window.End)));
+            }
+            return timeLimitsByColumns;
         }
         #endregion
     }

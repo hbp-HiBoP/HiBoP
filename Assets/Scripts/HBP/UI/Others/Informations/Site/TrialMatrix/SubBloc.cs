@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System.Linq;
 using System.Collections.Generic;
 using data = HBP.Data.TrialMatrix;
-using System.Collections.ObjectModel;
 using Tools.Unity;
 using Tools.CSharp;
 using UnityEngine.Profiling;
@@ -14,8 +14,8 @@ namespace HBP.UI.TrialMatrix
     public class SubBloc : MonoBehaviour
     {
         #region Properties
-        data.Bloc m_Data;
-        public data.Bloc Data
+        data.SubBloc m_Data;
+        public data.SubBloc Data
         {
             get
             {
@@ -53,14 +53,8 @@ namespace HBP.UI.TrialMatrix
             }
         }
 
-        List<int> m_selectedLines = new List<int>();
-        public ReadOnlyCollection<int> SelectedLines
-        {
-            get { return new ReadOnlyCollection<int>(m_selectedLines); }
-        }
-
-        [SerializeField] GameObject SelectionMask;
-        int m_BeginDragLine;
+        [SerializeField] GameObject m_SelectionMask;
+        int m_BeginDragTrial;
         bool m_Initialized;
         bool m_Dragging;
         RectTransform m_RectTransform;
@@ -74,61 +68,50 @@ namespace HBP.UI.TrialMatrix
             m_ColorMap = colorMap;
             m_Limits = limits;
 
-            // TODO
-            //name = data.ProtocolBloc.Name + " | " + "Bloc n°" + data.ProtocolBloc.Position.Column;
-
             SetSize();
             SetTexture();
             GenerateMainEventIndicator(data);
             GenerateSecondaryIndicator(data);
         }
-        public void SelectLines(int[] lines,bool additive)
+        public void SelectTrials(int[] trials)
         {
-                ClearMask();
-                if (additive)
+            int NumberOfTrials = m_Data.SubTrials.Length;
+            int[] unselectedTrials = new int[NumberOfTrials - trials.Length];
+            for (int t = 0, i = 0; t < m_Data.SubTrials.Length; t++)
+            {
+                if (!trials.Contains(t))
                 {
-                    foreach (int i in lines)
-                    {
-                        if (!m_selectedLines.Contains(i))
-                        {
-                            m_selectedLines.Add(i);
-                        }
-                    }
+                    unselectedTrials[i] = t;
+                    i++;
                 }
-                else
-                {
-                    m_selectedLines = new List<int>(lines);
-                }
-                List<int> l_notSelectedLines = new List<int>();
-                for (int i = 0; i < Data.SubBlocs.Length; i++)
-                {
-                    if (!m_selectedLines.Contains(i)) l_notSelectedLines.Add(i);
-                }
+            }
 
-                List<List<int>> GroupOfLines = new List<List<int>>();
-                List<int> group = new List<int>();
-                for (int i = 0; i < l_notSelectedLines.Count; i++)
+            List<List<int>> trialsGroups = new List<List<int>>();
+            List<int> trialGroup = new List<int>();
+            for (int i = 0; i < unselectedTrials.Length; i++)
+            {
+                int trial = unselectedTrials[i];
+                if (trialGroup.Count != 0 && unselectedTrials[i] != trialGroup[trialGroup.Count - 1] + 1)
                 {
-                    if (group.Count != 0 && l_notSelectedLines[i] != group[group.Count - 1] + 1)
-                    {
-                        GroupOfLines.Add(new List<int>(group));
-                        group = new List<int>();
-                    }
-                    group.Add(l_notSelectedLines[i]);
-                    if (i == l_notSelectedLines.Count - 1)
-                    {
-                        GroupOfLines.Add(new List<int>(group));
-                    }
+                    trialsGroups.Add(new List<int>(trialGroup));
+                    trialGroup = new List<int>();
                 }
+                trialGroup.Add(unselectedTrials[i]);
+                if (i == unselectedTrials.Length - 1)
+                {
+                    trialsGroups.Add(new List<int>(trialGroup));
+                }
+            }
 
-                foreach (List<int> g in GroupOfLines)
-                {
-                    AddCache(g.ToArray());
-                }
+            ClearMask();
+            foreach (var g in trialsGroups)
+            {
+                AddMask(g.ToArray());
+            }
         }
         public void OnPointerDown()
         {
-            m_BeginDragLine = GetTrialAtPosition(Input.mousePosition);
+            m_BeginDragTrial = GetTrialAtPosition(Input.mousePosition);
         }
         public void OnPointerClick(BaseEventData p)
         {
@@ -137,7 +120,7 @@ namespace HBP.UI.TrialMatrix
             {
                 if (!m_Dragging)
                 {
-                    int[] linesClicked = new int[1] { m_BeginDragLine };
+                    int[] linesClicked = new int[1] { m_BeginDragTrial };
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
                         SendMessageSelectLines(linesClicked, true);
@@ -166,7 +149,7 @@ namespace HBP.UI.TrialMatrix
         public void OnEndDrag()
         {
             int l_endDragLine = Mathf.Clamp(GetTrialAtPosition(Input.mousePosition),0,m_Data.SubBlocs.Length-1);
-            int l_beginDragLine = Mathf.Clamp(m_BeginDragLine, 0, m_Data.SubBlocs.Length-1); ;
+            int l_beginDragLine = Mathf.Clamp(m_BeginDragTrial, 0, m_Data.SubBlocs.Length-1); ;
             List<int> linesSelected = new List<int>();
             if(l_beginDragLine > l_endDragLine)
             {
@@ -265,10 +248,10 @@ namespace HBP.UI.TrialMatrix
             GetComponent<RawImage>().texture = texture;
         }
 
-        void AddCache(int[] lines)
+        void AddMask(int[] lines)
         {
             RectTransform rectTransform = GetComponent<RectTransform>();
-            GameObject displayer = Instantiate(SelectionMask as GameObject);
+            GameObject displayer = Instantiate(m_SelectionMask as GameObject);
             RectTransform displayerRect = displayer.GetComponent<RectTransform>();
             displayerRect.SetParent(transform.GetChild(1));
             int nbLines = m_Data.SubBlocs.Length;
@@ -284,7 +267,7 @@ namespace HBP.UI.TrialMatrix
             Informations.TrialMatrixZone graphGestion = GetComponentInParent<Informations.TrialMatrixZone>();
             if (graphGestion)
             {
-                graphGestion.OnSelectLines(lines, this, additive);
+                graphGestion.OnSelectTrials(lines, this, additive);
             }
         }
         Texture2D GenerateTexture(float[][] lines,Vector2 limits,Texture2D colorMap)

@@ -18,15 +18,17 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public SubTrial(bool found) : this(new Dictionary<Event, EventInformation>(), new Dictionary<string, float[]>(), new Dictionary<string, float[]>(), found) { }
-        public SubTrial(Dictionary<Event, EventInformation> informationsByEvent, Dictionary<string, float[]> rawValuesByChannel, Dictionary<string, float[]> baselineValuesByChannel, bool found) : this()
+        public SubTrial(bool found) : this(new Dictionary<Event, EventInformation>(), new Dictionary<string, float[]>(), new Dictionary<string, float[]>(), found)
+        {
+        }
+        public SubTrial(Dictionary<Event, EventInformation> informationsByEvent, Dictionary<string, float[]> rawValuesByChannel, Dictionary<string, float[]> baselineValuesByChannel, bool found)
         {
             InformationsByEvent = informationsByEvent;
             RawValuesByChannel = rawValuesByChannel;
             BaselineValuesByChannel = baselineValuesByChannel;
             Found = found;
         }
-        public SubTrial(Dictionary<string, float[]> valuesByChannel, POS.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Frequency frequency) : this()
+        public SubTrial(Dictionary<string, float[]> valuesByChannel, POS.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Frequency frequency)
         {
             RawValuesByChannel = EpochValues(valuesByChannel, mainEventOccurence.Index, subBloc.Window, frequency);
             ValuesByChannel = RawValuesByChannel.ToDictionary(kv => kv.Key, kv => kv.Value.Clone() as float[]);
