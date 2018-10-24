@@ -7,7 +7,7 @@ using Tools.CSharp;
 
 namespace HBP.Data.Experience.Dataset
 {
-    public struct SubTrial
+    public class SubTrial
     {
         #region Properties
         public bool Found { get; set; }
@@ -26,7 +26,7 @@ namespace HBP.Data.Experience.Dataset
             BaselineValuesByChannel = baselineValuesByChannel;
             Found = found;
         }
-        public SubTrial(Dictionary<string, float[]> valuesByChannel, POS.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, EpochedData.EventOccurences> occurencesByEvent, Frequency frequency) : this()
+        public SubTrial(Dictionary<string, float[]> valuesByChannel, POS.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Frequency frequency) : this()
         {
             RawValuesByChannel = EpochValues(valuesByChannel, mainEventOccurence.Index, subBloc.Window, frequency);
             ValuesByChannel = RawValuesByChannel.ToDictionary(kv => kv.Key, kv => kv.Value.Clone() as float[]);
@@ -73,7 +73,7 @@ namespace HBP.Data.Experience.Dataset
             }
             return result;
         }
-        Dictionary<Event,EventInformation> FindEvents(POS.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, EpochedData.EventOccurences> occurencesByEvent, Frequency frequency)
+        Dictionary<Event,EventInformation> FindEvents(POS.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Frequency frequency)
         {
             // Initialize
             Dictionary<Event, EventInformation> result = new Dictionary<Event, EventInformation>(subBloc.Events.Count);

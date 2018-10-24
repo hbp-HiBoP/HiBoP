@@ -4,7 +4,7 @@ using HBP.Data.Localizer;
 
 namespace HBP.Data.Experience.Dataset
 {
-    public class EpochedData
+    public class BlocData
     {
         #region Properties
         public bool IsValid
@@ -14,14 +14,12 @@ namespace HBP.Data.Experience.Dataset
                 return Trials.Length > 0 && Trials.Any(t => t.IsValid);
             }
         }
-        public Frequency Frequency { get; set; }
         public Trial[] Trials { get; set; }
-        public Dictionary<string, string> UnitByChannel { get; set; } // Maybe one day use this.
         #endregion
 
         #region Constructors
-        public EpochedData(Data data, Protocol.Bloc bloc) : this(data.ValuesByChannel, data.UnitByChannel, data.POS, data.Frequency, bloc) { }
-        public EpochedData(Dictionary<string,float[]> valuesByChannel, Dictionary<string,string> unitByChannel, POS pos, Frequency frequency, Protocol.Bloc bloc)
+        public BlocData(RawData data, Protocol.Bloc bloc) : this(data.ValuesByChannel, data.POS, data.Frequency, bloc) { }
+        public BlocData(Dictionary<string,float[]> valuesByChannel, POS pos, Frequency frequency, Protocol.Bloc bloc)
         {
             // Find all occurences for each event.
             Dictionary<Protocol.Event,EventOccurences> occurencesByEvent = bloc.SubBlocs.SelectMany((s) => s.Events).ToDictionary((e) => e, (e) => new EventOccurences(e.Codes.ToDictionary((c) => c, (c) => pos.GetOccurences(c).ToArray())));
@@ -40,9 +38,6 @@ namespace HBP.Data.Experience.Dataset
                 endIndex = (i + 1 >= MainSubBlocMainEventOccurences.Length) ? int.MaxValue : MainSubBlocMainEventOccurences[i + 1].Index;
                 trials.Add(new Trial(valuesByChannel, startIndex, MainSubBlocMainEventOccurences[i] , endIndex, occurencesByEvent, bloc, frequency));
             }
-
-            UnitByChannel = unitByChannel;
-            Frequency = frequency;
         }
         #endregion
 
@@ -77,4 +72,4 @@ namespace HBP.Data.Experience.Dataset
         }
         #endregion
     }
-}
+} 

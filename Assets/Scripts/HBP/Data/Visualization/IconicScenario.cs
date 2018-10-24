@@ -47,7 +47,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Create a new iconic scenario instance with default values.
         /// </summary>
-        public IconicScenario() : this(new Experience.Protocol.Bloc(), new Frequency() ,new Timeline())
+        public IconicScenario() : this(new Experience.Protocol.Bloc(), new Frequency(0) ,new Timeline())
         {
 
         }

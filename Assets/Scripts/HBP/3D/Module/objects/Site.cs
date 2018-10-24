@@ -343,7 +343,8 @@ namespace HBP.Module3D
         /// </summary>
         public Data.Visualization.SiteConfiguration Configuration { get; set; }
 
-        public Data.Visualization.SiteData Data { get; set; }
+        public Data.Experience.Dataset.BlocChannelData Data { get; set; }
+        public Data.Experience.Dataset.BlocChannelStatistics Statistics { get; set; }
         #endregion
 
         #region Private Methods

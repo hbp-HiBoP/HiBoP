@@ -51,11 +51,11 @@ namespace HBP.UI.TrialMatrix
             {
                 m_Limits = value;
                 OnChangeLimits.Invoke(value);
-                foreach (Bloc line in Blocs)
+                foreach (Bloc bloc in Blocs)
                 {
-                    foreach (Bloc bloc in line.Blocs)
+                    foreach (SubBloc subBloc in bloc.SubBlocs)
                     {
-                        bloc.Limits = m_Limits;
+                        subBloc.Limits = m_Limits;
                     }
                 }
             }
@@ -72,7 +72,7 @@ namespace HBP.UI.TrialMatrix
             set
             {
                 m_UsePrecalculatedLimits = value;
-                if (value) Limits = m_Data.Limits;
+                if (value) Limits = Data.Limits;
                 else Limits = m_Limits;
             }
         }
@@ -147,7 +147,7 @@ namespace HBP.UI.TrialMatrix
         {
             foreach(data.Bloc bloc in Data.Blocs)
             {
-                int[] selectedTrials = new int[bloc.Trials.Length];
+                int[] selectedTrials = new int[bloc.SubBlocs.Length];
                 for (int i = 0; i < selectedTrials.Length; i++)
                 {
                     selectedTrials[i] = i;

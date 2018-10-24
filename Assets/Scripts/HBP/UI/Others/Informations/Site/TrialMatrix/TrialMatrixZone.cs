@@ -60,7 +60,7 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Handlers Methods
-        public void OnSelectLines(int[] lines, TrialMatrix.Bloc bloc, bool additive)
+        public void OnSelectLines(int[] lines, TrialMatrix.SubBloc bloc, bool additive)
         {
             if (m_TrialCanBeSelect)
             {

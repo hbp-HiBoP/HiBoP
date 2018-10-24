@@ -101,6 +101,14 @@ namespace HBP.Data.Experience.Dataset
             None, SubTrial, Trial, SubBloc, Bloc, Protocol, Auto
         }
 
+        public Dataset Dataset
+        {
+            get
+            {
+                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault((d) => d.Data.Contains(this));
+            }
+        }
+
         ErrorType[] m_NameErrors;
         ErrorType[] m_PatientErrors;
         ErrorType[] m_MeasureErrors;

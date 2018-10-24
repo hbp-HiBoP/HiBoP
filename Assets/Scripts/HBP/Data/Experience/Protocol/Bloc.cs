@@ -94,8 +94,21 @@ namespace HBP.Data.Experience.Protocol
         {
             get
             {
-                IOrderedEnumerable<SubBloc> orderedBlocs = SubBlocs.OrderBy((subBloc) => subBloc.Order);
-                return orderedBlocs.FirstOrDefault();
+                return SubBlocs.FirstOrDefault(s => s.Type == Enums.MainSecondaryEnum.Main);
+            }
+        }
+        public IOrderedEnumerable<SubBloc> OrderedSubBlocs
+        {
+            get
+            {
+                return SubBlocs.OrderBy(s => s.Order).ThenBy(s => s.Order);
+            }
+        }
+        public int MainSubBlocPosition
+        {
+            get
+            {
+                return Array.IndexOf(OrderedSubBlocs.ToArray(), MainSubBloc);
             }
         }
         #endregion

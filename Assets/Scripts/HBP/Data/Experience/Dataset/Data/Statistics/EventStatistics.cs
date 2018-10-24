@@ -1,12 +1,10 @@
-﻿using HBP.Data.Experience.Dataset;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Tools.CSharp;
 
-namespace HBP.Data.Visualization
+namespace HBP.Data.Experience.Dataset
 {
-    public struct EventInformationStat
+    public struct EventStatistics
     {
         #region Properties
         public int RoundedIndex { get; set; }
@@ -16,7 +14,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public EventInformationStat(EventInformation[] eventInformation, Enums.AveragingType averaging):this()
+        public EventStatistics(EventInformation[] eventInformation, Enums.AveragingType averaging):this()
         {
             List<int> indexes = new List<int>();
             List<int> numberOfOccurence = new List<int>();

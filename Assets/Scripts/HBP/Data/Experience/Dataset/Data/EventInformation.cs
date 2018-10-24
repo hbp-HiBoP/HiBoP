@@ -1,6 +1,6 @@
 ﻿namespace HBP.Data.Experience.Dataset
 {
-    public struct EventInformation
+    public class EventInformation
     {
         #region Properties
         public bool IsFound
@@ -21,7 +21,7 @@
         #endregion
 
         #region Constructors
-        public EventInformation(EventOccurence[] occurences) : this()
+        public EventInformation(EventOccurence[] occurences)
         {
             Occurences = occurences;
         }
@@ -62,7 +62,7 @@
             #endregion
 
             #region Constructors
-            public EventOccurence(int code, int index, int indexFromStart, int indexFromMainEvent, float time, float timeFromStart, float timeFromMainEvent) : this()
+            public EventOccurence(int code, int index, int indexFromStart, int indexFromMainEvent, float time, float timeFromStart, float timeFromMainEvent)
             {
                 Code = code;
                 Index = index;

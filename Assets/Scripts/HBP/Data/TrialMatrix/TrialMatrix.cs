@@ -3,7 +3,8 @@ using System.Linq;
 using System.Collections.Generic;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
-using HBP.Module3D;
+using Tools.CSharp;
+using System;
 
 namespace HBP.Data.TrialMatrix
 {
@@ -18,82 +19,53 @@ namespace HBP.Data.TrialMatrix
         #endregion
 
         #region Constructor
-        public TrialMatrix(Protocol protocol, DataInfo dataInfo, Dictionary<Experience.Protocol.Bloc,Trial[]> blocsByProtocolBloc, Module3D.Site site, Base3DScene scene)
+        public TrialMatrix(DataInfo dataInfo, string channel, IEnumerable<Experience.Protocol.Bloc> blocsToDisplay = null)
         {
-            //// Genreate blocs.
-            //UnityEngine.Profiling.Profiler.BeginSample("Generate blocs");
-            //Bloc[] trialMatrixBlocs;
-            //if (ApplicationState.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
-            //{
-            //    trialMatrixBlocs = (from bloc in protocol.Blocs select new Bloc(bloc, blocsByProtocolBloc[bloc], site)).ToArray();
-            //}
-            //else
-            //{
-            //    List<Bloc> blocs = new List<Bloc>();
-            //    foreach (var bloc in protocol.Blocs)
-            //    {
-            //        if (scene.Visualization.IEEGColumns.Any((c) => c.Bloc == bloc))
-            //        {
-            //            blocs.Add(new Bloc(bloc, blocsByProtocolBloc[bloc], site));
-            //        }
-            //    }
-            //    trialMatrixBlocs = blocs.ToArray();
-            //}
-            //UnityEngine.Profiling.Profiler.EndSample();
+            Protocol protocol = dataInfo.Dataset.Protocol;
+            ChannelData channelData = DataManager.GetData(dataInfo, channel);
 
-            //Normalize(trialMatrixBlocs, site);
+            // Genreate blocs.
+            if (blocsToDisplay == null) blocsToDisplay = dataInfo.Dataset.Protocol.Blocs;
+            IEnumerable<Bloc> blocs = protocol.Blocs.Where(bloc => blocsToDisplay.Contains(bloc)).Select(bloc => new Bloc(bloc, channelData.DataByBloc[bloc]));
 
-            //// Calculate values limits.
-            //UnityEngine.Profiling.Profiler.BeginSample("calculate values");
-            //List<float> values = new List<float>();
-            //foreach (Bloc bloc in trialMatrixBlocs) foreach (Line line in bloc.Trials) values.AddRange(line.Bloc.NormalizedValuesBySite[site.Information.FullCorrectedID]);
-            //Limits = CalculateValueLimit(values.ToArray());
-            //UnityEngine.Profiling.Profiler.EndSample();
+            //Standardize Blocs
+            Standardize(blocs);
 
-            ////Standardize Blocs
-            //UnityEngine.Profiling.Profiler.BeginSample("standardize blocs");
-            //Standardize(trialMatrixBlocs, site);
-            //UnityEngine.Profiling.Profiler.EndSample();
-
-            //// Set properties
-            //UnityEngine.Profiling.Profiler.BeginSample("set properties");
-            //Title = "Site: " + site.Information.ChannelName + "   |   Patient: " + dataInfo.Patient.CompleteName + "   |   Protocol: " + protocol.Name + "   |   Data: " + dataInfo.Name;
-            //Blocs = trialMatrixBlocs.ToArray();
-            //TimeLimitsByColumn = CalculateTimeLimitsByColumn(trialMatrixBlocs);
-            //Protocol = protocol;
-            //UnityEngine.Profiling.Profiler.EndSample();
+            // Set properties
+            Title = "Site: " + channel + "   |   Patient: " + dataInfo.Patient.CompleteName + "   |   Protocol: " + protocol.Name + "   |   Data: " + dataInfo.Name;
+            Blocs = blocs.ToArray();
+            Limits = blocs.SelectMany(b => b.SubBlocs).SelectMany(s => s.SubTrials).SelectMany(v => v.Data.Values).ToArray().CalculateValueLimit();
+            Protocol = dataInfo.Dataset.Protocol;
+            TimeLimitsByColumn = CalculateTimeLimitsByColumn(blocs);
         }
         #endregion
 
         #region Private Method
-        void Standardize(Bloc[] blocs, Module3D.Site site)
+        void Standardize(IEnumerable<Bloc> blocs)
         {
-            // TODO
-            //// Initiate index.
-            //int columnNumber = (from bloc in blocs select bloc.ProtocolBloc.Position.Column).Max();
-            //int[] beforeByColumns = new int[columnNumber];
-            //int[] afterByColumns = new int[columnNumber];
-            //for (int c = 0; c < columnNumber; c++)
-            //{
-            //    beforeByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.Position.Column - 1 == c) select bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
-            //    afterByColumns[c] = ((from bloc in blocs where (bloc.ProtocolBloc.Position.Column - 1 == c) select bloc.Trials.First().Bloc.ValuesBySite.First().Value.Length - bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]).Max());
-            //}
-
-            //// Standardize blocs
-            //foreach (Bloc bloc in blocs)
-            //{
-            //    int col = bloc.ProtocolBloc.Position.Column - 1;
-            //    bloc.SpacesBefore = beforeByColumns[col] - bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent];
-            //    bloc.SpacesAfter = afterByColumns[col] - (bloc.Trials.First().Bloc.ValuesBySite.First().Value.Length - bloc.Trials.First().Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent]);
-            //}
-        }
-        void Normalize(Bloc[] blocs, Module3D.Site site)
-        {
-            foreach (Bloc bloc in blocs)
+            Dictionary<int,List<SubBloc>> subBlocsByColumns = new Dictionary<int, List<SubBloc>>();
+            foreach (var bloc in blocs)
             {
-                foreach (Line line in bloc.Trials)
+                int mainSubBlocPosition = bloc.ProtocolBloc.MainSubBlocPosition;             
+                for (int i = 0; i < bloc.SubBlocs.Length; i++)
                 {
-                    line.UpdateValues();
+                    int column = i - mainSubBlocPosition;
+                    if (!subBlocsByColumns.ContainsKey(column)) subBlocsByColumns[column] = new List<SubBloc>();
+                    subBlocsByColumns[i - mainSubBlocPosition].Add(bloc.SubBlocs[i]);
+                }
+            }
+
+            Dictionary<int, Tuple<int, int>> limitsByColumns = new Dictionary<int, Tuple<int, int>>(subBlocsByColumns.Count);
+            for (int column = 0; column < subBlocsByColumns.Count; column++)
+            {
+                List<SubBloc> subBlocs = subBlocsByColumns[column];
+                int before = subBlocs.Max(s => s.SubTrials.First().Data.InformationsByEvent[s.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart);
+                int after = subBlocs.Max(s => s.SubTrials.First().Data.Values.Length - s.SubTrials.First().Data.InformationsByEvent[s.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart);
+                limitsByColumns.Add(column, new Tuple<int, int>(before, after));
+                foreach (SubBloc subBloc in subBlocs)
+                {
+                    subBloc.SpacesBefore = before - subBloc.SubTrials.First().Data.InformationsByEvent[subBloc.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart;
+                    subBloc.SpacesAfter = after - (subBloc.SubTrials.First().Data.Values.Length - subBloc.SubTrials.First().Data.InformationsByEvent[subBloc.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart);
                 }
             }
         }
@@ -109,18 +81,6 @@ namespace HBP.Data.TrialMatrix
             //}
             //return limits;
             return new Vector2[0];
-        }
-        Vector2 CalculateValueLimit(IEnumerable<float> values)
-        {
-            float mean = values.Average();
-            float sum = 0;
-            foreach (float value in values)
-            {
-                float delta = value - mean;
-                sum += Mathf.Pow(delta, 2);
-            }
-            float standardDeviation = Mathf.Sqrt(sum / (values.Count() - 1));
-            return new Vector2(mean - 1.96f * Mathf.Abs(standardDeviation), mean + 1.96f * Mathf.Abs(standardDeviation));
         }
         #endregion
     }

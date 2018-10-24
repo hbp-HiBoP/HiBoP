@@ -506,12 +506,13 @@ namespace HBP.Module3D
             foreach (Site site in Sites)
             {
                 // Data;
-                Data.Visualization.SiteData siteData;
-                if (ColumnData.Data.DataBySite.TryGetValue(site.Information.FullCorrectedID, out siteData))
+                Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics;
+                if (ColumnData.Data.StatisticsBySite.TryGetValue(site.Information.FullCorrectedID, out blocChannelStatistics))
                 {
-                    if (siteData.Values.Length > 0)
+                    float[] values = blocChannelStatistics.Trial.AllValues;
+                    if (values.Length > 0)
                     {
-                        IEEGValuesBySiteID[site.Information.GlobalID] = siteData.Values;
+                        IEEGValuesBySiteID[site.Information.GlobalID] = values;
                         site.State.IsMasked = false; // update mask
                     }
                     else
@@ -519,7 +520,7 @@ namespace HBP.Module3D
                         IEEGValuesBySiteID[site.Information.GlobalID] = new float[TimelineLength];
                         site.State.IsMasked = true; // update mask
                     }
-                    IEEGUnitsBySiteID[site.Information.GlobalID] = siteData.Unit;
+                    IEEGUnitsBySiteID[site.Information.GlobalID] = DataManager.GetData(ColumnData.Dataset.Data.FirstOrDefault((data) => (ColumnData.DataName == data.Name && data.Patient == site.Information.Patient))).UnitByChannel[site.Information.FullCorrectedID];
                 }
                 else
                 {

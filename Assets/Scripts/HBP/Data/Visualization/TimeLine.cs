@@ -116,7 +116,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Create a new TimeLine instance with default values.
         /// </summary>
-        public Timeline() : this(new Window() , new Event(),new Event[0], new Frequency())
+        public Timeline() : this(new Window() , new Event(),new Event[0], new Frequency(0))
         {
         }
         #endregion

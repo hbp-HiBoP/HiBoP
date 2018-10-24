@@ -2,7 +2,7 @@
 
 namespace HBP.Data.Localizer
 {
-    public struct Frequency
+    public class Frequency
     {
         #region Properties
         public float RawValue { get; private set; }
@@ -11,6 +11,7 @@ namespace HBP.Data.Localizer
         #endregion
 
         #region Constructors
+        public Frequency() : this(0) { }
         public Frequency(float rawValue)
         {
             RawValue = rawValue;

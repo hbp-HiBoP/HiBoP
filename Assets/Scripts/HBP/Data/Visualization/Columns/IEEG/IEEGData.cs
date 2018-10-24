@@ -20,7 +20,8 @@ namespace HBP.Data.Visualization
         public Dictionary<Frequency, IconicScenario> IconicScenarioByFrequency { get; set; }
 
         public Dictionary<Patient, PatientData> DataByPatient = new Dictionary<Patient, PatientData>();
-        public Dictionary<string, SiteData> DataBySite = new Dictionary<string, SiteData>();
+        public Dictionary<string, BlocChannelData> DataBySite = new Dictionary<string, BlocChannelData>();
+        public Dictionary<string, BlocChannelStatistics> StatisticsBySite = new Dictionary<string, BlocChannelStatistics>();
         #endregion
 
         #region Constructors
@@ -32,14 +33,14 @@ namespace HBP.Data.Visualization
         {
             foreach (DataInfo dataInfo in columnData)
             {
-                EpochedData epochedData = DataManager.GetData(dataInfo, bloc);
+                BlocData blocData = DataManager.GetData(dataInfo, bloc);
                 // Values
-                foreach (var site in epochedData.UnitByChannel.Keys)
-                {
-                    DataBySite.Add(site, new SiteData(epochedData, site));
-                }
+                //foreach (var site in blocData.Trials[0].SubTrialBySubBloc.Values[0].BaselineValuesByChannel.Keys)
+                //{
+                //    DataBySite.Add(site, new BlocChannelData(blocData, site));
+                //}
                 // Events
-                DataByPatient.Add(dataInfo.Patient, new PatientData(epochedData));
+                DataByPatient.Add(dataInfo.Patient, new PatientData(blocData));
             }
         }
         public void SetTimeline(int maxFrequency)

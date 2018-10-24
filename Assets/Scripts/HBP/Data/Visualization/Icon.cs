@@ -97,7 +97,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Create a new icon instance with default value;
         /// </summary>
-        public Icon() : this(new Experience.Protocol.Icon(),new Frequency() ,new Timeline())
+        public Icon() : this(new Experience.Protocol.Icon(),new Frequency(0) ,new Timeline())
         {
         }
 

@@ -1,11 +1,10 @@
-﻿using HBP.Data.Experience.Dataset;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Tools.CSharp;
 
-namespace HBP.Data.Visualization
+namespace HBP.Data.Experience.Dataset
 {
-    public struct SiteSubTrialStat
+    public struct ChannelSubTrialStat
     {
         #region Properties
         public float[] Values { get; set; }
@@ -15,12 +14,12 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public SiteSubTrialStat(float[] values, float[] sem) : this()
+        public ChannelSubTrialStat(float[] values, float[] sem) : this()
         {
             Values = values;
             SEM = sem;
         }
-        public SiteSubTrialStat(SiteSubTrial[] subTrials,bool[] isValid, Enums.AveragingType averaging)
+        public ChannelSubTrialStat(ChannelSubTrial[] subTrials,bool[] isValid, Enums.AveragingType averaging)
         {
             if (subTrials.Length > 0)
             {

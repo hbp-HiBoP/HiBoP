@@ -394,7 +394,7 @@ namespace HBP.Data.Visualization
                 {
                     foreach (var column in dataInfoByColumn.Keys)
                     {
-                        EpochedData epochedData = DataManager.GetData(dataInfo, column.Bloc);
+                        BlocData epochedData = DataManager.GetData(dataInfo, column.Bloc);
                         if (!epochedData.IsValid)
                         {
                             additionalInformation = "No bloc could be epoched.";

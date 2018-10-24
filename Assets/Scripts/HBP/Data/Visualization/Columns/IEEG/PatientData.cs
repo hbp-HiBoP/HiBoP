@@ -10,30 +10,30 @@ namespace HBP.Data.Visualization
     {
         #region Properties
         public Frequency Frequency { get; set; }
-        public Dictionary<SubBloc, EventData> EventDataBySubBloc { get; set; }
+        public Dictionary<SubBloc, SubBlocEventsStatistics> EventDataBySubBloc { get; set; }
         #endregion
 
         #region constructors
-        public PatientData(EpochedData epochedData)
+        public PatientData(BlocData blocData)
         {
-            EventDataBySubBloc = new Dictionary<SubBloc, EventData>();
-            foreach (var subBloc in epochedData.Trials[0].SubTrialBySubBloc.Keys)
-            {
-                SubTrial[] subTrials = new SubTrial[epochedData.Trials.Length];
-                for (int i = 0; i < epochedData.Trials.Length; i++)
-                {
-                    subTrials[i] = epochedData.Trials[i].SubTrialBySubBloc[subBloc];
-                }
-                EventDataBySubBloc.Add(subBloc, new EventData(subTrials, subBloc));
-            }
-            Frequency = epochedData.Frequency;
+            //EventDataBySubBloc = new Dictionary<SubBloc, SubBlocEventsStatistics>();
+            //foreach (var subBloc in blocData.Trials[0].SubTrialBySubBloc.Keys)
+            //{
+            //    SubTrial[] subTrials = new SubTrial[blocData.Trials.Length];
+            //    for (int i = 0; i < blocData.Trials.Length; i++)
+            //    {
+            //        subTrials[i] = blocData.Trials[i].SubTrialBySubBloc[subBloc];
+            //    }
+            //    EventDataBySubBloc.Add(subBloc, new SubBlocEventsStatistics(subTrials, subBloc));
+            //}
+            //Frequency = blocData.Frequency;
         }
-        public PatientData(Dictionary<SubBloc, EventData> eventDataBySubBloc, Frequency frequency)
+        public PatientData(Dictionary<SubBloc, SubBlocEventsStatistics> eventDataBySubBloc, Frequency frequency)
         {
             EventDataBySubBloc = eventDataBySubBloc;
             Frequency = frequency;
         }
-        public PatientData() : this(new Dictionary<SubBloc, EventData>(), new Frequency())
+        public PatientData() : this(new Dictionary<SubBloc, SubBlocEventsStatistics>(), new Frequency())
         {
         }
         #endregion

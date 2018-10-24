@@ -8,7 +8,7 @@ namespace HBP.UI.TrialMatrix
     public class BlocOverlay : MonoBehaviour
     {
         #region Properties
-        public Bloc Bloc;
+        public SubBloc Bloc;
         [SerializeField] Text m_ValueText;
         [SerializeField] Text m_LatencyText;
 
@@ -30,12 +30,12 @@ namespace HBP.UI.TrialMatrix
         void Display()
         {
             data.Bloc dataBloc = Bloc.Data;
-            data.Line[] trials = dataBloc.Trials;
+            data.SubTrial[] trials = dataBloc.SubBlocs;
 
             Vector2 ratio = m_BlocRectTransform.GetRatioPosition(Input.mousePosition);
 
             int trial = Mathf.Clamp(Mathf.FloorToInt(ratio.y * trials.Length),0,trials.Length-1);
-            int sample = Mathf.Clamp(Mathf.FloorToInt(ratio.x * dataBloc.Trials[trial].NormalizedValues.Length),0,trials[trial].NormalizedValues.Length-1);
+            int sample = Mathf.Clamp(Mathf.FloorToInt(ratio.x * dataBloc.SubBlocs[trial].NormalizedValues.Length),0,trials[trial].NormalizedValues.Length-1);
             float value = trials[trial].NormalizedValues[sample];
             // TODO
             //float latency = dataBloc.ProtocolBloc.Window.Start + ratio.x * (dataBloc.ProtocolBloc.Window.End - dataBloc.ProtocolBloc.Window.Start);

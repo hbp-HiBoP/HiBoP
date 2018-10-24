@@ -23,22 +23,23 @@ namespace HBP.UI.Module3D
         public bool Check(Site site)
         {
             float target = 0f;
+            float[] values = site.Statistics.Trial.AllValues;
             switch (Target)
             {
                 case ConditionTarget.Mean:
-                    target = site.Data.Values.Mean();
+                    target = values.Mean();
                     break;
                 case ConditionTarget.Median:
-                    target = site.Data.Values.Median();
+                    target = values.Median();
                     break;
                 case ConditionTarget.StandardDeviation:
-                    target = site.Data.Values.StandardDeviation();
+                    target = values.StandardDeviation();
                     break;
                 case ConditionTarget.Max:
-                    target = site.Data.Values.Max();
+                    target = values.Max();
                     break;
                 case ConditionTarget.Min:
-                    target = site.Data.Values.Min();
+                    target = values.Min();
                     break;
             }
             switch (Comparator)

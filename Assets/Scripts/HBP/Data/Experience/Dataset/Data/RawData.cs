@@ -17,7 +17,7 @@ namespace HBP.Data.Experience.Dataset
     *   - \a EEG frequency.
     *   - \a Patient.
     */
-    public class Data
+    public class RawData
     {
         #region Properties
         /// <summary>
@@ -46,7 +46,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Create a new Data instance with default values.
         /// </summary>
-        public Data(): this(new Dictionary < string, float[] >(), new Dictionary<string, string>(), new POS(),  new Frequency(), new Patient())
+        public RawData(): this(new Dictionary < string, float[] >(), new Dictionary<string, string>(), new POS(),  new Frequency(), new Patient())
         {
         }
         /// <summary>
@@ -57,7 +57,7 @@ namespace HBP.Data.Experience.Dataset
         /// <param name="pos">POS file.</param>
         /// <param name="frequency">Values frequency.</param>
         /// <param name="patient">Patient.</param>
-        public Data(Dictionary<string,float[]> valuesBySite, Dictionary<string,string> unitBySite, POS pos, Frequency frequency, Patient patient)
+        public RawData(Dictionary<string,float[]> valuesBySite, Dictionary<string,string> unitBySite, POS pos, Frequency frequency, Patient patient)
         {
             ValuesByChannel = valuesBySite;
             UnitByChannel = unitBySite;
@@ -70,7 +70,7 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         /// <param name="info">DataInfo to read.</param>
         /// <param name="MNI">\a True if MNI and \a false otherwise.</param>
-        public Data(DataInfo info) : this()
+        public RawData(DataInfo info) : this()
         {
             // Read Elan.
             Elan.ElanFile elanFile = new Elan.ElanFile(info.EEG,true);
@@ -85,7 +85,7 @@ namespace HBP.Data.Experience.Dataset
                     UnitByChannel.Add(ID, channel.Unit);
                 }
             }
-            POS = new Localizer.POS(info.POS, new Frequency(elanFile.EEG.SamplingFrequency));
+            POS = new POS(info.POS, new Frequency(elanFile.EEG.SamplingFrequency));
             Frequency = new Frequency(elanFile.EEG.SamplingFrequency);
             Patient = info.Patient;
             elanFile.Dispose();
