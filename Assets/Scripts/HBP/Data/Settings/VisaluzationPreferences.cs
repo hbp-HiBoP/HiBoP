@@ -49,10 +49,10 @@ namespace HBP.Data.Preferences
         [DataMember] public bool TrialsSynchronization { get; set; }
         [DataMember] public bool TrialSmoothing { get; set; }
         [DataMember] public int NumberOfIntermediateValues { get; set; }
-        [DataMember] public Enums.BlocFormatType BlocFormat { get; set; }
+        [DataMember] public Enums.BlocFormatType SubBlocFormat { get; set; }
         [DataMember] public int TrialHeight { get; set; }
         [DataMember] public float TrialRatio { get; set; }
-        [DataMember] public float BlocRatio { get; set; }
+        [DataMember] public float SubBlocRatio { get; set; }
     }
 
     [DataContract]

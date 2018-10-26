@@ -61,7 +61,7 @@ namespace HBP.UI.Preferences
             m_NumberOfIntermediateValuesSlider.value = preferences.NumberOfIntermediateValues;
 
             // Bloc format.
-            m_BlocFormatDropdown.Set(typeof(Data.Enums.BlocFormatType), (int) preferences.BlocFormat);
+            m_BlocFormatDropdown.Set(typeof(Data.Enums.BlocFormatType), (int) preferences.SubBlocFormat);
             m_BlocFormatDropdown.onValueChanged.AddListener(OnChangeBlocFormat);
             OnChangeBlocFormat(m_BlocFormatDropdown.value);
 
@@ -81,7 +81,7 @@ namespace HBP.UI.Preferences
             m_BlocRatioSlider.minValue = Data.Preferences.TrialMatrixPreferences.MINIMUM_BLOC_RATIO;
             m_BlocRatioSlider.maxValue = Data.Preferences.TrialMatrixPreferences.MAXIMUM_BLOC_RATIO;
             m_BlocRatioSlider.wholeNumbers = false;
-            m_BlocRatioSlider.value = preferences.BlocRatio;
+            m_BlocRatioSlider.value = preferences.SubBlocRatio;
         }
         public void Save()
         {
@@ -91,10 +91,10 @@ namespace HBP.UI.Preferences
             preferences.TrialsSynchronization = m_TrialSynchronizationToggle.isOn;
             preferences.TrialSmoothing = m_SmoothTrialToggle.isOn;
             preferences.NumberOfIntermediateValues = (int) m_NumberOfIntermediateValuesSlider.value;
-            preferences.BlocFormat = (Data.Enums.BlocFormatType) m_BlocFormatDropdown.value;
+            preferences.SubBlocFormat = (Data.Enums.BlocFormatType) m_BlocFormatDropdown.value;
             preferences.TrialHeight = (int) m_TrialHeightSlider.value;
             preferences.TrialRatio = m_TrialRatioSlider.value;
-            preferences.BlocRatio = m_BlocRatioSlider.value;
+            preferences.SubBlocRatio = m_BlocRatioSlider.value;
         }
         public void OnChangeBlocFormat(int value)
         {

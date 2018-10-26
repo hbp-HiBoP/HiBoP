@@ -62,7 +62,7 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(data.Bloc data,Texture2D colorMap,Vector2 limits)
+        public void Set(data.SubBloc data,Texture2D colorMap,Vector2 limits)
         {
             m_Data = data;
             m_ColorMap = colorMap;
@@ -73,38 +73,38 @@ namespace HBP.UI.TrialMatrix
             GenerateMainEventIndicator(data);
             GenerateSecondaryIndicator(data);
         }
-        public void SelectTrials(int[] trials)
+        public void SelectSubTrials(int[] subTrials)
         {
-            int NumberOfTrials = m_Data.SubTrials.Length;
-            int[] unselectedTrials = new int[NumberOfTrials - trials.Length];
+            int NumberOfSubTrials = m_Data.SubTrials.Length;
+            int[] unselectedSubTrials = new int[NumberOfSubTrials - subTrials.Length];
             for (int t = 0, i = 0; t < m_Data.SubTrials.Length; t++)
             {
-                if (!trials.Contains(t))
+                if (!subTrials.Contains(t))
                 {
-                    unselectedTrials[i] = t;
+                    unselectedSubTrials[i] = t;
                     i++;
                 }
             }
 
-            List<List<int>> trialsGroups = new List<List<int>>();
-            List<int> trialGroup = new List<int>();
-            for (int i = 0; i < unselectedTrials.Length; i++)
+            List<List<int>> subTrialsGroups = new List<List<int>>();
+            List<int> subTrialGroup = new List<int>();
+            for (int i = 0; i < unselectedSubTrials.Length; i++)
             {
-                int trial = unselectedTrials[i];
-                if (trialGroup.Count != 0 && unselectedTrials[i] != trialGroup[trialGroup.Count - 1] + 1)
+                int subTrial = unselectedSubTrials[i];
+                if (subTrialGroup.Count != 0 && unselectedSubTrials[i] != subTrialGroup[subTrialGroup.Count - 1] + 1)
                 {
-                    trialsGroups.Add(new List<int>(trialGroup));
-                    trialGroup = new List<int>();
+                    subTrialsGroups.Add(new List<int>(subTrialGroup));
+                    subTrialGroup = new List<int>();
                 }
-                trialGroup.Add(unselectedTrials[i]);
-                if (i == unselectedTrials.Length - 1)
+                subTrialGroup.Add(unselectedSubTrials[i]);
+                if (i == unselectedSubTrials.Length - 1)
                 {
-                    trialsGroups.Add(new List<int>(trialGroup));
+                    subTrialsGroups.Add(new List<int>(subTrialGroup));
                 }
             }
 
             ClearMask();
-            foreach (var g in trialsGroups)
+            foreach (var g in subTrialsGroups)
             {
                 AddMask(g.ToArray());
             }
@@ -220,16 +220,16 @@ namespace HBP.UI.TrialMatrix
         }
         void SetSize()
         {
-            switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocFormat)
+            switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
             {
                 case HBP.Data.Enums.BlocFormatType.TrialHeight:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * m_Data.SubBlocs.Length;
+                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * m_Data.SubTrials.Length;
                     break;
                 case HBP.Data.Enums.BlocFormatType.TrialRatio:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * m_Data.SubBlocs.Length;
+                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * m_Data.SubTrials.Length;
                     break;
                 case HBP.Data.Enums.BlocFormatType.BlocRatio:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
+                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocRatio * m_RectTransform.rect.width;
                     break;
             }
         }
@@ -313,12 +313,12 @@ namespace HBP.UI.TrialMatrix
             }
             return result;
         }
-        float[][] ExtractDataFromLines(data.SubTrial[] lines)
+        float[][] ExtractDataFromLines(data.SubTrial[] subTrials)
         {
-            float[][] result = new float[lines.Length][];
-            for (int l = 0; l < lines.Length; l++)
+            float[][] result = new float[subTrials.Length][];
+            for (int l = 0; l < subTrials.Length; l++)
             {
-                result[l] = lines[l].NormalizedValues;
+                result[l] = subTrials[l].NormalizedValues;
             }
             return result;
         }
@@ -331,7 +331,7 @@ namespace HBP.UI.TrialMatrix
             Profiler.EndSample();
             return colorMap.GetPixel(0,y);
         }
-        void GenerateMainEventIndicator(data.Bloc bloc)
+        void GenerateMainEventIndicator(data.SubBloc subBloc)
         {
             // TODO
             //GameObject mainEvent = new GameObject();
@@ -349,7 +349,7 @@ namespace HBP.UI.TrialMatrix
             //if (rect.sizeDelta.x < 1) rect.sizeDelta = new Vector2(1.0f, rect.sizeDelta.y);
             //image.color = Color.black;
         }
-        void GenerateSecondaryIndicator(data.Bloc bloc)
+        void GenerateSecondaryIndicator(data.SubBloc subBloc)
         {
             // TODO
             //for (int l = 0; l < bloc.Trials.Length; l++)
