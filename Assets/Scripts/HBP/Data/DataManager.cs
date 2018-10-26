@@ -169,6 +169,7 @@ public static class DataManager
             foreach (var bloc in protocol.Blocs)
             {
                 m_BlocDataByRequest.Add(new BlocRequest(request.DataInfo, bloc), data.DataByBloc[bloc]);
+                m_NormalizeByRequest.Add(new BlocRequest(request.DataInfo, bloc), HBP.Data.Enums.NormalizationType.None);
             }
         }
     }

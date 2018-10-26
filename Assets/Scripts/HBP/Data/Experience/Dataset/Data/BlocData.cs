@@ -38,6 +38,7 @@ namespace HBP.Data.Experience.Dataset
                 endIndex = (i + 1 >= MainSubBlocMainEventOccurences.Length) ? int.MaxValue : MainSubBlocMainEventOccurences[i + 1].Index;
                 trials.Add(new Trial(valuesByChannel, startIndex, MainSubBlocMainEventOccurences[i] , endIndex, occurencesByEvent, bloc, frequency));
             }
+            Trials = trials.ToArray();
         }
         #endregion
 

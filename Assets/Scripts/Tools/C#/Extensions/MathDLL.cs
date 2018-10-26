@@ -60,16 +60,14 @@ namespace Tools.CSharp
             }
             return Median(array, array.Length);
         }
-        public static float[] Normalize(this float[] array, float average, float standardDeviation)
+        public static void Normalize(this float[] array, float average, float standardDeviation)
         {
             if (array.Length == 0)
             {
                 throw new System.Exception("Array is empty");
             }
-            float[] tmparray = (float[])array.Clone();
             if (standardDeviation == 0) standardDeviation = 1;
-            Normalize(tmparray, array.Length, average, standardDeviation);
-            return tmparray;
+            Normalize(array, array.Length, average, standardDeviation);
         }
         public static float Lerp(float value1, float value2, float percentage)
         {

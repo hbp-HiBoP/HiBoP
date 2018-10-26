@@ -1,6 +1,7 @@
 ﻿using HBP.Data.Experience.Dataset;
 using HBP.Data.Localizer;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HBP.Data.Visualization
 {
@@ -15,17 +16,9 @@ namespace HBP.Data.Visualization
         /// Iconic scenario which define the labels,images to display during the timeLine. 
         /// </summary>
         public IconicScenario IconicScenario { get; set; }
-
-        public Dictionary<Frequency, Timeline> TimeLineByFrequency { get; set; }
-        public Dictionary<Frequency, IconicScenario> IconicScenarioByFrequency { get; set; }
-
-        public Dictionary<Patient, PatientData> DataByPatient = new Dictionary<Patient, PatientData>();
-        public Dictionary<string, BlocChannelData> DataBySite = new Dictionary<string, BlocChannelData>();
-        public Dictionary<string, BlocChannelStatistics> StatisticsBySite = new Dictionary<string, BlocChannelStatistics>();
-        #endregion
-
-        #region Constructors
-
+        public Dictionary<Patient, BlocEventsStatistics> EventStatisticsByPatient { get; set; } = new Dictionary<Patient, BlocEventsStatistics>();
+        public Dictionary<string, BlocChannelData> DataByChannel { get; set; } = new Dictionary<string, BlocChannelData>();
+        public Dictionary<string, BlocChannelStatistics> StatisticsByChannel { get; set; } = new Dictionary<string, BlocChannelStatistics>();
         #endregion
 
         #region Public Methods
@@ -33,14 +26,15 @@ namespace HBP.Data.Visualization
         {
             foreach (DataInfo dataInfo in columnData)
             {
-                BlocData blocData = DataManager.GetData(dataInfo, bloc);
+                Experience.Dataset.Data data = DataManager.GetData(dataInfo);
                 // Values
-                //foreach (var site in blocData.Trials[0].SubTrialBySubBloc.Values[0].BaselineValuesByChannel.Keys)
-                //{
-                //    DataBySite.Add(site, new BlocChannelData(blocData, site));
-                //}
+                foreach (var channel in data.UnitByChannel.Keys)
+                {
+                    DataByChannel.Add(channel, DataManager.GetData(dataInfo, bloc, channel));
+                    StatisticsByChannel.Add(channel, DataManager.GetStatistics(dataInfo, bloc, channel));
+                }
                 // Events
-                DataByPatient.Add(dataInfo.Patient, new PatientData(blocData));
+                EventStatisticsByPatient.Add(dataInfo.Patient, DataManager.GetEventsStatistics(dataInfo, bloc));
             }
         }
         public void SetTimeline(int maxFrequency)

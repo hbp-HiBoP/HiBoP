@@ -49,7 +49,7 @@ namespace HBP.Data.Experience.Dataset
             float[] values;
             if (ValuesByChannel.TryGetValue(channel, out values))
             {
-                ValuesByChannel[channel] = values.Normalize(average, standardDeviation);
+                values.Normalize(average, standardDeviation);
             }
         }
         #endregion

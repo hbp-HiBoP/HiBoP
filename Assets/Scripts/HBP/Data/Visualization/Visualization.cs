@@ -200,13 +200,18 @@ namespace HBP.Data.Visualization
         {
             if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, LoadingText>();
 
+            Exception exception = null;
             float progress = 0.0f;
             yield return Ninja.JumpToUnity;
             if (IEEGColumns.Count > 0)
             {
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadEEG(progress, onChangeProgress));
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadEEG(progress, onChangeProgress, e => { exception = e; }));
             }
             yield return Ninja.JumpBack;
+            if (exception != null)
+            {
+                throw exception;
+            }
         }
         /// <summary>
         /// Swap two columns by index.
@@ -304,7 +309,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Private Methods
-        IEnumerator c_LoadEEG(float progress, GenericEvent<float, float, LoadingText> onChangeProgress = null)
+        IEnumerator c_LoadEEG(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
             Exception exception = null;
 
@@ -330,15 +335,15 @@ namespace HBP.Data.Visualization
             }
 
             // Standardize Columns.
-            if (exception == null)
-            {
-                yield return Ninja.JumpToUnity;
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_StandardizeColumns(progress, onChangeProgress, (value, e) => { progress = value; exception = e; }));
-            }
+            //if (exception == null)
+            //{
+            //    yield return Ninja.JumpToUnity;
+            //    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_StandardizeColumns(progress, onChangeProgress, (value, e) => { progress = value; exception = e; }));
+            //}
 
             if (exception != null)
             {
-                throw exception;
+                outPut(exception);
             }
         }
         IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Dictionary<IEEGColumn, IEnumerable<DataInfo>>, float, Exception> outPut)
@@ -393,12 +398,12 @@ namespace HBP.Data.Visualization
                 yield return Ninja.JumpBack;
                 try
                 {
+                    Experience.Dataset.Data data = DataManager.GetData(dataInfo);
                     foreach (var column in dataInfoByColumn.Keys)
                     {
-                        BlocData epochedData = DataManager.GetData(dataInfo, column.Bloc);
-                        if (!epochedData.IsValid)
+                        if (!data.DataByBloc[column.Bloc].IsValid)
                         {
-                            additionalInformation = "No bloc could be epoched.";
+                            additionalInformation = "No bloc " + column.Bloc.Name + " could be epoched.";
                             throw new Exception();
                         }
                     }
@@ -444,7 +449,7 @@ namespace HBP.Data.Visualization
                     outPut(progress, exception);
                     yield break;
                 }
-            }            
+            }
             // int maxFrequency = columns.Max(column => column.Data.Frequencies.Max()); TODO
             //for (int i = 0; i < columnsLength; ++i)
             //{

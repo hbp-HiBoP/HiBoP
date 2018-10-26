@@ -66,12 +66,13 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public IEEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, IEEGConfiguration configuration) : base(name, baseConfiguration)
+        public IEEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, IEEGConfiguration configuration, IEEGData data) : base(name, baseConfiguration)
         {
             Dataset = dataset;
             DataName = dataName;
             Bloc = bloc;
             IEEGConfiguration = configuration;
+            Data = data;
         }
         public IEEGColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name,baseConfiguration)
         {
@@ -89,11 +90,11 @@ namespace HBP.Data.Visualization
                 }
             }
         }
-        public IEEGColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, new Dataset(), string.Empty, new Bloc(), new IEEGConfiguration())
+        public IEEGColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, string.Empty, null, new IEEGConfiguration(), new IEEGData())
         {
 
         }
-        public IEEGColumn() : this("New column", new BaseConfiguration(), new Dataset(), string.Empty, new Bloc(), new IEEGConfiguration())
+        public IEEGColumn() : this("New column", new BaseConfiguration(), null, string.Empty, null, new IEEGConfiguration(), new IEEGData())
         {
         }
         #endregion
@@ -112,7 +113,7 @@ namespace HBP.Data.Visualization
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {   
-            return new IEEGColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, IEEGConfiguration.Clone() as IEEGConfiguration);
+            return new IEEGColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, IEEGConfiguration.Clone() as IEEGConfiguration, Data);
         }
         #endregion
     }

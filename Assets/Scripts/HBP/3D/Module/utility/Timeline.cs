@@ -101,6 +101,10 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
+        public Timeline(Column3DIEEG column)
+        {
+            Data.Visualization.IEEGData data = column.ColumnIEEGData.Data;
+        }
         // TODO : DELETE THIS CONSTRUCTOR, THIS IS ONLY FOR DEBUG PURPOSES
         public Timeline(Data.Visualization.Timeline timeline)
         {

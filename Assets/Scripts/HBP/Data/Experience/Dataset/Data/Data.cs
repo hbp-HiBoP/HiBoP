@@ -23,6 +23,7 @@ namespace HBP.Data.Experience.Dataset
             Frequency = rawData.Frequency;
 
             // Generate DataByBloc.
+            DataByBloc = new Dictionary<Protocol.Bloc, BlocData>();
             Dataset dataset = ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(d => d.Data.Contains(dataInfo));
             Protocol.Protocol protocol = dataset != null ? dataset.Protocol : null;
             if(protocol != null)

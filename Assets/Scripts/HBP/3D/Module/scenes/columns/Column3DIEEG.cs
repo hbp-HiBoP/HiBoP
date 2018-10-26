@@ -119,7 +119,7 @@ namespace HBP.Module3D
             foreach (Site site in Sites)
             {
                 Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics;
-                if (ColumnIEEGData.Data.StatisticsBySite.TryGetValue(site.Information.FullCorrectedID, out blocChannelStatistics))
+                if (ColumnIEEGData.Data.StatisticsByChannel.TryGetValue(site.Information.FullCorrectedID, out blocChannelStatistics))
                 {
                     float[] values = blocChannelStatistics.Trial.AllValues;
                     if (values.Length > 0)
