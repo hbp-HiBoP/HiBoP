@@ -75,14 +75,14 @@ namespace HBP.UI.Visualization
         }
         public void AddGroups()
         {
-            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Add Group Selection", Interactable);
+            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Add Group window", Interactable);
             groupSelection.GroupsSelectedEvent.AddListener((groups) => AddGroups(groups));
             groupSelection.OnClose.AddListener(() => m_SubWindows.Remove(groupSelection));
             m_SubWindows.Add(groupSelection);
         }
         public void RemoveGroups()
         {
-            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Remove Group Selection", Interactable);
+            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Remove Group window", Interactable);
             groupSelection.GroupsSelectedEvent.AddListener((groups) => RemoveGroups(groups));
             groupSelection.OnClose.AddListener(() => m_SubWindows.Remove(groupSelection));
             m_SubWindows.Add(groupSelection);
