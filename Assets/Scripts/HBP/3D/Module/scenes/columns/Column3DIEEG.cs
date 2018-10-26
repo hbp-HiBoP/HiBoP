@@ -339,7 +339,7 @@ namespace HBP.Module3D
         /// <param name="columnData">Column data to use</param>
         public void ComputeEEGData()
         {
-            Timeline = new Timeline(ColumnIEEGData.Data.TimeLine);
+            Timeline = new Timeline(this);
             Timeline.OnUpdateCurrentIndex.AddListener(() =>
             {
                 OnUpdateCurrentTimelineID.Invoke();

@@ -32,8 +32,21 @@ namespace HBP.Data.Visualization
         /// </summary>
         public Dataset Dataset
         {
-            get { return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(p => p.ID == datasetID); }
-            set { datasetID = value.ID; }
+            get
+            {
+                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(p => p.ID == datasetID);
+            }
+            set
+            {
+                if (value == null)
+                {
+                    datasetID = string.Empty;
+                }
+                else
+                {
+                    datasetID = value.ID;
+                }
+            }
         }
 
         /// <summary>
@@ -49,9 +62,26 @@ namespace HBP.Data.Visualization
         {
             get
             {
-                return Dataset.Protocol.Blocs.FirstOrDefault(p => p.ID == blocID);
+                if (Dataset != null && Dataset.Protocol != null && Dataset.Protocol.Blocs != null)
+                {
+                    return Dataset.Protocol.Blocs.FirstOrDefault(p => p.ID == blocID);
+                }
+                else
+                {
+                    return null;
+                }
             }
-            set { blocID = value.ID; }
+            set
+            {
+                if (value == null)
+                {
+                    blocID = string.Empty;
+                }
+                else
+                {
+                    blocID = value.ID;
+                }
+            }
         }
 
         /// <summary>
@@ -80,7 +110,7 @@ namespace HBP.Data.Visualization
             {
                 foreach (var dataName in dataset.Data.Select(data => data.Name).Distinct())
                 {
-                    if (patients.All((patient) => dataset.Data.Any((data) => (data.Patient == patient && data.Name == name))))
+                    if (patients.All((patient) => dataset.Data.Any((data) => (data.Patient == patient && data.Name == dataName))))
                     {
                         Dataset = dataset;
                         DataName = dataName;
@@ -102,7 +132,7 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
-            return patients.All((patient) => Dataset.Data.Any((data) => data.Name == DataName && data.Patient == patient && data.isOk));
+            return Dataset != null && patients.All((patient) => Dataset.Data.Any((data) => data.Name == DataName && data.Patient == patient && data.isOk));
         }
         #endregion
 

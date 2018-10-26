@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using HBP.Data.Visualization;
 using Tools.Unity;
+using UnityEngine.Events;
 
 namespace HBP.UI.Visualization
 {
@@ -19,8 +20,10 @@ namespace HBP.UI.Visualization
             }
             set
             {
+                m_Interactable = value;
                 m_NameInputField.interactable = value;
                 m_TypeDropdown.interactable = value;
+                m_IEEGColumnModifier.Interactable = value;
             }
         }
 
@@ -29,17 +32,40 @@ namespace HBP.UI.Visualization
         [SerializeField] IEEGColumnModifier m_IEEGColumnModifier;
 
         List<Data.Patient> m_Patients;
-        BaseColumn Column;
+        BaseColumn m_Column;
+        BaseColumn Column
+        {
+            get
+            {
+                return m_Column;
+            }
+            set
+            {
+                m_Column = value;
+                OnChangeColumn.Invoke(value);
+            }
+        }
+
+        public GenericEvent<string> OnChangeName { get; } = new GenericEvent<string>();
+        public GenericEvent<BaseColumn> OnChangeColumn { get; } = new GenericEvent<BaseColumn>();
         #endregion
 
         #region Public Methods
-        public void SetTab(BaseColumn column,IEnumerable<Data.Patient> patients)
+        public void Set(BaseColumn column,IEnumerable<Data.Patient> patients)
         {
-            Column = column;
-
+            m_Column = column;
             m_Patients = patients.ToList();
 
-            m_NameInputField.text = Column.Name;
+            if (m_Column == null)
+            {
+                m_NameInputField.interactable = false;
+                m_NameInputField.text = "";
+            }
+            else
+            {
+                m_NameInputField.interactable = m_Interactable;
+                m_NameInputField.text = m_Column.Name;
+            }
             SetTypeDropdown();
         }
         #endregion
@@ -47,36 +73,52 @@ namespace HBP.UI.Visualization
         #region Private Methods
         void Awake()
         {
-            m_NameInputField.onValueChanged.RemoveAllListeners();
-            m_NameInputField.onValueChanged.AddListener((name) => Column.Name = name);
-
-            m_TypeDropdown.onValueChanged.RemoveAllListeners();
+            m_NameInputField.onValueChanged.AddListener((name) =>
+            {
+                if (m_Column != null)
+                {
+                    m_Column.Name = name;
+                }
+                OnChangeName.Invoke(name);
+            });
             m_TypeDropdown.onValueChanged.AddListener(OnChangeType);
-
         }
 
         // Type.
         void SetTypeDropdown()
         {
-            Data.Enums.ColumnType type;
-            if (Column is IEEGColumn) type = Data.Enums.ColumnType.iEEG;
-            else type = Data.Enums.ColumnType.Anatomic;
-            m_TypeDropdown.Set(typeof(Data.Enums.ColumnType), (int) type);
+            if (m_Column == null)
+            {
+                m_TypeDropdown.interactable = false;
+                m_TypeDropdown.Set(typeof(Data.Enums.ColumnType), 0);
+                m_IEEGColumnModifier.Set(null, m_Patients);
+            }
+            else
+            {
+                m_TypeDropdown.interactable = m_Interactable;
+                Data.Enums.ColumnType type;
+                if (m_Column is IEEGColumn) type = Data.Enums.ColumnType.iEEG;
+                else type = Data.Enums.ColumnType.Anatomic;
+                m_TypeDropdown.Set(typeof(Data.Enums.ColumnType), (int)type);
+                OnChangeType((int)type);
+            }
         }
         void OnChangeType(int value)
         {
-            switch((Data.Enums.ColumnType)value)
+            if (m_Column != null)
             {
-                case Data.Enums.ColumnType.Anatomic:
-                    Column = new AnatomicColumn(Column.Name,Column.BaseConfiguration);
-                    m_IEEGColumnModifier.Interactable = false;
-                    m_IEEGColumnModifier.gameObject.SetActive(false);
-                    break;
-                case Data.Enums.ColumnType.iEEG:
-                    Column = new IEEGColumn(Column.Name, Column.BaseConfiguration, m_Patients);
-                    m_IEEGColumnModifier.gameObject.SetActive(true);
-                    m_IEEGColumnModifier.Set(Column as IEEGColumn, m_Patients);
-                    break;
+                switch ((Data.Enums.ColumnType)value)
+                {
+                    case Data.Enums.ColumnType.Anatomic:
+                        if (!(m_Column is AnatomicColumn)) Column = new AnatomicColumn(m_Column.Name, m_Column.BaseConfiguration);
+                        m_IEEGColumnModifier.gameObject.SetActive(false);
+                        break;
+                    case Data.Enums.ColumnType.iEEG:
+                        if (!(m_Column is IEEGColumn)) Column = new IEEGColumn(m_Column.Name, m_Column.BaseConfiguration, m_Patients);
+                        m_IEEGColumnModifier.gameObject.SetActive(true);
+                        m_IEEGColumnModifier.Set(m_Column as IEEGColumn, m_Patients);
+                        break;
+                }
             }
         }   
         #endregion

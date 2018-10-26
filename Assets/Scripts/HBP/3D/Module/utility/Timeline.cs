@@ -104,17 +104,8 @@ namespace HBP.Module3D
         public Timeline(Column3DIEEG column)
         {
             Data.Visualization.IEEGData data = column.ColumnIEEGData.Data;
-        }
-        // TODO : DELETE THIS CONSTRUCTOR, THIS IS ONLY FOR DEBUG PURPOSES
-        public Timeline(Data.Visualization.Timeline timeline)
-        {
-            Length = timeline.Lenght;
-            Unit = timeline.Start.Unite;
-            m_SubTimelines = new SubTimeline[]
-            {
-                new SubTimeline(0, (Length - 1) / 3, -250, 250),
-                new SubTimeline(((Length - 1) / 3) + 1, Length - 1, -500, 500)
-            };
+            Length = data.StatisticsByChannel.Values.FirstOrDefault().Trial.AllValues.Length;
+            Unit = "ms";
         }
         #endregion
 

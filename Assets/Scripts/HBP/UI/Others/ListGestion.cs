@@ -76,6 +76,7 @@ namespace Tools.Unity.Components
                 Items.Remove(item);
                 List.Remove(item);
             }
+            UpdateCounter();
         }
         public virtual void Remove(IEnumerable<T> items)
         {
