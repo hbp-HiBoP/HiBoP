@@ -81,7 +81,7 @@ namespace HBP.UI.Preferences
             m_BlocRatioSlider.minValue = Data.Preferences.TrialMatrixPreferences.MINIMUM_BLOC_RATIO;
             m_BlocRatioSlider.maxValue = Data.Preferences.TrialMatrixPreferences.MAXIMUM_BLOC_RATIO;
             m_BlocRatioSlider.wholeNumbers = false;
-            m_BlocRatioSlider.value = preferences.SubBlocRatio;
+            m_BlocRatioSlider.value = preferences.BlocRatio;
         }
         public void Save()
         {
@@ -94,7 +94,7 @@ namespace HBP.UI.Preferences
             preferences.SubBlocFormat = (Data.Enums.BlocFormatType) m_BlocFormatDropdown.value;
             preferences.TrialHeight = (int) m_TrialHeightSlider.value;
             preferences.TrialRatio = m_TrialRatioSlider.value;
-            preferences.SubBlocRatio = m_BlocRatioSlider.value;
+            preferences.BlocRatio = m_BlocRatioSlider.value;
         }
         public void OnChangeBlocFormat(int value)
         {

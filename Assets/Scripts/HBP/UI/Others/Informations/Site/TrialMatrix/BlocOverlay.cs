@@ -33,7 +33,7 @@ namespace HBP.UI.TrialMatrix
             // TODO
             //float latency = dataBloc.ProtocolBloc.Window.Start + ratio.x * (dataBloc.ProtocolBloc.Window.End - dataBloc.ProtocolBloc.Window.Start);
 
-            m_ValueText.text = value.ToString("N2") + " mV";
+            //m_ValueText.text = value.ToString("N2") + " mV";
             // TODO
             //m_LatencyText.text = latency.ToString("N2") + " ms";
         }

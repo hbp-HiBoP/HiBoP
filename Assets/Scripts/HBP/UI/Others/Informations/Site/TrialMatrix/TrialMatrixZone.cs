@@ -62,7 +62,7 @@ namespace HBP.UI.Informations
                 {
                     foreach (var trialMatrix in m_TrialMatrixList.TrialMatrix)
                     {
-                        trialMatrix.SelectTrials(trials, bloc.Data.ProtocolBloc, additive);
+                        //trialMatrix.SelectTrials(trials, bloc.Data.ProtocolBloc, additive);
                     }
                 }
                 else
@@ -73,7 +73,7 @@ namespace HBP.UI.Informations
                         {
                             if(bloc == b)
                             {
-                                trialMatrix.SelectTrials(trials, bloc.ProtocolBloc, additive);
+                                //trialMatrix.SelectTrials(trials, bloc.ProtocolBloc, additive);
                                 goto @out;
                             }
                         }

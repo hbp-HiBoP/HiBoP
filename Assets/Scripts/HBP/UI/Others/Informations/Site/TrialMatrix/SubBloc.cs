@@ -1,16 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using System.Linq;
-using System.Collections.Generic;
-using data = HBP.Data.TrialMatrix;
-using Tools.Unity;
 using Tools.CSharp;
-using UnityEngine.Profiling;
+using data = HBP.Data.TrialMatrix;
+using HBP.Data.Experience.Dataset;
 
 namespace HBP.UI.TrialMatrix
 {
-    [RequireComponent(typeof(RawImage))]
     public class SubBloc : MonoBehaviour
     {
         #region Properties
@@ -25,6 +20,7 @@ namespace HBP.UI.TrialMatrix
             {
                 m_Data = Data;
                 SetTexture();
+                SetFillers();
             }
         }
 
@@ -53,12 +49,12 @@ namespace HBP.UI.TrialMatrix
             }
         }
 
-        [SerializeField] GameObject m_SelectionMask;
-        int m_BeginDragTrial;
-        bool m_Initialized;
-        bool m_Dragging;
         RectTransform m_RectTransform;
         LayoutElement m_LayoutElement;
+        [SerializeField] RawImage m_RawImage;
+        [SerializeField] LayoutElement m_MainTextureLayoutElement;
+        [SerializeField] LayoutElement m_LeftFillerLayoutElement;
+        [SerializeField] LayoutElement m_RightFillerLayoutElement;
         #endregion
 
         #region Public Methods
@@ -68,215 +64,45 @@ namespace HBP.UI.TrialMatrix
             m_ColorMap = colorMap;
             m_Limits = limits;
 
-            SetSize();
             SetTexture();
-            GenerateMainEventIndicator(data);
-            GenerateSecondaryIndicator(data);
-        }
-        public void SelectSubTrials(int[] subTrials)
-        {
-            int NumberOfSubTrials = m_Data.SubTrials.Length;
-            int[] unselectedSubTrials = new int[NumberOfSubTrials - subTrials.Length];
-            for (int t = 0, i = 0; t < m_Data.SubTrials.Length; t++)
-            {
-                if (!subTrials.Contains(t))
-                {
-                    unselectedSubTrials[i] = t;
-                    i++;
-                }
-            }
-
-            List<List<int>> subTrialsGroups = new List<List<int>>();
-            List<int> subTrialGroup = new List<int>();
-            for (int i = 0; i < unselectedSubTrials.Length; i++)
-            {
-                int subTrial = unselectedSubTrials[i];
-                if (subTrialGroup.Count != 0 && unselectedSubTrials[i] != subTrialGroup[subTrialGroup.Count - 1] + 1)
-                {
-                    subTrialsGroups.Add(new List<int>(subTrialGroup));
-                    subTrialGroup = new List<int>();
-                }
-                subTrialGroup.Add(unselectedSubTrials[i]);
-                if (i == unselectedSubTrials.Length - 1)
-                {
-                    subTrialsGroups.Add(new List<int>(subTrialGroup));
-                }
-            }
-
-            ClearMask();
-            foreach (var g in subTrialsGroups)
-            {
-                AddMask(g.ToArray());
-            }
-        }
-        public void OnPointerDown()
-        {
-            m_BeginDragTrial = GetTrialAtPosition(Input.mousePosition);
-        }
-        public void OnPointerClick(BaseEventData p)
-        {
-            PointerEventData pointer = (PointerEventData) p;
-            if (pointer.button == PointerEventData.InputButton.Left)
-            {
-                if (!m_Dragging)
-                {
-                    int[] linesClicked = new int[1] { m_BeginDragTrial };
-                    if (Input.GetKey(KeyCode.LeftShift))
-                    {
-                        SendMessageSelectLines(linesClicked, true);
-                    }
-                    else
-                    {
-                        SendMessageSelectLines(linesClicked, false);
-                    }
-                }
-            }
-            else if (pointer.button == PointerEventData.InputButton.Right)
-            {
-                int max = Data.SubBlocs.Length;
-                int[] array = new int[max];
-                for (int i = 0; i < max; i++)
-                {
-                    array[i] = i;
-                }
-                SendMessageSelectLines(array, false);
-            }
-        }
-        public void OnBeginDrag()
-        {
-            m_Dragging = true;
-        }
-        public void OnEndDrag()
-        {
-            int l_endDragLine = Mathf.Clamp(GetTrialAtPosition(Input.mousePosition),0,m_Data.SubBlocs.Length-1);
-            int l_beginDragLine = Mathf.Clamp(m_BeginDragTrial, 0, m_Data.SubBlocs.Length-1); ;
-            List<int> linesSelected = new List<int>();
-            if(l_beginDragLine > l_endDragLine)
-            {
-                for (int l = l_endDragLine; l <= l_beginDragLine; l++)
-                {
-                    linesSelected.Add(l);
-                }
-            }
-            else
-            {
-                for (int l = l_beginDragLine; l <= l_endDragLine; l++)
-                {
-                    linesSelected.Add(l);
-                }
-            }
-            if(Input.GetKey(KeyCode.LeftShift))
-            {
-                SendMessageSelectLines(linesSelected.ToArray(), true);
-
-            }
-            else
-            {
-                SendMessageSelectLines(linesSelected.ToArray(), false);
-            }
-            m_Dragging = false;
-        }
-        public void OnScroll()
-        {
-            float l_input = Input.GetAxis("Mouse ScrollWheel") * 10;
-            int delta = Mathf.RoundToInt(l_input);
-            if(delta != 0)
-            {
-                int[] l_lines = m_selectedLines.ToArray();
-                int size = l_lines.Length - 1;
-                if (size < 0) size = 0;
-                List<int> l_linesToSelect = new List<int>(size);
-                int newLine;
-                for (int i = 0; i < l_lines.Length; i++)
-                {
-                    newLine = (((l_lines[i] + delta) % Data.SubBlocs.Length) + Data.SubBlocs.Length) % Data.SubBlocs.Length;
-                    if (newLine >= 0 && newLine < Data.SubBlocs.Length)
-                    {
-                        l_linesToSelect.Add(newLine);
-                    }
-                }
-                if (Input.GetKey(KeyCode.LeftShift))
-                {
-                    SendMessageSelectLines(l_linesToSelect.ToArray(), true);
-                }
-                else
-                {
-                    SendMessageSelectLines(l_linesToSelect.ToArray(), false);
-                }
-            }
+            SetFillers();
+            GenerateEventIndicators(data);
         }
         #endregion
 
         #region Private Methods
         void Awake()
         {
-           if(!m_Initialized) Initialize();
-        }
-        void Initialize()
-        {
-            m_RectTransform = GetComponent<RectTransform>();
-            m_LayoutElement = GetComponent<LayoutElement>();
-            m_Initialized = true;
-        }
-        void SetSize()
-        {
-            switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
-            {
-                case HBP.Data.Enums.BlocFormatType.TrialHeight:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * m_Data.SubTrials.Length;
-                    break;
-                case HBP.Data.Enums.BlocFormatType.TrialRatio:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * m_Data.SubTrials.Length;
-                    break;
-                case HBP.Data.Enums.BlocFormatType.BlocRatio:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocRatio * m_RectTransform.rect.width;
-                    break;
-            }
+           m_RectTransform = GetComponent<RectTransform>();
+           m_LayoutElement = GetComponent<LayoutElement>();
         }
         void SetTexture()
         {
-            float[][] lines = ExtractDataFromLines(m_Data.SubBlocs);
-
+            float[][] trials = ExtractDataTrials(m_Data.SubTrials);
             if(ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialSmoothing)
             {
-                lines = SmoothLines(lines, ApplicationState.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues);
+                trials = SmoothTrials(trials, ApplicationState.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues);
             }
 
-            Texture2D texture = GenerateTexture(lines, m_Limits, m_ColorMap);
+            Texture2D texture = GenerateTexture(trials, m_Limits, m_ColorMap);
             texture.mipMapBias = -5;
             texture.wrapMode = TextureWrapMode.Clamp;
             GetComponent<RawImage>().texture = texture;
         }
-
-        void AddMask(int[] lines)
+        void SetFillers()
         {
-            RectTransform rectTransform = GetComponent<RectTransform>();
-            GameObject displayer = Instantiate(m_SelectionMask as GameObject);
-            RectTransform displayerRect = displayer.GetComponent<RectTransform>();
-            displayerRect.SetParent(transform.GetChild(1));
-            int nbLines = m_Data.SubBlocs.Length;
-            float top = (float)(lines[lines.Length - 1] + 1) / nbLines;
-            float bot = (float)lines[0] / nbLines;
-            displayerRect.anchorMin = new Vector2(0, bot);
-            displayerRect.anchorMax = new Vector2(1, top);
-            displayerRect.offsetMin = new Vector2(0, 0);
-            displayerRect.offsetMax = new Vector2(0, 0);
+            int totalLenght = m_Data.SubTrials[0].Data.Values.Length + m_Data.SpacesBefore + m_Data.SpacesAfter;
+            m_LeftFillerLayoutElement.flexibleWidth = (float) m_Data.SpacesBefore / totalLenght;
+            m_RightFillerLayoutElement.flexibleWidth = (float) m_Data.SpacesAfter / totalLenght;
+            m_MainTextureLayoutElement.flexibleWidth = (float) m_Data.SubTrials[0].Data.Values.Length / totalLenght;
         }
-        void SendMessageSelectLines(int[] lines, bool additive)
-        {
-            Informations.TrialMatrixZone graphGestion = GetComponentInParent<Informations.TrialMatrixZone>();
-            if (graphGestion)
-            {
-                graphGestion.OnSelectTrials(lines, this, additive);
-            }
-        }
-        Texture2D GenerateTexture(float[][] lines,Vector2 limits,Texture2D colorMap)
+        Texture2D GenerateTexture(float[][] trials,Vector2 limits,Texture2D colorMap)
         {
             // Caculate texture size.
-            int height = lines.Length;
+            int height = trials.Length;
             if (height == 0) return new Texture2D(0,0);
-            int width = lines[0].Length;
-            Texture2D l_texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            int width = trials[0].Length;
+            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
             Color[] colors = new Color[width * height];
 
             // Set pixels
@@ -284,7 +110,7 @@ namespace HBP.UI.TrialMatrix
             {
                 for (int x = 0; x < width; x++)
                 {
-                    float value = lines[y][x];
+                    float value = trials[height - 1 - y][x];
                     if (float.IsNaN(value))
                     {
                         colors[y*width + x] = Color.black;
@@ -297,99 +123,66 @@ namespace HBP.UI.TrialMatrix
             }
 
             // Set texture.
-            l_texture.SetPixels(colors);
-            l_texture.filterMode = FilterMode.Point;
-            l_texture.anisoLevel = 0;
-            l_texture.Apply();
-            return l_texture;
+            texture.SetPixels(colors);
+            texture.filterMode = FilterMode.Point;
+            texture.anisoLevel = 0;
+            texture.Apply();
+            return texture;
         }
-        float[][] SmoothLines(float[][] lines, int pass)
+        float[][] SmoothTrials(float[][] trials, int pass)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("smoothing lines");
-            float[][] result = new float[lines.Length][];
+            float[][] result = new float[trials.Length][];
             for (int l = 0; l < result.Length; l++)
             {
-                result[l] = lines[l].LinearSmooth(pass);
+                result[l] = trials[l].LinearSmooth(pass);
             }
             return result;
         }
-        float[][] ExtractDataFromLines(data.SubTrial[] subTrials)
+        float[][] ExtractDataTrials(data.SubTrial[] subTrials)
         {
             float[][] result = new float[subTrials.Length][];
             for (int l = 0; l < subTrials.Length; l++)
             {
-                result[l] = subTrials[l].NormalizedValues;
+                result[l] = subTrials[l].Data.Values;
             }
             return result;
         }
         Color GetColor(float value,Vector2 limits,Texture2D colorMap)
         {
-            Profiler.BeginSample("GetColor");
             float ratio = (value - limits.x) / (limits.y - limits.x);
             ratio = Mathf.Clamp01(ratio);
             int y = Mathf.RoundToInt(ratio * (colorMap.height - 1));
-            Profiler.EndSample();
             return colorMap.GetPixel(0,y);
         }
-        void GenerateMainEventIndicator(data.SubBloc subBloc)
+        void GenerateEventIndicators(data.SubBloc subBloc)
         {
-            // TODO
-            //GameObject mainEvent = new GameObject();
-            //mainEvent.name = "Main event";
-            //Image image = mainEvent.AddComponent<Image>();
-            //RectTransform rect = mainEvent.GetComponent<RectTransform>();
-            //rect.SetParent(transform.GetChild(0));
-            //float X = (float)bloc.Trials[0].Bloc.PositionByEvent[bloc.ProtocolBloc.MainEvent] / bloc.Trials[0].NormalizedValues.Length;
-            //float Xstep = 0.5f / bloc.Trials[0].NormalizedValues.Length;
-            //rect.pivot = new Vector2(0, 0);
-            //rect.anchorMin = new Vector2(X, 0f);
-            //rect.anchorMax = new Vector2(X+ Xstep, 1f);
-            //rect.offsetMin = new Vector2(0, 0);
-            //rect.offsetMax = new Vector2(0, 0);
-            //if (rect.sizeDelta.x < 1) rect.sizeDelta = new Vector2(1.0f, rect.sizeDelta.y);
-            //image.color = Color.black;
-        }
-        void GenerateSecondaryIndicator(data.SubBloc subBloc)
-        {
-            // TODO
-            //for (int l = 0; l < bloc.Trials.Length; l++)
-            //{
-            //    foreach (var secondaryEvent in bloc.ProtocolBloc.SecondaryEvents)
-            //    {
-            //        int position = bloc.Trials[l].Bloc.PositionByEvent[secondaryEvent];
-            //        if (position > -1)
-            //        {
-            //            GameObject mainEvent = new GameObject();
-            //            mainEvent.name = secondaryEvent.Name + " - " + l;
-            //            Image image = mainEvent.AddComponent<Image>();
-            //            RectTransform rect = mainEvent.GetComponent<RectTransform>();
-            //            rect.SetParent(transform.GetChild(0));
-            //            float X = (float)position / bloc.Trials[l].NormalizedValues.Length;
-            //            float Xstep = 0.5f / bloc.Trials[l].NormalizedValues.Length;
-            //            float Y = (float)l / bloc.Trials.Length;
-            //            float Ystep = 1.0f / bloc.Trials.Length;
-            //            rect.pivot = new Vector2(0, 0);
-            //            rect.anchorMin = new Vector2(X, Y);
-            //            rect.anchorMax = new Vector2(X + Xstep, Y + Ystep);
-            //            rect.offsetMin = new Vector2(0, 0);
-            //            rect.offsetMax = new Vector2(0, 0);
-            //            image.color = Color.black;
-            //        }
-            //    }
-            //}
-        }
-        int GetTrialAtPosition(Vector3 position)
-        {
-            Vector2 ratio = m_RectTransform.GetRatioPosition(position);
-            return Mathf.FloorToInt(ratio.y * Data.SubBlocs.Length);
-        }
-        void ClearMask()
-        {
-            foreach(Transform child in transform.GetChild(1)) Destroy(child.gameObject);
-        }
-        void OnRectTransformDimensionsChange()
-        {
-            if (m_RectTransform.hasChanged) SetSize();
+            foreach (var _event in subBloc.SubBlocProtocol.Events)
+            {
+                for (int i = 0; i < subBloc.SubTrials.Length; i++)
+                {
+                    data.SubTrial subTrial = subBloc.SubTrials[i];
+                    EventInformation eventInformation = subTrial.Data.InformationsByEvent[_event];
+                    foreach (var occurence in eventInformation.Occurences)
+                    {
+                        GameObject eventGameObject = new GameObject(_event.Name + " - " + i);
+                        eventGameObject.transform.SetParent(transform.GetChild(0));
+                        eventGameObject.GetComponent<Image>().color = Color.black;
+
+                        float x = (float)(occurence.IndexFromStart + subBloc.SpacesBefore) / (subBloc.SubTrials[i].Data.Values.Length + subBloc.SpacesBefore + subBloc.SpacesAfter);
+                        float width = 0.5f / subBloc.SubTrials[i].Data.Values.Length;
+                        float y = (float)i / subBloc.SubTrials.Length;
+                        float height = 1.0f / subBloc.SubTrials.Length;
+
+                        RectTransform rect = eventGameObject.GetComponent<RectTransform>();
+                        rect.pivot = new Vector2(0, 0);
+                        rect.anchorMin = new Vector2(x, y);
+                        rect.anchorMax = new Vector2(x + width, y + height);
+                        rect.offsetMin = new Vector2(0, 0);
+                        rect.offsetMax = new Vector2(0, 0);
+                    }
+                }
+            }
+            
         }
         #endregion
     }

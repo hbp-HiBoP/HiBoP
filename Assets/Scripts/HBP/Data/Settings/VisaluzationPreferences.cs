@@ -52,7 +52,7 @@ namespace HBP.Data.Preferences
         [DataMember] public Enums.BlocFormatType SubBlocFormat { get; set; }
         [DataMember] public int TrialHeight { get; set; }
         [DataMember] public float TrialRatio { get; set; }
-        [DataMember] public float SubBlocRatio { get; set; }
+        [DataMember] public float BlocRatio { get; set; }
     }
 
     [DataContract]
