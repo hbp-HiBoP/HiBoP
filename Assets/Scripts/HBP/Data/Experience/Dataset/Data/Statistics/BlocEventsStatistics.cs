@@ -7,7 +7,7 @@ namespace HBP.Data.Experience.Dataset
     public class BlocEventsStatistics
     {
         #region Properties
-        Dictionary<SubBloc, SubBlocEventsStatistics> EventsStatisticsBySubBloc { get; set; }
+        public Dictionary<SubBloc, SubBlocEventsStatistics> EventsStatisticsBySubBloc { get; set; }
         #endregion
 
         #region Constructors

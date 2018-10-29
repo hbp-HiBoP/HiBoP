@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using CielaSpike;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience;
+using HBP.Data.Localizer;
 
 namespace HBP.Data.Visualization
 {
@@ -335,11 +336,11 @@ namespace HBP.Data.Visualization
             }
 
             // Standardize Columns.
-            //if (exception == null)
-            //{
-            //    yield return Ninja.JumpToUnity;
-            //    yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_StandardizeColumns(progress, onChangeProgress, (value, e) => { progress = value; exception = e; }));
-            //}
+            if (exception == null)
+            {
+                yield return Ninja.JumpToUnity;
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_StandardizeColumns(progress, onChangeProgress, (value, e) => { progress = value; exception = e; }));
+            }
 
             if (exception != null)
             {
@@ -380,7 +381,6 @@ namespace HBP.Data.Visualization
             }
             outPut(dataInfoByColumn, progress, exception);
         }
-
         IEnumerator c_LoadData(Dictionary<IEEGColumn, IEnumerable<DataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
@@ -450,27 +450,27 @@ namespace HBP.Data.Visualization
                     yield break;
                 }
             }
-            // int maxFrequency = columns.Max(column => column.Data.Frequencies.Max()); TODO
-            //for (int i = 0; i < columnsLength; ++i)
-            //{
-            //    IEEGColumn column = columns[i];
-            //    yield return Ninja.JumpToUnity;
-            //    progress += progressStep;
-            //    onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading timeline of column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
-            //    yield return Ninja.JumpBack;
-            //    column.Data.SetTimeline(maxFrequency);
-            //    yield return Ninja.JumpToUnity;
-            //    try
-            //    {
-            //        column.Data.IconicScenario.LoadIcons();
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        exception = e;
-            //        outPut(progress, exception);
-            //        yield break;
-            //    }
-            //}
+            Frequency maxFrequency = new Frequency(columns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
+            for (int i = 0; i < columnsLength; ++i)
+            {
+                IEEGColumn column = columns[i];
+                yield return Ninja.JumpToUnity;
+                progress += progressStep;
+                onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading timeline of column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
+                //yield return Ninja.JumpBack;
+                column.Data.SetTimeline(maxFrequency, column.Bloc);
+                yield return Ninja.JumpToUnity;
+                try
+                {
+                    column.Data.IconicScenario.LoadIcons();
+                }
+                catch (Exception e)
+                {
+                    exception = e;
+                    outPut(progress, exception);
+                    yield break;
+                }
+            }
             outPut(progress, exception);
         }
         IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
@@ -480,8 +480,8 @@ namespace HBP.Data.Visualization
             Exception exception = null;
 
             float progressStep = STANDARDIZE_COLUMNS_PROGRESS / columnsLength;
-            int maxBefore = columns.Max(column => column.Data.TimeLine.MainEvent.Position);
-            int maxAfter = columns.Max(column => column.Data.TimeLine.Lenght - column.Data.TimeLine.MainEvent.Position);
+            //int maxBefore = columns.Max(column => column.Data.TimeLine.MainEvent.Position);
+            //int maxAfter = columns.Max(column => column.Data.TimeLine.Lenght - column.Data.TimeLine.MainEvent.Position);
             for (int i = 0; i < columnsLength; ++i)
             {
                 IEEGColumn column = columns[i];
@@ -489,15 +489,15 @@ namespace HBP.Data.Visualization
                 progress += progressStep;
                 onChangeProgress.Invoke(progress, 0, new LoadingText("Standardize column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
                 yield return Ninja.JumpBack;
-                try
-                {
-                    column.Data.Standardize(maxBefore, maxAfter);
-                }
-                catch (Exception e)
-                {
-                    exception = e;
-                    break;
-                }
+                //try
+                //{
+                //    column.Data.Standardize(maxBefore, maxAfter);
+                //}
+                //catch (Exception e)
+                //{
+                //    exception = e;
+                //    break;
+                //}
             }
             outPut(progress, exception);
         }

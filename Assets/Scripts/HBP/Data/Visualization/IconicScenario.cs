@@ -16,13 +16,13 @@ namespace HBP.Data.Visualization
     public class IconicScenario
     {
         #region Properties
-        private List<Icon> icons;
+        private List<Icon> m_Icons;
         /// <summary>
         /// Icons of the iconic scenario.
         /// </summary>
         public ReadOnlyCollection<Icon> Icons
         {
-            get { return new ReadOnlyCollection<Icon>(icons); }
+            get { return new ReadOnlyCollection<Icon>(m_Icons); }
         }
         #endregion
 
@@ -33,21 +33,23 @@ namespace HBP.Data.Visualization
         /// <param name="bloc">Bloc of the iconic scenario.</param>
         /// <param name="frequency">Frequency used.</param>
         /// <param name="timeLine">TimeLine of the iconic scenario.</param>
-        public IconicScenario(Experience.Protocol.Bloc bloc, Frequency frequency, Timeline timeLine)
+        public IconicScenario(Experience.Protocol.Bloc bloc, Frequency frequency, Timeline timeline)
         {
-            // TODO
-            //List<Icon> l_icons = new List<Icon>();
-            //foreach(Experience.Protocol.Icon icon in bloc.Scenario.Icons)
-            //{
-
-            //    l_icons.Add(new Icon(icon, frequency,timeLine));
-            //}
-            //SetIcon(l_icons.ToArray());
+            m_Icons = new List<Icon>();
+            foreach (var subBloc in bloc.SubBlocs)
+            {
+                SubTimeline subTimeline = timeline.SubTimelinesBySubBloc[subBloc];
+                foreach (var subBlocIcon in subBloc.Icons)
+                {
+                    Icon icon = new Icon(subBlocIcon, frequency, subTimeline.StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart + subTimeline.GlobalMinIndex, timeline.Length);
+                    m_Icons.Add(icon);
+                }
+            }
         }
         /// <summary>
         /// Create a new iconic scenario instance with default values.
         /// </summary>
-        public IconicScenario() : this(new Experience.Protocol.Bloc(), new Frequency(0) ,new Timeline())
+        public IconicScenario() : this(new Experience.Protocol.Bloc(), new Frequency(0) ,null)
         {
 
         }
@@ -60,7 +62,7 @@ namespace HBP.Data.Visualization
         /// <param name="icon">Icon to add.</param>
         public void AddIcon(Icon icon)
         {
-            icons.Add(icon);
+            m_Icons.Add(icon);
         }
         /// <summary>
         /// Add icons.
@@ -76,7 +78,7 @@ namespace HBP.Data.Visualization
         /// <param name="icon">Icon to remove.</param>
         public void RemoveIcon(Icon icon)
         {
-            icons.Remove(icon);
+            m_Icons.Remove(icon);
         }
         /// <summary>
         /// Remove icons.
@@ -92,7 +94,7 @@ namespace HBP.Data.Visualization
         /// <param name="icons">Icons to set.</param>
         public void SetIcon(Icon[] icons)
         {
-            this.icons = new List<Icon>();
+            this.m_Icons = new List<Icon>();
             AddIcon(icons);
         }
         /// <summary>
@@ -112,7 +114,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         public void LoadIcons()
         {
-            foreach (Icon icon in icons)
+            foreach (Icon icon in m_Icons)
             {
                 icon.Load();
             }

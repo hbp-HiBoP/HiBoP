@@ -36,7 +36,13 @@ namespace HBP.Module3D
         /// <summary>
         /// Timeline of this column
         /// </summary>
-        public Timeline Timeline { get; private set; }
+        public Data.Visualization.Timeline Timeline
+        {
+            get
+            {
+                return ColumnIEEGData.Data.Timeline;
+            }
+        }
 
         /// <summary>
         /// Shared minimum influence (for iEEG on the surface)
@@ -121,6 +127,7 @@ namespace HBP.Module3D
                 Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics;
                 if (ColumnIEEGData.Data.StatisticsByChannel.TryGetValue(site.Information.FullCorrectedID, out blocChannelStatistics))
                 {
+                    site.Statistics = blocChannelStatistics;
                     float[] values = blocChannelStatistics.Trial.AllValues;
                     if (values.Length > 0)
                     {
@@ -140,6 +147,11 @@ namespace HBP.Module3D
                     IEEGValuesBySiteID[site.Information.GlobalID] = new float[Timeline.Length];
                     IEEGUnitsBySiteID[site.Information.GlobalID] = "";
                     site.State.IsMasked = true; // update mask
+                }
+                Data.Experience.Dataset.BlocChannelData blocChannelData;
+                if (ColumnIEEGData.Data.DataByChannel.TryGetValue(site.Information.FullCorrectedID, out blocChannelData))
+                {
+                    site.Data = blocChannelData;
                 }
             }
             if (numberOfSitesWithValues == 0)
@@ -339,7 +351,6 @@ namespace HBP.Module3D
         /// <param name="columnData">Column data to use</param>
         public void ComputeEEGData()
         {
-            Timeline = new Timeline(this);
             Timeline.OnUpdateCurrentIndex.AddListener(() =>
             {
                 OnUpdateCurrentTimelineID.Invoke();

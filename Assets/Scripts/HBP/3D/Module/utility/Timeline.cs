@@ -1,11 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using HBP.Data.Experience.Protocol;
+using HBP.Data.Experience.Dataset;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using HBP.Data.Localizer;
 
-namespace HBP.Module3D
+namespace HBP.Data.Visualization
 {
     public class Timeline
     {
@@ -13,11 +15,11 @@ namespace HBP.Module3D
         /// <summary>
         /// Length of the timeline
         /// </summary>
-        public int Length { get; set; }
+        public int Length { get; private set; }
         /// <summary>
         /// Unit of the timeline
         /// </summary>
-        public string Unit { get; set; }
+        public string Unit { get; private set; }
 
         private int m_CurrentIndex;
         /// <summary>
@@ -46,11 +48,7 @@ namespace HBP.Module3D
         /// <summary>
         /// Subtimelines of this timeline
         /// </summary>
-        private SubTimeline[] m_SubTimelines;
-        /// <summary>
-        /// Subtimelines of this timeline
-        /// </summary>
-        public ReadOnlyCollection<SubTimeline> SubTimelines { get { return new ReadOnlyCollection<SubTimeline>(m_SubTimelines); } }
+        public Dictionary<SubBloc, SubTimeline> SubTimelinesBySubBloc { get; set; }
         /// <summary>
         /// Current subtimeline compared to the position of the current index
         /// </summary>
@@ -58,7 +56,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return m_SubTimelines.FirstOrDefault(s => s.GlobalMinIndex <= m_CurrentIndex && s.GlobalMaxIndex >= m_CurrentIndex);
+                return SubTimelinesBySubBloc.FirstOrDefault(s => s.Value.GlobalMinIndex <= m_CurrentIndex && s.Value.GlobalMaxIndex >= m_CurrentIndex).Value;
             }
         }
 
@@ -101,11 +99,18 @@ namespace HBP.Module3D
         #endregion
 
         #region Constructors
-        public Timeline(Column3DIEEG column)
+        public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Frequency frequency)
         {
-            Data.Visualization.IEEGData data = column.ColumnIEEGData.Data;
-            Length = data.StatisticsByChannel.Values.FirstOrDefault().Trial.AllValues.Length;
             Unit = "ms";
+            int startIndex = 0;
+            SubTimelinesBySubBloc = new Dictionary<SubBloc, SubTimeline>(bloc.SubBlocs.Count);
+            foreach (var subBloc in bloc.SubBlocs.OrderBy(sb => sb.Order).ThenBy(sb => sb.Name))
+            {
+                SubTimeline subTimeline = new SubTimeline(subBloc, startIndex, eventStatisticsBySubBloc[subBloc], frequency);
+                startIndex += subTimeline.Length;
+                SubTimelinesBySubBloc.Add(subBloc, subTimeline);
+            }
+            Length = SubTimelinesBySubBloc.Sum(s => s.Value.Length);
         }
         #endregion
 
@@ -138,6 +143,10 @@ namespace HBP.Module3D
     {
         #region Properties
         /// <summary>
+        /// Length of the subtimeline
+        /// </summary>
+        public int Length { get; set; }
+        /// <summary>
         /// Min index of the subtimeline from the start of the global timeline
         /// </summary>
         public int GlobalMinIndex { get; set; }
@@ -157,16 +166,27 @@ namespace HBP.Module3D
         /// Time of a step
         /// </summary>
         public float TimeStep { get; set; }
+
+        public Dictionary<Data.Experience.Protocol.Event, EventStatistics> StatisticsByEvent { get; set; }
         #endregion
 
         #region Constructors
-        public SubTimeline(int globalMinIndex, int globalMaxIndex, float minTime, float maxTime)
+        public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, Frequency frequency)
         {
-            GlobalMinIndex = globalMinIndex;
-            GlobalMaxIndex = globalMaxIndex;
-            MinTime = minTime;
-            MaxTime = maxTime;
-            TimeStep = (maxTime - minTime) / (globalMaxIndex - globalMinIndex);
+            // Indexes
+            GlobalMinIndex = startIndex;
+            Length = frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End) - frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start) + 1;
+            GlobalMaxIndex = startIndex + Length - 1;
+            MinTime = subBloc.Window.Start;
+            MaxTime = subBloc.Window.End;
+            TimeStep = (MaxTime - MinTime) / (Length - 1);
+
+            // Events
+            StatisticsByEvent = new Dictionary<Experience.Protocol.Event, EventStatistics>();
+            foreach (var e in subBloc.Events)
+            {
+                StatisticsByEvent.Add(e, EventStatistics.Average(eventStatistics.Select(es => es.StatisticsByEvent[e])));
+            }
         }
         #endregion
 

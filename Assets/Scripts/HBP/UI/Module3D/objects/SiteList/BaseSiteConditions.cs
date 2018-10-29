@@ -69,63 +69,63 @@ public abstract class BaseSiteConditions : MonoBehaviour
     }
     protected bool CheckMean(Site site, bool superior, string stringValue)
     {
-        float[] allValues = site.Statistics.Trial.AllValues;
-        if (allValues.Length > 0)
+        if (site.Statistics != null)
         {
-            return CompareValue(allValues.Mean(), superior, stringValue);
+            float[] allValues = site.Statistics.Trial.AllValues;
+            if (allValues.Length > 0)
+            {
+                return CompareValue(allValues.Mean(), superior, stringValue);
+            }
         }
-        else
-        {
-            return false;
-        }
+        return false;
     }
     protected bool CheckMedian(Site site, bool superior, string stringValue)
     {
-        float[] allValues = site.Statistics.Trial.AllValues;
-        if (allValues.Length > 0)
+        if (site.Statistics != null)
         {
-            return CompareValue(allValues.Median(), superior, stringValue);
+            float[] allValues = site.Statistics.Trial.AllValues;
+            if (allValues.Length > 0)
+            {
+                return CompareValue(allValues.Median(), superior, stringValue);
+            }
         }
-        else
-        {
-            return false;
-        }
+        return false;
     }
     protected bool CheckMax(Site site, bool superior, string stringValue)
     {
-        float[] allValues = site.Statistics.Trial.AllValues;
-        if (allValues.Length > 0)
+        if (site.Statistics != null)
         {
-            return CompareValue(allValues.Max(), superior, stringValue);
+            float[] allValues = site.Statistics.Trial.AllValues;
+            if (allValues.Length > 0)
+            {
+                return CompareValue(allValues.Max(), superior, stringValue);
+            }
         }
-        else
-        {
-            return false;
-        }
+        return false;
     }
     protected bool CheckMin(Site site, bool superior, string stringValue)
     {
-        float[] allValues = site.Statistics.Trial.AllValues;
-        if (allValues.Length > 0)
+        if (site.Statistics != null)
         {
-            return CompareValue(allValues.Min(), superior, stringValue);
+            float[] allValues = site.Statistics.Trial.AllValues;
+            if (allValues.Length > 0)
+            {
+                return CompareValue(allValues.Min(), superior, stringValue);
+            }
         }
-        else
-        {
-            return false;
-        }
+        return false;
     }
     protected bool CheckStandardDeviation(Site site, bool superior, string stringValue)
     {
-        float[] allValues = site.Statistics.Trial.AllValues;
-        if (allValues.Length > 0)
+        if (site.Statistics != null)
         {
-            return CompareValue(allValues.StandardDeviation(), superior, stringValue);
+            float[] allValues = site.Statistics.Trial.AllValues;
+            if (allValues.Length > 0)
+            {
+                return CompareValue(allValues.StandardDeviation(), superior, stringValue);
+            }
         }
-        else
-        {
-            return false;
-        }
+        return false;
     }
     private bool CompareValue(float value, bool superior, string stringValueToCompare)
     {

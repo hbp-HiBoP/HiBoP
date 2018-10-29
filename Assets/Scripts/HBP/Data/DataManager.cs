@@ -370,7 +370,7 @@ public static class DataManager
             {
                 BlocEventsStatistics blocEventsStatistics = new BlocEventsStatistics(request.DataInfo,request.Bloc);
                 m_BlocEventsStatisticsByRequest.Add(request, blocEventsStatistics);
-                return result;
+                return blocEventsStatistics;
             }
         }
         else return null;

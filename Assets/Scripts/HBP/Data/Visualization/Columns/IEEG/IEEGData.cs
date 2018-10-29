@@ -8,17 +8,14 @@ namespace HBP.Data.Visualization
     public class IEEGData
     {
         #region Properties
-        /// <summary>
-        /// Timeline of the column which define the size,limits,events.
-        /// </summary>
-        public Timeline TimeLine { get; set; }
-        /// <summary>
-        /// Iconic scenario which define the labels,images to display during the timeLine. 
-        /// </summary>
         public IconicScenario IconicScenario { get; set; }
+        public Timeline Timeline { get; set; }
         public Dictionary<Patient, BlocEventsStatistics> EventStatisticsByPatient { get; set; } = new Dictionary<Patient, BlocEventsStatistics>();
         public Dictionary<string, BlocChannelData> DataByChannel { get; set; } = new Dictionary<string, BlocChannelData>();
         public Dictionary<string, BlocChannelStatistics> StatisticsByChannel { get; set; } = new Dictionary<string, BlocChannelStatistics>();
+        
+        private Dictionary<string, Frequency> m_FrequencyByChannel = new Dictionary<string, Frequency>();
+        public List<Frequency> Frequencies = new List<Frequency>();
         #endregion
 
         #region Public Methods
@@ -32,16 +29,31 @@ namespace HBP.Data.Visualization
                 {
                     DataByChannel.Add(channel, DataManager.GetData(dataInfo, bloc, channel));
                     StatisticsByChannel.Add(channel, DataManager.GetStatistics(dataInfo, bloc, channel));
+                    m_FrequencyByChannel.Add(channel, data.Frequency);
+                    Frequencies.Add(data.Frequency);
                 }
                 // Events
                 EventStatisticsByPatient.Add(dataInfo.Patient, DataManager.GetEventsStatistics(dataInfo, bloc));
             }
         }
-        public void SetTimeline(int maxFrequency)
+        public void SetTimeline(Frequency maxFrequency, Experience.Protocol.Bloc bloc)
         {
-            //// TODO
-            //Frequencies.Add(maxFrequency);
-            //Frequencies = Frequencies.Distinct().ToList();
+            Frequencies.Add(maxFrequency);
+            Frequencies = Frequencies.GroupBy(f => f.Value).Select(g => g.First()).ToList();
+            Dictionary<Experience.Protocol.SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc = new Dictionary<Experience.Protocol.SubBloc, List<SubBlocEventsStatistics>>();
+            foreach (var subBloc in bloc.SubBlocs)
+            {
+                eventStatisticsBySubBloc.Add(subBloc, new List<SubBlocEventsStatistics>());
+            }
+            foreach (var blocEventStatistics in EventStatisticsByPatient.Values)
+            {
+                foreach (var subBlocEventStatistics in blocEventStatistics.EventsStatisticsBySubBloc)
+                {
+                    eventStatisticsBySubBloc[subBlocEventStatistics.Key].Add(subBlocEventStatistics.Value);
+                }
+            }
+            Timeline = new Timeline(bloc, eventStatisticsBySubBloc, maxFrequency);
+            IconicScenario = new IconicScenario(bloc, maxFrequency, Timeline);
             //Event mainEvent = new Event();
             //List<Event> secondaryEvents = new List<Event>(Bloc.SecondaryEvents.Count);
             //switch (ApplicationState.UserPreferences.Data.Event.PositionAveraging)
@@ -99,14 +111,6 @@ namespace HBP.Data.Visualization
             //        }
             //    }
             //}
-        }
-        /// <summary>
-        /// Dispose the data of the column
-        /// </summary>
-        public void Unload()
-        {
-            TimeLine = null;
-            IconicScenario = null;
         }
         /// <summary>
         /// Standardize column.

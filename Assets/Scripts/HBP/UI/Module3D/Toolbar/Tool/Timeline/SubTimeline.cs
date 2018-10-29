@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using HBP.Module3D;
+using System.Collections;
 using System.Collections.Generic;
+using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,13 +13,18 @@ namespace HBP.UI.Module3D.Tools
         [SerializeField] private Text m_MinText;
         [SerializeField] private Text m_MaxText;
         [SerializeField] private Text m_Current;
-        private HBP.Module3D.Timeline m_Timeline;
-        private HBP.Module3D.SubTimeline m_SubTimeline;
+        [SerializeField] private RectTransform m_Events;
+        private Data.Visualization.Timeline m_Timeline;
+        private Data.Visualization.SubTimeline m_SubTimeline;
+        private Column3DIEEG m_Column;
+        [SerializeField] private GameObject m_MainEventPrefab;
+        [SerializeField] private GameObject m_SecondaryEventPrefab;
         #endregion
 
         #region Public Methods
-        public void Initialize(HBP.Module3D.Timeline timeline, HBP.Module3D.SubTimeline subTimeline, float offset)
+        public void Initialize(Column3DIEEG column, Data.Visualization.Timeline timeline, Data.Visualization.SubTimeline subTimeline, float offset)
         {
+            m_Column = column;
             m_Timeline = timeline;
             m_SubTimeline = subTimeline;
             m_MinText.text = subTimeline.MinTime.ToString("N2") + timeline.Unit;
@@ -28,6 +35,7 @@ namespace HBP.UI.Module3D.Tools
             GetComponent<RectTransform>().anchorMin = new Vector2(begin, 0);
             GetComponent<RectTransform>().anchorMax = new Vector2(end, 1);
             GetComponent<RectTransform>().sizeDelta = new Vector2(offset, 0);
+            ShowEvents();
         }
         public void UpdateCurrentTime()
         {
@@ -39,6 +47,63 @@ namespace HBP.UI.Module3D.Tools
             else
             {
                 m_Current.gameObject.SetActive(false);
+            }
+        }
+        #endregion
+
+        #region Private Methods
+        private void ShowEvents()
+        {
+            DeleteEvents();
+
+            foreach (var eventStat in m_SubTimeline.StatisticsByEvent)
+            {
+                Data.Experience.Protocol.Event e = eventStat.Key;
+                Data.Experience.Dataset.EventStatistics eventStatistics = eventStat.Value;
+                GameObject eventGameObject;
+                if (e.Type == Data.Enums.MainSecondaryEnum.Main)
+                {
+                    eventGameObject = Instantiate(m_MainEventPrefab, m_Events);
+                }
+                else
+                {
+                    eventGameObject = Instantiate(m_SecondaryEventPrefab, m_Events);
+                }
+                float eventPosition = eventStatistics.IndexFromStart / (m_SubTimeline.Length - 1);
+                RectTransform eventRectTransform = eventGameObject.GetComponent<RectTransform>();
+                eventRectTransform.anchorMin = new Vector2(eventPosition, eventRectTransform.anchorMin.y);
+                eventRectTransform.anchorMax = new Vector2(eventPosition, eventRectTransform.anchorMax.y);
+                eventRectTransform.GetComponent<Tooltip>().Text = string.Format("{0} | {1} ({2}{3}) | {4}%",
+                    e.Name,
+                    eventStatistics.RoundedIndexFromStart,
+                    m_SubTimeline.TimeStep * eventStatistics.RoundedIndexFromStart + m_SubTimeline.MinTime,
+                    m_Timeline.Unit,
+                    eventStatistics.NumberOfOccurenceBySubTrial * 100);
+            }
+
+            //GameObject mainEvent = Instantiate(m_MainEventPrefab, m_Events);
+            //RectTransform mainEventRectTransform = mainEvent.GetComponent<RectTransform>();
+            //Data.Visualization.Event mainEventData = m_Column.ColumnIEEGData.Data.TimeLine.MainEvent;
+            //float mainEventPosition = (float)mainEventData.Position / (m_Column.ColumnIEEGData.Data.TimeLine.Lenght - 1);
+            //mainEventRectTransform.anchorMin = new Vector2(mainEventPosition, mainEventRectTransform.anchorMin.y);
+            //mainEventRectTransform.anchorMax = new Vector2(mainEventPosition, mainEventRectTransform.anchorMax.y);
+            //mainEvent.GetComponent<Tooltip>().Text = mainEventData.Label + " | " + mainEventData.Position + " (" + (m_Column.ColumnIEEGData.Data.TimeLine.Step * mainEventData.Position + m_Column.Timeline.CurrentSubtimeline.MinTime).ToString("N2") + m_Column.Timeline.Unit + ")";
+
+            //foreach (Data.Visualization.Event timelineEvent in m_Column.ColumnIEEGData.Data.TimeLine.SecondaryEvents)
+            //{
+            //    GameObject secondaryEvent = Instantiate(m_SecondaryEventPrefab, m_Events);
+            //    RectTransform secondaryEventRectTransform = secondaryEvent.GetComponent<RectTransform>();
+            //    float secondaryEventPosition = (float)timelineEvent.Position / (m_Column.ColumnIEEGData.Data.TimeLine.Lenght - 1);
+            //    secondaryEventRectTransform.anchorMin = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMin.y);
+            //    secondaryEventRectTransform.anchorMax = new Vector2(secondaryEventPosition, secondaryEventRectTransform.anchorMax.y);
+            //    secondaryEvent.GetComponent<Tooltip>().Text = timelineEvent.Label + " | " + timelineEvent.Position + " (" + (m_Column.ColumnIEEGData.Data.TimeLine.Step * timelineEvent.Position + m_Column.Timeline.CurrentSubtimeline.MinTime).ToString("N2") + m_Column.Timeline.Unit + ")" + " | " + (timelineEvent.AttendanceRate * 100).ToString("N2") + "%";
+            //}
+        }
+        private void DeleteEvents()
+        {
+            foreach (Transform timelineEvent in m_Events)
+            {
+                Destroy(timelineEvent.gameObject);
             }
         }
         #endregion

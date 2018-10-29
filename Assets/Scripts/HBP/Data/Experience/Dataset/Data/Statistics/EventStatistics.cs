@@ -7,8 +7,8 @@ namespace HBP.Data.Experience.Dataset
     public struct EventStatistics
     {
         #region Properties
-        public int RoundedIndex { get; set; }
-        public float Index { get; set; }
+        public int RoundedIndexFromStart { get; set; }
+        public float IndexFromStart { get; set; }
         public float NumberOfOccurenceBySubTrial { get; set; }
         public int NumberOfOccurences { get; set; }
         #endregion
@@ -24,24 +24,41 @@ namespace HBP.Data.Experience.Dataset
                 foreach (var occurence in eventInfo.Occurences)
                 {
                     NumberOfOccurences++;
-                    indexes.Add(occurence.Index);
+                    indexes.Add(occurence.IndexFromStart);
                 }
             }
             switch (averaging)
             {
                 case Enums.AveragingType.Mean:
-                    Index = indexes.ToArray().Mean();
+                    IndexFromStart = indexes.ToArray().Mean();
                     NumberOfOccurenceBySubTrial = numberOfOccurence.ToArray().Mean();
-                    RoundedIndex = Mathf.RoundToInt(Index);
+                    RoundedIndexFromStart = Mathf.RoundToInt(IndexFromStart);
                     break;
                 case Enums.AveragingType.Median:
-                    Index = indexes.ToArray().Median();
+                    IndexFromStart = indexes.ToArray().Median();
                     NumberOfOccurenceBySubTrial = numberOfOccurence.ToArray().Median();
-                    RoundedIndex = Mathf.RoundToInt(Index);
+                    RoundedIndexFromStart = Mathf.RoundToInt(IndexFromStart);
                     break;
                 default:
                     break;
             }
+        }
+        #endregion
+
+        #region Public Methods
+        public static EventStatistics Average(IEnumerable<EventStatistics> eventStatistics)
+        {
+            EventStatistics result = new EventStatistics();
+            foreach (var eventStat in eventStatistics)
+            {
+                result.IndexFromStart = eventStat.IndexFromStart * eventStat.NumberOfOccurences;
+                result.NumberOfOccurenceBySubTrial = eventStat.NumberOfOccurenceBySubTrial * eventStat.NumberOfOccurences;
+                result.NumberOfOccurences += eventStat.NumberOfOccurences;
+            }
+            result.IndexFromStart /= result.NumberOfOccurences;
+            result.NumberOfOccurenceBySubTrial /= result.NumberOfOccurences;
+            result.RoundedIndexFromStart = Mathf.RoundToInt(result.IndexFromStart);
+            return result;
         }
         #endregion
     }

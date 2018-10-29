@@ -10,7 +10,7 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public SubBlocEventsStatistics(BlocData data, Protocol.SubBloc subBloc) : this(subBloc.Events.ToDictionary(e => e, e => data.Trials.SelectMany(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent.Values.ToArray()).ToArray()))
+        public SubBlocEventsStatistics(BlocData data, Protocol.SubBloc subBloc) : this(subBloc.Events.ToDictionary(e => e, e => data.Trials.Select(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[e]).ToArray()))
         {
         }
         public SubBlocEventsStatistics(Dictionary<Protocol.Event, EventInformation[]> informationsByEvent)
