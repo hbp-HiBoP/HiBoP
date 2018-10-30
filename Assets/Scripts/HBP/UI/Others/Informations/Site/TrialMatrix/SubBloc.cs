@@ -49,8 +49,6 @@ namespace HBP.UI.TrialMatrix
             }
         }
 
-        RectTransform m_RectTransform;
-        LayoutElement m_LayoutElement;
         [SerializeField] RawImage m_RawImage;
         [SerializeField] LayoutElement m_MainTextureLayoutElement;
         [SerializeField] LayoutElement m_LeftFillerLayoutElement;
@@ -71,11 +69,6 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Private Methods
-        void Awake()
-        {
-           m_RectTransform = GetComponent<RectTransform>();
-           m_LayoutElement = GetComponent<LayoutElement>();
-        }
         void SetTexture()
         {
             float[][] trials = ExtractDataTrials(m_Data.SubTrials);
@@ -87,7 +80,7 @@ namespace HBP.UI.TrialMatrix
             Texture2D texture = GenerateTexture(trials, m_Limits, m_ColorMap);
             texture.mipMapBias = -5;
             texture.wrapMode = TextureWrapMode.Clamp;
-            GetComponent<RawImage>().texture = texture;
+            m_RawImage.texture = texture;
         }
         void SetFillers()
         {
@@ -158,6 +151,7 @@ namespace HBP.UI.TrialMatrix
         {
             foreach (var _event in subBloc.SubBlocProtocol.Events)
             {
+
                 for (int i = 0; i < subBloc.SubTrials.Length; i++)
                 {
                     data.SubTrial subTrial = subBloc.SubTrials[i];
@@ -166,7 +160,7 @@ namespace HBP.UI.TrialMatrix
                     {
                         GameObject eventGameObject = new GameObject(_event.Name + " - " + i);
                         eventGameObject.transform.SetParent(transform.GetChild(0));
-                        eventGameObject.GetComponent<Image>().color = Color.black;
+                        eventGameObject.AddComponent<Image>().color = Color.black;
 
                         float x = (float)(occurence.IndexFromStart + subBloc.SpacesBefore) / (subBloc.SubTrials[i].Data.Values.Length + subBloc.SpacesBefore + subBloc.SpacesAfter);
                         float width = 0.5f / subBloc.SubTrials[i].Data.Values.Length;
@@ -182,7 +176,6 @@ namespace HBP.UI.TrialMatrix
                     }
                 }
             }
-            
         }
         #endregion
     }
