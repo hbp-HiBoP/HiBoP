@@ -60,6 +60,8 @@ namespace HBP.UI.Module3D.Tools
             {
                 Data.Experience.Protocol.Event e = eventStat.Key;
                 Data.Experience.Dataset.EventStatistics eventStatistics = eventStat.Value;
+                if (eventStatistics.NumberOfOccurences == 0) continue;
+
                 GameObject eventGameObject;
                 if (e.Type == Data.Enums.MainSecondaryEnum.Main)
                 {
