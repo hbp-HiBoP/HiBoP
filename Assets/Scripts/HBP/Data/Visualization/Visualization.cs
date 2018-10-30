@@ -457,7 +457,7 @@ namespace HBP.Data.Visualization
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
                 onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading timeline of column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
-                //yield return Ninja.JumpBack;
+                yield return Ninja.JumpBack;
                 column.Data.SetTimeline(maxFrequency, column.Bloc);
                 yield return Ninja.JumpToUnity;
                 try

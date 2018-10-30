@@ -90,7 +90,7 @@ namespace HBP.Data.Visualization
         {
             Label = icon.Name;
             IllustrationPath = icon.IllustrationPath;
-            StartPosition = Mathf.Clamp(frequency.ConvertToFlooredNumberOfSamples(icon.Window.Start) + mainEventPosition, 0, timelineLength - 1);
+            StartPosition = Mathf.Clamp(frequency.ConvertToCeiledNumberOfSamples(icon.Window.Start) + mainEventPosition, 0, timelineLength - 1);
             EndPosition = Mathf.Clamp(frequency.ConvertToFlooredNumberOfSamples(icon.Window.End) + mainEventPosition, 0, timelineLength - 1);
         }
 

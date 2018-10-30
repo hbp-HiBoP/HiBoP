@@ -54,6 +54,7 @@ namespace HBP.UI.Module3D
                         if (icon == null)
                         {
                             IsActive = false;
+                            m_CurrentIcon = null;
                         }
                         if (icon != m_CurrentIcon)
                         {
