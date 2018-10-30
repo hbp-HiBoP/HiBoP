@@ -20,8 +20,15 @@ namespace HBP.Data.Experience.Dataset
         }
         public ChannelSubTrial(SubTrial subTrial, string channel)
         {
-            Values = subTrial.ValuesByChannel[channel];
             Found = subTrial.Found;
+            if (Found)
+            {
+                Values = subTrial.ValuesByChannel[channel];
+            }
+            else
+            {
+                Values = new float[0];
+            }
             InformationsByEvent = subTrial.InformationsByEvent;
         }
         #endregion

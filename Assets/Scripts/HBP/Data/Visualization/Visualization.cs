@@ -282,6 +282,14 @@ namespace HBP.Data.Visualization
             //}
             //return commonImplantations;
         }
+
+        public void Unload()
+        {
+            foreach (var column in Columns)
+            {
+                column.Unload();
+            }
+        }
         #endregion
 
         #region Operators

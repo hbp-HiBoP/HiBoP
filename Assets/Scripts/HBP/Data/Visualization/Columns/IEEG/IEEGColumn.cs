@@ -134,6 +134,10 @@ namespace HBP.Data.Visualization
         {
             return Dataset != null && patients.All((patient) => Dataset.Data.Any((data) => data.Name == DataName && data.Patient == patient && data.isOk));
         }
+        public override void Unload()
+        {
+            Data.Unload();
+        }
         #endregion
 
         #region Operators

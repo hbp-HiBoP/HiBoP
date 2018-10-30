@@ -25,7 +25,20 @@ public static class DataManager
     static Dictionary<BlocRequest, BlocEventsStatistics> m_BlocEventsStatisticsByRequest = new Dictionary<BlocRequest, BlocEventsStatistics>();
 
     static Dictionary<BlocRequest, HBP.Data.Enums.NormalizationType> m_NormalizeByRequest = new Dictionary<BlocRequest, HBP.Data.Enums.NormalizationType>();
-    public static bool HasData { get { return m_DataByRequest.Count > 0; } }
+    public static bool HasData
+    {
+        get
+        {
+            return m_DataByRequest.Count > 0
+                || m_BlocDataByRequest.Count > 0
+                || m_ChannelDataByRequest.Count > 0
+                || m_BlocChannelDataByRequest.Count > 0
+                || m_ChannelStatisticsByRequest.Count > 0
+                || m_BlocChannelStatisticsByRequest.Count > 0
+                || m_EventsStatisticsByRequest.Count > 0
+                || m_BlocEventsStatisticsByRequest.Count > 0;
+        }
+    }
     #endregion
 
     #region Public Methods
@@ -56,6 +69,8 @@ public static class DataManager
 
         m_EventsStatisticsByRequest.Clear();
         m_BlocEventsStatisticsByRequest.Clear();
+
+        m_NormalizeByRequest.Clear();
     }
 
     // Data.

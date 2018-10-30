@@ -109,7 +109,10 @@ namespace HBP.Module3D
         #region Private Methods
         private void Update()
         {
-            Timeline.Play();
+            if (Timeline != null)
+            {
+                Timeline.Play();
+            }
         }
         /// <summary>
         /// Set EEG Data for each site

@@ -27,14 +27,24 @@ namespace HBP.Data.Visualization
                 // Values
                 foreach (var channel in data.UnitByChannel.Keys)
                 {
-                    DataByChannel.Add(channel, DataManager.GetData(dataInfo, bloc, channel));
-                    StatisticsByChannel.Add(channel, DataManager.GetStatistics(dataInfo, bloc, channel));
-                    m_FrequencyByChannel.Add(channel, data.Frequency);
-                    Frequencies.Add(data.Frequency);
+                    if (!DataByChannel.ContainsKey(channel)) DataByChannel.Add(channel, DataManager.GetData(dataInfo, bloc, channel));
+                    if (!StatisticsByChannel.ContainsKey(channel)) StatisticsByChannel.Add(channel, DataManager.GetStatistics(dataInfo, bloc, channel));
+                    if (!m_FrequencyByChannel.ContainsKey(channel)) m_FrequencyByChannel.Add(channel, data.Frequency);
+                    if (!Frequencies.Contains(data.Frequency)) Frequencies.Add(data.Frequency);
                 }
                 // Events
-                EventStatisticsByPatient.Add(dataInfo.Patient, DataManager.GetEventsStatistics(dataInfo, bloc));
+                if (!EventStatisticsByPatient.ContainsKey(dataInfo.Patient)) EventStatisticsByPatient.Add(dataInfo.Patient, DataManager.GetEventsStatistics(dataInfo, bloc));
             }
+        }
+        public void Unload()
+        {
+            EventStatisticsByPatient.Clear();
+            DataByChannel.Clear();
+            StatisticsByChannel.Clear();
+            m_FrequencyByChannel.Clear();
+            Frequencies.Clear();
+            IconicScenario = null;
+            Timeline = null;
         }
         public void SetTimeline(Frequency maxFrequency, Experience.Protocol.Bloc bloc)
         {
