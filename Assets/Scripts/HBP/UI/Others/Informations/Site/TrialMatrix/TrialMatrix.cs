@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using UnityEngine.Events;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.Events;
 using data = HBP.Data.TrialMatrix;
 
 namespace HBP.UI.TrialMatrix
@@ -87,7 +88,7 @@ namespace HBP.UI.TrialMatrix
         public Vector2ArrayEvent OnChangeTimeLimits;
 
         [SerializeField] GameObject m_BlocPrefab;
-        [SerializeField] RectTransform m_BlocsRectTransform;
+        [SerializeField] RectTransform m_BlocContainer;
 
         public data.TrialMatrix Data { get; private set; }
         #endregion
@@ -95,54 +96,40 @@ namespace HBP.UI.TrialMatrix
         #region Public Methods
         public void Set(data.TrialMatrix trialMatrix , Texture2D colorMap, Vector2 limits = new Vector2())
         {
-            // TODO
-            //m_Data = trialMatrix;
+           Data = trialMatrix;
 
-            //Title = trialMatrix.Title;
-            //ColorMap = colorMap;
-            //UsePrecalculatedLimits = limits == new Vector2();
+            Title = trialMatrix.Title;
+            ColorMap = colorMap;
+            UsePrecalculatedLimits = limits == new Vector2();
 
-            ////Organize array
-            //data.Bloc[] l_blocs = trialMatrix.Blocs.OrderBy(t => t.ProtocolBloc.Position.Row).ThenBy(t => t.ProtocolBloc.Position.Column).ToArray();
-
-            //// Set Legends
+            // Set Legends
             //OnChangeTimeLimits.Invoke(trialMatrix.TimeLimitsByColumn);
 
-            ////Separate blocs by line
-            //List<data.Bloc[]> l_lines = new List<data.Bloc[]>();
-            //foreach (var bloc in l_blocs)
-            //{
-            //    if (!l_lines.Exists((a) => a.Contains(bloc)))
-            //    {
-            //        l_lines.Add(System.Array.FindAll(l_blocs, x => x.ProtocolBloc.Position.Row == bloc.ProtocolBloc.Position.Row));
-            //    }
-            //}
+            IOrderedEnumerable<data.Bloc> blocs = trialMatrix.Blocs.OrderBy(bloc => bloc.ProtocolBloc.OrderedSubBlocs);
+            int numberOfSubBlocsBeforeMainSubBloc = 0;
+            int numberOfSubBlocsAfterMainSubBloc = 0;
+            foreach (data.Bloc bloc in blocs)
+            {
+                int before = bloc.ProtocolBloc.MainSubBlocPosition;
+                int after = bloc.ProtocolBloc.SubBlocs.Count - 1 - before;
+                numberOfSubBlocsBeforeMainSubBloc = Mathf.Max(numberOfSubBlocsBeforeMainSubBloc, before);
+                numberOfSubBlocsAfterMainSubBloc = Mathf.Max(numberOfSubBlocsAfterMainSubBloc, after);
+            }
 
-
-            //int maxBlocByRow = 0;
-            //foreach (data.Bloc[] line in l_lines)
-            //{
-            //        int max = line[line.Length - 1].ProtocolBloc.Position.Column;
-            //        if (max > maxBlocByRow)
-            //        {
-            //            maxBlocByRow = max;
-            //        }
-            //}
-
-            ////Generate Line
-            //for (int i = 0; i < l_lines.Count; i++)
-            //{
-            //    AddLine(l_lines[i], maxBlocByRow, m_Colormap, Limits);
-            //}
-            //SelectAllLines();
+            //Generate Line
+            foreach (data.Bloc bloc in blocs)
+            {
+                AddBloc(bloc, colorMap, limits, numberOfSubBlocsBeforeMainSubBloc, numberOfSubBlocsAfterMainSubBloc);
+            }
         }
         #endregion
 
         #region Private Methods
-        void AddBloc(data.Bloc data, Texture2D colorMap, Vector2 limits)
+        void AddBloc(data.Bloc data, Texture2D colorMap, Vector2 limits, int numberOfSubBlocsBeforeMainSubBloc, int numberOfSubBlocsAfterMainSubBloc)
         {
-            Bloc bloc = Instantiate(m_BlocPrefab, m_BlocsRectTransform).GetComponent<Bloc>();
-            bloc.Set(data, colorMap, limits);
+            Bloc bloc = Instantiate(m_BlocPrefab, m_BlocContainer).GetComponent<Bloc>();
+            bloc.Set(data, colorMap, limits, numberOfSubBlocsBeforeMainSubBloc, numberOfSubBlocsAfterMainSubBloc);
+            bloc.SelectAllTrials();
             m_Blocs.Add(bloc);
         }
         #endregion

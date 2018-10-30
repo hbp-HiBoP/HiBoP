@@ -45,24 +45,36 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(data.Bloc bloc,Texture2D colorMap,Vector2 limits)
+        public void Set(data.Bloc bloc, Texture2D colorMap, Vector2 limits, int numberOfSubBlocsBeforeMainEvent, int numberOfSubBlocsAfterMainEvent)
         {
             Title = bloc.ProtocolBloc.Name;
+
+            for (int i = 0; i < numberOfSubBlocsBeforeMainEvent; i++)
+            {
+                AddFiller();
+            }
+
             foreach (data.SubBloc subBloc in bloc.SubBlocs)
             {
                 AddSubBloc(subBloc, colorMap, limits);
             }
 
-            //if (bloc.Length < max)
-            //{
-            //    int blocEmptyToAdd = max - bloc.Length;
-            //    for (int i = 0; i < blocEmptyToAdd; i++)
-            //    {
-            //        AddFiller();
-            //    }
-            //}
+            for (int i = 0; i < numberOfSubBlocsAfterMainEvent; i++)
+            {
+                AddFiller();
+            }
         }
-        public void SelectTrials(int[] trials,bool additive)
+        public void SelectAllTrials()
+        {
+            int numberOfTrials = Data.SubBlocs[0].SubTrials.Length;
+            int[] trialsToSelect = new int[numberOfTrials];
+            for (int i = 0; i < numberOfTrials; i++)
+            {
+                trialsToSelect[i] = i;
+            }
+            SelectTrials(trialsToSelect);
+        }
+        public void SelectTrials(int[] trials,bool additive = false)
         {
             if (!additive) m_SelectedTrials.Clear();
             m_SelectedTrials.AddRange(trials.Where(index => !m_SelectedTrials.Contains(index)));
