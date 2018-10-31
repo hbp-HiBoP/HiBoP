@@ -151,6 +151,12 @@ namespace UnityEngine.UI
             }
         }
 
+        public Vector2 Values
+        {
+            get { return new Vector2(m_MinValue, m_MaxValue); }
+            set { Set(value.x, value.y, Handle.None); }
+        }
+
         [SerializeField] float m_Step = 0.1f;
         public float step { get { return m_Step; } set { m_Step = value; } }
         public float normalizedStep
@@ -485,10 +491,10 @@ namespace UnityEngine.UI
                     m_MaxValue = newMaxValue;
                     break;
             }
-
+            Debug.Log(m_MinValue);
             UpdateVisuals();
             if (sendCallback)
-                m_OnValueChanged.Invoke(newMinValue, newMaxValue);
+                m_OnValueChanged.Invoke(m_MinValue, m_MaxValue);
         }
         void UpdateCachedReferences()
         {
@@ -601,7 +607,8 @@ namespace UnityEngine.UI
         float RoundAtPrecision(float number, float precision)
         {
             if (Mathf.Approximately(precision, 0f)) return number;
-            return precision * Mathf.Round(number / precision);
+            float result = precision * Mathf.Round(number / precision);
+            return result;
         }
 
         void EvaluateAndTransitionToSelectionState()

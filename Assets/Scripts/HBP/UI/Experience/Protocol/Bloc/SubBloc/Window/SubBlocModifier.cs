@@ -51,8 +51,8 @@ namespace HBP.UI.Experience.Protocol
             m_OrderInputField.onEndEdit.AddListener((value) => ItemTemp.Order = int.Parse(value));
             m_TypeDropdown.onValueChanged.AddListener((value) => ItemTemp.Type = (Data.Enums.MainSecondaryEnum) value);
 
-            m_WindowSlider.onValueChanged.AddListener((min,max) => ItemTemp.Window = new Tools.CSharp.Window((int) min, (int) max));
-            m_BaselineSlider.onValueChanged.AddListener((min,max) => ItemTemp.Baseline = new Tools.CSharp.Window((int) min, (int) max));
+            m_WindowSlider.onValueChanged.AddListener((min,max) => ItemTemp.Window = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max)));
+            m_BaselineSlider.onValueChanged.AddListener((min,max) => ItemTemp.Baseline = new Tools.CSharp.Window(Mathf.RoundToInt(min), Mathf.RoundToInt(max)));
 
             m_EventListGestion.Initialize(m_SubWindows);
             m_IconListGestion.Initialize(m_SubWindows);
@@ -68,14 +68,13 @@ namespace HBP.UI.Experience.Protocol
             m_WindowSlider.minLimit = preferences.MinLimit;
             m_WindowSlider.maxLimit = preferences.MaxLimit;
             m_WindowSlider.step = preferences.Step;
-            m_WindowSlider.minValue = objectToDisplay.Window.Start;
-            m_WindowSlider.maxValue = objectToDisplay.Window.End;
+
+            m_WindowSlider.Values = objectToDisplay.Window.ToVector2();
 
             m_BaselineSlider.minLimit = preferences.MinLimit;
             m_BaselineSlider.maxLimit = preferences.MaxLimit;
             m_BaselineSlider.step = preferences.Step;
-            m_BaselineSlider.minValue = objectToDisplay.Baseline.Start;
-            m_BaselineSlider.maxValue = objectToDisplay.Baseline.End;
+            m_BaselineSlider.Values = objectToDisplay.Baseline.ToVector2();
 
             m_EventListGestion.Items = objectToDisplay.Events;
             m_IconListGestion.Items = objectToDisplay.Icons;
