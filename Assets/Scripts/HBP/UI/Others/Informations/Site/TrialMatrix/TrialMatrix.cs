@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using UnityEngine;
+using System.Linq;
 using UnityEngine.Events;
 using data = HBP.Data.TrialMatrix;
 
@@ -85,7 +85,7 @@ namespace HBP.UI.TrialMatrix
             get { return new ReadOnlyCollection<Bloc>(m_Blocs); }
         }
 
-        public Vector2ArrayEvent OnChangeTimeLimits;
+        public WindowArrayEvent OnChangeTimeLimits;
 
         [SerializeField] GameObject m_BlocPrefab;
         [SerializeField] RectTransform m_BlocContainer;
@@ -103,7 +103,7 @@ namespace HBP.UI.TrialMatrix
             UsePrecalculatedLimits = limits == new Vector2();
 
             // Set Legends
-            //OnChangeTimeLimits.Invoke(trialMatrix.TimeLimitsByColumn);
+            OnChangeTimeLimits.Invoke(data.TimeLimitsByColumn.Values.ToArray());
 
             //Generate Bloc.
             foreach (data.Bloc bloc in data.Blocs)
