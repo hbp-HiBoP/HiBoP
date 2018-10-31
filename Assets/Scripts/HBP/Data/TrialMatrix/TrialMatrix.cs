@@ -15,7 +15,7 @@ namespace HBP.Data.TrialMatrix
         public Bloc[] Blocs { get; set; }
         public Vector2 Limits { get; set; }
         public Protocol Protocol { get; set; }
-        public Dictionary<int,Vector2> TimeLimitsByColumn { get; set; }
+        public Dictionary<int,Window> TimeLimitsByColumn { get; set; }
         #endregion
 
         #region Constructor
@@ -69,7 +69,7 @@ namespace HBP.Data.TrialMatrix
                 }
             }
         }
-        Dictionary<int,Vector2> CalculateTimeLimitsByColumn(IEnumerable<Bloc> blocs)
+        Dictionary<int,Window> CalculateTimeLimitsByColumn(IEnumerable<Bloc> blocs)
         {
             Dictionary<int, List<SubBloc>> subBlocsByColumns = new Dictionary<int, List<SubBloc>>();
             foreach (var bloc in blocs)
@@ -83,11 +83,11 @@ namespace HBP.Data.TrialMatrix
                 }
             }
 
-            Dictionary<int, Vector2> timeLimitsByColumns = new Dictionary<int, Vector2>();
+            Dictionary<int, Window> timeLimitsByColumns = new Dictionary<int, Window>();
             foreach (var pair in subBlocsByColumns)
             {
                 List<SubBloc> subBlocs = subBlocsByColumns[pair.Key];
-                timeLimitsByColumns.Add(pair.Key, new Vector2(subBlocs.Min(s => s.SubBlocProtocol.Window.Start), subBlocs.Max(s => s.SubBlocProtocol.Window.End)));
+                timeLimitsByColumns.Add(pair.Key, new Window(subBlocs.Min(s => s.SubBlocProtocol.Window.Start), subBlocs.Max(s => s.SubBlocProtocol.Window.End)));
             }
             return timeLimitsByColumns;
         }

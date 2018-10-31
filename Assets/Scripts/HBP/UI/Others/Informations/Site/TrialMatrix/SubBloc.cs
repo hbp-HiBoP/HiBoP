@@ -53,15 +53,16 @@ namespace HBP.UI.TrialMatrix
         [SerializeField] LayoutElement m_MainTextureLayoutElement;
         [SerializeField] LayoutElement m_LeftFillerLayoutElement;
         [SerializeField] LayoutElement m_RightFillerLayoutElement;
+        LayoutElement m_LayoutElement;
         #endregion
 
         #region Public Methods
-        public void Set(data.SubBloc data,Texture2D colorMap,Vector2 limits)
+        public void Set(data.SubBloc data,Texture2D colorMap,Vector2 limits, Tools.CSharp.Window window)
         {
             m_Data = data;
             m_ColorMap = colorMap;
             m_Limits = limits;
-
+            m_LayoutElement.flexibleWidth = window.End - window.Start;
             SetTexture();
             SetFillers();
             GenerateEventIndicators(data);
@@ -69,6 +70,10 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_LayoutElement = GetComponent<LayoutElement>();
+        }
         void SetTexture()
         {
             float[][] trials = ExtractDataTrials(m_Data.SubTrials);

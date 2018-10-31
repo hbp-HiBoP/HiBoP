@@ -94,41 +94,30 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(data.TrialMatrix trialMatrix , Texture2D colorMap, Vector2 limits = new Vector2())
+        public void Set(data.TrialMatrix data , Texture2D colorMap, Vector2 limits = new Vector2())
         {
-           Data = trialMatrix;
+           Data = data;
 
-            Title = trialMatrix.Title;
+            Title = data.Title;
             ColorMap = colorMap;
             UsePrecalculatedLimits = limits == new Vector2();
 
             // Set Legends
             //OnChangeTimeLimits.Invoke(trialMatrix.TimeLimitsByColumn);
 
-            IOrderedEnumerable<data.Bloc> blocs = trialMatrix.Blocs.OrderBy(bloc => bloc.ProtocolBloc.OrderedSubBlocs);
-            int numberOfSubBlocsBeforeMainSubBloc = 0;
-            int numberOfSubBlocsAfterMainSubBloc = 0;
-            foreach (data.Bloc bloc in blocs)
+            //Generate Bloc.
+            foreach (data.Bloc bloc in data.Blocs)
             {
-                int before = bloc.ProtocolBloc.MainSubBlocPosition;
-                int after = bloc.ProtocolBloc.SubBlocs.Count - 1 - before;
-                numberOfSubBlocsBeforeMainSubBloc = Mathf.Max(numberOfSubBlocsBeforeMainSubBloc, before);
-                numberOfSubBlocsAfterMainSubBloc = Mathf.Max(numberOfSubBlocsAfterMainSubBloc, after);
-            }
-
-            //Generate Line
-            foreach (data.Bloc bloc in blocs)
-            {
-                AddBloc(bloc, colorMap, limits, numberOfSubBlocsBeforeMainSubBloc, numberOfSubBlocsAfterMainSubBloc);
+                AddBloc(bloc, colorMap, limits, data.TimeLimitsByColumn);
             }
         }
         #endregion
 
         #region Private Methods
-        void AddBloc(data.Bloc data, Texture2D colorMap, Vector2 limits, int numberOfSubBlocsBeforeMainSubBloc, int numberOfSubBlocsAfterMainSubBloc)
+        void AddBloc(data.Bloc data, Texture2D colorMap, Vector2 limits, Dictionary<int,Tools.CSharp.Window> timeLimitsByColumn)
         {
             Bloc bloc = Instantiate(m_BlocPrefab, m_BlocContainer).GetComponent<Bloc>();
-            bloc.Set(data, colorMap, limits, numberOfSubBlocsBeforeMainSubBloc, numberOfSubBlocsAfterMainSubBloc);
+            bloc.Set(data, colorMap, limits, timeLimitsByColumn);
             bloc.SelectAllTrials();
             m_Blocs.Add(bloc);
         }

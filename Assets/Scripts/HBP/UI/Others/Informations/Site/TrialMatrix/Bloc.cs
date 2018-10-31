@@ -45,23 +45,23 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(data.Bloc bloc, Texture2D colorMap, Vector2 limits, int numberOfSubBlocsBeforeMainEvent, int numberOfSubBlocsAfterMainEvent)
+        public void Set(data.Bloc bloc, Texture2D colorMap, Vector2 limits, Dictionary<int,Tools.CSharp.Window> timeLimitsByColumn)
         {
             Title = bloc.ProtocolBloc.Name;
 
-            for (int i = 0; i < numberOfSubBlocsBeforeMainEvent; i++)
+            IOrderedEnumerable<Data.Experience.Protocol.SubBloc> orderedSubBlocs = bloc.ProtocolBloc.OrderedSubBlocs;
+            int mainSubBlocIndex = bloc.ProtocolBloc.MainSubBlocPosition;
+            foreach (var pair in timeLimitsByColumn)
             {
-                AddFiller();
-            }
-
-            foreach (data.SubBloc subBloc in bloc.SubBlocs)
-            {
-                AddSubBloc(subBloc, colorMap, limits);
-            }
-
-            for (int i = 0; i < numberOfSubBlocsAfterMainEvent; i++)
-            {
-                AddFiller();
+                int index = pair.Key + mainSubBlocIndex;
+                if(index >= 0 && index < orderedSubBlocs.Count())
+                {
+                    AddSubBloc(bloc.SubBlocs[index], colorMap, limits, pair.Value);
+                }
+                else
+                {
+                    AddFiller(pair.Value);
+                }
             }
         }
         public void SelectAllTrials()
@@ -164,29 +164,32 @@ namespace HBP.UI.TrialMatrix
         }
         void SetSize()
         {
-            //switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
-            //{
-            //    case HBP.Data.Enums.BlocFormatType.TrialHeight:
-            //        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs[0].SubTrials.Length;
-            //        break;
-            //    case HBP.Data.Enums.BlocFormatType.TrialRatio:
-            //        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * m_Data.SubTrials.Length;
-            //        break;
-            //    case HBP.Data.Enums.BlocFormatType.BlocRatio:
-            //        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
-            //        break;
-            //}
+            switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
+            {
+                case HBP.Data.Enums.BlocFormatType.TrialHeight:
+                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs[0].SubTrials.Length;
+                    break;
+                case HBP.Data.Enums.BlocFormatType.TrialRatio:
+                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs[0].SubTrials.Length;
+                    break;
+                case HBP.Data.Enums.BlocFormatType.BlocRatio:
+                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
+                    break;
+            }
         }
-        void AddSubBloc(data.SubBloc data, Texture2D colorMap, Vector2 limits)
+        void AddSubBloc(data.SubBloc data, Texture2D colorMap, Vector2 limits, Tools.CSharp.Window window)
         {
             SubBloc subBloc = (Instantiate(m_SubBlocPrefab, m_SubBlocContainer) as GameObject).GetComponent<SubBloc>();
-            subBloc.Set(data, colorMap, limits);
+            subBloc.Set(data, colorMap, limits, window);
             m_SubBlocs.Add(subBloc);
         }
-        void AddFiller()
+        void AddFiller(Tools.CSharp.Window window)
         {
-            GameObject filler = Instantiate(new GameObject("Filler", new System.Type[] { typeof(Image) }), m_SubBlocContainer);
-            filler.GetComponent<Image>().color = Color.black;
+            GameObject filler = Instantiate(new GameObject("Filler", new System.Type[] { typeof(Image) , typeof(LayoutElement)}), m_SubBlocContainer);
+            Image image = filler.GetComponent<Image>();
+            image.sprite = null;
+            image.color = Color.black;
+            filler.GetComponent<LayoutElement>().flexibleWidth = window.End - window.Start;
         }
         void AddSelectionMask(int[] trials)
         {
