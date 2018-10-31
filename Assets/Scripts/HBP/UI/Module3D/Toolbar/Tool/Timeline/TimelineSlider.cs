@@ -44,7 +44,7 @@ namespace HBP.UI.Module3D.Tools
             foreach (var subTimeline in timeline.SubTimelinesBySubBloc.Values)
             {
                 SubTimeline subTl = Instantiate(m_TimelinePrefab, m_SubTimelines).GetComponent<SubTimeline>();
-                subTl.Initialize(column, timeline, subTimeline, m_Slider.handleRect.rect.width);
+                subTl.Initialize(column, timeline, subTimeline, 0);
             }
         }
         private void DeleteSubTimelines()
@@ -109,7 +109,7 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateStatus()
         {
-            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
+            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG && SelectedScene.SceneInformation.IsGeneratorUpToDate)
             {
                 ShowSubTimelines();
             }

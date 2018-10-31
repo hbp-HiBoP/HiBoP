@@ -30,11 +30,7 @@ namespace HBP.UI.Module3D.Tools
             m_MinText.text = subTimeline.MinTime.ToString("N2") + timeline.Unit;
             m_MaxText.text = subTimeline.MaxTime.ToString("N2") + timeline.Unit;
             UpdateCurrentTime();
-            float begin = (float)subTimeline.GlobalMinIndex / (timeline.Length - 1);
-            float end =(float)subTimeline.GlobalMaxIndex / (timeline.Length - 1);
-            GetComponent<RectTransform>().anchorMin = new Vector2(begin, 0);
-            GetComponent<RectTransform>().anchorMax = new Vector2(end, 1);
-            GetComponent<RectTransform>().sizeDelta = new Vector2(offset, 0);
+            GetComponent<LayoutElement>().flexibleWidth = (float)subTimeline.Length / timeline.Length;
             ShowEvents();
         }
         public void UpdateCurrentTime()
