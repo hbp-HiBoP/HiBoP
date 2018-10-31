@@ -20,6 +20,10 @@ namespace HBP.Data.Visualization
         /// Unit of the timeline
         /// </summary>
         public string Unit { get; private set; }
+        /// <summary>
+        /// Length of the timeline in unit of time
+        /// </summary>
+        public float TimeLength { get; private set; }
 
         private int m_CurrentIndex;
         /// <summary>
@@ -111,6 +115,7 @@ namespace HBP.Data.Visualization
                 SubTimelinesBySubBloc.Add(subBloc, subTimeline);
             }
             Length = SubTimelinesBySubBloc.Sum(s => s.Value.Length);
+            TimeLength = SubTimelinesBySubBloc.Sum(s => s.Value.TimeLength);
         }
         #endregion
 
@@ -146,6 +151,10 @@ namespace HBP.Data.Visualization
         /// Length of the subtimeline
         /// </summary>
         public int Length { get; set; }
+        /// <summary>
+        /// Length of the timeline in unit of time
+        /// </summary>
+        public float TimeLength { get { return MaxTime - MinTime; } }
         /// <summary>
         /// Min index of the subtimeline from the start of the global timeline
         /// </summary>

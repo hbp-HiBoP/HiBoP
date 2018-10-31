@@ -64,46 +64,6 @@ namespace HBP.Data.Visualization
             }
             Timeline = new Timeline(bloc, eventStatisticsBySubBloc, maxFrequency);
             IconicScenario = new IconicScenario(bloc, maxFrequency, Timeline);
-            //Event mainEvent = new Event();
-            //List<Event> secondaryEvents = new List<Event>(Bloc.SecondaryEvents.Count);
-            //switch (ApplicationState.UserPreferences.Data.Event.PositionAveraging)
-            //{
-            //    case Enums.AveragingType.Mean:
-            //        mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Item1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Item2)).ToArray().Mean()));
-            //        for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
-            //        {
-            //            List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in m_Blocs where bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2) >= 0 select bloc).ToList();
-            //            if (blocWhereEventFound.Count > 0)
-            //            {
-            //                float rate = (float)blocWhereEventFound.Count / m_Blocs.Count;
-            //                secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, UnityEngine.Mathf.RoundToInt((from bloc in blocWhereEventFound select bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2)).ToArray().Mean()), rate));
-            //            }
-            //        }
-            //        break;
-            //    case Enums.AveragingType.Median:
-            //        mainEvent = new Event(Bloc.MainEvent.Name, UnityEngine.Mathf.RoundToInt((from bloc in m_Blocs select bloc.Item1.PositionByEvent[Bloc.MainEvent] * ((float)maxFrequency / bloc.Item2)).ToArray().Median()));
-            //        for (int i = 0; i < Bloc.SecondaryEvents.Count; i++)
-            //        {
-            //            List<Tuple<Localizer.Bloc, int>> blocWhereEventFound = (from bloc in m_Blocs where bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2) >= 0 select bloc).ToList();
-            //            if (blocWhereEventFound.Count > 0)
-            //            {
-            //                float rate = (float)blocWhereEventFound.Count / m_Blocs.Count;
-            //                secondaryEvents.Add(new Event(Bloc.SecondaryEvents[i].Name, UnityEngine.Mathf.RoundToInt((from bloc in blocWhereEventFound select bloc.Item1.PositionByEvent[Bloc.SecondaryEvents[i]] * (maxFrequency / bloc.Item2)).ToArray().Median()), rate));
-            //            }
-            //        }
-            //        break;
-            //}
-
-            //// Timeline
-            //TimeLineByFrequency = new Dictionary<int, Timeline>();
-            //IconicScenarioByFrequency = new Dictionary<int, IconicScenario>();
-            //foreach (int frequency in Frequencies)
-            //{
-            //    TimeLineByFrequency.Add(frequency, new Timeline(Bloc.Window, mainEvent, secondaryEvents.ToArray(), frequency));
-            //    IconicScenarioByFrequency.Add(frequency, new IconicScenario(Bloc, frequency, TimeLineByFrequency[frequency]));
-            //}
-            //TimeLine = new Timeline(Bloc.Window, mainEvent, secondaryEvents.ToArray(), maxFrequency);
-            //IconicScenario = new IconicScenario(Bloc, maxFrequency, TimeLine);
 
             //// Resampling taking frequencies into account
             //if (Frequencies.Count > 1)

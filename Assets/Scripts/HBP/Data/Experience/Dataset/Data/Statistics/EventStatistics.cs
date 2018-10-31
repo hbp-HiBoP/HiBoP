@@ -55,8 +55,8 @@ namespace HBP.Data.Experience.Dataset
             EventStatistics result = new EventStatistics();
             foreach (var eventStat in eventStatistics)
             {
-                result.IndexFromStart = eventStat.IndexFromStart * eventStat.NumberOfOccurences;
-                result.NumberOfOccurenceBySubTrial = eventStat.NumberOfOccurenceBySubTrial * eventStat.NumberOfOccurences;
+                result.IndexFromStart += eventStat.IndexFromStart * eventStat.NumberOfOccurences;
+                result.NumberOfOccurenceBySubTrial += eventStat.NumberOfOccurenceBySubTrial * eventStat.NumberOfOccurences;
                 result.NumberOfOccurences += eventStat.NumberOfOccurences;
             }
             if (result.NumberOfOccurences > 0)

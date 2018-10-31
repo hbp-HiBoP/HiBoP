@@ -329,6 +329,7 @@ namespace HBP.Module3D
                     case TaskState.Done:
                         break;
                     case TaskState.Error:
+                        visualization.Unload();
                         Exception exception = visualizationLoadingTask.Exception;
                         ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
                         break;
@@ -343,6 +344,7 @@ namespace HBP.Module3D
                             yield return new WaitForSeconds(0.5f);
                             break;
                         case TaskState.Error:
+                            visualization.Unload();
                             Exception exception = sceneLoadingTask.Exception;
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
                             break;
