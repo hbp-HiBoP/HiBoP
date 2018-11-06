@@ -87,7 +87,10 @@ namespace HBP.UI.Anatomy
             for (int i = 0; i < patients.Length; i++)
             {
                 Patient patient = new Patient(patients[i]);
-                m_PatientToAdd.Enqueue(patient);
+                if(!m_ProjectListGestion.Items.Contains(patient))
+                {
+                    m_PatientToAdd.Enqueue(patient);
+                }
             }
         }
         private void Update()
