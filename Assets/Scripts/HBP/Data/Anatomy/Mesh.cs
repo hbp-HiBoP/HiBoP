@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using Tools.Unity;
 
 namespace HBP.Data.Anatomy
 {
@@ -39,7 +40,19 @@ namespace HBP.Data.Anatomy
                 return !string.IsNullOrEmpty(Transformation) && File.Exists(Transformation) && (new FileInfo(Transformation).Extension == Anatomy.Transformation.EXTENSION || new FileInfo(Transformation).Extension == ".txt");
             }
         }
-        [DataMember(Order = 5)] public string Transformation { get; set; }
+        [DataMember(Order = 5, Name = "Transformation")] protected string m_Transformation;
+        public string Transformation
+        {
+            get
+            {
+                return m_Transformation.ConvertToFullPath();
+            }
+            set
+            {
+                m_Transformation = value.ConvertToShortPath();
+            }
+        }
+        public string SavedTransformation { get { return m_Transformation; } }
         #endregion
 
         #region Constructor
@@ -186,7 +199,7 @@ namespace HBP.Data.Anatomy
         }
         public virtual object Clone()
         {
-            return new Mesh(Name, Transformation, ID);
+            return new Mesh(Name, m_Transformation, ID);
         }
         public virtual void Copy(object copy)
         {

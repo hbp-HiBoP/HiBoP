@@ -158,10 +158,10 @@ namespace HBP.Module3D
             /// </summary>
             /// <param name="column"></param>
             /// <param name="volume"></param>
-            public void FillTextureWithFMRI(Column3D column, Volume volume, float calMin, float calMax, float alpha)
+            public void FillTextureWithFMRI(Texture colorScheme, Volume volume, float calMin, float calMax, float alpha)
             {
                 bool noError = false;
-                noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), column.DLLCutFMRIColorScheme.getHandle(), calMin, calMax, alpha) ==1;
+                noError = fill_texture_with_IRMF__MRITextureCutGenerator(_handle, volume.getHandle(), colorScheme.getHandle(), calMin, calMax, alpha) ==1;
                 ApplicationState.DLLDebugManager.check_error();
 
                 if (!noError)
@@ -201,7 +201,7 @@ namespace HBP.Module3D
             public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
             {
                 bool noError = false;
-                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.MaximumInfluence,
+                noError = compute_influences__MRITextureCutGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.InfluenceDistance,
                     multiCPU?1:0, addValues?1:0, ratioDistances, IEEGColumn.IEEGParameters.Middle, IEEGColumn.IEEGParameters.SpanMin, IEEGColumn.IEEGParameters.SpanMax)== 1;
                 ApplicationState.DLLDebugManager.check_error();
 
@@ -220,7 +220,7 @@ namespace HBP.Module3D
             public bool FillTextureWithIEEG(Column3DIEEG IEEGColumn, DLL.Texture colorScheme)
             {
                 bool noError = false;
-                noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, IEEGColumn.CurrentTimeLineID, colorScheme.getHandle(), 
+                noError = fill_texture_with_SSEG__MRITextureCutGenerator(_handle, IEEGColumn.Timeline.CurrentIndex, colorScheme.getHandle(), 
                 IEEGColumn.IEEGParameters.AlphaMin, IEEGColumn.IEEGParameters.AlphaMax, new float[] { 0, 0, 0 })==1;
                 ApplicationState.DLLDebugManager.check_error();
 

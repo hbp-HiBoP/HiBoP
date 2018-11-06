@@ -35,21 +35,20 @@ namespace HBP.UI.Informations
         }
         public void Display(IEnumerable<Site> sites)
         {
-            if (!m_Initialized) Initialize();
+            //if (!m_Initialized) Initialize();
 
-            // Test is a single trial can be selected.
-            m_TrialCanBeSelect = sites.All((site) => site.Information.Patient == sites.FirstOrDefault().Information.Patient);
+            //// Test is a single trial can be selected.
+            //m_TrialCanBeSelect = sites.All((site) => site.Information.Patient == sites.FirstOrDefault().Information.Patient);
 
-            IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Dataset.Protocol).Distinct();
-            foreach (Protocol protocol in protocols)
-            {
-                m_InformationByProtocol[protocol] = new ProtocolInformation();
-                m_InformationByProtocol[protocol].AutoLimits = true;
-                m_InformationByProtocol[protocol].Limits = new Vector2();
-            }
-
-            Generate(sites.ToArray());
-            Display();
+            //IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Dataset.Protocol).Distinct();
+            //foreach (Protocol protocol in protocols)
+            //{
+            //    m_InformationByProtocol[protocol] = new ProtocolInformation();
+            //    m_InformationByProtocol[protocol].AutoLimits = true;
+            //    m_InformationByProtocol[protocol].Limits = new Vector2();
+            //}
+            //Generate(sites.ToArray());
+            //Display();
         }
         #endregion
 
@@ -62,23 +61,15 @@ namespace HBP.UI.Informations
                 {
                     foreach (var trialMatrix in m_TrialMatrixList.TrialMatrix)
                     {
-                        //trialMatrix.SelectTrials(trials, bloc.Data.ProtocolBloc, additive);
+                        trialMatrix.Blocs.First(b => b == bloc).SelectTrials(trials, additive);
                     }
                 }
                 else
                 {
                     foreach (var trialMatrix in m_TrialMatrixList.TrialMatrix)
                     {
-                        foreach (var b in trialMatrix.Blocs)
-                        {
-                            if(bloc == b)
-                            {
-                                //trialMatrix.SelectTrials(trials, bloc.ProtocolBloc, additive);
-                                goto @out;
-                            }
-                        }
+                        trialMatrix.Blocs.First(b => b == bloc).SelectTrials(trials, additive);
                     }
-                    @out:;
                 }
             }
         }
@@ -122,11 +113,11 @@ namespace HBP.UI.Informations
         }
         void Display()
         {
-            IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG where !column.IsMinimized select column.ColumnData.Dataset.Protocol).Distinct();
-            Dictionary<Protocol,ProtocolInformation> informationByProtocol = m_InformationByProtocol.Where(protocol => protocols.Contains(protocol.Key)).ToDictionary(pair => pair.Key, pair => pair.Value);
-            Texture2D colorMap = Scene.ColumnManager.BrainColorMapTexture.RotateTexture();
-            colorMap.wrapMode = TextureWrapMode.Clamp;
-            m_TrialMatrixList.Set(informationByProtocol, colorMap);
+            //IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG where !column.IsMinimized select column.ColumnData.Dataset.Protocol).Distinct();
+            //Dictionary<Protocol,ProtocolInformation> informationByProtocol = m_InformationByProtocol.Where(protocol => protocols.Contains(protocol.Key)).ToDictionary(pair => pair.Key, pair => pair.Value);
+            //Texture2D colorMap = Scene.ColumnManager.BrainColorMapTexture.RotateTexture();
+            //colorMap.wrapMode = TextureWrapMode.Clamp;
+            //m_TrialMatrixList.Set(informationByProtocol, colorMap);
         }
         void OnChangeAutoLimits(bool autoLimits, Protocol protocol)
         {

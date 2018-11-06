@@ -24,6 +24,7 @@ namespace HBP.UI.Visualization
                 m_AddButton.interactable = value;
                 m_RemoveButton.interactable = value;
                 m_VisualizationListGestion.Interactable = value;
+                SetDisplay();
             }
         }
         #endregion
@@ -37,7 +38,7 @@ namespace HBP.UI.Visualization
         public void Display()
         {
             ApplicationState.Module3D.LoadScenes(m_VisualizationListGestion.List.ObjectsSelected);
-            base.Close();
+            Save();
         }
         #endregion
 
@@ -54,7 +55,7 @@ namespace HBP.UI.Visualization
         void SetDisplay()
         {
             Data.Visualization.Visualization[] visualizationsSelected = m_VisualizationListGestion.List.ObjectsSelected;
-            m_DisplayButton.interactable = (visualizationsSelected.Length > 0 && visualizationsSelected.All(v => v.IsVisualizable));
+            m_DisplayButton.interactable = visualizationsSelected.Length > 0 && visualizationsSelected.All(v => v.IsVisualizable) && Interactable;
         }   
         #endregion
     }

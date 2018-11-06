@@ -28,26 +28,22 @@ namespace HBP.UI.Module3D.Tools
         {
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
+            if (SelectedScene.IsLatencyModeEnabled)
             {
-                if (ApplicationState.Module3D.SelectedScene.IsLatencyModeEnabled)
+                if (SelectedColumn.SourceDefined)
                 {
-                    HBP.Module3D.Column3D column = ApplicationState.Module3D.SelectedColumn;
-                    if (column.SourceDefined)
-                    {
-                        m_Text.text = column.Sites[column.SelectedSiteID].Information.DisplayedName;
-                    }
-                    else
-                    {
-                        m_Text.text = "No source selected";
-                    }
+                    m_Text.text = SelectedColumn.Sites[SelectedColumn.SelectedSiteID].Information.DisplayedName;
                 }
                 else
                 {
-                    m_Text.text = "CCEP mode disabled";
+                    m_Text.text = "No source selected";
                 }
+            }
+            else
+            {
+                m_Text.text = "CCEP mode disabled";
             }
         }
         #endregion

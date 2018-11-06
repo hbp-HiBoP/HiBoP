@@ -34,8 +34,8 @@ namespace HBP.UI.Anatomy
         protected override void SetFields(Implantation objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
-            m_FileSelector.File = objectToDisplay.File;
-            m_MarsAtlasSelector.File = objectToDisplay.MarsAtlas;
+            m_FileSelector.File = objectToDisplay.SavedFile;
+            m_MarsAtlasSelector.File = objectToDisplay.SavedMarsAtlas;
         }
         protected override void Initialize()
         {

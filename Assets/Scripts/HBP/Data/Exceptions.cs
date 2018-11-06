@@ -429,7 +429,7 @@ public class CanNotLoadVisualization : HBPException
 [Serializable]
 public class FrequencyException : HBPException
 {
-    public FrequencyException() : base("The frequencies of the data of the columns of this visualization are not multiples of each other.\n\nThis is not supported.")
+    public FrequencyException() : base("The frequencies of the data of the columns of this visualization are not the same.\n\nThis is not supported.")
     {
         Title = "Invalid frequencies";
     }
@@ -477,6 +477,33 @@ public class ParsingValueException : HBPException
     }
     public ParsingValueException(string message, Exception inner) : base(message, inner) { }
     protected ParsingValueException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class NoMatchingSitesException : HBPException
+{
+    public NoMatchingSitesException() : base("No site used in this visualization has a name matching a channel name in the EEG files. Thus the values can not be displayed on the brain. This is not supported.\n\nPlease check your pts or eeg files, or make sure you enabled the automatic site name correction if you need it.")
+    {
+        Title = "No matching sites";
+    }
+    public NoMatchingSitesException(string message, Exception inner) : base(message, inner) { }
+    protected NoMatchingSitesException(
+      System.Runtime.Serialization.SerializationInfo info,
+      System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+}
+
+[Serializable]
+public class TimelineException : HBPException
+{
+    public TimelineException() { }
+    public TimelineException(string additionalInformation) : base("The columns of the visualization does not have the same timeline length. This version of HiBoP does not support that. This feature will be implemented soon.\n" + additionalInformation)
+    {
+        Title = "Incompatible timelines";
+    }
+    public TimelineException(string message, Exception inner) : base(message, inner) { }
+    protected TimelineException(
       System.Runtime.Serialization.SerializationInfo info,
       System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 }

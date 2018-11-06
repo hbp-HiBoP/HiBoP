@@ -12,6 +12,11 @@ using UnityEngine;
 public static class ApplicationState
 {
     /// <summary>
+    /// ID of this instance of HiBoP
+    /// </summary>
+    public static string InstanceID { get; private set; } = System.Guid.NewGuid().ToString();
+
+    /// <summary>
     /// Project loaded on the application.
     /// </summary>
     public static HBP.Data.General.Project ProjectLoaded { get; set; }
@@ -22,20 +27,18 @@ public static class ApplicationState
     public static string ProjectLoadedLocation { get; set; }
 
     /// <summary>
+    /// TMP folder to store the open projects
+    /// </summary>
+    public static string ProjectTMPFolder { get; set; }
+
+    /// <summary>
     /// Full path to the loaded project
     /// </summary>
-    public static string ProjectLoadedPath
+    public static string ProjectLoadedTMPFullPath
     {
         get
         {
-            if (ProjectLoaded == null || string.IsNullOrEmpty(ProjectLoadedLocation))
-            {
-                return ".";
-            }
-            else
-            {
-                return ProjectLoadedLocation + System.IO.Path.DirectorySeparatorChar + ProjectLoaded.Settings.Name;
-            }
+            return System.IO.Path.Combine(ProjectTMPFolder, InstanceID);
         }
     }
 

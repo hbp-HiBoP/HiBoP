@@ -4,7 +4,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace Theme
+namespace NewTheme
 {
     public class ContextMenu : MonoBehaviour
     {

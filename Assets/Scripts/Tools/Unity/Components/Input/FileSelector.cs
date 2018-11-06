@@ -60,8 +60,8 @@ namespace Tools.Unity
             string result = HBP.Module3D.DLL.QtGUI.GetExistingFileName(Extension.Split(','), Message, path);
             if (result != string.Empty)
             {
-                StringExtension.StandardizeToPath(ref result);
-                m_InputField.text = result;
+                result = result.StandardizeToPath();
+                m_InputField.text = result.ConvertToShortPath();
             }
         }
         #endregion

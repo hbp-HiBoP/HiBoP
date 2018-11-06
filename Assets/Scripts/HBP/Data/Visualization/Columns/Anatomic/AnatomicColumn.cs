@@ -29,6 +29,9 @@ namespace HBP.Data.Visualization
         {
             return true;
         }
+        public override void Unload()
+        {
+        }
         #endregion  
     }
 }

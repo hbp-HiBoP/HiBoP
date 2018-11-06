@@ -19,15 +19,9 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnSelectSite.AddListener((site) =>
-            {
-                UpdateInteractable();
-            });
-
             m_Button.onClick.AddListener(() =>
             {
-                Base3DScene scene = ApplicationState.Module3D.SelectedScene;
-                ApplicationState.Module3D.LoadSinglePatientSceneFromMultiPatientScene(scene.Visualization, scene.Patients[scene.ColumnManager.SelectedColumn.SelectedPatientID]);
+                ApplicationState.Module3D.LoadSinglePatientSceneFromMultiPatientScene(SelectedScene.Visualization, SelectedScene.Patients[SelectedScene.ColumnManager.SelectedColumn.SelectedPatientID]);
             });
         }
         public override void DefaultState()
@@ -36,7 +30,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool isInteractable = (ApplicationState.Module3D.SelectedColumn.SelectedSite != null) && (ApplicationState.Module3D.SelectedScene.Type == Data.Enums.SceneType.MultiPatients);
+            bool isInteractable = (SelectedColumn.SelectedSite != null) && (SelectedScene.Type == Data.Enums.SceneType.MultiPatients);
 
             m_Button.interactable = isInteractable;
         }

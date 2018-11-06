@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using CielaSpike;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience;
+using HBP.Data.Localizer;
 
 namespace HBP.Data.Visualization
 {
@@ -196,17 +197,22 @@ namespace HBP.Data.Visualization
         /// Load the visualization.
         /// </summary>
         /// <returns></returns>
-        public IEnumerator c_Load(GenericEvent<float,float,string> onChangeProgress = null)
+        public IEnumerator c_Load(GenericEvent<float,float, LoadingText> onChangeProgress = null)
         {
-            if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, string>();
+            if (onChangeProgress == null) onChangeProgress = new GenericEvent<float, float, LoadingText>();
 
+            Exception exception = null;
             float progress = 0.0f;
             yield return Ninja.JumpToUnity;
             if (IEEGColumns.Count > 0)
             {
-                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadEEG(progress, onChangeProgress));
+                yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadEEG(progress, onChangeProgress, e => { exception = e; }));
             }
             yield return Ninja.JumpBack;
+            if (exception != null)
+            {
+                throw exception;
+            }
         }
         /// <summary>
         /// Swap two columns by index.
@@ -276,6 +282,14 @@ namespace HBP.Data.Visualization
             //}
             //return commonImplantations;
         }
+
+        public void Unload()
+        {
+            foreach (var column in Columns)
+            {
+                column.Unload();
+            }
+        }
         #endregion
 
         #region Operators
@@ -304,7 +318,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Private Methods
-        IEnumerator c_LoadEEG(float progress, GenericEvent<float, float, string> onChangeProgress = null)
+        IEnumerator c_LoadEEG(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
             Exception exception = null;
 
@@ -338,10 +352,10 @@ namespace HBP.Data.Visualization
 
             if (exception != null)
             {
-                throw exception;
+                outPut(exception);
             }
         }
-        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, string> onChangeProgress, Action<Dictionary<IEEGColumn, IEnumerable<DataInfo>>, float, Exception> outPut)
+        IEnumerator c_FindDataInfoToRead(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Dictionary<IEEGColumn, IEnumerable<DataInfo>>, float, Exception> outPut)
         {
             Exception exception = null;
             // Find files to read.
@@ -352,7 +366,7 @@ namespace HBP.Data.Visualization
                 // Update progress;
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0.0f, "Finding files to read.");
+                onChangeProgress.Invoke(progress, 0.0f, new LoadingText("Finding files to read."));
                 yield return Ninja.JumpBack;
 
                 // Work.
@@ -375,7 +389,7 @@ namespace HBP.Data.Visualization
             }
             outPut(dataInfoByColumn, progress, exception);
         }
-        IEnumerator c_LoadData(Dictionary<IEEGColumn, IEnumerable<DataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_LoadData(Dictionary<IEEGColumn, IEnumerable<DataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
             string additionalInformation = "";
@@ -388,16 +402,16 @@ namespace HBP.Data.Visualization
             {
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Loading <color=blue>" + dataInfo.Name + "</color> for <color=blue>" + dataInfo.Patient.Name + "</color> [" + (i + 1).ToString() + "/" + dataInfoCollectionLength + "]");
+                onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading ", dataInfo.Name + " for " + dataInfo.Patient.Name, " [" + (i + 1).ToString() + "/" + dataInfoCollectionLength + "]"));
                 yield return Ninja.JumpBack;
                 try
                 {
+                    Experience.Dataset.Data data = DataManager.GetData(dataInfo);
                     foreach (var column in dataInfoByColumn.Keys)
                     {
-                        BlocData epochedData = DataManager.GetData(dataInfo, column.Bloc);
-                        if (!epochedData.IsValid)
+                        if (!data.DataByBloc[column.Bloc].IsValid)
                         {
-                            additionalInformation = "No bloc could be epoched.";
+                            additionalInformation = "No bloc " + column.Bloc.Name + " could be epoched.";
                             throw new Exception();
                         }
                     }
@@ -411,7 +425,7 @@ namespace HBP.Data.Visualization
             }
             yield return Ninja.JumpToUnity;
             progress += progressStep;
-            onChangeProgress.Invoke(progress, 1.0f, "Normalizing data");
+            onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Normalizing data"));
             yield return Ninja.JumpBack;
             if (exception == null)
             {
@@ -419,7 +433,7 @@ namespace HBP.Data.Visualization
             }
             outPut(progress, exception);
         }
-        IEnumerator c_LoadColumns(Dictionary<IEEGColumn, IEnumerable<DataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
+        IEnumerator c_LoadColumns(Dictionary<IEEGColumn, IEnumerable<DataInfo>> dataInfoByColumn, float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
         {
             Exception exception = null;
             ReadOnlyCollection<IEEGColumn> columns = IEEGColumns;
@@ -431,7 +445,7 @@ namespace HBP.Data.Visualization
                 IEEGColumn column = columns[i];
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, "Loading column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + columnsLength + "]");
+                onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading column ", column.Name, " [" + (i + 1).ToString() + "/" + columnsLength + "]"));
                 yield return Ninja.JumpBack;
                 try
                 {
@@ -443,55 +457,72 @@ namespace HBP.Data.Visualization
                     outPut(progress, exception);
                     yield break;
                 }
-            }            
-            // int maxFrequency = columns.Max(column => column.Data.Frequencies.Max()); TODO
-            //for (int i = 0; i < columnsLength; ++i)
-            //{
-            //    IEEGColumn column = columns[i];
-            //    yield return Ninja.JumpToUnity;
-            //    progress += progressStep;
-            //    onChangeProgress.Invoke(progress, 1.0f, "Loading timeline of column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
-            //    yield return Ninja.JumpBack;
-            //    column.Data.SetTimeline(maxFrequency);
-            //    yield return Ninja.JumpToUnity;
-            //    try
-            //    {
-            //        column.Data.IconicScenario.LoadIcons();
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        exception = e;
-            //        outPut(progress, exception);
-            //        yield break;
-            //    }
-            //}
-            outPut(progress, exception);
-        }
-        IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, string> onChangeProgress, Action<float, Exception> outPut)
-        {
-            ReadOnlyCollection<IEEGColumn> columns = IEEGColumns;
-            int columnsLength = columns.Count;
-            Exception exception = null;
-            float progressStep = STANDARDIZE_COLUMNS_PROGRESS / columnsLength;
-            int maxBefore = columns.Max(column => column.Data.TimeLine.MainEvent.Position);
-            int maxAfter = columns.Max(column => column.Data.TimeLine.Lenght - column.Data.TimeLine.MainEvent.Position);
+            }
+            Frequency maxFrequency = new Frequency(columns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
             for (int i = 0; i < columnsLength; ++i)
             {
                 IEEGColumn column = columns[i];
-
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 0, "Standardize column <color=blue>" + column.Name + "</color> [" + (i + 1).ToString() + "/" + Columns.Count + "]");
+                onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading timeline of column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
                 yield return Ninja.JumpBack;
+                column.Data.SetTimeline(maxFrequency, column.Bloc);
+                yield return Ninja.JumpToUnity;
                 try
                 {
-                    column.Data.Standardize(maxBefore, maxAfter);
+                    column.Data.IconicScenario.LoadIcons();
                 }
                 catch (Exception e)
                 {
                     exception = e;
-                    break;
+                    outPut(progress, exception);
+                    yield break;
                 }
+            }
+            // TEMP
+            if (columnsLength > 0)
+            {
+                if (columns.Any(c => c.Data.Frequencies.Count != 1) || columns.Any(c => c.Data.Frequencies.Any(f => f.Value != maxFrequency.Value)))
+                {
+                    exception = new FrequencyException();
+                }
+                else if (columns.Any(c => c.Data.Timeline.Length != columns.FirstOrDefault().Data.Timeline.Length))
+                {
+                    string information = "";
+                    foreach (var column in columns)
+                    {
+                        information += string.Format("\n{0} ({1}{2})", column.Name, column.Data.Timeline.TimeLength, column.Data.Timeline.Unit);
+                    }
+                    exception = new TimelineException(information);
+                }
+            }
+            outPut(progress, exception);
+        }
+        IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)
+        {
+            ReadOnlyCollection<IEEGColumn> columns = IEEGColumns;
+            int columnsLength = columns.Count;
+            Exception exception = null;
+
+            float progressStep = STANDARDIZE_COLUMNS_PROGRESS / columnsLength;
+            //int maxBefore = columns.Max(column => column.Data.TimeLine.MainEvent.Position);
+            //int maxAfter = columns.Max(column => column.Data.TimeLine.Lenght - column.Data.TimeLine.MainEvent.Position);
+            for (int i = 0; i < columnsLength; ++i)
+            {
+                IEEGColumn column = columns[i];
+                yield return Ninja.JumpToUnity;
+                progress += progressStep;
+                onChangeProgress.Invoke(progress, 0, new LoadingText("Standardize column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
+                yield return Ninja.JumpBack;
+                //try
+                //{
+                //    column.Data.Standardize(maxBefore, maxAfter);
+                //}
+                //catch (Exception e)
+                //{
+                //    exception = e;
+                //    break;
+                //}
             }
             outPut(progress, exception);
         }

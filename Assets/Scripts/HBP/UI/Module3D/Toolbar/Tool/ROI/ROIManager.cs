@@ -31,9 +31,9 @@ namespace HBP.UI.Module3D.Tools
         {
             m_ROISelector.options.Clear();
             m_ROISelector.options.Add(new Dropdown.OptionData("None"));
-            for (int i = 0; i < ApplicationState.Module3D.SelectedColumn.ROIs.Count; i++)
+            for (int i = 0; i < SelectedColumn.ROIs.Count; i++)
             {
-                ROI roi = ApplicationState.Module3D.SelectedColumn.ROIs[i];
+                ROI roi = SelectedColumn.ROIs[i];
                 if (roi.Name == ROI.DEFAULT_ROI_NAME)
                 {
                     m_ROISelector.options.Add(new Dropdown.OptionData("ROI " + i));
@@ -49,7 +49,7 @@ namespace HBP.UI.Module3D.Tools
         {
             m_VolumeSelector.options.Clear();
             m_VolumeSelector.options.Add(new Dropdown.OptionData("None"));
-            ROI selectedROI = ApplicationState.Module3D.SelectedColumn.SelectedROI;
+            ROI selectedROI = SelectedColumn.SelectedROI;
             if (selectedROI)
             {
                 for (int i = 0; i < selectedROI.Spheres.Count; i++)
@@ -63,11 +63,11 @@ namespace HBP.UI.Module3D.Tools
         public void UpdateSelectedROIUI()
         {
             ListenerLock = true;
-            int roiID = ApplicationState.Module3D.SelectedColumn.SelectedROIID;
+            int roiID = SelectedColumn.SelectedROIID;
             m_ROISelector.value = roiID + 1;
             if (roiID != -1)
             {
-                m_ROIName.text = ApplicationState.Module3D.SelectedColumn.SelectedROI.Name;
+                m_ROIName.text = SelectedColumn.SelectedROI.Name;
             }
             else
             {
@@ -77,7 +77,7 @@ namespace HBP.UI.Module3D.Tools
             UpdateVolumeDropdownOptions();
             if (roiID != -1)
             {
-                m_VolumeSelector.value = ApplicationState.Module3D.SelectedColumn.SelectedROI.SelectedSphereID + 1;
+                m_VolumeSelector.value = SelectedColumn.SelectedROI.SelectedSphereID + 1;
             }
             ListenerLock = false;
         }
@@ -86,75 +86,42 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnChangeNumberOfROI.AddListener(() =>
-            {
-                UpdateROIDropdownOptions();
-                UpdateInteractable();
-            });
-            ApplicationState.Module3D.OnSelectROI.AddListener(() =>
-            {
-                UpdateSelectedROIUI();
-            });
-            ApplicationState.Module3D.OnChangeNumberOfVolumeInROI.AddListener(() =>
-            {
-                UpdateVolumeDropdownOptions();
-                UpdateInteractable();
-            });
-            ApplicationState.Module3D.OnSelectROIVolume.AddListener(() =>
-            {
-                ListenerLock = true;
-                Column3D column = ApplicationState.Module3D.SelectedColumn;
-                if (column != null)
-                {
-                    ROI roi = column.SelectedROI;
-                    if (roi != null)
-                    {
-                        m_VolumeSelector.value = roi.SelectedSphereID + 1;
-                        UpdateInteractable();
-                    }
-                }
-                ListenerLock = false;
-            });
-            ApplicationState.Module3D.OnChangeROIVolumeRadius.AddListener(() =>
-            {
-                UpdateVolumeDropdownOptions();
-            });
             m_AddROI.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedColumn.AddROI();
+                SelectedColumn.AddROI();
             });
             m_RemoveROI.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedColumn.RemoveSelectedROI();
+                SelectedColumn.RemoveSelectedROI();
             });
             m_ROISelector.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedColumn.SelectedROIID = value - 1;
+                SelectedColumn.SelectedROIID = value - 1;
             });
             m_ROIName.onEndEdit.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedColumn.SelectedROI.Name = value;
+                SelectedColumn.SelectedROI.Name = value;
                 UpdateROIDropdownOptions();
             });
             m_VolumeSelector.onValueChanged.AddListener((value) =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedColumn.SelectedROI.SelectSphere(value - 1);
+                SelectedColumn.SelectedROI.SelectSphere(value - 1);
             });
             m_RemoveVolume.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedColumn.SelectedROI.RemoveSelectedSphere();
+                SelectedColumn.SelectedROI.RemoveSelectedSphere();
             });
         }
         public override void DefaultState()
@@ -169,11 +136,11 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool hasROI = ApplicationState.Module3D.SelectedColumn.ROIs.Count > 0;
+            bool hasROI = SelectedColumn.ROIs.Count > 0;
             bool hasVolume = false;
-            if (hasROI && ApplicationState.Module3D.SelectedColumn.SelectedROI)
+            if (hasROI && SelectedColumn.SelectedROI)
             {
-                hasVolume = ApplicationState.Module3D.SelectedColumn.SelectedROI.NumberOfBubbles > 0;
+                hasVolume = SelectedColumn.SelectedROI.NumberOfBubbles > 0;
             }
 
             m_AddROI.interactable = true;
@@ -183,13 +150,10 @@ namespace HBP.UI.Module3D.Tools
             m_VolumeSelector.interactable = hasVolume;
             m_RemoveVolume.interactable = hasVolume;
         }
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
-            {
-                UpdateROIDropdownOptions();
-                UpdateSelectedROIUI();
-            }
+            UpdateROIDropdownOptions();
+            UpdateSelectedROIUI();
         }
         #endregion
     }

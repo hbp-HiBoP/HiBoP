@@ -25,8 +25,7 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                Base3DScene scene = ApplicationState.Module3D.SelectedScene;
-                scene.UpdateMeshToDisplay(m_Dropdown.options[value].text);
+                SelectedScene.UpdateMeshToDisplay(m_Dropdown.options[value].text);
                 OnChangeValue.Invoke(value);
             });
         }
@@ -39,22 +38,15 @@ namespace HBP.UI.Module3D.Tools
         {
             m_Dropdown.interactable = true;
         }
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Scene)
+            m_Dropdown.options.Clear();
+            foreach (Mesh3D mesh in SelectedScene.ColumnManager.Meshes)
             {
-                Base3DScene selectedScene = ApplicationState.Module3D.SelectedScene;
-                m_Dropdown.options.Clear();
-                if (selectedScene != null)
-                {
-                    foreach (Mesh3D mesh in selectedScene.ColumnManager.Meshes)
-                    {
-                        m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString()));
-                    }
-                    m_Dropdown.value = selectedScene.ColumnManager.SelectedMeshID;
-                }
-                m_Dropdown.RefreshShownValue();
+                m_Dropdown.options.Add(new Dropdown.OptionData(mesh.Name.ToString()));
             }
+            m_Dropdown.value = SelectedScene.ColumnManager.SelectedMeshID;
+            m_Dropdown.RefreshShownValue();
         }
         #endregion
     }

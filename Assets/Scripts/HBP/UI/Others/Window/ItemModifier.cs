@@ -28,7 +28,6 @@ namespace HBP.UI
             Item.Copy(ItemTemp);
             OnSave.Invoke();
             base.Close();
-
         }
         #endregion
 

@@ -108,14 +108,6 @@ namespace HBP.UI.Module3D
         /// </summary>
         private void AddListeners()
         {
-            ApplicationState.Module3D.OnAddScene.AddListener((scene) =>
-            {
-                m_SceneToggle.isOn = true;
-            });
-            ApplicationState.Module3D.OnRemoveScene.AddListener((scene) =>
-            {
-                m_SceneToggle.isOn = true;
-            });
             m_ConfigurationToggle.onValueChanged.AddListener((isOn) =>
             {
                 if (isOn)
@@ -194,10 +186,9 @@ namespace HBP.UI.Module3D
         private void ChangeToolbar(Toggle triggeredToggle)
         {
             m_ToolbarMenu.CurrentToolbar.HideToolbarCallback();
-            Toolbar newlyActivatedToolbar = m_Toolbars[triggeredToggle];
             m_ToolbarMenu.CurrentToolbar.gameObject.SetActive(false);
-            newlyActivatedToolbar.gameObject.SetActive(true);
-            m_ToolbarMenu.CurrentToolbar = newlyActivatedToolbar;
+            m_ToolbarMenu.CurrentToolbar = m_Toolbars[triggeredToggle];
+            m_ToolbarMenu.CurrentToolbar.gameObject.SetActive(true);
             m_ToolbarMenu.CurrentToolbar.ShowToolbarCallback();
         }
         #endregion

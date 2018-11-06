@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace HBP.Data.Preferences
 {
@@ -38,6 +39,10 @@ namespace HBP.Data.Preferences
         /// Localizer database.
         /// </summary>
         public string LocalizerDatabase { get; set; }
+        /// <summary>
+        /// Aliases.
+        /// </summary>
+        public List<Alias> Aliases { get; set; }
         #endregion
 
         #region Constructors
@@ -53,6 +58,7 @@ namespace HBP.Data.Preferences
             PatientDatabase = patientDatabase;
             LocalizerDatabase = localizerDatabase;
             ID = Guid.NewGuid().ToString();
+            Aliases = new List<Alias>();
         }
         /// <summary>
         /// Create a new project settings instance.

@@ -11,6 +11,7 @@ using HBP.Data.Experience.Protocol;
 using CielaSpike;
 using Tools.Unity;
 using UnityEngine.Events;
+using Ionic.Zip;
 
 namespace HBP.Data.General
 {
@@ -33,6 +34,21 @@ namespace HBP.Data.General
     public class Project
     {
         #region Properties
+        /// <summary>
+        /// Project extension.
+        /// </summary>
+        public const string EXTENSION = ".hibop";
+        /// <summary>
+        /// Project file
+        /// </summary>
+        public string FileName
+        {
+            get
+            {
+                return Settings.Name + EXTENSION;
+            }
+        }
+
         ProjectSettings m_Settings = new ProjectSettings();
         /// <summary>
         /// Settings of the project.
@@ -331,32 +347,7 @@ namespace HBP.Data.General
         #region Public Methods
         public static bool IsProject(string path)
         {
-            if(!string.IsNullOrEmpty(path))
-            {
-                try
-                {
-                    DirectoryInfo directory = new DirectoryInfo(path);
-                    if (directory.Exists)
-                    {
-                        DirectoryInfo[] directories = directory.GetDirectories();
-                        if (directories.Any((d) => d.Name == "Patients")
-                            && directories.Any((d) => d.Name == "Groups")
-                            && directories.Any((d) => d.Name == "Protocols")
-                            && directories.Any((d) => d.Name == "Datasets")
-                            && directories.Any((d) => d.Name == "Visualizations")
-                            && directory.GetFiles().Count((f) => f.Extension == ProjectSettings.EXTENSION) == 1)
-                        {
-                            return true;
-                        }
-                    }
-                }
-                catch(Exception e)
-                {
-                    UnityEngine.Debug.LogWarning(e);
-                    return false;
-                }               
-            }
-            return false;
+            return new FileInfo(path).Extension == EXTENSION;
         }
         public static IEnumerable<string> GetProject(string path)
         {
@@ -365,8 +356,8 @@ namespace HBP.Data.General
                 DirectoryInfo directory = new DirectoryInfo(path);
                 if(directory.Exists)
                 {
-                    DirectoryInfo[] directories = directory.GetDirectories();
-                    return from dir in directories where IsProject(dir.FullName) select dir.FullName;
+                    FileInfo[] files = directory.GetFiles("*" + EXTENSION);
+                    return from file in files where IsProject(file.FullName) select file.FullName;
                 }
             }
             return new string[0];
@@ -380,21 +371,28 @@ namespace HBP.Data.General
             }
             return projectsDirectories.FirstOrDefault((project) => new ProjectInfo(project).Settings.ID == ID);
         }
-        public IEnumerator c_Load(ProjectInfo projectInfo, GenericEvent<float,float,string> OnChangeProgress = null)
+        public IEnumerator c_Load(ProjectInfo projectInfo, GenericEvent<float,float, LoadingText> OnChangeProgress = null)
         {
             // Initialize progress.
             float progress = 0.0f;
             float progressStep = 1.0f / ( 1 + projectInfo.Patients + projectInfo.Groups + projectInfo.Protocols + projectInfo.Datasets + projectInfo.Visualizations);
-            if (OnChangeProgress == null) OnChangeProgress = new GenericEvent<float, float, string>();
+            if (OnChangeProgress == null) OnChangeProgress = new GenericEvent<float, float, LoadingText>();
             Action<float> outPut = (value) => progress = value;
 
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(progress, 0, "Loading project");
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading project"));
             yield return Ninja.JumpBack;
 
-            if (!Directory.Exists(projectInfo.Path)) throw new DirectoryNotFoundException(projectInfo.Path); // Test if the directory exist.
-            if (!IsProject(projectInfo.Path)) throw new DirectoryNotProjectException(projectInfo.Path); // Test if the directory is a project.
-            DirectoryInfo projectDirectory = new DirectoryInfo(projectInfo.Path);
+            // Unzipping
+            if (Directory.Exists(ApplicationState.ProjectLoadedTMPFullPath)) Directory.Delete(ApplicationState.ProjectLoadedTMPFullPath, true);
+            using (ZipFile zip = ZipFile.Read(projectInfo.Path))
+            {
+                zip.ExtractAll(ApplicationState.ProjectLoadedTMPFullPath, ExtractExistingFileAction.OverwriteSilently);
+            }
+
+            if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
+            if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
+            DirectoryInfo projectDirectory = new DirectoryInfo(ApplicationState.ProjectLoadedTMPFullPath);
 
             yield return Ninja.JumpToUnity;
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_LoadSettings(projectDirectory, progress, progressStep, OnChangeProgress, outPut));
@@ -406,58 +404,59 @@ namespace HBP.Data.General
             yield return ApplicationState.CoroutineManager.StartCoroutineAsync(c_CheckDatasets(OnChangeProgress));
             
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(2, 0, "Project succesfully loaded.");
+            OnChangeProgress.Invoke(2, 0, new LoadingText("Project succesfully loaded."));
         }
-        public IEnumerator c_Save(string path, GenericEvent<float, float, string> OnChangeProgress = null)
+        public IEnumerator c_Save(string path, GenericEvent<float, float, LoadingText> OnChangeProgress = null)
         {
             float progress = 0.0f;
             float progressStep = 1.0f / ( 4 + Patients.Count + Groups.Count + Protocols.Count + Datasets.Count + Visualizations.Count);
-            if (OnChangeProgress == null) OnChangeProgress = new GenericEvent<float, float, string>();
+            if (OnChangeProgress == null) OnChangeProgress = new GenericEvent<float, float, LoadingText>();
             Action<float> outPut = (value) => progress = value;
 
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(progress, 0, "Saving project.");
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving project."));
             yield return Ninja.JumpBack;
 
             if (String.IsNullOrEmpty(path)) throw new ArgumentNullException(path);
             if (!Directory.Exists(path)) throw new DirectoryNotFoundException(path);
-            DirectoryInfo projectDirectory = Directory.CreateDirectory(path + Path.DirectorySeparatorChar + Settings.Name + "-temp");
-            string oldProjectDirectory = GetProject(path, Settings.ID);
+            DirectoryInfo tmpProjectDirectory = Directory.CreateDirectory(ApplicationState.ProjectLoadedTMPFullPath + "-temp");
+            string oldTMPProjectDirectory = ApplicationState.ProjectLoadedTMPFullPath;
             progress += progressStep;
 
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(progress, 0, "Saving project.");
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving project."));
             yield return Ninja.JumpBack;
 
-            yield return c_SaveSettings(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_SavePatients(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_SaveGroups(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_SaveProtocols(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_SaveDatasets(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            yield return c_SaveVisualizations(projectDirectory, progress, progressStep, OnChangeProgress, outPut);
-            CopyIcons(oldProjectDirectory + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Icons", projectDirectory.FullName + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Icons");
+            //yield return c_EmbedDataIntoProjectFile(tmpProjectDirectory, oldTMPProjectDirectory, OnChangeProgress);
+            yield return c_SaveSettings(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            yield return c_SavePatients(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            yield return c_SaveGroups(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            yield return c_SaveProtocols(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            yield return c_SaveDatasets(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            yield return c_SaveVisualizations(tmpProjectDirectory, progress, progressStep, OnChangeProgress, outPut);
+            CopyIcons(oldTMPProjectDirectory + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Icons", tmpProjectDirectory.FullName + Path.DirectorySeparatorChar + "Protocols" + Path.DirectorySeparatorChar + "Icons");
 
             // Deleting old directories.
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(progress, 0, "Finalizing.");
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Finalizing."));
             yield return Ninja.JumpBack;
 
-            if (Directory.Exists(oldProjectDirectory))
+            if (Directory.Exists(oldTMPProjectDirectory))
             {
                 try
                 {
-                    Directory.Delete(oldProjectDirectory,true);
+                    Directory.Delete(oldTMPProjectDirectory,true);
                 }
                 catch
                 {
-                    throw new CanNotDeleteOldProjectDirectory(oldProjectDirectory);
+                    throw new CanNotDeleteOldProjectDirectory(oldTMPProjectDirectory);
                 }
             }
             progress += progressStep;
 
             try
             {
-                projectDirectory.MoveTo(path + Path.DirectorySeparatorChar + Settings.Name);
+                tmpProjectDirectory.MoveTo(oldTMPProjectDirectory);
             }
             catch
             {
@@ -465,17 +464,26 @@ namespace HBP.Data.General
             }
             progress += progressStep;
 
+            // Zipping
+            string filePath = path + Path.DirectorySeparatorChar + FileName;
+            if (File.Exists(filePath)) File.Delete(filePath);
+            using (ZipFile zip = new ZipFile(filePath))
+            {
+                zip.AddDirectory(oldTMPProjectDirectory);
+                zip.Save();
+            }
+
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(1, 0, "Project succesfully saved.");
+            OnChangeProgress.Invoke(1, 0, new LoadingText("Project succesfully saved."));
         }
         #endregion
 
         #region Private Methods
-        IEnumerator c_LoadSettings(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadSettings(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             yield return Ninja.JumpBack;
             // Loading settings file.
-            OnChangeProgress.Invoke(progress, 0, "Loading settings");
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading settings"));
 
             FileInfo[] settingsFiles = projectDirectory.GetFiles("*" + ProjectSettings.EXTENSION, SearchOption.TopDirectoryOnly);
             if (settingsFiles.Length == 0) throw new SettingsFileNotFoundException(); // Test if settings files found.
@@ -491,7 +499,7 @@ namespace HBP.Data.General
             progress += progressStep;
             outPut(progress);
         }
-        IEnumerator c_LoadPatients(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadPatients(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             yield return Ninja.JumpBack;
             // Load patients.
@@ -501,7 +509,7 @@ namespace HBP.Data.General
             for (int i = 0; i < patientFiles.Length; ++i)
             {
                 FileInfo patientFile = patientFiles[i];
-                OnChangeProgress.Invoke(progress, 0, "Loading patient <color=blue>" + Path.GetFileNameWithoutExtension(patientFile.Name) + "</color> [" + (i + 1).ToString() + "/" + patientFiles.Length + "]");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
                 try
                 {
                     patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(patientFile.FullName));
@@ -515,7 +523,7 @@ namespace HBP.Data.General
             SetPatients(patients.ToArray());
             outPut(progress);
         }
-        IEnumerator c_LoadGroups(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadGroups(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             yield return Ninja.JumpBack;
             // Load groups.
@@ -525,7 +533,7 @@ namespace HBP.Data.General
             for (int i = 0; i < groupFiles.Length; ++i)
             {
                 FileInfo groupFile = groupFiles[i];
-                OnChangeProgress.Invoke(progress, 0, "Loading group <color=blue>" + Path.GetFileNameWithoutExtension(groupFile.Name) + "</color> [" + (i + 1).ToString() + "/" + groupFiles.Length + "]");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading group ", Path.GetFileNameWithoutExtension(groupFile.Name), " [" + (i + 1).ToString() + "/" + groupFiles.Length + "]"));
                 try
                 {
                     groups.Add(ClassLoaderSaver.LoadFromJson<Group>(groupFile.FullName));
@@ -539,7 +547,7 @@ namespace HBP.Data.General
             SetGroups(groups.ToArray());
             outPut(progress);
         }
-        IEnumerator c_LoadProtocols(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadProtocols(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             yield return Ninja.JumpBack;
             //Load Protocols
@@ -549,7 +557,7 @@ namespace HBP.Data.General
             for (int i = 0; i < protocolFiles.Length; ++i)
             {
                 FileInfo protocolFile = protocolFiles[i];
-                OnChangeProgress.Invoke(progress, 0, "Loading protocol <color=blue>" + Path.GetFileNameWithoutExtension(protocolFile.Name) + "</color> [" + (i + 1).ToString() + "/" + protocolFiles.Length + "]");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading protocol ", Path.GetFileNameWithoutExtension(protocolFile.Name), " [" + (i + 1).ToString() + "/" + protocolFiles.Length + "]"));
                 try
                 {
                     protocols.Add(ClassLoaderSaver.LoadFromJson<Protocol>(protocolFile.FullName));
@@ -563,7 +571,7 @@ namespace HBP.Data.General
             SetProtocols(protocols.ToArray());
             outPut(progress);
         }
-        IEnumerator c_LoadDatasets(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadDatasets(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             yield return Ninja.JumpBack;
             //Load Datasets
@@ -573,7 +581,7 @@ namespace HBP.Data.General
             for (int i = 0; i < datasetFiles.Length; ++i)
             {
                 FileInfo datasetFile = datasetFiles[i];
-                OnChangeProgress.Invoke(progress, 0, "Loading dataset <color=blue>" + Path.GetFileNameWithoutExtension(datasetFile.Name) + "</color> [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading dataset ", Path.GetFileNameWithoutExtension(datasetFile.Name), " [" + (i + 1).ToString() + "/" + datasetFiles.Length + "]"));
                 try
                 {
                     datasets.Add(ClassLoaderSaver.LoadFromJson<Dataset>(datasetFile.FullName));
@@ -587,7 +595,7 @@ namespace HBP.Data.General
             SetDatasets(datasets.ToArray());
             outPut(progress);
         }
-        IEnumerator c_LoadVisualizations(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_LoadVisualizations(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             yield return Ninja.JumpBack;
             //Load Visualizations
@@ -598,7 +606,7 @@ namespace HBP.Data.General
             for (int i = 0; i < visualizationFiles.Length; ++i)
             {
                 FileInfo visualizationFile = visualizationFiles[i];
-                OnChangeProgress.Invoke(progress, 0, "Loading visualization <color=blue>" + Path.GetFileNameWithoutExtension(visualizationFile.Name) + "</color> [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading visualization ", Path.GetFileNameWithoutExtension(visualizationFile.Name), " [" + (i + 1).ToString() + "/" + visualizationFiles.Length + "]"));
                 try
                 {
                     visualizations.Add(ClassLoaderSaver.LoadFromJson<Visualization.Visualization>(visualizationFile.FullName));
@@ -612,7 +620,7 @@ namespace HBP.Data.General
             SetVisualizations(visualizations.ToArray());
             outPut(progress);
         }
-        IEnumerator c_CheckDatasets(GenericEvent<float, float, string> OnChangeProgress)
+        IEnumerator c_CheckDatasets(GenericEvent<float, float, LoadingText> OnChangeProgress)
         {
             yield return Ninja.JumpBack;
             int count = 1;
@@ -630,16 +638,16 @@ namespace HBP.Data.General
 
                     // DEBUG
                     yield return Ninja.JumpToUnity;
-                    OnChangeProgress.Invoke(progress, 0, "Checking <color=blue>" + data.Name + " | " + dataset.Protocol.Name + " | " + data.Patient.Name + "</color> [" + count + "/" + length + "]");
+                    OnChangeProgress.Invoke(progress, 0, new LoadingText("Checking ", data.Name + " | " + dataset.Protocol.Name + " | " + data.Patient.Name, " [" + count + "/" + length + "]"));
                     yield return Ninja.JumpBack;
                 }
             }
         }
-        IEnumerator c_SaveSettings(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_SaveSettings(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             // Save settings
             yield return Ninja.JumpToUnity;
-            OnChangeProgress.Invoke(progress, 0, "Saving settings.");
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving settings"));
             yield return Ninja.JumpBack;
 
             try
@@ -653,14 +661,14 @@ namespace HBP.Data.General
             progress += progressStep;
             outPut(progress);
         }
-        IEnumerator c_SavePatients(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_SavePatients(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             DirectoryInfo patientDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Patients");
             // Save patients
             foreach (Patient patient in Patients)
             {
                 yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Saving patient <color=blue>" + patient.ID +"</color>.");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving patient ", patient.ID));
                 yield return Ninja.JumpBack;
 
                 try
@@ -675,14 +683,14 @@ namespace HBP.Data.General
             }
             outPut(progress);
         }
-        IEnumerator c_SaveGroups(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_SaveGroups(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             // Save groups
             DirectoryInfo groupDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Groups");
             foreach (Group group in Groups)
             {
                 yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Saving group <color=blue>" + group.Name + "</color>.");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving group ", group.Name));
                 yield return Ninja.JumpBack;
 
                 try
@@ -697,14 +705,14 @@ namespace HBP.Data.General
             }
             outPut(progress);
         }
-        IEnumerator c_SaveProtocols(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_SaveProtocols(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             // Save protocols
             DirectoryInfo protocolDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Protocols");
             foreach (Protocol protocol in Protocols)
             {
                 yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Saving protocol <color=blue>" + protocol.Name + "</color>.");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving protocol ", protocol.Name));
                 yield return Ninja.JumpBack;
 
                 try
@@ -719,14 +727,14 @@ namespace HBP.Data.General
             }
             outPut(progress);
         }
-        IEnumerator c_SaveDatasets(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_SaveDatasets(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             //Save datasets
             DirectoryInfo datasetDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Datasets");
             foreach (Dataset dataset in Datasets)
             {
                 yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Saving dataset <color=blue>" + dataset.Name +"</color>.");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving dataset ", dataset.Name));
                 yield return Ninja.JumpBack;
 
                 try
@@ -741,7 +749,7 @@ namespace HBP.Data.General
             }
             outPut(progress);
         }
-        IEnumerator c_SaveVisualizations(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, string> OnChangeProgress, Action<float> outPut)
+        IEnumerator c_SaveVisualizations(DirectoryInfo projectDirectory, float progress, float progressStep, GenericEvent<float, float, LoadingText> OnChangeProgress, Action<float> outPut)
         {
             DirectoryInfo visualizationDirectory = Directory.CreateDirectory(projectDirectory.FullName + Path.DirectorySeparatorChar + "Visualizations");
 
@@ -749,7 +757,7 @@ namespace HBP.Data.General
             foreach (Visualization.Visualization visualization in Visualizations)
             {
                 yield return Ninja.JumpToUnity;
-                OnChangeProgress.Invoke(progress, 0, "Saving visualization <color=blue>" + visualization.Name + "</color>.");
+                OnChangeProgress.Invoke(progress, 0, new LoadingText("Saving visualization ", visualization.Name));
                 yield return Ninja.JumpBack;
 
                 try
@@ -766,20 +774,105 @@ namespace HBP.Data.General
         }
         void CopyIcons(string oldIconsDirectoryPath, string newIconsDirectoryPath)
         {
-            DirectoryInfo oldIconsDirectory = new DirectoryInfo(oldIconsDirectoryPath);
+            new DirectoryInfo(oldIconsDirectoryPath).CopyFilesRecursively(new DirectoryInfo(newIconsDirectoryPath));
+        }
+        IEnumerator c_EmbedDataIntoProjectFile(DirectoryInfo projectDirectory, string oldProjectDirectory, GenericEvent<float, float, LoadingText> OnChangeProgress)
+        {
+            DirectoryInfo dataDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Data"));
 
-            if (!Directory.Exists(newIconsDirectoryPath))
+            float progress = 0.0f;
+            float progressStep = 1.0f / (Patients.Count + Datasets.Count);
+
+            yield return Ninja.JumpToUnity;
+            OnChangeProgress.Invoke(progress, 0, new LoadingText("Copying data"));
+            yield return Ninja.JumpBack;
+
+            // Save Patient Data
+            if (Patients.Count > 0)
             {
-                Directory.CreateDirectory(newIconsDirectoryPath);
+                DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Anatomy"));
+                foreach (var patient in Patients)
+                {
+                    yield return Ninja.JumpToUnity;
+                    progress += progressStep;
+                    OnChangeProgress.Invoke(progress, 0, new LoadingText("Copying ", patient.Name, " anatomical data"));
+                    yield return Ninja.JumpBack;
+
+                    DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(patientsDirectory.FullName, patient.ID));
+                    if (patient.Brain.Meshes.Count > 0)
+                    {
+                        DirectoryInfo meshesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Meshes"));
+                        foreach (var mesh in patient.Brain.Meshes)
+                        {
+                            if (mesh is Anatomy.SingleMesh)
+                            {
+                                Anatomy.SingleMesh singleMesh = mesh as Anatomy.SingleMesh;
+                                singleMesh.Path = singleMesh.Path.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                singleMesh.MarsAtlasPath = singleMesh.MarsAtlasPath.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            }
+                            else if (mesh is Anatomy.LeftRightMesh)
+                            {
+                                Anatomy.LeftRightMesh singleMesh = mesh as Anatomy.LeftRightMesh;
+                                singleMesh.LeftHemisphere = singleMesh.LeftHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                singleMesh.RightHemisphere = singleMesh.RightHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                singleMesh.LeftMarsAtlasHemisphere = singleMesh.LeftMarsAtlasHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                                singleMesh.RightMarsAtlasHemisphere = singleMesh.RightMarsAtlasHemisphere.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            }
+                            mesh.Transformation = mesh.Transformation.CopyToDirectory(meshesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                        }
+                    }
+                    if (patient.Brain.MRIs.Count > 0)
+                    {
+                        DirectoryInfo mriDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "MRIs"));
+                        foreach (var mri in patient.Brain.MRIs)
+                        {
+                            mri.File = mri.File.CopyToDirectory(mriDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                        }
+                    }
+                    if (patient.Brain.Implantations.Count > 0)
+                    {
+                        DirectoryInfo implantationsDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Implantations"));
+                        foreach (var implantation in patient.Brain.Implantations)
+                        {
+                            implantation.File = implantation.File.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            implantation.MarsAtlas = implantation.MarsAtlas.CopyToDirectory(implantationsDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                        }
+                    }
+                    if (patient.Brain.Connectivities.Count > 0)
+                    {
+                        DirectoryInfo connectivitiesDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "Connectivities"));
+                        foreach (var connectivity in patient.Brain.Connectivities)
+                        {
+                            connectivity.File = connectivity.File.CopyToDirectory(connectivitiesDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                        }
+                    }
+                }
             }
-
-            if (!oldIconsDirectory.Exists) return;
-
-            FileInfo[] icons = oldIconsDirectory.GetFiles();
-            foreach (FileInfo icon in icons)
+            // Save Localizer Data
+            if (Datasets.Count > 0)
             {
-                string newIconPath = Path.Combine(newIconsDirectoryPath, icon.Name);
-                icon.CopyTo(newIconPath, true);
+                DirectoryInfo localizersDirectory = Directory.CreateDirectory(Path.Combine(dataDirectory.FullName, "Functional"));
+                foreach (var dataset in Datasets)
+                {
+                    if (dataset.Data.Length > 0)
+                    {
+                        yield return Ninja.JumpToUnity;
+                        progress += progressStep;
+                        OnChangeProgress.Invoke(progress, 0, new LoadingText("Copying ", dataset.Name));
+                        yield return Ninja.JumpBack;
+
+                        DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(localizersDirectory.FullName, dataset.Name));
+                        foreach (var data in dataset.Data)
+                        {
+                            DirectoryInfo dataInfoDirectory = new DirectoryInfo(Path.Combine(datasetDirectory.FullName, data.Name));
+                            if (!dataInfoDirectory.Exists) dataInfoDirectory = Directory.CreateDirectory(dataInfoDirectory.FullName);
+                            data.EEGHeader.CopyToDirectory(dataInfoDirectory);
+                            string eeg = data.EEG.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            string pos = data.POS.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory.FullName, oldProjectDirectory);
+                            data.SetPathsWithoutCheckingErrors(eeg, pos);
+                        }
+                    }
+                }
             }
         }
         #endregion

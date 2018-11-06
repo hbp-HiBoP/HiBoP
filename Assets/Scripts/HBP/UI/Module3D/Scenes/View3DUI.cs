@@ -14,6 +14,8 @@ using NewTheme.Components;
 public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler, IPointerEnterHandler, IPointerExitHandler
 {
     #region Properties
+    private const float MINIMIZED_THRESHOLD = 10.0f;
+
     [SerializeField] private ThemeElement m_ThemeElement;
     [SerializeField] private State m_MoveState;
 
@@ -68,10 +70,24 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         {
             m_UsingRenderTexture = value;
             m_RawImage.enabled = value;
-            OnRectTransformDimensionsChange();
+            m_RectTransform.hasChanged = true;
         }
     }
 
+    public bool IsMinimizedHorizontally
+    {
+        get
+        {
+            return Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
+        }
+    }
+    public bool IsMinimzedVertically
+    {
+        get
+        {
+            return Mathf.Abs(m_RectTransform.rect.height - ParentGrid.MinimumViewHeight) <= MINIMIZED_THRESHOLD;
+        }
+    }
     /// <summary>
     /// Returns true if the view is minimized but the column is not
     /// </summary>
@@ -79,11 +95,16 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     {
         get
         {
-            return (Mathf.Abs(m_RectTransform.rect.height - ParentGrid.MinimumViewHeight) <= 0.9f) && !(Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= 0.9f);
+            return IsMinimzedVertically && !IsMinimizedHorizontally;
         }
     }
-    
-    private bool m_RectTransformChanged = false;
+    public bool IsMinimized
+    {
+        get
+        {
+            return IsMinimizedHorizontally || IsMinimzedVertically;
+        }
+    }
     #endregion
 
     #region Events
@@ -103,30 +124,10 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     }
     private void Update()
     {
-        if (m_RectTransformChanged)
+        if (m_RectTransform.hasChanged)
         {
-
-            if (Mathf.Abs(m_RectTransform.rect.height - ParentGrid.MinimumViewHeight) <= 0.9f)
-            {
-                if (Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= 0.9f)
-                {
-                    m_MinimizedGameObject.SetActive(false);
-                }
-                else
-                {
-                    m_MinimizedGameObject.SetActive(true);
-                }
-                m_View.IsMinimized = true;
-            }
-            else if (Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= 0.9f)
-            {
-                m_View.IsMinimized = true;
-            }
-            else
-            {
-                m_MinimizedGameObject.SetActive(false);
-                m_View.IsMinimized = false;
-            }
+            m_MinimizedGameObject.SetActive(IsViewMinimizedAndColumnNotMinimized);
+            m_View.IsMinimized = IsMinimized;
 
             if (m_UsingRenderTexture)
             {
@@ -148,7 +149,7 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             }
 
             OnChangeViewSize.Invoke();
-            m_RectTransformChanged = false;
+            m_RectTransform.hasChanged = false;
         }
         DeselectView();
         SendRayToScene();
@@ -183,6 +184,8 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     #region Public Methods
     public void OnPointerDown(PointerEventData data)
     {
+        if (IsMinimized) return;
+
         m_View.IsClicked = true;
         m_PointerDownLock = true;
         if (Input.GetMouseButton(1) || Input.GetMouseButton(2))
@@ -201,6 +204,8 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     }
     public void OnDrag(PointerEventData data)
     {
+        if (IsMinimized) return;
+
         switch (data.button)
         {
             case PointerEventData.InputButton.Left:
@@ -221,17 +226,23 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     }
     public void OnEndDrag(PointerEventData data)
     {
+        if (IsMinimized) return;
+
         m_View.DisplayRotationCircles = false;
         m_ThemeElement.Set();
     }
     public void OnPointerUp(PointerEventData data)
     {
+        if (IsMinimized) return;
+
         m_PointerDownLock = false;
         m_View.DisplayRotationCircles = false;
         m_ThemeElement.Set();
     }
     public void OnScroll(PointerEventData data)
     {
+        if (IsMinimized) return;
+
         m_PointerDownLock = true;
         ROI selectedROI = m_Column.SelectedROI;
         if (m_Scene.SceneInformation.IsROICreationModeEnabled && selectedROI)
@@ -258,10 +269,6 @@ public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
     {
         m_PointerIsInView = false;
         ApplicationState.Module3D.OnDisplaySiteInformation.Invoke(new SiteInfo(null, false, Input.mousePosition));
-    }
-    public void OnRectTransformDimensionsChange()
-    {
-        m_RectTransformChanged = true;
     }
     /// <summary>
     /// Initialize this view

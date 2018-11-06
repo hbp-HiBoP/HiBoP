@@ -51,7 +51,7 @@ namespace HBP.Data.Experience.Dataset
             float[] values;
             if (ValuesByChannel.TryGetValue(channel, out values))
             {
-                ValuesByChannel[channel] = values.Normalize(average, standardDeviation);
+                values.Normalize(average, standardDeviation);
             }
         }
         #endregion
@@ -67,10 +67,11 @@ namespace HBP.Data.Experience.Dataset
             int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(window.End);
 
             // GetValues.
+            int length = endIndex - startIndex + 1;
             foreach (var pair in valuesByChannel)
             {
-                float[] values = new float[endIndex - startIndex];
-                Array.Copy(pair.Value, startIndex, values, 0, endIndex - startIndex);
+                float[] values = new float[length];
+                Array.Copy(pair.Value, startIndex, values, 0, length);
                 result.Add(pair.Key, values);
             }
             return result;

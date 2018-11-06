@@ -5,6 +5,7 @@
  * \brief Define SharedMaterials
  */
 
+using HBP.Data.Enums;
 using System.Collections.Generic;
 using UnityEngine;
 

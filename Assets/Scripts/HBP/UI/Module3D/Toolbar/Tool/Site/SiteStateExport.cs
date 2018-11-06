@@ -1,12 +1,6 @@
-﻿using HBP.Module3D;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using Tools.Unity;
+﻿using Tools.Unity;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
-using T = Tools.Unity;
 
 namespace HBP.UI.Module3D.Tools
 {
@@ -53,8 +47,8 @@ namespace HBP.UI.Module3D.Tools
             string savePath = HBP.Module3D.DLL.QtGUI.GetSavedFileName(new string[] { "csv" }, "Save site states to", Application.dataPath);
             if (!string.IsNullOrEmpty(savePath))
             {
-                ApplicationState.Module3D.SelectedScene.SaveSiteStatesOfSelectedColumn(savePath);
-                ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Informational, "Site states saves", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
+                SelectedColumn.SaveSiteStates(savePath);
+                ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site states saves", "Site states of the selected column have been saved to <color=#3080ffff>" + savePath + "</color>");
             }
         }
         private void LoadSiteStatesToSelectedColumn()
@@ -62,7 +56,7 @@ namespace HBP.UI.Module3D.Tools
             string loadPath = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "csv" }, "Load site states", Application.dataPath);
             if (!string.IsNullOrEmpty(loadPath))
             {
-                ApplicationState.Module3D.SelectedScene.LoadSiteStatesToSelectedColumn(loadPath);
+                SelectedColumn.LoadSiteStates(loadPath);
             }
         }
         #endregion

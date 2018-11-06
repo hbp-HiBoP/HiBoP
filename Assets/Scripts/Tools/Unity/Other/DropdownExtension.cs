@@ -13,5 +13,17 @@ namespace Tools.Unity
             dropdown.value = enumValue;
             dropdown.RefreshShownValue();
         }
+
+        public static void SetValue(this Dropdown dropdown, int value)
+        {
+            if (dropdown.value == value)
+            {
+                dropdown.onValueChanged.Invoke(value);
+            }
+            else
+            {
+                dropdown.value = value;
+            }
+        }
     }
 }

@@ -44,7 +44,7 @@ namespace HBP.UI.Module3D
 
             m_CCEPState.OnChangeState.AddListener((isOn) =>
             {
-                UpdateInteractableButtons();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
         }
         #endregion

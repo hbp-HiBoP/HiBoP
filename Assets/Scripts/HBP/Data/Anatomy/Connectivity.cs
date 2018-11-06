@@ -1,6 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using System.IO;
 using System;
+using Tools.Unity;
 
 namespace HBP.Data.Anatomy
 {
@@ -10,7 +11,19 @@ namespace HBP.Data.Anatomy
         #region Properties
         const string EXTENSION = ".txt";
         [DataMember] public string Name { get; set; }
-        [DataMember] public string File { get; set; }
+        [DataMember] string m_File;
+        public string File
+        {
+            get
+            {
+                return m_File.ConvertToFullPath();
+            }
+            set
+            {
+                m_File = value.ConvertToShortPath();
+            }
+        }
+        public string SavedFile { get { return m_File; } }
         protected bool m_WasUsable;
         public bool WasUsable
         {
@@ -59,7 +72,7 @@ namespace HBP.Data.Anatomy
         #region Operators
         public object Clone()
         {
-            return new Connectivity(Name, File);
+            return new Connectivity(Name, m_File);
         }
         public void Copy(object copy)
         {

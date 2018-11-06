@@ -1,4 +1,5 @@
 ﻿using HBP.Module3D;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -7,6 +8,7 @@ using System.Linq;
 using Tools.Unity;
 using Tools.Unity.ResizableGrid;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
@@ -31,7 +33,20 @@ namespace HBP.UI.Module3D
                 Vector3 mousePosition = Input.mousePosition;
                 if (mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height)
                 {
-                    m_Scene.IsSelected = true;
+                    PointerEventData pointerData = new PointerEventData(EventSystem.current)
+                    {
+                        pointerId = -1,
+                        position = Input.mousePosition
+                    };
+                    List<RaycastResult> raycastResults = new List<RaycastResult>();
+                    EventSystem.current.RaycastAll(pointerData, raycastResults);
+                    if (raycastResults.Count > 0)
+                    {
+                        if (raycastResults[0].gameObject.GetComponentInParent<Scene3DWindow>() == this)
+                        {
+                            m_Scene.IsSelected = true;
+                        }
+                    }
                 }
             }
         }
@@ -52,9 +67,9 @@ namespace HBP.UI.Module3D
             grid.AddViewLine(SceneUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<Scene3DUI>().Initialize(scene);
             // Information
-            grid.AddColumn(null, GraphsUIPrefab);
-            Informations.Informations informations = grid.Columns.Last().Views.Last().GetComponent<Informations.Informations>();
-            informations.Scene = scene;
+            //grid.AddColumn(null, GraphsUIPrefab);
+            //Informations.Informations informations = grid.Columns.Last().Views.Last().GetComponent<Informations.Informations>();
+            //informations.Scene = scene;
             // Sites
             grid.AddColumn(null, SitesInformationsPrefab);
             grid.Columns.Last().Views.Last().GetComponent<SitesInformations>().Initialize(scene);
@@ -62,9 +77,9 @@ namespace HBP.UI.Module3D
             grid.AddColumn(null, CutUIPrefab);
             grid.Columns.Last().Views.Last().GetComponent<CutController>().Initialize(scene);
             // Positions
-            grid.VerticalHandlers[0].MagneticPosition = 0.45f;
-            grid.VerticalHandlers[1].MagneticPosition = 0.8f;
-            grid.VerticalHandlers[2].MagneticPosition = 0.9f;
+            //grid.VerticalHandlers[0].MagneticPosition = 0.45f;
+            //grid.VerticalHandlers[1].MagneticPosition = 0.8f;
+            //grid.VerticalHandlers[2].MagneticPosition = 0.9f;
             grid.VerticalHandlers[0].Position = 1.0f;
             grid.SetVerticalHandlersPosition(0);
 
@@ -97,18 +112,18 @@ namespace HBP.UI.Module3D
                 if (!Directory.Exists(screenshotsPath)) Directory.CreateDirectory(screenshotsPath);
                 SaveSceneToPNG(screenshotsPath, multipleFiles);
             });
-            informations.OnOpenInformationsWindow.AddListener(() =>
-            {
-                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
-                grid.SetVerticalHandlersPosition(1);
-                grid.UpdateAnchors();
-            });
-            informations.OnCloseInformationsWindow.AddListener(() =>
-            {
-                grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
-                grid.SetVerticalHandlersPosition(1);
-                grid.UpdateAnchors();
-            });
+            //informations.OnOpenInformationsWindow.AddListener(() =>
+            //{
+            //    grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
+            //    grid.SetVerticalHandlersPosition(1);
+            //    grid.UpdateAnchors();
+            //});
+            //informations.OnCloseInformationsWindow.AddListener(() =>
+            //{
+            //    grid.VerticalHandlers[0].Position = grid.VerticalHandlers[1].Position - (grid.MinimumViewWidth / grid.RectTransform.rect.width);
+            //    grid.SetVerticalHandlersPosition(1);
+            //    grid.UpdateAnchors();
+            //});
         }
 
         public void SaveSceneToPNG(string path, bool multipleFiles = false)

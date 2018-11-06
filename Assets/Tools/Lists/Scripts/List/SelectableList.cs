@@ -73,6 +73,7 @@ namespace Tools.Unity.Lists
             if (base.Remove(obj))
             {
                 m_SelectedStateByObject.Remove(obj);
+                OnSelectionChangeCallBack();
                 return true;
             }
             return false;
@@ -194,7 +195,7 @@ namespace Tools.Unity.Lists
         protected virtual void OnSelectionChangeCallBack()
         {
             OnSelectionChanged.Invoke();
-            bool allSelected = Objects.Length == ObjectsSelected.Length;
+            bool allSelected = Objects.Length == ObjectsSelected.Length && Objects.Length > 0;
             if (m_AllSelected != allSelected)
             {
                 m_AllSelected = allSelected;

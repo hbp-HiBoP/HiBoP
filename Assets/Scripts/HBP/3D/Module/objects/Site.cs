@@ -3,6 +3,7 @@
 
 
 // unity
+using HBP.Data.Enums;
 using System;
 /**
 * \file    Site.cs
@@ -15,7 +16,6 @@ using UnityEngine.Events;
 
 namespace HBP.Module3D
 {
-    public enum SiteType { Normal, Positive, Negative, Excluded, Source, NotASource, NoLatencyData, BlackListed, NonePos, NoneNeg, Marked, Suspicious };
     /// <summary>
     /// Structure containing informations related to the site shaders (not used for now, shader uniform too slow)
     /// </summary>
@@ -101,14 +101,29 @@ namespace HBP.Module3D
         public Data.Patient Patient { get; set; }
         public string Name { get; set; }
 
-        public int GlobalID { get; set; }        /**< global site id (all patients) */
-        public int SitePatientID { get; set; }    /**< site id of the patient */
+        public int GlobalID { get; set; }
+        public int SitePatientID { get; set; }
 
-        public int PatientNumber { get; set; }       /**< patient id */
-        public int ElectrodeNumber { get; set; }     /**< electrode id of the patient */
-        public int SiteNumber { get; set; }        /**< site id of the electrode */
+        public int PatientNumber { get; set; }
+        public int ElectrodeNumber { get; set; }
+        public int SiteNumber { get; set; }
 
-        public int MarsAtlasIndex { get; set; }   /**< label (corresponding index) mars atlas */
+        private int m_MarsAtlasIndex;
+        public int MarsAtlasIndex
+        {
+            get
+            {
+                return m_MarsAtlasIndex;
+            }
+            set
+            {
+                m_MarsAtlasIndex = value;
+                MarsAtlasName = ApplicationState.Module3D.MarsAtlasIndex.FullName(value);
+                BroadmanAreaName = ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(value);
+            }
+        }
+        public string MarsAtlasName { get; private set; }
+        public string BroadmanAreaName { get; private set; }
 
         public string PatientID
         {
@@ -121,7 +136,7 @@ namespace HBP.Module3D
         {
             get
             {
-                return Patient.ID + "_" + Name;
+                return PatientID + "_" + Name;
             }
         }
         public string FullCorrectedID
@@ -174,18 +189,7 @@ namespace HBP.Module3D
             IsSuspicious = state.IsSuspicious;
         }
         public SiteState() { }
-        private bool m_IsMasked;
-        public bool IsMasked
-        {
-            get
-            {
-                return m_IsMasked;
-            }
-            set
-            {
-                m_IsMasked = value;
-            }
-        }
+        public bool IsMasked { get; set; }
         private bool m_IsExcluded;
         public bool IsExcluded
         {
@@ -212,18 +216,7 @@ namespace HBP.Module3D
                 OnChangeState.Invoke();
             }
         }
-        private bool m_IsOutOfROI;
-        public bool IsOutOfROI
-        {
-            get
-            {
-                return m_IsOutOfROI;
-            }
-            set
-            {
-                m_IsOutOfROI = value;
-            }
-        }
+        public bool IsOutOfROI { get; set; }
         private bool m_IsHighlighted;
         public bool IsHighlighted
         {

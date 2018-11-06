@@ -22,7 +22,7 @@ namespace Tools.Unity
             string l_result = HBP.Module3D.DLL.QtGUI.GetExistingDirectoryName( Message, m_Inputfield.text);
             if (l_result != string.Empty)
             {
-                StringExtension.StandardizeToPath(ref l_result);
+                l_result = l_result.StandardizeToPath();
                 m_Inputfield.text = l_result;
             }
         }

@@ -17,18 +17,11 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnModifyInvisiblePart.AddListener(() =>
-            {
-                if (ApplicationState.Module3D.SelectedScene)
-                {
-                    UpdateInteractable();
-                }
-            });
             m_Button.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.ResetTriangleErasing();
+                SelectedScene.ResetTriangleErasing();
             });
         }
         public override void DefaultState()
@@ -37,7 +30,7 @@ namespace HBP.UI.Module3D.Tools
         }
         public override void UpdateInteractable()
         {
-            bool haveTrianglesBeenErased = ApplicationState.Module3D.SelectedScene.HasInvisibleTriangles;
+            bool haveTrianglesBeenErased = SelectedScene.HasInvisibleTriangles;
 
             m_Button.interactable = haveTrianglesBeenErased;
         }

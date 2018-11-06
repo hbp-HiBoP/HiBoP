@@ -11,6 +11,7 @@ namespace HBP.UI.Module3D
     public class SitesInformations : MonoBehaviour
     {
         #region Properties
+        private const float MINIMIZED_THRESHOLD = 270.0f;
         private Base3DScene m_Scene;
         private RectTransform m_RectTransform;
         private ResizableGrid m_ParentGrid;
@@ -116,6 +117,14 @@ namespace HBP.UI.Module3D
                 UpdateList();
             }
         }
+
+        public bool IsMinimized
+        {
+            get
+            {
+                return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -126,37 +135,23 @@ namespace HBP.UI.Module3D
         }
         private void Update()
         {
-            if (m_RectTransformChanged)
+            if (m_RectTransform.hasChanged)
             {
-                if (GetComponent<RectTransform>().rect.width < 3 * m_ParentGrid.MinimumViewWidth)
-                {
-                    m_MinimizedGameObject.SetActive(true);
-                }
-                else
-                {
-                    m_MinimizedGameObject.SetActive(false);
-                }
-                m_RectTransformChanged = false;
+                m_MinimizedGameObject.SetActive(IsMinimized);
+                m_RectTransform.hasChanged = false;
             }
         }
         #endregion
 
         #region Public Methods
-        public void OnRectTransformDimensionsChange()
-        {
-            m_RectTransformChanged = true;
-        }
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
             m_SiteList.Initialize();
-            UpdateList();
             m_SiteConditions.Initialize(scene);
+            m_Scene.OnUpdateSites.AddListener(UpdateList);
             m_Scene.ColumnManager.OnSelectColumn.AddListener((c) => UpdateList());
-            m_Scene.ColumnManager.OnSelectSite.AddListener(s =>
-            {
-                m_SiteList.Refresh();
-            });
+            m_Scene.OnSitesRenderingUpdated.AddListener(m_SiteList.Refresh);
         }
         public void UpdateList()
         {

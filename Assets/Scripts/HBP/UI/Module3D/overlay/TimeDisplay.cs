@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
-    public class TimeDisplay : OverlayElement
+    public class TimeDisplay : ColumnOverlayElement
     {
         #region Properties
         [SerializeField]
@@ -14,14 +14,14 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
+        public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
-            base.Initialize(scene, column, columnUI);
+            base.Setup(scene, column, columnUI);
             IsActive = false;
 
             scene.SceneInformation.OnUpdateGeneratorState.AddListener((value) =>
             {
-                if (column.Type == Column3D.ColumnType.IEEG)
+                if (column.Type == Data.Enums.ColumnType.iEEG)
                 {
                     IsActive = value;
                 }
@@ -29,14 +29,14 @@ namespace HBP.UI.Module3D
 
             switch (column.Type)
             {
-                case Column3D.ColumnType.Base:
+                case Data.Enums.ColumnType.Anatomic:
                     IsActive = false;
                     break;
-                case Column3D.ColumnType.IEEG:
+                case Data.Enums.ColumnType.iEEG:
                     Column3DIEEG col = (Column3DIEEG)column;
                     col.OnUpdateCurrentTimelineID.AddListener(() =>
                     {
-                        m_Text.text = col.CurrentTimeLineID.ToString() + " (" + col.CurrentTimeLine.ToString("N2") + col.TimeLineUnite + ")";
+                        m_Text.text = col.Timeline.CurrentIndex.ToString() + " (" + col.Timeline.CurrentSubtimeline.GetLocalTime(col.Timeline.CurrentIndex).ToString("N2") + col.Timeline.Unit + ")";
                     });
                     break;
                 default:

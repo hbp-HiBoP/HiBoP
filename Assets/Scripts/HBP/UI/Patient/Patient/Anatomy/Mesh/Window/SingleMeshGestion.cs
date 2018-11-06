@@ -30,11 +30,11 @@ namespace HBP.UI.Anatomy
         }
         public void Set(SingleMesh mesh)
         {
-            m_MeshFileSelector.File = mesh.Path;
+            m_MeshFileSelector.File = mesh.SavedPath;
             m_MeshFileSelector.onValueChanged.RemoveAllListeners();
             m_MeshFileSelector.onValueChanged.AddListener((path) => mesh.Path = path);
 
-            m_MarsAtlasFileSelector.File = mesh.MarsAtlasPath;
+            m_MarsAtlasFileSelector.File = mesh.SavedMarsAtlasPath;
             m_MarsAtlasFileSelector.onValueChanged.RemoveAllListeners();
             m_MarsAtlasFileSelector.onValueChanged.AddListener((marsAtlasPath) => mesh.MarsAtlasPath = marsAtlasPath);
         }

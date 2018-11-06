@@ -86,18 +86,18 @@ namespace HBP.Data.Visualization
         /// <param name="icon">Icon.</param>
         /// <param name="frequency">Frequency of the data.</param>
         /// <param name="timeLine">Time line of the bloc.</param>
-        public Icon(Experience.Protocol.Icon icon, Frequency frequency,Timeline timeLine)
+        public Icon(Experience.Protocol.Icon icon, Frequency frequency, int mainEventPosition, int timelineLength)
         {
             Label = icon.Name;
             IllustrationPath = icon.IllustrationPath;
-            StartPosition = Mathf.Clamp(frequency.ConvertToFlooredNumberOfSamples(icon.Window.Start) + timeLine.MainEvent.Position,0, timeLine.Lenght - 1);
-            EndPosition = Mathf.Clamp(frequency.ConvertToFlooredNumberOfSamples(icon.Window.End) + timeLine.MainEvent.Position,0,timeLine.Lenght-1);
+            StartPosition = Mathf.Clamp(frequency.ConvertToCeiledNumberOfSamples(icon.Window.Start) + mainEventPosition, 0, timelineLength - 1);
+            EndPosition = Mathf.Clamp(frequency.ConvertToFlooredNumberOfSamples(icon.Window.End) + mainEventPosition, 0, timelineLength - 1);
         }
 
         /// <summary>
         /// Create a new icon instance with default value;
         /// </summary>
-        public Icon() : this(new Experience.Protocol.Icon(),new Frequency(0) ,new Timeline())
+        public Icon() : this(new Experience.Protocol.Icon(), new Frequency(0), 0, 0)
         {
         }
 

@@ -49,6 +49,7 @@ namespace HBP.Data.Visualization
         #region Public Methods
         public abstract object Clone();
         public abstract bool IsCompatible(IEnumerable<Patient> patients);
+        public abstract void Unload();
         #endregion
     }
 }

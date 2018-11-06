@@ -31,20 +31,10 @@ namespace HBP.UI.Module3D
         [SerializeField]
         private Tools.LoadPatient m_LoadPatient;
         /// <summary>
-        /// Modify the state of some sites
-        /// </summary>
-        [SerializeField]
-        private Tools.SiteModifier m_SiteModifier;
-        /// <summary>
         /// Show or hide blacklisted sites
         /// </summary>
         [SerializeField]
         private Tools.BlacklistedSitesDisplay m_BlacklistedSitesDisplay;
-        /// <summary>
-        /// Show every site and their state
-        /// </summary>
-        [SerializeField]
-        private Tools.SiteListDisplayer m_SiteList;
         /// <summary>
         /// Copy the state of the sites to other columns
         /// </summary>
@@ -60,6 +50,11 @@ namespace HBP.UI.Module3D
         /// </summary>
         [SerializeField]
         private Tools.CutAroundSite m_CutAroundSite;
+        /// <summary>
+        /// Open the Interactive Viewer from HBP
+        /// </summary>
+        [SerializeField]
+        private Tools.OpenInteractiveViewer m_OpenInteractiveViewer;
         #endregion
 
         #region Private Methods
@@ -73,12 +68,11 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_CompareSite);
             m_Tools.Add(m_ShowAllSites);
             m_Tools.Add(m_LoadPatient);
-            m_Tools.Add(m_SiteModifier);
             m_Tools.Add(m_BlacklistedSitesDisplay);
-            m_Tools.Add(m_SiteList);
             m_Tools.Add(m_SiteStateCopy);
             m_Tools.Add(m_SiteStateExport);
             m_Tools.Add(m_CutAroundSite);
+            m_Tools.Add(m_OpenInteractiveViewer);
         }
         #endregion
     }

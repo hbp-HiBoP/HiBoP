@@ -36,7 +36,7 @@ namespace HBP.Data.TrialMatrix
             Blocs = blocs.ToArray();
             Limits = blocs.SelectMany(b => b.SubBlocs).SelectMany(s => s.SubTrials).SelectMany(v => v.Data.Values).ToArray().CalculateValueLimit();
             Protocol = dataInfo.Dataset.Protocol;
-            TimeLimitsByColumn = CalculateTimeLimitsByColumn(blocs);
+            //TimeLimitsByColumn = CalculateTimeLimitsByColumn(blocs);
         }
         #endregion
 

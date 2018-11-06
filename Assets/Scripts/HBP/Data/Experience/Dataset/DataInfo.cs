@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 using UnityEngine.Events;
+using Tools.Unity;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -64,8 +65,16 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public string EEG
         {
-            get { return m_EEG; }
-            set { m_EEG = value; m_EEGErrors = GetEEGErrors(); }
+            get { return m_EEG.ConvertToFullPath(); }
+            set { m_EEG = value.ConvertToShortPath(); m_EEGErrors = GetEEGErrors(); }
+        }
+        public string SavedEEG { get { return m_EEG; } }
+        public string EEGHeader
+        {
+            get
+            {
+                return EEG + Elan.EEG.HEADER_EXTENSION;
+            }
         }
 
         [DataMember(Name = "POS")] string m_POS;
@@ -74,9 +83,10 @@ namespace HBP.Data.Experience.Dataset
         /// </summary>
         public string POS
         {
-            get { return m_POS; }
-            set { m_POS = value; m_POSErrors = new ErrorType[0]; OnPOSChanged.Invoke(); }
+            get { return m_POS.ConvertToFullPath(); }
+            set { m_POS = value.ConvertToShortPath(); m_POSErrors = new ErrorType[0]; OnPOSChanged.Invoke(); }
         }
+        public string SavedPOS { get { return m_POS; } }
         public UnityEvent OnPOSChanged { get; set; }
         
         [DataMember(Name = "Normalization")]
@@ -138,6 +148,11 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
+        public void SetPathsWithoutCheckingErrors(string eeg, string pos)
+        {
+            m_EEG = eeg.ConvertToShortPath();
+            m_POS = pos.ConvertToShortPath();
+        }
         public ErrorType[] GetErrors(Protocol.Protocol protocol)
         {
             GetNameErrors();
@@ -199,13 +214,13 @@ namespace HBP.Data.Experience.Dataset
                     }
                     else
                     {
-                        if (!File.Exists(EEGFile.FullName + Elan.EEG.HEADER_EXTENSION))
+                        if (!File.Exists(EEGHeader))
                         {
                             errors.Add(ErrorType.EEGHeaderNotExist);
                         }
                         else
                         {
-                            if (!(new FileInfo(EEGFile.FullName + Elan.EEG.HEADER_EXTENSION).Length > 0))
+                            if (!(new FileInfo(EEGHeader).Length > 0))
                             {
                                 errors.Add(ErrorType.EEGHeaderEmpty);
                             }
@@ -294,7 +309,7 @@ namespace HBP.Data.Experience.Dataset
         /// <returns>Clone of this instance.</returns>
         public object Clone()
         {
-            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, EEG.Clone() as string, POS.Clone() as string, Normalization);
+            DataInfo dataInfo =  new DataInfo(Name.Clone() as string, Patient.Clone() as Patient, Measure.Clone() as string, m_EEG.Clone() as string, m_POS.Clone() as string, Normalization);
             dataInfo.OnPOSChanged = OnPOSChanged;
             return dataInfo;
         }

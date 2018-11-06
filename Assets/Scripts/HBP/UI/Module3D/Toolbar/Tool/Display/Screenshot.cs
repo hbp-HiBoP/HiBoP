@@ -23,13 +23,13 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.OnRequestScreenshot.Invoke(false);
+                SelectedScene.OnRequestScreenshot.Invoke(false);
             });
             m_MultiScreenshots.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                ApplicationState.Module3D.SelectedScene.OnRequestScreenshot.Invoke(true);
+                SelectedScene.OnRequestScreenshot.Invoke(true);
             });
         }
         public override void DefaultState()

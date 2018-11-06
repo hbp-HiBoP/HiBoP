@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: 8ab1ef3cd474ffd4286644f14832fe69
+=======
+guid: f97b7e2906ec10d4ca6b4edbd2618222
+>>>>>>> origin/feature/Graphes_simplifié_pour_la_visualisation_ROI
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

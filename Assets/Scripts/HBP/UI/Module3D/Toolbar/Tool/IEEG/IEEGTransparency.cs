@@ -25,14 +25,14 @@ namespace HBP.UI.Module3D.Tools
 
                 if (IsGlobal)
                 {
-                    foreach (HBP.Module3D.Column3DIEEG column in ApplicationState.Module3D.SelectedScene.ColumnManager.ColumnsIEEG)
+                    foreach (HBP.Module3D.Column3DIEEG column in SelectedScene.ColumnManager.ColumnsIEEG)
                     {
                         column.IEEGParameters.AlphaMin = value;
                     }
                 }
                 else
                 {
-                    ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IEEGParameters.AlphaMin = value;
+                    ((HBP.Module3D.Column3DIEEG)SelectedColumn).IEEGParameters.AlphaMin = value;
                     //((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedScene.ColumnManager.SelectedColumn).IEEGParameters.AlphaMax = value; // FIXME : Required / other value ?
                 }
             });
@@ -46,23 +46,20 @@ namespace HBP.UI.Module3D.Tools
 
         public override void UpdateInteractable()
         {
-            bool isColumnIEEG = ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG;
+            bool isColumnIEEG = SelectedColumn.Type == Data.Enums.ColumnType.iEEG;
 
             m_Slider.interactable = isColumnIEEG;
         }
 
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
+            if (SelectedColumn.Type == Data.Enums.ColumnType.iEEG)
             {
-                if (ApplicationState.Module3D.SelectedColumn.Type == HBP.Module3D.Column3D.ColumnType.IEEG)
-                {
-                    m_Slider.value = ((HBP.Module3D.Column3DIEEG)ApplicationState.Module3D.SelectedColumn).IEEGParameters.AlphaMin;
-                }
-                else
-                {
-                    m_Slider.value = 0.2f;
-                }
+                m_Slider.value = ((HBP.Module3D.Column3DIEEG)SelectedColumn).IEEGParameters.AlphaMin;
+            }
+            else
+            {
+                m_Slider.value = 0.2f;
             }
         }
         #endregion

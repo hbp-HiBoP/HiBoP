@@ -136,7 +136,7 @@ namespace HBP.Module3D
             public bool ComputeInfluences(Column3DIEEG IEEGColumn, bool multiCPU, bool addValues = false, int ratioDistances = 0)
             {
                 bool noError = false;
-                noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.MaximumInfluence, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
+                noError = computeInfluences_BrainSurfaceTextureGenerator(_handle, IEEGColumn.IEEGValues, IEEGColumn.EEGDimensions, IEEGColumn.IEEGParameters.InfluenceDistance, multiCPU ? 1 : 0, addValues ? 1 : 0, ratioDistances,
                     IEEGColumn.IEEGParameters.Middle, IEEGColumn.IEEGParameters.SpanMin, IEEGColumn.IEEGParameters.SpanMax) == 1;
                 ApplicationState.DLLDebugManager.check_error();
 
@@ -172,7 +172,7 @@ namespace HBP.Module3D
             public bool ComputeSurfaceUVIEEG(DLL.Surface surface, Column3DIEEG IEEGColumn)
             {                
                 bool noError = false;
-                noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), IEEGColumn.CurrentTimeLineID, IEEGColumn.IEEGParameters.AlphaMin, IEEGColumn.IEEGParameters.AlphaMax) == 1;
+                noError = computeSurfaceTextCoordAmplitudes_BrainSurfaceTextureGenerator( _handle, surface.getHandle(), IEEGColumn.Timeline.CurrentIndex, IEEGColumn.IEEGParameters.AlphaMin, IEEGColumn.IEEGParameters.AlphaMax) == 1;
 
                 int m_nbVertices = surface.NumberOfVertices;
                 if (m_nbVertices == 0) // mesh is empty
@@ -182,7 +182,7 @@ namespace HBP.Module3D
                 if (m_UVAmplitudesV.Length != m_nbVertices)
                 {
                     m_UVAmplitudesV = new Vector2[m_nbVertices];
-                    m_UVAmplitudesHandle.Free();
+                    if (m_UVAmplitudesHandle.IsAllocated) m_UVAmplitudesHandle.Free();
                     m_UVAmplitudesHandle = GCHandle.Alloc(m_UVAmplitudesV, GCHandleType.Pinned); 
                 }
                 updateUVAmplitudes_BrainSurfaceTextureGenerator(_handle, m_UVAmplitudesHandle.AddrOfPinnedObject());
@@ -191,7 +191,7 @@ namespace HBP.Module3D
                 if (m_UVAlphaV.Length != m_nbVertices)
                 {
                     m_UVAlphaV = new Vector2[m_nbVertices];
-                    m_UVAlphaHandle.Free();
+                    if (m_UVAlphaHandle.IsAllocated) m_UVAlphaHandle.Free();
                     m_UVAlphaHandle = GCHandle.Alloc(m_UVAlphaV, GCHandleType.Pinned);
                 }
                 updateUVAlpha_BrainSurfaceTextureGenerator(_handle, m_UVAlphaHandle.AddrOfPinnedObject());

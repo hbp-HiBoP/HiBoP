@@ -23,7 +23,7 @@ namespace Tools.Unity
         }
         private void HandleException(string condition, string stackTrace, LogType type)
         {
-            if ((type == LogType.Error || type == LogType.Exception) && !m_WindowOpen)
+            if ((type == LogType.Exception) && !m_WindowOpen)
             {
                 OpenBugReporter();
             }

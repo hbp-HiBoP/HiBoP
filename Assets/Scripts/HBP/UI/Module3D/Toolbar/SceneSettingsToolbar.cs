@@ -97,11 +97,11 @@ namespace HBP.UI.Module3D
             {
                 m_MarsAtlas.ChangeBrainTypeCallback();
                 m_BrainMeshes.ChangeBrainTypeCallback();
-                UpdateInteractableButtons();
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
             m_MRISelector.OnChangeValue.AddListener((type) =>
             {
-                UpdateButtonsStatus(UpdateToolbarType.Scene);
+                ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
             });
         }
         #endregion

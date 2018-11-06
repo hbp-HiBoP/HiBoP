@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Tools.Unity;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,35 +27,21 @@ public class LoadingCircle : MonoBehaviour
     bool m_ChangePercentageCoroutineIsRunning;
     float m_EndPercentageCurrentCoroutine;
 
-    string m_LastText;
-    string m_Text;
-    public string Text
-    {
-        get
-        {
-            return m_Text;
-        }
-        set
-        {
-            m_Text = value;
-        }
-    }
+    LoadingText m_LastText;
+    public LoadingText Text { get; set; }
     bool loading;
     Sprite[] m_Sprites;
 
     [SerializeField] Image m_IconProgress;
     [SerializeField] Image m_FillProgress;
     [SerializeField] Text m_LoadingEffectText;
+    [SerializeField] Text m_PrefixText;
     [SerializeField] Text m_InformationText;
+    [SerializeField] Text m_SuffixText;
     #endregion
 
     #region Public Methods
-    public void Set(float progress,string text)
-    {
-        Progress = progress;
-        Text = text;
-    }
-    public void ChangePercentage(float progress, float seconds, string message)
+    public void ChangePercentage(float progress, float seconds, LoadingText message)
     {
         if (m_ChangePercentageCoroutineIsRunning)
         {
@@ -148,13 +135,16 @@ public class LoadingCircle : MonoBehaviour
             m_IconProgress.sprite = m_Sprites[percentage];
             m_LastProgress = m_Progress;
         }
-        if (m_Text != m_LastText)
+        if (Text != m_LastText)
         {
             StopCoroutine(m_TextCoroutine);
             loading = false;
-            m_InformationText.text = m_Text;
-            m_LoadingEffectText.text = "";
-            m_LastText = m_Text;
+            m_PrefixText.text = Text.Prefix;
+            m_PrefixText.SetLayoutElementMinimumWidthToContainWholeText();
+            m_InformationText.text = Text.Message;
+            m_SuffixText.text = Text.Suffix;
+            m_SuffixText.SetLayoutElementMinimumWidthToContainWholeText();
+            m_LastText = Text;
         }
     }
     #endregion

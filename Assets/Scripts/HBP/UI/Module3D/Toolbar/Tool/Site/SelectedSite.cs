@@ -17,17 +17,6 @@ namespace HBP.UI.Module3D.Tools
         #region Public Methods
         public override void Initialize()
         {
-            ApplicationState.Module3D.OnSelectSite.AddListener((site) =>
-            {
-                if (site)
-                {
-                    m_Text.text = site.Information.DisplayedName;
-                }
-                else
-                {
-                    DefaultState();
-                }
-            });
         }
         public override void DefaultState()
         {
@@ -37,13 +26,10 @@ namespace HBP.UI.Module3D.Tools
         {
 
         }
-        public override void UpdateStatus(Toolbar.UpdateToolbarType type)
+        public override void UpdateStatus()
         {
-            if (type == Toolbar.UpdateToolbarType.Column || type == Toolbar.UpdateToolbarType.Scene)
-            {
-                Site site = ApplicationState.Module3D.SelectedColumn.SelectedSite;
-                m_Text.text = site ? site.Information.DisplayedName : "No site selected";
-            }
+            Site site = SelectedColumn.SelectedSite;
+            m_Text.text = site ? site.Information.DisplayedName : "No site selected";
         }
         #endregion
     }

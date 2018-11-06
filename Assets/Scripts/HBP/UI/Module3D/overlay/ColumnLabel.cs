@@ -9,7 +9,7 @@ using Tools.Unity.ResizableGrid;
 
 namespace HBP.UI.Module3D
 {
-    public class ColumnLabel : OverlayElement, IPointerDownHandler, IPointerUpHandler, IDragHandler
+    public class ColumnLabel : ColumnOverlayElement, IPointerDownHandler, IPointerUpHandler, IDragHandler
     {
         #region Properties
         [SerializeField]
@@ -29,7 +29,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Update()
         {
-            if (m_RectTransformChanged)
+            if (m_RectTransform.hasChanged)
             {
                 if (m_RectTransform.rect.width < 40)
                 {
@@ -43,7 +43,7 @@ namespace HBP.UI.Module3D
                     m_Text.gameObject.SetActive(true);
                     m_Right.gameObject.SetActive(true);
                 }
-                m_RectTransformChanged = false;
+                m_RectTransform.hasChanged = false;
             }
             if (m_CurrentImage)
             {
@@ -53,9 +53,9 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Public Methods
-        public override void Initialize(Base3DScene scene, Column3D column, Column3DUI columnUI)
+        public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
-            base.Initialize(scene, column, columnUI);
+            base.Setup(scene, column, columnUI);
             IsActive = true;
 
             m_Text.text = column.Label;
@@ -91,11 +91,6 @@ namespace HBP.UI.Module3D
         public void OnDrag(PointerEventData eventData)
         {
             m_ColumnUI.UpdateBorderVisibility();
-        }
-
-        public void OnRectTransformDimensionsChange()
-        {
-            m_RectTransformChanged = true;
         }
         #endregion
     }

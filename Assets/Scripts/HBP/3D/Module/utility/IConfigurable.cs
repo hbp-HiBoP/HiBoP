@@ -1,17 +1,20 @@
 ﻿namespace HBP.Module3D
 {
+    /// <summary>
+    /// Interface for the configurable classes
+    /// </summary>
     public interface IConfigurable
     {
         /// <summary>
-        /// Load the visualization configuration from the loaded visualization
+        /// Load the configuration from the saved configuration file
         /// </summary>
         void LoadConfiguration(bool firstCall);
         /// <summary>
-        /// Save the current settings of this scene to the configuration of the linked visualization
+        /// Save the current configuration to a file
         /// </summary>
         void SaveConfiguration();
         /// <summary>
-        /// Reset the settings of the loaded scene
+        /// Reset the configuration
         /// </summary>
         void ResetConfiguration(bool firstCall);
     }

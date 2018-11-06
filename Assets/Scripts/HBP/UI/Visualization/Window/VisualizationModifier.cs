@@ -43,7 +43,7 @@ namespace HBP.UI.Visualization
                 m_VisualizationPatientsListGestion.Interactable = false;
                 m_ProjectPatientsListGestion.Interactable = false;
 
-                //m_ColumnModifier.Interactable = value;
+                m_ColumnModifier.Interactable = value;
             }
         }
         #endregion
@@ -75,15 +75,15 @@ namespace HBP.UI.Visualization
         }
         public void AddGroups()
         {
-            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Add Group Selection", Interactable);
-            groupSelection.GroupsSelectedEvent.AddListener((groups) => AddGroups(groups));
+            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Add Group window", Interactable);
+            groupSelection.OnSave.AddListener(() => AddGroups(groupSelection.SelectedGroups));
             groupSelection.OnClose.AddListener(() => m_SubWindows.Remove(groupSelection));
             m_SubWindows.Add(groupSelection);
         }
         public void RemoveGroups()
         {
-            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Remove Group Selection", Interactable);
-            groupSelection.GroupsSelectedEvent.AddListener((groups) => RemoveGroups(groups));
+            GroupSelection groupSelection = ApplicationState.WindowsManager.Open<GroupSelection>("Remove Group window", Interactable);
+            groupSelection.OnSave.AddListener(() => RemoveGroups(groupSelection.SelectedGroups));
             groupSelection.OnClose.AddListener(() => m_SubWindows.Remove(groupSelection));
             m_SubWindows.Add(groupSelection);
         }
@@ -116,6 +116,10 @@ namespace HBP.UI.Visualization
             // Tabs.
             m_TabGestion.OnSwapColumns.AddListener((column1, column2) => ItemTemp.SwapColumns(column1, column2));
             m_TabGestion.OnActiveTabChanged.AddListener(SelectColumn);
+
+            // Column Modifier.
+            m_ColumnModifier.OnChangeName.AddListener(m_TabGestion.ChangeTabTitle);
+            m_ColumnModifier.OnChangeColumn.AddListener(column => ItemTemp.Columns[m_TabGestion.ActiveTabIndex] = column);
         }
         protected override void SetFields(Data.Visualization.Visualization objectToDisplay)
         {
@@ -124,9 +128,12 @@ namespace HBP.UI.Visualization
             m_VisualizationPatientsListGestion.Items = ItemTemp.Patients.ToList();
             m_ProjectPatientsListGestion.Items = ApplicationState.ProjectLoaded.Patients.Where(p => !objectToDisplay.Patients.Contains(p)).ToList();
 
-            for (int i = 0; i < objectToDisplay.Columns.Count; i++)
+            if (objectToDisplay.Columns.Count > 0)
             {
-                m_TabGestion.AddTab();
+                for (int i = 0; i < objectToDisplay.Columns.Count; i++)
+                {
+                    m_TabGestion.AddTab(objectToDisplay.Columns[i].Name);
+                }
             }
         }
 
@@ -156,7 +163,21 @@ namespace HBP.UI.Visualization
         protected void SelectColumn()
         {
             int index = m_TabGestion.ActiveTabIndex;
-            m_ColumnModifier.SetTab(Item.Columns[index], ItemTemp.Patients);
+            if (index >= 0)
+            {
+                if (!m_ColumnModifier.gameObject.activeSelf)
+                {
+                    m_ColumnModifier.gameObject.SetActive(true);
+                }
+                m_ColumnModifier.Set(ItemTemp.Columns[index], ItemTemp.Patients);
+            }
+            else
+            {
+                if (m_ColumnModifier.gameObject.activeSelf)
+                {
+                    m_ColumnModifier.gameObject.SetActive(false);
+                }
+            }
         }
         #endregion
     }

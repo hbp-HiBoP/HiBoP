@@ -15,25 +15,25 @@ namespace HBP.Data.Visualization
         /// Color of the brain
         /// </summary>
         [DataMember(Name = "Brain Color")]
-        public Enums.ColorType BrainColor { get; set; } = ColorType.BrainColor;
+        public ColorType BrainColor { get; set; } = ColorType.BrainColor;
 
         /// <summary>
         /// Color of the cuts
         /// </summary>
         [DataMember(Name = "Brain Cut Color")]
-        public Enums.ColorType BrainCutColor { get; set; } = ColorType.Default;
+        public ColorType BrainCutColor { get; set; } = ColorType.Default;
 
         /// <summary>
         /// EEG colormap
         /// </summary>
         [DataMember(Name = "EEG Colormap")]
-        public Enums.ColorType EEGColormap { get; set; } = ColorType.MatLab;
+        public ColorType EEGColormap { get; set; } = ColorType.MatLab;
 
         /// <summary>
         /// Mesh part to display
         /// </summary>
         [DataMember(Name = "Mesh Part")]
-        public Module3D.SceneStatesInfo.MeshPart MeshPart { get; set; } = SceneStatesInfo.MeshPart.Both;
+        public MeshPart MeshPart { get; set; } = MeshPart.Both;
 
         /// <summary>
         /// Mesh to display
@@ -93,7 +93,7 @@ namespace HBP.Data.Visualization
         /// Camera control type
         /// </summary>
         [DataMember(Name = "Camera Type")]
-        public Module3D.CameraControl CameraType { get; set; } = CameraControl.Trackball;
+        public CameraControl CameraType { get; set; } = CameraControl.Trackball;
 
         /// <summary>
         /// Cuts of the visualization
@@ -109,7 +109,7 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, SceneStatesInfo.MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, List<Cut> cuts, List<View> views)
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, List<Cut> cuts, List<View> views)
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;

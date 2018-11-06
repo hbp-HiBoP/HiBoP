@@ -25,18 +25,9 @@ namespace HBP.UI.Visualization
         [SerializeField] GameObject TabPrefab;
         [SerializeField] Button AddButton, RemoveButton;
 
-        UnityEvent m_OnActiveTabChanged = new UnityEvent();
-        public UnityEvent OnActiveTabChanged
-        {
-            get { return m_OnActiveTabChanged; }
-        }
+        public UnityEvent OnActiveTabChanged { get; } = new UnityEvent();
 
-
-        GenericEvent<int,int> m_OnSwapColumns= new GenericEvent<int,int>();
-        public GenericEvent<int, int> OnSwapColumns
-        {
-            get { return m_OnSwapColumns; }
-        }
+        public GenericEvent<int, int> OnSwapColumns { get; } = new GenericEvent<int, int>();
 
         List<Tab> m_Tabs = new List<Tab>();
         //Transform m_TabToMove;
@@ -44,12 +35,13 @@ namespace HBP.UI.Visualization
         #endregion
 
         #region Public Methods
-        public void ChangeTabTitle(string title, int position)
+        public void ChangeTabTitle(string title)
         {
-            if(position >= 0 && position < m_Tabs.Count)
-                {
-                    m_Tabs[position].Title = title;
-                }
+            int position = ActiveTabIndex;
+            if (position >= 0 && position < m_Tabs.Count)
+            {
+                m_Tabs[position].Title = title;
+            }
         }
         public void AddTab(string titleTab = "", int position = -1)
         {
@@ -73,7 +65,14 @@ namespace HBP.UI.Visualization
             Tab tabToRemove = m_Tabs[position];
             m_Tabs.Remove(tabToRemove);
             DestroyImmediate(tabToRemove.gameObject);
-            m_Tabs[Mathf.Clamp(position, 0, m_Tabs.Count-1)].IsActive = true;
+            if (m_Tabs.Count > 0)
+            {
+                m_Tabs[Mathf.Clamp(position, 0, m_Tabs.Count - 1)].IsActive = true;
+            }
+            else
+            {
+                OnActiveTabChanged.Invoke();
+            }
             CheckIfButtonsHasToBeInteractable();
         }
 

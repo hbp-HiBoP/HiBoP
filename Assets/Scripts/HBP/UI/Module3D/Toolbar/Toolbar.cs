@@ -3,20 +3,17 @@ using UnityEngine;
 using System.Linq;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using HBP.Module3D;
 
 namespace HBP.UI.Module3D
 {
     public abstract class Toolbar : MonoBehaviour
     {
-        public enum UpdateToolbarType { Scene, Column, View }
-
         #region Properties
         /// <summary>
         /// List of the tools of the toolbar
         /// </summary>
         protected List<Tools.Tool> m_Tools = new List<Tools.Tool>();
-
-        private bool m_UpdateRequired;
         #endregion
 
         #region Private Methods
@@ -30,8 +27,6 @@ namespace HBP.UI.Module3D
         /// </summary>
         protected virtual void AddListeners()
         {
-            ApplicationState.Module3D.OnSelectScene.AddListener((scene) => OnChangeScene());
-
             ApplicationState.Module3D.OnRemoveScene.AddListener((scene) =>
             {
                 if (scene == ApplicationState.Module3D.SelectedScene)
@@ -52,14 +47,9 @@ namespace HBP.UI.Module3D
                 }
             });
 
-            ApplicationState.Module3D.OnSelectColumn.AddListener((column) => OnChangeColumn());
-
-            ApplicationState.Module3D.OnSelectView.AddListener((column) => OnChangeView());
-            
-            ApplicationState.Module3D.OnRequestUpdateInToolbar.AddListener(() =>
-            {
-                m_UpdateRequired = true;
-            });
+            ApplicationState.Module3D.OnSelectScene.AddListener(OnChangeScene);
+            ApplicationState.Module3D.OnSelectColumn.AddListener(OnChangeColumn);
+            ApplicationState.Module3D.OnSelectView.AddListener(OnChangeView);
             
             foreach (Tools.Tool tool in m_Tools)
             {
@@ -79,61 +69,35 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Callback when the selected scene is changed
         /// </summary>
-        protected void OnChangeScene()
+        protected void OnChangeScene(Base3DScene scene)
         {
-            m_Tools.ForEach((t) => t.ListenerLock = true);
-            UpdateInteractableButtons();
-            UpdateButtonsStatus(UpdateToolbarType.Scene);
-            m_Tools.ForEach((t) => t.ListenerLock = false);
+            foreach (Tools.Tool tool in m_Tools)
+            {
+                tool.SelectedScene = scene;
+            }
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Callback when the selected column is changed
         /// </summary>
-        protected void OnChangeColumn()
+        protected void OnChangeColumn(Column3D column)
         {
-            m_Tools.ForEach((t) => t.ListenerLock = true);
-            UpdateInteractableButtons();
-            UpdateButtonsStatus(UpdateToolbarType.Column);
-            m_Tools.ForEach((t) => t.ListenerLock = false);
+            foreach (Tools.Tool tool in m_Tools)
+            {
+                tool.SelectedColumn = column;
+            }
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         /// <summary>
         /// Callback when the selected view is changed
         /// </summary>
-        protected void OnChangeView()
-        {
-            m_Tools.ForEach((t) => t.ListenerLock = true);
-            UpdateInteractableButtons();
-            UpdateButtonsStatus(UpdateToolbarType.View);
-            m_Tools.ForEach((t) => t.ListenerLock = false);
-        }
-        /// <summary>
-        /// Update the interactable buttons of the toolbar
-        /// </summary>
-        protected virtual void UpdateInteractableButtons()
+        protected void OnChangeView(View3D view)
         {
             foreach (Tools.Tool tool in m_Tools)
             {
-                tool.UpdateInteractable();
+                tool.SelectedView = view;
             }
-        }
-        /// <summary>
-        /// Change the status of the toolbar elements according to the selected scene parameters
-        /// </summary>
-        protected virtual void UpdateButtonsStatus(UpdateToolbarType type)
-        {
-            foreach (Tools.Tool tool in m_Tools)
-            {
-                tool.UpdateStatus(type);
-            }
-        }
-        private void Update()
-        {
-            if (m_UpdateRequired)
-            {
-                UpdateInteractableButtons();
-                UpdateButtonsStatus(UpdateToolbarType.Scene);
-                m_UpdateRequired = false;
-            }
+            ApplicationState.Module3D.OnRequestUpdateInToolbar.Invoke();
         }
         #endregion
 
@@ -162,6 +126,17 @@ namespace HBP.UI.Module3D
         public virtual void HideToolbarCallback()
         {
 
+        }
+
+        public void UpdateToolbar()
+        {
+            m_Tools.ForEach((t) => t.ListenerLock = true);
+            foreach (Tools.Tool tool in m_Tools)
+            {
+                tool.UpdateInteractable();
+                tool.UpdateStatus();
+            }
+            m_Tools.ForEach((t) => t.ListenerLock = false);
         }
         #endregion
     }

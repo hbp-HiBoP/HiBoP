@@ -61,11 +61,12 @@ namespace HBP.UI.Experience.Dataset
             // EEG.
             m_MeasureInputField.text = objectToDisplay.Measure;
             m_EEGFileSelector.DefaultDirectory = ApplicationState.ProjectLoaded.Settings.LocalizerDatabase;
-            m_EEGFileSelector.File = objectToDisplay.EEG;
+            m_EEGFileSelector.File = objectToDisplay.SavedEEG;
 
             // POS.
             SetPosFile();
-            m_POSFileSelector.File = objectToDisplay.POS;
+            m_POSFileSelector.File = objectToDisplay.SavedPOS;
+            Debug.Log(objectToDisplay.SavedPOS);
 
             // Normalization.
             m_NormalizationDropdown.options = (from name in System.Enum.GetNames(typeof(d.DataInfo.NormalizationType)) select new Dropdown.OptionData(name, null)).ToList();

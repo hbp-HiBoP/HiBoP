@@ -16,9 +16,13 @@ namespace Tools.CSharp
             for (var i = 0; i < s.Length; i += partLength)
                 yield return s.Substring(i, Math.Min(partLength, s.Length - i));
         }
-        public static void StandardizeToPath(ref string path)
+        public static string StandardizeToPath(this string path)
         {
-            path = path.Replace('\\', '/');
+            path = new Regex("/+").Replace(path, "/");
+            path = new Regex("\\\\+").Replace(path, "\\");
+            path = path.Replace('/', System.IO.Path.DirectorySeparatorChar);
+            path = path.Replace('\\', System.IO.Path.DirectorySeparatorChar);
+            return path;
         }
         public static string SplitPascalCase(this string pascalCase)
         {
