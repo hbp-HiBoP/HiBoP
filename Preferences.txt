@@ -2,9 +2,9 @@
   "General": {
     "Project": {
       "DefaultName": "New project",
-      "DefaultLocation": "D:/HBPProjects",
-      "DefaultPatientDatabase": "\\\\10.69.111.22\\intra\\BrainVisaDB\\Epilepsy",
-      "DefaultLocalizerDatabase": "Y:/LOCA_DATABASE",
+      "DefaultLocation": "D:/Hibop Projects",
+      "DefaultPatientDatabase": "D:\\Data loca\\Patients",
+      "DefaultLocalizerDatabase": "D:\\Data loca\\Localizers",
       "DefaultExportLocation": "D:/ScreenShot"
     },
     "Theme": {},
@@ -22,7 +22,7 @@
     "Protocol": {
       "PositionAveraging": 1,
       "MinLimit": -1500.0,
-      "MaxLimit": 1500.0,
+      "MaxLimit": 3500.0,
       "Step": 100
     },
     "Anatomic": {
@@ -48,7 +48,7 @@
       "TrialsSynchronization": true,
       "TrialSmoothing": true,
       "NumberOfIntermediateValues": 3,
-      "BlocFormat": 2,
+      "SubBlocFormat": 0,
       "TrialHeight": 15,
       "TrialRatio": 0.04981595,
       "BlocRatio": 0.204907984

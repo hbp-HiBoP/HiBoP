@@ -40,10 +40,10 @@ public class Selector : MonoBehaviour
     private void Update()
     {
 #if UNITY_EDITOR
-        if (Selected && Input.GetKeyDown(KeyCode.A))
-        {
-            StartCoroutine(c_SaveWindowScreenshot());
-        }
+        //if (Selected && Input.GetKeyDown(KeyCode.A))
+        //{
+        //    StartCoroutine(c_SaveWindowScreenshot());
+        //}
 #endif
     }
     private void OnDestroy()
