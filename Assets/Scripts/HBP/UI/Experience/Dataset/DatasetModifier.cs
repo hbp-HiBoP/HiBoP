@@ -38,7 +38,16 @@ namespace HBP.UI.Experience.Dataset
         }
         #endregion
 
+        #region Public Methods
+        public override void Save()
+        {
+            ItemTemp.SetData(m_DataInfoListGestion.Items);
+            base.Save();
+        }
+        #endregion
+
         #region Protected Methods
+
         protected override void Initialize()
         {
             base.Initialize();
