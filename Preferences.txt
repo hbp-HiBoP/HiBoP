@@ -1,4 +1,4 @@
-﻿{
+{
   "General": {
     "Project": {
       "DefaultName": "New project",

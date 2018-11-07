@@ -60,9 +60,9 @@ namespace HBP.Data.General
                         else if (entry.FileName.EndsWith(ProjectSettings.EXTENSION))
                         {
                             entry.Extract(ApplicationState.ProjectTMPFolder);
-                            FileInfo settingsFile = new DirectoryInfo(ApplicationState.ProjectTMPFolder).GetFiles("*" + ProjectSettings.EXTENSION).First();
+                            FileInfo settingsFile = new FileInfo(ApplicationState.ProjectTMPFolder + "/" + entry.FileName);
                             Settings = Tools.Unity.ClassLoaderSaver.LoadFromJson<ProjectSettings>(settingsFile.FullName);
-                            File.Delete(settingsFile.FullName);
+                            settingsFile.Directory.Delete(true);                        
                         }
                     }
                 }
