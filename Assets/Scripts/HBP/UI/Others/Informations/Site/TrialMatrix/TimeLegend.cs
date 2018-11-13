@@ -6,11 +6,11 @@ namespace HBP.UI.TrialMatrix
     {
         #region Properties
         [SerializeField] GameObject m_TimeBlocPrefab;
-        public Vector2[] Limits
+        public Tools.CSharp.Window[] Limits
         {
             set
             {
-                foreach (Vector2 limit in value)
+                foreach (Tools.CSharp.Window limit in value)
                 {
                     Add(limit);
                 }
@@ -19,10 +19,10 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Private Methods
-        void Add(Vector2 limit)
+        void Add(Tools.CSharp.Window limit)
         {
             TimeBloc timeBloc = Instantiate(m_TimeBlocPrefab, transform).GetComponent<TimeBloc>();
-            timeBloc.Set(limit.x,limit.y);
+            timeBloc.Set(limit.Start,limit.End);
         }
         #endregion
     }

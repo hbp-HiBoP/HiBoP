@@ -21,10 +21,11 @@ namespace HBP.Data.TrialMatrix
         {
             List<SubBloc> subBlocs = new List<SubBloc>(bloc.SubBlocs.Count);
             IOrderedEnumerable<ChannelTrial> orderedTrials = SortTrials(bloc,blocChannelData.Trials);
-            foreach(var subBloc in bloc.OrderedSubBlocs)
+            foreach (var subBloc in bloc.OrderedSubBlocs)
             {
                 IEnumerable<SubTrial> subTrials = orderedTrials.Select(trial => new SubTrial(trial.ChannelSubTrialBySubBloc[subBloc]));
-                subBlocs.Add(new SubBloc(subBloc, subTrials.ToArray()));
+                SubBloc dataSubBloc = new SubBloc(subBloc, subTrials.ToArray());
+                subBlocs.Add(dataSubBloc);
             }
             ProtocolBloc = bloc;
             SubBlocs = subBlocs.ToArray();
@@ -35,7 +36,7 @@ namespace HBP.Data.TrialMatrix
         static IOrderedEnumerable<ChannelTrial> SortTrials(Experience.Protocol.Bloc bloc, IEnumerable<ChannelTrial> trials)
         {
             // TODO
-            IOrderedEnumerable<ChannelTrial> ordereredTrials = trials.OrderBy(t => t);
+            IOrderedEnumerable<ChannelTrial> ordereredTrials = trials.OrderBy(t => t.IsValid);
             return ordereredTrials;
         }
         #endregion

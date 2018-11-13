@@ -96,7 +96,7 @@ namespace HBP.UI.TrialMatrix
         #region Public Methods
         public void Set(data.TrialMatrix data , Texture2D colorMap, Vector2 limits = new Vector2())
         {
-           Data = data;
+            Data = data;
 
             Title = data.Title;
             ColorMap = colorMap;
@@ -108,7 +108,7 @@ namespace HBP.UI.TrialMatrix
             //Generate Bloc.
             foreach (data.Bloc bloc in data.Blocs)
             {
-                AddBloc(bloc, colorMap, limits, data.TimeLimitsByColumn);
+                AddBloc(bloc, colorMap, Limits, data.TimeLimitsByColumn);
             }
         }
         #endregion

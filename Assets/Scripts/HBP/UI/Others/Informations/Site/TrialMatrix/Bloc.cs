@@ -13,7 +13,7 @@ namespace HBP.UI.TrialMatrix
     public class Bloc : MonoBehaviour
     {
         #region Properties
-        public data.Bloc Data { get; }
+        public data.Bloc Data { private set;  get; }
 
         List<SubBloc> m_SubBlocs = new List<SubBloc>();
         public ReadOnlyCollection<SubBloc> SubBlocs { get { return new ReadOnlyCollection<SubBloc>(m_SubBlocs); } }
@@ -47,7 +47,9 @@ namespace HBP.UI.TrialMatrix
         #region Public Methods
         public void Set(data.Bloc bloc, Texture2D colorMap, Vector2 limits, Dictionary<int,Tools.CSharp.Window> timeLimitsByColumn)
         {
+            Data = bloc;
             Title = bloc.ProtocolBloc.Name;
+            m_SelectionMasks = new List<GameObject>();
 
             IOrderedEnumerable<Data.Experience.Protocol.SubBloc> orderedSubBlocs = bloc.ProtocolBloc.OrderedSubBlocs;
             int mainSubBlocIndex = bloc.ProtocolBloc.MainSubBlocPosition;
@@ -78,21 +80,27 @@ namespace HBP.UI.TrialMatrix
         {
             if (!additive) m_SelectedTrials.Clear();
             m_SelectedTrials.AddRange(trials.Where(index => !m_SelectedTrials.Contains(index)));
-            m_SelectedTrials.Sort();
             ClearSelectionMask();
 
-            int numberOfSelectedTrials = m_SelectedTrials.Count;
-            List<int> group = new List<int>();
-            for (int i = 0; i < numberOfSelectedTrials; i++)
+            int numberOfTrials = Data.SubBlocs[0].SubTrials.Length;
+            List<int> maskedTrials = new List<int>();
+            for (int i = 0; i < numberOfTrials; i++)
             {
-                int trial = m_SelectedTrials[i];
+                if (!m_SelectedTrials.Contains(i)) maskedTrials.Add(i);
+            }
+
+            List<int> group = new List<int>();
+            int numberOfMaskedTrials = maskedTrials.Count;
+            for (int i = 0; i < numberOfMaskedTrials; i++)
+            {
+                int trial = maskedTrials[i];
                 if (group.Count != 0 && trial != group[group.Count - 1] + 1)
                 {
                     AddSelectionMask(group.ToArray());
                     group.Clear();
                 }
                 group.Add(trial);
-                if (i == numberOfSelectedTrials - 1) AddSelectionMask(group.ToArray());
+                if (i == numberOfMaskedTrials - 1) AddSelectionMask(group.ToArray());
             }
         }
         public void OnPointerDown()
