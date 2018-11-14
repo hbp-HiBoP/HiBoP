@@ -18,6 +18,9 @@ namespace HBP.UI.TrialMatrix
         List<SubBloc> m_SubBlocs = new List<SubBloc>();
         public ReadOnlyCollection<SubBloc> SubBlocs { get { return new ReadOnlyCollection<SubBloc>(m_SubBlocs); } }
 
+        List<GameObject> m_Fillers = new List<GameObject>();
+        public ReadOnlyCollection<GameObject> Fillers { get { return new ReadOnlyCollection<GameObject>(m_Fillers); } }
+
         string m_title;
         public string Title
         {
@@ -51,6 +54,7 @@ namespace HBP.UI.TrialMatrix
             Title = bloc.ProtocolBloc.Name;
             m_SelectionMasks = new List<GameObject>();
 
+            Clear();
             IOrderedEnumerable<Data.Experience.Protocol.SubBloc> orderedSubBlocs = bloc.ProtocolBloc.OrderedSubBlocs;
             int mainSubBlocIndex = bloc.ProtocolBloc.MainSubBlocPosition;
             foreach (var pair in timeLimitsByColumn)
@@ -65,6 +69,8 @@ namespace HBP.UI.TrialMatrix
                     AddFiller(pair.Value);
                 }
             }
+
+            SetSize();
         }
         public void SelectAllTrials()
         {
@@ -193,11 +199,26 @@ namespace HBP.UI.TrialMatrix
         }
         void AddFiller(Tools.CSharp.Window window)
         {
-            GameObject filler = Instantiate(new GameObject("Filler", new System.Type[] { typeof(Image) , typeof(LayoutElement)}), m_SubBlocContainer);
-            Image image = filler.GetComponent<Image>();
+            GameObject filler = new GameObject("Filler");
+            filler.transform.SetParent(m_SubBlocContainer);
+            Image image = filler.AddComponent<Image>();
             image.sprite = null;
             image.color = Color.black;
-            filler.GetComponent<LayoutElement>().flexibleWidth = window.End - window.Start;
+            filler.AddComponent<LayoutElement>().flexibleWidth = window.End - window.Start;
+            m_Fillers.Add(filler);
+        }
+        void Clear()
+        {
+            foreach (var subBloc in m_SubBlocs)
+            {
+                Destroy(subBloc.gameObject);
+            }
+            foreach (var filler in m_Fillers)
+            {
+                Destroy(filler);
+            }
+            m_SubBlocs = new List<SubBloc>();
+            m_Fillers = new List<GameObject>();
         }
         void AddSelectionMask(int[] trials)
         {

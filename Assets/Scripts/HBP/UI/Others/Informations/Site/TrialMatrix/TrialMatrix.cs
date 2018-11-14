@@ -34,7 +34,6 @@ namespace HBP.UI.TrialMatrix
             }
             set
             {
-                DestroyImmediate(m_Colormap);
                 m_Colormap = value;
                 OnChangeColorMap.Invoke(value);
             }
@@ -106,6 +105,7 @@ namespace HBP.UI.TrialMatrix
             OnChangeTimeLimits.Invoke(data.TimeLimitsByColumn.Values.ToArray());
 
             //Generate Bloc.
+            ClearBlocs();
             foreach (data.Bloc bloc in data.Blocs)
             {
                 AddBloc(bloc, colorMap, Limits, data.TimeLimitsByColumn);
@@ -120,6 +120,14 @@ namespace HBP.UI.TrialMatrix
             bloc.Set(data, colorMap, limits, timeLimitsByColumn);
             bloc.SelectAllTrials();
             m_Blocs.Add(bloc);
+        }
+        void ClearBlocs()
+        {
+            foreach (var bloc in Blocs)
+            {
+               Destroy(bloc.gameObject);
+            }
+            m_Blocs = new List<Bloc>();
         }
         #endregion
     }

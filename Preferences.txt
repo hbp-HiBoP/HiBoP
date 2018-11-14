@@ -11,7 +11,7 @@
     "Localization": {},
     "System": {
       "MultiThreading": true,
-      "MemoryCacheLimit": 32659
+      "MemoryCacheLimit": 16345
     }
   },
   "Data": {
@@ -48,10 +48,10 @@
       "TrialsSynchronization": true,
       "TrialSmoothing": true,
       "NumberOfIntermediateValues": 3,
-      "SubBlocFormat": 0,
+      "SubBlocFormat": 2,
       "TrialHeight": 15,
       "TrialRatio": 0.04981595,
-      "BlocRatio": 0.204907984
+      "BlocRatio": 0.106951609
     },
     "Graph": {
       "ShowCurvesOfMinimizedColumns": false

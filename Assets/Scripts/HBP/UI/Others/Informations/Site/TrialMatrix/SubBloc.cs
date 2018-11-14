@@ -149,8 +149,8 @@ namespace HBP.UI.TrialMatrix
         {
             float ratio = (value - limits.x) / (limits.y - limits.x);
             ratio = Mathf.Clamp01(ratio);
-            int y = Mathf.RoundToInt(ratio * (colorMap.height - 1));
-            return colorMap.GetPixel(0,y);
+            int x = Mathf.RoundToInt(ratio * (colorMap.width - 1));
+            return colorMap.GetPixel(x,0);
         }
         void GenerateEventIndicators(data.SubBloc subBloc)
         {
