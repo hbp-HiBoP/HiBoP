@@ -3,6 +3,8 @@ using System.Linq;
 using System.Collections.Generic;
 using Tools.CSharp;
 using System.Runtime.Serialization;
+using Tools.Unity;
+using System.IO;
 
 namespace HBP.Data.Experience.Protocol
 {
@@ -19,7 +21,7 @@ namespace HBP.Data.Experience.Protocol
     *     - \a Blocs.
     */
     [DataContract]
-	public class Protocol : ICloneable,ICopiable
+	public class Protocol : ICloneable,ICopiable, ILoadable, IIdentifiable
     {
         #region Properties
         public const string EXTENSION = ".prov";
@@ -64,6 +66,26 @@ namespace HBP.Data.Experience.Protocol
         /// </summary>
         public Protocol() : this(string.Empty,new List<Bloc>())
 		{
+        }
+        #endregion
+
+        #region Public Methods
+        public void Load(string path)
+        {
+            Protocol result;
+            try
+            {
+                result = ClassLoaderSaver.LoadFromJson<Protocol>(path);
+            }
+            catch
+            {
+                throw new CanNotReadProtocolFileException(Path.GetFileNameWithoutExtension(path));
+            }
+            Copy(result);
+        }
+        public string GetExtension()
+        {
+            return EXTENSION;
         }
         #endregion
 

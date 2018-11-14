@@ -6,17 +6,17 @@ namespace HBP.UI.Experience.Protocol
     public class BlocListGestion : Tools.Unity.Components.ListGestion<Data.Experience.Protocol.Bloc>
     {
         [SerializeField] new BlocList List;
-        public override List<Data.Experience.Protocol.Bloc> Items
+        public override List<Data.Experience.Protocol.Bloc> Objects
         {
             get
             {
-                return base.Items;
+                return base.Objects;
             }
 
             set
             {
                 List.Initialize();
-                base.Items = value;
+                base.Objects = value;
                 List.SortByName(BlocList.Sorting.Descending);
             }
         }

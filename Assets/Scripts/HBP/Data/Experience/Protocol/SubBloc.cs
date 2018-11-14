@@ -25,13 +25,13 @@ namespace HBP.Data.Experience.Protocol
     *     - Treatments.
     */
     [DataContract]
-    public class SubBloc : ICloneable, ICopiable
+    public class SubBloc : ICloneable, ICopiable, IIdentifiable
     {
         #region Properties
         /// <summary>
         /// ID of the SubBloc.
         /// </summary>
-        [DataMember] public string ID { get; private set; }
+        [DataMember] public string ID { get; set; }
         /// <summary> 
         /// Name of the SubBloc.
         /// </summary>

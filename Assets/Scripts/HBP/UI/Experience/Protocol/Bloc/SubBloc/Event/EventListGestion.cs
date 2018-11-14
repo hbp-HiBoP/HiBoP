@@ -10,17 +10,17 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField] new EventList List;
-        public override List<d.Event> Items
+        public override List<d.Event> Objects
         {
             get
             {
-                return base.Items;
+                return base.Objects;
             }
 
             set
             {
                 List.Initialize();
-                base.Items = value;
+                base.Objects = value;
                 List.SortByName(EventList.Sorting.Descending);
             }
         }
@@ -34,7 +34,7 @@ namespace HBP.UI.Experience.Protocol
         }
         public override void Create()
         {
-            if (m_Items.Any((e) => e.Type == Data.Enums.MainSecondaryEnum.Main))
+            if (m_Objects.Any((e) => e.Type == Data.Enums.MainSecondaryEnum.Main))
             {
                 OpenModifier(new d.Event(Data.Enums.MainSecondaryEnum.Secondary), Interactable);
             }
@@ -43,9 +43,9 @@ namespace HBP.UI.Experience.Protocol
         public override void Remove(d.Event item)
         {
             base.Remove(item);
-            if (m_Items.All((e) => e.Type != Data.Enums.MainSecondaryEnum.Main))
+            if (m_Objects.All((e) => e.Type != Data.Enums.MainSecondaryEnum.Main))
             {
-                d.Event firstEvent = m_Items.FirstOrDefault();
+                d.Event firstEvent = m_Objects.FirstOrDefault();
                 if (firstEvent != null) firstEvent.Type = Data.Enums.MainSecondaryEnum.Main;
             }
         }
@@ -53,7 +53,7 @@ namespace HBP.UI.Experience.Protocol
         {
             if(modifier.Item.Type == Data.Enums.MainSecondaryEnum.Main)
             {
-                foreach (var item in Items)
+                foreach (var item in Objects)
                 {
                     if(modifier.Item != item)
                     {

@@ -7,17 +7,17 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         public new GroupList List;
-        public override List<Data.Group> Items
+        public override List<Data.Group> Objects
         {
             get
             {
-                return base.Items;
+                return base.Objects;
             }
 
             set
             {
                 List.Initialize();
-                base.Items = value;
+                base.Objects = value;
                 List.SortByName(GroupList.Sorting.Descending);
             }
         }

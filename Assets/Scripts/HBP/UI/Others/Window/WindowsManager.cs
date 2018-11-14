@@ -61,6 +61,23 @@ namespace HBP.UI
             OnOpen(modifier);
             return modifier;
         }
+
+        public ObjectSelector<T> OpenSelector<T>()
+        {
+            ObjectSelector<T> selector = default(ObjectSelector<T>);
+            GameObject prefab = Referencer.GetPrefab(typeof(ObjectSelector<T>));
+            if (prefab)
+            {
+                GameObject go = Instantiate(prefab, Container);
+                go.transform.localPosition = Vector3.zero;
+
+                selector = go.GetComponent<ObjectSelector<T>>();
+                //selector.Item = itemToModify;
+                //selector.Interactable = interactable;
+            }
+            OnOpen(selector);
+            return selector;
+        }
         #endregion
 
         #region Private Methods

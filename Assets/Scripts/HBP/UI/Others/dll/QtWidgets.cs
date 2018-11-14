@@ -102,7 +102,7 @@ namespace HBP.Module3D.DLL
             string arguments = "FileDialog get_existing_file_name +\"" + message + "\" \"Files (";
             for (int ii = 0; ii < filtersArray.Length; ++ii)
             {
-                arguments += "*." + filtersArray[ii];
+                arguments += "*" + filtersArray[ii];
                 arguments += (ii < filtersArray.Length - 1) ? " " : ")";
             }
             if (filtersArray.Length == 0)

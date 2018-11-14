@@ -9,6 +9,8 @@ using CielaSpike;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience;
 using HBP.Data.Localizer;
+using Tools.Unity;
+using System.IO;
 
 namespace HBP.Data.Visualization
 {
@@ -27,7 +29,7 @@ namespace HBP.Data.Visualization
     *   - \a Columns.   
     */
     [DataContract]
-    public class Visualization :  ICloneable , ICopiable
+    public class Visualization :  ICloneable , ICopiable, ILoadable, IIdentifiable
     {
         #region Properties
         public const string EXTENSION = ".visualization";
@@ -35,7 +37,7 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Unique ID.
         /// </summary>
-        [DataMember(Order = 1)] public string ID { get; private set; }
+        [DataMember(Order = 1)] public string ID { get; set; }
 
         /// <summary>
         /// Name of the visualization.
@@ -193,6 +195,24 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Public Methods
+        public void Load(string path)
+        {
+            Visualization result;
+            try
+            {
+                result = ClassLoaderSaver.LoadFromJson<Visualization>(path);
+            }
+            catch
+            {
+                throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(path));
+            }
+            Copy(result);
+        }
+        public string GetExtension()
+        {
+            return EXTENSION;
+        }
+
         /// <summary>
         /// Load the visualization.
         /// </summary>

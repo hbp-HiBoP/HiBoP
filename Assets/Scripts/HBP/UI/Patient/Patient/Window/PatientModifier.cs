@@ -97,10 +97,10 @@ namespace HBP.UI.Anatomy
             m_DateInputField.text = objectToDisplay.Date.ToString();
 
 
-            m_MeshListGestion.Items = objectToDisplay.Brain.Meshes;
-            m_ImplantationListGestion.Items = objectToDisplay.Brain.Implantations;
-            m_MRIListGestion.Items = objectToDisplay.Brain.MRIs;
-            m_ConnectivityListGestion.Items = objectToDisplay.Brain.Connectivities;
+            m_MeshListGestion.Objects = objectToDisplay.Brain.Meshes;
+            m_ImplantationListGestion.Objects = objectToDisplay.Brain.Implantations;
+            m_MRIListGestion.Objects = objectToDisplay.Brain.MRIs;
+            m_ConnectivityListGestion.Objects = objectToDisplay.Brain.Connectivities;
 
             m_OthersGestion.Set(objectToDisplay);
         }

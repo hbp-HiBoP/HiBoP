@@ -23,7 +23,7 @@ namespace HBP.Data.Experience.Protocol
     *     - Sorting.
     */
     [DataContract]
-    public class Bloc : ICloneable, ICopiable
+    public class Bloc : ICloneable, ICopiable, IIdentifiable
 	{
         #region Properties
         /// <summary>

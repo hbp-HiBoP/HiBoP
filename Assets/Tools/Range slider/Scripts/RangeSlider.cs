@@ -491,7 +491,6 @@ namespace UnityEngine.UI
                     m_MaxValue = newMaxValue;
                     break;
             }
-            Debug.Log(m_MinValue);
             UpdateVisuals();
             if (sendCallback)
                 m_OnValueChanged.Invoke(m_MinValue, m_MaxValue);

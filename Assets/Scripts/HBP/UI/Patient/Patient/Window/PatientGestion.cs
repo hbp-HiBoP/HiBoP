@@ -43,7 +43,7 @@ namespace HBP.UI.Anatomy
             {
                 ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
-                    ApplicationState.ProjectLoaded.SetPatients(m_ProjectListGestion.Items);
+                    ApplicationState.ProjectLoaded.SetPatients(m_ProjectListGestion.Objects);
                     base.Save();
                     DataManager.Clear();
                     ApplicationState.Module3D.ReloadScenes();
@@ -51,7 +51,7 @@ namespace HBP.UI.Anatomy
             }
             else
             {
-                ApplicationState.ProjectLoaded.SetPatients(m_ProjectListGestion.Items);
+                ApplicationState.ProjectLoaded.SetPatients(m_ProjectListGestion.Objects);
                 base.Save();
             }
             FindObjectOfType<MenuButtonState>().SetInteractables();
@@ -80,14 +80,14 @@ namespace HBP.UI.Anatomy
         {
             m_PatientToAdd = new Queue<Patient>();
             yield return Ninja.JumpToUnity;
-            m_DatabaseListGestion.Items = new List<Patient>();
+            m_DatabaseListGestion.Objects = new List<Patient>();
             yield return Ninja.JumpBack;
 
             string[] patients = Patient.GetPatientsDirectories(m_DatabaseFolderSelector.Folder);
             for (int i = 0; i < patients.Length; i++)
             {
                 Patient patient = new Patient(patients[i]);
-                if(!m_ProjectListGestion.Items.Contains(patient))
+                if(!m_ProjectListGestion.Objects.Contains(patient))
                 {
                     m_PatientToAdd.Enqueue(patient);
                 }
@@ -99,7 +99,7 @@ namespace HBP.UI.Anatomy
             for (int i = 0; i < patientLenght; i++)
             {
                 Patient patient = m_PatientToAdd.Dequeue();
-                if (!m_DatabaseListGestion.Items.Contains(patient)) m_DatabaseListGestion.Add(patient);
+                if (!m_DatabaseListGestion.Objects.Contains(patient)) m_DatabaseListGestion.Add(patient);
             }
         }
         protected override void Initialize()
@@ -111,7 +111,7 @@ namespace HBP.UI.Anatomy
 
             // Project list.
             m_ProjectListGestion.Initialize(m_SubWindows);
-            m_ProjectListGestion.Items = ApplicationState.ProjectLoaded.Patients.ToList();
+            m_ProjectListGestion.Objects = ApplicationState.ProjectLoaded.Patients.ToList();
             base.Initialize();
         }
         #endregion

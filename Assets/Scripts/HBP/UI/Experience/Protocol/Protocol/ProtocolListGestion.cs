@@ -8,17 +8,17 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField]new ProtocolList List;
-        public override List<Data.Experience.Protocol.Protocol> Items
+        public override List<Data.Experience.Protocol.Protocol> Objects
         {
             get
             {
-                return base.Items;
+                return base.Objects;
             }
 
             set
             {
                 List.Initialize();
-                base.Items = value;
+                base.Objects = value;
                 List.SortByName(ProtocolList.Sorting.Descending);
             }
         }

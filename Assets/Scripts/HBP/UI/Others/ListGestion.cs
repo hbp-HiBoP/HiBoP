@@ -4,24 +4,26 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using System.Linq;
+using Tools.CSharp;
 
 namespace Tools.Unity.Components
 {
     public abstract class ListGestion<T> : MonoBehaviour where T : ICloneable, ICopiable, new()
     {
         #region Properties
-        protected List<T> m_Items = new List<T>();
-        public virtual List<T> Items
+        protected List<T> m_Objects = new List<T>();
+        public virtual List<T> Objects
         {
             get
             {
-                return m_Items;
+                return m_Objects;
             }
             set
             {
-                m_Items = value;
+                m_Objects = value;
                 List.Objects = new T[0]; 
-                List.Add(m_Items);
+                List.Add(m_Objects);
             }
         }
         protected Lists.SelectableListWithItemAction<T> List;
@@ -38,7 +40,7 @@ namespace Tools.Unity.Components
                 List.Interactable = value;
             }
         }
-        public List<ItemModifier<T>> Modifiers = new List<ItemModifier<T>>();
+        public List<SavableWindow> SubWindows = new List<SavableWindow>();
         public SavableWindowEvent OnOpenSavableWindow = new SavableWindowEvent();
         public SavableWindowEvent OnCloseSavableWindow = new SavableWindowEvent();
         public Text Counter;
@@ -63,17 +65,17 @@ namespace Tools.Unity.Components
         }
         public virtual void Add(T item)
         {
-            if(!Items.Contains(item))
+            if(!Objects.Contains(item))
             {
-                Items.Add(item);
+                Objects.Add(item);
                 List.Add(item);
             }
         }
         public virtual void Remove(T item)
         {
-            if(Items.Contains(item))
+            if(Objects.Contains(item))
             {
-                Items.Remove(item);
+                Objects.Remove(item);
                 List.Remove(item);
             }
             UpdateCounter();
@@ -88,27 +90,44 @@ namespace Tools.Unity.Components
         }
         public virtual void Create()
         {
-            OpenModifier(new T(), m_Interactable);
+            OpenCreatorWindow();
         }
         #endregion
 
         #region Private Methods
+        protected virtual void OpenCreatorWindow()
+        {
+            CreatorWindow creatorWindow = ApplicationState.WindowsManager.Open<CreatorWindow>("Creator window", true);
+            creatorWindow.IsLoadable = typeof(T).GetInterfaces().Contains(typeof(ILoadable));
+            creatorWindow.OnSave.AddListener(() => OnSaveCreator(creatorWindow));
+        }
+        protected virtual void OpenSelector()
+        {
+            ObjectSelector<T> selector = ApplicationState.WindowsManager.OpenSelector<T>();
+            SubWindows.Add(selector);
+            selector.OnClose.AddListener(() => OnCloseSubWindow(selector));
+            selector.OnSave.AddListener(() => OnSaveSelector(selector));
+            selector.Objects = Objects.ToArray();
+            selector.MultiSelection = false;
+            OnOpenSavableWindow.Invoke(selector);
+            SubWindows.Add(selector);
+        }
         protected virtual void OpenModifier(T item, bool interactable)
         {
             ItemModifier<T> modifier = ApplicationState.WindowsManager.OpenModifier(item, interactable);
-            modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
+            modifier.OnClose.AddListener(() => OnCloseSubWindow(modifier));
             modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
             OnOpenSavableWindow.Invoke(modifier);
-            Modifiers.Add(modifier);
+            SubWindows.Add(modifier);
         }
-        protected virtual void OnCloseModifier(ItemModifier<T> modifier)
+        protected virtual void OnCloseSubWindow(SavableWindow subWindow)
         {
-            OnCloseSavableWindow.Invoke(modifier);
-            Modifiers.Remove(modifier);
+            OnCloseSavableWindow.Invoke(subWindow);
+            SubWindows.Remove(subWindow);
         }
         protected virtual void OnSaveModifier(ItemModifier<T> modifier)
         {
-            if (!Items.Contains(modifier.Item))
+            if (!Objects.Contains(modifier.Item))
             {
                 Add(modifier.Item);
             }
@@ -117,7 +136,63 @@ namespace Tools.Unity.Components
                 List.UpdateObject(modifier.Item);
             }
             OnCloseSavableWindow.Invoke(modifier);
-            Modifiers.Remove(modifier);
+            SubWindows.Remove(modifier);
+        }
+        protected virtual void OnSaveCreator(CreatorWindow creatorWindow)
+        {
+            HBP.Data.Enums.CreationType type = creatorWindow.Type;
+            T item = new T();
+            switch (type)
+            {
+                case HBP.Data.Enums.CreationType.FromScratch:
+                    OpenModifier(item, Interactable);
+                    break;
+                case HBP.Data.Enums.CreationType.FromExistingItem:
+                    OpenSelector();
+                    break;
+                case HBP.Data.Enums.CreationType.FromFile:
+                    if(LoadFromFile(out item))
+                    {
+                        OpenModifier(item, Interactable);
+                    }
+                    break;
+            }
+        }
+        protected virtual void OnSaveSelector(ObjectSelector<T> selector)
+        {
+            T selectedItem = selector.ObjectsSelected.FirstOrDefault();
+            T cloneItem = (T) selectedItem.Clone();
+            if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+            {
+                IIdentifiable identifiable = cloneItem as IIdentifiable;
+                identifiable.ID = Guid.NewGuid().ToString();
+            }
+            if (cloneItem != null)
+            {
+                OpenModifier(cloneItem, true);
+            }
+            OnCloseSavableWindow.Invoke(selector);
+            SubWindows.Remove(selector);
+        }
+        protected virtual bool LoadFromFile(out T result)
+        {
+            result = new T();
+            ILoadable loadable = result as ILoadable;
+            string path = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { loadable.GetExtension() }).StandardizeToPath();
+            if (path != string.Empty)
+            {
+                result = ClassLoaderSaver.LoadFromJson<T>(path);
+                if (typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
+                {
+                    IIdentifiable identifiable = result as IIdentifiable;
+                    if (identifiable.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx" || Objects.Any(p => (p as IIdentifiable).ID == identifiable.ID))
+                    {
+                        identifiable.ID = Guid.NewGuid().ToString();
+                    }
+                }
+                return true;
+            }
+            return false;
         }
         protected virtual void UpdateCounter()
         {

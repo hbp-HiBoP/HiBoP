@@ -38,4 +38,5 @@ namespace HBP.Data.Enums
     public enum SiteNavigationDirection { Left, Right }
     public enum SiteType { Normal, Positive, Negative, Excluded, Source, NotASource, NoLatencyData, BlackListed, NonePos, NoneNeg, Marked, Suspicious };
     public enum MainSecondaryEnum { Main, Secondary }
+    public enum CreationType { FromScratch, FromExistingItem, FromFile }
 }

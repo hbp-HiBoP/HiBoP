@@ -8,17 +8,17 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] new ConnectivityList List;
-        public override List<Data.Anatomy.Connectivity> Items
+        public override List<Data.Anatomy.Connectivity> Objects
         {
             get
             {
-                return base.Items;
+                return base.Objects;
             }
 
             set
             {
                 List.Initialize();
-                base.Items = value;
+                base.Objects = value;
                 List.SortByName(ConnectivityList.Sorting.Descending);
             }
         }

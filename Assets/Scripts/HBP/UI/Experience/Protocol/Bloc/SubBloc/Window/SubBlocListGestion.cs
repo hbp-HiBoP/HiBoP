@@ -10,17 +10,17 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField] new SubBlocList List;
-        public override List<SubBloc> Items
+        public override List<SubBloc> Objects
         {
             get
             {
-                return base.Items;
+                return base.Objects;
             }
 
             set
             {
                 List.Initialize();
-                base.Items = value;
+                base.Objects = value;
                 List.SortByName(SubBlocList.Sorting.Descending);
             }
         }
@@ -32,20 +32,12 @@ namespace HBP.UI.Experience.Protocol
             base.List = List;
             base.Initialize();
         }
-        public override void Create()
-        {
-            if (m_Items.Any((e) => e.Type == Data.Enums.MainSecondaryEnum.Main))
-            {
-                OpenModifier(new SubBloc(Data.Enums.MainSecondaryEnum.Secondary), Interactable);
-            }
-            else base.Create();
-        }
         public override void Remove(SubBloc item)
         {
             base.Remove(item);
-            if (m_Items.All((e) => e.Type != Data.Enums.MainSecondaryEnum.Main))
+            if (m_Objects.All((e) => e.Type != Data.Enums.MainSecondaryEnum.Main))
             {
-                SubBloc firstEvent = m_Items.FirstOrDefault();
+                SubBloc firstEvent = m_Objects.FirstOrDefault();
                 if (firstEvent != null) firstEvent.Type = Data.Enums.MainSecondaryEnum.Main;
             }
         }
@@ -53,7 +45,7 @@ namespace HBP.UI.Experience.Protocol
         {
             if (modifier.Item.Type == Data.Enums.MainSecondaryEnum.Main)
             {
-                foreach (var item in Items)
+                foreach (var item in Objects)
                 {
                     if (modifier.Item != item)
                     {
@@ -63,6 +55,29 @@ namespace HBP.UI.Experience.Protocol
             }
             List.Refresh();
             base.OnSaveModifier(modifier);
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override void OnSaveCreator(CreatorWindow creatorWindow)
+        {
+            Data.Enums.CreationType type = creatorWindow.Type;
+            SubBloc item = m_Objects.Any((e) => e.Type == Data.Enums.MainSecondaryEnum.Main) ? new SubBloc(Data.Enums.MainSecondaryEnum.Secondary) : new SubBloc(Data.Enums.MainSecondaryEnum.Main);
+            switch (type)
+            {
+                case Data.Enums.CreationType.FromScratch:
+                    OpenModifier(item, Interactable);
+                    break;
+                case Data.Enums.CreationType.FromExistingItem:
+                    OpenSelector();
+                    break;
+                case Data.Enums.CreationType.FromFile:
+                    if (LoadFromFile(out item))
+                    {
+                        OpenModifier(item, Interactable);
+                    }
+                    break;
+            }
         }
         #endregion
     }

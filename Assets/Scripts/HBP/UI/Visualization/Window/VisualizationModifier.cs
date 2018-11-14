@@ -125,8 +125,8 @@ namespace HBP.UI.Visualization
         {
             m_NameInputField.text = ItemTemp.Name;
 
-            m_VisualizationPatientsListGestion.Items = ItemTemp.Patients.ToList();
-            m_ProjectPatientsListGestion.Items = ApplicationState.ProjectLoaded.Patients.Where(p => !objectToDisplay.Patients.Contains(p)).ToList();
+            m_VisualizationPatientsListGestion.Objects = ItemTemp.Patients.ToList();
+            m_ProjectPatientsListGestion.Objects = ApplicationState.ProjectLoaded.Patients.Where(p => !objectToDisplay.Patients.Contains(p)).ToList();
 
             if (objectToDisplay.Columns.Count > 0)
             {
@@ -154,11 +154,11 @@ namespace HBP.UI.Visualization
         }
         protected void AddGroups(IEnumerable<Group> groups)
         {
-            AddPatients(groups.SelectMany(g => g.Patients).Distinct().Where(p => !m_VisualizationPatientsListGestion.Items.Contains(p)));
+            AddPatients(groups.SelectMany(g => g.Patients).Distinct().Where(p => !m_VisualizationPatientsListGestion.Objects.Contains(p)));
         }
         protected void RemoveGroups(IEnumerable<Group> groups)
         {
-            RemovePatients(groups.SelectMany(g => g.Patients).Distinct().Where(p => m_VisualizationPatientsListGestion.Items.Contains(p)));
+            RemovePatients(groups.SelectMany(g => g.Patients).Distinct().Where(p => m_VisualizationPatientsListGestion.Objects.Contains(p)));
         }
         protected void SelectColumn()
         {

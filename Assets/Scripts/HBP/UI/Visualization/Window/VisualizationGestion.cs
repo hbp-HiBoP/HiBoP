@@ -32,7 +32,7 @@ namespace HBP.UI.Visualization
         #region Public Methods
         public override void Save()
         {
-            ApplicationState.ProjectLoaded.SetVisualizations(m_VisualizationListGestion.Items);
+            ApplicationState.ProjectLoaded.SetVisualizations(m_VisualizationListGestion.Objects);
             base.Save();
         }
         public void Display()
@@ -46,7 +46,7 @@ namespace HBP.UI.Visualization
         protected override void Initialize()
         {
             m_VisualizationListGestion.Initialize(m_SubWindows);
-            m_VisualizationListGestion.Items = ApplicationState.ProjectLoaded.Visualizations.ToList();
+            m_VisualizationListGestion.Objects = ApplicationState.ProjectLoaded.Visualizations.ToList();
             m_VisualizationListGestion.List.OnSelectionChanged.AddListener(() => SetDisplay());
             SetDisplay();
 

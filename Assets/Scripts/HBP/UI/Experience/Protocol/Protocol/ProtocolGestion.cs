@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
-using Tools.CSharp;
-using d = HBP.Data.Experience.Protocol;
 
 namespace HBP.UI.Experience.Protocol
 {
@@ -10,7 +8,6 @@ namespace HBP.UI.Experience.Protocol
     {
         #region Properties
         [SerializeField] ProtocolListGestion m_ProtocolListGestion;
-        [SerializeField] Button m_ImportButton;
         [SerializeField] Button m_CreateProtocolButton;
         [SerializeField] Button m_RemoveProtocolButton;
 
@@ -25,7 +22,6 @@ namespace HBP.UI.Experience.Protocol
                 base.Interactable = value;
 
                 m_ProtocolListGestion.Interactable = value;
-                m_ImportButton.interactable = value;
                 m_CreateProtocolButton.interactable = value;
                 m_RemoveProtocolButton.interactable = value;
             }
@@ -35,12 +31,12 @@ namespace HBP.UI.Experience.Protocol
         #region Public Methods
         public override void Save()
 		{
-            foreach (var modifier in m_ProtocolListGestion.Modifiers.ToArray()) modifier.Save();
+            foreach (var modifier in m_ProtocolListGestion.SubWindows.ToArray()) modifier.Save();
             if (DataManager.HasData)
             {
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
-                    ApplicationState.ProjectLoaded.SetProtocols(m_ProtocolListGestion.Items);
+                    ApplicationState.ProjectLoaded.SetProtocols(m_ProtocolListGestion.Objects);
                     base.Save();
                     DataManager.Clear();
                     ApplicationState.Module3D.ReloadScenes();
@@ -48,22 +44,8 @@ namespace HBP.UI.Experience.Protocol
             }
             else
             {
-                ApplicationState.ProjectLoaded.SetProtocols((m_ProtocolListGestion.Items));
+                ApplicationState.ProjectLoaded.SetProtocols((m_ProtocolListGestion.Objects));
                 base.Save();
-            }
-        }
-        public void Import()
-        {
-            string l_resultStandalone = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "prov" }, "Please select the protocols file to import");
-            l_resultStandalone = l_resultStandalone.StandardizeToPath();
-            if (l_resultStandalone != string.Empty)
-            {
-                d.Protocol protocol = Tools.Unity.ClassLoaderSaver.LoadFromJson<d.Protocol>(l_resultStandalone);
-                if (protocol.ID == "xxxxxxxxxxxxxxxxxxxxxxxxx" || m_ProtocolListGestion.Items.Any(p => p.ID == protocol.ID))
-                {
-                    protocol.ID = System.Guid.NewGuid().ToString();
-                }
-                m_ProtocolListGestion.Add(protocol);
             }
         }
         #endregion
@@ -72,7 +54,7 @@ namespace HBP.UI.Experience.Protocol
         protected override void SetFields()
         {
             m_ProtocolListGestion.Initialize(m_SubWindows);
-            m_ProtocolListGestion.Items = ApplicationState.ProjectLoaded.Protocols.ToList();
+            m_ProtocolListGestion.Objects = ApplicationState.ProjectLoaded.Protocols.ToList();
             base.SetFields();
         }
         #endregion

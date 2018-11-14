@@ -8,7 +8,7 @@ using Tools.Unity;
 namespace HBP.Data.Anatomy
 {
     [DataContract]
-    public class Mesh : ICloneable, ICopiable
+    public class Mesh : ICloneable, ICopiable, IIdentifiable
     {
         #region Properties
         public const string EXTENSION = ".gii";

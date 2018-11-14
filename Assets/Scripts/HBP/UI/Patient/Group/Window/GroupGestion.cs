@@ -31,7 +31,7 @@ namespace HBP.UI.Anatomy
         #region Public Methods
         public override void Save()
         {
-            ApplicationState.ProjectLoaded.SetGroups(m_GroupListGestion.Items);
+            ApplicationState.ProjectLoaded.SetGroups(m_GroupListGestion.Objects);
             base.Save();
         }
         #endregion
@@ -40,7 +40,7 @@ namespace HBP.UI.Anatomy
         protected override void SetFields()
         {
             m_GroupListGestion.Initialize(m_SubWindows);
-            m_GroupListGestion.Items = ApplicationState.ProjectLoaded.Groups.ToList();
+            m_GroupListGestion.Objects = ApplicationState.ProjectLoaded.Groups.ToList();
             base.SetFields();
         }
         #endregion

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
 using UnityEngine.Events;
+using Tools.Unity;
+using System.IO;
 
 namespace HBP.Data.Experience.Dataset
 {
@@ -20,7 +21,7 @@ namespace HBP.Data.Experience.Dataset
     *       - \a Unique ID.
     */
     [DataContract]
-	public class Dataset : ICloneable, ICopiable
+	public class Dataset : ICloneable, ICopiable, ILoadable, IIdentifiable
 	{
         #region Attributs
         public const string EXTENSION = ".dataset";
@@ -28,7 +29,7 @@ namespace HBP.Data.Experience.Dataset
         /// <summary>
         /// Unique ID of the dataset.
         /// </summary>
-        [DataMember] public string ID { get; private set; }
+        [DataMember] public string ID { get; set; }
 
         /// <summary>
         /// Name of the dataset.
@@ -83,6 +84,23 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Public Methods
+        public void Load(string path)
+        {
+            Dataset result;
+            try
+            {
+                result = ClassLoaderSaver.LoadFromJson<Dataset>(path);
+            }
+            catch
+            {
+                throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(path));
+            }
+            Copy(result);
+        }
+        public string GetExtension()
+        {
+            return EXTENSION;
+        }
         public bool AddData(DataInfo data)
         {
             if (!m_Data.Contains(data))

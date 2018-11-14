@@ -41,7 +41,7 @@ namespace HBP.UI.Experience.Dataset
         #region Public Methods
         public override void Save()
         {
-            ItemTemp.SetData(m_DataInfoListGestion.Items);
+            ItemTemp.SetData(m_DataInfoListGestion.Objects);
             base.Save();
         }
         #endregion
@@ -65,7 +65,7 @@ namespace HBP.UI.Experience.Dataset
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_ProtocolDropdown.value = ApplicationState.ProjectLoaded.Protocols.IndexOf(objectToDisplay.Protocol);
-            m_DataInfoListGestion.Items = objectToDisplay.Data.ToList();
+            m_DataInfoListGestion.Objects = objectToDisplay.Data.ToList();
         }
         #endregion
     }

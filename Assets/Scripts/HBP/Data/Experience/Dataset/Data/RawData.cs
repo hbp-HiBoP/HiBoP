@@ -80,9 +80,8 @@ namespace HBP.Data.Experience.Dataset
                 Elan.Track track = elanFile.FindTrack(info.Measure, channel.Label);
                 if (track.Channel >= 0 && track.Measure >= 0)
                 {
-                    string ID = info.Patient.ID + "_" + channel.Label;
-                    ValuesByChannel.Add(ID,elanFile.EEG.GetFloatData(track)); // fixme
-                    UnitByChannel.Add(ID, channel.Unit);
+                    ValuesByChannel.Add(channel.Label, elanFile.EEG.GetFloatData(track));
+                    UnitByChannel.Add(channel.Label, channel.Unit);
                 }
             }
             POS = new POS(info.POS, new Frequency(elanFile.EEG.SamplingFrequency));

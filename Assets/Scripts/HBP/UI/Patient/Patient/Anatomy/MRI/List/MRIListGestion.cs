@@ -8,17 +8,17 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         [SerializeField] new MRIList List;
-        public override List<Data.Anatomy.MRI> Items
+        public override List<Data.Anatomy.MRI> Objects
         {
             get
             {
-                return base.Items;
+                return base.Objects;
             }
 
             set
             {
                 List.Initialize();
-                base.Items = value;
+                base.Objects = value;
                 List.SortByName(MRIList.Sorting.Descending);
             }
         }

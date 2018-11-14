@@ -8,17 +8,17 @@ namespace HBP.UI.Experience.Dataset
     {
         #region Properties
         [SerializeField] new DatasetList List;
-        public override List<Data.Experience.Dataset.Dataset> Items
+        public override List<Data.Experience.Dataset.Dataset> Objects
         {
             get
             {
-                return base.Items;
+                return base.Objects;
             }
 
             set
             {
                 List.Initialize();
-                base.Items = value;
+                base.Objects = value;
                 List.SortByName(DatasetList.Sorting.Descending);
             }
         }

@@ -7,17 +7,17 @@ namespace HBP.UI.Visualization
     {
         #region Properties
         public new VisualizationList List;
-        public override List<Data.Visualization.Visualization> Items
+        public override List<Data.Visualization.Visualization> Objects
         {
             get
             {
-                return base.Items;
+                return base.Objects;
             }
 
             set
             {
                 List.Initialize();
-                base.Items = value;
+                base.Objects = value;
                 List.SortByName(VisualizationList.Sorting.Descending);
             }
         }

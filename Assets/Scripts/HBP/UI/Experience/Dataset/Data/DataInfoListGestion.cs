@@ -10,17 +10,17 @@ namespace HBP.UI.Experience.Dataset
     {
         #region Properties
         [SerializeField] new DataInfoList List;
-        public override List<DataInfo> Items
+        public override List<DataInfo> Objects
         {
             get
             {
-                return base.Items;
+                return base.Objects;
             }
 
             set
             {
                 List.Initialize();
-                base.Items = value;
+                base.Objects = value;
                 List.SortByName(DataInfoList.Sorting.Descending);
             }
         }
@@ -39,15 +39,15 @@ namespace HBP.UI.Experience.Dataset
         protected override void OpenModifier(DataInfo item, bool interactable)
         {
             DataInfoModifier modifier =(DataInfoModifier) ApplicationState.WindowsManager.OpenModifier(item, interactable);
-            modifier.OnClose.AddListener(() => OnCloseModifier(modifier));
+            modifier.OnClose.AddListener(() => OnCloseSubWindow(modifier));
             modifier.OnSave.AddListener(() => OnSaveModifier(modifier));
             modifier.OnCanSave.AddListener(() => OnCanSaveModifier(modifier));
             OnOpenSavableWindow.Invoke(modifier);
-            Modifiers.Add(modifier);
+            SubWindows.Add(modifier);
         }
         protected void OnCanSaveModifier(DataInfoModifier modifier)
         {
-            modifier.CanSave = !Items.Any(data => data.Patient == modifier.ItemTemp.Patient && data.Name == modifier.ItemTemp.Name && data != modifier.Item);
+            modifier.CanSave = !Objects.Any(data => data.Patient == modifier.ItemTemp.Patient && data.Name == modifier.ItemTemp.Name && data != modifier.Item);
         }
         #endregion
     }

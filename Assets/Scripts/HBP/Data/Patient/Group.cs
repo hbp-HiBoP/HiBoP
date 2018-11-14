@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
+using Tools.Unity;
+using System.IO;
 
 namespace HBP.Data
 {
@@ -19,7 +20,7 @@ namespace HBP.Data
     *   - \a Patients.
     */
     [DataContract]
-    public class Group : ICloneable , ICopiable
+    public class Group : ICloneable , ICopiable, ILoadable, IIdentifiable
     {
         #region Properties
         public const string EXTENSION = ".group";
@@ -69,6 +70,23 @@ namespace HBP.Data
 		#endregion
 
 		#region Public Methods
+        public void Load(string path)
+        {
+            Group result;
+            try
+            {
+                result = ClassLoaderSaver.LoadFromJson<Group>(path);
+            }
+            catch
+            {
+                throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(path));
+            }
+            Copy(result);
+        }
+        public string GetExtension()
+        {
+            return EXTENSION;
+        }
         /// <summary>
         /// Add patient.
         /// </summary>

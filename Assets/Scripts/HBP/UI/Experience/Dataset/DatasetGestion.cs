@@ -35,7 +35,7 @@ namespace HBP.UI.Experience.Dataset
             {
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
                 {
-                    ApplicationState.ProjectLoaded.SetDatasets(m_datasetListGestion.Items);
+                    ApplicationState.ProjectLoaded.SetDatasets(m_datasetListGestion.Objects);
                     base.Save();
                     DataManager.Clear();
                     ApplicationState.Module3D.ReloadScenes();
@@ -43,7 +43,7 @@ namespace HBP.UI.Experience.Dataset
             }
             else
             {
-                ApplicationState.ProjectLoaded.SetDatasets(m_datasetListGestion.Items);
+                ApplicationState.ProjectLoaded.SetDatasets(m_datasetListGestion.Objects);
                 base.Save();
             }
         }
@@ -53,7 +53,7 @@ namespace HBP.UI.Experience.Dataset
         protected override void SetFields()
 		{
             m_datasetListGestion.Initialize(m_SubWindows);
-            m_datasetListGestion.Items = ApplicationState.ProjectLoaded.Datasets.ToList();
+            m_datasetListGestion.Objects = ApplicationState.ProjectLoaded.Datasets.ToList();
             base.SetFields();
         }
         #endregion

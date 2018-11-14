@@ -7,17 +7,17 @@ namespace HBP.UI.Anatomy
     {
         #region Properties
         public new PatientList List;
-        public override List<Data.Patient> Items
+        public override List<Data.Patient> Objects
         {
             get
             {
-                return base.Items;
+                return base.Objects;
             }
 
             set
             {
                 List.Initialize();
-                base.Items = value;
+                base.Objects = value;
                 List.SortByName(PatientList.Sorting.Descending);
             }
         }

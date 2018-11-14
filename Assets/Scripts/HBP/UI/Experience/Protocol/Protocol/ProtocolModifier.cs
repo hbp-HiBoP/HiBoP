@@ -36,7 +36,7 @@ namespace HBP.UI.Experience.Protocol
         protected override void SetFields(d.Protocol objectToDisplay)
         {
             m_BlocListGestion.Initialize(m_SubWindows);
-            m_BlocListGestion.Items =  objectToDisplay.Blocs;
+            m_BlocListGestion.Objects =  objectToDisplay.Blocs;
 
             m_NameInputField.text = objectToDisplay.Name;
             m_NameInputField.onEndEdit.AddListener((value) => objectToDisplay.Name = value);

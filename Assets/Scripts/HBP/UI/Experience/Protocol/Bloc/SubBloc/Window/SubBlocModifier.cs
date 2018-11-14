@@ -76,9 +76,9 @@ namespace HBP.UI.Experience.Protocol
             m_BaselineSlider.step = preferences.Step;
             m_BaselineSlider.Values = objectToDisplay.Baseline.ToVector2();
 
-            m_EventListGestion.Items = objectToDisplay.Events;
-            m_IconListGestion.Items = objectToDisplay.Icons;
-            m_TreatmentListGestion.Items = objectToDisplay.Treatments;
+            m_EventListGestion.Objects = objectToDisplay.Events;
+            m_IconListGestion.Objects = objectToDisplay.Icons;
+            m_TreatmentListGestion.Objects = objectToDisplay.Treatments;
         }
         #endregion
     }

@@ -31,7 +31,7 @@ namespace HBP.UI.Anatomy
         protected override void Initialize()
         {
             m_GroupListGestion.Initialize(m_SubWindows);
-            m_GroupListGestion.Items = ApplicationState.ProjectLoaded.Groups.ToList();
+            m_GroupListGestion.Objects = ApplicationState.ProjectLoaded.Groups.ToList();
             base.Initialize();
         }
         #endregion

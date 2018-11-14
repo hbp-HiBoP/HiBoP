@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using HBP.Data.Anatomy;
+using Tools.Unity;
 
 namespace HBP.Data
 {
@@ -22,13 +23,13 @@ namespace HBP.Data
     *     - \a Epilepsy \a type : epilepsy type of the patient.(IGE,IPE,SGE,SPE,Unknown)
     */
     [DataContract]
-	public class Patient : ICloneable, ICopiable
+	public class Patient : ICloneable, ICopiable, ILoadable, IIdentifiable
 	{
         #region Properties
         /// <summary>
         /// Patient file extension.
         /// </summary>
-        public const string EXTENSION = ".patient";
+        public static string EXTENSION = ".patient";
         /// <summary>
         /// Unique ID.
         /// </summary>
@@ -108,6 +109,23 @@ namespace HBP.Data
         #endregion
 
         #region Public Methods
+        public void Load(string path)
+        {
+            Patient result;
+            try
+            {
+                result = ClassLoaderSaver.LoadFromJson<Patient>(path);
+            }
+            catch
+            {
+                throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(path));
+            }
+            Copy(result);
+        }
+        public string GetExtension()
+        {
+            return EXTENSION;
+        }
         /// <summary>
         /// Get patient directories in the directory.
         /// </summary>

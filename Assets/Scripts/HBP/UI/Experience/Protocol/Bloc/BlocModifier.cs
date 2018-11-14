@@ -53,7 +53,7 @@ namespace HBP.UI.Experience.Protocol
             m_OrderInputField.onEndEdit.AddListener((value) => objectToDisplay.Order = int.Parse(value));
 
             m_SubBlocListGestion.Initialize(m_SubWindows);
-            m_SubBlocListGestion.Items = objectToDisplay.SubBlocs;
+            m_SubBlocListGestion.Objects = objectToDisplay.SubBlocs;
 
             base.SetFields();
         }

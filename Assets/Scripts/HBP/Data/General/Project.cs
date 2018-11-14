@@ -510,9 +510,10 @@ namespace HBP.Data.General
             {
                 FileInfo patientFile = patientFiles[i];
                 OnChangeProgress.Invoke(progress, 0, new LoadingText("Loading patient ", Path.GetFileNameWithoutExtension(patientFile.Name), " [" + (i + 1).ToString() + "/" + patientFiles.Length + "]"));
+                patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(patientFile.FullName));
                 try
                 {
-                    patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(patientFile.FullName));
+
                 }
                 catch
                 {
@@ -673,7 +674,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(patient, patientDirectory.FullName + Path.DirectorySeparatorChar + patient.ID + Patient.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(patient, patientDirectory.FullName + Path.DirectorySeparatorChar + patient.ID + "." + Patient.EXTENSION);
                 }
                 catch
                 {
@@ -695,7 +696,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(group, groupDirectory.FullName + Path.DirectorySeparatorChar + group.Name + Group.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(group, groupDirectory.FullName + Path.DirectorySeparatorChar + group.Name + "." + Group.EXTENSION);
                 }
                 catch
                 {
@@ -717,7 +718,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(protocol, protocolDirectory.FullName + Path.DirectorySeparatorChar + protocol.Name + Protocol.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(protocol, protocolDirectory.FullName + Path.DirectorySeparatorChar + protocol.Name + "." + Protocol.EXTENSION);
                 }
                 catch
                 {
@@ -739,7 +740,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(dataset, datasetDirectory.FullName + Path.DirectorySeparatorChar + dataset.Name + Dataset.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(dataset, datasetDirectory.FullName + Path.DirectorySeparatorChar + dataset.Name + "." + Dataset.EXTENSION);
                 }
                 catch
                 {
@@ -762,7 +763,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(visualization, visualizationDirectory.FullName + Path.DirectorySeparatorChar + visualization.Name + Visualization.Visualization.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(visualization, visualizationDirectory.FullName + Path.DirectorySeparatorChar + visualization.Name + "." + Visualization.Visualization.EXTENSION);
                 }
                 catch
                 {
