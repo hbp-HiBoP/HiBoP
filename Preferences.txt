@@ -48,8 +48,8 @@
       "TrialsSynchronization": true,
       "TrialSmoothing": true,
       "NumberOfIntermediateValues": 3,
-      "SubBlocFormat": 2,
-      "TrialHeight": 15,
+      "SubBlocFormat": 0,
+      "TrialHeight": 8,
       "TrialRatio": 0.04981595,
       "BlocRatio": 0.106951609
     },

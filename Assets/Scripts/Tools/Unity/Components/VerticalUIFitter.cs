@@ -49,15 +49,24 @@ public class VerticalUIFitter : MonoBehaviour, ILayoutSelfController
     }
     void OnEnable()
     {
-        m_tracker.Add(this, m_rectTransform, DrivenTransformProperties.All);
+        //m_tracker.Add(this, m_rectTransform, DrivenTransformProperties.All);
     }
     void OnDisable()
     {
-        m_tracker.Clear();
+        //m_tracker.Clear();
     }
     void OnTransformParentChanged()
     {
         m_parentRectTransform = transform.parent.GetComponent<RectTransform>();
+        UpdateRectTransform();
+    }
+    void Update()
+    {
+        if(transform.hasChanged)
+        {
+            UpdateRectTransform();
+            transform.hasChanged = false;
+        }
     }
     void UpdateRectTransform()
     {

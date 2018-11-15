@@ -38,9 +38,5 @@ namespace Tools.Unity.Components
             OnStringResult.Invoke(result);
         }
         #endregion
-
-        #region Private Methods
-
-        #endregion
     }
 }
