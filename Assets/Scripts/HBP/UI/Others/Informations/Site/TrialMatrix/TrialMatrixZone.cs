@@ -5,16 +5,15 @@ using HBP.Module3D;
 using HBP.UI.TrialMatrix;
 using HBP.Data.Experience.Dataset;
 using HBP.Data.Experience.Protocol;
-using Tools.Unity;
+using System;
 
 namespace HBP.UI.Informations
 {
     public class TrialMatrixZone : MonoBehaviour
     {
         #region Properties
-        public Base3DScene Scene { get; set; }
         [SerializeField] TrialMatrixList m_TrialMatrixList;
-        Dictionary<Protocol, ProtocolInformation> m_InformationByProtocol;
+        Dictionary<TrialMatrixType,Settings> m_SettingsByTrialMatrixType;
         bool m_TrialCanBeSelect = false;
         bool m_Initialized = false;
         #endregion
@@ -22,133 +21,170 @@ namespace HBP.UI.Informations
         #region Public Methods
         public void Initialize()
         {
-            m_InformationByProtocol = new Dictionary<Protocol, ProtocolInformation>();
+            m_SettingsByTrialMatrixType = new Dictionary<TrialMatrixType, Settings>();
             m_TrialCanBeSelect = false;
 
-            m_TrialMatrixList.OnAutoLimits.RemoveListener(OnChangeAutoLimits);
-            m_TrialMatrixList.OnAutoLimits.AddListener(OnChangeAutoLimits);
-
-            m_TrialMatrixList.OnChangeLimits.RemoveListener(OnChangeLimits);
-            m_TrialMatrixList.OnChangeLimits.AddListener(OnChangeLimits);
+            m_TrialMatrixList.OnAutoLimitsChanged.AddListener(OnChangeAutoLimits);
+            m_TrialMatrixList.OnLimitsChanged.AddListener(OnChangeLimits);
 
             m_Initialized = true;
         }
-        public void Display(IEnumerable<Site> sites)
+        public void Display(IEnumerable<TrialMatrixRequest> trialMatrixRequests)
         {
-            //if (!m_Initialized) Initialize();
+            if (!m_Initialized) Initialize();
 
-            //// Test is a single trial can be selected.
-            //m_TrialCanBeSelect = sites.All((site) => site.Information.Patient == sites.FirstOrDefault().Information.Patient);
+            // Test is a single trial can be selected.
+            //m_TrialCanBeSelect = data.All((d) => d.DataInfo.Patient == data.FirstOrDefault().DataInfo.Patient);
 
-            //IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Dataset.Protocol).Distinct();
-            //foreach (Protocol protocol in protocols)
-            //{
-            //    m_InformationByProtocol[protocol] = new ProtocolInformation();
-            //    m_InformationByProtocol[protocol].AutoLimits = true;
-            //    m_InformationByProtocol[protocol].Limits = new Vector2();
-            //}
-            //Generate(sites.ToArray());
-            //Display();
+            foreach (var request in trialMatrixRequests)
+            {
+                TrialMatrixType trialMatrixType = new TrialMatrixType(request.DataInfo.Dataset, request.DataInfo.Name);
+                Settings settings;
+                if (!m_SettingsByTrialMatrixType.TryGetValue(trialMatrixType, out settings))
+                {
+                    settings = new Settings(new Vector2(), true, new Dictionary<DataInfoStruct, Data.TrialMatrix.TrialMatrix>());
+                    m_SettingsByTrialMatrixType.Add(trialMatrixType, settings);
+                }
+
+                DataInfoStruct dataInfoStruct = new DataInfoStruct(request.DataInfo, request.Channel);
+                //if (!settings.TrialMatrixByDataInfoStruct.ContainsKey(dataInfoStruct))
+                //{
+                //    settings.TrialMatrixByDataInfoStruct.Add(dataInfoStruct, new Data.TrialMatrix.TrialMatrix(request.DataInfo, request.Channel, request.Blocs));
+                //}
+            }
+            Display();
         }
         #endregion
 
         #region Handlers Methods
         public void OnSelectTrials(int[] trials, TrialMatrix.Bloc bloc, bool additive)
         {
-            if (m_TrialCanBeSelect)
-            {
-                if (ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialsSynchronization)
-                {
-                    foreach (var trialMatrix in m_TrialMatrixList.TrialMatrix)
-                    {
-                        trialMatrix.Blocs.First(b => b == bloc).SelectTrials(trials, additive);
-                    }
-                }
-                else
-                {
-                    foreach (var trialMatrix in m_TrialMatrixList.TrialMatrix)
-                    {
-                        trialMatrix.Blocs.First(b => b == bloc).SelectTrials(trials, additive);
-                    }
-                }
-            }
-        }
-        #endregion
-
-        #region Private Methods
-        void Generate(Site[] sites)
-        {
-            //// Find protocols to display
-            //IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG select column.ColumnData.Dataset.Protocol).Distinct();
-
-            //// Generate trialMatrix and create the dictionary
-            //foreach (Protocol protocol in protocols)
+            //if (m_TrialCanBeSelect)
             //{
-            //    m_InformationByProtocol[protocol].TrialMatrixByDataInfoBySite = new Dictionary<Site, Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>>();
-
-            //    Dictionary<Site, IEnumerable<DataInfo>> dataInfoBySite = sites.ToDictionary(s => s, s => Scene.Visualization.GetDataInfo(s.Information.Patient).Where(d => ApplicationState.ProjectLoaded.Datasets.First(ds => ds.Data.Contains(d)).Protocol == protocol));
-            //    IEnumerable<DataInfo> dataInfoToRead = dataInfoBySite.Values.SelectMany(d => d).Distinct();
-
-            //    Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>> epochedBlocsByProtocolBlocByDataInfo = new Dictionary<DataInfo, Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>>();
-            //    foreach (var data in dataInfoToRead)
+            //    if (ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialsSynchronization)
             //    {
-            //        Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]> epochedBlocsByProtocolBloc = new Dictionary<Data.Experience.Protocol.Bloc, Data.Localizer.Bloc[]>();
-            //        foreach (var bloc in protocol.Blocs)
+            //        foreach (var trialMatrix in m_TrialMatrixList.TrialMatrix)
             //        {
-            //            epochedBlocsByProtocolBloc.Add(bloc, DataManager.GetData(data, bloc).Blocs);
+            //            trialMatrix.Blocs.First(b => b == bloc).SelectTrials(trials, additive);
             //        }
-            //        epochedBlocsByProtocolBlocByDataInfo.Add(data, epochedBlocsByProtocolBloc);
             //    }
-
-            //    foreach (var site in sites)
+            //    else
             //    {
-            //        m_InformationByProtocol[protocol].TrialMatrixByDataInfoBySite[site] = new Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>();
-            //        foreach (var dataInfo in dataInfoBySite[site])
+            //        foreach (var trialMatrix in m_TrialMatrixList.TrialMatrix)
             //        {
-            //            Data.TrialMatrix.TrialMatrix trialMatrix = new Data.TrialMatrix.TrialMatrix(protocol, dataInfo, epochedBlocsByProtocolBlocByDataInfo[dataInfo], site, Scene);
-            //            m_InformationByProtocol[protocol].TrialMatrixByDataInfoBySite[site][dataInfo] = trialMatrix;
+            //            trialMatrix.Blocs.First(b => b == bloc).SelectTrials(trials, additive);
             //        }
             //    }
             //}
         }
+        #endregion
+
+        #region Private Methods
         void Display()
         {
             //IEnumerable<Protocol> protocols = (from column in Scene.ColumnManager.ColumnsIEEG where !column.IsMinimized select column.ColumnData.Dataset.Protocol).Distinct();
-            //Dictionary<Protocol,ProtocolInformation> informationByProtocol = m_InformationByProtocol.Where(protocol => protocols.Contains(protocol.Key)).ToDictionary(pair => pair.Key, pair => pair.Value);
-            //Texture2D colorMap = Scene.ColumnManager.BrainColorMapTexture.RotateTexture();
+            //Dictionary<Protocol, Informations> informationByProtocol = m_InformationByPairProtocolAndData.Where(protocol => protocols.Contains(protocol.Key)).ToDictionary(pair => pair.Key, pair => pair.Value);
+            //Texture2D colorMap = Scene.ColumnManager.BrainColorMapTexture;
             //colorMap.wrapMode = TextureWrapMode.Clamp;
             //m_TrialMatrixList.Set(informationByProtocol, colorMap);
         }
-        void OnChangeAutoLimits(bool autoLimits, Protocol protocol)
+        void OnChangeAutoLimits(bool autoLimits, TrialMatrixType trialMatrixType)
         {
-            m_InformationByProtocol[protocol].AutoLimits = autoLimits;
-            if (autoLimits)
-            {
-                foreach (var trial in m_TrialMatrixList.TrialMatrix)
-                {
-                    trial.Limits = trial.Data.Limits;
-                }
-            }
-            else
-            {
-                foreach (var trial in m_TrialMatrixList.TrialMatrix)
-                {
-                    trial.Limits = m_InformationByProtocol[trial.Data.Protocol].Limits;
-                }
-            }
+            Settings settings = m_SettingsByTrialMatrixType[trialMatrixType];
+            settings.AutoLimits = autoLimits;
+            //if (autoLimits)
+            //{
+            //    foreach (var trial in m_TrialMatrixList.TrialMatrices)
+            //    {
+            //    }
+            //    foreach (var trial in m_TrialMatrixList.TrialMatrix)
+            //    {
+            //        trial.Limits = trial.Data.Limits;
+            //    }
+            //}
+            //else
+            //{
+            //    foreach (var trial in m_TrialMatrixList.TrialMatrix)
+            //    {
+            //        trial.Limits = m_InformationByPairProtocolAndData[trial.Data.Protocol].Limits;
+            //    }
+            //}
         }
-        void OnChangeLimits(Vector2 limits, Protocol protocol)
+        void OnChangeLimits(Vector2 limits, TrialMatrixType trialMatrixType)
         {
-            m_InformationByProtocol[protocol].Limits = limits;
+            Settings settings = m_SettingsByTrialMatrixType[trialMatrixType];
+            settings.Limits = limits;
+            //foreach (var trial in trialMatrixType)
+            //{
+
+            //}
         }
         #endregion
 
-        #region Struct
-        public class ProtocolInformation
+        #region Structs
+        public struct Settings
         {
-            public Vector2 Limits;
-            public bool AutoLimits;
-            public Dictionary<Site, Dictionary<DataInfo, Data.TrialMatrix.TrialMatrix>> TrialMatrixByDataInfoBySite;
+            #region Properties
+            public Vector2 Limits { get; set; }
+            public bool AutoLimits { get; set; }
+            public Dictionary<DataInfoStruct, Data.TrialMatrix.TrialMatrix> TrialMatrixByDataInfoStruct { get; set; }
+            #endregion
+
+            #region Constructors
+            public Settings(Vector2 limits, bool autoLimits, Dictionary<DataInfoStruct, Data.TrialMatrix.TrialMatrix> trialMatrixByDataInfoStruct)
+            {
+                Limits = limits;
+                AutoLimits = autoLimits;
+                TrialMatrixByDataInfoStruct = trialMatrixByDataInfoStruct;
+            }
+            #endregion
+        }
+        public struct TrialMatrixRequest
+        {
+            #region Properties
+            public DataInfo DataInfo { get; set; }
+            public Data.Experience.Protocol.Bloc[] Blocs { get; set; }
+            public string Channel { get; set; }
+            #endregion
+
+            #region Constructors
+            public TrialMatrixRequest(DataInfo dataInfo, string channel, Data.Experience.Protocol.Bloc[] blocs = null)
+            {
+                DataInfo = dataInfo;
+                Blocs = blocs;
+                Channel = channel;
+            }
+            #endregion
+        }
+        public struct DataInfoStruct
+        {
+            #region Properties
+            public DataInfo DataInfo { get; set; }
+            public string Channel { get; set; }
+            #endregion
+
+            #region Constructors
+            public DataInfoStruct(DataInfo dataInfo, string channel)
+            {
+                DataInfo = dataInfo;
+                Channel = channel;
+            }
+            #endregion
+        }
+        public struct TrialMatrixType
+        {
+            #region Properties
+            public Dataset Dataset { get; set; }
+            public string Data { get; set; }
+            #endregion
+
+            #region Constructors
+            public TrialMatrixType(Dataset dataset, string data) : this()
+            {
+                Dataset = dataset;
+                Data = data;
+            }
+            #endregion
         }
         #endregion
     }

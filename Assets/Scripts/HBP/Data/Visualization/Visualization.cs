@@ -340,6 +340,7 @@ namespace HBP.Data.Visualization
         #region Private Methods
         IEnumerator c_LoadEEG(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
+            UnityEngine.Debug.Log("LoadEEG");
             Exception exception = null;
 
             // Find dataInfo.
@@ -389,7 +390,6 @@ namespace HBP.Data.Visualization
                 onChangeProgress.Invoke(progress, 0.0f, new LoadingText("Finding files to read."));
                 yield return Ninja.JumpBack;
 
-                // Work.
                 try
                 {
                     IEnumerable<DataInfo> dataInfoForThisColumn = GetDataInfo(column);

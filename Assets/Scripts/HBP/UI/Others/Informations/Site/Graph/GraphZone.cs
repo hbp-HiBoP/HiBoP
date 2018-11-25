@@ -1,6 +1,8 @@
-﻿using HBP.Data.Visualization;
-using HBP.Module3D;
+﻿using HBP.Data.Experience.Dataset;
+using HBP.Data.Experience.Protocol;
+using HBP.Data.Visualization;
 using System.Collections.Generic;
+using System.Linq;
 using Tools.Unity.Graph;
 using UnityEngine;
 
@@ -9,38 +11,36 @@ namespace HBP.UI.Informations
     public class GraphZone : MonoBehaviour
     {
         #region Properties
-        Base3DScene m_Scene;
-        public Base3DScene Scene
-        {
-            get { return m_Scene; }
-            set { m_Scene = value; }
-        }
-
         [SerializeField] Graph m_Graph;
         [SerializeField] List<ColumnColor> m_Colors;
-        Dictionary<BaseColumn, GroupCurveData> m_CurvesByColumn = new Dictionary<BaseColumn, GroupCurveData>(); 
+        Dictionary<DataStruct, GroupCurveData> m_GroupCurveDataByData = new Dictionary<DataStruct, GroupCurveData>();
+        DataStruct[] m_Data;
+        string[] m_Channels;
         #endregion
 
         #region Public Methods
-        public void Display(IEnumerable<Site> sites)
+        public void Display(IEnumerable<DataStruct> data, IEnumerable<string> channels)
         {
+            m_Data = data.ToArray();
+            m_Channels = channels.ToArray();
 
+            GenerateCurves();
+            DisplayCurves();
         }
         #endregion
 
         #region Private Methods
         void GenerateCurves()
         {
-            //UnityEngine.Profiling.Profiler.BeginSample("GenerateCurve()");
-            //m_CurvesByColumn.Clear();
-            //for (int c = 0; c < m_Scene.ColumnManager.ColumnsIEEG.Count; c++)
+            //m_GroupCurveDataByData.Clear();
+            //foreach (var data in m_Data)
             //{
-            //    Column column = m_Scene.ColumnManager.ColumnsIEEG[c].ColumnData;
-            //    m_CurvesByColumn[column] = new GroupCurveData(column.Name);
-            //    for (int s = 0; s < m_Sites.Length; s++)
+            //    m_GroupCurveDataByData[data] = new GroupCurveData(data.Label);
+            //    foreach (var channel in m_Channels)
             //    {
-            //        Site site = m_Sites[s];
-            //        Data.TrialMatrix.TrialMatrix trialMatrixData = m_TrialMatrixByProtocolBySiteByDataInfo[column.Protocol][site][Scene.Visualization.GetDataInfo(site.Information.Patient, column)];
+            //        BlocChannelData blocChannelData = DataManager.GetData(data.DataInfo, data.Bloc, channel);
+            //        blocChannelData.Trials[]
+            //        TrialMatrixData trialMatrixData = m_TrialMatrixByProtocolBySiteByDataInfo[column.Protocol][site][Scene.Visualization.GetDataInfo(site.Information.Patient, column)];
             //        TrialMatrix.TrialMatrix trialMatrix = m_TrialMatrixList.TrialMatrix.FirstOrDefault((t) => t.Data == trialMatrixData);
             //        if (trialMatrix == null) continue;
             //        TrialMatrix.Bloc trialMatrixBloc = null;
@@ -56,8 +56,8 @@ namespace HBP.UI.Informations
             //            }
             //        }
             //        Found:
-            //        Data.TrialMatrix.Line[] linesToRead = trialMatrixBloc.Data.GetLines(trialMatrixBloc.SelectedLines);
-            //        float[] data = new float[linesToRead.Length > 0 ? linesToRead.First().NormalizedValues.Length : 0];
+            //        DataStruct.TrialMatrix.Line[] linesToRead = trialMatrixBloc.Data.GetLines(trialMatrixBloc.SelectedLines);
+            //        float[] dataValue = new float[linesToRead.Length > 0 ? linesToRead.First().NormalizedValues.Length : 0];
             //        Timeline timeline = column.TimeLineByFrequency[(int)DataManager.GetData(Scene.Visualization.GetDataInfo(site.Information.Patient, column), column.Bloc).Frequency];
             //        if (linesToRead.Length > 1)
             //        {
@@ -90,7 +90,7 @@ namespace HBP.UI.Informations
             //                points[i] = new Vector2(absciss, data[index]);
             //            }
 
-            //            m_CurvesByColumn[column].Curves.Add(new ShapedCurveData(site.Information.ChannelName, column.Name + "_" + site.Information.FullCorrectedID , points, standardDeviations, GetCurveColor(c, s), 1.5f));
+            //            m_CurvesByColumn[column].Curves.Add(new ShapedCurveData(site.Information.ChannelName, column.Name + "_" + site.Information.FullCorrectedID, points, standardDeviations, GetCurveColor(d, s), 1.5f));
             //        }
             //        else if (linesToRead.Length == 1)
             //        {
@@ -112,15 +112,15 @@ namespace HBP.UI.Informations
             //            }
 
             //            //Create curve
-            //            m_CurvesByColumn[column].Curves.Add(new CurveData(site.Information.ChannelName, column.Name + "_" + site.Information.FullCorrectedID, points, GetCurveColor(c, s), 1.5f));
+            //            m_CurvesByColumn[column].Curves.Add(new CurveData(site.Information.ChannelName, column.Name + "_" + site.Information.FullCorrectedID, points, GetCurveColor(d, s), 1.5f));
             //        }
             //        else continue;
             //    }
 
             //    // ROI
-            //    if (m_Scene.ColumnManager.ColumnsIEEG[c].ROIs.Count > 0 && m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI != null)
+            //    if (m_Scene.ColumnManager.ColumnsIEEG[d].ROIs.Count > 0 && m_Scene.ColumnManager.ColumnsIEEG[d].SelectedROI != null)
             //    {
-            //        Site[] sites = (from site in m_Scene.ColumnManager.ColumnsIEEG[c].Sites where !site.State.IsOutOfROI && !site.State.IsExcluded && !site.State.IsBlackListed && !site.State.IsMasked select site).ToArray();
+            //        Site[] sites = (from site in m_Scene.ColumnManager.ColumnsIEEG[d].Sites where !site.State.IsOutOfROI && !site.State.IsExcluded && !site.State.IsBlackListed && !site.State.IsMasked select site).ToArray();
             //        if (sites.Length > 0)
             //        {
             //            float[] ROIdata = new float[sites.First().Configuration.Values.Length];
@@ -147,7 +147,7 @@ namespace HBP.UI.Informations
             //                float absciss = min + ((max - min) * (index - pMin) / (pMax - pMin));
             //                points[i] = new Vector2(absciss, ROIdata[index]);
             //            }
-            //            m_CurvesByColumn[column].Curves.Add(new CurveData(m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name, column.Name + "_" + m_Scene.ColumnManager.ColumnsIEEG[c].SelectedROI.Name , points, GetCurveColor(c, -1), 3.0f));
+            //            m_CurvesByColumn[column].Curves.Add(new CurveData(m_Scene.ColumnManager.ColumnsIEEG[d].SelectedROI.Name, column.Name + "_" + m_Scene.ColumnManager.ColumnsIEEG[d].SelectedROI.Name, points, GetCurveColor(d, -1), 3.0f));
             //        }
             //    }
             //}
@@ -200,5 +200,13 @@ namespace HBP.UI.Informations
             }
         }
         #endregion
+
+        public struct DataStruct
+        {
+            public string Label { get; set; }
+            public DataInfo DataInfo { get; set; }
+            public Bloc Bloc { get; set; }
+        }
+          
     }
 }

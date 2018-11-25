@@ -109,13 +109,14 @@ namespace HBP.UI.TrialMatrix
                 if (i == numberOfMaskedTrials - 1) AddSelectionMask(group.ToArray());
             }
         }
-        public void OnPointerDown()
+        public void OnPointerDown(BaseEventData baseEventData)
         {
-            m_BeginDragTrial = GetTrialAtPosition(Input.mousePosition);
+            PointerEventData pointerEventData = baseEventData as PointerEventData;         
+            m_BeginDragTrial = GetTrialAtPosition(pointerEventData.pressPosition);
         }
-        public void OnPointerClick(BaseEventData p)
+        public void OnPointerClick(BaseEventData baseEventData)
         {
-            PointerEventData pointer = (PointerEventData)p;
+            PointerEventData pointer = (PointerEventData)baseEventData;
             if (pointer.button == PointerEventData.InputButton.Left)
             {
                 if (!m_Dragging)
@@ -131,11 +132,11 @@ namespace HBP.UI.TrialMatrix
                 SelectTrials(array, false);
             }
         }
-        public void OnBeginDrag()
+        public void OnBeginDrag(BaseEventData baseEventData)
         {
             m_Dragging = true;
         }
-        public void OnEndDrag()
+        public void OnEndDrag(BaseEventData baseEventData)
         {
             int numberOfTrials = Data.SubBlocs[0].SubTrials.Length;
             int beginTrial = Mathf.Clamp(m_BeginDragTrial, 0, numberOfTrials - 1); ;
@@ -158,9 +159,9 @@ namespace HBP.UI.TrialMatrix
             SelectTrials(selectedTrials.ToArray(), Input.GetKey(KeyCode.LeftShift));
             m_Dragging = false;
         }
-        public void OnScroll()
+        public void OnScroll(BaseEventData baseEventData)
         {
-            int delta = Mathf.RoundToInt(Input.GetAxis("Mouse ScrollWheel") * 10);
+            int delta = Mathf.RoundToInt(- Input.GetAxis("Mouse ScrollWheel") * 10);
             if (delta != 0)
             {
                 int numberOfTrials = Data.SubBlocs[0].SubTrials.Length;
@@ -224,8 +225,8 @@ namespace HBP.UI.TrialMatrix
         {
             RectTransform rectTransform = Instantiate(m_SelectionMaskPrefab, m_SelectionMaskContainer).GetComponent<RectTransform>();
             int numberOfTrials = Data.SubBlocs[0].SubTrials.Length;
-            float yMax = (float) (trials[trials.Length - 1] + 1) / numberOfTrials;
-            float yMin = (float) trials[0] / numberOfTrials;
+            float yMin = 1 - (float) (trials[trials.Length - 1] + 1) / numberOfTrials;
+            float yMax = 1 - (float) trials[0] / numberOfTrials;
             rectTransform.anchorMin = new Vector2(0, yMin);
             rectTransform.anchorMax = new Vector2(1, yMax);
             rectTransform.offsetMin = new Vector2(0, 0);

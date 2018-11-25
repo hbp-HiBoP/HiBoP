@@ -72,6 +72,7 @@ namespace HBP.UI.TrialMatrix
             set
             {
                 m_UsePrecalculatedLimits = value;
+                OnChangeUsePrecalculatedLimits.Invoke(value);
                 if (value) Limits = Data.Limits;
                 else Limits = m_Limits;
             }
@@ -93,12 +94,11 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(data.TrialMatrix data , Texture2D colorMap, Vector2 limits = new Vector2())
+        public void Set(data.TrialMatrix data, Texture2D colormap, Vector2 limits = new Vector2())
         {
             Data = data;
 
             Title = data.Title;
-            ColorMap = colorMap;
             UsePrecalculatedLimits = limits == new Vector2();
 
             // Set Legends
@@ -108,7 +108,7 @@ namespace HBP.UI.TrialMatrix
             ClearBlocs();
             foreach (data.Bloc bloc in data.Blocs)
             {
-                AddBloc(bloc, colorMap, Limits, data.TimeLimitsByColumn);
+                AddBloc(bloc, colormap, Limits, data.TimeLimitsByColumn);
             }
         }
         #endregion

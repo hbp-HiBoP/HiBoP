@@ -17,36 +17,35 @@ namespace HBP.UI.Informations
                 if(m_Scene != null) m_Scene.OnRequestSiteInformation.RemoveListener(Display);
                 m_Scene = value;
                 m_Scene.OnRequestSiteInformation.AddListener(Display);
-                TrialMatrixZone.Scene = value;
-                GraphZone.Scene = value;
+                //m_TrialMatrixZone.Scene = value;
+                //m_GraphZone.Scene = value;
             }
         }
 
-        public GraphZone GraphZone;
-        public TrialMatrixZone TrialMatrixZone;
+        List<string> m_Channels = new List<string>();
+        public string[] Channels
+        {
+            get
+            {
+                return m_Channels.ToArray();
+            }
+            set
+            {
+                m_Channels = value.ToList();
+                // TODO
+            }
+        }
 
-        Site[] m_Sites;
+        [SerializeField] GraphZone m_GraphZone;
+        [SerializeField] TrialMatrixZone m_TrialMatrixZone;
         #endregion
 
         #region Public Methods
         public void Display(IEnumerable<Site> sites)
         {
-            Debug.Log("Display " + sites.First().Information.DisplayedName);
-            m_Sites = sites.ToArray();
-            TrialMatrixZone.Display(sites);
+            //m_ChannelsSites = sites.ToArray();
+            //m_TrialMatrixZone.Display(sites);
             //GraphZone.Display(sites);
-        }
-        #endregion
-
-        #region Private Methods
-        void OnMinimizeColumns()
-        {
-            //DisplayCurves();
-        }
-        void OnUpdateROI()
-        {
-            //GenerateCurves();
-            //DisplayCurves();
         }
         #endregion
     }

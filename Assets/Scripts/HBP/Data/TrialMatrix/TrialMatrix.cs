@@ -14,7 +14,8 @@ namespace HBP.Data.TrialMatrix
         public string Title { get; set; }
         public Bloc[] Blocs { get; set; }
         public Vector2 Limits { get; set; }
-        public Protocol Protocol { get; set; }
+        public DataInfo DataInfo { get; set; }
+        public string Channel { get; set; }
         public Dictionary<int,Window> TimeLimitsByColumn { get; set; }
         #endregion
 
@@ -35,7 +36,8 @@ namespace HBP.Data.TrialMatrix
             Title = "Site: " + channel + "   |   Patient: " + dataInfo.Patient.CompleteName + "   |   Protocol: " + protocol.Name + "   |   Data: " + dataInfo.Name;
             Blocs = blocs.ToArray();
             Limits = blocs.SelectMany(b => b.SubBlocs).SelectMany(s => s.SubTrials).SelectMany(v => v.Data.Values).ToArray().CalculateValueLimit();
-            Protocol = dataInfo.Dataset.Protocol;
+            DataInfo = dataInfo;
+            Channel = channel;
             TimeLimitsByColumn = CalculateTimeLimitsByColumn(blocs);
         }
         #endregion

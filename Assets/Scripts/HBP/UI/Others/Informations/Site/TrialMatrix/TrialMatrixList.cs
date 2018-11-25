@@ -3,56 +3,45 @@ using UnityEngine.UI;
 using UnityEngine.Events;
 using System.Linq;
 using System.Collections.Generic;
-using HBP.Data.Experience.Protocol;
+using System;
+using HBP.UI.Informations;
 
 namespace HBP.UI.TrialMatrix
 {
     public class TrialMatrixList : MonoBehaviour
     {
         #region Properties
-        [SerializeField] GameObject m_TrialMatrixPrefab;
+        public Data.TrialMatrix.Group[] TrialMatrixGroups { get; private set; }
+        public GenericEvent<Vector2, TrialMatrixZone.TrialMatrixType> OnLimitsChanged { get; set; }
+        public GenericEvent<bool, TrialMatrixZone.TrialMatrixType> OnAutoLimitsChanged { get; set; }
 
-        public List<TrialMatrix> TrialMatrix { get; set; }
-        public GenericEvent<Vector2, Protocol> OnChangeLimits = new GenericEvent<Vector2, Protocol>();
-        public GenericEvent<bool, Protocol> OnAutoLimits = new GenericEvent<bool, Protocol>();
+
         #endregion
 
         #region Public Methods
-        public void Set(Dictionary<Protocol, Informations.TrialMatrixZone.ProtocolInformation> informationByProtocol, Texture2D colorMap)
+        public void Set(IEnumerable<Data.TrialMatrix.Group> trialMatrixGroups)
         {
             Clear();
-            foreach (var protocolPair in informationByProtocol)
-            {
-                RectTransform lineRectTransform = new GameObject(protocolPair.Key.Name, new System.Type[] { typeof(RectTransform), typeof(HorizontalLayoutGroup) }).GetComponent<RectTransform>();
-                lineRectTransform.SetParent(transform);
-                foreach (var sitePair in protocolPair.Value.TrialMatrixByDataInfoBySite)
-                {
-                    Data.TrialMatrix.TrialMatrix dataTrialMatrix = sitePair.Value.Values.First();
-                    TrialMatrix trial = Instantiate(m_TrialMatrixPrefab, lineRectTransform).GetComponent<TrialMatrix>();
-                    TrialMatrix.Add(trial);
-                    if(protocolPair.Value.AutoLimits)
-                    {
-                        trial.Set(dataTrialMatrix, colorMap);
-                    }
-                    else
-                    {
-                        trial.Set(dataTrialMatrix, colorMap, protocolPair.Value.Limits);
-                    }
-                    trial.OnChangeUsePrecalculatedLimits.RemoveAllListeners();
-                    trial.OnChangeUsePrecalculatedLimits.AddListener((autoLimit) => OnAutoLimits.Invoke(autoLimit, dataTrialMatrix.Protocol));
-                    trial.OnChangeLimits.RemoveAllListeners();
-                    trial.OnChangeLimits.AddListener((limits) => OnChangeLimits.Invoke(limits, dataTrialMatrix.Protocol));
-                }
-            }
+            TrialMatrixGroups = trialMatrixGroups.ToArray();
+            foreach (var group in TrialMatrixGroups) AddGroup(group);
         }
-        public void Clear()
+        #endregion
+
+        #region Private Methods
+        void AddGroup(Data.TrialMatrix.Group group)
+        {
+            GameObject gameObject = new GameObject(group.Name, new Type[] { typeof(RectTransform), typeof(HorizontalLayoutGroup) });
+            RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
+            rectTransform.SetParent(transform);
+        }
+        void Clear()
         {
             int numberOfChildren = transform.childCount;
             for (int c = 0; c < numberOfChildren; c++)
             {
                 Destroy(transform.GetChild(c).gameObject);
             }
-            TrialMatrix = new List<TrialMatrix>();
+            TrialMatrixGroups = new Data.TrialMatrix.Group[0];
         }
         #endregion
     }

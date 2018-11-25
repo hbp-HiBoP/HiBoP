@@ -30,7 +30,8 @@ namespace HBP.UI.Informations
         {
             get
             {
-                return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MinimumWidth;
+                return false;
+                //return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MinimumWidth;
             }
         }
 

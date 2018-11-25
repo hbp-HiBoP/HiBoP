@@ -34,8 +34,8 @@ namespace HBP.Data.Preferences
         #region Constructors
         public EEGPrefrences()
         {
-            Averaging = Enums.AveragingType.Median;
-            Normalization = Enums.NormalizationType.None;
+            Averaging = AveragingType.Median;
+            Normalization =  NormalizationType.None;
         }
         #endregion
     }
