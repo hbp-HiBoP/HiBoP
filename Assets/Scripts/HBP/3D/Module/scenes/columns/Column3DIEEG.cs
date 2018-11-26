@@ -128,7 +128,7 @@ namespace HBP.Module3D
             foreach (Site site in Sites)
             {
                 Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics;
-                if (ColumnIEEGData.Data.StatisticsByChannel.TryGetValue(site.Information.FullCorrectedID, out blocChannelStatistics))
+                if (ColumnIEEGData.Data.StatisticsByChannel.TryGetValue(site.Information.ChannelName, out blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
                     float[] values = blocChannelStatistics.Trial.AllValues;
@@ -143,7 +143,7 @@ namespace HBP.Module3D
                         IEEGValuesBySiteID[site.Information.GlobalID] = new float[Timeline.Length];
                         site.State.IsMasked = true; // update mask
                     }
-                    IEEGUnitsBySiteID[site.Information.GlobalID] = DataManager.GetData(ColumnIEEGData.Dataset.Data.FirstOrDefault((data) => (ColumnIEEGData.DataName == data.Name && data.Patient == site.Information.Patient))).UnitByChannel[site.Information.FullCorrectedID];
+                    IEEGUnitsBySiteID[site.Information.GlobalID] = DataManager.GetData(ColumnIEEGData.Dataset.Data.FirstOrDefault((data) => (ColumnIEEGData.DataName == data.Name && data.Patient == site.Information.Patient))).UnitByChannel[site.Information.ChannelName];
                 }
                 else
                 {
@@ -152,7 +152,7 @@ namespace HBP.Module3D
                     site.State.IsMasked = true; // update mask
                 }
                 Data.Experience.Dataset.BlocChannelData blocChannelData;
-                if (ColumnIEEGData.Data.DataByChannel.TryGetValue(site.Information.FullCorrectedID, out blocChannelData))
+                if (ColumnIEEGData.Data.DataByChannel.TryGetValue(site.Information.ChannelName, out blocChannelData))
                 {
                     site.Data = blocChannelData;
                 }

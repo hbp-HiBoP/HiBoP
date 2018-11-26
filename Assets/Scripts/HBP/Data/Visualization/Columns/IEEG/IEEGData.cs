@@ -27,9 +27,9 @@ namespace HBP.Data.Visualization
                 // Values
                 foreach (var channel in data.UnitByChannel.Keys)
                 {
-                    if (!DataByChannel.ContainsKey(dataInfo.Patient.ID + "_" + channel)) DataByChannel.Add(dataInfo.Patient.ID + "_" + channel, DataManager.GetData(dataInfo, bloc, channel));
-                    if (!StatisticsByChannel.ContainsKey(dataInfo.Patient.ID + "_" + channel)) StatisticsByChannel.Add(dataInfo.Patient.ID + "_" + channel, DataManager.GetStatistics(dataInfo, bloc, channel));
-                    if (!m_FrequencyByChannel.ContainsKey(dataInfo.Patient.ID + "_" + channel)) m_FrequencyByChannel.Add(dataInfo.Patient.ID + "_" + channel, data.Frequency);
+                    if (!DataByChannel.ContainsKey(channel)) DataByChannel.Add(channel, DataManager.GetData(dataInfo, bloc, channel));
+                    if (!StatisticsByChannel.ContainsKey(channel)) StatisticsByChannel.Add(channel, DataManager.GetStatistics(dataInfo, bloc, channel));
+                    if (!m_FrequencyByChannel.ContainsKey(channel)) m_FrequencyByChannel.Add(channel, data.Frequency);
                     if (!Frequencies.Contains(data.Frequency)) Frequencies.Add(data.Frequency);
                 }
                 // Events
