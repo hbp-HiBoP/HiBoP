@@ -21,12 +21,12 @@
     },
     "Protocol": {
       "PositionAveraging": 1,
-      "MinLimit": -1500.0,
-      "MaxLimit": 3500.0,
+      "MinLimit": -10000.0,
+      "MaxLimit": 10000.0,
       "Step": 100
     },
     "Anatomic": {
-      "SiteNameCorrection": true,
+      "SiteNameCorrection": false,
       "MeshPreloading": true,
       "MRIPreloading": true,
       "ImplantationPreloading": true

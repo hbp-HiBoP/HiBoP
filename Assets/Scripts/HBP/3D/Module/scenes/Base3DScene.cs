@@ -2310,7 +2310,15 @@ namespace HBP.Module3D
         private IEnumerator c_LoadColumns(Action<Exception> outPut)
         {
             yield return Ninja.JumpToUnity;
-            m_ColumnManager.InitializeColumns(Visualization.Columns);
+            try
+            {
+                m_ColumnManager.InitializeColumns(Visualization.Columns);
+            }
+            catch (Exception e)
+            {
+                outPut(e);
+                yield break;
+            }
             yield return Ninja.JumpBack;
 
             try
