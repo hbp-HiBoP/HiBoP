@@ -186,9 +186,6 @@ namespace HBP.Data.Visualization
             GlobalMinIndex = startIndex;
             Length = frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End) - frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start) + 1;
             GlobalMaxIndex = startIndex + Length - 1;
-            MinTime = subBloc.Window.Start;
-            MaxTime = subBloc.Window.End;
-            TimeStep = (MaxTime - MinTime) / (Length - 1);
 
             // Events
             StatisticsByEvent = new Dictionary<Experience.Protocol.Event, EventStatistics>();
@@ -196,6 +193,12 @@ namespace HBP.Data.Visualization
             {
                 StatisticsByEvent.Add(e, EventStatistics.Average(eventStatistics.Select(es => es.StatisticsByEvent[e])));
             }
+
+            // Time
+            int mainEventIndex = StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart;
+            MinTime = frequency.ConvertNumberOfSamplesToMilliseconds(-mainEventIndex);
+            MaxTime = frequency.ConvertNumberOfSamplesToMilliseconds(Length - 1 - mainEventIndex);
+            TimeStep = (MaxTime - MinTime) / (Length - 1);
         }
         #endregion
 

@@ -26,7 +26,7 @@
       "Step": 100
     },
     "Anatomic": {
-      "SiteNameCorrection": false,
+      "SiteNameCorrection": true,
       "MeshPreloading": true,
       "MRIPreloading": true,
       "ImplantationPreloading": true
