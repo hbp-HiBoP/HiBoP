@@ -127,11 +127,9 @@ namespace HBP.Module3D
             int numberOfSitesWithValues = 0;
             foreach (Site site in Sites)
             {
-                Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics;
-                if (ColumnIEEGData.Data.StatisticsByChannel.TryGetValue(site.Information.ChannelName, out blocChannelStatistics))
+                float[] values;
+                if (ColumnIEEGData.Data.ProcessedValuesByChannel.TryGetValue(site.Information.ChannelName, out values))
                 {
-                    site.Statistics = blocChannelStatistics;
-                    float[] values = blocChannelStatistics.Trial.AllValues;
                     if (values.Length > 0)
                     {
                         numberOfSitesWithValues++;
@@ -155,6 +153,11 @@ namespace HBP.Module3D
                 if (ColumnIEEGData.Data.DataByChannel.TryGetValue(site.Information.ChannelName, out blocChannelData))
                 {
                     site.Data = blocChannelData;
+                }
+                Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics;
+                if (ColumnIEEGData.Data.StatisticsByChannel.TryGetValue(site.Information.ChannelName, out blocChannelStatistics))
+                {
+                    site.Statistics = blocChannelStatistics;
                 }
             }
             if (numberOfSitesWithValues == 0)

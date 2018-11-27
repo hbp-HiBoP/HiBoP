@@ -176,7 +176,7 @@ namespace HBP.Data.Visualization
         /// </summary>
         public float TimeStep { get; set; }
 
-        public Dictionary<Data.Experience.Protocol.Event, EventStatistics> StatisticsByEvent { get; set; }
+        public Dictionary<Experience.Protocol.Event, EventStatistics> StatisticsByEvent { get; set; }
         #endregion
 
         #region Constructors

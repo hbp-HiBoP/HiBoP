@@ -2,6 +2,7 @@
 using HBP.Data.Localizer;
 using System.Collections.Generic;
 using System.Linq;
+using Tools.CSharp;
 
 namespace HBP.Data.Visualization
 {
@@ -13,6 +14,7 @@ namespace HBP.Data.Visualization
         public Dictionary<Patient, BlocEventsStatistics> EventStatisticsByPatient { get; set; } = new Dictionary<Patient, BlocEventsStatistics>();
         public Dictionary<string, BlocChannelData> DataByChannel { get; set; } = new Dictionary<string, BlocChannelData>();
         public Dictionary<string, BlocChannelStatistics> StatisticsByChannel { get; set; } = new Dictionary<string, BlocChannelStatistics>();
+        public Dictionary<string, float[]> ProcessedValuesByChannel { get; set; } = new Dictionary<string, float[]>();
         
         private Dictionary<string, Frequency> m_FrequencyByChannel = new Dictionary<string, Frequency>();
         public List<Frequency> Frequencies = new List<Frequency>();
@@ -43,6 +45,7 @@ namespace HBP.Data.Visualization
             StatisticsByChannel.Clear();
             m_FrequencyByChannel.Clear();
             Frequencies.Clear();
+            ProcessedValuesByChannel.Clear();
             IconicScenario = null;
             Timeline = null;
         }
@@ -64,6 +67,31 @@ namespace HBP.Data.Visualization
             }
             Timeline = new Timeline(bloc, eventStatisticsBySubBloc, maxFrequency);
             IconicScenario = new IconicScenario(bloc, maxFrequency, Timeline);
+
+            if (Frequencies.Count > 1)
+            {
+                foreach (var channel in DataByChannel.Keys)
+                {
+                    List<float> values = new List<float>();
+                    Frequency frequency = m_FrequencyByChannel[channel];
+                    BlocChannelStatistics statistics = StatisticsByChannel[channel];
+                    foreach (var subBloc in bloc.SubBlocs.OrderBy(sb => sb.Order).ThenBy(sb => sb.Name))
+                    {
+                        float[] subBlocValues = statistics.Trial.ChannelSubTrialBySubBloc[subBloc].Values;
+                        SubTimeline subTimeline = Timeline.SubTimelinesBySubBloc[subBloc];
+                        // TODO : find number of values before and after for a better interpolation
+                        values.AddRange(subBlocValues.Interpolate(subTimeline.Length, 0, 0));
+                    }
+                    ProcessedValuesByChannel.Add(channel, values.ToArray());
+                }
+            }
+            else
+            {
+                foreach (var channel in DataByChannel.Keys)
+                {
+                    ProcessedValuesByChannel.Add(channel, StatisticsByChannel[channel].Trial.AllValues);
+                }
+            }
 
             //// Resampling taking frequencies into account
             //if (Frequencies.Count > 1)

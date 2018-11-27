@@ -502,11 +502,7 @@ namespace HBP.Data.Visualization
             // TEMP
             if (columnsLength > 0)
             {
-                if (columns.Any(c => c.Data.Frequencies.Count != 1) || columns.Any(c => c.Data.Frequencies.Any(f => f.Value != maxFrequency.Value)))
-                {
-                    exception = new FrequencyException();
-                }
-                else if (columns.Any(c => c.Data.Timeline.Length != columns.FirstOrDefault().Data.Timeline.Length))
+                if (columns.Any(c => c.Data.Timeline.Length != columns.FirstOrDefault().Data.Timeline.Length))
                 {
                     string information = "";
                     foreach (var column in columns)
