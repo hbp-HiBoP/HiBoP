@@ -81,26 +81,10 @@ namespace Tools.CSharp
         }
         public static float[] Interpolate(this float[] values, int size, int before, int after)
         {
-            if (size == values.Length || values.Length == 0) return values;
-
-            int length = values.Length;
+            if (size == values.Length || values.Length == 0) return values.Clone() as float[];
+            
             float[] newValues = new float[size];
-            for (int i = 0; i < before; ++i)
-            {
-                newValues[i] = values[0];
-            }
-            for (int i = before; i < size - after; ++i)
-            {
-                float floatIndex = ((float)(i - before) / (size - after - 1)) * (length - 1);
-                int lowIndex = Mathf.FloorToInt(floatIndex);
-                int highIndex = Mathf.CeilToInt(floatIndex);
-                float percentage = highIndex - floatIndex;
-                newValues[i] = percentage * values[lowIndex] + (1 - percentage) * values[highIndex];
-            }
-            for (int i = size - after; i < size; ++i)
-            {
-                newValues[i] = values[length - 1];
-            }
+            Interpolate(values, values.Length, newValues, size, before, after);
             return newValues;
         }
 
@@ -123,6 +107,8 @@ namespace Tools.CSharp
         private static extern float LerpDLL(float value1, float value2, float percentage);
         [DllImport("HBP_Compute", EntryPoint = "LinearSmooth", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void LinearSmooth(float[] values, int length, int smoothFactor, float[] newValues);
+        [DllImport("HBP_Compute", EntryPoint = "Interpolate", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern void Interpolate(float[] values, int length, float[] newValues, int newLength, int before, int after);
         #endregion
     }
 }
