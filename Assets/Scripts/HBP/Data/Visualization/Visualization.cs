@@ -486,7 +486,7 @@ namespace HBP.Data.Visualization
                 progress += progressStep;
                 onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading timeline of column ", column.Name, " [" + (i + 1).ToString() + "/" + Columns.Count + "]"));
                 yield return Ninja.JumpBack;
-                column.Data.SetTimeline(maxFrequency, column.Bloc);
+                column.Data.SetTimeline(maxFrequency, column.Bloc, columns.Select(c => c.Bloc).Distinct());
                 yield return Ninja.JumpToUnity;
                 try
                 {
@@ -500,18 +500,18 @@ namespace HBP.Data.Visualization
                 }
             }
             // TEMP
-            if (columnsLength > 0)
-            {
-                if (columns.Any(c => c.Data.Timeline.Length != columns.FirstOrDefault().Data.Timeline.Length))
-                {
-                    string information = "";
-                    foreach (var column in columns)
-                    {
-                        information += string.Format("\n{0} ({1}{2})", column.Name, column.Data.Timeline.TimeLength, column.Data.Timeline.Unit);
-                    }
-                    exception = new TimelineException(information);
-                }
-            }
+            //if (columnsLength > 0)
+            //{
+            //    if (columns.Any(c => c.Data.Timeline.Length != columns.FirstOrDefault().Data.Timeline.Length))
+            //    {
+            //        string information = "";
+            //        foreach (var column in columns)
+            //        {
+            //            information += string.Format("\n{0} ({1}{2})", column.Name, column.Data.Timeline.TimeLength, column.Data.Timeline.Unit);
+            //        }
+            //        exception = new TimelineException(information);
+            //    }
+            //}
             outPut(progress, exception);
         }
         IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)

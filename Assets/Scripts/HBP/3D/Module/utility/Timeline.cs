@@ -60,7 +60,7 @@ namespace HBP.Data.Visualization
         {
             get
             {
-                return SubTimelinesBySubBloc.FirstOrDefault(s => s.Value.GlobalMinIndex <= m_CurrentIndex && s.Value.GlobalMaxIndex >= m_CurrentIndex).Value;
+                return SubTimelinesBySubBloc.FirstOrDefault(s => s.Value.GlobalMinIndex - s.Value.Before <= m_CurrentIndex && s.Value.GlobalMaxIndex + s.Value.After >= m_CurrentIndex).Value;
             }
         }
 
@@ -103,18 +103,21 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Frequency frequency)
+        public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Frequency frequency)
         {
             Unit = "ms";
             int startIndex = 0;
             SubTimelinesBySubBloc = new Dictionary<SubBloc, SubTimeline>(bloc.SubBlocs.Count);
             foreach (var subBloc in bloc.SubBlocs.OrderBy(sb => sb.Order).ThenBy(sb => sb.Name))
             {
-                SubTimeline subTimeline = new SubTimeline(subBloc, startIndex, eventStatisticsBySubBloc[subBloc], frequency);
-                startIndex += subTimeline.Length;
+                IEnumerable<SubBloc> subBlocs = indexBySubBloc.Where(kv => kv.Value == indexBySubBloc[subBloc]).Select(kv => kv.Key);
+                int before = subBlocs.Max(s => -frequency.ConvertToCeiledNumberOfSamples(s.Window.Start));
+                int after = subBlocs.Max(s => frequency.ConvertToFlooredNumberOfSamples(s.Window.End));
+                SubTimeline subTimeline = new SubTimeline(subBloc, startIndex, eventStatisticsBySubBloc[subBloc], before, after, frequency);
+                startIndex += subTimeline.Length + subTimeline.Before + subTimeline.After;
                 SubTimelinesBySubBloc.Add(subBloc, subTimeline);
             }
-            Length = SubTimelinesBySubBloc.Sum(s => s.Value.Length);
+            Length = SubTimelinesBySubBloc.Sum(s => s.Value.Length + s.Value.Before + s.Value.After);
             TimeLength = SubTimelinesBySubBloc.Sum(s => s.Value.TimeLength);
         }
         #endregion
@@ -150,7 +153,15 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Length of the subtimeline
         /// </summary>
-        public int Length { get; set; }
+        public int Length { get; private set; }
+        /// <summary>
+        /// Number of samples before this subtimeline
+        /// </summary>
+        public int Before { get; private set; }
+        /// <summary>
+        /// Number of samples after this subtimeline
+        /// </summary>
+        public int After { get; private set; }
         /// <summary>
         /// Length of the timeline in unit of time
         /// </summary>
@@ -180,19 +191,21 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Constructors
-        public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, Frequency frequency)
+        public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Frequency frequency)
         {
-            // Indexes
-            GlobalMinIndex = startIndex;
-            Length = frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End) - frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start) + 1;
-            GlobalMaxIndex = startIndex + Length - 1;
-
             // Events
             StatisticsByEvent = new Dictionary<Experience.Protocol.Event, EventStatistics>();
             foreach (var e in subBloc.Events)
             {
                 StatisticsByEvent.Add(e, EventStatistics.Average(eventStatistics.Select(es => es.StatisticsByEvent[e])));
             }
+
+            // Indexes
+            Before = maxBefore - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart;
+            GlobalMinIndex = Before + startIndex;
+            Length = frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End) - frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start) + 1;
+            GlobalMaxIndex = Before + startIndex + Length - 1;
+            After = maxAfter - (Length - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart);
 
             // Time
             int mainEventIndex = StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart;

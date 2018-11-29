@@ -49,12 +49,26 @@ namespace HBP.Data.Visualization
             IconicScenario = null;
             Timeline = null;
         }
-        public void SetTimeline(Frequency maxFrequency, Experience.Protocol.Bloc bloc)
+        public void SetTimeline(Frequency maxFrequency, Experience.Protocol.Bloc columnBloc, IEnumerable<Experience.Protocol.Bloc> blocs)
         {
+            // Process frequencies
             Frequencies.Add(maxFrequency);
             Frequencies = Frequencies.GroupBy(f => f.Value).Select(g => g.First()).ToList();
+
+            // Get index of each subBloc
+            Dictionary<Experience.Protocol.SubBloc, int> indexBySubBloc = new Dictionary<Experience.Protocol.SubBloc, int>();
+            foreach (var bloc in blocs)
+            {
+                int mainSubBlocPosition = bloc.MainSubBlocPosition;
+                for (int i = 0; i < bloc.SubBlocs.Count; ++i)
+                {
+                    indexBySubBloc.Add(bloc.SubBlocs[i], i - mainSubBlocPosition);
+                }
+            }
+
+            // Get all eventStatistics for each SubBloc of the column
             Dictionary<Experience.Protocol.SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc = new Dictionary<Experience.Protocol.SubBloc, List<SubBlocEventsStatistics>>();
-            foreach (var subBloc in bloc.SubBlocs)
+            foreach (var subBloc in columnBloc.SubBlocs)
             {
                 eventStatisticsBySubBloc.Add(subBloc, new List<SubBlocEventsStatistics>());
             }
@@ -65,50 +79,27 @@ namespace HBP.Data.Visualization
                     eventStatisticsBySubBloc[subBlocEventStatistics.Key].Add(subBlocEventStatistics.Value);
                 }
             }
-            Timeline = new Timeline(bloc, eventStatisticsBySubBloc, maxFrequency);
-            IconicScenario = new IconicScenario(bloc, maxFrequency, Timeline);
 
-            if (Frequencies.Count > 1)
-            {
-                foreach (var channel in DataByChannel.Keys)
-                {
-                    List<float> values = new List<float>();
-                    Frequency frequency = m_FrequencyByChannel[channel];
-                    BlocChannelStatistics statistics = StatisticsByChannel[channel];
-                    foreach (var subBloc in bloc.SubBlocs.OrderBy(sb => sb.Order).ThenBy(sb => sb.Name))
-                    {
-                        float[] subBlocValues = statistics.Trial.ChannelSubTrialBySubBloc[subBloc].Values;
-                        SubTimeline subTimeline = Timeline.SubTimelinesBySubBloc[subBloc];
-                        // TODO : find number of values before and after for a better interpolation
-                        values.AddRange(subBlocValues.Interpolate(subTimeline.Length, 0, 0));
-                    }
-                    ProcessedValuesByChannel.Add(channel, values.ToArray());
-                }
-            }
-            else
-            {
-                foreach (var channel in DataByChannel.Keys)
-                {
-                    ProcessedValuesByChannel.Add(channel, StatisticsByChannel[channel].Trial.AllValues);
-                }
-            }
+            // Create timeline and iconic scenario
+            Timeline = new Timeline(columnBloc, eventStatisticsBySubBloc, indexBySubBloc, maxFrequency);
+            IconicScenario = new IconicScenario(columnBloc, maxFrequency, Timeline);
 
-            //// Resampling taking frequencies into account
-            //if (Frequencies.Count > 1)
-            //{
-            //    //int maxSize = (from siteConfiguration in Configuration.ConfigurationBySite.Values select siteConfiguration.Values).Max(v => v.Length);
-            //    foreach (var siteConfiguration in Configuration.ConfigurationBySite.Values)
-            //    {
-            //        int frequency;
-            //        if (m_FrequencyBySiteConfiguration.TryGetValue(siteConfiguration, out frequency))
-            //        {
-            //            Timeline timeline = TimeLineByFrequency[frequency];
-            //            int samplesBefore = (int)((timeline.Start.RawValue - TimeLine.Start.RawValue) / TimeLine.Step);
-            //            int samplesAfter = (int)((TimeLine.End.RawValue - timeline.End.RawValue) / TimeLine.Step);
-            //            siteConfiguration.ResizeValues(TimeLine.Lenght, samplesBefore, samplesAfter);
-            //        }
-            //    }
-            //}
+            // Standardize values
+            foreach (var channel in DataByChannel.Keys)
+            {
+                List<float> values = new List<float>();
+                Frequency frequency = m_FrequencyByChannel[channel];
+                BlocChannelStatistics statistics = StatisticsByChannel[channel];
+                foreach (var subBloc in columnBloc.SubBlocs.OrderBy(sb => sb.Order).ThenBy(sb => sb.Name))
+                {
+                    float[] subBlocValues = statistics.Trial.ChannelSubTrialBySubBloc[subBloc].Values;
+                    SubTimeline subTimeline = Timeline.SubTimelinesBySubBloc[subBloc];
+                    if (subTimeline.Before > 0) values.AddRange(Enumerable.Repeat(subBlocValues[0], subTimeline.Before));
+                    values.AddRange(subBlocValues.Interpolate(subTimeline.Length, 0, 0));
+                    if (subTimeline.After > 0) values.AddRange(Enumerable.Repeat(subBlocValues[subBlocValues.Length - 1], subTimeline.After));
+                }
+                ProcessedValuesByChannel.Add(channel, values.ToArray());
+            }
         }
         /// <summary>
         /// Standardize column.

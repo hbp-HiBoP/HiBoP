@@ -14,6 +14,9 @@ namespace HBP.UI.Module3D.Tools
         [SerializeField] private Text m_MaxText;
         [SerializeField] private Text m_Current;
         [SerializeField] private RectTransform m_Events;
+        [SerializeField] private RectTransform m_Before;
+        [SerializeField] private RectTransform m_During;
+        [SerializeField] private RectTransform m_After;
         private Data.Visualization.Timeline m_Timeline;
         private Data.Visualization.SubTimeline m_SubTimeline;
         private Column3DIEEG m_Column;
@@ -30,7 +33,9 @@ namespace HBP.UI.Module3D.Tools
             m_MinText.text = subTimeline.MinTime.ToString("N2") + timeline.Unit;
             m_MaxText.text = subTimeline.MaxTime.ToString("N2") + timeline.Unit;
             UpdateCurrentTime();
-            GetComponent<LayoutElement>().flexibleWidth = (float)subTimeline.Length / timeline.Length;
+            m_Before.GetComponent<LayoutElement>().flexibleWidth = (float)subTimeline.Before / timeline.Length;
+            m_During.GetComponent<LayoutElement>().flexibleWidth = (float)subTimeline.Length / timeline.Length;
+            m_After.GetComponent<LayoutElement>().flexibleWidth = (float)subTimeline.After / timeline.Length;
             ShowEvents();
         }
         public void UpdateCurrentTime()
