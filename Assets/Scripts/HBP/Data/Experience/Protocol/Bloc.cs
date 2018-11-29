@@ -86,7 +86,7 @@ namespace HBP.Data.Experience.Protocol
         {
             get
             {
-                return SubBlocs.OrderBy(s => s.Order).ThenBy(s => s.Order);
+                return SubBlocs.OrderBy(s => s.Order).ThenBy(s => s.Name);
             }
         }
         public int MainSubBlocPosition
