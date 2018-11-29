@@ -718,7 +718,7 @@ namespace HBP.Data.General
 
                 try
                 {
-                    ClassLoaderSaver.SaveToJSon(protocol, protocolDirectory.FullName + Path.DirectorySeparatorChar + protocol.Name + "." + Protocol.EXTENSION);
+                    ClassLoaderSaver.SaveToJSon(protocol, protocolDirectory.FullName + Path.DirectorySeparatorChar + protocol.Name + Protocol.EXTENSION);
                 }
                 catch
                 {

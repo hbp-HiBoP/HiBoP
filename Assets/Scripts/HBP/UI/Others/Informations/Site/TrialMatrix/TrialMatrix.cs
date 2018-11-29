@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using UnityEngine.Events;
 using data = HBP.Data.TrialMatrix;
+using System;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -100,9 +101,10 @@ namespace HBP.UI.TrialMatrix
 
             Title = data.Title;
             UsePrecalculatedLimits = limits == new Vector2();
+            ColorMap = colormap;
 
             // Set Legends
-            OnChangeTimeLimits.Invoke(data.TimeLimitsByColumn.Values.ToArray());
+            OnChangeTimeLimits.Invoke(data.TimeLimitsByColumn.Select(tuple => tuple.Item2).ToArray());
 
             //Generate Bloc.
             ClearBlocs();
@@ -114,7 +116,7 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Private Methods
-        void AddBloc(data.Bloc data, Texture2D colorMap, Vector2 limits, Dictionary<int,Tools.CSharp.Window> timeLimitsByColumn)
+        void AddBloc(data.Bloc data, Texture2D colorMap, Vector2 limits, IEnumerable<Tuple<int,Tools.CSharp.Window>> timeLimitsByColumn)
         {
             Bloc bloc = Instantiate(m_BlocPrefab, m_BlocContainer).GetComponent<Bloc>();
             bloc.Set(data, colorMap, limits, timeLimitsByColumn);

@@ -7,6 +7,7 @@ using System.Linq;
 using UnityEngine.UI;
 using Tools.Unity;
 using UnityEngine.EventSystems;
+using System;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -48,7 +49,7 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(data.Bloc bloc, Texture2D colorMap, Vector2 limits, Dictionary<int,Tools.CSharp.Window> timeLimitsByColumn)
+        public void Set(data.Bloc bloc, Texture2D colorMap, Vector2 limits, IEnumerable<Tuple<int,Tools.CSharp.Window>> timeLimitsByColumn)
         {
             Data = bloc;
             Title = bloc.ProtocolBloc.Name;
@@ -57,16 +58,17 @@ namespace HBP.UI.TrialMatrix
             Clear();
             IOrderedEnumerable<Data.Experience.Protocol.SubBloc> orderedSubBlocs = bloc.ProtocolBloc.OrderedSubBlocs;
             int mainSubBlocIndex = bloc.ProtocolBloc.MainSubBlocPosition;
-            foreach (var pair in timeLimitsByColumn)
+
+            foreach (var tuple in timeLimitsByColumn)
             {
-                int index = pair.Key + mainSubBlocIndex;
-                if(index >= 0 && index < orderedSubBlocs.Count())
+                int index = tuple.Item1 + mainSubBlocIndex;
+                if (index >= 0 && index < orderedSubBlocs.Count())
                 {
-                    AddSubBloc(bloc.SubBlocs[index], colorMap, limits, pair.Value);
+                    AddSubBloc(bloc.SubBlocs[index], colorMap, limits, tuple.Item2);
                 }
                 else
                 {
-                    AddFiller(pair.Value);
+                    AddFiller(tuple.Item2);
                 }
             }
 
@@ -204,7 +206,7 @@ namespace HBP.UI.TrialMatrix
             filler.transform.SetParent(m_SubBlocContainer);
             Image image = filler.AddComponent<Image>();
             image.sprite = null;
-            image.color = Color.black;
+            image.color = new Color(40.0f/255,40f/255,40f/255);
             filler.AddComponent<LayoutElement>().flexibleWidth = window.End - window.Start;
             m_Fillers.Add(filler);
         }

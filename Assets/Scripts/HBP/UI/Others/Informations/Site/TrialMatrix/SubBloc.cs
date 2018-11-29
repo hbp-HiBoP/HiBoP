@@ -18,7 +18,7 @@ namespace HBP.UI.TrialMatrix
             }
             set
             {
-                m_Data = Data;
+                m_Data = value;
                 SetTexture();
                 SetFillers();
             }
@@ -53,6 +53,7 @@ namespace HBP.UI.TrialMatrix
         [SerializeField] LayoutElement m_MainTextureLayoutElement;
         [SerializeField] LayoutElement m_LeftFillerLayoutElement;
         [SerializeField] LayoutElement m_RightFillerLayoutElement;
+        [SerializeField] RectTransform m_EventContainer;
         LayoutElement m_LayoutElement;
         #endregion
 
@@ -164,7 +165,7 @@ namespace HBP.UI.TrialMatrix
                     foreach (var occurence in eventInformation.Occurences)
                     {
                         GameObject eventGameObject = new GameObject(_event.Name + " - " + i);
-                        eventGameObject.transform.SetParent(transform.GetChild(0));
+                        eventGameObject.transform.SetParent(m_EventContainer);
                         eventGameObject.AddComponent<Image>().color = Color.black;
 
                         float x = (float)(occurence.IndexFromStart + subBloc.SpacesBefore) / (subBloc.SubTrials[i].Data.Values.Length + subBloc.SpacesBefore + subBloc.SpacesAfter);
