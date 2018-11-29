@@ -79,6 +79,14 @@ namespace Tools.CSharp
             LinearSmooth(values, values.Length, smoothFactor, newValues);
             return newValues;
         }
+        public static float[] Interpolate(this float[] values, int size, int before, int after)
+        {
+            if (size == values.Length || values.Length == 0) return values.Clone() as float[];
+            
+            float[] newValues = new float[size];
+            Interpolate(values, values.Length, newValues, size, before, after);
+            return newValues;
+        }
 
         #region DLL
         [DllImport("HBP_Compute", EntryPoint = "MeanFloat", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
@@ -99,6 +107,8 @@ namespace Tools.CSharp
         private static extern float LerpDLL(float value1, float value2, float percentage);
         [DllImport("HBP_Compute", EntryPoint = "LinearSmooth", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void LinearSmooth(float[] values, int length, int smoothFactor, float[] newValues);
+        [DllImport("HBP_Compute", EntryPoint = "Interpolate", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern void Interpolate(float[] values, int length, float[] newValues, int newLength, int before, int after);
         #endregion
     }
 }

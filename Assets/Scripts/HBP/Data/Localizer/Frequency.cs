@@ -56,17 +56,21 @@ namespace HBP.Data.Localizer
         {
             return ConvertNumberOfSamplesToSeconds((float)numberOfSamples);
         }
-        public int ConvertNumberOfSamplesToMilliseconds(int numberOfSamples)
+        public int ConvertNumberOfSamplesToRoundedMilliseconds(int numberOfSamples)
         {
-            return ConvertNumberOfSamplesToMilliseconds((float)numberOfSamples);
+            return ConvertNumberOfSamplesToRoundedMilliseconds((float)numberOfSamples);
         }
         public float ConvertNumberOfSamplesToSeconds(float numberOfSamples)
         {
             return numberOfSamples / Value;
         }
-        public int ConvertNumberOfSamplesToMilliseconds(float numberOfSamples)
+        public float ConvertNumberOfSamplesToMilliseconds(float numberOfSamples)
         {
-            return Mathf.RoundToInt(1000 * ConvertToNumberOfSamples(numberOfSamples));
+            return 1000 * ConvertNumberOfSamplesToSeconds(numberOfSamples);
+        }
+        public int ConvertNumberOfSamplesToRoundedMilliseconds(float numberOfSamples)
+        {
+            return Mathf.RoundToInt(ConvertNumberOfSamplesToMilliseconds(numberOfSamples));
         }
         #endregion
     }

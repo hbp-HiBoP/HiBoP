@@ -34,7 +34,7 @@ namespace HBP.Data.Localizer
                     if (ReadLine(line, out code, out index, out state))
                     {
                         if (!occurencesByCode.ContainsKey(code)) occurencesByCode[code] = new List<Occurence>();
-                        occurencesByCode[code].Add(new Occurence(code, index, state, frequency.ConvertNumberOfSamplesToMilliseconds(index)));
+                        occurencesByCode[code].Add(new Occurence(code, index, state, frequency.ConvertNumberOfSamplesToRoundedMilliseconds(index)));
                     }
                 }
             }
@@ -45,7 +45,7 @@ namespace HBP.Data.Localizer
                     if (ReadBIDSLine(line, frequency, out code, out index, out state))
                     {
                         if (!occurencesByCode.ContainsKey(code)) occurencesByCode[code] = new List<Occurence>();
-                        occurencesByCode[code].Add(new Occurence(code, index, state, frequency.ConvertNumberOfSamplesToMilliseconds(index)));
+                        occurencesByCode[code].Add(new Occurence(code, index, state, frequency.ConvertNumberOfSamplesToRoundedMilliseconds(index)));
                     }
                 }
             }
