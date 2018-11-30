@@ -123,7 +123,15 @@ namespace HBP.Data.Visualization
             int firstSubBlocIndex = indexBySubBloc[firstSubBloc];
             while (indexBySubBloc.ContainsValue(--firstSubBlocIndex))
             {
-                SubTimelinesBySubBloc[firstSubBloc].Before += indexBySubBloc.Where(kv => kv.Value == firstSubBlocIndex).Max(kv => frequency.ConvertToFlooredNumberOfSamples(kv.Key.Window.End) - frequency.ConvertToCeiledNumberOfSamples(kv.Key.Window.Start));
+                int before = indexBySubBloc.Where(kv => kv.Value == firstSubBlocIndex).Max(kv => frequency.ConvertToFlooredNumberOfSamples(kv.Key.Window.End) - frequency.ConvertToCeiledNumberOfSamples(kv.Key.Window.Start)) + 1;
+                SubTimelinesBySubBloc[firstSubBloc].Before += before;
+                foreach (var subBloc in bloc.SubBlocs)
+                {
+                    if (subBloc != firstSubBloc)
+                    {
+                        SubTimelinesBySubBloc[subBloc].Move(before);
+                    }
+                }
             }
 
             // Change After of last SubTimeline
@@ -131,7 +139,7 @@ namespace HBP.Data.Visualization
             int lastSubBlocIndex = indexBySubBloc[lastSubBloc];
             while (indexBySubBloc.ContainsValue(++lastSubBlocIndex))
             {
-                SubTimelinesBySubBloc[lastSubBloc].After += indexBySubBloc.Where(kv => kv.Value == lastSubBlocIndex).Max(kv => frequency.ConvertToFlooredNumberOfSamples(kv.Key.Window.End) - frequency.ConvertToCeiledNumberOfSamples(kv.Key.Window.Start));
+                SubTimelinesBySubBloc[lastSubBloc].After += indexBySubBloc.Where(kv => kv.Value == lastSubBlocIndex).Max(kv => frequency.ConvertToFlooredNumberOfSamples(kv.Key.Window.End) - frequency.ConvertToCeiledNumberOfSamples(kv.Key.Window.Start)) + 1;
             }
 
             Length = SubTimelinesBySubBloc.Sum(s => s.Value.Length + s.Value.Before + s.Value.After);
@@ -183,14 +191,31 @@ namespace HBP.Data.Visualization
         /// Length of the timeline in unit of time
         /// </summary>
         public float TimeLength { get { return MaxTime - MinTime; } }
+
+        private int m_GlobalMinIndex;
         /// <summary>
         /// Min index of the subtimeline from the start of the global timeline
         /// </summary>
-        public int GlobalMinIndex { get; set; }
+        public int GlobalMinIndex
+        {
+            get
+            {
+                return m_GlobalMinIndex + Before;
+            }
+        }
+
+        private int m_GlobalMaxIndex;
         /// <summary>
         /// Max index of the subtimeline from the start of the global timeline
         /// </summary>
-        public int GlobalMaxIndex { get; set; }
+        public int GlobalMaxIndex
+        {
+            get
+            {
+                return m_GlobalMaxIndex + Before;
+            }
+        }
+
         /// <summary>
         /// Minimum time of the timeline
         /// </summary>
@@ -219,10 +244,10 @@ namespace HBP.Data.Visualization
 
             // Indexes
             Before = maxBefore - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart;
-            GlobalMinIndex = Before + startIndex;
+            m_GlobalMinIndex = startIndex;
             Length = frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End) - frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start) + 1;
-            GlobalMaxIndex = Before + startIndex + Length - 1;
-            After = maxAfter - (Length - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart);
+            m_GlobalMaxIndex = startIndex + Length - 1;
+            After = maxAfter - (Length - 1 - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart);
 
             // Time
             int mainEventIndex = StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart;
@@ -233,6 +258,11 @@ namespace HBP.Data.Visualization
         #endregion
 
         #region Public Methods
+        public void Move(int distance)
+        {
+            m_GlobalMinIndex += distance;
+            m_GlobalMaxIndex += distance;
+        }
         /// <summary>
         /// Get the time of the current global index in this timeline
         /// </summary>

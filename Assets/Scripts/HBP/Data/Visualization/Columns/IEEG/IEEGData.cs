@@ -63,7 +63,7 @@ namespace HBP.Data.Visualization
                 Experience.Protocol.SubBloc[] subBlocs = bloc.OrderedSubBlocs.ToArray();
                 for (int i = 0; i < subBlocs.Length; ++i)
                 {
-                    indexBySubBloc.Add(bloc.SubBlocs[i], i - mainSubBlocPosition);
+                    indexBySubBloc.Add(subBlocs[i], i - mainSubBlocPosition);
                 }
             }
 

@@ -340,7 +340,6 @@ namespace HBP.Data.Visualization
         #region Private Methods
         IEnumerator c_LoadEEG(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
-            UnityEngine.Debug.Log("LoadEEG");
             Exception exception = null;
 
             // Find dataInfo.
