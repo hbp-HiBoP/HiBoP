@@ -33,9 +33,15 @@ namespace HBP.UI.Module3D.Tools
             m_MinText.text = subTimeline.MinTime.ToString("N2") + timeline.Unit;
             m_MaxText.text = subTimeline.MaxTime.ToString("N2") + timeline.Unit;
             UpdateCurrentTime();
-            m_Before.GetComponent<LayoutElement>().flexibleWidth = (float)subTimeline.Before;// / timeline.Length;
-            m_During.GetComponent<LayoutElement>().flexibleWidth = (float)subTimeline.Length;// / timeline.Length;
-            m_After.GetComponent<LayoutElement>().flexibleWidth = (float)subTimeline.After;// / timeline.Length;
+            m_Before.GetComponent<LayoutElement>().minWidth = 0f;
+            m_Before.GetComponent<LayoutElement>().preferredWidth = 0f;
+            m_Before.GetComponent<LayoutElement>().flexibleWidth = subTimeline.Before;
+            m_During.GetComponent<LayoutElement>().minWidth = 0f;
+            m_During.GetComponent<LayoutElement>().preferredWidth = 0f;
+            m_During.GetComponent<LayoutElement>().flexibleWidth = subTimeline.Length;
+            m_After.GetComponent<LayoutElement>().minWidth = 0f;
+            m_After.GetComponent<LayoutElement>().preferredWidth = 0f;
+            m_After.GetComponent<LayoutElement>().flexibleWidth = subTimeline.After;
             ShowEvents();
         }
         public void UpdateCurrentTime()
