@@ -3,8 +3,8 @@
     "Project": {
       "DefaultName": "New project",
       "DefaultLocation": "D:\\HBPProjects",
-      "DefaultPatientDatabase": "D:\\Data loca\\Patients",
-      "DefaultLocalizerDatabase": "D:\\Data loca\\Localizers",
+      "DefaultPatientDatabase": "Y:\\BrainVisaDB\\Epilepsy",
+      "DefaultLocalizerDatabase": "Y:\\LOCA_DATABASE",
       "DefaultExportLocation": "D:/ScreenShot"
     },
     "Theme": {},
@@ -21,8 +21,8 @@
     },
     "Protocol": {
       "PositionAveraging": 1,
-      "MinLimit": -10000.0,
-      "MaxLimit": 10000.0,
+      "MinLimit": -1500.0,
+      "MaxLimit": 3500.0,
       "Step": 100
     },
     "Anatomic": {

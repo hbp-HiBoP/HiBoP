@@ -20,7 +20,7 @@ namespace HBP.Data.TrialMatrix
         public Bloc(Experience.Protocol.Bloc bloc, BlocChannelData blocChannelData)
         {
             List<SubBloc> subBlocs = new List<SubBloc>(bloc.SubBlocs.Count);
-            IOrderedEnumerable<ChannelTrial> orderedTrials = SortTrials(bloc,blocChannelData.Trials);
+            IOrderedEnumerable<ChannelTrial> orderedTrials = SortTrials(bloc,blocChannelData.Trials.Where(t => t.IsValid)); // FIXME : Ajouter la gestion des trials non complets.
             foreach (var subBloc in bloc.OrderedSubBlocs)
             {
                 IEnumerable<SubTrial> subTrials = orderedTrials.Select(trial => new SubTrial(trial.ChannelSubTrialBySubBloc[subBloc]));

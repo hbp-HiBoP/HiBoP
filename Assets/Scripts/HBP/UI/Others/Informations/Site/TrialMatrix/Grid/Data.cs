@@ -1,5 +1,7 @@
 ﻿using HBP.Data.TrialMatrix.Grid;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -92,7 +94,7 @@ namespace HBP.UI.TrialMatrix.Grid
 
         [SerializeField] GameObject m_BlocPrefab;
         [SerializeField] RectTransform m_BlocContainer;
-        [SerializeField] ValuesLegend m_ValuesLegend;
+        [SerializeField] BlocHeaderDisplayer m_BlocHeaderDisplayer;
         #endregion
 
         #region Public Methods
@@ -102,10 +104,8 @@ namespace HBP.UI.TrialMatrix.Grid
             Colormap = colormap;
             Limits = limits;
 
-            //foreach (var bloc in data.Dataset.Protocol.Blocs)
-            //{
-            //    AddBloc(bloc);
-            //}
+            m_BlocHeaderDisplayer.Set(data.Dataset.Protocol.Blocs.Select(b => new Tuple<HBP.Data.Experience.Protocol.Bloc, float>(b, 1)).ToArray());
+
         }
         #endregion
 

@@ -16,7 +16,7 @@ namespace HBP.Data.TrialMatrix
         public Vector2 Limits { get; set; }
         public DataInfo DataInfo { get; set; }
         public string Channel { get; set; }
-        public Dictionary<int,Window> TimeLimitsByColumn { get; set; }
+        public List<Tuple<int,Window>> TimeLimitsByColumn { get; set; }
         #endregion
 
         #region Constructor
@@ -27,14 +27,14 @@ namespace HBP.Data.TrialMatrix
 
             // Genreate blocs.
             if (blocsToDisplay == null) blocsToDisplay = dataInfo.Dataset.Protocol.Blocs;
-            IEnumerable<Bloc> blocs = protocol.Blocs.Where(bloc => blocsToDisplay.Contains(bloc)).Select(bloc => new Bloc(bloc, channelData.DataByBloc[bloc]));
+            Bloc[] blocs = protocol.Blocs.Where(bloc => blocsToDisplay.Contains(bloc)).Select(bloc => new Bloc(bloc, channelData.DataByBloc[bloc])).ToArray();
 
             //Standardize Blocs
             Standardize(blocs);
 
             // Set properties
-            Title = "Site: " + channel + "   |   Patient: " + dataInfo.Patient.CompleteName + "   |   Protocol: " + protocol.Name + "   |   Data: " + dataInfo.Name;
-            Blocs = blocs.ToArray();
+            Title = channel + " (" + dataInfo.Patient.Name + ") " + dataInfo.Dataset.Name + " " + dataInfo.Name;
+            Blocs = blocs;
             Limits = blocs.SelectMany(b => b.SubBlocs).SelectMany(s => s.SubTrials).SelectMany(v => v.Data.Values).ToArray().CalculateValueLimit();
             DataInfo = dataInfo;
             Channel = channel;
@@ -43,7 +43,7 @@ namespace HBP.Data.TrialMatrix
         #endregion
 
         #region Private Method
-        void Standardize(IEnumerable<Bloc> blocs)
+        void Standardize(Bloc[] blocs)
         {
             Dictionary<int,List<SubBloc>> subBlocsByColumns = new Dictionary<int, List<SubBloc>>();
             foreach (var bloc in blocs)
@@ -57,41 +57,38 @@ namespace HBP.Data.TrialMatrix
                 }
             }
 
-            Dictionary<int, Tuple<int, int>> limitsByColumns = new Dictionary<int, Tuple<int, int>>(subBlocsByColumns.Count);
-            for (int column = 0; column < subBlocsByColumns.Count; column++)
+            foreach (var pair in subBlocsByColumns)
             {
-                List<SubBloc> subBlocs = subBlocsByColumns[column];
-                int before = subBlocs.Max(s => s.SubTrials.First().Data.InformationsByEvent[s.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart);
-                int after = subBlocs.Max(s => s.SubTrials.First().Data.Values.Length - s.SubTrials.First().Data.InformationsByEvent[s.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart);
-                limitsByColumns.Add(column, new Tuple<int, int>(before, after));
-                foreach (SubBloc subBloc in subBlocs)
+                int before = pair.Value.Max(s => s.SubTrials.First(sub => sub.Data.Found).Data.InformationsByEvent[s.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart);
+                int after = pair.Value.Max(s => s.SubTrials.First(sub => sub.Data.Found).Data.Values.Length - s.SubTrials.First(sub => sub.Data.Found).Data.InformationsByEvent[s.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart);
+                foreach (SubBloc subBloc in pair.Value)
                 {
-                    subBloc.SpacesBefore = before - subBloc.SubTrials.First().Data.InformationsByEvent[subBloc.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart;
-                    subBloc.SpacesAfter = after - (subBloc.SubTrials.First().Data.Values.Length - subBloc.SubTrials.First().Data.InformationsByEvent[subBloc.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart);
+                    subBloc.SpacesBefore = before - subBloc.SubTrials.First(sub => sub.Data.Found).Data.InformationsByEvent[subBloc.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart;
+                    subBloc.SpacesAfter = after - (subBloc.SubTrials.First(sub => sub.Data.Found).Data.Values.Length - subBloc.SubTrials.First(sub => sub.Data.Found).Data.InformationsByEvent[subBloc.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart);
                 }
             }
         }
-        Dictionary<int,Window> CalculateTimeLimitsByColumn(IEnumerable<Bloc> blocs)
+        List<Tuple<int,Window>> CalculateTimeLimitsByColumn(IEnumerable<Bloc> blocs)
         {
-            Dictionary<int, List<SubBloc>> subBlocsByColumns = new Dictionary<int, List<SubBloc>>();
+            List<Tuple<int, List<SubBloc>>> subBlocsByColumns = new List<Tuple<int, List<SubBloc>>>();
             foreach (var bloc in blocs)
             {
                 int mainSubBlocPosition = bloc.ProtocolBloc.MainSubBlocPosition;
                 for (int i = 0; i < bloc.SubBlocs.Length; i++)
                 {
                     int column = i - mainSubBlocPosition;
-                    if (!subBlocsByColumns.ContainsKey(column)) subBlocsByColumns[column] = new List<SubBloc>();
-                    subBlocsByColumns[i - mainSubBlocPosition].Add(bloc.SubBlocs[i]);
+                    if (!subBlocsByColumns.Any(t => t.Item1 == column)) subBlocsByColumns.Add(new Tuple<int,List<SubBloc>>(column,new List<SubBloc>()));
+                    subBlocsByColumns.Find(t => t.Item1 == i - mainSubBlocPosition).Item2.Add(bloc.SubBlocs[i]);
                 }
             }
 
-            Dictionary<int, Window> timeLimitsByColumns = new Dictionary<int, Window>();
-            foreach (var pair in subBlocsByColumns)
+            List<Tuple<int, Window>> timeLimitsByColumns = new List<Tuple<int, Window>>();
+            foreach (var tuple in subBlocsByColumns)
             {
-                List<SubBloc> subBlocs = subBlocsByColumns[pair.Key];
-                timeLimitsByColumns.Add(pair.Key, new Window(subBlocs.Min(s => s.SubBlocProtocol.Window.Start), subBlocs.Max(s => s.SubBlocProtocol.Window.End)));
+                List<SubBloc> subBlocs = tuple.Item2;
+                timeLimitsByColumns.Add( new Tuple<int,Window>(tuple.Item1, new Window(subBlocs.Min(s => s.SubBlocProtocol.Window.Start), subBlocs.Max(s => s.SubBlocProtocol.Window.End))));
             }
-            return timeLimitsByColumns;
+            return timeLimitsByColumns.OrderBy(tuple => tuple.Item1).ToList();
         }
         #endregion
     }

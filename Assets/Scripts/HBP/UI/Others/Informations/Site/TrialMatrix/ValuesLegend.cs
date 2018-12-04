@@ -7,6 +7,7 @@ namespace HBP.UI.TrialMatrix
     {
         #region Properties
         public int NumberOfValues = 5;
+
         Vector2 m_Limits;
         public Vector2 Limits
         {
@@ -20,18 +21,20 @@ namespace HBP.UI.TrialMatrix
                 SetValues(GenerateValues(value.x, value.y, NumberOfValues));
             }
         }
+
+        [SerializeField] GameObject m_ValuePrefab;
         #endregion
 
         #region Private Methods
         void SetValues(float[] values)
         {
-            ClearValues();
+            Clear();
             for (int i = 0; i < values.Length; i++)
             {
                 AddValue(values[i], i, values.Length);
             }
         }
-        void ClearValues()
+        void Clear()
         {
             foreach(Transform child in transform)
             {
@@ -41,45 +44,32 @@ namespace HBP.UI.TrialMatrix
         void AddValue(float value, int position, int max)
         {
             // Instantiate and add components needed
-            GameObject l_gameObject = new GameObject();
-            l_gameObject.transform.SetParent(transform);
-            RectTransform l_rect = l_gameObject.AddComponent<RectTransform>();
-            Text l_text = l_gameObject.AddComponent<Text>();
-            int l_max = max - 1;
-
-            // SetText
-            l_text.text = value.ToString("n2");
-            l_text.color = Color.white;
-            l_text.font = Resources.GetBuiltinResource(typeof(Font), "Arial.ttf") as Font;
-            l_text.fontStyle = FontStyle.Normal;
-            l_text.fontSize = 14;
-            l_text.horizontalOverflow = HorizontalWrapMode.Wrap;
-
-            // Set pivot, text alignment and name
-            if (position == 0)
+            GameObject gameObject = Instantiate(m_ValuePrefab, transform);
+            RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
+            Text text = gameObject.GetComponent<Text>();
+            int maxPosition = max - 1;
+            if( position == 0)
             {
-                l_rect.pivot = new Vector2(0.5f, 0f);
-                l_text.alignment = TextAnchor.LowerLeft;
-                l_gameObject.name = "Min";
+                rectTransform.pivot = new Vector2(0, 0);
             }
-            else if (position == l_max)
+            else if( position == maxPosition)
             {
-                l_rect.pivot = new Vector2(0.5f, 1f);
-                l_text.alignment = TextAnchor.UpperLeft;
-                l_gameObject.name = "Max";
+                rectTransform.pivot = new Vector2(0, 1);
             }
             else
             {
-                l_text.alignment = TextAnchor.MiddleLeft;
-                l_gameObject.name = position.ToString() + "/" + l_max.ToString();
+                rectTransform.pivot = new Vector2(0, 0.5f);
             }
 
+            // SetText
+            text.text = value.ToString("n2");
+
             // SetPosition
-            float l_position = (float)position / l_max;
-            l_rect.anchorMin = new Vector2(0, l_position);
-            l_rect.anchorMax = new Vector2(1, l_position);
-            l_rect.anchoredPosition = new Vector2(0, 0);
-            l_rect.sizeDelta = new Vector2(0, 30);
+            float l_position = (float)position / maxPosition;
+            rectTransform.anchorMin = new Vector2(0, l_position);
+            rectTransform.anchorMax = new Vector2(1, l_position);
+            rectTransform.anchoredPosition = new Vector2(0, 0);
+            rectTransform.sizeDelta = new Vector2(0, 25);
         }
         float[] GenerateValues(float min, float max, int nbValue)
         {
