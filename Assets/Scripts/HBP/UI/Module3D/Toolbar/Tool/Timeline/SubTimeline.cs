@@ -30,8 +30,8 @@ namespace HBP.UI.Module3D.Tools
             m_Column = column;
             m_Timeline = timeline;
             m_SubTimeline = subTimeline;
-            m_MinText.text = subTimeline.MinTime.ToString("N2") + timeline.Unit;
-            m_MaxText.text = subTimeline.MaxTime.ToString("N2") + timeline.Unit;
+            m_MinText.text = subTimeline.MinTime.ToString("N0") + timeline.Unit;
+            m_MaxText.text = subTimeline.MaxTime.ToString("N0") + timeline.Unit;
             UpdateCurrentTime();
             float beforeDuringTransition = Mathf.InverseLerp(0, subTimeline.Length + subTimeline.Before + subTimeline.After, subTimeline.Before);
             float duringAfterTransition = Mathf.InverseLerp(0, subTimeline.Length + subTimeline.Before + subTimeline.After, subTimeline.Before + subTimeline.Length);
@@ -39,7 +39,7 @@ namespace HBP.UI.Module3D.Tools
             m_Before.anchorMax = new Vector2(beforeDuringTransition, 1);
             m_During.anchorMin = new Vector2(beforeDuringTransition, 0);
             m_During.anchorMax = new Vector2(duringAfterTransition, 1);
-            m_After.anchorMin = new Vector2(duringAfterTransition, 1);
+            m_After.anchorMin = new Vector2(duringAfterTransition, 0);
             m_After.anchorMax = new Vector2(1, 1);
             ShowEvents();
         }

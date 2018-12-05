@@ -225,6 +225,14 @@ namespace HBP.Data.Visualization
         /// </summary>
         public float MaxTime { get; set; }
         /// <summary>
+        /// Time of the first sample
+        /// </summary>
+        public float FirstSampleTime { get; set; }
+        /// <summary>
+        /// Time of the last sample
+        /// </summary>
+        public float LastSampleTime { get; set; }
+        /// <summary>
         /// Time of a step
         /// </summary>
         public float TimeStep { get; set; }
@@ -250,10 +258,12 @@ namespace HBP.Data.Visualization
             After = maxAfter - (Length - 1 - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart);
 
             // Time
+            MinTime = subBloc.Window.Start;
+            MaxTime = subBloc.Window.End;
             int mainEventIndex = StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart;
-            MinTime = frequency.ConvertNumberOfSamplesToMilliseconds(-mainEventIndex);
-            MaxTime = frequency.ConvertNumberOfSamplesToMilliseconds(Length - 1 - mainEventIndex);
-            TimeStep = (MaxTime - MinTime) / (Length - 1);
+            FirstSampleTime = frequency.ConvertNumberOfSamplesToMilliseconds(-mainEventIndex);
+            LastSampleTime = frequency.ConvertNumberOfSamplesToMilliseconds(Length - 1 - mainEventIndex);
+            TimeStep = (LastSampleTime - FirstSampleTime) / (Length - 1);
         }
         #endregion
 
@@ -270,7 +280,7 @@ namespace HBP.Data.Visualization
         /// <returns></returns>
         public float GetLocalTime(int globalIndex)
         {
-            return Mathf.Clamp(TimeStep * GetLocalIndex(globalIndex) + MinTime, MinTime, MaxTime);
+            return Mathf.Clamp(TimeStep * GetLocalIndex(globalIndex) + FirstSampleTime, MinTime, MaxTime);
         }
         /// <summary>
         /// Get the index value relative to the minimum index of the subtimeline
