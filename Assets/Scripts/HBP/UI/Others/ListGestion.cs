@@ -178,7 +178,7 @@ namespace Tools.Unity.Components
         {
             result = new T();
             ILoadable loadable = result as ILoadable;
-            string path = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { loadable.GetExtension() }).StandardizeToPath();
+            string path = HBP.UI.FileBrowser.GetExistingFileName(new string[] { loadable.GetExtension() }).StandardizeToPath();
             if (path != string.Empty)
             {
                 result = ClassLoaderSaver.LoadFromJson<T>(path);

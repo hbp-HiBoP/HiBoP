@@ -19,7 +19,7 @@ namespace Tools.Unity
         #region Public Methods
         public void Open()
         {
-            string l_result = HBP.Module3D.DLL.QtGUI.GetExistingDirectoryName( Message, m_Inputfield.text);
+            string l_result = HBP.UI.FileBrowser.GetExistingDirectoryName( Message, m_Inputfield.text);
             if (l_result != string.Empty)
             {
                 l_result = l_result.StandardizeToPath();

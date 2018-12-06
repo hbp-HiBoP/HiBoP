@@ -48,7 +48,7 @@ namespace Tools.Unity
         #region Public Methods
         public void Open()
         {
-            string l_result = HBP.Module3D.DLL.QtGUI.GetExistingFileName( EXTENSIONS, Message, m_Path);
+            string l_result = HBP.UI.FileBrowser.GetExistingFileName(EXTENSIONS, Message, m_Path);
             if (l_result != string.Empty)
             {
                 l_result = l_result.StandardizeToPath();

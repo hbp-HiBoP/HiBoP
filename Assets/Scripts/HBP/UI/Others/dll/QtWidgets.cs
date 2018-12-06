@@ -1,41 +1,13 @@
-﻿
-
-
-/**
- * \file    QtWidgets.cs
- * \author  Lance Florian
- * \date    09/02/2016
- * \brief   Define QtGUI class
- */
-
-// system
-using System;
-using System.Text;
-using System.Diagnostics;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-
-// unity
-using UnityEngine;
+﻿using UnityEngine;
 using System.IO;
+using System.Collections.Generic;
+using System.Diagnostics;
 
-namespace HBP.Module3D.DLL
+namespace HBP.UI
 {
-    /// <summary>
-    /// Aninterface class which allow to communicate with Qt gui functions like QFileDialog.
-    /// 
-    /// Examples :
-    /// 
-    /// string dirPath = qtGui.getExistingDirectory("Select a directory ");
-    /// string filePath = qtGui.getOpenFileName(new string[] { "txt", "exe", "png" }, "Select a file", "");
-    /// string[] filesPaths = qtGui.getOpenFilesName(new string[] { "txt", "exe", "png" }, "Select files", ""); 
-    /// string saveFilePath = qtGui.getSaveFileName(new string[] { "txt", "exe", "png" }, "Save file to", "");
-    ///
-    /// </summary>
-    public class QtGUI
+    public class FileBrowser
     {
         #region Public Methods
-
         private static List<string> launch_fileDialog_window(string argumentsFileDialogs)
         {
 #if UNITY_EDITOR
@@ -73,7 +45,6 @@ namespace HBP.Module3D.DLL
 
             return paths;
         }
-
         /// <summary>
         /// Open a qt file dialog and return the path of an existing directory.
         /// </summary>
@@ -82,14 +53,9 @@ namespace HBP.Module3D.DLL
         /// <returns> return an empty path if no directory has been choosen or if an error occurs </returns>
         public static string GetExistingDirectoryName(string message = "Select a directory", string directoryPath = "")
         {
-            string arguments = "FileDialog get_existing_directory_name \"" + message + "\"  \"\" \"" + directoryPath + "\"";
-            List<string> paths = launch_fileDialog_window(arguments);
-            if (paths.Count > 0)
-                return paths[0];
-
-            return "";
+            string[] paths = SFB.StandaloneFileBrowser.OpenFolderPanel(message, directoryPath, false);
+            return paths.Length > 0 ? paths[0] : string.Empty;
         }
-
         /// <summary>
         /// Open a qt file dialog and return the path of a selected file.
         /// </summary>
@@ -99,24 +65,10 @@ namespace HBP.Module3D.DLL
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
         public static string GetExistingFileName(string[] filtersArray = null, string message = "Select a file", string filePath = "")
         {
-            string arguments = "FileDialog get_existing_file_name +\"" + message + "\" \"Files (";
-            for (int ii = 0; ii < filtersArray.Length; ++ii)
-            {
-                arguments += "*" + filtersArray[ii];
-                arguments += (ii < filtersArray.Length - 1) ? " " : ")";
-            }
-            if (filtersArray.Length == 0)
-                arguments += "*.txt)";
-
-            arguments += "\" " + filePath;
-
-            List<string> paths = launch_fileDialog_window(arguments);
-            if (paths.Count > 0)
-                return paths[0];
-
-            return "";
+            string directory = string.IsNullOrEmpty(filePath) ? new DirectoryInfo(Application.dataPath).Parent.FullName : new FileInfo(filePath).DirectoryName;
+            var paths = SFB.StandaloneFileBrowser.OpenFilePanel(message, directory, new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) }, false);
+            return paths.Length > 0 ? paths[0] : string.Empty;
         }
-
         /// <summary>
         /// Open a qt file dialog and return the list of path of the selected files.
         /// </summary>
@@ -126,20 +78,10 @@ namespace HBP.Module3D.DLL
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
         public static string[] GetExistingFileNames(string[] filtersArray = null, string message = "Select files", string filePath = "")
         {
-            string arguments = "FileDialog get_existing_file_names +\"" + message + "\" \"Files (";
-            for (int ii = 0; ii < filtersArray.Length; ++ii)
-            {
-                arguments += "*." + filtersArray[ii];
-                arguments += (ii < filtersArray.Length - 1) ? "," : ")";
-            }
-            if (filtersArray.Length == 0)
-                arguments += "*.txt)";
-
-            arguments += "\" " + filePath;
-
-            return  launch_fileDialog_window(arguments).ToArray();
+            string directory = string.IsNullOrEmpty(filePath) ? new DirectoryInfo(Application.dataPath).Parent.FullName : new FileInfo(filePath).DirectoryName;
+            var paths = SFB.StandaloneFileBrowser.OpenFilePanel(message, directory, new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) }, true);
+            return paths;
         }
-
         /// <summary>
         /// Open a qt file dialog and return the path of a saved file
         /// </summary>
@@ -149,24 +91,10 @@ namespace HBP.Module3D.DLL
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
         public static string GetSavedFileName(string[] filtersArray = null, string message = "Save to", string filePath = "")
         {
-            string arguments = "FileDialog get_saved_file_name +\"" + message + "\" \"Files (";
-            for (int ii = 0; ii < filtersArray.Length; ++ii)
-            {
-                arguments += "*." + filtersArray[ii];
-                arguments += (ii < filtersArray.Length - 1) ? "," : ")";
-            }
-            if(filtersArray.Length == 0)
-                arguments += "*.txt)";
-
-            arguments += "\" " + filePath;
-
-            List<string> paths = launch_fileDialog_window(arguments);
-            if (paths.Count > 0)
-                return paths[0];
-
-            return "";
+            string directory = string.IsNullOrEmpty(filePath) ? new DirectoryInfo(Application.dataPath).Parent.FullName : new FileInfo(filePath).DirectoryName;
+            var paths = SFB.StandaloneFileBrowser.OpenFilePanel(message, directory, new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) }, false);
+            return paths.Length > 0 ? paths[0] : string.Empty;
         }
-
         /// <summary>
         /// 
         /// </summary>
@@ -192,7 +120,6 @@ namespace HBP.Module3D.DLL
             proc.WaitForExit();
             return proc.ExitCode;
         }
-
-#endregion
+        #endregion
     }
 }
