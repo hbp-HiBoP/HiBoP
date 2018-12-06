@@ -39,30 +39,8 @@ namespace HBP.Module3D
                     m_BrainInvisibleMeshesGO[ii].SetActive(m_IsEnabled);
             }
         }
-        private Data.Enums.TriEraserMode m_CurrentMode = Data.Enums.TriEraserMode.OneTri;
-        public Data.Enums.TriEraserMode CurrentMode
-        {
-            get
-            {
-                return m_CurrentMode;
-            }
-            set
-            {
-                m_CurrentMode = value;
-            }
-        }
-        private int m_Degrees = 30;
-        public int Degrees
-        {
-            get
-            {
-                return m_Degrees;
-            }
-            set
-            {
-                m_Degrees = value;
-            }
-        }
+        public Data.Enums.TriEraserMode CurrentMode { get; set; } = Data.Enums.TriEraserMode.OneTri;
+        public int Degrees { get; set; } = 30;
 
         public bool CanCancelLastAction
         {
@@ -77,6 +55,35 @@ namespace HBP.Module3D
         // Regular Mesh
         private Tools.CSharp.LimitedSizeStack<int[]> m_FullMasksStack = new Tools.CSharp.LimitedSizeStack<int[]>(MAX_STACK_SIZE);
         private Tools.CSharp.LimitedSizeStack<List<int[]>> m_SplittedMasksStack = new Tools.CSharp.LimitedSizeStack<List<int[]>>(MAX_STACK_SIZE);
+        public List<int[]> CurrentMasks
+        {
+            get
+            {
+                List<int[]> masks = new List<int[]>();
+                masks.Add(m_BrainMeshDLL.VisibilityMask);
+                if (m_EraseTrianglesOfSimplifiedMesh) masks.Add(m_SimplifiedBrainMeshDLL.VisibilityMask);
+                foreach (var split in m_BrainMeshesSplittedDLL)
+                {
+                    masks.Add(split.VisibilityMask);
+                }
+                return masks;
+            }
+            set
+            {
+                if (value.Count == m_BrainMeshesSplittedDLL.Count + 2)
+                {
+                    m_BrainMeshDLL.UpdateVisibilityMask(value[0]);
+                    if (m_EraseTrianglesOfSimplifiedMesh) m_SimplifiedBrainMeshDLL.UpdateVisibilityMask(value[1]);
+                    for (int i = 0; i < m_BrainMeshesSplittedDLL.Count; ++i)
+                    {
+                        DLL.Surface brainInvisibleMeshesDLL = m_BrainMeshesSplittedDLL[i].UpdateVisibilityMask(value[i + 2]);
+                        brainInvisibleMeshesDLL.UpdateMeshFromDLL(m_BrainInvisibleMeshesGO[i].GetComponent<MeshFilter>().mesh);
+                    }
+                    MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
+                    OnModifyInvisiblePart.Invoke();
+                }
+            }
+        }
         private DLL.Surface m_BrainMeshDLL;
         private List<DLL.Surface> m_BrainMeshesSplittedDLL = new List<DLL.Surface>();
         private List<GameObject> m_BrainInvisibleMeshesGO = new List<GameObject>();
@@ -93,17 +100,10 @@ namespace HBP.Module3D
         {
             get
             {
-                return (m_CurrentMode != Data.Enums.TriEraserMode.Expand) && (m_CurrentMode != Data.Enums.TriEraserMode.Invert);
+                return (CurrentMode != Data.Enums.TriEraserMode.Expand) && (CurrentMode != Data.Enums.TriEraserMode.Invert);
             }
         }
-        private bool m_MeshHasInvisibleTriangles = false;
-        public bool MeshHasInvisibleTriangles
-        {
-            get
-            {
-                return m_MeshHasInvisibleTriangles;
-            }
-        }
+        public bool MeshHasInvisibleTriangles { get; private set; } = false;
         #endregion
 
         #region Events
@@ -141,7 +141,7 @@ namespace HBP.Module3D
             }
             m_SplittedMasksStack.Clear();
 
-            m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
+            MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
             OnModifyInvisiblePart.Invoke();
         }
         public void ResetSimplified(DLL.Surface simplifiedMeshDLL)
@@ -175,8 +175,8 @@ namespace HBP.Module3D
             if (m_EraseTrianglesOfSimplifiedMesh) m_SimplifiedFullMasksStack.Push(m_SimplifiedBrainMeshDLL.VisibilityMask);
 
             // apply rays and retrieve mask
-            m_BrainMeshDLL.UpdateVisibilityMask(rayDirection, hitPoint, m_CurrentMode, m_Degrees);
-            if (m_EraseTrianglesOfSimplifiedMesh) m_SimplifiedBrainMeshDLL.UpdateVisibilityMask(rayDirection, hitPoint, m_CurrentMode, m_Degrees);
+            m_BrainMeshDLL.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees);
+            if (m_EraseTrianglesOfSimplifiedMesh) m_SimplifiedBrainMeshDLL.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees);
             int[] newFullMask = m_BrainMeshDLL.VisibilityMask;
 
             // split it
@@ -203,7 +203,7 @@ namespace HBP.Module3D
                 brainInvisibleMeshesDLL.UpdateMeshFromDLL(m_BrainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
             }
 
-            m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
+            MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
             OnModifyInvisiblePart.Invoke();
         }
         /// <summary>
@@ -221,7 +221,7 @@ namespace HBP.Module3D
                 brainInvisibleMeshesDLL.UpdateMeshFromDLL(m_BrainInvisibleMeshesGO[ii].GetComponent<MeshFilter>().mesh);
             }
 
-            m_MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
+            MeshHasInvisibleTriangles = m_BrainMeshDLL.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
             OnModifyInvisiblePart.Invoke();
         }
         #endregion

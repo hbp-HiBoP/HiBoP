@@ -258,6 +258,21 @@ namespace HBP.Module3D
                 m_TriEraser.Degrees = value;
             }
         }
+        /// <summary>
+        /// State of the triangle erasing
+        /// </summary>
+        public List<int[]> TriangleErasingCurrentMasks
+        {
+            get
+            {
+                return m_TriEraser.CurrentMasks;
+            }
+            set
+            {
+                m_TriEraser.CurrentMasks = value;
+                UpdateMeshesFromDLL();
+            }
+        }
 
         /// <summary>
         /// Are Mars Atlas colors displayed ?
