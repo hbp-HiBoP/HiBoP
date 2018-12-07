@@ -89,11 +89,11 @@ namespace HBP.UI
         /// <param name="message">  message to be displayed in top of the file dialog  </param>
         /// <param name="filePath"> default directory of the file dialog </param>
         /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
-        public static string GetSavedFileName(string[] filtersArray = null, string message = "Save to", string filePath = "")
+        public static string GetSavedFileName(string[] filtersArray = null, string message = "Save to", string filePath = "", string defaultName = "")
         {
             string directory = string.IsNullOrEmpty(filePath) ? new DirectoryInfo(Application.dataPath).Parent.FullName : new FileInfo(filePath).DirectoryName;
-            var paths = SFB.StandaloneFileBrowser.OpenFilePanel(message, directory, new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) }, false);
-            return paths.Length > 0 ? paths[0] : string.Empty;
+            var path = SFB.StandaloneFileBrowser.SaveFilePanel(message, directory, defaultName, new SFB.ExtensionFilter[] { new SFB.ExtensionFilter("Files", filtersArray) });
+            return path;
         }
         /// <summary>
         /// 
