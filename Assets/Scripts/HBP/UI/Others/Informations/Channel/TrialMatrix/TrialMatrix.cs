@@ -72,10 +72,13 @@ namespace HBP.UI.TrialMatrix
             }
             set
             {
-                m_UsePrecalculatedLimits = value;
-                OnChangeUsePrecalculatedLimits.Invoke(value);
-                if (value) Limits = Data.Limits;
-                else Limits = m_Limits;
+                if (value != m_UsePrecalculatedLimits)
+                {
+                    m_UsePrecalculatedLimits = value;
+                    OnChangeUsePrecalculatedLimits.Invoke(value);
+                    if (value) Limits = Data.Limits;
+                    else Limits = m_Limits;
+                }
             }
         }
         public BoolEvent OnChangeUsePrecalculatedLimits;

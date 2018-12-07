@@ -185,8 +185,8 @@ namespace HBP.UI.Module3D
                     }
                 }
                 // Graph and Trial Matrix
-                Informations.Informations informations = GetComponentInChildren<Informations.Informations>();
-                Informations.SiteInformations siteInformations = informations.GetComponentInChildren<Informations.SiteInformations>();
+                Informations.InformationsWraper informations = GetComponentInChildren<Informations.InformationsWraper>();
+                Informations.ChannelInformations siteInformations = informations.GetComponentInChildren<Informations.ChannelInformations>();
                 if (!informations.IsMinimized)
                 {
                     if (!Mathf.Approximately(siteInformations.GetComponent<ZoneResizer>().Ratio, 1.0f))

@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using System.Linq;
 using System.Collections.Generic;
 using System;
-using HBP.UI.Informations;
+using data = HBP.Data.Informations;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -12,8 +12,8 @@ namespace HBP.UI.TrialMatrix
     {
         #region Properties
         public Data.TrialMatrix.Group[] TrialMatrixGroups { get; private set; }
-        public GenericEvent<Vector2, TrialMatrixZone.TrialMatrixType> OnLimitsChanged { get; set; }
-        public GenericEvent<bool, TrialMatrixZone.TrialMatrixType> OnAutoLimitsChanged { get; set; }
+        public GenericEvent<Vector2, data.DataStruct> OnLimitsChanged { get; set; }
+        public GenericEvent<bool, data.DataStruct> OnAutoLimitsChanged { get; set; }
 
 
         #endregion

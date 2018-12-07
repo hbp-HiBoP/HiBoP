@@ -1,4 +1,4 @@
-﻿using d = HBP.Data.TrialMatrix.Grid;
+﻿using data = HBP.Data.Informations;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,8 +7,8 @@ namespace HBP.UI.TrialMatrix.Grid
     public class ChannelHeader : MonoBehaviour
     {
         #region Properties
-        d.ChannelStruct m_Channel;
-        public d.ChannelStruct Channel
+        data.ChannelStruct m_Channel;
+        public data.ChannelStruct Channel
         {
             get
             {

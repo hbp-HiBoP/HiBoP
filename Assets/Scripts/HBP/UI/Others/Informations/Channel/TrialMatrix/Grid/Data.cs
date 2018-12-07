@@ -1,9 +1,8 @@
-﻿using HBP.Data.TrialMatrix.Grid;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using d = HBP.Data.TrialMatrix.Grid;
 
 namespace HBP.UI.TrialMatrix.Grid
 {
@@ -40,14 +39,14 @@ namespace HBP.UI.TrialMatrix.Grid
                 if (value != m_UsePrecalculatedLimits)
                 {
                     m_UsePrecalculatedLimits = value;
-                    foreach (var bloc in m_Blocs)
-                    {
-                        bloc.UsePrecalculatedLimits = value;
-                    }
+                    OnChangeUsePrecalculatedLimits.Invoke(value);
+                    if (value) Limits = m_Data.Limits;
+                    else Limits = m_Limits;
                 }
             }
 
         }
+        public BoolEvent OnChangeUsePrecalculatedLimits;
 
         Vector2 m_Limits;
         public Vector2 Limits
@@ -63,6 +62,10 @@ namespace HBP.UI.TrialMatrix.Grid
                 foreach (Bloc bloc in Blocs)
                 {
                     bloc.Limits = value;
+                }
+                if(value != m_Data.Limits)
+                {
+                    m_UsePrecalculatedLimits = false;
                 }
             }
         }
@@ -92,30 +95,47 @@ namespace HBP.UI.TrialMatrix.Grid
             }
         }
 
+        d.Data m_Data;
+
         [SerializeField] GameObject m_BlocPrefab;
         [SerializeField] RectTransform m_BlocContainer;
-        [SerializeField] BlocHeaderDisplayer m_BlocHeaderDisplayer;
+
+        [SerializeField] TimeLegend m_TimeLegend;
         #endregion
 
         #region Public Methods
-        public void Set(DataStruct data, Dictionary<ChannelStruct, HBP.Data.TrialMatrix.TrialMatrix> trialMatrixByChannel, Vector2 limits, Texture2D colormap)
+        public void Set(d.Data data, Texture2D colormap)
         {
-            Title = data.Dataset.Name + " " + data.Data;
+            m_Data = data;
+            Title = data.Title;
             Colormap = colormap;
-            Limits = limits;
+            Limits = data.Limits;
 
-            m_BlocHeaderDisplayer.Set(data.Dataset.Protocol.Blocs.Select(b => new Tuple<HBP.Data.Experience.Protocol.Bloc, float>(b, 1)).ToArray());
+            List<Tools.CSharp.Window> windows = new List<Tools.CSharp.Window>();
+            foreach (var channel in data.ChannelStructs)
+            {
+                foreach (var window in data.TimeLimitsByColumn)
+                {
+                    windows.Add(window.Item2);
+                }
+            }
+            m_TimeLegend.Limits = windows.ToArray();
+
+            foreach (var bloc in data.Blocs)
+            {
+                AddBloc(bloc, data.TimeLimitsByColumn);
+            }
 
         }
         #endregion
 
         #region Private Methods
-        //void AddBloc(HBP.Data.Experience.Protocol.Bloc data)
-        //{
-        //    Bloc bloc = (Instantiate(m_BlocPrefab, m_BlocContainer) as GameObject).GetComponent<Bloc>();
-        //    bloc.Set(data);
-        //    m_Blocs.Add(bloc);
-        //}
+        void AddBloc(d.Bloc data, IEnumerable<Tuple<int, Tools.CSharp.Window>> timeLimitsByColumn)
+        {
+            Bloc bloc = (Instantiate(m_BlocPrefab, m_BlocContainer) as GameObject).GetComponent<Bloc>();
+            bloc.Set(data, m_Colormap, m_Limits, timeLimitsByColumn);
+            m_Blocs.Add(bloc);
+        }
         #endregion
     }
 }

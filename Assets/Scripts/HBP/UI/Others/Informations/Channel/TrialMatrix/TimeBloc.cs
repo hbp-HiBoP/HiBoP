@@ -9,14 +9,7 @@ namespace HBP.UI.TrialMatrix
         #region Properties
         [SerializeField] Text m_StartText;
         [SerializeField] Text m_EndText;
-        LayoutElement m_LayoutElement;
-        #endregion
-
-        #region Private Methods
-        private void Awake()
-        {
-            m_LayoutElement = GetComponent<LayoutElement>();
-        }
+        [SerializeField] LayoutElement m_LayoutElement;
         #endregion
 
         #region Public Methods

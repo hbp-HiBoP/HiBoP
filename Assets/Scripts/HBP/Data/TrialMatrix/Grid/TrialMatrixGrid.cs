@@ -1,22 +1,22 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using HBP.Data.Informations;
+using System.Linq;
 
 namespace HBP.Data.TrialMatrix.Grid
 {
     public class TrialMatrixGrid
     {
         #region Properties
-        public ChannelStruct[] Channels { get; set; }
-        public DataStruct[] Data { get; set; }
-        public Texture2D Colormap { get; set; }
+        public ChannelStruct[] ChannelStructs { get; private set; }
+        public DataStruct[] DataStructs { get; private set; }
+        public Data[] Data { get; private set; }
         #endregion
 
-        #region Constructor
-        public TrialMatrixGrid(ChannelStruct[] channels, DataStruct[] data)
+        #region Constructors
+        public TrialMatrixGrid(ChannelStruct[] channelStructs, DataStruct[] dataStructs)
         {
-            Channels = channels;
-            Data = data;
+            ChannelStructs = channelStructs;
+            DataStructs = dataStructs;
+            Data = dataStructs.Select(data => new Data(data, channelStructs)).ToArray();
         }
         #endregion
     }
