@@ -87,7 +87,7 @@ namespace HBP.Module3D.DLL
 
             //{ Nothing = 0, Abort = 1, Ignore = 2, Pause_Editor = 3};
             string errorMsg = retrieve_error_message();
-            int action = Module3D.DLL.QtGUI.get_action_to_do_from_error_dialog_test(errorMsg, Application.isEditor);
+            int action = UI.FileBrowser.get_action_to_do_from_error_dialog_test(errorMsg, Application.isEditor);
             switch (action)
             {
                 case 1: // abort

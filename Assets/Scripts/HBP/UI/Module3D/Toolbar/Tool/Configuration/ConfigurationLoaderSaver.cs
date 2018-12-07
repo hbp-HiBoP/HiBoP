@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -34,7 +35,14 @@ namespace HBP.UI.Module3D.Tools
             {
                 if (ListenerLock) return;
 
-                SelectedScene.LoadConfiguration();
+                ObjectSelector<Data.Visualization.Visualization> selector = ApplicationState.WindowsManager.OpenSelector<Data.Visualization.Visualization>();
+                selector.OnSave.AddListener(() =>
+                {
+                    SelectedScene.Visualization.Configuration = selector.ObjectsSelected[0].Configuration.Clone() as Data.Visualization.VisualizationConfiguration;
+                    SelectedScene.LoadConfiguration();
+                });
+                selector.Objects = ApplicationState.ProjectLoaded.Visualizations.ToArray();
+                selector.MultiSelection = false;
             });
             m_Reset.onClick.AddListener(() =>
             {

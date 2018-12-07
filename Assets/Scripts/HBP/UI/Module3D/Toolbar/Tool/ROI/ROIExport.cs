@@ -52,7 +52,7 @@ namespace HBP.UI.Module3D.Tools
         #region Private Methods
         private void SaveSelectedROI()
         {
-            string savePath = HBP.Module3D.DLL.QtGUI.GetSavedFileName(new string[] { "roi" }, "Save ROI to", Application.dataPath);
+            string savePath = FileBrowser.GetSavedFileName(new string[] { "roi" }, "Save ROI to", Application.dataPath);
             if (!string.IsNullOrEmpty(savePath))
             {
                 Data.Visualization.RegionOfInterest ROI = new Data.Visualization.RegionOfInterest(SelectedColumn.SelectedROI);
@@ -62,7 +62,7 @@ namespace HBP.UI.Module3D.Tools
         }
         private void LoadROIToSelectedColumn()
         {
-            string loadPath = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "roi" }, "Load ROI file", Application.dataPath);
+            string loadPath = FileBrowser.GetExistingFileName(new string[] { "roi" }, "Load ROI file", Application.dataPath);
             if (!string.IsNullOrEmpty(loadPath))
             {
                 Data.Visualization.RegionOfInterest serializedROI = ClassLoaderSaver.LoadFromJson<Data.Visualization.RegionOfInterest>(loadPath);

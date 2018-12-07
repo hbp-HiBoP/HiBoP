@@ -60,38 +60,14 @@ namespace HBP.Module3D
                 }
             }
         }
-
-        private float m_MinimumAmplitude = float.MinValue;
         /// <summary>
         /// Minimum amplitude value
         /// </summary>
-        public float MinimumAmplitude
-        {
-            get
-            {
-                return m_MinimumAmplitude;
-            }
-            set
-            {
-                m_MinimumAmplitude = value;
-            }
-        }
-
-        private float m_MaximumAmplitude = float.MaxValue;
+        public float MinimumAmplitude { get; set; } = float.MinValue;
         /// <summary>
         /// Maximum amplitude value
         /// </summary>
-        public float MaximumAmplitude
-        {
-            get
-            {
-                return m_MaximumAmplitude;
-            }
-            set
-            {
-                m_MaximumAmplitude = value;
-            }
-        }
+        public float MaximumAmplitude { get; set; } = float.MaxValue;
 
         private float m_AlphaMin = 0.8f;
         /// <summary>
@@ -132,42 +108,18 @@ namespace HBP.Module3D
                 }
             }
         }
-
-        private float m_SpanMin = 0.0f;
         /// <summary>
         /// Span Min value
         /// </summary>
-        public float SpanMin
-        {
-            get
-            {
-                return m_SpanMin;
-            }
-        }
-
-        private float m_Middle = 0.0f;
+        public float SpanMin { get; private set; } = 0.0f;
         /// <summary>
         /// Middle value
         /// </summary>
-        public float Middle
-        {
-            get
-            {
-                return m_Middle;
-            }
-        }
-
-        private float m_SpanMax = 0.0f;
+        public float Middle { get; private set; } = 0.0f;
         /// <summary>
         /// Span Min value
         /// </summary>
-        public float SpanMax
-        {
-            get
-            {
-                return m_SpanMax;
-            }
-        }
+        public float SpanMax { get; private set; } = 0.0f;
         #endregion
 
         #region Events
@@ -203,15 +155,16 @@ namespace HBP.Module3D
             mid = Mathf.Clamp(mid, min, max);
             if (Mathf.Approximately(min, mid) && Mathf.Approximately(min, max) && Mathf.Approximately(mid, max))
             {
-                float amplitude = m_MaximumAmplitude - m_MinimumAmplitude;
-                float middle = column.IEEGValuesOfUnmaskedSites.Median();
+                float amplitude = MaximumAmplitude - MinimumAmplitude;
+                float middle = column.IEEGValuesOfUnmaskedSites.Mean();
+                Vector2 limits = column.IEEGValuesOfUnmaskedSites.CalculateValueLimit();
                 mid = middle;
-                min = Mathf.Clamp(middle - 0.05f * amplitude, m_MinimumAmplitude, m_MaximumAmplitude);
-                max = Mathf.Clamp(middle + 0.05f * amplitude, m_MinimumAmplitude, m_MaximumAmplitude);
+                min = Mathf.Clamp(limits[0], MinimumAmplitude, MaximumAmplitude);
+                max = Mathf.Clamp(limits[1], MinimumAmplitude, MaximumAmplitude);
             }
-            m_SpanMin = min;
-            m_Middle = mid;
-            m_SpanMax = max;
+            SpanMin = min;
+            Middle = mid;
+            SpanMax = max;
             OnUpdateSpanValues.Invoke();
         }
         #endregion

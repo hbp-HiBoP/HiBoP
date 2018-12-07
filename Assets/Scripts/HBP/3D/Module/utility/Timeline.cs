@@ -108,7 +108,7 @@ namespace HBP.Data.Visualization
             Unit = "ms";
             int startIndex = 0;
             SubTimelinesBySubBloc = new Dictionary<SubBloc, SubTimeline>(bloc.SubBlocs.Count);
-            foreach (var subBloc in bloc.SubBlocs.OrderBy(sb => sb.Order).ThenBy(sb => sb.Name))
+            foreach (var subBloc in bloc.OrderedSubBlocs)
             {
                 IEnumerable<SubBloc> subBlocs = indexBySubBloc.Where(kv => kv.Value == indexBySubBloc[subBloc]).Select(kv => kv.Key);
                 int before = subBlocs.Max(s => -frequency.ConvertToCeiledNumberOfSamples(s.Window.Start));
@@ -117,6 +117,31 @@ namespace HBP.Data.Visualization
                 startIndex += subTimeline.Length + subTimeline.Before + subTimeline.After;
                 SubTimelinesBySubBloc.Add(subBloc, subTimeline);
             }
+
+            // Change Before of first SubTimeline
+            SubBloc firstSubBloc = bloc.OrderedSubBlocs.First();
+            int firstSubBlocIndex = indexBySubBloc[firstSubBloc];
+            while (indexBySubBloc.ContainsValue(--firstSubBlocIndex))
+            {
+                int before = indexBySubBloc.Where(kv => kv.Value == firstSubBlocIndex).Max(kv => frequency.ConvertToFlooredNumberOfSamples(kv.Key.Window.End) - frequency.ConvertToCeiledNumberOfSamples(kv.Key.Window.Start)) + 1;
+                SubTimelinesBySubBloc[firstSubBloc].Before += before;
+                foreach (var subBloc in bloc.SubBlocs)
+                {
+                    if (subBloc != firstSubBloc)
+                    {
+                        SubTimelinesBySubBloc[subBloc].Move(before);
+                    }
+                }
+            }
+
+            // Change After of last SubTimeline
+            SubBloc lastSubBloc = bloc.OrderedSubBlocs.Last();
+            int lastSubBlocIndex = indexBySubBloc[lastSubBloc];
+            while (indexBySubBloc.ContainsValue(++lastSubBlocIndex))
+            {
+                SubTimelinesBySubBloc[lastSubBloc].After += indexBySubBloc.Where(kv => kv.Value == lastSubBlocIndex).Max(kv => frequency.ConvertToFlooredNumberOfSamples(kv.Key.Window.End) - frequency.ConvertToCeiledNumberOfSamples(kv.Key.Window.Start)) + 1;
+            }
+
             Length = SubTimelinesBySubBloc.Sum(s => s.Value.Length + s.Value.Before + s.Value.After);
             TimeLength = SubTimelinesBySubBloc.Sum(s => s.Value.TimeLength);
         }
@@ -157,23 +182,40 @@ namespace HBP.Data.Visualization
         /// <summary>
         /// Number of samples before this subtimeline
         /// </summary>
-        public int Before { get; private set; }
+        public int Before { get; set; }
         /// <summary>
         /// Number of samples after this subtimeline
         /// </summary>
-        public int After { get; private set; }
+        public int After { get; set; }
         /// <summary>
         /// Length of the timeline in unit of time
         /// </summary>
         public float TimeLength { get { return MaxTime - MinTime; } }
+
+        private int m_GlobalMinIndex;
         /// <summary>
         /// Min index of the subtimeline from the start of the global timeline
         /// </summary>
-        public int GlobalMinIndex { get; set; }
+        public int GlobalMinIndex
+        {
+            get
+            {
+                return m_GlobalMinIndex + Before;
+            }
+        }
+
+        private int m_GlobalMaxIndex;
         /// <summary>
         /// Max index of the subtimeline from the start of the global timeline
         /// </summary>
-        public int GlobalMaxIndex { get; set; }
+        public int GlobalMaxIndex
+        {
+            get
+            {
+                return m_GlobalMaxIndex + Before;
+            }
+        }
+
         /// <summary>
         /// Minimum time of the timeline
         /// </summary>
@@ -182,6 +224,14 @@ namespace HBP.Data.Visualization
         /// Maximum time of the timeline
         /// </summary>
         public float MaxTime { get; set; }
+        /// <summary>
+        /// Time of the first sample
+        /// </summary>
+        public float FirstSampleTime { get; set; }
+        /// <summary>
+        /// Time of the last sample
+        /// </summary>
+        public float LastSampleTime { get; set; }
         /// <summary>
         /// Time of a step
         /// </summary>
@@ -202,20 +252,27 @@ namespace HBP.Data.Visualization
 
             // Indexes
             Before = maxBefore - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart;
-            GlobalMinIndex = Before + startIndex;
+            m_GlobalMinIndex = startIndex;
             Length = frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End) - frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start) + 1;
-            GlobalMaxIndex = Before + startIndex + Length - 1;
-            After = maxAfter - (Length - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart);
+            m_GlobalMaxIndex = startIndex + Length - 1;
+            After = maxAfter - (Length - 1 - StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart);
 
             // Time
+            MinTime = subBloc.Window.Start;
+            MaxTime = subBloc.Window.End;
             int mainEventIndex = StatisticsByEvent[subBloc.MainEvent].RoundedIndexFromStart;
-            MinTime = frequency.ConvertNumberOfSamplesToMilliseconds(-mainEventIndex);
-            MaxTime = frequency.ConvertNumberOfSamplesToMilliseconds(Length - 1 - mainEventIndex);
-            TimeStep = (MaxTime - MinTime) / (Length - 1);
+            FirstSampleTime = frequency.ConvertNumberOfSamplesToMilliseconds(-mainEventIndex);
+            LastSampleTime = frequency.ConvertNumberOfSamplesToMilliseconds(Length - 1 - mainEventIndex);
+            TimeStep = (LastSampleTime - FirstSampleTime) / (Length - 1);
         }
         #endregion
 
         #region Public Methods
+        public void Move(int distance)
+        {
+            m_GlobalMinIndex += distance;
+            m_GlobalMaxIndex += distance;
+        }
         /// <summary>
         /// Get the time of the current global index in this timeline
         /// </summary>
@@ -223,7 +280,7 @@ namespace HBP.Data.Visualization
         /// <returns></returns>
         public float GetLocalTime(int globalIndex)
         {
-            return TimeStep * GetLocalIndex(globalIndex) + MinTime;
+            return Mathf.Clamp(TimeStep * GetLocalIndex(globalIndex) + FirstSampleTime, MinTime, MaxTime);
         }
         /// <summary>
         /// Get the index value relative to the minimum index of the subtimeline
@@ -232,7 +289,7 @@ namespace HBP.Data.Visualization
         /// <returns></returns>
         public int GetLocalIndex(int globalIndex)
         {
-            return globalIndex - GlobalMinIndex;
+            return Mathf.Clamp(globalIndex - GlobalMinIndex, 0, Length - 1);
         }
         #endregion
     }

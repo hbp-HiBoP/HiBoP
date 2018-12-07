@@ -60,9 +60,10 @@ namespace HBP.Data.Visualization
             foreach (var bloc in blocs)
             {
                 int mainSubBlocPosition = bloc.MainSubBlocPosition;
-                for (int i = 0; i < bloc.SubBlocs.Count; ++i)
+                Experience.Protocol.SubBloc[] subBlocs = bloc.OrderedSubBlocs.ToArray();
+                for (int i = 0; i < subBlocs.Length; ++i)
                 {
-                    indexBySubBloc.Add(bloc.SubBlocs[i], i - mainSubBlocPosition);
+                    indexBySubBloc.Add(subBlocs[i], i - mainSubBlocPosition);
                 }
             }
 
@@ -90,7 +91,7 @@ namespace HBP.Data.Visualization
                 List<float> values = new List<float>();
                 Frequency frequency = m_FrequencyByChannel[channel];
                 BlocChannelStatistics statistics = StatisticsByChannel[channel];
-                foreach (var subBloc in columnBloc.SubBlocs.OrderBy(sb => sb.Order).ThenBy(sb => sb.Name))
+                foreach (var subBloc in columnBloc.OrderedSubBlocs)
                 {
                     float[] subBlocValues = statistics.Trial.ChannelSubTrialBySubBloc[subBloc].Values;
                     SubTimeline subTimeline = Timeline.SubTimelinesBySubBloc[subBloc];

@@ -12,7 +12,7 @@ namespace Tools.Unity
         private static string m_Data = "Assets/Data/";
         private static string m_DataBuild = "Data/";
 
-        private static string m_Tools = "tools/";
+        //private static string m_Tools = "tools/";
 
         public static void DefaultBuild()
         {
@@ -63,7 +63,7 @@ namespace Tools.Unity
 
             string projectPath = Application.dataPath;
             projectPath = projectPath.Remove(projectPath.Length - 6);
-
+            /*
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:
@@ -76,6 +76,7 @@ namespace Tools.Unity
                     new DirectoryInfo(projectPath + m_Tools + "macos/").CopyFilesRecursively(new DirectoryInfo(buildDirectory));
                     break;
             }
+            */
             new DirectoryInfo(projectPath + m_Data).CopyFilesRecursively(new DirectoryInfo(dataDirectory + m_DataBuild));
             if (target == BuildTarget.StandaloneOSX)
             {

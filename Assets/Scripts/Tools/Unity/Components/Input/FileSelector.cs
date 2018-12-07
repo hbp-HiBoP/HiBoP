@@ -57,7 +57,7 @@ namespace Tools.Unity
                 path = DefaultDirectory;
             }
 
-            string result = HBP.Module3D.DLL.QtGUI.GetExistingFileName(Extension.Split(','), Message, path);
+            string result = HBP.UI.FileBrowser.GetExistingFileName(Extension.Split(','), Message, path);
             if (result != string.Empty)
             {
                 result = result.StandardizeToPath();

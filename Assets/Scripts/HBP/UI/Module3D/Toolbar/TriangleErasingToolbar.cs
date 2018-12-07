@@ -10,20 +10,12 @@ namespace HBP.UI.Module3D
     public class TriangleErasingToolbar : Toolbar
     {
         #region Properties
-        [SerializeField]
-        private Tools.TriangleErasingMode m_TriangleErasingMode;
-
-        [SerializeField]
-        private Tools.ExpandErasing m_ExpandErasing;
-
-        [SerializeField]
-        private Tools.InvertErasing m_InvertErasing;
-
-        [SerializeField]
-        private Tools.CancelErasing m_CancelErasing;
-
-        [SerializeField]
-        private Tools.ResetErasing m_ResetErasing;
+        [SerializeField] private Tools.TriangleErasingMode m_TriangleErasingMode;
+        [SerializeField] private Tools.ExpandErasing m_ExpandErasing;
+        [SerializeField] private Tools.InvertErasing m_InvertErasing;
+        [SerializeField] private Tools.CancelErasing m_CancelErasing;
+        [SerializeField] private Tools.ResetErasing m_ResetErasing;
+        [SerializeField] private Tools.TriangleErasingLoaderSaver m_TriangleErasingLoaderSaver;
         #endregion
 
         #region Private Methods
@@ -37,6 +29,7 @@ namespace HBP.UI.Module3D
             m_Tools.Add(m_InvertErasing);
             m_Tools.Add(m_CancelErasing);
             m_Tools.Add(m_ResetErasing);
+            m_Tools.Add(m_TriangleErasingLoaderSaver);
         }
         public override void ShowToolbarCallback()
         {

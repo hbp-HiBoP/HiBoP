@@ -44,7 +44,7 @@ namespace HBP.UI.Module3D.Tools
         #region Private Methods
         private void SaveSiteStatesOfSelectedColumn()
         {
-            string savePath = HBP.Module3D.DLL.QtGUI.GetSavedFileName(new string[] { "csv" }, "Save site states to", Application.dataPath);
+            string savePath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save site states to", Application.dataPath);
             if (!string.IsNullOrEmpty(savePath))
             {
                 SelectedColumn.SaveSiteStates(savePath);
@@ -53,7 +53,7 @@ namespace HBP.UI.Module3D.Tools
         }
         private void LoadSiteStatesToSelectedColumn()
         {
-            string loadPath = HBP.Module3D.DLL.QtGUI.GetExistingFileName(new string[] { "csv" }, "Load site states", Application.dataPath);
+            string loadPath = FileBrowser.GetExistingFileName(new string[] { "csv" }, "Load site states", Application.dataPath);
             if (!string.IsNullOrEmpty(loadPath))
             {
                 SelectedColumn.LoadSiteStates(loadPath);

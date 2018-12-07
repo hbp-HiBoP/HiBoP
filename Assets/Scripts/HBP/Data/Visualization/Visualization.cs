@@ -340,7 +340,6 @@ namespace HBP.Data.Visualization
         #region Private Methods
         IEnumerator c_LoadEEG(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<Exception> outPut)
         {
-            UnityEngine.Debug.Log("LoadEEG");
             Exception exception = null;
 
             // Find dataInfo.
@@ -499,19 +498,6 @@ namespace HBP.Data.Visualization
                     yield break;
                 }
             }
-            // TEMP
-            //if (columnsLength > 0)
-            //{
-            //    if (columns.Any(c => c.Data.Timeline.Length != columns.FirstOrDefault().Data.Timeline.Length))
-            //    {
-            //        string information = "";
-            //        foreach (var column in columns)
-            //        {
-            //            information += string.Format("\n{0} ({1}{2})", column.Name, column.Data.Timeline.TimeLength, column.Data.Timeline.Unit);
-            //        }
-            //        exception = new TimelineException(information);
-            //    }
-            //}
             outPut(progress, exception);
         }
         IEnumerator c_StandardizeColumns(float progress, GenericEvent<float, float, LoadingText> onChangeProgress, Action<float, Exception> outPut)

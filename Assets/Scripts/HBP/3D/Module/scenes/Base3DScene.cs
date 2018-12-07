@@ -258,6 +258,21 @@ namespace HBP.Module3D
                 m_TriEraser.Degrees = value;
             }
         }
+        /// <summary>
+        /// State of the triangle erasing
+        /// </summary>
+        public List<int[]> TriangleErasingCurrentMasks
+        {
+            get
+            {
+                return m_TriEraser.CurrentMasks;
+            }
+            set
+            {
+                m_TriEraser.CurrentMasks = value;
+                UpdateMeshesFromDLL();
+            }
+        }
 
         /// <summary>
         /// Are Mars Atlas colors displayed ?
@@ -1708,7 +1723,7 @@ namespace HBP.Module3D
         public bool LoadFMRI()
         {
             string[] filters = new string[] { "nii", "img" };
-            string path = DLL.QtGUI.GetExistingFileName(filters, "Select an fMRI file");
+            string path = UI.FileBrowser.GetExistingFileName(filters, "Select an fMRI file");
             if (!string.IsNullOrEmpty(path))
             {
                 m_ColumnManager.FMRI = new MRI3D(new Data.Anatomy.MRI("FMRI", path));
