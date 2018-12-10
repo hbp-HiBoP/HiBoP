@@ -90,10 +90,9 @@ namespace HBP.UI.TrialMatrix
         }
         void SetFillers()
         {
-            int totalLenght = m_Data.SubTrials[0].Data.Values.Length + m_Data.SpacesBefore + m_Data.SpacesAfter;
-            m_LeftFillerLayoutElement.flexibleWidth = (float) m_Data.SpacesBefore / totalLenght;
-            m_RightFillerLayoutElement.flexibleWidth = (float) m_Data.SpacesAfter / totalLenght;
-            m_MainTextureLayoutElement.flexibleWidth = (float) m_Data.SubTrials[0].Data.Values.Length / totalLenght;
+            m_LeftFillerLayoutElement.flexibleWidth = m_Data.SubBlocProtocol.Window.Start - m_Data.Window.Start;
+            m_RightFillerLayoutElement.flexibleWidth = m_Data.Window.End - m_Data.SubBlocProtocol.Window.End;
+            m_MainTextureLayoutElement.flexibleWidth = m_Data.Window.Lenght;
         }
         Texture2D GenerateTexture(float[][] trials,Vector2 limits,Texture2D colorMap)
         {
@@ -166,19 +165,19 @@ namespace HBP.UI.TrialMatrix
                     {
                         GameObject eventGameObject = new GameObject(_event.Name + " - " + i);
                         eventGameObject.transform.SetParent(m_EventContainer);
-                        eventGameObject.AddComponent<Image>().color = Color.black;
+                        eventGameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.9f);
 
-                        float x = (float)(occurence.IndexFromStart + subBloc.SpacesBefore) / (subBloc.SubTrials[i].Data.Values.Length + subBloc.SpacesBefore + subBloc.SpacesAfter);
+                        float x = (float)(occurence.IndexFromStart) / (subBloc.SubTrials[i].Data.Values.Length);
                         float width = 0.5f / subBloc.SubTrials[i].Data.Values.Length;
                         float y = (float)i / subBloc.SubTrials.Length;
                         float height = 1.0f / subBloc.SubTrials.Length;
 
                         RectTransform rect = eventGameObject.GetComponent<RectTransform>();
                         rect.pivot = new Vector2(0, 0);
-                        rect.anchorMin = new Vector2(x, y);
-                        rect.anchorMax = new Vector2(x + width, y + height);
-                        rect.offsetMin = new Vector2(0, 0);
-                        rect.offsetMax = new Vector2(0, 0);
+                        rect.anchorMin = new Vector2(x + width /2 , y);
+                        rect.anchorMax = new Vector2(x + width /2 , y + height);
+                        rect.offsetMin = new Vector2(-1.5f, 0);
+                        rect.offsetMax = new Vector2(1.5f, 0);
                     }
                 }
             }

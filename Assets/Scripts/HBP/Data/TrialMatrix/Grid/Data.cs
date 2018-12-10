@@ -14,7 +14,26 @@ namespace HBP.Data.TrialMatrix.Grid
         public Bloc[] Blocs { get; set; }
         public Vector2 Limits { get; set; }
         public bool UseAutoLimits { get; set; }
-        public List<Tuple<int, Window>> TimeLimitsByColumn { get; set; }
+        List<Tuple<Experience.Protocol.SubBloc[], Window>> m_TimeLimitsByColumn;
+        public List<Tuple<Experience.Protocol.SubBloc[], Window>> TimeLimitsByColumn
+        {
+            get
+            {
+                return m_TimeLimitsByColumn;
+            }
+            private set
+            {
+                m_TimeLimitsByColumn = value;
+                foreach (var pair in value)
+                {
+                    IEnumerable<SubBloc> subBlocs = Blocs.SelectMany(b => b.ChannelBlocs.SelectMany(c => c.SubBlocs).Where(s => pair.Item1.Contains(s.SubBlocProtocol)));
+                    foreach (var subBloc in subBlocs)
+                    {
+                        subBloc.Window = pair.Item2;
+                    }
+                }
+            }
+        }
         public DataStruct DataStruct { get; set; }
         public ChannelStruct[] ChannelStructs { get; set; }
         #endregion
@@ -43,18 +62,21 @@ namespace HBP.Data.TrialMatrix.Grid
             {
                 foreach(var channelBloc in bloc.ChannelBlocs)
                 {
-                    foreach (var subBloc in channelBloc.SubBlocs)
+                    if(channelBloc.Found)
                     {
-                        foreach (var subTrial in subBloc.SubTrials)
+                        foreach (var subBloc in channelBloc.SubBlocs)
                         {
-                            values.AddRange(subTrial.Data.Values);
+                            foreach (var subTrial in subBloc.SubTrials)
+                            {
+                                values.AddRange(subTrial.Data.Values);
+                            }
                         }
                     }
                 }
             }
             return values.ToArray().CalculateValueLimit();
         }
-        List<Tuple<int, Window>> CalculateTimeLimitsByColumn(IEnumerable<Experience.Protocol.Bloc> blocs)
+        List<Tuple<Experience.Protocol.SubBloc[], Window>> CalculateTimeLimitsByColumn(IEnumerable<Experience.Protocol.Bloc> blocs)
         {
             List<Tuple<int, List<Experience.Protocol.SubBloc>>> subBlocsByColumns = new List<Tuple<int, List<Experience.Protocol.SubBloc>>>();
             foreach (var bloc in blocs)
@@ -68,38 +90,17 @@ namespace HBP.Data.TrialMatrix.Grid
                 }
             }
 
-            List<Tuple<int, Window>> timeLimitsByColumns = new List<Tuple<int, Window>>();
+            List<Tuple<Experience.Protocol.SubBloc[], Window>> timeLimitsByColumns = new List<Tuple<Experience.Protocol.SubBloc[], Window>>();
             foreach (var tuple in subBlocsByColumns)
             {
-                List<Experience.Protocol.SubBloc> subBlocs = tuple.Item2;
-                timeLimitsByColumns.Add(new Tuple<int, Window>(tuple.Item1, new Window(subBlocs.Min(s => s.Window.Start), subBlocs.Max(s => s.Window.End))));
-            }
-            return timeLimitsByColumns.OrderBy(tuple => tuple.Item1).ToList();
-        }
-        void Standardize(Bloc[] blocs)
-        {
-            Dictionary<int, List<Experience.Protocol.SubBloc>> subBlocsByColumns = new Dictionary<int, List<Experience.Protocol.SubBloc>>();
-            foreach (var bloc in blocs)
-            {
-                int mainSubBlocPosition = bloc.Data.MainSubBlocPosition;
-                for (int i = 0; i < bloc.Data.SubBlocs.Count; i++)
+                Window window = new Window(tuple.Item2.Min(s => s.Window.Start), tuple.Item2.Max(s => s.Window.End));
+                foreach (var subBloc in tuple.Item2)
                 {
-                    int column = i - mainSubBlocPosition;
-                    if (!subBlocsByColumns.ContainsKey(column)) subBlocsByColumns[column] = new List<Experience.Protocol.SubBloc>();
-                    subBlocsByColumns[i - mainSubBlocPosition].Add(bloc.Data.SubBlocs[i]);
+                    subBloc.Window = window;
                 }
+                timeLimitsByColumns.Add( new Tuple<Experience.Protocol.SubBloc[], Window>(tuple.Item2.ToArray(), window));
             }
-
-            foreach (var pair in subBlocsByColumns)
-            {
-                int before = pair.Value.Max(s => s.SubTrials.First(sub => sub.Data.Found).Data.InformationsByEvent[s.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart);
-                int after = pair.Value.Max(s => s.SubTrials.First(sub => sub.Data.Found).Data.Values.Length - s.SubTrials.First(sub => sub.Data.Found).Data.InformationsByEvent[s.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart);
-                foreach (SubBloc subBloc in pair.Value)
-                {
-                    subBloc.SpacesBefore = before - subBloc.SubTrials.First(sub => sub.Data.Found).Data.InformationsByEvent[subBloc.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart;
-                    subBloc.SpacesAfter = after - (subBloc.SubTrials.First(sub => sub.Data.Found).Data.Values.Length - subBloc.SubTrials.First(sub => sub.Data.Found).Data.InformationsByEvent[subBloc.SubBlocProtocol.MainEvent].Occurences.First().IndexFromStart);
-                }
-            }
+            return timeLimitsByColumns;
         }
         #endregion
     }

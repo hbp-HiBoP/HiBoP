@@ -119,7 +119,7 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Private Methods
-        void AddBloc(data.Bloc data, Texture2D colorMap, Vector2 limits, IEnumerable<Tuple<int,Tools.CSharp.Window>> timeLimitsByColumn)
+        void AddBloc(data.Bloc data, Texture2D colorMap, Vector2 limits, IEnumerable<Tuple<HBP.Data.Experience.Protocol.SubBloc[], Tools.CSharp.Window>> timeLimitsByColumn)
         {
             Bloc bloc = Instantiate(m_BlocPrefab, m_BlocContainer).GetComponent<Bloc>();
             bloc.Set(data, colorMap, limits, timeLimitsByColumn);

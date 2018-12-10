@@ -7,6 +7,13 @@ namespace Tools.CSharp
         #region Properties
         public int Start { get; set; }
         public int End { get; set; }
+        public int Lenght
+        {
+            get
+            {
+                return End - Start;
+            }
+        }
         #endregion
 
         #region Constructors

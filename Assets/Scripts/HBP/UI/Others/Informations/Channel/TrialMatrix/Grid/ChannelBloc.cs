@@ -47,7 +47,7 @@ namespace HBP.UI.TrialMatrix.Grid
         #endregion
 
         #region Public Methods
-        public void Set(dg.ChannelBloc data, Texture2D colormap, Vector2 limits, IEnumerable<Tuple<int, Tools.CSharp.Window>> timeLimitsByColumn)
+        public void Set(dg.ChannelBloc data, Texture2D colormap, Vector2 limits, IEnumerable<Tuple<HBP.Data.Experience.Protocol.SubBloc[], Tools.CSharp.Window>> timeLimitsByColumn)
         {
             Title = data.Channel.Channel + " (" + data.Channel.Patient.Name + ")";
             Data = data;
@@ -58,17 +58,21 @@ namespace HBP.UI.TrialMatrix.Grid
 
             foreach (var tuple in timeLimitsByColumn)
             {
-                int index = tuple.Item1 + mainSubBlocIndex;
-                if (index >= 0 && index < orderedSubBlocs.Count())
+                bool found = false;
+                foreach (var subBloc in data.SubBlocs)
                 {
-                    AddSubBloc(data.SubBlocs[index], colormap, limits, tuple.Item2);
+                    if (tuple.Item1.Contains(subBloc.SubBlocProtocol)) 
+                    {
+                        AddSubBloc(subBloc, colormap, limits, tuple.Item2);
+                        found = true;
+                        break;
+                    }
                 }
-                else
+                if(!found)
                 {
                     AddFiller(tuple.Item2);
                 }
             }
-
             SetSize();
         }
         #endregion

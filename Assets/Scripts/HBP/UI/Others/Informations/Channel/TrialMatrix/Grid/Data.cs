@@ -125,12 +125,11 @@ namespace HBP.UI.TrialMatrix.Grid
             {
                 AddBloc(bloc, data.TimeLimitsByColumn);
             }
-
         }
         #endregion
 
         #region Private Methods
-        void AddBloc(d.Bloc data, IEnumerable<Tuple<int, Tools.CSharp.Window>> timeLimitsByColumn)
+        void AddBloc(d.Bloc data, IEnumerable<Tuple<HBP.Data.Experience.Protocol.SubBloc[], Tools.CSharp.Window>> timeLimitsByColumn)
         {
             Bloc bloc = (Instantiate(m_BlocPrefab, m_BlocContainer) as GameObject).GetComponent<Bloc>();
             bloc.Set(data, m_Colormap, m_Limits, timeLimitsByColumn);

@@ -49,7 +49,7 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(data.Bloc bloc, Texture2D colorMap, Vector2 limits, IEnumerable<Tuple<int,Tools.CSharp.Window>> timeLimitsByColumn)
+        public void Set(data.Bloc bloc, Texture2D colormap, Vector2 limits, IEnumerable<Tuple<Data.Experience.Protocol.SubBloc[], Tools.CSharp.Window>> timeLimitsByColumn)
         {
             Data = bloc;
             Title = bloc.ProtocolBloc.Name;
@@ -61,12 +61,17 @@ namespace HBP.UI.TrialMatrix
 
             foreach (var tuple in timeLimitsByColumn)
             {
-                int index = tuple.Item1 + mainSubBlocIndex;
-                if (index >= 0 && index < orderedSubBlocs.Count())
+                bool found = false;
+                foreach (var subBloc in bloc.SubBlocs)
                 {
-                    AddSubBloc(bloc.SubBlocs[index], colorMap, limits, tuple.Item2);
+                    if (tuple.Item1.Contains(subBloc.SubBlocProtocol))
+                    {
+                        AddSubBloc(subBloc, colormap, limits, tuple.Item2);
+                        found = true;
+                        break;
+                    }
                 }
-                else
+                if (!found)
                 {
                     AddFiller(tuple.Item2);
                 }

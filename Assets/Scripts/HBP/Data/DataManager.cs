@@ -88,7 +88,6 @@ public static class DataManager
     public static BlocChannelData GetData(DataInfo dataInfo, Bloc bloc, string channel)
     {
         return GetData(new BlocChannelRequest(dataInfo, bloc, channel));
-
     }
 
     // Statistics.
@@ -291,14 +290,25 @@ public static class DataManager
             else
             {
                 Request dataRequest = new Request(request.DataInfo);
-                if (!m_DataByRequest.ContainsKey(dataRequest))
+                Data data = GetData(dataRequest);
+                if (data != null)
                 {
-                    Load(dataRequest);
+                    if(data.UnitByChannel.ContainsKey(request.Channel))
+                    {
+                        BlocRequest blocDataRequest = new BlocRequest(request.DataInfo, request.Bloc);
+                        BlocChannelData blocChannelData = new BlocChannelData(m_BlocDataByRequest[blocDataRequest], request.Channel);
+                        m_BlocChannelDataByRequest.Add(request, blocChannelData);
+                        return blocChannelData;
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
-                BlocRequest blocDataRequest = new BlocRequest(request.DataInfo, request.Bloc);
-                BlocChannelData blocChannelData = new BlocChannelData(m_BlocDataByRequest[blocDataRequest], request.Channel);
-                m_BlocChannelDataByRequest.Add(request, blocChannelData);
-                return blocChannelData;
+                else
+                {
+                    return null;
+                }
             }
         }
         else

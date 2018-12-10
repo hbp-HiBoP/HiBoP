@@ -53,29 +53,42 @@ namespace HBP.UI.TrialMatrix.Grid
         public Dictionary<data.ChannelBloc, ChannelBloc> BlocByChannel { get; set; }
 
         [SerializeField] GameObject m_ChannelBlocPrefab;
+        [SerializeField] GameObject m_FillerPrefab;
         [SerializeField] RectTransform m_ChannelBlocContainer;
         #endregion
 
         #region Public Methods
-        public void Set(data.Bloc data, Texture2D colormap, Vector2 limits, IEnumerable<Tuple<int, Tools.CSharp.Window>> timeLimitsByColumn)
+        public void Set(data.Bloc data, Texture2D colormap, Vector2 limits, IEnumerable<Tuple<HBP.Data.Experience.Protocol.SubBloc[], Tools.CSharp.Window>> timeLimitsByColumn)
         {
             Title = data.Title;
             Clear();
             foreach (var channelBloc in data.ChannelBlocs)
             {
-                AddChannelBloc(channelBloc, colormap, limits, timeLimitsByColumn);
+                if(channelBloc.Found)
+                {
+                    AddChannelBloc(channelBloc, colormap, limits, timeLimitsByColumn);
+                }
+                else
+                {
+                    AddFiller();
+                }
             }
         }
         #endregion
 
         #region Private Methods
-        void AddChannelBloc(data.ChannelBloc data, Texture2D colormap, Vector2 limits, IEnumerable<Tuple<int, Tools.CSharp.Window>> timeLimitsByColumn)
+        void AddChannelBloc(data.ChannelBloc data, Texture2D colormap, Vector2 limits, IEnumerable<Tuple<HBP.Data.Experience.Protocol.SubBloc[], Tools.CSharp.Window>> timeLimitsByColumn)
         {
             GameObject gameObject = Instantiate(m_ChannelBlocPrefab, m_ChannelBlocContainer);
             ChannelBloc channelBloc = gameObject.GetComponent<ChannelBloc>();
             channelBloc.Set(data, colormap, limits, timeLimitsByColumn);
             BlocByChannel.Add(data, channelBloc);
         }
+        void AddFiller()
+        {
+            GameObject gameObject = Instantiate(m_FillerPrefab, m_ChannelBlocContainer);
+        }
+
         void Clear()
         {
             foreach (Transform child in m_ChannelBlocContainer)
