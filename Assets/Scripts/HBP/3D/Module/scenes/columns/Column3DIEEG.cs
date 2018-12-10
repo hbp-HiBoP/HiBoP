@@ -128,7 +128,7 @@ namespace HBP.Module3D
             foreach (Site site in Sites)
             {
                 float[] values;
-                if (ColumnIEEGData.Data.ProcessedValuesByChannel.TryGetValue(site.Information.ChannelName, out values))
+                if (ColumnIEEGData.Data.ProcessedValuesByChannel.TryGetValue(site.Information.FullCorrectedID, out values))
                 {
                     if (values.Length > 0)
                     {
@@ -150,12 +150,12 @@ namespace HBP.Module3D
                     site.State.IsMasked = true; // update mask
                 }
                 Data.Experience.Dataset.BlocChannelData blocChannelData;
-                if (ColumnIEEGData.Data.DataByChannel.TryGetValue(site.Information.ChannelName, out blocChannelData))
+                if (ColumnIEEGData.Data.DataByChannelID.TryGetValue(site.Information.FullCorrectedID, out blocChannelData))
                 {
                     site.Data = blocChannelData;
                 }
                 Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics;
-                if (ColumnIEEGData.Data.StatisticsByChannel.TryGetValue(site.Information.ChannelName, out blocChannelStatistics))
+                if (ColumnIEEGData.Data.StatisticsByChannelID.TryGetValue(site.Information.FullCorrectedID, out blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
                 }
