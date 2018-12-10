@@ -27,7 +27,7 @@ namespace HBP.UI.Module3D.Tools
 
                 try
                 {
-                    string file = FileBrowser.GetSavedFileName(new string[] { "tri" }, "Save brain state to");
+                    string file = FileBrowser.GetSavedFileName(new string[] { "trimask" }, "Save brain state to");
                     if (!string.IsNullOrEmpty(file))
                     {
                         string fileContent = string.Join("\n", SelectedScene.TriangleErasingCurrentMasks.Select(m => string.Join(" ", m)));
@@ -44,7 +44,7 @@ namespace HBP.UI.Module3D.Tools
                 if (ListenerLock) return;
                 try
                 {
-                    string file = FileBrowser.GetSavedFileName(new string[] { "tri" }, "Load brain state from");
+                    string file = FileBrowser.GetSavedFileName(new string[] { "trimask" }, "Load brain state from");
                     if (!string.IsNullOrEmpty(file))
                     {
                         string fileContent = File.ReadAllText(file);

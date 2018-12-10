@@ -38,8 +38,11 @@ namespace HBP.UI.Module3D.Tools
                 ObjectSelector<Data.Visualization.Visualization> selector = ApplicationState.WindowsManager.OpenSelector<Data.Visualization.Visualization>();
                 selector.OnSave.AddListener(() =>
                 {
-                    SelectedScene.Visualization.Configuration = selector.ObjectsSelected[0].Configuration.Clone() as Data.Visualization.VisualizationConfiguration;
-                    SelectedScene.LoadConfiguration();
+                    if (selector.ObjectsSelected.Length > 0)
+                    {
+                        SelectedScene.Visualization.Configuration = selector.ObjectsSelected[0].Configuration.Clone() as Data.Visualization.VisualizationConfiguration;
+                        SelectedScene.LoadConfiguration();
+                    }
                 });
                 selector.Objects = ApplicationState.ProjectLoaded.Visualizations.ToArray();
                 selector.MultiSelection = false;
