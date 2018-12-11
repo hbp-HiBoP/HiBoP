@@ -34,8 +34,9 @@ namespace HBP.UI.Module3D.Tools
                         File.WriteAllText(file, fileContent);
                     }
                 }
-                catch
+                catch (Exception e)
                 {
+                    Debug.LogException(e);
                     ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Save Error", "The file could not be saved.");
                 }
             });
@@ -51,8 +52,9 @@ namespace HBP.UI.Module3D.Tools
                         SelectedScene.TriangleErasingCurrentMasks = fileContent.Split('\n').Select(s => s.Split(' ').Select(split => int.Parse(split)).ToArray()).ToList();
                     }
                 }
-                catch
+                catch (Exception e)
                 {
+                    Debug.LogException(e);
                     ApplicationState.DialogBoxManager.Open(T.DialogBoxManager.AlertType.Error, "Load Error", "The file could not be loaded.");
                 }
             });

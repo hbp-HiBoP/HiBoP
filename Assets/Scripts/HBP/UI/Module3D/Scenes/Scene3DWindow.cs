@@ -158,8 +158,9 @@ namespace HBP.UI.Module3D
                                     ClassLoaderSaver.GenerateUniqueSavePath(ref viewFilePath);
                                     view.ScreenshotTexture.SaveToPNG(viewFilePath);
                                 }
-                                catch
+                                catch (Exception e)
                                 {
+                                    Debug.LogException(e);
                                     ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                                     yield break;
                                 }
@@ -178,8 +179,9 @@ namespace HBP.UI.Module3D
                         ClassLoaderSaver.GenerateUniqueSavePath(ref cutFilePath);
                         cutTextures[i].Item2.SaveToPNG(cutFilePath);
                     }
-                    catch
+                    catch (Exception e)
                     {
+                        Debug.LogException(e);
                         ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                         yield break;
                     }
@@ -199,8 +201,9 @@ namespace HBP.UI.Module3D
                             ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
                             graphTexture.SaveToPNG(graphFilePath);
                         }
-                        catch
+                        catch (Exception e)
                         {
+                            Debug.LogException(e);
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                             yield break;
                         }
@@ -213,8 +216,9 @@ namespace HBP.UI.Module3D
                                 sw.Write(graph.ToSVG());
                             }
                         }
-                        catch
+                        catch (Exception e)
                         {
+                            Debug.LogException(e);
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                             yield break;
                         }
@@ -231,8 +235,9 @@ namespace HBP.UI.Module3D
                                 }
                             }
                         }
-                        catch
+                        catch (Exception e)
                         {
+                            Debug.LogException(e);
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                             yield break;
                         }
@@ -274,8 +279,9 @@ namespace HBP.UI.Module3D
                             ClassLoaderSaver.GenerateUniqueSavePath(ref trialMatrixFilePath);
                             trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
                         }
-                        catch
+                        catch (Exception e)
                         {
+                            Debug.LogException(e);
                             ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                             yield break;
                         }
@@ -296,8 +302,9 @@ namespace HBP.UI.Module3D
                 {
                     sceneTexture.SaveToPNG(screenshotPath);
                 }
-                catch
+                catch (Exception e)
                 {
+                    Debug.LogException(e);
                     ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
                     yield break;
                 }

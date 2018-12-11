@@ -447,8 +447,9 @@ namespace HBP.Data.General
                 {
                     Directory.Delete(oldTMPProjectDirectory,true);
                 }
-                catch
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     throw new CanNotDeleteOldProjectDirectory(oldTMPProjectDirectory);
                 }
             }
@@ -458,8 +459,9 @@ namespace HBP.Data.General
             {
                 tmpProjectDirectory.MoveTo(oldTMPProjectDirectory);
             }
-            catch
+            catch (Exception e)
             {
+                UnityEngine.Debug.LogException(e);
                 throw new CanNotRenameProjectDirectory();
             }
             progress += progressStep;
@@ -492,8 +494,9 @@ namespace HBP.Data.General
             {
                 Settings = ClassLoaderSaver.LoadFromJson<ProjectSettings>(settingsFiles[0].FullName);
             }
-            catch
+            catch (Exception e)
             {
+                UnityEngine.Debug.LogException(e);
                 throw new CanNotReadSettingsFileException(settingsFiles[0].Name);
             }
             progress += progressStep;
@@ -515,8 +518,9 @@ namespace HBP.Data.General
                 {
 
                 }
-                catch
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(patientFile.Name));
                 }
                 progress += progressStep;
@@ -539,8 +543,9 @@ namespace HBP.Data.General
                 {
                     groups.Add(ClassLoaderSaver.LoadFromJson<Group>(groupFile.FullName));
                 }
-                catch
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(groupFile.Name));
                 }
                 progress += progressStep;
@@ -563,8 +568,9 @@ namespace HBP.Data.General
                 {
                     protocols.Add(ClassLoaderSaver.LoadFromJson<Protocol>(protocolFile.FullName));
                 }
-                catch
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     throw new CanNotReadProtocolFileException(Path.GetFileNameWithoutExtension(protocolFile.Name));
                 }
                 progress += progressStep;
@@ -587,8 +593,9 @@ namespace HBP.Data.General
                 {
                     datasets.Add(ClassLoaderSaver.LoadFromJson<Dataset>(datasetFile.FullName));
                 }
-                catch
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(datasetFile.Name));
                 }
                 progress += progressStep;
@@ -612,8 +619,9 @@ namespace HBP.Data.General
                 {
                     visualizations.Add(ClassLoaderSaver.LoadFromJson<Visualization.Visualization>(visualizationFile.FullName));
                 }
-                catch
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(visualizationFile.Name));
                 }
                 progress += progressStep;
@@ -655,8 +663,9 @@ namespace HBP.Data.General
             {
                 ClassLoaderSaver.SaveToJSon(Settings, projectDirectory.FullName + Path.DirectorySeparatorChar + Settings.Name + ProjectSettings.EXTENSION);
             }
-            catch
+            catch (Exception e)
             {
+                UnityEngine.Debug.LogException(e);
                 throw new CanNotSaveSettingsException();
             }
             progress += progressStep;
@@ -676,8 +685,9 @@ namespace HBP.Data.General
                 {
                     ClassLoaderSaver.SaveToJSon(patient, patientDirectory.FullName + Path.DirectorySeparatorChar + patient.ID + "." + Patient.EXTENSION);
                 }
-                catch
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
                 progress += progressStep;
@@ -698,8 +708,9 @@ namespace HBP.Data.General
                 {
                     ClassLoaderSaver.SaveToJSon(group, groupDirectory.FullName + Path.DirectorySeparatorChar + group.Name + "." + Group.EXTENSION);
                 }
-                catch
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
                 progress += progressStep;
@@ -720,8 +731,9 @@ namespace HBP.Data.General
                 {
                     ClassLoaderSaver.SaveToJSon(protocol, protocolDirectory.FullName + Path.DirectorySeparatorChar + protocol.Name + Protocol.EXTENSION);
                 }
-                catch
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
                 progress += progressStep;
@@ -742,8 +754,9 @@ namespace HBP.Data.General
                 {
                     ClassLoaderSaver.SaveToJSon(dataset, datasetDirectory.FullName + Path.DirectorySeparatorChar + dataset.Name + "." + Dataset.EXTENSION);
                 }
-                catch
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
                 progress += progressStep;
@@ -765,8 +778,9 @@ namespace HBP.Data.General
                 {
                     ClassLoaderSaver.SaveToJSon(visualization, visualizationDirectory.FullName + Path.DirectorySeparatorChar + visualization.Name + "." + Visualization.Visualization.EXTENSION);
                 }
-                catch
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     throw new CanNotSaveSettingsException();
                 }
                 progress += progressStep;

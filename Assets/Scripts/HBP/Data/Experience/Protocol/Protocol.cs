@@ -77,8 +77,9 @@ namespace HBP.Data.Experience.Protocol
             {
                 result = ClassLoaderSaver.LoadFromJson<Protocol>(path);
             }
-            catch
+            catch (Exception e)
             {
+                UnityEngine.Debug.LogException(e);
                 throw new CanNotReadProtocolFileException(Path.GetFileNameWithoutExtension(path));
             }
             Copy(result);

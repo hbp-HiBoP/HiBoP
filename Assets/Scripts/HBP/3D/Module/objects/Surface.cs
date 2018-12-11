@@ -391,8 +391,9 @@ namespace HBP.Module3D.DLL
 
                 UnityEngine.Profiling.Profiler.EndSample();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
+                Debug.LogException(e);
                 Debug.LogError(e.Message);
             }
         }

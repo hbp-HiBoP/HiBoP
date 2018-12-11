@@ -77,8 +77,9 @@ namespace HBP.Data
             {
                 result = ClassLoaderSaver.LoadFromJson<Group>(path);
             }
-            catch
+            catch (Exception e)
             {
+                UnityEngine.Debug.LogException(e);
                 throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(path));
             }
             Copy(result);

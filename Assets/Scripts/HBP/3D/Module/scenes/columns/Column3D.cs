@@ -611,8 +611,9 @@ namespace HBP.Module3D
                     }
                 }
             }
-            catch
+            catch (System.Exception e)
             {
+                Debug.LogException(e);
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Can not save site states", "Please verify your rights.");
             }
         }
@@ -694,8 +695,9 @@ namespace HBP.Module3D
                     }
                 }
             }
-            catch
+            catch (System.Exception e)
             {
+                Debug.LogException(e);
                 ApplicationState.DialogBoxManager.Open(Tools.Unity.DialogBoxManager.AlertType.Error, "Can not load site states", "Please verify your files and try again.");
             }
         }
