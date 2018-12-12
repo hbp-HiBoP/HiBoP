@@ -15,6 +15,7 @@ namespace HBP.Data.Visualization
         public Dictionary<string, BlocChannelData> DataByChannelID { get; set; } = new Dictionary<string, BlocChannelData>();
         public Dictionary<string, BlocChannelStatistics> StatisticsByChannelID { get; set; } = new Dictionary<string, BlocChannelStatistics>();
         public Dictionary<string, float[]> ProcessedValuesByChannel { get; set; } = new Dictionary<string, float[]>();
+        public Dictionary<string, string> UnitByChannel { get; set; } = new Dictionary<string, string>();
         
         private Dictionary<string, Frequency> m_FrequencyByChannelID = new Dictionary<string, Frequency>();
         public List<Frequency> Frequencies = new List<Frequency>();
@@ -33,6 +34,7 @@ namespace HBP.Data.Visualization
                     if (!DataByChannelID.ContainsKey(channelID)) DataByChannelID.Add(channelID, DataManager.GetData(dataInfo, bloc, channel));
                     if (!StatisticsByChannelID.ContainsKey(channelID)) StatisticsByChannelID.Add(channelID, DataManager.GetStatistics(dataInfo, bloc, channel));
                     if (!m_FrequencyByChannelID.ContainsKey(channelID)) m_FrequencyByChannelID.Add(channelID, data.Frequency);
+                    if (!UnitByChannel.ContainsKey(channelID)) UnitByChannel.Add(channelID, data.UnitByChannel[channel]);
                     if (!Frequencies.Contains(data.Frequency)) Frequencies.Add(data.Frequency);
                 }
                 // Events

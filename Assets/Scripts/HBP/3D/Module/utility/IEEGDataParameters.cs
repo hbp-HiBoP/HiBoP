@@ -155,7 +155,6 @@ namespace HBP.Module3D
             mid = Mathf.Clamp(mid, min, max);
             if (Mathf.Approximately(min, mid) && Mathf.Approximately(min, max) && Mathf.Approximately(mid, max))
             {
-                float amplitude = MaximumAmplitude - MinimumAmplitude;
                 float middle = column.IEEGValuesOfUnmaskedSites.Mean();
                 Vector2 limits = column.IEEGValuesOfUnmaskedSites.CalculateValueLimit();
                 mid = middle;
