@@ -82,7 +82,7 @@ namespace HBP.Data.Preferences
             MRIPreloading = mRIPreloading;
             ImplantationPreloading = implantationPreloading;
         }
-        public AnatomicPreferences() : this(false,false,false,false)
+        public AnatomicPreferences() : this(true,false,false,false)
         {
         }
         #endregion
