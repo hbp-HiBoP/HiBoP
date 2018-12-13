@@ -49,9 +49,9 @@ namespace HBP.Data.Experience.Dataset
         public void Normalize(float average, float standardDeviation, string channel)
         {
             float[] values;
-            if (ValuesByChannel.TryGetValue(channel, out values))
+            if (RawValuesByChannel.TryGetValue(channel, out values))
             {
-                values.Normalize(average, standardDeviation);
+                values.Normalize(ValuesByChannel[channel], average, standardDeviation);
             }
         }
         #endregion
