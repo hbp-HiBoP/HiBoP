@@ -38,6 +38,14 @@ namespace HBP.Data.Experience.Protocol
         /// Blocs of the protocol.
         /// </summary>
         [DataMember] public List<Bloc> Blocs { get; set; }
+
+        public IOrderedEnumerable<Bloc> OrderedBlocs
+        {
+            get
+            {
+                return Blocs.OrderBy(s => s.Order).ThenBy(s => s.Name);
+            }
+        }
         #endregion
 
         #region Constructors

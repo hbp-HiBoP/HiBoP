@@ -43,8 +43,8 @@ namespace HBP.Data.Preferences
         public const int MAXIMUM_TRIAL_HEIGHT = 50;
         public const float MINIMUM_TRIAL_RATIO = 0.02f;
         public const float MAXIMUM_TRIAL_RATIO = 0.2f;
-        public const float MINIMUM_BLOC_RATIO = 0.1f;
-        public const float MAXIMUM_BLOC_RATIO = 2.0f;
+        public const float MINIMUM_BLOC_RATIO = 0.05f;
+        public const float MAXIMUM_BLOC_RATIO = 1.0f;
         [DataMember] public bool ShowWholeProtocol { get; set; }
         [DataMember] public bool TrialsSynchronization { get; set; }
         [DataMember] public bool TrialSmoothing { get; set; }

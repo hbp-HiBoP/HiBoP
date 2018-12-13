@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Tools.CSharp;
 using UnityEngine;
+using p = HBP.Data.Experience.Protocol;
 
 namespace HBP.Data.TrialMatrix.Grid
 {
@@ -14,26 +15,7 @@ namespace HBP.Data.TrialMatrix.Grid
         public Bloc[] Blocs { get; set; }
         public Vector2 Limits { get; set; }
         public bool UseAutoLimits { get; set; }
-        List<Tuple<Experience.Protocol.SubBloc[], Window>> m_TimeLimitsByColumn;
-        public List<Tuple<Experience.Protocol.SubBloc[], Window>> TimeLimitsByColumn
-        {
-            get
-            {
-                return m_TimeLimitsByColumn;
-            }
-            private set
-            {
-                m_TimeLimitsByColumn = value;
-                foreach (var pair in value)
-                {
-                    IEnumerable<SubBloc> subBlocs = Blocs.SelectMany(b => b.ChannelBlocs.SelectMany(c => c.SubBlocs).Where(s => pair.Item1.Contains(s.SubBlocProtocol)));
-                    foreach (var subBloc in subBlocs)
-                    {
-                        subBloc.Window = pair.Item2;
-                    }
-                }
-            }
-        }
+        public Tuple<p.SubBloc[], Window>[] SubBlocsAndWindowByColumn { get; }
         public DataStruct DataStruct { get; set; }
         public ChannelStruct[] ChannelStructs { get; set; }
         #endregion
@@ -43,11 +25,18 @@ namespace HBP.Data.TrialMatrix.Grid
         {
             Title = dataStruct.Dataset.Name + " " + dataStruct.Data;
 
-            if (blocsToDisplay == null) blocsToDisplay = dataStruct.Dataset.Protocol.Blocs;
+            if (blocsToDisplay == null) blocsToDisplay = dataStruct.Dataset.Protocol.OrderedBlocs;
             Blocs = blocsToDisplay.Select(bloc => new Bloc(bloc, dataStruct, channelStructs)).ToArray();
 
             Limits = CalculateLimits(Blocs);
-            TimeLimitsByColumn = CalculateTimeLimitsByColumn(blocsToDisplay);
+            SubBlocsAndWindowByColumn = GetSubBlocsAndWindowByColumn(blocsToDisplay);
+            foreach (var bloc in Blocs)
+            {
+                foreach (var channelBloc in bloc.ChannelBlocs)
+                {
+                    channelBloc.Standardize(SubBlocsAndWindowByColumn);
+                }
+            }
 
             DataStruct = dataStruct;
             ChannelStructs = channelStructs;
@@ -76,21 +65,23 @@ namespace HBP.Data.TrialMatrix.Grid
             }
             return values.ToArray().CalculateValueLimit();
         }
-        List<Tuple<Experience.Protocol.SubBloc[], Window>> CalculateTimeLimitsByColumn(IEnumerable<Experience.Protocol.Bloc> blocs)
+        Tuple<p.SubBloc[], Window>[] GetSubBlocsAndWindowByColumn(IEnumerable<p.Bloc> blocs)
         {
-            List<Tuple<int, List<Experience.Protocol.SubBloc>>> subBlocsByColumns = new List<Tuple<int, List<Experience.Protocol.SubBloc>>>();
+            List<Tuple<int, List<p.SubBloc>>> subBlocsByColumns = new List<Tuple<int, List<p.SubBloc>>>();
             foreach (var bloc in blocs)
             {
                 int mainSubBlocPosition = bloc.MainSubBlocPosition;
-                for (int i = 0; i < bloc.SubBlocs.Count; i++)
+                p.SubBloc[] orderedSubBlocs = bloc.OrderedSubBlocs.ToArray();
+                for (int i = 0; i < orderedSubBlocs.Length; i++)
                 {
                     int column = i - mainSubBlocPosition;
-                    if (!subBlocsByColumns.Any(t => t.Item1 == column)) subBlocsByColumns.Add(new Tuple<int, List<Experience.Protocol.SubBloc>>(column, new List<Experience.Protocol.SubBloc>()));
-                    subBlocsByColumns.Find(t => t.Item1 == i - mainSubBlocPosition).Item2.Add(bloc.SubBlocs[i]);
+                    if (!subBlocsByColumns.Any(t => t.Item1 == column)) subBlocsByColumns.Add(new Tuple<int, List<p.SubBloc>>(column, new List<p.SubBloc>()));
+                    subBlocsByColumns.Find(t => t.Item1 == column).Item2.Add(orderedSubBlocs[i]);
                 }
             }
+            subBlocsByColumns = subBlocsByColumns.OrderBy(t => t.Item1).ToList();
 
-            List<Tuple<Experience.Protocol.SubBloc[], Window>> timeLimitsByColumns = new List<Tuple<Experience.Protocol.SubBloc[], Window>>();
+            List<Tuple<p.SubBloc[], Window>> timeLimitsByColumns = new List<Tuple<p.SubBloc[], Window>>();
             foreach (var tuple in subBlocsByColumns)
             {
                 Window window = new Window(tuple.Item2.Min(s => s.Window.Start), tuple.Item2.Max(s => s.Window.End));
@@ -98,9 +89,9 @@ namespace HBP.Data.TrialMatrix.Grid
                 {
                     subBloc.Window = window;
                 }
-                timeLimitsByColumns.Add( new Tuple<Experience.Protocol.SubBloc[], Window>(tuple.Item2.ToArray(), window));
+                timeLimitsByColumns.Add( new Tuple<p.SubBloc[], Window>(tuple.Item2.ToArray(), window));
             }
-            return timeLimitsByColumns;
+            return timeLimitsByColumns.ToArray();
         }
         #endregion
     }

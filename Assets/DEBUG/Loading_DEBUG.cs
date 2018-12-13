@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+
 public class Loading_DEBUG : MonoBehaviour
 {
     public Texture2D colorMap;
@@ -25,7 +26,14 @@ public class Loading_DEBUG : MonoBehaviour
             }
         }
         channels = channels.Take(2).ToList();
+        datas = datas.Where(d => d.Dataset.Protocol.Name == "VISU").ToList();
+        UnityEngine.Profiling.Profiler.BeginSample("Data");
         HBP.Data.TrialMatrix.Grid.TrialMatrixGrid trialMatrixGridData = new HBP.Data.TrialMatrix.Grid.TrialMatrixGrid(channels.ToArray(), datas.ToArray());
-        trialMatrixGrid.Display(trialMatrixGridData);
+        UnityEngine.Profiling.Profiler.EndSample();
+
+        UnityEngine.Profiling.Profiler.BeginSample("UI");
+        trialMatrixGrid.Display(trialMatrixGridData, colorMap);
+        UnityEngine.Profiling.Profiler.EndSample();
+
     }
 }

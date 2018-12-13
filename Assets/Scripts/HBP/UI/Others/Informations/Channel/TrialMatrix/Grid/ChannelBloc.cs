@@ -1,11 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.UI;
 using dg = HBP.Data.TrialMatrix.Grid;
-using d = HBP.Data.TrialMatrix;
+using data = HBP.Data.TrialMatrix;
 using UnityEngine.Events;
 
 namespace HBP.UI.TrialMatrix.Grid
@@ -31,6 +29,24 @@ namespace HBP.UI.TrialMatrix.Grid
         }
         public StringEvent OnChangeTitle;
 
+        Color[] m_Colors;
+        public Color[] Colors
+        {
+            get
+            {
+                return m_Colors;
+            }
+            set
+            {
+                m_Colors = value;
+                foreach (var subBloc in m_SubBlocs)
+                {
+                    subBloc.Colors = value;
+                }
+            }
+        }
+
+
         public dg.ChannelBloc Data { private set; get; }
 
         List<SubBloc> m_SubBlocs = new List<SubBloc>();
@@ -39,6 +55,7 @@ namespace HBP.UI.TrialMatrix.Grid
         List<GameObject> m_Fillers = new List<GameObject>();
         public ReadOnlyCollection<GameObject> Fillers { get { return new ReadOnlyCollection<GameObject>(m_Fillers); } }
 
+        [SerializeField] GameObject m_SubBlocFillerPrefab;
         [SerializeField] GameObject m_SubBlocPrefab;
         [SerializeField] RectTransform m_SubBlocContainer;
 
@@ -47,30 +64,22 @@ namespace HBP.UI.TrialMatrix.Grid
         #endregion
 
         #region Public Methods
-        public void Set(dg.ChannelBloc data, Texture2D colormap, Vector2 limits, IEnumerable<Tuple<HBP.Data.Experience.Protocol.SubBloc[], Tools.CSharp.Window>> timeLimitsByColumn)
+        public void Set(dg.ChannelBloc data, Color[] colors, Vector2 limits)
         {
             Title = data.Channel.Channel + " (" + data.Channel.Patient.Name + ")";
+            Colors = colors;
             Data = data;
 
             Clear();
-            IOrderedEnumerable<HBP.Data.Experience.Protocol.SubBloc> orderedSubBlocs = data.Bloc.OrderedSubBlocs;
-            int mainSubBlocIndex = data.Bloc.MainSubBlocPosition;
-
-            foreach (var tuple in timeLimitsByColumn)
+            foreach (var subBloc in data.SubBlocs)
             {
-                bool found = false;
-                foreach (var subBloc in data.SubBlocs)
+                if(subBloc.IsFiller)
                 {
-                    if (tuple.Item1.Contains(subBloc.SubBlocProtocol)) 
-                    {
-                        AddSubBloc(subBloc, colormap, limits, tuple.Item2);
-                        found = true;
-                        break;
-                    }
+                    AddFiller(subBloc.Window);
                 }
-                if(!found)
+                else
                 {
-                    AddFiller(tuple.Item2);
+                    AddSubBloc(subBloc, colors, limits);
                 }
             }
             SetSize();
@@ -98,21 +107,16 @@ namespace HBP.UI.TrialMatrix.Grid
                     break;
             }
         }
-        void AddSubBloc(d.SubBloc data, Texture2D colorMap, Vector2 limits, Tools.CSharp.Window window)
+        void AddSubBloc(data.SubBloc data, Color[] colors, Vector2 limits)
         {
-            SubBloc subBloc = (Instantiate(m_SubBlocPrefab, m_SubBlocContainer) as GameObject).GetComponent<SubBloc>();
-            subBloc.Set(data, colorMap, limits, window);
+            SubBloc subBloc = Instantiate(m_SubBlocPrefab, m_SubBlocContainer).GetComponent<SubBloc>();
+            subBloc.Set(data, colors, limits);
             m_SubBlocs.Add(subBloc);
         }
         void AddFiller(Tools.CSharp.Window window)
         {
-            GameObject filler = new GameObject("Filler");
-            filler.transform.SetParent(m_SubBlocContainer);
-            Image image = filler.AddComponent<Image>();
-            image.sprite = null;
-            image.color = new Color(40.0f / 255, 40f / 255, 40f / 255);
-            filler.AddComponent<LayoutElement>().flexibleWidth = window.End - window.Start;
-            filler.GetComponent<LayoutElement>().flexibleHeight = 1;
+            GameObject filler = Instantiate(m_SubBlocFillerPrefab, m_SubBlocContainer);
+            filler.GetComponent<LayoutElement>().flexibleWidth = window.End - window.Start;
             m_Fillers.Add(filler);
         }
         void Clear()

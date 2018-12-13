@@ -4,7 +4,6 @@ using UnityEngine;
 using System.Linq;
 using UnityEngine.Events;
 using data = HBP.Data.TrialMatrix;
-using System;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -26,6 +25,23 @@ namespace HBP.UI.TrialMatrix
         }
         public StringEvent OnChangeTitle;
 
+        Color[] m_Colors;
+        private Color[] Colors
+        {
+            get
+            {
+                return m_Colors;
+            }
+            set
+            {
+                m_Colors = value;
+                foreach (var bloc in m_Blocs)
+                {
+                    bloc.Colors = value;
+                }
+            }
+
+        }
         Texture2D m_Colormap;
         public Texture2D ColorMap
         {
@@ -36,6 +52,7 @@ namespace HBP.UI.TrialMatrix
             set
             {
                 m_Colormap = value;
+                Colors = ExtractColormap(value);
                 OnChangeColorMap.Invoke(value);
             }
         }
@@ -113,16 +130,16 @@ namespace HBP.UI.TrialMatrix
             ClearBlocs();
             foreach (data.Bloc bloc in data.Blocs)
             {
-                AddBloc(bloc, colormap, Limits, data.TimeLimitsByColumn);
+                AddBloc(bloc, m_Colors, Limits);
             }
         }
         #endregion
 
         #region Private Methods
-        void AddBloc(data.Bloc data, Texture2D colorMap, Vector2 limits, IEnumerable<Tuple<HBP.Data.Experience.Protocol.SubBloc[], Tools.CSharp.Window>> timeLimitsByColumn)
+        void AddBloc(data.Bloc data, Color[] colors, Vector2 limits)
         {
             Bloc bloc = Instantiate(m_BlocPrefab, m_BlocContainer).GetComponent<Bloc>();
-            bloc.Set(data, colorMap, limits, timeLimitsByColumn);
+            bloc.Set(data, colors, limits);
             bloc.SelectAllTrials();
             m_Blocs.Add(bloc);
         }
@@ -133,6 +150,15 @@ namespace HBP.UI.TrialMatrix
                Destroy(bloc.gameObject);
             }
             m_Blocs = new List<Bloc>();
+        }
+        Color[] ExtractColormap(Texture2D colormap)
+        {
+            Color[] colors = new Color[colormap.width];
+            for (int x = 0; x < colormap.width; x++)
+            {
+                colors[x] = colormap.GetPixel(x, 0);
+            }
+            return colors;
         }
         #endregion
     }
