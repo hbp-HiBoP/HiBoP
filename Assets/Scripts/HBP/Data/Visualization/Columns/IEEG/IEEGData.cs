@@ -12,11 +12,12 @@ namespace HBP.Data.Visualization
         public IconicScenario IconicScenario { get; set; }
         public Timeline Timeline { get; set; }
         public Dictionary<Patient, BlocEventsStatistics> EventStatisticsByPatient { get; set; } = new Dictionary<Patient, BlocEventsStatistics>();
-        public Dictionary<string, BlocChannelData> DataByChannel { get; set; } = new Dictionary<string, BlocChannelData>();
-        public Dictionary<string, BlocChannelStatistics> StatisticsByChannel { get; set; } = new Dictionary<string, BlocChannelStatistics>();
+        public Dictionary<string, BlocChannelData> DataByChannelID { get; set; } = new Dictionary<string, BlocChannelData>();
+        public Dictionary<string, BlocChannelStatistics> StatisticsByChannelID { get; set; } = new Dictionary<string, BlocChannelStatistics>();
         public Dictionary<string, float[]> ProcessedValuesByChannel { get; set; } = new Dictionary<string, float[]>();
+        public Dictionary<string, string> UnitByChannel { get; set; } = new Dictionary<string, string>();
         
-        private Dictionary<string, Frequency> m_FrequencyByChannel = new Dictionary<string, Frequency>();
+        private Dictionary<string, Frequency> m_FrequencyByChannelID = new Dictionary<string, Frequency>();
         public List<Frequency> Frequencies = new List<Frequency>();
         #endregion
 
@@ -27,11 +28,13 @@ namespace HBP.Data.Visualization
             {
                 Experience.Dataset.Data data = DataManager.GetData(dataInfo);
                 // Values
-                foreach (var channel in data.UnitByChannel.Keys)
+                foreach (var channel in data.UnitByChannel.Keys) 
                 {
-                    if (!DataByChannel.ContainsKey(channel)) DataByChannel.Add(channel, DataManager.GetData(dataInfo, bloc, channel));
-                    if (!StatisticsByChannel.ContainsKey(channel)) StatisticsByChannel.Add(channel, DataManager.GetStatistics(dataInfo, bloc, channel));
-                    if (!m_FrequencyByChannel.ContainsKey(channel)) m_FrequencyByChannel.Add(channel, data.Frequency);
+                    string channelID = dataInfo.Patient.ID + "_" + channel;
+                    if (!DataByChannelID.ContainsKey(channelID)) DataByChannelID.Add(channelID, DataManager.GetData(dataInfo, bloc, channel));
+                    if (!StatisticsByChannelID.ContainsKey(channelID)) StatisticsByChannelID.Add(channelID, DataManager.GetStatistics(dataInfo, bloc, channel));
+                    if (!m_FrequencyByChannelID.ContainsKey(channelID)) m_FrequencyByChannelID.Add(channelID, data.Frequency);
+                    if (!UnitByChannel.ContainsKey(channelID)) UnitByChannel.Add(channelID, data.UnitByChannel[channel]);
                     if (!Frequencies.Contains(data.Frequency)) Frequencies.Add(data.Frequency);
                 }
                 // Events
@@ -41,9 +44,9 @@ namespace HBP.Data.Visualization
         public void Unload()
         {
             EventStatisticsByPatient.Clear();
-            DataByChannel.Clear();
-            StatisticsByChannel.Clear();
-            m_FrequencyByChannel.Clear();
+            DataByChannelID.Clear();
+            StatisticsByChannelID.Clear();
+            m_FrequencyByChannelID.Clear();
             Frequencies.Clear();
             ProcessedValuesByChannel.Clear();
             IconicScenario = null;
@@ -86,11 +89,11 @@ namespace HBP.Data.Visualization
             IconicScenario = new IconicScenario(columnBloc, maxFrequency, Timeline);
 
             // Standardize values
-            foreach (var channel in DataByChannel.Keys)
+            foreach (var channelID in DataByChannelID.Keys)
             {
                 List<float> values = new List<float>();
-                Frequency frequency = m_FrequencyByChannel[channel];
-                BlocChannelStatistics statistics = StatisticsByChannel[channel];
+                Frequency frequency = m_FrequencyByChannelID[channelID];
+                BlocChannelStatistics statistics = StatisticsByChannelID[channelID];
                 foreach (var subBloc in columnBloc.OrderedSubBlocs)
                 {
                     float[] subBlocValues = statistics.Trial.ChannelSubTrialBySubBloc[subBloc].Values;
@@ -99,7 +102,7 @@ namespace HBP.Data.Visualization
                     values.AddRange(subBlocValues.Interpolate(subTimeline.Length, 0, 0));
                     if (subTimeline.After > 0) values.AddRange(Enumerable.Repeat(subBlocValues[subBlocValues.Length - 1], subTimeline.After));
                 }
-                ProcessedValuesByChannel.Add(channel, values.ToArray());
+                ProcessedValuesByChannel.Add(channelID, values.ToArray());
             }
         }
         /// <summary>

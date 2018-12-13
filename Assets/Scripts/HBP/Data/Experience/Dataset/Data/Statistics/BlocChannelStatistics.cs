@@ -1,4 +1,6 @@
-﻿namespace HBP.Data.Experience.Dataset
+﻿using System.Linq;
+
+namespace HBP.Data.Experience.Dataset
 {
     public class BlocChannelStatistics
     {

@@ -23,6 +23,9 @@ public static class DataManager
     static Dictionary<Request, EventsStatistics> m_EventsStatisticsByRequest = new Dictionary<Request, EventsStatistics>();
     static Dictionary<BlocRequest, BlocEventsStatistics> m_BlocEventsStatisticsByRequest = new Dictionary<BlocRequest, BlocEventsStatistics>();
 
+    static Stack<BlocRequest> m_BlocRequestsRequiringStatisticsReset = new Stack<BlocRequest>();
+
+    // Normalize
     static Dictionary<BlocRequest, HBP.Data.Enums.NormalizationType> m_NormalizeByRequest = new Dictionary<BlocRequest, HBP.Data.Enums.NormalizationType>();
     public static bool HasData
     {
@@ -167,6 +170,10 @@ public static class DataManager
                     break;
             }
         }
+        while (m_BlocRequestsRequiringStatisticsReset.Count > 0)
+        {
+            UnloadStatistics(m_BlocRequestsRequiringStatisticsReset.Pop());
+        }
     }
     #endregion
 
@@ -208,6 +215,34 @@ public static class DataManager
             foreach (var blocDataRequest in blocDataRequestsToRemove)
             {
                 m_BlocDataByRequest.Remove(blocDataRequest);
+            }
+        }
+    }
+    static void UnloadStatistics(BlocRequest request)
+    {
+        if (request.IsValid)
+        {
+            List<ChannelRequest> channelStatisticsToRemove = m_ChannelStatisticsByRequest.Keys.Where(k => k.DataInfo == request.DataInfo).ToList();
+            foreach (var channelRequest in channelStatisticsToRemove)
+            {
+                m_ChannelStatisticsByRequest.Remove(channelRequest);
+            }
+
+            List<BlocChannelRequest> blocChannelStatisticsToRemove = m_BlocChannelStatisticsByRequest.Keys.Where(k => k.DataInfo == request.DataInfo && k.Bloc == request.Bloc).ToList();
+            foreach (var blocChannelRequest in blocChannelStatisticsToRemove)
+            {
+                m_BlocChannelStatisticsByRequest.Remove(blocChannelRequest);
+            }
+
+            List<Request> eventStatisticsToRemove = m_EventsStatisticsByRequest.Keys.Where(k => k.DataInfo == request.DataInfo).ToList();
+            foreach (var eventRequest in eventStatisticsToRemove)
+            {
+                m_EventsStatisticsByRequest.Remove(eventRequest);
+            }
+
+            if (m_BlocEventsStatisticsByRequest.ContainsKey(request))
+            {
+                m_BlocEventsStatisticsByRequest.Remove(request);
             }
         }
     }
@@ -411,6 +446,7 @@ public static class DataManager
             }
         }
         m_NormalizeByRequest[request] = HBP.Data.Enums.NormalizationType.None;
+        m_BlocRequestsRequiringStatisticsReset.Push(request);
     }
     static void NormalizeBySubTrial(BlocRequest request)
     {
@@ -426,6 +462,7 @@ public static class DataManager
             }
         }
         m_NormalizeByRequest[request] = HBP.Data.Enums.NormalizationType.SubTrial;
+        m_BlocRequestsRequiringStatisticsReset.Push(request);
     }
     static void NormalizeByTrial(BlocRequest request)
     {
@@ -454,6 +491,7 @@ public static class DataManager
             }
         }
         m_NormalizeByRequest[request] = HBP.Data.Enums.NormalizationType.Trial;
+        m_BlocRequestsRequiringStatisticsReset.Push(request);
     }
     static void NormalizeBySubBloc(BlocRequest request)
     {
@@ -485,6 +523,7 @@ public static class DataManager
             }
         }
         m_NormalizeByRequest[request] = HBP.Data.Enums.NormalizationType.SubBloc;
+        m_BlocRequestsRequiringStatisticsReset.Push(request);
     }
     static void NormalizeByBloc(BlocRequest request)
     {
@@ -516,6 +555,7 @@ public static class DataManager
             }
         }
         m_NormalizeByRequest[request] = HBP.Data.Enums.NormalizationType.Bloc;
+        m_BlocRequestsRequiringStatisticsReset.Push(request);
     }
     static void NormalizeByProtocol(IEnumerable<Tuple<BlocRequest, bool>> dataRequestAndNeedToNormalize)
     {
@@ -560,7 +600,11 @@ public static class DataManager
 
         foreach (var tuple in dataRequestAndNeedToNormalize)
         {
-            if (tuple.Item2) m_NormalizeByRequest[tuple.Item1] = HBP.Data.Enums.NormalizationType.Protocol;
+            if (tuple.Item2)
+            {
+                m_NormalizeByRequest[tuple.Item1] = HBP.Data.Enums.NormalizationType.Protocol;
+                m_BlocRequestsRequiringStatisticsReset.Push(tuple.Item1);
+            }
         }
     }
     #endregion

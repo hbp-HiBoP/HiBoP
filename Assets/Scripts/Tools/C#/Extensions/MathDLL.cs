@@ -67,14 +67,14 @@ namespace Tools.CSharp
             }
             return Median(array, array.Length);
         }
-        public static void Normalize(this float[] array, float average, float standardDeviation)
+        public static void Normalize(this float[] array, float[] targetArray, float average, float standardDeviation)
         {
             if (array.Length == 0)
             {
                 throw new System.Exception("Array is empty");
             }
             if (standardDeviation == 0) standardDeviation = 1;
-            Normalize(array, array.Length, average, standardDeviation);
+            Normalize(array, array.Length, targetArray, average, standardDeviation);
         }
         public static float Lerp(float value1, float value2, float percentage)
         {
@@ -109,7 +109,7 @@ namespace Tools.CSharp
         [DllImport("HBP_Compute", EntryPoint = "SEM", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern float SEM(float[] values, int lenght);
         [DllImport("HBP_Compute", EntryPoint = "Normalize", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern void Normalize(float[] values, int length, float average, float standardDeviation);
+        private static extern void Normalize(float[] values, int length, float[] targetArray, float average, float standardDeviation);
         [DllImport("HBP_Compute", EntryPoint = "Lerp", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern float LerpDLL(float value1, float value2, float percentage);
         [DllImport("HBP_Compute", EntryPoint = "LinearSmooth", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]

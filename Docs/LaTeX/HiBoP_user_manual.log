@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6600 64-bit) (preloaded format=pdflatex 2018.2.27)  19 OCT 2018 10:22
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6600 64-bit) (preloaded format=pdflatex 2018.2.27)  7 DEC 2018 16:14
 entering extended mode
 **./HiBoP_user_manual.tex
 (HiBoP_user_manual.tex
@@ -942,7 +942,7 @@ Package pdftex.def Info: ExportLoca.png  used on input line 855.
 Here is how much of TeX's memory you used:
  6253 strings out of 493303
  90167 string characters out of 3138818
- 196234 words of memory out of 3000000
+ 197234 words of memory out of 3000000
  9643 multiletter control sequences out of 15000+200000
  65608 words of font info for 49 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -963,7 +963,7 @@ am Files/MiKTeX 2.9/fonts/type1/public/lm/lmr8.pfb><C:/Program Files/MiKTeX 2.9
 /fonts/type1/public/lm/lmr9.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public
 /lm/lmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt10.pfb><C
 :/Program Files/MiKTeX 2.9/fonts/type1/public/lm/lmtt8.pfb>
-Output written on HiBoP_user_manual.pdf (35 pages, 1401384 bytes).
+Output written on HiBoP_user_manual.pdf (35 pages, 1400976 bytes).
 PDF statistics:
  263 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

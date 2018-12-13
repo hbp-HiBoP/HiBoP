@@ -14,9 +14,12 @@ namespace HBP.Data.Visualization
         public AnatomicColumn(string name, BaseConfiguration baseConfiguration) : this(name,baseConfiguration, new AnantomicConfiguration())
         {
         }
-        public AnatomicColumn(string name, BaseConfiguration BaseConfiguration, AnantomicConfiguration anantomicConfiguration) : base(name, BaseConfiguration)
+        public AnatomicColumn(string name, BaseConfiguration baseConfiguration, AnantomicConfiguration anantomicConfiguration) : base(name, baseConfiguration)
         {
             AnantomicConfiguration = anantomicConfiguration;
+        }
+        public AnatomicColumn() : this("", new BaseConfiguration())
+        {
         }
         #endregion
 

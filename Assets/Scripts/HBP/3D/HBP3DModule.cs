@@ -396,6 +396,7 @@ namespace HBP.Module3D
                 }
                 catch (Exception e)
                 {
+                    Debug.LogException(e);
                     exception = e;
                 }
             }

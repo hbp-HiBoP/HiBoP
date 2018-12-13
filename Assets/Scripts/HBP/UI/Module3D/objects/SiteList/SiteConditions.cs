@@ -90,6 +90,7 @@ namespace HBP.UI.Module3D
                 }
                 catch (Exception e)
                 {
+                    Debug.LogException(e);
                     ApplicationState.DialogBoxManager.Open(global::Tools.Unity.DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
                 }
             }

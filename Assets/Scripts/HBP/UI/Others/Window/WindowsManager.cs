@@ -62,7 +62,7 @@ namespace HBP.UI
             return modifier;
         }
 
-        public ObjectSelector<T> OpenSelector<T>()
+        public ObjectSelector<T> OpenSelector<T>(bool interactable = true)
         {
             ObjectSelector<T> selector = default(ObjectSelector<T>);
             GameObject prefab = Referencer.GetPrefab(typeof(ObjectSelector<T>));
@@ -72,8 +72,7 @@ namespace HBP.UI
                 go.transform.localPosition = Vector3.zero;
 
                 selector = go.GetComponent<ObjectSelector<T>>();
-                //selector.Item = itemToModify;
-                //selector.Interactable = interactable;
+                selector.Interactable = interactable;
             }
             OnOpen(selector);
             return selector;

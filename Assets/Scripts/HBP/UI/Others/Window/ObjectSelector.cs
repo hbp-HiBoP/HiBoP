@@ -58,7 +58,14 @@ namespace HBP.UI
         protected override void Initialize()
         {
             m_List.Initialize();
+            m_List.OnSelectionChanged.AddListener(UpdateButtonState);
+            UpdateButtonState();
+
             base.Initialize();
+        }
+        void UpdateButtonState()
+        {
+            m_SaveButton.interactable = Interactable && ObjectsSelected.Length > 0;
         }
         #endregion
     }

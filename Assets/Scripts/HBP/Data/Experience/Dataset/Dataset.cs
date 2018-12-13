@@ -91,8 +91,9 @@ namespace HBP.Data.Experience.Dataset
             {
                 result = ClassLoaderSaver.LoadFromJson<Dataset>(path);
             }
-            catch
+            catch (Exception e)
             {
+                UnityEngine.Debug.LogException(e);
                 throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(path));
             }
             Copy(result);

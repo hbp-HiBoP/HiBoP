@@ -121,41 +121,50 @@ namespace HBP.Module3D
         {
             if (ColumnIEEGData == null) return;
 
+            int timelineLength = Timeline.Length;
+            int sitesCount = Sites.Count;
             // Construct sites value array the old way, and set sites masks // maybe FIXME
-            IEEGValuesBySiteID = new float[Sites.Count][];
-            IEEGUnitsBySiteID = new string[Sites.Count];
+            IEEGValuesBySiteID = new float[sitesCount][];
+            IEEGUnitsBySiteID = new string[sitesCount];
             int numberOfSitesWithValues = 0;
             foreach (Site site in Sites)
             {
                 float[] values;
-                if (ColumnIEEGData.Data.ProcessedValuesByChannel.TryGetValue(site.Information.ChannelName, out values))
+                if (ColumnIEEGData.Data.ProcessedValuesByChannel.TryGetValue(site.Information.FullCorrectedID, out values))
                 {
                     if (values.Length > 0)
                     {
                         numberOfSitesWithValues++;
                         IEEGValuesBySiteID[site.Information.GlobalID] = values;
-                        site.State.IsMasked = false; // update mask
+                        site.State.IsMasked = false;
                     }
                     else
                     {
-                        IEEGValuesBySiteID[site.Information.GlobalID] = new float[Timeline.Length];
-                        site.State.IsMasked = true; // update mask
+                        IEEGValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
+                        site.State.IsMasked = true;
                     }
-                    IEEGUnitsBySiteID[site.Information.GlobalID] = DataManager.GetData(ColumnIEEGData.Dataset.Data.FirstOrDefault((data) => (ColumnIEEGData.DataName == data.Name && data.Patient == site.Information.Patient))).UnitByChannel[site.Information.ChannelName];
                 }
                 else
                 {
-                    IEEGValuesBySiteID[site.Information.GlobalID] = new float[Timeline.Length];
+                    IEEGValuesBySiteID[site.Information.GlobalID] = new float[timelineLength];
+                    site.State.IsMasked = true;
+                }
+                string unit;
+                if (ColumnIEEGData.Data.UnitByChannel.TryGetValue(site.Information.FullCorrectedID, out unit))
+                {
+                    IEEGUnitsBySiteID[site.Information.GlobalID] = unit;
+                }
+                else
+                {
                     IEEGUnitsBySiteID[site.Information.GlobalID] = "";
-                    site.State.IsMasked = true; // update mask
                 }
                 Data.Experience.Dataset.BlocChannelData blocChannelData;
-                if (ColumnIEEGData.Data.DataByChannel.TryGetValue(site.Information.ChannelName, out blocChannelData))
+                if (ColumnIEEGData.Data.DataByChannelID.TryGetValue(site.Information.FullCorrectedID, out blocChannelData))
                 {
                     site.Data = blocChannelData;
                 }
                 Data.Experience.Dataset.BlocChannelStatistics blocChannelStatistics;
-                if (ColumnIEEGData.Data.StatisticsByChannel.TryGetValue(site.Information.ChannelName, out blocChannelStatistics))
+                if (ColumnIEEGData.Data.StatisticsByChannelID.TryGetValue(site.Information.FullCorrectedID, out blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
                 }
@@ -168,19 +177,19 @@ namespace HBP.Module3D
             IEEGParameters.MinimumAmplitude = float.MaxValue;
             IEEGParameters.MaximumAmplitude = float.MinValue;
 
-            int length = Timeline.Length * Sites.Count;
+            int length = timelineLength * sitesCount;
             IEEGValues = new float[length];
             List<float> iEEGNotMasked = new List<float>();
-            for (int s = 0; s < Sites.Count; ++s)
+            for (int s = 0; s < sitesCount; ++s)
             {
-                for (int t = 0; t < Timeline.Length; ++t)
+                for (int t = 0; t < timelineLength; ++t)
                 {
                     float val = IEEGValuesBySiteID[s][t];
-                    IEEGValues[t * Sites.Count + s] = val;
+                    IEEGValues[t * sitesCount + s] = val;
                 }
                 if (!Sites[s].State.IsMasked)
                 {
-                    for (int t = 0; t < Timeline.Length; ++t)
+                    for (int t = 0; t < timelineLength; ++t)
                     {
                         float val = IEEGValuesBySiteID[s][t];
                         iEEGNotMasked.Add(val);

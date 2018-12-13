@@ -2177,6 +2177,7 @@ namespace HBP.Module3D
             }
             catch (Exception e)
             {
+                Debug.LogException(e);
                 outPut(new CanNotLoadNIIFile(mri.File));
                 yield break;
             }
@@ -2245,6 +2246,7 @@ namespace HBP.Module3D
             }
             catch (Exception e)
             {
+                Debug.LogException(e);
                 outPut(new CanNotLoadGIIFile(mesh.Name));
                 yield break;
             }
@@ -2286,8 +2288,9 @@ namespace HBP.Module3D
                         throw new CanNotLoadImplantation(implantationName);
                     }
                 }
-                catch
+                catch (Exception e)
                 {
+                    Debug.LogException(e);
                     outPut(new CanNotLoadImplantation(implantationName));
                     yield break;
                 }
@@ -2311,8 +2314,9 @@ namespace HBP.Module3D
                 m_ColumnManager.Meshes.Add((LeftRightMesh3D)(ApplicationState.Module3D.MNIObjects.InflatedWhiteMatter.Clone()));
                 m_ColumnManager.MRIs.Add(ApplicationState.Module3D.MNIObjects.MRI);
             }
-            catch
+            catch (Exception e)
             {
+                Debug.LogException(e);
                 outPut(new CanNotLoadMNI());
                 yield break;
             }
@@ -2331,6 +2335,7 @@ namespace HBP.Module3D
             }
             catch (Exception e)
             {
+                Debug.LogException(e);
                 outPut(e);
                 yield break;
             }
@@ -2345,6 +2350,7 @@ namespace HBP.Module3D
             }
             catch (Exception e)
             {
+                Debug.LogException(e);
                 outPut(e);
                 yield break;
             }

@@ -34,6 +34,18 @@ namespace HBP.Data.Preferences
         [DataMember] public string DefaultSelectedMRIInMultiPatientsVisualization { get; set; }
         [DataMember] public string DefaultSelectedMeshInMultiPatientsVisualization { get; set; }
         [DataMember] public string DefaultSelectedImplantationInMultiPatientsVisualization { get; set; }
+
+        public _3DPreferences()
+        {
+            AutomaticEEGUpdate = true;
+            SiteInfluenceByDistance = Enums.SiteInfluenceByDistanceType.Quadratic;
+            DefaultSelectedMRIInSinglePatientVisualization = "Preimplantation";
+            DefaultSelectedMeshInSinglePatientVisualization = "Grey matter";
+            DefaultSelectedImplantationInSinglePatientVisualization = "Patient";
+            DefaultSelectedMRIInMultiPatientsVisualization = "MNI";
+            DefaultSelectedMeshInMultiPatientsVisualization = "MNI Grey matter";
+            DefaultSelectedImplantationInMultiPatientsVisualization = "MNI";
+        }
     }
 
     [DataContract]

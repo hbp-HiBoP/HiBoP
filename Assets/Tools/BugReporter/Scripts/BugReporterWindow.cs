@@ -28,6 +28,7 @@ namespace Tools.Unity
             }
             catch (Exception e)
             {
+                Debug.LogException(e);
                 if (e is SmtpException)
                 {
                     ApplicationState.DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "The report could not be sent", "Please check your internet connection and try again.");

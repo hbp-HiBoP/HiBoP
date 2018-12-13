@@ -22,7 +22,7 @@ namespace Tools.Unity
             }
             catch (Exception e)
             {
-                Debug.LogWarningFormat(e.Message);
+                Debug.LogException(e);
             }
             return result;
         }
@@ -38,7 +38,7 @@ namespace Tools.Unity
             }
             catch (Exception e)
             {
-                Debug.LogWarningFormat(e.Message);
+                Debug.LogException(e);
             }
             return result;
         }
@@ -57,7 +57,7 @@ namespace Tools.Unity
             }
             catch (Exception e)
             {
-                Debug.LogWarningFormat(e.Message);
+                Debug.LogException(e);
                 return false;
             }
         }
@@ -76,7 +76,7 @@ namespace Tools.Unity
             }
             catch (Exception e)
             {
-                Debug.LogWarningFormat(e.Message);
+                Debug.LogException(e);
                 return false;
             }
         }

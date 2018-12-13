@@ -57,7 +57,7 @@ namespace Tools.Unity
             buildPlayerOptions.locationPathName = buildDirectory + hibopName;
             buildPlayerOptions.target = target;
             buildPlayerOptions.scenes = new string[] { "Assets/_Scenes/HiBoP.unity" };
-            BuildOptions buildOptions = development ? BuildOptions.AllowDebugging | BuildOptions.ConnectWithProfiler | BuildOptions.Development : BuildOptions.None;
+            BuildOptions buildOptions = development ? BuildOptions.Development : BuildOptions.None;
             buildPlayerOptions.options = buildOptions;
             BuildPipeline.BuildPlayer(buildPlayerOptions);
 

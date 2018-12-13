@@ -10,7 +10,14 @@ public class ApplicationManager : MonoBehaviour
     {
         ApplicationState.ProjectLoaded = null;
         ApplicationState.ProjectLoadedLocation = string.Empty;
-        ApplicationState.UserPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(UserPreferences.PATH);
+        if (new FileInfo(UserPreferences.PATH).Exists)
+        {
+            ApplicationState.UserPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(UserPreferences.PATH);
+        }
+        else
+        {
+            ApplicationState.UserPreferences = new UserPreferences();
+        }
         ClassLoaderSaver.SaveToJSon(ApplicationState.UserPreferences, UserPreferences.PATH, true);
         ApplicationState.CoroutineManager = FindObjectOfType<CoroutineManager>();
         ApplicationState.Module3D = FindObjectOfType<HBP.Module3D.HBP3DModule>();

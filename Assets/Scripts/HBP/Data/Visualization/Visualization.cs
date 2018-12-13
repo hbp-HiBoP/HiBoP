@@ -202,8 +202,9 @@ namespace HBP.Data.Visualization
             {
                 result = ClassLoaderSaver.LoadFromJson<Visualization>(path);
             }
-            catch
+            catch (Exception e)
             {
+                UnityEngine.Debug.LogException(e);
                 throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(path));
             }
             Copy(result);
@@ -401,8 +402,9 @@ namespace HBP.Data.Visualization
                     }
                     dataInfoByColumn.Add(column, GetDataInfo(column));
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     exception = e;
                 }
             }
@@ -437,6 +439,7 @@ namespace HBP.Data.Visualization
                 }
                 catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     exception = new CannotLoadDataInfoException(dataInfo.Name, dataInfo.Patient.ID, additionalInformation);
                     break;
                 }
@@ -472,6 +475,7 @@ namespace HBP.Data.Visualization
                 }
                 catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     exception = e;
                     outPut(progress, exception);
                     yield break;
@@ -493,6 +497,7 @@ namespace HBP.Data.Visualization
                 }
                 catch (Exception e)
                 {
+                    UnityEngine.Debug.LogException(e);
                     exception = e;
                     outPut(progress, exception);
                     yield break;

@@ -173,6 +173,7 @@ public abstract class BaseSiteConditions : MonoBehaviour
             }
             catch (Exception e)
             {
+                UnityEngine.Debug.LogException(e);
                 exception = e;
             }
             if (exception != null)
