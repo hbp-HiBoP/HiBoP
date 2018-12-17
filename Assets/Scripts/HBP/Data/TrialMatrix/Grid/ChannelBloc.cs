@@ -1,5 +1,6 @@
 ﻿using HBP.Data.Experience.Dataset;
 using HBP.Data.Informations;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using p = HBP.Data.Experience.Protocol;
@@ -19,7 +20,10 @@ namespace HBP.Data.TrialMatrix.Grid
         public ChannelBloc(p.Bloc bloc, DataStruct data, ChannelStruct channel)
         {
             DataInfo dataInfo = data.Dataset.Data.FirstOrDefault(d => d.Name == data.Data && d.Patient == channel.Patient);
+
+            UnityEngine.Profiling.Profiler.BeginSample("GetData");
             BlocChannelData blocChannelData = DataManager.GetData(dataInfo, bloc, channel.Channel);
+            UnityEngine.Profiling.Profiler.EndSample();
 
             Found = blocChannelData != null;
             Bloc = bloc;
@@ -40,6 +44,24 @@ namespace HBP.Data.TrialMatrix.Grid
             {
                 SubBlocs = new SubBloc[0];
             }
+        }
+        public void Standardize(Tuple<p.SubBloc[],Tools.CSharp.Window>[] subBlocsAndWindowByColumn)
+        {
+            List<SubBloc> subBlocs = SubBlocs.ToList();
+            for (int c = 0; c < subBlocsAndWindowByColumn.Length; c++)
+            {
+                Tuple<p.SubBloc[], Tools.CSharp.Window> pair = subBlocsAndWindowByColumn[c];
+                SubBloc subBloc = subBlocs.FirstOrDefault(s => pair.Item1.Contains(s.SubBlocProtocol));
+                if (subBloc == null)
+                {
+                    subBlocs.Insert(c, new SubBloc(pair.Item2));
+                }
+                else
+                {
+                    subBloc.Window = pair.Item2;
+                }
+            }
+            SubBlocs = subBlocs.ToArray();
         }
         #endregion
 

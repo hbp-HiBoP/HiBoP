@@ -46,12 +46,12 @@
     "TrialMatrix": {
       "ShowWholeProtocol": false,
       "TrialsSynchronization": true,
-      "TrialSmoothing": true,
+      "TrialSmoothing": false,
       "NumberOfIntermediateValues": 3,
       "SubBlocFormat": 2,
       "TrialHeight": 8,
       "TrialRatio": 0.04981595,
-      "BlocRatio": 0.106951609
+      "BlocRatio": 0.248159513
     },
     "Graph": {
       "ShowCurvesOfMinimizedColumns": false

@@ -16,6 +16,7 @@ namespace HBP.Data.TrialMatrix.Grid
         public Bloc(p.Bloc bloc, DataStruct dataStruct, ChannelStruct[] channels)
         {
             Title = bloc.Name;
+            Data = bloc;
             ChannelBlocs = channels.Select(c => new ChannelBloc(bloc, dataStruct, c)).ToArray();
         }
         #endregion

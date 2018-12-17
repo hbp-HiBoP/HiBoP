@@ -7,7 +7,40 @@ namespace HBP.UI.TrialMatrix.Grid
     public class TrialMatrixGrid : MonoBehaviour
     {
         #region Properties
-        [SerializeField] Texture2D m_Colormap;
+        Color[] m_Colors;
+        private Color[] Colors
+        {
+            get
+            {
+                return m_Colors;
+            }
+            set
+            {
+                m_Colors = value;
+                foreach (var data in m_Data)
+                {
+                    data.Colors = value;
+                }
+            }
+        }
+        Texture2D m_Colormap;
+        public Texture2D Colormap
+        {
+            get
+            {
+                return m_Colormap;
+            }
+            set
+            {
+                m_Colormap = value;
+                foreach (var data in m_Data)
+                {
+                    data.Colormap = value;
+                }
+                Colors = ExtractColormap(value);
+            }
+        } 
+
 
         [SerializeField] RectTransform m_DataContainer;
         [SerializeField] GameObject m_DataPrefab;
@@ -20,17 +53,12 @@ namespace HBP.UI.TrialMatrix.Grid
         #endregion
 
         #region Public Methods
-        public void Display(data.TrialMatrixGrid trialMatrixGridData)
+        public void Display(data.TrialMatrixGrid trialMatrixGridData, Texture2D colormap = null)
         {
+            Clear();
             m_TrialMatrixGridData = trialMatrixGridData;
             DisplayChannels(trialMatrixGridData.ChannelStructs);
-
-            foreach (Transform child in m_DataContainer)
-            {
-                Destroy(child.gameObject);
-            }
-            m_Data = new Data[0];
-
+            if(colormap != null) Colormap = colormap;
             foreach (var data in trialMatrixGridData.Data) AddData(data);
         }
         #endregion
@@ -38,10 +66,6 @@ namespace HBP.UI.TrialMatrix.Grid
         #region Private Methods
         void DisplayChannels(ChannelStruct[] channels)
         {
-            foreach(Transform child in m_ChannelHeaderContainer)
-            {
-                Destroy(child.gameObject);
-            }
             foreach (var channel in channels)
             {
                 ChannelHeader header = Instantiate(m_ChannelHeaderPrefab, m_ChannelHeaderContainer).GetComponent<ChannelHeader>();
@@ -51,7 +75,28 @@ namespace HBP.UI.TrialMatrix.Grid
         void AddData(data.Data d)
         {
             Data data = Instantiate(m_DataPrefab, m_DataContainer).GetComponent<Data>();
-            data.Set(d, m_Colormap);
+            data.Set(d, m_Colormap, m_Colors);
+        }
+        Color[] ExtractColormap(Texture2D colormap)
+        {
+            Color[] colors = new Color[colormap.width];
+            for (int x = 0; x < colormap.width; x++)
+            {
+                colors[x] = colormap.GetPixel(x, 0);
+            }
+            return colors;
+        }
+        void Clear()
+        {
+            foreach (Transform child in m_DataContainer)
+            {
+                Destroy(child.gameObject);
+            }
+            foreach (Transform child in m_ChannelHeaderContainer)
+            {
+                Destroy(child.gameObject);
+            }
+            m_Data = new Data[0];
         }
         #endregion
     }

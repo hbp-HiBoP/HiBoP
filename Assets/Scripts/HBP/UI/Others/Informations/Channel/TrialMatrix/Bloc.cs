@@ -7,7 +7,6 @@ using System.Linq;
 using UnityEngine.UI;
 using Tools.Unity;
 using UnityEngine.EventSystems;
-using System;
 
 namespace HBP.UI.TrialMatrix
 {
@@ -37,7 +36,25 @@ namespace HBP.UI.TrialMatrix
         List<int> m_SelectedTrials = new List<int>();
         public ReadOnlyCollection<int> SelectedTrials { get { return new ReadOnlyCollection<int>(m_SelectedTrials); } }
 
+        Color[] m_Colors;
+        public Color[] Colors
+        {
+            get
+            {
+                return m_Colors;
+            }
+            set
+            {
+                m_Colors = value;
+                foreach (var subBloc in m_SubBlocs)
+                {
+                    subBloc.Colors = value;
+                }
+            }
+        }
+
         [SerializeField] GameObject m_SubBlocPrefab;
+        [SerializeField] GameObject m_SubBlocFillerPrefab;
         [SerializeField] RectTransform m_SubBlocContainer;
         [SerializeField] GameObject m_SelectionMaskPrefab;
         [SerializeField] RectTransform m_SelectionMaskContainer;
@@ -49,34 +66,27 @@ namespace HBP.UI.TrialMatrix
         #endregion
 
         #region Public Methods
-        public void Set(data.Bloc bloc, Texture2D colormap, Vector2 limits, IEnumerable<Tuple<Data.Experience.Protocol.SubBloc[], Tools.CSharp.Window>> timeLimitsByColumn)
+        public void Set(data.Bloc data, Color[] colors, Vector2 limits)
         {
-            Data = bloc;
-            Title = bloc.ProtocolBloc.Name;
+            Data = data;
+            Title = data.ProtocolBloc.Name;
             m_SelectionMasks = new List<GameObject>();
 
             Clear();
-            IOrderedEnumerable<Data.Experience.Protocol.SubBloc> orderedSubBlocs = bloc.ProtocolBloc.OrderedSubBlocs;
-            int mainSubBlocIndex = bloc.ProtocolBloc.MainSubBlocPosition;
+            IOrderedEnumerable<Data.Experience.Protocol.SubBloc> orderedSubBlocs = data.ProtocolBloc.OrderedSubBlocs;
+            int mainSubBlocIndex = data.ProtocolBloc.MainSubBlocPosition;
 
-            foreach (var tuple in timeLimitsByColumn)
+            foreach (var subBloc in data.SubBlocs)
             {
-                bool found = false;
-                foreach (var subBloc in bloc.SubBlocs)
+                if(subBloc.SubBlocProtocol == null)
                 {
-                    if (tuple.Item1.Contains(subBloc.SubBlocProtocol))
-                    {
-                        AddSubBloc(subBloc, colormap, limits, tuple.Item2);
-                        found = true;
-                        break;
-                    }
+                    AddFiller(subBloc.Window);
                 }
-                if (!found)
+                else
                 {
-                    AddFiller(tuple.Item2);
+                    AddSubBloc(subBloc, colors, limits);
                 }
             }
-
             SetSize();
         }
         public void SelectAllTrials()
@@ -199,20 +209,16 @@ namespace HBP.UI.TrialMatrix
                     break;
             }
         }
-        void AddSubBloc(data.SubBloc data, Texture2D colorMap, Vector2 limits, Tools.CSharp.Window window)
+        void AddSubBloc(data.SubBloc data, Color[] colors, Vector2 limits)
         {
             SubBloc subBloc = (Instantiate(m_SubBlocPrefab, m_SubBlocContainer) as GameObject).GetComponent<SubBloc>();
-            subBloc.Set(data, colorMap, limits, window);
+            subBloc.Set(data, colors, limits);
             m_SubBlocs.Add(subBloc);
         }
         void AddFiller(Tools.CSharp.Window window)
         {
-            GameObject filler = new GameObject("Filler");
-            filler.transform.SetParent(m_SubBlocContainer);
-            Image image = filler.AddComponent<Image>();
-            image.sprite = null;
-            image.color = new Color(40.0f/255,40f/255,40f/255);
-            filler.AddComponent<LayoutElement>().flexibleWidth = window.End - window.Start;
+            GameObject filler = Instantiate(m_SubBlocFillerPrefab, m_SubBlocContainer);
+            filler.GetComponent<LayoutElement>().flexibleWidth = window.End - window.Start;
             m_Fillers.Add(filler);
         }
         void Clear()

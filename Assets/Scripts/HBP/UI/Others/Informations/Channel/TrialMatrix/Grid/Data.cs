@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using d = HBP.Data.TrialMatrix.Grid;
@@ -86,6 +85,24 @@ namespace HBP.UI.TrialMatrix.Grid
         }
         public Texture2DEvent OnChangeColormap;
 
+        Color[] m_Colors;
+        public Color[] Colors
+        {
+            get
+            {
+                return m_Colors;
+            }
+            set
+            {
+                m_Colors = value;
+                foreach (var bloc in Blocs)
+                {
+                    bloc.Colors = value;
+                }
+            }
+        }
+
+
         List<Bloc> m_Blocs = new List<Bloc>();
         public Bloc[] Blocs
         {
@@ -100,39 +117,62 @@ namespace HBP.UI.TrialMatrix.Grid
         [SerializeField] GameObject m_BlocPrefab;
         [SerializeField] RectTransform m_BlocContainer;
 
-        [SerializeField] TimeLegend m_TimeLegend;
+        List<TimeLegend> m_TimeLegends = new List<TimeLegend>();
+        [SerializeField] GameObject m_TimeLegendPrefab;
+        [SerializeField] RectTransform m_TimeLegendContainer; 
         #endregion
 
         #region Public Methods
-        public void Set(d.Data data, Texture2D colormap)
+        public void Set(d.Data data, Texture2D colormap, Color[] colors)
         {
             m_Data = data;
             Title = data.Title;
             Colormap = colormap;
+            Colors = colors;
             Limits = data.Limits;
+            Clear();
 
-            List<Tools.CSharp.Window> windows = new List<Tools.CSharp.Window>();
             foreach (var channel in data.ChannelStructs)
             {
-                foreach (var window in data.TimeLimitsByColumn)
+                List<Tools.CSharp.Window> limits = new List<Tools.CSharp.Window>();
+                foreach (var tuple in data.SubBlocsAndWindowByColumn)
                 {
-                    windows.Add(window.Item2);
+                    limits.Add(tuple.Item2);
                 }
+                AddTimeLegend(limits.ToArray());
             }
-            m_TimeLegend.Limits = windows.ToArray();
 
             foreach (var bloc in data.Blocs)
             {
-                AddBloc(bloc, data.TimeLimitsByColumn);
+                AddBloc(bloc);
             }
         }
         #endregion
 
         #region Private Methods
-        void AddBloc(d.Bloc data, IEnumerable<Tuple<HBP.Data.Experience.Protocol.SubBloc[], Tools.CSharp.Window>> timeLimitsByColumn)
+        void Clear()
+        {
+            foreach (var timeLegend in m_TimeLegends)
+            {
+                Destroy(timeLegend.gameObject);
+            }
+            foreach (var bloc in m_Blocs)
+            {
+                Destroy(bloc.gameObject);
+            }
+            m_TimeLegends = new List<TimeLegend>();
+            m_Blocs = new List<Bloc>();
+        }
+        void AddTimeLegend(Tools.CSharp.Window[] limits)
+        {
+            TimeLegend timeLegend = Instantiate(m_TimeLegendPrefab, m_TimeLegendContainer).GetComponent<TimeLegend>();
+            timeLegend.Limits = limits;
+            m_TimeLegends.Add(timeLegend);
+        }
+        void AddBloc(d.Bloc data)
         {
             Bloc bloc = (Instantiate(m_BlocPrefab, m_BlocContainer) as GameObject).GetComponent<Bloc>();
-            bloc.Set(data, m_Colormap, m_Limits, timeLimitsByColumn);
+            bloc.Set(data, Colors, Limits);
             m_Blocs.Add(bloc);
         }
         #endregion

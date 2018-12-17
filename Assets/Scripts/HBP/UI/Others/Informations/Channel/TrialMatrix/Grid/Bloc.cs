@@ -50,6 +50,24 @@ namespace HBP.UI.TrialMatrix.Grid
             }
         }
 
+        Color[] m_Colors;
+        public Color[] Colors
+        {
+            get
+            {
+                return m_Colors;
+            }
+            set
+            {
+                m_Colors = value;
+                foreach (var channelBloc in BlocByChannel.Values)
+                {
+                    channelBloc.Colors = value;
+                }
+            }
+        }
+
+
         public Dictionary<data.ChannelBloc, ChannelBloc> BlocByChannel { get; set; }
 
         [SerializeField] GameObject m_ChannelBlocPrefab;
@@ -58,7 +76,7 @@ namespace HBP.UI.TrialMatrix.Grid
         #endregion
 
         #region Public Methods
-        public void Set(data.Bloc data, Texture2D colormap, Vector2 limits, IEnumerable<Tuple<HBP.Data.Experience.Protocol.SubBloc[], Tools.CSharp.Window>> timeLimitsByColumn)
+        public void Set(data.Bloc data, Color[] colors, Vector2 limits)
         {
             Title = data.Title;
             Clear();
@@ -66,27 +84,28 @@ namespace HBP.UI.TrialMatrix.Grid
             {
                 if(channelBloc.Found)
                 {
-                    AddChannelBloc(channelBloc, colormap, limits, timeLimitsByColumn);
+                    AddChannelBloc(channelBloc, colors, limits);
                 }
                 else
                 {
-                    AddFiller();
+                    AddFiller(channelBloc);
                 }
             }
         }
         #endregion
 
         #region Private Methods
-        void AddChannelBloc(data.ChannelBloc data, Texture2D colormap, Vector2 limits, IEnumerable<Tuple<HBP.Data.Experience.Protocol.SubBloc[], Tools.CSharp.Window>> timeLimitsByColumn)
+        void AddChannelBloc(data.ChannelBloc data, Color[] colors, Vector2 limits)
         {
             GameObject gameObject = Instantiate(m_ChannelBlocPrefab, m_ChannelBlocContainer);
             ChannelBloc channelBloc = gameObject.GetComponent<ChannelBloc>();
-            channelBloc.Set(data, colormap, limits, timeLimitsByColumn);
+            channelBloc.Set(data, colors, limits);
             BlocByChannel.Add(data, channelBloc);
         }
-        void AddFiller()
+        void AddFiller(data.ChannelBloc data)
         {
             GameObject gameObject = Instantiate(m_FillerPrefab, m_ChannelBlocContainer);
+            gameObject.name = data.Channel.Channel + " (" + data.Channel.Patient.Name + ")"; ;
         }
 
         void Clear()
