@@ -24,8 +24,7 @@ namespace HBP.Data.Experience.Dataset
 
             // Generate DataByBloc.
             DataByBloc = new Dictionary<Protocol.Bloc, BlocData>();
-            Dataset dataset = ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(d => d.Data.Contains(dataInfo));
-            Protocol.Protocol protocol = dataset != null ? dataset.Protocol : null;
+            Protocol.Protocol protocol = dataInfo.Dataset?.Protocol;
             if(protocol != null)
             {
                 foreach (var bloc in protocol.Blocs)

@@ -400,7 +400,7 @@ namespace HBP.Data.Visualization
                             throw new CannotFindDataInfoException(patient.ID, column.DataName);
                         }
                     }
-                    dataInfoByColumn.Add(column, GetDataInfo(column));
+                    dataInfoByColumn.Add(column, dataInfoForThisColumn);
                 }
                 catch (Exception e)
                 {
@@ -423,14 +423,14 @@ namespace HBP.Data.Visualization
             {
                 yield return Ninja.JumpToUnity;
                 progress += progressStep;
-                onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading ", dataInfo.Name + " for " + dataInfo.Patient.Name, " [" + (i + 1).ToString() + "/" + dataInfoCollectionLength + "]"));
+                onChangeProgress.Invoke(progress, 1.0f, new LoadingText("Loading ", string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name) + " for " + dataInfo.Patient.Name, " [" + (i + 1).ToString() + "/" + dataInfoCollectionLength + "]"));
                 yield return Ninja.JumpBack;
                 try
                 {
                     Experience.Dataset.Data data = DataManager.GetData(dataInfo);
                     foreach (var column in dataInfoByColumn.Keys)
                     {
-                        if (!data.DataByBloc[column.Bloc].IsValid)
+                        if (data.DataByBloc.ContainsKey(column.Bloc) && !data.DataByBloc[column.Bloc].IsValid)
                         {
                             additionalInformation = "No bloc " + column.Bloc.Name + " could be epoched.";
                             throw new Exception();
@@ -440,7 +440,7 @@ namespace HBP.Data.Visualization
                 catch (Exception e)
                 {
                     UnityEngine.Debug.LogException(e);
-                    exception = new CannotLoadDataInfoException(dataInfo.Name, dataInfo.Patient.ID, additionalInformation);
+                    exception = new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Dataset.Name), dataInfo.Patient.ID, additionalInformation);
                     break;
                 }
                 i++;
