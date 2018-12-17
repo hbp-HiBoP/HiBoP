@@ -68,8 +68,67 @@ namespace HBP.Data.TrialMatrix.Grid
         #region Private Methods
         static IOrderedEnumerable<ChannelTrial> SortTrials(p.Bloc bloc, IEnumerable<ChannelTrial> trials)
         {
-            // TODO
             IOrderedEnumerable<ChannelTrial> ordereredTrials = trials.OrderBy(t => t.IsValid);
+            string[] orders = bloc.Sort.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = orders.Length - 1; i >= 0; i--)
+            {
+                string order = orders[i];
+                string[] parts = order.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+                if(parts.Length == 3)
+                {
+                    string subBlocName = parts[0];
+                    string eventName = parts[1];
+                    string command = parts[2];
+                    p.SubBloc subBloc = bloc.SubBlocs.FirstOrDefault(s => s.Name == subBlocName);
+                    p.Event @event = subBloc.Events.FirstOrDefault(e => e.Name == eventName);
+                    if(command == "LATENCY")
+                    {
+                        List<ChannelTrial> channelTrialsFound = new List<ChannelTrial>();
+                        List<ChannelTrial> channelTrialsNotFound = new List<ChannelTrial>();
+                        foreach (var channelTrial in ordereredTrials)
+                        {
+                            if(channelTrial.ChannelSubTrialBySubBloc[subBloc].InformationsByEvent[@event].IsFound)
+                            {
+                                channelTrialsFound.Add(channelTrial);
+                            }
+                            else
+                            {
+                                channelTrialsNotFound.Add(channelTrial);
+                            }
+                        }
+                        ordereredTrials = channelTrialsFound.OrderBy(t => t.ChannelSubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().TimeFromMainEvent);
+                        foreach (var channelTrial in channelTrialsNotFound)
+                        {
+                            ordereredTrials.Append(channelTrial);
+                        }
+                    }
+                    else if(command == "CODE")
+                    {
+                        List<ChannelTrial> channelTrialsFound = new List<ChannelTrial>();
+                        List<ChannelTrial> channelTrialsNotFound = new List<ChannelTrial>();
+                        foreach (var channelTrial in ordereredTrials)
+                        {
+                            if (channelTrial.ChannelSubTrialBySubBloc[subBloc].InformationsByEvent[@event].IsFound)
+                            {
+                                channelTrialsFound.Add(channelTrial);
+                            }
+                            else
+                            {
+                                channelTrialsNotFound.Add(channelTrial);
+                            }
+                        }
+                        ordereredTrials = channelTrialsFound.OrderBy(t => t.ChannelSubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().Code);
+                        foreach (var channelTrial in channelTrialsNotFound)
+                        {
+                            ordereredTrials.Append(channelTrial);
+                        }
+                    }
+                    else
+                    {
+
+                    }
+                }
+            }
             return ordereredTrials;
         }
         #endregion

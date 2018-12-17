@@ -23,7 +23,7 @@ namespace HBP.Data.Experience.Dataset
         {
             SubTrialBySubBloc = subTrialBySubBloc;
         }
-        public Trial(Dictionary<string,float[]> valuesByChannel, int startIndex, POS.Occurence mainEventOccurence, int endIndex, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Protocol.Bloc bloc, Frequency frequency) : this()
+        public Trial(Dictionary<string,float[]> valuesByChannel, Dictionary<string, string> unitByChannel,  int startIndex, POS.Occurence mainEventOccurence, int endIndex, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Protocol.Bloc bloc, Frequency frequency) : this()
         {
             SubTrialBySubBloc = new Dictionary<SubBloc, SubTrial>(bloc.SubBlocs.Count); // Initialize dictionary
 
@@ -31,7 +31,7 @@ namespace HBP.Data.Experience.Dataset
             int mainSubBlocIndex = orderedSubBlocs.IndexOf(bloc.MainSubBloc); // Find main sub bloc index.
 
             // Generate main Sub Trial
-            SubTrial mainSubTrial = new SubTrial(valuesByChannel, mainEventOccurence, bloc.MainSubBloc, occurencesByEvent, frequency);
+            SubTrial mainSubTrial = new SubTrial(valuesByChannel, unitByChannel, mainEventOccurence, bloc.MainSubBloc, occurencesByEvent, frequency);
             SubTrialBySubBloc.Add(bloc.MainSubBloc, mainSubTrial);
 
             // Research before.
@@ -44,7 +44,7 @@ namespace HBP.Data.Experience.Dataset
                 if (occurences.Length > 0)
                 {
                     POS.Occurence mainEventOccurenceOfSecondaryBloc = occurences.LastOrDefault();
-                    subTrial = new SubTrial(valuesByChannel, mainEventOccurenceOfSecondaryBloc, subBloc, occurencesByEvent, frequency);
+                    subTrial = new SubTrial(valuesByChannel, unitByChannel, mainEventOccurenceOfSecondaryBloc, subBloc, occurencesByEvent, frequency);
                 }
                 else
                 {
@@ -65,7 +65,7 @@ namespace HBP.Data.Experience.Dataset
                 if (occurences.Length > 0)
                 {
                     POS.Occurence mainEventOccurenceOfSecondaryBloc = occurences.FirstOrDefault();
-                    subTrial = new SubTrial(valuesByChannel, mainEventOccurenceOfSecondaryBloc, subBloc, occurencesByEvent, frequency);
+                    subTrial = new SubTrial(valuesByChannel, unitByChannel, mainEventOccurenceOfSecondaryBloc, subBloc, occurencesByEvent, frequency);
                 }
                 else
                 {

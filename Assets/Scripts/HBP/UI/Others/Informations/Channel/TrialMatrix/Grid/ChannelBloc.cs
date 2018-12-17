@@ -59,6 +59,9 @@ namespace HBP.UI.TrialMatrix.Grid
         [SerializeField] GameObject m_SubBlocPrefab;
         [SerializeField] RectTransform m_SubBlocContainer;
 
+        [SerializeField] GameObject m_SelectionPrefab;
+        [SerializeField] RectTransform m_SelectionContainer;
+
         RectTransform m_RectTransform;
         LayoutElement m_LayoutElement;
         #endregion
@@ -87,6 +90,10 @@ namespace HBP.UI.TrialMatrix.Grid
         #endregion
 
         #region Private Methods    
+        void OnRectTransformDimensionsChange()
+        {
+            SetSize();
+        }
         void Awake()
         {
             m_LayoutElement = GetComponent<LayoutElement>();

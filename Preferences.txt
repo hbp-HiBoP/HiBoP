@@ -2,7 +2,7 @@
   "General": {
     "Project": {
       "DefaultName": "New project",
-      "DefaultLocation": "D:\\HBPProjects",
+      "DefaultLocation": "D:\\HiBoP Projects",
       "DefaultPatientDatabase": "Y:\\BrainVisaDB\\Epilepsy",
       "DefaultLocalizerDatabase": "Y:\\LOCA_DATABASE",
       "DefaultExportLocation": "D:/ScreenShot"
@@ -17,7 +17,7 @@
   "Data": {
     "EEG": {
       "Averaging": 1,
-      "Normalization": 0
+      "Normalization": 4
     },
     "Protocol": {
       "PositionAveraging": 1,
@@ -51,7 +51,7 @@
       "SubBlocFormat": 2,
       "TrialHeight": 8,
       "TrialRatio": 0.04981595,
-      "BlocRatio": 0.248159513
+      "BlocRatio": 0.50460124
     },
     "Graph": {
       "ShowCurvesOfMinimizedColumns": false

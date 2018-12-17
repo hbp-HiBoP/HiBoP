@@ -18,8 +18,8 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Constructors
-        public BlocData(RawData data, Protocol.Bloc bloc) : this(data.ValuesByChannel, data.POS, data.Frequency, bloc) { }
-        public BlocData(Dictionary<string,float[]> valuesByChannel, POS pos, Frequency frequency, Protocol.Bloc bloc)
+        public BlocData(RawData data, Protocol.Bloc bloc) : this(data.ValuesByChannel, data.UnitByChannel, data.POS, data.Frequency, bloc) { }
+        public BlocData(Dictionary<string,float[]> valuesByChannel, Dictionary<string, string> unitByChannel, POS pos, Frequency frequency, Protocol.Bloc bloc)
         {
             // Find all occurences for each event.
             Dictionary<Protocol.Event,EventOccurences> occurencesByEvent = bloc.SubBlocs.SelectMany((s) => s.Events).ToDictionary((e) => e, (e) => new EventOccurences(e.Codes.ToDictionary((c) => c, (c) => pos.GetOccurences(c).ToArray())));
@@ -36,7 +36,7 @@ namespace HBP.Data.Experience.Dataset
             {
                 startIndex = (i - 1 < 0) ? 0 : MainSubBlocMainEventOccurences[i - 1].Index;
                 endIndex = (i + 1 >= MainSubBlocMainEventOccurences.Length) ? int.MaxValue : MainSubBlocMainEventOccurences[i + 1].Index;
-                trials.Add(new Trial(valuesByChannel, startIndex, MainSubBlocMainEventOccurences[i] , endIndex, occurencesByEvent, bloc, frequency));
+                trials.Add(new Trial(valuesByChannel, unitByChannel, startIndex, MainSubBlocMainEventOccurences[i] , endIndex, occurencesByEvent, bloc, frequency));
             }
             Trials = trials.ToArray();
         }

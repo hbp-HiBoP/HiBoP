@@ -12,25 +12,28 @@ namespace HBP.Data.Experience.Dataset
         #region Properties
         public bool Found { get; set; }
         public Dictionary<Event, EventInformation> InformationsByEvent { get; set; }
+        public Dictionary<string, string> UnitByChannel { get; set; }
         public Dictionary<string, float[]> RawValuesByChannel { get; set; }
         public Dictionary<string, float[]> BaselineValuesByChannel { get; set; }
         public Dictionary<string, float[]> ValuesByChannel { get; set; }
         #endregion
 
         #region Constructors
-        public SubTrial(bool found) : this(new Dictionary<Event, EventInformation>(), new Dictionary<string, float[]>(), new Dictionary<string, float[]>(), found)
+        public SubTrial(bool found) : this(new Dictionary<Event, EventInformation>(), new Dictionary<string, string>(), new Dictionary<string, float[]>(), new Dictionary<string, float[]>(), found)
         {
         }
-        public SubTrial(Dictionary<Event, EventInformation> informationsByEvent, Dictionary<string, float[]> rawValuesByChannel, Dictionary<string, float[]> baselineValuesByChannel, bool found)
+        public SubTrial(Dictionary<Event, EventInformation> informationsByEvent, Dictionary<string, string> unitByChannel, Dictionary<string, float[]> rawValuesByChannel, Dictionary<string, float[]> baselineValuesByChannel, bool found)
         {
+            UnitByChannel = unitByChannel;
             InformationsByEvent = informationsByEvent;
             RawValuesByChannel = rawValuesByChannel;
             BaselineValuesByChannel = baselineValuesByChannel;
             Found = found;
         }
-        public SubTrial(Dictionary<string, float[]> valuesByChannel, POS.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Frequency frequency)
+        public SubTrial(Dictionary<string, float[]> valuesByChannel, Dictionary<string, string> unitByChannel, POS.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Frequency frequency)
         {
             RawValuesByChannel = EpochValues(valuesByChannel, mainEventOccurence.Index, subBloc.Window, frequency);
+            UnitByChannel = unitByChannel;
             ValuesByChannel = RawValuesByChannel.ToDictionary(kv => kv.Key, kv => kv.Value.Clone() as float[]);
             BaselineValuesByChannel = EpochValues(valuesByChannel, mainEventOccurence.Index, subBloc.Baseline, frequency);
             InformationsByEvent = FindEvents(mainEventOccurence,subBloc,occurencesByEvent, frequency);

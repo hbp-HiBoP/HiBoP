@@ -125,20 +125,16 @@ namespace HBP.UI.TrialMatrix
 
             // Set pixels
             UnityEngine.Profiling.Profiler.BeginSample("3.2");
+            float[] trial;
+            int start = 0;
             for (int y = 0; y < height; y++)
             {
+                trial = trials[height - 1 - y];
                 for (int x = 0; x < width; x++)
                 {
-                    float value = trials[height - 1 - y][x];
-                    if (float.IsNaN(value))
-                    {
-                        pixels[y*width + x] = Color.black;
-                    }
-                    else
-                    {
-                        pixels[y * width + x] = GetColor(value, limits, colors);
-                    }
+                    pixels[start + x] = GetColor(trial[x], limits, colors);
                 }
+                start += width;
             }
             UnityEngine.Profiling.Profiler.EndSample();
 
