@@ -1431,7 +1431,7 @@ namespace HBP.Module3D
             else
                 offset = 0.1f;
 
-            cut.Point = SceneInformation.MeshCenter + cut.Normal * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
+            cut.Point = SceneInformation.MeshCenter + cut.Normal.normalized * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
 
             SceneInformation.MeshGeometryNeedsUpdate = true;
             ResetIEEG();

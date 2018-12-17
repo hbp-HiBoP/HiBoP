@@ -135,10 +135,10 @@ namespace HBP.UI.Module3D
                 Cut.Orientation = (Data.Enums.CutOrientation)value;
                 if (Cut.Orientation == Data.Enums.CutOrientation.Custom)
                 {
-                    int x = 1, y = 0, z = 0;
-                    int.TryParse(m_CustomX.text, out x);
-                    int.TryParse(m_CustomY.text, out y);
-                    int.TryParse(m_CustomZ.text, out z);
+                    float x = 1, y = 0, z = 0;
+                    float.TryParse(m_CustomX.text, out x);
+                    float.TryParse(m_CustomY.text, out y);
+                    float.TryParse(m_CustomZ.text, out z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -163,10 +163,10 @@ namespace HBP.UI.Module3D
 
                 if (Cut.Orientation == Data.Enums.CutOrientation.Custom)
                 {
-                    int x = 1, y = 0, z = 0;
-                    int.TryParse(m_CustomX.text, out x);
-                    int.TryParse(m_CustomY.text, out y);
-                    int.TryParse(m_CustomZ.text, out z);
+                    float x = 1, y = 0, z = 0;
+                    float.TryParse(m_CustomX.text, out x);
+                    float.TryParse(m_CustomY.text, out y);
+                    float.TryParse(m_CustomZ.text, out z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -177,10 +177,10 @@ namespace HBP.UI.Module3D
 
                 if (Cut.Orientation == Data.Enums.CutOrientation.Custom)
                 {
-                    int x = 1, y = 0, z = 0;
-                    int.TryParse(m_CustomX.text, out x);
-                    int.TryParse(m_CustomY.text, out y);
-                    int.TryParse(m_CustomZ.text, out z);
+                    float x = 1, y = 0, z = 0;
+                    float.TryParse(m_CustomX.text, out x);
+                    float.TryParse(m_CustomY.text, out y);
+                    float.TryParse(m_CustomZ.text, out z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
@@ -191,10 +191,10 @@ namespace HBP.UI.Module3D
 
                 if (Cut.Orientation == Data.Enums.CutOrientation.Custom)
                 {
-                    int x = 1, y = 0, z = 0;
-                    int.TryParse(m_CustomX.text, out x);
-                    int.TryParse(m_CustomY.text, out y);
-                    int.TryParse(m_CustomZ.text, out z);
+                    float x = 1, y = 0, z = 0;
+                    float.TryParse(m_CustomX.text, out x);
+                    float.TryParse(m_CustomY.text, out y);
+                    float.TryParse(m_CustomZ.text, out z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
                 m_Scene.UpdateCutPlane(Cut, true);
