@@ -30,11 +30,24 @@ namespace HBP.Data.Experience.Dataset
         }
         public SubTrial(Dictionary<string, float[]> valuesByChannel, POS.Occurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Frequency frequency)
         {
-            RawValuesByChannel = EpochValues(valuesByChannel, mainEventOccurence.Index, subBloc.Window, frequency);
-            ValuesByChannel = RawValuesByChannel.ToDictionary(kv => kv.Key, kv => kv.Value.Clone() as float[]);
-            BaselineValuesByChannel = EpochValues(valuesByChannel, mainEventOccurence.Index, subBloc.Baseline, frequency);
-            InformationsByEvent = FindEvents(mainEventOccurence,subBloc,occurencesByEvent, frequency);
-            Found = true;
+            int startIndex = mainEventOccurence.Index + frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start);
+            int endIndex = mainEventOccurence.Index + frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End);
+            if (startIndex >= 0)
+            {
+                RawValuesByChannel = EpochValues(valuesByChannel, startIndex, endIndex);
+                ValuesByChannel = RawValuesByChannel.ToDictionary(kv => kv.Key, kv => kv.Value.Clone() as float[]);
+                BaselineValuesByChannel = EpochValues(valuesByChannel, startIndex, endIndex);
+                InformationsByEvent = FindEvents(mainEventOccurence, subBloc, occurencesByEvent, frequency);
+                Found = true;
+            }
+            else
+            {
+                RawValuesByChannel = new Dictionary<string, float[]>();
+                ValuesByChannel = new Dictionary<string, float[]>();
+                BaselineValuesByChannel = new Dictionary<string, float[]>();
+                InformationsByEvent = new Dictionary<Event, EventInformation>();
+                Found = false;
+            }
         }
         #endregion
 
@@ -57,14 +70,10 @@ namespace HBP.Data.Experience.Dataset
         #endregion
 
         #region Private Methods
-        Dictionary<string,float[]> EpochValues(Dictionary<string,float[]> valuesByChannel,int mainEventIndex, Window window, Frequency frequency)
+        Dictionary<string,float[]> EpochValues(Dictionary<string,float[]> valuesByChannel, int startIndex, int endIndex)
         {
             // Initialize
             Dictionary<string, float[]> result = new Dictionary<string, float[]>(valuesByChannel.Count);
-
-            // Calculate start and end indexes of the window.
-            int startIndex = mainEventIndex + frequency.ConvertToCeiledNumberOfSamples(window.Start);
-            int endIndex = mainEventIndex + frequency.ConvertToFlooredNumberOfSamples(window.End);
 
             // GetValues.
             int length = endIndex - startIndex + 1;
