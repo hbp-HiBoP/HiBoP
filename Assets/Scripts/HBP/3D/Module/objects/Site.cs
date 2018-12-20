@@ -118,12 +118,17 @@ namespace HBP.Module3D
             set
             {
                 m_MarsAtlasIndex = value;
-                MarsAtlasName = ApplicationState.Module3D.MarsAtlasIndex.FullName(value);
-                BroadmanAreaName = ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(value);
+                MarsAtlasLabel = string.Format("{0}/{1}/{2}/{3}",
+                    ApplicationState.Module3D.MarsAtlasIndex.Hemisphere(value).Replace('_', ' '),
+                    ApplicationState.Module3D.MarsAtlasIndex.Lobe(value).Replace('_', ' '),
+                    ApplicationState.Module3D.MarsAtlasIndex.NameFS(value).Replace('_', ' '),
+                    ApplicationState.Module3D.MarsAtlasIndex.FullName(value).Replace('_', ' '));
+                BroadmanAreaName = ApplicationState.Module3D.MarsAtlasIndex.BroadmanArea(value).Replace('_', ' ');
             }
         }
-        public string MarsAtlasName { get; private set; }
+        public string MarsAtlasLabel { get; private set; }
         public string BroadmanAreaName { get; private set; }
+        public string FreesurferLabel { get; set; }
 
         public string PatientID
         {

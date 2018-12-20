@@ -696,6 +696,12 @@ namespace HBP.Module3D
             {
                 return site_mars_atlas_label_PatientElectrodesList(_handle, patientId, electrodeId, siteId);
             }
+
+            public string FreesurferLabelOfSite(int patientID, int electrodeID, int siteID)
+            {
+                IntPtr result = site_freesurfer_label_PatientElectrodesList(_handle, patientID, electrodeID, siteID);
+                return Marshal.PtrToStringAnsi(result);
+            }
             #endregion
 
             #region Memory Management
@@ -806,6 +812,9 @@ namespace HBP.Module3D
 
             [DllImport("hbp_export", EntryPoint = "site_mars_atlas_label_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
             static private extern int site_mars_atlas_label_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, int siteId);
+
+            [DllImport("hbp_export", EntryPoint = "site_freesurfer_label_PatientElectrodesList", CallingConvention = CallingConvention.Cdecl)]
+            static private extern IntPtr site_freesurfer_label_PatientElectrodesList(HandleRef handlePatientElectrodesList, int patientId, int electrodeId, int siteId);
 
             #endregion
         }

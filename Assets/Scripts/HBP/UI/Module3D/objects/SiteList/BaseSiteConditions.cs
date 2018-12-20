@@ -61,7 +61,7 @@ public abstract class BaseSiteConditions : MonoBehaviour
     }
     protected bool CheckMarsAtlasName(Site site, string marsAtlasName)
     {
-        return site.Information.MarsAtlasName.ToLower().Contains(marsAtlasName.ToLower());
+        return site.Information.MarsAtlasLabel.ToLower().Contains(marsAtlasName.ToLower());
     }
     protected bool CheckBroadmanAreaName(Site site, string broadmanAreaName)
     {

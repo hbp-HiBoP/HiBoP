@@ -1227,6 +1227,7 @@ namespace HBP.Module3D
                         site.Information.SiteNumber = kk;
                         site.Information.GlobalID = currPlotNb++;
                         site.Information.MarsAtlasIndex = electrodesList.MarsAtlasLabelOfSite(ii, jj, kk);
+                        site.Information.FreesurferLabel = electrodesList.FreesurferLabelOfSite(ii, jj, kk).Replace('_', ' ');
                         site.State.IsBlackListed = false;
                         site.State.IsHighlighted = false;
                         site.State.IsExcluded = false;

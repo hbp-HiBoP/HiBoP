@@ -22,6 +22,7 @@ namespace HBP.UI.Module3D
         [SerializeField] Text m_CCEPLatencyText;
         [SerializeField] Text m_MarsAtlasText;
         [SerializeField] Text m_BroadmanText;
+        [SerializeField] Text m_FreesurferText;
         [SerializeField] RectTransform m_Canvas;
 
         Data.Enums.SiteInformationDisplayMode m_CurrentMode = Data.Enums.SiteInformationDisplayMode.Anatomy;
@@ -151,8 +152,8 @@ namespace HBP.UI.Module3D
         {
             if (siteInfo.Site)
             {
-                string marsAtlasText = siteInfo.Site.Information.MarsAtlasName;
-                if (marsAtlasText != "No_info" && marsAtlasText != "not found")
+                string marsAtlasText = siteInfo.Site.Information.MarsAtlasLabel;
+                if (!marsAtlasText.Contains("No info") && !marsAtlasText.Contains("not found"))
                 {
                     m_MarsAtlasText.transform.parent.gameObject.SetActive(true);
                     m_MarsAtlasText.text = marsAtlasText;
@@ -162,7 +163,7 @@ namespace HBP.UI.Module3D
                     m_MarsAtlasText.transform.parent.gameObject.SetActive(false);
                 }
                 string broadmanText = siteInfo.Site.Information.BroadmanAreaName;
-                if (broadmanText != "No_info" && broadmanText != "not found")
+                if (!broadmanText.Contains("No info") && !broadmanText.Contains("not found"))
                 {
                     m_BroadmanText.transform.parent.gameObject.SetActive(true);
                     m_BroadmanText.text = broadmanText;
@@ -170,6 +171,16 @@ namespace HBP.UI.Module3D
                 else
                 {
                     m_BroadmanText.transform.parent.gameObject.SetActive(false);
+                }
+                string freesurferText = siteInfo.Site.Information.FreesurferLabel;
+                if (!freesurferText.Contains("not in a freesurfer parcel"))
+                {
+                    m_FreesurferText.transform.parent.gameObject.SetActive(true);
+                    m_FreesurferText.text = freesurferText;
+                }
+                else
+                {
+                    m_FreesurferText.transform.parent.gameObject.SetActive(false);
                 }
             }
         }
