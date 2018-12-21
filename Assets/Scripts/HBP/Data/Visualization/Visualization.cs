@@ -393,11 +393,14 @@ namespace HBP.Data.Visualization
                 try
                 {
                     IEnumerable<DataInfo> dataInfoForThisColumn = GetDataInfo(column);
-                    foreach (Patient patient in Patients)
+                    if (dataInfoForThisColumn.Select(d => d.Patient).Distinct().Count() != Patients.Count)
                     {
-                        if (!dataInfoForThisColumn.Any((dataInfo) => dataInfo.Patient == patient))
+                        foreach (Patient patient in Patients)
                         {
-                            throw new CannotFindDataInfoException(patient.ID, column.DataName);
+                            if (!dataInfoForThisColumn.Any((dataInfo) => dataInfo.Patient == patient))
+                            {
+                                throw new CannotFindDataInfoException(patient.ID, column.DataName);
+                            }
                         }
                     }
                     dataInfoByColumn.Add(column, dataInfoForThisColumn);
