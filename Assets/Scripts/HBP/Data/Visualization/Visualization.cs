@@ -147,7 +147,7 @@ namespace HBP.Data.Visualization
         /// <param name="patient">Patient to add.</param>
         public void AddPatient(Patient patient)
         {
-            if (!Patients.Contains(patient)) m_PatientsID.Add(patient.ID);
+            if (!m_PatientsID.Contains(patient.ID)) m_PatientsID.Add(patient.ID);
         }
         /// <summary>
         /// Add patients to the visualization.

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using HBP.Data;
 using HBP.UI.Anatomy;
 using HBP.Data.Visualization;
+using System.Collections.ObjectModel;
 
 namespace HBP.UI.Visualization
 {
@@ -126,7 +127,16 @@ namespace HBP.UI.Visualization
             m_NameInputField.text = ItemTemp.Name;
 
             m_VisualizationPatientsListGestion.Objects = ItemTemp.Patients.ToList();
-            m_ProjectPatientsListGestion.Objects = ApplicationState.ProjectLoaded.Patients.Where(p => !objectToDisplay.Patients.Contains(p)).ToList();
+
+            ReadOnlyCollection<Patient> visualizationPatients = objectToDisplay.Patients;
+            m_ProjectPatientsListGestion.Objects = new List<Patient>();
+            foreach (var patient in ApplicationState.ProjectLoaded.Patients)
+            {
+                if (!visualizationPatients.Contains(patient))
+                {
+                    m_ProjectPatientsListGestion.Objects.Add(patient);
+                }
+            }
 
             if (objectToDisplay.Columns.Count > 0)
             {

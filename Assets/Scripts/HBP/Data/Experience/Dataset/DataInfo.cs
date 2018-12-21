@@ -38,15 +38,16 @@ namespace HBP.Data.Experience.Dataset
             set { m_Name = value; m_NameErrors = GetNameErrors(); }
         }
 
-        [DataMember(Name = "Patient")] string m_Patient;
+        [DataMember(Name = "Patient")] string m_PatientID;
+        Patient m_Patient;
         /// <summary>
         /// Patient who has passed the experiment.
         /// </summary>
         ///
         public Patient Patient
         {
-            get { return ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_Patient); }
-            set { m_Patient = value.ID; m_PatientErrors = GetPatientErrors(); }
+            get { return m_Patient; }
+            set { m_PatientID = value.ID; m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID); m_PatientErrors = GetPatientErrors(); }
         }
 
         [DataMember(Name = "Measure")] string m_Measure;
@@ -374,6 +375,14 @@ namespace HBP.Data.Experience.Dataset
                     break;
             }
             return message;
+        }
+        #endregion
+
+        #region Serialization
+        [OnDeserialized()]
+        public void OnDeserialized(StreamingContext context)
+        {
+            m_Patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID == m_PatientID);
         }
         #endregion
     }
