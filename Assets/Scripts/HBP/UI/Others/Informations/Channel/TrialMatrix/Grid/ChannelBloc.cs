@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using dg = HBP.Data.TrialMatrix.Grid;
 using data = HBP.Data.TrialMatrix;
 using UnityEngine.Events;
+using System.Linq;
 
 namespace HBP.UI.TrialMatrix.Grid
 {
@@ -46,16 +47,27 @@ namespace HBP.UI.TrialMatrix.Grid
             }
         }
 
+        public bool IsHovered
+        {
+            get
+            {
+                return SubBlocs.Any(s => s.IsHovered);
+            }
+        }
+        public UnityEvent OnChangeIsHovered;
 
         public dg.ChannelBloc Data { private set; get; }
 
+        public SubBloc SubBlocHovered
+        {
+            get
+            {
+                return SubBlocs.FirstOrDefault(c => c.IsHovered);
+            }
+        }
         List<SubBloc> m_SubBlocs = new List<SubBloc>();
         public ReadOnlyCollection<SubBloc> SubBlocs { get { return new ReadOnlyCollection<SubBloc>(m_SubBlocs); } }
 
-        List<GameObject> m_Fillers = new List<GameObject>();
-        public ReadOnlyCollection<GameObject> Fillers { get { return new ReadOnlyCollection<GameObject>(m_Fillers); } }
-
-        [SerializeField] GameObject m_SubBlocFillerPrefab;
         [SerializeField] GameObject m_SubBlocPrefab;
         [SerializeField] RectTransform m_SubBlocContainer;
 
@@ -72,19 +84,8 @@ namespace HBP.UI.TrialMatrix.Grid
             Title = data.Channel.Channel + " (" + data.Channel.Patient.Name + ")";
             Colors = colors;
             Data = data;
-
             Clear();
-            foreach (var subBloc in data.SubBlocs)
-            {
-                if(subBloc.IsFiller)
-                {
-                    AddFiller(subBloc.Window);
-                }
-                else
-                {
-                    AddSubBloc(subBloc, colors, limits);
-                }
-            }
+            foreach (var subBloc in data.SubBlocs) AddSubBloc(subBloc, colors, limits);
             SetSize();
         }
         #endregion
@@ -101,30 +102,32 @@ namespace HBP.UI.TrialMatrix.Grid
         }
         void SetSize()
         {
-            switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
+            if(Data.IsFound)
             {
-                case HBP.Data.Enums.BlocFormatType.TrialHeight:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs[0].SubTrials.Length;
-                    break;
-                case HBP.Data.Enums.BlocFormatType.TrialRatio:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs[0].SubTrials.Length;
-                    break;
-                case HBP.Data.Enums.BlocFormatType.BlocRatio:
-                    m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
-                    break;
+                switch (ApplicationState.UserPreferences.Visualization.TrialMatrix.SubBlocFormat)
+                {
+                    case HBP.Data.Enums.BlocFormatType.TrialHeight:
+                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialHeight * Data.SubBlocs[0].SubTrials.Length;
+                        break;
+                    case HBP.Data.Enums.BlocFormatType.TrialRatio:
+                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.TrialRatio * m_RectTransform.rect.width * Data.SubBlocs[0].SubTrials.Length;
+                        break;
+                    case HBP.Data.Enums.BlocFormatType.BlocRatio:
+                        m_LayoutElement.preferredHeight = ApplicationState.UserPreferences.Visualization.TrialMatrix.BlocRatio * m_RectTransform.rect.width;
+                        break;
+                }
+            }
+            else
+            {
+                m_LayoutElement.flexibleHeight = 1;
             }
         }
         void AddSubBloc(data.SubBloc data, Color[] colors, Vector2 limits)
         {
             SubBloc subBloc = Instantiate(m_SubBlocPrefab, m_SubBlocContainer).GetComponent<SubBloc>();
             subBloc.Set(data, colors, limits);
+            subBloc.OnChangeIsHovered.AddListener(() => OnChangeIsHovered.Invoke());
             m_SubBlocs.Add(subBloc);
-        }
-        void AddFiller(Tools.CSharp.Window window)
-        {
-            GameObject filler = Instantiate(m_SubBlocFillerPrefab, m_SubBlocContainer);
-            filler.GetComponent<LayoutElement>().flexibleWidth = window.End - window.Start;
-            m_Fillers.Add(filler);
         }
         void Clear()
         {
@@ -132,12 +135,7 @@ namespace HBP.UI.TrialMatrix.Grid
             {
                 Destroy(subBloc.gameObject);
             }
-            foreach (var filler in m_Fillers)
-            {
-                Destroy(filler);
-            }
             m_SubBlocs = new List<SubBloc>();
-            m_Fillers = new List<GameObject>();
         }
         #endregion
     }

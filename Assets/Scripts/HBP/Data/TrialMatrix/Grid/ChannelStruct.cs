@@ -1,4 +1,5 @@
 ﻿using HBP.Data.Experience.Dataset;
+using System.Collections.Generic;
 
 namespace HBP.Data.Informations
 {
@@ -18,13 +19,22 @@ namespace HBP.Data.Informations
     {
         public Dataset Dataset { get; set; }
         public string Data { get; set; }
-        public Experience.Protocol.Bloc[] Blocs { get; set; }
+        public List<Experience.Protocol.Bloc> Blocs { get; set; }
 
-        public DataStruct(Dataset dataset, string data, Experience.Protocol.Bloc[] blocs = null)
+        public DataStruct(Dataset dataset, string data, List<Experience.Protocol.Bloc> blocs = null)
         {
             Dataset = dataset;
             Data = data;
             Blocs = blocs;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if(!(obj is DataStruct))
+                return false;
+
+            DataStruct dataStruct = (DataStruct)obj;
+            return dataStruct.Dataset == Dataset && dataStruct.Data == Data;
         }
     }
 }

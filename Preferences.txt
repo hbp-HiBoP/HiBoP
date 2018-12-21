@@ -2,7 +2,7 @@
   "General": {
     "Project": {
       "DefaultName": "New project",
-      "DefaultLocation": "D:\\HiBoP Projects",
+      "DefaultLocation": "D:\\HBPProjects",
       "DefaultPatientDatabase": "Y:\\BrainVisaDB\\Epilepsy",
       "DefaultLocalizerDatabase": "Y:\\LOCA_DATABASE",
       "DefaultExportLocation": "D:/ScreenShot"
@@ -44,10 +44,10 @@
       "DefaultSelectedImplantationInMultiPatientsVisualization": "MNI"
     },
     "TrialMatrix": {
-      "ShowWholeProtocol": false,
+      "ShowWholeProtocol": true,
       "TrialsSynchronization": true,
-      "TrialSmoothing": false,
-      "NumberOfIntermediateValues": 3,
+      "TrialSmoothing": true,
+      "NumberOfIntermediateValues": 5,
       "SubBlocFormat": 2,
       "TrialHeight": 8,
       "TrialRatio": 0.04981595,

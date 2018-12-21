@@ -14,22 +14,19 @@ namespace HBP.Data.TrialMatrix.Grid
         public string Title { get; set; }
         public Bloc[] Blocs { get; set; }
         public Vector2 Limits { get; set; }
-        public bool UseAutoLimits { get; set; }
         public Tuple<p.SubBloc[], Window>[] SubBlocsAndWindowByColumn { get; }
         public DataStruct DataStruct { get; set; }
         public ChannelStruct[] ChannelStructs { get; set; }
         #endregion
 
         #region Constructors
-        public Data(DataStruct dataStruct, ChannelStruct[] channelStructs, IEnumerable<Experience.Protocol.Bloc> blocsToDisplay = null)
+        public Data(DataStruct dataStruct, ChannelStruct[] channelStructs)
         {
             Title = dataStruct.Dataset.Name + " " + dataStruct.Data;
-
-            if (blocsToDisplay == null) blocsToDisplay = dataStruct.Dataset.Protocol.OrderedBlocs;
-            Blocs = blocsToDisplay.Select(bloc => new Bloc(bloc, dataStruct, channelStructs)).ToArray();
+            Blocs = dataStruct.Blocs.Select(bloc => new Bloc(bloc, dataStruct, channelStructs)).ToArray();
 
             Limits = CalculateLimits(Blocs);
-            SubBlocsAndWindowByColumn = GetSubBlocsAndWindowByColumn(blocsToDisplay);
+            SubBlocsAndWindowByColumn = GetSubBlocsAndWindowByColumn(dataStruct.Blocs);
             foreach (var bloc in Blocs)
             {
                 foreach (var channelBloc in bloc.ChannelBlocs)
@@ -51,7 +48,7 @@ namespace HBP.Data.TrialMatrix.Grid
             {
                 foreach(var channelBloc in bloc.ChannelBlocs)
                 {
-                    if(channelBloc.Found)
+                    if(channelBloc.IsFound)
                     {
                         foreach (var subBloc in channelBloc.SubBlocs)
                         {
@@ -85,10 +82,10 @@ namespace HBP.Data.TrialMatrix.Grid
             foreach (var tuple in subBlocsByColumns)
             {
                 Window window = new Window(tuple.Item2.Min(s => s.Window.Start), tuple.Item2.Max(s => s.Window.End));
-                foreach (var subBloc in tuple.Item2)
-                {
-                    subBloc.Window = window;
-                }
+                //foreach (var subBloc in tuple.Item2)
+                //{
+                //    subBloc.Window = window;
+                //}
                 timeLimitsByColumns.Add( new Tuple<p.SubBloc[], Window>(tuple.Item2.ToArray(), window));
             }
             return timeLimitsByColumns.ToArray();

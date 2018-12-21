@@ -1,5 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using data = HBP.Data.TrialMatrix.Grid;
@@ -9,6 +10,19 @@ namespace HBP.UI.TrialMatrix.Grid
     public class Bloc : MonoBehaviour
     {
         #region Properties
+        data.Bloc m_Data;
+        public data.Bloc Data
+        {
+            get
+            {
+                return m_Data;
+            }
+            set
+            {
+                Set(value, Colors, Limits);
+            }
+        }
+
         string m_Title;
         public string Title
         {
@@ -39,9 +53,9 @@ namespace HBP.UI.TrialMatrix.Grid
                 if (value != null && value != m_Limits)
                 {
                     m_Limits = value;
-                    foreach (var bloc in BlocByChannel.Values)
+                    foreach (var channelBloc in ChannelBlocs)
                     {
-                        foreach (var subBloc in bloc.SubBlocs)
+                        foreach (var subBloc in channelBloc.SubBlocs)
                         {
                             subBloc.Limits = value;
                         }
@@ -60,36 +74,51 @@ namespace HBP.UI.TrialMatrix.Grid
             set
             {
                 m_Colors = value;
-                foreach (var channelBloc in BlocByChannel.Values)
+                foreach (var channelBloc in ChannelBlocs)
                 {
                     channelBloc.Colors = value;
                 }
             }
         }
 
+        public bool IsHovered
+        {
+            get
+            {
+                return ChannelBlocs.Any(channelBloc => channelBloc.IsHovered);
+            }
+        }
+        public UnityEvent OnChangeIsHovered;
 
-        public Dictionary<data.ChannelBloc, ChannelBloc> BlocByChannel { get; set; }
+        public ChannelBloc ChannelBlocHovered
+        {
+            get
+            {
+                return ChannelBlocs.FirstOrDefault(c => c.IsHovered);
+            }
+        }
+        List<ChannelBloc> m_ChannelBlocs = new List<ChannelBloc>();
+        public ReadOnlyCollection<ChannelBloc> ChannelBlocs
+        {
+            get
+            {
+                return new ReadOnlyCollection<ChannelBloc>(m_ChannelBlocs);
+            }
+        }
 
         [SerializeField] GameObject m_ChannelBlocPrefab;
-        [SerializeField] GameObject m_FillerPrefab;
         [SerializeField] RectTransform m_ChannelBlocContainer;
         #endregion
 
         #region Public Methods
         public void Set(data.Bloc data, Color[] colors, Vector2 limits)
         {
+            m_Data = data;
             Title = data.Title;
             Clear();
             foreach (var channelBloc in data.ChannelBlocs)
             {
-                if(channelBloc.Found)
-                {
-                    AddChannelBloc(channelBloc, colors, limits);
-                }
-                else
-                {
-                    AddFiller(channelBloc);
-                }
+                AddChannelBloc(channelBloc, colors, limits);
             }
         }
         #endregion
@@ -100,21 +129,16 @@ namespace HBP.UI.TrialMatrix.Grid
             GameObject gameObject = Instantiate(m_ChannelBlocPrefab, m_ChannelBlocContainer);
             ChannelBloc channelBloc = gameObject.GetComponent<ChannelBloc>();
             channelBloc.Set(data, colors, limits);
-            BlocByChannel.Add(data, channelBloc);
+            channelBloc.OnChangeIsHovered.AddListener(() => OnChangeIsHovered.Invoke());
+            m_ChannelBlocs.Add(channelBloc);
         }
-        void AddFiller(data.ChannelBloc data)
-        {
-            GameObject gameObject = Instantiate(m_FillerPrefab, m_ChannelBlocContainer);
-            gameObject.name = data.Channel.Channel + " (" + data.Channel.Patient.Name + ")"; ;
-        }
-
         void Clear()
         {
             foreach (Transform child in m_ChannelBlocContainer)
             {
                 Destroy(child.gameObject);
             }
-            BlocByChannel = new Dictionary<data.ChannelBloc, ChannelBloc>();
+            m_ChannelBlocs = new List<ChannelBloc>();
         }
         #endregion
     }
